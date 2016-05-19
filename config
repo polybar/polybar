@@ -40,10 +40,10 @@
 ;   internal/bspwm
 ;   internal/cpu
 ;   internal/date
+;   internal/i3
 ;   internal/memory
 ;   internal/mpd
 ;   internal/network
-;   internal/rtorrent
 ;   internal/volume
 ;
 ;   custom/text

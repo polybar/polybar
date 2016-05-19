@@ -1,27 +1,21 @@
-; vim:ft=dosini
 
 [bar/external_top]
 monitor = HDMI1
 width = 100%
 height = 27
-
 background = #111111
 foreground = #ccffffff
 linecolor = ${bar/external_top.background}
-
 spacing = 3
 lineheight = 2
 padding_right = 3
 module_margin_left = 0
 module_margin_right = 6
-
 font:0 = NotoSans-Regular:size=8;0
 font:1 = Unifont:size=6;-3
 font:2 = FontAwesome:size=8;-2
 font:3 = NotoSans-Regular:size=8;-1
 font:4 = MaterialIcons:size=10;0
-
-; modules:left = wireless-network wired-network battery cpu
 modules:left = cpu
 
 [module/wireless-network]
@@ -33,7 +27,6 @@ format:connected = <ramp:signal> <label:connected>
 label:connected = %essid%
 label:disconnected =    not connected
 label:disconnected:foreground = #66000000
-
 ramp:signal:0 = 
 ramp:signal:0:foreground = #33000000
 ramp:signal:1 = 
@@ -45,65 +38,18 @@ ramp:signal:3:foreground = #cc000000
 ramp:signal:4 = 
 ramp:signal:4:foreground = #000000ff
 
-
 [module/wired-network]
 type = internal/network
 interface = net0
 interval = 2.0
 label:connected =    %{T3}%local_ip%%{T-}
 
-
 [module/battery]
 type = internal/battery
-
-;battery = BAT0
-;adapter = ADP1
 full_at = 99
-
-; Available tags:
-;   <label:charging> (default)
-;   <bar:capaity>
-;   <ramp:capacity>
-;   <animation:charging>
 format:charging = <bar:capacity> <label:charging>
-
-; Available tags:
-;   <label:discharging> (default)
-;   <bar:capaity>
-;   <ramp:capacity>
 format:discharging = <bar:capacity> <label:discharging>
-
-; Available tags:
-;   <label:full> (default)
-;   <bar:capaity>
-;   <ramp:capacity>
 format:full = <bar:capacity> <label:full>
-
-; Available tokens:
-;   %percentage% (default)
-;label:charging = Charging %percentage%
-
-; Available tokens:
-;   %percentage% (default)
-;label:discharging = Discharging %percentage%
-
-; Available tokens:
-;   %percentage% (default)
-;label:full = Fully charged
-
-; Required if <ramp:capacity> is used
-; ramp:capacity:0 = 
-; ramp:capacity:0:foreground = #f53c3c
-; ramp:capacity:1 = 
-; ramp:capacity:1:foreground = #ffa900
-; ramp:capacity:2 = 
-; ramp:capacity:2:foreground = #ffffff
-; ramp:capacity:3 = 
-; ramp:capacity:3:foreground = #ffffff
-; ramp:capacity:4 = 
-; ramp:capacity:4:foreground = #ffffff
-
-; Required if <bar:capacity> is used
 bar:capacity:width = 10
 bar:capacity:format = %{+u}%{+o}%fill%%empty%%{-u}%{-o}
 bar:capacity:fill = █
@@ -117,18 +63,6 @@ bar:capacity:foreground:0 = #55aa55
 bar:capacity:foreground:1 = #557755
 bar:capacity:foreground:2 = #f5a70a
 bar:capacity:foreground:3 = #ff5555
-
-; Required if <animation:charging> is used
-; animation:charging:0 = %{T3}%{F#ddffffff}%{+u}%{+o}█%{F#44ffffff}█████████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:1 = %{T3}%{F#ddffffff}%{+u}%{+o}██%{F#44ffffff}████████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:2 = %{T3}%{F#ddffffff}%{+u}%{+o}███%{F#44ffffff}███████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:3 = %{T3}%{F#ddffffff}%{+u}%{+o}████%{F#44ffffff}██████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:4 = %{T3}%{F#ddffffff}%{+u}%{+o}█████%{F#44ffffff}█████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:5 = %{T3}%{F#ddffffff}%{+u}%{+o}██████%{F#44ffffff}████%{T-}%{F-}%{-u}%{-o}
-; animation:charging:6 = %{T3}%{F#ddffffff}%{+u}%{+o}███████%{F#44ffffff}███%{T-}%{F-}%{-u}%{-o}
-; animation:charging:7 = %{T3}%{F#ddffffff}%{+u}%{+o}████████%{F#44ffffff}██%{T-}%{F-}%{-u}%{-o}
-; animation:charging:8 = %{T3}%{F#ddffffff}%{+u}%{+o}█████████%{F#44ffffff}█%{T-}%{F-}%{-u}%{-o}
-; animation:charging:9 = %{T3}%{F#ddffffff}%{+u}%{+o}██████████%{T-}%{F-}%{-u}%{-o}
 animation:charging:0 = 
 animation:charging:1 = 
 animation:charging:2 = 
@@ -136,25 +70,11 @@ animation:charging:3 = 
 animation:charging:4 = 
 animation:charging:framerate_ms = 750
 
-
 [module/cpu]
 type = internal/cpu
-
-; Seconds to sleep between updates
 interval = 0.5
-
-; Available tags:
-;   <label> (default)
-;   <bar:load>
-;   <ramp:load>
-;   <ramp:load_per_core>
 format = <label> <ramp:load_per_core>
-
-; Available tokens:
-;   %percentage% (default)
 label = CPU
-
-; Required if <ramp:core_load> is used
 ramp:load_per_core:0 = ▁
 ramp:load_per_core:0:font = 2
 ramp:load_per_core:0:foreground = #55aa55
@@ -180,8 +100,3 @@ ramp:load_per_core:7 = █
 ramp:load_per_core:7:font = 2
 ramp:load_per_core:7:foreground = #ff5555
 
-; Required if <bar:total_load> is used
-;bar:total_load:width = 10
-;bar:total_load:indicator = |
-;bar:total_load:fill = =
-;bar:total_load:empty = =
