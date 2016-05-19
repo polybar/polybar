@@ -1,0 +1,172 @@
+; vim:ft=dosini
+
+[bar/i3]
+monitor = HDMI1
+height = 35
+lineheight = 4
+dock = true
+offset_x = 60
+offset_y = 15
+width = 100%
+
+background = #228f8f8f
+foreground = #ffffffff
+
+spacing = 3
+
+; font:0 = NotoSans-Bold:size=10;0
+font:0 = LiberationMono:weight=200:size=9;0
+font:1 = MaterialIcons:size=11;0
+font:2 = FontAwesome:weight=200:size=10;0
+font:3 = Termsynu:size=8;-1
+
+padding_left = 2
+padding_right = 2
+
+modules:left = i3
+modules:right = date
+
+[bar/i3_bottom]
+monitor = HDMI1
+height = 35
+lineheight = 4
+dock = true
+offset_x = 60
+offset_y = 15
+width = 100%
+bottom = true
+
+background = #228f8f8f
+foreground = #ffffffff
+
+spacing = 3
+
+; font:0 = NotoSans-Bold:size=10;0
+font:0 = LiberationMono:weight=200:size=9;0
+font:1 = MaterialIcons:size=11;0
+font:2 = FontAwesome:weight=200:size=10;0
+font:3 = Termsynu:size=8;-1
+
+padding_left = 2
+padding_right = 2
+
+modules:center = mpd
+
+[module/i3]
+type = internal/i3
+
+local_workspaces = true
+workspace_name_strip_nchars = 2
+
+workspace_icon:0 = console;
+workspace_icon:1 = web;
+workspace_icon:2 = code;
+workspace_icon:3 = music;
+workspace_icon:4 = irssi;
+workspace_icon:default = 
+
+label:focused = %icon% %name%
+label:focused:padding = 1
+label:focused:underline = #9a4
+label:unfocused = %index%
+label:unfocused:padding = 2
+label:unfocused:margin = 1
+label:unfocused:foreground = #555
+label:unfocused:underline = #222
+;label:visible =  %index%
+label:visible:padding = 1
+; label:visible:underline = #444
+; label:urgent = %icon% %index%
+; label:urgent:padding = 1
+
+label:dimmed:underline = ${bar/i3.background}
+
+[module/date]
+type = internal/date
+
+; see "man date" for formatting
+; if date_detailed is defined, clicking the area will toggle between formats
+; if you want to use lemonbar tags here you need to use %%{...}
+date = %%{F#888}%Y-%m-%d%%{F-} %%{F#fff} %H:%M%%{F-}
+date_detailed = %%{F#aaa}%A, %d %B %Y %%{F#fff} %H:%M%%{F#666}:%%{F#9a4}%S%%{F-}
+
+; Seconds to sleep between updates
+;interval = 1.0
+
+; Available tags:
+;   <date> (default)
+format = <date>
+format:spacing = 1
+format:underline = #333
+
+[module/mpd]
+type = internal/mpd
+
+; Seconds to sleep between progressbar/song timer updates
+;interval = 0.5
+
+; Available tags:
+;   <label:song> (default)
+;   <label:time>
+;   <bar:progress>
+;   <toggle> - gets replaced with <icon:(pause|play)>
+;   <icon:random>
+;   <icon:repeat>
+;   <icon:repeatone>
+;   <icon:prev>
+;   <icon:stop>
+;   <icon:play>
+;   <icon:pause>
+;   <icon:next>
+format:online = <icon:prev> <icon:stop> <toggle> <icon:next>  <icon:repeat> <icon:random>  <bar:progress> <label:time>  <label:song>
+
+; Available tags:
+;   <label:offline>
+format:offline = <label:offline>
+format:offline:offset = -8
+
+; Available tokens:
+;   %artist%
+;   %album%
+;   %title%
+; Default: %artist% - %title%
+;label:song =   %artist% - %title%
+;label:song:foreground = ${BAR.foreground}
+
+; Available tokens:
+;   %elapsed%
+;   %total%
+; Default: %elapsed% / %total%
+;label:time = %elapsed% / %total%
+label:time:foreground = #66fafafa
+
+; Available tokens:
+;   None
+label:offline =  mpd is off
+label:offline:foreground = #66fafafa
+
+icon:play = 
+icon:pause = 
+icon:stop = 
+icon:prev = 
+icon:next = 
+icon:random = 
+icon:repeat = 
+;icon:repeatone = 🔂
+
+; Used to display the state of random/repeat/repeatone
+toggle_on:foreground =
+toggle_off:foreground = #66fafafa
+
+; Required if <bar:progress> is used
+bar:progress:width = 25
+bar:progress:format = %fill%%indicator%%empty%
+bar:progress:indicator = |
+bar:progress:indicator:foreground = #ffffffff
+bar:progress:indicator:font = 4
+bar:progress:fill = ─
+bar:progress:fill:foreground = #ddffffff
+bar:progress:fill:font = 4
+bar:progress:empty = ─
+bar:progress:empty:font = 4
+bar:progress:empty:foreground = #44ffffff

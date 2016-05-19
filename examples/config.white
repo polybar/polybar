@@ -1,0 +1,870 @@
+;
+; Bar configurations
+; ---------------------------------------
+;
+; Quote the value to keep spaces:
+;   key = "  value"
+;
+; Values for the current bar can be accessed using:
+;   ${BAR.foreground}
+;
+; Other values can be referenced using:
+;   ${section.key}
+;
+; format:NAME = <TAG...>
+; label:NAME[:(foreground|background|(under|over)line|font|padding)] =
+; icon:NAME[:(foreground|background|(under|over)line|font|padding)] =
+; ramp:NAME:[0-9]+[:(foreground|background|(under|over)line|font|padding)] =
+; animation:NAME:[0-9]+[:(foreground|background|(under|over)line|font|padding)] =
+;
+; bar:NAME:width =
+; bar:NAME:format = (tokens: %fill% %indicator% %empty%)
+; bar:NAME:foreground:[0-9]+ =
+; bar:NAME:indicator[:(foreground|background|(under|over)line|font|padding)] =
+; bar:NAME:fill[:(foreground|background|(under|over)line|font|padding)] =
+; bar:NAME:empty[:(foreground|background|(under|over)line|font|padding)] =
+;
+; These keys can be used to style the module container
+;   format:NAME:spacing = N (unit: whitespace)
+;   format:NAME:padding = N (unit: whitespace)
+;   format:NAME:margin = N  (unit: whitespace)
+;   format:NAME:offset = N  (unit: pixels)
+;   format:NAME:foreground = #hexcolor
+;   format:NAME:background = #hexcolor
+;   format:NAME:underline = #hexcolor
+;   format:NAME:overline = #hexcolor
+;
+; Module types:
+;   internal/backlight
+;   internal/battery
+;   internal/bspwm
+;   internal/cpu
+;   internal/date
+;   internal/memory
+;   internal/mpd
+;   internal/network
+;   internal/rtorrent
+;   internal/volume
+;
+;   custom/text
+;     content
+;     click:(left|middle|right)
+;     scroll:(up|down)
+;   custom/script
+;     exec
+;     interval
+;     format
+;     click:(left|middle|right)
+;     scroll:(up|down)
+;   custom/menu
+;     format
+;     label:open
+;     label:close
+;     menu:LEVEL:n
+;     menu:LEVEL:n:exec
+;
+
+[bar/top]
+monitor = eDP1
+width = 100%
+height = 30
+;clickareas = 25
+
+; background = #222222
+; foreground = #eefafafa
+background = #eefafafa
+foreground = #222222
+linecolor = ${bar/top.background}
+
+separator = |
+
+spacing = 3
+lineheight = 14
+;padding_left = 5
+;padding_right = 2
+module_margin_left = 3
+module_margin_right = 3
+
+font:0 = NotoSans-Regular:size=8;0
+font:1 = MaterialIcons:size=10;0
+font:2 = Termsynu:size=8;-1
+font:3 = FontAwesome:size=10;0
+
+modules:left = powermenu mpd
+modules:right = backlight volume wireless-network wired-network battery date
+
+[bar/bottom]
+monitor = eDP1
+bottom = true
+width = 100%
+height = 27
+;clickareas = 25
+
+background = #111111
+foreground = #ccffffff
+linecolor = ${bar/bottom.background}
+
+spacing = 3
+lineheight = 2
+;padding_left = 0
+padding_right = 4
+module_margin_left = 0
+module_margin_right = 6
+
+; font:idx = font:size=N;offsetY
+font:0 = NotoSans-Regular:size=8;0
+font:1 = Unifont:size=6;-3
+;font:1 = Termsynu:size=8;-1
+font:2 = FontAwesome:size=8;-2
+font:3 = NotoSans-Regular:size=8;-1
+font:4 = MaterialIcons:size=10;-1
+
+modules:left = bspwm
+; modules:right = rtorrent cpu memory
+modules:right = cpu memory
+
+[bar/external_bottom]
+monitor = HDMI1
+bottom = true
+width = 100%
+height = 27
+;clickareas = 25
+
+background = #111111
+foreground = #ccffffff
+linecolor = ${bar/external_bottom.background}
+
+spacing = 3
+lineheight = 2
+;padding_left = 0
+padding_right = 3
+module_margin_left = 0
+module_margin_right = 6
+
+font:0 = NotoSans-Regular:size=8;0
+font:1 = Unifont:size=6;-3
+font:2 = FontAwesome:size=8;-2
+font:3 = NotoSans-Regular:size=8;-1
+font:4 = MaterialIcons:size=10;0
+
+modules:left = bspwm
+modules:right = clock
+
+
+[module/backlight]
+type = internal/backlight
+
+; Use the following command to list available cards:
+; $ ls -1 /sys/class/backlight/
+card = intel_backlight
+
+; Available tags:
+;   <label> (default)
+;   <bar>
+format = <ramp> <bar>
+
+; Available tokens:
+;   %percentage% (default)
+;label = %percentage%
+
+; Required if <ramp> is used
+ramp:0 = 
+ramp:1 = 
+ramp:2 = 
+
+; Required if <bar> is used
+bar:width = 10
+bar:format = %{+u}%{+o}%fill%%{-u}%{-o}%indicator%%{+u}%{+o}%empty%%{-u}%{-o}
+bar:indicator = |
+bar:indicator:foreground = #dd000000
+bar:indicator:font = 3
+bar:fill = █
+bar:fill:foreground = #99000000
+bar:fill:font = 3
+bar:empty = █
+bar:empty:font = 3
+bar:empty:foreground = #999
+
+[module/battery]
+type = internal/battery
+
+;battery = BAT0
+;adapter = ADP1
+full_at = 99
+
+; Available tags:
+;   <label:charging> (default)
+;   <bar:capaity>
+;   <ramp:capacity>
+;   <animation:charging>
+format:charging = <animation:charging> <label:charging>
+
+; Available tags:
+;   <label:discharging> (default)
+;   <bar:capaity>
+;   <ramp:capacity>
+format:discharging = <ramp:capacity> <label:discharging>
+
+; Available tags:
+;   <label:full> (default)
+;   <bar:capaity>
+;   <ramp:capacity>
+format:full = <ramp:capacity> <label:full>
+
+; Available tokens:
+;   %percentage% (default)
+;label:charging = Charging %percentage%
+
+; Available tokens:
+;   %percentage% (default)
+;label:discharging = Discharging %percentage%
+
+; Available tokens:
+;   %percentage% (default)
+;label:full = Fully charged
+
+; Required if <ramp:capacity> is used
+ramp:capacity:0 = 
+ramp:capacity:0:foreground = #f53c3c
+ramp:capacity:1 = 
+ramp:capacity:1:foreground = #ffa900
+ramp:capacity:2 = 
+ramp:capacity:2:foreground = #000000
+ramp:capacity:3 = 
+ramp:capacity:3:foreground = #000000
+ramp:capacity:4 = 
+ramp:capacity:4:foreground = #000000
+
+; Required if <bar:capacity> is used
+bar:capacity:width = 10
+bar:capacity:format = %{+u}%{+o}%fill%%empty%%{-u}%{-o}
+bar:capacity:fill = █
+bar:capacity:fill:foreground = #dd000000
+bar:capacity:fill:font = 3
+bar:capacity:empty = █
+bar:capacity:empty:font = 3
+bar:empty:foreground = #999
+
+; Required if <animation:charging> is used
+; animation:charging:0 = %{T3}%{F#ddffffff}%{+u}%{+o}█%{F#44ffffff}█████████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:1 = %{T3}%{F#ddffffff}%{+u}%{+o}██%{F#44ffffff}████████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:2 = %{T3}%{F#ddffffff}%{+u}%{+o}███%{F#44ffffff}███████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:3 = %{T3}%{F#ddffffff}%{+u}%{+o}████%{F#44ffffff}██████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:4 = %{T3}%{F#ddffffff}%{+u}%{+o}█████%{F#44ffffff}█████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:5 = %{T3}%{F#ddffffff}%{+u}%{+o}██████%{F#44ffffff}████%{T-}%{F-}%{-u}%{-o}
+; animation:charging:6 = %{T3}%{F#ddffffff}%{+u}%{+o}███████%{F#44ffffff}███%{T-}%{F-}%{-u}%{-o}
+; animation:charging:7 = %{T3}%{F#ddffffff}%{+u}%{+o}████████%{F#44ffffff}██%{T-}%{F-}%{-u}%{-o}
+; animation:charging:8 = %{T3}%{F#ddffffff}%{+u}%{+o}█████████%{F#44ffffff}█%{T-}%{F-}%{-u}%{-o}
+; animation:charging:9 = %{T3}%{F#ddffffff}%{+u}%{+o}██████████%{T-}%{F-}%{-u}%{-o}
+animation:charging:0 = 
+animation:charging:1 = 
+animation:charging:2 = 
+animation:charging:3 = 
+animation:charging:4 = 
+animation:charging:framerate_ms = 750
+
+[module/bspwm]
+type = internal/bspwm
+
+; Seconds to sleep between updates
+;interval = 1.0
+
+; workspace_icon:[0-9]+ = label;icon
+; workspace_icon:default = icon
+workspace_icon:0 = term;
+workspace_icon:1 = web;
+workspace_icon:2 = code;
+workspace_icon:3 = music;
+workspace_icon:4 = irssi;
+workspace_icon:default = 
+
+; Available tags:
+;   <label:state> (default) - gets replaced with <label:(active|urgent|occupied|empty)>
+;   <label:mode> - gets replaced with <label:(monocle|tiled|fullscreen|floating|locked|sticky|private)>
+format = <label:state> <label:mode>
+
+; If any of these are defined, the workspace/mode colors will get overridden
+; with these values if the monitor is out of focus
+;label:dimmed:foreground = #555
+;label:dimmed:background = ${BAR.background}
+label:dimmed:underline = ${BAR.background}
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+; Default: %icon%  %name%
+label:active = %icon%
+label:active:foreground = #ffffff
+label:active:background = #3f3f3f
+label:active:underline = #fba922
+label:active:font = 4
+label:active:padding = 4
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+; Default: %icon%  %name%
+label:occupied = %icon%
+label:occupied:underline = #555555
+label:occupied:font = 4
+label:occupied:padding = 4
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+; Default: %icon%  %name%
+label:urgent = %icon%
+label:urgent:foreground = #000000
+label:urgent:background = #bd2c40
+label:urgent:underline = #9b0a20
+label:urgent:font = 4
+label:urgent:padding = 4
+
+; Available tokens:
+;   %name%
+;   %icon%
+;   %index%
+; Default: %icon%  %name%
+label:empty = %icon%
+label:empty:foreground = #55ffffff
+label:empty:font = 4
+label:empty:padding = 4
+
+; Available tokens:
+;   None
+label:monocle = 
+label:monocle:underline = ${module/bspwm.label:active:underline}
+label:monocle:padding = 2
+;label:tiled = 
+;label:fullscreen = 
+;label:floating = 
+label:locked = 
+label:locked:foreground = #bd2c40
+label:locked:underline = ${module/bspwm.label:monocle:underline}
+label:locked:padding = ${module/bspwm.label:monocle:padding}
+label:sticky = 
+label:sticky:foreground = #fba922
+label:sticky:underline = ${module/bspwm.label:monocle:underline}
+label:sticky:padding = ${module/bspwm.label:monocle:padding}
+label:private = 
+label:private:foreground = #bd2c40
+label:private:underline = ${module/bspwm.label:monocle:underline}
+label:private:padding = ${module/bspwm.label:monocle:padding}
+
+[module/cpu]
+type = internal/cpu
+
+; Seconds to sleep between updates
+interval = 0.5
+
+; Available tags:
+;   <label> (default)
+;   <bar:load>
+;   <ramp:load>
+;   <ramp:load_per_core>
+format = <label> <ramp:load_per_core>
+
+; Available tokens:
+;   %percentage% (default)
+label = CPU
+
+; Required if <ramp:core_load> is used
+ramp:load_per_core:0 = ▁
+ramp:load_per_core:0:font = 2
+ramp:load_per_core:0:foreground = #55aa55
+ramp:load_per_core:1 = ▂
+ramp:load_per_core:1:font = 2
+ramp:load_per_core:1:foreground = #55aa55
+ramp:load_per_core:2 = ▃
+ramp:load_per_core:2:font = 2
+ramp:load_per_core:2:foreground = #55aa55
+ramp:load_per_core:3 = ▄
+ramp:load_per_core:3:font = 2
+ramp:load_per_core:3:foreground = #55aa55
+ramp:load_per_core:4 = ▅
+ramp:load_per_core:4:font = 2
+ramp:load_per_core:4:foreground = #f5a70a
+ramp:load_per_core:5 = ▆
+ramp:load_per_core:5:font = 2
+ramp:load_per_core:5:foreground = #f5a70a
+ramp:load_per_core:6 = ▇
+ramp:load_per_core:6:font = 2
+ramp:load_per_core:6:foreground = #ff5555
+ramp:load_per_core:7 = █
+ramp:load_per_core:7:font = 2
+ramp:load_per_core:7:foreground = #ff5555
+
+; Required if <bar:total_load> is used
+;bar:total_load:width = 10
+;bar:total_load:indicator = |
+;bar:total_load:fill = =
+;bar:total_load:empty = =
+
+[module/date]
+type = internal/date
+
+; see "man date" for formatting
+; if date_detailed is defined, clicking the area will toggle between formats
+; if you want to use lemonbar tags here you need to use %%{...}
+date = %%{F#888}%Y-%m-%d%%{F-}  %%{F#fff}%H:%M%%{F-}
+date_detailed = %%{F#888}%A, %d %B %Y%  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
+
+; Seconds to sleep between updates
+;interval = 1.0
+
+; Available tags:
+;   <date> (default)
+format =  <date>
+format:background = #111
+format:foreground = #eee
+format:padding = 5
+
+[module/memory]
+type = internal/memory
+
+; Seconds to sleep between updates
+;interval = 1.0
+
+; Available tags:
+;   <label> (default)
+;   <bar:used>
+;   <bar:free>
+format = <label> <bar:used>
+
+; Available tokens:
+;   %percentage_used% (default)
+;   %percentage_free%
+;   %gb_used%
+;   %gb_free%
+;   %gb_total%
+;   %mb_used%
+;   %mb_free%
+;   %mb_total%
+label = RAM
+
+; Required if <bar:used> is used
+bar:used:width = 50
+bar:used:foreground:0 = #55aa55
+bar:used:foreground:1 = #557755
+bar:used:foreground:2 = #f5a70a
+bar:used:foreground:3 = #ff5555
+bar:used:indicator = ▐
+bar:used:indicator:font = 2
+bar:used:indicator:foreground = #ddffffff
+bar:used:fill = ▐
+bar:used:fill:font = 2
+bar:used:empty = ▐
+bar:used:empty:font = 2
+bar:used:empty:foreground = #444444
+
+; Required if <bar:free> is used
+;bar:free:width = 50
+;bar:free:foreground:0 = #ff5555
+;bar:free:foreground:1 = #f5a70a
+;bar:free:foreground:2 = #557755
+;bar:free:foreground:3 = #55aa55
+;bar:free:indicator = ▐
+;bar:free:indicator:font = 2
+;bar:free:indicator:foreground = #ddffffff
+;bar:free:fill = ▐
+;bar:free:fill:font = 2
+;bar:free:empty = ▐
+;bar:free:empty:font = 2
+;bar:free:empty:foreground = #444444
+
+[module/mpd]
+type = internal/mpd
+
+; Seconds to sleep between progressbar/song timer updates
+;interval = 0.5
+
+; Available tags:
+;   <label:song> (default)
+;   <label:time>
+;   <bar:progress>
+;   <toggle> - gets replaced with <icon:(pause|play)>
+;   <icon:random>
+;   <icon:repeat>
+;   <icon:repeatone>
+;   <icon:prev>
+;   <icon:stop>
+;   <icon:play>
+;   <icon:pause>
+;   <icon:next>
+format:online = <icon:prev> <icon:stop> <toggle> <icon:next>  <icon:repeat> <icon:random>  <bar:progress> <label:time>  <label:song>
+
+; Available tags:
+;   <label:offline>
+format:offline = <label:offline>
+format:offline:offset = -8
+
+; Available tokens:
+;   %artist%
+;   %album%
+;   %title%
+; Default: %artist% - %title%
+;label:song = %artist% - %title%
+;label:song:foreground = ${BAR.foreground}
+
+; Available tokens:
+;   %elapsed%
+;   %total%
+; Default: %elapsed% / %total%
+;label:time = %elapsed% / %total%
+;label:time:foreground = #66fafafa
+
+; Available tokens:
+;   None
+label:offline =  mpd is off
+label:offline:foreground = #66fafafa
+
+icon:play = 
+icon:pause = 
+icon:stop = 
+icon:prev = 
+icon:next = 
+icon:random = 
+icon:repeat = 
+;icon:repeatone = 🔂
+
+; Used to display the state of random/repeat/repeatone
+toggle_on:foreground =
+toggle_off:foreground = #aafafafa
+
+; Required if <bar:progress> is used
+bar:progress:width = 45
+bar:progress:format = %{+u}%{+o}%fill%%{-u}%{-o}%indicator%%{+u}%{+o}%empty%%{-u}%{-o}
+bar:progress:indicator = |
+bar:progress:indicator:foreground = #dd000000
+bar:progress:indicator:font = 3
+bar:progress:fill = █
+bar:progress:fill:foreground = #aa000000
+bar:progress:fill:font = 3
+bar:progress:empty = █
+bar:progress:empty:font = 3
+bar:progress:empty:foreground = #999
+
+[module/wireless-network]
+type = internal/network
+
+interface = net1
+
+; Seconds to sleep between updates
+interval = 2.0
+
+; Seconds to sleep between connectivity tests
+; A value of 0 disables the testing
+; Default: 0
+connectivity_test_interval = 10
+
+; Available tags:
+;   <label:connected> (default)
+;   <ramp:signal>
+format:connected = <ramp:signal> <label:connected>
+
+; Available tags:
+;   <label:disconnected> (default)
+;format:disconnected = <label:disconnected>
+
+; Available tags:
+;   <label:packetloss> (default)
+;   <animation:packetloss>
+; format:packetloss = <animation:packetloss> <label:packetloss>
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+;   %local_ip%  [wireless+wired]
+;   %essid%     [wireless]
+;   %signal%    [wireless]
+;   %linkspeed% [wired]
+; Default: %ifname% %local_ip%
+label:connected = %essid%
+;label:connected:foreground = #eefafafa
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+; Default: (none)
+label:disconnected =    not connected
+label:disconnected:foreground = #66000000
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+;   %local_ip%  [wireless+wired]
+;   %essid%     [wireless]
+;   %signal%    [wireless]
+;   %linkspeed% [wired]
+; Default: %ifname% %local_ip%
+; ------------------------- NOT ACTIVATED (Needs more testing)
+;label:packetloss = %essid%
+;label:packetloss:foreground = #eefafafa
+
+; Required if <ramp:signal> is used
+ramp:signal:0 = 
+ramp:signal:0:foreground = #33000000
+ramp:signal:1 = 
+ramp:signal:1:foreground = #66000000
+ramp:signal:2 = 
+ramp:signal:2:foreground = #99000000
+ramp:signal:3 = 
+ramp:signal:3:foreground = #cc000000
+ramp:signal:4 = 
+ramp:signal:4:foreground = #000000ff
+
+; Required if <animation:packetloss> is used
+animation:packetloss:0 = 
+animation:packetloss:0:foreground = #ffa64c
+animation:packetloss:1 = 
+animation:packetloss:1:foreground = ${bar/top.foreground}
+animation:packetloss:framerate_ms = 500
+
+[module/wired-network]
+type = internal/network
+
+interface = net0
+
+; Seconds to sleep between updates
+interval = 2.0
+
+; Seconds to sleep between connectivity tests
+; A value of 0 disables the testing
+; Default: 0
+;connectivity_test_interval = 0
+
+; Available tags:
+;   <label:connected> (default)
+;   <ramp:signal>
+;format:connected = <label:connected>
+
+; Available tags:
+;   <label:disconnected> (default)
+;format:disconnected = <label:disconnected>
+
+; Available tags:
+;   <label:packetloss> (default)
+;   <animation:packetloss>
+; format:packetloss = <animation:packetloss> <label:packetloss>
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+;   %local_ip%  [wireless+wired]
+;   %essid%     [wireless]
+;   %signal%    [wireless]
+;   %linkspeed% [wired]
+; Default: %ifname% %local_ip%
+label:connected =    %{T3}%local_ip%%{T-}
+;label:connected:foreground = #eefafafa
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+; Default: (none)
+;label:disconnected =    not connected
+;label:disconnected:foreground = #66ffffff
+
+; Available tokens:
+;   %ifname%    [wireless+wired]
+;   %local_ip%  [wireless+wired]
+;   %essid%     [wireless]
+;   %signal%    [wireless]
+;   %linkspeed% [wired]
+; Default: %ifname% %local_ip%
+; ------------------------- NOT ACTIVATED (Needs more testing)
+;label:packetloss = %essid%
+;label:packetloss:foreground = #eefafafa
+
+
+[module/rtorrent]
+type = internal/rtorrent
+
+script = /home/jaagr/var/github/jaagr/lemonbuddy/scripts/torrents.sh
+rtorrent_session_dir = /home/jaagr/.cache/rtorrent
+display_count = 2
+title_maxlen = 30
+
+; Available tags:
+;   <label> (default)
+;   <bar:progress>
+format = <label> <bar:progress>
+
+; Available tokens:
+;   %title%
+;   %percentage%
+; Default: %label% (%percentage%)
+label =  %{F#eefafafa}%title%%{F-}
+label:foreground = #fba922
+
+; Required if <bar:progress> is used
+bar:progress:width = 10
+bar:progress:format = %{+u}%{+o}%fill%%{-u}%{-o}%indicator%%{+u}%{+o}%empty%%{-u}%{-o}
+bar:progress:indicator = |
+bar:progress:indicator:foreground = ${BAR.foreground}
+bar:progress:indicator:font = 2
+bar:progress:fill = █
+bar:progress:fill:foreground = #5a5
+bar:progress:fill:font = 2
+bar:progress:empty = █
+bar:progress:empty:foreground = #555
+bar:progress:empty:font = 2
+
+[module/volume]
+type = internal/volume
+
+; Use the following command to list available mixer controls:
+; $ amixer scontrols | sed -nr "s/.*'([[:alnum:]]+)'.*/\1/p"
+speaker_mixer = Speaker
+headphone_mixer = Headphone
+
+; Use the following command to list available device controls
+; $ amixer controls | sed -r "/CARD/\!d; s/.*=([0-9]+).*name='([^']+)'.*/printf '%3.0f: %s\n' '\1' '\2'/e" | sort
+headphone_control_numid = 9
+
+; Available tags:
+;   <label:volume> (default)
+;   <ramp:volume>
+;   <bar:volume>
+format:volume = <ramp:volume> <label:volume>
+
+; Available tags:
+;   <label:muted> (default)
+;   <ramp:volume>
+;   <bar:volume>
+;format:muted = <label:muted>
+
+; Available tokens:
+;   %percentage% (default)
+;label:volume = %percentage%
+;label:volume:foreground = #ffffff
+
+; Available tokens:
+;   %percentage% (default)
+label:muted =   muted
+label:muted:foreground = #66000000
+
+; Required if <ramp:volume> is used
+ramp:volume:0 = 
+ramp:volume:0:foreground = #99000000
+ramp:volume:1 = 
+ramp:volume:1:foreground = #bb000000
+ramp:volume:2 = 
+ramp:volume:2:foreground = #dd000000
+ramp:volume:3 = 
+ramp:volume:3:foreground = #ff000000
+
+; Required if <bar:capacity> is used
+bar:volume:width = 10
+bar:volume:format = %{+u}%{+o}%fill%%empty%%{-u}%{-o}
+bar:volume:fill = █
+bar:volume:fill:foreground = #dd000000
+bar:volume:fill:font = 3
+bar:volume:empty = █
+bar:volume:empty:font = 3
+bar:volume:empty:foreground = #44000000
+
+
+
+[module/powermenu]
+type = custom/menu
+
+; Available tags:
+;   <label:toggle> (default) - gets replaced with <label:(open|close)>
+;   <menu> (default)
+;format = <label:toggle> <menu>
+format:background = #111
+format:foreground = #eee
+format:padding = 4
+
+label:open = 
+label:close = 
+
+; "menu:LEVEL:N" has the same properties as "label:NAME" with
+; the additional "exec" property
+;
+; Available exec commands:
+;   menu_open:LEVEL
+;   menu_close
+; Other commands will be executed using "/usr/bin/env sh -c $COMMAND"
+
+menu:0:0 = Terminate WM
+menu:0:0:foreground = #fba922
+menu:0:0:exec = bspc quit -1
+menu:0:1 = Reboot
+menu:0:1:foreground = #fba922
+menu:0:1:exec = menu_open:1
+menu:0:2 = Power off
+menu:0:2:foreground = #fba922
+menu:0:2:exec = menu_open:2
+
+menu:1:0 = Cancel
+menu:1:0:foreground = #fba922
+menu:1:0:exec = menu_open:0
+menu:1:1 = Reboot
+menu:1:1:foreground = #fba922
+menu:1:1:exec = sudo reboot
+
+menu:2:0 = Power off
+menu:2:0:foreground = #fba922
+menu:2:0:exec = sudo poweroff
+menu:2:1 = Cancel
+menu:2:1:foreground = #fba922
+menu:2:1:exec = menu_open:0
+
+[module/text-example]
+type = custom/text
+
+; "content" has the same properties as "format:NAME"
+content = 
+content:background = #000
+content:foreground = #fff
+content:padding = 4
+
+; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c $COMMAND"
+click:left = echo left
+click:middle = echo middle
+click:right = echo right
+
+; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c $COMMAND"
+scroll:up = echo scroll up
+scroll:down = echo scroll down
+
+[module/script-example]
+type = custom/script
+
+; Available tokens:
+;   %counter%
+;
+; The "exec" command will be executed using "/usr/bin/env sh -c [command]"
+exec = echo %counter%
+
+; Seconds to sleep between updates
+interval = 0.5
+
+; Available tags:
+;   <output> (default)
+;format = <output>
+format:background = #111
+format:foreground = #eee
+format:padding = 4
+
+; Available tokens:
+;   %counter%
+;
+; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c [command]"
+click:left = echo left %counter%
+click:middle = echo middle %counter%
+click:right = echo right %counter%
+
+; Available tokens:
+;   %counter%
+;
+; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c [command]"
+scroll:up = echo scroll up %counter%
+scroll:down = echo scroll down %counter%
+
+[module/clock]
+type = internal/date
+interval = 5
+date = %%{F#999}%Y-%m-%d%%{F-}  %%{F#fff}%H:%M%%{F-}
+
+; vim:ft=dosini
