@@ -209,6 +209,10 @@ namespace mpd
       auto status = this->get_status();
       if (status->total_time == 0)
         return;
+      if (percentage < 0)
+        percentage = 0;
+      else if (percentage > 100)
+        percentage = 100;
       int pos = float(status->total_time) * percentage / 100.0f + 0.5f;
       this->check_prerequisites_commands_list();
       mpd_run_seek_id(this->connection.get(), status->song_id, pos);

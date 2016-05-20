@@ -290,9 +290,19 @@ bool MpdModule::handle_command(const std::string& cmd)
         mpd->random(true);
     else if (cmd.find(EVENT_SEEK) == 0) {
       auto s = cmd.substr(std::strlen(EVENT_SEEK));
+      int perc = 0;
       if (s.empty())
         return false;
-      mpd->seek(std::atoi(s.c_str()));
+      if (s[0] == '+') {
+        perc = this->status->get_elapsed_percentage()
+          + std::atoi(s.substr(1).c_str());
+      } else if (s[0] == '-') {
+        perc = this->status->get_elapsed_percentage()
+          - std::atoi(s.substr(1).c_str());
+      } else {
+        perc = std::atoi(s.c_str());
+      }
+      mpd->seek(perc);
     } else
       return false;
   } catch (mpd::Exception &e) {
