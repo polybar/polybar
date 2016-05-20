@@ -15,6 +15,11 @@ set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedan
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g3 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "No build type specified; using Release")
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+
 #
 # Internal values and switches
 #
