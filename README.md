@@ -70,7 +70,7 @@ NOTE: **git-perl** is required for submodules to work in **Void Linux**
   $ git clone --branch 0.1.0 --recursive https://github.com/jaagr/lemonbuddy.git
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
-  $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
+  $ cmake ..
   # List and edit build variables
   $ make edit_cache
   $ sudo make install

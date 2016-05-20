@@ -19,7 +19,7 @@ function main
   mkdir ./build || msg_err "Failed to create build dir"
   cd ./build || msg_err "Failed to enter build dir"
 
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .. || \
+  cmake -DCMAKE_INSTALL_PREFIX=/usr .. || \
     msg_err "Failed to generate build... read output to get a hint of what went wrong"
 
   make || msg_err "Failed to build project"
