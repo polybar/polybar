@@ -21,6 +21,10 @@ alot easier to install. Until then you could build it from source.
 
 A C++ compiler with C++14 support. For example `clang`.
 
+- lemonbar (obviously)
+  - NOTE: The application has only been tested against the `single-mon` fork.
+    If you have trouble with your version of lemonbar, install the fork which is
+    included in the `contrib` folder
 - boost-libs
 - libx11
 - libxrandr
