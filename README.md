@@ -3,7 +3,7 @@ Lemonbuddy
 
 A fast and easy-to-use tool for [Lemonbar](https://github.com/LemonBoy/bar/).
 
-**Lemonbuddy** aims to help users' build beautiful and highly customizable status bars
+**Lemonbuddy** aims to help users build beautiful and highly customizable status bars
 without messing with named pipes, MacGyver-like scripting or non-blocking
 loops lobotomizing your CPU.
 
@@ -14,8 +14,11 @@ github.
 
 ## Installation
 
-Package builds will be released for **AUR** and **XBPS** which will make it
-alot easier to install. Until then you could build it from source.
+###  Arch Linux
+Install the AUR package `lemonbuddy`
+
+###  Void Linux
+A package will be written for XBPS so stay tuned.
 
 ### Dependencies:
 
@@ -29,24 +32,18 @@ A C++ compiler with C++14 support. For example `clang`.
 - libx11
 - libxrandr
 - wireless_tools
-- If building with **ENABLE_ALSA** (default)
-  - alsa-lib
-- If building with **ENABLE_MPD** (default)
-  - libmpdclient
-- If building with **ENABLE_I3**
-  - libsigc++
-  - i3-wm
-  - i3ipc-glib
+- alsa-lib _optional_
+- libmpdclient _optional_
+- libsigc++ _optional_
 
 **With Pacman you can install the packages using:**
 ~~~ sh
 $ pacman -S boost-libs libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
-$ "i3ipc-glib-git is located in the AUR"
 ~~~
 
 **With XBPS you can install the packages using:**
 ~~~ sh
-$ xbps-install -S alsa-lib-devel boost-devel i3-devel i3ipc-glib-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
+$ xbps-install -S alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
 ~~~~
 
 <br>

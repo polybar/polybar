@@ -23,10 +23,19 @@ endif()
 #
 # Internal values and switches
 #
+
 option(ENABLE_CCACHE "Enable ccache support" ON)
 option(ENABLE_ALSA   "Enable alsa support"   ON)
 option(ENABLE_MPD    "Enable mpd support"    ON)
 option(ENABLE_I3     "Enable i3 support"     OFF)
+
+find_program(I3_EXECUTABLE i3)
+if(I3_EXECUTABLE)
+  message(STATUS "Enabling i3 since executable was found")
+  set(ENABLE_I3 ON)
+else()
+  message(STATUS "Coult not find i3 executable")
+endif()
 
 message(STATUS "---------------------------")
 message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
@@ -70,8 +79,6 @@ set(SETTING_PATH_CPU_INFO "/proc/stat"
 set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
   CACHE STRING "Path to file containing memory info")
 
-configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
-
 if(ENABLE_CCACHE)
   find_program(CCACHE_FOUND "ccache")
   if(CCACHE_FOUND)
@@ -107,18 +114,31 @@ set(LINK_LIBS
   ${CMAKE_THREAD_LIBS_INIT})
 
 if(ENABLE_ALSA)
-  find_package("ALSA" REQUIRED)
-  include_directories(${ALSA_INCLUDE_DIRS})
-  link_directories(${ALSA_LIBRARY_DIRS})
-  set(LINK_LIBS ${LINK_LIBS} ${ALSA_LIBRARIES})
+  find_package("ALSA")
+  if(ALSA_FOUND)
+    include_directories(${ALSA_INCLUDE_DIRS})
+    link_directories(${ALSA_LIBRARY_DIRS})
+    set(LINK_LIBS ${LINK_LIBS} ${ALSA_LIBRARIES})
+  else(ALSA_FOUND)
+    # graceful fail
+    message(STATUS "Disabling alsa since required package wasn't found")
+    set(ENABLE_ALSA OFF)
+  endif()
 endif()
 
 if(ENABLE_MPD)
-  find_package("LibMPDClient" REQUIRED)
-  include_directories(${LIBMPDCLIENT_INCLUDE_DIRS})
-  link_directories(${LIBMPDCLIENT_LIBRARY_DIRS})
-  set(LINK_LIBS ${LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
+  find_package("LibMPDClient")
+  if(LibMPDClient_FOUND)
+    include_directories(${LIBMPDCLIENT_INCLUDE_DIRS})
+    link_directories(${LIBMPDCLIENT_LIBRARY_DIRS})
+    set(LINK_LIBS ${LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
+  else(LibMPDClient_FOUND)
+    # graceful fail
+    message(STATUS "Disabling mpd since required package wasn't found")
+    set(ENABLE_MPD OFF)
+  endif()
 endif()
+
 
 #
 # Install executable and wrapper
@@ -134,6 +154,7 @@ if(ENABLE_I3)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
+configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION "bin")
 install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper.sh" DESTINATION "bin")
