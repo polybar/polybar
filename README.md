@@ -19,6 +19,8 @@ alot easier to install. Until then you could build it from source.
 
 ### Dependencies:
 
+A C++ compiler with C++14 support. For example `clang`.
+
 - boost-libs
 - libx11
 - libxrandr
@@ -30,6 +32,7 @@ alot easier to install. Until then you could build it from source.
 - If building with **ENABLE_I3**
   - libsigc++
   - i3-wm
+  - i3ipc-glib
 
 **With Pacman you can install the packages using:**
 ~~~ sh
