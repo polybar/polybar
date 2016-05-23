@@ -128,6 +128,8 @@ Bar::Bar()
   for (auto f : config::get_list<std::string>(this->config_path, "font")) {
     std::vector<std::string> font;
     string::split_into(f, ';', font);
+    if (font.size() < 2)
+      font.emplace_back("0");
     this->opts->fonts.emplace_back(std::make_unique<Font>(font[0], std::stoi(font[1])));
   }
 }
