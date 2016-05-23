@@ -28,7 +28,7 @@ A C++ compiler with C++14 support. For example `clang`.
   - NOTE: The application has only been tested against the `single-mon` fork.
     If you have trouble with your version of lemonbar, install the fork which is
     included in the `contrib` folder
-- boost-libs
+- boost
 - libx11
 - libxrandr
 - wireless_tools
@@ -38,7 +38,7 @@ A C++ compiler with C++14 support. For example `clang`.
 
 **With Pacman you can install the packages using:**
 ~~~ sh
-$ pacman -S boost-libs libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
+$ pacman -S boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
 ~~~
 
 **With XBPS you can install the packages using:**
