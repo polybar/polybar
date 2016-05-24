@@ -25,6 +25,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+string(ASCII 27 ANSI)
+
 #
 # Internal values and switches
 #
@@ -74,8 +76,6 @@ if(ENABLE_CCACHE)
   if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "ccache")
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "ccache")
-  else()
-    message(WARNING "ccache not found. Ignoring the flag...")
   endif()
 endif()
 
@@ -84,55 +84,44 @@ endif()
 #
 find_package("Boost" REQUIRED)
 find_package("Threads" REQUIRED)
-find_package("X11" REQUIRED "X11_Xrandr" "X11_Xutil" "X11_Xlib")
+find_package("X11" REQUIRED "X11_Xrandr")
 
-include_directories(
-  "${PROJECT_SOURCE_DIR}/include"
+set(PROJECT_INCL_DIRS "${PROJECT_SOURCE_DIR}/include"
   ${Boost_INCLUDE_DIRS}
-  ${X11_INCLUDE_DIR}
-  ${X11_Xrandr_INCLUDE_PATH})
+  ${X11_INCLUDE_DIR})
 
-link_directories(
-  ${Boost_LIBRARY_DIRS}
-  ${X11_LIBRARY_DIRS})
-
-set(LINK_LIBS
+set(PROJECT_LINK_LIBS
   ${Boost_LIBRARIES}
   ${X11_LIBRARIES}
   ${X11_Xrandr_LIB}
   ${CMAKE_THREAD_LIBS_INIT})
 
-if(ENABLE_ALSA)
-  find_package("ALSA")
-  if(ALSA_FOUND)
-    include_directories(${ALSA_INCLUDE_DIRS})
-    link_directories(${ALSA_LIBRARY_DIRS})
-    set(LINK_LIBS ${LINK_LIBS} ${ALSA_LIBRARIES})
-  else(ALSA_FOUND)
-    # graceful fail
-    message(WARNING "Disabling alsa since required package wasn't found")
-    set(ENABLE_ALSA OFF)
-  endif()
-endif()
-
 if(ENABLE_I3)
   find_program(I3_EXECUTABLE "i3")
   if(NOT I3_EXECUTABLE)
-    # graceful fail
-    message(WARNING "Disabling i3 support since executable was not found")
+    message(WARNING "${ANSI}[41;30mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
     set(ENABLE_I3 OFF)
+  endif()
+endif()
+
+if(ENABLE_ALSA)
+  find_package("ALSA")
+  if(ALSA_FOUND)
+    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${ALSA_INCLUDE_DIR})
+    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${ALSA_LIBRARY})
+  else(ALSA_FOUND)
+    message(WARNING "${ANSI}[41;30mDisabling \"volume module\" support (prerequisites failed)${ANSI}[0m")
+    set(ENABLE_ALSA OFF)
   endif()
 endif()
 
 if(ENABLE_MPD)
   find_package("LibMPDClient")
   if(LIBMPDCLIENT_FOUND)
-    include_directories(${LIBMPDCLIENT_INCLUDE_DIRS})
-    link_directories(${LIBMPDCLIENT_LIBRARY_DIRS})
-    set(LINK_LIBS ${LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
+    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBMPDCLIENT_INCLUDE_DIR})
+    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
   else(LIBMPDCLIENT_FOUND)
-    # graceful fail
-    message(WARNING "Disabling mpd since required package wasn't found")
+    message(WARNING "${ANSI}[41;30mDisabling \"mpd module\" support (prerequisites failed)${ANSI}[0m")
     set(ENABLE_MPD OFF)
   endif()
 endif()
@@ -140,11 +129,10 @@ endif()
 if(ENABLE_NETWORK)
   find_package("Libiw")
   if(LIBIW_FOUND)
-    include_directories(${LIBIW_INCLUDE_DIR})
-    set(LINK_LIBS ${LINK_LIBS} ${LIBIW_LIBRARY})
+    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBIW_INCLUDE_DIR})
+    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBIW_LIBRARY})
   else(LIBIW_FOUND)
-    # graceful fail
-    message(WARNING "Disabling network support since required library wasn't found")
+    message(WARNING "${ANSI}[41;30mDisabling \"network module\" support (prerequisites failed)${ANSI}[0m")
     set(ENABLE_NETWORK OFF)
   endif()
 endif()
@@ -165,12 +153,16 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 if(ENABLE_I3)
   add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/i3ipcpp" EXCLUDE_FROM_ALL)
-  include_directories(${SIGCPP_INCLUDE_DIRS} ${I3IPCpp_INCLUDE_DIRS})
-  link_directories(${SIGCPP_LIBRARY_DIRS} ${I3IPCpp_LIBRARY_DIRS})
-  set(LINK_LIBS "${LINK_LIBS};${I3IPCpp_LIBRARIES}")
+  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS}
+    ${SIGCPP_INCLUDE_DIRS}
+    ${I3IPCpp_INCLUDE_DIRS})
+  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${I3IPCpp_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
+include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}	${PROJECT_INCL_DIRS})
+
+target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
+
 configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION "bin")
