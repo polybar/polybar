@@ -1,9 +1,9 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=lemonbuddy
-pkgver=0.1.0
-pkgrel=3
-pkgdesc="A fast and easy-to-use tool for Lemonbar."
+pkgver=0.1.1
+pkgrel=1
+pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=('i686' 'x86_64')
 url="https://github.com/jaagr/lemonbuddy"
 license=('MIT')
@@ -14,7 +14,7 @@ makedepends=('libsigc++' 'libmpdclient' 'libxrandr'
 'cmake' 'pkg-config' 'clang' 'glibc'
 'boost' 'libx11' 'wireless_tools')
 
-source=("git+https://github.com/jaagr/lemonbuddy.git#tag=0.1.0")
+source=("git+https://github.com/jaagr/lemonbuddy.git#tag=${pkgver}")
 md5sums=('SKIP')
 
 build() {
