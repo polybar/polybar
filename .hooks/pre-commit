@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Pass if the README.md isn't staged for commit
+test "$(git diff --staged README.md)" || exit 0
+
+# Redirect all output to stderr
+exec 1>&2
+
+# shellcheck disable=SC2016
+tag_prev=$(git tag -l | tail -2 | head -1)
+tag_curr=$(git tag -l | tail -1)
+
+# Pass if tags aren't defined
+[ "$tag_prev" ] || exit 0
+[ "$tag_curr" ] || exit 0
+
+sed -n "/${tag_prev}/q1" README.md
+
+# Pass if the previous tag wasn't found
+[ $? -eq 1 ] || exit 0
+
+echo
+echo "\033[36;1mNOTICE \033[37;1m**\033[0m Updating README.md with latest tag (\033[1m${tag_prev}\033[0m => \033[1m${tag_curr}\033[0m)"
+echo "          The change will be staged for commit..."
+echo
+
+sed -i "s/${tag_prev}/${tag_curr}/g" README.md
