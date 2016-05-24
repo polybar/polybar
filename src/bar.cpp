@@ -157,17 +157,29 @@ void Bar::load()
       else if (type == "internal/cpu")        module = std::make_unique<modules::CpuModule>(mod);
       else if (type == "internal/date")       module = std::make_unique<modules::DateModule>(mod);
       else if (type == "internal/memory")     module = std::make_unique<modules::MemoryModule>(mod);
+      else if (type == "internal/network")
 #ifdef ENABLE_NETWORK
-      else if (type == "internal/network")    module = std::make_unique<modules::NetworkModule>(mod);
+        module = std::make_unique<modules::NetworkModule>(mod);
+#else
+        throw CompiledWithoutModuleSupport("network");
 #endif
+      else if (type == "internal/i3")
 #ifdef ENABLE_I3
-      else if (type == "internal/i3")         module = std::make_unique<modules::i3Module>(mod, this->opts->monitor->name);
+        module = std::make_unique<modules::i3Module>(mod, this->opts->monitor->name);
+#else
+        throw CompiledWithoutModuleSupport("i3");
 #endif
+      else if (type == "internal/mpd")
 #ifdef ENABLE_MPD
-      else if (type == "internal/mpd")        module = std::make_unique<modules::MpdModule>(mod);
+        module = std::make_unique<modules::MpdModule>(mod);
+#else
+        throw CompiledWithoutModuleSupport("mpd");
 #endif
+      else if (type == "internal/volume")
 #ifdef ENABLE_ALSA
-      else if (type == "internal/volume")     module = std::make_unique<modules::VolumeModule>(mod);
+        module = std::make_unique<modules::VolumeModule>(mod);
+#else
+        throw CompiledWithoutModuleSupport("volume");
 #endif
 #if 0
       else if (type == "internal/rtorrent")   module = std::make_unique<modules::TorrentModule>(mod);

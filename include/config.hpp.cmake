@@ -1,6 +1,8 @@
 #ifndef _CONFIG_HPP_
 #define _CONFIG_HPP_
 
+#define APP_NAME "@PROJECT_NAME@"
+
 #cmakedefine ENABLE_ALSA
 #cmakedefine ENABLE_MPD
 #cmakedefine ENABLE_NETWORK

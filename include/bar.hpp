@@ -4,10 +4,17 @@
 #include <string>
 #include <memory>
 
+#include "config.hpp"
 #include "exception.hpp"
 #include "utils/xlib.hpp"
 
 DefineBaseException(ConfigurationError);
+
+struct CompiledWithoutModuleSupport : public ConfigurationError
+{
+  CompiledWithoutModuleSupport(std::string module_name)
+    : ConfigurationError(std::string(APP_NAME) + " was not compiled with support for module \""+ module_name +"\"") {}
+};
 
 struct Font
 {
