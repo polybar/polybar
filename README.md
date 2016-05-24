@@ -51,8 +51,9 @@ $ xbps-install -S cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXran
 
 **Installing using apt-get:**
 
-> NOTE: `libmpdclient-dev` is located in the `universe` repository, so make sure it's
-> included in the list of sources in `/etc/apt/sources.list`, for example:
+> NOTE: `libmpdclient-dev` and `i3-wm` are located in the `universe` repository, so if you want support for the
+> mpd/i3 modules you need to make sure it's included in the list of sources in `/etc/apt/sources.list`.
+> For example:
 >
 > `deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe`
 
@@ -76,9 +77,7 @@ $ cd lemonbuddy
 $ ./build.sh
 ~~~
 
-NOTE: **git-perl** is required for submodules to work in **Void Linux**
-
----
+> NOTE: `git-perl` is required for submodules to work in **Void Linux**
 
 #### It is of course recommended that you control the build process yourself.
 
@@ -87,17 +86,18 @@ NOTE: **git-perl** is required for submodules to work in **Void Linux**
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
-  # List and edit build variables
+  # Optionally list and edit build variables
   $ make edit_cache
   $ sudo make install
   ~~~
+
 ---
 
 <br>
 
 ## License
 
-> The MIT License (MIT)
+> The MIT License (MIT)<br>
 > Copyright (c) 2016 Michael Carlberg
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of
