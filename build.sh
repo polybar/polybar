@@ -27,6 +27,7 @@ function main
   echo -e "\n"
 
   read -N1 -p "Do you want to execute \"sudo make install\"? [Y/n] " -r choice
+  echo
 
   if [[ "${choice^^}" == "Y" ]]; then
     sudo make install || msg_err "Failed to install executables..."
