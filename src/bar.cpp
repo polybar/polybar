@@ -236,7 +236,8 @@ std::string Bar::get_output()
 
   auto data = builder->flush();
 
-  return data;
+  // return data;
+  return string::replace_all(data, "}%{", " ");
 }
 
 
