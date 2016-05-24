@@ -50,11 +50,14 @@ bool ScriptModule::update()
     log_error(e.what());
   }
 
-  return true;
+  return !this->output.empty();
 }
 
 std::string ScriptModule::get_output()
 {
+  if (this->output.empty())
+    return "";
+
   if (!this->click_left.empty())
     this->builder->cmd(Cmd::LEFT_CLICK, string::replace_all(this->click_left, "%counter%", std::to_string(this->counter)));
   if (!this->click_middle.empty())
