@@ -3,6 +3,7 @@
 
 #cmakedefine ENABLE_ALSA
 #cmakedefine ENABLE_MPD
+#cmakedefine ENABLE_NETWORK
 #cmakedefine ENABLE_I3
 
 #define BUILDER_SPACE_TOKEN "%__"
