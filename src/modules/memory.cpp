@@ -45,6 +45,9 @@ bool MemoryModule::update()
     buffer >> rdbuf; //kbytes_free = std::atol(rdbuf.c_str());
     buffer >> rdbuf; kbytes_available = std::atol(rdbuf.c_str());
   } catch (std::ios_base::failure &e) {
+    kbytes_total = 0;
+    // kbytes_free = 0;
+    kbytes_available = 0;
     log_error("Failed to read memory values: "+ STR(e.what()));
   }
 
