@@ -24,12 +24,11 @@ A package will be written for XBPS so stay tuned.
 
 A C++ compiler with C++14 support. For example `clang`.
 
-- lemonbar (obviously)
-  - NOTE: The application has only been tested against the `single-mon` fork.
-    If you have trouble with your version of lemonbar, install the fork which is
-    included in the `contrib` folder.
-
-    There are plans to integrate `lemonbar` into the project.
+- lemonbar
+  > **NOTE:** The application has only been tested against the `single-mon` fork.
+  > If you have trouble running it with your current version, install the one
+  > included in `contrib/lemonbar-sm-git`.
+  > Plans are to make `lemonbar` an internal module.
 - cmake
 - boost
 - libx11
@@ -39,80 +38,765 @@ A C++ compiler with C++14 support. For example `clang`.
 - libmpdclient _(optional: used by the mpd module)_
 - libsigc++ _(optional: used by the i3 module)_
 
-**Installing using pacman:**
+**Install dependencies using pacman:**
 ~~~ sh
-$ pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
+$ sudo pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
 ~~~
 
-**Installing using xbps-install:**
+**Install dependencies using xbps-install:**
 ~~~ sh
-$ xbps-install -S cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
+$ sudo xbps-install -S cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
 ~~~~
 
-**Installing using apt-get:**
+**Install dependencies using apt-get:**
 
-> NOTE: `libmpdclient-dev` and `i3-wm` are located in the `universe` repository, so if you want support for the
-> mpd/i3 modules you need to make sure it's included in the list of sources in `/etc/apt/sources.list`.
-> For example:
+> **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
+> needs to be added to the list of sources in `/etc/apt/sources.list`.
 >
-> `deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe`
+> Packages in the `universe` repository: `libmpdclient-dev` `i3-wm`
 
 ~~~ sh
-$ apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libmpdclient-dev libsigc++-dev i3-wm
+$ sudo apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libmpdclient-dev libsigc++-dev i3-wm
 ~~~~
 
 
-<br>
+### Building from source
 
-## Building from source
-
-#### Automatic installation using ./build.sh
-
-If you haven't worked with builds before you could try to run the following
-command chain:
-
-~~~ sh
-$ git clone --branch 0.1.2 --recursive https://github.com/jaagr/lemonbuddy.git
-$ cd lemonbuddy
-$ ./build.sh
-~~~
-
-> NOTE: `git-perl` is required for submodules to work in **Void Linux**
-
-#### It is of course recommended that you control the build process yourself.
+> **NOTE:** In Void Linux you will need to install `git-perl` to get support for submodules.
 
   ~~~ sh
   $ git clone --branch 0.1.2 --recursive https://github.com/jaagr/lemonbuddy.git
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
-  # Optionally list and edit build variables
-  $ make edit_cache
+  # Optionally list and edit build settings before compiling
+  # $ make edit_cache
   $ sudo make install
   ~~~
 
----
 
-<br>
+## Running
+
+Before customizing the bar, make sure everything works as expected by trying
+out one of the example configurations installed with the application.
+The following code will get you started:
+
+  ~~~ sh
+  # Create the config root directory
+  $ mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
+  $ cd ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
+
+  # Copy sample config for the running wm (uses a wm agnostic config as fallback)
+  $ __wm=$(pgrep -l "(bspwm|i3)")
+  $ cp /usr/share/examples/lemonbuddy/config${__wm:+.${__wm##* }} config
+
+  # Launch the bar
+  # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
+  $ lemonbuddy_wrapper.sh example
+
+  # When making changes to the configuration, make sure to try it out using
+  # only the lemonbuddy executable, before launching it with the wrapper:
+  $ lemonbuddy example
+  (Ctrl-C to terminate)
+
+  # "lemonbuddy_wrapper.sh" is just a simple shell script that takes care
+  # of redirecting the in-/output streams between "lemonbuddy" and "lemonbar".
+  # It should be considered experimental and needs more assertions, but if
+  # it the above command doesn't report any error it is generally safe to
+  # assume that the wrapper will launch the bar successfully as well.
+  ~~~
+
+**It is recommended** to always use `lemonbuddy_wrapper.sh` when launching the bars.
+
+If you handle the in-/output stream redirection's manually, the internal command
+handlers (e.g. mpd or volume controls) might stop working. It won't change the
+output of the bar but you will miss out on the internal API calls, which is one
+of the main advantages of using the application.
+
+The `lemonbuddy_wrapper.sh` will be deprecated once `lemonbar` is integrated
+into the project.
+
+
+## Launching the bar in your wm's bootstrap routine
+
+When using the wrapper to start the bar in in your wm's autostart routine, make sure to include
+a kill directive before launching the bar. This is done to make sure that any previously spawned
+processes gets terminated before before we launch the new ones.  For example in
+`$HOME/.config/bspwmrc`:
+
+  ~~~ sh
+  # Terminate already running bar instances
+  pgrep -f '(lemonbuddy_wrapper.sh|^lemonb(uddy|ar))' | xargs kill -9 >/dev/null 2>&1
+
+  # Launch bar1 and bar2
+  lemonbuddy_wrapper.sh bar1 &
+  lemonbuddy_wrapper.sh bar2 &
+
+  echo "Bars launched..."
+  ~~~
+
+
+## Configuration
+
+The configuration syntax is very much **WIP**. If you have any feedback or suggestions, please
+[create an issue ticket](https://github.com/jaagr/lemonbuddy/issues).
+
+When working with unicode symbols, remember that fonts render them differently. Changing font
+can change the quality of your generated output drastically. One must-have font
+is [Unifont](http://unifoundry.com/unifont.html), which has great unicode coverage.
+
+Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icons/) and [Material Icons](https://design.google.com/icons/).
+
+The values used in the examples below are to be considered placeholder values, and
+the resulting output might not be award-winning.
+
+`🟊 = module is still flagged as work in progress`
+
+
+### Module `internal/backlight`
+  ~~~ ini
+  [module/backlight]
+  type = internal/backlight
+
+  ; Use the following command to list available cards:
+  ; $ ls -1 /sys/class/backlight/
+  card = intel_backlight
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label> (default)
+  ;   <ramp>
+  ;   <bar>
+  format = <ramp> <bar>
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  label = %percentage%
+
+  ramp:0 = 🌕
+  ramp:1 = 🌔
+  ramp:2 = 🌓
+  ramp:3 = 🌒
+  ramp:4 = 🌑
+
+  bar:width = 10
+  bar:indicator = |
+  bar:fill = ─
+  bar:empty = ─
+  ~~~
+
+
+### 🟊 Module `internal/battery`
+
+The module is still marked as WIP since the charge animation
+is not fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+
+  ~~~ ini
+  [module/battery]
+  type = internal/battery
+
+  ; This is useful in case the battery never reports 100% charge
+  ;full_at = 99
+
+  ; Use the following command to list batteries and adapters:
+  ; $ ls -1 /sys/class/power_supply/
+  ;battery = BAT0
+  ;adapter = ADP1
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label:charging> (default)
+  ;   <bar:capaity>
+  ;   <ramp:capacity>
+  ;   <animation:charging>
+  format:charging = <animation:charging> <label:charging>
+
+  ; Available tags:
+  ;   <label:discharging> (default)
+  ;   <bar:capaity>
+  ;   <ramp:capacity>
+  format:discharging = <ramp:capacity> <label:discharging>
+
+  ; Available tags:
+  ;   <label:full> (default)
+  ;   <bar:capaity>
+  ;   <ramp:capacity>
+  ;format:full = <ramp:capacity> <label:full>
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  label:charging = Charging %percentage%
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  label:discharging = Discharging %percentage%
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  label:full = Fully charged
+
+  ramp:capacity:0 = 
+  ramp:capacity:1 = 
+  ramp:capacity:2 = 
+  ramp:capacity:3 = 
+  ramp:capacity:4 = 
+
+  bar:capacity:width = 10
+
+  animation:charging:0 = 
+  animation:charging:1 = 
+  animation:charging:2 = 
+  animation:charging:3 = 
+  animation:charging:4 = 
+  animation:charging:framerate_ms = 750
+  ~~~
+
+
+### Module `internal/bspwm`
+  ~~~ ini
+  [module/bspwm]
+  type = internal/bspwm
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; workspace_icon:[0-9]+ = label;icon
+  workspace_icon:0 = code;♚
+  workspace_icon:1 = office;♛
+  workspace_icon:2 = graphics;♜
+  workspace_icon:3 = mail;♝
+  workspace_icon:4 = web;♞
+  workspace_icon:default = ♟
+
+  ; Available tags:
+  ;   <label:state> (default) - gets replaced with <label:(active|urgent|occupied|empty)>
+  ;   <label:mode> - gets replaced with <label:(monocle|tiled|fullscreen|floating|locked|sticky|private)>
+  format = <label:state> <label:mode>
+
+  ; If any values for label:dimmed:N area defined, the workspace/mode colors will get overridden
+  ; with those values if the monitor is out of focus
+  label:dimmed:foreground = #555
+  label:dimmed:underline = ${BAR.background}
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:active = %icon%
+  label:active:foreground = #ffffff
+  label:active:background = #3f3f3f
+  label:active:underline = #fba922
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:occupied = %icon%
+  label:occupied:underline = #555555
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:urgent = %icon%
+  label:urgent:foreground = #000000
+  label:urgent:background = #bd2c40
+  label:urgent:underline = #9b0a20
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:empty = %icon%
+  label:empty:foreground = #55ffffff
+
+  ; Available tokens:
+  ;   None
+  label:monocle = 
+  ;label:tiled = 
+  ;label:fullscreen = 
+  ;label:floating = 
+  label:locked = 
+  label:locked:foreground = #bd2c40
+  label:sticky = 
+  label:sticky:foreground = #fba922
+  label:private = 
+  label:private:foreground = #bd2c40
+  ~~~
+
+
+### Module `internal/cpu`
+  ~~~ ini
+  [module/cpu]
+  type = internal/cpu
+
+  ; Seconds to sleep between updates
+  ;interval = 0.5
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label> (default)
+  ;   <bar:load>
+  ;   <ramp:load>
+  ;   <ramp:load_per_core>
+  format = <label> <ramp:load_per_core>
+
+  ; Available tokens:
+  ;   %percentage% (default) - total cpu load
+  label = CPU %percentage%
+
+  ramp:load_per_core:0 = ▁
+  ramp:load_per_core:1 = ▂
+  ramp:load_per_core:2 = ▃
+  ramp:load_per_core:3 = ▄
+  ramp:load_per_core:4 = ▅
+  ramp:load_per_core:5 = ▆
+  ramp:load_per_core:6 = ▇
+  ramp:load_per_core:7 = █
+  ~~~
+
+
+### Module `internal/date`
+  ~~~ ini
+  [module/date]
+  type = internal/date
+
+  ; Seconds to sleep between updates
+  ;interval = 1.0
+
+  ; see "man date" for details on how to format the date string
+  ; NOTE: if you want to use lemonbar tags here you need to use %%{...}
+  date = %Y-%m-%d% %H:%M
+
+  ; if date_detailed is defined, clicking the area will toggle between formats
+  date_detailed = %%{F#888}%A, %d %B %Y%  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <date> (default)
+  format = 🕓 <date>
+  format:background = #55ff3399
+  format:foreground = #fff
+  ~~~
+
+
+### 🟊 Module `internal/i3`
+
+Requires the project to be built with support for i3. For more information,
+see [the dependency section](#user-content-dependencies).
+
+The module is still marked as WIP since it needs more testing. If you notice any
+anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+
+See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`.
+
+  ~~~ ini
+  [module/i3]
+  type = internal/i3
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; workspace_icon:[0-9]+ = label;icon
+  workspace_icon:0 = 1;♚
+  workspace_icon:1 = 2;♛
+  workspace_icon:2 = 3;♜
+  workspace_icon:3 = 4;♝
+  workspace_icon:4 = 5;♞
+  workspace_icon:default = ♟
+
+  ; Available tags:
+  ;   <label:state> (default) - gets replaced with <label:(focused|unfocused|visible|urgent)>
+  ;format = <label:state>
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:focused = %icon%
+  label:focused:foreground = #ffffff
+  label:focused:background = #3f3f3f
+  label:focused:underline = #fba922
+  label:focused:padding = 4
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:unfocused = %icon%
+  label:unfocused:padding = 4
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:visible = %icon%
+  label:visible:underline = #555555
+  label:visible:padding = 4
+
+  ; Available tokens:
+  ;   %name%
+  ;   %icon%
+  ;   %index%
+  ; Default: %icon%  %name%
+  label:urgent = %icon%
+  label:urgent:foreground = #000000
+  label:urgent:background = #bd2c40
+  label:urgent:padding = 4
+  ~~~
+
+
+### Module `internal/memory`
+  ~~~ ini
+  [module/memory]
+  type = internal/memory
+
+  ; Seconds to sleep between updates
+  ;interval = 1.0
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label> (default)
+  ;   <bar:used>
+  ;   <bar:free>
+  format = <label> <bar:used>
+
+  ; Available tokens:
+  ;   %percentage_used% (default)
+  ;   %percentage_free%
+  ;   %gb_used%
+  ;   %gb_free%
+  ;   %gb_total%
+  ;   %mb_used%
+  ;   %mb_free%
+  ;   %mb_total%
+  label = RAM %percentage_used%
+
+  bar:used:width = 50
+  bar:used:foreground:0 = #55aa55
+  bar:used:foreground:1 = #557755
+  bar:used:foreground:2 = #f5a70a
+  bar:used:foreground:3 = #ff5555
+  bar:used:fill = ▐
+  bar:used:empty = ▐
+  bar:used:empty:foreground = #444444
+  ~~~
+
+
+### Module `internal/mpd`
+  ~~~ ini
+  [module/mpd]
+  type = internal/mpd
+
+  ; Seconds to sleep between progressbar/song timer sync
+  ;interval = 0.5
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label:song> (default)
+  ;   <label:time>
+  ;   <bar:progress>
+  ;   <toggle> - gets replaced with <icon:(pause|play)>
+  ;   <icon:random>
+  ;   <icon:repeat>
+  ;   <icon:repeatone>
+  ;   <icon:prev>
+  ;   <icon:stop>
+  ;   <icon:play>
+  ;   <icon:pause>
+  ;   <icon:next>
+  format:online = <icon:prev> <icon:stop> <toggle> <icon:next>  <icon:repeat> <icon:random>  <bar:progress> <label:time>  <label:song>
+
+  ; Available tags:
+  ;   <label:offline>
+  ;format:offline = <label:offline>
+
+  ; Available tokens:
+  ;   %artist%
+  ;   %album%
+  ;   %title%
+  ; Default: %artist% - %title%
+  ;label:song = 𝄞 %artist% - %title%
+
+  ; Available tokens:
+  ;   %elapsed%
+  ;   %total%
+  ; Default: %elapsed% / %total%
+  ;label:time = %elapsed% / %total%
+
+  ; Available tokens:
+  ;   None
+  label:offline = 🎜 mpd is offline
+
+  icon:play = ⏵
+  icon:pause = ⏸
+  icon:stop = ⏹
+  icon:prev = ⏮
+  icon:next = ⏭
+  icon:random = 🔀
+  icon:repeat = 🔁
+  ;icon:repeatone = 🔂
+
+  ; Used to display the state of random/repeat/repeatone
+  toggle_on:foreground = #ff
+  toggle_off:foreground = #55
+
+  bar:progress:width = 45
+  bar:progress:indicator = |
+  bar:progress:fill = ─
+  bar:progress:empty = ─
+  ~~~
+
+
+### 🟊 Module `internal/network`
+
+The module is still marked as WIP since the packetloss testing is not
+fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+
+ **NOTE:** If you use both a wired and a wireless network, just add 2 module definitions.
+ For example:
+
+> ~~~ ini
+> [module/wired-network]
+> type = internal/network
+> interface = eth1
+>
+> [module/wireless-network]
+> type = internal/network
+> interface = wlan1
+> ~~~
+
+  ~~~ ini
+  [module/network]
+  type = internal/network
+  interface = wlan1
+
+  ; Seconds to sleep between updates
+  interval = 2.0
+
+  ; Seconds to sleep between connectivity tests
+  ; A value of 0 disables the testing
+  ; Default: 0
+  ;connectivity_test_interval = 10
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label:connected> (default)
+  ;   <ramp:signal>
+  format:connected = <ramp:signal> <label:connected>
+
+  ; Available tags:
+  ;   <label:disconnected> (default)
+  ;format:disconnected = <label:disconnected>
+
+  ; Available tokens:
+  ;   %ifname%    [wireless+wired]
+  ;   %local_ip%  [wireless+wired]
+  ;   %essid%     [wireless]
+  ;   %signal%    [wireless]
+  ;   %linkspeed% [wired]
+  ; Default: %ifname% %local_ip%
+  label:connected = %essid%
+  label:connected:foreground = #eefafafa
+
+  ; Available tokens:
+  ;   %ifname%    [wireless+wired]
+  ; Default: (none)
+  ;label:disconnected = not connected
+  ;label:disconnected:foreground = #66ffffff
+
+  ramp:signal:0 = 😱
+  ramp:signal:1 = 😠
+  ramp:signal:2 = 😒
+  ramp:signal:3 = 😊
+  ramp:signal:4 = 😃
+  ramp:signal:5 = 😈
+  ~~~
+
+
+### 🟊 Module `internal/volume`
+
+The module is still marked as WIP since the headphone functionality
+is not fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+
+  ~~~ ini
+  [module/volume]
+  type = internal/memory
+
+  ; Use the following command to list available mixer controls:
+  ; $ amixer scontrols | sed -nr "s/.*'([[:alnum:]]+)'.*/\1/p"
+  speaker_mixer = Speaker
+  headphone_mixer = Headphone
+
+  ; Use the following command to list available device controls
+  ; $ amixer controls | sed -r "/CARD/\!d; s/.*=([0-9]+).*name='([^']+)'.*/printf '%3.0f: %s\n' '\1' '\2'/e" | sort
+  headphone_control_numid = 9
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label:volume> (default)
+  ;   <ramp:volume>
+  ;   <bar:volume>
+  format:volume = <ramp:volume> <label:volume>
+
+  ; Available tags:
+  ;   <label:muted> (default)
+  ;   <ramp:volume>
+  ;   <bar:volume>
+  ;format:muted = <label:muted>
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  ;label:volume = %percentage%
+
+  ; Available tokens:
+  ;   %percentage% (default)
+  label:muted = 🔇 muted
+  label:muted:foreground = #66
+
+  ; Required if <ramp:volume> is used
+  ramp:volume:0 = 🔈
+  ramp:volume:1 = 🔉
+  ramp:volume:2 = 🔊
+  ~~~
+
+
+### Module `custom/menu`
+  ~~~ ini
+  [module/menu-apps]
+  type = custom/menu
+
+  ; "menu:LEVEL:N" has the same properties as "label:NAME" with
+  ; the additional "exec" property
+  ;
+  ; Available exec commands:
+  ;   menu_open:LEVEL
+  ;   menu_close
+  ; Other commands will be executed using "/usr/bin/env sh -c $COMMAND"
+
+  menu:0:0 = Browsers
+  menu:0:0:exec = menu_open:1
+  menu:0:0:foreground = #fba922
+  menu:0:2 = Multimedia
+  menu:0:2:exec = menu_open:3
+  menu:0:2:foreground = #fba922
+
+  menu:1:0 = Firefox
+  menu:1:0:exec = firefox &
+  menu:1:0:foreground = #fba922
+  menu:1:1 = Chromium
+  menu:1:1:exec = chromium &
+  menu:1:1:foreground = #fba922
+
+  menu:2:0 = Gimp
+  menu:2:0:foreground = #fba922
+  menu:2:0:exec = gimp &
+  menu:2:1 = Scrot
+  menu:2:1:exec = scrot &
+  menu:2:1:foreground = #fba922
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <label:toggle> (default) - gets replaced with <label:(open|close)>
+  ;   <menu> (default)
+  ;format = <label:toggle> <menu>
+
+  label:open = Apps
+  label:close = x
+  ~~~
+
+
+### Module `custom/script`
+  ~~~ ini
+  [module/pkgupdates-available]
+  type = custom/script
+
+  ; Available tokens:
+  ;   %counter%
+  ; The "exec" command will be executed using "/usr/bin/env sh -c [command]"
+  exec = count=$(sudo pacman -Syup --noprogressbar 2>/dev/null | sed '/Starting full/,~1!d;/Starting full/d' | wc -l); [ $count -gt 0 ] && echo "Updates available: $count"
+  ;exec = count=$(echo n | sudo xbps-install -Su >/dev/null 2>&1; sudo xbps-install -Sun | wc -l); [ $count -gt 0 ] && echo "Updates available: $count"
+
+  ; Seconds to sleep between updates
+  interval = 90
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; Available tags:
+  ;   <output> (default)
+  ;format = <output>
+  format:background = #999
+  format:foreground = #000
+  format:padding = 4
+
+  ; Available tokens:
+  ;   %counter%
+  ;
+  ; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c [command]"
+  click:left = echo left %counter%
+  click:middle = echo middle %counter%
+  click:right = echo right %counter%
+
+  ; Available tokens:
+  ;   %counter%
+  ;
+  ; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c [command]"
+  scroll:up = echo scroll up %counter%
+  scroll:down = echo scroll down %counter%
+  ~~~
+
+
+### Module `custom/text`
+  ~~~ ini
+  [module/my-text-label]
+  type = custom/text
+  content = Some random label
+  ~~~
+
+##### Extra formatting (example)
+  ~~~ ini
+  ; "content" has the same properties as "format:NAME"
+  content:background = #000
+  content:foreground = #fff
+  content:padding = 4
+
+  ; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c $COMMAND"
+  click:left = echo left
+  click:middle = echo middle
+  click:right = echo right
+
+  ; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c $COMMAND"
+  scroll:up = echo scroll up
+  scroll:down = echo scroll down
+  ~~~
+
 
 ## License
 
-> The MIT License (MIT)<br>
-> Copyright (c) 2016 Michael Carlberg
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy of
-> this software and associated documentation files (the "Software"), to deal in
-> the Software without restriction, including without limitation the rights to
-> use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-> the Software, and to permit persons to whom the Software is furnished to do so,
-> subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all
-> copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-> FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-> COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-> IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Lemonbuddy is licensed under the MIT license. [See LICENSE for more information](https://github.com/jaagr/lemonbuddy/blob/master/LICENSE).
