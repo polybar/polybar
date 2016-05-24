@@ -10,7 +10,7 @@ if(NOT CMAKE_CXX_COMPILER)
   endif()
 endif()
 
-project(lemonbuddy VERSION 1.0.0)
+project(lemonbuddy VERSION 0.1.2)
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"

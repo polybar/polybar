@@ -72,7 +72,7 @@ If you haven't worked with builds before you could try to run the following
 command chain:
 
 ~~~ sh
-$ git clone --branch 0.1.1 --recursive https://github.com/jaagr/lemonbuddy.git
+$ git clone --branch 0.1.2 --recursive https://github.com/jaagr/lemonbuddy.git
 $ cd lemonbuddy
 $ ./build.sh
 ~~~
@@ -82,7 +82,7 @@ $ ./build.sh
 #### It is of course recommended that you control the build process yourself.
 
   ~~~ sh
-  $ git clone --branch 0.1.1 --recursive https://github.com/jaagr/lemonbuddy.git
+  $ git clone --branch 0.1.2 --recursive https://github.com/jaagr/lemonbuddy.git
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
