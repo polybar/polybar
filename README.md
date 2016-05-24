@@ -15,7 +15,7 @@ github.
 ## Installation
 
 ###  Arch Linux
-Install the AUR package `lemonbuddy`
+Install the AUR package `lemonbuddy-git`
 
 ###  Void Linux
 A package will be written for XBPS so stay tuned.
