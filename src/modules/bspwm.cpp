@@ -217,7 +217,8 @@ bool BspwmModule::handle_command(const std::string& cmd)
   if (cmd.find(EVENT_CLICK) == std::string::npos || cmd.length() <= std::strlen(EVENT_CLICK))
     return false;
 
-  std::system(("bspc desktop -f "+ this->monitor +":^"+ cmd.substr(std::strlen(EVENT_CLICK))).c_str());
+  int status = std::system(("bspc desktop -f "+ this->monitor +":^"+ cmd.substr(std::strlen(EVENT_CLICK))).c_str());
+  log_trace(std::to_string(status));
 
   return true;
 }

@@ -57,8 +57,10 @@ void EventLoop::stop()
   this->state = STATE_STOPPED;
 
   // break the input read block - totally how it's meant to be done!
-  if (!this->pipe_filename.empty())
-    std::system(("echo >"+this->pipe_filename).c_str());
+  if (!this->pipe_filename.empty()) {
+    int status  = std::system(("echo >"+this->pipe_filename).c_str());
+    log_trace(std::to_string(status));
+  }
 
   this->registry->unload();
   this->logger->info("Event loop stopped...");
