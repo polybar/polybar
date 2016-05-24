@@ -10,20 +10,26 @@ if(ENABLE_MPD)
     "src/modules/mpd.cpp")
 endif()
 
+if(ENABLE_NETWORK)
+  set(SOURCE_FILES_NETWORK
+    "src/interfaces/net.cpp"
+    "src/modules/network.cpp")
+endif()
+
 if(ENABLE_I3)
   set(SOURCE_FILES_I3 "src/modules/i3.cpp")
 endif()
 
 set(SOURCE_FILES
   ${SOURCE_FILES_ALSA}
-  ${SOURCE_FILES_MPD}
   ${SOURCE_FILES_I3}
+  ${SOURCE_FILES_MPD}
+  ${SOURCE_FILES_NETWORK}
   "src/drawtypes/animation.cpp"
   "src/drawtypes/bar.cpp"
   "src/drawtypes/icon.cpp"
   "src/drawtypes/label.cpp"
   "src/drawtypes/ramp.cpp"
-  "src/interfaces/net.cpp"
   "src/modules/backlight.cpp"
   "src/modules/base.cpp"
   "src/modules/battery.cpp"
@@ -33,7 +39,6 @@ set(SOURCE_FILES
   "src/modules/date.cpp"
   "src/modules/memory.cpp"
   "src/modules/menu.cpp"
-  "src/modules/network.cpp"
   "src/modules/script.cpp"
   "src/modules/text.cpp"
   # "src/modules/torrent.cpp"
