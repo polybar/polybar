@@ -13,8 +13,8 @@ struct Exception : public std::runtime_error
 #define DefineChildException(ExName, ParentEx) struct ExName : public ParentEx { \
   ExName(std::string error_message = "") \
     : ParentEx("["+ std::string(__FUNCTION__) +"] => "+ error_message) {} \
-};
-#define DefineBaseException(ExName) DefineChildException(ExName, Exception);
+}
+#define DefineBaseException(ExName) DefineChildException(ExName, Exception)
 
 #endif
 
