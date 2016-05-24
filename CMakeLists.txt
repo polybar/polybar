@@ -149,7 +149,10 @@ message(STATUS " Enable network support ${ENABLE_NETWORK}")
 message(STATUS "---------------------------")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/src")
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES}
+  "examples/config"
+  "examples/config.bspwm"
+  "examples/config.i3")
 
 if(ENABLE_I3)
   add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/i3ipcpp" EXCLUDE_FROM_ALL)
@@ -165,8 +168,22 @@ target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
 
 configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION "bin")
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper.sh" DESTINATION "bin")
+install(TARGETS ${PROJECT_NAME}
+  DESTINATION "bin"
+  COMPONENT "binaries")
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper.sh"
+  DESTINATION "bin"
+  COMPONENT "binaries")
+
+install(FILES "examples/config"
+  DESTINATION "share/examples/${PROJECT_NAME}"
+  COMPONENT "config")
+install(FILES "examples/config.bspwm"
+  DESTINATION "share/examples/${PROJECT_NAME}"
+  COMPONENT "config")
+install(FILES "examples/config.i3"
+  DESTINATION "share/examples/${PROJECT_NAME}"
+  COMPONENT "config")
 
 #
 # Uninstall target
