@@ -34,20 +34,32 @@ A C++ compiler with C++14 support. For example `clang`.
 - boost
 - libx11
 - libxrandr
-- wireless_tools
-- alsa-lib _optional_
-- libmpdclient _optional_
-- libsigc++ _optional_
+- wireless_tools _(optional: used by the network module)_
+- alsa-lib _(optional: used by the volume module)_
+- libmpdclient _(optional: used by the mpd module)_
+- libsigc++ _(optional: used by the i3 module)_
 
-**With Pacman you can install the packages using:**
+**Installing using pacman:**
 ~~~ sh
 $ pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
 ~~~
 
-**With XBPS you can install the packages using:**
+**Installing using xbps-install:**
 ~~~ sh
 $ xbps-install -S cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
 ~~~~
+
+**Installing using apt-get:**
+
+> NOTE: `libmpdclient-dev` is located in the `universe` repository, so make sure it's
+> included in the list of sources in `/etc/apt/sources.list`, for example:
+>
+> `deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe`
+
+~~~ sh
+$ apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libmpdclient-dev libsigc++-dev i3-wm
+~~~~
+
 
 <br>
 

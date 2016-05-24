@@ -3,7 +3,12 @@
 #
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+if(NOT CMAKE_CXX_COMPILER)
+  find_program(clang_EXECUTABLE "clang++")
+  if(clang_EXECUTABLE)
+    set(CMAKE_CXX_COMPILER ${clang_EXECUTABLE})
+  endif()
+endif()
 
 project(lemonbuddy VERSION 1.0.0)
 
@@ -23,26 +28,11 @@ endif()
 #
 # Internal values and switches
 #
-
-option(ENABLE_CCACHE "Enable ccache support" ON)
-option(ENABLE_ALSA   "Enable alsa support"   ON)
-option(ENABLE_MPD    "Enable mpd support"    ON)
-option(ENABLE_I3     "Enable i3 support"     OFF)
-
-find_program(I3_EXECUTABLE i3)
-if(I3_EXECUTABLE)
-  message(STATUS "Enabling i3 since executable was found")
-  set(ENABLE_I3 ON)
-else()
-  message(STATUS "Coult not find i3 executable")
-endif()
-
-message(STATUS "---------------------------")
-message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
-message(STATUS " Enable mpd support     ${ENABLE_MPD}")
-message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
-message(STATUS " Enable i3 support      ${ENABLE_I3}")
-message(STATUS "---------------------------")
+option(ENABLE_CCACHE  "Enable ccache support"  ON)
+option(ENABLE_ALSA    "Enable alsa support"    ON)
+option(ENABLE_I3      "Enable i3 support"      ON)
+option(ENABLE_MPD     "Enable mpd support"     ON)
+option(ENABLE_NETWORK "Enable network support" ON)
 
 if(ENABLE_ALSA)
   set(SETTING_ALSA_SOUNDCARD "default"
@@ -93,7 +83,6 @@ endif()
 # Locate and insert libs
 #
 find_package("Boost" REQUIRED)
-#find_package("Boost" REQUIRED "regex")
 find_package("Threads" REQUIRED)
 find_package("X11" REQUIRED "X11_Xrandr" "X11_Xutil" "X11_Xlib")
 
@@ -121,7 +110,16 @@ if(ENABLE_ALSA)
     set(LINK_LIBS ${LINK_LIBS} ${ALSA_LIBRARIES})
   else(ALSA_FOUND)
     # graceful fail
-    message(STATUS "Disabling alsa since required package wasn't found")
+    message(WARNING "Disabling alsa since required package wasn't found")
+    set(ENABLE_ALSA OFF)
+  endif()
+endif()
+
+if(ENABLE_I3)
+  find_program(I3_EXECUTABLE "i3")
+  if(NOT I3_EXECUTABLE)
+    # graceful fail
+    message(WARNING "Disabling i3 support since executable was not found")
     set(ENABLE_ALSA OFF)
   endif()
 endif()
@@ -134,15 +132,35 @@ if(ENABLE_MPD)
     set(LINK_LIBS ${LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
   else(LibMPDClient_FOUND)
     # graceful fail
-    message(STATUS "Disabling mpd since required package wasn't found")
+    message(WARNING "Disabling mpd since required package wasn't found")
     set(ENABLE_MPD OFF)
   endif()
 endif()
 
+if(ENABLE_NETWORK)
+  find_package("Libiw")
+  if(LibMPDClient_FOUND)
+    include_directories(${LIBMPDCLIENT_INCLUDE_DIRS})
+    link_directories(${LIBMPDCLIENT_LIBRARY_DIRS})
+    set(LINK_LIBS ${LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
+  else(Libiw_FOUND)
+    # graceful fail
+    message(WARNING "Disabling network support since required library wasn't found")
+    set(ENABLE_NETWORK OFF)
+  endif()
+endif()
 
 #
 # Install executable and wrapper
 #
+message(STATUS "---------------------------")
+message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
+message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
+message(STATUS " Enable i3 support      ${ENABLE_I3}")
+message(STATUS " Enable mpd support     ${ENABLE_MPD}")
+message(STATUS " Enable network support ${ENABLE_NETWORK}")
+message(STATUS "---------------------------")
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/src")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
