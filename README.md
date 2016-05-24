@@ -87,8 +87,8 @@ The following code will get you started:
   $ cd ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
 
   # Copy sample config for the running wm (uses a wm agnostic config as fallback)
-  $ __wm=$(pgrep -l "(bspwm|i3)")
-  $ cp /usr/share/examples/lemonbuddy/config${__wm:+.${__wm##* }} config
+  $ __wm=$(pgrep -l "(bspwm|i3)"); __prefix=$(which lemonbuddy)
+  $ cp "${__prefix%%/bin*}/share/examples/lemonbuddy/config${__wm:+.${__wm##* }}" config
 
   # Launch the bar
   # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
