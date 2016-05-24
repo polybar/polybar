@@ -87,7 +87,7 @@ Bar::Bar()
   this->opts->wm_name = "lemonbuddy-"+ this->config_path.substr(4);
   if (!this->opts->monitor->name.empty())
     this->opts->wm_name += "_"+ this->opts->monitor->name;
-  this->opts->wm_name = config::get<std::string>(this->config_path, "wm_name", this->opts->wm_name);
+  this->opts->wm_name = string::replace(config::get<std::string>(this->config_path, "wm_name", this->opts->wm_name), " ", "-");
 
   this->opts->offset_x = config::get<int>(this->config_path, "offset_x", defaults.offset_x);
   this->opts->offset_y = config::get<int>(this->config_path, "offset_y", defaults.offset_y);
@@ -264,7 +264,7 @@ std::string Bar::get_exec_line()
     buffer << " -d ";
 
   for (auto &&font : this->opts->fonts) {
-    buffer << " -f " << font->id;
+    buffer << " -f " << string::replace(font->id, " ", "-");
     buffer << " -o " << font->offset;
   }
 
