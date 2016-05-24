@@ -11,7 +11,6 @@
 #include "modules/date.hpp"
 #include "modules/memory.hpp"
 #include "modules/menu.hpp"
-#include "modules/network.hpp"
 #include "modules/script.hpp"
 #include "modules/text.hpp"
 #include "modules/torrent.hpp"
