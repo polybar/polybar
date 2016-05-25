@@ -24,6 +24,8 @@ pipe="$(mktemp -u /tmp/lemonbuddy.in.XXXXX)"
 
 [ -d "$logdir" ] || mkdir -p "$logdir"
 
+exec 2> >(tee "$logfile")
+
 mkfifo "$pipe"
 
 cleanup_proc() {
@@ -35,7 +37,7 @@ cleanup_proc() {
 }
 
 # shellcheck disable=SC2094
-{ lemonbuddy "$@" -p "$pipe" 2>"$logfile"; kill -TERM $$ 2>/dev/null; } | $lemonbar >"$pipe" &
+{ lemonbuddy "$@" -p "$pipe"; kill -TERM $$ 2>/dev/null; } | $lemonbar >"$pipe" &
 
 trap 'cleanup_proc $!' TERM INT
 
