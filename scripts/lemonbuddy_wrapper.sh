@@ -1,4 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+#set -eux
+set -eu
+set -o pipefail
 
 [ $# -eq 0 ] && {
   echo "No bar specified" ; exit 1
@@ -22,17 +26,23 @@ pipe="$(mktemp -u /tmp/lemonbuddy.in.XXXXX)"
 
 mkfifo "$pipe"
 
-# shellcheck disable=SC2094
-lemonbuddy "$@" -p "$pipe" 2>"$logfile" | $lemonbar >"$pipe" & pid=$!
-
-sigaction() {
-  printf "\r"
-  kill -TERM $pid 2>/dev/null
-  echo "Waiting for processes to terminate..."
+cleanup_proc() {
+  pid=$1
+  kill -0 "$pid" 2>/dev/null && {
+    echo "$pid is running (sending term signal)..."
+    kill -TERM "$pid"
+  }
 }
 
-trap sigaction TERM INT PIPE CHLD
+# shellcheck disable=SC2094
+{ lemonbuddy "$@" -p "$pipe" 2>"$logfile"; kill -TERM $$; } | $lemonbar >"$pipe" &
 
-while true; do
-  wait || break
+trap 'cleanup_proc $!' TERM INT
+
+while kill -0 $! 2>/dev/null; do
+  sleep 0.5s
 done
+
+[ -e "$pipe" ] && rm "$pipe"
+
+kill 0; wait
