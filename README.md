@@ -94,16 +94,8 @@ The following code will get you started:
   # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
   $ lemonbuddy_wrapper.sh example
 
-  # When making changes to the configuration, make sure to try it out using
-  # only the lemonbuddy executable, before launching it with the wrapper:
-  $ lemonbuddy example
-  (Ctrl-C to terminate)
-
   # "lemonbuddy_wrapper.sh" is just a simple shell script that takes care
   # of redirecting the in-/output streams between "lemonbuddy" and "lemonbar".
-  # It should be considered experimental and needs more assertions, but if
-  # it the above command doesn't report any error it is generally safe to
-  # assume that the wrapper will launch the bar successfully as well.
   ~~~
 
 **It is recommended** to always use `lemonbuddy_wrapper.sh` when launching the bars.
