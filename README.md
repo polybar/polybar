@@ -41,23 +41,26 @@ A C++ compiler with C++14 support. For example `clang`.
 **Install dependencies using pacman:**
 ~~~ sh
 $ sudo pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
+$ yaourt ttf-font-awesome
 ~~~
 
 **Install dependencies using xbps-install:**
 ~~~ sh
-$ sudo xbps-install -S cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
-~~~~
+$ sudo xbps-install cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
+$ sudo xbps-install font-awesome
+~~~
 
 **Install dependencies using apt-get:**
 
 > **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
 > needs to be added to the list of sources in `/etc/apt/sources.list`.
 >
-> Packages in the `universe` repository: `libmpdclient-dev` `i3-wm`
+> Packages in the `universe` repository: `libmpdclient-dev` `i3-wm` `fonts-font-awesome`
 
 ~~~ sh
-$ sudo apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libmpdclient-dev libsigc++-dev i3-wm
-~~~~
+$ sudo apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev i3-wm
+$ sudo apt-get install fonts-font-awesome
+~~~
 
 
 ### Building from source
@@ -87,18 +90,22 @@ The following code will get you started:
   $ cd ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
 
   # Copy sample config for the running wm (uses a wm agnostic config as fallback)
-  $ __wm=$(pgrep -l "(bspwm|i3)"); __prefix=$(which lemonbuddy)
+  $ __wm=$(pgrep -l -x "(bspwm|i3)"); __prefix=$(which lemonbuddy)
   $ cp "${__prefix%%/bin*}/share/examples/lemonbuddy/config${__wm:+.${__wm##* }}" config
 
   # Launch the bar
   # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
   $ lemonbuddy_wrapper.sh example
-
-  # "lemonbuddy_wrapper.sh" is just a simple shell script that takes care
-  # of redirecting the in-/output streams between "lemonbuddy" and "lemonbar".
   ~~~
 
+> **NOTE:** If you are running i3 or bspwm and you don't see the workspace icons
+> it probably depends on the font. Install `font-awesome` and relaunch the bar.
+> ...or replace the icons in the config.
+
 **It is recommended** to always use `lemonbuddy_wrapper.sh` when launching the bars.
+
+`lemonbuddy_wrapper.sh` is just a simple shell script that takes care
+of redirecting the in-/output streams between `lemonbuddy` and `lemonbar`.
 
 If you handle the in-/output stream redirection's manually, the internal command
 handlers (e.g. mpd or volume controls) might stop working. It won't change the
