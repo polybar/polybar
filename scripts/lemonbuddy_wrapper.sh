@@ -30,12 +30,12 @@ cleanup_proc() {
   pid=$1
   kill -0 "$pid" 2>/dev/null && {
     echo "$pid is running (sending term signal)..."
-    kill -TERM "$pid"
+    kill -TERM "$pid" 2>/dev/null
   }
 }
 
 # shellcheck disable=SC2094
-{ lemonbuddy "$@" -p "$pipe" 2>"$logfile"; kill -TERM $$; } | $lemonbar >"$pipe" &
+{ lemonbuddy "$@" -p "$pipe" 2>"$logfile"; kill -TERM $$ 2>/dev/null; } | $lemonbar >"$pipe" &
 
 trap 'cleanup_proc $!' TERM INT
 
