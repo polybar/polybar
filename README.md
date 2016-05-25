@@ -11,6 +11,10 @@ Please note that the project hasn't been tested, other then by myself, so
 bugs and various bumps is to be expected. Please report any issues here on
 github.
 
+Here's a screenshot showing you an example of what it could look like:
+
+![Desktop with two instances of Lemonbuddy](examples/scrots/bar-full.png)
+
 
 ## Installation
 
