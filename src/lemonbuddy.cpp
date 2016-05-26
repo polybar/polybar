@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     eventloop->wait();
 
   } catch (Exception &e) {
-    logger->fatal(e.what());
+    logger->error(e.what());
   }
 
   eventloop->stop();

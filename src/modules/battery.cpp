@@ -11,11 +11,19 @@
 
 using namespace modules;
 
+const int modules::BatteryModule::STATE_UNKNOWN;
+const int modules::BatteryModule::STATE_CHARGING;
+const int modules::BatteryModule::STATE_DISCHARGING;
+const int modules::BatteryModule::STATE_FULL;
+
 BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
 {
   this->battery = config::get<std::string>(name(), "battery", "BAT0");
   this->adapter = config::get<std::string>(name(), "adapter", "ADP1");
   this->full_at = config::get<int>(name(), "full_at", 100);
+
+  this->state = STATE_UNKNOWN;
+  this->percentage = 0;
 
   this->formatter->add(FORMAT_CHARGING, TAG_LABEL_CHARGING,
     { TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_CHARGING, TAG_LABEL_CHARGING });
@@ -45,44 +53,54 @@ BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
     this->label_full = drawtypes::get_optional_config_label(
       name(), get_tag_name(TAG_LABEL_FULL), "%percentage%");
 
-  this->watch(string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery));
-  this->watch(string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter));
+  this->watch(string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery), InotifyEvent::ACCESSED);
+  this->watch(string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter), InotifyEvent::ACCESSED);
 
-  if (this->animation_charging) {
+  if (this->animation_charging)
     this->threads.emplace_back(std::thread(&BatteryModule::animation_thread_runner, this));
-  }
 }
 
 void BatteryModule::animation_thread_runner()
 {
-  while (this->enabled()) {
-    // std::unique_lock<std::mutex> lck(this->ev_mtx);
+  std::this_thread::yield();
 
-    auto state = this->state();
+  const auto dur = std::chrono::duration<double>(
+      float(this->animation_charging->get_framerate()) / 1000.0f);
 
-    if (state & CHARGING && !(state & FULL)) {
-      this->broadcast();
-    // else
-    //   this->cv.wait(lck, [&]{ return this->state & CHARGING && ~this->state & FULL; });
-      std::this_thread::sleep_for(std::chrono::duration<double>(
-        float(this->animation_charging->get_framerate()) / 1000));
-    } else {
-      std::this_thread::sleep_for(1s);
+  int retries = 5;
+
+  while (retries-- > 0)
+  {
+    while (this->enabled()) {
+      std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
+
+      if (retries > 0)
+        retries = 0;
+
+      if (this->state == STATE_CHARGING) {
+        lck.unlock();
+        this->broadcast();
+      } else {
+        log_trace("state != charging");
+      }
+
+      std::this_thread::sleep_for(dur);
     }
+
+    std::this_thread::sleep_for(500ms);
   }
 }
 
 bool BatteryModule::on_event(InotifyEvent *event)
 {
-  // std::unique_lock<std::mutex> lck(this->ev_mtx);
-
   if (event != nullptr)
     log_trace(event->filename);
+
+  int state = STATE_UNKNOWN;
 
   auto path_capacity  = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
   auto path_status = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
   auto status = io::file::get_contents(path_status);
-  int state = UNKNOWN;
 
   if (status.empty()) {
     log_error("Failed to read "+ path_status);
@@ -96,20 +114,18 @@ bool BatteryModule::on_event(InotifyEvent *event)
     return false;
   }
 
-  this->percentage = (int) math::cap<float>(std::atof(capacity.c_str()), 0, 100) + 0.5;
+  int percentage = (int) math::cap<float>(std::atof(capacity.c_str()), 0, 100) + 0.5;
 
   switch (status[0]) {
-    case '0': state = DISCHARGING; break;
-    case '1': state = CHARGING; break;
+    case '0': state = STATE_DISCHARGING; break;
+    case '1': state = STATE_CHARGING; break;
   }
 
-  if (this->state() & CHARGING && this->percentage >= this->full_at)
-    this->percentage = 100;
+  if ((state == STATE_CHARGING) && percentage >= this->full_at)
+    percentage = 100;
 
-  if (this->percentage == 100)
-    state |= FULL;
-
-  this->state = state;
+  if (percentage == 100)
+    state = STATE_FULL;
 
   if (!this->label_charging_tokenized)
     this->label_charging_tokenized = this->label_charging->clone();
@@ -118,31 +134,28 @@ bool BatteryModule::on_event(InotifyEvent *event)
   if (!this->label_full_tokenized)
     this->label_full_tokenized = this->label_full->clone();
 
-  auto percentage_str = std::to_string(this->percentage) + "%";
-
   this->label_charging_tokenized->text = this->label_charging->text;
-  this->label_charging_tokenized->replace_token("%percentage%", percentage_str);
+  this->label_charging_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
 
   this->label_discharging_tokenized->text = this->label_discharging->text;
-  this->label_discharging_tokenized->replace_token("%percentage%", std::to_string(this->percentage) +"%");
+  this->label_discharging_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
 
   this->label_full_tokenized->text = this->label_full->text;
-  this->label_full_tokenized->replace_token("%percentage%", percentage_str);
+  this->label_full_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
 
-  // lck.unlock();
-  //
-  // this->cv.notify_all();
+  this->state = state;
+  this->percentage = percentage;
 
   return true;
 }
 
 std::string BatteryModule::get_format()
 {
-  auto state = this->state();
+  int state = this->state();
 
-  if (state & FULL)
+  if (state == STATE_FULL)
     return FORMAT_FULL;
-  else if (state & CHARGING)
+  else if (state == STATE_CHARGING)
     return FORMAT_CHARGING;
   else
     return FORMAT_DISCHARGING;
@@ -153,16 +166,9 @@ bool BatteryModule::build(Builder *builder, const std::string& tag)
   if (tag == TAG_ANIMATION_CHARGING)
     builder->node(this->animation_charging);
   else if (tag == TAG_BAR_CAPACITY) {
-    builder->node(this->bar_capacity, this->percentage);
-    // builder->node(this->bar_capacity, 10);
-    // builder->space(5);
-    // builder->node(this->bar_capacity, 50);
-    // builder->space(5);
-    // builder->node(this->bar_capacity, 90);
-    // builder->space(5);
-    // builder->node(this->bar_capacity, 100);
+    builder->node(this->bar_capacity, this->percentage());
   } else if (tag == TAG_RAMP_CAPACITY)
-    builder->node(this->ramp_capacity, this->percentage);
+    builder->node(this->ramp_capacity, this->percentage());
   else if (tag == TAG_LABEL_CHARGING)
     builder->node(this->label_charging_tokenized);
   else if (tag == TAG_LABEL_DISCHARGING)

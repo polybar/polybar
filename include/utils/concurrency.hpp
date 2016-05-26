@@ -80,6 +80,12 @@ namespace concurrency
         std::lock_guard<concurrency::SpinLock> lck(this->lock);
         return this->value;
       }
+
+      bool operator==(T const& b)
+      {
+        std::lock_guard<concurrency::SpinLock> lck(this->lock);
+        return this->value == b;
+      }
   };
 
   template<typename T>
@@ -110,6 +116,12 @@ namespace concurrency
       {
         std::lock_guard<concurrency::SpinLock> lck(this->lock);
         return this->value;
+      }
+
+      bool operator==(T const& b)
+      {
+        std::lock_guard<concurrency::SpinLock> lck(this->lock);
+        return this->value == b;
       }
   };
 }
