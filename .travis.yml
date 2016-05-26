@@ -3,13 +3,15 @@ language: cpp
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.7
       - ubuntu-toolchain-r-test
+      - george-edison55-precise-backports
     packages:
       - clang-3.7
       - g++-5
       - gcc-5
       - cmake
+      - cmake-data
       - libx11-dev
       - libxrandr-dev
       - libboost-dev
@@ -28,4 +30,4 @@ compiler:
 script:
   - mkdir build
   - cd build
-  - cmake .. && make
+  - cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" .. && make

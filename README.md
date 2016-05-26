@@ -1,6 +1,8 @@
 Lemonbuddy
 ==========
 
+[![Build Status](https://travis-ci.org/jaagr/lemonbuddy.svg?branch=master)](https://travis-ci.org/jaagr/lemonbuddy)
+
 A fast and easy-to-use tool for [Lemonbar](https://github.com/LemonBoy/bar/).
 
 **Lemonbuddy** aims to help users build beautiful and highly customizable status bars
