@@ -191,10 +191,7 @@ the resulting output might not be award-winning.
   ~~~
 
 
-### 🟊 Module `internal/battery`
-
-The module is still marked as WIP since the charge animation
-is not fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+### Module `internal/battery`
 
   ~~~ ini
   [module/battery]
