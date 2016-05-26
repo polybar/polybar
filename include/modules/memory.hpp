@@ -12,8 +12,8 @@ namespace modules
   DefineModule(MemoryModule, TimerModule)
   {
     static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR_USED = "<bar:used>";
-    static constexpr auto TAG_BAR_FREE = "<bar:free>";
+    static constexpr auto TAG_BAR_USED = "<bar-used>";
+    static constexpr auto TAG_BAR_FREE = "<bar-free>";
 
     std::unique_ptr<drawtypes::Bar> bar_used;
     std::unique_ptr<drawtypes::Bar> bar_free;

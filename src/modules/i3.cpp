@@ -16,7 +16,7 @@
 
 using namespace modules;
 
-#define DEFAULT_WS_ICON "workspace_icon:default"
+#define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon% %name%"
 
 // TODO: Needs more testing
@@ -40,11 +40,11 @@ i3Module::i3Module(const std::string& name_, const std::string& monitor) : Event
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_FOCUSED, drawtypes::get_optional_config_label(name(), "label:focused", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_UNFOCUSED, drawtypes::get_optional_config_label(name(), "label:unfocused", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_VISIBLE, drawtypes::get_optional_config_label(name(), "label:visible", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label:urgent", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label:dimmed")));
+    this->state_labels.insert(std::make_pair(i3::WORKSPACE_FOCUSED, drawtypes::get_optional_config_label(name(), "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(i3::WORKSPACE_UNFOCUSED, drawtypes::get_optional_config_label(name(), "label-unfocused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(i3::WORKSPACE_VISIBLE, drawtypes::get_optional_config_label(name(), "label-visible", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(i3::WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(i3::WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
   }
 
   this->icons = std::make_unique<drawtypes::IconMap>();

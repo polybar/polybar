@@ -20,16 +20,16 @@ namespace modules
       static const int STATE_FULL = 4;
 
     protected:
-      static constexpr auto FORMAT_CHARGING = "format:charging";
-      static constexpr auto FORMAT_DISCHARGING = "format:discharging";
-      static constexpr auto FORMAT_FULL = "format:full";
+      static constexpr auto FORMAT_CHARGING = "format-charging";
+      static constexpr auto FORMAT_DISCHARGING = "format-discharging";
+      static constexpr auto FORMAT_FULL = "format-full";
 
-      static constexpr auto TAG_ANIMATION_CHARGING = "<animation:charging>";
-      static constexpr auto TAG_BAR_CAPACITY = "<bar:capacity>";
-      static constexpr auto TAG_RAMP_CAPACITY = "<ramp:capacity>";
-      static constexpr auto TAG_LABEL_CHARGING = "<label:charging>";
-      static constexpr auto TAG_LABEL_DISCHARGING = "<label:discharging>";
-      static constexpr auto TAG_LABEL_FULL = "<label:full>";
+      static constexpr auto TAG_ANIMATION_CHARGING = "<animation-charging>";
+      static constexpr auto TAG_BAR_CAPACITY = "<bar-capacity>";
+      static constexpr auto TAG_RAMP_CAPACITY = "<ramp-capacity>";
+      static constexpr auto TAG_LABEL_CHARGING = "<label-charging>";
+      static constexpr auto TAG_LABEL_DISCHARGING = "<label-discharging>";
+      static constexpr auto TAG_LABEL_FULL = "<label-full>";
 
       std::unique_ptr<drawtypes::Animation> animation_charging;
       std::unique_ptr<drawtypes::Ramp> ramp_capacity;

@@ -1,3 +1,6 @@
+###### Did the bar stop working after your last update? [Read this](https://github.com/jaagr/lemonbuddy/wiki/pre-1.0:-Patching-your-configuration-file) to find out how to patch your config!
+---
+
 Lemonbuddy
 ==========
 
@@ -102,16 +105,16 @@ The following code will get you started:
 
   # Launch the bar
   # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
-  $ lemonbuddy_wrapper.sh example
+  $ lemonbuddy_wrapper example
   ~~~
 
 > **NOTE:** If you are running i3 or bspwm and you don't see the workspace icons
 > it probably depends on the font. Install `font-awesome` and relaunch the bar.
 > ...or replace the icons in the config.
 
-**It is recommended** to always use `lemonbuddy_wrapper.sh` when launching the bars.
+**It is recommended** to always use `lemonbuddy_wrapper` when launching the bars.
 
-`lemonbuddy_wrapper.sh` is just a simple shell script that takes care
+`lemonbuddy_wrapper` is just a simple shell script that takes care
 of redirecting the in-/output streams between `lemonbuddy` and `lemonbar`.
 
 If you handle the in-/output stream redirection's manually, the internal command
@@ -119,7 +122,7 @@ handlers (e.g. mpd or volume controls) might stop working. It won't change the
 output of the bar but you will miss out on the internal API calls, which is one
 of the main advantages of using the application.
 
-The `lemonbuddy_wrapper.sh` will be deprecated once `lemonbar` is integrated
+The `lemonbuddy_wrapper` will be deprecated once `lemonbar` is integrated
 into the project.
 
 
@@ -132,11 +135,11 @@ processes gets terminated before before we launch the new ones.  For example in
 
   ~~~ sh
   # Terminate already running bar instances
-  pgrep -f '(lemonbuddy_wrapper.sh|^lemonb(uddy|ar))' | xargs kill -9 >/dev/null 2>&1
+  lemonbuddy_terminate noconfirm
 
   # Launch bar1 and bar2
-  lemonbuddy_wrapper.sh bar1 &
-  lemonbuddy_wrapper.sh bar2 &
+  lemonbuddy_wrapper bar1 &
+  lemonbuddy_wrapper bar2 &
 
   echo "Bars launched..."
   ~~~
@@ -144,8 +147,8 @@ processes gets terminated before before we launch the new ones.  For example in
 
 ## Configuration
 
-The configuration syntax is very much **WIP**. An upcoming change will replace all occurences of colon's with dashes in the parameter names.
-If you have any feedback or suggestions, please [create an issue ticket](https://github.com/jaagr/lemonbuddy/issues).
+The configuration syntax is very much **WIP**. If you have any feedback or suggestions on how to improve it,
+please [create an issue ticket](https://github.com/jaagr/lemonbuddy/issues), or a pull request.
 
 When working with unicode symbols, remember that fonts render them differently. Changing font
 can change the quality of your generated output drastically. One must-have font
@@ -155,6 +158,52 @@ Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icon
 
 The values used in the examples below are to be considered placeholder values, and
 the resulting output might not be award-winning.
+
+### Syntax and DSL
+
+The configuration syntax is based on the `ini` file format.
+
+  ~~~ ini
+  [section/name]
+  str = My string
+  ; Hint: Quote the value to keep the spaces
+  str = "   My string"
+  bool = true
+  bool = on
+  int = 10
+  float = 10.0
+
+  ; Values for a defined bar can be referenced using:
+  key = ${bar/top.foreground}
+
+  ; Values for the current bar can be referenced using:
+  key = ${BAR.foreground}
+
+  ; Other values can be referenced using:
+  key = ${section.key}
+
+  ;format[-NAME] = "<TAGS...>"
+  ;format[-NAME]-spacing = N (unit: whitespaces)
+  ;format[-NAME]-padding = N (unit: whitespaces)
+  ;format[-NAME]-margin = N  (unit: whitespaces)
+  ;format[-NAME]-offset = N  (unit: pixels)
+  ;format[-NAME]-foreground = #aarrggbb
+  ;format[-NAME]-background = #aarrggbb
+  ;format[-NAME]-underline = #aarrggbb
+  ;format[-NAME]-overline = #aarrggbb
+  ;
+  ;label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;
+  ;bar-NAME-width = N (unit: characters)
+  ;bar-NAME-format = (tokens: %fill% %indicator% %empty%)
+  ;bar-NAME-foreground-[0-9]+ = #aarrggbb
+  ;bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
+  ;bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
+  ;bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
+  ~~~
 
 `🟊 = module is still flagged as work in progress`
 
@@ -211,10 +260,10 @@ the resulting output might not be award-winning.
   module_margin_right = 3
 
   ; Fonts are defined using: <FontName>;<Offset>
-  font:0 = NotoSans-Regular:size=8;0
-  font:1 = MaterialIcons:size=10;0
-  font:2 = Termsynu:size=8;-1
-  font:3 = FontAwesome:size=10;0
+  font-0 = NotoSans-Regular:size=8;0
+  font-1 = MaterialIcons:size=10;0
+  font-2 = Termsynu:size=8;-1
+  font-3 = FontAwesome:size=10;0
 
   ; The separator will be inserted between the output of each module
   ;separator = |
@@ -224,16 +273,16 @@ the resulting output might not be award-winning.
   clickareas = 30
 
   ; Value to be used to set the WM_NAME atom
-  ; This defaults to "lemonbuddy-BARNAME_MONITOR"
+  ; This defaults to "lemonbuddy-[BAR]_[MONITOR]"
   ;wm_name = mybar
 
   ; Locale used to localize module output (for example date)
   ;locale = sv_SE.UTF-8
 
   ; Define what modules to output
-  modules:left = cpu ram
-  modules:center = label
-  modules:right = clock
+  modules-left = cpu ram
+  modules-center = label
+  modules-right = clock
   ~~~
 
 
@@ -259,16 +308,16 @@ the resulting output might not be award-winning.
   ;   %percentage% (default)
   label = %percentage%
 
-  ramp:0 = 🌕
-  ramp:1 = 🌔
-  ramp:2 = 🌓
-  ramp:3 = 🌒
-  ramp:4 = 🌑
+  ramp-0 = 🌕
+  ramp-1 = 🌔
+  ramp-2 = 🌓
+  ramp-3 = 🌒
+  ramp-4 = 🌑
 
-  bar:width = 10
-  bar:indicator = |
-  bar:fill = ─
-  bar:empty = ─
+  bar-width = 10
+  bar-indicator = |
+  bar-fill = ─
+  bar-empty = ─
   ~~~
 
 
@@ -294,50 +343,50 @@ the resulting output might not be award-winning.
 ##### Extra formatting (example)
   ~~~ ini
   ; Available tags:
-  ;   <label:charging> (default)
-  ;   <bar:capaity>
-  ;   <ramp:capacity>
-  ;   <animation:charging>
-  format:charging = <animation:charging> <label:charging>
+  ;   <label-charging> (default)
+  ;   <bar-capaity>
+  ;   <ramp-capacity>
+  ;   <animation-charging>
+  format-charging = <animation-charging> <label-charging>
 
   ; Available tags:
-  ;   <label:discharging> (default)
-  ;   <bar:capaity>
-  ;   <ramp:capacity>
-  format:discharging = <ramp:capacity> <label:discharging>
+  ;   <label-discharging> (default)
+  ;   <bar-capaity>
+  ;   <ramp-capacity>
+  format-discharging = <ramp-capacity> <label-discharging>
 
   ; Available tags:
-  ;   <label:full> (default)
-  ;   <bar:capaity>
-  ;   <ramp:capacity>
-  ;format:full = <ramp:capacity> <label:full>
+  ;   <label-full> (default)
+  ;   <bar-capaity>
+  ;   <ramp-capacity>
+  ;format-full = <ramp-capacity> <label-full>
 
   ; Available tokens:
   ;   %percentage% (default)
-  label:charging = Charging %percentage%
+  label-charging = Charging %percentage%
 
   ; Available tokens:
   ;   %percentage% (default)
-  label:discharging = Discharging %percentage%
+  label-discharging = Discharging %percentage%
 
   ; Available tokens:
   ;   %percentage% (default)
-  label:full = Fully charged
+  label-full = Fully charged
 
-  ramp:capacity:0 = 
-  ramp:capacity:1 = 
-  ramp:capacity:2 = 
-  ramp:capacity:3 = 
-  ramp:capacity:4 = 
+  ramp-capacity-0 = 
+  ramp-capacity-1 = 
+  ramp-capacity-2 = 
+  ramp-capacity-3 = 
+  ramp-capacity-4 = 
 
-  bar:capacity:width = 10
+  bar-capacity-width = 10
 
-  animation:charging:0 = 
-  animation:charging:1 = 
-  animation:charging:2 = 
-  animation:charging:3 = 
-  animation:charging:4 = 
-  animation:charging:framerate_ms = 750
+  animation-charging-0 = 
+  animation-charging-1 = 
+  animation-charging-2 = 
+  animation-charging-3 = 
+  animation-charging-4 = 
+  animation-charging-framerate_ms = 750
   ~~~
 
 
@@ -349,72 +398,72 @@ the resulting output might not be award-winning.
 
 ##### Extra formatting (example)
   ~~~ ini
-  ; workspace_icon:[0-9]+ = label;icon
-  workspace_icon:0 = code;♚
-  workspace_icon:1 = office;♛
-  workspace_icon:2 = graphics;♜
-  workspace_icon:3 = mail;♝
-  workspace_icon:4 = web;♞
-  workspace_icon:default = ♟
+  ; workspace_icon-[0-9]+ = label;icon
+  workspace_icon-0 = code;♚
+  workspace_icon-1 = office;♛
+  workspace_icon-2 = graphics;♜
+  workspace_icon-3 = mail;♝
+  workspace_icon-4 = web;♞
+  workspace_icon-default = ♟
 
   ; Available tags:
-  ;   <label:state> (default) - gets replaced with <label:(active|urgent|occupied|empty)>
-  ;   <label:mode> - gets replaced with <label:(monocle|tiled|fullscreen|floating|locked|sticky|private)>
-  format = <label:state> <label:mode>
+  ;   <label-state> (default) - gets replaced with <label-(active|urgent|occupied|empty)>
+  ;   <label-mode> - gets replaced with <label-(monocle|tiled|fullscreen|floating|locked|sticky|private)>
+  format = <label-state> <label-mode>
 
-  ; If any values for label:dimmed:N area defined, the workspace/mode colors will get overridden
+  ; If any values for label-dimmed-N area defined, the workspace/mode colors will get overridden
   ; with those values if the monitor is out of focus
-  label:dimmed:foreground = #555
-  label:dimmed:underline = ${BAR.background}
+  label-dimmed-foreground = #555
+  label-dimmed-underline = ${BAR.background}
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:active = %icon%
-  label:active:foreground = #ffffff
-  label:active:background = #3f3f3f
-  label:active:underline = #fba922
+  label-active = %icon%
+  label-active-foreground = #ffffff
+  label-active-background = #3f3f3f
+  label-active-underline = #fba922
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:occupied = %icon%
-  label:occupied:underline = #555555
+  label-occupied = %icon%
+  label-occupied-underline = #555555
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:urgent = %icon%
-  label:urgent:foreground = #000000
-  label:urgent:background = #bd2c40
-  label:urgent:underline = #9b0a20
+  label-urgent = %icon%
+  label-urgent-foreground = #000000
+  label-urgent-background = #bd2c40
+  label-urgent-underline = #9b0a20
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:empty = %icon%
-  label:empty:foreground = #55ffffff
+  label-empty = %icon%
+  label-empty-foreground = #55ffffff
 
   ; Available tokens:
   ;   None
-  label:monocle = 
-  ;label:tiled = 
-  ;label:fullscreen = 
-  ;label:floating = 
-  label:locked = 
-  label:locked:foreground = #bd2c40
-  label:sticky = 
-  label:sticky:foreground = #fba922
-  label:private = 
-  label:private:foreground = #bd2c40
+  label-monocle = 
+  ;label-tiled = 
+  ;label-fullscreen = 
+  ;label-floating = 
+  label-locked = 
+  label-locked-foreground = #bd2c40
+  label-sticky = 
+  label-sticky-foreground = #fba922
+  label-private = 
+  label-private-foreground = #bd2c40
   ~~~
 
 
@@ -431,23 +480,23 @@ the resulting output might not be award-winning.
   ~~~ ini
   ; Available tags:
   ;   <label> (default)
-  ;   <bar:load>
-  ;   <ramp:load>
-  ;   <ramp:load_per_core>
-  format = <label> <ramp:load_per_core>
+  ;   <bar-load>
+  ;   <ramp-load>
+  ;   <ramp-load_per_core>
+  format = <label> <ramp-load_per_core>
 
   ; Available tokens:
   ;   %percentage% (default) - total cpu load
   label = CPU %percentage%
 
-  ramp:load_per_core:0 = ▁
-  ramp:load_per_core:1 = ▂
-  ramp:load_per_core:2 = ▃
-  ramp:load_per_core:3 = ▄
-  ramp:load_per_core:4 = ▅
-  ramp:load_per_core:5 = ▆
-  ramp:load_per_core:6 = ▇
-  ramp:load_per_core:7 = █
+  ramp-load_per_core-0 = ▁
+  ramp-load_per_core-1 = ▂
+  ramp-load_per_core-2 = ▃
+  ramp-load_per_core-3 = ▄
+  ramp-load_per_core-4 = ▅
+  ramp-load_per_core-5 = ▆
+  ramp-load_per_core-6 = ▇
+  ramp-load_per_core-7 = █
   ~~~
 
 
@@ -464,7 +513,7 @@ the resulting output might not be award-winning.
   date = %Y-%m-%d% %H:%M
 
   ; if date_detailed is defined, clicking the area will toggle between formats
-  date_detailed = %%{F#888}%A, %d %B %Y%  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
+  date_detailed = %%{F#888}%A, %d %B %Y  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
   ~~~
 
 ##### Extra formatting (example)
@@ -472,8 +521,8 @@ the resulting output might not be award-winning.
   ; Available tags:
   ;   <date> (default)
   format = 🕓 <date>
-  format:background = #55ff3399
-  format:foreground = #fff
+  format-background = #55ff3399
+  format-foreground = #fff
   ~~~
 
 
@@ -485,7 +534,7 @@ see [the dependency section](#user-content-dependencies).
 The module is still marked as WIP since it needs more testing. If you notice any
 anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
 
-See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`.
+See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`.
 
   ~~~ ini
   [module/i3]
@@ -494,55 +543,55 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 
 ##### Extra formatting (example)
   ~~~ ini
-  ; workspace_icon:[0-9]+ = label;icon
-  workspace_icon:0 = 1;♚
-  workspace_icon:1 = 2;♛
-  workspace_icon:2 = 3;♜
-  workspace_icon:3 = 4;♝
-  workspace_icon:4 = 5;♞
-  workspace_icon:default = ♟
+  ; workspace_icon-[0-9]+ = label;icon
+  workspace_icon-0 = 1;♚
+  workspace_icon-1 = 2;♛
+  workspace_icon-2 = 3;♜
+  workspace_icon-3 = 4;♝
+  workspace_icon-4 = 5;♞
+  workspace_icon-default = ♟
 
   ; Available tags:
-  ;   <label:state> (default) - gets replaced with <label:(focused|unfocused|visible|urgent)>
-  ;format = <label:state>
+  ;   <label-state> (default) - gets replaced with <label-(focused|unfocused|visible|urgent)>
+  ;format = <label-state>
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:focused = %icon%
-  label:focused:foreground = #ffffff
-  label:focused:background = #3f3f3f
-  label:focused:underline = #fba922
-  label:focused:padding = 4
+  label-focused = %icon%
+  label-focused-foreground = #ffffff
+  label-focused-background = #3f3f3f
+  label-focused-underline = #fba922
+  label-focused-padding = 4
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:unfocused = %icon%
-  label:unfocused:padding = 4
+  label-unfocused = %icon%
+  label-unfocused-padding = 4
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:visible = %icon%
-  label:visible:underline = #555555
-  label:visible:padding = 4
+  label-visible = %icon%
+  label-visible-underline = #555555
+  label-visible-padding = 4
 
   ; Available tokens:
   ;   %name%
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
-  label:urgent = %icon%
-  label:urgent:foreground = #000000
-  label:urgent:background = #bd2c40
-  label:urgent:padding = 4
+  label-urgent = %icon%
+  label-urgent-foreground = #000000
+  label-urgent-background = #bd2c40
+  label-urgent-padding = 4
   ~~~
 
 
@@ -559,9 +608,9 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ~~~ ini
   ; Available tags:
   ;   <label> (default)
-  ;   <bar:used>
-  ;   <bar:free>
-  format = <label> <bar:used>
+  ;   <bar-used>
+  ;   <bar-free>
+  format = <label> <bar-used>
 
   ; Available tokens:
   ;   %percentage_used% (default)
@@ -574,14 +623,14 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ;   %mb_total%
   label = RAM %percentage_used%
 
-  bar:used:width = 50
-  bar:used:foreground:0 = #55aa55
-  bar:used:foreground:1 = #557755
-  bar:used:foreground:2 = #f5a70a
-  bar:used:foreground:3 = #ff5555
-  bar:used:fill = ▐
-  bar:used:empty = ▐
-  bar:used:empty:foreground = #444444
+  bar-used-width = 50
+  bar-used-foreground-0 = #55aa55
+  bar-used-foreground-1 = #557755
+  bar-used-foreground-2 = #f5a70a
+  bar-used-foreground-3 = #ff5555
+  bar-used-fill = ▐
+  bar-used-empty = ▐
+  bar-used-empty-foreground = #444444
   ~~~
 
 
@@ -601,58 +650,58 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 ##### Extra formatting (example)
   ~~~ ini
   ; Available tags:
-  ;   <label:song> (default)
-  ;   <label:time>
-  ;   <bar:progress>
-  ;   <toggle> - gets replaced with <icon:(pause|play)>
-  ;   <icon:random>
-  ;   <icon:repeat>
-  ;   <icon:repeatone>
-  ;   <icon:prev>
-  ;   <icon:stop>
-  ;   <icon:play>
-  ;   <icon:pause>
-  ;   <icon:next>
-  format:online = <icon:prev> <icon:stop> <toggle> <icon:next>  <icon:repeat> <icon:random>  <bar:progress> <label:time>  <label:song>
+  ;   <label-song> (default)
+  ;   <label-time>
+  ;   <bar-progress>
+  ;   <toggle> - gets replaced with <icon-(pause|play)>
+  ;   <icon-random>
+  ;   <icon-repeat>
+  ;   <icon-repeatone>
+  ;   <icon-prev>
+  ;   <icon-stop>
+  ;   <icon-play>
+  ;   <icon-pause>
+  ;   <icon-next>
+  format-online = <icon-prev> <icon-stop> <toggle> <icon-next>  <icon-repeat> <icon-random>  <bar-progress> <label-time>  <label-song>
 
   ; Available tags:
-  ;   <label:offline>
-  ;format:offline = <label:offline>
+  ;   <label-offline>
+  ;format-offline = <label-offline>
 
   ; Available tokens:
   ;   %artist%
   ;   %album%
   ;   %title%
   ; Default: %artist% - %title%
-  ;label:song = 𝄞 %artist% - %title%
+  ;label-song = 𝄞 %artist% - %title%
 
   ; Available tokens:
   ;   %elapsed%
   ;   %total%
   ; Default: %elapsed% / %total%
-  ;label:time = %elapsed% / %total%
+  ;label-time = %elapsed% / %total%
 
   ; Available tokens:
   ;   None
-  label:offline = 🎜 mpd is offline
+  label-offline = 🎜 mpd is offline
 
-  icon:play = ⏵
-  icon:pause = ⏸
-  icon:stop = ⏹
-  icon:prev = ⏮
-  icon:next = ⏭
-  icon:random = 🔀
-  icon:repeat = 🔁
-  ;icon:repeatone = 🔂
+  icon-play = ⏵
+  icon-pause = ⏸
+  icon-stop = ⏹
+  icon-prev = ⏮
+  icon-next = ⏭
+  icon-random = 🔀
+  icon-repeat = 🔁
+  ;icon-repeatone = 🔂
 
   ; Used to display the state of random/repeat/repeatone
-  toggle_on:foreground = #ff
-  toggle_off:foreground = #55
+  toggle_on-foreground = #ff
+  toggle_off-foreground = #55
 
-  bar:progress:width = 45
-  bar:progress:indicator = |
-  bar:progress:fill = ─
-  bar:progress:empty = ─
+  bar-progress-width = 45
+  bar-progress-indicator = |
+  bar-progress-fill = ─
+  bar-progress-empty = ─
   ~~~
 
 
@@ -690,19 +739,19 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 ##### Extra formatting (example)
   ~~~ ini
   ; Available tags:
-  ;   <label:connected> (default)
-  ;   <ramp:signal>
-  format:connected = <ramp:signal> <label:connected>
+  ;   <label-connected> (default)
+  ;   <ramp-signal>
+  format-connected = <ramp-signal> <label-connected>
 
   ; Available tags:
-  ;   <label:disconnected> (default)
-  ;format:disconnected = <label:disconnected>
+  ;   <label-disconnected> (default)
+  ;format-disconnected = <label-disconnected>
 
   ; Available tags:
-  ;   <label:connected> (default)
-  ;   <label:packetloss>
-  ;   <animation:packetloss>
-  format:packetloss = <animation:packetloss> <label:connected>
+  ;   <label-connected> (default)
+  ;   <label-packetloss>
+  ;   <animation-packetloss>
+  format-packetloss = <animation-packetloss> <label-connected>
 
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
@@ -711,14 +760,14 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ;   %signal%    [wireless]
   ;   %linkspeed% [wired]
   ; Default: %ifname% %local_ip%
-  label:connected = %essid%
-  label:connected:foreground = #eefafafa
+  label-connected = %essid%
+  label-connected-foreground = #eefafafa
 
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
   ; Default: (none)
-  ;label:disconnected = not connected
-  ;label:disconnected:foreground = #66ffffff
+  ;label-disconnected = not connected
+  ;label-disconnected-foreground = #66ffffff
 
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
@@ -727,21 +776,21 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ;   %signal%    [wireless]
   ;   %linkspeed% [wired]
   ; Default: (none)
-  ;label:packetloss = %essid%
-  ;label:packetloss:foreground = #eefafafa
+  ;label-packetloss = %essid%
+  ;label-packetloss-foreground = #eefafafa
 
-  ramp:signal:0 = 😱
-  ramp:signal:1 = 😠
-  ramp:signal:2 = 😒
-  ramp:signal:3 = 😊
-  ramp:signal:4 = 😃
-  ramp:signal:5 = 😈
+  ramp-signal-0 = 😱
+  ramp-signal-1 = 😠
+  ramp-signal-2 = 😒
+  ramp-signal-3 = 😊
+  ramp-signal-4 = 😃
+  ramp-signal-5 = 😈
 
-  animation:packetloss:0 = ⚠
-  animation:packetloss:0:foreground = #ffa64c
-  animation:packetloss:1 = 📶
-  animation:packetloss:1:foreground = #000000
-  animation:packetloss:framerate_ms = 500
+  animation-packetloss-0 = ⚠
+  animation-packetloss-0-foreground = #ffa64c
+  animation-packetloss-1 = 📶
+  animation-packetloss-1-foreground = #000000
+  animation-packetloss-framerate_ms = 500
   ~~~
 
 
@@ -749,9 +798,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 
   This module is still WIP.
 
-  Mute and volume changes should affect the appropriate mixers depending on
-  weather the headphones are plugged in or not. Still need to add separate output formats
-  to indicate it.
+  TODO: Add custom format for when the headphones are plugged in.
 
   ~~~ ini
   [module/volume]
@@ -772,30 +819,29 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 ##### Extra formatting (example)
   ~~~ ini
   ; Available tags:
-  ;   <label:volume> (default)
-  ;   <ramp:volume>
-  ;   <bar:volume>
-  format:volume = <ramp:volume> <label:volume>
+  ;   <label-volume> (default)
+  ;   <ramp-volume>
+  ;   <bar-volume>
+  format-volume = <ramp-volume> <label-volume>
 
   ; Available tags:
-  ;   <label:muted> (default)
-  ;   <ramp:volume>
-  ;   <bar:volume>
-  ;format:muted = <label:muted>
+  ;   <label-muted> (default)
+  ;   <ramp-volume>
+  ;   <bar-volume>
+  ;format-muted = <label-muted>
 
   ; Available tokens:
   ;   %percentage% (default)
-  ;label:volume = %percentage%
+  ;label-volume = %percentage%
 
   ; Available tokens:
   ;   %percentage% (default)
-  label:muted = 🔇 muted
-  label:muted:foreground = #66
+  label-muted = 🔇 muted
+  label-muted-foreground = #66
 
-  ; Required if <ramp:volume> is used
-  ramp:volume:0 = 🔈
-  ramp:volume:1 = 🔉
-  ramp:volume:2 = 🔊
+  ramp-volume-0 = 🔈
+  ramp-volume-1 = 🔉
+  ramp-volume-2 = 🔊
   ~~~
 
 
@@ -804,45 +850,45 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   [module/menu-apps]
   type = custom/menu
 
-  ; "menu:LEVEL:N" has the same properties as "label:NAME" with
+  ; "menu-LEVEL-N" has the same properties as "label-NAME" with
   ; the additional "exec" property
   ;
   ; Available exec commands:
-  ;   menu_open:LEVEL
+  ;   menu_open-LEVEL
   ;   menu_close
   ; Other commands will be executed using "/usr/bin/env sh -c $COMMAND"
 
-  menu:0:0 = Browsers
-  menu:0:0:exec = menu_open:1
-  menu:0:0:foreground = #fba922
-  menu:0:2 = Multimedia
-  menu:0:2:exec = menu_open:3
-  menu:0:2:foreground = #fba922
+  menu-0-0 = Browsers
+  menu-0-0-exec = menu_open-1
+  menu-0-0-foreground = #fba922
+  menu-0-2 = Multimedia
+  menu-0-2-exec = menu_open-3
+  menu-0-2-foreground = #fba922
 
-  menu:1:0 = Firefox
-  menu:1:0:exec = firefox &
-  menu:1:0:foreground = #fba922
-  menu:1:1 = Chromium
-  menu:1:1:exec = chromium &
-  menu:1:1:foreground = #fba922
+  menu-1-0 = Firefox
+  menu-1-0-exec = firefox &
+  menu-1-0-foreground = #fba922
+  menu-1-1 = Chromium
+  menu-1-1-exec = chromium &
+  menu-1-1-foreground = #fba922
 
-  menu:2:0 = Gimp
-  menu:2:0:foreground = #fba922
-  menu:2:0:exec = gimp &
-  menu:2:1 = Scrot
-  menu:2:1:exec = scrot &
-  menu:2:1:foreground = #fba922
+  menu-2-0 = Gimp
+  menu-2-0-foreground = #fba922
+  menu-2-0-exec = gimp &
+  menu-2-1 = Scrot
+  menu-2-1-exec = scrot &
+  menu-2-1-foreground = #fba922
   ~~~
 
 ##### Extra formatting (example)
   ~~~ ini
   ; Available tags:
-  ;   <label:toggle> (default) - gets replaced with <label:(open|close)>
+  ;   <label-toggle> (default) - gets replaced with <label-(open|close)>
   ;   <menu> (default)
-  ;format = <label:toggle> <menu>
+  ;f-ormat = <label-toggle> <menu>
 
-  label:open = Apps
-  label:close = x
+  label-open = Apps
+  label-close = x
   ~~~
 
 
@@ -866,28 +912,27 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ; Available tags:
   ;   <output> (default)
   ;format = <output>
-  format:background = #999
-  format:foreground = #000
-  format:padding = 4
+  format-background = #999
+  format-foreground = #000
+  format-padding = 4
 
   ; Available tokens:
   ;   %counter%
   ;
-  ; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c [command]"
-  click:left = echo left %counter%
-  click:middle = echo middle %counter%
-  click:right = echo right %counter%
+  ; "click-(left|middle|right)" will be executed using "/usr/bin/env sh -c [command]"
+  click-left = echo left %counter%
+  click-middle = echo middle %counter%
+  click-right = echo right %counter%
 
   ; Available tokens:
   ;   %counter%
   ;
-  ; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c [command]"
-  scroll:up = echo scroll up %counter%
-  scroll:down = echo scroll down %counter%
+  ; "scroll-(up|down)" will be executed using "/usr/bin/env sh -c [command]"
+  scroll-up = echo scroll up %counter%
+  scroll-down = echo scroll down %counter%
   ~~~
 
 ##### Useful example
-
   Show title of the currently focused window.
 
   ~~~ ini
@@ -906,19 +951,19 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 
 ##### Extra formatting (example)
   ~~~ ini
-  ; "content" has the same properties as "format:NAME"
-  content:background = #000
-  content:foreground = #fff
-  content:padding = 4
+  ; "content" has the same properties as "format-NAME"
+  content-background = #000
+  content-foreground = #fff
+  content-padding = 4
 
-  ; "click:(left|middle|right)" will be executed using "/usr/bin/env sh -c $COMMAND"
-  click:left = echo left
-  click:middle = echo middle
-  click:right = echo right
+  ; "click-(left|middle|right)" will be executed using "/usr/bin/env sh -c $COMMAND"
+  click-left = echo left
+  click-middle = echo middle
+  click-right = echo right
 
-  ; "scroll:(up|down)" will be executed using "/usr/bin/env sh -c $COMMAND"
-  scroll:up = echo scroll up
-  scroll:down = echo scroll down
+  ; "scroll-(up|down)" will be executed using "/usr/bin/env sh -c $COMMAND"
+  scroll-up = echo scroll up
+  scroll-down = echo scroll down
   ~~~
 
 

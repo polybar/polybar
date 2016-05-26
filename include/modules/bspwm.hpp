@@ -48,8 +48,8 @@ namespace modules
 
   DefineModule(BspwmModule, EventModule)
   {
-    static constexpr auto TAG_LABEL_STATE = "<label:state>";
-    static constexpr auto TAG_LABEL_MODE = "<label:mode>";
+    static constexpr auto TAG_LABEL_STATE = "<label-state>";
+    static constexpr auto TAG_LABEL_MODE = "<label-mode>";
 
     static constexpr auto EVENT_CLICK = "bwm";
 

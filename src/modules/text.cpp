@@ -17,12 +17,12 @@ std::string TextModule::get_format() {
 
 std::string TextModule::get_output()
 {
-  auto click_left = config::get<std::string>(name(), "click:left", "");
-  auto click_middle = config::get<std::string>(name(), "click:middle", "");
-  auto click_right = config::get<std::string>(name(), "click:right", "");
+  auto click_left = config::get<std::string>(name(), "click-left", "");
+  auto click_middle = config::get<std::string>(name(), "click-middle", "");
+  auto click_right = config::get<std::string>(name(), "click-right", "");
 
-  auto scroll_up = config::get<std::string>(name(), "scroll:up", "");
-  auto scroll_down = config::get<std::string>(name(), "scroll:down", "");
+  auto scroll_up = config::get<std::string>(name(), "scroll-up", "");
+  auto scroll_down = config::get<std::string>(name(), "scroll-down", "");
 
   if (!click_left.empty())
     this->builder->cmd(Cmd::LEFT_CLICK, click_left);

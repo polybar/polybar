@@ -94,13 +94,13 @@ namespace config
     std::vector<T> vec;
     boost::optional<T> value;
 
-    while ((value = get_tree().get_optional<T>(build_path(section, key) + ":"+ std::to_string(vec.size()))) != boost::none) {
-      auto str_val = get_tree().get<std::string>(build_path(section, key) + ":"+ std::to_string(vec.size()));
+    while ((value = get_tree().get_optional<T>(build_path(section, key) + "-"+ std::to_string(vec.size()))) != boost::none) {
+      auto str_val = get_tree().get<std::string>(build_path(section, key) + "-"+ std::to_string(vec.size()));
       vec.emplace_back(dereference_var<T>(section, key, str_val, value.get()));
     }
 
     if (vec.empty())
-      throw MissingListValueException("Missing property \""+ key + ":0\" in section ["+ section +"]");
+      throw MissingListValueException("Missing property \""+ key + "-0\" in section ["+ section +"]");
 
     return vec;
   }
@@ -113,8 +113,8 @@ namespace config
     std::vector<T> vec;
     boost::optional<T> value;
 
-    while ((value = get_tree().get_optional<T>(build_path(section, key) + ":"+ std::to_string(vec.size()))) != boost::none) {
-      auto str_val = get_tree().get<std::string>(build_path(section, key) + ":"+ std::to_string(vec.size()));
+    while ((value = get_tree().get_optional<T>(build_path(section, key) + "-"+ std::to_string(vec.size()))) != boost::none) {
+      auto str_val = get_tree().get<std::string>(build_path(section, key) + "-"+ std::to_string(vec.size()));
       vec.emplace_back(dereference_var<T>(section, key, str_val, value.get()));
     }
 

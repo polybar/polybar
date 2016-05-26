@@ -11,13 +11,13 @@ namespace modules
 {
   DefineModule(VolumeModule, EventModule)
   {
-    static constexpr auto FORMAT_VOLUME = "format:volume";
-    static constexpr auto FORMAT_MUTED = "format:muted";
+    static constexpr auto FORMAT_VOLUME = "format-volume";
+    static constexpr auto FORMAT_MUTED = "format-muted";
 
-    static constexpr auto TAG_RAMP_VOLUME = "<ramp:volume>";
-    static constexpr auto TAG_BAR_VOLUME = "<bar:volume>";
-    static constexpr auto TAG_LABEL_VOLUME = "<label:volume>";
-    static constexpr auto TAG_LABEL_MUTED = "<label:muted>";
+    static constexpr auto TAG_RAMP_VOLUME = "<ramp-volume>";
+    static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
+    static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
+    static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
 
     static constexpr auto EVENT_PREFIX = "vol";
     static constexpr auto EVENT_VOLUME_UP = "volup";

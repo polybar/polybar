@@ -17,22 +17,22 @@ namespace modules
     static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;
     const std::chrono::duration<double> PROGRESSBAR_THREAD_INTERVAL = 1s;
 
-    static constexpr auto FORMAT_ONLINE = "format:online";
-    static constexpr auto TAG_BAR_PROGRESS = "<bar:progress>";
+    static constexpr auto FORMAT_ONLINE = "format-online";
+    static constexpr auto TAG_BAR_PROGRESS = "<bar-progress>";
     static constexpr auto TAG_TOGGLE = "<toggle>";
-    static constexpr auto TAG_LABEL_SONG = "<label:song>";
-    static constexpr auto TAG_LABEL_TIME = "<label:time>";
-    static constexpr auto TAG_ICON_RANDOM = "<icon:random>";
-    static constexpr auto TAG_ICON_REPEAT = "<icon:repeat>";
-    static constexpr auto TAG_ICON_REPEAT_ONE = "<icon:repeatone>";
-    static constexpr auto TAG_ICON_PREV = "<icon:prev>";
-    static constexpr auto TAG_ICON_STOP = "<icon:stop>";
-    static constexpr auto TAG_ICON_PLAY = "<icon:play>";
-    static constexpr auto TAG_ICON_PAUSE = "<icon:pause>";
-    static constexpr auto TAG_ICON_NEXT = "<icon:next>";
+    static constexpr auto TAG_LABEL_SONG = "<label-song>";
+    static constexpr auto TAG_LABEL_TIME = "<label-time>";
+    static constexpr auto TAG_ICON_RANDOM = "<icon-random>";
+    static constexpr auto TAG_ICON_REPEAT = "<icon-repeat>";
+    static constexpr auto TAG_ICON_REPEAT_ONE = "<icon-repeatone>";
+    static constexpr auto TAG_ICON_PREV = "<icon-prev>";
+    static constexpr auto TAG_ICON_STOP = "<icon-stop>";
+    static constexpr auto TAG_ICON_PLAY = "<icon-play>";
+    static constexpr auto TAG_ICON_PAUSE = "<icon-pause>";
+    static constexpr auto TAG_ICON_NEXT = "<icon-next>";
 
-    static constexpr auto FORMAT_OFFLINE = "format:offline";
-    static constexpr auto TAG_LABEL_OFFLINE = "<label:offline>";
+    static constexpr auto FORMAT_OFFLINE = "format-offline";
+    static constexpr auto TAG_LABEL_OFFLINE = "<label-offline>";
 
     static constexpr auto EVENT_PLAY = "mpdplay";
     static constexpr auto EVENT_PAUSE = "mpdpause";

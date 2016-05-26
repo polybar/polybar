@@ -52,8 +52,8 @@ MpdModule::MpdModule(const std::string& name_)
     this->label_time_tokenized = this->label_time->clone();
   }
   if (this->formatter->has(TAG_ICON_RANDOM) || this->formatter->has(TAG_ICON_REPEAT) || this->formatter->has(TAG_ICON_REPEAT_ONE)) {
-    this->toggle_on_color = config::get<std::string>(name(), "toggle_on:foreground", "");
-    this->toggle_off_color = config::get<std::string>(name(), "toggle_off:foreground", "");
+    this->toggle_on_color = config::get<std::string>(name(), "toggle_on-foreground", "");
+    this->toggle_off_color = config::get<std::string>(name(), "toggle_off-foreground", "");
   }
   if (this->formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE))
     this->label_offline = drawtypes::get_config_label(name(), get_tag_name(TAG_LABEL_OFFLINE));

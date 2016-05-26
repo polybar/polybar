@@ -14,12 +14,12 @@ ScriptModule::ScriptModule(const std::string& name_)
   this->interval = std::chrono::duration<double>(
     config::get<float>(name(), "interval", 1));
 
-  this->click_left = config::get<std::string>(name(), "click:left", "");
-  this->click_middle = config::get<std::string>(name(), "click:middle", "");
-  this->click_right = config::get<std::string>(name(), "click:right", "");
+  this->click_left = config::get<std::string>(name(), "click-left", "");
+  this->click_middle = config::get<std::string>(name(), "click-middle", "");
+  this->click_right = config::get<std::string>(name(), "click-right", "");
 
-  this->scroll_up = config::get<std::string>(name(), "scroll:up", "");
-  this->scroll_down = config::get<std::string>(name(), "scroll:down", "");
+  this->scroll_up = config::get<std::string>(name(), "scroll-up", "");
+  this->scroll_down = config::get<std::string>(name(), "scroll-down", "");
 
   this->formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, { TAG_OUTPUT });
 }
