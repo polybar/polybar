@@ -1,18 +1,18 @@
+sudo: false
 language: cpp
 
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise-3.7
+      - llvm-toolchain-precise-3.8
       - ubuntu-toolchain-r-test
       - george-edison55-precise-backports
     packages:
-      - clang-3.7
+      - clang-3.8
       - g++-5
       - gcc-5
       - cmake
       - cmake-data
-      - libx11-dev
       - libxrandr-dev
       - libboost-dev
       - libiw-dev
@@ -21,7 +21,7 @@ addons:
 
 install:
     - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
 
 compiler:
   - clang
