@@ -13,8 +13,8 @@ namespace modules
   DefineModule(MemoryModule, TimerModule)
   {
     const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR_USED = "<bar:used>";
-    const char *TAG_BAR_FREE = "<bar:free>";
+    const char *TAG_BAR_USED = "<bar-used>";
+    const char *TAG_BAR_FREE = "<bar-free>";
 
     std::unique_ptr<drawtypes::Bar> bar_used;
     std::unique_ptr<drawtypes::Bar> bar_free;

@@ -18,15 +18,15 @@ namespace modules
 {
   DefineModule(NetworkModule, TimerModule)
   {
-    const char *FORMAT_CONNECTED = "format:connected";
-    const char *FORMAT_PACKETLOSS = "format:packetloss";
-    const char *FORMAT_DISCONNECTED = "format:disconnected";
+    const char *FORMAT_CONNECTED = "format-connected";
+    const char *FORMAT_PACKETLOSS = "format-packetloss";
+    const char *FORMAT_DISCONNECTED = "format-disconnected";
 
-    const char *TAG_RAMP_SIGNAL = "<ramp:signal>";
-    const char *TAG_LABEL_CONNECTED = "<label:connected>";
-    const char *TAG_LABEL_DISCONNECTED = "<label:disconnected>";
-    const char *TAG_LABEL_PACKETLOSS = "<label:packetloss>";
-    const char *TAG_ANIMATION_PACKETLOSS = "<animation:packetloss>";
+    const char *TAG_RAMP_SIGNAL = "<ramp-signal>";
+    const char *TAG_LABEL_CONNECTED = "<label-connected>";
+    const char *TAG_LABEL_DISCONNECTED = "<label-disconnected>";
+    const char *TAG_LABEL_PACKETLOSS = "<label-packetloss>";
+    const char *TAG_ANIMATION_PACKETLOSS = "<animation-packetloss>";
 
     std::unique_ptr<net::WiredNetwork> wired_network;
     std::unique_ptr<net::WirelessNetwork> wireless_network;

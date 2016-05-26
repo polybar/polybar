@@ -12,13 +12,13 @@ namespace modules
 {
   DefineModule(VolumeModule, EventModule)
   {
-    const char *FORMAT_VOLUME = "format:volume";
-    const char *FORMAT_MUTED = "format:muted";
+    const char *FORMAT_VOLUME = "format-volume";
+    const char *FORMAT_MUTED = "format-muted";
 
-    const char *TAG_RAMP_VOLUME = "<ramp:volume>";
-    const char *TAG_BAR_VOLUME = "<bar:volume>";
-    const char *TAG_LABEL_VOLUME = "<label:volume>";
-    const char *TAG_LABEL_MUTED = "<label:muted>";
+    const char *TAG_RAMP_VOLUME = "<ramp-volume>";
+    const char *TAG_BAR_VOLUME = "<bar-volume>";
+    const char *TAG_LABEL_VOLUME = "<label-volume>";
+    const char *TAG_LABEL_MUTED = "<label-muted>";
 
     const char *EVENT_VOLUME_UP = "volup";
     const char *EVENT_VOLUME_DOWN = "voldown";

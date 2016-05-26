@@ -83,14 +83,14 @@ class ModuleFormatter
       auto format = std::make_unique<Format>();
 
       format->value = config::get<std::string>(this->module_name, name, fallback);
-      format->fg = config::get<std::string>(this->module_name, name +":foreground", "");
-      format->bg = config::get<std::string>(this->module_name, name +":background", "");
-      format->ul = config::get<std::string>(this->module_name, name +":underline", "");
-      format->ol = config::get<std::string>(this->module_name, name +":overline", "");
-      format->spacing = config::get<int>(this->module_name, name +":spacing", DEFAULT_SPACING);
-      format->padding = config::get<int>(this->module_name, name +":padding", 0);
-      format->margin = config::get<int>(this->module_name, name +":margin", 0);
-      format->offset = config::get<int>(this->module_name, name +":offset", 0);
+      format->fg = config::get<std::string>(this->module_name, name +"-foreground", "");
+      format->bg = config::get<std::string>(this->module_name, name +"-background", "");
+      format->ul = config::get<std::string>(this->module_name, name +"-underline", "");
+      format->ol = config::get<std::string>(this->module_name, name +"-overline", "");
+      format->spacing = config::get<int>(this->module_name, name +"-spacing", DEFAULT_SPACING);
+      format->padding = config::get<int>(this->module_name, name +"-padding", 0);
+      format->margin = config::get<int>(this->module_name, name +"-margin", 0);
+      format->offset = config::get<int>(this->module_name, name +"-offset", 0);
       format->tags.swap(tags);
 
       for (auto &&tag : string::split(format->value, ' ')) {

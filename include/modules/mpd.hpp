@@ -14,22 +14,22 @@ namespace modules
     static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;
     const std::chrono::duration<double> PROGRESSBAR_THREAD_INTERVAL = 1s;
 
-    const char *FORMAT_ONLINE = "format:online";
-    const char *TAG_BAR_PROGRESS = "<bar:progress>";
+    const char *FORMAT_ONLINE = "format-online";
+    const char *TAG_BAR_PROGRESS = "<bar-progress>";
     const char *TAG_TOGGLE = "<toggle>";
-    const char *TAG_LABEL_SONG = "<label:song>";
-    const char *TAG_LABEL_TIME = "<label:time>";
-    const char *TAG_ICON_RANDOM = "<icon:random>";
-    const char *TAG_ICON_REPEAT = "<icon:repeat>";
-    const char *TAG_ICON_REPEAT_ONE = "<icon:repeatone>";
-    const char *TAG_ICON_PREV = "<icon:prev>";
-    const char *TAG_ICON_STOP = "<icon:stop>";
-    const char *TAG_ICON_PLAY = "<icon:play>";
-    const char *TAG_ICON_PAUSE = "<icon:pause>";
-    const char *TAG_ICON_NEXT = "<icon:next>";
+    const char *TAG_LABEL_SONG = "<label-song>";
+    const char *TAG_LABEL_TIME = "<label-time>";
+    const char *TAG_ICON_RANDOM = "<icon-random>";
+    const char *TAG_ICON_REPEAT = "<icon-repeat>";
+    const char *TAG_ICON_REPEAT_ONE = "<icon-repeatone>";
+    const char *TAG_ICON_PREV = "<icon-prev>";
+    const char *TAG_ICON_STOP = "<icon-stop>";
+    const char *TAG_ICON_PLAY = "<icon-play>";
+    const char *TAG_ICON_PAUSE = "<icon-pause>";
+    const char *TAG_ICON_NEXT = "<icon-next>";
 
-    const char *FORMAT_OFFLINE = "format:offline";
-    const char *TAG_LABEL_OFFLINE = "<label:offline>";
+    const char *FORMAT_OFFLINE = "format-offline";
+    const char *TAG_LABEL_OFFLINE = "<label-offline>";
 
     const char *EVENT_PLAY = "mpdplay";
     const char *EVENT_PAUSE = "mpdpause";

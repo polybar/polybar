@@ -31,13 +31,13 @@ namespace drawtypes
       label = config::get<std::string>(config_path, label_name, def);
 
     return std::unique_ptr<Label> { new Label(label,
-      config::get<std::string>(config_path, label_name +":foreground", ""),
-      config::get<std::string>(config_path, label_name +":background", ""),
-      config::get<std::string>(config_path, label_name +":underline", ""),
-      config::get<std::string>(config_path, label_name +":overline", ""),
-      config::get<int>(config_path, label_name +":font", 0),
-      config::get<int>(config_path, label_name +":padding", 0),
-      config::get<int>(config_path, label_name +":margin", 0)) };
+      config::get<std::string>(config_path, label_name +"-foreground", ""),
+      config::get<std::string>(config_path, label_name +"-background", ""),
+      config::get<std::string>(config_path, label_name +"-underline", ""),
+      config::get<std::string>(config_path, label_name +"-overline", ""),
+      config::get<int>(config_path, label_name +"-font", 0),
+      config::get<int>(config_path, label_name +"-padding", 0),
+      config::get<int>(config_path, label_name +"-margin", 0)) };
   }
 
   std::unique_ptr<Label> get_optional_config_label(const std::string& config_path, const std::string& label_name, const std::string& def) {
