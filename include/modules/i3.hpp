@@ -42,7 +42,7 @@ namespace modules
 
   DefineModule(i3Module, EventModule)
   {
-    static constexpr auto TAG_LABEL_STATE = "<label:state>";
+    static constexpr auto TAG_LABEL_STATE = "<label-state>";
 
     static constexpr auto EVENT_CLICK = "i3";
 

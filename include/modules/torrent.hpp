@@ -19,7 +19,7 @@ namespace modules
   DefineModule(TorrentModule, InotifyModule)
   {
     static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR_PROGRESS = "<bar:progress>";
+    static constexpr auto TAG_BAR_PROGRESS = "<bar-progress>";
 
     std::vector<std::unique_ptr<Torrent>> torrents;
     std::unique_ptr<drawtypes::Label> label;

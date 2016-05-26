@@ -21,11 +21,11 @@ namespace drawtypes
 
     repeat(n_frames)
     {
-      auto anim = animation_name +":"+ std::to_string(repeat_i_rev(n_frames));
+      auto anim = animation_name +"-"+ std::to_string(repeat_i_rev(n_frames));
       vec.emplace_back(std::unique_ptr<Icon> { get_optional_config_icon(config_path, anim, frames[n_frames - repeat_i - 1]) });
     }
 
-    auto framerate = config::get<int>(config_path, animation_name +":framerate_ms", 1000);
+    auto framerate = config::get<int>(config_path, animation_name +"-framerate_ms", 1000);
 
     return std::unique_ptr<Animation> { new Animation(std::move(vec), framerate) };
   }

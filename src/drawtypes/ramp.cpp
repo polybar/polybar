@@ -17,7 +17,7 @@ namespace drawtypes
     auto n_icons = icons.size();
     repeat(n_icons)
     {
-      auto ramp = ramp_name +":"+ std::to_string(repeat_i_rev(n_icons));
+      auto ramp = ramp_name +"-"+ std::to_string(repeat_i_rev(n_icons));
       vec.emplace_back(std::unique_ptr<Icon> { get_optional_config_icon(config_path, ramp, icons[repeat_i_rev(n_icons)]) });
     }
 

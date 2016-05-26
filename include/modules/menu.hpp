@@ -17,10 +17,10 @@ namespace modules
 
   DefineModule(MenuModule, StaticModule)
   {
-    static constexpr auto TAG_LABEL_TOGGLE = "<label:toggle>";
+    static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";
     static constexpr auto TAG_MENU = "<menu>";
 
-    static constexpr auto EVENT_MENU_OPEN = "menu_open:";
+    static constexpr auto EVENT_MENU_OPEN = "menu_open-";
     static constexpr auto EVENT_MENU_CLOSE = "menu_close";
 
     std::mutex output_mtx;

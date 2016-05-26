@@ -11,19 +11,19 @@ namespace drawtypes
   {
     std::unique_ptr<Bar> bar;
 
-    auto width = config::get<int>(config_path, bar_name +":width");
-    auto format = config::get<std::string>(config_path, bar_name +":format", "%fill%%indicator%%empty%");
+    auto width = config::get<int>(config_path, bar_name +"-width");
+    auto format = config::get<std::string>(config_path, bar_name +"-format", "%fill%%indicator%%empty%");
 
     if (format.empty())
       bar = std::make_unique<Bar>(width, lazy_builder_closing);
     else
       bar = std::make_unique<Bar>(width, format, lazy_builder_closing);
 
-    bar->set_gradient(config::get<bool>(config_path, bar_name +":gradient", true));
-    bar->set_colors(config::get_list<std::string>(config_path, bar_name +":foreground", {}));
-    bar->set_indicator(get_config_icon(config_path, bar_name +":indicator", format.find("%indicator%") != std::string::npos, ""));
-    bar->set_fill(get_config_icon(config_path, bar_name +":fill", format.find("%fill%") != std::string::npos, ""));
-    bar->set_empty(get_config_icon(config_path, bar_name +":empty", format.find("%empty%") != std::string::npos, ""));
+    bar->set_gradient(config::get<bool>(config_path, bar_name +"-gradient", true));
+    bar->set_colors(config::get_list<std::string>(config_path, bar_name +"-foreground", {}));
+    bar->set_indicator(get_config_icon(config_path, bar_name +"-indicator", format.find("%indicator%") != std::string::npos, ""));
+    bar->set_fill(get_config_icon(config_path, bar_name +"-fill", format.find("%fill%") != std::string::npos, ""));
+    bar->set_empty(get_config_icon(config_path, bar_name +"-empty", format.find("%empty%") != std::string::npos, ""));
 
     return bar;
   }

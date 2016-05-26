@@ -23,9 +23,9 @@ namespace modules
   DefineModule(CpuModule, TimerModule)
   {
     static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR_LOAD = "<bar:load>";
-    static constexpr auto TAG_RAMP_LOAD = "<ramp:load>";
-    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp:load_per_core>";
+    static constexpr auto TAG_BAR_LOAD = "<bar-load>";
+    static constexpr auto TAG_RAMP_LOAD = "<ramp-load>";
+    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-load_per_core>";
 
     std::vector<std::unique_ptr<CpuTime>> cpu_times;
     std::vector<std::unique_ptr<CpuTime>> prev_cpu_times;
