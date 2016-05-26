@@ -13,7 +13,7 @@ github.
 
 Here's a screenshot showing you an example of what it could look like:
 
-![Desktop with two instances of Lemonbuddy](examples/scrots/bar-full.png)
+[![bspwm workspace](http://i.imgur.com/xvlw9iHh.png)](http://i.imgur.com/xvlw9iH.png)
 
 
 ## Installation
