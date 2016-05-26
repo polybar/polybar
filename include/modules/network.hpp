@@ -9,7 +9,6 @@
 #include "modules/base.hpp"
 #include "interfaces/net.hpp"
 #include "services/logger.hpp"
-#include "services/store.hpp"
 #include "drawtypes/icon.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/animation.hpp"

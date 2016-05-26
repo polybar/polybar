@@ -1,3 +1,4 @@
+#if 0
 #include "services/logger.hpp"
 #include "services/store.hpp"
 
@@ -63,3 +64,4 @@ void Store::set_string(const std::string& s)
   std::memcpy(this->region.get_address(), s.c_str(), this->region.get_size());
   this->flag();
 }
+#endif

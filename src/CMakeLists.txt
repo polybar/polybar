@@ -46,7 +46,7 @@ set(SOURCE_FILES
   "src/services/command.cpp"
   "src/services/inotify.cpp"
   "src/services/logger.cpp"
-  "src/services/store.cpp"
+  # "src/services/store.cpp"
   "src/utils/cli.cpp"
   "src/utils/config.cpp"
   "src/utils/io.cpp"

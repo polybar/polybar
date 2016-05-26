@@ -1,3 +1,4 @@
+#if 0
 #ifndef _SERVICES_STORE_HPP_
 #define _SERVICES_STORE_HPP_
 
@@ -33,4 +34,5 @@ struct Store
   ~Store() {}
 };
 
+#endif
 #endif
