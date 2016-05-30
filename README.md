@@ -46,7 +46,7 @@ A C++ compiler with C++14 support. For example `clang`.
 
 **Install dependencies using pacman:**
 ~~~ sh
-$ sudo pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++ i3-wm
+$ sudo pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++
 $ yaourt ttf-font-awesome
 ~~~
 
@@ -61,10 +61,10 @@ $ sudo xbps-install font-awesome
 > **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
 > needs to be added to the list of sources in `/etc/apt/sources.list`.
 >
-> Packages in the `universe` repository: `libmpdclient-dev` `i3-wm` `fonts-font-awesome`
+> Packages in the `universe` repository: `libmpdclient-dev` `fonts-font-awesome`
 
 ~~~ sh
-$ sudo apt-get install cmake libx11-dev libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev i3-wm
+$ sudo apt-get install cmake libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
 $ sudo apt-get install fonts-font-awesome
 ~~~
 
