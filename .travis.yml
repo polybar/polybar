@@ -32,6 +32,7 @@ notifications:
     channels:
       - "irc.freenode.net#lemonbuddy"
     template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "%{author} pushed #%{commit} \"%{commit_subject}\" -> %{repository_name}/%{branch}"
+      - "Build #%{build_number}: %{result} // Compare at %{compare_url}"
     use_notice: true
     skip_join: true
