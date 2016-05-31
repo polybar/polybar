@@ -5,6 +5,7 @@ language: cpp
 compiler:
   - clang
   - gcc
+cache: ccache
 
 before_install:
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
