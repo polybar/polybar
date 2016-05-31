@@ -1,33 +1,34 @@
-sudo: false
+sudo: required
+dist: trusty
+
 language: cpp
-
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-precise-3.8
-      - ubuntu-toolchain-r-test
-      - george-edison55-precise-backports
-    packages:
-      - clang-3.8
-      - g++-5
-      - gcc-5
-      - cmake
-      - cmake-data
-      - libxrandr-dev
-      - libboost-dev
-      - libiw-dev
-      - libasound2-dev
-      - libmpdclient-dev
-
-install:
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
-
 compiler:
   - clang
   - gcc
 
-script:
+before_install:
+  - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
+  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
+  - echo "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main"|sudo tee -a /etc/apt/sources.list
+  - sudo sed -i "s/trusty/wily/g" /etc/apt/sources.list
+  - sudo apt-get -qq update
+  - sudo apt-get install -y clang-3.8 cmake cmake-data libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev
+
+before_script:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8" CFLAGS="-Qunused-arguments"; fi
+  - cmake --version
+  - eval "${CXX} --version"
   - mkdir build
   - cd build
-  - cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" .. && make
+  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CFLAGS}" ..
+
+script: make
+
+notifications.irc:
+  channels:
+    - "irc.freenode.org#lemonbuddy"
+  on_success: always
+  on_failure: always
+  use_notice: true
+  skip_join: true
