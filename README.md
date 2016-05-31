@@ -19,7 +19,8 @@ Here's a screenshot showing you an example of what it could look like:
 ## Installation
 
 ###  Arch Linux
-Install the AUR package `lemonbuddy-git`
+Install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
+[lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
 
 ###  Void Linux
 A package will be written for XBPS so stay tuned.
