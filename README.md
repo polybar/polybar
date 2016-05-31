@@ -204,6 +204,9 @@ the resulting output might not be award-winning.
   ; $ ls -1 /sys/class/power_supply/
   ;battery = BAT0
   ;adapter = ADP1
+
+  ; Seconds between reading battery capacity
+  ;poll_interval = 3
   ~~~
 
 ##### Extra formatting (example)

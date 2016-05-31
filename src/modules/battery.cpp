@@ -55,40 +55,45 @@ BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
 
   this->watch(string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery), InotifyEvent::ACCESSED);
   this->watch(string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter), InotifyEvent::ACCESSED);
-
-  if (this->animation_charging)
-    this->threads.emplace_back(std::thread(&BatteryModule::animation_thread_runner, this));
 }
 
-void BatteryModule::animation_thread_runner()
+void BatteryModule::start()
+{
+  this->InotifyModule::start();
+  this->threads.emplace_back(std::thread(&BatteryModule::subthread_runner, this));
+}
+
+void BatteryModule::subthread_runner()
 {
   std::this_thread::yield();
 
   const auto dur = std::chrono::duration<double>(
-      float(this->animation_charging->get_framerate()) / 1000.0f);
+    float(this->animation_charging->get_framerate()) / 1000.0f);
 
-  int retries = 5;
+  int i = 0;
+  const int poll_seconds = config::get<float>(name(), "poll_interval", 3.0f) / dur.count();
 
-  while (retries-- > 0)
-  {
-    while (this->enabled()) {
-      std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
+  while (this->enabled()) {
+    std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
 
-      if (retries > 0)
-        retries = 0;
-
-      if (this->state == STATE_CHARGING) {
-        lck.unlock();
-        this->broadcast();
-      } else {
-        log_trace("state != charging");
-      }
-
-      std::this_thread::sleep_for(dur);
+    // TODO(jaagr): Keep track of when the values were last read to determine
+    // if we need to trigger the event manually or not.
+    if ((++i % poll_seconds) == 0) {
+      // Trigger an inotify event in case the underlying filesystem doesn't
+      log_debug("Poll battery capacity");
+      io::file::get_contents("/sys/class/power_supply/BAT0/capacity");
+      i = 0;
     }
 
-    std::this_thread::sleep_for(500ms);
+    if (this->state == STATE_CHARGING) {
+      lck.unlock();
+      this->broadcast();
+    }
+
+    std::this_thread::sleep_for(dur);
   }
+
+  log_debug("Reached end of battery subthread");
 }
 
 bool BatteryModule::on_event(InotifyEvent *event)
@@ -121,11 +126,13 @@ bool BatteryModule::on_event(InotifyEvent *event)
     case '1': state = STATE_CHARGING; break;
   }
 
-  if ((state == STATE_CHARGING) && percentage >= this->full_at)
-    percentage = 100;
+  if (state == STATE_CHARGING) {
+    if (percentage >= this->full_at)
+      percentage = 100;
 
-  if (percentage == 100)
-    state = STATE_FULL;
+    if (percentage == 100)
+      state = STATE_FULL;
+  }
 
   if (!this->label_charging_tokenized)
     this->label_charging_tokenized = this->label_charging->clone();

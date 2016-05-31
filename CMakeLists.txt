@@ -57,8 +57,6 @@ set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/brightness"
   CACHE STRING "Path to file containing the current backlight value")
 set(SETTING_PATH_BACKLIGHT_MAX "/sys/class/backlight/%card%/max_brightness"
   CACHE STRING "Path to file containing the maximum backlight value")
-set(SETTING_PATH_BATTERY_WATCH "/sys/class/power_supply/%battery%/charge_now"
-  CACHE STRING "Path to attach inotify watch to")
 set(SETTING_PATH_BATTERY_CAPACITY "/sys/class/power_supply/%battery%/capacity"
   CACHE STRING "Path to file containing the current battery capacity")
 set(SETTING_PATH_ADAPTER_STATUS "/sys/class/power_supply/%adapter%/online"

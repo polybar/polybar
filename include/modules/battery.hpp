@@ -47,10 +47,12 @@ namespace modules
       concurrency::Atomic<int> percentage;
       int full_at;
 
-      void animation_thread_runner();
+      void subthread_runner();
 
     public:
       BatteryModule(const std::string& name);
+
+      void start();
 
       bool on_event(InotifyEvent *event);
       std::string get_format();
