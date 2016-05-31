@@ -94,7 +94,7 @@ int main(int argc, char **argv)
      * Load configuration file
      */
     if (cli::has_option("config")) {
-      config::load(cli::get_option_value("config"));
+      config::load(string::replace(cli::get_option_value("config"), "~", std::getenv("HOME")));
     } else {
       auto xdg_config_home = std::getenv("XDG_CONFIG_HOME");
       auto home = std::getenv("HOME");
