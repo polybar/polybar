@@ -29,10 +29,6 @@ A package will be written for XBPS so stay tuned.
 A C++ compiler with C++14 support. For example `clang`.
 
 - lemonbar
-  > **NOTE:** The application has only been tested against the `single-mon` fork.
-  > If you have trouble running it with your current version, install the one
-  > included in `contrib/lemonbar-sm-git`.
-  > Plans are to make `lemonbar` an internal module.
 - cmake
 - boost
 - libx11
@@ -41,6 +37,11 @@ A C++ compiler with C++14 support. For example `clang`.
 - alsa-lib _(optional: used by the volume module)_
 - libmpdclient _(optional: used by the mpd module)_
 - libsigc++ _(optional: used by the i3 module)_
+
+> **NOTE:** The application has only been tested against the `single-mon` fork.
+> If you have trouble running it with your current version, install the one
+> included in `contrib/lemonbar-sm-git`.
+> Plans are to make `lemonbar` an internal module.
 
 **Install dependencies using pacman:**
 ~~~ sh
