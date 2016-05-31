@@ -205,7 +205,8 @@ the resulting output might not be award-winning.
   ;battery = BAT0
   ;adapter = ADP1
 
-  ; Seconds between reading battery capacity
+  ; Seconds between reading battery capacity.
+  ; If set to 0, polling will be disabled.
   ;poll_interval = 3
   ~~~
 

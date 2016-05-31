@@ -78,7 +78,7 @@ void BatteryModule::subthread_runner()
 
     // TODO(jaagr): Keep track of when the values were last read to determine
     // if we need to trigger the event manually or not.
-    if ((++i % poll_seconds) == 0) {
+    if (poll_seconds > 0 && (++i % poll_seconds) == 0) {
       // Trigger an inotify event in case the underlying filesystem doesn't
       log_debug("Poll battery capacity");
       io::file::get_contents("/sys/class/power_supply/BAT0/capacity");
