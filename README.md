@@ -160,6 +160,17 @@ the resulting output might not be award-winning.
 `🟊 = module is still flagged as work in progress`
 
 
+### Application settings
+  ~~~ ini
+  [settings]
+  ; Limit the amount of events sent to lemonbar within a set timeframe:
+  ; - "Allow <throttle_limit> updates within <throttle_ms> of time"
+  ; Default values:
+  ;throttle_limit = 5
+  ;throttle_ms = 50
+  ~~~
+
+
 ### Module `internal/backlight`
   ~~~ ini
   [module/backlight]

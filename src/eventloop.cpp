@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <deque>
 
 #include "eventloop.hpp"
 #include "services/command.hpp"
@@ -98,10 +99,41 @@ void EventLoop::add_stdin_subscriber(const std::string& module_name)
 
 void EventLoop::loop_write()
 {
+  std::deque<std::chrono::high_resolution_clock::time_point> ticks;
+
+  // Allow <throttle_limit>  ticks within <throttle_ms> timeframe
+  const auto throttle_limit = config::get<unsigned int>("settings", "throttle_limit", 5);
+  const auto throttle_ms = std::chrono::duration<double, std::milli>(config::get<unsigned int>("settings", "throttle_ms", 50));
+
   while (this->running()) {
     try {
-      if (this->registry->wait())
-        this->write_stdout();
+      if (!this->registry->wait())
+        continue;
+
+      auto now = std::chrono::high_resolution_clock::now();
+
+      // Expire previous ticks
+      while (ticks.size() > 0) {
+        if ((now - ticks.front()) < throttle_ms)
+          break;
+
+        ticks.pop_front();
+      }
+
+      // Place the new tick in the bottom of the deck
+      ticks.emplace_back(std::chrono::high_resolution_clock::now());
+
+      // Have we reached the limit?
+      if (ticks.size() >= throttle_limit) {
+        log_debug("Throttling write to stdout");
+
+        std::this_thread::sleep_for(throttle_ms * ticks.size());
+
+        if (ticks.size() - 1 >= throttle_limit)
+          continue;
+      }
+
+      this->write_stdout();
     } catch (Exception &e) {
       this->logger->error(e.what());
       return;

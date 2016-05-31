@@ -1,3 +1,10 @@
+[settings]
+; Limit the amount of events sent to lemonbar within a set timeframe:
+; - "Allow <throttle_limit> updates within <throttle_ms> of time"
+; Default values:
+throttle_limit = 5
+throttle_ms = 50
+
 ;
 ; Bar configurations
 ; ---------------------------------------
