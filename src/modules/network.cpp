@@ -85,12 +85,8 @@ void NetworkModule::subthread_routine()
     float(this->animation_packetloss->get_framerate()) / 1000.0f);
 
   while (this->enabled()) {
-    std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
-
-    if (this->connected && this->conseq_packetloss) {
-      lck.unlock();
+    if (this->connected && this->conseq_packetloss)
       this->broadcast();
-    }
 
     std::this_thread::sleep_for(dur);
   }
