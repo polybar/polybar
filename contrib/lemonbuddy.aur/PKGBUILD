@@ -1,7 +1,7 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=lemonbuddy
-pkgver=0.1.3
+pkgver=0.1.4
 pkgrel=1
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
@@ -12,8 +12,7 @@ optdepends=("alsa-lib: volume module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "libsigc++: i3 module support"
-            "i3ipc-glib-git: i3 module support"
-            "i3-wm: i3 module support")
+            "i3ipc-glib-git: i3 module support")
 makedepends=("cmake" "pkg-config" "clang" "glibc" "boost")
 conflicts=("lemonbuddy-git")
 source=("${pkgname}::git+${url}.git#tag=${pkgver}")
