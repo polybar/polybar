@@ -67,8 +67,11 @@ void BatteryModule::subthread_runner()
 {
   std::this_thread::yield();
 
-  const auto dur = std::chrono::duration<double>(
-    float(this->animation_charging->get_framerate()) / 1000.0f);
+  std::chrono::duration<double> dur = 1s;
+
+  if (this->animation_charging)
+    dur = std::chrono::duration<double>(
+      float(this->animation_charging->get_framerate()) / 1000.0f);
 
   int i = 0;
   const int poll_seconds = config::get<float>(name(), "poll_interval", 3.0f) / dur.count();
