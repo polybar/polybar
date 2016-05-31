@@ -29,8 +29,8 @@ script: make
 notifications:
   irc:
     channels:
-      - "irc.freenode.org#lemonbuddy"
-    on_success: always
-    on_failure: always
+      - "irc.freenode.net#lemonbuddy"
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
     use_notice: true
     skip_join: true
