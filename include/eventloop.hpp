@@ -1,5 +1,4 @@
-#ifndef _EVENTLOOP_HPP_
-#define _EVENTLOOP_HPP_
+#pragma once
 
 #include <map>
 
@@ -46,7 +45,7 @@ class EventLoop
     bool running();
 
   public:
-    EventLoop(std::string input_pipe);
+    explicit EventLoop(std::string input_pipe);
 
     void start();
     void stop();
@@ -56,5 +55,3 @@ class EventLoop
 
     void add_stdin_subscriber(const std::string& module_name);
 };
-
-#endif

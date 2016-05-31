@@ -1,5 +1,4 @@
-#ifndef _DRAWTYPES_BAR_HPP_
-#define _DRAWTYPES_BAR_HPP_
+#pragma once
 
 #include <string>
 #include <memory>
@@ -16,7 +15,7 @@ namespace drawtypes
     protected:
       std::unique_ptr<Builder> builder;
       std::vector<std::string> colors;
-      bool gradient;
+      bool gradient = false;
       unsigned int width;
       std::string format;
 
@@ -25,7 +24,7 @@ namespace drawtypes
       std::unique_ptr<Icon> indicator;
 
     public:
-      Bar(int width, const std::string& format, bool lazy_builder_closing = true);
+      Bar(int width, const std::string& fmt, bool lazy_builder_closing = true);
       Bar(int width, bool lazy_builder_closing = true)
         : Bar(width, "<fill><indicator><empty>", lazy_builder_closing){}
 
@@ -41,5 +40,3 @@ namespace drawtypes
 
   std::unique_ptr<Bar> get_config_bar(const std::string& config_path, const std::string& bar_name = "bar", bool lazy_builder_closing = true);
 }
-
-#endif

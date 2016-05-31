@@ -15,6 +15,7 @@
 #include "services/logger.hpp"
 #include "interfaces/net.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
 #include "utils/string.hpp"
 
 using namespace net;
@@ -26,15 +27,14 @@ bool net::is_wireless_interface(const std::string& ifname) {
 
 // Network
 
-Network::Network(const std::string& interface) throw(NetworkException)
+Network::Network(const std::string& interface)
+  : interface(interface)
 {
-  this->interface = interface;
-
   if (if_nametoindex(this->interface.c_str()) == 0)
     throw NetworkException("Invalid network interface \""+ this->interface +"\"");
 
   if ((this->fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    throw NetworkException("Failed to open socket: "+ STRERRNO);
+    throw NetworkException("Failed to open socket: "+ StrErrno());
 
   std::memset(&this->data, 0, sizeof(this->data));
   std::strncpy(this->data.ifr_name, this->interface.data(), IFNAMSIZ-1);
@@ -43,17 +43,18 @@ Network::Network(const std::string& interface) throw(NetworkException)
 Network::~Network()
 {
   if (close(this->fd) == -1)
-    log_error("Failed to close Network socket FD: "+ STRERRNO);
+    log_error("Failed to close Network socket FD: "+ StrErrno());
 }
 
-bool Network::test_interface() throw(NetworkException)
+bool Network::test_interface()
 {
   if ((ioctl(this->fd, SIOCGIFFLAGS, &this->data)) == -1)
-    throw NetworkException(STRERRNO);
+    throw NetworkException(StrErrno());
   return this->data.ifr_flags & IFF_UP;
 }
 
-bool Network::test_connection() throw(NetworkException) {
+bool Network::test_connection()
+{
   int status = EXIT_FAILURE;
 
   try {
@@ -91,7 +92,7 @@ bool Network::connected()
   }
 }
 
-std::string Network::get_ip() throw(NetworkException)
+std::string Network::get_ip()
 {
   if (!this->test_interface())
     throw NetworkException("Interface is not up");
@@ -99,7 +100,7 @@ std::string Network::get_ip() throw(NetworkException)
   this->data.ifr_addr.sa_family = AF_INET;
 
   if (ioctl(this->fd, SIOCGIFADDR, &this->data) == -1)
-    throw NetworkException(STRERRNO);
+    throw NetworkException(StrErrno());
 
   return inet_ntoa(((struct sockaddr_in *) &this->data.ifr_addr)->sin_addr);
 }
@@ -130,7 +131,7 @@ WirelessNetwork::WirelessNetwork(const std::string& interface) : Network(interfa
   std::strcpy((char *) &this->iw.ifr_ifrn.ifrn_name, this->interface.c_str());
 }
 
-std::string WirelessNetwork::get_essid() throw(WirelessNetworkException)
+std::string WirelessNetwork::get_essid()
 {
   char essid[IW_ESSID_MAX_SIZE+1];
 
@@ -140,7 +141,7 @@ std::string WirelessNetwork::get_essid() throw(WirelessNetworkException)
   this->iw.u.essid.length = sizeof(essid);
 
   if (ioctl(this->fd, SIOCGIWESSID, &this->iw) == -1)
-    throw WirelessNetworkException(STRERRNO);
+    throw WirelessNetworkException(StrErrno());
 
   return string::trim(essid, ' ');
 }
@@ -151,13 +152,13 @@ float WirelessNetwork::get_signal_quality()
   return 2 * (dbm + 100);
 }
 
-float WirelessNetwork::get_signal_dbm() throw(WirelessNetworkException)
+float WirelessNetwork::get_signal_dbm()
 {
   this->iw.u.data.pointer = (iw_statistics *) std::malloc(sizeof(iw_statistics));
   this->iw.u.data.length = sizeof(iw_statistics);
 
   if (ioctl(this->fd, SIOCGIWSTATS, &this->iw) == -1)
-    throw WirelessNetworkException(STRERRNO);
+    throw WirelessNetworkException(StrErrno());
 
   auto signal = ((iw_statistics *) this->iw.u.data.pointer)->qual.level - 256;
 

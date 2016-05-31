@@ -1,6 +1,9 @@
 #if 0
 #ifndef _SERVICES_STORE_HPP_
 #define _SERVICES_STORE_HPP_
+=======
+#pragma once
+>>>>>>> task(core): Cleanup
 
 #include <string>
 #include <memory>
@@ -33,6 +36,7 @@ struct Store
   Store(int size);
   ~Store() {}
 };
+<<<<<<< 78384e08923e669c65c68a8cdf81dba37a633d6c
 
 #endif
 #endif

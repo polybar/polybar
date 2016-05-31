@@ -89,9 +89,10 @@ bool CpuModule::read_values()
     std::ifstream in(PATH_CPU_INFO);
     std::string str;
 
-    while (std::getline(in, str) && str.find("cpu") == 0) {
+    while (std::getline(in, str) && str.compare(0, 3, "cpu") == 0) {
       // skip the accumulated line
-      if (str.find("cpu ") == 0) continue;
+      if (str.compare(0, 4, "cpu ") == 0)
+        continue;
 
       auto values = string::split(str, ' ');
       auto cpu = std::make_unique<CpuTime>();

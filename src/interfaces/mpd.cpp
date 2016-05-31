@@ -56,23 +56,23 @@ namespace mpd
     return this->connection.get() != nullptr;
   }
 
-  bool Connection::retry_connection(int interval)
-  {
-    if (this->connected())
-      return true;
-
-    while (true) {
-      try {
-        this->connect();
-        return true;
-      } catch (Exception &e) {
-        get_logger()->debug(e.what());
-      }
-
-      std::this_thread::sleep_for(
-        std::chrono::duration<double>(interval));
-    }
-  }
+  // bool Connection::retry_connection(int interval)
+  // {
+  //   if (this->connected())
+  //     return true;
+  //
+  //   while (true) {
+  //     try {
+  //       this->connect();
+  //       return true;
+  //     } catch (Exception &e) {
+  //       get_logger()->debug(e.what());
+  //     }
+  //
+  //     std::this_thread::sleep_for(
+  //       std::chrono::duration<double>(interval));
+  //   }
+  // }
 
   void Connection::idle()
   {
@@ -159,16 +159,16 @@ namespace mpd
     }
   }
 
-  void Connection::toggle()
-  {
-    try {
-      this->check_prerequisites_commands_list();
-      mpd_run_toggle_pause(this->connection.get());
-      this->check_errors();
-    } catch (Exception &e) {
-      log_error(e.what());
-    }
-  }
+  // void Connection::toggle()
+  // {
+  //   try {
+  //     this->check_prerequisites_commands_list();
+  //     mpd_run_toggle_pause(this->connection.get());
+  //     this->check_errors();
+  //   } catch (Exception &e) {
+  //     log_error(e.what());
+  //   }
+  // }
 
   void Connection::stop()
   {
@@ -222,7 +222,7 @@ namespace mpd
     }
   }
 
-  void Connection::repeat(bool mode)
+  void Connection::set_repeat(bool mode)
   {
     try {
       this->check_prerequisites_commands_list();
@@ -233,7 +233,7 @@ namespace mpd
     }
   }
 
-  void Connection::random(bool mode)
+  void Connection::set_random(bool mode)
   {
     try {
       this->check_prerequisites_commands_list();
@@ -244,7 +244,7 @@ namespace mpd
     }
   }
 
-  void Connection::single(bool mode)
+  void Connection::set_single(bool mode)
   {
     try {
       this->check_prerequisites_commands_list();
@@ -315,13 +315,13 @@ namespace mpd
     this->updated_at = std::chrono::system_clock::now();
   }
 
-  unsigned Status::get_total_time() {
-    return this->total_time;
-  }
+  // unsigned Status::get_total_time() {
+  //   return this->total_time;
+  // }
 
-  unsigned Status::get_elapsed_time() {
-    return this->elapsed_time;
-  }
+  // unsigned Status::get_elapsed_time() {
+  //   return this->elapsed_time;
+  // }
 
   unsigned Status::get_elapsed_percentage()
   {
@@ -360,8 +360,9 @@ namespace mpd
       return std::make_unique<Song>(song);
   }
 
-  Song::Song(struct mpd_song *song) {
-    this->song = std::shared_ptr<struct mpd_song>(song, mpd_song_free);
+  Song::Song(struct mpd_song *song)
+    : song(std::shared_ptr<struct mpd_song>(song, mpd_song_free))
+  {
   }
 
   std::string Song::get_artist()
@@ -391,9 +392,9 @@ namespace mpd
     return std::string(tag);
   }
 
-  unsigned Song::get_duration()
-  {
-    assert(this->song);
-    return mpd_song_get_duration(this->song.get());
-  }
+  // unsigned Song::get_duration()
+  // {
+  //   assert(this->song);
+  //   return mpd_song_get_duration(this->song.get());
+  // }
 }

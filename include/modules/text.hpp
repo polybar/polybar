@@ -1,5 +1,4 @@
-#ifndef _MODULES_TEXT_HPP_
-#define _MODULES_TEXT_HPP_
+#pragma once
 
 #include "modules/base.hpp"
 
@@ -7,14 +6,12 @@ namespace modules
 {
   DefineModule(TextModule, StaticModule)
   {
-    const char *FORMAT = "content";
+    static constexpr auto FORMAT = "content";
 
     public:
-      TextModule(const std::string& name) throw(UndefinedFormat);
+      explicit TextModule(const std::string& name);
 
       std::string get_format();
       std::string get_output();
   };
 }
-
-#endif

@@ -11,6 +11,7 @@
 #include "modules/i3.hpp"
 #include "utils/config.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
 #include "utils/string.hpp"
 
 using namespace modules;
@@ -128,7 +129,7 @@ bool i3Module::update()
       // if (!monitor_focused)
       //   flag = i3::WORKSPACE_DIMMED;
 
-      auto workspace_name = STR(ws->name);
+      auto workspace_name = ToStr(ws->name);
       if (this->workspace_name_strip_nchars > 0 && workspace_name.length() > this->workspace_name_strip_nchars)
         workspace_name.erase(0, this->workspace_name_strip_nchars);
 

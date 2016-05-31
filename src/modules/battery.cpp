@@ -7,6 +7,7 @@
 #include "utils/config.hpp"
 #include "utils/io.hpp"
 #include "utils/math.hpp"
+#include "utils/macros.hpp"
 #include "utils/string.hpp"
 
 using namespace modules;
@@ -68,10 +69,10 @@ BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
 void BatteryModule::start()
 {
   this->InotifyModule::start();
-  this->threads.emplace_back(std::thread(&BatteryModule::subthread_runner, this));
+  this->threads.emplace_back(std::thread(&BatteryModule::subthread_routine, this));
 }
 
-void BatteryModule::subthread_runner()
+void BatteryModule::subthread_routine()
 {
   std::this_thread::yield();
 
@@ -149,13 +150,13 @@ bool BatteryModule::on_event(InotifyEvent *event)
     this->label_full_tokenized = this->label_full->clone();
 
   this->label_charging_tokenized->text = this->label_charging->text;
-  this->label_charging_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
+  this->label_charging_tokenized->replace_token("%percentage%", IntToStr(percentage) + "%");
 
   this->label_discharging_tokenized->text = this->label_discharging->text;
-  this->label_discharging_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
+  this->label_discharging_tokenized->replace_token("%percentage%", IntToStr(percentage) + "%");
 
   this->label_full_tokenized->text = this->label_full->text;
-  this->label_full_tokenized->replace_token("%percentage%", std::to_string(percentage) + "%");
+  this->label_full_tokenized->replace_token("%percentage%", IntToStr(percentage) + "%");
 
   this->state = state;
   this->percentage = percentage;

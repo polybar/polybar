@@ -1,62 +1,38 @@
-#ifndef _UTILS_CONFIG_HPP_
-#define _UTILS_CONFIG_HPP_
+#pragma once
 
-#include <string>
-#include <vector>
 #include <mutex>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "exception.hpp"
-#include "services/logger.hpp"
 #include "utils/string.hpp"
 
 namespace config
 {
-  class ConfigException : public Exception {
-    using Exception::Exception;
-  };
-
-  class UnexistingFileError : public ConfigException {
-    using ConfigException::ConfigException;
-  };
-
-  class ParseError : public ConfigException {
-    using ConfigException::ConfigException;
-  };
-
-  class MissingValueException : public ConfigException {
-    using ConfigException::ConfigException;
-  };
-
-  class MissingListValueException : public ConfigException {
-    using ConfigException::ConfigException;
-  };
-
-  class InvalidVariableException : public ConfigException {
-    using ConfigException::ConfigException;
-  };
-
-  class InvalidReferenceException : public ConfigException {
-    using ConfigException::ConfigException;
-  };
+  DefineBaseException(ConfigException);
+  DefineChildException(UnexistingFileError, ConfigException);
+  DefineChildException(ParseError, ConfigException);
+  DefineChildException(MissingValueException, ConfigException);
+  DefineChildException(MissingListValueException, ConfigException);
+  DefineChildException(InvalidVariableException, ConfigException);
+  DefineChildException(InvalidReferenceException, ConfigException);
 
   static std::recursive_mutex mtx;
 
   std::string get_bar_path();
   void set_bar_path(const std::string& path);
 
-  void load(const std::string& path) throw(UnexistingFileError, ParseError);
+  void load(const std::string& path);
   void load(const char *dir, const std::string& path);
-  void reload() throw(ParseError);
+  // void reload();
 
   boost::property_tree::ptree get_tree();
 
   std::string build_path(const std::string& section, const std::string& key);
 
   template<typename T>
-  T dereference_var(const std::string& ref_section, const std::string& ref_key, const std::string& var, const T ref_val) throw (InvalidVariableException, InvalidReferenceException)
+  T dereference_var(const std::string& ref_section, const std::string& ref_key, const std::string& var, const T ref_val)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -85,7 +61,7 @@ namespace config
   }
 
   template<typename T>
-  T get(const std::string& section, const std::string& key) throw (MissingValueException)
+  T get(const std::string& section, const std::string& key)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -111,7 +87,7 @@ namespace config
   }
 
   template<typename T>
-  std::vector<T> get_list(const std::string& section, const std::string& key) throw (MissingListValueException)
+  std::vector<T> get_list(const std::string& section, const std::string& key)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -148,5 +124,3 @@ namespace config
       return vec;
   }
 }
-
-#endif

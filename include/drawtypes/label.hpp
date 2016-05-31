@@ -1,5 +1,4 @@
-#ifndef _DRAWTYPES_LABEL_HPP_
-#define _DRAWTYPES_LABEL_HPP_
+#pragma once
 
 #include <string>
 #include <memory>
@@ -29,5 +28,3 @@ namespace drawtypes
   std::unique_ptr<Label> get_config_label(const std::string& module_name, const std::string& label_name = "label", bool required = true, const std::string& def = "");
   std::unique_ptr<Label> get_optional_config_label(const std::string& module_name, const std::string& label_name = "label", const std::string& def = "");
 }
-
-#endif

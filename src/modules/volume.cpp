@@ -1,15 +1,12 @@
-#include <thread>
-
 #include "lemonbuddy.hpp"
 #include "bar.hpp"
-#include "services/builder.hpp"
-#include "utils/config.hpp"
 #include "utils/math.hpp"
+#include "utils/macros.hpp"
 #include "modules/volume.hpp"
 
 using namespace modules;
 
-VolumeModule::VolumeModule(const std::string& name_) throw(ModuleError) : EventModule(name_)
+VolumeModule::VolumeModule(const std::string& name_) : EventModule(name_)
 {
   auto speaker_mixer = config::get<std::string>(name(), "speaker_mixer", "");
   auto headphone_mixer = config::get<std::string>(name(), "headphone_mixer", "");
@@ -33,7 +30,7 @@ VolumeModule::VolumeModule(const std::string& name_) throw(ModuleError) : EventM
     try {
       mixer = std::make_unique<alsa::Mixer>(mixer_name);
     } catch (alsa::MixerError &e) {
-      log_error("Failed to open \""+ mixer_name +"\" mixer => "+ STR(e.what()));
+      log_error("Failed to open \""+ mixer_name +"\" mixer => "+ ToStr(e.what()));
       mixer.reset();
     }
 
@@ -56,7 +53,7 @@ VolumeModule::VolumeModule(const std::string& name_) throw(ModuleError) : EventM
     try {
       this->headphone_ctrl = std::make_unique<alsa::ControlInterface>(this->headphone_ctrl_numid);
     } catch (alsa::ControlInterfaceError &e) {
-      log_error("Failed to open headphone control interface => "+ STR(e.what()));
+      log_error("Failed to open headphone control interface => "+ ToStr(e.what()));
       this->headphone_ctrl.reset();
     }
   }

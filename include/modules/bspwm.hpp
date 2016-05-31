@@ -1,5 +1,4 @@
-#ifndef _MODULES_BSPWM_HPP_
-#define _MODULES_BSPWM_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -49,10 +48,10 @@ namespace modules
 
   DefineModule(BspwmModule, EventModule)
   {
-    const char *TAG_LABEL_STATE = "<label:state>";
-    const char *TAG_LABEL_MODE = "<label:mode>";
+    static constexpr auto TAG_LABEL_STATE = "<label:state>";
+    static constexpr auto TAG_LABEL_MODE = "<label:mode>";
 
-    const char *EVENT_CLICK = "bwm";
+    static constexpr auto EVENT_CLICK = "bwm";
 
     std::map<Bspwm::Flag, std::unique_ptr<drawtypes::Label>> mode_labels;
     std::map<Bspwm::Flag, std::unique_ptr<drawtypes::Label>> state_labels;
@@ -63,7 +62,7 @@ namespace modules
     std::unique_ptr<drawtypes::IconMap> icons;
     std::string monitor;
 
-    int socket_fd;
+    int socket_fd = -1;
     std::string prev_data;
 
     public:
@@ -77,5 +76,3 @@ namespace modules
       bool handle_command(const std::string& cmd);
   };
 }
-
-#endif

@@ -6,6 +6,10 @@ using namespace modules;
 
 BacklightModule::BacklightModule(const std::string& name_) : InotifyModule(name_)
 {
+  // Load configuration values
+  auto card = config::get<std::string>(name(), "card");
+
+  // Add formats and elements
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL, { TAG_LABEL, TAG_BAR, TAG_RAMP });
 
   if (this->formatter->has(TAG_LABEL))
@@ -18,8 +22,7 @@ BacklightModule::BacklightModule(const std::string& name_) : InotifyModule(name_
   if (this->label)
     this->label_tokenized = this->label->clone();
 
-  auto card = config::get<std::string>(name(), "card");
-
+  // Build path to the file where the current/maximum brightness value is located
   this->path_val = string::replace(PATH_BACKLIGHT_VAL, "%card%", card);
   this->path_max = string::replace(PATH_BACKLIGHT_MAX, "%card%", card);
 
@@ -28,7 +31,8 @@ BacklightModule::BacklightModule(const std::string& name_) : InotifyModule(name_
   if (!io::file::exists(this->path_max))
     throw ModuleError("[BacklightModule] The file \""+ this->path_max +"\" does not exist");
 
-  this->watch(this->path_val);
+  // Add inotify watch
+  this->watch(string::replace(PATH_BACKLIGHT_VAL, "%card%", card));
 }
 
 bool BacklightModule::on_event(InotifyEvent *event)
@@ -42,13 +46,13 @@ bool BacklightModule::on_event(InotifyEvent *event)
   auto max = io::file::get_contents(this->path_max);
   this->max = std::stoull(max.c_str(), 0, 10);
 
-  this->percentage = (int) float(this->val) / float(this->max) * 100.f + 0.5f;
+  this->percentage = (int) float(this->val) / float(this->max) * 100.0f + 0.5f;
 
   if (!this->label)
     return true;
 
   this->label_tokenized->text = this->label->text;
-  this->label_tokenized->replace_token("%percentage%", std::to_string(this->percentage)+"%");
+  this->label_tokenized->replace_token("%percentage%", std::to_string(this->percentage())+"%");
 
   return true;
 }
@@ -56,9 +60,9 @@ bool BacklightModule::on_event(InotifyEvent *event)
 bool BacklightModule::build(Builder *builder, const std::string& tag)
 {
   if (tag == TAG_BAR)
-    builder->node(this->bar, this->percentage);
+    builder->node(this->bar, this->percentage());
   else if (tag == TAG_RAMP)
-    builder->node(this->ramp, this->percentage);
+    builder->node(this->ramp, this->percentage());
   else if (tag == TAG_LABEL)
     builder->node(this->label_tokenized);
   else

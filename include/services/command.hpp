@@ -1,5 +1,4 @@
-#ifndef _SERVICES_COMMAND_HPP_
-#define _SERVICES_COMMAND_HPP_
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -9,9 +8,7 @@
 #include "exception.hpp"
 #include "utils/proc.hpp"
 
-class CommandException : public Exception {
-  using Exception::Exception;
-};
+DefineBaseException(CommandException);
 
 class Command
 {
@@ -25,21 +22,18 @@ class Command
     int fork_status;
 
   public:
-    Command(const std::string& cmd, int stdout[2] = nullptr, int stdin[2] = nullptr)
-      throw(CommandException);
-    ~Command() throw(CommandException);
+    Command(const std::string& cmd, int stdout[2] = nullptr, int stdin[2] = nullptr);
+    ~Command();
 
-    int exec(bool wait_for_completion = true) throw(CommandException);
-    int wait() throw(CommandException);
+    int exec(bool wait_for_completion = true);
+    int wait();
 
     void tail(std::function<void(std::string)> callback);
     int writeline(const std::string& data);
 
     int get_stdout(int);
-    int get_stdin(int);
+    // int get_stdin(int);
 
-    pid_t get_pid();
-    int get_exit_status();
+    // pid_t get_pid();
+    // int get_exit_status();
 };
-
-#endif

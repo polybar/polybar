@@ -14,6 +14,7 @@
 #include "utils/cli.hpp"
 #include "utils/config.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
 #include "utils/proc.hpp"
 #include "utils/string.hpp"
 #include "utils/timer.hpp"
@@ -24,8 +25,6 @@
  * TODO: Add more documentation
  * TODO: Simplify overall flow
  */
-
-#define writeln(s) std::cout << s << std::endl;
 
 std::unique_ptr<EventLoop> eventloop;
 
@@ -56,7 +55,7 @@ int main(int argc, char **argv)
   sigemptyset(&pipe_mask);
   sigaddset(&pipe_mask, SIGPIPE);
   if (pthread_sigmask(SIG_BLOCK, &pipe_mask, nullptr) == -1)
-    logger->fatal(STRERRNO);
+    logger->fatal(StrErrno());
 
   try {
     auto usage = "Usage: "+ std::string(argv[0]) + " bar_name [OPTION...]";
@@ -169,7 +168,7 @@ int main(int argc, char **argv)
           + std::to_string(proc::get_process_id());
         auto fptr = std::make_unique<io::file::FilePtr>(pipe_file, "a+");
         if (!*fptr)
-          throw Exception(STRERRNO);
+          throw ApplicationError(StrErrno());
       }
     }
 
@@ -192,7 +191,7 @@ int main(int argc, char **argv)
    * Terminate forked sub processes
    */
   if (!pids.empty()) {
-    logger->info("Terminating "+ STRI(pids.size()) +" spawned process"+ (pids.size() > 1 ? "es" : ""));
+    logger->info("Terminating "+ IntToStr(pids.size()) +" spawned process"+ (pids.size() > 1 ? "es" : ""));
 
     for (auto &&pid : pids)
       proc::kill(pid, SIGKILL);

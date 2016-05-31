@@ -1,9 +1,9 @@
-#ifndef _SERVICES_LOGGER_HPP_
-#define _SERVICES_LOGGER_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
 #include <mutex>
+#include <unistd.h>
 
 #include "exception.hpp"
 #include "utils/streams.hpp"
@@ -44,7 +44,7 @@ class Logger
   public:
     Logger();
 
-    void set_level(int level);
+    // void set_level(int level);
     void add_level(int level);
 
     void fatal(const std::string& msg);
@@ -65,5 +65,3 @@ class Logger
 };
 
 std::shared_ptr<Logger> &get_logger();
-
-#endif

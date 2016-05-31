@@ -1,5 +1,4 @@
-#ifndef _DRAWTYPES_ICON_HPP_
-#define _DRAWTYPES_ICON_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -37,5 +36,3 @@ namespace drawtypes
   std::unique_ptr<Icon> get_config_icon(const std::string& module_name, const std::string& icon_name = "icon", bool required = true, const std::string& def = "");
   std::unique_ptr<Icon> get_optional_config_icon(const std::string& module_name, const std::string& icon_name = "icon", const std::string& def = "");
 }
-
-#endif

@@ -31,9 +31,9 @@ namespace drawtypes
   }
 
   Animation::Animation(std::vector<std::unique_ptr<Icon>> &&frames, int framerate_ms)
+    : frames(std::move(frames))
   {
     this->framerate_ms = framerate_ms;
-    this->frames = std::move(frames);
     this->num_frames = this->frames.size();
     this->updated_at = std::chrono::system_clock::now();
   }

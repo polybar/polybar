@@ -8,25 +8,23 @@
 #include "eventloop.hpp"
 #include "services/command.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
 
 EventLoop::EventLoop(std::string input_pipe)
+  : bar(get_bar()),
+    registry(get_registry()),
+    logger(get_logger()),
+    state(STATE_STOPPED),
+    pipe_filename(input_pipe)
 {
-  this->bar = get_bar();
-  this->registry = get_registry();
-  this->logger = get_logger();
-
-  this->state = STATE_STOPPED;
-
-  this->pipe_filename = input_pipe;
-
-  if (!this->pipe_filename.empty()) {
-    if (!io::file::is_fifo(this->pipe_filename)) {
-      if (io::file::exists(this->pipe_filename))
-        unlink(this->pipe_filename.c_str());
-      if (mkfifo(this->pipe_filename.c_str(), 0600) == -1)
-        throw Exception(STRERRNO);
-    }
-  }
+  if (this->pipe_filename.empty())
+    return;
+  if (io::file::is_fifo(this->pipe_filename))
+    return;
+  if (io::file::exists(this->pipe_filename))
+    unlink(this->pipe_filename.c_str());
+  if (mkfifo(this->pipe_filename.c_str(), 0600) == -1)
+    throw EventLoopTerminate(StrErrno());
 }
 
 bool EventLoop::running()
@@ -83,7 +81,7 @@ void EventLoop::wait()
   sigaddset(&this->wait_mask, SIGTERM);
 
   if (pthread_sigmask(SIG_BLOCK, &this->wait_mask, nullptr) == -1)
-    logger->fatal(STRERRNO);
+    logger->fatal(StrErrno());
 
   // Wait for termination signal
   sigwait(&this->wait_mask, &sig);
@@ -145,8 +143,8 @@ void EventLoop::loop_read()
 {
   while (!this->pipe_filename.empty() && this->running()) {
     try {
-      if ((this->fd_stdin = open(this->pipe_filename.c_str(), O_RDONLY)) == -1)
-        throw Exception(STRERRNO);
+      if ((this->fd_stdin = ::open(this->pipe_filename.c_str(), O_RDONLY)) == -1)
+        throw EventLoopTerminate(StrErrno());
 
       this->read_stdin();
     } catch (Exception &e) {

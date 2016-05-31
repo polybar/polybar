@@ -1,5 +1,4 @@
-#ifndef _INTERFACES_MPD_HPP_
-#define _INTERFACES_MPD_HPP_
+#pragma once
 
 #include <string>
 #include <stdlib.h>
@@ -24,7 +23,7 @@ namespace mpd
   class ClientError : public Exception
   {
     public:
-      ClientError(const std::string& msg, mpd_error code, bool clearable)
+      explicit ClientError(const std::string& msg, mpd_error code, bool clearable)
         : Exception("[mpd::ClientError::"+ std::to_string(code) +"] "+ msg, clearable){}
   };
 
@@ -46,14 +45,14 @@ namespace mpd
   struct Song
   {
     Song(){}
-    Song(mpd_song *song);
+    explicit Song(mpd_song *song);
 
     std::shared_ptr<mpd_song> song;
 
     std::string get_artist();
     std::string get_album();
     std::string get_title();
-    unsigned get_duration();
+    // unsigned get_duration();
 
     operator bool() {
       return this->song.get() != nullptr;
@@ -69,7 +68,7 @@ namespace mpd
       }
     };
 
-    Status(mpd_status *status);
+    explicit Status(mpd_status *status);
 
     std::unique_ptr<struct mpd_status, StatusDeleter> status;
     std::unique_ptr<Song> song;
@@ -92,8 +91,8 @@ namespace mpd
     void update(int event);
     void update_timer();
 
-    unsigned get_total_time();
-    unsigned get_elapsed_time();
+    // unsigned get_total_time();
+    // unsigned get_elapsed_time();
     unsigned get_elapsed_percentage();
     std::string get_formatted_elapsed();
     std::string get_formatted_total();
@@ -128,12 +127,14 @@ namespace mpd
     void check_errors();
 
     public:
+      Connection() = default;
+
       static std::shared_ptr<Connection> &get();
 
       void connect();
       void disconnect();
       bool connected();
-      bool retry_connection(int interval = 1);
+      // bool retry_connection(int interval = 1);
       void idle();
       int noidle();
 
@@ -147,15 +148,15 @@ namespace mpd
 
       void play();
       void pause(bool state);
-      void toggle();
+      // void toggle();
       void stop();
       void prev();
       void next();
       void seek(int percentage);
 
-      void repeat(bool mode);
-      void random(bool mode);
-      void single(bool mode);
+      void set_repeat(bool mode);
+      void set_random(bool mode);
+      void set_single(bool mode);
   };
 
   struct MpdStatus
@@ -179,5 +180,3 @@ namespace mpd
     }
   };
 }
-
-#endif

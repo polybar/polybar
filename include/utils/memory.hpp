@@ -1,5 +1,4 @@
-#ifndef _UTILS_MEMORY_HPP
-#define _UTILS_MEMORY_HPP
+#pragma once
 
 // Swap the two ints without the need of creating another tmp variable
 #define int_memswap(one, two) one += two; \
@@ -12,5 +11,3 @@
 #define repeat_with(n, m) for (m = n; m--;)
 #define repeat_i i
 #define repeat_i_rev(n) (n - i - 1)
-
-#endif

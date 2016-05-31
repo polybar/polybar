@@ -1,5 +1,4 @@
-#ifndef _MODULES_BACKLIGHT_HPP_
-#define _MODULES_BACKLIGHT_HPP_
+#pragma once
 
 #include "config.hpp"
 #include "modules/base.hpp"
@@ -10,9 +9,9 @@ namespace modules
 {
   DefineModule(BacklightModule, InotifyModule)
   {
-    const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR = "<bar>";
-    const char *TAG_RAMP = "<ramp>";
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_BAR = "<bar>";
+    static constexpr auto TAG_RAMP = "<ramp>";
 
     std::unique_ptr<drawtypes::Bar> bar;
     std::unique_ptr<drawtypes::Ramp> ramp;
@@ -22,14 +21,17 @@ namespace modules
     std::string path_val, path_max;
     float val = 0, max = 0;
 
-    std::atomic<int> percentage;
+    concurrency::Atomic<int> percentage;
 
     public:
-      BacklightModule(const std::string& name);
+      explicit BacklightModule(const std::string& name);
 
       bool on_event(InotifyEvent *event);
       bool build(Builder *builder, const std::string& tag);
+
+      void idle() const
+      {
+        std::this_thread::sleep_for(25ms);
+      }
   };
 }
-
-#endif

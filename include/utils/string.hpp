@@ -1,17 +1,13 @@
-#ifndef _UTILS_STRING_HPP_
-#define _UTILS_STRING_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
-
-#define STR(s) std::string(s)
-#define STRI(s) std::to_string(s)
 
 namespace string
 {
   bool compare(const std::string& s1, const std::string& s2);
 
-  std::string upper(const std::string& s);
+  // std::string upper(const std::string& s);
   std::string lower(const std::string& s);
 
   std::string replace(const std::string& haystack, const std::string& needle, const std::string& replacement);
@@ -19,7 +15,7 @@ namespace string
 
   std::string squeeze(const std::string& haystack, const char &needle);
 
-  std::string strip(const std::string& haystack, const char &needle);
+  // std::string strip(const std::string& haystack, const char &needle);
   std::string strip_trailing_newline(const std::string& s);
 
   std::string trim(const std::string& haystack, const char &needle);
@@ -33,5 +29,3 @@ namespace string
 
   std::size_t find_nth(const std::string& haystack, std::size_t pos, const std::string& needle, std::size_t nth);
 }
-
-#endif

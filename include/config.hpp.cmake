@@ -1,5 +1,4 @@
-#ifndef _CONFIG_HPP_
-#define _CONFIG_HPP_
+#pragma once
 
 #define APP_NAME "@PROJECT_NAME@"
 
@@ -22,5 +21,3 @@
 #define BSPWM_STATUS_PREFIX "@SETTING_BSPWM_STATUS_PREFIX@"
 #define PATH_CPU_INFO "@SETTING_PATH_CPU_INFO@"
 #define PATH_MEMORY_INFO "@SETTING_PATH_MEMORY_INFO@"
-
-#endif // _CONFIG_HPP_

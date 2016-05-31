@@ -30,7 +30,7 @@ bool Registry::ready()
 void Registry::insert(std::unique_ptr<modules::ModuleInterface> &&module)
 {
   log_trace("Inserting module: "+ module->name());
-  this->modules.emplace_back(std::make_unique<ModuleEntry>(std::move(module)));
+  this->modules.emplace_back(std::make_unique<RegistryModuleEntry>(std::move(module)));
 }
 
 void Registry::load()
@@ -149,7 +149,7 @@ std::string Registry::get(const std::string& module_name)
   return (*this->find(module_name)->module)();
 }
 
-std::unique_ptr<ModuleEntry>& Registry::find(const std::string& module_name) throw(ModuleNotFound)
+std::unique_ptr<RegistryModuleEntry>& Registry::find(const std::string& module_name)
 {
   for (auto &&entry : this->modules)
     if (entry->module->name() == module_name)

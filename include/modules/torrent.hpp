@@ -1,5 +1,4 @@
-#ifndef _MODULES_TORRENT_HPP_
-#define _MODULES_TORRENT_HPP_
+#pragma once
 
 #include "modules/base.hpp"
 #include "drawtypes/bar.hpp"
@@ -19,8 +18,8 @@ namespace modules
 
   DefineModule(TorrentModule, InotifyModule)
   {
-    const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR_PROGRESS = "<bar:progress>";
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_BAR_PROGRESS = "<bar:progress>";
 
     std::vector<std::unique_ptr<Torrent>> torrents;
     std::unique_ptr<drawtypes::Label> label;
@@ -31,12 +30,10 @@ namespace modules
     std::vector<std::unique_ptr<Torrent>> &read_data_into(std::vector<std::unique_ptr<Torrent>> &container);
 
     public:
-      TorrentModule(const std::string& name);
+      explicit TorrentModule(const std::string& name);
 
       void start();
       bool on_event(InotifyEvent *event);
       bool build(Builder *builder, const std::string& tag);
   };
 }
-
-#endif

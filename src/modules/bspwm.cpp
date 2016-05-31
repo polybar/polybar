@@ -17,10 +17,9 @@ using namespace Bspwm;
 #define DEFAULT_WS_ICON "workspace_icon:default"
 #define DEFAULT_WS_LABEL "%icon%  %name%"
 
-BspwmModule::BspwmModule(const std::string& name_, const std::string& monitor) : EventModule(name_)
+BspwmModule::BspwmModule(const std::string& name_, const std::string& monitor)
+  : EventModule(name_), monitor(monitor)
 {
-  this->monitor = monitor;
-
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
@@ -86,25 +85,29 @@ bool BspwmModule::update()
   if (data.empty())
     return false;
 
-  auto prefix = std::string(BSPWM_STATUS_PREFIX);
+  const auto prefix = std::string(BSPWM_STATUS_PREFIX);
 
-  if (data.find(prefix) != 0) {
+  if (data.compare(0, prefix.length(), prefix) != 0) {
     log_error("Received unknown status -> "+ data);
     return false;
   }
 
+  const auto needle_active = "M"+ this->monitor +":";
+  const auto needle_inactive = "m"+ this->monitor +":";
+
   // Cut out the relevant section for the current monitor
-  if ((n = data.find(prefix +"M"+ this->monitor +":")) != std::string::npos) {
+  if ((n = data.find(prefix + needle_active)) != std::string::npos) {
     if ((m = data.find(":m")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find(prefix +"m"+ this->monitor +":")) != std::string::npos) {
+  } else if ((n = data.find(prefix + needle_inactive)) != std::string::npos) {
     if ((m = data.find(":M")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find("M"+ this->monitor +":")) != std::string::npos) {
+  } else if ((n = data.find(needle_active)) != std::string::npos) {
     data.erase(0, n);
-  } else if ((n = data.find("m"+ this->monitor +":")) != std::string::npos) {
+  } else if ((n = data.find(needle_inactive)) != std::string::npos) {
     data.erase(0, n);
   }
 
-  if (data.find(prefix) == 0) data.erase(0, 1);
+  if (data.compare(0, prefix.length(), prefix) == 0)
+    data.erase(0, 1);
 
   log_trace(data);
 

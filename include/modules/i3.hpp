@@ -1,14 +1,10 @@
-#ifndef _MODULES_I3_HPP_
-#define _MODULES_I3_HPP_
-
-#include "config.hpp"
+#pragma once
 
 #include <memory>
-#include <string>
 #include <unistd.h>
-
 #include <i3ipc++/ipc.hpp>
 
+#include "config.hpp"
 #include "modules/base.hpp"
 #include "drawtypes/icon.hpp"
 #include "drawtypes/label.hpp"
@@ -46,11 +42,9 @@ namespace modules
 
   DefineModule(i3Module, EventModule)
   {
-    const char *TAG_LABEL_STATE = "<label:state>";
+    static constexpr auto TAG_LABEL_STATE = "<label:state>";
 
-    const char *EVENT_CLICK = "i3";
-
-    concurrency::SpinLock update_lock;
+    static constexpr auto EVENT_CLICK = "i3";
 
     std::unique_ptr<i3ipc::connection> ipc;
 
@@ -66,7 +60,7 @@ namespace modules
     bool local_workspaces = true;
     std::size_t workspace_name_strip_nchars = 0;
 
-    int ipc_fd;
+    int ipc_fd = -1;
 
     public:
       i3Module(const std::string& name, const std::string& monitor);
@@ -81,5 +75,3 @@ namespace modules
       bool handle_command(const std::string& cmd);
   };
 }
-
-#endif

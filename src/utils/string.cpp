@@ -8,13 +8,13 @@ namespace string
     return lower(s1) == lower(s2);
   }
 
-  std::string upper(const std::string& s)
-  {
-    std::string str(s);
-    for (auto &c : str)
-      c = std::toupper(c);
-    return str;
-  }
+  // std::string upper(const std::string& s)
+  // {
+  //   std::string str(s);
+  //   for (auto &c : str)
+  //     c = std::toupper(c);
+  //   return str;
+  // }
 
   std::string lower(const std::string& s)
   {
@@ -41,14 +41,14 @@ namespace string
     return replace_all(haystack, {needle, needle}, {needle});
   }
 
-  std::string strip(const std::string& haystack, const char &needle)
-  {
-    std::string str(haystack);
-    std::string::size_type pos;
-    while ((pos = str.find(needle)) != std::string::npos)
-      str.erase(pos, 1);
-    return str;
-  }
+  // std::string strip(const std::string& haystack, const char &needle)
+  // {
+  //   std::string str(haystack);
+  //   std::string::size_type pos;
+  //   while ((pos = str.find(needle)) != std::string::npos)
+  //     str.erase(pos, 1);
+  //   return str;
+  // }
 
   std::string strip_trailing_newline(const std::string& haystack)
   {

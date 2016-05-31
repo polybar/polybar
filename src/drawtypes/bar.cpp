@@ -28,11 +28,10 @@ namespace drawtypes
     return bar;
   }
 
-  Bar::Bar(int width, const std::string& format, bool lazy_builder_closing)
+  Bar::Bar(int width, const std::string& fmt, bool lazy_builder_closing)
+    : builder(std::make_unique<Builder>(lazy_builder_closing)), format(fmt)
   {
     this->width = width;
-    this->format = format;
-    this->builder = std::make_unique<Builder>(lazy_builder_closing);
   }
 
   void Bar::set_fill(std::unique_ptr<Icon> &&fill) {
@@ -63,7 +62,6 @@ namespace drawtypes
     int fill_width = (int) this->width * percentage / 100 + add;
     int empty_width = this->width - fill_width;
     int color_step = this->width / this->colors.size() + 0.5f;
-    int i = 0, j = 0;
 
     auto output = std::string(this->format);
 
@@ -83,9 +81,10 @@ namespace drawtypes
       this->fill->fg = this->colors[color-1];
       while (fill_width--) this->builder->node(this->fill);
     } else {
+      int i = 0;
       for (auto color : this->colors) {
         i += 1;
-        j = 0;
+        int j = 0;
 
         if ((i-1) * color_step >= fill_width) break;
 

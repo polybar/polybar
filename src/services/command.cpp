@@ -8,8 +8,9 @@
 #include "lemonbuddy.hpp"
 #include "services/command.hpp"
 #include "services/logger.hpp"
-#include "utils/string.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
+#include "utils/string.hpp"
 
 /**
  * auto cmd = std::make_unique<Command>("cat /etc/rc.local");
@@ -25,10 +26,9 @@
  * std::cout << cmd->readline(); //---> 1
  * std::cout << cmd->readline() << cmd->readline(); //---> 23
  */
-Command::Command(const std::string& cmd, int stdout[2], int stdin[2]) throw(CommandException)
+Command::Command(const std::string& cmd, int stdout[2], int stdin[2])
+  : cmd(cmd)
 {
-  this->cmd = cmd;
-
   if (stdin != nullptr) {
     this->stdin[PIPE_READ] = stdin[PIPE_READ];
     this->stdin[PIPE_WRITE] = stdin[PIPE_WRITE];
@@ -40,29 +40,29 @@ Command::Command(const std::string& cmd, int stdout[2], int stdin[2]) throw(Comm
     this->stdout[PIPE_WRITE] = stdout[PIPE_WRITE];
   } else if (false == proc::pipe(this->stdout)) {
     if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     if ((this->stdin[PIPE_WRITE] = close(this->stdin[PIPE_WRITE])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     throw CommandException("Failed to allocate pipe");
   }
 }
 
-Command::~Command() throw(CommandException)
+Command::~Command()
 {
   if (this->stdin[PIPE_READ] > 0 && (close(this->stdin[PIPE_READ]) == -1))
-    throw CommandException("Failed to close fd: "+ STRERRNO);
+    log_error("Failed to close fd: "+ StrErrno());
   if (this->stdin[PIPE_WRITE] > 0 && (close(this->stdin[PIPE_WRITE]) == -1))
-    throw CommandException("Failed to close fd: "+ STRERRNO);
+    log_error("Failed to close fd: "+ StrErrno());
   if (this->stdout[PIPE_READ] > 0 && (close(this->stdout[PIPE_READ]) == -1))
-    throw CommandException("Failed to close fd: "+ STRERRNO);
+    log_error("Failed to close fd: "+ StrErrno());
   if (this->stdout[PIPE_WRITE] > 0 && (close(this->stdout[PIPE_WRITE]) == -1))
-    throw CommandException("Failed to close fd: "+ STRERRNO);
+    log_error("Failed to close fd: "+ StrErrno());
 }
 
-int Command::exec(bool wait_for_completion) throw(CommandException)
+int Command::exec(bool wait_for_completion)
 {
   if ((this->fork_pid = proc::fork()) == -1)
-    throw CommandException("Failed to fork process: "+ STRERRNO);
+    throw CommandException("Failed to fork process: "+ StrErrno());
 
   if (proc::in_forked_process(this->fork_pid)) {
     if (dup2(this->stdin[PIPE_READ], STDIN_FILENO) == -1)
@@ -74,13 +74,13 @@ int Command::exec(bool wait_for_completion) throw(CommandException)
 
     // Close file descriptors that won't be used by forked process
     if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     if ((this->stdin[PIPE_WRITE] = close(this->stdin[PIPE_WRITE])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     if ((this->stdout[PIPE_READ] = close(this->stdout[PIPE_READ])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     if ((this->stdout[PIPE_WRITE] = close(this->stdout[PIPE_WRITE])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
 
     // Replace the forked process with the given command
     proc::exec(cmd);
@@ -90,9 +90,9 @@ int Command::exec(bool wait_for_completion) throw(CommandException)
 
     // Close file descriptors that won't be used by parent process
     if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
     if ((this->stdout[PIPE_WRITE] = close(this->stdout[PIPE_WRITE])) == -1)
-      throw CommandException("Failed to close fd: "+ STRERRNO);
+      throw CommandException("Failed to close fd: "+ StrErrno());
 
     if (wait_for_completion)
       return this->wait();
@@ -101,7 +101,7 @@ int Command::exec(bool wait_for_completion) throw(CommandException)
   return EXIT_SUCCESS;
 }
 
-int Command::wait() throw(CommandException)
+int Command::wait()
 {
   // Wait for the child processs to finish
   do {
@@ -110,19 +110,19 @@ int Command::wait() throw(CommandException)
 
     if ((pid = proc::wait_for_completion(this->fork_pid, &this->fork_status, WCONTINUED | WUNTRACED)) == -1) {
       unregister_pid(this->fork_pid);
-      throw CommandException("Process did not finish successfully ("+ STRI(this->fork_status) +")");
+      throw CommandException("Process did not finish successfully ("+ IntToStr(this->fork_status) +")");
     }
 
-    if WIFEXITED(this->fork_status)
+    if (WIFEXITED(this->fork_status))
       sprintf(msg, "exited with status %d", WEXITSTATUS(this->fork_status));
-    else if WIFSIGNALED(this->fork_status)
-      sprintf(msg, "got killed by signal %d (%s)", WTERMSIG(this->fork_status), SIGCSTR(WTERMSIG(this->fork_status)));
-    else if WIFSTOPPED(this->fork_status)
-      sprintf(msg, "stopped by signal %d (%s)", WSTOPSIG(this->fork_status), SIGCSTR(WSTOPSIG(this->fork_status)));
-    else if WIFCONTINUED(this->fork_status)
+    else if (WIFSIGNALED(this->fork_status))
+      sprintf(msg, "got killed by signal %d (%s)", WTERMSIG(this->fork_status), StrSignalC(WTERMSIG(this->fork_status)));
+    else if (WIFSTOPPED(this->fork_status))
+      sprintf(msg, "stopped by signal %d (%s)", WSTOPSIG(this->fork_status), StrSignalC(WSTOPSIG(this->fork_status)));
+    else if (WIFCONTINUED(this->fork_status))
       sprintf(msg, "continued");
 
-    get_logger()->debug("Command "+ STR(msg));
+    get_logger()->debug("Command "+ ToStr(msg));
   } while (!WIFEXITED(this->fork_status) && !WIFSIGNALED(this->fork_status));
 
   unregister_pid(this->fork_pid);
@@ -142,14 +142,14 @@ int Command::get_stdout(int c) {
   return this->stdout[c];
 }
 
-int Command::get_stdin(int c) {
-  return this->stdin[c];
-}
+// int Command::get_stdin(int c) {
+//   return this->stdin[c];
+// }
 
-pid_t Command::get_pid() {
-  return this->fork_pid;
-}
+// pid_t Command::get_pid() {
+//   return this->fork_pid;
+// }
 
-int Command::get_exit_status() {
-  return this->fork_status;
-}
+// int Command::get_exit_status() {
+//   return this->fork_status;
+// }

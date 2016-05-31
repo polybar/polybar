@@ -1,22 +1,17 @@
-#ifndef _REGISTRY_HPP_
-#define _REGISTRY_HPP_
+#pragma once
 
-#include <condition_variable>
-
-#include "exception.hpp"
 #include "modules/base.hpp"
 
 DefineBaseException(RegistryError);
 DefineChildException(ModuleNotFound, RegistryError);
 
-struct ModuleEntry
+struct RegistryModuleEntry
 {
   concurrency::Atomic<bool> warmedup;
   std::unique_ptr<modules::ModuleInterface> module;
 
-  ModuleEntry(std::unique_ptr<modules::ModuleInterface> &&module)
+  RegistryModuleEntry(std::unique_ptr<modules::ModuleInterface> &&module) : warmedup(false)
   {
-    this->warmedup = false;
     this->module.swap(module);
   }
 };
@@ -34,7 +29,7 @@ class Registry
 
   concurrency::Atomic<int> stage;
 
-  std::vector<std::unique_ptr<ModuleEntry>> modules;
+  std::vector<std::unique_ptr<RegistryModuleEntry>> modules;
 
   std::mutex wait_mtx;
   std::condition_variable wait_cv;
@@ -49,9 +44,7 @@ class Registry
     bool wait();
     void notify(const std::string& module_name);
     std::string get(const std::string& module_name);
-    std::unique_ptr<ModuleEntry>& find(const std::string& module_name) throw(ModuleNotFound);
+    std::unique_ptr<RegistryModuleEntry>& find(const std::string& module_name);
 };
 
 std::shared_ptr<Registry> &get_registry();
-
-#endif

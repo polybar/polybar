@@ -21,10 +21,10 @@ Logger::Logger()
   }
 }
 
-void Logger::set_level(int mask)
-{
-  this->level = mask;
-}
+// void Logger::set_level(int mask)
+// {
+//   this->level = mask;
+// }
 
 void Logger::add_level(int mask)
 {

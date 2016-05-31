@@ -1,5 +1,4 @@
-#ifndef _DRAWTYPES_ANIMATION_HPP_
-#define _DRAWTYPES_ANIMATION_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -21,7 +20,7 @@ namespace drawtypes
 
     public:
       Animation(std::vector<std::unique_ptr<Icon>> &&frames, int framerate_ms = 1);
-      Animation(int framerate_ms)
+      explicit Animation(int framerate_ms)
         : framerate_ms(framerate_ms){}
 
       void add(std::unique_ptr<Icon> &&frame);
@@ -37,5 +36,3 @@ namespace drawtypes
 
   std::unique_ptr<Animation> get_config_animation(const std::string& config_path, const std::string& animation_name = "animation", bool required = true);
 }
-
-#endif

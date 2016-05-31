@@ -5,16 +5,17 @@
 #include "services/inotify.hpp"
 #include "services/logger.hpp"
 #include "utils/io.hpp"
+#include "utils/macros.hpp"
 #include "utils/proc.hpp"
 
-InotifyWatch::InotifyWatch(const std::string& path, int mask) throw (InotifyException)
+InotifyWatch::InotifyWatch(const std::string& path, int mask)
 {
   log_trace("Installing watch at: "+ path);
 
   if ((this->fd = inotify_init()) < 0)
-    throw InotifyException(STRERRNO);
+    throw InotifyException(StrErrno());
   if ((this->wd = inotify_add_watch(this->fd, path.c_str(), mask)) < 0)
-    throw InotifyException(STRERRNO);
+    throw InotifyException(StrErrno());
 
   this->path = path;
   this->mask = mask;
@@ -25,10 +26,10 @@ InotifyWatch::~InotifyWatch()
   log_trace("Uninstalling watch at: "+ this->path);
 
   if ((this->fd > 0 || this->wd > 0) && inotify_rm_watch(this->fd, this->wd) == -1)
-    log_error("Failed to remove inotify watch: "+ STRERRNO);
+    log_error("Failed to remove inotify watch: "+ StrErrno());
 
   if (this->fd > 0 && close(this->fd) == -1)
-    log_error("Failed to close inotify watch fd: "+ STRERRNO);
+    log_error("Failed to close inotify watch fd: "+ StrErrno());
 }
 
 bool InotifyWatch::has_event(int timeout_ms) {

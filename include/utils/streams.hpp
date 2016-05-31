@@ -1,5 +1,5 @@
-#ifndef _UTILS_STREAMS_HPP_
-#define _UTILS_STREAMS_HPP_
+#if 0
+#pragma once
 
 #include <iostream>
 #include <streambuf>
@@ -43,5 +43,4 @@ namespace streams
       }
   };
 }
-
 #endif

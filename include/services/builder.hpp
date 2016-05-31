@@ -1,5 +1,4 @@
-#ifndef _SERVICES_BUILDER_HPP_
-#define _SERVICES_BUILDER_HPP_
+#pragma once
 
 #include <string>
 #include <memory>
@@ -43,7 +42,7 @@ class Builder
     void align_right();
 
   public:
-    Builder(bool lazy_closing = true) : lazy_closing(lazy_closing){}
+    explicit Builder(bool lazy_closing = true) : lazy_closing(lazy_closing){}
 
     void set_lazy_closing(bool mode) { this->lazy_closing = mode; }
 
@@ -93,10 +92,8 @@ class Builder
     void underline(const std::string& color = "");
     void underline_close(bool force = false);
 
-    void invert();
+    // void invert();
 
     void cmd(int button, std::string action, bool condition = true);
     void cmd_close(bool force = false);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UTILS_IO_HPP_
-#define _UTILS_IO_HPP_
+#pragma once
 
 #include <string>
 #include <functional>
@@ -30,9 +29,8 @@ namespace io
         std::string mode;
 
         FilePtr(const std::string& path, const std::string& mode = "a+")
+          : path(std::string(path)), mode(std::string(mode))
         {
-          this->path = std::string(path);
-          this->mode = std::string(mode);
           this->fptr = fopen(this->path.c_str(), this->mode.c_str());
         }
 
@@ -69,12 +67,10 @@ namespace io
   void tail(int read_fd, int writeback_fd);
 
   bool poll_read(int fd, int timeout_ms = 1);
-  bool poll_write(int fd, int timeout_ms = 1);
+  // bool poll_write(int fd, int timeout_ms = 1);
   bool poll(int fd, short int events, int timeout_ms = 1);
 
-  int get_flags(int fd);
-  int set_blocking(int fd);
-  int set_non_blocking(int fd);
+  // int get_flags(int fd);
+  // int set_blocking(int fd);
+  // int set_non_blocking(int fd);
 }
-
-#endif

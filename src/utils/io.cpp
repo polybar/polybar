@@ -12,6 +12,7 @@
 #include "utils/io.hpp"
 #include "utils/proc.hpp"
 #include "utils/string.hpp"
+#include "utils/macros.hpp"
 
 namespace io
 {
@@ -23,7 +24,7 @@ namespace io
       struct sockaddr_un sock_addr;
 
       if ((fd = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        log_error("[io::socket::open] Error opening socket: "+ STRERRNO);
+        log_error("[io::socket::open] Error opening socket: "+ StrErrno());
         return -1;
       }
 
@@ -31,7 +32,7 @@ namespace io
       std::snprintf(sock_addr.sun_path, sizeof(sock_addr.sun_path), "%s", path.c_str());
 
       if (connect(fd, (struct sockaddr *) &sock_addr, sizeof(sock_addr)) == -1) {
-        log_error("[io::socket::open] Error connecting to socket: "+ STRERRNO);
+        log_error("[io::socket::open] Error connecting to socket: "+ StrErrno());
         return -1;
       }
 
@@ -42,7 +43,7 @@ namespace io
     {
       int bytes = ::send(fd, data.c_str(), data.size()+1, flags);
       if (bytes == -1)
-        log_error("[io::socket::send] Error sending data: "+ STRERRNO);
+        log_error("[io::socket::send] Error sending data: "+ StrErrno());
       return bytes;
     }
 
@@ -52,7 +53,7 @@ namespace io
       if (bytes > 0)
         buffer[bytes] = 0;
       else if (bytes == -1)
-        log_error("[io::socket::recv] Error receiving data: "+ STRERRNO);
+        log_error("[io::socket::recv] Error receiving data: "+ StrErrno());
       return bytes;
     }
   }
@@ -93,7 +94,6 @@ namespace io
     std::size_t write(io::file::FilePtr *fptr, const std::string& data) {
       auto buf = data.c_str();
       return fwrite(buf, sizeof(char), sizeof(buf), (*fptr)());
-      return 0;
     }
 
     std::size_t write(const std::string& fpath, const std::string& data) {
@@ -111,7 +111,7 @@ namespace io
     status_loc = 0;
 
     if ((bytes_read_loc = ::read(read_fd, &buffer, bytes_to_read)) > 0) {
-      buffer[bytes_read_loc] = 0;
+      // buffer[bytes_read_loc] = 0;
     } else if (bytes_read_loc == 0) {
       get_logger()->debug("Reached EOF");
       status_loc = -1;
@@ -184,9 +184,9 @@ namespace io
     return poll(fd, POLLIN, timeout_ms);
   }
 
-  bool poll_write(int fd, int timeout_ms) {
-    return poll(fd, POLLOUT, timeout_ms);
-  }
+  // bool poll_write(int fd, int timeout_ms) {
+  //   return poll(fd, POLLOUT, timeout_ms);
+  // }
 
   bool poll(int fd, short int events, int timeout_ms)
   {
@@ -202,19 +202,19 @@ namespace io
     return fds[0].revents & events;
   }
 
-  int get_flags(int fd)
-  {
-    int flags;
-    if ((flags = fcntl(fd, F_GETFL, 0)) == -1)
-      return 0;
-    return flags;
-  }
+  // int get_flags(int fd)
+  // {
+  //   int flags;
+  //   if ((flags = fcntl(fd, F_GETFL, 0)) == -1)
+  //     return 0;
+  //   return flags;
+  // }
 
-  int set_blocking(int fd) {
-    return fcntl(fd, F_SETFL, io::get_flags(fd) & ~O_NONBLOCK);
-  }
+  // int set_blocking(int fd) {
+  //   return fcntl(fd, F_SETFL, io::get_flags(fd) & ~O_NONBLOCK);
+  // }
 
-  int set_non_blocking(int fd) {
-    return fcntl(fd, F_SETFL, io::get_flags(fd) | O_NONBLOCK);
-  }
+  // int set_non_blocking(int fd) {
+  //   return fcntl(fd, F_SETFL, io::get_flags(fd) | O_NONBLOCK);
+  // }
 }

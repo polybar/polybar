@@ -6,11 +6,9 @@
 
 using namespace modules;
 
-ScriptModule::ScriptModule(const std::string& name_) : TimerModule(name_, 1s)
+ScriptModule::ScriptModule(const std::string& name_)
+  : TimerModule(name_, 1s), builder(std::make_unique<Builder>(true)), counter(0)
 {
-  this->counter = 0;
-  this->builder = std::make_unique<Builder>(true);
-
   this->exec = config::get<std::string>(name(), "exec");
 
   this->interval = std::chrono::duration<double>(

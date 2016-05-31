@@ -1,5 +1,4 @@
-#ifndef _UTILS_XLIB_HPP_
-#define _UTILS_XLIB_HPP_
+#pragma once
 
 #include <sstream>
 #include <memory>
@@ -26,9 +25,7 @@ namespace xlib
     }
   };
 
-  std::unique_ptr<Monitor> get_monitor(const std::string& monitor_name);
+  // std::unique_ptr<Monitor> get_monitor(const std::string& monitor_name);
 
   std::vector<std::unique_ptr<Monitor>> get_sorted_monitorlist();
 }
-
-#endif

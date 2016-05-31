@@ -1,5 +1,4 @@
-#ifndef _MODULES_CPU_HPP_
-#define _MODULES_CPU_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -23,10 +22,10 @@ namespace modules
 
   DefineModule(CpuModule, TimerModule)
   {
-    const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR_LOAD = "<bar:load>";
-    const char *TAG_RAMP_LOAD = "<ramp:load>";
-    const char *TAG_RAMP_LOAD_PER_CORE = "<ramp:load_per_core>";
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_BAR_LOAD = "<bar:load>";
+    static constexpr auto TAG_RAMP_LOAD = "<ramp:load>";
+    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp:load_per_core>";
 
     std::vector<std::unique_ptr<CpuTime>> cpu_times;
     std::vector<std::unique_ptr<CpuTime>> prev_cpu_times;
@@ -37,18 +36,16 @@ namespace modules
     std::unique_ptr<drawtypes::Label> label;
     std::unique_ptr<drawtypes::Label> label_tokenized;
 
-    float current_total_load;
+    float current_total_load = 0;
     std::vector<float> current_load;
 
     bool read_values();
     float get_load(int core);
 
     public:
-      CpuModule(const std::string& name);
+      explicit CpuModule(const std::string& name);
 
       bool update();
       bool build(Builder *builder, const std::string& tag);
   };
 }
-
-#endif

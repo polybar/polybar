@@ -1,5 +1,4 @@
-#ifndef _MODULES_BATTERY_HPP_
-#define _MODULES_BATTERY_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -47,10 +46,10 @@ namespace modules
       concurrency::Atomic<int> percentage;
       int full_at;
 
-      void subthread_runner();
+      void subthread_routine();
 
     public:
-      BatteryModule(const std::string& name);
+      explicit BatteryModule(const std::string& name);
 
       void start();
 
@@ -59,5 +58,3 @@ namespace modules
       bool build(Builder *builder, const std::string& tag);
   };
 }
-
-#endif

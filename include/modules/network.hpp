@@ -1,5 +1,4 @@
-#ifndef _MODULES_NETWORK_HPP_
-#define _MODULES_NETWORK_HPP_
+#pragma once
 
 #include <atomic>
 #include <chrono>
@@ -18,15 +17,15 @@ namespace modules
 {
   DefineModule(NetworkModule, TimerModule)
   {
-    const char *FORMAT_CONNECTED = "format:connected";
-    const char *FORMAT_PACKETLOSS = "format:packetloss";
-    const char *FORMAT_DISCONNECTED = "format:disconnected";
+    static constexpr auto FORMAT_CONNECTED = "format:connected";
+    static constexpr auto FORMAT_PACKETLOSS = "format:packetloss";
+    static constexpr auto FORMAT_DISCONNECTED = "format:disconnected";
 
-    const char *TAG_RAMP_SIGNAL = "<ramp:signal>";
-    const char *TAG_LABEL_CONNECTED = "<label:connected>";
-    const char *TAG_LABEL_DISCONNECTED = "<label:disconnected>";
-    const char *TAG_LABEL_PACKETLOSS = "<label:packetloss>";
-    const char *TAG_ANIMATION_PACKETLOSS = "<animation:packetloss>";
+    static constexpr auto TAG_RAMP_SIGNAL = "<ramp:signal>";
+    static constexpr auto TAG_LABEL_CONNECTED = "<label:connected>";
+    static constexpr auto TAG_LABEL_DISCONNECTED = "<label:disconnected>";
+    static constexpr auto TAG_LABEL_PACKETLOSS = "<label:packetloss>";
+    static constexpr auto TAG_ANIMATION_PACKETLOSS = "<animation:packetloss>";
 
     std::unique_ptr<net::WiredNetwork> wired_network;
     std::unique_ptr<net::WirelessNetwork> wireless_network;
@@ -51,7 +50,7 @@ namespace modules
     void subthread_routine();
 
     public:
-      NetworkModule(const std::string& name);
+      explicit NetworkModule(const std::string& name);
 
       void start();
       bool update();
@@ -62,5 +61,3 @@ namespace modules
 
   };
 }
-
-#endif

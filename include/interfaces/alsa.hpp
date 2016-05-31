@@ -1,5 +1,4 @@
-#ifndef _INTERFACES_ALSA_HPP_
-#define _INTERFACES_ALSA_HPP_
+#pragma once
 
 #include <functional>
 #include <string>
@@ -16,11 +15,14 @@ namespace alsa
   class Exception : public ::Exception
   {
     public:
-      Exception(const std::string& msg) : ::Exception("[Alsa] "+ msg){}
+      explicit Exception(const std::string& msg) : ::Exception("[Alsa] "+ msg){}
   };
 
-  class ControlInterfaceError : public Exception {
-    using Exception::Exception;
+  class ControlInterfaceError : public Exception
+  {
+    public:
+      ControlInterfaceError(int code, const std::string& msg)
+        : Exception(msg +" ["+ std::to_string(code) +"]") {}
   };
 
   class ControlInterface
@@ -36,12 +38,12 @@ namespace alsa
     snd_ctl_elem_id_t *id;
 
     public:
-      ControlInterface(int numid) throw(ControlInterfaceError);
+      explicit ControlInterface(int numid);
       ~ControlInterface();
 
-      bool wait(int timeout = -1) throw(ControlInterfaceError);
+      bool wait(int timeout = -1);
 
-      bool test_device_plugged() throw(ControlInterfaceError);
+      bool test_device_plugged();
   };
 
 
@@ -57,10 +59,10 @@ namespace alsa
     snd_mixer_elem_t *mixer_element = nullptr;
 
     public:
-      Mixer(const std::string& mixer_control_name) throw(MixerError);
+      explicit Mixer(const std::string& mixer_control_name);
       ~Mixer();
 
-      bool wait(int timeout = -1) throw(MixerError);
+      bool wait(int timeout = -1);
 
       int get_volume();
       void set_volume(float percentage);
@@ -72,5 +74,3 @@ namespace alsa
       void error_handler(const std::string& message);
   };
 }
-
-#endif

@@ -44,13 +44,9 @@ const Options& bar_opts() {
 /**
  * Bar constructor
  */
-Bar::Bar()
+Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>())
 {
-  this->config_path = config::get_bar_path();
-
   struct Options defaults;
-
-  this->opts = std::make_unique<Options>();
 
   try {
     this->opts->locale = config::get<std::string>(this->config_path, "locale");

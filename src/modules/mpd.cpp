@@ -10,10 +10,9 @@
 using namespace modules;
 using namespace mpd;
 
-MpdModule::MpdModule(const std::string& name_) : EventModule(name_)
+MpdModule::MpdModule(const std::string& name_)
+  : EventModule(name_), icons(std::make_unique<drawtypes::IconMap>())
 {
-  this->icons = std::make_unique<drawtypes::IconMap>();
-
   this->formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG, {
     TAG_BAR_PROGRESS, TAG_TOGGLE,      TAG_LABEL_SONG,      TAG_LABEL_TIME,
     TAG_ICON_RANDOM,  TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV,
@@ -69,7 +68,7 @@ void MpdModule::start()
   this->mpd = mpd::Connection::get();
 
   this->synced_at = std::chrono::system_clock::now();
-  this->sync_interval = config::get<float>(name(), "interval", 0.5) * 1000;
+  this->sync_interval = config::get<float>(name(), "interval", this->sync_interval) * 1000;
 
   try {
     mpd->connect();
@@ -273,22 +272,20 @@ bool MpdModule::handle_command(const std::string& cmd)
       mpd->next();
     else if (cmd == EVENT_REPEAT_ONE)
       if (this->status)
-        mpd->single(!this->status->single);
+        mpd->set_single(!this->status->single);
       else
-        mpd->single(true);
+        mpd->set_single(true);
     else if (cmd == EVENT_REPEAT)
       if (this->status)
-#undef repeat
-        mpd->repeat(!this->status->repeat);
+        mpd->set_repeat(!this->status->repeat);
       else
-        mpd->repeat(true);
-#define repeat _repeat(n)
+        mpd->set_repeat(true);
     else if (cmd == EVENT_RANDOM)
       if (this->status)
-        mpd->random(!this->status->random);
+        mpd->set_random(!this->status->random);
       else
-        mpd->random(true);
-    else if (cmd.find(EVENT_SEEK) == 0) {
+        mpd->set_random(true);
+    else if (cmd.compare(0, std::strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
       auto s = cmd.substr(std::strlen(EVENT_SEEK));
       int perc = 0;
       if (s.empty())

@@ -1,5 +1,4 @@
-#ifndef _MODULES_MENU_HPP_
-#define _MODULES_MENU_HPP_
+#pragma once
 
 #include <mutex>
 
@@ -18,11 +17,11 @@ namespace modules
 
   DefineModule(MenuModule, StaticModule)
   {
-    const char *TAG_LABEL_TOGGLE = "<label:toggle>";
-    const char *TAG_MENU = "<menu>";
+    static constexpr auto TAG_LABEL_TOGGLE = "<label:toggle>";
+    static constexpr auto TAG_MENU = "<menu>";
 
-    const char *EVENT_MENU_OPEN = "menu_open:";
-    const char *EVENT_MENU_CLOSE = "menu_close";
+    static constexpr auto EVENT_MENU_OPEN = "menu_open:";
+    static constexpr auto EVENT_MENU_CLOSE = "menu_close";
 
     std::mutex output_mtx;
     std::mutex cmd_mtx;
@@ -34,14 +33,12 @@ namespace modules
     std::unique_ptr<drawtypes::Label> label_close;
 
     public:
-      MenuModule(const std::string& name);
+      explicit MenuModule(const std::string& name);
 
-      std::string get_output() throw(UndefinedFormat);
+      std::string get_output();
 
       bool build(Builder *builder, const std::string& tag);
 
       bool handle_command(const std::string& cmd);
   };
 }
-
-#endif

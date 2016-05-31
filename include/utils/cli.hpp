@@ -1,16 +1,12 @@
-#ifndef _UTILS_CLI_HPP_
-#define _UTILS_CLI_HPP_
+#pragma once
 
-#include <string>
 #include <vector>
 
 #include "exception.hpp"
 
 namespace cli
 {
-  class CommandLineError : public Exception {
-    using Exception::Exception;
-  };
+  DefineBaseException(CommandLineError);
 
   struct Option
   {
@@ -40,5 +36,3 @@ namespace cli
 
   void usage(const std::string& usage, bool exit_success = true);
 }
-
-#endif

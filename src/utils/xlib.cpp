@@ -1,8 +1,7 @@
-#include <string>
 #include <algorithm>
-#include <cstring>
-#include <X11/Xos.h>
-#include <X11/Xutil.h>
+// #include <cstring>
+// #include <X11/Xos.h>
+// #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 
 #include "utils/memory.hpp"
@@ -63,37 +62,37 @@ namespace xlib
     return monitors;
   }
 
-  std::unique_ptr<Monitor> get_monitor(const std::string& n_monitorsame)
-  {
-    auto monitor = std::make_unique<Monitor>();
-    int n_monitors;
-
-    Display *display = XOpenDisplay(nullptr);
-    int screen = XDefaultScreen(display);
-    Window root = XRootWindow(display, screen);
-    XRRMonitorInfo *info = XRRGetMonitors(display, root, 1, &n_monitors);
-
-    repeat(n_monitors)
-    {
-      char *name = XGetAtomName(display, info[repeat_i_rev(n_monitors)].name);
-
-      if (std::strcmp(name, n_monitorsame.c_str()) != 0) {
-        continue;
-      }
-
-      monitor->name = std::string(name);
-      monitor->width = info[repeat_i_rev(n_monitors)].width;
-      monitor->height = info[repeat_i_rev(n_monitors)].height;
-      monitor->x = info[repeat_i_rev(n_monitors)].x;
-      monitor->y = info[repeat_i_rev(n_monitors)].y;
-
-      std::free(name);
-    }
-
-    std::free(info);
-
-    XCloseDisplay(display);
-
-    return monitor;
-  }
+  // std::unique_ptr<Monitor> get_monitor(const std::string& n_monitorsame)
+  // {
+  //   auto monitor = std::make_unique<Monitor>();
+  //   int n_monitors;
+  //
+  //   Display *display = XOpenDisplay(nullptr);
+  //   int screen = XDefaultScreen(display);
+  //   Window root = XRootWindow(display, screen);
+  //   XRRMonitorInfo *info = XRRGetMonitors(display, root, 1, &n_monitors);
+  //
+  //   repeat(n_monitors)
+  //   {
+  //     char *name = XGetAtomName(display, info[repeat_i_rev(n_monitors)].name);
+  //
+  //     if (std::strcmp(name, n_monitorsame.c_str()) != 0) {
+  //       continue;
+  //     }
+  //
+  //     monitor->name = std::string(name);
+  //     monitor->width = info[repeat_i_rev(n_monitors)].width;
+  //     monitor->height = info[repeat_i_rev(n_monitors)].height;
+  //     monitor->x = info[repeat_i_rev(n_monitors)].x;
+  //     monitor->y = info[repeat_i_rev(n_monitors)].y;
+  //
+  //     std::free(name);
+  //   }
+  //
+  //   std::free(info);
+  //
+  //   XCloseDisplay(display);
+  //
+  //   return monitor;
+  // }
 }

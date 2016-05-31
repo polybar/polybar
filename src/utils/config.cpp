@@ -1,3 +1,4 @@
+#include "services/logger.hpp"
 #include "utils/config.hpp"
 #include "utils/io.hpp"
 
@@ -17,7 +18,7 @@ namespace config
     return bar_path;
   }
 
-  void load(const std::string& path) throw(UnexistingFileError, ParseError)
+  void load(const std::string& path)
   {
     if (!io::file::exists(path)) {
       throw UnexistingFileError("Could not find configuration file \""+ path + "\"");
@@ -38,14 +39,14 @@ namespace config
     load(std::string(dir != nullptr ? dir : "") +"/"+ path);
   }
 
-  void reload() throw(ParseError)
-  {
-    try {
-      boost::property_tree::read_ini(file_path, pt);
-    } catch (std::exception &e) {
-      throw ParseError(e.what());
-    }
-  }
+  // void reload()
+  // {
+  //   try {
+  //     boost::property_tree::read_ini(file_path, pt);
+  //   } catch (std::exception &e) {
+  //     throw ParseError(e.what());
+  //   }
+  // }
 
   boost::property_tree::ptree get_tree() {
     return pt;

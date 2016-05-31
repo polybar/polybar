@@ -1,5 +1,4 @@
-#ifndef _MODULES_MEMORY_HPP_
-#define _MODULES_MEMORY_HPP_
+#pragma once
 
 #include <atomic>
 
@@ -12,9 +11,9 @@ namespace modules
 {
   DefineModule(MemoryModule, TimerModule)
   {
-    const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR_USED = "<bar:used>";
-    const char *TAG_BAR_FREE = "<bar:free>";
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_BAR_USED = "<bar:used>";
+    static constexpr auto TAG_BAR_FREE = "<bar:free>";
 
     std::unique_ptr<drawtypes::Bar> bar_used;
     std::unique_ptr<drawtypes::Bar> bar_free;
@@ -25,11 +24,9 @@ namespace modules
     std::atomic<int> percentage_free;
 
     public:
-      MemoryModule(const std::string& name);
+      explicit MemoryModule(const std::string& name);
 
       bool update();
       bool build(Builder *builder, const std::string& tag);
   };
 }
-
-#endif

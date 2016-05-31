@@ -4,10 +4,11 @@
 #include "utils/config.hpp"
 #include "utils/memory.hpp"
 #include "utils/proc.hpp"
+#include "utils/macros.hpp"
 
 namespace alsa
 {
-  ControlInterface::ControlInterface(int numid) throw(ControlInterfaceError)
+  ControlInterface::ControlInterface(int numid)
   {
     int err;
 
@@ -19,22 +20,22 @@ namespace alsa
     snd_ctl_elem_info_set_id(this->info, this->id);
 
     if ((err = snd_ctl_open(&this->ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0)
-      throw ControlInterfaceError("Could not open control \""+ STR(ALSA_SOUNDCARD) +"\": "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not open control \""+ ToStr(ALSA_SOUNDCARD) +"\": "+ STRSNDERR(err));
 
     if ((err = snd_ctl_elem_info(this->ctl, this->info)) < 0)
-      throw ControlInterfaceError("Could not get control data: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not get control data: "+ STRSNDERR(err));
 
     snd_ctl_elem_info_get_id(this->info, this->id);
 
     if ((err = snd_hctl_open(&this->hctl, ALSA_SOUNDCARD, 0)) < 0)
-      throw ControlInterfaceError(STRSNDERR(err));
+      throw ControlInterfaceError(err, STRSNDERR(err));
     if ((err = snd_hctl_load(this->hctl)) < 0)
-      throw ControlInterfaceError(STRSNDERR(err));
+      throw ControlInterfaceError(err, STRSNDERR(err));
     if ((elem = snd_hctl_find_elem(this->hctl, this->id)) == nullptr)
-      throw ControlInterfaceError("Could not find control with id "+ STRI(snd_ctl_elem_id_get_numid(this->id)));
+      throw ControlInterfaceError(err, "Could not find control with id "+ IntToStr(snd_ctl_elem_id_get_numid(this->id)));
 
     if ((err = snd_ctl_subscribe_events(this->ctl, 1)) < 0)
-      throw ControlInterfaceError("Could not subscribe to events: "+ STRI(snd_ctl_elem_id_get_numid(this->id)));
+      throw ControlInterfaceError(err, "Could not subscribe to events: "+ IntToStr(snd_ctl_elem_id_get_numid(this->id)));
 
     log_trace("Successfully initialized control interface");
   }
@@ -45,20 +46,23 @@ namespace alsa
     snd_hctl_close(this->hctl);
   }
 
-  bool ControlInterface::wait(int timeout) throw(ControlInterfaceError)
+  bool ControlInterface::wait(int timeout)
   {
     std::lock_guard<std::mutex> lck(this->mtx);
 
     int err;
 
     if ((err = snd_ctl_wait(this->ctl, timeout)) < 0)
-      throw ControlInterfaceError("Failed to wait for events: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Failed to wait for events: "+ STRSNDERR(err));
 
     snd_ctl_event_t *event;
     snd_ctl_event_alloca(&event);
 
-    if ((err = snd_ctl_read(this->ctl, event)) < 0)
+    if ((err = snd_ctl_read(this->ctl, event)) < 0) {
+      log_trace(err);
       return false;
+    }
+
     if (snd_ctl_event_get_type(event) != SND_CTL_EVENT_ELEM)
       return false;
 
@@ -67,7 +71,7 @@ namespace alsa
     return mask & SND_CTL_EVENT_MASK_VALUE;
   }
 
-  bool ControlInterface::test_device_plugged() throw(ControlInterfaceError)
+  bool ControlInterface::test_device_plugged()
   {
     int err;
 
@@ -75,13 +79,13 @@ namespace alsa
       return false;
 
     if ((err = snd_hctl_elem_read(this->elem, this->value)) < 0)
-      throw ControlInterfaceError("Could not read control value: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not read control value: "+ STRSNDERR(err));
 
     return snd_ctl_elem_value_get_boolean(this->value, 0);
   }
 
 
-  Mixer::Mixer(const std::string& mixer_control_name) throw(MixerError)
+  Mixer::Mixer(const std::string& mixer_control_name)
   {
     snd_mixer_selem_id_t *mixer_id;
 
@@ -112,7 +116,7 @@ namespace alsa
     snd_mixer_close(this->hardware_mixer);
   }
 
-  bool Mixer::wait(int timeout) throw(MixerError)
+  bool Mixer::wait(int timeout)
   {
     std::lock_guard<std::mutex> lck(this->mtx);
 

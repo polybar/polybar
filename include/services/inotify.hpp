@@ -1,5 +1,4 @@
-#ifndef _SERVICES_INOTIFY_HPP_
-#define _SERVICES_INOTIFY_HPP_
+#pragma once
 
 #include <memory>
 #include <sys/inotify.h>
@@ -9,7 +8,7 @@
 class InotifyException : public Exception
 {
   public:
-    InotifyException(const std::string& msg)
+    explicit InotifyException(const std::string& msg)
       : Exception("[Inotify] "+ msg){}
 };
 
@@ -49,7 +48,7 @@ class InotifyWatch
   int fd = -1, wd = -1, mask;
 
   public:
-    InotifyWatch(const std::string& path, int mask = InotifyEvent::ALL) throw (InotifyException);
+    explicit InotifyWatch(const std::string& path, int mask = InotifyEvent::ALL);
     ~InotifyWatch();
 
     std::string operator()() {
@@ -59,5 +58,3 @@ class InotifyWatch
     bool has_event(int timeout_ms = 1000);
     std::unique_ptr<InotifyEvent> get_event();
 };
-
-#endif

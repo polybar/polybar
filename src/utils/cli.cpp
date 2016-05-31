@@ -88,9 +88,10 @@ namespace cli
 
   void usage(const std::string& usage, bool exit_success)
   {
-    int longest_n = 0, n;
+    int longest_n = 0;
 
     for (auto &o : options) {
+      int n;
       if ((n = o.flag_long.length() + o.placeholder.length() + 1) > longest_n)
         longest_n = n;
     }

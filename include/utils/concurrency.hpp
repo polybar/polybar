@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -59,7 +61,7 @@ namespace concurrency
 
     public:
       Atomic() = default;
-      Atomic(T init) {
+      explicit Atomic(T init) {
         this->operator=(init);
       }
 
@@ -96,7 +98,7 @@ namespace concurrency
 
     public:
       Value() = default;
-      Value(T init) {
+      explicit Value(T init) {
         this->operator=(init);
       }
 

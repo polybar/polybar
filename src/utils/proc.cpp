@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 
 #include "services/logger.hpp"
+#include "utils/macros.hpp"
 #include "utils/proc.hpp"
 #include "utils/string.hpp"
 
@@ -12,9 +13,9 @@ namespace proc
     return getpid();
   }
 
-  pid_t get_parent_process_id() {
-    return getppid();
-  }
+  // pid_t get_parent_process_id() {
+  //   return getppid();
+  // }
 
   bool in_parent_process(pid_t pid) {
     return pid != -1 && pid != 0;
@@ -29,7 +30,7 @@ namespace proc
     pid_t pid = ::fork();
 
     if (pid < 0) {
-      log_error("Failed to fork process: "+ STRERRNO +" ("+ std::to_string(errno) +")");
+      log_error("Failed to fork process: "+ StrErrno() +" ("+ std::to_string(errno) +")");
       return -1;
     }
 
@@ -50,7 +51,7 @@ namespace proc
     return true;
   }
 
-  void exec(const std::string& cmd) throw(ExecFailure)
+  void exec(const std::string& cmd)
   {
     // log_trace(string::replace_all(cmd, "\n", " "));
 
@@ -71,7 +72,7 @@ namespace proc
 
     ::execvp(c_args[0], c_args.data());
 
-    throw ExecFailure("Failed to execute command:\n-> "+ STRERRNO+ " ("+ std::to_string(errno) + ")");
+    throw ExecFailure("Failed to execute command:\n-> "+ StrErrno()+ " ("+ std::to_string(errno) + ")");
   }
 
   bool kill(pid_t pid, int sig) {

@@ -6,9 +6,9 @@
 
 using namespace modules;
 
-DateModule::DateModule(const std::string& name_) : TimerModule(name_, 1s)
+DateModule::DateModule(const std::string& name_)
+  : TimerModule(name_, 1s), builder(std::make_unique<Builder>())
 {
-  this->builder = std::make_unique<Builder>();
   this->interval = std::chrono::duration<double>(
     config::get<float>(name(), "interval", 1));
 

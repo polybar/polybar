@@ -287,9 +287,9 @@ void Builder::remove_trailing_space(int width)
     this->output = this->output.substr(0, this->output.length()-spacing);
 }
 
-void Builder::invert() {
-  this->tag_open('R', "");
-}
+// void Builder::invert() {
+//   this->tag_open('R', "");
+// }
 
 
 // Fonts

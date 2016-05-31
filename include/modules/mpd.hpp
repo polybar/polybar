@@ -1,5 +1,4 @@
-#ifndef _MODULES_MPD_HPP_
-#define _MODULES_MPD_HPP_
+#pragma once
 
 #include "modules/base.hpp"
 #include "interfaces/mpd.hpp"
@@ -14,32 +13,32 @@ namespace modules
     static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;
     const std::chrono::duration<double> PROGRESSBAR_THREAD_INTERVAL = 1s;
 
-    const char *FORMAT_ONLINE = "format:online";
-    const char *TAG_BAR_PROGRESS = "<bar:progress>";
-    const char *TAG_TOGGLE = "<toggle>";
-    const char *TAG_LABEL_SONG = "<label:song>";
-    const char *TAG_LABEL_TIME = "<label:time>";
-    const char *TAG_ICON_RANDOM = "<icon:random>";
-    const char *TAG_ICON_REPEAT = "<icon:repeat>";
-    const char *TAG_ICON_REPEAT_ONE = "<icon:repeatone>";
-    const char *TAG_ICON_PREV = "<icon:prev>";
-    const char *TAG_ICON_STOP = "<icon:stop>";
-    const char *TAG_ICON_PLAY = "<icon:play>";
-    const char *TAG_ICON_PAUSE = "<icon:pause>";
-    const char *TAG_ICON_NEXT = "<icon:next>";
+    static constexpr auto FORMAT_ONLINE = "format:online";
+    static constexpr auto TAG_BAR_PROGRESS = "<bar:progress>";
+    static constexpr auto TAG_TOGGLE = "<toggle>";
+    static constexpr auto TAG_LABEL_SONG = "<label:song>";
+    static constexpr auto TAG_LABEL_TIME = "<label:time>";
+    static constexpr auto TAG_ICON_RANDOM = "<icon:random>";
+    static constexpr auto TAG_ICON_REPEAT = "<icon:repeat>";
+    static constexpr auto TAG_ICON_REPEAT_ONE = "<icon:repeatone>";
+    static constexpr auto TAG_ICON_PREV = "<icon:prev>";
+    static constexpr auto TAG_ICON_STOP = "<icon:stop>";
+    static constexpr auto TAG_ICON_PLAY = "<icon:play>";
+    static constexpr auto TAG_ICON_PAUSE = "<icon:pause>";
+    static constexpr auto TAG_ICON_NEXT = "<icon:next>";
 
-    const char *FORMAT_OFFLINE = "format:offline";
-    const char *TAG_LABEL_OFFLINE = "<label:offline>";
+    static constexpr auto FORMAT_OFFLINE = "format:offline";
+    static constexpr auto TAG_LABEL_OFFLINE = "<label:offline>";
 
-    const char *EVENT_PLAY = "mpdplay";
-    const char *EVENT_PAUSE = "mpdpause";
-    const char *EVENT_STOP = "mpdstop";
-    const char *EVENT_PREV = "mpdprev";
-    const char *EVENT_NEXT = "mpdnext";
-    const char *EVENT_REPEAT = "mpdrepeat";
-    const char *EVENT_REPEAT_ONE = "mpdrepeatone";
-    const char *EVENT_RANDOM = "mpdrandom";
-    const char *EVENT_SEEK = "mpdseek";
+    static constexpr auto EVENT_PLAY = "mpdplay";
+    static constexpr auto EVENT_PAUSE = "mpdpause";
+    static constexpr auto EVENT_STOP = "mpdstop";
+    static constexpr auto EVENT_PREV = "mpdprev";
+    static constexpr auto EVENT_NEXT = "mpdnext";
+    static constexpr auto EVENT_REPEAT = "mpdrepeat";
+    static constexpr auto EVENT_REPEAT_ONE = "mpdrepeatone";
+    static constexpr auto EVENT_RANDOM = "mpdrandom";
+    static constexpr auto EVENT_SEEK = "mpdseek";
 
     std::unique_ptr<drawtypes::Bar> bar_progress;
     std::unique_ptr<drawtypes::IconMap> icons;
@@ -56,13 +55,13 @@ namespace modules
 
     std::shared_ptr<mpd::Connection> mpd;
     std::chrono::system_clock::time_point synced_at;
-    float sync_interval;
+    float sync_interval = 0.5f;
 
     bool clickable_progress = false;
     std::string progress_fill, progress_empty, progress_indicator;
 
     public:
-      MpdModule(const std::string& name);
+      explicit MpdModule(const std::string& name);
       ~MpdModule();
 
       void start();
@@ -74,5 +73,3 @@ namespace modules
       bool handle_command(const std::string& cmd);
   };
 }
-
-#endif

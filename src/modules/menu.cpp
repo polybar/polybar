@@ -52,7 +52,7 @@ MenuModule::MenuModule(const std::string& name_) : StaticModule(name_)
   register_command_handler(name());
 }
 
-std::string MenuModule::get_output() throw(UndefinedFormat)
+std::string MenuModule::get_output()
 {
   this->builder->node(this->Module::get_output());
 
@@ -98,7 +98,7 @@ bool MenuModule::handle_command(const std::string& cmd)
 {
   std::lock_guard<std::mutex> lck(this->cmd_mtx);
 
-  if (cmd.find(EVENT_MENU_OPEN) == 0) {
+  if (cmd.compare(0, std::strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
     auto level = cmd.substr(std::strlen(EVENT_MENU_OPEN));
 
     if (level.empty())

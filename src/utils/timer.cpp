@@ -1,3 +1,4 @@
+#if 0
 #include <unistd.h>
 
 #include "utils/timer.hpp"
@@ -12,3 +13,4 @@ namespace timer
     usleep(seconds_to_microseconds(seconds));
   }
 }
+#endif

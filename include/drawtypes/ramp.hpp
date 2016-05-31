@@ -1,5 +1,4 @@
-#ifndef _DRAWTYPES_RAMP_HPP_
-#define _DRAWTYPES_RAMP_HPP_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -17,7 +16,7 @@ namespace drawtypes
 
     public:
       Ramp(){}
-      Ramp(std::vector<std::unique_ptr<Icon>> icons);
+      explicit Ramp(std::vector<std::unique_ptr<Icon>> icons);
 
       void add(std::unique_ptr<Icon> &&icon);
       std::unique_ptr<Icon> &get(int idx);
@@ -30,5 +29,3 @@ namespace drawtypes
 
   std::unique_ptr<Ramp> get_config_ramp(const std::string& module_name, const std::string& ramp_name = "ramp", bool required = true);
 }
-
-#endif

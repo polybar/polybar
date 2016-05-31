@@ -1,5 +1,4 @@
-#ifndef _UTILS_MATH_HPP_
-#define _UTILS_MATH_HPP_
+#pragma once
 
 #include <string>
 #include <algorithm>
@@ -14,5 +13,3 @@ namespace math
     return value;
   }
 }
-
-#endif

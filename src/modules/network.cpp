@@ -12,7 +12,8 @@ using namespace modules;
 
 // TODO: Add up-/download speed (check how ifconfig read the bytes)
 
-NetworkModule::NetworkModule(const std::string& name_) : TimerModule(name_, 1s)
+NetworkModule::NetworkModule(const std::string& name_)
+  : TimerModule(name_, 1s), connected(false), conseq_packetloss(false)
 {
   static const auto DEFAULT_FORMAT_CONNECTED = TAG_LABEL_CONNECTED;
   static const auto DEFAULT_FORMAT_DISCONNECTED = TAG_LABEL_DISCONNECTED;
@@ -21,9 +22,6 @@ NetworkModule::NetworkModule(const std::string& name_) : TimerModule(name_, 1s)
   static const auto DEFAULT_LABEL_CONNECTED = "%ifname% %local_ip%";
   static const auto DEFAULT_LABEL_DISCONNECTED = "";
   static const auto DEFAULT_LABEL_PACKETLOSS = "";
-
-  this->connected = false;
-  this->conseq_packetloss = false;
 
   // Load configuration values
   this->interface = config::get<std::string>(name(), "interface");
@@ -147,7 +145,6 @@ bool NetworkModule::update()
       if (this->wired_network) {
         label->replace_token("%linkspeed%", linkspeed);
       } else if (this->wireless_network) {
-        // label->replace_token("%essid%", essid);
         label->replace_token("%essid%", !essid.empty() ? essid : "No network");
         label->replace_token("%signal%", std::to_string(signal_quality)+"%");
       }

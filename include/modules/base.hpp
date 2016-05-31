@@ -1,5 +1,4 @@
-#ifndef _MODULES_BASE_HPP_
-#define _MODULES_BASE_HPP_
+#pragma once
 
 #include <chrono>
 #include <memory>
@@ -10,23 +9,28 @@
 #include <condition_variable>
 #include <map>
 #include <thread>
-#include <atomic>
 #include <algorithm>
 
 #include "exception.hpp"
 #include "services/builder.hpp"
 #include "services/inotify.hpp"
+#include "services/logger.hpp"
 #include "utils/config.hpp"
 #include "utils/string.hpp"
 #include "utils/concurrency.hpp"
 
 using namespace std::chrono_literals;
 
-#define DEFAULT_FORMAT "format"
+#define Concat(one, two) one ## two
+
+#define _Stringify(expr) #expr
+#define Stringify(expr) _Stringify(expr)
 
 #define DefineModule(ModuleName, ModuleType) struct ModuleName : public ModuleType<ModuleName>
 #define CastModule(ModuleName) static_cast<ModuleName *>(this)
 #define ConstCastModule(ModuleName) static_cast<ModuleName const &>(*this)
+
+#define DEFAULT_FORMAT "format"
 
 DefineBaseException(ModuleError);
 DefineChildException(UndefinedFormat, ModuleError);
@@ -75,10 +79,10 @@ class ModuleFormatter
   std::map<std::string, std::unique_ptr<Format>> formats;
 
   public:
-    ModuleFormatter(const std::string& module_name)
+    explicit ModuleFormatter(const std::string& module_name)
       : module_name(module_name) {}
 
-    void add(const std::string& name, const std::string& fallback, std::vector<std::string> &&tags, std::vector<std::string> &&whitelist = {}) throw(UndefinedFormatTag)
+    void add(const std::string& name, const std::string& fallback, std::vector<std::string> &&tags, std::vector<std::string> &&whitelist = {})
     {
       auto format = std::make_unique<Format>();
 
@@ -106,7 +110,7 @@ class ModuleFormatter
       this->formats.insert(std::make_pair(name, std::move(format)));
     }
 
-    std::unique_ptr<Format>& get(const std::string& format_name) throw(UndefinedFormat)
+    std::unique_ptr<Format>& get(const std::string& format_name)
     {
       auto format = this->formats.find(format_name);
       if (format == this->formats.end())
@@ -114,7 +118,7 @@ class ModuleFormatter
       return format->second;
     }
 
-    bool has(const std::string& tag, const std::string& format_name) throw(UndefinedFormat)
+    bool has(const std::string& tag, const std::string& format_name)
     {
       auto format = this->formats.find(format_name);
       if (format == this->formats.end())
@@ -168,13 +172,12 @@ namespace modules
       std::vector<std::thread> threads;
 
     public:
-      Module(const std::string& name)
+      Module(const std::string& name, bool lazy_builder = true)
+        : name_("module/"+ name), builder(std::make_unique<Builder>(lazy_builder))
       {
-        this->name_ = "module/" + name;
         this->enable(false);
         this->cache = "";
         // this->builder = std::make_unique<Builder>(false);
-        this->builder = std::make_unique<Builder>();
         this->formatter = std::make_unique<ModuleFormatter>(ConstCastModule(ModuleImpl).name());
       }
 
@@ -274,15 +277,9 @@ namespace modules
   template<typename ModuleImpl>
   class StaticModule : public Module<ModuleImpl>
   {
-    protected:
-      std::unique_ptr<Builder> builder;
+    using Module<ModuleImpl>::Module;
 
     public:
-      StaticModule(const std::string& name, bool lazybuilder = true) : Module<ModuleImpl>(name)
-      {
-        this->builder = std::make_unique<Builder>(lazybuilder);
-      }
-
       void start()
       {
         this->enable(true);
@@ -385,23 +382,33 @@ namespace modules
         }
       }
 
+      void idle() const
+      {
+        // std::this_thread::sleep_for(1s);
+      }
+
       void poll_events()
       {
         std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
         std::vector<std::unique_ptr<InotifyWatch>> watches;
 
-        for (auto &&w : this->watch_list) {
+        for (auto &&w : this->watch_list)
           watches.emplace_back(std::make_unique<InotifyWatch>(w.first, w.second));
-        }
 
         while (this->enabled()) {
+          ConstCastModule(ModuleImpl).idle();
+
           for (auto &&w : watches) {
             log_trace("Polling inotify event for watch at "+ (*w)());
+
             if (w->has_event(500 / watches.size())) {
               std::unique_ptr<InotifyEvent> event = w->get_event();
+
               watches.clear();
+
               if (CastModule(ModuleImpl)->on_event(event.get()))
                 CastModule(ModuleImpl)->broadcast();
+
               return;
             }
           }
@@ -433,5 +440,3 @@ namespace modules
       }
   };
 }
-
-#endif

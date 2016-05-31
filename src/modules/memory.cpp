@@ -1,6 +1,7 @@
 #include "config.hpp"
 #include "modules/memory.hpp"
 #include "utils/config.hpp"
+#include "utils/macros.hpp"
 
 using namespace modules;
 
@@ -48,7 +49,7 @@ bool MemoryModule::update()
     kbytes_total = 0;
     // kbytes_free = 0;
     kbytes_available = 0;
-    log_error("Failed to read memory values: "+ STR(e.what()));
+    log_error("Failed to read memory values: "+ ToStr(e.what()));
   }
 
   if (kbytes_total > 0)

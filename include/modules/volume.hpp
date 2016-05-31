@@ -1,5 +1,4 @@
-#ifndef _MODULES_VOLUME_HPP_
-#define _MODULES_VOLUME_HPP_
+#pragma once
 
 #include "modules/base.hpp"
 #include "interfaces/alsa.hpp"
@@ -12,17 +11,17 @@ namespace modules
 {
   DefineModule(VolumeModule, EventModule)
   {
-    const char *FORMAT_VOLUME = "format:volume";
-    const char *FORMAT_MUTED = "format:muted";
+    static constexpr auto FORMAT_VOLUME = "format:volume";
+    static constexpr auto FORMAT_MUTED = "format:muted";
 
-    const char *TAG_RAMP_VOLUME = "<ramp:volume>";
-    const char *TAG_BAR_VOLUME = "<bar:volume>";
-    const char *TAG_LABEL_VOLUME = "<label:volume>";
-    const char *TAG_LABEL_MUTED = "<label:muted>";
+    static constexpr auto TAG_RAMP_VOLUME = "<ramp:volume>";
+    static constexpr auto TAG_BAR_VOLUME = "<bar:volume>";
+    static constexpr auto TAG_LABEL_VOLUME = "<label:volume>";
+    static constexpr auto TAG_LABEL_MUTED = "<label:muted>";
 
-    const char *EVENT_VOLUME_UP = "volup";
-    const char *EVENT_VOLUME_DOWN = "voldown";
-    const char *EVENT_TOGGLE_MUTE = "volmute";
+    static constexpr auto EVENT_VOLUME_UP = "volup";
+    static constexpr auto EVENT_VOLUME_DOWN = "voldown";
+    static constexpr auto EVENT_TOGGLE_MUTE = "volmute";
 
     std::unique_ptr<alsa::Mixer> master_mixer;
     std::unique_ptr<alsa::Mixer> speaker_mixer;
@@ -43,7 +42,7 @@ namespace modules
     bool muted = false;
 
     public:
-      VolumeModule(const std::string& name) throw(ModuleError);
+      explicit VolumeModule(const std::string& name);
       ~VolumeModule();
 
       bool has_event();
@@ -56,5 +55,3 @@ namespace modules
       bool handle_command(const std::string& cmd);
   };
 }
-
-#endif
