@@ -77,8 +77,6 @@ void BatteryModule::subthread_runner()
   const int poll_seconds = config::get<float>(name(), "poll_interval", 3.0f) / dur.count();
 
   while (this->enabled()) {
-    std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
-
     // TODO(jaagr): Keep track of when the values were last read to determine
     // if we need to trigger the event manually or not.
     if (poll_seconds > 0 && (++i % poll_seconds) == 0) {
@@ -88,10 +86,8 @@ void BatteryModule::subthread_runner()
       i = 0;
     }
 
-    if (this->state == STATE_CHARGING) {
-      lck.unlock();
+    if (this->state == STATE_CHARGING)
       this->broadcast();
-    }
 
     std::this_thread::sleep_for(dur);
   }
