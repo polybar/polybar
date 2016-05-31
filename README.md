@@ -575,10 +575,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   ~~~
 
 
-### 🟊 Module `internal/network`
-
-The module is still marked as WIP since the packetloss testing is not
-fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+### Module `internal/network`
 
  **NOTE:** If you use both a wired and a wireless network, just add 2 module definitions.
  For example:
@@ -599,12 +596,14 @@ fully functional yet. If you notice any other anomalies, please [create an issue
   interface = wlan1
 
   ; Seconds to sleep between updates
-  interval = 2.0
+  interval = 3.0
 
-  ; Seconds to sleep between connectivity tests
-  ; A value of 0 disables the testing
+  ; Test connectivity every Nth update
+  ; A value of 0 disables the feature
+  ; Recommended minimum value: round(10 / interval)
+  ;   - which would test the connection approx. every 10th sec.
   ; Default: 0
-  ;connectivity_test_interval = 10
+  ;ping_interval = 3
   ~~~
 
 ##### Extra formatting (example)
@@ -617,6 +616,12 @@ fully functional yet. If you notice any other anomalies, please [create an issue
   ; Available tags:
   ;   <label:disconnected> (default)
   ;format:disconnected = <label:disconnected>
+
+  ; Available tags:
+  ;   <label:connected> (default)
+  ;   <label:packetloss>
+  ;   <animation:packetloss>
+  format:packetloss = <animation:packetloss> <label:connected>
 
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
@@ -634,12 +639,28 @@ fully functional yet. If you notice any other anomalies, please [create an issue
   ;label:disconnected = not connected
   ;label:disconnected:foreground = #66ffffff
 
+  ; Available tokens:
+  ;   %ifname%    [wireless+wired]
+  ;   %local_ip%  [wireless+wired]
+  ;   %essid%     [wireless]
+  ;   %signal%    [wireless]
+  ;   %linkspeed% [wired]
+  ; Default: (none)
+  ;label:packetloss = %essid%
+  ;label:packetloss:foreground = #eefafafa
+
   ramp:signal:0 = 😱
   ramp:signal:1 = 😠
   ramp:signal:2 = 😒
   ramp:signal:3 = 😊
   ramp:signal:4 = 😃
   ramp:signal:5 = 😈
+
+  animation:packetloss:0 = ⚠
+  animation:packetloss:0:foreground = #ffa64c
+  animation:packetloss:1 = 📶
+  animation:packetloss:1:foreground = #000000
+  animation:packetloss:framerate_ms = 500
   ~~~
 
 

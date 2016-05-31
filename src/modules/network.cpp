@@ -14,35 +14,49 @@ using namespace modules;
 
 NetworkModule::NetworkModule(const std::string& name_) : TimerModule(name_, 1s)
 {
-  this->interval = std::chrono::duration<double>(
-    config::get<float>(name(), "interval", 1));
-  this->connectivity_test_interval = config::get<int>(
-    name(), "connectivity_test_interval", 0);
-  this->interface = config::get<std::string>(name(), "interface");
+  static const auto DEFAULT_FORMAT_CONNECTED = TAG_LABEL_CONNECTED;
+  static const auto DEFAULT_FORMAT_DISCONNECTED = TAG_LABEL_DISCONNECTED;
+  static const auto DEFAULT_FORMAT_PACKETLOSS = TAG_LABEL_CONNECTED;
+
+  static const auto DEFAULT_LABEL_CONNECTED = "%ifname% %local_ip%";
+  static const auto DEFAULT_LABEL_DISCONNECTED = "";
+  static const auto DEFAULT_LABEL_PACKETLOSS = "";
+
   this->connected = false;
+  this->conseq_packetloss = false;
 
-  this->formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, { TAG_RAMP_SIGNAL, TAG_LABEL_CONNECTED });
-  this->formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, { TAG_LABEL_DISCONNECTED });
+  // Load configuration values
+  this->interface = config::get<std::string>(name(), "interface");
+  this->interval = std::chrono::duration<double>(config::get<float>(name(), "interval", 1));
+  this->ping_nth_update = config::get<int>(name(), "ping_interval", 0);
 
+  // Add formats
+  this->formatter->add(FORMAT_CONNECTED, DEFAULT_FORMAT_CONNECTED, { TAG_RAMP_SIGNAL, TAG_LABEL_CONNECTED });
+  this->formatter->add(FORMAT_DISCONNECTED, DEFAULT_FORMAT_DISCONNECTED, { TAG_LABEL_DISCONNECTED });
+
+  // Create elements for format-connected
   if (this->formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED))
     this->ramp_signal = drawtypes::get_config_ramp(name(), get_tag_name(TAG_RAMP_SIGNAL));
   if (this->formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED))
-    this->label_connected = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_CONNECTED), "%ifname% %local_ip%");
+    this->label_connected = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_CONNECTED), DEFAULT_LABEL_CONNECTED);
 
+  // Create elements for format-disconnected
   if (this->formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
-    this->label_disconnected = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_DISCONNECTED), "");
+    this->label_disconnected = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_DISCONNECTED), DEFAULT_LABEL_DISCONNECTED);
     this->label_disconnected->replace_token("%ifname%", this->interface);
   }
 
-  if (this->connectivity_test_interval > 0) {
-    this->formatter->add(FORMAT_PACKETLOSS, "", { TAG_ANIMATION_PACKETLOSS, TAG_LABEL_PACKETLOSS });
+  // Create elements for format-packetloss if we are told to test connectivity
+  if (this->ping_nth_update > 0) {
+    this->formatter->add(FORMAT_PACKETLOSS, DEFAULT_FORMAT_PACKETLOSS, { TAG_ANIMATION_PACKETLOSS, TAG_LABEL_PACKETLOSS, TAG_LABEL_CONNECTED });
 
     if (this->formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS))
-      this->label_packetloss = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_PACKETLOSS), "%ifname% %local_ip%");
+      this->label_packetloss = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_PACKETLOSS), DEFAULT_LABEL_PACKETLOSS);
     if (this->formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
       this->animation_packetloss = drawtypes::get_config_animation(name(), get_tag_name(TAG_ANIMATION_PACKETLOSS));
   }
 
+  // Get an intstance of the network interface
   try {
     if (net::is_wireless_interface(this->interface)) {
       this->wireless_network = std::make_unique<net::WirelessNetwork>(this->interface);
@@ -54,54 +68,46 @@ NetworkModule::NetworkModule(const std::string& name_) : TimerModule(name_, 1s)
   }
 }
 
-NetworkModule::~NetworkModule()
+void NetworkModule::start()
 {
-  std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-  // if (this->t_animation.joinable())
-  //   this->t_animation.join();
+  this->TimerModule::start();
+
+  // We only need to start the subthread if the packetloss animation is used
+  if (this->animation_packetloss)
+    this->threads.emplace_back(std::thread(&NetworkModule::subthread_routine, this));
 }
 
-// void NetworkModule::dispatch()
-// {
-//   this->EventModule::dispatch();
-//
-//   // if (this->animation_packetloss)
-//   //   this->t_animation = std::thread(&NetworkModule::animation_thread_runner, this);
-// }
+void NetworkModule::subthread_routine()
+{
+  std::this_thread::yield();
 
-// bool NetworkModule::has_event()
-// {
-//   std::this_thread::sleep_for(this->interval);
-//   return true;
-// }
+  const auto dur = std::chrono::duration<double>(
+    float(this->animation_packetloss->get_framerate()) / 1000.0f);
 
-// void NetworkModule::animation_thread_runner()
-// {
-//   while (this->enabled()) {
-//     std::unique_lock<std::mutex> lck(this->mtx);
-//
-//     if (this->connected && this->conseq_packetloss)
-//       this->Module::notify_change();
-//     else
-//       this->cv.wait(lck, [&]{
-//         return this->connected && this->conseq_packetloss; });
-//
-//     std::this_thread::sleep_for(std::chrono::duration<double>(
-//       float(this->animation_packetloss->get_framerate()) / 1000));
-//   }
-// }
+  while (this->enabled()) {
+    std::unique_lock<concurrency::SpinLock> lck(this->broadcast_lock);
+
+    if (this->connected && this->conseq_packetloss) {
+      lck.unlock();
+      this->broadcast();
+    }
+
+    std::this_thread::sleep_for(dur);
+  }
+
+  log_debug("Reached end of network subthread");
+}
 
 bool NetworkModule::update()
 {
   std::string ip, essid, linkspeed;
   int signal_quality = 0;
 
+  net::Network *network = nullptr;
+
+  // Process data for wireless network interfaces
   if (this->wireless_network) {
-    try {
-      ip = this->wireless_network->get_ip();
-    } catch (net::NetworkException &e) {
-      get_logger()->debug(e.what());
-    }
+    network = this->wireless_network.get();
 
     try {
       essid = this->wireless_network->get_essid();
@@ -110,26 +116,33 @@ bool NetworkModule::update()
       get_logger()->debug(e.what());
     }
 
-    this->connected = this->wireless_network->connected();
     this->signal_quality = signal_quality;
 
-    if (this->connectivity_test_interval > 0 && this->connected && this->counter++ % PING_EVERY_NTH_UPDATE == 0)
-      this->conseq_packetloss = !this->wireless_network->test();
+  // Process data for wired network interfaces
   } else if (this->wired_network) {
+    network = this->wired_network.get();
+    linkspeed = this->wired_network->get_link_speed();
+  }
+
+  if (network != nullptr) {
     try {
-      ip = this->wired_network->get_ip();
+      ip = network->get_ip();
     } catch (net::NetworkException &e) {
       get_logger()->debug(e.what());
     }
 
-    linkspeed = this->wired_network->get_link_speed();
+    this->connected = network->connected();
 
-    this->connected = this->wired_network->connected();
-
-    if (this->connectivity_test_interval > 0 && this->connected && this->counter++ % PING_EVERY_NTH_UPDATE == 0)
-      this->conseq_packetloss = !this->wired_network->test();
+    // Ignore the first run
+    if (this->counter == -1) {
+      this->counter = 0;
+    } else if (this->ping_nth_update > 0 && this->connected && (++this->counter % this->ping_nth_update) == 0) {
+      this->conseq_packetloss = !network->test();
+      this->counter = 0;
+    }
   }
 
+  // Update label contents
   if (this->label_connected || this->label_packetloss) {
     auto replace_tokens = [&](std::unique_ptr<drawtypes::Label> &label){
       label->replace_token("%ifname%", this->interface);
@@ -161,8 +174,6 @@ bool NetworkModule::update()
     }
   }
 
-  // this->cv.notify_all();
-
   return true;
 }
 
@@ -170,7 +181,7 @@ std::string NetworkModule::get_format()
 {
   if (!this->connected)
     return FORMAT_DISCONNECTED;
-  else if (this->conseq_packetloss)
+  else if (this->conseq_packetloss && this->ping_nth_update > 0)
     return FORMAT_PACKETLOSS;
   else
     return FORMAT_CONNECTED;

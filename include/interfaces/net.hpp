@@ -16,8 +16,9 @@ namespace net
 {
   bool is_wireless_interface(const std::string& ifname);
 
+  //
   // Network
-
+  //
   class NetworkException : public Exception
   {
     public:
@@ -46,9 +47,9 @@ namespace net
       std::string get_ip() throw(NetworkException);
   };
 
-
+  //
   // WiredNetwork
-
+  //
   class WiredNetworkException : public NetworkException {
     using NetworkException::NetworkException;
   };
@@ -58,14 +59,14 @@ namespace net
     int linkspeed = 0;
 
     public:
-    WiredNetwork(const std::string& interface);
+      WiredNetwork(const std::string& interface);
 
-    std::string get_link_speed();
+      std::string get_link_speed();
   };
 
-
+  //
   // WirelessNetwork
-
+  //
   class WirelessNetworkException : public NetworkException {
     using NetworkException::NetworkException;
   };

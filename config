@@ -632,12 +632,14 @@ type = internal/network
 interface = net1
 
 ; Seconds to sleep between updates
-interval = 2.0
+interval = 3.0
 
-; Seconds to sleep between connectivity tests
-; A value of 0 disables the testing
+; Test connectivity every Nth update
+; A value of 0 disables the feature
 ; Default: 0
-connectivity_test_interval = 10
+; Recommended minimum value: round(10 / interval)
+;   - which would test the connection approx. every 10th sec.
+ping_interval = 3
 
 ; Available tags:
 ;   <label:connected> (default)
@@ -649,9 +651,10 @@ format:connected = <ramp:signal> <label:connected>
 ;format:disconnected = <label:disconnected>
 
 ; Available tags:
-;   <label:packetloss> (default)
+;   <label:connected> (default)
+;   <label:packetloss>
 ;   <animation:packetloss>
-; format:packetloss = <animation:packetloss> <label:packetloss>
+;format:packetloss = <animation:packetloss> <label:connected>
 
 ; Available tokens:
 ;   %ifname%    [wireless+wired]
@@ -675,8 +678,7 @@ label:disconnected:foreground = #66ffffff
 ;   %essid%     [wireless]
 ;   %signal%    [wireless]
 ;   %linkspeed% [wired]
-; Default: %ifname% %local_ip%
-; ------------------------- NOT ACTIVATED (Needs more testing)
+; Default: (none)
 ;label:packetloss = %essid%
 ;label:packetloss:foreground = #eefafafa
 
