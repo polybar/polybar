@@ -182,7 +182,8 @@ int main(int argc, char **argv)
     logger->error(e.what());
   }
 
-  eventloop->stop();
+  if (eventloop)
+    eventloop->stop();
 
   /**
    * Terminate forked sub processes
@@ -194,7 +195,8 @@ int main(int argc, char **argv)
       proc::kill(pid, SIGKILL);
   }
 
-  eventloop->cleanup();
+  if (eventloop)
+    eventloop->cleanup();
 
   while (proc::wait_for_completion_nohang() > 0);
 
