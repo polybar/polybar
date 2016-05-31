@@ -26,10 +26,11 @@ before_script:
 
 script: make
 
-notifications.irc:
-  channels:
-    - "irc.freenode.org#lemonbuddy"
-  on_success: always
-  on_failure: always
-  use_notice: true
-  skip_join: true
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#lemonbuddy"
+    on_success: always
+    on_failure: always
+    use_notice: true
+    skip_join: true
