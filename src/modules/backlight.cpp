@@ -23,7 +23,12 @@ BacklightModule::BacklightModule(const std::string& name_) : InotifyModule(name_
   this->path_val = string::replace(PATH_BACKLIGHT_VAL, "%card%", card);
   this->path_max = string::replace(PATH_BACKLIGHT_MAX, "%card%", card);
 
-  this->watch(string::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+  if (!io::file::exists(this->path_val))
+    throw ModuleError("[BacklightModule] The file \""+ this->path_val +"\" does not exist");
+  if (!io::file::exists(this->path_max))
+    throw ModuleError("[BacklightModule] The file \""+ this->path_max +"\" does not exist");
+
+  this->watch(this->path_val);
 }
 
 bool BacklightModule::on_event(InotifyEvent *event)
