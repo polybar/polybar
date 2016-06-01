@@ -219,7 +219,7 @@ bool VolumeModule::handle_command(const std::string& cmd)
     if (master_mixer != nullptr)
       master_mixer->toggle_mute();
     if (other_mixer != nullptr)
-      other_mixer->set_mute(master_mixer->is_muted());
+      other_mixer->set_mute(!master_mixer->is_muted());
   } else {
     return false;
   }
