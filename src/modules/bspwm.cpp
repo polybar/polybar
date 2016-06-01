@@ -198,15 +198,18 @@ bool BspwmModule::build(Builder *builder, const std::string& tag)
   int workspace_n = 0;
 
   for (auto &&ws : this->workspaces) {
-    builder->cmd(Cmd::LEFT_CLICK, std::string(EVENT_CLICK) + std::to_string(++workspace_n));
-      builder->node(ws.get()->label);
+    if (!ws.get()->label->text.empty())
+      builder->cmd(Cmd::LEFT_CLICK, std::string(EVENT_CLICK) + std::to_string(++workspace_n));
 
-      if (ws->flag == WORKSPACE_ACTIVE && this->formatter->has(TAG_LABEL_MODE)) {
-        for (auto &&mode : this->modes)
-          builder->node(mode->get());
-      }
+    builder->node(ws.get()->label);
 
-    builder->cmd_close(true);
+    if (ws->flag == WORKSPACE_ACTIVE && this->formatter->has(TAG_LABEL_MODE)) {
+      for (auto &&mode : this->modes)
+        builder->node(mode->get());
+    }
+
+    if (!ws.get()->label->text.empty())
+      builder->cmd_close(true);
   }
 
   return true;
