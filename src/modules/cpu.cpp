@@ -37,10 +37,13 @@ bool CpuModule::update()
   if (!this->read_values())
     return false;
 
-  this->current_total_load = 0;
+  this->current_total_load = 0.0f;
   this->current_load.clear();
 
   int cores_n = this->cpu_times.size();
+
+  if (cores_n == 0)
+    return false;
 
   repeat(cores_n)
   {
@@ -49,9 +52,10 @@ bool CpuModule::update()
     this->current_load.emplace_back(load);
   }
 
+  this->current_total_load = this->current_total_load / float(cores_n);
+
   this->label_tokenized->text = this->label->text;
-  this->label_tokenized->replace_token("%percentage%",
-    std::to_string((int) this->current_total_load / cores_n)+"%");
+  this->label_tokenized->replace_token("%percentage%", std::to_string((int)(this->current_total_load + 0.5f)) +"%");
 
   return true;
 }
@@ -61,14 +65,14 @@ bool CpuModule::build(Builder *builder, const std::string& tag)
   if (tag == TAG_LABEL)
     builder->node(this->label_tokenized);
   else if (tag == TAG_BAR_LOAD)
-    builder->node(this->bar_load, (int) this->current_total_load);
+    builder->node(this->bar_load, this->current_total_load);
   else if (tag == TAG_RAMP_LOAD)
-    builder->node(this->ramp_load, (int) this->current_total_load);
+    builder->node(this->ramp_load, this->current_total_load);
   else if (tag == TAG_RAMP_LOAD_PER_CORE) {
     int i = 0;
     for (auto &&load : this->current_load) {
       if (i++ > 0) builder->space(1);
-      builder->node(this->ramp_load_per_core, (int) load);
+      builder->node(this->ramp_load_per_core, load);
     }
     builder->node(builder->flush());
 
