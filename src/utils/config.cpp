@@ -34,8 +34,8 @@ namespace config
     file_path = path;
   }
 
-  void load(char *dir, const std::string& path) {
-    load(std::string(dir) +"/"+ path);
+  void load(const char *dir, const std::string& path) {
+    load(std::string(dir != nullptr ? dir : "") +"/"+ path);
   }
 
   void reload() throw(ParseError)

@@ -48,7 +48,7 @@ namespace config
   void set_bar_path(const std::string& path);
 
   void load(const std::string& path) throw(UnexistingFileError, ParseError);
-  void load(char *dir, const std::string& path);
+  void load(const char *dir, const std::string& path);
   void reload() throw(ParseError);
 
   boost::property_tree::ptree get_tree();

@@ -93,19 +93,22 @@ int main(int argc, char **argv)
     /**
      * Load configuration file
      */
-    if (cli::has_option("config")) {
-      config::load(string::replace(cli::get_option_value("config"), "~", std::getenv("HOME")));
-    } else {
-      auto xdg_config_home = std::getenv("XDG_CONFIG_HOME");
-      auto home = std::getenv("HOME");
+    const char *env_home = std::getenv("HOME");
+    const char *env_xdg_config_home = std::getenv("XDG_CONFIG_HOME");
 
-      if (xdg_config_home != nullptr)
-        config::load(xdg_config_home, "lemonbuddy/config");
-      else if (home != nullptr)
-        config::load(home, ".config/lemonbuddy/config");
-      else
-        throw ApplicationError("Could not find config file. Specify the location using --config=PATH");
-    }
+    if (cli::has_option("config")) {
+      auto config_file = cli::get_option_value("config");
+
+      if (env_home != nullptr)
+        config_file = string::replace(cli::get_option_value("config"), "~", std::string(env_home));
+
+      config::load(config_file);
+    } else if (env_xdg_config_home != nullptr)
+      config::load(env_xdg_config_home, "lemonbuddy/config");
+    else if (env_home != nullptr)
+      config::load(env_home, ".config/lemonbuddy/config");
+    else
+      throw ApplicationError("Could not find config file. Specify the location using --config=PATH");
 
     /**
      * Check if the specified bar exist
