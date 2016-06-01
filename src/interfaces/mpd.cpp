@@ -21,7 +21,7 @@ namespace mpd
 
   // Base
 
-  void Connection::connect() throw (ClientError)
+  void Connection::connect()
   {
     assert(!this->connection);
 
@@ -40,7 +40,7 @@ namespace mpd
       this->check_errors();
     } catch(ClientError &e) {
       this->disconnect();
-      throw e;
+      throw &e;
     }
   }
 
@@ -97,7 +97,7 @@ namespace mpd
     return flags;
   }
 
-  void Connection::check_connection() throw(ClientError)
+  void Connection::check_connection()
   {
     if (!this->connection)
       throw ClientError("Not connected to MPD server", MPD_ERROR_STATE, false);
@@ -116,7 +116,7 @@ namespace mpd
     this->check_prerequisites();
   }
 
-  void Connection::check_errors() throw(ClientError, ServerError)
+  void Connection::check_errors()
   {
     auto connection = this->connection.get();
     mpd_error code = mpd_connection_get_error(connection);
@@ -367,19 +367,28 @@ namespace mpd
   std::string Song::get_artist()
   {
     assert(this->song);
-    return mpd_song_get_tag(this->song.get(), MPD_TAG_ARTIST, 0);
+    auto tag = mpd_song_get_tag(this->song.get(), MPD_TAG_ARTIST, 0);
+    if (tag == nullptr)
+      return "";
+    return std::string(tag);
   }
 
   std::string Song::get_album()
   {
     assert(this->song);
-    return mpd_song_get_tag(this->song.get(), MPD_TAG_ALBUM, 0);
+    auto tag = mpd_song_get_tag(this->song.get(), MPD_TAG_ALBUM, 0);
+    if (tag == nullptr)
+      return "";
+    return std::string(tag);
   }
 
   std::string Song::get_title()
   {
     assert(this->song);
-    return mpd_song_get_tag(this->song.get(), MPD_TAG_TITLE, 0);
+    auto tag = mpd_song_get_tag(this->song.get(), MPD_TAG_TITLE, 0);
+    if (tag == nullptr)
+      return "";
+    return std::string(tag);
   }
 
   unsigned Song::get_duration()

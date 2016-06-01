@@ -122,15 +122,15 @@ namespace mpd
     bool mpd_idle = false;
     int mpd_fd;
 
-    void check_connection() throw(ClientError);
+    void check_connection();
     void check_prerequisites();
     void check_prerequisites_commands_list();
-    void check_errors() throw(ClientError, ServerError);
+    void check_errors();
 
     public:
       static std::shared_ptr<Connection> &get();
 
-      void connect() throw (ClientError);
+      void connect();
       void disconnect();
       bool connected();
       bool retry_connection(int interval = 1);
