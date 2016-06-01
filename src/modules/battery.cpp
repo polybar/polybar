@@ -53,8 +53,16 @@ BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
     this->label_full = drawtypes::get_optional_config_label(
       name(), get_tag_name(TAG_LABEL_FULL), "%percentage%");
 
-  this->watch(string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery), InotifyEvent::ACCESSED);
-  this->watch(string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter), InotifyEvent::ACCESSED);
+  const auto capacity_path = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
+  const auto adapter_path = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
+
+  if (!io::file::exists(capacity_path))
+    throw ModuleError("[BatteryModule] The file \""+ capacity_path +"\" does not exist");
+  if (!io::file::exists(adapter_path))
+    throw ModuleError("[BatteryModule] The file \""+ adapter_path +"\" does not exist");
+
+  this->watch(capacity_path, InotifyEvent::ACCESSED);
+  this->watch(adapter_path, InotifyEvent::ACCESSED);
 }
 
 void BatteryModule::start()
