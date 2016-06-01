@@ -820,11 +820,6 @@ is not fully functional yet. If you notice any other anomalies, please [create a
   type = custom/script
   exec = xtitle
   interval = 0.25
-
-  format = <output>
-  format-background = #999
-  format-foreground = #000
-  format-padding = 4
   ~~~
 
 ### Module `custom/text`
