@@ -72,10 +72,14 @@ VolumeModule::VolumeModule(const std::string& name_) throw(ModuleError) : EventM
     this->bar_volume = drawtypes::get_config_bar(name(), get_tag_name(TAG_BAR_VOLUME));
   if (this->formatter->has(TAG_RAMP_VOLUME))
     this->ramp_volume = drawtypes::get_config_ramp(name(), get_tag_name(TAG_RAMP_VOLUME));
-  if (this->formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME))
+  if (this->formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
     this->label_volume = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_VOLUME), "%percentage%");
-  if (this->formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED))
+    this->label_volume_tokenized = this->label_volume->clone();
+  }
+  if (this->formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
     this->label_muted = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_MUTED), "%percentage%");
+    this->label_muted_tokenized = this->label_muted->clone();
+  }
 
   register_command_handler(name());
 }
@@ -136,11 +140,6 @@ bool VolumeModule::update()
 
   this->volume = volume;
   this->muted = muted;
-
-  if (!this->label_volume_tokenized)
-    this->label_volume_tokenized = this->label_volume->clone();
-  if (!this->label_muted_tokenized)
-    this->label_muted_tokenized = this->label_muted->clone();
 
   this->label_volume_tokenized->text = this->label_volume->text;
   this->label_volume_tokenized->replace_token("%percentage%", std::to_string(this->volume) +"%");
@@ -217,11 +216,10 @@ bool VolumeModule::handle_command(const std::string& cmd)
     if (master_mixer != nullptr)
       master_mixer->set_volume(vol);
   } else if (cmd == EVENT_TOGGLE_MUTE) {
-    bool mute = master_mixer->is_muted();
     if (master_mixer != nullptr)
       master_mixer->toggle_mute();
     if (other_mixer != nullptr)
-      other_mixer->set_mute(mute);
+      other_mixer->set_mute(master_mixer->is_muted());
   } else {
     return false;
   }
