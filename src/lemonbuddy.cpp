@@ -158,18 +158,16 @@ int main(int argc, char **argv)
      */
     std::string pipe_file;
 
-    if (!isatty(STDOUT_FILENO)) {
-      if (cli::has_option("pipe")) {
-        pipe_file = cli::get_option_value("pipe");
-      } else {
-        pipe_file = "/tmp/lemonbuddy.pipe."
-          + get_bar()->opts->wm_name
-          + "."
-          + std::to_string(proc::get_process_id());
-        auto fptr = std::make_unique<io::file::FilePtr>(pipe_file, "a+");
-        if (!*fptr)
-          throw ApplicationError(StrErrno());
-      }
+    if (cli::has_option("pipe")) {
+      pipe_file = cli::get_option_value("pipe");
+    } else {
+      pipe_file = "/tmp/lemonbuddy.pipe."
+        + get_bar()->opts->wm_name
+        + "."
+        + std::to_string(proc::get_process_id());
+      auto fptr = std::make_unique<io::file::FilePtr>(pipe_file, "a+");
+      if (!*fptr)
+        throw ApplicationError(StrErrno());
     }
 
     /**
