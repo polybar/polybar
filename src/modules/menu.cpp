@@ -12,17 +12,17 @@ MenuModule::MenuModule(const std::string& name_) : StaticModule(name_)
   this->formatter->add(DEFAULT_FORMAT, default_format_string, { TAG_LABEL_TOGGLE, TAG_MENU });
 
   if (this->formatter->has(TAG_LABEL_TOGGLE)) {
-    this->label_open = drawtypes::get_config_label(name(), "label:open");
-    this->label_close = drawtypes::get_optional_config_label(name(), "label:close", "x");
+    this->label_open = drawtypes::get_config_label(name(), "label-open");
+    this->label_close = drawtypes::get_optional_config_label(name(), "label-close", "x");
   }
 
   if (this->formatter->has(TAG_MENU)) {
     int level_n = 0;
 
     while (true) {
-      auto level_path = "menu:"+ std::to_string(level_n);
+      auto level_path = "menu-"+ std::to_string(level_n);
 
-      if (config::get<std::string>(name(), level_path +":0", "") == "")
+      if (config::get<std::string>(name(), level_path +"-0", "") == "")
         break;
 
       this->levels.emplace_back(std::make_unique<MenuTree>());
@@ -30,7 +30,7 @@ MenuModule::MenuModule(const std::string& name_) : StaticModule(name_)
       int item_n = 0;
 
       while (true) {
-        auto item_path = level_path +":"+ std::to_string(item_n);
+        auto item_path = level_path +"-"+ std::to_string(item_n);
 
         if (config::get<std::string>(name(), item_path, "") == "")
           break;
@@ -38,7 +38,7 @@ MenuModule::MenuModule(const std::string& name_) : StaticModule(name_)
         auto item = std::make_unique<MenuTreeItem>();
 
         item->label = drawtypes::get_config_label(name(), item_path);
-        item->exec = config::get<std::string>(name(), item_path +":exec", EVENT_MENU_CLOSE);
+        item->exec = config::get<std::string>(name(), item_path +"-exec", EVENT_MENU_CLOSE);
 
         this->levels.back()->items.emplace_back(std::move(item));
 

@@ -46,7 +46,7 @@ namespace modules
 
   DefineModule(i3Module, EventModule)
   {
-    const char *TAG_LABEL_STATE = "<label:state>";
+    const char *TAG_LABEL_STATE = "<label-state>";
 
     const char *EVENT_CLICK = "i3";
 

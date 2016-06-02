@@ -14,7 +14,7 @@
 using namespace modules;
 using namespace Bspwm;
 
-#define DEFAULT_WS_ICON "workspace_icon:default"
+#define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon%  %name%"
 
 BspwmModule::BspwmModule(const std::string& name_, const std::string& monitor) : EventModule(name_)
@@ -24,21 +24,21 @@ BspwmModule::BspwmModule(const std::string& name_, const std::string& monitor) :
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
-    this->state_labels.insert(std::make_pair(WORKSPACE_ACTIVE, drawtypes::get_optional_config_label(name(), "label:active", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label:occupied", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label:urgent", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_EMPTY, drawtypes::get_optional_config_label(name(), "label:empty", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label:dimmed")));
+    this->state_labels.insert(std::make_pair(WORKSPACE_ACTIVE, drawtypes::get_optional_config_label(name(), "label-active", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-occupied", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_EMPTY, drawtypes::get_optional_config_label(name(), "label-empty", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
   }
 
   if (this->formatter->has(TAG_LABEL_MODE)) {
-    this->mode_labels.insert(std::make_pair(MODE_LAYOUT_MONOCLE, drawtypes::get_optional_config_label(name(), "label:monocle")));
-    this->mode_labels.insert(std::make_pair(MODE_LAYOUT_TILED, drawtypes::get_optional_config_label(name(), "label:tiled")));
-    this->mode_labels.insert(std::make_pair(MODE_STATE_FULLSCREEN, drawtypes::get_optional_config_label(name(), "label:fullscreen")));
-    this->mode_labels.insert(std::make_pair(MODE_STATE_FLOATING, drawtypes::get_optional_config_label(name(), "label:floating")));
-    this->mode_labels.insert(std::make_pair(MODE_NODE_LOCKED, drawtypes::get_optional_config_label(name(), "label:locked")));
-    this->mode_labels.insert(std::make_pair(MODE_NODE_STICKY, drawtypes::get_optional_config_label(name(), "label:sticky")));
-    this->mode_labels.insert(std::make_pair(MODE_NODE_PRIVATE, drawtypes::get_optional_config_label(name(), "label:private")));
+    this->mode_labels.insert(std::make_pair(MODE_LAYOUT_MONOCLE, drawtypes::get_optional_config_label(name(), "label-monocle")));
+    this->mode_labels.insert(std::make_pair(MODE_LAYOUT_TILED, drawtypes::get_optional_config_label(name(), "label-tiled")));
+    this->mode_labels.insert(std::make_pair(MODE_STATE_FULLSCREEN, drawtypes::get_optional_config_label(name(), "label-fullscreen")));
+    this->mode_labels.insert(std::make_pair(MODE_STATE_FLOATING, drawtypes::get_optional_config_label(name(), "label-floating")));
+    this->mode_labels.insert(std::make_pair(MODE_NODE_LOCKED, drawtypes::get_optional_config_label(name(), "label-locked")));
+    this->mode_labels.insert(std::make_pair(MODE_NODE_STICKY, drawtypes::get_optional_config_label(name(), "label-sticky")));
+    this->mode_labels.insert(std::make_pair(MODE_NODE_PRIVATE, drawtypes::get_optional_config_label(name(), "label-private")));
   }
 
   this->icons = std::make_unique<drawtypes::IconMap>();

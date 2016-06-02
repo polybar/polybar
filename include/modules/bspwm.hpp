@@ -49,8 +49,8 @@ namespace modules
 
   DefineModule(BspwmModule, EventModule)
   {
-    const char *TAG_LABEL_STATE = "<label:state>";
-    const char *TAG_LABEL_MODE = "<label:mode>";
+    const char *TAG_LABEL_STATE = "<label-state>";
+    const char *TAG_LABEL_MODE = "<label-mode>";
 
     const char *EVENT_CLICK = "bwm";
 

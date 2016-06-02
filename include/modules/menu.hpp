@@ -18,10 +18,10 @@ namespace modules
 
   DefineModule(MenuModule, StaticModule)
   {
-    const char *TAG_LABEL_TOGGLE = "<label:toggle>";
+    const char *TAG_LABEL_TOGGLE = "<label-toggle>";
     const char *TAG_MENU = "<menu>";
 
-    const char *EVENT_MENU_OPEN = "menu_open:";
+    const char *EVENT_MENU_OPEN = "menu_open-";
     const char *EVENT_MENU_CLOSE = "menu_close";
 
     std::mutex output_mtx;

@@ -11,7 +11,8 @@ height = 25
 bottom = true
 dock = false
 
-background = #00ffffff
+background = ["one"]
+;background = #00ffffff
 foreground = #fff
 
 lineheight = 1
@@ -20,42 +21,42 @@ padding_right = 1
 module_margin_left = 0
 module_margin_right = 0
 
-font:0 = sans:size=8;0
-font:1 = font awesome:size=10:weight=heavy;0
+font-0 = sans:size=8;0
+font-1 = font awesome:size=10:weight=heavy;0
 
-modules:left = label
-modules:right = cpu ram clock
+modules-left = label
+modules-right = cpu ram clock
 
 [module/label]
 type = custom/text
 content = Lemonbuddy example
-content:background = #af2031
-content:underline = #cf4253
-content:overline = #cf4253
-content:padding = 2
+content-background = #af2031
+content-underline = #cf4253
+content-overline = #cf4253
+content-padding = 2
 
 [module/cpu]
 type = internal/cpu
 label = CPU: %percentage%
-format:background = #c42
-format:underline = #f75
-format:overline = #f75
-format:padding = 2
+format-background = #c42
+format-underline = #f75
+format-overline = #f75
+format-padding = 2
 
 [module/ram]
 type = internal/memory
 label = RAM: %percentage_used%
-format:background = #42c
-format:underline = #75f
-format:overline = #75f
-format:padding = 2
+format-background = #42c
+format-underline = #75f
+format-overline = #75f
+format-padding = 2
 
 [module/clock]
 type = internal/date
 date = %Y-%m-%d %H:%M
-format:background = #493
-format:underline = #7a6
-format:overline = #7a6
-format:padding = 2
+format-background = #493
+format-underline = #7a6
+format-overline = #7a6
+format-padding = 2
 
 ; vim:ft=dosini

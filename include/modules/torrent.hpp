@@ -20,7 +20,7 @@ namespace modules
   DefineModule(TorrentModule, InotifyModule)
   {
     const char *TAG_LABEL = "<label>";
-    const char *TAG_BAR_PROGRESS = "<bar:progress>";
+    const char *TAG_BAR_PROGRESS = "<bar-progress>";
 
     std::vector<std::unique_ptr<Torrent>> torrents;
     std::unique_ptr<drawtypes::Label> label;

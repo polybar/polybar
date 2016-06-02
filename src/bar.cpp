@@ -193,9 +193,9 @@ void Bar::load()
     }
   };
 
-  add_modules(config::get<std::string>(this->config_path, "modules:left", ""), this->mod_left);
-  add_modules(config::get<std::string>(this->config_path, "modules:center", ""), this->mod_center);
-  add_modules(config::get<std::string>(this->config_path, "modules:right", ""), this->mod_right);
+  add_modules(config::get<std::string>(this->config_path, "modules-left", ""), this->mod_left);
+  add_modules(config::get<std::string>(this->config_path, "modules-center", ""), this->mod_center);
+  add_modules(config::get<std::string>(this->config_path, "modules-right", ""), this->mod_right);
 
   if (this->mod_left.empty() && this->mod_center.empty() && this->mod_right.empty())
     throw ConfigurationError("The bar does not contain any modules...");
