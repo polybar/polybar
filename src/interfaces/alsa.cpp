@@ -75,9 +75,6 @@ namespace alsa
   {
     int err;
 
-    if (!this->wait(0))
-      return false;
-
     if ((err = snd_hctl_elem_read(this->elem, this->value)) < 0)
       throw ControlInterfaceError(err, "Could not read control value: "+ STRSNDERR(err));
 
