@@ -677,8 +677,11 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
 
 ### 🟊 Module `internal/volume`
 
-The module is still marked as WIP since the headphone functionality
-is not fully functional yet. If you notice any other anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+  This module is still WIP.
+
+  Mute and volume changes should affect the appropriate mixers depending on
+  if the headphones are plugged in or not. Still need to add separate output formats
+  to indicate it.
 
   ~~~ ini
   [module/volume]
