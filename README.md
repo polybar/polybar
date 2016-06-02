@@ -682,7 +682,7 @@ is not fully functional yet. If you notice any other anomalies, please [create a
 
   ~~~ ini
   [module/volume]
-  type = internal/memory
+  type = internal/volume
 
   ; Use the following command to list available mixer controls:
   ; $ amixer scontrols | sed -nr "s/.*'([[:alnum:]]+)'.*/\1/p"
