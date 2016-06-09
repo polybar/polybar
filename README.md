@@ -171,6 +171,69 @@ the resulting output might not be award-winning.
   ~~~
 
 
+### Bar settings
+  ~~~ ini
+  [bar/example]
+  ; Use the following command to list available outputs:
+  ; $ xrandr -q | grep " connected" | cut -d ' ' -f1
+  monitor = HDMI1
+
+  ; Omit the % to specify the width in pixels
+  width = 100%
+  height = 30
+
+  ; Put the bar at the bottom of the screen
+  bottom = true
+
+  ; Weather to force docking mode or not
+  dock = false
+
+  ; This value is used as a multiplier when adding spaces between elements
+  spacing = 3
+
+  ; Height of under-/overline
+  lineheight = 14
+
+  ; Colors
+  background = #222222
+  foreground = #eefafafa
+  linecolor = ${bar/example.background}
+
+  ; Amount of spaces to add at the start/end of the whole bar
+  padding_left = 5
+  padding_right = 2
+
+  ; Amount of spaces to add before/after each module
+  module_margin_left = 3
+  module_margin_right = 3
+
+  ; Fonts are defined using: <FontName>;<Offset>
+  font:0 = NotoSans-Regular:size=8;0
+  font:1 = MaterialIcons:size=10;0
+  font:2 = Termsynu:size=8;-1
+  font:3 = FontAwesome:size=10;0
+
+  ; The separator will be inserted between the output of each module
+  ;separator = |
+
+  ; This value is used by Lemonbar and it specifies the clickable
+  ; areas available -> %{A:action:}...%{A}
+  clickareas = 30
+
+  ; Value to be used to set the WM_NAME atom
+  ; This defaults to "lemonbuddy-BARNAME_MONITOR"
+  ;wm_name = mybar
+
+  ; Locale used to localize module output (for example date)
+  ;locale = sv_SE.UTF-8
+
+  ; Define what modules to output
+  modules:left = cpu ram
+  modules:center = label
+  modules:right = clock
+  ~~~
+
+
 ### Module `internal/backlight`
   ~~~ ini
   [module/backlight]
