@@ -11,7 +11,7 @@ if(NOT CMAKE_CXX_COMPILER)
 endif()
 
 # TODO(jaagr): Replace with git tag
-project(lemonbuddy VERSION 0.1.5)
+project(lemonbuddy VERSION 0.2.0)
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"
