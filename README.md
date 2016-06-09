@@ -7,9 +7,9 @@ A fast and easy-to-use tool for [Lemonbar](https://github.com/LemonBoy/bar/).
 without messing with named pipes, MacGyver-like scripting or non-blocking
 loops lobotomizing your CPU.
 
-Please note that the project hasn't been tested, other then by myself, so
-bugs and various bumps is to be expected. Please report any issues here on
-github.
+Please note that the project is still in early development, so please
+report any anomalies by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issues)
+here on GitHub. I welcome pull requests with fixes or improvements.
 
 Here's a screenshot showing you an example of what it could look like:
 
@@ -143,8 +143,8 @@ processes gets terminated before before we launch the new ones.  For example in
 
 ## Configuration
 
-The configuration syntax is very much **WIP**. If you have any feedback or suggestions, please
-[create an issue ticket](https://github.com/jaagr/lemonbuddy/issues).
+The configuration syntax is very much **WIP**. An upcoming change will replace all occurences of colon's with dashes in the parameter names.
+If you have any feedback or suggestions, please [create an issue ticket](https://github.com/jaagr/lemonbuddy/issues).
 
 When working with unicode symbols, remember that fonts render them differently. Changing font
 can change the quality of your generated output drastically. One must-have font
