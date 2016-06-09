@@ -56,7 +56,6 @@ namespace concurrency
   template<typename T>
   class Atomic
   {
-    concurrency::SpinLock lock;
     std::atomic<T> value;
 
     public:
@@ -67,25 +66,21 @@ namespace concurrency
 
       void operator=(T value)
       {
-        std::lock_guard<concurrency::SpinLock> lck(this->lock);
         this->value = value;
       }
 
       T operator()()
       {
-        std::lock_guard<concurrency::SpinLock> lck(this->lock);
         return this->value;
       }
 
       operator bool()
       {
-        std::lock_guard<concurrency::SpinLock> lck(this->lock);
         return this->value;
       }
 
       bool operator==(T const& b)
       {
-        std::lock_guard<concurrency::SpinLock> lck(this->lock);
         return this->value == b;
       }
   };

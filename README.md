@@ -749,18 +749,20 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   This module is still WIP.
 
   Mute and volume changes should affect the appropriate mixers depending on
-  if the headphones are plugged in or not. Still need to add separate output formats
+  weather the headphones are plugged in or not. Still need to add separate output formats
   to indicate it.
 
   ~~~ ini
   [module/volume]
   type = internal/volume
+  ;master_mixer = Master
 
   ; Use the following command to list available mixer controls:
   ; $ amixer scontrols | sed -nr "s/.*'([[:alnum:]]+)'.*/\1/p"
   speaker_mixer = Speaker
   headphone_mixer = Headphone
 
+  ; NOTE: This is required if headphone_mixer is defined
   ; Use the following command to list available device controls
   ; $ amixer controls | sed -r "/CARD/\!d; s/.*=([0-9]+).*name='([^']+)'.*/printf '%3.0f: %s\n' '\1' '\2'/e" | sort
   headphone_control_numid = 9

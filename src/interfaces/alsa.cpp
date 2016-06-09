@@ -8,6 +8,8 @@
 
 namespace alsa
 {
+  // ControlInterface {{{
+
   ControlInterface::ControlInterface(int numid)
   {
     int err;
@@ -20,49 +22,48 @@ namespace alsa
     snd_ctl_elem_info_set_id(this->info, this->id);
 
     if ((err = snd_ctl_open(&this->ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0)
-      throw ControlInterfaceError(err, "Could not open control \""+ ToStr(ALSA_SOUNDCARD) +"\": "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not open control \""+ ToStr(ALSA_SOUNDCARD) +"\": "+ StrSndErr(err));
 
     if ((err = snd_ctl_elem_info(this->ctl, this->info)) < 0)
-      throw ControlInterfaceError(err, "Could not get control data: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not get control data: "+ StrSndErr(err));
 
     snd_ctl_elem_info_get_id(this->info, this->id);
 
     if ((err = snd_hctl_open(&this->hctl, ALSA_SOUNDCARD, 0)) < 0)
-      throw ControlInterfaceError(err, STRSNDERR(err));
+      throw ControlInterfaceError(err, StrSndErr(err));
     if ((err = snd_hctl_load(this->hctl)) < 0)
-      throw ControlInterfaceError(err, STRSNDERR(err));
+      throw ControlInterfaceError(err, StrSndErr(err));
     if ((elem = snd_hctl_find_elem(this->hctl, this->id)) == nullptr)
       throw ControlInterfaceError(err, "Could not find control with id "+ IntToStr(snd_ctl_elem_id_get_numid(this->id)));
 
     if ((err = snd_ctl_subscribe_events(this->ctl, 1)) < 0)
       throw ControlInterfaceError(err, "Could not subscribe to events: "+ IntToStr(snd_ctl_elem_id_get_numid(this->id)));
 
-    log_trace("Successfully initialized control interface");
+    log_trace("Successfully initialized control interface with ID: "+ IntToStr(numid));
   }
 
-  ControlInterface::~ControlInterface() {
-    std::lock_guard<std::mutex> lck(this->mtx);
+  ControlInterface::~ControlInterface()
+  {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     snd_ctl_close(this->ctl);
     snd_hctl_close(this->hctl);
   }
 
   bool ControlInterface::wait(int timeout)
   {
-    std::lock_guard<std::mutex> lck(this->mtx);
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
 
     int err;
 
     if ((err = snd_ctl_wait(this->ctl, timeout)) < 0)
-      throw ControlInterfaceError(err, "Failed to wait for events: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Failed to wait for events: "+ StrSndErr(err));
 
     snd_ctl_event_t *event;
     snd_ctl_event_alloca(&event);
 
-    if ((err = snd_ctl_read(this->ctl, event)) < 0) {
-      log_trace(err);
+    if ((err = snd_ctl_read(this->ctl, event)) < 0)
       return false;
-    }
-
     if (snd_ctl_event_get_type(event) != SND_CTL_EVENT_ELEM)
       return false;
 
@@ -73,14 +74,18 @@ namespace alsa
 
   bool ControlInterface::test_device_plugged()
   {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     int err;
 
     if ((err = snd_hctl_elem_read(this->elem, this->value)) < 0)
-      throw ControlInterfaceError(err, "Could not read control value: "+ STRSNDERR(err));
+      throw ControlInterfaceError(err, "Could not read control value: "+ StrSndErr(err));
 
     return snd_ctl_elem_value_get_boolean(this->value, 0);
   }
 
+  // }}}
+  // Mixer {{{
 
   Mixer::Mixer(const std::string& mixer_control_name)
   {
@@ -103,33 +108,46 @@ namespace alsa
     if ((this->mixer_element = snd_mixer_find_selem(this->hardware_mixer, mixer_id)) == nullptr)
       throw MixerError("Cannot find simple element");
 
-    log_trace("Successfully initialized mixer");
+    log_trace("Successfully initialized mixer: "+ mixer_control_name);
   }
 
-  Mixer::~Mixer() {
-    std::lock_guard<std::mutex> lck(this->mtx);
+  Mixer::~Mixer()
+  {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     snd_mixer_elem_remove(this->mixer_element);
     snd_mixer_detach(this->hardware_mixer, ALSA_SOUNDCARD);
     snd_mixer_close(this->hardware_mixer);
   }
 
+  int Mixer::process_events()
+  {
+    int num_events = snd_mixer_handle_events(this->hardware_mixer);
+
+    if (num_events < 0)
+      throw MixerError("Failed to process pending events: "+ StrSndErr(num_events));
+
+    return num_events;
+  }
+
   bool Mixer::wait(int timeout)
   {
-    std::lock_guard<std::mutex> lck(this->mtx);
+    assert(this->hardware_mixer);
 
-    int err, pend_n = 0;
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
 
-    if (this->hardware_mixer != nullptr && (err = snd_mixer_wait(this->hardware_mixer, timeout)) < 0)
-      throw MixerError("Failed to wait for events: "+ STRSNDERR(err));
+    int err = snd_mixer_wait(this->hardware_mixer, timeout);
 
-    if (this->hardware_mixer != nullptr && (pend_n = snd_mixer_handle_events(this->hardware_mixer)) < 0)
-      throw MixerError("Failed to process pending events: "+ STRSNDERR(err));
+    if (err < 0)
+      throw MixerError("Failed to wait for events: "+ StrSndErr(err));
 
-    return pend_n > 0;
+    return this->process_events() > 0;
   }
 
   int Mixer::get_volume()
   {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
 
     snd_mixer_selem_get_playback_volume_range(this->mixer_element, &vol_min, &vol_max);
@@ -143,7 +161,7 @@ namespace alsa
       }
     }
 
-    return (int) 100 * (vol_total / chan_n) / vol_max + 0.5f;
+    return (int) 100.0f * (vol_total / chan_n) / vol_max + 0.5f;
   }
 
   void Mixer::set_volume(float percentage)
@@ -151,18 +169,25 @@ namespace alsa
     if (this->is_muted())
       return;
 
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     long vol_min, vol_max;
 
     snd_mixer_selem_get_playback_volume_range(this->mixer_element, &vol_min, &vol_max);
     snd_mixer_selem_set_playback_volume_all(this->mixer_element, vol_max * percentage / 100);
   }
 
-  void Mixer::set_mute(bool mode) {
+  void Mixer::set_mute(bool mode)
+  {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     snd_mixer_selem_set_playback_switch_all(this->mixer_element, mode);
   }
 
   void Mixer::toggle_mute()
   {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     int state;
     snd_mixer_selem_get_playback_switch(this->mixer_element, SND_MIXER_SCHN_FRONT_LEFT, &state);
     snd_mixer_selem_set_playback_switch_all(this->mixer_element, !state);
@@ -170,6 +195,8 @@ namespace alsa
 
   bool Mixer::is_muted()
   {
+    std::lock_guard<concurrency::SpinLock> lck(this->lock);
+
     int state = 0;
     repeat(SND_MIXER_SCHN_LAST)
     {
@@ -179,6 +206,9 @@ namespace alsa
           return true;
       }
     }
+
     return false;
   }
+
+  // }}}
 }

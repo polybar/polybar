@@ -24,7 +24,7 @@ font:0 = sans:size=8;0
 font:1 = font awesome:size=10:weight=heavy;0
 
 modules:left = label
-modules:right = cpu ram clock
+modules:right = volume cpu ram clock
 
 [module/label]
 type = custom/text
@@ -57,5 +57,23 @@ format:background = #493
 format:underline = #7a6
 format:overline = #7a6
 format:padding = 2
+
+[module/volume]
+type = internal/volume
+;speaker_mixer = Speaker
+;headphone_mixer = Headphone
+;headphone_control_numid = 9
+
+format:volume:background = #933484
+format:volume:underline = #9d6294
+format:volume:overline = #9d6294
+format:volume:padding = 2
+format:muted:background = #933484
+format:muted:underline = #9d6294
+format:muted:overline = #9d6294
+format:muted:padding = 2
+
+label:volume = Volume: %percentage%
+label:muted = Sound is muted
 
 ; vim:ft=dosini

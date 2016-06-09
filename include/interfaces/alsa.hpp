@@ -7,11 +7,15 @@
 #include <mutex>
 
 #include "exception.hpp"
+#include "utils/concurrency.hpp"
+#include "utils/macros.hpp"
 
-#define STRSNDERR(s) std::string(snd_strerror(s))
+#define StrSndErr(s) ToStr(snd_strerror(s))
 
 namespace alsa
 {
+  // Errors {{{
+
   class Exception : public ::Exception
   {
     public:
@@ -25,9 +29,16 @@ namespace alsa
         : Exception(msg +" ["+ std::to_string(code) +"]") {}
   };
 
+  class MixerError : public Exception {
+    using Exception::Exception;
+  };
+
+  // }}}
+  // ControlInterface {{{
+
   class ControlInterface
   {
-    std::mutex mtx;
+    concurrency::SpinLock lock;
 
     snd_hctl_t *hctl;
     snd_hctl_elem_t *elem;
@@ -40,20 +51,21 @@ namespace alsa
     public:
       explicit ControlInterface(int numid);
       ~ControlInterface();
+      ControlInterface(const ControlInterface &) = delete;
+      ControlInterface &operator=(const ControlInterface &) = delete;
 
       bool wait(int timeout = -1);
+      void process_events();
 
       bool test_device_plugged();
   };
 
-
-  class MixerError : public Exception {
-    using Exception::Exception;
-  };
+  // }}}
+  // Mixer {{{
 
   class Mixer
   {
-    std::mutex mtx;
+    concurrency::SpinLock lock;
 
     snd_mixer_t *hardware_mixer = nullptr;
     snd_mixer_elem_t *mixer_element = nullptr;
@@ -61,8 +73,11 @@ namespace alsa
     public:
       explicit Mixer(const std::string& mixer_control_name);
       ~Mixer();
+      Mixer(const Mixer &) = delete;
+      Mixer &operator=(const Mixer &) = delete;
 
       bool wait(int timeout = -1);
+      int process_events();
 
       int get_volume();
       void set_volume(float percentage);
@@ -73,4 +88,6 @@ namespace alsa
     protected:
       void error_handler(const std::string& message);
   };
+
+  // }}}
 }

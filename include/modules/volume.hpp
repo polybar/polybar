@@ -19,17 +19,10 @@ namespace modules
     static constexpr auto TAG_LABEL_VOLUME = "<label:volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label:muted>";
 
+    static constexpr auto EVENT_PREFIX = "vol";
     static constexpr auto EVENT_VOLUME_UP = "volup";
     static constexpr auto EVENT_VOLUME_DOWN = "voldown";
     static constexpr auto EVENT_TOGGLE_MUTE = "volmute";
-
-    std::unique_ptr<alsa::Mixer> master_mixer;
-    std::unique_ptr<alsa::Mixer> speaker_mixer;
-    std::unique_ptr<alsa::Mixer> headphone_mixer;
-    std::unique_ptr<alsa::ControlInterface> headphone_ctrl;
-    int headphone_ctrl_numid;
-
-    std::unique_ptr<Builder> builder;
 
     std::unique_ptr<drawtypes::Bar> bar_volume;
     std::unique_ptr<drawtypes::Ramp> ramp_volume;
@@ -38,8 +31,16 @@ namespace modules
     std::unique_ptr<drawtypes::Label> label_muted;
     std::unique_ptr<drawtypes::Label> label_muted_tokenized;
 
-    int volume = 0;
-    bool muted = false;
+    std::unique_ptr<alsa::Mixer> master_mixer;
+    std::unique_ptr<alsa::Mixer> speaker_mixer;
+    std::unique_ptr<alsa::Mixer> headphone_mixer;
+    std::unique_ptr<alsa::ControlInterface> headphone_ctrl;
+
+    int headphone_ctrl_numid;
+
+    concurrency::Atomic<int> volume;
+    concurrency::Atomic<bool> muted;
+    concurrency::Atomic<bool> has_changed;
 
     public:
       explicit VolumeModule(const std::string& name);

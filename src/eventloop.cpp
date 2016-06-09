@@ -164,7 +164,7 @@ void EventLoop::read_stdin()
   std::string input;
 
   while ((input = io::readline(this->fd_stdin)).empty() == false) {
-    this->logger->debug("Input value: \'"+ input +"\"");
+    this->logger->debug("Input value: \""+ input +"\"");
 
     bool input_processed = false;
 
