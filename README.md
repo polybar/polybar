@@ -180,6 +180,10 @@ the resulting output might not be award-winning.
   width = 100%
   height = 30
 
+  ; Offset value defined in pixels
+  ;offset_x = 0
+  ;offset_y = 0
+
   ; Put the bar at the bottom of the screen
   bottom = true
 
