@@ -524,6 +524,10 @@ See [the bspwm module](#user-content-dependencies) for details on `label:dimmed`
   [module/mpd]
   type = internal/mpd
 
+  ;host = 127.0.0.1
+  ;port = 6600
+  ;password = mypassword
+
   ; Seconds to sleep between progressbar/song timer sync
   ;interval = 0.5
   ~~~

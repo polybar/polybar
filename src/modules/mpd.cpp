@@ -13,6 +13,13 @@ using namespace mpd;
 MpdModule::MpdModule(const std::string& name_)
   : EventModule(name_), icons(std::make_unique<drawtypes::IconMap>())
 {
+  // Load configuration values {{{
+  this->mpd_host = config::get<std::string>(this->name(), "host", "127.0.0.1");
+  this->mpd_port = config::get<int>(this->name(), "port", 6600);
+  this->mpd_pass = config::get<std::string>(this->name(), "password", "");
+  // }}}
+
+  // Add formats and elements {{{
   this->formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG, {
     TAG_BAR_PROGRESS, TAG_TOGGLE,      TAG_LABEL_SONG,      TAG_LABEL_TIME,
     TAG_ICON_RANDOM,  TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV,
@@ -53,8 +60,11 @@ MpdModule::MpdModule(const std::string& name_)
   if (this->formatter->has(TAG_BAR_PROGRESS)) {
     this->bar_progress = drawtypes::get_config_bar(name(), get_tag_name(TAG_BAR_PROGRESS));
   }
+  // }}}
 
+  // Sign up for stdin events {{{
   register_command_handler(name());
+  // }}}
 }
 
 MpdModule::~MpdModule()
@@ -65,18 +75,18 @@ MpdModule::~MpdModule()
 
 void MpdModule::start()
 {
-  this->mpd = mpd::Connection::get();
+  this->mpd = std::make_unique<mpd::Connection>(this->mpd_host, this->mpd_port, this->mpd_pass);
 
   this->synced_at = std::chrono::system_clock::now();
   this->sync_interval = config::get<float>(name(), "interval", this->sync_interval) * 1000;
 
   try {
-    mpd->connect();
-    this->status = mpd->get_status();
-    this->status->update(-1);
+    this->mpd->connect();
+    this->status = this->mpd->get_status();
+    this->status->update(-1, this->mpd);
   } catch (mpd::Exception &e) {
     log_error(e.what());
-    mpd->disconnect();
+    this->mpd->disconnect();
   }
 
   this->EventModule::start();
@@ -84,41 +94,40 @@ void MpdModule::start()
 
 bool MpdModule::has_event()
 {
-  auto &mpd = mpd::Connection::get();
   bool has_event = false;
 
-  if (!mpd->connected()) {
+  if (!this->mpd->connected()) {
     try {
-      mpd->connect();
+      this->mpd->connect();
     } catch (mpd::Exception &e) {
       get_logger()->debug(e.what());
     }
 
-    if (!mpd->connected()) {
+    if (!this->mpd->connected()) {
       std::this_thread::sleep_for(3s);
       return false;
     }
   }
 
   if (!this->status) {
-    this->status = mpd->get_status();
-    this->status->update(-1);
+    this->status = this->mpd->get_status();
+    this->status->update(-1, this->mpd);
   }
 
   try {
-    mpd->idle();
+    this->mpd->idle();
 
     int idle_flags;
 
-    if ((idle_flags = mpd->noidle()) != 0) {
-      this->status->update(idle_flags);
+    if ((idle_flags = this->mpd->noidle()) != 0) {
+      this->status->update(idle_flags, this->mpd);
       has_event = true;
     } else if (this->status->state & mpd::PLAYING) {
       this->status->update_timer();
     }
   } catch (mpd::Exception &e) {
     log_error(e.what());
-    mpd->disconnect();
+    this->mpd->disconnect();
     has_event = true;
   }
 
@@ -136,12 +145,12 @@ bool MpdModule::has_event()
 
 bool MpdModule::update()
 {
-  if (!mpd::Connection::get()->connected())
+  if (!this->mpd->connected())
     return true;
 
   if (!this->status)
     try {
-      this->status = mpd::Connection::get()->get_status();
+      this->status = this->mpd->get_status();
     } catch (mpd::Exception &e) {
       log_trace(e.what());
     }
@@ -156,7 +165,7 @@ bool MpdModule::update()
     elapsed_str = this->status->get_formatted_elapsed();
     total_str = this->status->get_formatted_total();
 
-    song = mpd::Connection::get()->get_song();
+    song = this->mpd->get_song();
 
     if (*song) {
       artist = song->get_artist();
@@ -165,7 +174,7 @@ bool MpdModule::update()
     }
   } catch (mpd::Exception &e) {
     log_error(e.what());
-    mpd::Connection::get()->disconnect();
+    this->mpd->disconnect();
     return true;
   }
 
@@ -193,7 +202,7 @@ bool MpdModule::update()
 }
 
 std::string MpdModule::get_format() {
-  return mpd::Connection::get()->connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
+  return this->mpd->connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
 }
 
 bool MpdModule::build(Builder *builder, const std::string& tag)
@@ -253,7 +262,7 @@ bool MpdModule::handle_command(const std::string& cmd)
     return false;
 
   try {
-    auto mpd = std::make_shared<mpd::Connection>();
+    auto mpd = std::make_unique<mpd::Connection>(this->mpd_host, this->mpd_port, this->mpd_pass);
 
     mpd->connect();
 

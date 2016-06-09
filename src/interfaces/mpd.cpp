@@ -10,15 +10,6 @@
 
 namespace mpd
 {
-  std::shared_ptr<Connection> conn;
-  std::shared_ptr<Connection> &Connection::get()
-  {
-    if (!conn)
-      conn = std::make_shared<Connection>();
-    return conn;
-  }
-
-
   // Base
 
   void Connection::connect()
@@ -40,7 +31,7 @@ namespace mpd
       this->check_errors();
     } catch(ClientError &e) {
       this->disconnect();
-      throw &e;
+      throw e;
     }
   }
 
@@ -284,15 +275,15 @@ namespace mpd
     this->updated_at = std::chrono::system_clock::now();
   }
 
-  void Status::update(int event)
+  void Status::update(int event, std::unique_ptr<Connection>& connection)
   {
-    auto status = Connection::get()->get_status();
+    auto status = connection->get_status();
 
     if (event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS)) {
       this->set(std::move(status->status));
       this->elapsed_time_ms = this->elapsed_time * 1000;
 
-      this->song = Connection::get()->get_song();
+      this->song = connection->get_song();
 
       auto mpd_state = mpd_status_get_state(this->status.get());
 

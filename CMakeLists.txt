@@ -42,15 +42,6 @@ if(ENABLE_ALSA)
     CACHE STRING "Name of the ALSA soundcard driver")
 endif()
 
-if(ENABLE_MPD)
-  set(SETTING_MPD_HOST "127.0.0.1"
-    CACHE STRING "Address MPD is bound to")
-  set(SETTING_MPD_PASSWORD ""
-    CACHE STRING "Password required for authentication")
-  set(SETTING_MPD_PORT "6600"
-    CACHE STRING "Port MPD is bound to")
-endif()
-
 set(SETTING_CONNECTION_TEST_IP "8.8.8.8"
   CACHE STRING "Address to ping when testing network connection")
 set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/brightness"

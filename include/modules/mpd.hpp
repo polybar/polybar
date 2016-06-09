@@ -10,6 +10,10 @@ namespace modules
 {
   DefineModule(MpdModule, EventModule)
   {
+    std::string mpd_host = "127.0.0.1";
+    std::string mpd_pass = "";
+    int mpd_port = 6600;
+
     static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;
     const std::chrono::duration<double> PROGRESSBAR_THREAD_INTERVAL = 1s;
 
@@ -53,7 +57,7 @@ namespace modules
     std::string toggle_on_color;
     std::string toggle_off_color;
 
-    std::shared_ptr<mpd::Connection> mpd;
+    std::unique_ptr<mpd::Connection> mpd;
     std::chrono::system_clock::time_point synced_at;
     float sync_interval = 0.5f;
 

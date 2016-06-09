@@ -59,6 +59,8 @@ namespace mpd
     }
   };
 
+  class Connection;
+
   struct Status
   {
     struct StatusDeleter
@@ -88,7 +90,8 @@ namespace mpd
     unsigned long elapsed_time_ms;
 
     void set(std::unique_ptr<struct mpd_status, StatusDeleter> status);
-    void update(int event);
+
+    void update(int event, std::unique_ptr<Connection>& connection);
     void update_timer();
 
     // unsigned get_total_time();
@@ -112,9 +115,9 @@ namespace mpd
     };
 
     std::unique_ptr<mpd_connection, ConnectionDeleter> connection;
-    std::string host = MPD_HOST;
-    std::string password = MPD_PASSWORD;
-    int port = MPD_PORT;
+    std::string host;
+    std::string password;
+    int port;
     int timeout = 15;
 
     bool mpd_command_list_active = false;
@@ -127,9 +130,8 @@ namespace mpd
     void check_errors();
 
     public:
-      Connection() = default;
-
-      static std::shared_ptr<Connection> &get();
+      Connection(std::string host, int port, std::string password)
+        : host(host), password(password), port(port) {}
 
       void connect();
       void disconnect();
