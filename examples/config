@@ -6,15 +6,27 @@
 ;throttle_ms = 50
 
 [bar/example]
-width = 100%
-height = 25
+;monitor = eDP1
 bottom = true
 dock = false
 
+width = 100%
+height = 25
+
+;offset_x = 0
+;offset_y = 0
+
 background = #00ffffff
 foreground = #fff
+;linecolor = #ff0000
 
+spacing = 1
 lineheight = 1
+
+;separator = |
+
+;locale = en_US.UTF-8
+
 padding_left = 1
 padding_right = 1
 module_margin_left = 0
