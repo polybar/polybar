@@ -180,6 +180,7 @@ int main(int argc, char **argv)
 
   } catch (Exception &e) {
     logger->error(e.what());
+    retval = EXIT_FAILURE;
   }
 
   if (eventloop)
