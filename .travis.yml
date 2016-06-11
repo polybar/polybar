@@ -4,26 +4,35 @@ dist: trusty
 language: cpp
 compiler:
   - clang
-  - gcc
+# - gcc
 cache: ccache
 
+env:
+  global:
+    - LLVM_VERSION=3.8.0
+    - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
+    - CC=$HOME/clang-$LLVM_VERSION/bin/clang
+    - CXX=$HOME/clang-$LLVM_VERSION/bin/clang++
+    - CPPFLAGS="-I $HOME/clang-$LLVM_VERSION/include/c++/v1"
+    - CXXFLAGS="-Qunused-arguments"
+
 before_install:
+  - wget http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
+  - mkdir $HOME/clang+llvm
+  - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang+llvm --strip-components 1
+  - export PATH=$HOME/clang+llvm/bin:$PATH
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
-  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
-  - echo "deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main"|sudo tee -a /etc/apt/sources.list
   - sudo sed -i "s/trusty/wily/g" /etc/apt/sources.list
   - sudo apt-get -qq update
-  - sudo apt-get install -y clang-3.8 cmake cmake-data libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev
+  - sudo apt-get install -y cmake cmake-data libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev
 
 before_script:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8" CFLAGS="-Qunused-arguments"; fi
   - cmake --version
-  - eval "${CXX} --version"
-  - eval "${CC} --version"
+  - eval "$CXX --version"
+  - eval "$CC --version"
   - mkdir build
   - cd build
-  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CFLAGS}" ..
+  - cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_CXX_FLAGS="$CXXFLAGS" ..
 
 script: make
 
