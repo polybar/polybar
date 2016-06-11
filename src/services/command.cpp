@@ -119,7 +119,7 @@ int Command::wait()
       sprintf(msg, "got killed by signal %d (%s)", WTERMSIG(this->fork_status), StrSignalC(WTERMSIG(this->fork_status)));
     else if (WIFSTOPPED(this->fork_status))
       sprintf(msg, "stopped by signal %d (%s)", WSTOPSIG(this->fork_status), StrSignalC(WSTOPSIG(this->fork_status)));
-    else if (WIFCONTINUED(this->fork_status))
+    else if (WIFCONTINUED(this->fork_status) == true)
       sprintf(msg, "continued");
 
     get_logger()->debug("Command "+ ToStr(msg));
