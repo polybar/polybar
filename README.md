@@ -11,9 +11,10 @@ Please note that the project is still in early development, so please
 report any anomalies by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issues)
 here on GitHub. I welcome pull requests with fixes or improvements.
 
-Here's a screenshot showing you an example of what it could look like:
+Here are two screenshots showing you what it could look like (make sure to view them in full scale):
 
-[![bspwm workspace](http://i.imgur.com/xvlw9iHh.png)](http://i.imgur.com/xvlw9iH.png)
+[![bspwm workspace](http://i.imgur.com/xvlw9iHm.png)](http://i.imgur.com/xvlw9iH.png)
+[![dracula workspace](http://i.imgur.com/cYQOuRrm.png)](http://i.imgur.com/cYQOuRr.png)
 
 
 ## Installation
