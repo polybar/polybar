@@ -161,9 +161,10 @@ configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DI
 install(TARGETS ${PROJECT_NAME}
   DESTINATION "bin"
   COMPONENT "binaries")
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper.sh"
-  DESTINATION "bin"
-  COMPONENT "binaries")
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper"
+  DESTINATION "bin" COMPONENT "binaries")
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_terminate"
+  DESTINATION "bin" COMPONENT "binaries")
 
 install(FILES "examples/config"
   DESTINATION "share/examples/${PROJECT_NAME}"
