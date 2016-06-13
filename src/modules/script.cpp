@@ -9,10 +9,12 @@ using namespace modules;
 ScriptModule::ScriptModule(const std::string& name_)
   : TimerModule(name_, 1s), builder(std::make_unique<Builder>(true)), counter(0)
 {
+  // Load configuration values {{{
   this->exec = config::get<std::string>(name(), "exec");
+  this->tail = config::get<bool>(name(), "tail", this->tail);
 
-  this->interval = std::chrono::duration<double>(
-    config::get<float>(name(), "interval", 1));
+  if (!this->tail)
+    this->interval = std::chrono::duration<double>(config::get<float>(name(), "interval", 1));
 
   this->click_left = config::get<std::string>(name(), "click-left", "");
   this->click_middle = config::get<std::string>(name(), "click-middle", "");
@@ -20,8 +22,11 @@ ScriptModule::ScriptModule(const std::string& name_)
 
   this->scroll_up = config::get<std::string>(name(), "scroll-up", "");
   this->scroll_down = config::get<std::string>(name(), "scroll-down", "");
+  // }}}
 
+  // Add formats and elements {{{
   this->formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, { TAG_OUTPUT });
+  // }}}
 }
 
 bool ScriptModule::update()
@@ -37,8 +42,13 @@ bool ScriptModule::update()
 
     command->exec(false);
 
-    while (!(buf = io::readline(command->get_stdout(PIPE_READ))).empty()) {
+    while (!(buf = io::readline(command->get_stdout(PIPE_READ))).empty() || (this->tail && this->enabled())) {
       this->output.append(buf + "\n");
+
+      if (this->tail) {
+        this->broadcast();
+        this->output.clear();
+      }
     }
 
     command->wait();

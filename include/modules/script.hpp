@@ -12,6 +12,8 @@ namespace modules
     std::unique_ptr<Builder> builder;
 
     std::string exec;
+    bool tail = false;
+
     std::string click_left;
     std::string click_middle;
     std::string click_right;

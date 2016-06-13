@@ -905,7 +905,12 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   exec = count=$(sudo pacman -Syup --noprogressbar 2>/dev/null | sed '/Starting full/,~1!d;/Starting full/d' | wc -l); [ $count -gt 0 ] && echo "Updates available: $count"
   ;exec = count=$(echo n | sudo xbps-install -Su >/dev/null 2>&1; sudo xbps-install -Sun | wc -l); [ $count -gt 0 ] && echo "Updates available: $count"
 
+  ; Should we keep listening for output from the command?
+  ;tail = false
+
   ; Seconds to sleep between updates
+  ; Will be ignored if `tail = true`
+  ; Default: 1
   interval = 90
   ~~~
 
@@ -940,8 +945,8 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~ ini
   [module/xtitle]
   type = custom/script
-  exec = xtitle
-  interval = 0.25
+  exec = xtitle -s
+  tail = true
   ~~~
 
 ### Module `custom/text`
