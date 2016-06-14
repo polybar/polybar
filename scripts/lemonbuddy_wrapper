@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#set -eux
 set -eu
 set -o pipefail
 
@@ -12,12 +11,14 @@ command -v lemonbar >/dev/null || {
   echo "Lemonbar is not installed" ; exit 1
 }
 
-command -v lemonbuddy >/dev/null || {
+lemonbuddy="${LEMONBUDDY_EXECUTABLE:-lemonbuddy}"
+
+command -v "$lemonbuddy" >/dev/null || {
   echo "Lemonbuddy is not installed" ; exit 1
 }
 
-lemonbar="$(lemonbuddy "$@" -x)"
-wmname="$(lemonbuddy "$@" -w)"
+lemonbar="$($lemonbuddy "$@" -x)"
+wmname="$($lemonbuddy "$@" -w)"
 logfile="${XDG_CACHE_HOME:-$HOME/.cache}/lemonbuddy/${wmname}.log"
 logdir="$(dirname "$logfile")"
 pipe="$(mktemp -u /tmp/lemonbuddy.in.XXXXX)"
@@ -37,7 +38,7 @@ cleanup_proc() {
 }
 
 # shellcheck disable=SC2094
-{ lemonbuddy "$@" -p "$pipe"; kill -TERM $$ 2>/dev/null; } | $lemonbar >"$pipe" &
+{ $lemonbuddy "$@" -p "$pipe"; kill -TERM $$ 2>/dev/null; } | $lemonbar >"$pipe" &
 
 trap 'cleanup_proc $!' TERM INT
 
