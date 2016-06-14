@@ -10,6 +10,7 @@ namespace modules
     static constexpr auto TAG_OUTPUT = "<output>";
 
     std::unique_ptr<Builder> builder;
+    std::unique_ptr<Command> command;
 
     std::string exec;
     bool tail = false;
@@ -28,6 +29,7 @@ namespace modules
     public:
       explicit ScriptModule(const std::string& name);
 
+      void start();
       bool update();
       bool build(Builder *builder, const std::string& tag);
       std::string get_output();

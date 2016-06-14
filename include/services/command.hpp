@@ -34,6 +34,7 @@ class Command
     int get_stdout(int);
     // int get_stdin(int);
 
-    // pid_t get_pid();
-    // int get_exit_status();
+    pid_t get_pid();
+    bool is_running();
+    int get_exit_status();
 };

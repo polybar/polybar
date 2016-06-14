@@ -146,10 +146,14 @@ int Command::get_stdout(int c) {
 //   return this->stdin[c];
 // }
 
-// pid_t Command::get_pid() {
-//   return this->fork_pid;
-// }
+pid_t Command::get_pid() {
+  return this->fork_pid;
+}
 
-// int Command::get_exit_status() {
-//   return this->fork_status;
-// }
+bool Command::is_running() {
+  return proc::wait_for_completion_nohang(this->fork_pid, &this->fork_status) > -1;
+}
+
+int Command::get_exit_status() {
+  return this->fork_status;
+}

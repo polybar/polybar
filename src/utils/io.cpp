@@ -130,10 +130,9 @@ namespace io
     return read(read_fd, bytes_to_read, bytes_read, status);
   }
 
-  std::string readline(int read_fd)
+  std::string readline(int read_fd, int &bytes_read)
   {
     std::stringstream buffer;
-    int bytes_read;
     char c;
 
     while ((bytes_read = ::read(read_fd, &c, 1)) > 0) {
@@ -145,9 +144,17 @@ namespace io
       get_logger()->debug("Reached EOF");
     } else if (bytes_read == -1) {
       get_logger()->debug("Read failed");
+    } else {
+      return string::strip_trailing_newline(buffer.str());
     }
 
-    return string::strip_trailing_newline(buffer.str());
+    return "";
+  }
+
+  std::string readline(int read_fd)
+  {
+    int bytes_read;
+    return readline(read_fd, bytes_read);
   }
 
   int write(int write_fd, const std::string& data) {
@@ -163,21 +170,22 @@ namespace io
       return io::write(write_fd, data);
   }
 
-  void tail(int read_fd, int writeback_fd)
+  void tail(int read_fd, std::function<void(std::string)> callback)
   {
-    std::string line;
-
-    while (false == (line = io::readline(read_fd)).empty()) {
-      io::writeline(writeback_fd, line);
-      std::cout << '\n';
+    int bytes_read;
+    while (true) {
+      auto line = io::readline(read_fd, bytes_read);
+      if (bytes_read <= 0)
+        break;
+      callback(line);
     }
   }
 
-  void tail(int read_fd, std::function<void(std::string)> callback)
+  void tail(int read_fd, int writeback_fd)
   {
-    std::string line;
-    while (false == (line = io::readline(read_fd)).empty())
-      callback(line);
+    tail(read_fd, [&writeback_fd](std::string data){
+      io::writeline(writeback_fd, data);
+    });
   }
 
   bool poll_read(int fd, int timeout_ms) {

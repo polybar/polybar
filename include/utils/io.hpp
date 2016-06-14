@@ -58,6 +58,7 @@ namespace io
 
   std::string read(int read_fd, int bytes_to_read = -1);
   std::string read(int read_fd, int bytes_to_read, int &bytes_read_loc, int &status_loc);
+  std::string readline(int read_fd, int &bytes_read);
   std::string readline(int read_fd);
 
   int write(int write_fd, const std::string& data);
