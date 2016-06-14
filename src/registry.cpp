@@ -47,6 +47,7 @@ void Registry::load()
   for (auto &&entry : this->modules) {
     std::lock_guard<std::mutex> wait_lck(this->wait_mtx);
     entry->module->start();
+    std::this_thread::sleep_for(10ms);
   }
 }
 
