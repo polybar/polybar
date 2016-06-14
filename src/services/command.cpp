@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include "lemonbuddy.hpp"
 #include "services/command.hpp"
@@ -30,18 +31,18 @@ Command::Command(const std::string& cmd, int stdout[2], int stdin[2])
   : cmd(cmd)
 {
   if (stdin != nullptr) {
-    this->stdin[PIPE_READ] = stdin[PIPE_READ];
-    this->stdin[PIPE_WRITE] = stdin[PIPE_WRITE];
-  } else if (false == proc::pipe(this->stdin))
+    this->fd_stdin[PIPE_READ] = stdin[PIPE_READ];
+    this->fd_stdin[PIPE_WRITE] = stdin[PIPE_WRITE];
+  } else if (false == proc::pipe(this->fd_stdin))
     throw CommandException("Failed to allocate pipe");
 
   if (stdout != nullptr) {
-    this->stdout[PIPE_READ] = stdout[PIPE_READ];
-    this->stdout[PIPE_WRITE] = stdout[PIPE_WRITE];
-  } else if (false == proc::pipe(this->stdout)) {
-    if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
+    this->fd_stdout[PIPE_READ] = stdout[PIPE_READ];
+    this->fd_stdout[PIPE_WRITE] = stdout[PIPE_WRITE];
+  } else if (false == proc::pipe(this->fd_stdout)) {
+    if ((this->fd_stdin[PIPE_READ] = close(this->fd_stdin[PIPE_READ])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
-    if ((this->stdin[PIPE_WRITE] = close(this->stdin[PIPE_WRITE])) == -1)
+    if ((this->fd_stdin[PIPE_WRITE] = close(this->fd_stdin[PIPE_WRITE])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
     throw CommandException("Failed to allocate pipe");
   }
@@ -49,13 +50,13 @@ Command::Command(const std::string& cmd, int stdout[2], int stdin[2])
 
 Command::~Command()
 {
-  if (this->stdin[PIPE_READ] > 0 && (close(this->stdin[PIPE_READ]) == -1))
+  if (this->fd_stdin[PIPE_READ] > 0 && (close(this->fd_stdin[PIPE_READ]) == -1))
     log_error("Failed to close fd: "+ StrErrno());
-  if (this->stdin[PIPE_WRITE] > 0 && (close(this->stdin[PIPE_WRITE]) == -1))
+  if (this->fd_stdin[PIPE_WRITE] > 0 && (close(this->fd_stdin[PIPE_WRITE]) == -1))
     log_error("Failed to close fd: "+ StrErrno());
-  if (this->stdout[PIPE_READ] > 0 && (close(this->stdout[PIPE_READ]) == -1))
+  if (this->fd_stdout[PIPE_READ] > 0 && (close(this->fd_stdout[PIPE_READ]) == -1))
     log_error("Failed to close fd: "+ StrErrno());
-  if (this->stdout[PIPE_WRITE] > 0 && (close(this->stdout[PIPE_WRITE]) == -1))
+  if (this->fd_stdout[PIPE_WRITE] > 0 && (close(this->fd_stdout[PIPE_WRITE]) == -1))
     log_error("Failed to close fd: "+ StrErrno());
 }
 
@@ -65,21 +66,21 @@ int Command::exec(bool wait_for_completion)
     throw CommandException("Failed to fork process: "+ StrErrno());
 
   if (proc::in_forked_process(this->fork_pid)) {
-    if (dup2(this->stdin[PIPE_READ], STDIN_FILENO) == -1)
+    if (dup2(this->fd_stdin[PIPE_READ], STDIN_FILENO) == -1)
       throw CommandException("Failed to redirect stdin in child process");
-    if (dup2(this->stdout[PIPE_WRITE], STDOUT_FILENO) == -1)
+    if (dup2(this->fd_stdout[PIPE_WRITE], STDOUT_FILENO) == -1)
       throw CommandException("Failed to redirect stdout in child process");
-    if (dup2(this->stdout[PIPE_WRITE], STDERR_FILENO) == -1)
+    if (dup2(this->fd_stdout[PIPE_WRITE], STDERR_FILENO) == -1)
       throw CommandException("Failed to redirect stderr in child process");
 
     // Close file descriptors that won't be used by forked process
-    if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
+    if ((this->fd_stdin[PIPE_READ] = close(this->fd_stdin[PIPE_READ])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
-    if ((this->stdin[PIPE_WRITE] = close(this->stdin[PIPE_WRITE])) == -1)
+    if ((this->fd_stdin[PIPE_WRITE] = close(this->fd_stdin[PIPE_WRITE])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
-    if ((this->stdout[PIPE_READ] = close(this->stdout[PIPE_READ])) == -1)
+    if ((this->fd_stdout[PIPE_READ] = close(this->fd_stdout[PIPE_READ])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
-    if ((this->stdout[PIPE_WRITE] = close(this->stdout[PIPE_WRITE])) == -1)
+    if ((this->fd_stdout[PIPE_WRITE] = close(this->fd_stdout[PIPE_WRITE])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
 
     // Replace the forked process with the given command
@@ -89,9 +90,9 @@ int Command::exec(bool wait_for_completion)
     register_pid(this->fork_pid);
 
     // Close file descriptors that won't be used by parent process
-    if ((this->stdin[PIPE_READ] = close(this->stdin[PIPE_READ])) == -1)
+    if ((this->fd_stdin[PIPE_READ] = close(this->fd_stdin[PIPE_READ])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
-    if ((this->stdout[PIPE_WRITE] = close(this->stdout[PIPE_WRITE])) == -1)
+    if ((this->fd_stdout[PIPE_WRITE] = close(this->fd_stdout[PIPE_WRITE])) == -1)
       throw CommandException("Failed to close fd: "+ StrErrno());
 
     if (wait_for_completion)
@@ -131,19 +132,19 @@ int Command::wait()
 }
 
 void Command::tail(std::function<void(std::string)> callback) {
-  io::tail(this->stdout[PIPE_READ], callback);
+  io::tail(this->fd_stdout[PIPE_READ], callback);
 }
 
 int Command::writeline(const std::string& data) {
-  return io::writeline(this->stdin[PIPE_WRITE], data);
+  return io::writeline(this->fd_stdin[PIPE_WRITE], data);
 }
 
 int Command::get_stdout(int c) {
-  return this->stdout[c];
+  return this->fd_stdout[c];
 }
 
 // int Command::get_stdin(int c) {
-//   return this->stdin[c];
+//   return this->fd_stdin[c];
 // }
 
 pid_t Command::get_pid() {

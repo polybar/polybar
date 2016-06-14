@@ -80,7 +80,7 @@ namespace proc
   }
 
   pid_t wait(int *status) {
-    return ::wait(&status);
+    return ::wait(status);
   }
 
   pid_t wait_for_completion(pid_t pid, int *status, int options)

@@ -1,7 +1,4 @@
 #include <algorithm>
-// #include <cstring>
-// #include <X11/Xos.h>
-// #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
 
 #include "utils/memory.hpp"

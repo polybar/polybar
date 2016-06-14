@@ -15,8 +15,8 @@ class Command
   protected:
     std::string cmd;
 
-    int stdout[2];
-    int stdin[2];
+    int fd_stdout[2];
+    int fd_stdin[2];
 
     pid_t fork_pid;
     int fork_status;
