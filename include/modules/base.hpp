@@ -177,7 +177,6 @@ namespace modules
       {
         this->enable(false);
         this->cache = "";
-        // this->builder = std::make_unique<Builder>(false);
         this->formatter = std::make_unique<ModuleFormatter>(ConstCastModule(ModuleImpl).name());
       }
 
@@ -392,8 +391,15 @@ namespace modules
         std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
         std::vector<std::unique_ptr<InotifyWatch>> watches;
 
-        for (auto &&w : this->watch_list)
-          watches.emplace_back(std::make_unique<InotifyWatch>(w.first, w.second));
+        try {
+          for (auto &&w : this->watch_list)
+            watches.emplace_back(std::make_unique<InotifyWatch>(w.first, w.second));
+        } catch (InotifyException &e) {
+          watches.clear();
+          get_logger()->error(e.what());
+          std::this_thread::sleep_for(100ms);
+          return;
+        }
 
         while (this->enabled()) {
           ConstCastModule(ModuleImpl).idle();
