@@ -230,7 +230,6 @@ namespace modules
 
       void broadcast() {
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
-        CastModule(ModuleImpl)->refresh();
         broadcast_module_update(ConstCastModule(ModuleImpl).name());
       }
 
