@@ -142,6 +142,9 @@ bool BatteryModule::on_event(InotifyEvent *event)
       state = STATE_FULL;
   }
 
+  if (this->state == state && this->percentage == percentage)
+    return false;
+
   if (!this->label_charging_tokenized)
     this->label_charging_tokenized = this->label_charging->clone();
   if (!this->label_discharging_tokenized)
