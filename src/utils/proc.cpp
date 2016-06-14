@@ -95,6 +95,12 @@ namespace proc
     return wait_for_completion(-1, status, options);
   }
 
+  pid_t wait_for_completion(pid_t pid)
+  {
+    int status;
+    return wait_for_completion(pid, &status);
+  }
+
   pid_t wait_for_completion_nohang(pid_t pid, int *status) {
     return wait_for_completion(pid, status, WNOHANG);
   }

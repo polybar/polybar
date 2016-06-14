@@ -51,12 +51,6 @@ int main(int argc, char **argv)
   int retval = EXIT_SUCCESS;
   auto logger = get_logger();
 
-  sigset_t pipe_mask;
-  sigemptyset(&pipe_mask);
-  sigaddset(&pipe_mask, SIGPIPE);
-  if (pthread_sigmask(SIG_BLOCK, &pipe_mask, nullptr) == -1)
-    logger->fatal(StrErrno());
-
   try {
     auto usage = "Usage: "+ std::string(argv[0]) + " bar_name [OPTION...]";
 
@@ -200,6 +194,8 @@ int main(int argc, char **argv)
     eventloop->cleanup();
 
   while (proc::wait_for_completion_nohang() > 0);
+
+  log_trace("Reached end of application");
 
   return retval;
 }

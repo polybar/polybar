@@ -75,16 +75,20 @@ void EventLoop::wait()
 
   int sig = 0;
 
-  sigemptyset(&this->wait_mask);
-  sigaddset(&this->wait_mask, SIGINT);
-  sigaddset(&this->wait_mask, SIGQUIT);
-  sigaddset(&this->wait_mask, SIGTERM);
+  sigset_t wait_mask;
+  sigemptyset(&wait_mask);
+  sigaddset(&wait_mask, SIGINT);
+  sigaddset(&wait_mask, SIGQUIT);
+  sigaddset(&wait_mask, SIGTERM);
 
-  if (pthread_sigmask(SIG_BLOCK, &this->wait_mask, nullptr) == -1)
+  if (pthread_sigmask(SIG_BLOCK, &wait_mask, nullptr) == -1)
     logger->fatal(StrErrno());
 
+  // Ignore SIGPIPE since we'll handle it manually
+  signal(SIGPIPE, SIG_IGN);
+
   // Wait for termination signal
-  sigwait(&this->wait_mask, &sig);
+  sigwait(&wait_mask, &sig);
 
   this->logger->info("Termination signal received... Shutting down");
 }
@@ -134,6 +138,11 @@ void EventLoop::loop_write()
       this->write_stdout();
     } catch (Exception &e) {
       this->logger->error(e.what());
+
+      auto pid = proc::get_process_id();
+      proc::kill(pid, SIGTERM);
+      proc::wait_for_completion(pid);
+
       return;
     }
   }
@@ -207,11 +216,10 @@ void EventLoop::write_stdout()
     if (!this->running())
       return;
 
-    // dprintf(this->fd_stdout, "\033[2J\033[1;1H\033[0mCleared! \033[35;1m %s\n", data.c_str());
-    dprintf(this->fd_stdout, "%s\n", data.c_str());
+    if (dprintf(this->fd_stdout, "%s\n", data.c_str()) == -1)
+      throw EventLoopTerminate("Failed to write to stdout");
   } catch (RegistryError &e) {
     this->logger->error(e.what());
-    return;
   }
 }
 

@@ -29,8 +29,6 @@ class EventLoop
   int fd_stdout = STDOUT_FILENO;
   std::string pipe_filename;
 
-  sigset_t wait_mask;
-
   // <tag, module_name>
   // std::map<std::string, std::string> stdin_subs;
   std::vector<std::string> stdin_subs;
