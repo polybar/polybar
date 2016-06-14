@@ -35,8 +35,6 @@ std::shared_ptr<Bar> &get_bar()
   return bar;
 }
 
-std::vector<std::unique_ptr<xlib::Monitor>> monitors;
-
 const Options& bar_opts() {
   return *bar->opts.get();
 }
@@ -56,8 +54,7 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
   auto monitor_name = config::get<std::string>(this->config_path, "monitor", "");
   this->opts->monitor = std::make_unique<xlib::Monitor>();
 
-  if (monitors.empty())
-    monitors = xlib::get_sorted_monitorlist();
+  auto monitors = xlib::get_sorted_monitorlist();
 
   // In case we're not connected to X, we'll just ignore the monitor
   if (!monitors.empty()) {
