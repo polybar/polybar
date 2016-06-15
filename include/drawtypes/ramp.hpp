@@ -1,31 +1,65 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <map>
-#include <memory>
+#include "common.hpp"
+#include "components/config.hpp"
+#include "drawtypes/label.hpp"
+#include "utils/mixins.hpp"
 
-#include "drawtypes/icon.hpp"
+LEMONBUDDY_NS
 
-namespace drawtypes
-{
-  class Ramp
-  {
-    protected:
-      std::vector<std::unique_ptr<Icon>> icons;
+namespace drawtypes {
+  class ramp;
+  using ramp_t = shared_ptr<ramp>;
 
-    public:
-      Ramp(){}
-      explicit Ramp(std::vector<std::unique_ptr<Icon>> icons);
+  class ramp : public non_copyable_mixin<ramp> {
+   public:
+    explicit ramp() = default;
+    explicit ramp(vector<icon_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
 
-      void add(std::unique_ptr<Icon> &&icon);
-      std::unique_ptr<Icon> &get(int idx);
-      std::unique_ptr<Icon> &get_by_percentage(float percentage);
+    void add(icon_t&& icon) {
+      m_icons.emplace_back(forward<decltype(icon)>(icon));
+    }
 
-      operator bool() {
-        return this->icons.size() > 0;
-      }
+    icon_t get(int index) {
+      return m_icons[index];
+    }
+
+    icon_t get_by_percentage(float percentage) {
+      return m_icons[static_cast<int>(percentage * (m_icons.size() - 1) / 100.0f + 0.5f)];
+    }
+
+    operator bool() {
+      return m_icons.size() > 0;
+    }
+
+   protected:
+    vector<icon_t> m_icons;
   };
 
-  std::unique_ptr<Ramp> get_config_ramp(std::string module_name, std::string ramp_name = "ramp", bool required = true);
+  inline auto get_config_ramp(
+      const config& conf, string section, string name = "ramp", bool required = true) {
+    vector<icon_t> vec;
+
+    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+
+    vector<string> icons;
+
+    if (required)
+      icons = conf.get_list<string>(section, name);
+    else
+      icons = conf.get_list<string>(section, name, {});
+
+    auto foreground = conf.get<string>(section, name + "-foreground", "");
+    for (int i = 0; i < (int)icons.size(); i++) {
+      auto ramp = name + "-" + to_string(i);
+      auto icon = get_optional_config_icon(conf, section, ramp, icons[i]);
+      if (icon->m_foreground.empty() && !foreground.empty())
+        icon->m_foreground = foreground;
+      vec.emplace_back(std::move(icon));
+    }
+
+    return ramp_t{new ramp(std::move(vec))};
+  }
 }
+
+LEMONBUDDY_NS_END

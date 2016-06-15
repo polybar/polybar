@@ -15,7 +15,7 @@
 ;throttle_ms = 50
 
 [bar/example]
-;monitor = eDP1
+monitor = eDP-1
 bottom = true
 dock = false
 
@@ -45,7 +45,9 @@ font-0 = sans:size=8;0
 font-1 = font awesome:size=10:weight=heavy;0
 
 modules-left = label
-modules-right = volume cpu ram clock
+;modules-center = counter
+;modules-right = volume cpu ram clock
+modules-right = volume clock
 
 [module/label]
 type = custom/text
@@ -96,5 +98,15 @@ format-muted-padding = 2
 
 label-volume = Volume: %percentage%
 label-muted = Sound is muted
+
+; [module/counter]
+; type = custom/script
+; exec = echo %counter%
+; interval = 1
+; format-background = #393484
+; format-underline = #69d294
+; format-overline = #69d294
+; format-padding = 2
+
 
 ; vim:ft=dosini

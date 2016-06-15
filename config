@@ -203,19 +203,19 @@ full_at = 99
 ;   <bar-capaity>
 ;   <ramp-capacity>
 ;   <animation-charging>
-format-charging = Charging <animation-charging> <label-charging>
+format-charging = <animation-charging> <label-charging>
 
 ; Available tags:
 ;   <label-discharging> (default)
 ;   <bar-capaity>
 ;   <ramp-capacity>
-format-discharging = Discharging <ramp-capacity> <label-discharging>
+format-discharging = <ramp-capacity> <label-discharging>
 
 ; Available tags:
 ;   <label-full> (default)
 ;   <bar-capaity>
 ;   <ramp-capacity>
-format-full = Fully charged <ramp-capacity> <label-full>
+format-full = <ramp-capacity> <label-full>
 
 ; Available tokens:
 ;   %percentage% (default)

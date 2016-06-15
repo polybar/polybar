@@ -100,13 +100,13 @@ available for more people.
 
 ### Dependencies
 
-A C++ compiler with C++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
+A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
 
-- lemonbar with xft support _(personally I use [this fork](https://github.com/osense/bar))_
 - cmake
 - boost
 - libxcb
 - xcb-proto
+- freetype2
 
 Optional dependencies for module support:
 
@@ -117,8 +117,8 @@ Optional dependencies for module support:
 
 ~~~ sh
 $ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
-$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel libsigc++-devel wireless_tools-devel
-$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-dev
+$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel freetype-devel libsigc++-devel wireless_tools-devel
+$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-dev libfreetype6-dev
 ~~~
 
 
@@ -127,7 +127,7 @@ $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-d
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project. It helps alot.
 
   ~~~ sh
-  $ git clone --branch 1.4.4 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 1.4.6 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
@@ -281,7 +281,7 @@ The configuration syntax is based on the `ini` file format.
   ;
   ; The rest of the drawtypes follow the same pattern.
   ;
-  ;   label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;   label-NAME[-(foreground|background|(under|over)line|font|padding|maxlen|ellipsis)] = ?
   ;   icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
   ;   ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
   ;   animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
@@ -299,6 +299,10 @@ The configuration syntax is based on the `ini` file format.
 
   format-offline = <label-offline>
   format-offline-offset = -8
+
+  ; Cap the song label without trailing ellipsis
+  label-song-maxlen = 30
+  label-song-ellipsis = false
 
   ; By only specifying alpha value, it will be applied to the bar's default foreground
   label-time-foreground = #66
@@ -324,8 +328,8 @@ The configuration syntax is based on the `ini` file format.
   ; Limit the amount of events sent to lemonbar within a set timeframe:
   ; - "Allow <throttle_limit> updates within <throttle_ms> of time"
   ; Default values:
-  throttle_limit = 5
-  throttle_ms = 50
+  throttle_limit = 3
+  throttle_ms = 60
   ~~~
 
 
@@ -361,6 +365,19 @@ The configuration syntax is based on the `ini` file format.
   foreground = #eefafafa
   linecolor = ${bar/example.background}
 
+  ; Borders
+  ; Size to be used for all borders
+  border-size = 2
+  ; Color to be used for all borders
+  border-color = #ff9900
+  ; Per-border values
+  ;border-top = 1
+  ;border-top-color = #ff9900
+  ;border-bottom = 2
+  ;border-bottom-color = #5d00ff
+  ;border-left = 3
+  ;border-right-color = #ff0059
+
   ; Amount of spaces to add at the start/end of the whole bar
   padding_left = 5
   padding_right = 2
@@ -378,10 +395,6 @@ The configuration syntax is based on the `ini` file format.
   ; The separator will be inserted between the output of each module
   separator = |
 
-  ; This value is used by Lemonbar and it specifies the clickable
-  ; areas available -> %{A:action:}...%{A}
-  clickareas = 30
-
   ; Value to be used to set the WM_NAME atom
   ; This defaults to "lemonbuddy-[BAR]_[MONITOR]"
   wm_name = mybar
@@ -393,6 +406,14 @@ The configuration syntax is based on the `ini` file format.
   modules-left = cpu ram
   modules-center = label
   modules-right = clock
+
+  ; Position of the tray container
+  ; If undefined, tray support will be disabled
+  ;
+  ; Available positions:
+  ;   left
+  ;   right
+  tray-position = right
   ~~~
 
 ### Modules
@@ -958,6 +979,12 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ramp-volume-0 = 🔈
   ramp-volume-1 = 🔉
   ramp-volume-2 = 🔊
+
+  ; If defined, it will replace <ramp-volume> when
+  ; headphones are plugged in to `headphone_control_numid`
+  ; If undefined, <ramp-volume> will be used for both
+  ramp-headphones-0 = 
+  ramp-headphones-1 = 
   ~~~
 
 
@@ -1026,6 +1053,14 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Will be ignored if `tail = true`
   ; Default: 1
   interval = 90
+
+  ; Limit the length of the output string
+  ; Default: 0
+  maxlen = 20
+
+  ; Add trailing ellipsis when truncating the string
+  ; Default: true
+  ellipsis = true
   ~~~
 
 ##### Extra formatting (example)
@@ -1061,6 +1096,7 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   type = custom/script
   exec = xtitle -s
   tail = true
+  maxlen = 25
   ~~~
 
 

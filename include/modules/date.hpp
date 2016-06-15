@@ -1,34 +1,65 @@
 #pragma once
 
-#include "modules/base.hpp"
+#include "modules/meta.hpp"
 
-namespace modules
-{
-  DefineModule(DateModule, TimerModule)
-  {
+LEMONBUDDY_NS
+
+namespace modules {
+  class date_module : public timer_module<date_module> {
+   public:
+    using timer_module::timer_module;
+
+    void setup() {
+      m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
+
+      m_formatter->add(DEFAULT_FORMAT, TAG_DATE, {TAG_DATE});
+
+      m_format = m_conf.get<string>(name(), "date");
+      m_format_detailed = m_conf.get<string>(name(), "date_detailed", "");
+    }
+
+    bool update() {
+      if (!m_formatter->has(TAG_DATE))
+        return false;
+
+      auto time = std::time(nullptr);
+      auto date_format = m_detailed ? m_format_detailed : m_format;
+      char buffer[256] = {'\0'};
+
+      std::strftime(buffer, sizeof(buffer), date_format.c_str(), std::localtime(&time));
+
+      if (std::strncmp(buffer, m_buffer, sizeof(buffer)) == 0)
+        return false;
+      else
+        std::memmove(m_buffer, buffer, sizeof(buffer));
+
+      return true;
+    }
+
+    string get_output() {
+      if (!m_format_detailed.empty())
+        m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+      m_builder->node(timer_module::get_output());
+      return m_builder->flush();
+    }
+
+    bool build(builder* builder, string tag) {
+      if (tag == TAG_DATE)
+        builder->node(m_buffer);
+      return tag == TAG_DATE;
+    }
+
+   private:
     static constexpr auto TAG_DATE = "<date>";
 
     static constexpr auto EVENT_TOGGLE = "datetoggle";
 
-    std::unique_ptr<Builder> builder;
+    string m_format;
+    string m_format_detailed;
 
-    std::string date;
-    std::string date_detailed;
-
-    char date_str[256] = {};
-    concurrency::Atomic<bool> detailed { false };
-
-    public:
-      explicit DateModule(std::string name);
-
-      bool update();
-      bool build(Builder *builder, std::string tag);
-
-      std::string get_output();
-      bool handle_command(std::string cmd);
-
-      bool register_for_events() const {
-        return true;
-      }
+    char m_buffer[256] = {'\0'};
+    stateflag m_detailed{false};
   };
 }
+
+LEMONBUDDY_NS_END
