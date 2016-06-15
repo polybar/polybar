@@ -131,7 +131,7 @@ bool MpdModule::has_event()
     has_event = true;
   }
 
-  if (this->label_time || this->bar_progress) {
+  if ((this->label_time || this->bar_progress) && (this->status && this->status->state & mpd::State::PLAYING)) {
     auto now = std::chrono::system_clock::now();
 
     if (std::chrono::duration_cast<std::chrono::milliseconds>(now - this->synced_at).count() > this->sync_interval) {
