@@ -36,7 +36,7 @@ A package will be written for XBPS so stay tuned.
 
 A C++ compiler with C++14 support. For example `clang`.
 
-- lemonbar
+- lemonbar (patched with xft support)
 - cmake
 - boost
 - libx11
@@ -147,6 +147,7 @@ processes gets terminated before before we launch the new ones.  For example in
   echo "Bars launched..."
   ~~~
 
+If you are using i3, see [this issue](https://github.com/jaagr/lemonbuddy/issues/21) on how to display the bar.
 
 ## Configuration
 
