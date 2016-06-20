@@ -25,12 +25,12 @@ Here are two screenshots showing you what it could look like (make sure to view 
 
 ## Installation
 
-###  Arch Linux
+### Arch Linux
 Install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
 [lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
 
-###  Void Linux
-A package will be written for XBPS so stay tuned.
+### Void Linux
+Install the XBPS package [lemonbuddy](https://raw.githubusercontent.com/jaagr/void-packages/lemonbuddy/srcpkgs/lemonbuddy/template) for the latest stable release.
 
 ### Dependencies:
 
