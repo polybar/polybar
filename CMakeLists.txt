@@ -3,13 +3,6 @@
 #
 cmake_minimum_required(VERSION 3.0)
 
-if(NOT CMAKE_CXX_COMPILER)
-  find_program(clang_EXECUTABLE "clang++")
-  if(clang_EXECUTABLE)
-    set(CMAKE_CXX_COMPILER ${clang_EXECUTABLE})
-  endif()
-endif()
-
 # TODO(jaagr): Replace with git tag
 project(lemonbuddy VERSION 1.2.0)
 
