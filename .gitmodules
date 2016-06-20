@@ -6,3 +6,6 @@
 	path = contrib/i3ipcpp
 	url = https://github.com/jaagr/i3ipcpp
 	branch = v0.1.3
+[submodule "contrib/xpp"]
+	path = contrib/xpp
+	url = https://github.com/jaagr/xpp
