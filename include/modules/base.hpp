@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <mutex>
-#include <shared_mutex>
 #include <condition_variable>
 #include <map>
 #include <thread>
@@ -166,6 +165,9 @@ namespace modules
       concurrency::SpinLock output_lock;
       concurrency::SpinLock broadcast_lock;
 
+      std::mutex sleep_lock;
+      std::condition_variable sleep_handler;
+
       std::string name_;
       std::unique_ptr<Builder> builder;
       std::unique_ptr<ModuleFormatter> formatter;
@@ -201,8 +203,10 @@ namespace modules
         return name_;
       }
 
-      void stop() {
+      void stop()
+      {
         log_trace(name());
+        this->wakeup();
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
         this->enable(false);
       }
@@ -228,9 +232,30 @@ namespace modules
         this->enabled_flag = state;
       }
 
-      void broadcast() {
+      void broadcast()
+      {
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
         broadcast_module_update(ConstCastModule(ModuleImpl).name());
+      }
+
+      void sleep(std::chrono::duration<double> sleep_duration)
+      {
+        std::unique_lock<std::mutex> lck(this->sleep_lock);
+        std::thread sleep_thread([&]{
+          auto start = std::chrono::system_clock::now();
+          while ((std::chrono::system_clock::now() - start) < sleep_duration) {
+            std::this_thread::sleep_for(50ms);
+          }
+          this->wakeup();
+        });
+        sleep_thread.detach();
+        this->sleep_handler.wait(lck);
+      }
+
+      void wakeup()
+      {
+        log_trace("Releasing sleep lock for "+ this->name_);
+        this->sleep_handler.notify_one();
       }
 
       std::string get_format() {
@@ -301,10 +326,11 @@ namespace modules
       void runner()
       {
         while (this->enabled()) {
-          std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-          if (CastModule(ModuleImpl)->update())
-            CastModule(ModuleImpl)->broadcast();
-          std::this_thread::sleep_for(this->interval);
+          { std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
+            if (CastModule(ModuleImpl)->update())
+              CastModule(ModuleImpl)->broadcast();
+          }
+          this->sleep(this->interval);
         }
       }
 

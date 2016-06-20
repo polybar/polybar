@@ -98,7 +98,7 @@ void BatteryModule::subthread_routine()
     if (this->state == STATE_CHARGING)
       this->broadcast();
 
-    std::this_thread::sleep_for(dur);
+    this->sleep(dur);
   }
 
   log_debug("Reached end of battery subthread");

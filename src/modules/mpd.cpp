@@ -104,7 +104,7 @@ bool MpdModule::has_event()
     }
 
     if (!this->mpd->connected()) {
-      std::this_thread::sleep_for(3s);
+      this->sleep(3s);
       return false;
     }
   }
