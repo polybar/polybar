@@ -31,6 +31,8 @@ namespace config
 
   std::string build_path(const std::string& section, const std::string& key);
 
+  std::string get_file_path();
+
   template<typename T>
   T dereference_var(const std::string& ref_section, const std::string& ref_key, const std::string& var, const T ref_val)
   {

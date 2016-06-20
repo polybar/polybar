@@ -55,4 +55,12 @@ namespace config
   std::string build_path(const std::string& section, const std::string& key) {
     return section +"."+ key;
   }
+
+  std::string get_file_path() {
+    const char *env_home = std::getenv("HOME");
+    if (env_home != nullptr) {
+      return string::replace(file_path, env_home, "~");
+    }
+    return file_path;
+  }
 }

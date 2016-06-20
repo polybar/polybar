@@ -108,26 +108,25 @@ int main(int argc, char **argv)
      */
     std::vector<std::string> defined_bars;
     for (auto &section : config::get_tree()) {
-      if (section.first.find("bar/") == 0)
-        defined_bars.emplace_back(section.first);
+      if (std::strncmp("bar/", section.first.c_str(), 4) == 0)
+        defined_bars.emplace_back(section.first.substr(4));
     }
 
     if (defined_bars.empty())
       logger->fatal("There are no bars defined in the config");
 
-    auto config_path = "bar/"+ std::string(argv[1]);
+    auto bar_name = std::string(argv[1]);
+    auto config_path = "bar/"+ bar_name;
     config::set_bar_path(config_path);
 
-    if (std::find(defined_bars.begin(), defined_bars.end(), config_path) == defined_bars.end()) {
-      logger->error("The bar \""+ config_path.substr(4) +"\" is not defined in the config");
-      logger->info("Available bars:");
-      for (auto &bar : defined_bars) logger->info("  "+ bar.substr(4));
-      std::exit(EXIT_FAILURE);
+    if (std::find(defined_bars.begin(), defined_bars.end(), bar_name) == defined_bars.end()) {
+      logger->error("The bar \""+ bar_name +"\" is not defined");
+      logger->info("Available bars in "+ config::get_file_path() +": "+ string::join(defined_bars, ", "));
+      return EXIT_FAILURE;
     }
 
-    if (config::get_tree().get_child_optional(config_path) == boost::none) {
-      logger->fatal("Bar \""+ std::string(argv[1]) +"\" does not exist");
-    }
+    if (config::get_tree().get_child_optional(config_path) == boost::none)
+      logger->fatal("Bar \""+ bar_name +"\" does not exist");
 
     /**
      * Dump specified config value
