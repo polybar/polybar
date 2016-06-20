@@ -51,7 +51,6 @@ set(SOURCE_FILES
   "src/utils/io.cpp"
   "src/utils/proc.cpp"
   "src/utils/string.cpp"
-  "src/utils/timer.cpp"
   "src/utils/xlib.cpp"
   "src/bar.cpp"
   "src/eventloop.cpp"

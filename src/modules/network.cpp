@@ -6,7 +6,6 @@
 #include "utils/config.hpp"
 #include "utils/io.hpp"
 #include "utils/proc.hpp"
-#include "utils/timer.hpp"
 
 using namespace modules;
 

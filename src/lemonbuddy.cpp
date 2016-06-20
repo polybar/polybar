@@ -17,7 +17,6 @@
 #include "utils/macros.hpp"
 #include "utils/proc.hpp"
 #include "utils/string.hpp"
-#include "utils/timer.hpp"
 #include "utils/xlib.hpp"
 
 /**
