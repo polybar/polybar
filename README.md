@@ -133,10 +133,13 @@ into the project.
 
 When using the wrapper to start the bar in in your wm's autostart routine, make sure to include
 a kill directive before launching the bar. This is done to make sure that any previously spawned
-processes gets terminated before before we launch the new ones.  For example in
-`$HOME/.config/bspwmrc`:
+processes gets terminated before before we launch the new ones.
+
+Create an executable file containing the startup logic, for example `$HOME/.config/lemonbuddy/launch.sh`:
 
   ~~~ sh
+  #!/usr/bin/env sh
+
   # Terminate already running bar instances
   lemonbuddy_terminate noconfirm
 
@@ -147,7 +150,23 @@ processes gets terminated before before we launch the new ones.  For example in
   echo "Bars launched..."
   ~~~
 
-If you are using i3, see [this issue](https://github.com/jaagr/lemonbuddy/issues/21) on how to display the bar.
+If you are using **bspwm**, add the following line to `bspwmrc`:
+
+  ~~~ sh
+  $HOME/.config/lemonbuddy/launch.sh
+  ~~~
+
+If you are using **i3**, add the following line to your configuration:
+
+  ~~~ sh
+  exec_always $HOME/.config/lemonbuddy/launch.sh
+  ~~~
+
+Remember to make it executable using:
+
+  ~~~ sh
+  $ chmod +x $HOME/.config/lemonbuddy/launch.sh
+  ~~~
 
 ## Configuration
 
