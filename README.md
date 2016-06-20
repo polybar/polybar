@@ -81,7 +81,7 @@ $ sudo apt-get install fonts-font-awesome
 > **NOTE:** In Void Linux you will need to install `git-perl` to get support for submodules.
 
   ~~~ sh
-  $ git clone --branch 1.2.0 --recursive https://github.com/jaagr/lemonbuddy.git
+  $ git clone --branch 1.2.1 --recursive https://github.com/jaagr/lemonbuddy.git
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
