@@ -13,7 +13,6 @@
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
 #include "modules/text.hpp"
-#include "modules/torrent.hpp"
 #ifdef ENABLE_I3
 #include "modules/i3.hpp"
 #endif
@@ -172,9 +171,6 @@ void Bar::load()
         module = std::make_unique<modules::VolumeModule>(mod);
 #else
         throw CompiledWithoutModuleSupport("volume");
-#endif
-#if 0
-      else if (type == "internal/rtorrent")   module = std::make_unique<modules::TorrentModule>(mod);
 #endif
       else if (type == "custom/text")         module = std::make_unique<modules::TextModule>(mod);
       else if (type == "custom/script")       module = std::make_unique<modules::ScriptModule>(mod);

@@ -126,7 +126,7 @@ font-3 = NotoSans-Regular:size=8;-1
 font-4 = MaterialIcons:size=10;-1
 
 modules-left = bspwm
-modules-right = rtorrent cpu memory
+modules-right = cpu memory
 ; modules-right = cpu memory
 
 [bar/external_bottom]
@@ -760,38 +760,6 @@ label-connected =    %{T3}%local_ip%%{T-}
 ;label-packetloss = %essid%
 ;label-packetloss-foreground = #eefafafa
 
-[module/rtorrent]
-type = internal/rtorrent
-
-script = /home/jaagr/var/github/jaagr/lemonbuddy/scripts/torrents.sh
-rtorrent_session_dir = /home/jaagr/.cache/rtorrent
-display_count = 2
-title_maxlen = 30
-
-; Available tags:
-;   <label> (default)
-;   <bar-progress>
-;format = <label>
-
-; Available tokens:
-;   %title%
-;   %percentage%
-; Default- %label% (%percentage%)
-label = %{F#fba922}%{F-} %{F#eefafafa}%title% %percentage%%{F-}
-;label-foreground = #eefafafa
-
-; Required if <bar-progress> is used
-;bar-progress-width = 10
-;bar-progress-format = %{+u}%{+o}%fill%%{-u}%{-o}%indicator%%{+u}%{+o}%empty%%{-u}%{-o}
-;bar-progress-indicator = |
-;bar-progress-indicator-foreground = ${BAR.foreground}
-;bar-progress-indicator-font = 2
-;bar-progress-fill = █
-;bar-progress-fill-foreground = #5a5
-;bar-progress-fill-font = 2
-;bar-progress-empty = █
-;bar-progress-empty-foreground = #555
-;bar-progress-empty-font = 2
 
 [module/volume]
 type = internal/volume

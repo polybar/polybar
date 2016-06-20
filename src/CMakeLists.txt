@@ -41,7 +41,6 @@ set(SOURCE_FILES
   "src/modules/menu.cpp"
   "src/modules/script.cpp"
   "src/modules/text.cpp"
-  # "src/modules/torrent.cpp"
   "src/services/builder.cpp"
   "src/services/command.cpp"
   "src/services/inotify.cpp"
