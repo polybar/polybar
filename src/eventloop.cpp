@@ -37,7 +37,7 @@ void EventLoop::start()
   if (this->state() == STATE_STARTED)
     return;
 
-  this->logger->info("Starting event loop...");
+  this->logger->debug("Starting event loop...");
 
   this->bar->load();
   this->registry->load();
@@ -46,12 +46,16 @@ void EventLoop::start()
 
   this->t_write = std::thread(&EventLoop::loop_write, this);
   this->t_read = std::thread(&EventLoop::loop_read, this);
+
+  this->logger->debug("Event loop started...");
 }
 
 void EventLoop::stop()
 {
   if (this->state() == STATE_STOPPED)
     return;
+
+  this->logger->debug("Stopping event loop...");
 
   this->state = STATE_STOPPED;
 
@@ -62,7 +66,8 @@ void EventLoop::stop()
   }
 
   this->registry->unload();
-  this->logger->info("Event loop stopped...");
+
+  this->logger->debug("Event loop stopped...");
 }
 
 void EventLoop::wait()
@@ -225,7 +230,7 @@ void EventLoop::write_stdout()
 
 void EventLoop::cleanup(int timeout_ms)
 {
-  log_info("Cleaning up...");
+  this->logger->debug("Cleaning up...");
 
   std::atomic<bool> t_read_joined(false);
   std::atomic<bool> t_write_joined(false);

@@ -18,14 +18,12 @@ struct RegistryModuleEntry
 
 class Registry
 {
-  // Stopped and no loaded modules
-  const int STAGE_1 = 1;
-  // Modules loaded but waiting for initial broadcast
-  const int STAGE_2 = 2;
-  // Running
-  const int STAGE_3 = 3;
-  // Unloading modules
-  const int STAGE_4 = 4;
+  const int STAGE_1 = 1; // Stopped and no loaded modules
+  const int STAGE_2 = 2; // Modules loaded but waiting for initial broadcast
+  const int STAGE_3 = 3; // Running
+  const int STAGE_4 = 4; // Unloading modules
+
+  std::shared_ptr<Logger> logger;
 
   concurrency::Atomic<int> stage;
 

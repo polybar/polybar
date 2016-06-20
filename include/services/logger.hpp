@@ -38,7 +38,7 @@ class Logger
 {
   std::mutex mtx;
 
-  int level = LogLevel::LEVEL_ERROR | LogLevel::LEVEL_WARNING;
+  int level = LogLevel::LEVEL_ERROR | LogLevel::LEVEL_WARNING | LogLevel::LEVEL_INFO;
   int fd = LOGGER_FD;
 
   public:

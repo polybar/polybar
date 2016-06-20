@@ -10,9 +10,9 @@ std::shared_ptr<Registry> &get_registry()
   return registry;
 }
 
-Registry::Registry()
+Registry::Registry() : logger(get_logger())
 {
-  get_logger()->debug("Entering STAGE 1");
+  this->logger->debug("Entering STAGE 1");
   this->stage = STAGE_1;
 }
 
@@ -22,7 +22,7 @@ bool Registry::ready()
 
   if (stage == STAGE_2)
     for (auto &&entry : this->modules)
-      if (!entry->warmedup) get_logger()->debug("Waiting for: "+ entry->module->name());
+      if (!entry->warmedup) this->logger->debug("Waiting for: "+ entry->module->name());
 
   return stage == STAGE_3;
 }
@@ -38,11 +38,11 @@ void Registry::load()
   if (this->stage() != STAGE_1)
     return;
 
-  get_logger()->debug("Entering STAGE 2");
+  this->logger->debug("Entering STAGE 2");
 
   this->stage = STAGE_2;
 
-  get_logger()->debug("Loading modules");
+  this->logger->debug("Loading modules");
 
   for (auto &&entry : this->modules) {
     std::lock_guard<std::mutex> wait_lck(this->wait_mtx);
@@ -56,11 +56,11 @@ void Registry::unload()
   if (this->stage() != STAGE_3)
     return;
 
-  get_logger()->debug("Entering STAGE 4");
+  this->logger->debug("Entering STAGE 4");
 
   this->stage = STAGE_4;
 
-  get_logger()->debug("Unloading modules");
+  this->logger->debug("Unloading modules");
 
   // Release wait lock
   {
@@ -95,8 +95,8 @@ bool Registry::wait()
         continue;
       }
 
-      get_logger()->info("Received initial broadcast from all modules");
-      get_logger()->debug("Entering STAGE 3");
+      this->logger->debug("Received initial broadcast from all modules");
+      this->logger->debug("Entering STAGE 3");
 
       this->stage = STAGE_3;
       break;
@@ -136,7 +136,7 @@ void Registry::notify(const std::string& module_name)
     mod_entry->module->refresh();
   } catch (Exception &e) {
     log_trace("Exception occurred in runner thread for: "+ module_name);
-    get_logger()->error(e.what());
+    this->logger->error(e.what());
   }
 
 
