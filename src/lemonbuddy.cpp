@@ -66,7 +66,7 @@ int main(int argc, char **argv)
      * Parse command line arguments
      */
     if (argc < 2 || cli::is_option(argv[1], "-h", "--help") || argv[1][0] == '-')
-      cli::usage(usage, argc > 1);
+      cli::usage(usage, (argc > 1 && cli::is_option(argv[1], "-h", "--help")));
     cli::parse(2, argc, argv);
     if (cli::has_option("help"))
       cli::usage(usage);
