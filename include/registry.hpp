@@ -29,8 +29,8 @@ class Registry
 
   std::vector<std::unique_ptr<RegistryModuleEntry>> modules;
 
-  std::mutex wait_mtx;
-  std::condition_variable wait_cv;
+  std::mutex wait_lock;
+  std::condition_variable wait_handler;
 
   public:
     Registry();

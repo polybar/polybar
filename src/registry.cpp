@@ -45,9 +45,8 @@ void Registry::load()
   this->logger->debug("Loading modules");
 
   for (auto &&entry : this->modules) {
-    std::lock_guard<std::mutex> wait_lck(this->wait_mtx);
+    std::lock_guard<std::mutex> lck(this->wait_lock);
     entry->module->start();
-    std::this_thread::sleep_for(10ms);
   }
 }
 
@@ -64,19 +63,21 @@ void Registry::unload()
 
   // Release wait lock
   {
-    std::lock_guard<std::mutex> wait_lck(this->wait_mtx);
-    this->wait_cv.notify_one();
+    std::lock_guard<std::mutex> lck(this->wait_lock);
+    this->wait_handler.notify_all();
   }
 
-  for (auto &&entry : this->modules)
+  for (auto &&entry : this->modules) {
+    this->logger->debug("Stopping module: "+ entry->module->name());
     entry->module->stop();
+  }
 }
 
 bool Registry::wait()
 {
   log_trace("STAGE "+ std::to_string(this->stage()));
 
-  std::unique_lock<std::mutex> wait_lck(this->wait_mtx);
+  std::unique_lock<std::mutex> lck(this->wait_lock);
 
   auto stage = this->stage();
 
@@ -91,7 +92,7 @@ bool Registry::wait()
         if (!entry->warmedup) ready = false;
 
       if (!ready) {
-        this->wait_cv.wait(wait_lck);
+        this->wait_handler.wait(lck);
         continue;
       }
 
@@ -103,7 +104,7 @@ bool Registry::wait()
     }
 
   else if (stage == STAGE_3)
-    this->wait_cv.wait(wait_lck);
+    this->wait_handler.wait(lck);
 
   else if (stage == STAGE_4)
     this->modules.clear();
@@ -130,7 +131,7 @@ void Registry::notify(std::string module_name)
       mod_entry->warmedup = true;
   }
 
-  std::unique_lock<std::mutex> wait_lck(this->wait_mtx);
+  std::unique_lock<std::mutex> lck(this->wait_lock);
 
   try {
     this->logger->debug("Refreshing output for module: "+ module_name);
@@ -140,10 +141,9 @@ void Registry::notify(std::string module_name)
     this->logger->error(e.what());
   }
 
+  lck.unlock();
 
-  wait_lck.unlock();
-
-  this->wait_cv.notify_one();
+  this->wait_handler.notify_one();
 }
 
 std::string Registry::get(std::string module_name)
