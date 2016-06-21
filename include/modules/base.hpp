@@ -92,6 +92,7 @@ namespace modules
     protected:
       concurrency::SpinLock output_lock;
       concurrency::SpinLock broadcast_lock;
+      concurrency::SpinLock update_lock;
 
       std::mutex sleep_lock;
       std::condition_variable sleep_handler;
@@ -119,12 +120,19 @@ namespace modules
           this->stop();
 
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
-
-        for (auto &&t : this->threads) {
-          if (t.joinable())
-            t.join();
-          else
-            log_warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
+        {
+          std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
+          {
+            std::lock_guard<concurrency::SpinLock> lck(this->output_lock);
+            {
+              for (auto &&t : this->threads) {
+                if (t.joinable())
+                  t.join();
+                else
+                  log_warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
+              }
+            }
+          }
         }
 
         log_trace(name());
@@ -256,8 +264,6 @@ namespace modules
     protected:
       std::chrono::duration<double> interval = 1s;
 
-      concurrency::SpinLock update_lock;
-
       void runner()
       {
         while (this->enabled()) {
@@ -287,8 +293,6 @@ namespace modules
     using Module<ModuleImpl>::Module;
 
     protected:
-      concurrency::SpinLock update_lock;
-
       void runner()
       {
         // warmup

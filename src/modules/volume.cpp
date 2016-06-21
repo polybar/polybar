@@ -88,15 +88,6 @@ VolumeModule::VolumeModule(std::string name_) : EventModule(name_)
   // }}}
 }
 
-VolumeModule::~VolumeModule()
-{
-  std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-  this->master_mixer.reset();
-  this->speaker_mixer.reset();
-  this->headphone_mixer.reset();
-  this->headphone_ctrl.reset();
-}
-
 bool VolumeModule::has_event()
 {
   bool has_event = false;
