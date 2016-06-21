@@ -70,7 +70,15 @@ MpdModule::MpdModule(std::string name_)
 MpdModule::~MpdModule()
 {
   std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-  this->status.reset();
+  {
+    if (this->mpd->connected()) {
+      try {
+        this->mpd->disconnect();
+      } catch (mpd::Exception &e) {
+        get_logger()->debug(e.what());
+      }
+    }
+  }
 }
 
 void MpdModule::start()
