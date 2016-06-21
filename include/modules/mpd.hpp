@@ -61,7 +61,7 @@ namespace modules
 
     std::unique_ptr<mpd::Connection> mpd;
     std::chrono::system_clock::time_point synced_at;
-    float sync_interval = 0.5f;
+    float sync_interval = 1.0f;
 
     bool clickable_progress = false;
     std::string progress_fill, progress_empty, progress_indicator;
