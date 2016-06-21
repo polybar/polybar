@@ -154,9 +154,9 @@ namespace modules
 
       void stop()
       {
+        std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
         log_trace(name());
         this->wakeup();
-        std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
         this->enable(false);
       }
 
@@ -194,15 +194,7 @@ namespace modules
       void sleep(std::chrono::duration<double> sleep_duration)
       {
         std::unique_lock<std::mutex> lck(this->sleep_lock);
-        std::thread sleep_thread([&]{
-          auto start = std::chrono::system_clock::now();
-          while ((std::chrono::system_clock::now() - start) < sleep_duration) {
-            std::this_thread::sleep_for(50ms);
-          }
-          this->wakeup();
-        });
-        sleep_thread.detach();
-        this->sleep_handler.wait(lck);
+        this->sleep_handler.wait_for(lck, sleep_duration);
       }
 
       void wakeup()
