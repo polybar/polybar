@@ -44,6 +44,7 @@ namespace modules
 
     public:
       explicit VolumeModule(std::string name);
+      ~VolumeModule();
 
       bool has_event();
       bool update();
