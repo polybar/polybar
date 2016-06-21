@@ -16,55 +16,62 @@ std::shared_ptr<Logger> &get_logger()
 
 Logger::Logger()
 {
-  if (isatty(LOGGER_FD)) {
+  if (isatty(LOGGER_FD))
     dup2(LOGGER_FD, this->fd);
-  }
 }
 
-// void Logger::set_level(int mask)
-// {
-//   this->level = mask;
-// }
+void Logger::set_level(int mask) {
+  this->level = mask;
+}
 
-void Logger::add_level(int mask)
-{
+void Logger::add_level(int mask) {
   this->level |= mask;
 }
 
-void Logger::fatal(const std::string& msg)
+void Logger::output(std::string tag, std::string msg) {
+  dprintf(this->fd, "%s%s\n", tag.c_str(), msg.c_str());
+}
+
+void Logger::fatal(std::string msg)
 {
-  dprintf(this->fd, "%s%s\n", LOGGER_TAG_FATAL, msg.c_str());
+  this->output(LOGGER_TAG_FATAL, msg);
   std::exit(EXIT_FAILURE);
 }
 
-void Logger::error(const std::string& msg)
+void Logger::error(std::string msg)
 {
   if (this->level & LogLevel::LEVEL_ERROR)
-    dprintf(this->fd, "%s%s\n", LOGGER_TAG_ERR, msg.c_str());
+    this->output(LOGGER_TAG_ERR, msg);
 }
 
-void Logger::warning(const std::string& msg)
+void Logger::warning(std::string msg)
 {
   if (this->level & LogLevel::LEVEL_WARNING)
-    dprintf(this->fd, "%s%s\n", LOGGER_TAG_WARN, msg.c_str());
+    this->output(LOGGER_TAG_WARN, msg);
 }
 
-void Logger::info(const std::string& msg)
+void Logger::info(std::string msg)
 {
   if (this->level & LogLevel::LEVEL_INFO)
-    dprintf(this->fd, "%s%s\n", LOGGER_TAG_INFO, msg.c_str());
+    this->output(LOGGER_TAG_INFO, msg);
 }
 
-void Logger::debug(const std::string& msg)
+void Logger::debug(std::string msg)
 {
   if (this->level & LogLevel::LEVEL_DEBUG)
-    dprintf(this->fd, "%s%s\n", LOGGER_TAG_DEBUG, msg.c_str());
+    this->output(LOGGER_TAG_DEBUG, msg);
 }
 
-void Logger::trace(const char *file, const char *fn, int lineno, const std::string& msg)
+void Logger::trace(const char *file, const char *fn, int lineno, std::string msg)
 {
-  if (this->level & LogLevel::LEVEL_TRACE && !msg.empty())
-    dprintf(this->fd, "%s%s (%s:%d) -> %s\n", LOGGER_TAG_TRACE, &file[0], fn, lineno, msg.c_str());
-  else if (msg.empty())
-    dprintf(this->fd, "%s%s (%s:%d)\n", LOGGER_TAG_TRACE, &file[0], fn, lineno);
+#ifdef DEBUG
+  if (!(this->level & LogLevel::LEVEL_TRACE))
+    return;
+  char trace_msg[1024];
+  if (!msg.empty())
+    sprintf(trace_msg, "%s (%s:%d) -> %s", &file[0], fn, lineno, msg.c_str());
+  else
+    sprintf(trace_msg, "%s (%s:%d)", &file[0], fn, lineno);
+  this->output(LOGGER_TAG_TRACE, trace_msg);
+#endif
 }

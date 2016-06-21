@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     cli::add_option("-h", "--help", "Show help options");
     cli::add_option("-c", "--config", "FILE", "Path to the configuration file");
     cli::add_option("-p", "--pipe", "FILE", "Path to the input pipe");
-    cli::add_option("-l", "--log", "LEVEL", "Set the logging verbosity", {"info","debug","trace"});
+    cli::add_option("-l", "--log", "LEVEL", "Set the logging verbosity", {"warning","info","debug","trace"});
     cli::add_option("-d", "--dump", "PARAM", "Show value of PARAM in section [bar_name]");
     cli::add_option("-x", "--print-exec", "Print the generated command line string used to start the lemonbar process");
     cli::add_option("-w", "--print-wmname", "Print the generated WM_NAME");
@@ -74,12 +74,20 @@ int main(int argc, char **argv)
      * Set logging verbosity
      */
     if (cli::has_option("log")) {
-      if (cli::match_option_value("log", "info"))
-        logger->add_level(LogLevel::LEVEL_INFO);
+      logger->set_level(LogLevel::LEVEL_ERROR);
+
+      if (cli::match_option_value("log", "warning"))
+        logger->set_level(LogLevel::LEVEL_WARNING);
+      else if (cli::match_option_value("log", "info"))
+        logger->add_level(LogLevel::LEVEL_WARNING | LogLevel::LEVEL_INFO);
       else if (cli::match_option_value("log", "debug"))
-        logger->add_level(LogLevel::LEVEL_INFO | LogLevel::LEVEL_DEBUG);
-      else if (cli::match_option_value("log", "trace"))
-        logger->add_level(LogLevel::LEVEL_INFO | LogLevel::LEVEL_DEBUG | LogLevel::LEVEL_TRACE);
+        logger->add_level(LogLevel::LEVEL_WARNING | LogLevel::LEVEL_INFO | LogLevel::LEVEL_DEBUG);
+      else if (cli::match_option_value("log", "trace")) {
+        logger->add_level(LogLevel::LEVEL_WARNING | LogLevel::LEVEL_INFO | LogLevel::LEVEL_DEBUG);
+#ifdef DEBUG
+        logger->add_level(LogLevel::LEVEL_TRACE);
+#endif
+      }
     }
 
     /**
