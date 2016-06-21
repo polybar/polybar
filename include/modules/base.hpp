@@ -105,11 +105,19 @@ namespace modules
       std::unique_ptr<ModuleFormatter> formatter;
       std::vector<std::thread> threads;
 
+      event_throttler::limit_t broadcast_throttler_limit() const {
+        return event_throttler::limit_t(1);
+      }
+
+      event_throttler::timewindow_t broadcast_throttler_timewindow() const {
+        return event_throttler::timewindow_t(25);
+      }
+
     public:
       Module(std::string name, bool lazy_builder = true)
         : name_("module/"+ name)
         , builder(std::make_unique<Builder>(lazy_builder))
-        , broadcast_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(1), event_throttler::timewindow_t(25)))
+        , broadcast_throttler(std::make_unique<EventThrottler>(ConstCastModule(ModuleImpl).broadcast_throttler_limit(), ConstCastModule(ModuleImpl).broadcast_throttler_timewindow()))
       {
         this->enable(false);
         this->cache = "";
@@ -200,7 +208,7 @@ namespace modules
       void wakeup()
       {
         log_trace("Releasing sleep lock for "+ this->name_);
-        this->sleep_handler.notify_one();
+        this->sleep_handler.notify_all();
       }
 
       std::string get_format() {
@@ -399,7 +407,7 @@ namespace modules
       }
 
     public:
-      InotifyModule(std::string name)
+      explicit InotifyModule(std::string name)
         : Module<ModuleImpl>(name)
         , poll_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(ThrottleLimit), event_throttler::timewindow_t(ThrottleWindowMs))) {}
 
