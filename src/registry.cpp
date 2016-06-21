@@ -133,6 +133,7 @@ void Registry::notify(std::string module_name)
   std::unique_lock<std::mutex> wait_lck(this->wait_mtx);
 
   try {
+    this->logger->debug("Refreshing output for module: "+ module_name);
     mod_entry->module->refresh();
   } catch (Exception &e) {
     log_trace("Exception occurred in runner thread for: "+ module_name);
