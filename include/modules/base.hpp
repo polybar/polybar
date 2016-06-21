@@ -14,6 +14,7 @@
 #include "services/builder.hpp"
 #include "services/inotify.hpp"
 #include "services/logger.hpp"
+#include "services/event_throttler.hpp"
 #include "utils/config.hpp"
 #include "utils/string.hpp"
 #include "utils/concurrency.hpp"
@@ -97,12 +98,15 @@ namespace modules
 
       std::string name_;
       std::unique_ptr<Builder> builder;
+      std::unique_ptr<EventThrottler> broadcast_throttler;
       std::unique_ptr<ModuleFormatter> formatter;
       std::vector<std::thread> threads;
 
     public:
-      Module(const std::string& name, bool lazy_builder = true)
-        : name_("module/"+ name), builder(std::make_unique<Builder>(lazy_builder))
+      Module(std::string name, bool lazy_builder = true)
+        : name_("module/"+ name)
+        , builder(std::make_unique<Builder>(lazy_builder))
+        , broadcast_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(1), event_throttler::timewindow_t(25)))
       {
         this->enable(false);
         this->cache = "";
@@ -162,6 +166,10 @@ namespace modules
       void broadcast()
       {
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
+        if (!this->broadcast_throttler->passthrough()) {
+          log_trace("Throttled broadcast for: "+ this->name_);
+          return;
+        }
         broadcast_module_update(ConstCastModule(ModuleImpl).name());
       }
 
