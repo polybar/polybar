@@ -101,7 +101,7 @@ void BatteryModule::subthread_routine()
     this->sleep(dur);
   }
 
-  log_debug("Reached end of battery subthread");
+  log_trace("Reached end of battery subthread");
 }
 
 bool BatteryModule::on_event(InotifyEvent *event)
