@@ -54,16 +54,16 @@ BatteryModule::BatteryModule(std::string name_) : InotifyModule(name_)
     this->label_full = drawtypes::get_optional_config_label(
       name(), get_tag_name(TAG_LABEL_FULL), "%percentage%");
 
-  const auto capacity_path = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
-  const auto adapter_path = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
+  this->path_capacity = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
+  this->path_adapter = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
 
-  if (!io::file::exists(capacity_path))
-    throw ModuleError("[BatteryModule] The file \""+ capacity_path +"\" does not exist");
-  if (!io::file::exists(adapter_path))
-    throw ModuleError("[BatteryModule] The file \""+ adapter_path +"\" does not exist");
+  if (!io::file::exists(this->path_capacity))
+    throw ModuleError("[BatteryModule] The file \""+ this->path_capacity +"\" does not exist");
+  if (!io::file::exists(this->path_adapter))
+    throw ModuleError("[BatteryModule] The file \""+ this->path_adapter +"\" does not exist");
 
-  this->watch(capacity_path, InotifyEvent::ACCESSED);
-  this->watch(adapter_path, InotifyEvent::ACCESSED);
+  this->watch(this->path_capacity, InotifyEvent::ACCESSED);
+  this->watch(this->path_adapter, InotifyEvent::ACCESSED);
 }
 
 void BatteryModule::start()
@@ -110,20 +110,17 @@ bool BatteryModule::on_event(InotifyEvent *event)
     log_trace(event->filename);
 
   int state = STATE_UNKNOWN;
-
-  auto path_capacity  = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
-  auto path_status = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
-  auto status = io::file::get_contents(path_status);
+  auto status = io::file::get_contents(this->path_adapter);
 
   if (status.empty()) {
-    log_error("Failed to read "+ path_status);
+    log_error("Failed to read "+ this->path_adapter);
     return false;
   }
 
-  auto capacity = io::file::get_contents(path_capacity);
+  auto capacity = io::file::get_contents(this->path_capacity);
 
   if (capacity.empty()) {
-    log_error("Failed to read "+ path_capacity);
+    log_error("Failed to read "+ this->path_capacity);
     return false;
   }
 

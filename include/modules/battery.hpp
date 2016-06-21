@@ -42,6 +42,8 @@ namespace modules
       std::unique_ptr<drawtypes::Label> label_full_tokenized;
 
       std::string battery, adapter;
+      std::string path_capacity, path_adapter;
+
       concurrency::Atomic<int> state;
       concurrency::Atomic<int> percentage;
       int full_at;
