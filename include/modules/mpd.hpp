@@ -30,6 +30,8 @@ namespace modules
     static constexpr auto TAG_ICON_PLAY = "<icon-play>";
     static constexpr auto TAG_ICON_PAUSE = "<icon-pause>";
     static constexpr auto TAG_ICON_NEXT = "<icon-next>";
+    static constexpr auto TAG_ICON_SEEKB = "<icon-seekb>";
+    static constexpr auto TAG_ICON_SEEKF = "<icon-seekf>";
 
     static constexpr auto FORMAT_OFFLINE = "format-offline";
     static constexpr auto TAG_LABEL_OFFLINE = "<label-offline>";

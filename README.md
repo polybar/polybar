@@ -685,7 +685,9 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ;   <icon-play>
   ;   <icon-pause>
   ;   <icon-next>
-  format-online = <icon-prev> <icon-stop> <toggle> <icon-next>  <icon-repeat> <icon-random>  <bar-progress> <label-time>  <label-song>
+  ;   <icon-seekb>
+  ;   <icon-seekf>
+  format-online = <icon-prev> <icon-seekb> <icon-stop> <toggle> <icon-seekf> <icon-next>  <icon-repeat> <icon-random>  <bar-progress> <label-time>  <label-song>
 
   ; Available tags:
   ;   <label-offline>
@@ -713,6 +715,8 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   icon-stop = ⏹
   icon-prev = ⏮
   icon-next = ⏭
+  icon-seekb = ⏪
+  icon-seekf = ⏩
   icon-random = 🔀
   icon-repeat = 🔁
   ;icon-repeatone = 🔂

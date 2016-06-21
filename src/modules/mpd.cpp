@@ -23,7 +23,8 @@ MpdModule::MpdModule(std::string name_)
   this->formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG, {
     TAG_BAR_PROGRESS, TAG_TOGGLE,      TAG_LABEL_SONG,      TAG_LABEL_TIME,
     TAG_ICON_RANDOM,  TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV,
-    TAG_ICON_STOP,    TAG_ICON_PLAY,   TAG_ICON_PAUSE,      TAG_ICON_NEXT });
+    TAG_ICON_STOP,    TAG_ICON_PLAY,   TAG_ICON_PAUSE,      TAG_ICON_NEXT,
+    TAG_ICON_SEEKB,   TAG_ICON_SEEKF });
   this->formatter->add(FORMAT_OFFLINE, "", { TAG_LABEL_OFFLINE });
 
   if (this->formatter->has(TAG_ICON_PLAY) || this->formatter->has(TAG_TOGGLE))
@@ -36,6 +37,10 @@ MpdModule::MpdModule(std::string name_)
     this->icons->add("prev", drawtypes::get_config_icon(name(), get_tag_name(TAG_ICON_PREV)));
   if (this->formatter->has(TAG_ICON_NEXT))
     this->icons->add("next", drawtypes::get_config_icon(name(), get_tag_name(TAG_ICON_NEXT)));
+  if (this->formatter->has(TAG_ICON_SEEKB))
+    this->icons->add("seekb", drawtypes::get_config_icon(name(), get_tag_name(TAG_ICON_SEEKB)));
+  if (this->formatter->has(TAG_ICON_SEEKF))
+    this->icons->add("seekf", drawtypes::get_config_icon(name(), get_tag_name(TAG_ICON_SEEKF)));
   if (this->formatter->has(TAG_ICON_RANDOM))
     this->icons->add("random", drawtypes::get_config_icon(name(), get_tag_name(TAG_ICON_RANDOM)));
   if (this->formatter->has(TAG_ICON_REPEAT))
@@ -258,6 +263,10 @@ bool MpdModule::build(Builder *builder, std::string tag)
     icon_cmd(builder, EVENT_PLAY, this->icons->get("play"));
   else if (tag == TAG_ICON_NEXT)
     icon_cmd(builder, EVENT_NEXT, this->icons->get("next"));
+  else if (tag == TAG_ICON_SEEKB)
+    icon_cmd(builder, std::string(EVENT_SEEK).append("-5"), this->icons->get("seekb"));
+  else if (tag == TAG_ICON_SEEKF)
+    icon_cmd(builder, std::string(EVENT_SEEK).append("+5"), this->icons->get("seekf"));
   else
     return false;
 
