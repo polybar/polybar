@@ -12,7 +12,7 @@
 
 // Private
 
-void Builder::tag_open(char tag, const std::string& value) {
+void Builder::tag_open(char tag, std::string value) {
   this->append("%{"+ std::string({tag}) + value +"}");
 }
 
@@ -67,7 +67,7 @@ std::string Builder::flush()
   return string::replace_all(output, std::string(BUILDER_SPACE_TOKEN), " ");
 }
 
-void Builder::append(const std::string& text)
+void Builder::append(std::string text)
 {
   std::string str(text);
   auto len = str.length();
@@ -77,7 +77,7 @@ void Builder::append(const std::string& text)
     this->output += str;
 }
 
-void Builder::append_module_output(Alignment alignment, const std::string& module_output, bool margin_left, bool margin_right)
+void Builder::append_module_output(Alignment alignment, std::string module_output, bool margin_left, bool margin_right)
 {
   if (module_output.empty()) return;
 
@@ -102,7 +102,7 @@ void Builder::append_module_output(Alignment alignment, const std::string& modul
     this->output += std::string(margin, ' ');
 }
 
-void Builder::node(const std::string& str, bool add_space)
+void Builder::node(std::string str, bool add_space)
 {
   std::string::size_type n, m;
   std::string s(str);
@@ -182,7 +182,7 @@ void Builder::node(const std::string& str, bool add_space)
   if (add_space) this->space();
 }
 
-void Builder::node(const std::string& str, int font_index, bool add_space)
+void Builder::node(std::string str, int font_index, bool add_space)
 {
   this->font(font_index);
     this->node(str, add_space);
@@ -317,7 +317,7 @@ void Builder::font_close(bool force)
 
 // Back- and foreground
 
-void Builder::background(const std::string& color_)
+void Builder::background(std::string color_)
 {
   auto color(color_);
 
@@ -347,7 +347,7 @@ void Builder::background_close(bool force)
   this->tag_close('B');
 }
 
-void Builder::color(const std::string& color_)
+void Builder::color(std::string color_)
 {
   auto color(color_);
   if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
@@ -367,7 +367,7 @@ void Builder::color(const std::string& color_)
   this->tag_open('F', color);
 }
 
-void Builder::color_alpha(const std::string& alpha_)
+void Builder::color_alpha(std::string alpha_)
 {
   auto alpha(alpha_);
   std::string val = bar_opts().foreground;
@@ -394,7 +394,7 @@ void Builder::color_close(bool force)
 
 // Under- and overline
 
-void Builder::line_color(const std::string& color)
+void Builder::line_color(std::string color)
 {
   if (color.empty() && this->U > 0) this->line_color_close(true);
   if (color.empty() || color == this->U_value) return;
@@ -414,7 +414,7 @@ void Builder::line_color_close(bool force)
   this->tag_close('U');
 }
 
-void Builder::overline(const std::string& color)
+void Builder::overline(std::string color)
 {
   if (!color.empty()) this->line_color(color);
   if (this->o > 0) return;
@@ -431,7 +431,7 @@ void Builder::overline_close(bool force)
   this->append("%{-o}");
 }
 
-void Builder::underline(const std::string& color)
+void Builder::underline(std::string color)
 {
   if (!color.empty()) this->line_color(color);
   if (this->u > 0) return;

@@ -25,7 +25,7 @@ namespace xlib
     }
   };
 
-  // std::unique_ptr<Monitor> get_monitor(const std::string& monitor_name);
+  // std::unique_ptr<Monitor> get_monitor(std::string monitor_name);
 
   std::vector<std::unique_ptr<Monitor>> get_sorted_monitorlist();
 }

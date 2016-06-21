@@ -7,7 +7,7 @@
 
 namespace drawtypes
 {
-  std::unique_ptr<Animation> get_config_animation(const std::string& config_path, const std::string& animation_name, bool required)
+  std::unique_ptr<Animation> get_config_animation(std::string config_path, std::string animation_name, bool required)
   {
     std::vector<std::unique_ptr<Icon>> vec;
     std::vector<std::string> frames;

@@ -8,7 +8,7 @@
 class InotifyException : public Exception
 {
   public:
-    explicit InotifyException(const std::string& msg)
+    explicit InotifyException(std::string msg)
       : Exception("[Inotify] "+ msg){}
 };
 
@@ -48,7 +48,7 @@ class InotifyWatch
   int fd = -1, wd = -1, mask;
 
   public:
-    explicit InotifyWatch(const std::string& path, int mask = InotifyEvent::ALL);
+    explicit InotifyWatch(std::string path, int mask = InotifyEvent::ALL);
     ~InotifyWatch();
 
     std::string operator()() {

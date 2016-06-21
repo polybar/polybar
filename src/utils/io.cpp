@@ -18,7 +18,7 @@ namespace io
 {
   namespace socket
   {
-    int open(const std::string& path)
+    int open(std::string path)
     {
       int fd;
       struct sockaddr_un sock_addr;
@@ -39,7 +39,7 @@ namespace io
       return fd;
     }
 
-    int send(int fd, const std::string& data, int flags)
+    int send(int fd, std::string data, int flags)
     {
       int bytes = ::send(fd, data.c_str(), data.size()+1, flags);
       if (bytes == -1)
@@ -60,13 +60,13 @@ namespace io
 
   namespace file
   {
-    bool exists(const std::string& fname)
+    bool exists(std::string fname)
     {
       struct stat buffer;
       return (stat(fname.c_str(), &buffer) == 0);
     }
 
-    std::string get_contents(const std::string& fname)
+    std::string get_contents(std::string fname)
     {
       try {
         std::ifstream ifs(fname);
@@ -80,7 +80,7 @@ namespace io
       }
     }
 
-    bool is_fifo(const std::string& fname)
+    bool is_fifo(std::string fname)
     {
       FILE *fp = fopen(fname.c_str(), "r");
       int fd = fileno(fp);
@@ -91,12 +91,12 @@ namespace io
       return is_fifo;
     }
 
-    std::size_t write(io::file::FilePtr *fptr, const std::string& data) {
+    std::size_t write(io::file::FilePtr *fptr, std::string data) {
       auto buf = data.c_str();
       return fwrite(buf, sizeof(char), sizeof(buf), (*fptr)());
     }
 
-    std::size_t write(const std::string& fpath, const std::string& data) {
+    std::size_t write(std::string fpath, std::string data) {
       return io::file::write(std::make_unique<FilePtr>(fpath, "a+").get(), data);
     }
   }
@@ -157,11 +157,11 @@ namespace io
     return readline(read_fd, bytes_read);
   }
 
-  int write(int write_fd, const std::string& data) {
+  int write(int write_fd, std::string data) {
     return ::write(write_fd, data.c_str(), strlen(data.c_str()));
   }
 
-  int writeline(int write_fd, const std::string& data)
+  int writeline(int write_fd, std::string data)
   {
     if (data.length() == 0) return -1;
     if (data.substr(data.length()-1, 1) != "\n")

@@ -17,7 +17,7 @@ using namespace Bspwm;
 #define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon%  %name%"
 
-BspwmModule::BspwmModule(const std::string& name_, const std::string& monitor)
+BspwmModule::BspwmModule(std::string name_, std::string monitor)
   : EventModule(name_), monitor(monitor)
 {
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
@@ -193,7 +193,7 @@ bool BspwmModule::update()
   return true;
 }
 
-bool BspwmModule::build(Builder *builder, const std::string& tag)
+bool BspwmModule::build(Builder *builder, std::string tag)
 {
   if (tag != TAG_LABEL_STATE)
     return false;
@@ -218,7 +218,7 @@ bool BspwmModule::build(Builder *builder, const std::string& tag)
   return true;
 }
 
-bool BspwmModule::handle_command(const std::string& cmd)
+bool BspwmModule::handle_command(std::string cmd)
 {
   if (cmd.find(EVENT_CLICK) == std::string::npos || cmd.length() <= std::strlen(EVENT_CLICK))
     return false;

@@ -87,7 +87,7 @@ namespace alsa
   // }}}
   // Mixer {{{
 
-  Mixer::Mixer(const std::string& mixer_control_name)
+  Mixer::Mixer(std::string mixer_control_name)
   {
     snd_mixer_selem_id_t *mixer_id;
 

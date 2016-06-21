@@ -21,20 +21,20 @@ namespace config
   static std::recursive_mutex mtx;
 
   std::string get_bar_path();
-  void set_bar_path(const std::string& path);
+  void set_bar_path(std::string path);
 
-  void load(const std::string& path);
-  void load(const char *dir, const std::string& path);
+  void load(std::string path);
+  void load(const char *dir, std::string path);
   // void reload();
 
   boost::property_tree::ptree get_tree();
 
-  std::string build_path(const std::string& section, const std::string& key);
+  std::string build_path(std::string section, std::string key);
 
   std::string get_file_path();
 
   template<typename T>
-  T dereference_var(const std::string& ref_section, const std::string& ref_key, const std::string& var, const T ref_val)
+  T dereference_var(std::string ref_section, std::string ref_key, std::string var, const T ref_val)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -63,7 +63,7 @@ namespace config
   }
 
   template<typename T>
-  T get(const std::string& section, const std::string& key)
+  T get(std::string section, std::string key)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -78,7 +78,7 @@ namespace config
   }
 
   template<typename T>
-  T get(const std::string& section, const std::string& key, T default_value)
+  T get(std::string section, std::string key, T default_value)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -89,7 +89,7 @@ namespace config
   }
 
   template<typename T>
-  std::vector<T> get_list(const std::string& section, const std::string& key)
+  std::vector<T> get_list(std::string section, std::string key)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
@@ -108,7 +108,7 @@ namespace config
   }
 
   template<typename T>
-  std::vector<T> get_list(const std::string& section, const std::string& key, std::vector<T> default_value)
+  std::vector<T> get_list(std::string section, std::string key, std::vector<T> default_value)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 

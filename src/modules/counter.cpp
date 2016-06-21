@@ -6,7 +6,7 @@
 
 using namespace modules;
 
-CounterModule::CounterModule(const std::string& module_name) : TimerModule(module_name, 1s)
+CounterModule::CounterModule(std::string module_name) : TimerModule(module_name, 1s)
 {
   this->interval = std::chrono::duration<double>(
     config::get<float>(name(), "interval", 1));
@@ -22,7 +22,7 @@ bool CounterModule::update()
   return true;
 }
 
-bool CounterModule::build(Builder *builder, const std::string& tag)
+bool CounterModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_COUNTER) {
     builder->node(std::to_string(this->counter()));

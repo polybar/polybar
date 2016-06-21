@@ -12,23 +12,23 @@ namespace cli
   std::vector<Option> options;
   std::map<std::string, std::string> values;
 
-  void add_option(const std::string& opt_short, const std::string& opt_long, const std::string& help) {
+  void add_option(std::string opt_short, std::string opt_long, std::string help) {
     add_option(opt_short, opt_long, "", help);
   }
 
-  void add_option(const std::string& opt_short, const std::string& opt_long, const std::string& placeholder, const std::string& help, std::vector<std::string> accept) {
+  void add_option(std::string opt_short, std::string opt_long, std::string placeholder, std::string help, std::vector<std::string> accept) {
     options.emplace_back(Option(opt_short, opt_long, placeholder, accept, help));
   }
 
-  bool is_option(char *opt, const std::string& opt_short, const std::string& opt_long) {
+  bool is_option(char *opt, std::string opt_short, std::string opt_long) {
     return is_option_short(opt, opt_short) || is_option_long(opt, opt_long);
   }
 
-  bool is_option_short(char *opt, const std::string& opt_short) {
+  bool is_option_short(char *opt, std::string opt_short) {
     return std::strncmp(opt, opt_short.c_str(), opt_short.length()) ==  0;
   }
 
-  bool is_option_long(char *opt, const std::string& opt_long) {
+  bool is_option_long(char *opt, std::string opt_long) {
     return std::strncmp(opt, opt_long.c_str(), opt_long.length()) == 0;
   }
 
@@ -52,18 +52,18 @@ namespace cli
     return value;
   }
 
-  bool has_option(const std::string& opt) {
+  bool has_option(std::string opt) {
     return values.find(opt) != values.end();
   }
 
-  std::string get_option_value(const std::string& opt)
+  std::string get_option_value(std::string opt)
   {
     if (has_option(opt))
       return values.find(opt)->second;
     else return "";
   }
 
-  bool match_option_value(const std::string& opt, const std::string& val) {
+  bool match_option_value(std::string opt, std::string val) {
     return get_option_value(opt) == val;
   }
 
@@ -86,7 +86,7 @@ namespace cli
     }
   }
 
-  void usage(const std::string& usage, bool exit_success)
+  void usage(std::string usage, bool exit_success)
   {
     int longest_n = 0;
 

@@ -20,7 +20,7 @@ struct Font
   std::string id;
   int offset;
 
-  Font(const std::string& id, int offset)
+  Font(std::string id, int offset)
     : id(id), offset(offset){}
 };
 

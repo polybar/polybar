@@ -24,9 +24,9 @@ namespace modules
     std::atomic<int> percentage_free;
 
     public:
-      explicit MemoryModule(const std::string& name);
+      explicit MemoryModule(std::string name);
 
       bool update();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
   };
 }

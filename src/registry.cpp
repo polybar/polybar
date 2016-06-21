@@ -111,7 +111,7 @@ bool Registry::wait()
   return true;
 }
 
-void Registry::notify(const std::string& module_name)
+void Registry::notify(std::string module_name)
 {
   log_trace(module_name +" - STAGE "+ std::to_string(this->stage()));
 
@@ -145,12 +145,12 @@ void Registry::notify(const std::string& module_name)
   this->wait_cv.notify_one();
 }
 
-std::string Registry::get(const std::string& module_name)
+std::string Registry::get(std::string module_name)
 {
   return (*this->find(module_name)->module)();
 }
 
-std::unique_ptr<RegistryModuleEntry>& Registry::find(const std::string& module_name)
+std::unique_ptr<RegistryModuleEntry>& Registry::find(std::string module_name)
 {
   for (auto &&entry : this->modules)
     if (entry->module->name() == module_name)

@@ -5,7 +5,7 @@
 
 using namespace modules;
 
-TextModule::TextModule(const std::string& name_) : StaticModule(name_) {
+TextModule::TextModule(std::string name_) : StaticModule(name_) {
   this->formatter->add(FORMAT, "", {});
   if (this->formatter->get(FORMAT)->value.empty())
     throw UndefinedFormat(FORMAT);

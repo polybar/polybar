@@ -9,7 +9,7 @@ namespace modules
     static constexpr auto FORMAT = "content";
 
     public:
-      explicit TextModule(const std::string& name);
+      explicit TextModule(std::string name);
 
       std::string get_format();
       std::string get_output();

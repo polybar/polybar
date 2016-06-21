@@ -6,7 +6,7 @@
 
 using namespace modules;
 
-DateModule::DateModule(const std::string& name_)
+DateModule::DateModule(std::string name_)
   : TimerModule(name_, 1s), builder(std::make_unique<Builder>())
 {
   this->interval = std::chrono::duration<double>(
@@ -42,14 +42,14 @@ std::string DateModule::get_output()
   return this->builder->flush();
 }
 
-bool DateModule::build(Builder *builder, const std::string& tag)
+bool DateModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_DATE)
     builder->node(this->date_str);
   return tag == TAG_DATE;
 }
 
-bool DateModule::handle_command(const std::string& cmd)
+bool DateModule::handle_command(std::string cmd)
 {
   if (cmd == EVENT_TOGGLE) {
     this->detailed = !this->detailed;

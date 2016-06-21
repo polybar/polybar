@@ -5,7 +5,7 @@
 
 using namespace modules;
 
-MenuModule::MenuModule(const std::string& name_) : StaticModule(name_)
+MenuModule::MenuModule(std::string name_) : StaticModule(name_)
 {
   auto default_format_string = std::string(TAG_LABEL_TOGGLE) +" "+ std::string(TAG_MENU);
 
@@ -59,7 +59,7 @@ std::string MenuModule::get_output()
   return this->builder->flush();
 }
 
-bool MenuModule::build(Builder *builder, const std::string& tag)
+bool MenuModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_LABEL_TOGGLE && this->current_level == -1) {
     builder->cmd(Cmd::LEFT_CLICK, std::string(EVENT_MENU_OPEN) +"0");
@@ -94,7 +94,7 @@ bool MenuModule::build(Builder *builder, const std::string& tag)
   return true;
 }
 
-bool MenuModule::handle_command(const std::string& cmd)
+bool MenuModule::handle_command(std::string cmd)
 {
   std::lock_guard<std::mutex> lck(this->cmd_mtx);
 

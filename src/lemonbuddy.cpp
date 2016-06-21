@@ -38,7 +38,7 @@ void unregister_pid(pid_t pid) {
   std::lock_guard<std::mutex> lck(pid_mtx);
   pids.erase(std::remove(pids.begin(), pids.end(), pid), pids.end());
 }
-void register_command_handler(const std::string& module_name) {
+void register_command_handler(std::string module_name) {
   eventloop->add_stdin_subscriber(module_name);
 }
 
@@ -191,7 +191,8 @@ int main(int argc, char **argv)
   if (eventloop)
     eventloop->cleanup();
 
-  while (proc::wait_for_completion_nohang() > 0);
+  while (proc::wait_for_completion_nohang() > 0)
+    ;
 
   log_trace("Reached end of application");
 

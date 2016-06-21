@@ -6,7 +6,7 @@
 
 using namespace modules;
 
-ScriptModule::ScriptModule(const std::string& name_)
+ScriptModule::ScriptModule(std::string name_)
   : TimerModule(name_, 1s), builder(std::make_unique<Builder>(true)), counter(0)
 {
   // Load configuration values {{{
@@ -116,7 +116,7 @@ std::string ScriptModule::get_output()
   return this->builder->flush();
 }
 
-bool ScriptModule::build(Builder *builder, const std::string& tag)
+bool ScriptModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_OUTPUT)
     builder->node(string::replace_all(this->output, "\n", ""));

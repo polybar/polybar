@@ -17,7 +17,7 @@ const int modules::BatteryModule::STATE_CHARGING;
 const int modules::BatteryModule::STATE_DISCHARGING;
 const int modules::BatteryModule::STATE_FULL;
 
-BatteryModule::BatteryModule(const std::string& name_) : InotifyModule(name_)
+BatteryModule::BatteryModule(std::string name_) : InotifyModule(name_)
 {
   this->battery = config::get<std::string>(name(), "battery", "BAT0");
   this->adapter = config::get<std::string>(name(), "adapter", "ADP1");
@@ -179,7 +179,7 @@ std::string BatteryModule::get_format()
     return FORMAT_DISCHARGING;
 }
 
-bool BatteryModule::build(Builder *builder, const std::string& tag)
+bool BatteryModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_ANIMATION_CHARGING)
     builder->node(this->animation_charging);

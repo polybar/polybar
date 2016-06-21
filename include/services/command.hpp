@@ -22,14 +22,14 @@ class Command
     int fork_status;
 
   public:
-    Command(const std::string& cmd, int stdout[2] = nullptr, int stdin[2] = nullptr);
+    Command(std::string cmd, int stdout[2] = nullptr, int stdin[2] = nullptr);
     ~Command();
 
     int exec(bool wait_for_completion = true);
     int wait();
 
     void tail(std::function<void(std::string)> callback);
-    int writeline(const std::string& data);
+    int writeline(std::string data);
 
     int get_stdout(int);
     // int get_stdin(int);

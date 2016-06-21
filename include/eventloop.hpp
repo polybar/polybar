@@ -51,5 +51,5 @@ class EventLoop
 
     void cleanup(int timeout_ms = 5000);
 
-    void add_stdin_subscriber(const std::string& module_name);
+    void add_stdin_subscriber(std::string module_name);
 };

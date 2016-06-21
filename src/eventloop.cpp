@@ -98,7 +98,7 @@ void EventLoop::wait()
   this->logger->info("Termination signal received... Shutting down");
 }
 
-void EventLoop::add_stdin_subscriber(const std::string& module_name)
+void EventLoop::add_stdin_subscriber(std::string module_name)
 {
   // this->stdin_subs.insert(std::make_pair("TAG", module_name));
   this->stdin_subs.emplace_back(module_name);

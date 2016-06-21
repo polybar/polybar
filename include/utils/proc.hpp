@@ -24,7 +24,7 @@ namespace proc
 
   pid_t fork();
   bool pipe(int fds[2]);
-  void exec(const std::string& cmd);
+  void exec(std::string cmd);
 
   bool kill(pid_t pid, int sig = SIGTERM);
 

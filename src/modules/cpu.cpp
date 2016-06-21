@@ -7,7 +7,7 @@
 
 using namespace modules;
 
-CpuModule::CpuModule(const std::string& name_) : TimerModule(name_, 1s)
+CpuModule::CpuModule(std::string name_) : TimerModule(name_, 1s)
 {
   this->interval = std::chrono::duration<double>(
     config::get<float>(name(), "interval", 1));
@@ -60,7 +60,7 @@ bool CpuModule::update()
   return true;
 }
 
-bool CpuModule::build(Builder *builder, const std::string& tag)
+bool CpuModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_LABEL)
     builder->node(this->label_tokenized);

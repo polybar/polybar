@@ -11,7 +11,7 @@ using namespace modules;
 
 // TODO: Add up-/download speed (check how ifconfig read the bytes)
 
-NetworkModule::NetworkModule(const std::string& name_)
+NetworkModule::NetworkModule(std::string name_)
   : TimerModule(name_, 1s), connected(false), conseq_packetloss(false)
 {
   static const auto DEFAULT_FORMAT_CONNECTED = TAG_LABEL_CONNECTED;
@@ -179,7 +179,7 @@ std::string NetworkModule::get_format()
     return FORMAT_CONNECTED;
 }
 
-bool NetworkModule::build(Builder *builder, const std::string& tag)
+bool NetworkModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_LABEL_CONNECTED)
     builder->node(this->label_connected_tokenized);

@@ -4,7 +4,7 @@
 
 using namespace modules;
 
-BacklightModule::BacklightModule(const std::string& name_) : InotifyModule(name_)
+BacklightModule::BacklightModule(std::string name_) : InotifyModule(name_)
 {
   // Load configuration values
   auto card = config::get<std::string>(name(), "card");
@@ -57,7 +57,7 @@ bool BacklightModule::on_event(InotifyEvent *event)
   return true;
 }
 
-bool BacklightModule::build(Builder *builder, const std::string& tag)
+bool BacklightModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_BAR)
     builder->node(this->bar, this->percentage());

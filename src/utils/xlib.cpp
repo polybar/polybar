@@ -59,7 +59,7 @@ namespace xlib
     return monitors;
   }
 
-  // std::unique_ptr<Monitor> get_monitor(const std::string& n_monitorsame)
+  // std::unique_ptr<Monitor> get_monitor(std::string n_monitorsame)
   // {
   //   auto monitor = std::make_unique<Monitor>();
   //   int n_monitors;

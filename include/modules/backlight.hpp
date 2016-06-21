@@ -24,10 +24,10 @@ namespace modules
     concurrency::Atomic<int> percentage;
 
     public:
-      explicit BacklightModule(const std::string& name);
+      explicit BacklightModule(std::string name);
 
       bool on_event(InotifyEvent *event);
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
       void idle() const
       {

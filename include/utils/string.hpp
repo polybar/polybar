@@ -5,27 +5,27 @@
 
 namespace string
 {
-  bool compare(const std::string& s1, const std::string& s2);
+  bool compare(std::string s1, std::string s2);
 
-  // std::string upper(const std::string& s);
-  std::string lower(const std::string& s);
+  // std::string upper(std::string s);
+  std::string lower(std::string s);
 
-  std::string replace(const std::string& haystack, const std::string& needle, const std::string& replacement);
-  std::string replace_all(const std::string& haystack, const std::string& needle, const std::string& replacement);
+  std::string replace(std::string haystack, std::string needle, std::string replacement);
+  std::string replace_all(std::string haystack, std::string needle, std::string replacement);
 
-  std::string squeeze(const std::string& haystack, const char &needle);
+  std::string squeeze(std::string haystack, const char &needle);
 
-  // std::string strip(const std::string& haystack, const char &needle);
-  std::string strip_trailing_newline(const std::string& s);
+  // std::string strip(std::string haystack, const char &needle);
+  std::string strip_trailing_newline(std::string s);
 
-  std::string trim(const std::string& haystack, const char &needle);
-  std::string ltrim(const std::string& haystack, const char &needle);
-  std::string rtrim(const std::string& haystack, const char &needle);
+  std::string trim(std::string haystack, const char &needle);
+  std::string ltrim(std::string haystack, const char &needle);
+  std::string rtrim(std::string haystack, const char &needle);
 
-  std::string join(const std::vector<std::string> &strs, const std::string& delim);
+  std::string join(const std::vector<std::string> &strs, std::string delim);
 
-  std::vector<std::string> split(const std::string& s, const char &delim);
-  std::vector<std::string> &split_into(const std::string& s, const char &delim, std::vector<std::string> &elems);
+  std::vector<std::string> split(std::string s, const char &delim);
+  std::vector<std::string> &split_into(std::string s, const char &delim, std::vector<std::string> &elems);
 
-  std::size_t find_nth(const std::string& haystack, std::size_t pos, const std::string& needle, std::size_t nth);
+  std::size_t find_nth(std::string haystack, std::size_t pos, std::string needle, std::size_t nth);
 }

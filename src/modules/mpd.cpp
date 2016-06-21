@@ -10,7 +10,7 @@
 using namespace modules;
 using namespace mpd;
 
-MpdModule::MpdModule(const std::string& name_)
+MpdModule::MpdModule(std::string name_)
   : EventModule(name_), icons(std::make_unique<drawtypes::IconMap>())
 {
   // Load configuration values {{{
@@ -205,7 +205,7 @@ std::string MpdModule::get_format() {
   return this->mpd->connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
 }
 
-bool MpdModule::build(Builder *builder, const std::string& tag)
+bool MpdModule::build(Builder *builder, std::string tag)
 {
   auto icon_cmd = [](Builder *builder, std::string cmd, std::unique_ptr<drawtypes::Icon> &icon){
     builder->cmd(Cmd::LEFT_CLICK, cmd);
@@ -256,7 +256,7 @@ bool MpdModule::build(Builder *builder, const std::string& tag)
   return true;
 }
 
-bool MpdModule::handle_command(const std::string& cmd)
+bool MpdModule::handle_command(std::string cmd)
 {
   if (cmd.length() < 3 || cmd.substr(0, 3) != "mpd")
     return false;

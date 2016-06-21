@@ -13,8 +13,8 @@ namespace io
 {
   namespace socket
   {
-    int open(const std::string& path);
-    int send(int fd, const std::string& data, int flags = 0);
+    int open(std::string path);
+    int send(int fd, std::string data, int flags = 0);
     int recv(int fd, char *buffer, int recv_bytes, int flags = 0);
   }
 
@@ -28,7 +28,7 @@ namespace io
         std::string path;
         std::string mode;
 
-        FilePtr(const std::string& path, const std::string& mode = "a+")
+        FilePtr(std::string path, std::string mode = "a+")
           : path(std::string(path)), mode(std::string(mode))
         {
           this->fptr = fopen(this->path.c_str(), this->mode.c_str());
@@ -49,11 +49,11 @@ namespace io
         }
     };
 
-    bool exists(const std::string& fname);
-    std::string get_contents(const std::string& fname);
-    bool is_fifo(const std::string& fname);
-    std::size_t write(FilePtr *fptr, const std::string& data);
-    std::size_t write(const std::string& fpath, const std::string& data);
+    bool exists(std::string fname);
+    std::string get_contents(std::string fname);
+    bool is_fifo(std::string fname);
+    std::size_t write(FilePtr *fptr, std::string data);
+    std::size_t write(std::string fpath, std::string data);
   }
 
   std::string read(int read_fd, int bytes_to_read = -1);
@@ -61,8 +61,8 @@ namespace io
   std::string readline(int read_fd, int &bytes_read);
   std::string readline(int read_fd);
 
-  int write(int write_fd, const std::string& data);
-  int writeline(int write_fd, const std::string& data);
+  int write(int write_fd, std::string data);
+  int writeline(int write_fd, std::string data);
 
   void tail(int read_fd, std::function<void(std::string)> callback);
   void tail(int read_fd, int writeback_fd);

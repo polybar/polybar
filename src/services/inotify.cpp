@@ -8,7 +8,7 @@
 #include "utils/macros.hpp"
 #include "utils/proc.hpp"
 
-InotifyWatch::InotifyWatch(const std::string& path, int mask)
+InotifyWatch::InotifyWatch(std::string path, int mask)
 {
   log_trace("Installing watch at: "+ path);
 

@@ -66,13 +66,13 @@ namespace modules
     std::string prev_data;
 
     public:
-      BspwmModule(const std::string& name, const std::string& monitor);
+      BspwmModule(std::string name, std::string monitor);
       ~BspwmModule() { close(this->socket_fd); }
 
       void start();
       bool has_event();
       bool update();
-      bool build(Builder *builder, const std::string& tag);
-      bool handle_command(const std::string& cmd);
+      bool build(Builder *builder, std::string tag);
+      bool handle_command(std::string cmd);
   };
 }

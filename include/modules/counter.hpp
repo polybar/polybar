@@ -11,9 +11,9 @@ namespace modules
     concurrency::Atomic<int> counter;
 
     public:
-      explicit CounterModule(const std::string& name);
+      explicit CounterModule(std::string name);
 
       bool update();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
   };
 }

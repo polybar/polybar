@@ -42,7 +42,6 @@ class ModuleFormatter
     {
       std::string value;
       std::vector<std::string> tags;
-
       std::string fg, bg, ul, ol;
       int spacing, padding, margin, offset;
 
@@ -78,7 +77,7 @@ class ModuleFormatter
   std::map<std::string, std::unique_ptr<Format>> formats;
 
   public:
-    explicit ModuleFormatter(const std::string& module_name)
+    explicit ModuleFormatter(std::string module_name)
       : module_name(module_name) {}
 
     void add(const std::string& name, const std::string& fallback, std::vector<std::string> &&tags, std::vector<std::string> &&whitelist = {})
@@ -136,8 +135,8 @@ class ModuleFormatter
 
 namespace modules
 {
-  void broadcast_module_update(const std::string& module_name);
-  std::string get_tag_name(const std::string& tag);
+  void broadcast_module_update(std::string module_name);
+  std::string get_tag_name(std::string tag);
 
   struct ModuleInterface
   {
@@ -152,7 +151,7 @@ namespace modules
 
       virtual std::string operator()() = 0;
 
-      virtual bool handle_command(const std::string& cmd) = 0;
+      virtual bool handle_command(std::string cmd) = 0;
   };
 
   template<typename ModuleImpl>
@@ -219,7 +218,7 @@ namespace modules
         return this->cache();
       }
 
-      bool handle_command(const std::string& cmd) {
+      bool handle_command(std::string cmd) {
         return CastModule(ModuleImpl)->handle_command(cmd);
       }
 
@@ -309,7 +308,7 @@ namespace modules
         this->threads.emplace_back(std::thread(&StaticModule::broadcast, this));
       }
 
-      bool build(Builder *builder, const std::string& tag)
+      bool build(Builder *builder, std::string tag)
       {
         return true;
       }
@@ -336,7 +335,7 @@ namespace modules
 
     public:
       template<typename I>
-      TimerModule(const std::string& name, I const &interval)
+      TimerModule(std::string name, I const &interval)
         : Module<ModuleImpl>(name), interval(interval) {}
 
       void start()

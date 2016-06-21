@@ -63,15 +63,15 @@ namespace modules
     int ipc_fd = -1;
 
     public:
-      i3Module(const std::string& name, const std::string& monitor);
+      i3Module(std::string name, std::string monitor);
 
       void start();
       void stop();
 
       bool has_event();
       bool update();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
-      bool handle_command(const std::string& cmd);
+      bool handle_command(std::string cmd);
   };
 }

@@ -34,5 +34,5 @@ namespace drawtypes
       }
   };
 
-  std::unique_ptr<Animation> get_config_animation(const std::string& config_path, const std::string& animation_name = "animation", bool required = true);
+  std::unique_ptr<Animation> get_config_animation(std::string config_path, std::string animation_name = "animation", bool required = true);
 }

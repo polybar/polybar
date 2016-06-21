@@ -13,14 +13,14 @@
 
 namespace net
 {
-  bool is_wireless_interface(const std::string& ifname);
+  bool is_wireless_interface(std::string ifname);
 
   // Network
 
   class NetworkException : public Exception
   {
     public:
-      explicit NetworkException(const std::string& msg)
+      explicit NetworkException(std::string msg)
         : Exception("[Network] "+ msg){}
   };
 
@@ -36,7 +36,7 @@ namespace net
       bool test_connection();
 
     public:
-      explicit Network(const std::string& interface);
+      explicit Network(std::string interface);
       ~Network();
 
       virtual bool connected();
@@ -56,7 +56,7 @@ namespace net
     int linkspeed = 0;
 
     public:
-      explicit WiredNetwork(const std::string& interface);
+      explicit WiredNetwork(std::string interface);
 
       std::string get_link_speed();
   };
@@ -72,7 +72,7 @@ namespace net
     struct iwreq iw;
 
     public:
-      explicit WirelessNetwork(const std::string& interface);
+      explicit WirelessNetwork(std::string interface);
 
       std::string get_essid();
       float get_signal_dbm();

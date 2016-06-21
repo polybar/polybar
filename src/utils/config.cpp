@@ -8,7 +8,7 @@ namespace config
   std::string file_path;
   std::string bar_path;
 
-  void set_bar_path(const std::string &path)
+  void set_bar_path(std::string path)
   {
     bar_path = path;
   }
@@ -18,7 +18,7 @@ namespace config
     return bar_path;
   }
 
-  void load(const std::string& path)
+  void load(std::string path)
   {
     if (!io::file::exists(path)) {
       throw UnexistingFileError("Could not find configuration file \""+ path + "\"");
@@ -35,7 +35,7 @@ namespace config
     file_path = path;
   }
 
-  void load(const char *dir, const std::string& path) {
+  void load(const char *dir, std::string path) {
     load(std::string(dir != nullptr ? dir : "") +"/"+ path);
   }
 
@@ -52,7 +52,7 @@ namespace config
     return pt;
   }
 
-  std::string build_path(const std::string& section, const std::string& key) {
+  std::string build_path(std::string section, std::string key) {
     return section +"."+ key;
   }
 

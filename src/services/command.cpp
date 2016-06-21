@@ -27,7 +27,7 @@
  * std::cout << cmd->readline(); //---> 1
  * std::cout << cmd->readline() << cmd->readline(); //---> 23
  */
-Command::Command(const std::string& cmd, int stdout[2], int stdin[2])
+Command::Command(std::string cmd, int stdout[2], int stdin[2])
   : cmd(cmd)
 {
   if (stdin != nullptr) {
@@ -135,7 +135,7 @@ void Command::tail(std::function<void(std::string)> callback) {
   io::tail(this->fd_stdout[PIPE_READ], callback);
 }
 
-int Command::writeline(const std::string& data) {
+int Command::writeline(std::string data) {
   return io::writeline(this->fd_stdin[PIPE_WRITE], data);
 }
 

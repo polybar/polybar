@@ -49,12 +49,12 @@ namespace modules
       void subthread_routine();
 
     public:
-      explicit BatteryModule(const std::string& name);
+      explicit BatteryModule(std::string name);
 
       void start();
 
       bool on_event(InotifyEvent *event);
       std::string get_format();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
   };
 }

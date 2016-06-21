@@ -65,15 +65,15 @@ namespace modules
     std::string progress_fill, progress_empty, progress_indicator;
 
     public:
-      explicit MpdModule(const std::string& name);
+      explicit MpdModule(std::string name);
       ~MpdModule();
 
       void start();
       bool has_event();
       bool update();
       std::string get_format();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
-      bool handle_command(const std::string& cmd);
+      bool handle_command(std::string cmd);
   };
 }

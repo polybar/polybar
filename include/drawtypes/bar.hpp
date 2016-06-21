@@ -24,7 +24,7 @@ namespace drawtypes
       std::unique_ptr<Icon> indicator;
 
     public:
-      Bar(int width, const std::string& fmt, bool lazy_builder_closing = true);
+      Bar(int width, std::string fmt, bool lazy_builder_closing = true);
       Bar(int width, bool lazy_builder_closing = true)
         : Bar(width, "<fill><indicator><empty>", lazy_builder_closing){}
 
@@ -38,5 +38,5 @@ namespace drawtypes
       std::string get_output(float percentage, bool floor_percentage = false);
   };
 
-  std::unique_ptr<Bar> get_config_bar(const std::string& config_path, const std::string& bar_name = "bar", bool lazy_builder_closing = true);
+  std::unique_ptr<Bar> get_config_bar(std::string config_path, std::string bar_name = "bar", bool lazy_builder_closing = true);
 }

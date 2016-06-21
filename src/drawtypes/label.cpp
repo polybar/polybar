@@ -9,7 +9,7 @@ namespace drawtypes
       this->text, this->fg, this->bg, this->ul, this->ol, this->font, this->padding, this->margin) };
   }
 
-  void Label::replace_token(const std::string& token, const std::string& replacement) {
+  void Label::replace_token(std::string token, std::string replacement) {
     this->text = string::replace_all(this->text, token, replacement);
   }
 
@@ -21,7 +21,7 @@ namespace drawtypes
     if (!label->ol.empty()) this->ol = label->ol;
   }
 
-  std::unique_ptr<Label> get_config_label(const std::string& config_path, const std::string& label_name, bool required, const std::string& def)
+  std::unique_ptr<Label> get_config_label(std::string config_path, std::string label_name, bool required, std::string def)
   {
     std::string label;
 
@@ -40,7 +40,7 @@ namespace drawtypes
       config::get<int>(config_path, label_name +"-margin", 0)) };
   }
 
-  std::unique_ptr<Label> get_optional_config_label(const std::string& config_path, const std::string& label_name, const std::string& def) {
+  std::unique_ptr<Label> get_optional_config_label(std::string config_path, std::string label_name, std::string def) {
     return get_config_label(config_path, label_name, false, def);
   }
 }

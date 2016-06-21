@@ -34,7 +34,7 @@ class Builder
     int T_value = 1;
     std::string B_value = "", F_value = "", U_value = "";
 
-    void tag_open(char tag, const std::string& value);
+    void tag_open(char tag, std::string value);
     void tag_close(char tag);
 
     void align_left();
@@ -48,11 +48,11 @@ class Builder
 
     std::string flush();
 
-    void append(const std::string& node);
-    void append_module_output(Alignment alignment, const std::string& module_output, bool margin_left = true, bool margin_right = true);
+    void append(std::string node);
+    void append_module_output(Alignment alignment, std::string module_output, bool margin_left = true, bool margin_right = true);
 
-    void node(const std::string& str, bool add_space = false);
-    void node(const std::string& str, int font_index, bool add_space = false);
+    void node(std::string str, bool add_space = false);
+    void node(std::string str, int font_index, bool add_space = false);
 
     void node(drawtypes::Bar *bar, float percentage, bool add_space = false);
     void node(std::unique_ptr<drawtypes::Bar> &bar, float percentage, bool add_space = false);
@@ -76,20 +76,20 @@ class Builder
     void font(int index);
     void font_close(bool force = false);
 
-    void background(const std::string& color);
+    void background(std::string color);
     void background_close(bool force = false);
 
-    void color(const std::string& color);
-    void color_alpha(const std::string& alpha);
+    void color(std::string color);
+    void color_alpha(std::string alpha);
     void color_close(bool force = false);
 
-    void line_color(const std::string& color);
+    void line_color(std::string color);
     void line_color_close(bool force = false);
 
-    void overline(const std::string& color = "");
+    void overline(std::string color = "");
     void overline_close(bool force = false);
 
-    void underline(const std::string& color = "");
+    void underline(std::string color = "");
     void underline_close(bool force = false);
 
     // void invert();

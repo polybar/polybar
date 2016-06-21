@@ -22,7 +22,7 @@ using namespace modules;
 // TODO: Needs more testing
 // TODO: Add mode indicators
 
-i3Module::i3Module(const std::string& name_, const std::string& monitor) : EventModule(name_)
+i3Module::i3Module(std::string name_, std::string monitor) : EventModule(name_)
 {
   try {
     this->ipc = std::make_unique<i3ipc::connection>();
@@ -152,7 +152,7 @@ bool i3Module::update()
   return true;
 }
 
-bool i3Module::build(Builder *builder, const std::string& tag)
+bool i3Module::build(Builder *builder, std::string tag)
 {
   if (tag != TAG_LABEL_STATE)
     return false;
@@ -166,7 +166,7 @@ bool i3Module::build(Builder *builder, const std::string& tag)
   return true;
 }
 
-bool i3Module::handle_command(const std::string& cmd)
+bool i3Module::handle_command(std::string cmd)
 {
   if (cmd.find(EVENT_CLICK) == std::string::npos || cmd.length() < std::strlen(EVENT_CLICK))
     return false;

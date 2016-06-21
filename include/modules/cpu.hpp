@@ -43,9 +43,9 @@ namespace modules
     float get_load(int core);
 
     public:
-      explicit CpuModule(const std::string& name);
+      explicit CpuModule(std::string name);
 
       bool update();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
   };
 }

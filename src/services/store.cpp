@@ -58,7 +58,7 @@ std::string &Store::get_string(std::string& s)
   return s;
 }
 
-void Store::set_string(const std::string& s)
+void Store::set_string(std::string s)
 {
   log_trace("Storing: \""+ s +"\"");
   std::memcpy(this->region.get_address(), s.c_str(), this->region.get_size());

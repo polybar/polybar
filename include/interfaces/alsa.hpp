@@ -19,13 +19,13 @@ namespace alsa
   class Exception : public ::Exception
   {
     public:
-      explicit Exception(const std::string& msg) : ::Exception("[Alsa] "+ msg){}
+      explicit Exception(std::string msg) : ::Exception("[Alsa] "+ msg){}
   };
 
   class ControlInterfaceError : public Exception
   {
     public:
-      ControlInterfaceError(int code, const std::string& msg)
+      ControlInterfaceError(int code, std::string msg)
         : Exception(msg +" ["+ std::to_string(code) +"]") {}
   };
 
@@ -71,7 +71,7 @@ namespace alsa
     snd_mixer_elem_t *mixer_element = nullptr;
 
     public:
-      explicit Mixer(const std::string& mixer_control_name);
+      explicit Mixer(std::string mixer_control_name);
       ~Mixer();
       Mixer(const Mixer &) = delete;
       Mixer &operator=(const Mixer &) = delete;
@@ -86,7 +86,7 @@ namespace alsa
       bool is_muted();
 
     protected:
-      void error_handler(const std::string& message);
+      void error_handler(std::string message);
   };
 
   // }}}

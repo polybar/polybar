@@ -19,12 +19,12 @@ namespace modules
     bool detailed = false;
 
     public:
-      explicit DateModule(const std::string& name);
+      explicit DateModule(std::string name);
 
       bool update();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
       std::string get_output();
-      bool handle_command(const std::string& cmd);
+      bool handle_command(std::string cmd);
   };
 }

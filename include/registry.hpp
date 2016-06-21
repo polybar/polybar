@@ -40,9 +40,9 @@ class Registry
     void load();
     void unload();
     bool wait();
-    void notify(const std::string& module_name);
-    std::string get(const std::string& module_name);
-    std::unique_ptr<RegistryModuleEntry>& find(const std::string& module_name);
+    void notify(std::string module_name);
+    std::string get(std::string module_name);
+    std::unique_ptr<RegistryModuleEntry>& find(std::string module_name);
 };
 
 std::shared_ptr<Registry> &get_registry();

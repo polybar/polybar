@@ -20,14 +20,14 @@
 
 using namespace net;
 
-bool net::is_wireless_interface(const std::string& ifname) {
+bool net::is_wireless_interface(std::string ifname) {
   return io::file::exists("/sys/class/net/"+ ifname +"/wireless");
 }
 
 
 // Network
 
-Network::Network(const std::string& interface)
+Network::Network(std::string interface)
   : interface(interface)
 {
   if (if_nametoindex(this->interface.c_str()) == 0)
@@ -108,7 +108,7 @@ std::string Network::get_ip()
 
 // WiredNetwork
 
-WiredNetwork::WiredNetwork(const std::string& interface) : Network(interface)
+WiredNetwork::WiredNetwork(std::string interface) : Network(interface)
 {
   struct ethtool_cmd e;
 
@@ -127,7 +127,7 @@ std::string WiredNetwork::get_link_speed() {
 
 // WirelessNetwork
 
-WirelessNetwork::WirelessNetwork(const std::string& interface) : Network(interface) {
+WirelessNetwork::WirelessNetwork(std::string interface) : Network(interface) {
   std::strcpy((char *) &this->iw.ifr_ifrn.ifrn_name, this->interface.c_str());
 }
 

@@ -16,21 +16,21 @@ namespace mpd
   class Exception : public ::Exception
   {
     public:
-      Exception(const std::string& msg, bool clearable)
+      Exception(std::string msg, bool clearable)
         : ::Exception(msg + (clearable ? " (clearable)" : " (not clearable)")){}
   };
 
   class ClientError : public Exception
   {
     public:
-      explicit ClientError(const std::string& msg, mpd_error code, bool clearable)
+      explicit ClientError(std::string msg, mpd_error code, bool clearable)
         : Exception("[mpd::ClientError::"+ std::to_string(code) +"] "+ msg, clearable){}
   };
 
   class ServerError : public Exception
   {
     public:
-      ServerError(const std::string& msg, mpd_server_error code, bool clearable)
+      ServerError(std::string msg, mpd_server_error code, bool clearable)
         : Exception("[mpd::ServerError::"+ std::to_string(code) +"] "+ msg, clearable){}
   };
 
@@ -140,9 +140,9 @@ namespace mpd
       void idle();
       int noidle();
 
-      void set_host(const std::string& host) { this->host = host; }
+      void set_host(std::string host) { this->host = host; }
       void set_port(int port) { this->port = port; }
-      void set_password(const std::string& password) { this->password = password; }
+      void set_password(std::string password) { this->password = password; }
       void set_timeout(int timeout) { this->timeout = timeout; }
 
       std::unique_ptr<Status> get_status();

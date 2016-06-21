@@ -5,7 +5,7 @@
 
 using namespace modules;
 
-MemoryModule::MemoryModule(const std::string& name_) : TimerModule(name_, 1s)
+MemoryModule::MemoryModule(std::string name_) : TimerModule(name_, 1s)
 {
   this->interval = std::chrono::duration<double>(
     config::get<float>(name(), "interval", 1));
@@ -63,7 +63,7 @@ bool MemoryModule::update()
   this->label_tokenized->replace_token("%percentage_used%", std::to_string(this->percentage_used)+"%");
   this->label_tokenized->replace_token("%percentage_free%", std::to_string(this->percentage_free)+"%");
 
-  auto replace_unit = [](drawtypes::Label *label, const std::string& token, float value, const std::string& unit){
+  auto replace_unit = [](drawtypes::Label *label, std::string token, float value, std::string unit){
     if (label->text.find(token) != std::string::npos) {
       std::stringstream ss;
       ss.precision(2);
@@ -83,7 +83,7 @@ bool MemoryModule::update()
   return true;
 }
 
-bool MemoryModule::build(Builder *builder, const std::string& tag)
+bool MemoryModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_BAR_USED)
     builder->node(this->bar_used, this->percentage_used);

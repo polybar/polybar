@@ -43,16 +43,15 @@ namespace modules
     concurrency::Atomic<bool> has_changed;
 
     public:
-      explicit VolumeModule(const std::string& name);
-      ~VolumeModule();
+      explicit VolumeModule(std::string name);
 
       bool has_event();
       bool update();
 
       std::string get_format();
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
       std::string get_output();
-      bool handle_command(const std::string& cmd);
+      bool handle_command(std::string cmd);
   };
 }

@@ -31,7 +31,7 @@ struct Store
 
   std::string get_string();
   std::string &get_string(std::string& s);
-  void set_string(const std::string& s);
+  void set_string(std::string s);
 
   Store(int size);
   ~Store() {}

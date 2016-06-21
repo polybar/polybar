@@ -6,7 +6,7 @@
 
 using namespace modules;
 
-VolumeModule::VolumeModule(const std::string& name_) : EventModule(name_)
+VolumeModule::VolumeModule(std::string name_) : EventModule(name_)
 {
   // Load configuration values {{{
   auto master_mixer = config::get<std::string>(name(), "master_mixer", "Master");
@@ -182,7 +182,7 @@ std::string VolumeModule::get_output()
   return this->builder->flush();
 }
 
-bool VolumeModule::build(Builder *builder, const std::string& tag)
+bool VolumeModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_BAR_VOLUME)
     builder->node(this->bar_volume, volume);
@@ -198,7 +198,7 @@ bool VolumeModule::build(Builder *builder, const std::string& tag)
   return true;
 }
 
-bool VolumeModule::handle_command(const std::string& cmd)
+bool VolumeModule::handle_command(std::string cmd)
 {
   if (cmd.length() < std::strlen(EVENT_PREFIX))
     return false;

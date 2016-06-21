@@ -33,12 +33,12 @@ namespace modules
     std::unique_ptr<drawtypes::Label> label_close;
 
     public:
-      explicit MenuModule(const std::string& name);
+      explicit MenuModule(std::string name);
 
       std::string get_output();
 
-      bool build(Builder *builder, const std::string& tag);
+      bool build(Builder *builder, std::string tag);
 
-      bool handle_command(const std::string& cmd);
+      bool handle_command(std::string cmd);
   };
 }

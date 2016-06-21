@@ -51,7 +51,7 @@ namespace proc
     return true;
   }
 
-  void exec(const std::string& cmd)
+  void exec(std::string cmd)
   {
     // log_trace(string::replace_all(cmd, "\n", " "));
 

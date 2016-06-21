@@ -7,7 +7,7 @@
 
 namespace drawtypes
 {
-  std::unique_ptr<Bar> get_config_bar(const std::string& config_path, const std::string& bar_name, bool lazy_builder_closing)
+  std::unique_ptr<Bar> get_config_bar(std::string config_path, std::string bar_name, bool lazy_builder_closing)
   {
     std::unique_ptr<Bar> bar;
 
@@ -28,7 +28,7 @@ namespace drawtypes
     return bar;
   }
 
-  Bar::Bar(int width, const std::string& fmt, bool lazy_builder_closing)
+  Bar::Bar(int width, std::string fmt, bool lazy_builder_closing)
     : builder(std::make_unique<Builder>(lazy_builder_closing)), format(fmt)
   {
     this->width = width;

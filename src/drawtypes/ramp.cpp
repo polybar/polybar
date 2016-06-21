@@ -4,7 +4,7 @@
 
 namespace drawtypes
 {
-  std::unique_ptr<Ramp> get_config_ramp(const std::string& config_path, const std::string& ramp_name, bool required)
+  std::unique_ptr<Ramp> get_config_ramp(std::string config_path, std::string ramp_name, bool required)
   {
     std::vector<std::unique_ptr<Icon>> vec;
     std::vector<std::string> icons;
