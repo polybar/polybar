@@ -188,9 +188,9 @@ bool MpdModule::update()
 
   if (this->label_song) {
     this->label_song_tokenized->text = this->label_song->text;
-    this->label_song_tokenized->replace_token("%artist%", artist);
-    this->label_song_tokenized->replace_token("%album%", album);
-    this->label_song_tokenized->replace_token("%title%", title);
+    this->label_song_tokenized->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
+    this->label_song_tokenized->replace_token("%album%", !album.empty() ? album : "untitled album");
+    this->label_song_tokenized->replace_token("%title%", !title.empty() ? title : "untitled track");
   }
 
   if (this->label_time) {
