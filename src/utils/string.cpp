@@ -37,11 +37,11 @@ namespace string
     return boost::replace_all_copy(haystack, needle, replacement);
   }
 
-  std::string squeeze(std::string haystack, const char &needle) {
+  std::string squeeze(std::string haystack, char needle) {
     return replace_all(haystack, {needle, needle}, {needle});
   }
 
-  // std::string strip(std::string haystack, const char &needle)
+  // std::string strip(std::string haystack, char needle)
   // {
   //   std::string str(haystack);
   //   std::string::size_type pos;
@@ -58,11 +58,11 @@ namespace string
     return str;
   }
 
-  std::string trim(std::string haystack, const char &needle) {
+  std::string trim(std::string haystack, char needle) {
     return rtrim(ltrim(haystack, needle), needle);
   }
 
-  std::string ltrim(std::string haystack, const char &needle)
+  std::string ltrim(std::string haystack, char needle)
   {
     std::string str(haystack);
     while (str[0] == needle)
@@ -70,7 +70,7 @@ namespace string
     return str;
   }
 
-  std::string rtrim(std::string haystack, const char &needle)
+  std::string rtrim(std::string haystack, char needle)
   {
     std::string str(haystack);
     while (str[str.length()-1] == needle)
@@ -78,7 +78,7 @@ namespace string
     return str;
   }
 
-  std::string join(const std::vector<std::string> &strs, std::string delim)
+  std::string join(std::vector<std::string> strs, std::string delim)
   {
     std::string str;
     for (auto &s : strs)
@@ -86,13 +86,13 @@ namespace string
     return str;
   }
 
-  std::vector<std::string> split(std::string s, const char &delim)
+  std::vector<std::string> split(std::string s, char delim)
   {
     std::vector<std::string> vec;
     return split_into(s, delim, vec);
   }
 
-  std::vector<std::string> &split_into(std::string s, const char &delim, std::vector<std::string> &container)
+  std::vector<std::string> &split_into(std::string s, char delim, std::vector<std::string> &container)
   {
     std::string str;
     std::stringstream buffer(s);
