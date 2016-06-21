@@ -12,7 +12,7 @@ set(CMAKE_MODULE_PATH
 
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g3 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wno-unused-variable")
 
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "No build type specified; using Release")
@@ -124,6 +124,7 @@ endif()
 # Install executable and wrapper
 #
 message(STATUS "---------------------------")
+message(STATUS " Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
 message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
 message(STATUS " Enable i3 support      ${ENABLE_I3}")
