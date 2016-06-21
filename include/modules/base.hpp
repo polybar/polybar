@@ -27,6 +27,8 @@ using namespace std::chrono_literals;
 #define Stringify(expr) _Stringify(expr)
 
 #define DefineModule(ModuleName, ModuleType) struct ModuleName : public ModuleType<ModuleName>
+#define DefineModule2(ModuleName, ModuleType, P2) struct ModuleName : public ModuleType<ModuleName, P2>
+#define DefineModule3(ModuleName, ModuleType, P2, P3) struct ModuleName : public ModuleType<ModuleName, P2, P3>
 #define CastModule(ModuleName) static_cast<ModuleName *>(this)
 #define ConstCastModule(ModuleName) static_cast<ModuleName const &>(*this)
 
@@ -83,7 +85,7 @@ namespace modules
       virtual bool handle_command(std::string cmd) = 0;
   };
 
-  template<typename ModuleImpl>
+  template<class ModuleImpl>
   class Module : public ModuleInterface
   {
     concurrency::Atomic<bool> enabled_flag;
@@ -240,7 +242,7 @@ namespace modules
       }
   };
 
-  template<typename ModuleImpl>
+  template<class ModuleImpl>
   class StaticModule : public Module<ModuleImpl>
   {
     using Module<ModuleImpl>::Module;
@@ -258,7 +260,7 @@ namespace modules
       }
   };
 
-  template<typename ModuleImpl>
+  template<class ModuleImpl>
   class TimerModule : public Module<ModuleImpl>
   {
     protected:
@@ -287,7 +289,7 @@ namespace modules
       }
   };
 
-  template<typename ModuleImpl>
+  template<class ModuleImpl>
   class EventModule : public Module<ModuleImpl>
   {
     using Module<ModuleImpl>::Module;
@@ -320,39 +322,39 @@ namespace modules
       }
   };
 
-  template<typename ModuleImpl>
+  template<class ModuleImpl, const int ThrottleLimit = 2, const int ThrottleWindowMs = 50>
   class InotifyModule : public Module<ModuleImpl>
   {
-    using Module<ModuleImpl>::Module;
-
     protected:
-      std::map<std::string, int> watch_list;
+      concurrency::SpinLock poll_lock;
 
-      concurrency::SpinLock update_lock;
+      std::unique_ptr<EventThrottler> poll_throttler;
+
+      std::map<std::string, int> watch_list;
 
       void runner()
       {
         // warmup
-        if (CastModule(ModuleImpl)->on_event(nullptr))
-          CastModule(ModuleImpl)->broadcast();
+        CastModule(ModuleImpl)->on_event(nullptr);
+        CastModule(ModuleImpl)->broadcast();
 
         while (this->enabled()) {
           try {
-            this->poll_events();
+            std::lock_guard<concurrency::SpinLock> lck(this->poll_lock);
+            if (this->poll_throttler->passthrough())
+              this->poll_events();
           } catch (InotifyException &e) {
             get_logger()->fatal(e.what());
           }
         }
       }
 
-      void idle() const
-      {
-        // std::this_thread::sleep_for(1s);
+      void idle() const {
+        // this->sleep(1s);
       }
 
       void poll_events()
       {
-        std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
         std::vector<std::unique_ptr<InotifyWatch>> watches;
 
         try {
@@ -360,8 +362,8 @@ namespace modules
             watches.emplace_back(std::make_unique<InotifyWatch>(w.first, w.second));
         } catch (InotifyException &e) {
           watches.clear();
-          get_logger()->error(e.what());
-          std::this_thread::sleep_for(100ms);
+          log_error(e.what());
+          this->sleep(0.1s);
           return;
         }
 
@@ -376,6 +378,11 @@ namespace modules
 
               watches.clear();
 
+              std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
+
+              if (!this->poll_throttler->passthrough())
+                return;
+
               if (CastModule(ModuleImpl)->on_event(event.get()))
                 CastModule(ModuleImpl)->broadcast();
 
@@ -385,22 +392,33 @@ namespace modules
         }
       }
 
-      void watch(const std::string& path, int mask = InotifyEvent::ALL)
+      void watch(std::string path, int mask = InotifyEvent::ALL)
       {
         log_trace(path);
         this->watch_list.insert(std::make_pair(path, mask));
       }
 
     public:
-      InotifyModule(const std::string& name, const std::string& path, int mask = InotifyEvent::ALL) : Module<ModuleImpl>(name)
-      {
+      InotifyModule(std::string name)
+        : Module<ModuleImpl>(name)
+        , poll_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(ThrottleLimit), event_throttler::timewindow_t(ThrottleWindowMs))) {}
+
+      InotifyModule(std::string name, std::string path, int mask = InotifyEvent::ALL)
+        : Module<ModuleImpl>(name)
+        , poll_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(ThrottleLimit), event_throttler::timewindow_t(ThrottleWindowMs))) {
         this->watch(path, mask);
       }
 
-      InotifyModule(const std::string& name, std::vector<std::string> paths, int mask = InotifyEvent::ALL) : Module<ModuleImpl>(name)
+      InotifyModule(std::string name, std::vector<std::string> paths, int mask = InotifyEvent::ALL)
+        : Module<ModuleImpl>(name)
+        , poll_throttler(std::make_unique<EventThrottler>(event_throttler::limit_t(ThrottleLimit), event_throttler::timewindow_t(ThrottleWindowMs)))
       {
         for (auto &&path : paths)
           this->watch(path, mask);
+      }
+
+      ~InotifyModule() {
+        std::lock_guard<concurrency::SpinLock> lck(this->poll_lock);
       }
 
       void start()
