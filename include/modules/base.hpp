@@ -129,20 +129,16 @@ namespace modules
         if (this->enabled())
           this->stop();
 
-        std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
+        std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
         {
-          std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-          {
-            std::lock_guard<concurrency::SpinLock> lck(this->output_lock);
-            {
-              for (auto &&t : this->threads) {
-                if (t.joinable())
-                  t.join();
-                else
-                  log_warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
-              }
-            }
+          for (auto &&t : this->threads) {
+            if (t.joinable())
+              t.join();
+            else
+              log_warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
           }
+
+          this->threads.clear();
         }
 
         log_trace(name());
