@@ -2,7 +2,6 @@
 
 #include "lemonbuddy.hpp"
 #include "modules/network.hpp"
-#include "services/logger.hpp"
 #include "utils/config.hpp"
 #include "utils/io.hpp"
 #include "utils/proc.hpp"
@@ -11,8 +10,10 @@ using namespace modules;
 
 // TODO: Add up-/download speed (check how ifconfig read the bytes)
 
-NetworkModule::NetworkModule(std::string name_)
-  : TimerModule(name_, 1s), connected(false), conseq_packetloss(false)
+NetworkModule::NetworkModule(std::string name_) : TimerModule(name_, 1s)
+  , logger(get_logger())
+  , connected(false)
+  , conseq_packetloss(false)
 {
   static const auto DEFAULT_FORMAT_CONNECTED = TAG_LABEL_CONNECTED;
   static const auto DEFAULT_FORMAT_DISCONNECTED = TAG_LABEL_DISCONNECTED;
@@ -61,7 +62,7 @@ NetworkModule::NetworkModule(std::string name_)
       this->wired_network = std::make_unique<net::WiredNetwork>(this->interface);
     }
   } catch (net::NetworkException &e) {
-    get_logger()->fatal(e.what());
+    this->logger->fatal(e.what());
   }
 }
 
@@ -85,10 +86,10 @@ void NetworkModule::subthread_routine()
     if (this->connected && this->conseq_packetloss)
       this->broadcast();
 
-    std::this_thread::sleep_for(dur);
+    this->sleep(dur);
   }
 
-  log_debug("Reached end of network subthread");
+  log_trace("Reached end of network subthread");
 }
 
 bool NetworkModule::update()
@@ -106,7 +107,7 @@ bool NetworkModule::update()
       essid = this->wireless_network->get_essid();
       signal_quality = this->wireless_network->get_signal_quality();
     } catch (net::WirelessNetworkException &e) {
-      get_logger()->debug(e.what());
+      this->logger->debug(e.what());
     }
 
     this->signal_quality = signal_quality;
@@ -121,7 +122,7 @@ bool NetworkModule::update()
     try {
       ip = network->get_ip();
     } catch (net::NetworkException &e) {
-      get_logger()->debug(e.what());
+      this->logger->debug(e.what());
     }
 
     this->connected = network->connected();

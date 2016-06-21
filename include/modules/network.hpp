@@ -38,6 +38,8 @@ namespace modules
     std::unique_ptr<drawtypes::Label> label_packetloss;
     std::unique_ptr<drawtypes::Label> label_packetloss_tokenized;
 
+    std::shared_ptr<Logger> logger;
+
     std::string interface;
 
     concurrency::Atomic<bool> connected;
