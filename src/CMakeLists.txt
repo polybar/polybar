@@ -43,6 +43,7 @@ set(SOURCE_FILES
   "src/modules/text.cpp"
   "src/services/builder.cpp"
   "src/services/command.cpp"
+  "src/services/event_throttler.cpp"
   "src/services/inotify.cpp"
   "src/services/logger.cpp"
   # "src/services/store.cpp"
