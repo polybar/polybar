@@ -44,15 +44,21 @@ BatteryModule::BatteryModule(std::string name_) : InotifyModule(name_)
   if (this->formatter->has(TAG_RAMP_CAPACITY))
     this->ramp_capacity = drawtypes::get_config_ramp(
       name(), get_tag_name(TAG_RAMP_CAPACITY));
-  if (this->formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING))
+  if (this->formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
     this->label_charging = drawtypes::get_optional_config_label(
-      name(), get_tag_name(TAG_LABEL_CHARGING), "%percentage%");
-  if (this->formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING))
+        name(), get_tag_name(TAG_LABEL_CHARGING), "%percentage%");
+    this->label_charging_tokenized = this->label_charging->clone();
+  }
+  if (this->formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
     this->label_discharging = drawtypes::get_optional_config_label(
-      name(), get_tag_name(TAG_LABEL_DISCHARGING), "%percentage%");
-  if (this->formatter->has(TAG_LABEL_FULL, FORMAT_FULL))
+        name(), get_tag_name(TAG_LABEL_DISCHARGING), "%percentage%");
+    this->label_discharging_tokenized = this->label_discharging->clone();
+  }
+  if (this->formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
     this->label_full = drawtypes::get_optional_config_label(
-      name(), get_tag_name(TAG_LABEL_FULL), "%percentage%");
+        name(), get_tag_name(TAG_LABEL_FULL), "%percentage%");
+    this->label_full_tokenized = this->label_full->clone();
+  }
 
   this->path_capacity = string::replace(PATH_BATTERY_CAPACITY, "%battery%", this->battery);
   this->path_adapter = string::replace(PATH_ADAPTER_STATUS, "%adapter%", this->adapter);
@@ -141,13 +147,6 @@ bool BatteryModule::on_event(InotifyEvent *event)
 
   if (this->state == state && this->percentage == percentage)
     return false;
-
-  if (!this->label_charging_tokenized)
-    this->label_charging_tokenized = this->label_charging->clone();
-  if (!this->label_discharging_tokenized)
-    this->label_discharging_tokenized = this->label_discharging->clone();
-  if (!this->label_full_tokenized)
-    this->label_full_tokenized = this->label_full->clone();
 
   this->label_charging_tokenized->text = this->label_charging->text;
   this->label_charging_tokenized->replace_token("%percentage%", IntToStr(percentage) + "%");

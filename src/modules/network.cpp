@@ -35,8 +35,10 @@ NetworkModule::NetworkModule(std::string name_) : TimerModule(name_, 1s)
   // Create elements for format-connected
   if (this->formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED))
     this->ramp_signal = drawtypes::get_config_ramp(name(), get_tag_name(TAG_RAMP_SIGNAL));
-  if (this->formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED))
+  if (this->formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
     this->label_connected = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_CONNECTED), DEFAULT_LABEL_CONNECTED);
+    this->label_connected_tokenized = this->label_connected->clone();
+  }
 
   // Create elements for format-disconnected
   if (this->formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
@@ -48,8 +50,10 @@ NetworkModule::NetworkModule(std::string name_) : TimerModule(name_, 1s)
   if (this->ping_nth_update > 0) {
     this->formatter->add(FORMAT_PACKETLOSS, DEFAULT_FORMAT_PACKETLOSS, { TAG_ANIMATION_PACKETLOSS, TAG_LABEL_PACKETLOSS, TAG_LABEL_CONNECTED });
 
-    if (this->formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS))
+    if (this->formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
       this->label_packetloss = drawtypes::get_optional_config_label(name(), get_tag_name(TAG_LABEL_PACKETLOSS), DEFAULT_LABEL_PACKETLOSS);
+      this->label_packetloss_tokenized = this->label_packetloss->clone();
+    }
     if (this->formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
       this->animation_packetloss = drawtypes::get_config_animation(name(), get_tag_name(TAG_ANIMATION_PACKETLOSS));
   }
@@ -151,16 +155,12 @@ bool NetworkModule::update()
     };
 
     if (this->label_connected) {
-      if (!this->label_connected_tokenized)
-        this->label_connected_tokenized = this->label_connected->clone();
       this->label_connected_tokenized->text = this->label_connected->text;
 
       replace_tokens(this->label_connected_tokenized);
     }
 
     if (this->label_packetloss) {
-      if (!this->label_packetloss_tokenized)
-        this->label_packetloss_tokenized = this->label_packetloss->clone();
       this->label_packetloss_tokenized->text = this->label_packetloss->text;
 
       replace_tokens(this->label_packetloss_tokenized);
