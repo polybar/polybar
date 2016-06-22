@@ -9,6 +9,7 @@
 #include "bar.hpp"
 #include "services/builder.hpp"
 #include "utils/string.hpp"
+#include "utils/math.hpp"
 
 // Private
 
@@ -191,7 +192,7 @@ void Builder::node(std::string str, int font_index, bool add_space)
 
 void Builder::node(drawtypes::Bar *bar, float percentage, bool add_space)
 {
-  this->node(bar->get_output(percentage), add_space);
+  this->node(bar->get_output(math::cap<float>(percentage, 0, 100)), add_space);
 }
 
 void Builder::node(std::unique_ptr<drawtypes::Bar> &bar, float percentage, bool add_space) {
@@ -248,7 +249,7 @@ void Builder::node(std::unique_ptr<drawtypes::Icon> &icon, bool add_space) {
 }
 
 void Builder::node(drawtypes::Ramp *ramp, float percentage, bool add_space) {
-  if (*ramp) this->node(ramp->get_by_percentage(percentage), add_space);
+  if (*ramp) this->node(ramp->get_by_percentage(math::cap<float>(percentage, 0, 100)), add_space);
 }
 
 void Builder::node(std::unique_ptr<drawtypes::Ramp> &ramp, float percentage, bool add_space) {
