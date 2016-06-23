@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # TODO(jaagr): Replace with git tag
-project(lemonbuddy VERSION 1.2.0)
+project(lemonbuddy VERSION 1.2.2)
 
 set(CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"

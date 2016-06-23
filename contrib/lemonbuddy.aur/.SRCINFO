@@ -1,6 +1,6 @@
 pkgbase = lemonbuddy
 	pkgdesc = A fast and easy-to-use tool for Lemonbar
-	pkgver = 1.2.1
+	pkgver = 1.2.2
 	pkgrel = 1
 	url = https://github.com/jaagr/lemonbuddy
 	arch = i686
@@ -19,7 +19,7 @@ pkgbase = lemonbuddy
 	optdepends = libsigc++: i3 module support
 	optdepends = i3ipc-glib-git: i3 module support
 	conflicts = lemonbuddy-git
-	source = lemonbuddy::git+https://github.com/jaagr/lemonbuddy.git#tag=1.2.1
+	source = lemonbuddy::git+https://github.com/jaagr/lemonbuddy.git#tag=1.2.2
 	md5sums = SKIP
 
 pkgname = lemonbuddy

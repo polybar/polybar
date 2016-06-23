@@ -1,7 +1,7 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=lemonbuddy
-pkgver=1.2.1
+pkgver=1.2.2
 pkgrel=1
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
