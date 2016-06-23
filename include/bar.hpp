@@ -2,10 +2,12 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+#include <sstream>
 
 #include "config.hpp"
 #include "exception.hpp"
-#include "utils/xlib.hpp"
+#include "utils/xcb.hpp"
 
 DefineBaseException(ConfigurationError);
 
@@ -35,7 +37,8 @@ enum Cmd
 
 struct Options
 {
-  std::unique_ptr<xlib::Monitor> monitor;
+  std::shared_ptr<xcb::monitor_t> monitor;
+
   std::string wm_name;
   std::string locale;
 

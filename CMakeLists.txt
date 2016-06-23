@@ -73,16 +73,11 @@ endif()
 #
 find_package("Boost" REQUIRED)
 find_package("Threads" REQUIRED)
-find_package("X11" REQUIRED "X11_Xrandr")
 
 set(PROJECT_INCL_DIRS "${PROJECT_SOURCE_DIR}/include"
-  ${Boost_INCLUDE_DIRS}
-  ${X11_INCLUDE_DIR})
-
+  ${BOOST_INCLUDE_DIR})
 set(PROJECT_LINK_LIBS
-  ${Boost_LIBRARIES}
-  ${X11_LIBRARIES}
-  ${X11_Xrandr_LIB}
+  ${BOOST_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT})
 
 if(ENABLE_I3)
@@ -127,6 +122,14 @@ if(ENABLE_NETWORK)
 endif()
 
 #
+# Load the xpp library
+#
+set(XCB_PROTOS xproto randr)
+add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/xpp")
+set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${XPP_INCLUDE_DIRS})
+set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${XPP_LIBRARIES})
+
+#
 # Install executable and wrapper
 #
 message(STATUS "---------------------------")
@@ -141,8 +144,11 @@ message(STATUS " Enable mpd support     ${ENABLE_MPD}")
 message(STATUS " Enable network support ${ENABLE_NETWORK}")
 message(STATUS "---------------------------")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/src")
-add_executable(${PROJECT_NAME} ${SOURCE_FILES}
+add_subdirectory("${PROJECT_SOURCE_DIR}/src" EXCLUDE_FROM_ALL)
+link_directories(${PROJECT_LINK_DIRS})
+include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_INCL_DIRS})
+link_libraries(${PROJECT_LINK_LIBS})
+add_executable(${PROJECT_NAME} ${FILES}
   "examples/config"
   "examples/config.bspwm"
   "examples/config.i3")

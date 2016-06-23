@@ -51,9 +51,7 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
   } catch (config::MissingValueException &e) {}
 
   auto monitor_name = config::get<std::string>(this->config_path, "monitor", "");
-  this->opts->monitor = std::make_unique<xlib::Monitor>();
-
-  auto monitors = xlib::get_sorted_monitorlist();
+  auto monitors = xcb::get_monitors(x::connection(), x::connection().root());
 
   // In case we're not connected to X, we'll just ignore the monitor
   if (!monitors.empty()) {
@@ -62,23 +60,23 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
 
     for (auto &&monitor : monitors) {
       if (monitor_name.compare(monitor->name) == 0) {
-        this->opts->monitor->name = monitor->name;
-        this->opts->monitor->index = monitor->index;
-        this->opts->monitor->width = monitor->width;
-        this->opts->monitor->height = monitor->height;
-        this->opts->monitor->x = monitor->x;
-        this->opts->monitor->y = monitor->y;
+        this->opts->monitor = monitor;
+        break;
       }
     }
 
-    if (this->opts->monitor->name.empty())
+    if (!this->opts->monitor)
       throw ConfigurationError("Could not find monitor: "+ monitor_name);
   }
 
   this->opts->wm_name = "lemonbuddy-"+ this->config_path.substr(4);
-  if (!this->opts->monitor->name.empty())
-    this->opts->wm_name += "_"+ this->opts->monitor->name;
+  if (this->opts->monitor)
+    this->opts->wm_name += "_"+ std::string(this->opts->monitor->name);
   this->opts->wm_name = string::replace(config::get<std::string>(this->config_path, "wm_name", this->opts->wm_name), " ", "-");
+
+  // Create an empty monitor as fallback
+  if (!this->opts->monitor)
+    this->opts->monitor = xcb::make_monitor();
 
   this->opts->offset_x = config::get<int>(this->config_path, "offset_x", defaults.offset_x);
   this->opts->offset_y = config::get<int>(this->config_path, "offset_y", defaults.offset_y);
