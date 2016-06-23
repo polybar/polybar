@@ -24,6 +24,12 @@ string(ASCII 27 ANSI)
 #
 # Internal values and switches
 #
+
+# Keep track if the i3 option is explicitly defined
+if(ENABLE_I3)
+  set(ENABLE_I3_NODEF ON)
+endif()
+
 option(ENABLE_CCACHE  "Enable ccache support"  ON)
 option(ENABLE_ALSA    "Enable alsa support"    ON)
 option(ENABLE_I3      "Enable i3 support"      ON)
@@ -81,7 +87,7 @@ set(PROJECT_LINK_LIBS
 
 if(ENABLE_I3)
   find_program(I3_EXECUTABLE "i3")
-  if(NOT I3_EXECUTABLE)
+  if(NOT I3_EXECUTABLE AND NOT ENABLE_I3_NODEF)
     message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
     set(ENABLE_I3 OFF)
   endif()
