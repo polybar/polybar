@@ -82,7 +82,7 @@ set(PROJECT_LINK_LIBS
 if(ENABLE_I3)
   find_program(I3_EXECUTABLE "i3")
   if(I3_EXECUTABLE)
-    add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/i3ipcpp" EXCLUDE_FROM_ALL)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/i3ipcpp" EXCLUDE_FROM_ALL)
     set(PROJECT_INCL_DIRS
       ${PROJECT_INCL_DIRS}
       ${SIGCPP_INCLUDE_DIRS}
@@ -135,7 +135,7 @@ endif()
 # Load the xpp library
 #
 set(XCB_PROTOS xproto randr)
-add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/xpp")
+add_subdirectory("${PROJECT_SOURCE_DIR}/lib/xpp")
 set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${XPP_INCLUDE_DIRS})
 set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${XPP_LIBRARIES})
 
