@@ -25,12 +25,24 @@ Here are two screenshots showing you what it could look like (make sure to view 
 
 ## Installation
 
-### Arch Linux
+#### Arch Linux
 Install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
 [lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
 
-### Void Linux
+#### Void Linux
 Install the XBPS package [lemonbuddy](https://raw.githubusercontent.com/jaagr/void-packages/lemonbuddy/srcpkgs/lemonbuddy/template) for the latest stable release.
+
+
+### Building from source
+
+  ~~~ sh
+  $ git clone --branch 1.2.2 --recursive https://github.com/jaagr/lemonbuddy
+  $ mkdir lemonbuddy/build
+  $ cd lemonbuddy/build
+  $ cmake ..
+  $ sudo make install
+  ~~~
+
 
 ### Dependencies:
 
@@ -39,56 +51,35 @@ A C++ compiler with C++14 support. For example `clang`.
 - lemonbar (patched with xft support)
 - cmake
 - boost
-- libx11
-- libxrandr
-- wireless_tools _(optional: used by the network module)_
-- alsa-lib _(optional: used by the volume module)_
-- libmpdclient _(optional: used by the mpd module)_
-- libsigc++ _(optional: used by the i3 module)_
+- libxcb
+- xcb-proto
 
-> **NOTE:** The application has only been tested against the `single-mon` fork.
-> If you have trouble running it with your current version, install the one
-> included in `contrib/lemonbar-sm-git`.
-> Plans are to make `lemonbar` an internal module.
+##### Optional dependencies:
+- wireless_tools _(required to build the network module)_
+- alsa-lib _(required to build the volume module)_
+- libmpdclient _(required to build the mpd module)_
+- libsigc++ _(required to build the i3 module)_
 
-**Install dependencies using pacman:**
+
+##### Install dependencies using pacman:
 ~~~ sh
-$ sudo pacman -S cmake boost libx11 libxrandr wireless_tools alsa-lib libmpdclient libsigc++
-$ yaourt ttf-font-awesome
+$ sudo pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient libsigc++
 ~~~
 
-**Install dependencies using xbps-install:**
+##### Install dependencies using xbps-install:
 ~~~ sh
-$ sudo xbps-install cmake alsa-lib-devel boost-devel i3-devel libX11-devel libXrandr-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
-$ sudo xbps-install font-awesome
+$ sudo xbps-install cmake boost-devel libxcb-devel xcb-proto alsa-lib-devel i3-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
 ~~~
 
-**Install dependencies using apt-get:**
-
+##### Install dependencies using apt-get:
 > **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
 > needs to be added to the list of sources in `/etc/apt/sources.list`.
 >
 > Packages in the `universe` repository: `libmpdclient-dev` `fonts-font-awesome`
 
 ~~~ sh
-$ sudo apt-get install cmake libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
-$ sudo apt-get install fonts-font-awesome
+$ sudo apt-get install cmake libxcb-dev xcb-proto libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
 ~~~
-
-
-### Building from source
-
-> **NOTE:** In Void Linux you will need to install `git-perl` to get support for submodules.
-
-  ~~~ sh
-  $ git clone --branch 1.2.2 --recursive https://github.com/jaagr/lemonbuddy.git
-  $ mkdir lemonbuddy/build
-  $ cd lemonbuddy/build
-  $ cmake ..
-  # Optionally list and edit build settings before compiling
-  # $ make edit_cache
-  $ sudo make install
-  ~~~
 
 
 ## Running
