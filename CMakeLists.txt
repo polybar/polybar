@@ -6,9 +6,8 @@ cmake_minimum_required(VERSION 3.0)
 # TODO(jaagr): Replace with git tag
 project(lemonbuddy VERSION 1.2.2)
 
-set(CMAKE_MODULE_PATH
-  "${CMAKE_MODULE_PATH}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+# Include the local cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g3 -DDEBUG")
@@ -82,9 +81,20 @@ set(PROJECT_LINK_LIBS
 
 if(ENABLE_I3)
   find_program(I3_EXECUTABLE "i3")
-  if(NOT I3_EXECUTABLE AND NOT ENABLE_I3_NODEF)
-    message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
-    set(ENABLE_I3 OFF)
+  if(I3_EXECUTABLE)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/i3ipcpp" EXCLUDE_FROM_ALL)
+    set(PROJECT_INCL_DIRS
+      ${PROJECT_INCL_DIRS}
+      ${SIGCPP_INCLUDE_DIRS}
+      ${I3IPCPP_INCLUDE_DIRS})
+    set(PROJECT_LINK_LIBS
+      ${PROJECT_LINK_LIBS}
+      ${I3IPCPP_LIBRARIES})
+  else(I3_EXECUTABLE)
+    if(NOT ENABLE_I3_NODEF)
+      message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
+      set(ENABLE_I3 OFF)
+    endif()
   endif()
 endif()
 
@@ -152,17 +162,6 @@ add_executable(${PROJECT_NAME} ${FILES}
   "examples/config"
   "examples/config.bspwm"
   "examples/config.i3")
-
-if(ENABLE_I3)
-  add_subdirectory("${PROJECT_SOURCE_DIR}/contrib/i3ipcpp" EXCLUDE_FROM_ALL)
-  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS}
-    ${SIGCPP_INCLUDE_DIRS}
-    ${I3IPCpp_INCLUDE_DIRS})
-  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${I3IPCpp_LIBRARIES})
-endif()
-
-include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}	${PROJECT_INCL_DIRS})
-
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
 
 configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
