@@ -49,8 +49,8 @@ def DirectoryOfThisScript():
 
 flags.append('-I'+ DirectoryOfThisScript() +'/src')
 flags.append('-I'+ DirectoryOfThisScript() +'/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/contrib/i3ipcpp/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/contrib/xpp/include')
+flags.append('-I'+ DirectoryOfThisScript() +'/lib/i3ipcpp/include')
+flags.append('-I'+ DirectoryOfThisScript() +'/lib/xpp/include')
 
 def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
   if not working_directory:
