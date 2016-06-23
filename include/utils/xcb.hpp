@@ -11,13 +11,22 @@
 #include <xcb/randr.h>
 
 #include <xpp.hpp>
+#include <proto/randr.hpp>
 
 namespace x
 {
-  typedef xpp::connection<> connection;
-  typedef xpp::event::registry<connection &> registry;
+  typedef xpp::connection<xpp::randr::extension> connection;
+  typedef xpp::event::registry<connection &, xpp::randr::extension> registry;
+
   typedef xpp::window<connection &> window;
   typedef xpp::window<xcb_connection_t *> xcb_window;
+
+  typedef xpp::x::event::key_press<connection &> key_press;
+  typedef xpp::x::event::key_release<connection &> key_release;
+  typedef xpp::x::event::button_press<connection &> button_press;
+
+  typedef xpp::randr::event::notify<connection &> randr_notify;
+  typedef xpp::randr::event::screen_change_notify<connection &> randr_screen_change_notify;
 }
 
 namespace xcb
