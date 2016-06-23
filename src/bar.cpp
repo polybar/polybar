@@ -86,14 +86,14 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
   auto height = config::get<std::string>(this->config_path, "height", "30");
 
   if (width.find("%") != std::string::npos) {
-    this->opts->width = this->opts->monitor->width * (std::atoi(width.c_str()) / 100.0) + 0.5;
+    this->opts->width = this->opts->monitor->bounds.width * (std::atoi(width.c_str()) / 100.0) + 0.5;
     this->opts->width -= this->opts->offset_x * 2;
   } else {
     this->opts->width = std::atoi(width.c_str());
   }
 
   if (height.find("%") != std::string::npos) {
-    this->opts->height = this->opts->monitor->height * (std::atoi(height.c_str()) / 100.0) + 0.5;
+    this->opts->height = this->opts->monitor->bounds.height * (std::atoi(height.c_str()) / 100.0) + 0.5;
     this->opts->width -= this->opts->offset_y * 2;
   } else {
     this->opts->height = std::atoi(height.c_str());

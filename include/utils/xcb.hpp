@@ -35,11 +35,8 @@ namespace xcb
   struct monitor_t
   {
     char name[32] = "NONAME";
+    xcb_rectangle_t bounds;
     int index = 0;
-    int width = 0;
-    int height = 0;
-    int x = 0;
-    int y = 0;
   };
 
   std::shared_ptr<monitor_t> make_monitor();

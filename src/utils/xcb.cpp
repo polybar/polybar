@@ -7,14 +7,11 @@ namespace xcb
     return memory::make_malloc_ptr<monitor_t>();
   }
 
-  std::shared_ptr<monitor_t> make_monitor(char *name, size_t name_len, int idx, xcb_rectangle_t *rect)
+  std::shared_ptr<monitor_t> make_monitor(char *name, size_t name_len, int idx, xcb_rectangle_t rect)
   {
     auto mon = make_monitor();
 
-    mon->x = rect->x;
-    mon->y = rect->y;
-    mon->width = rect->width;
-    mon->height = rect->height;
+    mon->bounds = rect;
     mon->index = idx;
 
     size_t name_size = name_len + 1;
@@ -64,20 +61,18 @@ namespace xcb
         continue;
       }
 
-      char *name = (char *) xcb_randr_get_output_info_name(info);
-
-      xcb_rectangle_t rect = {cir->x, cir->y, cir->width, cir->height};
-
-      monitors.emplace_back(xcb::make_monitor(name, info->name_len, i, &rect));
+      char *monitor_name = (char *) xcb_randr_get_output_info_name(info);
+      monitors.emplace_back(xcb::make_monitor(monitor_name, info->name_len, i,
+          {cir->x, cir->y, cir->width, cir->height}));
 
       free(cir);
     }
 
     std::sort(monitors.begin(), monitors.end(), [](std::shared_ptr<monitor_t> m1, std::shared_ptr<monitor_t> m2) -> bool
     {
-      if (m1->x < m2->x || m1->y + m1->height <= m2->y)
+      if (m1->bounds.x < m2->bounds.x || m1->bounds.y + m1->bounds.height <= m2->bounds.y)
         return 1;
-      if (m1->x > m2->x || m1->y + m1->height > m2->y)
+      if (m1->bounds.x > m2->bounds.x || m1->bounds.y + m1->bounds.height > m2->bounds.y)
         return -1;
       return 0;
     });
