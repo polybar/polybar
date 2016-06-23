@@ -1,0 +1,38 @@
+.TH LEMONBUDDY 1 2016-06-22 "lemonbuddy 1.2.1" "lemonbuddy Manual"
+.SH NAME
+\fBlemonbuddy\fR \- A fast and easy-to-use tool for Lemonbar.
+.SH SYNOPSIS
+.P
+lemonbuddy [\fIBAR\-NAME\fR] [\fB\-c\fR \fICONFIG\-FILE\fR] [\fB\-p\fR \fIPIPE\fR] [\fB\-l\fR \fILOG\-LEVEL\fR] [\fB\-d\fR \fIPARAM\fR] [\fB\-x\fR] [\fB\-w\fR]
+.P
+lemonbuddy [\fB\-h\fR | \fB\-\-help\fR]
+.SH DESCRIPTION
+\fBLemonbuddy\fR aims to help users build beautiful and highly customizable status bars without messing with named pipes, MacGyver-like scripting or non-blocking loops lobotomizing your CPU.
+.P
+Please not that the project is still in early development, so please report any anomalies by creating an issue on GitHub (\fIhttps://github.com/jaagr/lemonbuddy\fR).
+.P
+Mandatory arguments to long options are mandatory for short options too.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help and program options.
+.TP
+\fB\-c\fR, \fB\-\-config\fR=\fICONFIG\-FILE\fR
+Specify the path to the configuration file. By default, configuration files are read from \fI$XDG_CONFIG_HOME/.config/lemonbuddy\fR. When the \fI$XDG_CONFIG_HOME\fR variable is absent, then \fI~/.config/lemonbuddy\fR directory is used instead.
+.TP
+\fB\-p\fR, \fB\-\-pipe\fR=\fIPIPE\fR
+Specify an alternate input pipe. This pipe is used by \fBlemonbuddy\fR to communicate with \fBlemonbar\fR. For more information on named pipes, see \fBmkfifo\fR(1).
+.TP
+\fB\-l\fR, \fB\-\-log\fR=\fILEVEL\fR
+Set how verbose \fBlemonbuddy\fR's logging is. \fILEVEL\fR must be one of: `warning', `info', `debug', or `trace'.
+.TP
+\fB\-d\fR, \fB\-\-dump\fR=\fIPARAM\fR
+Show the value of the specified parameter \fIPARAM\fR in the section \fIBAR\-NAME\fR inside the configuration file.
+.TP
+\fB\-x\fR, \fB\-\-print\-exec\fR
+Print the generated command line string used to start the \fBlemonbar\fR process.
+.TP
+\fB\-w\fR, \fB\-\-print\-wmname\fR
+Print the generated \fIWM_NAME\fR.
+.SH SEE ALSO
+.TP
+\fBlemonbar\fR(1), \fBlemonbuddy_terminate\fR(1), \fBlemonbuddy_wrapper\fR(1), \fBlemonbar_config\fR(5)
