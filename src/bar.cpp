@@ -1,4 +1,5 @@
 #include "bar.hpp"
+#include "config.hpp"
 #include "registry.hpp"
 #include "services/builder.hpp"
 #include "utils/config.hpp"
@@ -139,40 +140,29 @@ void Bar::load()
       std::unique_ptr<modules::ModuleInterface> module;
       auto type = config::get<std::string>("module/"+ mod, "type");
 
-           if (type == "internal/counter")  module = std::make_unique<modules::CounterModule>(mod);
-      else if (type == "internal/backlight")  module = std::make_unique<modules::BacklightModule>(mod);
-      else if (type == "internal/battery")    module = std::make_unique<modules::BatteryModule>(mod);
-      else if (type == "internal/bspwm")      module = std::make_unique<modules::BspwmModule>(mod, this->opts->monitor->name);
-      else if (type == "internal/cpu")        module = std::make_unique<modules::CpuModule>(mod);
-      else if (type == "internal/date")       module = std::make_unique<modules::DateModule>(mod);
-      else if (type == "internal/memory")     module = std::make_unique<modules::MemoryModule>(mod);
-      else if (type == "internal/network")
-#ifdef ENABLE_NETWORK
-        module = std::make_unique<modules::NetworkModule>(mod);
-#else
-        throw CompiledWithoutModuleSupport("network");
-#endif
-      else if (type == "internal/i3")
-#ifdef ENABLE_I3
-        module = std::make_unique<modules::i3Module>(mod, this->opts->monitor->name);
-#else
-        throw CompiledWithoutModuleSupport("i3");
-#endif
-      else if (type == "internal/mpd")
-#ifdef ENABLE_MPD
-        module = std::make_unique<modules::MpdModule>(mod);
-#else
-        throw CompiledWithoutModuleSupport("mpd");
-#endif
-      else if (type == "internal/volume")
-#ifdef ENABLE_ALSA
-        module = std::make_unique<modules::VolumeModule>(mod);
-#else
-        throw CompiledWithoutModuleSupport("volume");
-#endif
-      else if (type == "custom/text")         module = std::make_unique<modules::TextModule>(mod);
-      else if (type == "custom/script")       module = std::make_unique<modules::ScriptModule>(mod);
-      else if (type == "custom/menu")         module = std::make_unique<modules::MenuModule>(mod);
+      if (!ENABLE_ALSA && type == "internal/volume")
+        throw CompiledWithoutModuleSupport(type);
+      if (!ENABLE_I3 && type == "internal/i3")
+        throw CompiledWithoutModuleSupport(type);
+      if (!ENABLE_MPD && type == "internal/mpd")
+        throw CompiledWithoutModuleSupport(type);
+      if (!ENABLE_NETWORK && type == "internal/network")
+        throw CompiledWithoutModuleSupport(type);
+
+           if (type == "internal/counter") module = std::make_unique<modules::CounterModule>(mod);
+      else if (type == "internal/backlight") module = std::make_unique<modules::BacklightModule>(mod);
+      else if (type == "internal/battery") module = std::make_unique<modules::BatteryModule>(mod);
+      else if (type == "internal/bspwm") module = std::make_unique<modules::BspwmModule>(mod, this->opts->monitor->name);
+      else if (type == "internal/cpu") module = std::make_unique<modules::CpuModule>(mod);
+      else if (type == "internal/date") module = std::make_unique<modules::DateModule>(mod);
+      else if (type == "internal/memory") module = std::make_unique<modules::MemoryModule>(mod);
+      else if (type == "internal/i3") module = std::make_unique<modules::i3Module>(mod, this->opts->monitor->name);
+      else if (type == "internal/mpd") module = std::make_unique<modules::MpdModule>(mod);
+      else if (type == "internal/volume") module = std::make_unique<modules::VolumeModule>(mod);
+      else if (type == "internal/network") module = std::make_unique<modules::NetworkModule>(mod);
+      else if (type == "custom/text") module = std::make_unique<modules::TextModule>(mod);
+      else if (type == "custom/script") module = std::make_unique<modules::ScriptModule>(mod);
+      else if (type == "custom/menu") module = std::make_unique<modules::MenuModule>(mod);
       else throw ConfigurationError("Unknown module: "+ mod);
 
       vec.emplace_back(module->name());

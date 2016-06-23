@@ -2,10 +2,10 @@
 
 #define APP_NAME "@PROJECT_NAME@"
 
-#cmakedefine ENABLE_ALSA
-#cmakedefine ENABLE_MPD
-#cmakedefine ENABLE_NETWORK
-#cmakedefine ENABLE_I3
+#cmakedefine ENABLE_ALSA true
+#cmakedefine ENABLE_MPD true
+#cmakedefine ENABLE_NETWORK true
+#cmakedefine ENABLE_I3 true
 
 #define BUILDER_SPACE_TOKEN "%__"
 #define ALSA_SOUNDCARD "@SETTING_ALSA_SOUNDCARD@"
