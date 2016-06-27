@@ -52,14 +52,14 @@ class ModuleFormatter
     };
 
   std::string module_name;
-  std::map<std::string, std::unique_ptr<Format>> formats;
+  std::map<std::string, std::shared_ptr<Format>> formats;
 
   public:
     explicit ModuleFormatter(std::string module_name)
       : module_name(module_name) {}
 
     void add(std::string name, std::string fallback, std::vector<std::string>&& tags, std::vector<std::string>&& whitelist = {});
-    std::unique_ptr<Format>& get(std::string format_name);
+    std::shared_ptr<Format> get(std::string format_name);
     bool has(std::string tag, std::string format_name);
     bool has(std::string tag);
 };
@@ -207,31 +207,34 @@ namespace modules
       {
         std::lock_guard<concurrency::SpinLock> lck(this->output_lock);
 
-        log_trace(ConstCastModule(ModuleImpl).name());
-
         if (!this->enabled()) {
           log_trace(ConstCastModule(ModuleImpl).name() +" is disabled");
           return "";
+        } else {
+          log_trace(ConstCastModule(ModuleImpl).name());
         }
 
         auto format_name = CastModule(ModuleImpl)->get_format();
-        auto &&format = this->formatter->get(format_name);
+        auto format = this->formatter->get(format_name);
 
         int i = 0;
+        bool tag_built = true;
+
         for (auto tag : string::split(format->value, ' ')) {
-          if ((i > 0 && !tag.empty()) || tag.empty()) {
-            this->builder->space(format->spacing);
-          }
+          bool is_blankspace = tag.empty();
 
           if (tag[0] == '<' && tag[tag.length()-1] == '>') {
-            if (!CastModule(ModuleImpl)->build(this->builder.get(), tag)) {
+            if (i > 0)
+              this->builder->space(format->spacing);
+            if (!(tag_built = CastModule(ModuleImpl)->build(this->builder.get(), tag)) && i > 0)
               this->builder->remove_trailing_space(format->spacing);
-            }
-          } else {
+            if (tag_built)
+              i++;
+          } else if (is_blankspace && tag_built) {
+            this->builder->node(" ");
+          } else if (!is_blankspace) {
             this->builder->node(tag);
           }
-
-          i++;
         }
 
         return format->decorate(this->builder.get(), this->builder->flush());
@@ -250,8 +253,7 @@ namespace modules
         this->threads.emplace_back(std::thread(&StaticModule::broadcast, this));
       }
 
-      bool build(Builder *builder, std::string tag)
-      {
+      bool build(Builder *builder, std::string tag) {
         return true;
       }
   };

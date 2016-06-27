@@ -59,7 +59,7 @@ void ModuleFormatter::add(std::string name, std::string fallback, std::vector<st
   this->formats.insert(std::make_pair(name, std::move(format)));
 }
 
-std::unique_ptr<ModuleFormatter::Format>& ModuleFormatter::get(std::string format_name)
+std::shared_ptr<ModuleFormatter::Format> ModuleFormatter::get(std::string format_name)
 {
   auto format = this->formats.find(format_name);
   if (format == this->formats.end())
