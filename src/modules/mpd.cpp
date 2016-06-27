@@ -77,7 +77,7 @@ MpdModule::~MpdModule()
 {
   std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
   {
-    if (this->mpd->connected()) {
+    if (this->mpd && this->mpd->connected()) {
       try {
         this->mpd->disconnect();
       } catch (mpd::Exception &e) {
