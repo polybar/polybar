@@ -14,16 +14,16 @@
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
 #include "modules/text.hpp"
-#ifdef ENABLE_I3
+#if ENABLE_I3
 #include "modules/i3.hpp"
 #endif
-#ifdef ENABLE_MPD
+#if ENABLE_MPD
 #include "modules/mpd.hpp"
 #endif
-#ifdef ENABLE_NETWORK
+#if ENABLE_NETWORK
 #include "modules/network.hpp"
 #endif
-#ifdef ENABLE_ALSA
+#if ENABLE_ALSA
 #include "modules/volume.hpp"
 #endif
 
@@ -156,10 +156,18 @@ void Bar::load()
       else if (type == "internal/cpu") module = std::make_unique<modules::CpuModule>(mod);
       else if (type == "internal/date") module = std::make_unique<modules::DateModule>(mod);
       else if (type == "internal/memory") module = std::make_unique<modules::MemoryModule>(mod);
+      #if ENABLE_I3
       else if (type == "internal/i3") module = std::make_unique<modules::i3Module>(mod, this->opts->monitor->name);
+      #endif
+      #if ENABLE_MPD
       else if (type == "internal/mpd") module = std::make_unique<modules::MpdModule>(mod);
+      #endif
+      #if ENABLE_ALSA
       else if (type == "internal/volume") module = std::make_unique<modules::VolumeModule>(mod);
+      #endif
+      #if ENABLE_NETWORK
       else if (type == "internal/network") module = std::make_unique<modules::NetworkModule>(mod);
+      #endif
       else if (type == "custom/text") module = std::make_unique<modules::TextModule>(mod);
       else if (type == "custom/script") module = std::make_unique<modules::ScriptModule>(mod);
       else if (type == "custom/menu") module = std::make_unique<modules::MenuModule>(mod);
