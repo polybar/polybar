@@ -197,7 +197,7 @@ namespace mpd
   void Connection::seek(int percentage)
   {
     try {
-      auto status = this->get_status();
+      auto status = this->get_status(false);
       if (status->total_time == 0)
         return;
       if (percentage < 0)
@@ -249,12 +249,24 @@ namespace mpd
 
   // Status
 
-  std::unique_ptr<Status> Connection::get_status()
+  std::unique_ptr<Status> Connection::get_status(bool update)
   {
     this->check_prerequisites();
-    mpd_status *status = mpd_run_status(this->connection.get());
+    mpd_status *mpd_status = mpd_run_status(this->connection.get());
     this->check_errors();
-    return std::make_unique<Status>(status);
+    auto status = std::make_unique<Status>(mpd_status);
+    if (update)
+      status->update(-1, this);
+    return status;
+  }
+
+  std::unique_ptr<Status> Connection::get_status_safe(bool update)
+  {
+    std::unique_ptr<Status> status;
+    try {
+      status = this->get_status(update);
+    } catch (mpd::Exception &e) {}
+    return status;
   }
 
   Status::Status(struct mpd_status *status) {
@@ -275,11 +287,18 @@ namespace mpd
     this->updated_at = std::chrono::system_clock::now();
   }
 
-  void Status::update(int event, std::unique_ptr<Connection>& connection)
+  void Status::update(int event, std::unique_ptr<Connection>& connection) {
+    return this->update(event, connection.get());
+  }
+
+  void Status::update(int event, Connection *connection)
   {
-    auto status = connection->get_status();
+    if (connection == nullptr)
+      return;
 
     if (event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS)) {
+      auto status = connection->get_status(false);
+
       this->set(std::move(status->status));
       this->elapsed_time_ms = this->elapsed_time * 1000;
 

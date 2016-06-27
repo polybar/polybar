@@ -76,13 +76,11 @@ MpdModule::MpdModule(std::string name_)
 MpdModule::~MpdModule()
 {
   std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-  {
-    if (this->mpd && this->mpd->connected()) {
-      try {
-        this->mpd->disconnect();
-      } catch (mpd::Exception &e) {
-        get_logger()->debug(e.what());
-      }
+  if (this->mpd && this->mpd->connected()) {
+    try {
+      this->mpd->disconnect();
+    } catch (mpd::Exception &e) {
+      get_logger()->debug(e.what());
     }
   }
 }
@@ -97,10 +95,8 @@ void MpdModule::start()
   try {
     this->mpd->connect();
     this->status = this->mpd->get_status();
-    this->status->update(-1, this->mpd);
   } catch (mpd::Exception &e) {
     log_error(e.what());
-    this->mpd->disconnect();
   }
 
   this->EventModule::start();
@@ -125,14 +121,11 @@ bool MpdModule::has_event()
     }
   }
 
-  if (!this->connection_state_broadcasted) {
+  if (!this->connection_state_broadcasted)
     this->connection_state_broadcasted = true;
-  }
 
-  if (!this->status) {
-    this->status = this->mpd->get_status();
-    this->status->update(-1, this->mpd);
-  }
+  if (!this->status)
+    this->status = this->mpd->get_status_safe();
 
   try {
     this->mpd->idle();
@@ -140,7 +133,7 @@ bool MpdModule::has_event()
     int idle_flags;
 
     if ((idle_flags = this->mpd->noidle()) != 0) {
-      this->status->update(idle_flags, this->mpd);
+      this->status->update(idle_flags, this->mpd.get());
       has_event = true;
     } else if (this->status->state & mpd::PLAYING) {
       this->status->update_timer();
@@ -169,12 +162,7 @@ bool MpdModule::update()
     return true;
 
   if (!this->status)
-    try {
-      this->status = this->mpd->get_status();
-    } catch (mpd::Exception &e) {
-      log_trace(e.what());
-    }
-
+    this->status = this->mpd->get_status_safe();
   if (!this->status)
     return true;
 
@@ -184,7 +172,6 @@ bool MpdModule::update()
   try {
     elapsed_str = this->status->get_formatted_elapsed();
     total_str = this->status->get_formatted_total();
-
     song = this->mpd->get_song();
 
     if (*song) {
@@ -234,6 +221,7 @@ bool MpdModule::build(Builder *builder, std::string tag)
   };
 
   bool is_playing = false;
+  bool is_paused = false;
   bool is_stopped = true;
   int elapsed_percentage = 0;
 
@@ -242,6 +230,8 @@ bool MpdModule::build(Builder *builder, std::string tag)
 
     if (this->status->state & mpd::State::PLAYING)
       is_playing = true;
+    if (this->status->state & mpd::State::PAUSED)
+      is_paused = true;
     if (!(this->status->state & mpd::State::STOPPED))
       is_stopped = false;
   }
@@ -262,11 +252,11 @@ bool MpdModule::build(Builder *builder, std::string tag)
     icon_cmd(builder, EVENT_REPEAT_ONE, this->icons->get("repeat_one"));
   else if (tag == TAG_ICON_PREV)
     icon_cmd(builder, EVENT_PREV, this->icons->get("prev"));
-  else if (tag == TAG_ICON_STOP)
+  else if (tag == TAG_ICON_STOP && (is_playing || is_paused))
     icon_cmd(builder, EVENT_STOP, this->icons->get("stop"));
-  else if (tag == TAG_ICON_PAUSE || (tag == TAG_TOGGLE && is_playing))
+  else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing)
     icon_cmd(builder, EVENT_PAUSE, this->icons->get("pause"));
-  else if (tag == TAG_ICON_PLAY || (tag == TAG_TOGGLE && !is_playing))
+  else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE) && !is_playing)
     icon_cmd(builder, EVENT_PLAY, this->icons->get("play"));
   else if (tag == TAG_ICON_NEXT)
     icon_cmd(builder, EVENT_NEXT, this->icons->get("next"));

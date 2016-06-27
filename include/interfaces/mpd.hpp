@@ -92,6 +92,8 @@ namespace mpd
     void set(std::unique_ptr<struct mpd_status, StatusDeleter> status);
 
     void update(int event, std::unique_ptr<Connection>& connection);
+    void update(int event, Connection *connection);
+
     void update_timer();
 
     // unsigned get_total_time();
@@ -145,7 +147,9 @@ namespace mpd
       void set_password(std::string password) { this->password = password; }
       void set_timeout(int timeout) { this->timeout = timeout; }
 
-      std::unique_ptr<Status> get_status();
+      std::unique_ptr<Status> get_status(bool update = true);
+      std::unique_ptr<Status> get_status_safe(bool update = true);
+
       std::unique_ptr<Song> get_song();
 
       void play();
