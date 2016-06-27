@@ -75,10 +75,10 @@ $ sudo xbps-install cmake boost-devel libxcb-devel xcb-proto alsa-lib-devel i3-d
 > **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
 > needs to be added to the list of sources in `/etc/apt/sources.list`.
 >
-> Packages in the `universe` repository: `libmpdclient-dev` `fonts-font-awesome`
+> Packages in the `universe` repository: `libmpdclient-dev`
 
 ~~~ sh
-$ sudo apt-get install cmake libxcb-dev xcb-proto libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
+$ sudo apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
 ~~~
 
 
