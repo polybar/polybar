@@ -20,7 +20,7 @@ before_install:
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
   - sudo sed -i "s/trusty/wily/g" /etc/apt/sources.list
   - sudo apt-get -qq update
-  - sudo apt-get install -y cmake cmake-data libxrandr-dev libboost-dev libiw-dev libasound2-dev libmpdclient-dev
+  - sudo apt-get install -y cmake cmake-data libxcb1-dev python-xcbgen xcb-proto libboost-dev libiw-dev libasound2-dev libmpdclient-dev
 
 before_script:
   - if [ "$CXX" = "clang++" ]; then export CPPFLAGS="-I $HOME/clang-$LLVM_VERSION/include/c++/v1" CXXFLAGS="-Qunused-arguments"; fi
@@ -30,6 +30,7 @@ before_script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_CXX_FLAGS="$CXXFLAGS" ..
+  - ls ../lib/xpp/include/proto/
 
 script: make
 
