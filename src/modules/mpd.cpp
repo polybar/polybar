@@ -25,6 +25,7 @@ MpdModule::MpdModule(std::string name_)
     TAG_ICON_RANDOM,  TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV,
     TAG_ICON_STOP,    TAG_ICON_PLAY,   TAG_ICON_PAUSE,      TAG_ICON_NEXT,
     TAG_ICON_SEEKB,   TAG_ICON_SEEKF });
+
   this->formatter->add(FORMAT_OFFLINE, "", { TAG_LABEL_OFFLINE });
 
   if (this->formatter->has(TAG_ICON_PLAY) || this->formatter->has(TAG_TOGGLE))
@@ -107,9 +108,11 @@ void MpdModule::start()
 
 bool MpdModule::has_event()
 {
-  bool has_event = false;
+  bool has_event = !this->connection_state_broadcasted();
 
   if (!this->mpd->connected()) {
+    this->connection_state_broadcasted = false;
+
     try {
       this->mpd->connect();
     } catch (mpd::Exception &e) {
@@ -117,9 +120,13 @@ bool MpdModule::has_event()
     }
 
     if (!this->mpd->connected()) {
-      this->sleep(3s);
+      this->sleep(2s);
       return false;
     }
+  }
+
+  if (!this->connection_state_broadcasted) {
+    this->connection_state_broadcasted = true;
   }
 
   if (!this->status) {

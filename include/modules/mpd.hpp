@@ -63,8 +63,11 @@ namespace modules
     std::chrono::system_clock::time_point synced_at;
     float sync_interval = 1.0f;
 
-    bool clickable_progress = false;
     std::string progress_fill, progress_empty, progress_indicator;
+
+    // This flag is used to let thru a broadcast once every time
+    // the connection state changes
+    concurrency::Atomic<bool> connection_state_broadcasted { true };
 
     public:
       explicit MpdModule(std::string name);
