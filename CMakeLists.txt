@@ -1,15 +1,11 @@
 #
 # Build configuration
 #
-cmake_minimum_required(VERSION 3.0)
-project(lemonbuddy)
+cmake_minimum_required(VERSION 3.1)
+project(lemonbuddy CXX)
 
 # Include the local cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
-
-set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-parameter")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -g3 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wno-unused-variable")
 
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "No build type specified; using Release")
@@ -162,10 +158,20 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/src" EXCLUDE_FROM_ALL)
 link_directories(${PROJECT_LINK_DIRS})
 include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_INCL_DIRS})
 link_libraries(${PROJECT_LINK_LIBS})
+
 add_executable(${PROJECT_NAME} ${FILES}
   "examples/config"
   "examples/config.bspwm"
   "examples/config.i3")
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+  -Wall -Wextra -Wpedantic -Wno-unused-parameter
+  $<$<CONFIG:Debug>:-g3 -DDEBUG>
+  $<$<CONFIG:Release>:-O3 -Wno-unused-variable>)
+
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
 
 configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
