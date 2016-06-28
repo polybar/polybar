@@ -36,7 +36,7 @@ Install the XBPS package [lemonbuddy](https://raw.githubusercontent.com/jaagr/vo
 ### Building from source
 
   ~~~ sh
-  $ git clone --branch 1.3.1 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 1.3.2 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
