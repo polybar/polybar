@@ -63,7 +63,7 @@ A C++ compiler with C++14 support. For example `clang`.
 
 ##### Install dependencies using pacman:
 ~~~ sh
-$ sudo pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient libsigc++
+$ sudo pacman -S cmake boost libxcb wireless_tools alsa-lib libmpdclient libsigc++
 ~~~
 
 ##### Install dependencies using xbps-install:

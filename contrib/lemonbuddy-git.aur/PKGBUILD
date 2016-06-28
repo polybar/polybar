@@ -2,19 +2,19 @@
 # Contributor: Michael Carlberg <c@rlberg.se>
 _pkgname=lemonbuddy
 pkgname="${_pkgname}-git"
-pkgver=1.2.1
+pkgver=1.3.0
 pkgrel=1
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/lemonbuddy"
 license=("MIT")
-depends=("bash" "libxrandr")
+depends=("bash" "libxcb")
 optdepends=("alsa-lib: volume module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "libsigc++: i3 module support"
             "i3ipc-glib-git: i3 module support")
-makedepends=("cmake" "pkg-config" "clang" "glibc" "boost")
+makedepends=("cmake" "pkg-config" "clang" "glibc" "boost" "libxcb")
 provides=("lemonbuddy")
 conflicts=("lemonbuddy")
 source=("${_pkgname}::git+${url}.git")
@@ -29,6 +29,7 @@ prepare() {
   cd "$_pkgname" || exit
   git submodule update --init --recursive
   mkdir build
+  sed 's/python2.7/python3.5/g' -i lib/xpp/CMakeLists.txt
 }
 
 build() {
