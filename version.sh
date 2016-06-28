@@ -5,7 +5,11 @@ msg() {
 }
 
 main() {
-  version="$(git describe --tags --dirty=-dev)"
+  version="$1"
+
+  [ "$version" ] || {
+    version="$(git describe --tags --dirty=-dev)"
+  }
 
   msg "Current version: ${version}"
 
