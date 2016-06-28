@@ -23,8 +23,10 @@
 #define log_debug(s) get_logger()->debug(s)
 #ifdef DEBUG
 #define log_trace(s) get_logger()->trace(__FILE__, __FUNCTION__, __LINE__, s)
+#define log_trace2(logger, s) logger->trace(__FILE__, __FUNCTION__, __LINE__, s)
 #else
 #define log_trace(s) if (0) {}
+#define log_trace2(logger, s) if (0) {}
 #endif
 
 enum LogLevel
@@ -75,4 +77,4 @@ class Logger
     }
 };
 
-std::shared_ptr<Logger> &get_logger();
+std::shared_ptr<Logger> get_logger();

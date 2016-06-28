@@ -7,10 +7,10 @@
 #include "utils/proc.hpp"
 
 std::shared_ptr<Logger> logger;
-std::shared_ptr<Logger> &get_logger()
+std::shared_ptr<Logger> get_logger()
 {
   if (logger == nullptr)
-    logger = std::make_unique<Logger>();
+    logger = std::make_shared<Logger>();
   return logger;
 }
 

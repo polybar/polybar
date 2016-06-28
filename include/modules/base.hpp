@@ -88,8 +88,8 @@ namespace modules
   template<class ModuleImpl>
   class Module : public ModuleInterface
   {
-    concurrency::Atomic<bool> enabled_flag;
-    concurrency::Value<std::string> cache;
+    concurrency::Atomic<bool> enabled_flag { false };
+    concurrency::Value<std::string> cache { "" };
 
     protected:
       concurrency::SpinLock output_lock;
@@ -100,6 +100,7 @@ namespace modules
       std::condition_variable sleep_handler;
 
       std::string name_;
+      std::shared_ptr<Logger> logger;
       std::unique_ptr<Builder> builder;
       std::unique_ptr<EventThrottler> broadcast_throttler;
       std::unique_ptr<ModuleFormatter> formatter;
@@ -116,13 +117,10 @@ namespace modules
     public:
       Module(std::string name, bool lazy_builder = true)
         : name_("module/"+ name)
+        , logger(get_logger())
         , builder(std::make_unique<Builder>(lazy_builder))
         , broadcast_throttler(std::make_unique<EventThrottler>(ConstCastModule(ModuleImpl).broadcast_throttler_limit(), ConstCastModule(ModuleImpl).broadcast_throttler_timewindow()))
-      {
-        this->enable(false);
-        this->cache = "";
-        this->formatter = std::make_unique<ModuleFormatter>(ConstCastModule(ModuleImpl).name());
-      }
+        , formatter(std::make_unique<ModuleFormatter>(ConstCastModule(ModuleImpl).name())) {}
 
       ~Module()
       {
@@ -135,13 +133,13 @@ namespace modules
             if (t.joinable())
               t.join();
             else
-              log_warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
+              this->logger->warning("["+ ConstCastModule(ModuleImpl).name() +"] Runner thread not joinable");
           }
 
           this->threads.clear();
         }
 
-        log_trace(name());
+        log_trace2(this->logger, name());
       }
 
       std::string name() const {
@@ -151,7 +149,7 @@ namespace modules
       void stop()
       {
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
-        log_trace(name());
+        log_trace2(this->logger, name());
         this->wakeup();
         this->enable(false);
       }
@@ -181,7 +179,7 @@ namespace modules
       {
         std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
         if (!this->broadcast_throttler->passthrough()) {
-          log_trace("Throttled broadcast for: "+ this->name_);
+          log_trace2(this->logger, "Throttled broadcast for: "+ this->name_);
           return;
         }
         broadcast_module_update(ConstCastModule(ModuleImpl).name());
@@ -195,7 +193,7 @@ namespace modules
 
       void wakeup()
       {
-        log_trace("Releasing sleep lock for "+ this->name_);
+        log_trace2(this->logger, "Releasing sleep lock for "+ this->name_);
         this->sleep_handler.notify_all();
       }
 
@@ -208,10 +206,10 @@ namespace modules
         std::lock_guard<concurrency::SpinLock> lck(this->output_lock);
 
         if (!this->enabled()) {
-          log_trace(ConstCastModule(ModuleImpl).name() +" is disabled");
+          log_trace2(this->logger, ConstCastModule(ModuleImpl).name() +" is disabled");
           return "";
         } else {
-          log_trace(ConstCastModule(ModuleImpl).name());
+          log_trace2(this->logger, ConstCastModule(ModuleImpl).name());
         }
 
         auto format_name = CastModule(ModuleImpl)->get_format();
@@ -369,7 +367,7 @@ namespace modules
           ConstCastModule(ModuleImpl).idle();
 
           for (auto &&w : watches) {
-            log_trace("Polling inotify event for watch at "+ (*w)());
+            log_trace2(this->logger, "Polling inotify event for watch at "+ (*w)());
 
             if (w->has_event(500 / watches.size())) {
               std::unique_ptr<InotifyEvent> event = w->get_event();
@@ -392,7 +390,7 @@ namespace modules
 
       void watch(std::string path, int mask = InotifyEvent::ALL)
       {
-        log_trace(path);
+        log_trace2(this->logger, path);
         this->watch_list.insert(std::make_pair(path, mask));
       }
 
