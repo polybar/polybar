@@ -1,6 +1,7 @@
 #include <thread>
 #include <vector>
 #include <sstream>
+#include <sys/socket.h>
 
 #include "config.hpp"
 #include "lemonbuddy.hpp"
@@ -12,13 +13,45 @@
 #include "utils/string.hpp"
 
 using namespace modules;
-using namespace Bspwm;
+using namespace bspwm;
 
 #define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon%  %name%"
 
+bspwm::payload_t generate_payload(std::string command)
+{
+  bspwm::payload_t payload;
+  size_t size = sizeof(payload.data);
+  int offset = 0, chars = 0;
+  for (auto &&sub: string::split(command, ' ')) {
+    chars = snprintf(payload.data + offset, size - offset, "%s%c", sub.c_str(), 0);
+    payload.len += chars;
+    offset += chars;
+  }
+  return payload;
+}
+
+bool send_payload(int fd, bspwm::payload_t payload)
+{
+  int bytes = 0;
+  if ((bytes = send(fd, payload.data, payload.len, 0)) == -1)
+    log_debug("bspwm: Failed sending message to socket");
+  return bytes > 0;
+}
+
+int create_subscriber()
+{
+  int socket_fd;
+  if ((socket_fd = io::socket::open(BSPWM_SOCKET_PATH)) == -1)
+    throw ModuleError("Could not connect to socket");
+  if (!send_payload(socket_fd, generate_payload("subscribe report")))
+    throw ModuleError("Failed to subscribe to bspwm changes");
+  return socket_fd;
+}
+
 BspwmModule::BspwmModule(std::string name_, std::string monitor)
-  : EventModule(name_), monitor(monitor)
+  : EventModule(name_)
+  , monitor(monitor)
 {
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
 
@@ -51,28 +84,34 @@ BspwmModule::BspwmModule(std::string name_, std::string monitor)
   register_command_handler(name());
 }
 
+BspwmModule::~BspwmModule()
+{
+  if (this->socket_fd > -1)
+    close(this->socket_fd);
+}
+
 void BspwmModule::start()
 {
-  this->socket_fd = io::socket::open(BSPWM_SOCKET_PATH);
-
-  if (io::socket::send(this->socket_fd, "subscribe\x00report") == 0)
-    throw ModuleError("Failed to subscribe to bspwm changes");
-
+  this->socket_fd = create_subscriber();
   this->EventModule<BspwmModule>::start();
 }
 
-bool BspwmModule::has_event() {
-  return io::poll_read(this->socket_fd, 100);
+bool BspwmModule::has_event()
+{
+  if (io::poll(this->socket_fd, POLLHUP, 0)) {
+    close(this->socket_fd);
+    this->logger->warning("bspwm: Reconnecting to socket...");
+    this->socket_fd = create_subscriber();
+  }
+  return io::poll(this->socket_fd, POLLIN, 100);
 }
 
 bool BspwmModule::update()
 {
-  std::string data;
+  auto bytes_read = 0;
+  auto data = io::readline(this->socket_fd, bytes_read);
 
-  if ((data = io::readline(this->socket_fd)).empty())
-    return false;
-
-  if (data == this->prev_data)
+  if (bytes_read <= 0 || data.empty() || data == this->prev_data)
     return false;
 
   this->prev_data = data;
@@ -88,7 +127,7 @@ bool BspwmModule::update()
   const auto prefix = std::string(BSPWM_STATUS_PREFIX);
 
   if (data.compare(0, prefix.length(), prefix) != 0) {
-    log_error("Received unknown status -> "+ data);
+    this->logger->error("bspwm: Received unknown status -> "+ data);
     return false;
   }
 
@@ -109,7 +148,7 @@ bool BspwmModule::update()
   if (data.compare(0, prefix.length(), prefix) == 0)
     data.erase(0, 1);
 
-  log_trace(data);
+  log_trace2(this->logger, data);
 
   this->modes.clear();
   this->workspaces.clear();
@@ -138,7 +177,7 @@ bool BspwmModule::update()
           case 0: break;
           case 'M': mode_flag = MODE_LAYOUT_MONOCLE; break;
           case 'T': mode_flag = MODE_LAYOUT_TILED; break;
-          default: log_warning("[modules::Bspwm] Undefined L => "+ value);
+          default: this->logger->warning("bspwm: Undefined L => "+ value);
         }
         break;
 
@@ -148,7 +187,7 @@ bool BspwmModule::update()
           case 'T': break;
           case '=': mode_flag = MODE_STATE_FULLSCREEN; break;
           case 'F': mode_flag = MODE_STATE_FLOATING; break;
-          default: log_warning("[modules::Bspwm] Undefined T => "+ value);
+          default: this->logger->warning("bspwm: Undefined T => "+ value);
         }
         break;
 
@@ -160,14 +199,14 @@ bool BspwmModule::update()
             case 'L': mode_flag = MODE_NODE_LOCKED; break;
             case 'S': mode_flag = MODE_NODE_STICKY; break;
             case 'P': mode_flag = MODE_NODE_PRIVATE; break;
-            default: log_warning("[modules::Bspwm] Undefined G => "+ value.substr(repeat_i, 1));
+            default: this->logger->warning("bspwm: Undefined G => "+ value.substr(repeat_i, 1));
           }
 
           if (mode_flag != MODE_NONE && !this->mode_labels.empty())
             this->modes.emplace_back(&this->mode_labels.find(mode_flag)->second);
         }
         continue;
-      default: log_warning("[modules::Bspwm] Undefined tag => "+ tag.substr(0, 1));
+      default: this->logger->warning("bspwm: Undefined tag => "+ tag.substr(0, 1));
     }
 
     if (workspace_flag != WORKSPACE_NONE && this->formatter->has(TAG_LABEL_STATE)) {
@@ -223,8 +262,22 @@ bool BspwmModule::handle_command(std::string cmd)
   if (cmd.find(EVENT_CLICK) == std::string::npos || cmd.length() <= std::strlen(EVENT_CLICK))
     return false;
 
-  int status = std::system(("bspc desktop -f "+ this->monitor +":^"+ cmd.substr(std::strlen(EVENT_CLICK))).c_str());
-  log_trace(std::to_string(status));
+  std::stringstream payload_s;
+
+  payload_s
+    << "desktop -f "
+    << this->monitor
+    << ":^"
+    << std::atoi(cmd.substr(std::strlen(EVENT_CLICK)).c_str());
+
+  int payload_fd;
+
+  if ((payload_fd = io::socket::open(BSPWM_SOCKET_PATH)) == -1)
+    this->logger->error("bspwm: Failed to open socket");
+  else if (!send_payload(payload_fd, generate_payload(payload_s.str())))
+    this->logger->error("bspwm: Failed to change desktop");
+
+  close(payload_fd);
 
   return true;
 }

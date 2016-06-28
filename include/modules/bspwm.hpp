@@ -10,8 +10,13 @@
 
 namespace modules
 {
-  namespace Bspwm
+  namespace bspwm
   {
+    typedef struct payload_t {
+      char data[BUFSIZ];
+      size_t len = 0;
+    } payload_t;
+
     enum Flag
     {
       WORKSPACE_NONE,
@@ -53,10 +58,10 @@ namespace modules
 
     static constexpr auto EVENT_CLICK = "bwm";
 
-    std::map<Bspwm::Flag, std::unique_ptr<drawtypes::Label>> mode_labels;
-    std::map<Bspwm::Flag, std::unique_ptr<drawtypes::Label>> state_labels;
+    std::map<bspwm::Flag, std::unique_ptr<drawtypes::Label>> mode_labels;
+    std::map<bspwm::Flag, std::unique_ptr<drawtypes::Label>> state_labels;
 
-    std::vector<std::unique_ptr<Bspwm::Workspace>> workspaces;
+    std::vector<std::unique_ptr<bspwm::Workspace>> workspaces;
     std::vector<std::unique_ptr<drawtypes::Label>*> modes;
 
     std::unique_ptr<drawtypes::IconMap> icons;
@@ -67,7 +72,7 @@ namespace modules
 
     public:
       BspwmModule(std::string name, std::string monitor);
-      ~BspwmModule() { close(this->socket_fd); }
+      ~BspwmModule();
 
       void start();
       bool has_event();
