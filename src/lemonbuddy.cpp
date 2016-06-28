@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <thread>
 
+#include "version.hpp"
 #include "bar.hpp"
 #include "config.hpp"
 #include "eventloop.hpp"
@@ -59,14 +60,43 @@ int main(int argc, char **argv)
     cli::add_option("-d", "--dump", "PARAM", "Show value of PARAM in section [bar_name]");
     cli::add_option("-x", "--print-exec", "Print the generated command line string used to start the lemonbar process");
     cli::add_option("-w", "--print-wmname", "Print the generated WM_NAME");
+    cli::add_option("-v", "--version", "Print version information");
 
     /**
      * Parse command line arguments
      */
-    if (argc < 2 || cli::is_option(argv[1], "-h", "--help") || argv[1][0] == '-')
+    if (argc < 2 || cli::is_option(argv[1], "-h", "--help"))
       cli::usage(usage, (argc > 1 && cli::is_option(argv[1], "-h", "--help")));
+
     cli::parse(2, argc, argv);
-    if (cli::has_option("help"))
+
+    if (cli::has_option("version") || cli::is_option(argv[1], "-v", "--version")) {
+      std::cout << APP_NAME << " " << GIT_TAG << std::endl;
+
+      if (std::strncmp(argv[1], "-vv", 3) == 0) {
+        std::cout << "\n" << "Built with: "
+          << (ENABLE_ALSA    ? "+" : "-") << "alsa "
+          << (ENABLE_I3      ? "+" : "-") << "i3 "
+          << (ENABLE_MPD     ? "+" : "-") << "mpd "
+          << (ENABLE_NETWORK ? "+" : "-") << "network "
+          << "\n\n";
+        if (ENABLE_ALSA)
+          std::cout
+            << "ALSA_SOUNDCARD        " << ALSA_SOUNDCARD << std::endl;
+        std::cout
+            << "CONNECTION_TEST_IP    " << CONNECTION_TEST_IP << "\n"
+            << "PATH_BACKLIGHT_VAL    " << PATH_BACKLIGHT_VAL << "\n"
+            << "PATH_BACKLIGHT_MAX    " << PATH_BACKLIGHT_MAX << "\n"
+            << "BSPWM_SOCKET_PATH     " << BSPWM_SOCKET_PATH << "\n"
+            << "BSPWM_STATUS_PREFIX   " << BSPWM_STATUS_PREFIX << "\n"
+            << "PATH_CPU_INFO         " << PATH_CPU_INFO << "\n"
+            << "PATH_MEMORY_INFO      " << PATH_MEMORY_INFO << "\n";
+      }
+
+      return EXIT_SUCCESS;
+    }
+
+    if (cli::has_option("help") || argv[1][0] == '-')
       cli::usage(usage);
 
     /**

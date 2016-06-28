@@ -2,9 +2,7 @@
 # Build configuration
 #
 cmake_minimum_required(VERSION 3.0)
-
-# TODO(jaagr): Replace with git tag
-project(lemonbuddy VERSION 1.2.2)
+project(lemonbuddy)
 
 # Include the local cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -138,6 +136,11 @@ set(XCB_PROTOS xproto randr)
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/xpp")
 set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${XPP_INCLUDE_DIRS})
 set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${XPP_LIBRARIES})
+
+#
+# Execute versioning script
+#
+execute_process(COMMAND ./version.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
 
 #
 # Install executable and wrapper
