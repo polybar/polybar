@@ -64,9 +64,9 @@ namespace modules
 
     public:
       i3Module(std::string name, std::string monitor);
+      ~i3Module();
 
       void start();
-      void stop();
 
       bool has_event();
       bool update();

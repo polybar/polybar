@@ -15,6 +15,7 @@
 #include "utils/string.hpp"
 
 using namespace modules;
+using namespace i3;
 
 #define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon% %name%"
@@ -22,15 +23,15 @@ using namespace modules;
 // TODO: Needs more testing
 // TODO: Add mode indicators
 
-i3Module::i3Module(std::string name_, std::string monitor) : EventModule(name_)
+i3Module::i3Module(std::string name_, std::string monitor)
+  : EventModule(name_)
+  , monitor(monitor)
 {
   try {
     this->ipc = std::make_unique<i3ipc::connection>();
   } catch (std::runtime_error &e) {
     throw ModuleError(e.what());
   }
-
-  this->monitor = monitor;
 
   this->local_workspaces
     = config::get<bool>(name(), "local_workspaces", this->local_workspaces);
@@ -40,11 +41,11 @@ i3Module::i3Module(std::string name_, std::string monitor) : EventModule(name_)
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_FOCUSED, drawtypes::get_optional_config_label(name(), "label-focused", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_UNFOCUSED, drawtypes::get_optional_config_label(name(), "label-unfocused", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_VISIBLE, drawtypes::get_optional_config_label(name(), "label-visible", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(i3::WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED, drawtypes::get_optional_config_label(name(), "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_UNFOCUSED, drawtypes::get_optional_config_label(name(), "label-unfocused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_VISIBLE, drawtypes::get_optional_config_label(name(), "label-visible", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
   }
 
   this->icons = std::make_unique<drawtypes::IconMap>();
@@ -58,25 +59,27 @@ i3Module::i3Module(std::string name_, std::string monitor) : EventModule(name_)
   register_command_handler(name());
 }
 
+i3Module::~i3Module()
+{
+  if (!this->ipc)
+    return;
+  // FIXME: Hack to release the recv lock. Will need to patch the ipc lib
+  this->ipc->send_command("workspace back_and_forth");
+  this->ipc->send_command("workspace back_and_forth");
+}
+
 void i3Module::start()
 {
-  this->ipc = std::make_unique<i3ipc::connection>();
   // this->ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_OUTPUT | i3ipc::ET_WINDOW);
   this->ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_OUTPUT);
   this->ipc->prepare_to_event_handling();
   this->EventModule<i3Module>::start();
 }
 
-void i3Module::stop()
-{
-  std::lock_guard<concurrency::SpinLock> lock(this->update_lock);
-  this->ipc->send_command("workspace back_and_forth");
-  this->ipc->send_command("workspace back_and_forth");
-  this->EventModule<i3Module>::stop();
-}
-
 bool i3Module::has_event()
 {
+  if (!this->ipc || !this->enabled())
+    return false;
   this->ipc->handle_event();
   return true;
 }
@@ -115,19 +118,19 @@ bool i3Module::update()
       if (this->local_workspaces && ws->output != this->monitor)
         continue;
 
-      i3::Flag flag = i3::WORKSPACE_NONE;
+      Flag flag = WORKSPACE_NONE;
 
       if (ws->focused)
-        flag = i3::WORKSPACE_FOCUSED;
+        flag = WORKSPACE_FOCUSED;
       else if (ws->urgent)
-        flag = i3::WORKSPACE_URGENT;
+        flag = WORKSPACE_URGENT;
       else if (ws->visible)
-        flag = i3::WORKSPACE_VISIBLE;
+        flag = WORKSPACE_VISIBLE;
       else
-        flag = i3::WORKSPACE_UNFOCUSED;
+        flag = WORKSPACE_UNFOCUSED;
 
       // if (!monitor_focused)
-      //   flag = i3::WORKSPACE_DIMMED;
+      //   flag = WORKSPACE_DIMMED;
 
       auto workspace_name = ToStr(ws->name);
       if (this->workspace_name_strip_nchars > 0 && workspace_name.length() > this->workspace_name_strip_nchars)
@@ -137,16 +140,16 @@ bool i3Module::update()
       std::unique_ptr<drawtypes::Label> label = this->state_labels.find(flag)->second->clone();
 
       if (!monitor_focused)
-        label->replace_defined_values(this->state_labels.find(i3::WORKSPACE_DIMMED)->second);
+        label->replace_defined_values(this->state_labels.find(WORKSPACE_DIMMED)->second);
 
       label->replace_token("%name%", workspace_name);
       label->replace_token("%icon%", icon->text);
       label->replace_token("%index%", std::to_string(ws->num));
 
-      this->workspaces.emplace_back(std::make_unique<i3::Workspace>(ws->num, flag, std::move(label)));
+      this->workspaces.emplace_back(std::make_unique<Workspace>(ws->num, flag, std::move(label)));
     }
   } catch (std::runtime_error &e) {
-    get_logger()->error(e.what());
+    this->logger->error(e.what());
   }
 
   return true;
