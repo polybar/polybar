@@ -2,7 +2,7 @@
 # Build configuration
 #
 cmake_minimum_required(VERSION 3.1)
-project(lemonbuddy CXX)
+project(lemonbuddy C CXX)
 
 # Include the local cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
