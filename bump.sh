@@ -11,9 +11,16 @@ tag_curr=$(git tag -l | tail -1)
 
 ./version.sh "$tag_curr"
 
-sed -r "s/${tag_prev}/${tag_curr}/g" -i README.md CMakeLists.txt contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO
-git add README.md CMakeLists.txt contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO
-git add -u include/version.hpp
+sed -r "s/${tag_prev}/${tag_curr}/g" -i \
+  README.md CMakeLists.txt \
+  contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO \
+  contrib/lemonbuddy-git.aur/PKGBUILD contrib/lemonbuddy-git.aur/.SRCINFO
+
+git add -u README.md CMakeLists.txt \
+  contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO \
+  contrib/lemonbuddy-git.aur/PKGBUILD contrib/lemonbuddy-git.aur/.SRCINFO \
+  include/version.hpp
+
 git commit -m "build: Bump version to ${tag_curr}"
 
 # Recreate the tag to include the last commit
