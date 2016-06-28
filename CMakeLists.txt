@@ -79,7 +79,13 @@ set(PROJECT_LINK_LIBS
 
 if(ENABLE_I3)
   find_program(I3_EXECUTABLE "i3")
-  if(I3_EXECUTABLE)
+  if(NOT I3_EXECUTABLE)
+    if(NOT ENABLE_I3_NODEF)
+      message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
+      set(ENABLE_I3 OFF)
+    endif()
+  endif()
+  if(ENABLE_I3)
     add_subdirectory("${PROJECT_SOURCE_DIR}/lib/i3ipcpp" EXCLUDE_FROM_ALL)
     set(PROJECT_INCL_DIRS
       ${PROJECT_INCL_DIRS}
@@ -88,11 +94,6 @@ if(ENABLE_I3)
     set(PROJECT_LINK_LIBS
       ${PROJECT_LINK_LIBS}
       ${I3IPCPP_LIBRARIES})
-  else(I3_EXECUTABLE)
-    if(NOT ENABLE_I3_NODEF)
-      message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
-      set(ENABLE_I3 OFF)
-    endif()
   endif()
 endif()
 
