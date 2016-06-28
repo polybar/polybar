@@ -52,7 +52,7 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
   } catch (config::MissingValueException &e) {}
 
   auto monitor_name = config::get<std::string>(this->config_path, "monitor", "");
-  auto monitors = xcb::get_monitors(x::connection(), x::connection().root());
+  auto monitors = xcb::monitor::get_list(x::connection(), x::connection().root());
 
   // In case we're not connected to X, we'll just ignore the monitor
   if (!monitors.empty()) {
@@ -77,7 +77,7 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
 
   // Create an empty monitor as fallback
   if (!this->opts->monitor)
-    this->opts->monitor = xcb::make_monitor();
+    this->opts->monitor = xcb::monitor::make_object();
 
   this->opts->offset_x = config::get<int>(this->config_path, "offset_x", defaults.offset_x);
   this->opts->offset_y = config::get<int>(this->config_path, "offset_y", defaults.offset_y);

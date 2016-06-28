@@ -39,8 +39,16 @@ namespace xcb
     int index = 0;
   };
 
-  std::shared_ptr<monitor_t> make_monitor();
-  std::shared_ptr<monitor_t> make_monitor(char *name, size_t name_len, int idx, xcb_rectangle_t *rect);
+  namespace connection
+  {
+    bool check(xcb_connection_t *connection);
+  }
 
-  std::vector<std::shared_ptr<monitor_t>> get_monitors(xcb_connection_t *connection, xcb_window_t root);
+  namespace monitor
+  {
+    std::shared_ptr<monitor_t> make_object();
+    std::shared_ptr<monitor_t> make_object(char *name, size_t name_len, int idx, xcb_rectangle_t *rect);
+
+    std::vector<std::shared_ptr<monitor_t>> get_list(xcb_connection_t *connection, xcb_window_t root);
+  }
 }
