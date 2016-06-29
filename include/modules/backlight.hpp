@@ -29,8 +29,7 @@ namespace modules
       bool on_event(InotifyEvent *event);
       bool build(Builder *builder, std::string tag);
 
-      void idle() const
-      {
+      void idle() const {
         std::this_thread::sleep_for(25ms);
       }
   };

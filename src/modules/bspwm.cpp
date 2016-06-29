@@ -80,8 +80,6 @@ BspwmModule::BspwmModule(std::string name_, std::string monitor)
     auto vec = string::split(workspace, ';');
     if (vec.size() == 2) this->icons->add(vec[0], std::make_unique<drawtypes::Icon>(vec[1]));
   }
-
-  register_command_handler(name());
 }
 
 BspwmModule::~BspwmModule()

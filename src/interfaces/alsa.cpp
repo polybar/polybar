@@ -12,7 +12,7 @@ namespace alsa
 
   ControlInterface::ControlInterface(int numid)
   {
-    int err;
+    int err = 0;
 
     snd_ctl_elem_info_alloca(&this->info);
     snd_ctl_elem_value_alloca(&this->value);
@@ -54,7 +54,7 @@ namespace alsa
   {
     std::lock_guard<concurrency::SpinLock> lck(this->lock);
 
-    int err;
+    int err = 0;
 
     if ((err = snd_ctl_wait(this->ctl, timeout)) < 0)
       throw ControlInterfaceError(err, "Failed to wait for events: "+ StrSndErr(err));
@@ -76,7 +76,7 @@ namespace alsa
   {
     std::lock_guard<concurrency::SpinLock> lck(this->lock);
 
-    int err;
+    int err = 0;
 
     if ((err = snd_hctl_elem_read(this->elem, this->value)) < 0)
       throw ControlInterfaceError(err, "Could not read control value: "+ StrSndErr(err));

@@ -26,5 +26,9 @@ namespace modules
 
       std::string get_output();
       bool handle_command(std::string cmd);
+
+      bool register_for_events() const {
+        return true;
+      }
   };
 }

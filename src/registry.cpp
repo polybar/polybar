@@ -2,14 +2,6 @@
 #include "services/logger.hpp"
 #include "utils/string.hpp"
 
-std::shared_ptr<Registry> registry;
-std::shared_ptr<Registry> &get_registry()
-{
-  if (registry == nullptr)
-    registry = std::make_shared<Registry>();
-  return registry;
-}
-
 Registry::Registry() : logger(get_logger())
 {
   this->logger->debug("Entering STAGE 1");
@@ -33,7 +25,7 @@ void Registry::insert(std::unique_ptr<modules::ModuleInterface> &&module)
   this->modules.emplace_back(std::make_unique<RegistryModuleEntry>(std::move(module)));
 }
 
-void Registry::load()
+void Registry::load(std::function<void(std::string)> add_stdin_subscriber)
 {
   if (this->stage() != STAGE_1)
     return;
@@ -46,6 +38,8 @@ void Registry::load()
 
   for (auto &&entry : this->modules) {
     std::lock_guard<std::mutex> lck(this->wait_lock);
+    if (entry->module->register_for_events())
+      add_stdin_subscriber(entry->module->name());
     entry->module->start();
   }
 }

@@ -8,6 +8,29 @@
 #include "interfaces/mpd.hpp"
 #include "utils/math.hpp"
 
+inline void check_connection(mpd_connection *conn)
+{
+  if (conn == nullptr)
+    throw mpd::ClientError("Not connected to MPD server", MPD_ERROR_STATE, false);
+}
+
+inline void check_errors(mpd_connection *conn)
+{
+  mpd_error code = mpd_connection_get_error(conn);
+
+  if (code == MPD_ERROR_SUCCESS)
+    return;
+
+  std::string msg = mpd_connection_get_error_message(conn);
+
+  if (code == MPD_ERROR_SERVER)
+    throw mpd::ServerError(msg,
+      mpd_connection_get_server_error(conn),
+      mpd_connection_clear_error(conn));
+  else
+    throw mpd::ClientError(msg, code, mpd_connection_clear_error(conn));
+}
+
 namespace mpd
 {
   // Base
@@ -18,17 +41,17 @@ namespace mpd
 
     try {
       this->connection.reset(mpd_connection_new(this->host.c_str(), this->port, this->timeout * 1000));
-      this->check_errors();
+      check_errors(this->connection.get());
 
       if (!this->password.empty()) {
         this->noidle();
         assert(!this->mpd_command_list_active);
         mpd_run_password(this->connection.get(), this->password.c_str());
-        this->check_errors();
+        check_errors(this->connection.get());
       }
 
       this->mpd_fd = mpd_connection_get_fd(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch(ClientError &e) {
       this->disconnect();
       throw e;
@@ -67,62 +90,38 @@ namespace mpd
 
   void Connection::idle()
   {
-    this->check_connection();
+    check_connection(this->connection.get());
     if (!this->mpd_idle) {
       mpd_send_idle(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     }
     this->mpd_idle = true;
   }
 
   int Connection::noidle()
   {
-    this->check_connection();
+    check_connection(this->connection.get());
     int flags = 0;
     if (this->mpd_idle && mpd_send_noidle(this->connection.get())) {
       this->mpd_idle = false;
       flags = mpd_recv_idle(this->connection.get(), true);
       mpd_response_finish(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     }
     return flags;
   }
 
-  void Connection::check_connection()
+  inline void Connection::check_prerequisites()
   {
-    if (!this->connection)
-      throw ClientError("Not connected to MPD server", MPD_ERROR_STATE, false);
-  }
-
-  void Connection::check_prerequisites()
-  {
-    this->check_connection();
+    check_connection(this->connection.get());
     this->noidle();
   }
 
-  void Connection::check_prerequisites_commands_list()
+  inline void Connection::check_prerequisites_commands_list()
   {
     this->noidle();
     assert(!this->mpd_command_list_active);
     this->check_prerequisites();
-  }
-
-  void Connection::check_errors()
-  {
-    auto connection = this->connection.get();
-    mpd_error code = mpd_connection_get_error(connection);
-
-    if (code == MPD_ERROR_SUCCESS)
-      return;
-
-    std::string msg = mpd_connection_get_error_message(connection);
-
-    if (code == MPD_ERROR_SERVER)
-      throw ServerError(msg,
-          mpd_connection_get_server_error(connection),
-          mpd_connection_clear_error(connection));
-    else
-      throw ClientError(msg, code, mpd_connection_clear_error(connection));
   }
 
 
@@ -133,7 +132,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_play(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -144,7 +143,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_pause(this->connection.get(), state);
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -155,7 +154,7 @@ namespace mpd
   //   try {
   //     this->check_prerequisites_commands_list();
   //     mpd_run_toggle_pause(this->connection.get());
-  //     this->check_errors();
+  //     check_errors(this->connection.get());
   //   } catch (Exception &e) {
   //     log_error(e.what());
   //   }
@@ -166,7 +165,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_stop(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -177,7 +176,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_previous(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -188,7 +187,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_next(this->connection.get());
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -207,7 +206,7 @@ namespace mpd
       int pos = float(status->total_time) * percentage / 100.0f + 0.5f;
       this->check_prerequisites_commands_list();
       mpd_run_seek_id(this->connection.get(), status->song_id, pos);
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -218,7 +217,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_repeat(this->connection.get(), mode);
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -229,7 +228,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_random(this->connection.get(), mode);
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -240,7 +239,7 @@ namespace mpd
     try {
       this->check_prerequisites_commands_list();
       mpd_run_single(this->connection.get(), mode);
-      this->check_errors();
+      check_errors(this->connection.get());
     } catch (Exception &e) {
       log_error(e.what());
     }
@@ -253,7 +252,7 @@ namespace mpd
   {
     this->check_prerequisites();
     mpd_status *mpd_status = mpd_run_status(this->connection.get());
-    this->check_errors();
+    check_errors(this->connection.get());
     auto status = std::make_unique<Status>(mpd_status);
     if (update)
       status->update(-1, this);
@@ -362,7 +361,7 @@ namespace mpd
     mpd_send_current_song(this->connection.get());
     mpd_song *song = mpd_recv_song(this->connection.get());
     mpd_response_finish(this->connection.get());
-    this->check_errors();
+    check_errors(this->connection.get());
 
     if (song == nullptr)
       return std::make_unique<Song>();

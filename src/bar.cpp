@@ -130,8 +130,10 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>
 /**
  * Loads all modules configured for the current bar
  */
-void Bar::load()
+void Bar::load(std::shared_ptr<Registry> registry)
 {
+  this->registry = registry;
+
   auto add_modules = [&](std::string modlist, std::vector<std::string> &vec){
     std::vector<std::string> modules;
     string::split_into(modlist, ' ', modules);
@@ -173,8 +175,10 @@ void Bar::load()
       else if (type == "custom/menu") module = std::make_unique<modules::MenuModule>(mod);
       else throw ConfigurationError("Unknown module: "+ mod);
 
+      module->attach_registry(this->registry);
+
       vec.emplace_back(module->name());
-      get_registry()->insert(std::move(module));
+      this->registry->insert(std::move(module));
     }
   };
 
@@ -201,7 +205,7 @@ std::string Bar::get_output()
       builder->append_module_output(align, pad_left, false, false);
 
     for (auto &mod_name : mods) {
-      auto mod_output = get_registry()->get(mod_name);
+      auto mod_output = this->registry->get(mod_name);
       builder->append_module_output(align, mod_output,
           !(align == Builder::ALIGN_LEFT && mod_name == mods.front()),
           !(align == Builder::ALIGN_RIGHT && mod_name == mods.back()));

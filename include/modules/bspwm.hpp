@@ -78,6 +78,10 @@ namespace modules
       bool has_event();
       bool update();
       bool build(Builder *builder, std::string tag);
+
       bool handle_command(std::string cmd);
+      bool register_for_events() const {
+        return true;
+      }
   };
 }

@@ -67,10 +67,6 @@ MpdModule::MpdModule(std::string name_)
     this->bar_progress = drawtypes::get_config_bar(name(), get_tag_name(TAG_BAR_PROGRESS));
   }
   // }}}
-
-  // Sign up for stdin events {{{
-  register_command_handler(name());
-  // }}}
 }
 
 MpdModule::~MpdModule()

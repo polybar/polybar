@@ -11,6 +11,8 @@
 
 DefineBaseException(ConfigurationError);
 
+class Registry;
+
 struct CompiledWithoutModuleSupport : public ConfigurationError
 {
   explicit CompiledWithoutModuleSupport(std::string module_name)
@@ -20,7 +22,7 @@ struct CompiledWithoutModuleSupport : public ConfigurationError
 struct Font
 {
   std::string id;
-  int offset;
+  int offset = 0;
 
   Font(std::string id, int offset)
     : id(id), offset(offset){}
@@ -46,8 +48,8 @@ struct Options
   std::string foreground = "#000000";
   std::string linecolor = "#000000";
 
-  int width;
-  int height;
+  int width = 0;
+  int height = 0;
 
   int offset_x = 0;
   int offset_y = 0;
@@ -88,11 +90,12 @@ class Bar
     Bar();
 
     std::unique_ptr<Options> opts;
+    std::shared_ptr<Registry> registry;
+
+    void load(std::shared_ptr<Registry> registry);
 
     std::string get_output();
     std::string get_exec_line();
-
-    void load();
 };
 
 std::shared_ptr<Bar> &get_bar();

@@ -25,8 +25,6 @@
  * TODO: Simplify overall flow
  */
 
-std::unique_ptr<EventLoop> eventloop;
-
 std::mutex pid_mtx;
 std::vector<pid_t> pids;
 
@@ -38,9 +36,6 @@ void unregister_pid(pid_t pid) {
   std::lock_guard<std::mutex> lck(pid_mtx);
   pids.erase(std::remove(pids.begin(), pids.end(), pid), pids.end());
 }
-void register_command_handler(std::string module_name) {
-  eventloop->add_stdin_subscriber(module_name);
-}
 
 /**
  * Main entry point woop!
@@ -48,7 +43,9 @@ void register_command_handler(std::string module_name) {
 int main(int argc, char **argv)
 {
   int retval = EXIT_SUCCESS;
-  auto logger = get_logger();
+
+  std::unique_ptr<EventLoop> eventloop;
+  std::shared_ptr<Logger> logger = get_logger();
 
   try {
     auto usage = "Usage: "+ std::string(argv[0]) + " bar_name [OPTION...]";
@@ -80,9 +77,11 @@ int main(int argc, char **argv)
           << (ENABLE_MPD     ? "+" : "-") << "mpd "
           << (ENABLE_NETWORK ? "+" : "-") << "network "
           << "\n\n";
+
         if (ENABLE_ALSA)
           std::cout
             << "ALSA_SOUNDCARD        " << ALSA_SOUNDCARD << std::endl;
+
         std::cout
             << "CONNECTION_TEST_IP    " << CONNECTION_TEST_IP << "\n"
             << "PATH_BACKLIGHT_VAL    " << PATH_BACKLIGHT_VAL << "\n"
@@ -92,12 +91,11 @@ int main(int argc, char **argv)
             << "PATH_CPU_INFO         " << PATH_CPU_INFO << "\n"
             << "PATH_MEMORY_INFO      " << PATH_MEMORY_INFO << "\n";
       }
-
       return EXIT_SUCCESS;
     }
 
     if (cli::has_option("help") || argv[1][0] == '-')
-      cli::usage(usage);
+      cli::usage(usage, false);
 
     /**
      * Set logging verbosity

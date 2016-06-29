@@ -85,10 +85,10 @@ bool ModuleFormatter::has(std::string tag)
 
 namespace modules
 {
-  void broadcast_module_update(std::string module_name)
+  void broadcast_module_update(std::shared_ptr<Registry> registry, std::string module_name)
   {
     log_trace("Broadcasting module update for => "+ module_name);
-    get_registry()->notify(module_name);
+    registry->notify(module_name);
   }
 
   std::string get_tag_name(std::string tag) {

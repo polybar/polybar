@@ -16,9 +16,6 @@ DateModule::DateModule(std::string name_)
 
   this->date = config::get<std::string>(name(), "date");
   this->date_detailed = config::get<std::string>(name(), "date_detailed", "");
-
-  if (!this->date_detailed.empty())
-    register_command_handler(name());
 }
 
 bool DateModule::update()

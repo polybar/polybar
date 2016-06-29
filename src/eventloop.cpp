@@ -12,7 +12,7 @@
 
 EventLoop::EventLoop(std::string input_pipe)
   : bar(get_bar()),
-    registry(get_registry()),
+    registry(std::make_shared<Registry>()),
     logger(get_logger()),
     state(STATE_STOPPED),
     pipe_filename(input_pipe)
@@ -39,8 +39,12 @@ void EventLoop::start()
 
   this->logger->debug("Starting event loop...");
 
-  this->bar->load();
-  this->registry->load();
+  this->bar->load(registry);
+
+  this->registry->load([&](std::string module_name){
+    this->logger->debug("Adding stdin subscriber: "+ module_name);
+    this->stdin_subs.emplace_back(module_name);
+  });
 
   this->state = STATE_STARTED;
 
@@ -96,12 +100,6 @@ void EventLoop::wait()
   sigwait(&wait_mask, &sig);
 
   this->logger->info("Termination signal received... Shutting down");
-}
-
-void EventLoop::add_stdin_subscriber(std::string module_name)
-{
-  // this->stdin_subs.insert(std::make_pair("TAG", module_name));
-  this->stdin_subs.emplace_back(module_name);
 }
 
 void EventLoop::loop_write()

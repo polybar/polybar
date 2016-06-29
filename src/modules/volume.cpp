@@ -82,10 +82,6 @@ VolumeModule::VolumeModule(std::string name_) : EventModule(name_)
     this->label_muted_tokenized = this->label_muted->clone();
   }
   // }}}
-
-  // Sign up for stdin events {{{
-  register_command_handler(name());
-  // }}}
 }
 
 VolumeModule::~VolumeModule()

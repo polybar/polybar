@@ -20,7 +20,7 @@ class EventLoop
   std::shared_ptr<Registry> registry;
   std::shared_ptr<Logger> logger;
 
-  concurrency::Atomic<int> state;
+  concurrency::Atomic<int> state { 0 };
 
   std::thread t_write;
   std::thread t_read;
@@ -50,6 +50,4 @@ class EventLoop
     void wait();
 
     void cleanup(int timeout_ms = 5000);
-
-    void add_stdin_subscriber(std::string module_name);
 };

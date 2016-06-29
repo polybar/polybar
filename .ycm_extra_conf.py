@@ -32,7 +32,6 @@ flags = [
 '-std=c++14',
 '-Wall',
 '-Wextra',
-'-Wpedantic',
 ]
 
 compilation_database_folder = ''

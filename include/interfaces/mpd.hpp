@@ -119,17 +119,15 @@ namespace mpd
     std::unique_ptr<mpd_connection, ConnectionDeleter> connection;
     std::string host;
     std::string password;
-    int port;
+    int port = 6600;
     int timeout = 15;
 
     bool mpd_command_list_active = false;
     bool mpd_idle = false;
-    int mpd_fd;
+    int mpd_fd = -1;
 
-    void check_connection();
     void check_prerequisites();
     void check_prerequisites_commands_list();
-    void check_errors();
 
     public:
       Connection(std::string host, int port, std::string password)
@@ -167,7 +165,9 @@ namespace mpd
 
   struct MpdStatus
   {
-    bool random, repeat, single;
+    bool random = false,
+         repeat = false,
+         single = false;
 
     std::string artist;
     std::string album;

@@ -48,8 +48,6 @@ MenuModule::MenuModule(std::string name_) : StaticModule(name_)
       level_n++;
     }
   }
-
-  register_command_handler(name());
 }
 
 std::string MenuModule::get_output()

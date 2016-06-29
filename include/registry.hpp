@@ -37,12 +37,10 @@ class Registry
 
     bool ready();
     void insert(std::unique_ptr<modules::ModuleInterface> &&module);
-    void load();
+    void load(std::function<void(std::string)> add_stdin_subscriber);
     void unload();
     bool wait();
     void notify(std::string module_name);
     std::string get(std::string module_name);
     std::unique_ptr<RegistryModuleEntry>& find(std::string module_name);
 };
-
-std::shared_ptr<Registry> &get_registry();

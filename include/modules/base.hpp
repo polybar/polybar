@@ -38,6 +38,8 @@ DefineBaseException(ModuleError);
 DefineChildException(UndefinedFormat, ModuleError);
 DefineChildException(UndefinedFormatTag, ModuleError);
 
+class Registry;
+
 class ModuleFormatter
 {
   public:
@@ -66,7 +68,7 @@ class ModuleFormatter
 
 namespace modules
 {
-  void broadcast_module_update(std::string module_name);
+  void broadcast_module_update(std::shared_ptr<Registry> registry, std::string module_name);
   std::string get_tag_name(std::string tag);
 
   struct ModuleInterface
@@ -82,7 +84,11 @@ namespace modules
 
       virtual std::string operator()() = 0;
 
+      virtual void attach_registry(std::shared_ptr<Registry> registry) = 0;
+
       virtual bool handle_command(std::string cmd) = 0;
+
+      virtual bool register_for_events() const = 0;
   };
 
   template<class ModuleImpl>
@@ -100,6 +106,7 @@ namespace modules
       std::condition_variable sleep_handler;
 
       std::string name_;
+      std::shared_ptr<Registry> registry;
       std::shared_ptr<Logger> logger;
       std::unique_ptr<Builder> builder;
       std::unique_ptr<EventThrottler> broadcast_throttler;
@@ -162,8 +169,16 @@ namespace modules
         return this->cache();
       }
 
+      void attach_registry(std::shared_ptr<Registry> registry) {
+        this->registry = registry;
+      }
+
       bool handle_command(std::string cmd) {
         return CastModule(ModuleImpl)->handle_command(cmd);
+      }
+
+      bool register_for_events() const {
+        return false;
       }
 
     protected:
@@ -182,7 +197,7 @@ namespace modules
           log_trace2(this->logger, "Throttled broadcast for: "+ this->name_);
           return;
         }
-        broadcast_module_update(ConstCastModule(ModuleImpl).name());
+        broadcast_module_update(this->registry, ConstCastModule(ModuleImpl).name());
       }
 
       void sleep(std::chrono::duration<double> sleep_duration)
