@@ -1,35 +1,46 @@
 # Template file for 'lemonbuddy'
 pkgname=lemonbuddy
-version=1.2.1
+version=1.4.1
 revision=1
-_i3ipcpp_version=0.1.3
-_lemonbar_version=1.1
+_i3ipcpp_version=0.3.0
+_xpp_version=1.0.0
 build_style=cmake
-hostmakedepends="clang pkg-config"
-makedepends="libX11-devel libXrandr-devel boost-devel
-	$(vopt_if alsa "alsa-lib-devel")
-	$(vopt_if i3 "i3-devel i3ipc-glib-devel libsigc++-devel")
-	$(vopt_if mpd "libmpdclient-devel")
-	$(vopt_if network "wireless_tools-devel")"
+configure_args="
+	-DENABLE_ALSA=$(vopt_if alsa ON OFF)
+	-DENABLE_I3=$(vopt_if i3 ON OFF)
+	-DENABLE_MPD=$(vopt_if mpd ON OFF)
+	-DENABLE_NETWORK=$(vopt_if network ON OFF)"
+hostmakedepends="clang pkg-config xcb-proto"
+makedepends="libX11-devel libxcb-devel boost-devel
+	${build_option_alsa:+alsa-lib-devel}
+	${build_option_i3:+i3-devel i3ipc-glib-devel libsigc++-devel jsoncpp-devel}
+	${build_option_mpd:+libmpdclient-devel}
+	${build_option_network:+wireless_tools-devel}"
 short_desc="A fast and easy-to-use tool for Lemonbar"
 maintainer="Michael Carlberg <c@rlberg.se>"
 license="MIT"
 homepage="https://github.com/jaagr/lemonbuddy"
 distfiles="
 	https://github.com/jaagr/lemonbuddy/archive/${version}.tar.gz
-	https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz
-	https://github.com/jaagr/bar/archive/v${_lemonbar_version}.tar.gz"
+	https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
+	${build_option_i3:+https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz}"
 checksum="
-	dfbeb74aaac49cb0f3c5c98466aadf2477c6a709025174e11e1da7ad7edafef4
-	fb5ea31bf2d008065512f12ab9d9cc8304b2a4e6ba2ae93082df29712f372449
-	d9073ecc3d2638804a723d47c74666ba3cd1c3771dfe254809de01ec5c428d4a"
+	09de151bea68bcb3d646e65628b1ce5c3bb89a2a1426bb69996976468e9c13e8
+	a0f0f7b3f007e6302835fe7dfb7b935df8c4ab8c9f76b30afb652a04199158e9
+	${build_option_i3:+85b588f957740f89a275b4b2acc27cab78ee2606f5e68e62ce61b9c1278bb366}"
 
 build_options="alsa i3 mpd network"
 build_options_default="$build_options"
 
 post_extract() {
-	mv ../i3ipcpp-$_i3ipcpp_version contrib/i3ipcpp
-	mv ../bar-$_lemonbar_version contrib/lemonbar-sm-git
+	[ -d ../i3ipcpp-${_i3ipcpp_version} ] && \
+		mv ../i3ipcpp-${_i3ipcpp_version}/* lib/i3ipcpp/ || true
+	[ -d ../xpp-${_xpp_version} ] &&  \
+		mv ../xpp-${_xpp_version}/* lib/xpp/ || true
+}
+
+pre_build() {
+	./version.sh ${version}
 }
 
 post_install() {

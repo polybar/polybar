@@ -1,8 +1,8 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=lemonbuddy
-pkgver=1.4.0
-pkgrel=1
+pkgver=1.4.1
+pkgrel=2
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/lemonbuddy"
@@ -23,13 +23,13 @@ prepare() {
   cd "$pkgname" || exit
   git submodule update --init --recursive
   mkdir build
+  sed 's/python2.7/python3.5/g' -i lib/xpp/CMakeLists.txt
 }
 
 build() {
   cd "${pkgname}/build" || exit
   cmake -DCMAKE_INSTALL_PREFIX=/usr ..
   make
-  sed 's/python2.7/python3.5/g' -i lib/xpp/CMakeLists.txt
 }
 
 package() {
