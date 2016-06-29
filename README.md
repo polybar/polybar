@@ -117,7 +117,7 @@ Optional dependencies for module support:
 ~~~ sh
 $ pacman -S cmake boost libxcb wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
 $ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel libsigc++-devel wireless_tools-devel
-$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-dev
+$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-dev
 ~~~
 
 
