@@ -1,85 +1,137 @@
-###### Did the bar stop working after your last update? [Read this](https://github.com/jaagr/lemonbuddy/wiki/pre-1.0:-Patching-your-configuration-file) to find out how to patch your config!
----
-
-Lemonbuddy
-==========
+# Lemonbuddy
 
 [![Build Status](https://travis-ci.org/jaagr/lemonbuddy.svg?branch=master)](https://travis-ci.org/jaagr/lemonbuddy)
 [![MIT License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000?style=plastic)](https://github.com/jaagr/lemonbuddy/blob/master/LICENSE)
 
-A fast and easy-to-use tool for [Lemonbar](https://github.com/LemonBoy/bar/).
+A fast and easy-to-use tool for generating status bars.
 
 **Lemonbuddy** aims to help users build beautiful and highly customizable status bars
-without messing with named pipes, MacGyver-like scripting or non-blocking
-loops lobotomizing your CPU.
+for their desktop environment, without the need of having a black belt in shell scripting.
+Heres a few screenshots showing you what it can look like:
 
-Please note that the project is still in early development, so please
-report any anomalies by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issues)
-here on GitHub. I welcome pull requests with fixes or improvements.
+[![sample screenshot](http://i.imgur.com/xvlw9iHt.png)](http://i.imgur.com/xvlw9iH.png)
+[![sample screenshot](http://i.imgur.com/cYQOuRrt.png)](http://i.imgur.com/cYQOuRr.png)
+[![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
+[![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
-Here are two screenshots showing you what it could look like (make sure to view them in full scale):
-
-[![bspwm workspace](http://i.imgur.com/xvlw9iHm.png)](http://i.imgur.com/xvlw9iH.png)
-[![dracula workspace](http://i.imgur.com/cYQOuRrm.png)](http://i.imgur.com/cYQOuRr.png)
+Please note that the project still is in early development, so please report any
+problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issues/new).
 
 
-## Installation
+## Table of Contents
 
-#### Arch Linux
-Install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
+* [Introduction](#introduction)
+* [Getting started](#getting-started)
+  * [Dependencies](#dependencies)
+  * [Building from source](#building-from-source)
+* [Running](#running)
+* [Launching the bar in your wm's bootstrap routine](#launching-the-bar-in-your-wms-bootstrap-routine)
+* [Configuration](#configuration)
+  * [Fonts](#fonts)
+  * [Syntax and DSL](#syntax-and-dsl)
+  * [Application settings](#application-settings)
+  * [Bar settings](#bar-settings)
+  * [Modules](#modules)
+    * [internal/backlight](#module-internalbacklight)
+    * [internal/battery](#module-internalbattery)
+    * [internal/bspwm](#module-internalbspwm)
+    * [internal/cpu](#module-internalcpu)
+    * [internal/date](#module-internaldate)
+    * [internal/i3](#module-internali3)
+    * [internal/memory](#module-internalmemory)
+    * [internal/mpd](#module-internalmpd)
+    * [internal/network](#module-internalnetwork)
+    * [internal/volume](#module-internalvolume)
+    * [custom/menu](#module-custommenu)
+    * [custom/script](#module-customscript)
+    * [custom/text](#module-customtext)
+* [Example configurations](#example-configurations)
+* [License](#license)
+
+
+## Introduction
+
+The main purpose of **Lemonbuddy** is serve as content generator for status bars.
+It has built-in functionality to generate output for the most commonly used widgets, such as:
+
+- Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
+- [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
+- Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
+- CPU and memory load indicator
+- Battery display
+- Network connection details
+- Backlight level
+- Date and time label
+- Time-based shell script execution
+- Command output tailing
+- User-defined menu tree
+- And more...
+
+Each bar contains a set of modules, which in turn defines a set of formatting rules and options.
+Read more about [how the configuration works](#configuration).
+
+The project was developed specifically for Lemonbar, and the initial plan was to
+integrate a trimmed down version of it into Lemonbuddy. This would remove the need of having
+to pass data back and forth between the two processes.
+
+After spending time trying to create an interface to the Lemonbar source code, I
+decided to not use it at all. Lemonbar is a great application but it would be
+more efficient to write a custom X rendering implementation instead of trying
+to patch up Lemonbar. Not only does it fix the
+*"Lemonbuddy doesn't work with my extra-custom-lemonbar-fork"* issue, it also
+makes it alot easier to implement new features... The performance boost is of
+course also welcome to join the party, so that's nice.
+
+The new implementation will use the same `%{...}` syntax Lemonbar uses, which means that
+existing configurations will still work, so keep ricing.
+
+## Getting started
+
+If you are using **Arch Linux**, you can install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
 [lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
 
-#### Void Linux
-Install the XBPS package [lemonbuddy](https://raw.githubusercontent.com/jaagr/void-packages/lemonbuddy/srcpkgs/lemonbuddy/template) for the latest stable release.
+For **Void Linux** users, there's a [package template available](https://raw.githubusercontent.com/jaagr/void-packages/lemonbuddy/srcpkgs/lemonbuddy/template)
+that you can use with `xbps-src` to build the application. There's a pending pull request to get the package merged into the
+official repositories, but packages not used by the maintainers are pretty much ignored so don't hold your breath.
+
+If you create a package for any other distribution, please consider contributing the template so that we can make the application
+available for more people.
+
+
+### Dependencies
+
+A C++ compiler with C++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
+
+- lemonbar with xft support _(personally I use [this fork](https://github.com/osense/bar))_
+- cmake
+- boost
+- libxcb
+
+Optional dependencies for module support:
+
+- wireless_tools (required for `internal/network` support)
+- alsa-lib (required for `internal/volume` support)
+- libmpdclient (required for `internal/mpd` support)
+- jsoncpp, libsigc++ (required for `internal/i3` support)
+
+~~~ sh
+$ pacman -S cmake boost libxcb wireless_tools alsa-lib libmpdclient libsigc++
+$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
+$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
+~~~
 
 
 ### Building from source
 
+Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project. It helps alot.
+
   ~~~ sh
-  $ git clone --branch 1.3.2 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 1.4.1 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
   $ sudo make install
   ~~~
-
-
-### Dependencies:
-
-A C++ compiler with C++14 support. For example `clang`.
-
-- lemonbar (patched with xft support)
-- cmake
-- boost
-- libxcb
-- xcb-proto
-
-##### Optional dependencies:
-- wireless_tools _(required to build the network module)_
-- alsa-lib _(required to build the volume module)_
-- libmpdclient _(required to build the mpd module)_
-- libsigc++ _(required to build the i3 module)_
-
-
-##### Install dependencies using pacman:
-~~~ sh
-$ sudo pacman -S cmake boost libxcb wireless_tools alsa-lib libmpdclient libsigc++
-~~~
-
-##### Install dependencies using xbps-install:
-~~~ sh
-$ sudo xbps-install cmake boost-devel libxcb-devel xcb-proto alsa-lib-devel i3-devel libmpdclient-devel libsigc++-devel wireless_tools-devel
-~~~
-
-##### Install dependencies using apt-get:
-> **NOTE:** To get support for the mpd and i3 modules, the `universe` repository
-> needs to be added to the list of sources in `/etc/apt/sources.list`.
->
-> Packages in the `universe` repository: `libmpdclient-dev`
-
-~~~ sh
-$ sudo apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libsigc++-2.0-dev
-~~~
 
 
 ## Running
@@ -127,7 +179,6 @@ a kill directive before launching the bar. This is done to make sure that any pr
 processes gets terminated before before we launch the new ones.
 
 Create an executable file containing the startup logic, for example `$HOME/.config/lemonbuddy/launch.sh`:
-
   ~~~ sh
   #!/usr/bin/env sh
 
@@ -141,39 +192,45 @@ Create an executable file containing the startup logic, for example `$HOME/.conf
   echo "Bars launched..."
   ~~~
 
-If you are using **bspwm**, add the following line to `bspwmrc`:
+Make it executable:
+  ~~~ sh
+  $ chmod +x $HOME/.config/lemonbuddy/launch.sh
+  ~~~
 
+If you are using **bspwm**, add the following line to `bspwmrc`:
   ~~~ sh
   $HOME/.config/lemonbuddy/launch.sh
   ~~~
 
 If you are using **i3**, add the following line to your configuration:
-
   ~~~ sh
   exec_always $HOME/.config/lemonbuddy/launch.sh
   ~~~
 
-Remember to make it executable using:
-
-  ~~~ sh
-  $ chmod +x $HOME/.config/lemonbuddy/launch.sh
-  ~~~
 
 ## Configuration
 
-The configuration syntax is very much **WIP**. If you have any feedback or suggestions on how to improve it,
-please [create an issue ticket](https://github.com/jaagr/lemonbuddy/issues), or a pull request.
-
-When working with unicode symbols, remember that fonts render them differently. Changing font
-can change the quality of your generated output drastically. One must-have font
-is [Unifont](http://unifoundry.com/unifont.html), which has great unicode coverage.
-
-Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icons/) and [Material Icons](https://design.google.com/icons/).
+The configuration syntax is a work in progress. Please [create an issue ticket](https://github.com/jaagr/lemonbuddy/issues/new)
+and let me know how you think we can improve it.
 
 The values used in the examples below are to be considered placeholder values, and
 the resulting output might not be award-winning.
 
+
+### Fonts
+
+When working with unicode symbols, remember that fonts render the symbols differently. Changing font
+can drastically improve the quality of your bar. One must-have font
+is [Unifont](http://unifoundry.com/unifont.html), which has great unicode coverage.
+
+Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icons/) and [Material Icons](https://design.google.com/icons/).
+
+*TODO: Describe usage in configuration...*
+
+
 ### Syntax and DSL
+
+*TODO: Clarify...*
 
 The configuration syntax is based on the `ini` file format.
 
@@ -195,31 +252,66 @@ The configuration syntax is based on the `ini` file format.
 
   ; Other values can be referenced using:
   key = ${section.key}
-
-  ;format[-NAME] = "<TAGS...>"
-  ;format[-NAME]-spacing = N (unit: whitespaces)
-  ;format[-NAME]-padding = N (unit: whitespaces)
-  ;format[-NAME]-margin = N  (unit: whitespaces)
-  ;format[-NAME]-offset = N  (unit: pixels)
-  ;format[-NAME]-foreground = #aarrggbb
-  ;format[-NAME]-background = #aarrggbb
-  ;format[-NAME]-underline = #aarrggbb
-  ;format[-NAME]-overline = #aarrggbb
-  ;
-  ;label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
-  ;icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
-  ;ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
-  ;animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
-  ;
-  ;bar-NAME-width = N (unit: characters)
-  ;bar-NAME-format = (tokens: %fill% %indicator% %empty%)
-  ;bar-NAME-foreground-[0-9]+ = #aarrggbb
-  ;bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
-  ;bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
-  ;bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
   ~~~
+  ~~~ ini
+  [section/name]
+  ; Most modules define a format-N field
+  ; For example, the mpd module defines the following formats:
+  ;   format-online = ...
+  ;   format-offline = ...
+  ;
+  ; Each format exposes the following fields:
+  ;   format[-NAME]-padding = N (unit: whitespaces)
+  ;   format[-NAME]-margin  = N (unit: whitespaces)
+  ; (See "Bar settings" for more details on "spacing")
+  ;   format[-NAME]-spacing = N (unit: whitespaces)
+  ; (This value will displace the format block horizontally by +/-N pixels)
+  ;   format[-NAME]-offset  = N (unit: pixels)
+  ;   format[-NAME]-foreground = #aa[rrggbb]
+  ;   format[-NAME]-background = #aa[rrggbb]
+  ;   format[-NAME]-underline  = #aa[rrggbb]
+  ;   ^
+  ;   |  the underline and overline color is always the same
+  ;   v
+  ;   format[-NAME]-overline   = #aa[rrggbb]
+  ;
+  ; The rest of the drawtypes follow the same pattern.
+  ;
+  ;   label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;   icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;   ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;   animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;
+  ;   bar-NAME-width = N (unit: characters)
+  ;   bar-NAME-format = (tokens: %fill% %indicator% %empty%)
+  ;   bar-NAME-foreground-[0-9]+ = #aarrggbb
+  ;   bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
+  ;   bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
+  ;   bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
+  ;
+  ; Example:
+  ;
+  format-online = <icon-stop> <toggle>   <icon-repeat> <icon-random>   <bar-progress> <label-song>
 
-`🟊 = module is still flagged as work in progress`
+  format-offline = <label-offline>
+  format-offline-offset = -8
+
+  ; By only specifying alpha value, it will be applied to the bar's default foreground
+  label-time-foreground = #66
+
+  label-offline =  mpd is off
+  label-offline-foreground = #66
+
+  icon-play = 
+  icon-pause = 
+  icon-stop = 
+
+  bar-progress-width = 30
+  bar-progress-indicator = |
+  bar-progress-fill = █
+  bar-progress-empty = █
+  bar-progress-empty-foreground = #44
+  ~~~
 
 
 ### Application settings
@@ -228,8 +320,8 @@ The configuration syntax is based on the `ini` file format.
   ; Limit the amount of events sent to lemonbar within a set timeframe:
   ; - "Allow <throttle_limit> updates within <throttle_ms> of time"
   ; Default values:
-  ;throttle_limit = 5
-  ;throttle_ms = 50
+  throttle_limit = 5
+  throttle_ms = 50
   ~~~
 
 
@@ -245,8 +337,8 @@ The configuration syntax is based on the `ini` file format.
   height = 30
 
   ; Offset value defined in pixels
-  ;offset_x = 0
-  ;offset_y = 0
+  offset_x = 0
+  offset_y = 0
 
   ; Put the bar at the bottom of the screen
   bottom = true
@@ -280,7 +372,7 @@ The configuration syntax is based on the `ini` file format.
   font-3 = FontAwesome:size=10;0
 
   ; The separator will be inserted between the output of each module
-  ;separator = |
+  separator = |
 
   ; This value is used by Lemonbar and it specifies the clickable
   ; areas available -> %{A:action:}...%{A}
@@ -288,7 +380,7 @@ The configuration syntax is based on the `ini` file format.
 
   ; Value to be used to set the WM_NAME atom
   ; This defaults to "lemonbuddy-[BAR]_[MONITOR]"
-  ;wm_name = mybar
+  wm_name = mybar
 
   ; Locale used to localize module output (for example date)
   ;locale = sv_SE.UTF-8
@@ -299,8 +391,9 @@ The configuration syntax is based on the `ini` file format.
   modules-right = clock
   ~~~
 
+### Modules
 
-### Module `internal/backlight`
+#### Module `internal/backlight`
   ~~~ ini
   [module/backlight]
   type = internal/backlight
@@ -335,19 +428,19 @@ The configuration syntax is based on the `ini` file format.
   ~~~
 
 
-### Module `internal/battery`
+#### Module `internal/battery`
 
   ~~~ ini
   [module/battery]
   type = internal/battery
 
   ; This is useful in case the battery never reports 100% charge
-  ;full_at = 99
+  full_at = 99
 
   ; Use the following command to list batteries and adapters:
   ; $ ls -1 /sys/class/power_supply/
-  ;battery = BAT0
-  ;adapter = ADP1
+  battery = BAT0
+  adapter = ADP1
 
   ; Seconds between reading battery capacity.
   ; If set to 0, polling will be disabled.
@@ -404,7 +497,7 @@ The configuration syntax is based on the `ini` file format.
   ~~~
 
 
-### Module `internal/bspwm`
+#### Module `internal/bspwm`
   ~~~ ini
   [module/bspwm]
   type = internal/bspwm
@@ -470,8 +563,8 @@ The configuration syntax is based on the `ini` file format.
   ;   None
   label-monocle = 
   ;label-tiled = 
-  ;label-fullscreen = 
-  ;label-floating = 
+  label-fullscreen = 
+  label-floating = 
   label-locked = 
   label-locked-foreground = #bd2c40
   label-sticky = 
@@ -481,7 +574,7 @@ The configuration syntax is based on the `ini` file format.
   ~~~
 
 
-### Module `internal/cpu`
+#### Module `internal/cpu`
   ~~~ ini
   [module/cpu]
   type = internal/cpu
@@ -514,7 +607,7 @@ The configuration syntax is based on the `ini` file format.
   ~~~
 
 
-### Module `internal/date`
+#### Module `internal/date`
   ~~~ ini
   [module/date]
   type = internal/date
@@ -540,15 +633,15 @@ The configuration syntax is based on the `ini` file format.
   ~~~
 
 
-### 🟊 Module `internal/i3`
+#### Module `internal/i3`
 
 Requires the project to be built with support for i3. For more information,
-see [the dependency section](#user-content-dependencies).
+see [the dependency section](#dependencies).
 
 The module is still marked as WIP since it needs more testing. If you notice any
-anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues).
+anomalies, please [create an issue](https://github.com/jaagr/lemonbuddy/issues/new).
 
-See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`.
+See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
 
   ~~~ ini
   [module/i3]
@@ -609,7 +702,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### Module `internal/memory`
+#### Module `internal/memory`
   ~~~ ini
   [module/memory]
   type = internal/memory
@@ -648,14 +741,14 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### Module `internal/mpd`
+#### Module `internal/mpd`
   ~~~ ini
   [module/mpd]
   type = internal/mpd
 
-  ;host = 127.0.0.1
-  ;port = 6600
-  ;password = mypassword
+  host = 127.0.0.1
+  port = 6600
+  password = secretpassword1
 
   ; Seconds to sleep between progressbar/song timer sync
   ;interval = 0.5
@@ -723,7 +816,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### Module `internal/network`
+#### Module `internal/network`
 
  **NOTE:** If you use both a wired and a wireless network, just add 2 module definitions.
  For example:
@@ -763,7 +856,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
 
   ; Available tags:
   ;   <label-disconnected> (default)
-  ;format-disconnected = <label-disconnected>
+  format-disconnected = <label-disconnected>
 
   ; Available tags:
   ;   <label-connected> (default)
@@ -784,8 +877,8 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
   ; Default: (none)
-  ;label-disconnected = not connected
-  ;label-disconnected-foreground = #66ffffff
+  label-disconnected = not connected
+  label-disconnected-foreground = #66ffffff
 
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
@@ -812,11 +905,9 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### 🟊 Module `internal/volume`
+#### Module `internal/volume`
 
-  This module is still WIP.
-
-  TODO: Add custom format for when the headphones are plugged in.
+*TODO: Add custom format for when the headphones are plugged in.*
 
   ~~~ ini
   [module/volume]
@@ -863,7 +954,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### Module `custom/menu`
+#### Module `custom/menu`
   ~~~ ini
   [module/menu-apps]
   type = custom/menu
@@ -910,7 +1001,7 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   ~~~
 
 
-### Module `custom/script`
+#### Module `custom/script`
   ~~~ ini
   [module/pkgupdates-available]
   type = custom/script
@@ -965,7 +1056,8 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   tail = true
   ~~~
 
-### Module `custom/text`
+
+#### Module `custom/text`
   ~~~ ini
   [module/my-text-label]
   type = custom/text
@@ -988,6 +1080,14 @@ See [the bspwm module](#user-content-dependencies) for details on `label-dimmed`
   scroll-up = echo scroll up
   scroll-down = echo scroll down
   ~~~
+
+
+## Example configurations
+
+*...coming soon...*
+
+Do you have a nice config that you would like to contribute?
+Send me a message and we'll get it up here.
 
 
 ## License
