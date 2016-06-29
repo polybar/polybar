@@ -371,6 +371,13 @@ void Builder::color_alpha(std::string alpha_)
 {
   auto alpha(alpha_);
   std::string val = this->opts->foreground;
+  if (alpha.find("#") == 0) {
+    if (alpha.size() == 3)
+      this->color(alpha.substr(0, 3) + val.substr(val.size() - 6));
+    else if (alpha.size() == 4)
+      this->color(alpha + alpha.substr(1));
+    return;
+  }
   if (val.size() < 6 && val.size() > 2) {
     val.append(val.substr(val.size() - 3));
   } else if (val.length() > 6) {
