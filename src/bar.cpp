@@ -28,21 +28,21 @@
 #endif
 
 std::shared_ptr<Bar> bar;
-std::shared_ptr<Bar> &get_bar()
+std::shared_ptr<Bar> get_bar()
 {
   if (bar == nullptr)
     bar = std::make_shared<Bar>();
   return bar;
 }
 
-const Options& bar_opts() {
-  return *bar->opts.get();
+std::shared_ptr<Options> bar_opts() {
+  return bar->opts;
 }
 
 /**
  * Bar constructor
  */
-Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_unique<Options>())
+Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_shared<Options>())
 {
   struct Options defaults;
 

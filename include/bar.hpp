@@ -89,7 +89,7 @@ class Bar
   public:
     Bar();
 
-    std::unique_ptr<Options> opts;
+    std::shared_ptr<Options> opts;
     std::shared_ptr<Registry> registry;
 
     void load(std::shared_ptr<Registry> registry);
@@ -98,6 +98,5 @@ class Bar
     std::string get_exec_line();
 };
 
-std::shared_ptr<Bar> &get_bar();
-
-const Options& bar_opts();
+std::shared_ptr<Bar> get_bar();
+std::shared_ptr<Options> bar_opts();

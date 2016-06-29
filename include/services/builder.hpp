@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 
+#include "bar.hpp"
 #include "drawtypes/animation.hpp"
 #include "drawtypes/bar.hpp"
 #include "drawtypes/icon.hpp"
@@ -41,8 +42,12 @@ class Builder
     void align_center();
     void align_right();
 
+    std::shared_ptr<Options> opts;
+
   public:
-    explicit Builder(bool lazy_closing = true) : lazy_closing(lazy_closing){}
+    explicit Builder(bool lazy_closing = true)
+      : lazy_closing(lazy_closing)
+      , opts(bar_opts()) {}
 
     void set_lazy_closing(bool mode) { this->lazy_closing = mode; }
 

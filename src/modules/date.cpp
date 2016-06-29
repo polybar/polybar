@@ -26,7 +26,7 @@ bool DateModule::update()
   auto date_format = this->detailed ? this->date_detailed : this->date;
   auto time = std::time(nullptr);
   char new_str[256] = {0,};
-  std::strftime(new_str, sizeof(this->date_str), date_format.c_str(), std::localtime(&time));
+  std::strftime(new_str, sizeof(new_str), date_format.c_str(), std::localtime(&time));
 
   if (std::strncmp(new_str, this->date_str, sizeof(new_str)) == 0)
     return false;
@@ -40,7 +40,7 @@ std::string DateModule::get_output()
 {
   if (!this->date_detailed.empty())
     this->builder->cmd(Cmd::LEFT_CLICK, EVENT_TOGGLE);
-  this->builder->node(this->Module::get_output());
+  this->builder->node(this->TimerModule::get_output());
   return this->builder->flush();
 }
 

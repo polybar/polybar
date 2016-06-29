@@ -1,5 +1,6 @@
 #pragma once
 
+#include "exception.hpp"
 #include "modules/base.hpp"
 
 DefineBaseException(RegistryError);
