@@ -16,7 +16,7 @@ namespace modules
     std::string date_detailed;
 
     char date_str[256] = {};
-    bool detailed = false;
+    concurrency::Atomic<bool> detailed { false };
 
     public:
       explicit DateModule(std::string name);
