@@ -1,8 +1,9 @@
-.PHONY: all pdf release update-versions clean
+.PHONY: all pdf release update-dates update-versions clean
 
 # Constant declarations
 PROGRAM_NAME = lemonbuddy
 VERSION = $(shell git describe --tags)
+DATE = $(shell date +%Y-%m-%d)
 
 # Sources
 MAN_SOURCES = $(wildcard *.1 *.5)
@@ -11,13 +12,16 @@ PS_FILES = $(addsuffix .ps,$(MAN_SOURCES))
 PDF_TARGET = $(PROGRAM_NAME).pdf
 
 # Targets
-all: $(GZ_FILES) $(PDF_TARGET)
+all: $(GZ_FILES)
 pdf: $(PDF_TARGET)
-release: clean update-versions all
+release: clean update-dates update-versions
 
 # Program targets
 update-versions:
-	@sed -i '1 s/"$(PROGRAM_NAME) [^"]*?"/"$(PROGRAM_NAME) VERSION"/' $(MAN_SOURCES)
+	@sed -i '1 s/"$(PROGRAM_NAME) [^"]*"/"$(PROGRAM_NAME) $(VERSION)"/' $(MAN_SOURCES)
+
+update-dates:
+	@sed -i '1 s/[0-9]{4}\-[0-9]{2}\-[0-9]{2}/$(DATE)/' $(MAN_SOURCES)
 
 # Documentation targets
 %.1.gz: %.1
@@ -39,9 +43,22 @@ update-versions:
 $(PDF_TARGET): $(PS_FILES)
 	@echo '[PDF] $(notdir $@)'
 	@gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite \
-		-sOutputFile=$@ $^
+					-sOutputFile=$@ $^
+
+lemonbuddy: lemonbuddy.1
+	mandoc -a $<
+
+lemonbuddy_wrapper: lemonbuddy_wrapper.1
+	mandoc -a $<
+
+lemonbuddy_terminate: lemonbuddy_terminate.1
+	mandoc -a $<
+
+lemonbuddy_config: lemonbuddy_config.5
+	mandoc -a $<
 
 clean:
 	@echo '[CLEAN]'
 	@rm -f $(GZ_FILES) $(PS_FILES) $(PDF_TARGET)
 
+# vim:ts=2 sw=2 noet nolist

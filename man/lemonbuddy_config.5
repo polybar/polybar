@@ -1,4 +1,4 @@
-.TH LEMONBUDDY_CONFIG 5 2016-06-22 "lemonbuddy 1.2.1" "lemonbuddy Manual"
+.TH lemonbuddy_config 5 2016-06-22 "lemonbuddy 1.4.1-9-gc72ba27" "User Configuration"
 .SH NAME
 .\" This man page will need lots of updating as documentation about lemonbuddy
 .\" configuration improves.
@@ -8,49 +8,62 @@
 .P
 .BR ~/.config/lemonbuddy/config
 .SH SYNTAX
-The configuration syntax is based on the \fIini\fR file format.
-.\" TODO better explain this section
-.LP
-.in +4
 .nf
+.TP
+The configuration syntax is based on the \fIini\fR file format.
+.TP
+A sample config section with various field types:
+
 [section/name]
 str = My string
-str = "  My string" ; Quote the value
+; Quote the value to keep surrounding spaces
+str = "   My string"
 bool = true
 bool = on
 int = 10
 float = 10.0
+.TP
+Values defined in another section can be referenced using:
 
-; Values for a defined bar can be referenced using:
-key = ${bar/top.foreground}
+key = \fI${bar/top.foreground}\fR
+.TP
+Use BAR to target the section of the current bar:
 
-; Values for the current bar can be referenced using:
-key = ${BAR.foreground}
+key = \fI${BAR.foreground}\fR
+.TP
+Most modules define a format-N field. The formats define a set of tags. For example, the mpd module defines the following formats:
 
-; Other values can be referenced using:
-key = ${section.key}
-.\"
-.\";format[-NAME] = "<TAGS...>"
-.\";format[-NAME]-spacing = N (unit: whitespaces)
-.\";format[-NAME]-padding = N (unit: whitespaces)
-.\";format[-NAME]-margin = N  (unit: whitespaces)
-.\";format[-NAME]-offset = N  (unit: pixels)
-.\";format[-NAME]-foreground = #aarrggbb
-.\";format[-NAME]-background = #aarrggbb
-.\";format[-NAME]-underline = #aarrggbb
-.\";format[-NAME]-overline = #aarrggbb
-.\";
-.\";label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
-.\";icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
-.\";ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
-.\";animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
-.\";
-.\";bar-NAME-width = N (unit: characters)
-.\";bar-NAME-format = (tokens: %fill% %indicator% %empty%)
-.\";bar-NAME-foreground-[0-9]+ = #aarrggbb
-.\";bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
-.\";bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
-.\";bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
+\fIformat-online\fR = ... <label-song> <icon-play> ...
+\fIformat-offline\fR = the server is offline
+.TP
+The modules will toggle between the formats and only show the one defined for the current module state.
+.TP
+Each format contains the following fields:
+
+format[-NAME]-padding    = N (unit: whitespaces)
+format[-NAME]-margin     = N (unit: whitespaces)
+format[-NAME]-spacing    = N (unit: whitespaces)
+format[-NAME]-offset     = N (unit: pixels)
+format[-NAME]-foreground = #aa[rrggbb]
+format[-NAME]-background = #aa[rrggbb]
+format[-NAME]-underline  = #aa[rrggbb]
+format[-NAME]-overline   = #aa[rrggbb]
+.TP
+The rest of the drawtypes follow the same pattern.
+
+.\" TODO: Describe the drawtypes
+label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
+
+bar-NAME-width = N (unit: characters)
+bar-NAME-format = (tokens: %fill% %indicator% %empty%)
+bar-NAME-foreground-[0-9]+ = #aarrggbb
+bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
+bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
+bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
+
 .fi
 .SH APPLICATION SETTINGS
 These settings should exist in the `settings' section within the configuration file.
@@ -58,7 +71,7 @@ These settings should exist in the `settings' section within the configuration f
 \fBthrottle_limit\fR and \fBthrottle_ms\fR
 Limit the amount of events sent to \fBlemonbar\fR(1) within a set timeframe. Allow at most \fIthrottle_limit\fR updates within \fIthrottle_ms\fR milliseconds.
 .SH BAR SETTINGS
-These settings should exist in `bar/\fIBAR\-NAME\fR' section.
+These settings should be defined in the [bar/\fIBAR\-NAME\fR] section.
 .TP
 .BR monitor
 Which display to have \fBlemonbar\fR(1) exist on. You can get a list of available outputs by using the command `xrandr -q | grep " connected" | cut -d ' ' -f1'.
@@ -76,7 +89,7 @@ If this boolean is set to `true', then \fBlemonbar\fR(1) will be instructed to r
 If this boolean is set to `true', then require \fBlemonbar\fR(1) to dock itself.
 .TP
 .BR spacing
-This integer values is used as a multiplier when adding spaces between elements.
+This integer value is used as a multiplier when adding spaces between elements.
 .TP
 .BR lineheight
 How high underlines and overlines should be.
@@ -97,7 +110,7 @@ Here you can specify which fonts you wish to use. You need to set \fIid\fR to be
 This value is used by \fBlemonbar\fR(1) to specify the number of clickable areas available.
 .TP
 .BR wm_name
-The value to set \fIWM_NAME\fR to when running. This defaults to `lemonbuddy\-\fIBAR\fR_\fIMONITOR\fR'.
+The value to set \fIWM_NAME\fR to when running. This defaults to `lemonbuddy\-\fIBAR-NAME\fR_\fIMONITOR\fR'.
 .TP
 .BR locale
 Which locale to use.

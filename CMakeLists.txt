@@ -154,6 +154,7 @@ message(STATUS " Enable mpd support     ${ENABLE_MPD}")
 message(STATUS " Enable network support ${ENABLE_NETWORK}")
 message(STATUS "---------------------------")
 
+add_subdirectory("${PROJECT_SOURCE_DIR}/man")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src" EXCLUDE_FROM_ALL)
 link_directories(${PROJECT_LINK_DIRS})
 include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_INCL_DIRS})
