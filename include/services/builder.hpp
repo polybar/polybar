@@ -3,7 +3,6 @@
 #include <string>
 #include <memory>
 
-#include "bar.hpp"
 #include "drawtypes/animation.hpp"
 #include "drawtypes/bar.hpp"
 #include "drawtypes/icon.hpp"
@@ -13,6 +12,7 @@
 #define DEFAULT_SPACING -1
 
 class Lemonbuddy;
+struct Options;
 
 class Builder
 {
@@ -43,11 +43,11 @@ class Builder
     void align_right();
 
     std::shared_ptr<Options> opts;
+    std::shared_ptr<Options>& get_opts();
 
   public:
     explicit Builder(bool lazy_closing = true)
-      : lazy_closing(lazy_closing)
-      , opts(bar_opts()) {}
+      : lazy_closing(lazy_closing) {}
 
     void set_lazy_closing(bool mode) { this->lazy_closing = mode; }
 

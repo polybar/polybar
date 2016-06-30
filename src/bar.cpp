@@ -36,7 +36,7 @@ std::shared_ptr<Bar> get_bar()
 }
 
 std::shared_ptr<Options> bar_opts() {
-  return bar->opts;
+  return get_bar()->opts;
 }
 
 /**

@@ -4,13 +4,22 @@
 #include <regex>
 #include <boost/algorithm/string/replace.hpp>
 
+#include "bar.hpp"
 #include "config.hpp"
 #include "exception.hpp"
 #include "services/builder.hpp"
 #include "utils/string.hpp"
 #include "utils/math.hpp"
 
+
 // Private
+
+std::shared_ptr<Options>& Builder::get_opts()
+{
+  if (!this->opts)
+    this->opts = bar_opts();
+  return this->opts;
+}
 
 void Builder::tag_open(char tag, std::string value) {
   this->append("%{"+ std::string({tag}) + value +"}");
@@ -93,12 +102,12 @@ void Builder::append_module_output(Alignment alignment, std::string module_outpu
 
   int margin;
 
-  if (margin_left && (margin= this->opts->module_margin_left) > 0)
+  if (margin_left && (margin= this->get_opts()->module_margin_left) > 0)
     this->output += std::string(margin, ' ');
 
   this->append(module_output);
 
-  if (margin_right && (margin = this->opts->module_margin_right) > 0)
+  if (margin_right && (margin = this->get_opts()->module_margin_right) > 0)
     this->output += std::string(margin, ' ');
 }
 
@@ -271,7 +280,7 @@ void Builder::offset(int pixels)
 
 void Builder::space(int width)
 {
-  if (width == DEFAULT_SPACING) width = this->opts->spacing;
+  if (width == DEFAULT_SPACING) width = this->get_opts()->spacing;
   if (width <= 0) return;
   std::string str(width, ' ');
   this->append(str);
@@ -279,7 +288,7 @@ void Builder::space(int width)
 
 void Builder::remove_trailing_space(int width)
 {
-  if (width == DEFAULT_SPACING) width = this->opts->spacing;
+  if (width == DEFAULT_SPACING) width = this->get_opts()->spacing;
   if (width <= 0) return;
   std::string::size_type spacing = width;
   std::string str(spacing, ' ');
@@ -323,7 +332,7 @@ void Builder::background(std::string color_)
 
   if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
     color = "#"+ color.substr(color.length()-2);
-    auto bg = this->opts->background;
+    auto bg = this->get_opts()->background;
     color += bg.substr(bg.length()-(bg.length() < 6 ? 3 : 6));
   } else if (color.length() >= 7 && color == "#"+ std::string(color.length()-1, color[1])) {
     color = color.substr(0, 4);
@@ -352,7 +361,7 @@ void Builder::color(std::string color_)
   auto color(color_);
   if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
     color = "#"+ color.substr(color.length()-2);
-    auto bg = this->opts->foreground;
+    auto bg = this->get_opts()->foreground;
     color += bg.substr(bg.length()-(bg.length() < 6 ? 3 : 6));
   } else if (color.length() >= 7 && color == "#"+ std::string(color.length()-1, color[1])) {
     color = color.substr(0, 4);
@@ -370,7 +379,7 @@ void Builder::color(std::string color_)
 void Builder::color_alpha(std::string alpha_)
 {
   auto alpha(alpha_);
-  std::string val = this->opts->foreground;
+  std::string val = this->get_opts()->foreground;
   if (alpha.find("#") == 0) {
     if (alpha.size() == 3)
       this->color(alpha.substr(0, 3) + val.substr(val.size() - 6));
