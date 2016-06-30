@@ -18,6 +18,15 @@ using namespace bspwm;
 #define DEFAULT_WS_ICON "workspace_icon-default"
 #define DEFAULT_WS_LABEL "%icon%  %name%"
 
+std::string get_socket_path()
+{
+  std::string socket_path = BSPWM_SOCKET_PATH;
+  const char *env_bs = std::getenv("BSPWM_SOCKET");
+  if (env_bs != nullptr)
+    socket_path = std::string(env_bs);
+  return socket_path;
+}
+
 bspwm::payload_t generate_payload(std::string command)
 {
   bspwm::payload_t payload;
@@ -41,11 +50,13 @@ bool send_payload(int fd, bspwm::payload_t payload)
 
 int create_subscriber()
 {
-  int socket_fd;
-  if ((socket_fd = io::socket::open(BSPWM_SOCKET_PATH)) == -1)
-    throw ModuleError("Could not connect to socket");
+  int socket_fd = -1;
+  std::string socket_path = get_socket_path();
+
+  if ((socket_fd = io::socket::open(socket_path)) == -1)
+    throw ModuleError("bspwm: Could not connect to socket: "+ socket_path);
   if (!send_payload(socket_fd, generate_payload("subscribe report")))
-    throw ModuleError("Failed to subscribe to bspwm changes");
+    throw ModuleError("bspwm: Failed to subscribe to bspwm changes");
   return socket_fd;
 }
 
@@ -269,9 +280,10 @@ bool BspwmModule::handle_command(std::string cmd)
     << std::atoi(cmd.substr(std::strlen(EVENT_CLICK)).c_str());
 
   int payload_fd;
+  std::string socket_path = get_socket_path();
 
-  if ((payload_fd = io::socket::open(BSPWM_SOCKET_PATH)) == -1)
-    this->logger->error("bspwm: Failed to open socket");
+  if ((payload_fd = io::socket::open(socket_path)) == -1)
+    this->logger->error("bspwm: Failed to open socket: "+ socket_path);
   else if (!send_payload(payload_fd, generate_payload(payload_s.str())))
     this->logger->error("bspwm: Failed to change desktop");
 

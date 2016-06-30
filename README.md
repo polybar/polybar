@@ -498,6 +498,9 @@ The configuration syntax is based on the `ini` file format.
 
 
 #### Module `internal/bspwm`
+
+To specify a custom path to the bspwm socket, you can set the environment variable `$BSPWM_SOCKET`.
+
   ~~~ ini
   [module/bspwm]
   type = internal/bspwm
