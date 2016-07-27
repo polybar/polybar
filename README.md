@@ -106,6 +106,7 @@ A C++ compiler with C++14 support. For example [`clang`](http://clang.llvm.org/g
 - cmake
 - boost
 - libxcb
+- xcb-proto
 
 Optional dependencies for module support:
 
@@ -115,7 +116,7 @@ Optional dependencies for module support:
 - jsoncpp, libsigc++ (required for `internal/i3` support)
 
 ~~~ sh
-$ pacman -S cmake boost libxcb wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
+$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
 $ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel libsigc++-devel wireless_tools-devel
 $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-dev
 ~~~
@@ -126,7 +127,7 @@ $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-d
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project. It helps alot.
 
   ~~~ sh
-  $ git clone --branch 1.4.2 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 1.4.3 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
