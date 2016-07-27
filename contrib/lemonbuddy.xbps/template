@@ -1,6 +1,6 @@
 # Template file for 'lemonbuddy'
 pkgname=lemonbuddy
-version=1.4.1
+version=1.4.4
 revision=1
 _i3ipcpp_version=0.3.0
 _xpp_version=1.0.0
