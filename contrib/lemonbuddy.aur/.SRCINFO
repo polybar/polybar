@@ -1,7 +1,7 @@
 pkgbase = lemonbuddy
 	pkgdesc = A fast and easy-to-use tool for Lemonbar
 	pkgver = 1.4.4
-	pkgrel = 2
+	pkgrel = 1
 	url = https://github.com/jaagr/lemonbuddy
 	arch = i686
 	arch = x86_64
