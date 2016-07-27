@@ -2,6 +2,7 @@
 
 #include <mutex>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -20,30 +21,71 @@ namespace config
 
   static std::recursive_mutex mtx;
 
+  /**
+   * Gets the path used to access the current bar section
+   */
   std::string get_bar_path();
+
+  /**
+   * Sets the path used to access the current bar section
+   */
   void set_bar_path(std::string path);
 
+  /**
+   * Loads a configuration file
+   */
   void load(std::string path);
+
+  /**
+   * Loads a configuration file
+   */
   void load(const char *dir, std::string path);
+
+  /**
+   * Reloads the configuration values
+   * TODO: Implement properly
+   */
   // void reload();
 
+  /**
+   * Gets the boost property tree handler
+   */
   boost::property_tree::ptree get_tree();
 
+  /**
+   * Builds the path used to find a parameter in the given section
+   */
   std::string build_path(std::string section, std::string key);
 
+  /**
+   * Gets the location of the configuration file
+   */
   std::string get_file_path();
 
+  /**
+   * Finds the value of a config parameter defined
+   * as a reference variable using ${section.param} or ${env:VAR}
+   */
   template<typename T>
   T dereference_var(std::string ref_section, std::string ref_key, std::string var, const T ref_val)
   {
     std::lock_guard<std::recursive_mutex> lck(config::mtx);
 
-    std::string::size_type n, m;
+    auto n = var.find("${");
+    auto m = var.find("}");
 
-    if ((n = var.find("${")) != 0) return ref_val;
-    if ((m = var.find("}")) != var.length()-1) return ref_val;
+    if (n != 0 || m != var.length()-1)
+      return ref_val;
 
     auto path = var.substr(2, m-2);
+
+    if (path.find("env:") == 0) {
+      auto *envvar_value = std::getenv(path.substr(4).c_str());
+      if (envvar_value != nullptr)
+        return boost::lexical_cast<T>(envvar_value);
+      return ref_val;
+    }
+
     auto ref_path = build_path(ref_section, ref_key);
 
     if ((n = path.find(".")) == std::string::npos)
@@ -62,6 +104,9 @@ namespace config
     return dereference_var<T>(section, key, str_val, val.get());
   }
 
+  /**
+   * Gets the value of a variable by section and parameter name
+   */
   template<typename T>
   T get(std::string section, std::string key)
   {
@@ -77,6 +122,10 @@ namespace config
     return dereference_var<T>(section, key, str_val, val.get());
   }
 
+  /**
+   * Gets the value of a variable by section and parameter name
+   * with a default value in case the parameter isn't defined
+   */
   template<typename T>
   T get(std::string section, std::string key, T default_value)
   {
@@ -88,6 +137,9 @@ namespace config
     return dereference_var<T>(section, key, str_val.get_value_or(""), val.get_value_or(default_value));
   }
 
+  /**
+   * Gets a list of values by section and parameter name
+   */
   template<typename T>
   std::vector<T> get_list(std::string section, std::string key)
   {
@@ -107,6 +159,10 @@ namespace config
     return vec;
   }
 
+  /**
+   * Gets a list of values by section and parameter name
+   * with a default list in case the list isn't defined
+   */
   template<typename T>
   std::vector<T> get_list(std::string section, std::string key, std::vector<T> default_value)
   {

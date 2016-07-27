@@ -253,6 +253,9 @@ The configuration syntax is based on the `ini` file format.
 
   ; Other values can be referenced using:
   key = ${section.key}
+
+  ; Environment variables can be referenced using:
+  key = ${env:VAR_NAME}
   ~~~
   ~~~ ini
   [section/name]
