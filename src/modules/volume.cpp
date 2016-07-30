@@ -1,4 +1,3 @@
-#include <iostream>
 #include "lemonbuddy.hpp"
 #include "bar.hpp"
 #include "utils/math.hpp"
@@ -6,7 +5,6 @@
 #include "modules/volume.hpp"
 
 using namespace modules;
-using namespace std;
 
 VolumeModule::VolumeModule(std::string name_) : EventModule(name_)
 {
@@ -149,7 +147,6 @@ bool VolumeModule::update()
 
   this->volume = volume;
   this->muted = muted;
-
 
   this->label_volume_tokenized->text = this->label_volume->text;
   this->label_volume_tokenized->replace_token("%percentage%", std::to_string(this->volume()) +"%");
