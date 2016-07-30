@@ -1,3 +1,4 @@
+#include <iostream>
 #include "lemonbuddy.hpp"
 #include "bar.hpp"
 #include "utils/math.hpp"
@@ -5,6 +6,7 @@
 #include "modules/volume.hpp"
 
 using namespace modules;
+using namespace std;
 
 VolumeModule::VolumeModule(std::string name_) : EventModule(name_)
 {
@@ -148,6 +150,7 @@ bool VolumeModule::update()
   this->volume = volume;
   this->muted = muted;
 
+
   this->label_volume_tokenized->text = this->label_volume->text;
   this->label_volume_tokenized->replace_token("%percentage%", std::to_string(this->volume()) +"%");
 
@@ -181,9 +184,9 @@ std::string VolumeModule::get_output()
 bool VolumeModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_BAR_VOLUME)
-    builder->node(this->bar_volume, volume);
-  else if (tag == TAG_RAMP_VOLUME)
-    builder->node(this->ramp_volume, volume);
+    builder->node(this->bar_volume, volume());
+  else if (tag == TAG_RAMP_VOLUME) 
+    builder->node(this->ramp_volume, volume());
   else if (tag == TAG_LABEL_VOLUME)
     builder->node(this->label_volume_tokenized);
   else if (tag == TAG_LABEL_MUTED)
