@@ -181,9 +181,9 @@ std::string VolumeModule::get_output()
 bool VolumeModule::build(Builder *builder, std::string tag)
 {
   if (tag == TAG_BAR_VOLUME)
-    builder->node(this->bar_volume, volume);
-  else if (tag == TAG_RAMP_VOLUME)
-    builder->node(this->ramp_volume, volume);
+    builder->node(this->bar_volume, volume());
+  else if (tag == TAG_RAMP_VOLUME) 
+    builder->node(this->ramp_volume, volume());
   else if (tag == TAG_LABEL_VOLUME)
     builder->node(this->label_volume_tokenized);
   else if (tag == TAG_LABEL_MUTED)
