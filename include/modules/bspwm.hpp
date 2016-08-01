@@ -20,10 +20,12 @@ namespace modules
     enum Flag
     {
       WORKSPACE_NONE,
-      WORKSPACE_ACTIVE,
       WORKSPACE_URGENT,
       WORKSPACE_EMPTY,
       WORKSPACE_OCCUPIED,
+      WORKSPACE_FOCUSED_URGENT,
+      WORKSPACE_FOCUSED_EMPTY,
+      WORKSPACE_FOCUSED_OCCUPIED,
       // used when the monitor is unfocused
       WORKSPACE_DIMMED,
 
