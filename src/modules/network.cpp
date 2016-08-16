@@ -140,7 +140,10 @@ bool NetworkModule::update()
     }
   }
 
-  this->calculate_netspeeds();
+  if(this->connected)
+  {
+    this->calculate_netspeeds();
+  }
 
   // Update label contents
   if (this->label_connected || this->label_packetloss) {
@@ -181,8 +184,8 @@ void NetworkModule::calculate_netspeeds()
     std::ifstream tx;
     std::string str_rx;
     std::string str_tx;
-    int current_rx;
-    int current_tx;
+    long long current_rx;
+    long long current_tx;
     ptime current_time = microsec_clock::universal_time();
     time_duration diff = current_time - this->last_update;
 
@@ -195,16 +198,11 @@ void NetworkModule::calculate_netspeeds()
     rx.close();
     tx.close();
 
-    current_tx = std::stoi(str_tx);
-    current_rx = std::stoi(str_rx);
+    current_tx = std::stoll(str_tx);
+    current_rx = std::stoll(str_rx);
 
     this->current_rx_speed = (current_rx - this->last_rx_bytes()) / diff.total_milliseconds() * 1000;
     this->current_tx_speed = (current_tx - this->last_tx_bytes()) / diff.total_milliseconds() * 1000;
-
-    log_info("Current: " + std::to_string(current_rx));
-    log_info("Current Speed: " + this->get_downspeed());
-    log_info("Last: " + std::to_string(this->last_rx_bytes()));
-    log_info("Diff: " + std::to_string(diff.seconds()));
 
     this->last_tx_bytes = current_tx;
     this->last_rx_bytes = current_rx;

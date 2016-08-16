@@ -48,8 +48,8 @@ namespace modules
     concurrency::Atomic<bool> connected;
     concurrency::Atomic<bool> conseq_packetloss;
     concurrency::Atomic<int> signal_quality;
-    concurrency::Atomic<int> last_rx_bytes;
-    concurrency::Atomic<int> last_tx_bytes;
+    concurrency::Atomic<long long> last_rx_bytes;
+    concurrency::Atomic<long long> last_tx_bytes;
 
     // Speeds are in bytes per seconds
     concurrency::Atomic<float> current_rx_speed;
