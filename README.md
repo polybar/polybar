@@ -874,6 +874,8 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Available tokens:
   ;   %ifname%    [wireless+wired]
   ;   %local_ip%  [wireless+wired]
+  ;   %downspeed%  [wireless+wired]
+  ;   %upspeed%  [wireless+wired]
   ;   %essid%     [wireless]
   ;   %signal%    [wireless]
   ;   %linkspeed% [wired]
