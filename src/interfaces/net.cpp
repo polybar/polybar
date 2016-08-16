@@ -86,7 +86,7 @@ bool Network::connected()
 {
   try {
     return this->test_interface() &&
-      io::file::get_contents("/sys/class/net/"+ this->interface +"/carrier")[0] == '1';
+      string::trim(io::file::get_contents("/sys/class/net/"+ this->interface +"/operstate"), '\n') == "up";
   } catch (NetworkException &e) {
     return false;
   }
