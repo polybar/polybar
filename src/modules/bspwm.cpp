@@ -67,12 +67,16 @@ BspwmModule::BspwmModule(std::string name_, std::string monitor)
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
-    this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-occupied", DEFAULT_WS_LABEL)));
+    auto label_focused = drawtypes::get_optional_config_label(name(), "label-focused", DEFAULT_WS_LABEL);
+	this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-occupied", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_EMPTY, drawtypes::get_optional_config_label(name(), "label-empty", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-focused-occupied", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_URGENT, drawtypes::get_optional_config_label(name(), "label-focused-urgent", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_EMPTY, drawtypes::get_optional_config_label(name(), "label-focused-empty", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_OCCUPIED,
+          drawtypes::get_either_config_label(name(), "label-focused-occupied", "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_URGENT,
+          drawtypes::get_either_config_label(name(), "label-focused-urgent", "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_EMPTY,
+          drawtypes::get_either_config_label(name(), "label-focused-empty", "label-focused", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
   }
 

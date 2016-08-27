@@ -43,4 +43,12 @@ namespace drawtypes
   std::unique_ptr<Label> get_optional_config_label(std::string config_path, std::string label_name, std::string def) {
     return get_config_label(config_path, label_name, false, def);
   }
+
+  std::unique_ptr<Label> get_either_config_label(std::string config_path, std::string label_name1, std::string label_name2, std::string def)
+  {
+    if (config::has<std::string>(config_path, label_name1))
+      return get_config_label(config_path, label_name1, true, "");
+    else
+      return get_optional_config_label(config_path, label_name2, def);
+  }
 }
