@@ -281,7 +281,7 @@ The configuration syntax is based on the `ini` file format.
   ;
   ; The rest of the drawtypes follow the same pattern.
   ;
-  ;   label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+  ;   label-NAME[-(foreground|background|(under|over)line|font|padding|maxlen|ellipsis)] = ?
   ;   icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
   ;   ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
   ;   animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
@@ -299,6 +299,10 @@ The configuration syntax is based on the `ini` file format.
 
   format-offline = <label-offline>
   format-offline-offset = -8
+
+  ; Cap the song label without trailing ellipsis
+  label-song-maxlen = 30
+  label-song-ellipsis = false
 
   ; By only specifying alpha value, it will be applied to the bar's default foreground
   label-time-foreground = #66
