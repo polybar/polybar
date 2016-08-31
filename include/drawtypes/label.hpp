@@ -9,11 +9,13 @@ namespace drawtypes
   {
     std::string text, fg, bg, ul, ol;
     int font = 0, padding = 0, margin = 0;
+    size_t maxlen = 0;
+    bool ellipsis = true;
 
     Label(std::string text, int font)
       : text(text), font(font){}
-    Label(std::string text, std::string fg = "", std::string bg = "", std::string ul = "", std::string ol = "", int font = 0, int padding = 0, int margin = 0)
-      : text(text), fg(fg), bg(bg), ul(ul), ol(ol), font(font), padding(padding), margin(margin){}
+    Label(std::string text, std::string fg = "", std::string bg = "", std::string ul = "", std::string ol = "", int font = 0, int padding = 0, int margin = 0, size_t maxlen = 0, bool ellipsis = true)
+      : text(text), fg(fg), bg(bg), ul(ul), ol(ol), font(font), padding(padding), margin(margin), maxlen(maxlen), ellipsis(ellipsis){}
 
     operator bool() {
       return !this->text.empty();
