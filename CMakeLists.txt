@@ -1,7 +1,7 @@
 #
 # Build configuration
 #
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(lemonbuddy C CXX)
 
 # Include the local cmake modules
@@ -12,28 +12,35 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-string(ASCII 27 ANSI)
+string(ASCII 27 ESC)
 
 #
-# Internal values and switches
+# Project settings
 #
 
-# Keep track if the i3 option is explicitly defined
-if(ENABLE_I3)
-  set(ENABLE_I3_NODEF ON)
+# Make the default options based on available libs
+find_package(ALSA QUIET)
+find_package(Libiw QUIET)
+find_package(LibMPDClient QUIET)
+find_program(CCACHE_BINARY ccache)
+if(CCACHE_BINARY)
+  set(CCACHE_FOUND ON)
+endif()
+find_program(I3_BINARY i3)
+if(I3_BINARY)
+  set(I3_FOUND ON)
 endif()
 
-option(ENABLE_CCACHE  "Enable ccache support"  ON)
-option(ENABLE_ALSA    "Enable alsa support"    ON)
-option(ENABLE_I3      "Enable i3 support"      ON)
-option(ENABLE_MPD     "Enable mpd support"     ON)
-option(ENABLE_NETWORK "Enable network support" ON)
+option(ENABLE_CCACHE  "Enable ccache support"  ${CCACHE_FOUND})
+option(ENABLE_ALSA    "Enable alsa support"    ${ALSA_FOUND})
+option(ENABLE_I3      "Enable i3 support"      ${I3_FOUND})
+option(ENABLE_MPD     "Enable mpd support"     ${LIBMPDCLIENT_FOUND})
+option(ENABLE_NETWORK "Enable network support" ${LIBIW_FOUND})
 
 if(ENABLE_ALSA)
   set(SETTING_ALSA_SOUNDCARD "default"
     CACHE STRING "Name of the ALSA soundcard driver")
 endif()
-
 set(SETTING_CONNECTION_TEST_IP "8.8.8.8"
   CACHE STRING "Address to ping when testing network connection")
 set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/brightness"
@@ -54,11 +61,9 @@ set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
   CACHE STRING "Path to file containing memory info")
 
 if(ENABLE_CCACHE)
-  find_program(CCACHE_FOUND "ccache")
-  if(CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "ccache")
-  endif()
+  find_program(CCACHE_BINARY ccache REQUIRED)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "ccache")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "ccache")
 endif()
 
 #
@@ -74,56 +79,32 @@ set(PROJECT_LINK_LIBS
   ${CMAKE_THREAD_LIBS_INIT})
 
 if(ENABLE_I3)
-  find_program(I3_EXECUTABLE "i3")
-  if(NOT I3_EXECUTABLE)
-    if(NOT ENABLE_I3_NODEF)
-      message(WARNING "${ANSI}[41;1mDisabling \"i3 module\" support (prerequisites failed)${ANSI}[0m")
-      set(ENABLE_I3 OFF)
-    endif()
-  endif()
-  if(ENABLE_I3)
-    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/i3ipcpp" EXCLUDE_FROM_ALL)
-    set(PROJECT_INCL_DIRS
-      ${PROJECT_INCL_DIRS}
-      ${SIGCPP_INCLUDE_DIRS}
-      ${I3IPCPP_INCLUDE_DIRS})
-    set(PROJECT_LINK_LIBS
-      ${PROJECT_LINK_LIBS}
-      ${I3IPCPP_LIBRARIES})
-  endif()
+  add_subdirectory("${PROJECT_SOURCE_DIR}/lib/i3ipcpp" EXCLUDE_FROM_ALL)
+  set(PROJECT_INCL_DIRS
+    ${PROJECT_INCL_DIRS}
+    ${SIGCPP_INCLUDE_DIRS}
+    ${I3IPCPP_INCLUDE_DIRS})
+  set(PROJECT_LINK_LIBS
+    ${PROJECT_LINK_LIBS}
+    ${I3IPCPP_LIBRARIES})
 endif()
 
 if(ENABLE_ALSA)
-  find_package("ALSA")
-  if(ALSA_FOUND)
-    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${ALSA_INCLUDE_DIR})
-    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${ALSA_LIBRARY})
-  else(ALSA_FOUND)
-    message(WARNING "${ANSI}[41;1mDisabling \"volume module\" support (prerequisites failed)${ANSI}[0m")
-    set(ENABLE_ALSA OFF)
-  endif()
+  find_package(ALSA REQUIRED)
+  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${ALSA_INCLUDE_DIR})
+  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${ALSA_LIBRARY})
 endif()
 
 if(ENABLE_MPD)
-  find_package("LibMPDClient")
-  if(LIBMPDCLIENT_FOUND)
-    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBMPDCLIENT_INCLUDE_DIR})
-    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
-  else(LIBMPDCLIENT_FOUND)
-    message(WARNING "${ANSI}[41;1mDisabling \"mpd module\" support (prerequisites failed)${ANSI}[0m")
-    set(ENABLE_MPD OFF)
-  endif()
+  find_package(LibMPDClient REQUIRED)
+  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBMPDCLIENT_INCLUDE_DIR})
+  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
 endif()
 
 if(ENABLE_NETWORK)
-  find_package("Libiw")
-  if(LIBIW_FOUND)
-    set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBIW_INCLUDE_DIR})
-    set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBIW_LIBRARY})
-  else(LIBIW_FOUND)
-    message(WARNING "${ANSI}[41;1mDisabling \"network module\" support (prerequisites failed)${ANSI}[0m")
-    set(ENABLE_NETWORK OFF)
-  endif()
+  find_package(Libiw REQUIRED)
+  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBIW_INCLUDE_DIR})
+  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBIW_LIBRARY})
 endif()
 
 #
