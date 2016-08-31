@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <sys/socket.h>
+#include <regex>
 
 #include "config.hpp"
 #include "lemonbuddy.hpp"
@@ -140,22 +141,13 @@ bool BspwmModule::update()
     return false;
   }
 
-  const auto needle_active = "M"+ this->monitor +":";
-  const auto needle_inactive = "m"+ this->monitor +":";
+  // match the current monitor until the next monitor begins or the string ends
+  std::regex pattern("[mM]" + this->monitor + ".*?(?=:[mM]|$)");
+  std::smatch match;
 
-  // Cut out the relevant section for the current monitor
-  if ((n = data.find(prefix + needle_active)) != std::string::npos) {
-    if ((m = data.find(":m")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find(prefix + needle_inactive)) != std::string::npos) {
-    if ((m = data.find(":M")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find(needle_active)) != std::string::npos) {
-    data.erase(0, n);
-  } else if ((n = data.find(needle_inactive)) != std::string::npos) {
-    data.erase(0, n);
+  if (std::regex_search(data, match, pattern)) {
+    data = match[0].str();
   }
-
-  if (data.compare(0, prefix.length(), prefix) == 0)
-    data.erase(0, 1);
 
   log_trace2(this->logger, data);
 
