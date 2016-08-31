@@ -72,6 +72,7 @@ struct Options
   std::string get_geom()
   {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << this->width << "x" << this->height << "+";
     ss << this->offset_x << "+" << this->offset_y;
     return ss.str();
