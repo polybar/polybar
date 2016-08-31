@@ -125,10 +125,10 @@ bool BspwmModule::update()
 
   this->prev_data = data;
 
-  unsigned long n, m;
+  unsigned long pos;
 
-  while ((n = data.find("\n")) != std::string::npos)
-    data.erase(n);
+  while ((pos = data.find("\n")) != std::string::npos)
+    data.erase(pos);
 
   if (data.empty())
     return false;
@@ -140,22 +140,20 @@ bool BspwmModule::update()
     return false;
   }
 
-  const auto needle_active = "M"+ this->monitor +":";
-  const auto needle_inactive = "m"+ this->monitor +":";
+  // Extract the string for the defined monitor
+  const auto needle_active = ":M"+ this->monitor +":";
+  const auto needle_inactive = ":m"+ this->monitor +":";
 
-  // Cut out the relevant section for the current monitor
-  if ((n = data.find(prefix + needle_active)) != std::string::npos) {
-    if ((m = data.find(":m")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find(prefix + needle_inactive)) != std::string::npos) {
-    if ((m = data.find(":M")) != std::string::npos) data = data.substr(n, m);
-  } else if ((n = data.find(needle_active)) != std::string::npos) {
-    data.erase(0, n);
-  } else if ((n = data.find(needle_inactive)) != std::string::npos) {
-    data.erase(0, n);
-  }
-
-  if (data.compare(0, prefix.length(), prefix) == 0)
-    data.erase(0, 1);
+  if ((pos = data.find(prefix)) != std::string::npos)
+    data = data.replace(pos, prefix.length(), ":");
+  if ((pos = data.find(needle_active)) != std::string::npos)
+    data.erase(0, pos+1);
+  if ((pos = data.find(needle_inactive)) != std::string::npos)
+    data.erase(0, pos+1);
+  if ((pos = data.find(":m", 1)) != std::string::npos)
+    data.erase(pos);
+  if ((pos = data.find(":M", 1)) != std::string::npos)
+    data.erase(pos);
 
   log_trace2(this->logger, data);
 
