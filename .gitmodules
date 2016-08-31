@@ -9,4 +9,4 @@
 [submodule "lib/xpp"]
 	path = lib/xpp
 	url = https://github.com/jaagr/xpp
-	branch = 1.2.0
+	branch = 1.2.1
