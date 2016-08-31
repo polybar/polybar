@@ -237,6 +237,8 @@ std::string Bar::get_exec_line()
 {
   std::stringstream buffer;
 
+  buffer.imbue(std::locale::classic());
+
   buffer << "lemonbar -p";
   if (!this->opts->wm_name.empty())
     buffer << " -n " << this->opts->wm_name;
