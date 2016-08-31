@@ -135,11 +135,6 @@ set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${XPP_INCLUDE_DIRS})
 set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${XPP_LIBRARIES})
 
 #
-# Execute versioning script
-#
-execute_process(COMMAND ./version.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
-
-#
 # Install executable and wrapper
 #
 message(STATUS "---------------------------")
