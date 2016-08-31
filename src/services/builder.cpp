@@ -211,6 +211,15 @@ void Builder::node(drawtypes::Label *label, bool add_space)
 {
   if (!*label) return;
 
+  auto text = label->text;
+
+  if (label->maxlen > 0) {
+    text.resize(label->maxlen);
+
+    if (label->ellipsis && label->text.length() > label->maxlen)
+      text.append("...");
+  }
+
   if ((label->ol.empty() && this->o > 0) || (this->o > 0 && label->margin > 0))
     this->overline_close(true);
   if ((label->ul.empty() && this->u > 0) || (this->u > 0 && label->margin > 0))
@@ -228,7 +237,7 @@ void Builder::node(drawtypes::Label *label, bool add_space)
     this->color(label->fg);
       if (label->padding > 0)
         this->space(label->padding);
-      this->node(label->text, label->font, add_space);
+      this->node(text, label->font, add_space);
       if (label->padding > 0)
         this->space(label->padding);
     this->color_close(lazy_closing && label->margin > 0);
