@@ -389,22 +389,20 @@ void Builder::color_alpha(std::string alpha_)
 {
   auto alpha(alpha_);
   std::string val = this->get_opts()->foreground;
-  if (alpha.find("#") == 0) {
-    if (alpha.size() == 3)
-      this->color(alpha.substr(0, 3) + val.substr(val.size() - 6));
-    else if (alpha.size() == 4)
-      this->color(alpha + alpha.substr(1));
+  if (alpha.find("#") == std::string::npos ) {
+    alpha = "#" + alpha;
+  }
+
+  if (alpha.size() == 4) {
+    this->color(alpha);
     return;
   }
+
   if (val.size() < 6 && val.size() > 2) {
     val.append(val.substr(val.size() - 3));
-  } else if (val.length() > 6) {
-    val = "#" + val.substr(3);
   }
-  if (alpha.find("#") == std::string::npos) {
-    alpha = "#"+ alpha;
-  }
-  this->color(alpha.substr(0, 3) + val.substr(val.size() - 6));
+
+  this->color((alpha.substr(0, 3) + val.substr(val.size() - 6)).substr(0, 9));
 }
 
 void Builder::color_close(bool force)
