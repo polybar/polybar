@@ -3,7 +3,7 @@
 _pkgname=lemonbuddy
 pkgname="${_pkgname}-git"
 pkgver=1.4.4
-pkgrel=1
+pkgrel=2
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/lemonbuddy"
@@ -30,7 +30,6 @@ prepare() {
   cd "$_pkgname" || exit
   git submodule update --init --recursive
   mkdir build
-  sed 's/python2.7/python3.5/g' -i lib/xpp/CMakeLists.txt
 }
 
 build() {
