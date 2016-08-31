@@ -394,8 +394,7 @@ void Builder::color_alpha(std::string alpha_)
   }
 
   if (alpha.size() == 4) {
-    // If alpha looks like #123 then we treat as a color and ignore the fg color
-    this->color(alpha + alpha.substr(1));
+    this->color(alpha);
     return;
   }
 
