@@ -17,6 +17,7 @@ before_install:
   - mkdir $HOME/clang-$LLVM_VERSION
   - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang-$LLVM_VERSION --strip-components 1
   - export PATH=$HOME/clang-$LLVM_VERSION/bin:$PATH
+  - export PYTHONPATH="/usr/lib/python2.7/dist-packages:$PYTHONPATH"
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
   - sudo sed -i "s/trusty/wily/g" /etc/apt/sources.list
   - sudo apt-get -qq update
