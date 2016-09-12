@@ -97,7 +97,7 @@ void BatteryModule::subthread_routine()
     if (poll_seconds > 0 && (++i % poll_seconds) == 0) {
       // Trigger an inotify event in case the underlying filesystem doesn't
       log_debug("Poll battery capacity");
-      io::file::get_contents("/sys/class/power_supply/BAT0/capacity");
+      io::file::get_contents(this->path_capacity);
       i = 0;
     }
 
