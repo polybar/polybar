@@ -90,9 +90,7 @@ existing configurations will still work, so keep ricing.
 If you are using **Arch Linux**, you can install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
 [lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
 
-For **Void Linux** users, there's a [package template available](https://raw.githubusercontent.com/jaagr/void-packages/lemonbuddy/srcpkgs/lemonbuddy/template)
-that you can use with `xbps-src` to build the application. There's a pending pull request to get the package merged into the
-official repositories, but packages not used by the maintainers are pretty much ignored so don't hold your breath.
+For **Void Linux** users, the application can be installed using XBPS: `xbps-install -S lemonbuddy`.
 
 If you create a package for any other distribution, please consider contributing the template so that we can make the application
 available for more people.
