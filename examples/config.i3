@@ -41,8 +41,8 @@ padding_right = 1
 module_margin_left = 0
 module_margin_right = 0
 
-font-0 = sans:size=8;0
-font-1 = font awesome:size=10:weight=heavy;0
+font-0 = Sans:size=8;0
+font-1 = FontAwesome:size=10:weight=heavy;0
 
 modules-left = label
 modules-center = i3
