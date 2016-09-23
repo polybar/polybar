@@ -140,11 +140,19 @@ bool NetworkModule::update()
     }
   }
 
+  if(this->connected)
+  {
+    this->calculate_netspeeds();
+  }
+
   // Update label contents
   if (this->label_connected || this->label_packetloss) {
     auto replace_tokens = [&](std::unique_ptr<drawtypes::Label> &label){
       label->replace_token("%ifname%", this->interface);
       label->replace_token("%local_ip%", ip);
+
+      label->replace_token("%downspeed%", this->get_downspeed());
+      label->replace_token("%upspeed%", this->get_upspeed());
 
       if (this->wired_network) {
         label->replace_token("%linkspeed%", linkspeed);
@@ -168,6 +176,76 @@ bool NetworkModule::update()
   }
 
   return true;
+}
+
+void NetworkModule::calculate_netspeeds()
+{
+    std::ifstream rx;
+    std::ifstream tx;
+    std::string str_rx;
+    std::string str_tx;
+    long long current_rx;
+    long long current_tx;
+    ptime current_time = microsec_clock::universal_time();
+    time_duration diff = current_time - this->last_update;
+
+    rx.open("/sys/class/net/" + this->interface + "/statistics/rx_bytes");
+    tx.open("/sys/class/net/" + this->interface + "/statistics/tx_bytes");
+
+    std::getline(rx, str_rx);
+    std::getline(tx, str_tx);
+
+    rx.close();
+    tx.close();
+
+    current_tx = std::stoll(str_tx);
+    current_rx = std::stoll(str_rx);
+
+    this->current_rx_speed = (current_rx - this->last_rx_bytes()) / diff.total_milliseconds() * 1000;
+    this->current_tx_speed = (current_tx - this->last_tx_bytes()) / diff.total_milliseconds() * 1000;
+
+    this->last_tx_bytes = current_tx;
+    this->last_rx_bytes = current_rx;
+
+
+    this->last_update = current_time;
+}
+
+std::string NetworkModule::get_upspeed()
+{
+  return this->format_netspeed(this->current_tx_speed());
+}
+
+
+std::string NetworkModule::get_downspeed()
+{
+  return this->format_netspeed(this->current_rx_speed());
+}
+
+std::string NetworkModule::format_netspeed(float speed)
+{
+  const char* suffixes[7];
+  suffixes[0] = "B";
+  suffixes[1] = "KB";
+  suffixes[2] = "MB";
+  suffixes[3] = "GB";
+  suffixes[4] = "TB";
+  suffixes[5] = "PB";
+  suffixes[6] = "EB";
+  uint s = 0; // which suffix to use
+  std::string str = "";
+
+  while (speed >= 1000 && s < sizeof(suffixes))
+  {
+    s++;
+    speed /= 1000;
+  }
+
+  str = (boost::format("%1.1lf%s") % speed % suffixes[s]).str();
+  // Left space padding to ensure fixed width 
+  // to prevent the bar content from moving around constantly 
+  str = (boost::format("%|7s|") % str).str();
+  return str + "/s";
 }
 
 std::string NetworkModule::get_format()

@@ -12,7 +12,10 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/animation.hpp"
 #include "drawtypes/ramp.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/format.hpp"
 
+using namespace boost::posix_time;
 namespace modules
 {
   DefineModule(NetworkModule, TimerModule)
@@ -45,6 +48,14 @@ namespace modules
     concurrency::Atomic<bool> connected;
     concurrency::Atomic<bool> conseq_packetloss;
     concurrency::Atomic<int> signal_quality;
+    concurrency::Atomic<long long> last_rx_bytes;
+    concurrency::Atomic<long long> last_tx_bytes;
+
+    // Speeds are in bytes per seconds
+    concurrency::Atomic<float> current_rx_speed;
+    concurrency::Atomic<float> current_tx_speed;
+
+    ptime last_update;
 
     int ping_nth_update;
     int counter = -1; // Set to -1 to ignore the first run
@@ -60,6 +71,13 @@ namespace modules
       std::string get_format();
 
       bool build(Builder *builder, std::string tag);
+
+    protected:
+      std::string get_upspeed();
+      std::string get_downspeed();
+      void calculate_netspeeds();
+      // Speed is in bytes per second
+      std::string format_netspeed(float speed);
 
   };
 }
