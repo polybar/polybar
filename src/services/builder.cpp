@@ -213,12 +213,8 @@ void Builder::node(drawtypes::Label *label, bool add_space)
 
   auto text = label->text;
 
-  if (label->maxlen > 0) {
-    text.resize(label->maxlen);
-
-    if (label->ellipsis && label->text.length() > label->maxlen)
-      text.append("...");
-  }
+  if (label->maxlen > 0 && text.length() > label->maxlen)
+    text = text.substr(0, label->maxlen) + "...";
 
   if ((label->ol.empty() && this->o > 0) || (this->o > 0 && label->margin > 0))
     this->overline_close(true);
