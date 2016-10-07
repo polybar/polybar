@@ -67,10 +67,16 @@ BspwmModule::BspwmModule(std::string name_, std::string monitor)
   this->formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, { TAG_LABEL_STATE }, { TAG_LABEL_MODE });
 
   if (this->formatter->has(TAG_LABEL_STATE)) {
-    this->state_labels.insert(std::make_pair(WORKSPACE_ACTIVE, drawtypes::get_optional_config_label(name(), "label-active", DEFAULT_WS_LABEL)));
-    this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-occupied", DEFAULT_WS_LABEL)));
+    auto label_focused = drawtypes::get_optional_config_label(name(), "label-focused", DEFAULT_WS_LABEL);
+	this->state_labels.insert(std::make_pair(WORKSPACE_OCCUPIED, drawtypes::get_optional_config_label(name(), "label-occupied", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_URGENT, drawtypes::get_optional_config_label(name(), "label-urgent", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_EMPTY, drawtypes::get_optional_config_label(name(), "label-empty", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_OCCUPIED,
+          drawtypes::get_either_config_label(name(), "label-focused-occupied", "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_URGENT,
+          drawtypes::get_either_config_label(name(), "label-focused-urgent", "label-focused", DEFAULT_WS_LABEL)));
+    this->state_labels.insert(std::make_pair(WORKSPACE_FOCUSED_EMPTY,
+          drawtypes::get_either_config_label(name(), "label-focused-empty", "label-focused", DEFAULT_WS_LABEL)));
     this->state_labels.insert(std::make_pair(WORKSPACE_DIMMED, drawtypes::get_optional_config_label(name(), "label-dimmed")));
   }
 
@@ -173,12 +179,12 @@ bool BspwmModule::update()
     switch (tag[0]) {
       case 'm': monitor_focused = false; break;
       case 'M': monitor_focused = true; break;
-      case 'F': workspace_flag = WORKSPACE_ACTIVE; break;
-      case 'O': workspace_flag = WORKSPACE_ACTIVE; break;
-      case 'o': workspace_flag = WORKSPACE_OCCUPIED; break;
-      case 'U': workspace_flag = WORKSPACE_URGENT; break;
-      case 'u': workspace_flag = WORKSPACE_URGENT; break;
+      case 'F': workspace_flag = WORKSPACE_FOCUSED_EMPTY; break;
+      case 'O': workspace_flag = WORKSPACE_FOCUSED_OCCUPIED; break;
+      case 'U': workspace_flag = WORKSPACE_FOCUSED_URGENT; break;
       case 'f': workspace_flag = WORKSPACE_EMPTY; break;
+      case 'o': workspace_flag = WORKSPACE_OCCUPIED; break;
+      case 'u': workspace_flag = WORKSPACE_URGENT; break;
       case 'L':
         switch (value[0]) {
           case 0: break;
@@ -252,7 +258,8 @@ bool BspwmModule::build(Builder *builder, std::string tag)
 
     builder->node(ws.get()->label);
 
-    if (ws->flag == WORKSPACE_ACTIVE && this->formatter->has(TAG_LABEL_MODE)) {
+    if ((ws->flag == WORKSPACE_FOCUSED_EMPTY || ws->flag == WORKSPACE_FOCUSED_OCCUPIED || ws->flag == WORKSPACE_FOCUSED_URGENT)
+        && this->formatter->has(TAG_LABEL_MODE)) {
       for (auto &&mode : this->modes)
         builder->node(mode->get());
     }

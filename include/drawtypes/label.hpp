@@ -29,4 +29,5 @@ namespace drawtypes
 
   std::unique_ptr<Label> get_config_label(std::string module_name, std::string label_name = "label", bool required = true, std::string def = "");
   std::unique_ptr<Label> get_optional_config_label(std::string module_name, std::string label_name = "label", std::string def = "");
+  std::unique_ptr<Label> get_either_config_label(std::string config_path, std::string label_name1, std::string label_name2, std::string def);
 }

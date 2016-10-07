@@ -676,11 +676,17 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   %icon%
   ;   %index%
   ; Default: %icon%  %name%
+  ; Focused workspaces may either all use the same properties...
   label-focused = %icon%
   label-focused-foreground = #ffffff
   label-focused-background = #3f3f3f
   label-focused-underline = #fba922
   label-focused-padding = 4
+  ; ... or you may change the properties depending of their state
+  label-focus-occupied = O
+  label-focused-occupied-foreground = #ffffff
+  label-focused-urgent = X
+  label-focused-urgent-foreground = #ff0000
 
   ; Available tokens:
   ;   %name%

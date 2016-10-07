@@ -105,6 +105,19 @@ namespace config
   }
 
   /**
+   * Return true if the selected property exists
+   */
+  template<typename T>
+  bool has(std::string section, std::string key)
+  {
+    std::lock_guard<std::recursive_mutex> lck(config::mtx);
+
+    auto val = get_tree().get_optional<T>(build_path(section, key));
+    return val != boost::none;
+  }
+
+
+  /**
    * Gets the value of a variable by section and parameter name
    */
   template<typename T>
