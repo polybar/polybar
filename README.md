@@ -125,7 +125,7 @@ $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-d
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project. It helps alot.
 
   ~~~ sh
-  $ git clone --branch 1.4.5 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 1.4.6 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake ..
