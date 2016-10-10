@@ -267,51 +267,57 @@ namespace modules {
       return true;
     }
 
-    // bool handle_command(string cmd) {
-    //   if (cmd.compare(0, 3, "mpd") != 0)
-    //     return false;
-    //
-    //   try {
-    //     auto mpd = make_unique<Connection>(m_log, m_host, m_port, m_pass);
-    //     auto status = mpd->get_status();
-    //
-    //     if (cmd == EVENT_PLAY)
-    //       mpd->play();
-    //     else if (cmd == EVENT_PAUSE)
-    //       mpd->pause(!(status->match_state(mpdstate::PAUSED)));
-    //     else if (cmd == EVENT_STOP)
-    //       mpd->stop();
-    //     else if (cmd == EVENT_PREV)
-    //       mpd->prev();
-    //     else if (cmd == EVENT_NEXT)
-    //       mpd->next();
-    //     else if (cmd == EVENT_REPEAT_ONE)
-    //       mpd->set_single(!status->single);
-    //     else if (cmd == EVENT_REPEAT)
-    //       mpd->set_repeat(!status->repeat);
-    //     else if (cmd == EVENT_RANDOM)
-    //       mpd->set_random(!status->random);
-    //     else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
-    //       auto s = cmd.substr(strlen(EVENT_SEEK));
-    //       int percentage = 0;
-    //       if (s.empty())
-    //         return false;
-    //       if (s[0] == '+') {
-    //         percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
-    //       } else if (s[0] == '-') {
-    //         percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());
-    //       } else {
-    //         percentage = std::atoi(s.c_str());
-    //       }
-    //       mpd->seek(status->get_songid(), status->get_seek_position(percentage));
-    //     } else
-    //       return false;
-    //   } catch (const mpd_exception& e) {
-    //     m_log.err(e.what());
-    //   }
-    //
-    //   return true;
-    // }
+    bool handle_event(string cmd) {
+      if (cmd.compare(0, 3, "mpd") != 0)
+        return false;
+
+      try {
+        auto mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+        mpd->connect();
+
+        auto status = mpd->get_status();
+
+        if (cmd == EVENT_PLAY)
+          mpd->play();
+        else if (cmd == EVENT_PAUSE)
+          mpd->pause(!(status->match_state(mpdstate::PAUSED)));
+        else if (cmd == EVENT_STOP)
+          mpd->stop();
+        else if (cmd == EVENT_PREV)
+          mpd->prev();
+        else if (cmd == EVENT_NEXT)
+          mpd->next();
+        else if (cmd == EVENT_REPEAT_ONE)
+          mpd->set_single(!status->single());
+        else if (cmd == EVENT_REPEAT)
+          mpd->set_repeat(!status->repeat());
+        else if (cmd == EVENT_RANDOM)
+          mpd->set_random(!status->random());
+        else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
+          auto s = cmd.substr(strlen(EVENT_SEEK));
+          int percentage = 0;
+          if (s.empty())
+            return false;
+          if (s[0] == '+') {
+            percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
+          } else if (s[0] == '-') {
+            percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());
+          } else {
+            percentage = std::atoi(s.c_str());
+          }
+          mpd->seek(status->get_songid(), status->get_seek_position(percentage));
+        } else
+          return false;
+      } catch (const mpd_exception& e) {
+        m_log.err("%s: %s", name(), e.what());
+      }
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     // static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;

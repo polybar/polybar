@@ -234,7 +234,7 @@ class parser {
   }  // }}}
 
   mousebtn parse_action_btn(string data) {  // {{{
-    if (isdigit(data[0] - '0'))
+    if (isdigit(data[0]))
       return static_cast<mousebtn>(data[0] - '0');
     else if (!m_actions.empty())
       return static_cast<mousebtn>(m_actions.back());

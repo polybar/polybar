@@ -206,14 +206,18 @@ namespace modules {
       return true;
     }
 
-    // bool handle_command(string cmd) {
-    //   if (cmd.find(EVENT_CLICK) == string::npos || cmd.length() < strlen(EVENT_CLICK))
-    //     return false;
-    //
-    //   m_ipc->send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
-    //
-    //   return true;
-    // }
+    bool handle_event(string cmd) {
+      if (cmd.find(EVENT_CLICK) == string::npos || cmd.length() < strlen(EVENT_CLICK))
+        return false;
+
+      m_ipc->send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto DEFAULT_WS_ICON = "workspace_icon-default";

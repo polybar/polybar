@@ -114,7 +114,7 @@ namespace modules {
     }
 
     bool has_event() {
-      if (m_has_changed)
+      if (m_updated)
         return true;
 
       try {
@@ -135,7 +135,7 @@ namespace modules {
     }
 
     bool update() {
-      m_has_changed = false;
+      m_updated = false;
 
       // Consume any other pending events
       if (m_master_mixer)
@@ -187,11 +187,19 @@ namespace modules {
 
     string get_output() {
       m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
+
       if (!m_muted && m_volume < 100)
         m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
+      else
+        m_log.trace("%s: Not adding scroll up handler (muted or volume = 100)", name());
+
       if (!m_muted && m_volume > 0)
         m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+      else
+        m_log.trace("%s: Not adding scroll down handler (muted or volume = 0)", name());
+
       m_builder->node(module::get_output());
+
       return m_builder->flush();
     }
 
@@ -211,51 +219,45 @@ namespace modules {
       return true;
     }
 
-    // bool handle_command(string cmd) {
-    //   if (cmd.length() < strlen(EVENT_PREFIX))
-    //     return false;
-    //   if (std::strncmp(cmd.c_str(), EVENT_PREFIX, 3) != 0)
-    //     return false;
-    //
-    //   // std::lock_guard<concurrency::SpinLock> lck(this->update_lock);
-    //
-    //   alsa_mixer* master_mixer = nullptr;
-    //   alsa_mixer* other_mixer = nullptr;
-    //
-    //   if (m_master_mixer)
-    //     master_mixer = m_master_mixer.get();
-    //
-    //   if (master_mixer == nullptr)
-    //     return false;
-    //
-    //   if (m_headphone_mixer && m_headphone_ctrl && m_headphone_ctrl->test_device_plugged())
-    //     other_mixer = m_headphone_mixer.get();
-    //   else if (m_speaker_mixer)
-    //     other_mixer = m_speaker_mixer.get();
-    //
-    //   if (std::strncmp(cmd.c_str(), EVENT_TOGGLE_MUTE, strlen(EVENT_TOGGLE_MUTE)) == 0) {
-    //     // Toggle mute state
-    //     master_mixer->set_mute(m_muted);
-    //     if (other_mixer != nullptr)
-    //       other_mixer->set_mute(m_muted);
-    //   } else if (std::strncmp(cmd.c_str(), EVENT_VOLUME_UP, strlen(EVENT_VOLUME_UP)) == 0) {
-    //     // Increase volume
-    //     master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() + 5, 0, 100));
-    //     if (other_mixer != nullptr)
-    //       other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() + 5, 0, 100));
-    //   } else if (std::strncmp(cmd.c_str(), EVENT_VOLUME_DOWN, strlen(EVENT_VOLUME_DOWN)) == 0) {
-    //     // Decrease volume
-    //     master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() - 5, 0, 100));
-    //     if (other_mixer != nullptr)
-    //       other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() - 5, 0, 100));
-    //   } else {
-    //     return false;
-    //   }
-    //
-    //   m_has_changed = true;
-    //
-    //   return true;
-    // }
+    bool handle_event(string cmd) {
+      if (cmd.compare(0, 3, EVENT_PREFIX) != 0)
+        return false;
+
+      if (!m_master_mixer)
+        return false;
+
+      alsa_mixer* master_mixer = m_master_mixer.get();
+      alsa_mixer* other_mixer = nullptr;
+
+      if (m_headphone_mixer && m_headphone_ctrl && m_headphone_ctrl->test_device_plugged())
+        other_mixer = m_headphone_mixer.get();
+      else if (m_speaker_mixer)
+        other_mixer = m_speaker_mixer.get();
+
+      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+        master_mixer->set_mute(m_muted);
+        if (other_mixer != nullptr)
+          other_mixer->set_mute(m_muted);
+      } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+        master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() + 5, 0, 100));
+        if (other_mixer != nullptr)
+          other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() + 5, 0, 100));
+      } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+        master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() - 5, 0, 100));
+        if (other_mixer != nullptr)
+          other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() - 5, 0, 100));
+      } else {
+        return false;
+      }
+
+      m_updated = true;
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";
@@ -287,7 +289,7 @@ namespace modules {
     int m_headphone_ctrl_numid = -1;
     int m_volume = 0;
     bool m_muted = false;
-    bool m_has_changed = false;
+    bool m_updated = false;
     bool m_headphones = false;
   };
 }

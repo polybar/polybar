@@ -305,27 +305,29 @@ namespace modules {
       return true;
     }
 
-    bool handle_command(string cmd) {
-      return false;
-      // if (cmd.find(EVENT_CLICK) == string::npos || cmd.length() <= strlen(EVENT_CLICK))
-      //   return false;
-      //
-      // stringstream payload_s;
-      //
-      // payload_s << "desktop -f " << m_monitor << ":^"
-      //           << std::atoi(cmd.substr(strlen(EVENT_CLICK)).c_str());
-      //
-      // int payload_fd;
-      // string socket_path = get_socket_path();
-      //
-      // if ((payload_fd = io_util::socket::open(socket_path)) == -1)
-      //   m_log.err("%s: Failed to open socket '%s'", name(), socket_path);
-      // else if (!send_payload(payload_fd, generate_payload(payload_s.str())))
-      //   m_log.err("%s: Failed to change desktop", name());
-      //
-      // close(payload_fd);
-      //
-      // return true;
+    bool handle_event(string cmd) {
+      if (cmd.find(EVENT_CLICK) == string::npos || cmd.length() <= strlen(EVENT_CLICK))
+        return false;
+
+      try {
+        auto ipc = bspwm_util::make_subscriber();
+        auto command = string_util::from_stream(stringstream() << "desktop -f " << m_monitor << ":^"
+                                                               << cmd.substr(strlen(EVENT_CLICK)));
+        auto payload = bspwm_util::make_payload(command);
+
+        m_log.info("%s: Sending command to ipc handler '%s'", name(), command);
+
+        ipc->send(payload->data, payload->len, 0);
+        ipc->disconnect();
+      } catch (const system_error& err) {
+        m_log.err("%s: %s", name(), err.what());
+      }
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
     }
 
    private:

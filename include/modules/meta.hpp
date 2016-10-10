@@ -155,8 +155,8 @@ namespace modules {
     virtual void refresh() = 0;
     virtual string contents() = 0;
 
-    virtual bool handle_command(string cmd) = 0;
-    virtual bool register_for_events() const = 0;
+    virtual bool handle_event(string cmd) = 0;
+    virtual bool receive_events() const = 0;
 
     delegate::Signal1<string> on_update;
   };
@@ -216,11 +216,11 @@ namespace modules {
       return m_cache;
     }
 
-    bool handle_command(string cmd) {
-      return CAST_MODULE(Impl)->handle_command(cmd);
+    bool handle_event(string cmd) {
+      return CAST_MODULE(Impl)->handle_event(cmd);
     }
 
-    bool register_for_events() const {
+    bool receive_events() const {
       return false;
     }
 

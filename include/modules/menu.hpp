@@ -97,32 +97,36 @@ namespace modules {
       return true;
     }
 
-    // bool handle_command(string cmd) {
-    //   if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
-    //     auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
-    //
-    //     if (level.empty())
-    //       level = "0";
-    //
-    //     m_level = std::atoi(level.c_str());
-    //
-    //     if (m_level >= (int)m_levels.size()) {
-    //       m_log.err("%s: Cannot open unexisting menu level '%d'", name(), level);
-    //       m_level = -1;
-    //     }
-    //
-    //   } else if (cmd == EVENT_MENU_CLOSE) {
-    //     m_level = -1;
-    //   } else {
-    //     m_level = -1;
-    //     broadcast();
-    //     return false;
-    //   }
-    //
-    //   broadcast();
-    //
-    //   return true;
-    // }
+    bool handle_event(string cmd) {
+      if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
+        auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
+
+        if (level.empty())
+          level = "0";
+
+        m_level = std::atoi(level.c_str());
+
+        if (m_level >= (int)m_levels.size()) {
+          m_log.err("%s: Cannot open unexisting menu level '%d'", name(), level);
+          m_level = -1;
+        }
+
+      } else if (cmd == EVENT_MENU_CLOSE) {
+        m_level = -1;
+      } else {
+        m_level = -1;
+        broadcast();
+        return false;
+      }
+
+      broadcast();
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";

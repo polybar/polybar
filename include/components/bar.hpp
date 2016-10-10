@@ -23,7 +23,11 @@
 
 LEMONBUDDY_NS
 
-class bar {
+namespace bar_signals {
+  delegate::Signal1<string> action_click;
+};
+
+class bar : public xpp::event::sink<evt::button_press> {
  public:
   /**
    * Construct bar
@@ -53,6 +57,8 @@ class bar {
     parser_signals::unicode_text_write.disconnect(this, &bar::draw_character);
     if (m_tray.align != alignment::NONE)
       tray_signals::report_slotcount.disconnect(this, &bar::on_tray_report);
+    if (m_sinkattached)
+      m_connection.detach_sink(this, 1);
     m_window.destroy();
   }
 
@@ -393,6 +399,9 @@ class bar {
 
     // }}}
 
+    m_connection.attach_sink(this, 1);
+    m_sinkattached = true;
+
     m_connection.flush();
   }  //}}}
 
@@ -455,6 +464,19 @@ class bar {
         m_pixmap, m_window, m_gcontexts.at(gc::BL), 0, 0, 0, 0, m_bar.width, m_bar.height);
     m_connection.copy_area(
         m_pixmap, m_window, m_gcontexts.at(gc::BR), 0, 0, 0, 0, m_bar.width, m_bar.height);
+
+    for (auto&& action : m_actions) {
+      if (action.active) {
+        m_log.warn("Action block not closed");
+        m_log.warn("action.command = %s", action.command);
+      } else {
+        m_log.trace("bar: Action details");
+        m_log.trace("action.command = %s", action.command);
+        m_log.trace("action.mousebtn = %i", static_cast<int>(action.mousebtn));
+        m_log.trace("action.start_x = %i", action.start_x);
+        m_log.trace("action.end_x = %i", action.end_x);
+      }
+    }
   }  //}}}
 
   /**
@@ -471,6 +493,51 @@ class bar {
     return m_tray;
   }  // }}}
 
+  /**
+   * Mouse button event handler
+   */
+  void handle(const evt::button_press& evt) {  // {{{
+    std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    {
+      m_log.trace("bar: Received button press event: %i at pos(%i, %i)",
+          static_cast<int>(evt->detail), evt->event_x, evt->event_y);
+
+      mousebtn button = static_cast<mousebtn>(evt->detail);
+
+      for (auto&& action : m_actions) {
+        if (action.active) {
+          m_log.trace("bar: Ignoring action: unclosed)");
+          continue;
+        } else if (action.mousebtn != button) {
+          m_log.trace("bar: Ignoring action: button mismatch");
+          continue;
+        } else if (action.start_x > evt->event_x) {
+          m_log.trace(
+              "bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, evt->event_x);
+          continue;
+        } else if (action.end_x < evt->event_x) {
+          m_log.trace("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, evt->event_x);
+          continue;
+        }
+
+        m_log.info("Found matching input area");
+        m_log.trace("action.command = %s", action.command);
+        m_log.trace("action.mousebtn = %i", static_cast<int>(action.mousebtn));
+        m_log.trace("action.start_x = %i", action.start_x);
+        m_log.trace("action.end_x = %i", action.end_x);
+
+        if (!bar_signals::action_click.empty())
+          bar_signals::action_click.emit(action.command);
+        else
+          m_log.warn("No signal handler's connected to 'action_click'");
+
+        return;
+      }
+
+      m_log.warn("No matching input area found");
+    }
+  }  // }}}
+
  protected:
   /**
    * Handle alignment update
@@ -480,7 +547,14 @@ class bar {
       return;
     m_log.trace("bar: alignment_change(%i)", static_cast<int>(align));
     m_bar.align = align;
-    m_xpos = 0;
+
+    if (align == alignment::LEFT) {
+      m_xpos = m_borders[border::LEFT].size;
+    } else if (align == alignment::RIGHT) {
+      m_xpos = m_borders[border::RIGHT].size;
+    } else {
+      m_xpos = 0;
+    }
   }  //}}}
 
   /**
@@ -523,6 +597,7 @@ class bar {
     m_log.trace("bar: action_block_open(%i, %s)", static_cast<int>(btn), cmd);
     action_block action;
     action.active = true;
+    action.align = m_bar.align;
     action.mousebtn = btn;
     action.start_x = m_xpos;
     action.command = cmd;
@@ -538,10 +613,26 @@ class bar {
     auto n_actions = m_actions.size();
     while (n_actions--) {
       action_block& action = m_actions[n_actions];
+
       if (!action.active || action.mousebtn != btn)
         continue;
+
       action.end_x = m_xpos;
       action.active = false;
+
+      if (action.align == alignment::CENTER) {
+        auto width = action.end_x - action.start_x;
+        auto center = m_bar.width / 2;
+        auto x1 = center - width / 2;
+        auto x2 = center + width / 2;
+        action.start_x = x1;
+        action.end_x = x2;
+      } else if (action.align == alignment::RIGHT) {
+        auto x1 = m_bar.width - action.end_x;
+        auto x2 = m_bar.width - action.start_x;
+        action.start_x = x1;
+        action.end_x = x2;
+      }
     }
   }  //}}}
 
@@ -760,6 +851,8 @@ class bar {
   map<border, border_settings> m_borders;
   map<gc, gcontext> m_gcontexts;
   vector<action_block> m_actions;
+
+  stateflag m_sinkattached{false};
 
   string m_prevdata;
   int m_xpos{0};

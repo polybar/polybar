@@ -49,6 +49,18 @@ namespace modules {
       return tag == TAG_DATE;
     }
 
+    bool handle_event(string cmd) {
+      if (cmd == EVENT_TOGGLE) {
+        m_detailed = !m_detailed;
+        wakeup();
+      }
+      return cmd == EVENT_TOGGLE;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
+
    private:
     static constexpr auto TAG_DATE = "<date>";
 

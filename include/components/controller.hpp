@@ -11,6 +11,7 @@
 #include "components/x11/tray.hpp"
 #include "components/x11/types.hpp"
 #include "config.hpp"
+#include "utils/command.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "utils/socket.hpp"
@@ -66,6 +67,7 @@ class controller {
     }
 
     m_log.trace("controller: Deconstruct bar instance");
+    bar_signals::action_click.disconnect(this, &controller::on_module_click);
     m_bar.reset();
 
     if (m_traymanager) {
@@ -143,6 +145,8 @@ class controller {
       if (dump_wmname) {
         std::cout << m_bar->settings().wmname << std::endl;
         return;
+      } else if (!to_stdout) {
+        bar_signals::action_click.connect(this, &controller::on_module_click);
       }
     } catch (const std::exception& err) {
       throw application_error("Failed to setup bar renderer: " + string{err.what()});
@@ -450,6 +454,34 @@ class controller {
       std::cout << contents << std::endl;
     else
       m_bar->parse(contents);
+  }
+
+  void on_module_click(string input) {
+    std::lock_guard<threading_util::spin_lock> lck(m_lock);
+
+    for (auto&& block : m_modules) {
+      for (auto&& module : block.second) {
+        if (!module->receive_events())
+          continue;
+        if (module->handle_event(input))
+          return;
+      }
+    }
+
+    m_log.trace("controller: Unrecognized input '%s'", input);
+    m_log.trace("controller: Forwarding input to shell");
+
+    auto command = command_util::make_command("/usr/bin/env\nsh\n-c\n"+ input);
+
+    try {
+      command->exec(false);
+      command->tail([this](std::string output){
+        m_log.trace("> %s", output);
+      });
+      command->wait();
+    } catch (const application_error& err) {
+      m_log.err(err.what());
+    }
   }
 
  private:
