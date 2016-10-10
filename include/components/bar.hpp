@@ -194,6 +194,11 @@ class bar {
     m_bar.wmname = string_util::replace(m_bar.wmname, " ", "-");
 
     // }}}
+    // Set misc parameters {{{
+
+    m_bar.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
+
+    // }}}
     // Checking nodraw {{{
 
     if (nodraw) {

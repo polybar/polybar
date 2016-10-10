@@ -392,7 +392,7 @@ class controller {
     }
 
     string contents{""};
-    string separator{m_bar->settings().separator.empty()};
+    string separator{m_bar->settings().separator};
 
     string padding_left(m_bar->settings().padding_left, ' ');
     string padding_right(m_bar->settings().padding_right, ' ');
@@ -409,7 +409,7 @@ class controller {
         if (module_contents.empty())
           continue;
 
-        if (!block_contents.empty())
+        if (!block_contents.empty() && !separator.empty())
           block_contents += separator;
 
         if (!(block.first == alignment::LEFT && module == block.second.front()))
