@@ -159,7 +159,7 @@ namespace command_line {
      * Compare option with both versions
      */
     auto is(string option, string opt_short, string opt_long) const {
-      return is_short(option, opt_short) || is_long(opt_short, opt_long);
+      return is_short(option, opt_short) || is_long(option, opt_long);
     }
 
     /**
