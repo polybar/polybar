@@ -48,7 +48,7 @@ Bar::Bar() : config_path(config::get_bar_path()), opts(std::make_shared<Options>
 
   try {
     this->opts->locale = config::get<std::string>(this->config_path, "locale");
-    std::locale::global(std::locale(this->opts->locale.c_str()));
+    std::setlocale(LC_ALL, this->opts->locale.c_str());
   } catch (config::MissingValueException &e) {}
 
   auto monitor_name = config::get<std::string>(this->config_path, "monitor", "");
