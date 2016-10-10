@@ -10,6 +10,8 @@
 LEMONBUDDY_NS
 
 namespace command_line {
+  DEFINE_ERROR(argument_error);
+  DEFINE_ERROR(value_error);
 
   class option;
   using choices = vector<string>;
@@ -134,9 +136,9 @@ namespace command_line {
     template <class T = parser>
     static di::injector<T> configure(string scriptname, options opts) {
       // clang-format off
-          return di::make_injector(
-              di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),
-              di::bind<>().to(opts));
+      return di::make_injector(
+          di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),
+          di::bind<>().to(opts));
       // clang-format on
     }
 
@@ -171,18 +173,18 @@ namespace command_line {
       string value;
 
       if (input_next.empty() && opt.compare(0, 2, "--") != 0)
-        throw application_error("Missing value for " + opt);
+        throw value_error("Missing value for " + opt);
       else if (!input_next.empty())
         value = input_next;
-      else if ((pos = opt.compare(0, 1, "=")) == string::npos)
-        throw application_error("Missing value for " + opt);
+      else if ((pos = opt.find("=")) == string::npos)
+        throw value_error("Missing value for " + opt);
       else {
         value = opt.substr(pos + 1);
         opt = opt.substr(0, pos);
       }
 
       if (!values.empty() && std::find(values.begin(), values.end(), value) == values.end())
-        throw application_error("Invalid argument '" + value + "' for " + string{opt});
+        throw value_error("Invalid value '" + value + "' for argument " + string{opt});
 
       return value;
     }
@@ -212,7 +214,7 @@ namespace command_line {
       }
 
       if (input.compare(0, 1, "-") == 0) {
-        throw application_error("Unrecognized option " + input);
+        throw argument_error("Unrecognized option " + input);
       }
     }
 
