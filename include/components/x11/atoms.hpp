@@ -9,27 +9,27 @@ struct cached_atom {
   xcb_atom_t* atom;
 };
 
-xcb_atom_t _NET_WM_NAME;
-xcb_atom_t _NET_WM_WINDOW_TYPE;
-xcb_atom_t _NET_WM_WINDOW_TYPE_DOCK;
-xcb_atom_t _NET_WM_WINDOW_TYPE_NORMAL;
-xcb_atom_t _NET_WM_PID;
-xcb_atom_t _NET_WM_STATE;
-xcb_atom_t _NET_WM_STATE_STICKY;
-xcb_atom_t _NET_WM_STATE_SKIP_TASKBAR;
-xcb_atom_t _NET_WM_STATE_ABOVE;
-xcb_atom_t WM_PROTOCOLS;
-xcb_atom_t WM_DELETE_WINDOW;
-xcb_atom_t _XEMBED;
-xcb_atom_t _XEMBED_INFO;
-xcb_atom_t _NET_SYSTEM_TRAY_OPCODE;
-xcb_atom_t MANAGER;
-xcb_atom_t WM_STATE;
-xcb_atom_t _NET_SYSTEM_TRAY_ORIENTATION;
-xcb_atom_t WM_TAKE_FOCUS;
+static xcb_atom_t _NET_WM_NAME;
+static xcb_atom_t _NET_WM_WINDOW_TYPE;
+static xcb_atom_t _NET_WM_WINDOW_TYPE_DOCK;
+static xcb_atom_t _NET_WM_WINDOW_TYPE_NORMAL;
+static xcb_atom_t _NET_WM_PID;
+static xcb_atom_t _NET_WM_STATE;
+static xcb_atom_t _NET_WM_STATE_STICKY;
+static xcb_atom_t _NET_WM_STATE_SKIP_TASKBAR;
+static xcb_atom_t _NET_WM_STATE_ABOVE;
+static xcb_atom_t WM_PROTOCOLS;
+static xcb_atom_t WM_DELETE_WINDOW;
+static xcb_atom_t _XEMBED;
+static xcb_atom_t _XEMBED_INFO;
+static xcb_atom_t _NET_SYSTEM_TRAY_OPCODE;
+static xcb_atom_t MANAGER;
+static xcb_atom_t WM_STATE;
+static xcb_atom_t _NET_SYSTEM_TRAY_ORIENTATION;
+static xcb_atom_t WM_TAKE_FOCUS;
 
 // clang-format off
-cached_atom ATOMS[18] = {
+static cached_atom ATOMS[18] = {
     {"_NET_WM_NAME", sizeof("_NET_WM_NAME") - 1, &_NET_WM_NAME},
     {"_NET_WM_WINDOW_TYPE", sizeof("_NET_WM_WINDOW_TYPE") - 1, &_NET_WM_WINDOW_TYPE},
     {"_NET_WM_WINDOW_TYPE_DOCK", sizeof("_NET_WM_WINDOW_TYPE_DOCK") - 1, &_NET_WM_WINDOW_TYPE_DOCK},

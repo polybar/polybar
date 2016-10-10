@@ -12,8 +12,9 @@ file(GLOB_RECURSE source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 make_executable(testrunner
   SOURCES
     ${source_files}
+  TARGET_DEPENDS
+    lemonlib_static
   CMAKE_DEPENDS
-    ${app_binary}
     cppunit
     xpp)
 
