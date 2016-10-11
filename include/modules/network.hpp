@@ -27,6 +27,7 @@ namespace modules {
       m_interface = m_conf.get<string>(name(), "interface");
       m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
       m_ping_nth_update = m_conf.get<int>(name(), "ping_interval", 0);
+      m_udspeed_minwidth = m_conf.get<int>(name(), "udspeed_minwidth", m_udspeed_minwidth);
 
       // Add formats
       m_formatter->add(
@@ -75,6 +76,7 @@ namespace modules {
         std::exit(EXIT_FAILURE);
       }
     }
+
     void start() {
       timer_module::start();
 
@@ -138,8 +140,11 @@ namespace modules {
             label->replace_token("%signal%", to_string(signal_quality) + "%");
           }
 
-          label->replace_token("%upspeed%", network->upspeed());
-          label->replace_token("%downspeed%", network->downspeed());
+          auto upspeed = network->upspeed(m_udspeed_minwidth);
+          auto downspeed = network->downspeed(m_udspeed_minwidth);
+
+          label->replace_token("%upspeed%", upspeed);
+          label->replace_token("%downspeed%", downspeed);
         };
 
         if (m_label_connected) {
@@ -220,14 +225,14 @@ namespace modules {
     label_t m_label_packetloss;
     label_t m_label_packetloss_tokenized;
 
-    string m_interface;
-
     stateflag m_connected{false};
     stateflag m_conseq_packetloss{false};
-    int m_signal_quality;
 
+    string m_interface;
+    int m_signal_quality;
     int m_ping_nth_update;
     int m_counter = -1;  // -1 to ignore the first run
+    int m_udspeed_minwidth = 3;
   };
 }
 

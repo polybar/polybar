@@ -873,6 +873,10 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   - which would test the connection approx. every 10th sec.
   ; Default: 0
   ;ping_interval = 3
+
+  ; Minimum output width of upload/download rate
+  ; Default: 3
+  ;udspeed_minwidth = 0
   ~~~
 
 ##### Extra formatting (example)
@@ -897,9 +901,11 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   %local_ip%  [wireless+wired]
   ;   %essid%     [wireless]
   ;   %signal%    [wireless]
+  ;   %upspeed%   [wireless+wired]
+  ;   %downspeed% [wireless+wired]
   ;   %linkspeed% [wired]
   ; Default: %ifname% %local_ip%
-  label-connected = %essid%
+  label-connected = %essid% %downspeed%
   label-connected-foreground = #eefafafa
 
   ; Available tokens:

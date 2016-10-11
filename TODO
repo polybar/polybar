@@ -1,4 +1,3 @@
-task: sandbox modules
 task: rewrite README for 2.0
 task: rewrite i3 module
 task: improve test coverage

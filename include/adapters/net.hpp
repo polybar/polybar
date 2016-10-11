@@ -166,7 +166,7 @@ namespace net {
       return m_linkdata.ip_address;
     }
 
-    string downspeed() {
+    string downspeed(int minwidth = 3) {
       if (!query_interface())
         throw network_error("Failed to query interface");
 
@@ -185,12 +185,12 @@ namespace net {
         speed /= 1000;
       }
 
-      return string_util::from_stream(stringstream() << std::setw(3) << std::setfill(' ')
+      return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
                                                      << std::setprecision(0) << std::fixed << speed
                                                      << " " << suffixes[suffix_n] << "/s");
     }
 
-    string upspeed() {
+    string upspeed(int minwidth = 3) {
       if (!query_interface())
         throw network_error("Failed to query interface");
 
@@ -209,7 +209,7 @@ namespace net {
         speed /= 1000;
       }
 
-      return string_util::from_stream(stringstream() << std::setw(3) << std::setfill(' ')
+      return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
                                                      << std::setprecision(0) << std::fixed << speed
                                                      << " " << suffixes[suffix_n] << "/s");
     }
