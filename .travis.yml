@@ -29,7 +29,7 @@ env:
 before_install:
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
   - sudo apt-get -qq update
-  - sudo apt-get install -y cmake cmake-data libxcb1-dev libxcb-util0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-0c2a libsigc++-2.0-dev libfreetype6-dev
+  - sudo apt-get install -y cmake cmake-data libxcb1-dev libxcb-util0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-0c2a libsigc++-2.0-dev libfreetype6-dev libcppunit-dev
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
