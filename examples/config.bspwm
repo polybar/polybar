@@ -30,6 +30,8 @@ modules-right = volume cpu ram clock
 
 tray-position = right
 
+wm-restack = bspwm
+
 [module/label]
 type = custom/text
 content = %{F#f90f59}Example%{F#ff} configuration

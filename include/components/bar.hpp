@@ -17,6 +17,7 @@
 #include "components/x11/window.hpp"
 #include "components/x11/xlib.hpp"
 #include "components/x11/xutils.hpp"
+#include "utils/bspwm.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/threading.hpp"
@@ -273,6 +274,23 @@ class bar : public xpp::event::sink<evt::button_press> {
     {
       m_connection.flush();
       m_connection.map_window_checked(m_window);
+    }
+
+    // }}}
+    // Restack window and put it above defined WM's root {{{
+
+    try {
+      auto wm_restack = m_conf.get<string>(bs, "wm-restack");
+
+      if (wm_restack == "bspwm") {
+        if (bspwm_util::restack_above_root(m_connection, m_bar.monitor, m_window))
+          m_log.info("Successfully restacked window above Bspwm root");
+        else
+          m_log.err("Failed to restack bar window above Bspwm root");
+      } else {
+        m_log.warn("Unsupported wm-restack option '%s'", wm_restack);
+      }
+    } catch (const key_error& err) {
     }
 
     // }}}

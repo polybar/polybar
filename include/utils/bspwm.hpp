@@ -1,8 +1,12 @@
 #pragma once
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_icccm.h>
 
 #include "common.hpp"
+#include "components/x11/connection.hpp"
+#include "components/x11/randr.hpp"
+#include "components/x11/window.hpp"
 #include "config.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
@@ -21,6 +25,57 @@ namespace bspwm_util {
     char data[BUFSIZ]{'\0'};
     size_t len = 0;
   };
+
+  /**
+   * Get all bspwm root windows
+   */
+  auto root_windows(connection& conn) {
+    vector<xcb_window_t> roots;
+    auto children = conn.query_tree(conn.screen()->root).children();
+
+    for (auto it = children.begin(); it != children.end(); it++) {
+      auto cookie = xcb_icccm_get_wm_class(conn, *it);
+      xcb_icccm_get_wm_class_reply_t reply;
+
+      if (xcb_icccm_get_wm_class_reply(conn, cookie, &reply, nullptr) == 0)
+        continue;
+
+      if (!string_util::compare("Bspwm", reply.class_name) ||
+          !string_util::compare("root", reply.instance_name))
+        continue;
+
+      roots.emplace_back(*it);
+    }
+
+    return roots;
+  }
+
+  /**
+   * Restack given window above the bspwm root window
+   * for the given monitor.
+   *
+   * Fixes the issue with always-on-top window's
+   */
+  bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
+    for (auto&& root : root_windows(conn)) {
+      auto geom = conn.get_geometry(root);
+
+      if (mon->x != geom->x || mon->y != geom->y)
+        continue;
+      if (mon->w != geom->width || mon->h != geom->height)
+        continue;
+
+      const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+      const uint32_t value_list[2]{root, XCB_STACK_MODE_ABOVE};
+
+      conn.configure_window_checked(win, value_mask, value_list);
+      conn.flush();
+
+      return true;
+    }
+
+    return false;
+  }
 
   /**
    * Get path to the bspwm socket by the following order

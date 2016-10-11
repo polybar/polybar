@@ -414,6 +414,17 @@ The configuration syntax is based on the `ini` file format.
   ;   left
   ;   right
   tray-position = right
+
+  ; Restack the bar window and put it above the
+  ; selected window manager's root
+  ;
+  ; Fixes the issue where the bar is being drawn
+  ; on top of fullscreen window's
+  ;
+  ; Currently supported WM's:
+  ;   bspwm
+  ; Default: none
+  wm-restack = bspwm
   ~~~
 
 ### Modules
