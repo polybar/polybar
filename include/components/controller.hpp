@@ -23,14 +23,23 @@
 #include "modules/counter.hpp"
 #include "modules/cpu.hpp"
 #include "modules/date.hpp"
-#include "modules/i3.hpp"
 #include "modules/memory.hpp"
 #include "modules/menu.hpp"
-#include "modules/mpd.hpp"
-#include "modules/network.hpp"
 #include "modules/script.hpp"
 #include "modules/text.hpp"
+#include "modules/unsupported.hpp"
+#if ENABLE_I3
+#include "modules/i3.hpp"
+#endif
+#if ENABLE_MPD
+#include "modules/mpd.hpp"
+#endif
+#if ENABLE_NETWORK
+#include "modules/network.hpp"
+#endif
+#if ENABLE_ALSA
 #include "modules/volume.hpp"
+#endif
 
 LEMONBUDDY_NS
 
