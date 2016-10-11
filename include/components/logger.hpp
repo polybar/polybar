@@ -160,7 +160,7 @@ class logger {
   /**
    * File descriptor used when writing the log messages
    */
-  int m_fd = STDOUT_FILENO;
+  int m_fd = STDERR_FILENO;
 
   /**
    * Loglevel specific prefixes
