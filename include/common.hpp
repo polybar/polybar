@@ -18,6 +18,8 @@
 #include <thread>
 #include <vector>
 
+#include "config.hpp"
+
 #define LEMONBUDDY_NS    \
   namespace lemonbuddy { \
     inline namespace v2_0_0 {

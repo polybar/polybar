@@ -96,6 +96,9 @@ struct action_block {
   int16_t end_x{0};
   alignment align;
   bool active{true};
+#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
+  xcb_window_t clickable_area;
+#endif
 };
 
 LEMONBUDDY_NS_END

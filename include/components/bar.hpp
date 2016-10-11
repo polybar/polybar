@@ -425,6 +425,13 @@ class bar : public xpp::event::sink<evt::button_press> {
       m_bar.align = alignment::LEFT;
       m_xpos = m_borders[border::LEFT].size;
       m_attributes = 0;
+
+#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
+      for (auto&& action : m_actions) {
+        m_connection.destroy_window(action.clickable_area);
+      }
+#endif
+
       m_actions.clear();
 
       draw_background();
@@ -465,6 +472,14 @@ class bar : public xpp::event::sink<evt::button_press> {
     m_connection.copy_area(
         m_pixmap, m_window, m_gcontexts.at(gc::BR), 0, 0, 0, 0, m_bar.width, m_bar.height);
 
+#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
+    map<alignment, int> hint_num{
+        { {alignment::LEFT, 0},
+          {alignment::CENTER, 0},
+          {alignment::RIGHT, 0},
+        }};
+#endif
+
     for (auto&& action : m_actions) {
       if (action.active) {
         m_log.warn("Action block not closed");
@@ -475,6 +490,29 @@ class bar : public xpp::event::sink<evt::button_press> {
         m_log.trace("action.mousebtn = %i", static_cast<int>(action.mousebtn));
         m_log.trace("action.start_x = %i", action.start_x);
         m_log.trace("action.end_x = %i", action.end_x);
+#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
+        m_log.info("Drawing clickable area hints");
+
+        hint_num[action.align]++;
+
+        auto x = action.start_x;
+        auto y = m_bar.y + hint_num[action.align]++ * DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y;
+        auto w = action.end_x - action.start_x - 2;
+        auto h = m_bar.height - 2;
+
+        const uint32_t mask = XCB_CW_BORDER_PIXEL | XCB_CW_OVERRIDE_REDIRECT;
+        const uint32_t border_color = hint_num[action.align] % 2 ? 0xff0000 : 0x00ff00;
+        const uint32_t values[2]{border_color, true};
+
+        auto scr = m_connection.screen();
+
+        action.clickable_area = m_connection.generate_id();
+        m_connection.create_window_checked(scr->root_depth, action.clickable_area, scr->root, x, y,
+            w, h, 1, XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
+        m_connection.map_window_checked(action.clickable_area);
+#else
+        m_log.trace("bar: Visual hints for clickable area's disabled");
+#endif
       }
     }
   }  //}}}
@@ -600,8 +638,7 @@ class bar : public xpp::event::sink<evt::button_press> {
     action.align = m_bar.align;
     action.mousebtn = btn;
     action.start_x = m_xpos;
-    action.command = cmd;
-    action.command = string_util::replace_all(action.command, ":", "\\:");
+    action.command = string_util::replace_all(cmd, ":", "\\:");
     m_actions.emplace_back(action);
   }  //}}}
 
@@ -610,29 +647,33 @@ class bar : public xpp::event::sink<evt::button_press> {
    */
   void on_action_block_close(mousebtn btn) {  //{{{
     m_log.trace("bar: action_block_close(%i)", static_cast<int>(btn));
-    auto n_actions = m_actions.size();
-    while (n_actions--) {
-      action_block& action = m_actions[n_actions];
+
+    for (auto i = m_actions.size(); i > 0; i--) {
+      auto& action = m_actions[i - 1];
 
       if (!action.active || action.mousebtn != btn)
         continue;
 
-      action.end_x = m_xpos;
       action.active = false;
 
-      if (action.align == alignment::CENTER) {
-        auto width = action.end_x - action.start_x;
-        auto center = m_bar.width / 2;
-        auto x1 = center - width / 2;
-        auto x2 = center + width / 2;
-        action.start_x = x1;
-        action.end_x = x2;
+      if (action.align == alignment::LEFT) {
+        action.end_x = m_xpos;
+      } else if (action.align == alignment::CENTER) {
+        int base_x = m_bar.width;
+        base_x -= m_borders[border::RIGHT].size;
+        base_x /= 2;
+        base_x += m_borders[border::LEFT].size;
+
+        int clickable_width = m_xpos - action.start_x;
+        action.start_x = base_x - clickable_width / 2 + action.start_x / 2;
+        action.end_x = action.start_x + clickable_width;
       } else if (action.align == alignment::RIGHT) {
-        auto x1 = m_bar.width - action.end_x;
-        auto x2 = m_bar.width - action.start_x;
-        action.start_x = x1;
-        action.end_x = x2;
+        int base_x = m_bar.width - m_borders[border::RIGHT].size;
+        action.start_x = base_x - m_xpos + action.start_x;
+        action.end_x = base_x;
       }
+
+      return;
     }
   }  //}}}
 
@@ -759,36 +800,33 @@ class bar : public xpp::event::sink<evt::button_press> {
    * Shift the contents of the pixmap horizontally
    */
   int draw_shift(int x, int chr_width) {  //{{{
-    int delta = 0;
+    int delta = chr_width;
 
-    switch (m_bar.align) {
-      case alignment::CENTER:
-        m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_bar.width / 2 - x / 2,
-            0, m_bar.width / 2 - (x + chr_width) / 2, 0, x, m_bar.height);
-        x = m_bar.width / 2 - (x + chr_width) / 2 + x;
-        delta = chr_width / 2;
-        break;
-      case alignment::RIGHT:
-        m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_bar.width - x, 0,
-            m_bar.width - x - chr_width, 0, x, m_bar.height);
-        x = m_bar.width - chr_width - m_borders[border::RIGHT].size;
-        delta = chr_width;
-        break;
-
-      default:
-        break;
+    if (m_bar.align == alignment::CENTER) {
+      int base_x = m_bar.width;
+      base_x -= m_borders[border::RIGHT].size;
+      base_x /= 2;
+      base_x += m_borders[border::LEFT].size;
+      m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0,
+          base_x - (x + chr_width) / 2, 0, x, m_bar.height);
+      x = base_x - (x + chr_width) / 2 + x;
+      delta /= 2;
+    } else if (m_bar.align == alignment::RIGHT) {
+      m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_bar.width - x, 0,
+          m_bar.width - x - chr_width, 0, x, m_bar.height);
+      x = m_bar.width - chr_width - m_borders[border::RIGHT].size;
     }
 
     draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, chr_width, m_bar.height);
 
-    if (delta != 0 && !m_actions.empty()) {
+    // Translate pos of clickable areas
+    if (m_bar.align != alignment::LEFT)
       for (auto&& action : m_actions) {
         if (action.active || action.align != m_bar.align)
           continue;
         action.start_x -= delta;
         action.end_x -= delta;
       }
-    }
 
     return x;
   }  //}}}
@@ -801,7 +839,7 @@ class bar : public xpp::event::sink<evt::button_press> {
     auto& font = m_fontmanager->match_char(character);
 
     if (!font) {
-      // m_log.warn("No suitable font found");
+      m_log.warn("No suitable font found for character at index %i", character);
       return;
     }
 
@@ -812,6 +850,11 @@ class bar : public xpp::event::sink<evt::button_press> {
 
     // TODO: cache
     auto chr_width = m_fontmanager->char_width(font, character);
+
+    // Avoid odd glyph width's for center-aligned text
+    // since it breaks the positioning of clickable area's
+    if (m_bar.align == alignment::CENTER && chr_width % 2)
+      chr_width++;
 
     auto x = draw_shift(m_xpos, chr_width);
     auto y = m_bar.vertical_mid + font->height / 2 - font->descent + font->offset_y;
