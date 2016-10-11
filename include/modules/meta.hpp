@@ -394,7 +394,7 @@ namespace modules {
       CAST_MODULE(Impl)->broadcast();
 
       while (CONST_CAST_MODULE(Impl).enabled()) {
-        std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+        std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
 
         if (!CAST_MODULE(Impl)->has_event())
           continue;
@@ -403,6 +403,8 @@ namespace modules {
           continue;
 
         CAST_MODULE(Impl)->broadcast();
+
+        lck.unlock();
         CAST_MODULE(Impl)->idle();
       }
     }

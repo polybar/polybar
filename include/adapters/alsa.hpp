@@ -8,7 +8,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
-// #include "utils/threading.hpp"
+#include "utils/threading.hpp"
 
 LEMONBUDDY_NS
 
@@ -62,7 +62,7 @@ class alsa_ctl_interface {
   }
 
   ~alsa_ctl_interface() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     snd_ctl_close(m_ctl);
     snd_hctl_close(m_hctl);
   }
@@ -70,7 +70,7 @@ class alsa_ctl_interface {
   bool wait(int timeout = -1) {
     assert(m_ctl);
 
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
 
     int err = 0;
 
@@ -91,12 +91,10 @@ class alsa_ctl_interface {
   }
 
   bool test_device_plugged() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
-    // if (!wait(0))
-    //   return false;
-
     assert(m_elem);
     assert(m_value);
+
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
 
     int err = 0;
     if ((err = snd_hctl_elem_read(m_elem, m_value)) < 0)
@@ -107,7 +105,7 @@ class alsa_ctl_interface {
   void process_events() {}
 
  private:
-  // threading_util::spin_lock m_lock;
+  threading_util::spin_lock m_lock;
 
   snd_hctl_t* m_hctl = nullptr;
   snd_hctl_elem_t* m_elem = nullptr;
@@ -149,7 +147,7 @@ class alsa_mixer {
   }
 
   ~alsa_mixer() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     snd_mixer_elem_remove(m_mixerelement);
     snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
     snd_mixer_close(m_hardwaremixer);
@@ -158,17 +156,21 @@ class alsa_mixer {
   bool wait(int timeout = -1) {
     assert(m_hardwaremixer);
 
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::unique_lock<threading_util::spin_lock> guard(m_lock);
 
     int err = 0;
 
     if ((err = snd_mixer_wait(m_hardwaremixer, timeout)) < 0)
       throw_exception<alsa_mixer_error>("Failed to wait for events", err);
 
+    guard.unlock();
+
     return process_events() > 0;
   }
 
   int process_events() {
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
+
     int num_events = snd_mixer_handle_events(m_hardwaremixer);
 
     if (num_events < 0)
@@ -178,7 +180,7 @@ class alsa_mixer {
   }
 
   int get_volume() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
 
     snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
@@ -198,7 +200,7 @@ class alsa_mixer {
     if (is_muted())
       return;
 
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
 
     long vol_min, vol_max;
 
@@ -207,19 +209,19 @@ class alsa_mixer {
   }
 
   void set_mute(bool mode) {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     snd_mixer_selem_set_playback_switch_all(m_mixerelement, mode);
   }
 
   void toggle_mute() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     int state;
     snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_FRONT_LEFT, &state);
     snd_mixer_selem_set_playback_switch_all(m_mixerelement, !state);
   }
 
   bool is_muted() {
-    // std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    std::lock_guard<threading_util::spin_lock> guard(m_lock);
     int state = 0;
     for (int i = 0; i < SND_MIXER_SCHN_LAST; i++) {
       if (snd_mixer_selem_has_playback_channel(m_mixerelement, (snd_mixer_selem_channel_id_t)i)) {
@@ -232,11 +234,8 @@ class alsa_mixer {
     return false;
   }
 
- protected:
-  void error_handler(string message) {}
-
  private:
-  // threading_util::spin_lock m_lock;
+  threading_util::spin_lock m_lock;
 
   snd_mixer_t* m_hardwaremixer = nullptr;
   snd_mixer_elem_t* m_mixerelement = nullptr;
