@@ -9,6 +9,8 @@
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
+#define GET_CONFIG_VALUE(var, name) var = m_conf.get<decltype(var)>(bs, name, var)
+
 LEMONBUDDY_NS
 
 using ptree = boost::property_tree::ptree;
@@ -104,7 +106,7 @@ class config {
     auto val = m_ptree.get_optional<T>(build_path(section, key));
 
     if (val == boost::none)
-      throw key_error("Missing property '" + key + "' in section [" + section + "]");
+      throw key_error("Missing parameter [" + section + "." + key + "]");
 
     auto str_val = m_ptree.get<string>(build_path(section, key));
 
@@ -147,7 +149,7 @@ class config {
     }
 
     if (vec.empty())
-      throw key_error("Missing property '" + key + "-0' in section [" + section + "]");
+      throw key_error("Missing parameter [" + section + "." + key + "-0]");
 
     return vec;
   }
@@ -205,15 +207,14 @@ class config {
     auto ref_path = build_path(ref_section, ref_key);
 
     if ((n = path.find(".")) == string::npos)
-      throw value_error("Invalid variable " + ref_path + " => ${" + path + "}");
+      throw value_error("Invalid reference defined at [" + ref_path + "]");
 
     auto section = string_util::replace(path.substr(0, n), "BAR", bar_section());
     auto key = path.substr(n + 1, path.length() - n - 1);
     auto val = m_ptree.get_optional<T>(build_path(section, key));
 
     if (val == boost::none)
-      throw value_error("Variable defined at [" + ref_path +
-                        "] points to a non existing parameter: [" + build_path(section, key) + "]");
+      throw value_error("Unexisting reference defined at [" + ref_path + "]");
 
     auto str_val = m_ptree.get<string>(build_path(section, key));
 

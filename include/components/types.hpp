@@ -27,8 +27,8 @@ struct bar_settings {
   uint16_t padding_left{0};
   uint16_t padding_right{0};
 
-  int16_t module_margin_left = 0;
-  int16_t module_margin_right = 2;
+  int16_t module_margin_left{0};
+  int16_t module_margin_right{2};
 
   int16_t lineheight{0};
   int16_t spacing{1};

@@ -92,7 +92,7 @@ class bar : public xpp::event::sink<evt::button_press> {
     if (monitors.empty())
       throw application_error("No monitors found");
 
-    auto monitor_name = m_conf.get<std::string>(bs, "monitor", "");
+    auto monitor_name = m_conf.get<string>(bs, "monitor", "");
     if (monitor_name.empty())
       monitor_name = monitors[0]->name;
 
@@ -144,17 +144,16 @@ class bar : public xpp::event::sink<evt::button_press> {
     // }}}
     // Set size and position {{{
 
-    m_bar.dock = m_conf.get<decltype(m_bar.dock)>(bs, "dock", true);
-    m_bar.bottom = m_conf.get<decltype(m_bar.bottom)>(bs, "bottom", false);
-    m_bar.lineheight = m_conf.get<decltype(m_bar.lineheight)>(bs, "lineheight", 0);
-    m_bar.offset_x = m_conf.get<decltype(m_bar.offset_x)>(bs, "offset_x", 0);
-    m_bar.offset_y = m_conf.get<decltype(m_bar.offset_y)>(bs, "offset_y", 0);
-    m_bar.padding_left = m_conf.get<decltype(m_bar.padding_left)>(bs, "padding_left", 0);
-    m_bar.padding_right = m_conf.get<decltype(m_bar.padding_right)>(bs, "padding_right", 0);
-    m_bar.module_margin_left =
-        m_conf.get<decltype(m_bar.module_margin_left)>(bs, "module_margin_left", 0);
-    m_bar.module_margin_right =
-        m_conf.get<decltype(m_bar.module_margin_right)>(bs, "module_margin_right", 0);
+    GET_CONFIG_VALUE(m_bar.dock, "dock");
+    GET_CONFIG_VALUE(m_bar.bottom, "bottom");
+    GET_CONFIG_VALUE(m_bar.spacing, "spacing");
+    GET_CONFIG_VALUE(m_bar.lineheight, "lineheight");
+    GET_CONFIG_VALUE(m_bar.offset_x, "offset_x");
+    GET_CONFIG_VALUE(m_bar.offset_y, "offset_y");
+    GET_CONFIG_VALUE(m_bar.padding_left, "padding_left");
+    GET_CONFIG_VALUE(m_bar.padding_right, "padding_right");
+    GET_CONFIG_VALUE(m_bar.module_margin_left, "module_margin_left");
+    GET_CONFIG_VALUE(m_bar.module_margin_right, "module_margin_right");
 
     auto w = m_conf.get<string>(bs, "width", "100%");
     auto h = m_conf.get<string>(bs, "height", "24");
