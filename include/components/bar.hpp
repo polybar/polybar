@@ -18,6 +18,7 @@
 #include "components/x11/xlib.hpp"
 #include "components/x11/xutils.hpp"
 #include "utils/bspwm.hpp"
+#include "utils/i3.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/threading.hpp"
@@ -28,7 +29,7 @@ namespace bar_signals {
   delegate::Signal1<string> action_click;
 };
 
-class bar : public xpp::event::sink<evt::button_press> {
+class bar : public xpp::event::sink<evt::button_press, evt::expose> {
  public:
   /**
    * Construct bar
@@ -244,23 +245,76 @@ class bar : public xpp::event::sink<evt::button_press> {
 
     m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
     {
-      xcb_atom_t win_types[2] = {_NET_WM_WINDOW_TYPE_DOCK, _NET_WM_WINDOW_TYPE_NORMAL};
+      // const uint32_t win_types[2] = {_NET_WM_WINDOW_TYPE_DOCK, _NET_WM_WINDOW_TYPE_NORMAL};
+      const uint32_t win_types[1] = {_NET_WM_WINDOW_TYPE_DOCK};
       m_connection.change_property_checked(
-          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_WINDOW_TYPE, XCB_ATOM_ATOM, 32, 2, &win_types);
+          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_WINDOW_TYPE, XCB_ATOM_ATOM, 32, 1, win_types);
     }
 
     m_log.trace("bar: Set _NET_WM_STATE");
     {
-      xcb_atom_t win_states[2] = {_NET_WM_STATE_STICKY, _NET_WM_STATE_SKIP_TASKBAR};
+      if (m_bar.width == m_bar.monitor->w) {
+        const uint32_t win_states[3] = {
+            _NET_WM_STATE_STICKY, _NET_WM_STATE_SKIP_TASKBAR, _NET_WM_STATE_MAXIMIZED_VERT};
+        m_connection.change_property_checked(
+            XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STATE, XCB_ATOM_ATOM, 32, 3, win_states);
+      } else {
+        const uint32_t win_states[2] = {_NET_WM_STATE_STICKY, _NET_WM_STATE_SKIP_TASKBAR};
+        m_connection.change_property_checked(
+            XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STATE, XCB_ATOM_ATOM, 32, 2, win_states);
+      }
+    }
+
+    m_log.trace("bar: Set _NET_WM_STRUT");
+    {
+      // clang-format off
+      uint32_t none{0};
+      uint32_t value_list[4]{
+        static_cast<uint32_t>(m_bar.x), // left
+        none, // right
+        m_bar.bottom ? none : m_bar.height + m_bar.offset_y, // top
+        m_bar.bottom ? m_bar.height + m_bar.offset_y : none, // bottom
+      };
+      // clang-format on
       m_connection.change_property_checked(
-          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STATE, XCB_ATOM_ATOM, 32, 2, &win_states);
+          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT, XCB_ATOM_CARDINAL, 32, 4, value_list);
+    }
+
+    m_log.trace("bar: Set _NET_WM_STRUT_PARTIAL");
+    {
+      // clang-format off
+      uint32_t none{0};
+      const uint32_t value_list[12]{
+        static_cast<uint32_t>(m_bar.x), // left
+        none, // right
+        m_bar.bottom ? none : m_bar.height + m_bar.offset_y, // top
+        m_bar.bottom ? m_bar.height + m_bar.offset_y : none, // bottom
+        none, // left_start_y
+        none, // left_end_y
+        none, // right_start_y
+        none, // right_end_y
+        m_bar.bottom ? none : m_bar.x, // top_start_x
+        m_bar.bottom ? none : static_cast<uint32_t>(m_bar.x + m_bar.width), // top_end_x
+        m_bar.bottom ? m_bar.x : none, // bottom_start_x
+        m_bar.bottom ? static_cast<uint32_t>(m_bar.x + m_bar.width) : none, // bottom_end_x
+      };
+      // clang-format on
+      m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL,
+          XCB_ATOM_CARDINAL, 32, 12, value_list);
+    }
+
+    m_log.trace("bar: Set _NET_WM_DESKTOP");
+    {
+      const uint32_t value_list[1]{-1u};
+      m_connection.change_property_checked(
+          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_DESKTOP, XCB_ATOM_CARDINAL, 32, 1, value_list);
     }
 
     m_log.trace("bar: Set _NET_WM_PID");
     {
-      int pid = getpid();
+      const uint32_t value_list[1]{uint32_t(getpid())};
       m_connection.change_property_checked(
-          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, &pid);
+          XCB_PROP_MODE_REPLACE, m_window, _NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, value_list);
     }
 
     m_log.trace("bar: Create pixmap");
@@ -281,27 +335,33 @@ class bar : public xpp::event::sink<evt::button_press> {
 
     try {
       auto wm_restack = m_conf.get<string>(bs, "wm-restack");
+      auto restacked = false;
 
       if (wm_restack == "bspwm") {
-        if (bspwm_util::restack_above_root(m_connection, m_bar.monitor, m_window))
-          m_log.info("Successfully restacked window above Bspwm root");
-        else
-          m_log.err("Failed to restack bar window above Bspwm root");
+        restacked = bspwm_util::restack_above_root(m_connection, m_bar.monitor, m_window);
+
+      } else if (wm_restack == "i3" && m_bar.dock) {
+        restacked = i3_util::restack_above_root(m_connection, m_bar.monitor, m_window);
+
+      } else if (wm_restack == "i3" && !m_bar.dock) {
+        m_log.warn("Ignoring restack of i3 window (not needed when dock = false)");
+        wm_restack.clear();
+
       } else {
-        m_log.warn("Unsupported wm-restack option '%s'", wm_restack);
+        m_log.warn("Ignoring unsupported wm-restack option '%s'", wm_restack);
+        wm_restack.clear();
+      }
+
+      if (restacked) {
+        m_log.info("Successfully restacked bar window");
+      } else if (!wm_restack.empty()) {
+        m_log.err("Failed to restack bar window");
       }
     } catch (const key_error& err) {
     }
 
     // }}}
     // Create graphic contexts {{{
-
-    // XCB_GC_LINE_WIDTH
-    // XCB_GC_LINE_STYLE
-    // -- XCB_LINE_STYLE_SOLID
-    // xcb_poly_line (connection, XCB_COORD_MODE_PREVIOUS, window, foreground, 4, polyline);
-    // xcb_poly_line(conn, XCB_COORD_MODE_ORIGIN, drawable, gc, 2, (xcb_point_t[]) { {10, 10}, {100,
-    // 10} });
 
     m_log.trace("bar: Create graphic contexts");
     {
@@ -596,6 +656,16 @@ class bar : public xpp::event::sink<evt::button_press> {
 
       m_log.warn("No matching input area found");
     }
+  }  // }}}
+
+  /**
+   * Event handler for XCB_EXPOSE events
+   */
+  void handle(const evt::expose& evt) {  // {{{
+    if (evt->window != m_window)
+      return;
+    m_log.trace("bar: Received expose event");
+    flush();
   }  // }}}
 
  protected:

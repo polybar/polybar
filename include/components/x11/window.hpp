@@ -137,10 +137,12 @@ class window : public xpp::window<connection_t&> {
 //
 //   window operator<<(cw_flush f) {
 //     if (f.checked)
-//       m_connection.create_window_checked(m_depth, m_window, m_parent, m_x, m_y, m_width, m_height,
+//       m_connection.create_window_checked(m_depth, m_window, m_parent, m_x, m_y, m_width,
+//       m_height,
 //           m_border, m_class, m_visual, m_mask, m_params);
 //     else
-//       m_connection.create_window(m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border,
+//       m_connection.create_window(m_depth, m_window, m_parent, m_x, m_y, m_width, m_height,
+//       m_border,
 //           m_class, m_visual, m_mask, m_params);
 //     return m_window;
 //   }

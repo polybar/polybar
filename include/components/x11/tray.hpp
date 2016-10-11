@@ -275,8 +275,8 @@ class traymanager
     m_logger.trace("tray: Create tray window %s, (%ix%i+%i+%i)", m_connection.id(m_tray),
         m_settings.width, m_settings.height, x, y);
     auto scr = m_connection.screen();
-    const uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    const uint32_t values[2]{m_settings.background,
+    const uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK;
+    const uint32_t values[3]{m_settings.background, true,
         XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
     m_connection.create_window_checked(scr->root_depth, m_tray, scr->root, x, y,
         m_settings.width + m_settings.spacing * 2, m_settings.height + m_settings.spacing * 2, 0,

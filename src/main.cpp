@@ -8,8 +8,6 @@
 #include "components/logger.hpp"
 #include "components/x11/xutils.hpp"
 #include "config.hpp"
-#include "utils/bspwm.hpp"
-#include "utils/file.hpp"
 #include "utils/inotify.hpp"
 
 using namespace lemonbuddy;

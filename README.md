@@ -423,6 +423,7 @@ The configuration syntax is based on the `ini` file format.
   ;
   ; Currently supported WM's:
   ;   bspwm
+  ;   i3
   ; Default: none
   wm-restack = bspwm
   ~~~
