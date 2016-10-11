@@ -308,7 +308,7 @@ class bar : public xpp::event::sink<evt::button_press> {
         XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
         xutils::pack_values(mask, &params, value_list);
         m_gcontexts.emplace(gc(i), gcontext{m_connection, m_connection.generate_id()});
-        m_connection.create_gc_checked(m_gcontexts.at(gc(i)), m_pixmap, mask, &value_list);
+        m_connection.create_gc_checked(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
       }
     }
 
@@ -689,7 +689,7 @@ class bar : public xpp::event::sink<evt::button_press> {
         "bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex(), color_.rgb());
 
     const uint32_t value_list[32]{color_.value()};
-    m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, &value_list);
+    m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
 
     if (gc_ == gc::FG)
       m_fontmanager->allocate_color(color_);

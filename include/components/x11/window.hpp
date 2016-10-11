@@ -26,7 +26,7 @@ class window : public xpp::window<connection_t&> {
     uint32_t value_list[16];
     xutils::pack_values(mask, params, value_list);
     connection().create_window_checked(depth, operator*(), screen->root, x, y, w, h, 0,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT, visual->visual_id, mask, &value_list);
+        XCB_WINDOW_CLASS_INPUT_OUTPUT, visual->visual_id, mask, value_list);
     return *this;
   }
 

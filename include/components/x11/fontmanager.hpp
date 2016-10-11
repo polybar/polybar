@@ -183,8 +183,8 @@ class fontmanager {
   }  // }}}
 
   void set_gcontext_font(gcontext& gc, xcb_font_t font) {  // {{{
-    const uint32_t values[]{font};
-    m_connection.change_gc(gc, XCB_GC_FONT, &values);
+    const uint32_t values[1]{font};
+    m_connection.change_gc(gc, XCB_GC_FONT, values);
   }  // }}}
 
  protected:
