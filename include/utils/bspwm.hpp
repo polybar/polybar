@@ -11,7 +11,7 @@ LEMONBUDDY_NS
 
 namespace bspwm_util {
   struct payload;
-  using subscriber_t = unique_ptr<socket_util::unix_connection>;
+  using connection_t = unique_ptr<socket_util::unix_connection>;
   using payload_t = unique_ptr<payload>;
 
   /**
@@ -30,23 +30,22 @@ namespace bspwm_util {
    * 3. Value of the macro BSPWM_SOCKET_PATH
    */
   string get_socket_path() {
-    string env_path{read_env("BSPWM_SOCKET")};
-    if (!env_path.empty())
+    string env_path;
+
+    if ((env_path = read_env("BSPWM_SOCKET")).empty() == false)
       return env_path;
 
     struct sockaddr_un sa;
-    char* tpl_path = nullptr;
     char* host = nullptr;
     int dsp = 0;
     int scr = 0;
 
-    if (xcb_parse_display(nullptr, &host, &dsp, &scr) != 0)
-      std::snprintf(tpl_path, sizeof(sa.sun_path), "/tmp/bspwm%s_%i_%i-socket", host, dsp, scr);
+    if (xcb_parse_display(nullptr, &host, &dsp, &scr) == 0)
+      return BSPWM_SOCKET_PATH;
 
-    if (tpl_path != nullptr)
-      return tpl_path;
+    snprintf(sa.sun_path, sizeof(sa.sun_path), "/tmp/bspwm%s_%i_%i-socket", host, dsp, scr);
 
-    return BSPWM_SOCKET_PATH;
+    return sa.sun_path;
   }
 
   /**
@@ -69,6 +68,19 @@ namespace bspwm_util {
   }
 
   /**
+   * Create an ipc socket connection
+   *
+   * Example usage:
+   * @code cpp
+   *   auto ipc = bspwm_util::make_connection();
+   *   ipc->send(bspwm_util::make_payload("desktop -f eDP-1:^1"));
+   * @endcode
+   */
+  connection_t make_connection() {
+    return socket_util::make_unix_connection(get_socket_path());
+  }
+
+  /**
    * Create a connection and subscribe to events
    * on the bspwm socket
    *
@@ -83,8 +95,8 @@ namespace bspwm_util {
    *   }
    * @endcode
    */
-  subscriber_t make_subscriber() {
-    auto conn = socket_util::make_unix_connection(BSPWM_SOCKET_PATH);
+  connection_t make_subscriber() {
+    auto conn = make_connection();
     auto payload = make_payload("subscribe report");
     if (conn->send(payload->data, payload->len, 0) == 0)
       throw system_error("Failed to initialize subscriber");
