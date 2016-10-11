@@ -17,8 +17,7 @@ union rgba {
   uint32_t v;
 };
 
-class color;
-static map<string, color> g_colorstore;
+static map<string, class color> g_colorstore;
 
 class color {
  public:
