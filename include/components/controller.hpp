@@ -56,7 +56,12 @@ class controller {
    * threads and spawned processes
    */
   ~controller() noexcept {
-    std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    if (!m_mutex.try_lock_for(3s)) {
+      m_log.warn("Failed to acquire lock for 3s... Forcing shutdown using SIGKILL");
+      raise(SIGKILL);
+    }
+
+    std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
     m_log.trace("controller: Stop modules");
     for (auto&& block : m_modules) {
@@ -385,13 +390,15 @@ class controller {
   }
 
   void on_module_update(string module_name) {
-    std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    if (!m_mutex.try_lock())
+      return;
+    std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
     if (!m_running)
       return;
 
-    if (!m_throttler->passthrough(throttle_util::strategy::try_once_or_leave_yolo{})) {
-      m_log.trace("Throttled");
+    if (!m_throttler->passthrough(m_throttle_strategy)) {
+      m_log.trace("controller: Update event throttled");
       return;
     }
 
@@ -457,7 +464,9 @@ class controller {
   }
 
   void on_module_click(string input) {
-    std::lock_guard<threading_util::spin_lock> lck(m_lock);
+    if (!m_mutex.try_lock())
+      return;
+    std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
@@ -492,7 +501,7 @@ class controller {
   unique_ptr<bar> m_bar;
   unique_ptr<traymanager> m_traymanager;
 
-  threading_util::spin_lock m_lock;
+  std::timed_mutex m_mutex;
 
   stateflag m_stdout{false};
   stateflag m_running{false};
@@ -506,6 +515,7 @@ class controller {
   map<alignment, vector<module_t>> m_modules;
 
   unique_ptr<throttle_util::event_throttler> m_throttler;
+  throttle_util::strategy::try_once_or_leave_yolo m_throttle_strategy;
 };
 
 LEMONBUDDY_NS_END
