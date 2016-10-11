@@ -310,12 +310,10 @@ namespace modules {
         return false;
 
       try {
-        auto ipc = bspwm_util::make_subscriber();
-        auto command = string_util::from_stream(stringstream() << "desktop -f " << m_monitor << ":^"
-                                                               << cmd.substr(strlen(EVENT_CLICK)));
-        auto payload = bspwm_util::make_payload(command);
+        auto ipc = bspwm_util::make_connection();
+        auto payload = bspwm_util::make_payload("desktop -f "+ m_monitor +":^"+ cmd.substr(strlen(EVENT_CLICK)));
 
-        m_log.info("%s: Sending command to ipc handler '%s'", name(), command);
+        m_log.info("%s: Sending desktop focus command to ipc handler", name());
 
         ipc->send(payload->data, payload->len, 0);
         ipc->disconnect();
@@ -339,7 +337,7 @@ namespace modules {
 
     static constexpr auto EVENT_CLICK = "bwm";
 
-    bspwm_util::subscriber_t m_subscriber;
+    bspwm_util::connection_t m_subscriber;
 
     map<bspwm_flag, label_t> m_modelabels;
     map<bspwm_flag, label_t> m_statelabels;
@@ -347,7 +345,6 @@ namespace modules {
     vector<label_t> m_modes;
     iconset_t m_icons;
     string m_monitor;
-    // int m_socketfd = -1;
     unsigned long m_hash;
   };
 }
