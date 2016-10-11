@@ -407,7 +407,7 @@ class controller {
   }
 
   void on_module_update(string module_name) {
-    if (!m_mutex.try_lock())
+    if (!m_mutex.try_lock_for(50ms))
       return;
     std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
