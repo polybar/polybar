@@ -174,10 +174,10 @@ namespace command_line {
 
       if (input_next.empty() && opt.compare(0, 2, "--") != 0)
         throw value_error("Missing value for " + opt);
-      else if (!input_next.empty())
-        value = input_next;
-      else if ((pos = opt.find("=")) == string::npos)
+      else if ((pos = opt.find("=")) == string::npos && opt.compare(0, 2, "--") == 0)
         throw value_error("Missing value for " + opt);
+      else if (pos == string::npos && !input_next.empty())
+        value = input_next;
       else {
         value = opt.substr(pos + 1);
         opt = opt.substr(0, pos);

@@ -54,6 +54,11 @@ class test_command_line : public unit_test {
     CPPUNIT_ASSERT_EQUAL(true, cli.has("option"));
 
     cli = get_instance();
+    cli.process_input(string_util::split("--option=foo --flag", ' '));
+    CPPUNIT_ASSERT_EQUAL(true, cli.has("flag"));
+    CPPUNIT_ASSERT_EQUAL(true, cli.has("option"));
+
+    cli = get_instance();
     cli.process_input(string_util::split("--option=baz", ' '));
     CPPUNIT_ASSERT_EQUAL(false, cli.has("flag"));
     CPPUNIT_ASSERT_EQUAL(true, cli.has("option"));
@@ -82,11 +87,13 @@ class test_command_line : public unit_test {
   void test_missing_value() {
     auto input1 = string_util::split("--option", ' ');
     auto input2 = string_util::split("-o", ' ');
+    auto input3 = string_util::split("--option baz", ' ');
 
     using command_line::value_error;
 
     CPPUNIT_ASSERT_THROW(get_instance().process_input(input1), value_error);
     CPPUNIT_ASSERT_THROW(get_instance().process_input(input2), value_error);
+    CPPUNIT_ASSERT_THROW(get_instance().process_input(input3), value_error);
   }
 
   void test_invalid_value() {
