@@ -1034,10 +1034,14 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Available tags:
   ;   <label-toggle> (default) - gets replaced with <label-(open|close)>
   ;   <menu> (default)
-  ;f-ormat = <label-toggle> <menu>
+  ;format = <label-toggle> <menu>
 
   label-open = Apps
   label-close = x
+
+  ; Optional item separator
+  ; Default: none
+  label-separator = |
   ~~~
 
 
