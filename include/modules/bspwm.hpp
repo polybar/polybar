@@ -43,8 +43,18 @@ namespace modules {
    public:
     using event_module::event_module;
 
+    ~bspwm_module() {
+      if (m_subscriber)
+        m_subscriber->disconnect();
+    }
+
     void setup() {
+      m_monitor = m_bar.monitor->name;
+      m_log.trace("%s: Primary monitor '%s'", name(), m_monitor);
+
       m_subscriber = bspwm_util::make_subscriber();
+
+      // Add formats and create components {{{
 
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MODE});
 
@@ -78,8 +88,7 @@ namespace modules {
             get_optional_config_label(m_conf, name(), "label-private")));
       }
 
-      m_monitor = m_bar.monitor->name;
-      m_log.trace("%s: Primary monitor '%s'", name(), m_monitor);
+      // }}}
 
       m_icons = iconset_t{new iconset()};
       m_icons->add(
@@ -91,15 +100,6 @@ namespace modules {
           m_icons->add(vec[0], icon_t{new icon{vec[1]}});
         }
       }
-    }
-
-    void start() {
-      event_module::start();
-    }
-
-    void stop() {
-      event_module::stop();
-      m_subscriber && m_subscriber->disconnect();
     }
 
     bool has_event() {
