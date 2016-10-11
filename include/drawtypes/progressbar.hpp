@@ -40,12 +40,11 @@ namespace drawtypes {
       m_colors = forward<decltype(colors)>(colors);
     }
 
-    string output(float percentage, bool floor_percentage = false) {
+    string output(float percentage) {
       if (m_colors.empty())
         m_colors.emplace_back(m_fill->m_foreground);
 
-      float add = floor_percentage ? 0 : 0.5;
-      int fill_width = (int)m_width * percentage / 100 + add;
+      int fill_width = m_width * percentage / 100.0f + 0.5f;
       int empty_width = m_width - fill_width;
       int color_step = m_width / m_colors.size() + 0.5f;
 
@@ -61,11 +60,11 @@ namespace drawtypes {
       }
 
       if (!m_gradient) {
-        auto color = m_colors.size() * percentage / 100;
-        if (color >= m_colors.size())
-          color = 0;
-        m_fill->m_foreground = m_colors[color - 1];
-        while (fill_width--) m_builder->node(m_fill);
+        auto idx = static_cast<int>((m_colors.size() - 1) * percentage / 100.0f + 0.5f);
+        m_fill->m_foreground = m_colors[idx];
+        while (fill_width--) {
+          m_builder->node(m_fill);
+        }
       } else {
         int i = 0;
         for (auto color : m_colors) {
