@@ -233,7 +233,6 @@ class bar : public xpp::event::sink<evt::button_press> {
       XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
       // clang-format on
       m_window.create_checked(m_bar.x, m_bar.y, m_bar.width, m_bar.height, mask, &params);
-      m_window.map_checked();
     }
 
     m_log.trace("bar: Set WM_NAME");
@@ -269,6 +268,12 @@ class bar : public xpp::event::sink<evt::button_press> {
       m_connection.create_pixmap_checked(
           m_visual->visual_id == m_screen->root_visual ? XCB_COPY_FROM_PARENT : 32, m_pixmap,
           m_window, m_bar.width, m_bar.height);
+    }
+
+    m_log.trace("bar: Map window");
+    {
+      m_connection.flush();
+      m_connection.map_window_checked(m_window);
     }
 
     // }}}
