@@ -48,8 +48,8 @@ namespace command_line {
     /**
      * Construct parser
      */
-    explicit parser(string&& synopsis, options&& opts)
-        : m_synopsis(forward<string>(synopsis)), m_opts(forward<options>(opts)) {}
+    explicit parser(string&& synopsis, const options& opts)
+        : m_synopsis(forward<string>(synopsis)), m_opts(opts) {}
 
     /**
      * Process input values
@@ -134,7 +134,7 @@ namespace command_line {
      * Configure injection module
      */
     template <class T = parser>
-    static di::injector<T> configure(string scriptname, options opts) {
+    static di::injector<T> configure(string scriptname, const options& opts) {
       // clang-format off
       return di::make_injector(
           di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),

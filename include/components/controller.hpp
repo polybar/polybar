@@ -152,8 +152,8 @@ class controller {
     // Listen for events on the root window to be able to
     // break the blocking wait call when cleaning up
     m_log.trace("controller: Listen for events on the root window");
-    const uint32_t value_list[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-    m_connection.change_window_attributes(m_connection.root(), XCB_CW_EVENT_MASK, &value_list);
+    const uint32_t value_list[1]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    m_connection.change_window_attributes(m_connection.root(), XCB_CW_EVENT_MASK, value_list);
 
     try {
       m_log.trace("controller: Setup bar renderer");

@@ -145,7 +145,7 @@ class fontmanager {
       return 0;
 
     if (font->xft == nullptr) {
-      if (chr - font->char_min < font->width_lut.size())
+      if (static_cast<size_t>(chr - font->char_min) < font->width_lut.size())
         return font->width_lut[chr - font->char_min].character_width;
       else
         return font->width;

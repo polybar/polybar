@@ -94,7 +94,7 @@ namespace io_util {
   }
 
   inline bool poll(int fd, short int events, int timeout_ms = 1) {
-    struct pollfd fds[0];
+    struct pollfd fds[1];
     fds[0].fd = fd;
     fds[0].events = events;
 

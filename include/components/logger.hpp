@@ -145,10 +145,14 @@ class logger {
     auto suffix = m_suffixes.find(level)->second;
 
 // silence the compiler
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#endif
     dprintf(m_fd, (prefix + format + suffix + "\n").c_str(), convert(values)...);
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
   }
 
  private:

@@ -2,7 +2,6 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
-#include <boost/core/null_deleter.hpp>
 #include <fastdelegate/fastdelegate.hpp>
 
 #include "common.hpp"
@@ -251,7 +250,7 @@ class traymanager
   shared_ptr<trayclient> find_client(const xcb_window_t& win) {
     for (auto&& client : m_clients)
       if (client->match(win)) {
-        return shared_ptr<trayclient>{client.get(), boost::null_deleter()};
+        return shared_ptr<trayclient>{client.get(), null_deleter{}};
       }
     return {};
   }
@@ -372,7 +371,8 @@ class traymanager
   //     }
   //     m_logger.trace("tray: Listen for events on the new selection window");
   //     const uint32_t event_mask[1]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-  //     m_connection.change_window_attributes_checked(m_othermanager, XCB_CW_EVENT_MASK, event_mask);
+  //     m_connection.change_window_attributes_checked(m_othermanager, XCB_CW_EVENT_MASK,
+  //     event_mask);
   //   } catch (const xpp::x::error::window& err) {
   //     m_logger.err("Failed to track selection owner");
   //   }

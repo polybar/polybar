@@ -33,7 +33,7 @@ namespace scope_util {
    * @endcode
    */
   template <typename Fn = function<void()>, typename... Args>
-  decltype(auto) make_exit_handler = [](Fn&& fn, Args&&... args) -> unique_ptr<on_exit<Args...>> {
+  decltype(auto) make_exit_handler(Fn&& fn, Args&&... args) {
     return make_unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
   };
 }

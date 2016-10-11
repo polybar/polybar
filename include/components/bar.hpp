@@ -491,7 +491,7 @@ class bar : public xpp::event::sink<evt::button_press> {
       } else {
         m_log.trace("bar: Action details");
         m_log.trace("action.command = %s", action.command);
-        m_log.trace("action.mousebtn = %i", static_cast<int>(action.mousebtn));
+        m_log.trace("action.button = %i", static_cast<int>(action.button));
         m_log.trace("action.start_x = %i", action.start_x);
         m_log.trace("action.end_x = %i", action.end_x);
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
@@ -550,7 +550,7 @@ class bar : public xpp::event::sink<evt::button_press> {
         if (action.active) {
           m_log.trace("bar: Ignoring action: unclosed)");
           continue;
-        } else if (action.mousebtn != button) {
+        } else if (action.button != button) {
           m_log.trace("bar: Ignoring action: button mismatch");
           continue;
         } else if (action.start_x > evt->event_x) {
@@ -564,7 +564,7 @@ class bar : public xpp::event::sink<evt::button_press> {
 
         m_log.info("Found matching input area");
         m_log.trace("action.command = %s", action.command);
-        m_log.trace("action.mousebtn = %i", static_cast<int>(action.mousebtn));
+        m_log.trace("action.button = %i", static_cast<int>(action.button));
         m_log.trace("action.start_x = %i", action.start_x);
         m_log.trace("action.end_x = %i", action.end_x);
 
@@ -640,7 +640,7 @@ class bar : public xpp::event::sink<evt::button_press> {
     action_block action;
     action.active = true;
     action.align = m_bar.align;
-    action.mousebtn = btn;
+    action.button = btn;
     action.start_x = m_xpos;
     action.command = string_util::replace_all(cmd, ":", "\\:");
     m_actions.emplace_back(action);
@@ -655,7 +655,7 @@ class bar : public xpp::event::sink<evt::button_press> {
     for (auto i = m_actions.size(); i > 0; i--) {
       auto& action = m_actions[i - 1];
 
-      if (!action.active || action.mousebtn != btn)
+      if (!action.active || action.button != btn)
         continue;
 
       action.active = false;

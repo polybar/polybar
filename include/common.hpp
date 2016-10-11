@@ -73,7 +73,7 @@ using boost::optional;
 using stateflag = std::atomic<bool>;
 
 //==================================================
-// Errors and exceptions
+// Instance factory
 //==================================================
 
 namespace factory {
@@ -88,6 +88,11 @@ namespace factory {
     return instance;
   }
 }
+
+struct null_deleter {
+  template <typename T>
+  void operator()(T*) const {}
+};
 
 //==================================================
 // Errors and exceptions

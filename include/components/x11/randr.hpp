@@ -6,7 +6,7 @@
 
 LEMONBUDDY_NS
 
-struct monitor {
+struct randr_output {
   string name;
   int w = 0;
   int h = 0;
@@ -14,12 +14,14 @@ struct monitor {
   int y = 0;
 };
 
+using monitor_t = shared_ptr<randr_output>;
+
 namespace randr_util {
   /**
    * Define monitor
    */
-  inline shared_ptr<monitor> make_monitor(string name, int w, int h, int x, int y) {
-    auto mon = make_shared<monitor>();
+  inline monitor_t make_monitor(string name, int w, int h, int x, int y) {
+    monitor_t mon{new monitor_t::element_type{}};
     mon->name = name;
     mon->x = x;
     mon->y = y;
@@ -31,8 +33,8 @@ namespace randr_util {
   /**
    * Create a list of all available randr outputs
    */
-  inline vector<shared_ptr<monitor>> get_monitors(connection& conn, xcb_window_t root) {
-    vector<shared_ptr<monitor>> monitors;
+  inline vector<monitor_t> get_monitors(connection& conn, xcb_window_t root) {
+    vector<monitor_t> monitors;
     auto outputs = conn.get_screen_resources(root).outputs();
 
     for (auto it = outputs.begin(); it != outputs.end(); it++) {
@@ -49,7 +51,7 @@ namespace randr_util {
 
     // use the same sort algo as lemonbar, to match the defaults
     sort(monitors.begin(), monitors.end(),
-        [](shared_ptr<monitor>& m1, shared_ptr<monitor>& m2) -> bool {
+        [](monitor_t& m1, monitor_t& m2) -> bool {
           if (m1->x < m2->x || m1->y + m1->h <= m2->y)
             return 1;
           if (m1->x > m2->x || m1->y + m1->h > m2->y)

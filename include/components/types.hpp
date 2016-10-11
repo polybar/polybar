@@ -43,7 +43,7 @@ struct bar_settings {
   bool bottom{false};
   bool dock{true};
 
-  shared_ptr<monitor> monitor;
+  monitor_t monitor;
   string wmname;
 
   int16_t vertical_mid{0};
@@ -90,7 +90,7 @@ struct border_settings {
 
 struct action_block {
   action_block() = default;
-  mousebtn mousebtn{mousebtn::NONE};
+  mousebtn button{mousebtn::NONE};
   string command;
   int16_t start_x{0};
   int16_t end_x{0};
