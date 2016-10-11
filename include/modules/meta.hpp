@@ -148,6 +148,7 @@ namespace modules {
     virtual ~module_interface() {}
 
     virtual string name() const = 0;
+    virtual bool running() const = 0;
 
     virtual void setup() = 0;
     virtual void start() = 0;
@@ -159,6 +160,7 @@ namespace modules {
     virtual bool receive_events() const = 0;
 
     delegate::Signal1<string> on_update;
+    delegate::Signal1<string> on_stop;
   };
 
   // }}}
@@ -195,17 +197,23 @@ namespace modules {
       return m_name;
     }
 
+    bool running() const {
+      return enabled();
+    }
+
     void setup() {
       m_log.trace("%s: Setup", name());
       CAST_MODULE(Impl)->setup();
     }
 
     void stop() {
-      // std::lock_guard<concurrency::SpinLock> lck(this->broadcast_lock);
-      // std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      if (!enabled())
+        return;
       m_log.trace("%s: Stop", name());
       enable(false);
       wakeup();
+      if (!on_stop.empty())
+        on_stop.emit(name());
     }
 
     void refresh() {
@@ -265,8 +273,6 @@ namespace modules {
     }
 
     string get_output() {
-      // std::lock_guard<concurrency::SpinLock> lck(this->output_lock);
-
       if (!enabled()) {
         m_log.trace("%s: Module is disabled", name());
         return "";
@@ -332,7 +338,7 @@ namespace modules {
     void start() {
       CAST_MODULE(Impl)->setup();
       CAST_MODULE(Impl)->enable(true);
-      CAST_MODULE(Impl)->m_threads.emplace_back(thread(&static_module::broadcast, this));
+      CAST_MODULE(Impl)->broadcast();
     }
 
     bool build(builder*, string) {
@@ -359,15 +365,21 @@ namespace modules {
     interval_t m_interval = 1s;
 
     void runner() {
-      CAST_MODULE(Impl)->setup();
+      try {
+        CAST_MODULE(Impl)->setup();
 
-      while (CONST_CAST_MODULE(Impl).enabled()) {
-        {
-          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-          if (CAST_MODULE(Impl)->update())
-            CAST_MODULE(Impl)->broadcast();
+        while (CONST_CAST_MODULE(Impl).enabled()) {
+          {
+            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+            if (CAST_MODULE(Impl)->update())
+              CAST_MODULE(Impl)->broadcast();
+          }
+          CAST_MODULE(Impl)->sleep(m_interval);
         }
-        CAST_MODULE(Impl)->sleep(m_interval);
+      } catch (const application_error& err) {
+        this->m_log.err("%s: %s", this->name(), err.what());
+        this->m_log.warn("Stopping '%s'...", this->name());
+        CAST_MODULE(Impl)->stop();
       }
     }
   };
@@ -387,25 +399,31 @@ namespace modules {
 
    protected:
     void runner() {
-      CAST_MODULE(Impl)->setup();
+      try {
+        CAST_MODULE(Impl)->setup();
 
-      // warmup
-      CAST_MODULE(Impl)->update();
-      CAST_MODULE(Impl)->broadcast();
-
-      while (CONST_CAST_MODULE(Impl).enabled()) {
-        std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
-
-        if (!CAST_MODULE(Impl)->has_event())
-          continue;
-
-        if (!CAST_MODULE(Impl)->update())
-          continue;
-
+        // warmup
+        CAST_MODULE(Impl)->update();
         CAST_MODULE(Impl)->broadcast();
 
-        lck.unlock();
-        CAST_MODULE(Impl)->idle();
+        while (CONST_CAST_MODULE(Impl).enabled()) {
+          std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
+
+          if (!CAST_MODULE(Impl)->has_event())
+            continue;
+
+          if (!CAST_MODULE(Impl)->update())
+            continue;
+
+          CAST_MODULE(Impl)->broadcast();
+
+          lck.unlock();
+          CAST_MODULE(Impl)->idle();
+        }
+      } catch (const application_error& err) {
+        this->m_log.err("%s: %s", this->name(), err.what());
+        this->m_log.warn("Stopping '%s'...", this->name());
+        CAST_MODULE(Impl)->stop();
       }
     }
   };
@@ -425,18 +443,19 @@ namespace modules {
 
    protected:
     void runner() {
-      CAST_MODULE(Impl)->setup();
-      CAST_MODULE(Impl)->on_event(nullptr);  // warmup
-      CAST_MODULE(Impl)->broadcast();
+      try {
+        CAST_MODULE(Impl)->setup();
+        CAST_MODULE(Impl)->on_event(nullptr);  // warmup
+        CAST_MODULE(Impl)->broadcast();
 
-      while (CAST_MODULE(Impl)->enabled()) {
-        std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-        try {
+        while (CAST_MODULE(Impl)->enabled()) {
+          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
           CAST_MODULE(Impl)->poll_events();
-        } catch (const system_error& e) {
-          this->m_log.err("%s: Error while polling for events (what: %s)", this->name(), e.what());
-          return;
         }
+      } catch (const application_error& err) {
+        this->m_log.err("%s: %s", this->name(), err.what());
+        this->m_log.warn("Stopping '%s'...", this->name());
+        CAST_MODULE(Impl)->stop();
       }
     }
 

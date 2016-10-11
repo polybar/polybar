@@ -10,13 +10,17 @@ namespace modules {
     using static_module::static_module;
 
     void setup() {
-      m_formatter->add(FORMAT, "", {});
-      if (m_formatter->get(FORMAT)->value.empty())
-        throw undefined_format(FORMAT);
+      m_formatter->add("content", "", {});
+
+      if (m_formatter->get("content")->value.empty())
+        throw module_error(name() + ".content is empty or undefined");
+
+      m_formatter->get("content")->value =
+          string_util::replace_all(m_formatter->get("content")->value, " ", BUILDER_SPACE_TOKEN);
     }
 
     string get_format() {
-      return FORMAT;
+      return "content";
     }
 
     string get_output() {
@@ -41,9 +45,6 @@ namespace modules {
 
       return m_builder->flush();
     }
-
-   private:
-    static constexpr auto FORMAT = "content";
   };
 }
 

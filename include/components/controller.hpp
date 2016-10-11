@@ -67,6 +67,7 @@ class controller {
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
         module->on_update.disconnect(this, &controller::on_module_update);
+        module->on_stop.disconnect(this, &controller::on_module_stop);
         module->stop();
       }
     }
@@ -95,6 +96,7 @@ class controller {
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
         module->on_update.disconnect(this, &controller::on_module_update);
+        module->on_stop.disconnect(this, &controller::on_module_stop);
         module->stop();
       }
     }
@@ -203,7 +205,13 @@ class controller {
       for (auto&& block : m_modules) {
         for (auto&& module : block.second) {
           module->on_update.connect(this, &controller::on_module_update);
-          module->start();
+          module->on_stop.connect(this, &controller::on_module_stop);
+
+          try {
+            module->start();
+          } catch (const application_error& err) {
+            m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
+          }
         }
       }
 
@@ -461,6 +469,18 @@ class controller {
       std::cout << contents << std::endl;
     else
       m_bar->parse(contents);
+  }
+
+  void on_module_stop(string module_name) {
+    for (auto&& block : m_modules) {
+      for (auto&& module : block.second) {
+        if (module->running())
+          return;
+      }
+    }
+
+    m_log.warn("No running modules, raising SIGTERM");
+    kill(getpid(), SIGTERM);
   }
 
   void on_module_click(string input) {
