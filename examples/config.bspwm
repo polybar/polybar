@@ -7,13 +7,6 @@
 ;
 ;=====================================================
 
-[settings]
-; Limit the amount of events sent to lemonbar within a set timeframe:
-; - "Allow <throttle_limit> updates within <throttle_ms> of time"
-; Default values:
-;throttle_limit = 5
-;throttle_ms = 50
-
 [bar/example]
 ;monitor = eDP1
 bottom = true
@@ -22,79 +15,44 @@ dock = false
 width = 100%
 height = 25
 
-;offset_x = 0
-;offset_y = 0
+padding_left = 2
+padding_right = 2
 
 background = #00ffffff
-foreground = #fff
-;linecolor = #ff0000
-
-spacing = 1
-lineheight = 1
-
-;separator = |
-
-;locale = en_US.UTF-8
-
-padding_left = 1
-padding_right = 1
-module_margin_left = 0
-module_margin_right = 0
+foreground = #ddefefef
 
 font-0 = Sans:size=8;0
 font-1 = FontAwesome:size=10:weight=heavy;0
 
-modules-left = label
-modules-center = bspwm
+modules-left = bspwm
+modules-center = label
 modules-right = volume cpu ram clock
+
+tray-position = right
 
 [module/label]
 type = custom/text
-content = Lemonbuddy example
-content-background = #af2031
-content-underline = #cf4253
-content-overline = #cf4253
-content-padding = 2
+content = %{F#f90f59}Example%{F#ff} configuration
 
 [module/cpu]
 type = internal/cpu
 label = CPU: %percentage%
-format-background = #c42
-format-underline = #f75
-format-overline = #f75
-format-padding = 2
+format-foreground = #f9b70f
 
 [module/ram]
 type = internal/memory
 label = RAM: %percentage_used%
-format-background = #42c
-format-underline = #75f
-format-overline = #75f
-format-padding = 2
+format-foreground = #0fc7f9
 
 [module/clock]
 type = internal/date
 date = %Y-%m-%d %H:%M
-format-background = #493
-format-underline = #7a6
-format-overline = #7a6
-format-padding = 2
+format-foreground = #e10ff9
 
 [module/volume]
 type = internal/volume
-;speaker_mixer = Speaker
-;headphone_mixer = Headphone
-;headphone_control_numid = 9
-
-format-volume-background = #933484
-format-volume-underline = #9d6294
-format-volume-overline = #9d6294
-format-volume-padding = 2
-format-muted-background = #933484
-format-muted-underline = #9d6294
-format-muted-overline = #9d6294
-format-muted-padding = 2
-
+format-volume-foreground = #1ef90f
+format-muted-foreground = #1ef90f
 label-volume = Volume: %percentage%
 label-muted = Sound is muted
 
@@ -102,9 +60,11 @@ label-muted = Sound is muted
 type = internal/bspwm
 label-active = 
 label-active-padding = 1
+label-active-foreground = #0ba2f9
 label-occupied = 
 label-occupied-padding = 1
 label-empty = 
 label-empty-padding = 1
+label-empty-foreground = #55
 
 ; vim:ft=dosini
