@@ -114,9 +114,6 @@ namespace modules {
     }
 
     bool has_event() {
-      if (m_updated)
-        return true;
-
       try {
         bool has_event = false;
         if (m_master_mixer)
@@ -135,8 +132,6 @@ namespace modules {
     }
 
     bool update() {
-      m_updated = false;
-
       // Consume any other pending events
       if (m_master_mixer)
         m_master_mixer->process_events();
@@ -229,10 +224,12 @@ namespace modules {
       alsa_mixer* master_mixer = m_master_mixer.get();
       alsa_mixer* other_mixer = nullptr;
 
-      if (m_headphone_mixer && m_headphone_ctrl && m_headphone_ctrl->test_device_plugged())
+      if (m_headphone_mixer && m_headphones)
         other_mixer = m_headphone_mixer.get();
       else if (m_speaker_mixer)
         other_mixer = m_speaker_mixer.get();
+      else
+        return false;
 
       if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
         master_mixer->set_mute(m_muted);
@@ -249,8 +246,6 @@ namespace modules {
       } else {
         return false;
       }
-
-      m_updated = true;
 
       return true;
     }
@@ -288,9 +283,9 @@ namespace modules {
     unique_ptr<alsa_ctl_interface> m_headphone_ctrl;
     int m_headphone_ctrl_numid = -1;
     int m_volume = 0;
-    bool m_muted = false;
-    bool m_updated = false;
-    bool m_headphones = false;
+
+    stateflag m_muted{false};
+    stateflag m_headphones{false};
   };
 }
 
