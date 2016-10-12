@@ -60,9 +60,9 @@ border-top-color = #333
 
 spacing = ${bar/top.spacing}
 lineheight = ${bar/top.lineheight}
-padding-right = ${bar/top.padding_right}
+padding-right = ${bar/top.padding-right}
 module-margin-left = 0
-module-margin-right = ${bar/top.module_margin_right}
+module-margin-right = ${bar/top.module-margin-right}
 
 font-0 = ${bar/top.font-0}
 font-1 = ${bar/top.font-1}
@@ -350,14 +350,14 @@ menu-0-0-foreground = #e60053
 menu-0-0-exec = i3-msg -t command exit
 menu-0-1 = Reboot
 menu-0-1-foreground = #e60053
-menu-0-1-exec = menu_open-1
+menu-0-1-exec = menu-open-1
 menu-0-2 = Power off
 menu-0-2-foreground = #e60053
-menu-0-2-exec = menu_open-2
+menu-0-2-exec = menu-open-2
 
 menu-1-0 = Cancel
 menu-1-0-foreground = #e60053
-menu-1-0-exec = menu_open-0
+menu-1-0-exec = menu-open-0
 menu-1-1 = Reboot
 menu-1-1-foreground = #e60053
 menu-1-1-exec = sudo reboot
@@ -367,7 +367,7 @@ menu-2-0-foreground = #e60053
 menu-2-0-exec = sudo poweroff
 menu-2-1 = Cancel
 menu-2-1-foreground = #e60053
-menu-2-1-exec = menu_open-0
+menu-2-1-exec = menu-open-0
 
 
 [module/counter]
