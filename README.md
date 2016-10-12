@@ -686,6 +686,18 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ~~~ ini
   [module/i3]
   type = internal/i3
+
+  ; Only show workspaces defined on the same output as the bar
+  ;
+  ; Useful if you want to show monitor specific workspaces
+  ; in different bars
+  ;
+  ; Default: false
+  pin-workspaces = true
+
+  ; Limit the amount of chars to output for each workspace name
+  ; Default: 0
+  wsname-maxlen = 2
   ~~~
 
 ##### Extra formatting (example)
@@ -706,6 +718,7 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   %name%
   ;   %icon%
   ;   %index%
+  ;   %output%
   ; Default: %icon%  %name%
   label-focused = %icon%
   label-focused-foreground = #ffffff

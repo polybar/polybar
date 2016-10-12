@@ -1,89 +1,69 @@
 #pragma once
 
-// #include <i3ipc++/ipc-util.hpp>
-// #include <i3ipc++/ipc.hpp>
+#include <i3ipc++/ipc.hpp>
 
 #include "config.hpp"
+#include "components/config.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
+#include "utils/i3.hpp"
+#include "utils/io.hpp"
 
 LEMONBUDDY_NS
 
 namespace modules {
+  // meta types {{{
+
   enum class i3_flag {
     WORKSPACE_NONE,
     WORKSPACE_FOCUSED,
     WORKSPACE_UNFOCUSED,
     WORKSPACE_VISIBLE,
     WORKSPACE_URGENT,
-    WORKSPACE_DIMMED,  // used when the monitor is out of focus
   };
 
   struct i3_workspace {
-    explicit i3_workspace(int idx, i3_flag flag, label_t&& label_)
-        : idx(idx), flag(flag), label(forward<decltype(label_)>(label_)) {}
-
-    operator bool() {
-      return label && label.get();
-    }
-
-    int idx;
+    int index;
     i3_flag flag;
     label_t label;
+
+    i3_workspace(int index_, i3_flag flag_, label_t&& label_)
+        : index(index_), flag(flag_), label(forward<decltype(label_)>(label_)) {}
+
+    operator bool() {
+      return label && *label;
+    }
   };
 
-  namespace i3ipc {
-    static const int ET_WORKSPACE = 1;
-    static const int ET_OUTPUT = 2;
-    static const int ET_WINDOW = 4;
-
-    class ws {
-     public:
-      bool focused;
-      bool urgent;
-      bool visible;
-      string output;
-      string name;
-      unsigned int num;
-    };
-
-    class connection {
-     public:
-      void subscribe(int) {}
-      void send_command(string) {}
-      void prepare_to_event_handling() {}
-      void handle_event() {}
-      vector<unique_ptr<ws>> get_workspaces() {
-        return {};
-      }
-    };
-  }
-
   using i3_workspace_t = unique_ptr<i3_workspace>;
+
+  // }}}
 
   class i3_module : public event_module<i3_module> {
    public:
     using event_module::event_module;
 
     ~i3_module() {
-      if (!m_ipc)
-        return;
-      // FIXME: Hack to release the recv lock. Will need to patch the ipc lib
-      m_ipc->send_command("workspace back_and_forth");
-      m_ipc->send_command("workspace back_and_forth");
+      // Shutdown ipc connection {{{
+
+      try {
+        shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
+        shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
+      } catch (const std::exception& err) {
+      }
+
+      // }}}
     }
 
     void setup() {
-      try {
-        m_ipc = make_unique<i3ipc::connection>();
-      } catch (std::runtime_error& e) {
-        throw module_error(e.what());
-      }
+      // Load configuration values {{{
 
-      m_localworkspaces = m_conf.get<bool>(name(), "local_workspaces", m_localworkspaces);
-      m_workspace_name_strip_nchars =
-          m_conf.get<size_t>(name(), "workspace_name_strip_nchars", m_workspace_name_strip_nchars);
+      GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
+      GET_CONFIG_VALUE(name(), m_wsname_maxlen, "wsname-maxlen");
+
+      // }}}
+      // Add formats and create components {{{
 
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE});
 
@@ -96,13 +76,14 @@ namespace modules {
             get_optional_config_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(i3_flag::WORKSPACE_URGENT,
             get_optional_config_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
-        m_statelabels.insert(make_pair(
-            i3_flag::WORKSPACE_DIMMED, get_optional_config_label(m_conf, name(), "label-dimmed")));
       }
 
       m_icons = iconset_t{new iconset()};
       m_icons->add(
           DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
+
+      // }}}
+      // Add formats and create components {{{
 
       for (auto workspace : m_conf.get_list<string>(name(), "workspace_icon", {})) {
         auto vec = string_util::split(workspace, ';');
@@ -110,109 +91,125 @@ namespace modules {
           m_icons->add(vec[0], icon_t{new icon{vec[1]}});
       }
 
-      // m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_OUTPUT | i3ipc::ET_WINDOW);
-      // m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_OUTPUT);
-      // m_ipc->prepare_to_event_handling();
+      // }}}
+      // Subscribe to ipc events {{{
+
+      try {
+        m_ipc.subscribe(i3ipc::ET_WORKSPACE);
+        m_ipc.prepare_to_event_handling();
+      } catch (std::runtime_error& e) {
+        throw module_error(e.what());
+      }
+
+      // }}}
     }
 
     bool has_event() {
-      if (!m_ipc || !enabled())
+      // Wait for ipc events {{{
+
+      try {
+        m_ipc.handle_event();
+        return true;
+      } catch (const std::exception& err) {
+        if (enabled())
+          m_log.err("%s: Error while handling ipc event (%s)", name(), err.what());
         return false;
-      m_ipc->handle_event();
-      return true;
+      }
+
+      // }}}
     }
 
     bool update() {
-      if (!enabled())
-        return false;
+      // Refresh workspace data {{{
 
-      i3ipc::connection connection;
+      m_workspaces.clear();
+      i3_util::connection_t ipc;
 
       try {
-        // for (auto &&m : connection.get_outputs()) {
-        //   if (m->name == m_monitor) {
-        //     monitor_focused = m->active;
-        //     break;
-        //   }
-        // }
+        auto workspaces = ipc.get_workspaces();
+        string focused_output;
+        bool output_unfocused = false;
 
-        m_workspaces.clear();
-
-        auto workspaces = connection.get_workspaces();
-
-        string focused_monitor;
-
-        for (auto&& ws : workspaces) {
-          if (ws->focused) {
-            focused_monitor = ws->output;
+        for (auto&& workspace : workspaces)
+          if (workspace->focused) {
+            focused_output = workspace->output;
             break;
           }
-        }
 
-        bool monitor_focused = (focused_monitor == m_monitor);
+        if (focused_output != m_bar.monitor->name)
+          output_unfocused = true;
 
-        for (auto&& ws : connection.get_workspaces()) {
-          if (m_localworkspaces && ws->output != m_monitor)
+        for (auto&& workspace : workspaces) {
+          if (m_pinworkspaces && workspace->output != m_bar.monitor->name)
             continue;
 
           auto flag = i3_flag::WORKSPACE_NONE;
-
-          if (ws->focused)
+          if (workspace->focused)
             flag = i3_flag::WORKSPACE_FOCUSED;
-          else if (ws->urgent)
+          else if (workspace->urgent)
             flag = i3_flag::WORKSPACE_URGENT;
-          else if (ws->visible)
-            flag = i3_flag::WORKSPACE_VISIBLE;
-          else
+          else if (!workspace->visible || (workspace->visible && workspace->output != focused_output))
             flag = i3_flag::WORKSPACE_UNFOCUSED;
+          else
+            flag = i3_flag::WORKSPACE_VISIBLE;
 
-          // if (!monitor_focused)
-          //   flag = i3_flag::WORKSPACE_DIMMED;
+          string wsname{workspace->name};
+          if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen)
+            wsname.erase(m_wsname_maxlen);
 
-          auto workspace_name = ws->name;
-          if (m_workspace_name_strip_nchars > 0 &&
-              workspace_name.length() > m_workspace_name_strip_nchars)
-            workspace_name.erase(0, m_workspace_name_strip_nchars);
-
-          auto icon = m_icons->get(workspace_name, DEFAULT_WS_ICON);
+          auto icon = m_icons->get(workspace->name, DEFAULT_WS_ICON);
           auto label = m_statelabels.find(flag)->second->clone();
 
-          if (!monitor_focused)
-            label->replace_defined_values(m_statelabels.find(i3_flag::WORKSPACE_DIMMED)->second);
-
-          label->replace_token("%name%", workspace_name);
+          label->replace_token("%output%", workspace->output);
+          label->replace_token("%name%", wsname);
           label->replace_token("%icon%", icon->m_text);
-          label->replace_token("%index%", to_string(ws->num));
-
-          m_workspaces.emplace_back(make_unique<i3_workspace>(ws->num, flag, std::move(label)));
+          label->replace_token("%index%", to_string(workspace->num));
+          m_workspaces.emplace_back(make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
         }
-      } catch (std::runtime_error& e) {
-        m_log.err("%s: %s", name(), e.what());
+
+        return true;
+      } catch (const std::exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        return false;
       }
 
-      return true;
+      // }}}
     }
 
     bool build(builder* builder, string tag) {
+      // Output workspace info {{{
+
       if (tag != TAG_LABEL_STATE)
         return false;
-
       for (auto&& ws : m_workspaces) {
-        builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->idx));
+        builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
         builder->node(ws.get()->label);
         builder->cmd_close(true);
       }
-
       return true;
+
+      // }}}
     }
 
     bool handle_event(string cmd) {
-      if (cmd.find(EVENT_CLICK) == string::npos || cmd.length() < strlen(EVENT_CLICK))
+      // Send ipc commands {{{
+
+      if (cmd.find(EVENT_CLICK) == string::npos)
+        return false;
+      if (cmd.length() < strlen(EVENT_CLICK))
         return false;
 
-      m_ipc->send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
+      try {
+        i3_util::connection_t ipc;
+        m_log.info("%s: Sending workspace focus command to ipc handler", name());
+        ipc.send_command("workspace number "+ cmd.substr(strlen(EVENT_CLICK)));
+      } catch (const std::exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+      }
 
       return true;
+
+      // }}}
     }
 
     bool receive_events() const {
@@ -222,24 +219,17 @@ namespace modules {
    private:
     static constexpr auto DEFAULT_WS_ICON = "workspace_icon-default";
     static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
-
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
-
     static constexpr auto EVENT_CLICK = "i3";
-
-    unique_ptr<i3ipc::connection> m_ipc;
 
     map<i3_flag, label_t> m_statelabels;
     vector<i3_workspace_t> m_workspaces;
-
-    // map<i3_flag, label_t> mode_labels;
-    // vector<label_t> modes;
-
     iconset_t m_icons;
-    string m_monitor;
 
-    bool m_localworkspaces = true;
-    size_t m_workspace_name_strip_nchars = 0;
+    bool m_pinworkspaces = false;
+    size_t m_wsname_maxlen = 0;
+
+    i3_util::connection_t m_ipc;
   };
 }
 

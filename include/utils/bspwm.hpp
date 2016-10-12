@@ -107,19 +107,19 @@ namespace bspwm_util {
    * Generate a payload object with properly formatted data
    * ready to be sent to the bspwm ipc controller
    */
-  unique_ptr<payload> make_payload(string cmd) {
-    auto pl = make_unique<payload>();
-    auto size = sizeof(pl->data);
+  payload_t make_payload(string cmd) {
+    payload_t payload{new payload_t::element_type{}};
+    auto size = sizeof(payload->data);
     int offset = 0;
     int chars = 0;
 
     for (auto&& word : string_util::split(cmd, ' ')) {
-      chars = snprintf(pl->data + offset, size - offset, "%s%c", word.c_str(), 0);
-      pl->len += chars;
+      chars = snprintf(payload->data + offset, size - offset, "%s%c", word.c_str(), 0);
+      payload->len += chars;
       offset += chars;
     }
 
-    return pl;
+    return payload;
   }
 
   /**

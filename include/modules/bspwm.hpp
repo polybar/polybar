@@ -49,11 +49,12 @@ namespace modules {
     }
 
     void setup() {
+      // Load configuration values {{{
+
       m_monitor = m_bar.monitor->name;
       m_log.trace("%s: Primary monitor '%s'", name(), m_monitor);
 
-      m_subscriber = bspwm_util::make_subscriber();
-
+      // }}}
       // Add formats and create components {{{
 
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MODE});
@@ -88,8 +89,6 @@ namespace modules {
             get_optional_config_label(m_conf, name(), "label-private")));
       }
 
-      // }}}
-
       m_icons = iconset_t{new iconset()};
       m_icons->add(
           DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
@@ -100,6 +99,13 @@ namespace modules {
           m_icons->add(vec[0], icon_t{new icon{vec[1]}});
         }
       }
+
+      // }}}
+      // Create ipc subscriber {{{
+
+      m_subscriber = bspwm_util::make_subscriber();
+
+      // }}}
     }
 
     bool has_event() {
@@ -331,10 +337,8 @@ namespace modules {
    private:
     static constexpr auto DEFAULT_WS_ICON = "workspace_icon-default";
     static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
-
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";
-
     static constexpr auto EVENT_CLICK = "bwm";
 
     bspwm_util::connection_t m_subscriber;

@@ -3,6 +3,8 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
 
+#include <i3ipc++/ipc.hpp>
+
 #include "common.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/randr.hpp"
@@ -13,6 +15,8 @@
 LEMONBUDDY_NS
 
 namespace i3_util {
+  using connection_t = i3ipc::connection;
+
   /**
    * Get all i3 root windows
    */

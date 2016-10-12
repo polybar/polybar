@@ -146,16 +146,16 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
     // }}}
     // Set size and position {{{
 
-    GET_CONFIG_VALUE(m_bar.dock, "dock");
-    GET_CONFIG_VALUE(m_bar.bottom, "bottom");
-    GET_CONFIG_VALUE(m_bar.spacing, "spacing");
-    GET_CONFIG_VALUE(m_bar.lineheight, "lineheight");
-    GET_CONFIG_VALUE(m_bar.offset_x, "offset_x");
-    GET_CONFIG_VALUE(m_bar.offset_y, "offset_y");
-    GET_CONFIG_VALUE(m_bar.padding_left, "padding_left");
-    GET_CONFIG_VALUE(m_bar.padding_right, "padding_right");
-    GET_CONFIG_VALUE(m_bar.module_margin_left, "module_margin_left");
-    GET_CONFIG_VALUE(m_bar.module_margin_right, "module_margin_right");
+    GET_CONFIG_VALUE(bs, m_bar.dock, "dock");
+    GET_CONFIG_VALUE(bs, m_bar.bottom, "bottom");
+    GET_CONFIG_VALUE(bs, m_bar.spacing, "spacing");
+    GET_CONFIG_VALUE(bs, m_bar.lineheight, "lineheight");
+    GET_CONFIG_VALUE(bs, m_bar.offset_x, "offset_x");
+    GET_CONFIG_VALUE(bs, m_bar.offset_y, "offset_y");
+    GET_CONFIG_VALUE(bs, m_bar.padding_left, "padding_left");
+    GET_CONFIG_VALUE(bs, m_bar.padding_right, "padding_right");
+    GET_CONFIG_VALUE(bs, m_bar.module_margin_left, "module_margin_left");
+    GET_CONFIG_VALUE(bs, m_bar.module_margin_right, "module_margin_right");
 
     auto w = m_conf.get<string>(bs, "width", "100%");
     auto h = m_conf.get<string>(bs, "height", "24");

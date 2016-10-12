@@ -9,7 +9,7 @@
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
-#define GET_CONFIG_VALUE(var, name) var = m_conf.get<decltype(var)>(bs, name, var)
+#define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
 
 LEMONBUDDY_NS
 
