@@ -1,5 +1,5 @@
 sudo: required
-dist: xenial
+dist: trusty
 language: cpp
 
 compiler:
@@ -31,7 +31,7 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
 
 before_install:
-  # - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
+  - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
   - sudo apt-get -qq update
 
   # Install packages : core
@@ -44,22 +44,32 @@ before_install:
 
   # Install packages : optional
   #--------------------------------------------------------------------------x
-  - sudo apt-get install -y i3-wm libiw-dev libasound2-dev libmpdclient-dev libjson0-dev
+  - sudo apt-get install -y i3-wm libiw-dev libasound2-dev libmpdclient-dev
 
 install:
   # Install dependencies in ${TRAVIS_BUILD_DIR}/deps
   #--------------------------------------------------------------------------x
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - LLVM_ROOT="${DEPS_DIR}/llvm-${LLVM_VERSION}"
+  - mkdir -p "${DEPS_DIR}"
 
   # Update python path to make sure we find the xcbgen module
   #--------------------------------------------------------------------------x
   - export PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
 
+  # Install jsoncpp
+  #--------------------------------------------------------------------------x
+  - |
+    cd "${DEPS_DIR}"
+    tar -zxf ../lib/jsoncpp-1.7.7.tar.gz -C .
+    mkdir -p jsoncpp-1.7.7/build && cd jsoncpp-1.7.7/build
+    cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+    sudo make install
+
   # Install a later version of cmake
   #--------------------------------------------------------------------------x
   - |
-    mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
+    cd "${DEPS_DIR}"
     if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin 2>/dev/null)" ]]; then
       mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
     fi
