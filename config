@@ -4,7 +4,7 @@
 ;
 
 [bar/top]
-monitor = eDP-1
+monitor = HDMI-1
 width = 100%
 height = 27
 offset-x = 0
@@ -19,18 +19,19 @@ border-bottom-color = #333
 
 spacing = 1
 lineheight = 1
+
 padding-left = 0
 padding-right = 2
+
 module-margin-left = 1
 module-margin-right = 2
 
 font-0 = tamzen:size=9;1
-font-1 = siji:pixelsize=10;0
-font-2 = unifont:size=6;-1
+font-1 = unifont:size=6;-1
+font-2 = siji:pixelsize=10;0
 
 modules-left = bspwm
 modules-center = mpd
-; modules-right = volume wifi battery memory cpu date
 modules-right = volume memory cpu date
 
 tray-position = right
@@ -38,11 +39,12 @@ tray-position = right
 wm-restack = bspwm
 
 
-[bar/external_bottom]
+[bar/bottom]
 monitor = HDMI-1
 bottom = true
 width = 100%
 height = ${bar/top.height}
+offset-y = 0
 
 background = ${bar/top.background}
 foreground = ${bar/top.foreground}

@@ -52,7 +52,7 @@ problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issue
 ## Introduction
 
 The main purpose of **Lemonbuddy** is to help users create awesome status bars.
-It has built-in functionality to generate content for the most commonly used data, such as:
+It has built-in functionality to generate content for the most commonly used widgets, such as:
 
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
 - [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls

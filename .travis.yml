@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 
 compiler:
@@ -31,7 +31,7 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
 
 before_install:
-  - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
+  # - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
   - sudo apt-get -qq update
 
   # Install packages : core
@@ -44,7 +44,7 @@ before_install:
 
   # Install packages : optional
   #--------------------------------------------------------------------------x
-  - sudo apt-get install -y libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev
+  - sudo apt-get install -y i3-wm libiw-dev libasound2-dev libmpdclient-dev libjson0-dev
 
 install:
   # Install dependencies in ${TRAVIS_BUILD_DIR}/deps
