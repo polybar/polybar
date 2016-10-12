@@ -73,6 +73,27 @@ class trayclient {
     return m_xembed.get();
   }
 
+  void configure_notify(int16_t x, int16_t y, uint16_t w, uint16_t h) {
+    auto notify = reinterpret_cast<xcb_configure_notify_event_t*>(calloc(32, 1));
+
+    notify->response_type = XCB_CONFIGURE_NOTIFY;
+    notify->event = m_window;
+    notify->window = m_window;
+    notify->override_redirect = false;
+    notify->above_sibling = XCB_NONE;
+    notify->x = x;
+    notify->y = y;
+    notify->width = w;
+    notify->height = h;
+    notify->border_width = 0;
+
+    m_connection.send_event(
+        false, notify->event, XCB_EVENT_MASK_STRUCTURE_NOTIFY, reinterpret_cast<char*>(notify));
+    m_connection.flush();
+
+    free(notify);
+  }
+
  protected:
   connection& m_connection;
   xcb_window_t m_window{0};
@@ -85,8 +106,9 @@ class trayclient {
 
 class traymanager
     : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-          evt::configure_request, evt::selection_clear, evt::selection_notify, evt::property_notify,
-          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify> {
+          evt::configure_request, evt::resize_request, evt::selection_clear, evt::selection_notify,
+          evt::property_notify, evt::reparent_notify, evt::destroy_notify, evt::map_notify,
+          evt::unmap_notify> {
  public:
   explicit traymanager(connection& conn, const logger& logger)
       : m_connection(conn), m_logger(logger) {
@@ -499,28 +521,25 @@ class traymanager
    * so we return an answer that'll put him in place.
    */
   void handle(const evt::configure_request& evt) {
-    if (!find_client(evt->window))
-      return;
+    auto client = find_client(evt->window);
+    if (client) {
+      m_logger.trace(
+          "tray: Received configure_request for client %s", m_connection.id(evt->window));
+      client->configure_notify(calculate_client_xpos(evt->window), m_settings.spacing,
+          m_settings.width, m_settings.height);
+    }
+  }
 
-    m_logger.trace("tray: Received configure_request");
-
-    auto resp = reinterpret_cast<xcb_configure_notify_event_t*>(calloc(32, 1));
-
-    resp->response_type = XCB_CONFIGURE_NOTIFY;
-    resp->event = evt->window;
-    resp->window = evt->window;
-    resp->override_redirect = false;
-    resp->above_sibling = XCB_NONE;
-    resp->x = calculate_client_xpos(evt->window);
-    resp->y = m_settings.spacing;
-    resp->width = m_settings.width;
-    resp->height = m_settings.height;
-    resp->border_width = 0;
-    m_connection.send_event(
-        false, resp->event, XCB_EVENT_MASK_STRUCTURE_NOTIFY, reinterpret_cast<char*>(resp));
-    m_connection.flush();
-
-    free(resp);
+  /**
+   * @see tray_manager::handle(const evt::configure_request&);
+   */
+  void handle(const evt::resize_request& evt) {
+    auto client = find_client(evt->window);
+    if (client) {
+      m_logger.trace("tray: Received resize_request for client %s", m_connection.id(evt->window));
+      client->configure_notify(calculate_client_xpos(evt->window), m_settings.spacing,
+          m_settings.width, m_settings.height);
+    }
   }
 
   /**

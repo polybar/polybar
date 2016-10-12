@@ -88,7 +88,7 @@ A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_s
 - cmake
 - boost
 - xcb-util-wm
-- libxft
+- libXft
 
 Optional dependencies for module support:
 
