@@ -1,8 +1,8 @@
 [submodule "lib/i3ipcpp"]
 	path = lib/i3ipcpp
 	url = https://github.com/jaagr/i3ipcpp
-	branch = v0.3.0
+	branch = wip-lemonbuddy-2.0
 [submodule "lib/xpp"]
 	path = lib/xpp
 	url = https://github.com/jaagr/xpp
-	branch = 1.2.1
+	branch = wip-lemonbuddy-2.0
