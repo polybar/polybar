@@ -10,6 +10,9 @@ namespace modules {
     using timer_module::timer_module;
 
     void setup() {
+      if (!m_bar.locale.empty())
+        setlocale(LC_TIME, m_bar.locale.c_str());
+
       m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
       m_formatter->add(DEFAULT_FORMAT, TAG_DATE, {TAG_DATE});

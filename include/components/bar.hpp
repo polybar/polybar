@@ -206,6 +206,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
     // Set misc parameters {{{
 
     m_bar.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
+    m_bar.locale = m_conf.get<string>(bs, "locale", "");
 
     // }}}
     // Checking nodraw {{{

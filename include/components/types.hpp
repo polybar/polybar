@@ -16,6 +16,8 @@ enum class gc { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
 struct bar_settings {
   bar_settings() = default;
 
+  string locale;
+
   int16_t x{0};
   int16_t y{0};
   uint16_t width{0};
