@@ -113,12 +113,12 @@ Optional dependencies for module support:
 - wireless_tools (required for `internal/network` support)
 - alsa-lib (required for `internal/volume` support)
 - libmpdclient (required for `internal/mpd` support)
-- jsoncpp, libsigc++ (required for `internal/i3` support)
+- jsoncpp (required for `internal/i3` support)
 
 ~~~ sh
-$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
-$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel freetype-devel libsigc++-devel wireless_tools-devel
-$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-dev libfreetype6-dev
+$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp
+$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel freetype-devel wireless_tools-devel
+$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libfreetype6-dev
 ~~~
 
 

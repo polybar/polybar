@@ -45,7 +45,7 @@ before_install:
 
   # Install packages : optional
   #--------------------------------------------------------------------------x
-  - sudo apt-get install -y libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-2.0-0c2a libsigc++-2.0-dev
+  - sudo apt-get install -y libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev
 
 install:
   # Install dependencies in ${TRAVIS_BUILD_DIR}/deps
