@@ -18,10 +18,12 @@
 #include "components/x11/xlib.hpp"
 #include "components/x11/xutils.hpp"
 #include "utils/bspwm.hpp"
-#include "utils/i3.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/threading.hpp"
+#if ENABLE_I3
+#include "utils/i3.hpp"
+#endif
 
 LEMONBUDDY_NS
 
@@ -340,8 +342,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
       if (wm_restack == "bspwm") {
         restacked = bspwm_util::restack_above_root(m_connection, m_bar.monitor, m_window);
 
-      } else if (wm_restack == "i3" && m_bar.dock) {
+      } else if (wm_restack == "i3" && m_bar.dock && ENABLE_I3) {
+#if ENABLE_I3
         restacked = i3_util::restack_above_root(m_connection, m_bar.monitor, m_window);
+#endif
 
       } else if (wm_restack == "i3" && !m_bar.dock) {
         m_log.warn("Ignoring restack of i3 window (not needed when dock = false)");
