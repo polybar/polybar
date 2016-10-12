@@ -1,48 +1,146 @@
 #pragma once
 
-#include <mutex>
+#include "drawtypes/label.hpp"
+#include "modules/meta.hpp"
 
-#include "modules/base.hpp"
+LEMONBUDDY_NS
 
-namespace modules
-{
-  struct MenuTreeItem {
-    std::string exec;
-    std::unique_ptr<drawtypes::Label> label;
+namespace modules {
+  struct menu_tree_item {
+    string exec;
+    label_t label;
   };
 
-  struct MenuTree {
-    std::vector<std::unique_ptr<MenuTreeItem>> items;
+  struct menu_tree {
+    vector<unique_ptr<menu_tree_item>> items;
   };
 
-  DefineModule(MenuModule, StaticModule)
-  {
+  class menu_module : public static_module<menu_module> {
+   public:
+    using static_module::static_module;
+
+    void setup() {
+      string default_format{TAG_LABEL_TOGGLE + string{" "} + TAG_MENU};
+
+      m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
+
+      if (m_formatter->has(TAG_LABEL_TOGGLE)) {
+        m_labelopen = get_config_label(m_conf, name(), "label-open");
+        m_labelclose = get_optional_config_label(m_conf, name(), "label-close", "x");
+      }
+
+      m_labelseparator = get_optional_config_label(m_conf, name(), "label-separator", "");
+
+      if (!m_formatter->has(TAG_MENU))
+        return;
+
+      while (true) {
+        string level_param{"menu-" + to_string(m_levels.size())};
+
+        if (m_conf.get<string>(name(), level_param + "-0", "").empty())
+          break;
+
+        m_log.trace("%s: Creating menu level %i", name(), m_levels.size());
+        m_levels.emplace_back(make_unique<menu_tree>());
+
+        while (true) {
+          string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
+
+          if (m_conf.get<string>(name(), item_param, "").empty())
+            break;
+
+          m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
+          auto item = make_unique<menu_tree_item>();
+          item->label = get_config_label(m_conf, name(), item_param);
+          item->exec = m_conf.get<string>(name(), item_param + "-exec", EVENT_MENU_CLOSE);
+          m_levels.back()->items.emplace_back(std::move(item));
+        }
+      }
+    }
+
+    bool build(builder* builder, string tag) {
+      if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
+        builder->cmd(mousebtn::LEFT, string(EVENT_MENU_OPEN) + "0");
+        builder->node(m_labelopen);
+        builder->cmd_close(true);
+      } else if (tag == TAG_LABEL_TOGGLE && m_level > -1) {
+        builder->cmd(mousebtn::LEFT, EVENT_MENU_CLOSE);
+        builder->node(m_labelclose);
+        builder->cmd_close(true);
+      } else if (tag == TAG_MENU && m_level > -1) {
+        for (auto&& item : m_levels[m_level]->items) {
+          if (item != m_levels[m_level]->items.front())
+            builder->space();
+          if (*m_labelseparator)
+            builder->node(m_labelseparator, true);
+          builder->cmd(mousebtn::LEFT, item->exec);
+          builder->node(item->label);
+          builder->cmd_close(true);
+        }
+      } else {
+        return false;
+      }
+      return true;
+    }
+
+    bool handle_event(string cmd) {
+      if (cmd.compare(0, 4, "menu") != 0)
+        return false;
+
+      // broadcast update when leaving leaving the function
+      auto exit_handler = scope_util::make_exit_handler<>([this]() {
+        if (!m_threads.empty()) {
+          m_log.trace("%s: Cleaning up previous broadcast threads", name());
+          for (auto&& thread : m_threads)
+            if (thread.joinable())
+              thread.join();
+          m_threads.clear();
+        }
+
+        m_log.trace("%s: Dispatching broadcast thread", name());
+        m_threads.emplace_back(thread(&menu_module::broadcast, this));
+      });
+
+      if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
+        auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
+
+        if (level.empty())
+          level = "0";
+
+        m_level = std::atoi(level.c_str());
+        m_log.info("%s: Opening menu level '%i'", name(), static_cast<int>(m_level));
+
+        if (static_cast<size_t>(m_level) >= m_levels.size()) {
+          m_log.warn("%s: Cannot open unexisting menu level '%i'", name(), level);
+          m_level = -1;
+        }
+      } else if (cmd == EVENT_MENU_CLOSE) {
+        m_log.info("%s: Closing menu tree", name());
+        m_level = -1;
+      }
+
+      return true;
+    }
+
+    bool receive_events() const {
+      return true;
+    }
+
+   private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";
     static constexpr auto TAG_MENU = "<menu>";
 
-    static constexpr auto EVENT_MENU_OPEN = "menu_open-";
-    static constexpr auto EVENT_MENU_CLOSE = "menu_close";
+    static constexpr auto EVENT_MENU_OPEN = "menu-open-";
+    static constexpr auto EVENT_MENU_CLOSE = "menu-close";
 
-    std::mutex output_mtx;
-    std::mutex cmd_mtx;
+    label_t m_labelopen;
+    label_t m_labelclose;
+    label_t m_labelseparator;
 
-    int current_level = -1;
-    std::vector<std::unique_ptr<MenuTree>> levels;
+    vector<unique_ptr<menu_tree>> m_levels;
 
-    std::unique_ptr<drawtypes::Label> label_open;
-    std::unique_ptr<drawtypes::Label> label_close;
-
-    public:
-      explicit MenuModule(std::string name);
-
-      std::string get_output();
-
-      bool build(Builder *builder, std::string tag);
-
-      bool handle_command(std::string cmd);
-
-      bool register_for_events() const {
-        return true;
-      }
+    std::atomic<int> m_level{-1};
   };
 }
+
+LEMONBUDDY_NS_END

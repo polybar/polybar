@@ -1,60 +1,36 @@
-if(ENABLE_ALSA)
-  set(FILES_ALSA
-    "src/interfaces/alsa.cpp"
-    "src/modules/volume.cpp")
-endif()
+#
+# Create library and executable
+#
+set(library_name lemonlib)
+set(executable_name lemonbuddy)
 
-if(ENABLE_MPD)
-  set(FILES_MPD
-    "src/interfaces/mpd.cpp"
-    "src/modules/mpd.cpp")
-endif()
+file(GLOB_RECURSE headers RELATIVE ${PROJECT_SOURCE_DIR}/include *.h[p]*)
+file(GLOB_RECURSE sources RELATIVE ${PROJECT_SOURCE_DIR}/src *.c[p]*)
+list(REMOVE_ITEM sources main.cpp)
 
-if(ENABLE_NETWORK)
-  set(FILES_NETWORK
-    "src/interfaces/net.cpp"
-    "src/modules/network.cpp")
-endif()
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-if(ENABLE_I3)
-  set(FILES_I3 "src/modules/i3.cpp")
-endif()
+make_library(${library_name} STATIC
+  HEADER_INSTALL_DIR
+    lemonbuddy
+  HEADERS
+    ${headers}
+  SOURCES
+    ${sources})
 
-set(FILES
-  ${FILES_ALSA}
-  ${FILES_I3}
-  ${FILES_MPD}
-  ${FILES_NETWORK}
-  "src/drawtypes/animation.cpp"
-  "src/drawtypes/bar.cpp"
-  "src/drawtypes/icon.cpp"
-  "src/drawtypes/label.cpp"
-  "src/drawtypes/ramp.cpp"
-  "src/modules/backlight.cpp"
-  "src/modules/base.cpp"
-  "src/modules/battery.cpp"
-  "src/modules/bspwm.cpp"
-  "src/modules/counter.cpp"
-  "src/modules/cpu.cpp"
-  "src/modules/date.cpp"
-  "src/modules/memory.cpp"
-  "src/modules/menu.cpp"
-  "src/modules/script.cpp"
-  "src/modules/text.cpp"
-  "src/services/builder.cpp"
-  "src/services/command.cpp"
-  "src/services/event_throttler.cpp"
-  "src/services/inotify.cpp"
-  "src/services/logger.cpp"
-  "src/utils/cli.cpp"
-  "src/utils/config.cpp"
-  "src/utils/io.cpp"
-  "src/utils/proc.cpp"
-  "src/utils/string.cpp"
-  "src/utils/xcb.cpp"
-  "src/bar.cpp"
-  "src/eventloop.cpp"
-  "src/lemonbuddy.cpp"
-  "src/registry.cpp"
-  PARENT_SCOPE
-)
+make_executable(${executable_name}
+  SOURCES main.cpp
+  TARGET_DEPENDS ${library_name}_static)
+
+target_compile_definitions(lemonbuddy PUBLIC
+    ${X11_XCB_DEFINITIONS}
+    ${XCB_DEFINITIONS})
+
+configure_file(
+  ${PROJECT_SOURCE_DIR}/include/config.hpp.cmake
+  ${CMAKE_SOURCE_DIR}/include/config.hpp
+  ESCAPE_QUOTES @ONLY)
+
+set(app_binary ${PROJECT_SOURCE_DIR}/bin/${executable_name} PARENT_SCOPE)
+set(app_libraries ${XPP_LIBRARIES} PARENT_SCOPE)
+set(app_include_dirs ${PROJECT_SOURCE_DIR}/include PARENT_SCOPE)

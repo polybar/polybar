@@ -1,23 +1,25 @@
 #pragma once
 
-#include <memory>
+#include "common.hpp"
 
-// Swap the two ints without the need of creating another tmp variable
-#define int_memswap(one, two) one += two; \
-  two = one ? two; \
-  one -= two;
+LEMONBUDDY_NS
 
-#define _repeat(n, var_name) for (int var_name = n; var_name--;)
-#define repeat(n) _repeat(n, i)
-#define repeat_(n) _repeat(n, i_)
-#define repeat_with(n, m) for (m = n; m--;)
-#define repeat_i i
-#define repeat_i_rev(n) (n - i - 1)
+namespace memory_util {
+  /**
+   * Create a shared pointer using malloc/free
+   */
+  template <typename T>
+  inline auto make_malloc_ptr(size_t size = sizeof(T)) {
+    return shared_ptr<T>(static_cast<T*>(malloc(size)), free);
+  }
 
-namespace memory
-{
-  template<typename T>
-  std::shared_ptr<T> make_malloc_ptr() {
-    return std::shared_ptr<T>(static_cast<T*>(malloc(sizeof(T))), free);
+  /**
+   * Get the number of elements in T
+   */
+  template <typename T>
+  inline auto countof(T& p) {
+    return sizeof(p) / sizeof(p[0]);
   }
 }
+
+LEMONBUDDY_NS_END

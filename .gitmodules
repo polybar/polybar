@@ -1,7 +1,3 @@
-[submodule "contrib/lemonbar-sm-git"]
-	path = contrib/lemonbar-sm-git
-	url = https://github.com/jaagr/bar
-	branch = v1.1
 [submodule "lib/i3ipcpp"]
 	path = lib/i3ipcpp
 	url = https://github.com/jaagr/i3ipcpp

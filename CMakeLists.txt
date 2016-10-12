@@ -2,34 +2,44 @@
 # Build configuration
 #
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(lemonbuddy C CXX)
+project(lemonbuddy CXX)
 
-# Include the local cmake modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wno-unused-parameter -Wno-unused-local-typedefs")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g2")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "No build type specified; using Release")
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-string(ASCII 27 ESC)
+include(cmake/utils.cmake)
+include(cmake/clang-cpp-tools.cmake)
 
-#
-# Project settings
-#
+# Figure out default option values {{{
 
-# Make the default options based on available libs
 find_package(ALSA QUIET)
 find_package(Libiw QUIET)
 find_package(LibMPDClient QUIET)
 find_program(CCACHE_BINARY ccache)
+find_program(I3_BINARY i3)
 if(CCACHE_BINARY)
   set(CCACHE_FOUND ON)
 endif()
-find_program(I3_BINARY i3)
 if(I3_BINARY)
   set(I3_FOUND ON)
 endif()
+
+# }}}
+# Project settings {{{
 
 option(ENABLE_CCACHE  "Enable ccache support"  ${CCACHE_FOUND})
 option(ENABLE_ALSA    "Enable alsa support"    ${ALSA_FOUND})
@@ -61,123 +71,116 @@ set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
   CACHE STRING "Path to file containing memory info")
 
 if(ENABLE_CCACHE)
-  find_program(CCACHE_BINARY ccache REQUIRED)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "ccache")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "ccache")
 endif()
 
-#
-# Locate and insert libs
-#
-find_package("Boost" REQUIRED)
-find_package("Threads" REQUIRED)
+# }}}
+# Locate dependencies {{{
 
-set(PROJECT_INCL_DIRS "${PROJECT_SOURCE_DIR}/include"
-  ${BOOST_INCLUDE_DIR})
-set(PROJECT_LINK_LIBS
-  ${BOOST_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT})
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Boost REQUIRED)
+find_package(Threads REQUIRED)
+find_package(Freetype REQUIRED Freetype2)
+find_package(PkgConfig)
+find_package(X11 REQUIRED COMPONENTS Xft)
+find_package(X11_XCB REQUIRED)
 
-if(ENABLE_I3)
-  add_subdirectory("${PROJECT_SOURCE_DIR}/lib/i3ipcpp" EXCLUDE_FROM_ALL)
-  set(PROJECT_INCL_DIRS
-    ${PROJECT_INCL_DIRS}
-    ${SIGCPP_INCLUDE_DIRS}
-    ${I3IPCPP_INCLUDE_DIRS})
-  set(PROJECT_LINK_LIBS
-    ${PROJECT_LINK_LIBS}
-    ${I3IPCPP_LIBRARIES})
-endif()
+pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+
+link_libraries(${X11_Xft_LIB})
+link_libraries(${X11_XCB_LIB})
+link_libraries(${BOOST_LIBRARIES})
+link_libraries(${CMAKE_THREAD_LIBS_INIT})
+link_libraries(${X11_LIBRARIES})
+link_libraries(${FREETYPE_LIBRARIES})
+link_libraries(${FONTCONFIG_LIBRARIES})
+link_libraries()
+
+include_directories(
+  ${BOOST_INCLUDE_DIR}
+  ${FONTCONFIG_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/lib/boost/include
+  ${PROJECT_SOURCE_DIR}/lib/fastdelegate/include)
+
+set(XCB_PROTOS xproto randr)
+add_subdirectory(${PROJECT_SOURCE_DIR}/lib/xpp)
+link_libraries(${XPP_LIBRARIES})
 
 if(ENABLE_ALSA)
   find_package(ALSA REQUIRED)
-  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${ALSA_INCLUDE_DIR})
-  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${ALSA_LIBRARY})
+  link_libraries(${ALSA_LIBRARY})
 endif()
-
 if(ENABLE_MPD)
   find_package(LibMPDClient REQUIRED)
-  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBMPDCLIENT_INCLUDE_DIR})
-  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBMPDCLIENT_LIBRARY})
+  link_libraries(${LIBMPDCLIENT_LIBRARIES})
 endif()
-
 if(ENABLE_NETWORK)
   find_package(Libiw REQUIRED)
-  set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${LIBIW_INCLUDE_DIR})
-  set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${LIBIW_LIBRARY})
+  link_libraries(${LIBIW_LIBRARY})
+endif()
+if(ENABLE_I3)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/lib/i3ipcpp EXCLUDE_FROM_ALL)
+  include_directories(${I3IPCPP_INCLUDE_DIRS})
+  link_libraries(${I3IPCPP_LIBRARIES})
 endif()
 
-#
-# Load the xpp library
-#
-set(XCB_PROTOS xproto randr)
-add_subdirectory("${PROJECT_SOURCE_DIR}/lib/xpp")
-set(PROJECT_INCL_DIRS ${PROJECT_INCL_DIRS} ${XPP_INCLUDE_DIRS})
-set(PROJECT_LINK_LIBS ${PROJECT_LINK_LIBS} ${XPP_LIBRARIES})
+# }}}
+# Build source tree {{{
 
-#
-# Install executable and wrapper
-#
+add_subdirectory(${PROJECT_SOURCE_DIR}/man)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/bin)
+add_subdirectory(${PROJECT_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
+add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests EXCLUDE_FROM_ALL)
+
+# }}}
+# Build summary {{{
+
 message(STATUS "---------------------------")
 message(STATUS " Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS " Compiler C: ${CMAKE_C_COMPILER}")
 message(STATUS " Compiler C++: ${CMAKE_CXX_COMPILER}")
+message(STATUS " Compiler flags: ${CMAKE_CXX_FLAGS}")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  message(STATUS " + debug flags:: ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  message(STATUS " + release flags:: ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+  message(STATUS " + minsizerel flags:: ${CMAKE_CXX_FLAGS_MINSIZEREL}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  message(STATUS " + relwithdebinfo flags:: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
 message(STATUS "---------------------------")
+
 message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
 message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
 message(STATUS " Enable i3 support      ${ENABLE_I3}")
 message(STATUS " Enable mpd support     ${ENABLE_MPD}")
 message(STATUS " Enable network support ${ENABLE_NETWORK}")
+
+if(DISABLE_MODULES)
+  message(STATUS " Disable modules        ON")
+endif()
+if(DISABLE_TRAY)
+  message(STATUS " Disable systray        ON")
+endif()
+if(DISABLE_DRAW)
+  message(STATUS " Disable drawing        ON")
+endif()
+
 message(STATUS "---------------------------")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/man")
-add_subdirectory("${PROJECT_SOURCE_DIR}/src" EXCLUDE_FROM_ALL)
-link_directories(${PROJECT_LINK_DIRS})
-include_directories(${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_INCL_DIRS})
-link_libraries(${PROJECT_LINK_LIBS})
+# }}}
+# Uninstall target {{{
 
-add_executable(${PROJECT_NAME} ${FILES}
-  "examples/config"
-  "examples/config.bspwm"
-  "examples/config.i3")
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-
-target_compile_options(${PROJECT_NAME} PRIVATE
-  -Wall -Wextra -Wpedantic -Wno-unused-parameter
-  $<$<CONFIG:Debug>:-g3 -DDEBUG>
-  $<$<CONFIG:Release>:-O3 -Wno-unused-variable>)
-
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
-
-configure_file("${CMAKE_SOURCE_DIR}/include/config.hpp.cmake" "${CMAKE_SOURCE_DIR}/include/config.hpp" ESCAPE_QUOTES @ONLY)
-
-install(TARGETS ${PROJECT_NAME}
-  DESTINATION "bin"
-  COMPONENT "binaries")
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_wrapper"
-  DESTINATION "bin" COMPONENT "binaries")
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lemonbuddy_terminate"
-  DESTINATION "bin" COMPONENT "binaries")
-
-install(FILES "examples/config"
-  DESTINATION "share/examples/${PROJECT_NAME}"
-  COMPONENT "config")
-install(FILES "examples/config.bspwm"
-  DESTINATION "share/examples/${PROJECT_NAME}"
-  COMPONENT "config")
-install(FILES "examples/config.i3"
-  DESTINATION "share/examples/${PROJECT_NAME}"
-  COMPONENT "config")
-
-#
-# Uninstall target
-#
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake"
+  ${PROJECT_SOURCE_DIR}/cmake/uninstall.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake
   IMMEDIATE @ONLY)
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND}
-  -P "${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake")
+  -P ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake)
+
+# }}}

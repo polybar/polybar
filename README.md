@@ -98,25 +98,25 @@ available for more people.
 
 ### Dependencies
 
-A C++ compiler with C++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
+A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
 
-- lemonbar with xft support _(personally I use [this fork](https://github.com/osense/bar))_
 - cmake
 - boost
 - libxcb
 - xcb-proto
+- freetype2
 
 Optional dependencies for module support:
 
 - wireless_tools (required for `internal/network` support)
 - alsa-lib (required for `internal/volume` support)
 - libmpdclient (required for `internal/mpd` support)
-- jsoncpp, libsigc++ (required for `internal/i3` support)
+- jsoncpp (required for `internal/i3` support)
 
 ~~~ sh
-$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp libsigc++
-$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel libsigc++-devel wireless_tools-devel
-$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libsigc++-dev
+$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp
+$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel freetype-devel wireless_tools-devel
+$ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libfreetype6-dev
 ~~~
 
 
@@ -125,10 +125,10 @@ $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-d
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project. It helps alot.
 
   ~~~ sh
-  $ git clone --branch 1.4.6 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 2.0.0 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
-  $ cmake ..
+  $ cmake -DCMAKE_BUILD_TYPE=Release ..
   $ sudo make install
   ~~~
 
@@ -150,43 +150,26 @@ The following code will get you started:
 
   # Launch the bar
   # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
-  $ lemonbuddy_wrapper example
+  $ lemonbuddy example
   ~~~
 
-> **NOTE:** If you are running i3 or bspwm and you don't see the workspace icons
-> it probably depends on the font. Install `font-awesome` and relaunch the bar.
-> ...or replace the icons in the config.
-
-**It is recommended** to always use `lemonbuddy_wrapper` when launching the bars.
-
-`lemonbuddy_wrapper` is just a simple shell script that takes care
-of redirecting the in-/output streams between `lemonbuddy` and `lemonbar`.
-
-If you handle the in-/output stream redirection's manually, the internal command
-handlers (e.g. mpd or volume controls) might stop working. It won't change the
-output of the bar but you will miss out on the internal API calls, which is one
-of the main advantages of using the application.
-
-The `lemonbuddy_wrapper` will be deprecated once `lemonbar` is integrated
-into the project.
+> **NOTE:** In case the bar output looks odd, it's probably because you're
+> missing he fonts defined in the config. Update the config or install the
+> missing fonts.
 
 
 ## Launching the bar in your wm's bootstrap routine
-
-When using the wrapper to start the bar in in your wm's autostart routine, make sure to include
-a kill directive before launching the bar. This is done to make sure that any previously spawned
-processes gets terminated before before we launch the new ones.
 
 Create an executable file containing the startup logic, for example `$HOME/.config/lemonbuddy/launch.sh`:
   ~~~ sh
   #!/usr/bin/env sh
 
   # Terminate already running bar instances
-  lemonbuddy_terminate noconfirm
+  killall -q lemonbuddy
 
   # Launch bar1 and bar2
-  lemonbuddy_wrapper bar1 &
-  lemonbuddy_wrapper bar2 &
+  lemonbuddy bar1 &
+  lemonbuddy bar2 &
 
   echo "Bars launched..."
   ~~~
@@ -203,7 +186,7 @@ If you are using **bspwm**, add the following line to `bspwmrc`:
 
 If you are using **i3**, add the following line to your configuration:
   ~~~ sh
-  exec_always $HOME/.config/lemonbuddy/launch.sh
+  exec_always --no-startup-id $HOME/.config/lemonbuddy/launch.sh
   ~~~
 
 
@@ -219,10 +202,10 @@ the resulting output might not be award-winning.
 ### Fonts
 
 When working with unicode symbols, remember that fonts render the symbols differently. Changing font
-can drastically improve the quality of your bar. One must-have font
-is [Unifont](http://unifoundry.com/unifont.html), which has great unicode coverage.
+can drastically improve the quality of your bar. [Unifont](http://unifoundry.com/unifont.html) has great unicode coverage, which makes
+it really useful.
 
-Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icons/) and [Material Icons](https://design.google.com/icons/).
+Also try different icon fonts, such as [Font Awesome](http://fontawesome.io/icons), [Material Icons](https://design.google.com/icons) and my personal favorite: [Siji](https://github.com/stark/siji).
 
 *TODO: Describe usage in configuration...*
 
@@ -323,11 +306,11 @@ The configuration syntax is based on the `ini` file format.
 ### Application settings
   ~~~ ini
   [settings]
-  ; Limit the amount of events sent to lemonbar within a set timeframe:
+  ; Limit the amount of update events within a set timeframe:
   ; - "Allow <throttle_limit> updates within <throttle_ms> of time"
   ; Default values:
-  throttle_limit = 5
-  throttle_ms = 50
+  throttle_limit = 3
+  throttle_ms = 60
   ~~~
 
 
@@ -335,6 +318,7 @@ The configuration syntax is based on the `ini` file format.
   ~~~ ini
   [bar/example]
   ; Use the following command to list available outputs:
+  ; If unspecified, the application will pick the first one it finds.
   ; $ xrandr -q | grep " connected" | cut -d ' ' -f1
   monitor = HDMI1
 
@@ -343,14 +327,16 @@ The configuration syntax is based on the `ini` file format.
   height = 30
 
   ; Offset value defined in pixels
-  offset_x = 0
-  offset_y = 0
+  offset-x = 0
+  offset-y = 0
 
   ; Put the bar at the bottom of the screen
   bottom = true
 
   ; Weather to force docking mode or not
-  dock = false
+  ; If you are using i3wm it's recommended to use the default value
+  ; Default: false
+  dock = true
 
   ; This value is used as a multiplier when adding spaces between elements
   spacing = 3
@@ -359,17 +345,30 @@ The configuration syntax is based on the `ini` file format.
   lineheight = 14
 
   ; Colors
-  background = #222222
+  background = #ee222222
   foreground = #eefafafa
   linecolor = ${bar/example.background}
 
-  ; Amount of spaces to add at the start/end of the whole bar
-  padding_left = 5
-  padding_right = 2
+  ; Borders
+  ; Size to be used for all borders
+  border-size = 2
+  ; Color to be used for all borders
+  border-color = #ff9900
+  ; Per-border values
+  ;border-top = 1
+  ;border-top-color = #ff9900
+  ;border-bottom = 2
+  ;border-bottom-color = #5d00ff
+  ;border-left = 3
+  ;border-right-color = #ff0059
+
+  ; Number of spaces to add at the beginning/end of the bar
+  padding-left = 5
+  padding-right = 2
 
   ; Amount of spaces to add before/after each module
-  module_margin_left = 3
-  module_margin_right = 3
+  module-margin-left = 3
+  module-margin-right = 3
 
   ; Fonts are defined using: <FontName>;<Offset>
   font-0 = NotoSans-Regular:size=8;0
@@ -380,13 +379,9 @@ The configuration syntax is based on the `ini` file format.
   ; The separator will be inserted between the output of each module
   separator = |
 
-  ; This value is used by Lemonbar and it specifies the clickable
-  ; areas available -> %{A:action:}...%{A}
-  clickareas = 30
-
   ; Value to be used to set the WM_NAME atom
   ; This defaults to "lemonbuddy-[BAR]_[MONITOR]"
-  wm_name = mybar
+  wm-name = mybar
 
   ; Locale used to localize module output (for example date)
   ;locale = sv_SE.UTF-8
@@ -395,6 +390,26 @@ The configuration syntax is based on the `ini` file format.
   modules-left = cpu ram
   modules-center = label
   modules-right = clock
+
+  ; Position of the tray container
+  ; If undefined, tray support will be disabled
+  ;
+  ; Available positions:
+  ;   left
+  ;   right
+  tray-position = right
+
+  ; Restack the bar window and put it above the
+  ; selected window manager's root
+  ;
+  ; Fixes the issue where the bar is being drawn
+  ; on top of fullscreen window's
+  ;
+  ; Currently supported WM's:
+  ;   bspwm
+  ;   i3
+  ; Default: none
+  wm-restack = bspwm
   ~~~
 
 ### Modules
@@ -441,7 +456,7 @@ The configuration syntax is based on the `ini` file format.
   type = internal/battery
 
   ; This is useful in case the battery never reports 100% charge
-  full_at = 99
+  full-at = 99
 
   ; Use the following command to list batteries and adapters:
   ; $ ls -1 /sys/class/power_supply/
@@ -450,7 +465,7 @@ The configuration syntax is based on the `ini` file format.
 
   ; Seconds between reading battery capacity.
   ; If set to 0, polling will be disabled.
-  ;poll_interval = 3
+  ;poll-interval = 3
   ~~~
 
 ##### Extra formatting (example)
@@ -499,7 +514,8 @@ The configuration syntax is based on the `ini` file format.
   animation-charging-2 = 
   animation-charging-3 = 
   animation-charging-4 = 
-  animation-charging-framerate_ms = 750
+  ; Framerate in milliseconds
+  animation-charging-framerate = 750
   ~~~
 
 
@@ -514,13 +530,13 @@ To specify a custom path to the bspwm socket, you can set the environment variab
 
 ##### Extra formatting (example)
   ~~~ ini
-  ; workspace_icon-[0-9]+ = label;icon
-  workspace_icon-0 = code;♚
-  workspace_icon-1 = office;♛
-  workspace_icon-2 = graphics;♜
-  workspace_icon-3 = mail;♝
-  workspace_icon-4 = web;♞
-  workspace_icon-default = ♟
+  ; ws-icon-[0-9]+ = label;icon
+  ws-icon-0 = code;♚
+  ws-icon-1 = office;♛
+  ws-icon-2 = graphics;♜
+  ws-icon-3 = mail;♝
+  ws-icon-4 = web;♞
+  ws-icon-default = ♟
 
   ; Available tags:
   ;   <label-state> (default) - gets replaced with <label-(active|urgent|occupied|empty)>
@@ -598,21 +614,21 @@ To specify a custom path to the bspwm socket, you can set the environment variab
   ;   <label> (default)
   ;   <bar-load>
   ;   <ramp-load>
-  ;   <ramp-load_per_core>
-  format = <label> <ramp-load_per_core>
+  ;   <ramp-coreload>
+  format = <label> <ramp-coreload>
 
   ; Available tokens:
   ;   %percentage% (default) - total cpu load
   label = CPU %percentage%
 
-  ramp-load_per_core-0 = ▁
-  ramp-load_per_core-1 = ▂
-  ramp-load_per_core-2 = ▃
-  ramp-load_per_core-3 = ▄
-  ramp-load_per_core-4 = ▅
-  ramp-load_per_core-5 = ▆
-  ramp-load_per_core-6 = ▇
-  ramp-load_per_core-7 = █
+  ramp-coreload-0 = ▁
+  ramp-coreload-1 = ▂
+  ramp-coreload-2 = ▃
+  ramp-coreload-3 = ▄
+  ramp-coreload-4 = ▅
+  ramp-coreload-5 = ▆
+  ramp-coreload-6 = ▇
+  ramp-coreload-7 = █
   ~~~
 
 
@@ -628,8 +644,8 @@ To specify a custom path to the bspwm socket, you can set the environment variab
   ; NOTE: if you want to use lemonbar tags here you need to use %%{...}
   date = %Y-%m-%d% %H:%M
 
-  ; if date_detailed is defined, clicking the area will toggle between formats
-  date_detailed = %%{F#888}%A, %d %B %Y  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
+  ; if `date-alt` is defined, clicking the area will toggle between formats
+  date-alt = %%{F#888}%A, %d %B %Y  %%{F#fff}%H:%M%%{F#666}:%%{F#fba922}%S%%{F-}
   ~~~
 
 ##### Extra formatting (example)
@@ -655,17 +671,34 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ~~~ ini
   [module/i3]
   type = internal/i3
+
+  ; Only show workspaces defined on the same output as the bar
+  ;
+  ; Useful if you want to show monitor specific workspaces
+  ; in different bars
+  ;
+  ; Default: false
+  pin-workspaces = true
+
+  ; Limit the amount of chars to output for each workspace name
+  ; Default: 0
+  wsname-maxlen = 2
+
+  ; Sort the workspaces by index instead of the default
+  ; sorting that groups the workspaces by output
+  ; Default: false
+  index-sort = true
   ~~~
 
 ##### Extra formatting (example)
   ~~~ ini
   ; workspace_icon-[0-9]+ = label;icon
-  workspace_icon-0 = 1;♚
-  workspace_icon-1 = 2;♛
-  workspace_icon-2 = 3;♜
-  workspace_icon-3 = 4;♝
-  workspace_icon-4 = 5;♞
-  workspace_icon-default = ♟
+  ws-icon-0 = 1;♚
+  ws-icon-1 = 2;♛
+  ws-icon-2 = 3;♜
+  ws-icon-3 = 4;♝
+  ws-icon-4 = 5;♞
+  ws-icon-default = ♟
 
   ; Available tags:
   ;   <label-state> (default) - gets replaced with <label-(focused|unfocused|visible|urgent)>
@@ -675,6 +708,7 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   %name%
   ;   %icon%
   ;   %index%
+  ;   %output%
   ; Default: %icon%  %name%
   label-focused = %icon%
   label-focused-foreground = #ffffff
@@ -815,8 +849,8 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;icon-repeatone = 🔂
 
   ; Used to display the state of random/repeat/repeatone
-  toggle_on-foreground = #ff
-  toggle_off-foreground = #55
+  toggle-on-foreground = #ff
+  toggle-off-foreground = #55
 
   bar-progress-width = 45
   bar-progress-indicator = |
@@ -853,7 +887,11 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Recommended minimum value: round(10 / interval)
   ;   - which would test the connection approx. every 10th sec.
   ; Default: 0
-  ;ping_interval = 3
+  ;ping-interval = 3
+
+  ; Minimum output width of upload/download rate
+  ; Default: 3
+  ;udspeed-minwidth = 0
   ~~~
 
 ##### Extra formatting (example)
@@ -878,9 +916,11 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ;   %local_ip%  [wireless+wired]
   ;   %essid%     [wireless]
   ;   %signal%    [wireless]
+  ;   %upspeed%   [wireless+wired]
+  ;   %downspeed% [wireless+wired]
   ;   %linkspeed% [wired]
   ; Default: %ifname% %local_ip%
-  label-connected = %essid%
+  label-connected = %essid% %downspeed%
   label-connected-foreground = #eefafafa
 
   ; Available tokens:
@@ -910,7 +950,8 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   animation-packetloss-0-foreground = #ffa64c
   animation-packetloss-1 = 📶
   animation-packetloss-1-foreground = #000000
-  animation-packetloss-framerate_ms = 500
+  ; Framerate in milliseconds
+  animation-packetloss-framerate = 500
   ~~~
 
 
@@ -921,17 +962,17 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ~~~ ini
   [module/volume]
   type = internal/volume
-  ;master_mixer = Master
+  ;master-mixer = Master
 
   ; Use the following command to list available mixer controls:
   ; $ amixer scontrols | sed -nr "s/.*'([[:alnum:]]+)'.*/\1/p"
-  speaker_mixer = Speaker
-  headphone_mixer = Headphone
+  speaker-mixer = Speaker
+  headphone-mixer = Headphone
 
   ; NOTE: This is required if headphone_mixer is defined
   ; Use the following command to list available device controls
   ; $ amixer controls | sed -r "/CARD/\!d; s/.*=([0-9]+).*name='([^']+)'.*/printf '%3.0f: %s\n' '\1' '\2'/e" | sort
-  headphone_control_numid = 9
+  headphone-id = 9
   ~~~
 
 ##### Extra formatting (example)
@@ -960,6 +1001,12 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ramp-volume-0 = 🔈
   ramp-volume-1 = 🔉
   ramp-volume-2 = 🔊
+
+  ; If defined, it will replace <ramp-volume> when
+  ; headphones are plugged in to `headphone_control_numid`
+  ; If undefined, <ramp-volume> will be used for both
+  ramp-headphones-0 = 
+  ramp-headphones-1 = 
   ~~~
 
 
@@ -972,15 +1019,15 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; the additional "exec" property
   ;
   ; Available exec commands:
-  ;   menu_open-LEVEL
-  ;   menu_close
+  ;   menu-open-LEVEL
+  ;   menu-close
   ; Other commands will be executed using "/usr/bin/env sh -c $COMMAND"
 
   menu-0-0 = Browsers
-  menu-0-0-exec = menu_open-1
+  menu-0-0-exec = menu-open-1
   menu-0-0-foreground = #fba922
   menu-0-2 = Multimedia
-  menu-0-2-exec = menu_open-3
+  menu-0-2-exec = menu-open-3
   menu-0-2-foreground = #fba922
 
   menu-1-0 = Firefox
@@ -1003,10 +1050,14 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Available tags:
   ;   <label-toggle> (default) - gets replaced with <label-(open|close)>
   ;   <menu> (default)
-  ;f-ormat = <label-toggle> <menu>
+  ;format = <label-toggle> <menu>
 
   label-open = Apps
   label-close = x
+
+  ; Optional item separator
+  ; Default: none
+  label-separator = |
   ~~~
 
 
@@ -1028,6 +1079,14 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Will be ignored if `tail = true`
   ; Default: 1
   interval = 90
+
+  ; Limit the length of the output string
+  ; Default: 0
+  maxlen = 20
+
+  ; Add trailing ellipsis when truncating the string
+  ; Default: true
+  ellipsis = true
   ~~~
 
 ##### Extra formatting (example)
@@ -1063,6 +1122,7 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   type = custom/script
   exec = xtitle -s
   tail = true
+  maxlen = 25
   ~~~
 
 

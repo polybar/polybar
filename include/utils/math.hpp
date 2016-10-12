@@ -1,10 +1,16 @@
 #pragma once
 
-#include <string>
 #include <algorithm>
 
-namespace math
+#include "common.hpp"
+
+LEMONBUDDY_NS
+
+namespace math_util
 {
+  /**
+   * Limit value T by min and max bounds
+   */
   template<typename T>
   T cap(T value, T min_value, T max_value)
   {
@@ -13,3 +19,5 @@ namespace math
     return value;
   }
 }
+
+LEMONBUDDY_NS_END

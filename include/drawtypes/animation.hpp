@@ -1,38 +1,83 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <chrono>
+#include "common.hpp"
+#include "components/config.hpp"
+#include "drawtypes/label.hpp"
+#include "utils/mixins.hpp"
 
-#include "drawtypes/icon.hpp"
+LEMONBUDDY_NS
 
-namespace drawtypes
-{
-  class Animation
-  {
-    std::vector<std::unique_ptr<Icon>> frames;
-    int num_frames = 0;
-    int current_frame= 0;
-    int framerate_ms = 1000;
-    std::chrono::system_clock::time_point updated_at;
+namespace drawtypes {
+  class animation;
+  using animation_t = shared_ptr<animation>;
 
-    void tick();
+  class animation : public non_copyable_mixin<animation> {
+   public:
+    explicit animation(int framerate_ms) : m_framerate_ms(framerate_ms) {}
+    explicit animation(vector<icon_t>&& frames, int framerate_ms)
+        : m_frames(forward<decltype(frames)>(frames))
+        , m_framerate_ms(framerate_ms)
+        , m_framecount(m_frames.size())
+        , m_lastupdate(chrono::system_clock::now()) {}
 
-    public:
-      Animation(std::vector<std::unique_ptr<Icon>> &&frames, int framerate_ms = 1);
-      explicit Animation(int framerate_ms)
-        : framerate_ms(framerate_ms){}
+    void add(icon_t&& frame) {
+      m_frames.emplace_back(forward<decltype(frame)>(frame));
+      m_framecount = m_frames.size();
+    }
 
-      void add(std::unique_ptr<Icon> &&frame);
+    icon_t get() {
+      tick();
+      return m_frames[m_frame];
+    }
 
-      std::unique_ptr<Icon> &get();
+    int framerate() {
+      return m_framerate_ms;
+    }
 
-      int get_framerate();
+    operator bool() {
+      return !m_frames.empty();
+    }
 
-      operator bool() {
-        return !this->frames.empty();
-      }
+   protected:
+    vector<icon_t> m_frames;
+    int m_framerate_ms = 1000;
+    int m_frame = 0;
+    int m_framecount = 0;
+    chrono::system_clock::time_point m_lastupdate;
+
+    void tick() {
+      auto now = chrono::system_clock::now();
+      auto diff = chrono::duration_cast<chrono::milliseconds>(now - m_lastupdate);
+
+      if (diff.count() < m_framerate_ms)
+        return;
+      if (++m_frame >= m_framecount)
+        m_frame = 0;
+
+      m_lastupdate = now;
+    }
   };
 
-  std::unique_ptr<Animation> get_config_animation(std::string config_path, std::string animation_name = "animation", bool required = true);
+  inline auto get_config_animation(
+      const config& conf, string section, string name = "animation", bool required = true) {
+    vector<icon_t> vec;
+    vector<string> frames;
+
+    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+
+    if (required)
+      frames = conf.get_list<string>(section, name);
+    else
+      frames = conf.get_list<string>(section, name, {});
+
+    for (int i = 0; i < (int)frames.size(); i++)
+      vec.emplace_back(forward<icon_t>(
+          get_optional_config_icon(conf, section, name + "-" + to_string(i), frames[i])));
+
+    auto framerate = conf.get<int>(section, name + "-framerate", 1000);
+
+    return animation_t{new animation(move(vec), framerate)};
+  }
 }
+
+LEMONBUDDY_NS_END

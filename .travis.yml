@@ -1,36 +1,98 @@
 sudo: required
 dist: trusty
-
 language: cpp
+
 compiler:
   - clang
   - gcc
-cache: ccache
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.8
+    packages:
+      - gcc-5
+      - g++-5
+      - clang-3.8
 
 env:
   global:
-    - LLVM_VERSION=3.8.0
-    - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
+    - BUILD_TYPE="Release"
+    - LLVM_VERSION="3.8.1"
+    - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+    - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+    - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+    - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/cmake
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
 
 before_install:
-  - wget http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
-  - mkdir $HOME/clang-$LLVM_VERSION
-  - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang-$LLVM_VERSION --strip-components 1
-  - export PATH=$HOME/clang-$LLVM_VERSION/bin:$PATH
-  - export PYTHONPATH="/usr/lib/python2.7/dist-packages:$PYTHONPATH"
   - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
-  - sudo sed -i "s/trusty/wily/g" /etc/apt/sources.list
   - sudo apt-get -qq update
-  - sudo apt-get install -y cmake cmake-data libxcb1-dev python-xcbgen xcb-proto libboost-dev libiw-dev libasound2-dev libmpdclient-dev
+
+  # Install packages : core
+  #--------------------------------------------------------------------------x
+  - sudo apt-get install -y cmake cmake-data libcppunit-dev libboost-dev libfreetype6-dev
+
+  # Install packages : xcb
+  #--------------------------------------------------------------------------x
+  - sudo apt-get install -y libxcb1-dev libxcb-util0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen
+
+  # Install packages : optional
+  #--------------------------------------------------------------------------x
+  - sudo apt-get install -y libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev
+
+install:
+  # Install dependencies in ${TRAVIS_BUILD_DIR}/deps
+  #--------------------------------------------------------------------------x
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - LLVM_ROOT="${DEPS_DIR}/llvm-${LLVM_VERSION}"
+
+  # Update python path to make sure we find the xcbgen module
+  #--------------------------------------------------------------------------x
+  - export PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
+
+  # Install a later version of cmake
+  #--------------------------------------------------------------------------x
+  - |
+    mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
+    if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin 2>/dev/null)" ]]; then
+      mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
+    fi
+  - export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
+
+  # Install LLVM libc++
+  #--------------------------------------------------------------------------x
+  - |
+    if [[ "${CXX}" == "clang++" ]] && [[ -z "$(ls -A ${LLVM_ROOT}/install/include 2>/dev/null)" ]]; then
+      mkdir -p "${LLVM_ROOT}" "${LLVM_ROOT}/build" "${LLVM_ROOT}/projects/libcxx" "${LLVM_ROOT}/projects/libcxxabi"
+      travis_retry wget --quiet -O - "${LLVM_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}"
+      travis_retry wget --quiet -O - "${LIBCXX_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}/projects/libcxx"
+      travis_retry wget --quiet -O - "${LIBCXXABI_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}/projects/libcxxabi"
+      (cd "${LLVM_ROOT}/build" && cmake .. -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_C_COMPILER="${CC}" -DCMAKE_INSTALL_PREFIX="${LLVM_ROOT}/install" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}")
+      (cd "${LLVM_ROOT}/build/projects/libcxx" && make install)
+      (cd "${LLVM_ROOT}/build/projects/libcxxabi" && make install)
+      export CXXFLAGS="${CXXFLAGS} -I ${LLVM_ROOT}/install/include/c++/v1"
+      export LDFLAGS="${LDFLAGS} -L ${LLVM_ROOT}/install/lib -lc++ -lc++abi"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_ROOT}/install/lib"
+    fi
+
+  # Set compiler's
+  #--------------------------------------------------------------------------x
+  - if [[ "${CXX}" == "clang++" ]]; then export CXX="clang++-3.8" CC="clang-3.8" CXXFLAGS="${CXXFLAGS} -Qunused-arguments"; fi
+  - if [[ "${CXX}" == "g++" ]]; then export CXX="g++-5" CC="gcc-5"; fi
 
 before_script:
-  - if [ "$CXX" = "clang++" ]; then export CPPFLAGS="-I $HOME/clang-$LLVM_VERSION/include/c++/v1" CXXFLAGS="-Qunused-arguments"; fi
+  - eval "${CXX} --version"
+  - eval "${CC} --version"
   - cmake --version
-  - eval "$CXX --version"
-  - eval "$CC --version"
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_CXX_FLAGS="$CXXFLAGS" ..
+  - mkdir -p "${TRAVIS_BUILD_DIR}/build"
+  - cd "${TRAVIS_BUILD_DIR}/build"
+  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DENABLE_CCACHE=OFF ..
 
 script: make
 

@@ -1,5 +1,24 @@
-let &path.="include,src,"
-let g:alternateSearchPath = 'sfr:../src,sfr:../../src/modules,sfr:../../src/utils,sfr:../../src/interfaces,sfr:../../src/services,sfr:../../src/drawtypes,sfr:../include,sfr:../../include/modules,sfr:../../include/interfaces,sfr:../../include/utils,sfr:../../include/services,sfr:../../include/drawtypes,'
+let &path.='include,src,'
+let g:alternateSearchPath = ''
+      \ . 'sfr:../src'
+      \ . ',sfr:../../src/adapters'
+      \ . ',sfr:../../src/components'
+      \ . ',sfr:../../src/drawtypes'
+      \ . ',sfr:../../src/interfaces'
+      \ . ',sfr:../../src/modules'
+      \ . ',sfr:../../src/services'
+      \ . ',sfr:../../src/utils'
+      \ . ',sfr:../../src/x11'
+      \ . ',sfr:../include'
+      \ . ',sfr:../../include/adapters'
+      \ . ',sfr:../../include/components'
+      \ . ',sfr:../../include/drawtypes'
+      \ . ',sfr:../../include/interfaces'
+      \ . ',sfr:../../include/modules'
+      \ . ',sfr:../../include/services'
+      \ . ',sfr:../../include/utils'
+      \ . ',sfr:../../include/x11'
+
 let g:alternateExtensions_cpp = 'hpp'
-" let tag_path = expand("%:p:h") . "/tags"
-set tags+=/home/jaagr/var/github/jaagr/lemonbuddy/tags
+let tag_path='/home/jaagr/.local/src/c++/lemonbuddy/.tags'
+set tags+=/home/jaagr/.local/src/c++/lemonbuddy/.tags

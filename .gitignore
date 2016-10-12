@@ -1,6 +1,7 @@
-build
+build*/
 tags
 *.bak
 *.pyc
 *.tmp
 include/config.hpp
+.tags

@@ -7,104 +7,372 @@
 ;
 ;=====================================================
 
-[settings]
-; Limit the amount of events sent to lemonbar within a set timeframe:
-; - "Allow <throttle_limit> updates within <throttle_ms> of time"
-; Default values:
-;throttle_limit = 5
-;throttle_ms = 50
-
-[bar/example]
-;monitor = eDP1
-bottom = true
+[bar/top]
+monitor = eDP-1
 dock = false
-
 width = 100%
-height = 25
+height = 27
+offset-x = 0
+offset-y = 0
 
-;offset_x = 0
-;offset_y = 0
+background = #ee222222
+foreground = #ccfafafa
+linecolor = #666
 
-background = #00ffffff
-foreground = #fff
-;linecolor = #ff0000
+border-bottom = 2
+border-bottom-color = #333
 
 spacing = 1
 lineheight = 1
 
-;separator = |
+padding-left = 0
+padding-right = 2
 
-;locale = en_US.UTF-8
+module-margin-left = 1
+module-margin-right = 2
 
-padding_left = 1
-padding_right = 1
-module_margin_left = 0
-module_margin_right = 0
+font-0 = tamzen:size=9;1
+font-1 = siji:pixelsize=10;0
+font-2 = unifont:size=6;-1
 
-font-0 = Sans:size=8;0
-font-1 = FontAwesome:size=10:weight=heavy;0
-
-modules-left = label
+modules-left = mpd
 modules-center = i3
-modules-right = volume cpu ram clock
+modules-right = volume memory cpu date
 
-[module/label]
-type = custom/text
-content = Lemonbuddy example
-content-background = #af2031
-content-underline = #cf4253
-content-overline = #cf4253
-content-padding = 2
+tray-position = right
 
-[module/cpu]
-type = internal/cpu
-label = CPU: %percentage%
-format-background = #c42
-format-underline = #f75
-format-overline = #f75
-format-padding = 2
+wm-restack = i3
 
-[module/ram]
-type = internal/memory
-label = RAM: %percentage_used%
-format-background = #42c
-format-underline = #75f
-format-overline = #75f
-format-padding = 2
 
-[module/clock]
-type = internal/date
-date = %Y-%m-%d %H:%M
-format-background = #493
-format-underline = #7a6
-format-overline = #7a6
-format-padding = 2
+[bar/external_bottom]
+monitor = HDMI-1
+dock = false
+bottom = true
+width = 100%
+height = ${bar/top.height}
 
-[module/volume]
-type = internal/volume
-;speaker_mixer = Speaker
-;headphone_mixer = Headphone
-;headphone_control_numid = 9
+background = ${bar/top.background}
+foreground = ${bar/top.foreground}
+linecolor = ${bar/top.linecolor}
 
-format-volume-background = #933484
-format-volume-underline = #9d6294
-format-volume-overline = #9d6294
-format-volume-padding = 2
-format-muted-background = #933484
-format-muted-underline = #9d6294
-format-muted-overline = #9d6294
-format-muted-padding = 2
+border-top = 2
+border-top-color = #333
 
-label-volume = Volume: %percentage%
-label-muted = Sound is muted
+spacing = ${bar/top.spacing}
+lineheight = ${bar/top.lineheight}
+padding-right = ${bar/top.padding_right}
+module-margin-left = 0
+module-margin-right = ${bar/top.module_margin_right}
+
+font-0 = ${bar/top.font-0}
+font-1 = ${bar/top.font-1}
+font-2 = ${bar/top.font-2}
+
+modules-left = i3
+modules-right = date powermenu
+
+wm-restack = ${bar/top.wm-restack}
+
 
 [module/i3]
 type = internal/i3
-label-focused = 
-label-focused-padding = 1
-label-unfocused = 
-label-unfocused-padding = 1
-label-visible = 
-label-visible-padding = 1
+format = <label-state>
+
+;pin-workspaces = true
+;wsname-maxlen = 1
+;index-sort = true
+
+;ws-icon-0 = term;
+;ws-icon-1 = web;
+;ws-icon-2 = code;
+;ws-icon-3 = music;
+;ws-icon-4 = irssi;
+;ws-icon-default = 
+ws-icon-default = x
+
+label-focused = o %index%
+label-focused-background = #ee333333
+label-focused-underline= #cc333333
+label-focused-padding = 2
+
+label-unfocused = %{O-1}⏺%{O-1} %index%
+label-unfocused-padding = 2
+
+label-urgent = ! %index%
+label-urgent-background = #bd2c40
+label-urgent-padding = 2
+
+label-visible = x %index%
+label-visible-foreground = #444
+label-visible-padding = 2
+
+
+[module/cpu]
+type = internal/cpu
+interval = 2
+
+format = <label> <bar-load>
+label = CPU
+
+; ramp-coreload-0 = ▁
+; ramp-coreload-0-font = 2
+; ramp-coreload-0-foreground = #55aa55
+; ramp-coreload-1 = ▂
+; ramp-coreload-1-font = 2
+; ramp-coreload-1-foreground = #55aa55
+; ramp-coreload-2 = ▃
+; ramp-coreload-2-font = 2
+; ramp-coreload-2-foreground = #55aa55
+; ramp-coreload-3 = ▄
+; ramp-coreload-3-font = 2
+; ramp-coreload-3-foreground = #55aa55
+; ramp-coreload-4 = ▅
+; ramp-coreload-4-font = 2
+; ramp-coreload-4-foreground = #f5a70a
+; ramp-coreload-5 = ▆
+; ramp-coreload-5-font = 2
+; ramp-coreload-5-foreground = #f5a70a
+; ramp-coreload-6 = ▇
+; ramp-coreload-6-font = 2
+; ramp-coreload-6-foreground = #ff5555
+; ramp-coreload-7 = █
+; ramp-coreload-7-font = 2
+; ramp-coreload-7-foreground = #ff5555
+
+bar-load-width = 20
+bar-load-foreground-0 = #55aa55
+bar-load-foreground-1 = #55aa55
+bar-load-foreground-2 = #f5a70a
+bar-load-foreground-3 = #ff5555
+bar-load-gradient = false
+bar-load-indicator = │
+bar-load-indicator-font = 2
+bar-load-indicator-foreground = #ff
+bar-load-fill = ━
+bar-load-fill-font = 2
+bar-load-empty = ━
+bar-load-empty-font = 2
+bar-load-empty-foreground = #444444
+
+
+[module/memory]
+type = internal/memory
+interval = 2
+
+format = <label> <bar-used>
+label = RAM
+
+bar-used-width = 20
+bar-used-foreground-0 = #55aa55
+bar-used-foreground-1 = #55aa55
+bar-used-foreground-2 = #f5a70a
+bar-used-foreground-3 = #ff5555
+bar-used-gradient = false
+bar-used-indicator = │
+bar-used-indicator-font = 2
+bar-used-indicator-foreground = #ff
+bar-used-fill = ━
+bar-used-fill-font = 2
+bar-used-empty = ━
+bar-used-empty-font = 2
+bar-used-empty-foreground = #444444
+
+
+[module/wifi]
+type = internal/network
+interface = net1
+interval = 3.0
+;udspeed-minwidth = 3
+
+format-connected = <ramp-signal> <label-connected>
+;label-connected = %essid% %{F#66}%local_ip%
+;label-connected = %{F#666}%{F#cc} %upspeed% %{F#666}%{F#cc} %downspeed%
+label-connected = %{O-6 F#666}%{O2 F#cc}%downspeed%
+label-disconnected = %{F#666}%{F#cc} not connected
+label-disconnected-foreground = #66
+
+ramp-signal-0 = 
+ramp-signal-1 = 
+ramp-signal-2 = 
+ramp-signal-3 = 
+ramp-signal-4 = 
+ramp-signal-foreground = #666
+
+
+[module/wired]
+type = internal/network
+interface = net0
+interval = 3.0
+
+label-connected = %{T3}%local_ip%%{T-}
+label-disconnected = %{T3}Not connected%{T-}
+label-disconnected-foreground = #66
+
+
+[module/date]
+type = internal/date
+date = %%{F#666}%{F#cc} %Y-%m-%d  %%{F#e60053}%%{F#cc} %H:%M
+date-alt = %%{F#666}%{F#cc} %Y-%m-%d  %%{F#e60053}%%{F#cc} %H:%M:%S
+interval = 5
+
+
+[module/backlight]
+type = internal/backlight
+card = intel_backlight
+format = <ramp> <label>
+ramp-0 = 
+ramp-1 = 
+ramp-2 = 
+ramp-foreground = #666
+
+
+[module/volume]
+type = internal/volume
+speaker-mixer = Speaker
+headphone-mixer = Headphone
+headphone-id = 9
+
+; format-volume = <ramp-volume> <label-volume>
+format-volume = <label-volume> <bar-volume>
+
+label-volume = VOL
+label-volume-foreground = ${BAR.foreground}
+
+label-muted = %{F#66} sound muted
+
+;ramp-volume-0 = 
+;ramp-volume-1 = 
+;ramp-volume-2 = 
+;ramp-volume-3 = 
+;ramp-volume-foreground = #666
+
+;ramp-headphones-0 = 
+;ramp-headphones-1 = 
+
+bar-volume-width = 20
+bar-volume-foreground-0 = #55aa55
+bar-volume-foreground-1 = #55aa55
+bar-volume-foreground-2 = #55aa55
+bar-volume-foreground-3 = #55aa55
+bar-volume-foreground-4 = #55aa55
+bar-volume-foreground-5 = #f5a70a
+bar-volume-foreground-6 = #ff5555
+bar-volume-gradient = false
+bar-volume-indicator = │
+bar-volume-indicator-font = 2
+bar-volume-indicator-foreground = #ff
+bar-volume-fill = ━
+bar-volume-fill-font = 2
+bar-volume-empty = ━
+bar-volume-empty-font = 2
+bar-volume-empty-foreground = #444444
+
+
+[module/battery]
+type = internal/battery
+full-at = 98
+
+format-charging = <animation-charging> <label-charging>
+format-discharging = <ramp-capacity> <label-discharging>
+format-full = %{F#666}%{F#cc}  <label-full>
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-foreground = #666
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-foreground = #666
+animation-charging-framerate = 750
+
+
+[module/mpd]
+type = internal/mpd
+
+format-online = <label-time>  <bar-progress>  <label-song>  <icon-prev> <icon-seekb> <icon-stop> <toggle> <icon-seekf> <icon-next>  <icon-repeat> <icon-random>
+format-online-background = #ee333333
+format-online-underline = #cc333333
+format-online-padding = 3
+
+format-offline = <label-offline>
+format-offline-foreground = #66
+
+label-offline = mpd is off
+
+label-song-maxlen = 45
+label-song-ellipsis = true
+
+icon-prev = 
+icon-seekb = 
+icon-stop = 
+icon-play = 
+icon-pause = 
+icon-next = 
+icon-seekf = 
+; icon-prev = ⏮
+; icon-seekb = ⏪
+; icon-stop = ⏹
+; icon-play = ⏵
+; icon-pause = ⏸
+; icon-seekf = ⏩
+; icon-next = ⏭
+
+icon-random = 
+icon-repeat = 
+
+toggle-on-foreground = #e60053
+toggle-off-foreground = #66
+
+bar-progress-width = 15
+bar-progress-indicator = 
+bar-progress-indicator-foreground = #bb
+bar-progress-fill = ─
+bar-progress-fill-foreground = #bb
+bar-progress-fill-font = 3
+bar-progress-empty = ─
+bar-progress-empty-foreground = #44
+bar-progress-empty-font = 3
+
+label-time-foreground = #77
+
+
+[module/powermenu]
+type = custom/menu
+
+label-open = 
+label-close = 
+label-separator = /
+
+menu-0-0 = Terminate WM
+menu-0-0-foreground = #e60053
+menu-0-0-exec = i3-msg -t command exit
+menu-0-1 = Reboot
+menu-0-1-foreground = #e60053
+menu-0-1-exec = menu_open-1
+menu-0-2 = Power off
+menu-0-2-foreground = #e60053
+menu-0-2-exec = menu_open-2
+
+menu-1-0 = Cancel
+menu-1-0-foreground = #e60053
+menu-1-0-exec = menu_open-0
+menu-1-1 = Reboot
+menu-1-1-foreground = #e60053
+menu-1-1-exec = sudo reboot
+
+menu-2-0 = Power off
+menu-2-0-foreground = #e60053
+menu-2-0-exec = sudo poweroff
+menu-2-1 = Cancel
+menu-2-1-foreground = #e60053
+menu-2-1-exec = menu_open-0
+
+
+[module/counter]
+type = internal/counter
+format = <counter>
+interval = 0.1
 
 ; vim:ft=dosini
