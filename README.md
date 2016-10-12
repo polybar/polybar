@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/jaagr/lemonbuddy.svg?branch=master)](https://travis-ci.org/jaagr/lemonbuddy)
 [![MIT License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000?style=plastic)](https://github.com/jaagr/lemonbuddy/blob/master/LICENSE)
 
-A fast and easy-to-use tool for generating status bars.
+A fast and easy-to-use tool for creating status bars.
 
 **Lemonbuddy** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
@@ -51,8 +51,8 @@ problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issue
 
 ## Introduction
 
-The main purpose of **Lemonbuddy** is serve as content generator for status bars.
-It has built-in functionality to generate output for the most commonly used widgets, such as:
+The main purpose of **Lemonbuddy** is to help users create awesome status bars.
+It has built-in functionality to generate content for the most commonly used data, such as:
 
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
 - [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
@@ -69,21 +69,6 @@ It has built-in functionality to generate output for the most commonly used widg
 
 Each bar contains a set of modules, which in turn defines a set of formatting rules and options.
 Read more about [how the configuration works](#configuration).
-
-The project was developed specifically for Lemonbar, and the initial plan was to
-integrate a trimmed down version of it into Lemonbuddy. This would remove the need of having
-to pass data back and forth between the two processes.
-
-After spending time trying to create an interface to the Lemonbar source code, I
-decided to not use it at all. Lemonbar is a great application but it would be
-more efficient to write a custom X rendering implementation instead of trying
-to patch up Lemonbar. Not only does it fix the
-*"Lemonbuddy doesn't work with my extra-custom-lemonbar-fork"* issue, it also
-makes it alot easier to implement new features... The performance boost is of
-course also welcome to join the party, so that's nice.
-
-The new implementation will use the same `%{...}` syntax Lemonbar uses, which means that
-existing configurations will still work, so keep ricing.
 
 ## Getting started
 
@@ -307,10 +292,10 @@ The configuration syntax is based on the `ini` file format.
   ~~~ ini
   [settings]
   ; Limit the amount of update events within a set timeframe:
-  ; - "Allow <throttle_limit> updates within <throttle_ms> of time"
+  ; - "Allow <throttle-limit> updates within <throttle-ms> of time"
   ; Default values:
-  throttle_limit = 3
-  throttle_ms = 60
+  throttle-limit = 3
+  throttle-ms = 60
   ~~~
 
 
@@ -641,7 +626,7 @@ To specify a custom path to the bspwm socket, you can set the environment variab
   ;interval = 1.0
 
   ; see "man date" for details on how to format the date string
-  ; NOTE: if you want to use lemonbar tags here you need to use %%{...}
+  ; NOTE: if you want to use syntax tags here you need to use %%{...}
   date = %Y-%m-%d% %H:%M
 
   ; if `date-alt` is defined, clicking the area will toggle between formats
@@ -692,7 +677,7 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
 
 ##### Extra formatting (example)
   ~~~ ini
-  ; workspace_icon-[0-9]+ = label;icon
+  ; ws-icon-[0-9]+ = label;icon
   ws-icon-0 = 1;♚
   ws-icon-1 = 2;♛
   ws-icon-2 = 3;♜
