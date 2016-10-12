@@ -1,12 +1,13 @@
 pkgbase = lemonbuddy-git
 	pkgdesc = A fast and easy-to-use status bar
 	pkgver = 2.0.0
-	pkgrel = 1
+	pkgrel = 2
 	url = https://github.com/jaagr/lemonbuddy
 	arch = i686
 	arch = x86_64
 	license = MIT
 	makedepends = cmake
+	makedepends = python2
 	makedepends = pkg-config
 	makedepends = clang
 	makedepends = glibc
