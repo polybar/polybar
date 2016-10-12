@@ -231,7 +231,7 @@ namespace modules {
     static constexpr auto DEFAULT_WS_ICON = "workspace_icon-default";
     static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
-    static constexpr auto EVENT_CLICK = "i3";
+    static constexpr auto EVENT_CLICK = "i3-wsfocus-";
 
     map<i3_flag, label_t> m_statelabels;
     vector<i3_workspace_t> m_workspaces;
