@@ -16,19 +16,7 @@ make_library(${library_name} STATIC
   HEADERS
     ${headers}
   SOURCES
-    ${sources}
-  CMAKE_DEPENDS
-    XPP
-    FREETYPE
-    I3IPCPP
-    ALSA
-    LIBIW
-    LIBMPDCLIENT
-    X11
-    X11_XFT
-    X11_XCB
-  PKG_DEPENDS
-    FONTCONFIG)
+    ${sources})
 
 make_executable(${executable_name}
   SOURCES main.cpp

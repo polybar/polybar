@@ -93,28 +93,39 @@ link_libraries(${X11_Xft_LIB})
 link_libraries(${X11_XCB_LIB})
 link_libraries(${BOOST_LIBRARIES})
 link_libraries(${CMAKE_THREAD_LIBS_INIT})
-
-if(ENABLE_ALSA)
-  find_package(ALSA REQUIRED)
-endif()
-if(ENABLE_MPD)
-  find_package(LibMPDClient REQUIRED)
-endif()
-if(ENABLE_NETWORK)
-  find_package(Libiw REQUIRED)
-endif()
-if(ENABLE_I3)
-  add_subdirectory(${PROJECT_SOURCE_DIR}/lib/i3ipcpp EXCLUDE_FROM_ALL)
-endif()
+link_libraries(${X11_LIBRARIES})
+link_libraries(${FREETYPE_LIBRARIES})
+link_libraries(${FONTCONFIG_LIBRARIES})
+link_libraries()
 
 include_directories(
   ${BOOST_INCLUDE_DIR}
+  ${FONTCONFIG_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/lib/boost/include
   ${PROJECT_SOURCE_DIR}/lib/fastdelegate/include)
 
 set(XCB_PROTOS xproto randr)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/xpp)
+link_libraries(${XPP_LIBRARIES})
+
+if(ENABLE_ALSA)
+  find_package(ALSA REQUIRED)
+  link_libraries(${ALSA_LIBRARY})
+endif()
+if(ENABLE_MPD)
+  find_package(LibMPDClient REQUIRED)
+  link_libraries(${LIBMPDCLIENT_LIBRARIES})
+endif()
+if(ENABLE_NETWORK)
+  find_package(Libiw REQUIRED)
+  link_libraries(${LIBIW_LIBRARY})
+endif()
+if(ENABLE_I3)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/lib/i3ipcpp EXCLUDE_FROM_ALL)
+  include_directories(${I3IPCPP_INCLUDE_DIRS})
+  link_libraries(${I3IPCPP_LIBRARIES})
+endif()
 
 # }}}
 # Build source tree {{{
