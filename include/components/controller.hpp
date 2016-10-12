@@ -189,9 +189,9 @@ class controller {
     bootstrap_modules();
 
     // Allow <throttle_limit>  ticks within <throttle_ms> timeframe
-    const auto throttle_limit = m_conf.get<unsigned int>("settings", "throttle_limit", 3);
+    const auto throttle_limit = m_conf.get<unsigned int>("settings", "throttle-limit", 3);
     const auto throttle_ms = chrono::duration<double, std::milli>(
-        m_conf.get<unsigned int>("settings", "throttle_ms", 60));
+        m_conf.get<unsigned int>("settings", "throttle-ms", 60));
     m_throttler = throttle_util::make_throttler(throttle_limit, throttle_ms);
   }
 

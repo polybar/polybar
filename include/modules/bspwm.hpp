@@ -49,12 +49,9 @@ namespace modules {
     }
 
     void setup() {
-      // Load configuration values {{{
-
       m_monitor = m_bar.monitor->name;
       m_log.trace("%s: Primary monitor '%s'", name(), m_monitor);
 
-      // }}}
       // Add formats and create components {{{
 
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MODE});
@@ -93,7 +90,7 @@ namespace modules {
       m_icons->add(
           DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
 
-      for (auto workspace : m_conf.get_list<string>(name(), "workspace_icon", {})) {
+      for (auto workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
         auto vec = string_util::split(workspace, ';');
         if (vec.size() == 2) {
           m_icons->add(vec[0], icon_t{new icon{vec[1]}});
@@ -335,7 +332,7 @@ namespace modules {
     }
 
    private:
-    static constexpr auto DEFAULT_WS_ICON = "workspace_icon-default";
+    static constexpr auto DEFAULT_WS_ICON = "ws-icon-default";
     static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";

@@ -15,7 +15,7 @@ namespace modules {
       m_formatter->add(DEFAULT_FORMAT, TAG_DATE, {TAG_DATE});
 
       m_format = m_conf.get<string>(name(), "date");
-      m_format_detailed = m_conf.get<string>(name(), "date_detailed", "");
+      m_formatalt = m_conf.get<string>(name(), "date-alt", "");
     }
 
     bool update() {
@@ -23,7 +23,7 @@ namespace modules {
         return false;
 
       auto time = std::time(nullptr);
-      auto date_format = m_detailed ? m_format_detailed : m_format;
+      auto date_format = m_toggled ? m_formatalt : m_format;
       char buffer[256] = {'\0'};
 
       std::strftime(buffer, sizeof(buffer), date_format.c_str(), std::localtime(&time));
@@ -37,7 +37,7 @@ namespace modules {
     }
 
     string get_output() {
-      if (!m_format_detailed.empty())
+      if (!m_formatalt.empty())
         m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
       m_builder->node(timer_module::get_output());
       return m_builder->flush();
@@ -51,7 +51,7 @@ namespace modules {
 
     bool handle_event(string cmd) {
       if (cmd == EVENT_TOGGLE) {
-        m_detailed = !m_detailed;
+        m_toggled = !m_toggled;
         wakeup();
       }
       return cmd == EVENT_TOGGLE;
@@ -67,10 +67,10 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "datetoggle";
 
     string m_format;
-    string m_format_detailed;
+    string m_formatalt;
 
     char m_buffer[256] = {'\0'};
-    stateflag m_detailed{false};
+    stateflag m_toggled{false};
   };
 }
 

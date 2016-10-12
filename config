@@ -7,8 +7,8 @@
 monitor = eDP-1
 width = 100%
 height = 27
-offset_x = 0
-offset_y = 0
+offset-x = 0
+offset-y = 0
 
 background = #ee222222
 foreground = #ccfafafa
@@ -19,10 +19,10 @@ border-bottom-color = #333
 
 spacing = 1
 lineheight = 1
-padding_left = 0
-padding_right = 2
-module_margin_left = 1
-module_margin_right = 2
+padding-left = 0
+padding-right = 2
+module-margin-left = 1
+module-margin-right = 2
 
 font-0 = tamzen:size=9;1
 font-1 = siji:pixelsize=10;0
@@ -53,9 +53,9 @@ border-top-color = #333
 
 spacing = ${bar/top.spacing}
 lineheight = ${bar/top.lineheight}
-padding_right = ${bar/top.padding_right}
-module_margin_left = 0
-module_margin_right = ${bar/top.module_margin_right}
+padding-right = ${bar/top.padding_right}
+module-margin-left = 0
+module-margin-right = ${bar/top.module_margin_right}
 
 font-0 = ${bar/top.font-0}
 font-1 = ${bar/top.font-1}
@@ -70,13 +70,13 @@ wm-restack = ${bar/top.wm-restack}
 type = internal/bspwm
 format = <label-state> <label-mode>
 
-; workspace_icon-0 = term;
-; workspace_icon-1 = web;
-; workspace_icon-2 = code;
-; workspace_icon-3 = music;
-; workspace_icon-4 = irssi;
-; workspace_icon-default = 
-workspace_icon-default = x
+; ws-icon-0 = term;
+; ws-icon-1 = web;
+; ws-icon-2 = code;
+; ws-icon-3 = music;
+; ws-icon-4 = irssi;
+; ws-icon-default = 
+ws-icon-default = x
 
 label-active = o
 label-active-background = #ee333333
@@ -112,30 +112,30 @@ interval = 2
 format = <label> <bar-load>
 label = CPU
 
-; ramp-load_per_core-0 = ▁
-; ramp-load_per_core-0-font = 2
-; ramp-load_per_core-0-foreground = #55aa55
-; ramp-load_per_core-1 = ▂
-; ramp-load_per_core-1-font = 2
-; ramp-load_per_core-1-foreground = #55aa55
-; ramp-load_per_core-2 = ▃
-; ramp-load_per_core-2-font = 2
-; ramp-load_per_core-2-foreground = #55aa55
-; ramp-load_per_core-3 = ▄
-; ramp-load_per_core-3-font = 2
-; ramp-load_per_core-3-foreground = #55aa55
-; ramp-load_per_core-4 = ▅
-; ramp-load_per_core-4-font = 2
-; ramp-load_per_core-4-foreground = #f5a70a
-; ramp-load_per_core-5 = ▆
-; ramp-load_per_core-5-font = 2
-; ramp-load_per_core-5-foreground = #f5a70a
-; ramp-load_per_core-6 = ▇
-; ramp-load_per_core-6-font = 2
-; ramp-load_per_core-6-foreground = #ff5555
-; ramp-load_per_core-7 = █
-; ramp-load_per_core-7-font = 2
-; ramp-load_per_core-7-foreground = #ff5555
+; ramp-coreload-0 = ▁
+; ramp-coreload-0-font = 2
+; ramp-coreload-0-foreground = #55aa55
+; ramp-coreload-1 = ▂
+; ramp-coreload-1-font = 2
+; ramp-coreload-1-foreground = #55aa55
+; ramp-coreload-2 = ▃
+; ramp-coreload-2-font = 2
+; ramp-coreload-2-foreground = #55aa55
+; ramp-coreload-3 = ▄
+; ramp-coreload-3-font = 2
+; ramp-coreload-3-foreground = #55aa55
+; ramp-coreload-4 = ▅
+; ramp-coreload-4-font = 2
+; ramp-coreload-4-foreground = #f5a70a
+; ramp-coreload-5 = ▆
+; ramp-coreload-5-font = 2
+; ramp-coreload-5-foreground = #f5a70a
+; ramp-coreload-6 = ▇
+; ramp-coreload-6-font = 2
+; ramp-coreload-6-foreground = #ff5555
+; ramp-coreload-7 = █
+; ramp-coreload-7-font = 2
+; ramp-coreload-7-foreground = #ff5555
 
 bar-load-width = 20
 bar-load-foreground-0 = #55aa55
@@ -180,7 +180,7 @@ bar-used-empty-foreground = #444444
 type = internal/network
 interface = net1
 interval = 3.0
-;udspeed_minwidth = 3
+;udspeed-minwidth = 3
 
 format-connected = <ramp-signal> <label-connected>
 ;label-connected = %essid% %{F#66}%local_ip%
@@ -210,7 +210,7 @@ label-disconnected-foreground = #66
 [module/date]
 type = internal/date
 date = %%{F#666}%{F#cc} %Y-%m-%d  %%{F#e60053}%%{F#cc} %H:%M
-date_detailed = %%{F#666}%{F#cc} %Y-%m-%d  %%{F#e60053}%%{F#cc} %H:%M:%S
+date-alt = %%{F#666}%{F#cc} %Y-%m-%d  %%{F#e60053}%%{F#cc} %H:%M:%S
 interval = 5
 
 
@@ -226,9 +226,9 @@ ramp-foreground = #666
 
 [module/volume]
 type = internal/volume
-speaker_mixer = Speaker
-headphone_mixer = Headphone
-headphone_control_numid = 9
+speaker-mixer = Speaker
+headphone-mixer = Headphone
+headphone-id = 9
 
 ; format-volume = <ramp-volume> <label-volume>
 format-volume = <label-volume> <bar-volume>
@@ -268,7 +268,7 @@ bar-volume-empty-foreground = #444444
 
 [module/battery]
 type = internal/battery
-full_at = 98
+full-at = 98
 
 format-charging = <animation-charging> <label-charging>
 format-discharging = <ramp-capacity> <label-discharging>
@@ -283,7 +283,7 @@ animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
 animation-charging-foreground = #666
-animation-charging-framerate_ms = 750
+animation-charging-framerate = 750
 
 
 [module/mpd]
@@ -320,8 +320,8 @@ icon-seekf = 
 icon-random = 
 icon-repeat = 
 
-toggle_on-foreground = #e60053
-toggle_off-foreground = #66
+toggle-on-foreground = #e60053
+toggle-off-foreground = #66
 
 bar-progress-width = 15
 bar-progress-indicator = 

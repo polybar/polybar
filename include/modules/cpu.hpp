@@ -159,7 +159,7 @@ namespace modules {
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_BAR_LOAD = "<bar-load>";
     static constexpr auto TAG_RAMP_LOAD = "<ramp-load>";
-    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-load_per_core>";
+    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-coreload>";
 
     progressbar_t m_barload;
     ramp_t m_rampload;

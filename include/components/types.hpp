@@ -41,7 +41,7 @@ struct bar_settings {
   alignment align{alignment::RIGHT};
 
   bool bottom{false};
-  bool dock{true};
+  bool dock{false};
 
   monitor_t monitor;
   string wmname;

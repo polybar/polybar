@@ -17,27 +17,27 @@ namespace modules {
     void setup() {
       // Load configuration values {{{
 
-      auto master_mixer = m_conf.get<string>(name(), "master_mixer", "Master");
-      auto speaker_mixer = m_conf.get<string>(name(), "speaker_mixer", "");
-      auto headphone_mixer = m_conf.get<string>(name(), "headphone_mixer", "");
+      auto master_mixer = m_conf.get<string>(name(), "master-mixer", "Master");
+      auto speaker_mixer = m_conf.get<string>(name(), "speaker-mixer", "");
+      auto headphone_mixer = m_conf.get<string>(name(), "headphone-mixer", "");
 
-      m_headphone_ctrl_numid = m_conf.get<int>(name(), "headphone_control_numid", -1);
+      m_headphone_ctrl_numid = m_conf.get<int>(name(), "headphone-id", -1);
 
       if (!headphone_mixer.empty() && m_headphone_ctrl_numid == -1)
         throw module_error(
-            "volume_module: Missing required property value for \"headphone_control_numid\"...");
+            "volume_module: Missing required property value for \"headphone-id\"...");
       else if (headphone_mixer.empty() && m_headphone_ctrl_numid != -1)
         throw module_error(
-            "volume_module: Missing required property value for \"headphone_mixer\"...");
+            "volume_module: Missing required property value for \"headphone-mixer\"...");
 
       if (string_util::lower(speaker_mixer) == "master")
         throw module_error(
             "volume_module: The \"Master\" mixer is already processed internally. Specify another "
-            "mixer or comment out the \"speaker_mixer\" parameter...");
+            "mixer or comment out the \"speaker-mixer\" parameter...");
       if (string_util::lower(headphone_mixer) == "master")
         throw module_error(
             "volume_module: The \"Master\" mixer is already processed internally. Specify another "
-            "mixer or comment out the \"headphone_mixer\" parameter...");
+            "mixer or comment out the \"headphone-mixer\" parameter...");
 
       // }}}
       // Setup mixers {{{

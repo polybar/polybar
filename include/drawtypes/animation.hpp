@@ -74,7 +74,7 @@ namespace drawtypes {
       vec.emplace_back(forward<icon_t>(
           get_optional_config_icon(conf, section, name + "-" + to_string(i), frames[i])));
 
-    auto framerate = conf.get<int>(section, name + "-framerate_ms", 1000);
+    auto framerate = conf.get<int>(section, name + "-framerate", 1000);
 
     return animation_t{new animation(move(vec), framerate)};
   }

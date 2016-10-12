@@ -22,7 +22,7 @@ namespace modules {
 
       m_battery = m_conf.get<string>(name(), "battery", "BAT0");
       m_adapter = m_conf.get<string>(name(), "adapter", "ADP1");
-      m_fullat = m_conf.get<int>(name(), "full_at", 100);
+      m_fullat = m_conf.get<int>(name(), "full-at", 100);
 
       m_path_capacity = string_util::replace(PATH_BATTERY_CAPACITY, "%battery%", m_battery);
       m_path_adapter = string_util::replace(PATH_ADAPTER_STATUS, "%adapter%", m_adapter);
@@ -180,7 +180,7 @@ namespace modules {
         dur = chrono::duration<double>(float(m_animation_charging->framerate()) / 1000.0f);
 
       int i = 0;
-      const int poll_seconds = m_conf.get<float>(name(), "poll_interval", 3.0f) / dur.count();
+      const int poll_seconds = m_conf.get<float>(name(), "poll-interval", 3.0f) / dur.count();
 
       while (enabled()) {
         // TODO(jaagr): Keep track of when the values were last read to determine

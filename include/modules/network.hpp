@@ -26,8 +26,8 @@ namespace modules {
       // Load configuration values
       m_interface = m_conf.get<string>(name(), "interface");
       m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
-      m_ping_nth_update = m_conf.get<int>(name(), "ping_interval", 0);
-      m_udspeed_minwidth = m_conf.get<int>(name(), "udspeed_minwidth", m_udspeed_minwidth);
+      m_ping_nth_update = m_conf.get<int>(name(), "ping-interval", 0);
+      m_udspeed_minwidth = m_conf.get<int>(name(), "udspeed-minwidth", m_udspeed_minwidth);
 
       // Add formats
       m_formatter->add(

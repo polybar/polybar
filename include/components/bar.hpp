@@ -150,12 +150,12 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
     GET_CONFIG_VALUE(bs, m_bar.bottom, "bottom");
     GET_CONFIG_VALUE(bs, m_bar.spacing, "spacing");
     GET_CONFIG_VALUE(bs, m_bar.lineheight, "lineheight");
-    GET_CONFIG_VALUE(bs, m_bar.offset_x, "offset_x");
-    GET_CONFIG_VALUE(bs, m_bar.offset_y, "offset_y");
-    GET_CONFIG_VALUE(bs, m_bar.padding_left, "padding_left");
-    GET_CONFIG_VALUE(bs, m_bar.padding_right, "padding_right");
-    GET_CONFIG_VALUE(bs, m_bar.module_margin_left, "module_margin_left");
-    GET_CONFIG_VALUE(bs, m_bar.module_margin_right, "module_margin_right");
+    GET_CONFIG_VALUE(bs, m_bar.offset_x, "offset-x");
+    GET_CONFIG_VALUE(bs, m_bar.offset_y, "offset-y");
+    GET_CONFIG_VALUE(bs, m_bar.padding_left, "padding-left");
+    GET_CONFIG_VALUE(bs, m_bar.padding_right, "padding-right");
+    GET_CONFIG_VALUE(bs, m_bar.module_margin_left, "module-margin-left");
+    GET_CONFIG_VALUE(bs, m_bar.module_margin_right, "module-margin-right");
 
     auto w = m_conf.get<string>(bs, "width", "100%");
     auto h = m_conf.get<string>(bs, "height", "24");
@@ -197,7 +197,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
     // Set the WM_NAME value {{{
 
     m_bar.wmname = "lemonbuddy-" + bs.substr(4) + "_" + m_bar.monitor->name;
-    m_bar.wmname = m_conf.get<string>(bs, "wm_name", m_bar.wmname);
+    m_bar.wmname = m_conf.get<string>(bs, "wm-name", m_bar.wmname);
     m_bar.wmname = string_util::replace(m_bar.wmname, " ", "-");
 
     // }}}
