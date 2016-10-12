@@ -59,6 +59,7 @@ namespace modules {
     void setup() {
       // Load configuration values {{{
 
+      GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
       GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
       GET_CONFIG_VALUE(name(), m_wsname_maxlen, "wsname-maxlen");
 
@@ -127,6 +128,7 @@ namespace modules {
 
       try {
         auto workspaces = ipc.get_workspaces();
+        vector<shared_ptr<i3ipc::workspace_t>> sorted = workspaces;
         string focused_output;
         bool output_unfocused = false;
 
@@ -139,7 +141,16 @@ namespace modules {
         if (focused_output != m_bar.monitor->name)
           output_unfocused = true;
 
-        for (auto&& workspace : workspaces) {
+        if (m_indexsort) {
+          using ws_t = shared_ptr<i3ipc::workspace_t>;
+          // clang-format off
+          sort(sorted.begin(), sorted.end(), [](ws_t ws1, ws_t ws2){
+              return ws1->num < ws2->num;
+          });
+          // clang-format on
+        }
+
+        for (auto&& workspace : sorted) {
           if (m_pinworkspaces && workspace->output != m_bar.monitor->name)
             continue;
 
@@ -226,6 +237,7 @@ namespace modules {
     vector<i3_workspace_t> m_workspaces;
     iconset_t m_icons;
 
+    bool m_indexsort = false;
     bool m_pinworkspaces = false;
     size_t m_wsname_maxlen = 0;
 

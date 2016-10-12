@@ -698,6 +698,11 @@ See [the bspwm module](#module-internalbspwm) for details on `label-dimmed`.
   ; Limit the amount of chars to output for each workspace name
   ; Default: 0
   wsname-maxlen = 2
+
+  ; Sort the workspaces by index instead of the default
+  ; sorting that groups the workspaces by output
+  ; Default: false
+  index-sort = true
   ~~~
 
 ##### Extra formatting (example)
