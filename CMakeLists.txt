@@ -31,6 +31,10 @@ find_package(Libiw QUIET)
 find_package(LibMPDClient QUIET)
 find_program(CCACHE_BINARY ccache)
 find_program(I3_BINARY i3)
+find_package(CppUnit QUIET)
+if(CPPUNIT_FOUND)
+  set(BUILD_TESTS ON)
+endif()
 if(CCACHE_BINARY)
   set(CCACHE_FOUND ON)
 endif()
@@ -41,6 +45,7 @@ endif()
 # }}}
 # Project settings {{{
 
+option(BUILD_TESTS    "Build testsuite"        ${BUILD_TESTS})
 option(ENABLE_CCACHE  "Enable ccache support"  ${CCACHE_FOUND})
 option(ENABLE_ALSA    "Enable alsa support"    ${ALSA_FOUND})
 option(ENABLE_I3      "Enable i3 support"      ${I3_FOUND})
@@ -132,7 +137,9 @@ endif()
 add_subdirectory(${PROJECT_SOURCE_DIR}/man)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/bin)
 add_subdirectory(${PROJECT_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
-add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests EXCLUDE_FROM_ALL)
+if(BUILD_TESTS)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests EXCLUDE_FROM_ALL)
+endif()
 
 # }}}
 # Build summary {{{
@@ -154,6 +161,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 endif()
 message(STATUS "---------------------------")
 
+message(STATUS " Build testsuite        ${BUILD_TESTS}")
 message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
 message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
 message(STATUS " Enable i3 support      ${ENABLE_I3}")
