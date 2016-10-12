@@ -87,9 +87,8 @@ A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_s
 
 - cmake
 - boost
-- libxcb
-- xcb-proto
-- freetype2
+- xcb-util-wm
+- libxft
 
 Optional dependencies for module support:
 
@@ -99,8 +98,8 @@ Optional dependencies for module support:
 - jsoncpp (required for `internal/i3` support)
 
 ~~~ sh
-$ pacman -S cmake boost libxcb xcb-proto wireless_tools alsa-lib libmpdclient jsoncpp
-$ xbps-install cmake boost-devel libxcb-devel alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel freetype-devel wireless_tools-devel
+$ pacman -S cmake boost xcb-util-wm libxft wireless_tools alsa-lib libmpdclient jsoncpp
+$ xbps-install cmake boost-devel libxcb-util-dev alsa-lib-devel i3-devel libmpdclient-devel jsoncpp-devel wireless_tools-devel
 $ apt-get install cmake libxcb1-dev xcb-proto python-xcbgen libboost-dev libiw-dev libasound2-dev libmpdclient-dev libjsoncpp-dev libfreetype6-dev
 ~~~
 

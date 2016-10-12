@@ -130,16 +130,12 @@ namespace modules {
         auto workspaces = ipc.get_workspaces();
         vector<shared_ptr<i3ipc::workspace_t>> sorted = workspaces;
         string focused_output;
-        bool output_unfocused = false;
 
         for (auto&& workspace : workspaces)
           if (workspace->focused) {
             focused_output = workspace->output;
             break;
           }
-
-        if (focused_output != m_bar.monitor->name)
-          output_unfocused = true;
 
         if (m_indexsort) {
           using ws_t = shared_ptr<i3ipc::workspace_t>;
