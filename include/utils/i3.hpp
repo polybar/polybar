@@ -3,14 +3,14 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
 
-#include <i3ipc++/ipc.hpp>
-
 #include "common.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/randr.hpp"
 #include "config.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
+
+#include <i3ipc++/ipc.hpp>
 
 LEMONBUDDY_NS
 
