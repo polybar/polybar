@@ -226,10 +226,10 @@ namespace modules {
           ipc.send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
         } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
           m_log.info("%s: Sending workspace prev command to ipc handler", name());
-          ipc.send_command("workspace next");
+          ipc.send_command("workspace next_on_output");
         } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
           m_log.info("%s: Sending workspace next command to ipc handler", name());
-          ipc.send_command("workspace prev");
+          ipc.send_command("workspace prev_on_output");
         }
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
