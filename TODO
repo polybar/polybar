@@ -1,6 +1,0 @@
-task: rewrite README for 2.0
-task: rewrite i3 module
-task: improve test coverage
-fix: hide mpd controls if playlist is empty
-bug: allow empty formats
-bug: ntpd update crash
