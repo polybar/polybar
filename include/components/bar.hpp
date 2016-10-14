@@ -171,7 +171,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
       m_bar.height = m_bar.monitor->h * (m_bar.height / 100.0) + 0.5f;
 
     // apply offsets
-    m_bar.width -= m_bar.offset_x * 2;
     m_bar.x = m_bar.offset_x + m_bar.monitor->x;
     m_bar.y = m_bar.offset_y + m_bar.monitor->y;
 
