@@ -65,15 +65,10 @@ namespace modules {
       }
 
       // Get an intstance of the network interface
-      try {
-        if (net::is_wireless_interface(m_interface)) {
-          m_wireless_network = make_unique<net::wireless_network>(m_interface);
-        } else {
-          m_wired_network = make_unique<net::wired_network>(m_interface);
-        }
-      } catch (net::network_error& e) {
-        m_log.err("%s: %s", name(), e.what());
-        std::exit(EXIT_FAILURE);
+      if (net::is_wireless_interface(m_interface)) {
+        m_wireless_network = make_unique<net::wireless_network>(m_interface);
+      } else {
+        m_wired_network = make_unique<net::wired_network>(m_interface);
       }
     }
 
