@@ -61,6 +61,7 @@ namespace modules {
 
       GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
       GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
+      GET_CONFIG_VALUE(name(), m_strip_wsnumbers, "strip-wsnumbers");
       GET_CONFIG_VALUE(name(), m_wsname_maxlen, "wsname-maxlen");
 
       // }}}
@@ -162,6 +163,15 @@ namespace modules {
             flag = i3_flag::WORKSPACE_VISIBLE;
 
           string wsname{workspace->name};
+
+          if (m_strip_wsnumbers) {
+            auto index = string_util::split(wsname, ':');
+
+            if (index.size() == 2) {
+              wsname = index[1];
+            }
+          }
+
           if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen)
             wsname.erase(m_wsname_maxlen);
 
@@ -189,7 +199,10 @@ namespace modules {
 
       if (tag != TAG_LABEL_STATE)
         return false;
+
       for (auto&& ws : m_workspaces) {
+        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
+        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
         builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
         builder->node(ws.get()->label);
         builder->cmd_close(true);
@@ -202,15 +215,22 @@ namespace modules {
     bool handle_event(string cmd) {
       // Send ipc commands {{{
 
-      if (cmd.find(EVENT_CLICK) == string::npos)
-        return false;
-      if (cmd.length() < strlen(EVENT_CLICK))
+      if (cmd.compare(0, 2, EVENT_PREFIX) != 0)
         return false;
 
       try {
         i3_util::connection_t ipc;
-        m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        ipc.send_command("workspace number "+ cmd.substr(strlen(EVENT_CLICK)));
+
+        if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
+          m_log.info("%s: Sending workspace focus command to ipc handler", name());
+          ipc.send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
+        } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+          m_log.info("%s: Sending workspace prev command to ipc handler", name());
+          ipc.send_command("workspace next");
+        } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+          m_log.info("%s: Sending workspace next command to ipc handler", name());
+          ipc.send_command("workspace prev");
+        }
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
       }
@@ -228,7 +248,11 @@ namespace modules {
     static constexpr auto DEFAULT_WS_ICON = "ws-icon-default";
     static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
+
+    static constexpr auto EVENT_PREFIX = "i3";
     static constexpr auto EVENT_CLICK = "i3-wsfocus-";
+    static constexpr auto EVENT_SCROLL_UP = "i3-wsnext";
+    static constexpr auto EVENT_SCROLL_DOWN = "i3-wsprev";
 
     map<i3_flag, label_t> m_statelabels;
     vector<i3_workspace_t> m_workspaces;
@@ -236,6 +260,7 @@ namespace modules {
 
     bool m_indexsort = false;
     bool m_pinworkspaces = false;
+    bool m_strip_wsnumbers = false;
     size_t m_wsname_maxlen = 0;
 
     i3_util::connection_t m_ipc;
