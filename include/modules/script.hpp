@@ -36,14 +36,11 @@ namespace modules {
       // Add formats and elements
 
       m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
-    }
 
-    void start() {
-      timer_module::start();
+      // Start a subthread tailing the script
 
-      if (m_tail) {
+      if (m_tail)
         dispatch_tailscript_runner();
-      }
     }
 
     bool update() {
