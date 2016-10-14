@@ -44,6 +44,8 @@ namespace modules {
     }
 
     bool update() {
+      auto previous_output = m_output;
+
       m_output.clear();
 
       if (m_tail) {
@@ -52,13 +54,23 @@ namespace modules {
         m_output = read_output();
       }
 
+      if (m_output != previous_output)
+        m_broadcasted = false;
+
       if (m_maxlen > 0 && m_output.length() > m_maxlen) {
         m_output.erase(m_maxlen);
         if (m_ellipsis)
           m_output += "...";
       }
 
-      return enabled() && !m_output.empty();
+      if (!enabled())
+        return false;
+      else if (m_output.empty() && !m_broadcasted)
+        return true;
+      else if (m_output.empty())
+        return false;
+      else
+        return true;
     }
 
     string get_output() {
@@ -175,6 +187,8 @@ namespace modules {
 
     size_t m_maxlen = 0;
     bool m_ellipsis = true;
+
+    stateflag m_broadcasted{false};
   };
 }
 
