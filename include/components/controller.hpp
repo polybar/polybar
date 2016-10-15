@@ -353,6 +353,8 @@ class controller {
     m_modules.emplace(alignment::CENTER, vector<module_t>{});
     m_modules.emplace(alignment::RIGHT, vector<module_t>{});
 
+    size_t module_count = 0;
+
     for (auto& block : m_modules) {
       string bs{m_conf.bar_section()};
       string confkey;
@@ -406,8 +408,13 @@ class controller {
           modules.emplace_back(new menu_module(bar, m_log, m_conf, module_name));
         else
           throw application_error("Unknown module: " + module_name);
+
+        module_count++;
       }
     }
+
+    if (module_count == 0)
+      throw application_error("No modules created");
   }
 
   void on_module_update(string module_name) {
