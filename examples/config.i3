@@ -7,7 +7,7 @@
 ;
 ;=====================================================
 
-[bar/top]
+[bar/example]
 ;monitor = eDP-1
 dock = false
 width = 100%
