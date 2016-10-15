@@ -24,9 +24,8 @@ problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issue
 * [Getting started](#getting-started)
   * [Dependencies](#dependencies)
   * [Building from source](#building-from-source)
-* [Running](#running)
-* [Launching the bar in your wm's bootstrap routine](#launching-the-bar-in-your-wms-bootstrap-routine)
-* [Configuration](#configuration)
+  * [Configuration](#configuration)
+  * [Running](#running)
 * [License](#license)
 
 
@@ -96,7 +95,9 @@ Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you
   ~~~
 
 
-## Running
+### Configuration
+
+*Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/lemonbuddy/wiki/Configuration).*
 
 Before customizing the bar, make sure everything works as expected by trying
 out one of the example configurations installed with the application.
@@ -116,46 +117,14 @@ The following code will get you started:
   $ lemonbuddy example
   ~~~
 
-> **NOTE:** In case the bar output looks odd, it's probably because you're
-> missing he fonts defined in the config. Update the config or install the
-> missing fonts.
+**NOTE:** If the bar output looks odd, it's probably because you're
+missing he fonts defined in the config. Update the config or install the
+missing fonts.
 
 
-## Launching the bar in your wm's bootstrap routine
+### Running
 
-Create an executable file containing the startup logic, for example `$HOME/.config/lemonbuddy/launch.sh`:
-  ~~~ sh
-  #!/usr/bin/env sh
-
-  # Terminate already running bar instances
-  killall -q lemonbuddy
-
-  # Launch bar1 and bar2
-  lemonbuddy bar1 &
-  lemonbuddy bar2 &
-
-  echo "Bars launched..."
-  ~~~
-
-Make it executable:
-  ~~~ sh
-  $ chmod +x $HOME/.config/lemonbuddy/launch.sh
-  ~~~
-
-If you are using **bspwm**, add the following line to `bspwmrc`:
-  ~~~ sh
-  $HOME/.config/lemonbuddy/launch.sh
-  ~~~
-
-If you are using **i3**, add the following line to your configuration:
-  ~~~ sh
-  exec_always --no-startup-id $HOME/.config/lemonbuddy/launch.sh
-  ~~~
-
-
-## Configuration
-
-Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/lemonbuddy/wiki/Configuration).
+See the wiki page on [how to launch the bar when starting your WM](https://github.com/jaagr/lemonbuddy/wiki/Running-the-app).
 
 
 ## License
