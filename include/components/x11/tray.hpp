@@ -154,6 +154,23 @@ class traymanager
 
     m_activated = true;
     m_connection.flush();
+
+    // Send delayed notifications
+    // This is done to ensure that any stray tray clients
+    // gets notified in case the MANAGER is deactivated/activated
+    // in a short period of time
+    m_notifythread = thread([this] {
+      for (auto i = 0; m_activated && i < 3; i++) {
+        this_thread::sleep_for(1s);
+        try {
+          if (!m_activated)
+            break;
+          notify_clients();
+          m_connection.flush();
+        } catch (...) {
+        }
+      }
+    });
   }
 
   /**
@@ -166,6 +183,9 @@ class traymanager
     }
 
     m_logger.info("Deactivating traymanager");
+
+    if (m_notifythread.joinable())
+      m_notifythread.join();
 
     if (m_sinkattached) {
       m_connection.detach_sink(this, 2);
@@ -180,9 +200,10 @@ class traymanager
 
     m_activated = false;
 
-    if (m_gotselection && !m_othermanager) {
-      m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
-      m_gotselection = false;
+    try {
+      if (m_connection.get_selection_owner(m_atom).owner<xcb_window_t>() == m_tray)
+        m_connection.set_selection_owner_checked(XCB_NONE, m_atom, XCB_CURRENT_TIME);
+    } catch (...) {
     }
 
     m_connection.unmap_window(m_tray);
@@ -364,7 +385,6 @@ class traymanager
     if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray)
       throw application_error("Failed to get control of the systray selection");
 
-    m_gotselection = true;
     m_othermanager = XCB_NONE;
   }
 
@@ -692,7 +712,8 @@ class traymanager
   stateflag m_activated{false};
   stateflag m_mapped{false};
   stateflag m_sinkattached{false};
-  stateflag m_gotselection{false};
+
+  thread m_notifythread;
 };
 
 // }}}
