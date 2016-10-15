@@ -14,59 +14,70 @@
 
 LEMONBUDDY_NS
 
+DEFINE_ERROR(command_error);
+DEFINE_CHILD_ERROR(command_strerror, command_error);
+
 namespace command_util {
   /**
+   * Wrapper used to execute command in a subprocess.
+   * In-/output streams are opened to enable ipc.
+   *
    * Example usage:
+   *
    * @code cpp
-   *   auto cmd = make_unique<Command>("cat /etc/rc.local");
+   *   auto cmd = command_util::make_command("cat /etc/rc.local");
    *   cmd->exec();
-   *   cmd->tail(callback); //---> the contents of /etc/rc.local is sent to callback()
+   *   cmd->tail([](string s) { std::cout << s << std::endl; });
+   * @endcode
    *
-   *   auto cmd = make_unique<Command>(
+   * @code cpp
+   *   auto cmd = command_util::make_command(
    *    "/bin/sh\n-c\n while read -r line; do echo data from parent process: $line; done");
-   *   cmd->exec();
+   *   cmd->exec(false);
    *   cmd->writeline("Test");
-   *   cout << cmd->readline(); //---> data from parent process: Test
+   *   cout << cmd->readline();
+   *   cmd->wait();
+   * @endcode
    *
-   *   auto cmd = make_unique<Command>("/bin/sh\n-c\nfor i in 1 2 3; do echo $i; done");
-   *   cout << cmd->readline(); //---> 1
-   *   cout << cmd->readline() << cmd->readline(); //---> 23
-   * @encode
+   * @code cpp
+   *   vector<string> exec{{"/bin/sh"}, {"-c"}, {"for i in 1 2 3; do echo $i; done"}};
+   *   auto cmd = command_util::make_command(exec);
+   *   cmd->exec();
+   *   cout << cmd->readline(); // 1
+   *   cout << cmd->readline() << cmd->readline(); // 23
+   * @endcode
    */
   class command {
    public:
-    explicit command(const logger& logger, string cmd, int out[2] = nullptr, int in[2] = nullptr)
-        : m_log(logger), m_cmd(cmd) {
-      if (in != nullptr) {
-        m_stdin[PIPE_READ] = in[PIPE_READ];
-        m_stdin[PIPE_WRITE] = in[PIPE_WRITE];
-      } else if (pipe(m_stdin) != 0) {
-        throw system_error("Failed to allocate pipe");
-      }
+    explicit command(const logger& logger, vector<string> cmd)
+        : command(logger, string_util::join(cmd, "\n")) {}
 
-      if (out != nullptr) {
-        m_stdout[PIPE_READ] = out[PIPE_READ];
-        m_stdout[PIPE_WRITE] = out[PIPE_WRITE];
-      } else if (pipe(m_stdout) != 0) {
-        close(m_stdin[PIPE_READ]);
-        close(m_stdin[PIPE_WRITE]);
-        throw system_error("Failed to allocate pipe");
-      }
+    explicit command(const logger& logger, string cmd) : m_log(logger), m_cmd(cmd) {
+      if (pipe(m_stdin) != 0)
+        throw command_strerror("Failed to allocate input stream");
+      if (pipe(m_stdout) != 0)
+        throw command_strerror("Failed to allocate output stream");
     }
 
     ~command() {
       if (is_running()) {
-        m_log.warn("command: Sending SIGKILL to forked process (%d)", m_forkpid);
-        kill(m_forkpid, SIGKILL);
+        try {
+          m_log.trace("command: Sending SIGTERM to running child process (%d)", m_forkpid);
+          killpg(m_forkpid, SIGTERM);
+          wait();
+        } catch (const std::exception& err) {
+          m_log.err("command: %s", err.what());
+        }
       }
-      if (m_stdin[PIPE_READ] > 0 && (close(m_stdin[PIPE_READ]) == -1))
-        m_log.err("command: Failed to close fd: %s (%d)", strerror(errno), errno);
-      if (m_stdin[PIPE_WRITE] > 0 && (close(m_stdin[PIPE_WRITE]) == -1))
-        m_log.err("command: Failed to close fd: %s (%d)", strerror(errno), errno);
-      if (m_stdout[PIPE_READ] > 0 && (close(m_stdout[PIPE_READ]) == -1))
-        m_log.err("command: Failed to close fd: %s (%d)", strerror(errno), errno);
-      if (m_stdout[PIPE_WRITE] > 0 && (close(m_stdout[PIPE_WRITE]) == -1))
-        m_log.err("command: Failed to close fd: %s (%d)", strerror(errno), errno);
+
+      if (m_stdin[PIPE_READ] > 0)
+        close(m_stdin[PIPE_READ]);
+      if (m_stdin[PIPE_WRITE] > 0)
+        close(m_stdin[PIPE_WRITE]);
+      if (m_stdout[PIPE_READ] > 0)
+        close(m_stdout[PIPE_READ]);
+      if (m_stdout[PIPE_WRITE] > 0)
+        close(m_stdout[PIPE_WRITE]);
     }
 
     /**
@@ -78,31 +89,35 @@ namespace command_util {
 
       if (process_util::in_forked_process(m_forkpid)) {
         if (dup2(m_stdin[PIPE_READ], STDIN_FILENO) == -1)
-          throw system_error("Failed to redirect stdin in child process");
+          throw command_strerror("Failed to redirect stdin in child process");
         if (dup2(m_stdout[PIPE_WRITE], STDOUT_FILENO) == -1)
-          throw system_error("Failed to redirect stdout in child process");
+          throw command_strerror("Failed to redirect stdout in child process");
         if (dup2(m_stdout[PIPE_WRITE], STDERR_FILENO) == -1)
-          throw system_error("Failed to redirect stderr in child process");
+          throw command_strerror("Failed to redirect stderr in child process");
 
-        // Close file descriptors that won't be used by forked process
+        // Close file descriptors that won't be used by the child
         if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
         if ((m_stdin[PIPE_WRITE] = close(m_stdin[PIPE_WRITE])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
         if ((m_stdout[PIPE_READ] = close(m_stdout[PIPE_READ])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
         if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
 
-        // Replace the forked process with the given command
+        // Make sure SIGTERM is raised
+        process_util::unblock_signal(SIGTERM);
+
+        setpgid(m_forkpid, 0);
         process_util::exec(m_cmd);
-        std::exit(0);
+
+        throw command_error("Exec failed");
       } else {
-        // Close file descriptors that won't be used by parent process
+        // Close file descriptors that won't be used by the parent
         if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
         if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1)
-          throw system_error("Failed to close fd");
+          throw command_strerror("Failed to close fd");
 
         if (wait_for_completion)
           return wait();
@@ -115,23 +130,18 @@ namespace command_util {
      * Wait for the child processs to finish
      */
     int wait() {
-      do {
-        pid_t pid;
+      auto waitflags = WCONTINUED | WUNTRACED;
 
-        if ((pid = process_util::wait_for_completion(
-                 m_forkpid, &m_forkstatus, WCONTINUED | WUNTRACED)) == -1) {
-          throw system_error(
-              "Process did not finish successfully (" + to_string(m_forkstatus) + ")");
-        }
+      do {
+        if (process_util::wait_for_completion(m_forkpid, &m_forkstatus, waitflags) == -1)
+          throw command_error("Process did not finish successfully");
 
         if (WIFEXITED(m_forkstatus))
           m_log.trace("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
         else if (WIFSIGNALED(m_forkstatus))
-          m_log.trace("command: Got killed by signal %d (%s)", WTERMSIG(m_forkstatus),
-              strerror(WTERMSIG(m_forkstatus)));
+          m_log.trace("command: killed by signal %d", WTERMSIG(m_forkstatus));
         else if (WIFSTOPPED(m_forkstatus))
-          m_log.trace("command: Stopped by signal %d (%s)", WSTOPSIG(m_forkstatus),
-              strerror(WSTOPSIG(m_forkstatus)));
+          m_log.trace("command: Stopped by signal %d", WSTOPSIG(m_forkstatus));
         else if (WIFCONTINUED(m_forkstatus) == true)
           m_log.trace("command: Continued");
       } while (!WIFEXITED(m_forkstatus) && !WIFSIGNALED(m_forkstatus));
@@ -152,6 +162,14 @@ namespace command_util {
     int writeline(string data) {
       std::lock_guard<threading_util::spin_lock> lck(m_pipelock);
       return io_util::writeline(m_stdin[PIPE_WRITE], data);
+    }
+
+    /**
+     * Read a line from the commands output stream
+     */
+    string readline() {
+      std::lock_guard<threading_util::spin_lock> lck(m_pipelock);
+      return io_util::readline(m_stdout[PIPE_READ]);
     }
 
     /**
@@ -203,8 +221,10 @@ namespace command_util {
     threading_util::spin_lock m_pipelock;
   };
 
+  using command_t = unique_ptr<command>;
+
   template <typename... Args>
-  auto make_command(Args&&... args) {
+  command_t make_command(Args&&... args) {
     return make_unique<command>(
         logger::configure().create<const logger&>(), forward<Args>(args)...);
   }

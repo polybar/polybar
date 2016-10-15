@@ -103,6 +103,14 @@ namespace process_util {
   inline auto notify_childprocess() {
     return wait_for_completion_nohang() > 0;
   }
+
+  inline auto unblock_signal(int sig) {
+    sigset_t sigmask;
+    sigemptyset(&sigmask);
+    sigaddset(&sigmask, sig);
+    if (pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr) == -1)
+      throw system_error("Failed to change pthread_sigmask");
+  }
 }
 
 LEMONBUDDY_NS_END

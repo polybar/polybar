@@ -9,9 +9,10 @@
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
-#define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
-
 LEMONBUDDY_NS
+
+#define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
+#define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
 
 using ptree = boost::property_tree::ptree;
 
