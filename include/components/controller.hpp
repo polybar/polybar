@@ -221,6 +221,10 @@ class controller {
           } catch (const application_error& err) {
             m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
           }
+
+          // Offset the initial broadcasts by 25ms to
+          // avoid the updates from being ignored by the throttler
+          this_thread::sleep_for(25ms);
         }
       }
 
