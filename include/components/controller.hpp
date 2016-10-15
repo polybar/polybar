@@ -6,6 +6,7 @@
 #include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
+#include "components/signals.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/randr.hpp"
 #include "components/x11/tray.hpp"
@@ -87,7 +88,7 @@ class controller {
     }
 
     m_log.trace("controller: Deconstruct bar instance");
-    bar_signals::action_click.disconnect(this, &controller::on_module_click);
+    g_signals::bar::action_click.disconnect(this, &controller::on_module_click);
     m_bar.reset();
 
     m_log.trace("controller: Interrupt X event loop");
@@ -162,7 +163,7 @@ class controller {
         std::cout << m_bar->settings().wmname << std::endl;
         return;
       } else if (!to_stdout) {
-        bar_signals::action_click.connect(this, &controller::on_module_click);
+        g_signals::bar::action_click.connect(this, &controller::on_module_click);
       }
     } catch (const std::exception& err) {
       throw application_error("Failed to setup bar renderer: " + string{err.what()});
@@ -520,13 +521,11 @@ class controller {
     m_log.trace("controller: Unrecognized input '%s'", input);
     m_log.trace("controller: Forwarding input to shell");
 
-    auto command = command_util::make_command("/usr/bin/env\nsh\n-c\n"+ input);
+    auto command = command_util::make_command("/usr/bin/env\nsh\n-c\n" + input);
 
     try {
       command->exec(false);
-      command->tail([this](std::string output){
-        m_log.trace("> %s", output);
-      });
+      command->tail([this](std::string output) { m_log.trace("> %s", output); });
       command->wait();
     } catch (const application_error& err) {
       m_log.err(err.what());

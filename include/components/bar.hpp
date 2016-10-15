@@ -7,6 +7,7 @@
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/parser.hpp"
+#include "components/signals.hpp"
 #include "components/types.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/draw.hpp"
@@ -27,10 +28,6 @@
 
 LEMONBUDDY_NS
 
-namespace bar_signals {
-  delegate::Signal1<string> action_click;
-};
-
 class bar : public xpp::event::sink<evt::button_press, evt::expose> {
  public:
   /**
@@ -48,19 +45,19 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
    */
   ~bar() {
     std::lock_guard<threading_util::spin_lock> lck(m_lock);
-    parser_signals::alignment_change.disconnect(this, &bar::on_alignment_change);
-    parser_signals::attribute_set.disconnect(this, &bar::on_attribute_set);
-    parser_signals::attribute_unset.disconnect(this, &bar::on_attribute_unset);
-    parser_signals::attribute_toggle.disconnect(this, &bar::on_attribute_toggle);
-    parser_signals::action_block_open.disconnect(this, &bar::on_action_block_open);
-    parser_signals::action_block_close.disconnect(this, &bar::on_action_block_close);
-    parser_signals::color_change.disconnect(this, &bar::on_color_change);
-    parser_signals::font_change.disconnect(this, &bar::on_font_change);
-    parser_signals::pixel_offset.disconnect(this, &bar::on_pixel_offset);
-    parser_signals::ascii_text_write.disconnect(this, &bar::draw_character);
-    parser_signals::unicode_text_write.disconnect(this, &bar::draw_character);
+    g_signals::parser::alignment_change.disconnect(this, &bar::on_alignment_change);
+    g_signals::parser::attribute_set.disconnect(this, &bar::on_attribute_set);
+    g_signals::parser::attribute_unset.disconnect(this, &bar::on_attribute_unset);
+    g_signals::parser::attribute_toggle.disconnect(this, &bar::on_attribute_toggle);
+    g_signals::parser::action_block_open.disconnect(this, &bar::on_action_block_open);
+    g_signals::parser::action_block_close.disconnect(this, &bar::on_action_block_close);
+    g_signals::parser::color_change.disconnect(this, &bar::on_color_change);
+    g_signals::parser::font_change.disconnect(this, &bar::on_font_change);
+    g_signals::parser::pixel_offset.disconnect(this, &bar::on_pixel_offset);
+    g_signals::parser::ascii_text_write.disconnect(this, &bar::draw_character);
+    g_signals::parser::unicode_text_write.disconnect(this, &bar::draw_character);
     if (m_tray.align != alignment::NONE)
-      tray_signals::report_slotcount.disconnect(this, &bar::on_tray_report);
+      g_signals::tray::report_slotcount.disconnect(this, &bar::on_tray_report);
     if (m_sinkattached)
       m_connection.detach_sink(this, 1);
     m_window.destroy();
@@ -470,20 +467,20 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
     // }}}
     // Connect signal handlers {{{
 
-    parser_signals::alignment_change.connect(this, &bar::on_alignment_change);
-    parser_signals::attribute_set.connect(this, &bar::on_attribute_set);
-    parser_signals::attribute_unset.connect(this, &bar::on_attribute_unset);
-    parser_signals::attribute_toggle.connect(this, &bar::on_attribute_toggle);
-    parser_signals::action_block_open.connect(this, &bar::on_action_block_open);
-    parser_signals::action_block_close.connect(this, &bar::on_action_block_close);
-    parser_signals::color_change.connect(this, &bar::on_color_change);
-    parser_signals::font_change.connect(this, &bar::on_font_change);
-    parser_signals::pixel_offset.connect(this, &bar::on_pixel_offset);
-    parser_signals::ascii_text_write.connect(this, &bar::draw_character);
-    parser_signals::unicode_text_write.connect(this, &bar::draw_character);
+    g_signals::parser::alignment_change.connect(this, &bar::on_alignment_change);
+    g_signals::parser::attribute_set.connect(this, &bar::on_attribute_set);
+    g_signals::parser::attribute_unset.connect(this, &bar::on_attribute_unset);
+    g_signals::parser::attribute_toggle.connect(this, &bar::on_attribute_toggle);
+    g_signals::parser::action_block_open.connect(this, &bar::on_action_block_open);
+    g_signals::parser::action_block_close.connect(this, &bar::on_action_block_close);
+    g_signals::parser::color_change.connect(this, &bar::on_color_change);
+    g_signals::parser::font_change.connect(this, &bar::on_font_change);
+    g_signals::parser::pixel_offset.connect(this, &bar::on_pixel_offset);
+    g_signals::parser::ascii_text_write.connect(this, &bar::draw_character);
+    g_signals::parser::unicode_text_write.connect(this, &bar::draw_character);
 
     if (m_tray.align != alignment::NONE)
-      tray_signals::report_slotcount.connect(this, &bar::on_tray_report);
+      g_signals::tray::report_slotcount.connect(this, &bar::on_tray_report);
 
     // }}}
 
@@ -652,8 +649,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
         m_log.trace("action.start_x = %i", action.start_x);
         m_log.trace("action.end_x = %i", action.end_x);
 
-        if (!bar_signals::action_click.empty())
-          bar_signals::action_click.emit(action.command);
+        if (!g_signals::bar::action_click.empty())
+          g_signals::bar::action_click.emit(action.command);
         else
           m_log.warn("No signal handler's connected to 'action_click'");
 

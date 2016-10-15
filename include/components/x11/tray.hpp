@@ -2,10 +2,10 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
-#include <fastdelegate/fastdelegate.hpp>
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "components/signals.hpp"
 #include "components/types.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/xembed.hpp"
@@ -23,10 +23,6 @@
 #define TRAY_WM_CLASS "tray\0Lemonbuddy"
 
 LEMONBUDDY_NS
-
-namespace tray_signals {
-  delegate::Signal1<uint16_t> report_slotcount;
-};
 
 // class definition : trayclient {{{
 
@@ -225,8 +221,8 @@ class traymanager
       }
     }
 
-    if (!tray_signals::report_slotcount.empty())
-      tray_signals::report_slotcount.emit(mapped_clients);
+    if (!g_signals::tray::report_slotcount.empty())
+      g_signals::tray::report_slotcount.emit(mapped_clients);
 
     if (!width && m_mapped) {
       m_connection.unmap_window(m_tray);
