@@ -184,9 +184,6 @@ class traymanager
 
     m_logger.info("Deactivating traymanager");
 
-    if (m_notifythread.joinable())
-      m_notifythread.join();
-
     if (m_sinkattached) {
       m_connection.detach_sink(this, 2);
       m_sinkattached = false;
@@ -199,6 +196,9 @@ class traymanager
     }
 
     m_activated = false;
+
+    if (m_notifythread.joinable())
+      m_notifythread.join();
 
     try {
       if (m_connection.get_selection_owner(m_atom).owner<xcb_window_t>() == m_tray)
