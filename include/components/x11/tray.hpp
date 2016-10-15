@@ -521,7 +521,12 @@ class traymanager
 
       switch (evt->data.data32[1]) {
         case SYSTEM_TRAY_REQUEST_DOCK:
-          process_docking_request(evt->data.data32[2]);
+          try {
+            process_docking_request(evt->data.data32[2]);
+          } catch (const std::exception& err) {
+            auto id = m_connection.id(evt->data.data32[2]);
+            m_logger.err("Error while processing docking request for %s (%s)", id, err.what());
+          }
           return;
 
         case SYSTEM_TRAY_BEGIN_MESSAGE:
