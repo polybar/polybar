@@ -145,6 +145,13 @@ class traymanager
       m_sinkattached = true;
     }
 
+    // Listen for visibility change events on the bar window
+    if (!m_restacked) {
+      g_signals::bar::visibility_change.connect(this, &traymanager::bar_visibility_change);
+    }
+
+    // Attempt to get control of the systray selection then
+    // notify clients waiting for a manager.
     acquire_selection();
     notify_clients();
 
@@ -185,6 +192,10 @@ class traymanager
       m_sinkattached = false;
     }
 
+    if (!m_restacked) {
+      g_signals::bar::visibility_change.disconnect(this, &traymanager::bar_visibility_change);
+    }
+
     // Dismiss all clients by reparenting them to the root window
     m_logger.trace("tray: Unembed clients");
     for (auto&& client : m_clients) {
@@ -211,6 +222,12 @@ class traymanager
    * reposition embedded clients
    */
   void reconfigure() {
+    // Ignore reconfigure requests when the
+    // tray window is in the pseudo-hidden state
+    if (m_hidden) {
+      return;
+    }
+
     uint32_t width = 0;
     uint16_t mapped_clients = 0;
 
@@ -266,6 +283,29 @@ class traymanager
   }
 
  protected:
+  /**
+   * Signal handler connected to the bar window's visibility change signal.
+   * This is used as a fallback in case the window restacking fails. It will
+   * toggle the tray window whenever the visibility of the bar window changes.
+   */
+  void bar_visibility_change(bool state) {
+    try {
+      // Ignore unchanged states
+      if (m_hidden == !state)
+        return;
+
+      // Update the psuedo-state
+      m_hidden = !state;
+
+      if (state && !m_mapped)
+        m_connection.map_window_checked(m_tray);
+      else if (!state && m_mapped)
+        m_connection.unmap_window_checked(m_tray);
+    } catch (const std::exception& err) {
+      m_logger.warn("Failed to un-/map the tray window (%s)", err.what());
+    }
+  }
+
   /**
    * Calculate the tray window's horizontal position
    */
@@ -328,6 +368,7 @@ class traymanager
         const uint32_t value_list[2]{m_settings.sibling, XCB_STACK_MODE_ABOVE};
         m_connection.configure_window_checked(m_tray, value_mask, value_list);
         m_connection.flush();
+        m_restacked = true;
       }
     } catch (const std::exception& err) {
       auto id = m_connection.id(m_settings.sibling);
@@ -725,9 +766,12 @@ class traymanager
 
   stateflag m_activated{false};
   stateflag m_mapped{false};
+  stateflag m_hidden{false};
   stateflag m_sinkattached{false};
 
   thread m_notifythread;
+
+  bool m_restacked = false;
 };
 
 // }}}

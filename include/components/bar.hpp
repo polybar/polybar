@@ -28,7 +28,7 @@
 
 LEMONBUDDY_NS
 
-class bar : public xpp::event::sink<evt::button_press, evt::expose> {
+class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
   /**
    * Construct bar
@@ -230,7 +230,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
       XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, m_bar.background.value());
       XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
       XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_bar.dock);
-      XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
+      XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
       // clang-format on
       m_window.create_checked(m_bar.x, m_bar.y, m_bar.width, m_bar.height, mask, &params);
     }
@@ -642,6 +642,41 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
       return;
     m_log.trace("bar: Received expose event");
     flush();
+  }  // }}}
+
+  /**
+   * Event handler for XCB_PROPERTY_NOTIFY events
+   *
+   * Used to emit events whenever the bar window's
+   * visibility gets changes. This allows us to toggle the
+   * state of the tray container even though the tray
+   * window restacking failed.
+   *
+   * This is used as a fallback for tedious WM's, like i3.
+   *
+   * Some might call it a dirty hack, others a crappy
+   * solution... I choose to call it a masterpiece! Plus
+   * it's not really any overhead worth talking about.
+   */
+  void handle(const evt::property_notify& evt) {  // {{{
+    if (evt->window == m_window && evt->atom == WM_STATE) {
+      if (g_signals::bar::visibility_change.empty()) {
+        return;
+      }
+      try {
+        auto attr = m_connection.get_window_attributes(m_window);
+        if (attr->map_state == XCB_MAP_STATE_VIEWABLE)
+          g_signals::bar::visibility_change.emit(true);
+        else if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE)
+          g_signals::bar::visibility_change.emit(false);
+        else if (attr->map_state == XCB_MAP_STATE_UNMAPPED)
+          g_signals::bar::visibility_change.emit(false);
+        else
+          g_signals::bar::visibility_change.emit(true);
+      } catch (const std::exception& err) {
+        m_log.warn("Failed to emit bar window's visibility change event");
+      }
+    }
   }  // }}}
 
  protected:
