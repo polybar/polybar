@@ -325,12 +325,17 @@ class traymanager
         m_settings.width + m_settings.spacing * 2, m_settings.height + m_settings.spacing * 2, 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
 
-    // Put the tray window above the defined sibling in the window stack
-    if (m_settings.sibling != XCB_NONE) {
-      const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-      const uint32_t value_list[2]{m_settings.sibling, XCB_STACK_MODE_ABOVE};
-      m_connection.configure_window_checked(m_tray, value_mask, value_list);
-      m_connection.flush();
+    try {
+      // Put the tray window above the defined sibling in the window stack
+      if (m_settings.sibling != XCB_NONE) {
+        const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+        const uint32_t value_list[2]{m_settings.sibling, XCB_STACK_MODE_ABOVE};
+        m_connection.configure_window_checked(m_tray, value_mask, value_list);
+        m_connection.flush();
+      }
+    } catch (const std::exception& err) {
+      auto id = m_connection.id(m_settings.sibling);
+      m_logger.trace("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
     }
   }
 

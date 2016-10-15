@@ -57,7 +57,7 @@ class connection : public xpp_connection {
    */
   auto id(xcb_window_t w) const {
     return string_util::from_stream(
-        std::stringstream() << "0x" << std::hex << std::setw(8) << std::setfill('0') << w);
+        std::stringstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w);
   }
 
   /**
