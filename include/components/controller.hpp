@@ -81,14 +81,14 @@ class controller {
       }
     }
 
-    m_log.trace("controller: Deconstruct bar instance");
-    bar_signals::action_click.disconnect(this, &controller::on_module_click);
-    m_bar.reset();
-
     if (m_traymanager) {
       m_log.trace("controller: Deactivate tray manager");
       m_traymanager->deactivate();
     }
+
+    m_log.trace("controller: Deconstruct bar instance");
+    bar_signals::action_click.disconnect(this, &controller::on_module_click);
+    m_bar.reset();
 
     m_log.trace("controller: Interrupt X event loop");
     m_connection.send_dummy_event(m_connection.root());
