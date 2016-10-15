@@ -128,15 +128,9 @@ namespace modules {
     }
 
     float get_load(size_t core) {
-      if (m_cputimes.size() == 0)
+      if (m_cputimes.empty() || m_cputimes_prev.empty())
         return 0;
-      else if (m_cputimes_prev.size() == 0)
-        return 0;
-      else if (!core)
-        return 0;
-      else if (core > m_cputimes.size() - 1)
-        return 0;
-      else if (core > m_cputimes_prev.size() - 1)
+      else if (core >= m_cputimes.size() || core >= m_cputimes_prev.size())
         return 0;
 
       auto& last = m_cputimes[core];
