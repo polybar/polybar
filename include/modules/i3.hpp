@@ -113,9 +113,11 @@ namespace modules {
         m_ipc.handle_event();
         return true;
       } catch (const std::exception& err) {
-        m_log.err("%s: Error while handling ipc event, stopping module...", name());
-        m_log.err("%s: %s", name(), err.what());
-        stop();
+        if (enabled()) {
+          m_log.err("%s: Error while handling ipc event, stopping module...", name());
+          m_log.err("%s: %s", name(), err.what());
+          stop();
+        }
         return false;
       }
 
