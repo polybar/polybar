@@ -5,4 +5,4 @@
 [submodule "lib/xpp"]
 	path = lib/xpp
 	url = https://github.com/jaagr/xpp
-	branch = wip-lemonbuddy-2.0
+	branch = 1.2.2
