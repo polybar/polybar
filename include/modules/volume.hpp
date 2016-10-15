@@ -21,12 +21,12 @@ namespace modules {
       auto speaker_mixer = m_conf.get<string>(name(), "speaker-mixer", "");
       auto headphone_mixer = m_conf.get<string>(name(), "headphone-mixer", "");
 
-      m_headphone_ctrl_numid = m_conf.get<int>(name(), "headphone-id", -1);
+      m_headphone_id = m_conf.get<int>(name(), "headphone-id", -1);
 
-      if (!headphone_mixer.empty() && m_headphone_ctrl_numid == -1)
+      if (!headphone_mixer.empty() && m_headphone_id == -1)
         throw module_error(
             "volume_module: Missing required property value for \"headphone-id\"...");
-      else if (headphone_mixer.empty() && m_headphone_ctrl_numid != -1)
+      else if (headphone_mixer.empty() && m_headphone_id != -1)
         throw module_error(
             "volume_module: Missing required property value for \"headphone-mixer\"...");
 
@@ -63,13 +63,14 @@ namespace modules {
         m_headphone_mixer = create_mixer(m_log, headphone_mixer);
 
       if (!m_master_mixer && !m_speaker_mixer && !m_headphone_mixer) {
+        m_log.err("%s: No configured mixers, stopping module...", name());
         stop();
         return;
       }
 
-      if (m_headphone_mixer && m_headphone_ctrl_numid > -1) {
+      if (m_headphone_mixer && m_headphone_id > -1) {
         try {
-          m_headphone_ctrl = make_unique<alsa_ctl_interface>(m_headphone_ctrl_numid);
+          m_headphone_ctrl = make_unique<alsa_ctl_interface>(m_headphone_id);
         } catch (const alsa_ctl_interface_error& e) {
           m_log.err("%s: Failed to open headphone control interface => %s", name(), e.what());
           m_headphone_ctrl.reset();
@@ -228,8 +229,6 @@ namespace modules {
         other_mixer = m_headphone_mixer.get();
       else if (m_speaker_mixer)
         other_mixer = m_speaker_mixer.get();
-      else
-        return false;
 
       if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
         master_mixer->set_mute(m_muted);
@@ -281,7 +280,7 @@ namespace modules {
     unique_ptr<alsa_mixer> m_speaker_mixer;
     unique_ptr<alsa_mixer> m_headphone_mixer;
     unique_ptr<alsa_ctl_interface> m_headphone_ctrl;
-    int m_headphone_ctrl_numid = -1;
+    int m_headphone_id = -1;
     int m_volume = 0;
 
     stateflag m_muted{false};
