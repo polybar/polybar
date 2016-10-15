@@ -38,7 +38,7 @@ class logger {
    * Construct logger
    */
   explicit logger(loglevel level) : m_level(level) {
-    if (isatty(STDOUT_FILENO)) {
+    if (isatty(m_fd)) {
       // clang-format off
       m_prefixes[loglevel::TRACE]   = "\r\033[0;90m- ";
       m_prefixes[loglevel::INFO]    = "\r\033[1;32m* \033[0m";
