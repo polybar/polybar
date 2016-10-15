@@ -57,7 +57,7 @@ namespace modules {
       // }}}
       // Terminate running command {{{
       try {
-        if (m_command)
+        if (m_tail && m_command)
           m_command.reset();
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
@@ -117,14 +117,14 @@ namespace modules {
     }
 
     string get_output() {
-      auto output = string_util::replace_all(m_output, "\n", "");
-      if (output.empty())
+      if (m_output.empty())
         return " ";
 
       // Truncate output to the defined max length {{{
-      if (m_maxlen > 0 && output.length() > m_maxlen) {
-        output.erase(m_maxlen);
-        output += m_ellipsis ? "..." : "";
+
+      if (m_maxlen > 0 && m_output.length() > m_maxlen) {
+        m_output.erase(m_maxlen);
+        m_output += m_ellipsis ? "..." : "";
       }
       // }}}
       // Add mousebtn command handlers {{{
@@ -137,7 +137,7 @@ namespace modules {
       OUTPUT_ACTION(mousebtn::SCROLL_DOWN);
       // }}}
 
-      m_builder->node(output);
+      m_builder->node(module::get_output());
 
       return m_builder->flush();
     }
@@ -145,7 +145,7 @@ namespace modules {
     bool build(builder* builder, string tag) {
       if (tag != TAG_OUTPUT)
         return false;
-      builder->node(m_output);
+      builder->node(string_util::replace_all(m_output, "\n", ""));
       return true;
     }
 
