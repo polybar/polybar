@@ -465,6 +465,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose> {
         m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
     }
 
+    m_tray.sibling = m_window;
+
     // }}}
     // Connect signal handlers {{{
 

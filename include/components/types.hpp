@@ -71,6 +71,7 @@ struct tray_settings {
     height = o.height;
     spacing = o.spacing;
     slots = o.slots;
+    sibling = o.sibling;
     return *this;
   }
 
@@ -82,6 +83,7 @@ struct tray_settings {
   uint16_t height{0};
   uint16_t spacing{0};
   uint16_t slots{0};
+  uint32_t sibling;
 };
 
 struct border_settings {
