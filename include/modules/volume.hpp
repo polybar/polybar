@@ -239,34 +239,31 @@ namespace modules {
       if (!m_mixers[mixer::MASTER])
         return false;
 
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      {
-        vector<mixer_t> mixers{m_mixers[mixer::MASTER]};
+      vector<mixer_t> mixers{m_mixers[mixer::MASTER]};
 
-        if (m_mixers[mixer::HEADPHONE] && m_headphones)
-          mixers.emplace_back(m_mixers[mixer::HEADPHONE]);
-        else if (m_mixers[mixer::SPEAKER])
-          mixers.emplace_back(m_mixers[mixer::SPEAKER]);
+      if (m_mixers[mixer::HEADPHONE] && m_headphones)
+        mixers.emplace_back(m_mixers[mixer::HEADPHONE]);
+      else if (m_mixers[mixer::SPEAKER])
+        mixers.emplace_back(m_mixers[mixer::SPEAKER]);
 
-        try {
-          if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
-            for (auto&& mixer : mixers) {
-              mixer->set_mute(m_muted || mixers[0]->is_muted());
-            }
-          } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
-            for (auto&& mixer : mixers) {
-              mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
-            }
-          } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
-            for (auto&& mixer : mixers) {
-              mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
-            }
-          } else {
-            return false;
+      try {
+        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+          for (auto&& mixer : mixers) {
+            mixer->set_mute(m_muted || mixers[0]->is_muted());
           }
-        } catch (const std::exception& err) {
-          m_log.err("%s: Failed to handle command (%s)", name(), err.what());
+        } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+          for (auto&& mixer : mixers) {
+            mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
+          }
+        } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+          for (auto&& mixer : mixers) {
+            mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
+          }
+        } else {
+          return false;
         }
+      } catch (const std::exception& err) {
+        m_log.err("%s: Failed to handle command (%s)", name(), err.what());
       }
 
       m_updated = true;
