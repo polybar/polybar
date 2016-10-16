@@ -920,7 +920,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       x = m_bar.width - chr_width - m_borders[border::RIGHT].size;
     }
 
-    draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, chr_width, m_bar.height);
+    draw_util::fill(
+        m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, m_bar.width - x, m_bar.height);
 
     // Translate pos of clickable areas
     if (m_bar.align != alignment::LEFT)
