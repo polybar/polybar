@@ -1,6 +1,7 @@
 #pragma once
 
 #include "adapters/alsa.hpp"
+#include "components/config.hpp"
 #include "config.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
@@ -10,6 +11,12 @@
 LEMONBUDDY_NS
 
 namespace modules {
+  enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
+  enum class control { NONE = 0, HEADPHONE };
+
+  using mixer_t = shared_ptr<alsa_mixer>;
+  using control_t = shared_ptr<alsa_ctl_interface>;
+
   class volume_module : public event_module<volume_module> {
    public:
     using event_module::event_module;
@@ -21,12 +28,12 @@ namespace modules {
       auto speaker_mixer = m_conf.get<string>(name(), "speaker-mixer", "");
       auto headphone_mixer = m_conf.get<string>(name(), "headphone-mixer", "");
 
-      m_headphone_id = m_conf.get<int>(name(), "headphone-id", -1);
+      GET_CONFIG_VALUE(name(), m_headphoneid, "headphone-id");
 
-      if (!headphone_mixer.empty() && m_headphone_id == -1)
+      if (!headphone_mixer.empty() && m_headphoneid == -1)
         throw module_error(
             "volume_module: Missing required property value for \"headphone-id\"...");
-      else if (headphone_mixer.empty() && m_headphone_id != -1)
+      else if (headphone_mixer.empty() && m_headphoneid != -1)
         throw module_error(
             "volume_module: Missing required property value for \"headphone-mixer\"...");
 
@@ -42,38 +49,38 @@ namespace modules {
       // }}}
       // Setup mixers {{{
 
-      auto create_mixer = [](const logger& log, string mixer_name) {
-        unique_ptr<alsa_mixer> mixer;
+      auto create_mixer = [this](string mixer_name) {
+        mixer_t mixer;
 
         try {
-          mixer = make_unique<alsa_mixer>(mixer_name);
+          mixer.reset(new mixer_t::element_type{mixer_name});
         } catch (const alsa_mixer_error& e) {
-          log.err("volume_module: Failed to open '%s' mixer => %s", mixer_name, e.what());
+          m_log.err("%s: Failed to open '%s' mixer => %s", name(), mixer_name, e.what());
           mixer.reset();
         }
 
         return mixer;
       };
 
-      m_master_mixer = create_mixer(m_log, master_mixer);
+      m_mixers[mixer::MASTER] = create_mixer(master_mixer);
 
       if (!speaker_mixer.empty())
-        m_speaker_mixer = create_mixer(m_log, speaker_mixer);
+        m_mixers[mixer::SPEAKER] = create_mixer(speaker_mixer);
       if (!headphone_mixer.empty())
-        m_headphone_mixer = create_mixer(m_log, headphone_mixer);
+        m_mixers[mixer::HEADPHONE] = create_mixer(headphone_mixer);
 
-      if (!m_master_mixer && !m_speaker_mixer && !m_headphone_mixer) {
+      if (m_mixers.empty()) {
         m_log.err("%s: No configured mixers, stopping module...", name());
         stop();
         return;
       }
 
-      if (m_headphone_mixer && m_headphone_id > -1) {
+      if (m_mixers[mixer::HEADPHONE] && m_headphoneid > -1) {
         try {
-          m_headphone_ctrl = make_unique<alsa_ctl_interface>(m_headphone_id);
+          m_controls[control::HEADPHONE] = make_shared<alsa_ctl_interface>(m_headphoneid);
         } catch (const alsa_ctl_interface_error& e) {
           m_log.err("%s: Failed to open headphone control interface => %s", name(), e.what());
-          m_headphone_ctrl.reset();
+          m_controls[control::HEADPHONE].reset();
         }
       }
 
@@ -106,79 +113,96 @@ namespace modules {
     }
 
     void stop() {
+      // Deconstruct all mixers before putting the module in its stopped state {{{
+
       std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      m_master_mixer.reset();
-      m_speaker_mixer.reset();
-      m_headphone_mixer.reset();
-      m_headphone_ctrl.reset();
+      m_mixers[mixer::MASTER].reset();
+      m_mixers[mixer::SPEAKER].reset();
+      m_mixers[mixer::HEADPHONE].reset();
+      m_controls[control::HEADPHONE].reset();
       event_module::stop();
+
+      // }}}
     }
 
     bool has_event() {
+      // Poll for mixer and control events {{{
+
       try {
-        bool has_event = false;
-        if (m_master_mixer)
-          has_event |= m_master_mixer->wait(25);
-        if (m_speaker_mixer)
-          has_event |= m_speaker_mixer->wait(25);
-        if (m_headphone_mixer)
-          has_event |= m_headphone_mixer->wait(25);
-        if (m_headphone_ctrl)
-          has_event |= m_headphone_ctrl->wait(25);
+        bool has_event = m_updated;
+
+        if (m_mixers[mixer::MASTER])
+          has_event |= m_mixers[mixer::MASTER]->wait(25);
+        if (m_mixers[mixer::SPEAKER])
+          has_event |= m_mixers[mixer::SPEAKER]->wait(25);
+        if (m_mixers[mixer::HEADPHONE])
+          has_event |= m_mixers[mixer::HEADPHONE]->wait(25);
+        if (m_controls[control::HEADPHONE])
+          has_event |= m_controls[control::HEADPHONE]->wait(25);
+
+        m_updated = false;
+
         return has_event;
       } catch (const alsa_exception& e) {
         m_log.err("%s: %s", name(), e.what());
         return false;
       }
+
+      // }}}
     }
 
     bool update() {
-      // Consume any other pending events
-      if (m_master_mixer)
-        m_master_mixer->process_events();
-      if (m_speaker_mixer)
-        m_speaker_mixer->process_events();
-      if (m_headphone_mixer)
-        m_headphone_mixer->process_events();
-      if (m_headphone_ctrl)
-        m_headphone_ctrl->wait(0);
+      // Consume pending events {{{
 
-      int volume = 100;
-      bool muted = false;
+      if (m_mixers[mixer::MASTER])
+        m_mixers[mixer::MASTER]->process_events();
+      if (m_mixers[mixer::SPEAKER])
+        m_mixers[mixer::SPEAKER]->process_events();
+      if (m_mixers[mixer::HEADPHONE])
+        m_mixers[mixer::HEADPHONE]->process_events();
+      if (m_controls[control::HEADPHONE])
+        m_controls[control::HEADPHONE]->wait(0);
 
-      if (m_master_mixer) {
-        volume *= m_master_mixer->get_volume() / 100.0f;
-        muted |= m_master_mixer->is_muted();
+      // }}}
+      // Get volume, mute and headphone state {{{
+
+      m_volume = 100;
+      m_muted = false;
+      m_headphones = false;
+
+      if (m_mixers[mixer::MASTER]) {
+        m_volume *= m_mixers[mixer::MASTER]->get_volume() / 100.0f;
+        m_muted = m_muted || m_mixers[mixer::MASTER]->is_muted();
       }
 
-      if (m_headphone_mixer && m_headphone_ctrl && m_headphone_ctrl->test_device_plugged()) {
+      if (m_controls[control::HEADPHONE] && m_controls[control::HEADPHONE]->test_device_plugged()) {
         m_headphones = true;
-        volume *= m_headphone_mixer->get_volume() / 100.0f;
-        muted |= m_headphone_mixer->is_muted();
-      } else if (m_speaker_mixer) {
-        m_headphones = false;
-        volume *= m_speaker_mixer->get_volume() / 100.0f;
-        muted |= m_speaker_mixer->is_muted();
+        m_volume *= m_mixers[mixer::HEADPHONE]->get_volume() / 100.0f;
+        m_muted = m_muted || m_mixers[mixer::HEADPHONE]->is_muted();
+      } else if (m_mixers[mixer::SPEAKER]) {
+        m_volume *= m_mixers[mixer::SPEAKER]->get_volume() / 100.0f;
+        m_muted = m_muted || m_mixers[mixer::SPEAKER]->is_muted();
       }
 
-      m_volume = volume;
-      m_muted = muted;
+      // }}}
+      // Replace label tokens {{{
 
       if (m_label_volume_tokenized) {
         m_label_volume_tokenized->m_text = m_label_volume->m_text;
         m_label_volume_tokenized->replace_token("%percentage%", to_string(m_volume) + "%");
       }
-
       if (m_label_muted_tokenized) {
         m_label_muted_tokenized->m_text = m_label_muted->m_text;
         m_label_muted_tokenized->replace_token("%percentage%", to_string(m_volume) + "%");
       }
 
+      // }}}
+
       return true;
     }
 
     string get_format() {
-      return m_muted == true ? FORMAT_MUTED : FORMAT_VOLUME;
+      return m_muted ? FORMAT_MUTED : FORMAT_VOLUME;
     }
 
     string get_output() {
@@ -186,16 +210,10 @@ namespace modules {
 
       if (!m_muted && m_volume < 100)
         m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-      else
-        m_log.trace("%s: Not adding scroll up handler (muted or volume = 100)", name());
-
       if (!m_muted && m_volume > 0)
         m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
-      else
-        m_log.trace("%s: Not adding scroll down handler (muted or volume = 0)", name());
 
       m_builder->node(module::get_output());
-
       return m_builder->flush();
     }
 
@@ -218,33 +236,40 @@ namespace modules {
     bool handle_event(string cmd) {
       if (cmd.compare(0, 3, EVENT_PREFIX) != 0)
         return false;
-
-      if (!m_master_mixer)
+      if (!m_mixers[mixer::MASTER])
         return false;
 
-      alsa_mixer* master_mixer = m_master_mixer.get();
-      alsa_mixer* other_mixer = nullptr;
+      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      {
+        vector<mixer_t> mixers{m_mixers[mixer::MASTER]};
 
-      if (m_headphone_mixer && m_headphones)
-        other_mixer = m_headphone_mixer.get();
-      else if (m_speaker_mixer)
-        other_mixer = m_speaker_mixer.get();
+        if (m_mixers[mixer::HEADPHONE] && m_headphones)
+          mixers.emplace_back(m_mixers[mixer::HEADPHONE]);
+        else if (m_mixers[mixer::SPEAKER])
+          mixers.emplace_back(m_mixers[mixer::SPEAKER]);
 
-      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
-        master_mixer->set_mute(m_muted);
-        if (other_mixer != nullptr)
-          other_mixer->set_mute(m_muted);
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
-        master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() + 5, 0, 100));
-        if (other_mixer != nullptr)
-          other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() + 5, 0, 100));
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
-        master_mixer->set_volume(math_util::cap<float>(master_mixer->get_volume() - 5, 0, 100));
-        if (other_mixer != nullptr)
-          other_mixer->set_volume(math_util::cap<float>(other_mixer->get_volume() - 5, 0, 100));
-      } else {
-        return false;
+        try {
+          if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+            for (auto&& mixer : mixers) {
+              mixer->set_mute(m_muted || mixers[0]->is_muted());
+            }
+          } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+            for (auto&& mixer : mixers) {
+              mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
+            }
+          } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+            for (auto&& mixer : mixers) {
+              mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
+            }
+          } else {
+            return false;
+          }
+        } catch (const std::exception& err) {
+          m_log.err("%s: Failed to handle command (%s)", name(), err.what());
+        }
       }
+
+      m_updated = true;
 
       return true;
     }
@@ -276,15 +301,15 @@ namespace modules {
     label_t m_label_muted;
     label_t m_label_muted_tokenized;
 
-    unique_ptr<alsa_mixer> m_master_mixer;
-    unique_ptr<alsa_mixer> m_speaker_mixer;
-    unique_ptr<alsa_mixer> m_headphone_mixer;
-    unique_ptr<alsa_ctl_interface> m_headphone_ctrl;
-    int m_headphone_id = -1;
+    map<mixer, mixer_t> m_mixers;
+    map<control, control_t> m_controls;
+
+    int m_headphoneid = -1;
     int m_volume = 0;
 
     stateflag m_muted{false};
     stateflag m_headphones{false};
+    stateflag m_updated{false};
   };
 }
 

@@ -18,11 +18,11 @@ DEFINE_CHILD_ERROR(alsa_mixer_error, alsa_exception);
 
 // class definition : alsa_ctl_interface {{{
 
-template<typename T>
+template <typename T>
 void throw_exception(string&& message, int error_code) {
   const char* snd_error = snd_strerror(error_code);
   if (snd_error != nullptr)
-    message += ": "+ string{snd_error};
+    message += ": " + string{snd_error};
   throw T(message.c_str());
 }
 
@@ -39,7 +39,8 @@ class alsa_ctl_interface {
     snd_ctl_elem_info_set_id(m_info, m_id);
 
     if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0)
-      throw_exception<alsa_ctl_interface_error>("Could not open control '"+ string{ALSA_SOUNDCARD} +"'", err);
+      throw_exception<alsa_ctl_interface_error>(
+          "Could not open control '" + string{ALSA_SOUNDCARD} + "'", err);
 
     if ((err = snd_ctl_elem_info(m_ctl, m_info)) < 0)
       throw_exception<alsa_ctl_interface_error>("Could not get control datal", err);
@@ -185,9 +186,11 @@ class alsa_mixer {
 
     snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
 
-    for (int i = 0; i < SND_MIXER_SCHN_LAST; i++) {
-      if (snd_mixer_selem_has_playback_channel(m_mixerelement, (snd_mixer_selem_channel_id_t)i)) {
-        snd_mixer_selem_get_playback_volume(m_mixerelement, (snd_mixer_selem_channel_id_t)i, &vol);
+    for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
+      if (snd_mixer_selem_has_playback_channel(
+              m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+        snd_mixer_selem_get_playback_volume(
+            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
         vol_total += vol;
         chan_n++;
       }
@@ -216,22 +219,23 @@ class alsa_mixer {
   void toggle_mute() {
     std::lock_guard<threading_util::spin_lock> guard(m_lock);
     int state;
-    snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_FRONT_LEFT, &state);
+    snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_MONO, &state);
     snd_mixer_selem_set_playback_switch_all(m_mixerelement, !state);
   }
 
   bool is_muted() {
     std::lock_guard<threading_util::spin_lock> guard(m_lock);
     int state = 0;
-    for (int i = 0; i < SND_MIXER_SCHN_LAST; i++) {
-      if (snd_mixer_selem_has_playback_channel(m_mixerelement, (snd_mixer_selem_channel_id_t)i)) {
-        snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_FRONT_LEFT, &state);
-        if (state == 0)
-          return true;
+    for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
+      if (snd_mixer_selem_has_playback_channel(
+              m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+        int state_ = 0;
+        snd_mixer_selem_get_playback_switch(
+            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &state_);
+        state = state || state_;
       }
     }
-
-    return false;
+    return !state;
   }
 
  private:
