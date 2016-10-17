@@ -183,6 +183,9 @@ namespace modules {
 
       std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
       {
+        if (m_broadcast_thread.joinable())
+          m_broadcast_thread.join();
+
         for (auto&& thread_ : m_threads) {
           if (thread_.joinable())
             thread_.join();
@@ -305,6 +308,16 @@ namespace modules {
     }
 
    protected:
+    // Called by modules after handling action events
+    void event_handled() {
+      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      {
+        if (m_broadcast_thread.joinable())
+          m_broadcast_thread.join();
+        m_broadcast_thread = thread(&module::broadcast, this);
+      }
+    }
+
     // concurrency::SpinLock output_lock;
     // concurrency::SpinLock broadcast_lock;
     threading_util::spin_lock update_lock;
@@ -324,6 +337,7 @@ namespace modules {
    private:
     stateflag m_enabled{false};
     string m_cache;
+    thread m_broadcast_thread;
   };
 
   // }}}
