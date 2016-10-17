@@ -50,16 +50,12 @@ namespace modules {
       // Setup mixers {{{
 
       auto create_mixer = [this](string mixer_name) {
-        mixer_t mixer;
-
         try {
-          mixer.reset(new mixer_t::element_type{mixer_name});
+          return mixer_t{new mixer_t::element_type{mixer_name}};
         } catch (const alsa_mixer_error& e) {
           m_log.err("%s: Failed to open '%s' mixer => %s", name(), mixer_name, e.what());
-          mixer.reset();
+          return mixer_t{};
         }
-
-        return mixer;
       };
 
       m_mixers[mixer::MASTER] = create_mixer(master_mixer);
@@ -77,7 +73,7 @@ namespace modules {
 
       if (m_mixers[mixer::HEADPHONE] && m_headphoneid > -1) {
         try {
-          m_controls[control::HEADPHONE] = make_shared<alsa_ctl_interface>(m_headphoneid);
+          m_controls[control::HEADPHONE] = control_t{new control_t::element_type{m_headphoneid}};
         } catch (const alsa_ctl_interface_error& e) {
           m_log.err("%s: Failed to open headphone control interface => %s", name(), e.what());
           m_controls[control::HEADPHONE].reset();
@@ -129,7 +125,7 @@ namespace modules {
       // Poll for mixer and control events {{{
 
       try {
-        bool has_event = m_updated;
+        bool has_event = false;
 
         if (m_mixers[mixer::MASTER])
           has_event |= m_mixers[mixer::MASTER]->wait(25);
@@ -139,8 +135,6 @@ namespace modules {
           has_event |= m_mixers[mixer::HEADPHONE]->wait(25);
         if (m_controls[control::HEADPHONE])
           has_event |= m_controls[control::HEADPHONE]->wait(25);
-
-        m_updated = false;
 
         return has_event;
       } catch (const alsa_exception& e) {
@@ -266,7 +260,11 @@ namespace modules {
         m_log.err("%s: Failed to handle command (%s)", name(), err.what());
       }
 
-      m_updated = true;
+      // Update the mute flag since we won't poll the new state when
+      // sending the broadcast related to this event
+      m_muted = !m_muted;
+
+      event_handled();
 
       return true;
     }
@@ -306,7 +304,6 @@ namespace modules {
 
     stateflag m_muted{false};
     stateflag m_headphones{false};
-    stateflag m_updated{false};
   };
 }
 
