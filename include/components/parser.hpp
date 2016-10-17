@@ -3,7 +3,6 @@
 #include <fastdelegate/fastdelegate.hpp>
 
 #include "common.hpp"
-#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "components/signals.hpp"
 #include "utils/math.hpp"
@@ -130,13 +129,19 @@ class parser {
           break;
 
         case 'A':
-          if (isdigit(data[0])) {
+          if (isdigit(data[0]) || data[0] == ':') {
             value = parse_action_cmd(data);
+            mousebtn btn = parse_action_btn(data);
+            m_actions.push_back(static_cast<int>(btn));
+
             if (!g_signals::parser::action_block_open.empty())
-              g_signals::parser::action_block_open.emit(parse_action_btn(data), value);
-            m_actions.push_back(data[0] - '0');
-            value += "0::";  // make sure we strip the correct length (btn+wrapping colons)
-          } else {
+              g_signals::parser::action_block_open.emit(btn, value);
+
+            // make sure we strip the correct length (btn+wrapping colons)
+            if (data[0] != ':')
+              value += "0";
+            value += "::";
+          } else if (!m_actions.empty()) {
             if (!g_signals::parser::action_block_close.empty())
               g_signals::parser::action_block_close.emit(parse_action_btn(data));
             m_actions.pop_back();
@@ -221,7 +226,9 @@ class parser {
   }  // }}}
 
   mousebtn parse_action_btn(string data) {  // {{{
-    if (isdigit(data[0]))
+    if (data[0] == ':')
+      return mousebtn::LEFT;
+    else if (isdigit(data[0]))
       return static_cast<mousebtn>(data[0] - '0');
     else if (!m_actions.empty())
       return static_cast<mousebtn>(m_actions.back());
