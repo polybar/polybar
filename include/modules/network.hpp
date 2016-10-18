@@ -17,14 +17,6 @@ namespace modules {
    public:
     using timer_module::timer_module;
 
-    ~network_module() {
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      {
-        m_wireless.reset();
-        m_wired.reset();
-      }
-    }
-
     void setup() {
       // Load configuration values
       REQ_CONFIG_VALUE(name(), m_interface, "interface");

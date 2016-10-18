@@ -108,19 +108,6 @@ namespace modules {
       // }}}
     }
 
-    void stop() {
-      // Deconstruct all mixers before putting the module in its stopped state {{{
-
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      m_mixers[mixer::MASTER].reset();
-      m_mixers[mixer::SPEAKER].reset();
-      m_mixers[mixer::HEADPHONE].reset();
-      m_controls[control::HEADPHONE].reset();
-      event_module::stop();
-
-      // }}}
-    }
-
     bool has_event() {
       // Poll for mixer and control events {{{
 

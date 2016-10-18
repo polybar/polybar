@@ -210,13 +210,16 @@ namespace modules {
     }
 
     void stop() {
-      if (!enabled())
-        return;
-      m_log.trace("%s: Stop", name());
-      enable(false);
-      wakeup();
-      if (!on_stop.empty())
-        on_stop.emit(name());
+      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      {
+        if (!enabled())
+          return;
+        m_log.trace("%s: Stop", name());
+        enable(false);
+        wakeup();
+        if (!on_stop.empty())
+          on_stop.emit(name());
+      }
     }
 
     void refresh() {
