@@ -17,6 +17,14 @@ namespace modules {
    public:
     using timer_module::timer_module;
 
+    ~network_module() {
+      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      {
+        m_wireless.reset();
+        m_wired.reset();
+      }
+    }
+
     void setup() {
       // Load configuration values
       REQ_CONFIG_VALUE(name(), m_interface, "interface");
@@ -26,8 +34,8 @@ namespace modules {
       m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
       // Add formats
-      m_formatter->add(
-          FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
+      m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED,
+          {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
       m_formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, {TAG_LABEL_DISCONNECTED});
 
       // Create elements for format-connected
@@ -38,8 +46,7 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
         m_label[connection_state::CONNECTED] =
             get_optional_config_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
-        m_tokenized[connection_state::CONNECTED] =
-            m_label[connection_state::CONNECTED]->clone();
+        m_tokenized[connection_state::CONNECTED] = m_label[connection_state::CONNECTED]->clone();
       }
 
       // Create elements for format-disconnected
@@ -107,7 +114,7 @@ namespace modules {
       auto downspeed = network->downspeed(m_udspeed_minwidth);
 
       // Update label contents
-      auto replace_tokens = [&](label_t& label) {
+      const auto replace_tokens = [&](label_t& label) {
         label->replace_token("%ifname%", m_interface);
         label->replace_token("%local_ip%", network->ip());
         label->replace_token("%upspeed%", upspeed);
@@ -166,8 +173,6 @@ namespace modules {
 
    protected:
     void subthread_routine() {
-      this_thread::yield();
-
       const chrono::milliseconds framerate{m_animation_packetloss->framerate()};
       const auto dur = chrono::duration<double>(framerate);
 

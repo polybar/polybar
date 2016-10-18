@@ -383,11 +383,9 @@ namespace modules {
         CAST_MODULE(Impl)->setup();
 
         while (CONST_CAST_MODULE(Impl).enabled()) {
-          {
-            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-            if (CAST_MODULE(Impl)->update())
-              CAST_MODULE(Impl)->broadcast();
-          }
+          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+          if (CAST_MODULE(Impl)->update())
+            CAST_MODULE(Impl)->broadcast();
           CAST_MODULE(Impl)->sleep(m_interval);
         }
       } catch (const application_error& err) {
