@@ -543,11 +543,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_log.warn("Action block not closed");
         m_log.warn("action.command = %s", action.command);
       } else {
-        m_log.trace("bar: Action details");
-        m_log.trace("action.command = %s", action.command);
-        m_log.trace("action.button = %i", static_cast<int>(action.button));
-        m_log.trace("action.start_x = %i", action.start_x);
-        m_log.trace("action.end_x = %i", action.end_x);
+        m_log.trace("bar: Action details (button = %i, start_x = %i, end_x = %i, command = '%s')",
+            static_cast<int>(action.button), action.start_x, action.end_x, action.command);
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
         m_log.info("Drawing clickable area hints");
 
@@ -568,8 +565,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_connection.create_window_checked(scr->root_depth, action.clickable_area, scr->root, x, y,
             w, h, 1, XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
         m_connection.map_window_checked(action.clickable_area);
-#else
-        m_log.trace("bar: Visual hints for clickable area's disabled");
 #endif
       }
     }
