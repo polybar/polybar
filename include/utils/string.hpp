@@ -55,17 +55,26 @@ namespace string_util {
    * Replace all occurences of needle in haystack
    */
   inline auto replace_all(const string& haystack, string needle, string replacement) {
-    auto result = haystack;
-    while (needle != replacement && result.find(needle) != string::npos)
-      result = replace(result, needle, replacement);
-    return result;
+    string replaced;
+    for (int i = 0; i < haystack.length(); i++) {
+      if (haystack.compare(i, needle.length(), needle) == 0) {
+        replaced += replacement;
+        i += needle.length()-1;
+      } else {
+        replaced += haystack[i];
+      }
+    }
+    return replaced;
   }
 
   /**
    * Replace all consecutive occurrences of needle in haystack
    */
   inline auto squeeze(const string& haystack, char needle) {
-    return replace_all(haystack, {needle, needle}, {needle});
+    auto result = haystack;
+    while (result.find({needle, needle}) != string::npos)
+      result = replace_all(result, {needle, needle}, {needle});
+    return result;
   }
 
   /**

@@ -43,6 +43,8 @@ class test_string : public unit_test {
 
   void test_replace_all() {
     CPPUNIT_ASSERT_EQUAL(string{"Foo bxr bxz"}, string_util::replace_all("Foo bar baz", "a", "x"));
+    CPPUNIT_ASSERT_EQUAL(string{"hoohoohoo"}, string_util::replace_all("hehehe", "he", "hoo"));
+    CPPUNIT_ASSERT_EQUAL(string{"113113113"}, string_util::replace_all("131313", "3", "13"));
   }
 
   void test_squeeze() {
