@@ -46,7 +46,8 @@ class test_string : public unit_test {
   }
 
   void test_squeeze() {
-    CPPUNIT_ASSERT_EQUAL(string{"Squeeeze"}, string_util::squeeze("Squeeeeeze", 'e'));
+    CPPUNIT_ASSERT_EQUAL(string{"Squeze"}, string_util::squeeze("Squeeeeeze", 'e'));
+    CPPUNIT_ASSERT_EQUAL(string{"bar baz foobar"}, string_util::squeeze("bar  baz   foobar", ' '));
   }
 
   void test_strip() {

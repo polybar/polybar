@@ -55,7 +55,10 @@ namespace string_util {
    * Replace all occurences of needle in haystack
    */
   inline auto replace_all(const string& haystack, string needle, string replacement) {
-    return boost::replace_all_copy(haystack, needle, replacement);
+    auto result = haystack;
+    while (result.find(needle) != string::npos)
+      result = replace(result, needle, replacement);
+    return result;
   }
 
   /**
