@@ -60,15 +60,8 @@ namespace command_util {
     }
 
     ~command() {
-      if (is_running()) {
-        try {
-          m_log.trace("command: Sending SIGTERM to running child process (%d)", m_forkpid);
-          killpg(m_forkpid, SIGTERM);
-          wait();
-        } catch (const std::exception& err) {
-          m_log.err("command: %s", err.what());
-        }
-      }
+      if (is_running())
+        terminate();
 
       if (m_stdin[PIPE_READ] > 0)
         close(m_stdin[PIPE_READ]);
@@ -119,11 +112,28 @@ namespace command_util {
         if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1)
           throw command_strerror("Failed to close fd");
 
-        if (wait_for_completion)
-          return wait();
+        if (wait_for_completion) {
+          auto status = wait();
+          m_forkpid = -1;
+          return status;
+        }
       }
 
       return EXIT_SUCCESS;
+    }
+
+    void terminate() {
+      try {
+        if (is_running()) {
+          m_log.trace("command: Sending SIGTERM to running child process (%d)", m_forkpid);
+          killpg(m_forkpid, SIGTERM);
+          wait();
+        }
+      } catch (const command_error& err) {
+        m_log.warn("%s", err.what());
+      }
+
+      m_forkpid = -1;
     }
 
     /**
@@ -133,11 +143,12 @@ namespace command_util {
       auto waitflags = WCONTINUED | WUNTRACED;
 
       do {
-        if (process_util::wait_for_completion(m_forkpid, &m_forkstatus, waitflags) == -1)
-          throw command_error("Process did not finish successfully");
+        process_util::wait_for_completion(m_forkpid, &m_forkstatus, waitflags);
 
-        if (WIFEXITED(m_forkstatus))
-          m_log.trace("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
+        if (WIFEXITED(m_forkstatus) && m_forkstatus > 0)
+          m_log.warn("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
+        else if (WIFEXITED(m_forkstatus))
+          m_log.warn("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
         else if (WIFSIGNALED(m_forkstatus))
           m_log.trace("command: killed by signal %d", WTERMSIG(m_forkstatus));
         else if (WIFSTOPPED(m_forkstatus))
@@ -197,7 +208,9 @@ namespace command_util {
      * Check if command is running
      */
     bool is_running() {
-      return process_util::wait_for_completion_nohang(m_forkpid, &m_forkstatus) > -1;
+      if (m_forkpid > 0)
+        return process_util::wait_for_completion_nohang(m_forkpid, &m_forkstatus) > -1;
+      return false;
     }
 
     /**

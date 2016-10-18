@@ -76,8 +76,8 @@ class controller {
     m_log.trace("controller: Stop modules");
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
-        module->on_update.disconnect(this, &controller::on_module_update);
-        module->on_stop.disconnect(this, &controller::on_module_stop);
+        module->on_update.clear();
+        module->on_stop.clear();
         module->stop();
       }
     }
@@ -88,7 +88,7 @@ class controller {
     }
 
     m_log.trace("controller: Deconstruct bar instance");
-    g_signals::bar::action_click.disconnect(this, &controller::on_module_click);
+    g_signals::bar::action_click.clear();
     m_bar.reset();
 
     m_log.trace("controller: Interrupt X event loop");

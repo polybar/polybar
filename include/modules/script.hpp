@@ -5,7 +5,7 @@
 
 LEMONBUDDY_NS
 
-#define SHELL_CMD "/usr/bin/env\nsh\n-c\n"
+#define SHELL_CMD "/usr/bin/env\nsh\n-c\n%cmd%"
 #define OUTPUT_ACTION(BUTTON)     \
   if (!m_actions[BUTTON].empty()) \
   m_builder->cmd(BUTTON, string_util::replace_all(m_actions[BUTTON], "%counter%", counter_str))
@@ -18,7 +18,8 @@ namespace modules {
     void setup() {
       m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
 
-      // Load configuration values {{{
+      // Load configuration values
+
       REQ_CONFIG_VALUE(name(), m_exec, "exec");
       GET_CONFIG_VALUE(name(), m_tail, "tail");
       GET_CONFIG_VALUE(name(), m_maxlen, "maxlen");
@@ -30,113 +31,99 @@ namespace modules {
       m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
       m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
 
-      if (!m_tail) {
-        m_interval = interval_t{m_conf.get<float>(name(), "interval", m_interval.count())};
-      }
-      // }}}
-      // Execute the tail command {{{
-      if (m_tail) {
-        try {
-          auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-          m_log.trace("%s: Executing '%s'", name(), exec);
-
-          m_command = command_util::make_command(SHELL_CMD + exec);
-          m_command->exec(false);
-        } catch (const std::exception& err) {
-          m_log.err("%s: Failed to execute tail command, stopping module..", name());
-          m_log.err("%s: %s", name(), err.what());
-          stop();
-        }
-      }
-      // }}}
+      m_interval = interval_t{m_conf.get<float>(name(), "interval", 0.0f)};
     }
 
     void stop() {
-      // Put the module in stopped state {{{
-      event_module::stop();
-      // }}}
-      // Terminate running command {{{
-      try {
-        if (m_tail && m_command)
-          m_command.reset();
-      } catch (const std::exception& err) {
-        m_log.err("%s: %s", name(), err.what());
-      }
-      // }}}
+      wakeup();
+      enable(false);
+      m_command.reset();
+      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      wakeup();
+    }
+
+    void idle() {
+      if (!enabled())
+        sleep(100ms);
+      if (!m_tail)
+        sleep(m_interval);
+      else if (!m_command || !m_command->is_running())
+        sleep(m_interval);
     }
 
     bool has_event() {
-      // Handle non-tailing command {{{
-      if (!m_tail) {
-        sleep(m_interval);
-        return enabled();
-      }
-      // }}}
-      // Handle tailing command {{{
-      if (!m_command || !m_command->is_running()) {
-        m_log.warn("%s: Tail command finished, stopping module...", name());
-        stop();
-        return false;
-      } else if ((m_output = m_command->readline()) != m_prev) {
-        m_prev = m_output;
+      // Non tail commands should always run
+      if (!m_tail)
         return true;
-      } else {
+
+      if (!enabled())
         return false;
+
+      try {
+        if (!m_command || !m_command->is_running()) {
+          auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+          m_log.trace("%s: Executing '%s'", name(), exec);
+
+          m_command = command_util::make_command(string_util::replace(SHELL_CMD, "%cmd%", exec));
+          m_command->exec(false);
+        }
+      } catch (const std::exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        throw module_error(name() + ": Failed to execute tail command, stopping module...");
       }
-      // }}}
+
+      if (!m_command)
+        return false;
+
+      if ((m_output = m_command->readline()) == m_prev)
+        return false;
+
+      m_prev = m_output;
+
+      return true;
     }
 
     bool update() {
-      // Handle tailing command {{{
+      // Tailing commands always update
       if (m_tail)
         return true;
-      // }}}
-      // Handle non-tailing command {{{
+
       try {
         auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-        auto cmd = command_util::make_command(SHELL_CMD + exec);
+        auto cmd = command_util::make_command(string_util::replace(SHELL_CMD, "%cmd%", exec));
 
         m_log.trace("%s: Executing '%s'", name(), exec);
 
         cmd->exec();
         cmd->tail([this](string contents) { m_output = contents; });
       } catch (const std::exception& err) {
-        m_log.err("%s: Failed to execute command, stopping module..", name());
         m_log.err("%s: %s", name(), err.what());
-        stop();
+        throw module_error(name() + ": Failed to execute command, stopping module...");
+      }
+
+      if (m_output == m_prev)
         return false;
-      }
 
-      if (m_output != m_prev) {
-        m_prev = m_output;
-        return true;
-      }
-
-      return false;
-      // }}}
+      m_prev = m_output;
+      return true;
     }
 
     string get_output() {
       if (m_output.empty())
         return " ";
 
-      // Truncate output to the defined max length {{{
-
+      // Truncate output to the defined max length
       if (m_maxlen > 0 && m_output.length() > m_maxlen) {
         m_output.erase(m_maxlen);
         m_output += m_ellipsis ? "..." : "";
       }
-      // }}}
-      // Add mousebtn command handlers {{{
-      auto counter_str = to_string(m_counter);
 
+      auto counter_str = to_string(m_counter);
       OUTPUT_ACTION(mousebtn::LEFT);
       OUTPUT_ACTION(mousebtn::MIDDLE);
       OUTPUT_ACTION(mousebtn::RIGHT);
       OUTPUT_ACTION(mousebtn::SCROLL_UP);
       OUTPUT_ACTION(mousebtn::SCROLL_DOWN);
-      // }}}
-
       m_builder->node(module::get_output());
 
       return m_builder->flush();
@@ -156,7 +143,7 @@ namespace modules {
 
     string m_exec;
     bool m_tail = false;
-    interval_t m_interval = 1s;
+    interval_t m_interval = 0s;
     size_t m_maxlen = 0;
     bool m_ellipsis = true;
     map<mousebtn, string> m_actions;
