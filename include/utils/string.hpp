@@ -46,7 +46,7 @@ namespace string_util {
   inline auto replace(const string& haystack, string needle, string replacement) {
     string str(haystack);
     string::size_type pos;
-    if ((pos = str.find(needle)) != string::npos)
+    if (needle != replacement && (pos = str.find(needle)) != string::npos)
       str = str.replace(pos, needle.length(), replacement);
     return str;
   }
@@ -56,7 +56,7 @@ namespace string_util {
    */
   inline auto replace_all(const string& haystack, string needle, string replacement) {
     auto result = haystack;
-    while (result.find(needle) != string::npos)
+    while (needle != replacement && result.find(needle) != string::npos)
       result = replace(result, needle, replacement);
     return result;
   }
