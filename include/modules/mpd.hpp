@@ -57,12 +57,10 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_SONG)) {
         m_label_song =
             get_optional_config_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
-        m_label_song_tokenized = m_label_song->clone();
       }
       if (m_formatter->has(TAG_LABEL_TIME)) {
         m_label_time =
             get_optional_config_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
-        m_label_time_tokenized = m_label_time->clone();
       }
       if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
           m_formatter->has(TAG_ICON_REPEAT_ONE)) {
@@ -83,64 +81,58 @@ namespace modules {
         m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
         m_mpd->connect();
         m_status = m_mpd->get_status();
-      } catch (const mpd_exception& e) {
-        m_log.err("%s: %s", name(), e.what());
+      } catch (const mpd_exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        m_mpd.reset();
       }
     }
 
-    void teardown() {
-      if (m_mpd && m_mpd->connected()) {
-        try {
-          m_mpd->disconnect();
-        } catch (const mpd_exception& e) {
-          m_log.trace("%s: %s", name(), e.what());
-        }
-      } else {
-        wakeup();
-      }
+    inline bool connected() const {
+      return m_mpd && m_mpd->connected();
     }
 
     void idle() {
-      if (m_mpd && m_mpd->connected())
+      if (connected())
         sleep(80ms);
       else {
-        sleep(10s);
+        sleep(2s);
       }
     }
 
     bool has_event() {
-      if (!m_mpd->connected()) {
-        m_connection_state_broadcasted = false;
+      if (!m_mpd)
+        m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
 
-        try {
+      try {
+        if (!connected())
           m_mpd->connect();
-        } catch (const mpd_exception& e) {
-          m_log.trace("%s: %s", name(), e.what());
-        }
-
-        if (!m_mpd->connected()) {
-          return false;
-        }
+        if (m_connection_state_broadcasted)
+          m_connection_state_broadcasted = false;
+      } catch (const mpd_exception& err) {
+        m_log.trace("%s: %s", name(), err.what());
+        m_mpd.reset();
+        return !m_connection_state_broadcasted;
       }
+
+      if (!connected())
+        return !m_connection_state_broadcasted;
 
       if (!m_status)
         m_status = m_mpd->get_status_safe();
 
       try {
         m_mpd->idle();
-
-        int idle_flags;
-
+        int idle_flags = 0;
         if ((idle_flags = m_mpd->noidle()) != 0) {
           m_status->update(idle_flags, m_mpd.get());
           return true;
         } else if (m_status->match_state(mpdstate::PLAYING)) {
           m_status->update_timer();
         }
-      } catch (const mpd_exception& e) {
-        m_log.err(e.what());
-        m_mpd->disconnect();
-        return true;
+      } catch (const mpd_exception& err) {
+        m_log.err(err.what());
+        m_mpd.reset();
+        return !m_connection_state_broadcasted;
       }
 
       if ((m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING)) {
@@ -156,12 +148,14 @@ namespace modules {
     }
 
     bool update() {
-      if (!m_mpd->connected())
-        return true;
-      if (!m_status && !(m_status = m_mpd->get_status_safe()))
-        return true;
-
-      m_connection_state_broadcasted = true;
+      if (m_connection_state_broadcasted) {
+        if (!connected())
+          return false;
+        if (!m_status && !(m_status = m_mpd->get_status_safe()))
+          return false;
+      } else {
+        m_connection_state_broadcasted = true;
+      }
 
       string artist;
       string album;
@@ -170,52 +164,55 @@ namespace modules {
       string total_str;
 
       try {
-        elapsed_str = m_status->get_formatted_elapsed();
-        total_str = m_status->get_formatted_total();
-        auto song = m_mpd->get_song();
-        if (song && song.get()) {
-          artist = song->get_artist();
-          album = song->get_album();
-          title = song->get_title();
+        if (m_status) {
+          elapsed_str = m_status->get_formatted_elapsed();
+          total_str = m_status->get_formatted_total();
         }
-      } catch (const mpd_exception& e) {
-        m_log.err(e.what());
-        m_mpd->disconnect();
-        return true;
+        if (m_mpd) {
+          auto song = m_mpd->get_song();
+          if (song && song.get()) {
+            artist = song->get_artist();
+            album = song->get_album();
+            title = song->get_title();
+          }
+        }
+      } catch (const mpd_exception& err) {
+        m_log.err(err.what());
+        m_mpd.reset();
       }
 
-      if (m_label_song_tokenized) {
-        m_label_song_tokenized->m_text = m_label_song->m_text;
-        m_label_song_tokenized->replace_token(
+      if (m_label_song) {
+        m_label_song->reset_tokens();
+        m_label_song->replace_token(
             "%artist%", !artist.empty() ? artist : "untitled artist");
-        m_label_song_tokenized->replace_token("%album%", !album.empty() ? album : "untitled album");
-        m_label_song_tokenized->replace_token("%title%", !title.empty() ? title : "untitled track");
+        m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
+        m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
       }
 
-      if (m_label_time_tokenized) {
-        m_label_time_tokenized->m_text = m_label_time->m_text;
-        m_label_time_tokenized->replace_token("%elapsed%", elapsed_str);
-        m_label_time_tokenized->replace_token("%total%", total_str);
+      if (m_label_time) {
+        m_label_time->reset_tokens();
+        m_label_time->replace_token("%elapsed%", elapsed_str);
+        m_label_time->replace_token("%total%", total_str);
       }
 
       if (m_icons->has("random"))
         m_icons->get("random")->m_foreground =
-            m_status->random() ? m_toggle_on_color : m_toggle_off_color;
+            m_status && m_status->random() ? m_toggle_on_color : m_toggle_off_color;
       if (m_icons->has("repeat"))
         m_icons->get("repeat")->m_foreground =
-            m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
+            m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
       if (m_icons->has("repeat_one"))
         m_icons->get("repeat_one")->m_foreground =
-            m_status->single() ? m_toggle_on_color : m_toggle_off_color;
+            m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
 
       return true;
     }
 
-    string get_format() {
-      return m_mpd->connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
+    string get_format() const {
+      return connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       bool is_playing = false;
       bool is_paused = false;
       bool is_stopped = true;
@@ -239,9 +236,9 @@ namespace modules {
       };
 
       if (tag == TAG_LABEL_SONG && !is_stopped)
-        builder->node(m_label_song_tokenized);
+        builder->node(m_label_song);
       else if (tag == TAG_LABEL_TIME && !is_stopped)
-        builder->node(m_label_time_tokenized);
+        builder->node(m_label_time);
       else if (tag == TAG_BAR_PROGRESS && !is_stopped)
         builder->node(m_bar_progress->output(elapsed_percentage));
       else if (tag == TAG_LABEL_OFFLINE)
@@ -312,8 +309,9 @@ namespace modules {
           mpd->seek(status->get_songid(), status->get_seek_position(percentage));
         } else
           return false;
-      } catch (const mpd_exception& e) {
-        m_log.err("%s: %s", name(), e.what());
+      } catch (const mpd_exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        m_mpd.reset();
       }
 
       return true;
@@ -359,9 +357,7 @@ namespace modules {
     progressbar_t m_bar_progress;
     iconset_t m_icons;
     label_t m_label_song;
-    label_t m_label_song_tokenized;
     label_t m_label_time;
-    label_t m_label_time_tokenized;
     label_t m_label_offline;
 
     unique_ptr<mpdconnection> m_mpd;
@@ -383,7 +379,7 @@ namespace modules {
 
     // This flag is used to let thru a broadcast once every time
     // the connection state changes
-    stateflag m_connection_state_broadcasted{true};
+    stateflag m_connection_state_broadcasted{false};
   };
 }
 

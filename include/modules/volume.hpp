@@ -98,11 +98,9 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
         m_label_volume =
             get_optional_config_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%");
-        m_label_volume_tokenized = m_label_volume->clone();
       }
       if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
         m_label_muted = get_optional_config_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%");
-        m_label_muted_tokenized = m_label_muted->clone();
       }
 
       // }}}
@@ -172,13 +170,13 @@ namespace modules {
       // }}}
       // Replace label tokens {{{
 
-      if (m_label_volume_tokenized) {
-        m_label_volume_tokenized->m_text = m_label_volume->m_text;
-        m_label_volume_tokenized->replace_token("%percentage%", to_string(m_volume) + "%");
+      if (m_label_volume) {
+        m_label_volume->reset_tokens();
+        m_label_volume->replace_token("%percentage%", to_string(m_volume) + "%");
       }
-      if (m_label_muted_tokenized) {
-        m_label_muted_tokenized->m_text = m_label_muted->m_text;
-        m_label_muted_tokenized->replace_token("%percentage%", to_string(m_volume) + "%");
+      if (m_label_muted) {
+        m_label_muted->reset_tokens();
+        m_label_muted->replace_token("%percentage%", to_string(m_volume) + "%");
       }
 
       // }}}
@@ -186,7 +184,7 @@ namespace modules {
       return true;
     }
 
-    string get_format() {
+    string get_format() const {
       return m_muted ? FORMAT_MUTED : FORMAT_VOLUME;
     }
 
@@ -202,7 +200,7 @@ namespace modules {
       return m_builder->flush();
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_BAR_VOLUME)
         builder->node(m_bar_volume->output(m_volume));
       else if (tag == TAG_RAMP_VOLUME && (!m_headphones || !*m_ramp_headphones))
@@ -210,9 +208,9 @@ namespace modules {
       else if (tag == TAG_RAMP_VOLUME && m_headphones && *m_ramp_headphones)
         builder->node(m_ramp_headphones->get_by_percentage(m_volume));
       else if (tag == TAG_LABEL_VOLUME)
-        builder->node(m_label_volume_tokenized);
+        builder->node(m_label_volume);
       else if (tag == TAG_LABEL_MUTED)
-        builder->node(m_label_muted_tokenized);
+        builder->node(m_label_muted);
       else
         return false;
       return true;
@@ -283,9 +281,7 @@ namespace modules {
     ramp_t m_ramp_volume;
     ramp_t m_ramp_headphones;
     label_t m_label_volume;
-    label_t m_label_volume_tokenized;
     label_t m_label_muted;
-    label_t m_label_muted_tokenized;
 
     map<mixer, mixer_t> m_mixers;
     map<control, control_t> m_controls;

@@ -21,7 +21,7 @@ namespace modules {
       return true;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_COUNTER) {
         builder->node(to_string(m_counter));
         return true;

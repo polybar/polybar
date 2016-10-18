@@ -129,7 +129,7 @@ namespace modules {
       return m_builder->flush();
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag != TAG_OUTPUT)
         return false;
       builder->node(string_util::replace_all(m_output, "\n", ""));

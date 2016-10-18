@@ -27,9 +27,6 @@ namespace modules {
       if (m_formatter->has(TAG_RAMP))
         m_ramp = get_config_ramp(m_conf, name(), TAG_RAMP);
 
-      if (m_label)
-        m_tokenized = m_label->clone();
-
       // Build path to the file where the current/maximum brightness value is located
       m_path_val = string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card);
       m_path_max = string_util::replace(PATH_BACKLIGHT_MAX, "%card%", card);
@@ -55,22 +52,21 @@ namespace modules {
 
       m_percentage = static_cast<int>(float(m_val) / float(m_max) * 100.0f + 0.5f);
 
-      if (!m_label)
-        return true;
-
-      m_tokenized->m_text = m_label->m_text;
-      m_tokenized->replace_token("%percentage%", to_string(m_percentage) + "%");
+      if (m_label) {
+        m_label->reset_tokens();
+        m_label->replace_token("%percentage%", to_string(m_percentage) + "%");
+      }
 
       return true;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_BAR)
         builder->node(m_progressbar->output(m_percentage));
       else if (tag == TAG_RAMP)
         builder->node(m_ramp->get_by_percentage(m_percentage));
       else if (tag == TAG_LABEL)
-        builder->node(m_tokenized);
+        builder->node(m_label);
       else
         return false;
       return true;
@@ -87,7 +83,6 @@ namespace modules {
 
     ramp_t m_ramp;
     label_t m_label;
-    label_t m_tokenized;
     progressbar_t m_progressbar;
 
     string m_path_val;

@@ -14,23 +14,21 @@ namespace drawtypes {
 
   class label : public non_copyable_mixin<label> {
    public:
-    string m_text{""};
-    string m_foreground{""};
-    string m_background{""};
-    string m_underline{""};
-    string m_overline{""};
-    int m_font{0};
-    int m_padding{0};
-    int m_margin{0};
-    size_t m_maxlen{0};
-    bool m_ellipsis{true};
+    string m_foreground;
+    string m_background;
+    string m_underline;
+    string m_overline;
+    int m_font = 0;
+    int m_padding = 0;
+    int m_margin = 0;
+    size_t m_maxlen = 0;
+    bool m_ellipsis = true;
 
-    explicit label(string text, int font) : m_text(text), m_font(font) {}
+    explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = "", string background = "",
         string underline = "", string overline = "", int font = 0, int padding = 0, int margin = 0,
         size_t maxlen = 0, bool ellipsis = true)
-        : m_text(text)
-        , m_foreground(foreground)
+        : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
         , m_overline(overline)
@@ -38,7 +36,13 @@ namespace drawtypes {
         , m_padding(padding)
         , m_margin(margin)
         , m_maxlen(maxlen)
-        , m_ellipsis(ellipsis) {}
+        , m_ellipsis(ellipsis)
+        , m_text(text)
+        , m_tokenized(m_text) {}
+
+    string get() const {
+      return m_tokenized;
+    }
 
     operator bool() {
       return !m_text.empty();
@@ -49,8 +53,12 @@ namespace drawtypes {
           m_padding, m_margin, m_maxlen, m_ellipsis)};
     }
 
+    void reset_tokens() {
+      m_tokenized = m_text;
+    }
+
     void replace_token(string token, string replacement) {
-      m_text = string_util::replace_all(m_text, token, replacement);
+      m_tokenized = string_util::replace_all(m_tokenized, token, replacement);
     }
 
     void replace_defined_values(label_t label) {
@@ -63,6 +71,9 @@ namespace drawtypes {
       if (!label->m_overline.empty())
         m_overline = label->m_overline;
     }
+
+   private:
+    string m_text, m_tokenized;
   };
 
   inline label_t get_config_label(const config& conf, string section, string name = "label",

@@ -105,4 +105,7 @@ struct action_block {
 #endif
 };
 
+struct wmsettings_bspwm {
+};
+
 LEMONBUDDY_NS_END

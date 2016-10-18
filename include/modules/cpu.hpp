@@ -37,10 +37,8 @@ namespace modules {
         m_rampload = get_config_ramp(m_conf, name(), TAG_RAMP_LOAD);
       if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE))
         m_rampload_core = get_config_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
-      if (m_formatter->has(TAG_LABEL)) {
+      if (m_formatter->has(TAG_LABEL))
         m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage%");
-        m_tokenized = m_label->clone();
-      }
 
       // warmup
       read_values();
@@ -67,18 +65,17 @@ namespace modules {
 
       m_total = m_total / static_cast<float>(cores_n);
 
-      if (m_tokenized) {
-        m_tokenized->m_text = m_label->m_text;
-        m_tokenized->replace_token(
-            "%percentage%", to_string(static_cast<int>(m_total + 0.5f)) + "%");
+      if (m_label) {
+        m_label->reset_tokens();
+        m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5f)) + "%");
       }
 
       return true;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_LABEL)
-        builder->node(m_tokenized);
+        builder->node(m_label);
       else if (tag == TAG_BAR_LOAD)
         builder->node(m_barload->output(m_total));
       else if (tag == TAG_RAMP_LOAD)
@@ -127,7 +124,7 @@ namespace modules {
       return !m_cputimes.empty();
     }
 
-    float get_load(size_t core) {
+    float get_load(size_t core) const {
       if (m_cputimes.empty() || m_cputimes_prev.empty())
         return 0;
       else if (core >= m_cputimes.size() || core >= m_cputimes_prev.size())
@@ -159,7 +156,6 @@ namespace modules {
     ramp_t m_rampload;
     ramp_t m_rampload_core;
     label_t m_label;
-    label_t m_tokenized;
 
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;

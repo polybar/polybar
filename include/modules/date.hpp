@@ -46,7 +46,7 @@ namespace modules {
       return m_builder->flush();
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_DATE)
         builder->node(m_buffer);
       return tag == TAG_DATE;

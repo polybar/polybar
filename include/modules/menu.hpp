@@ -58,7 +58,7 @@ namespace modules {
       }
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
         builder->cmd(mousebtn::LEFT, string(EVENT_MENU_OPEN) + "0");
         builder->node(m_labelopen);

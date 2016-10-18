@@ -38,13 +38,13 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
         m_label[connection_state::CONNECTED] =
             get_optional_config_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
-        m_tokenized[connection_state::CONNECTED] = m_label[connection_state::CONNECTED]->clone();
       }
 
       // Create elements for format-disconnected
       if (m_formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
         m_label[connection_state::DISCONNECTED] =
             get_optional_config_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
+        m_label[connection_state::DISCONNECTED]->reset_tokens();
         m_label[connection_state::DISCONNECTED]->replace_token("%ifname%", m_interface);
       }
 
@@ -56,8 +56,6 @@ namespace modules {
         if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
           m_label[connection_state::PACKETLOSS] =
               get_optional_config_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
-          m_tokenized[connection_state::PACKETLOSS] =
-              m_label[connection_state::PACKETLOSS]->clone();
         }
         if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
           m_animation_packetloss = get_config_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
@@ -112,6 +110,7 @@ namespace modules {
 
       // Update label contents
       const auto replace_tokens = [&](label_t& label) {
+        label->reset_tokens();
         label->replace_token("%ifname%", m_interface);
         label->replace_token("%local_ip%", network->ip());
         label->replace_token("%upspeed%", upspeed);
@@ -126,22 +125,15 @@ namespace modules {
         }
       };
 
-      if (m_label[connection_state::CONNECTED]) {
-        m_tokenized[connection_state::CONNECTED]->m_text =
-            m_label[connection_state::CONNECTED]->m_text;
-        replace_tokens(m_tokenized[connection_state::CONNECTED]);
-      }
-
-      if (m_label[connection_state::PACKETLOSS]) {
-        m_tokenized[connection_state::PACKETLOSS]->m_text =
-            m_label[connection_state::PACKETLOSS]->m_text;
-        replace_tokens(m_tokenized[connection_state::PACKETLOSS]);
-      }
+      if (m_label[connection_state::CONNECTED])
+        replace_tokens(m_label[connection_state::CONNECTED]);
+      if (m_label[connection_state::PACKETLOSS])
+        replace_tokens(m_label[connection_state::PACKETLOSS]);
 
       return true;
     }
 
-    string get_format() {
+    string get_format() const {
       if (!m_connected)
         return FORMAT_DISCONNECTED;
       else if (m_packetloss && m_ping_nth_update > 0)
@@ -150,13 +142,13 @@ namespace modules {
         return FORMAT_CONNECTED;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_LABEL_CONNECTED)
-        builder->node(m_tokenized[connection_state::CONNECTED]);
+        builder->node(m_label.at(connection_state::CONNECTED));
       else if (tag == TAG_LABEL_DISCONNECTED)
-        builder->node(m_label[connection_state::DISCONNECTED]);
+        builder->node(m_label.at(connection_state::DISCONNECTED));
       else if (tag == TAG_LABEL_PACKETLOSS)
-        builder->node(m_tokenized[connection_state::PACKETLOSS]);
+        builder->node(m_label.at(connection_state::PACKETLOSS));
       else if (tag == TAG_ANIMATION_PACKETLOSS)
         builder->node(m_animation_packetloss->get());
       else if (tag == TAG_RAMP_SIGNAL)
@@ -200,7 +192,6 @@ namespace modules {
     ramp_t m_ramp_quality;
     animation_t m_animation_packetloss;
     map<connection_state, label_t> m_label;
-    map<connection_state, label_t> m_tokenized;
 
     stateflag m_connected{false};
     stateflag m_packetloss{false};

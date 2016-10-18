@@ -287,7 +287,7 @@ namespace modules {
         return "";
       }
 
-      auto format_name = CAST_MODULE(Impl)->get_format();
+      auto format_name = CONST_CAST_MODULE(Impl).get_format();
       auto format = m_formatter->get(format_name);
 
       int i = 0;
@@ -299,7 +299,7 @@ namespace modules {
         if (tag[0] == '<' && tag[tag.length() - 1] == '>') {
           if (i > 0)
             m_builder->space(format->spacing);
-          if (!(tag_built = CAST_MODULE(Impl)->build(m_builder.get(), tag)) && i > 0)
+          if (!(tag_built = CONST_CAST_MODULE(Impl).build(m_builder.get(), tag)) && i > 0)
             m_builder->remove_trailing_space(format->spacing);
           if (tag_built)
             i++;
@@ -361,7 +361,7 @@ namespace modules {
       CAST_MODULE(Impl)->broadcast();
     }
 
-    bool build(builder*, string) {
+    bool build(builder*, string) const {
       return true;
     }
   };
@@ -427,17 +427,14 @@ namespace modules {
         CAST_MODULE(Impl)->broadcast();
 
         while (CONST_CAST_MODULE(Impl).enabled()) {
-          CAST_MODULE(Impl)->idle();
-          {
-            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
 
-            if (!CAST_MODULE(Impl)->has_event())
-              continue;
-            if (!CAST_MODULE(Impl)->update())
-              continue;
-
+          if (!CAST_MODULE(Impl)->has_event())
+            CAST_MODULE(Impl)->idle();
+          else if (!CAST_MODULE(Impl)->update())
+            CAST_MODULE(Impl)->idle();
+          else
             CAST_MODULE(Impl)->broadcast();
-          }
         }
       } catch (const std::exception& err) {
         this->m_log.err("%s: %s", this->name(), err.what());

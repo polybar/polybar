@@ -154,7 +154,7 @@ class builder {
     if (!label || !*label)
       return;
 
-    auto text = label->m_text;
+    auto text = label->get();
 
     if (label->m_maxlen > 0 && text.length() > label->m_maxlen) {
       text = text.substr(0, label->m_maxlen) + "...";

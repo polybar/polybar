@@ -57,16 +57,13 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
         m_label_charging =
             get_optional_config_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%");
-        m_label_charging_tokenized = m_label_charging->clone();
       }
       if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
         m_label_discharging =
             get_optional_config_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%");
-        m_label_discharging_tokenized = m_label_discharging->clone();
       }
       if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
         m_label_full = get_optional_config_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%");
-        m_label_full_tokenized = m_label_full->clone();
       }
 
       // }}}
@@ -124,17 +121,17 @@ namespace modules {
         return false;
       }
 
-      if (m_label_charging_tokenized) {
-        m_label_charging_tokenized->m_text = m_label_charging->m_text;
-        m_label_charging_tokenized->replace_token("%percentage%", to_string(percentage) + "%");
+      if (m_label_charging) {
+        m_label_charging->reset_tokens();
+        m_label_charging->replace_token("%percentage%", to_string(percentage) + "%");
       }
-      if (m_label_discharging_tokenized) {
-        m_label_discharging_tokenized->m_text = m_label_discharging->m_text;
-        m_label_discharging_tokenized->replace_token("%percentage%", to_string(percentage) + "%");
+      if (m_label_discharging) {
+        m_label_discharging->reset_tokens();
+        m_label_discharging->replace_token("%percentage%", to_string(percentage) + "%");
       }
-      if (m_label_full_tokenized) {
-        m_label_full_tokenized->m_text = m_label_full->m_text;
-        m_label_full_tokenized->replace_token("%percentage%", to_string(percentage) + "%");
+      if (m_label_full) {
+        m_label_full->reset_tokens();
+        m_label_full->replace_token("%percentage%", to_string(percentage) + "%");
       }
 
       m_state = state;
@@ -143,7 +140,7 @@ namespace modules {
       return true;
     }
 
-    string get_format() {
+    string get_format() const {
       if (m_state == STATE_FULL)
         return FORMAT_FULL;
       else if (m_state == STATE_CHARGING)
@@ -152,7 +149,7 @@ namespace modules {
         return FORMAT_DISCHARGING;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_ANIMATION_CHARGING)
         builder->node(m_animation_charging->get());
       else if (tag == TAG_BAR_CAPACITY) {
@@ -160,11 +157,11 @@ namespace modules {
       } else if (tag == TAG_RAMP_CAPACITY)
         builder->node(m_ramp_capacity->get_by_percentage(m_percentage));
       else if (tag == TAG_LABEL_CHARGING)
-        builder->node(m_label_charging_tokenized);
+        builder->node(m_label_charging);
       else if (tag == TAG_LABEL_DISCHARGING)
-        builder->node(m_label_discharging_tokenized);
+        builder->node(m_label_discharging);
       else if (tag == TAG_LABEL_FULL)
-        builder->node(m_label_full_tokenized);
+        builder->node(m_label_full);
       else
         return false;
       return true;
@@ -222,11 +219,8 @@ namespace modules {
     ramp_t m_ramp_capacity;
     progressbar_t m_bar_capacity;
     label_t m_label_charging;
-    label_t m_label_charging_tokenized;
     label_t m_label_discharging;
-    label_t m_label_discharging_tokenized;
     label_t m_label_full;
-    label_t m_label_full_tokenized;
 
     string m_battery;
     string m_adapter;

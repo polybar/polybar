@@ -19,7 +19,7 @@ namespace modules {
           string_util::replace_all(m_formatter->get("content")->value, " ", BUILDER_SPACE_TOKEN);
     }
 
-    string get_format() {
+    string get_format() const {
       return "content";
     }
 

@@ -167,9 +167,10 @@ namespace modules {
           auto icon = m_icons->get(workspace->name, DEFAULT_WS_ICON);
           auto label = m_statelabels.find(flag)->second->clone();
 
+          label->reset_tokens();
           label->replace_token("%output%", workspace->output);
           label->replace_token("%name%", wsname);
-          label->replace_token("%icon%", icon->m_text);
+          label->replace_token("%icon%", icon->get());
           label->replace_token("%index%", to_string(workspace->num));
           m_workspaces.emplace_back(
               make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
@@ -184,7 +185,7 @@ namespace modules {
       // }}}
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       // Output workspace info {{{
 
       if (tag != TAG_LABEL_STATE)

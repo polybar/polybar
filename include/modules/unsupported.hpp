@@ -11,7 +11,7 @@
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
     void start() {}                                                                     \
-    bool build(builder*, string) {                                                      \
+    bool build(builder*, string) const {                                                \
       return true;                                                                      \
     }                                                                                   \
   }

@@ -269,8 +269,9 @@ namespace modules {
           if (!monitor_focused)
             label->replace_defined_values(m_statelabels.find(bspwm_flag::WORKSPACE_DIMMED)->second);
 
+          label->reset_tokens();
           label->replace_token("%name%", value);
-          label->replace_token("%icon%", icon->m_text);
+          label->replace_token("%icon%", icon->get());
           label->replace_token("%index%", to_string(++workspace_n));
 
           m_workspaces.emplace_back(make_unique<bspwm_workspace>(workspace_flag, std::move(label)));
@@ -286,14 +287,14 @@ namespace modules {
       return true;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag != TAG_LABEL_STATE)
         return false;
 
       int workspace_n = 0;
 
       for (auto&& ws : m_workspaces) {
-        if (!ws.get()->label->m_text.empty())
+        if (!ws.get()->label->get().empty())
           builder->cmd(mousebtn::LEFT, string(EVENT_CLICK) + to_string(++workspace_n));
 
         builder->node(ws.get()->label);
@@ -302,7 +303,7 @@ namespace modules {
           for (auto&& mode : m_modes) builder->node(mode);
         }
 
-        if (!ws.get()->label->m_text.empty())
+        if (!ws.get()->label->get().empty())
           builder->cmd_close(true);
       }
 

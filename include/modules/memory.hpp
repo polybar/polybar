@@ -25,11 +25,8 @@ namespace modules {
         m_bars[memtype::USED] = get_config_bar(m_bar, m_conf, name(), TAG_BAR_USED);
       if (m_formatter->has(TAG_BAR_FREE))
         m_bars[memtype::FREE] = get_config_bar(m_bar, m_conf, name(), TAG_BAR_FREE);
-
-      if (m_formatter->has(TAG_LABEL)) {
+      if (m_formatter->has(TAG_LABEL))
         m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
-        m_tokenized = m_label->clone();
-      }
     }
 
     bool update() {
@@ -72,38 +69,36 @@ namespace modules {
       m_perc[memtype::USED] = 100 - m_perc[memtype::FREE];
 
       // replace tokens
-      if (m_tokenized) {
-        m_tokenized->m_text = m_label->m_text;
+      if (m_label) {
+        m_label->reset_tokens();
 
         auto replace_unit = [](label_t& label, string token, float value, string unit) {
-          if (label->m_text.find(token) == string::npos)
-            return;
           auto formatted = string_util::from_stream(
               stringstream() << std::setprecision(2) << std::fixed << value << " " << unit);
           label->replace_token(token, formatted);
         };
 
-        replace_unit(m_tokenized, "%gb_used%", (kb_total - kb_avail) / 1024 / 1024, "GB");
-        replace_unit(m_tokenized, "%gb_free%", kb_avail / 1024 / 1024, "GB");
-        replace_unit(m_tokenized, "%gb_total%", kb_total / 1024 / 1024, "GB");
-        replace_unit(m_tokenized, "%mb_used%", (kb_total - kb_avail) / 1024, "MB");
-        replace_unit(m_tokenized, "%mb_free%", kb_avail / 1024, "MB");
-        replace_unit(m_tokenized, "%mb_total%", kb_total / 1024, "MB");
+        replace_unit(m_label, "%gb_used%", (kb_total - kb_avail) / 1024 / 1024, "GB");
+        replace_unit(m_label, "%gb_free%", kb_avail / 1024 / 1024, "GB");
+        replace_unit(m_label, "%gb_total%", kb_total / 1024 / 1024, "GB");
+        replace_unit(m_label, "%mb_used%", (kb_total - kb_avail) / 1024, "MB");
+        replace_unit(m_label, "%mb_free%", kb_avail / 1024, "MB");
+        replace_unit(m_label, "%mb_total%", kb_total / 1024, "MB");
 
-        m_tokenized->replace_token("%percentage_used%", to_string(m_perc[memtype::USED]) + "%");
-        m_tokenized->replace_token("%percentage_free%", to_string(m_perc[memtype::FREE]) + "%");
+        m_label->replace_token("%percentage_used%", to_string(m_perc[memtype::USED]) + "%");
+        m_label->replace_token("%percentage_free%", to_string(m_perc[memtype::FREE]) + "%");
       }
 
       return true;
     }
 
-    bool build(builder* builder, string tag) {
+    bool build(builder* builder, string tag) const {
       if (tag == TAG_BAR_USED) {
-        builder->node(m_bars[memtype::USED]->output(m_perc[memtype::USED]));
+        builder->node(m_bars.at(memtype::USED)->output(m_perc.at(memtype::USED)));
       } else if (tag == TAG_BAR_FREE)
-        builder->node(m_bars[memtype::FREE]->output(m_perc[memtype::FREE]));
+        builder->node(m_bars.at(memtype::FREE)->output(m_perc.at(memtype::FREE)));
       else if (tag == TAG_LABEL)
-        builder->node(m_tokenized);
+        builder->node(m_label);
       else
         return false;
       return true;
@@ -115,7 +110,7 @@ namespace modules {
     static constexpr auto TAG_BAR_FREE = "<bar-free>";
 
     label_t m_label;
-    label_t m_tokenized;
+    progressbar_t m_bar_free;
     map<memtype, progressbar_t> m_bars;
     map<memtype, int> m_perc;
   };
