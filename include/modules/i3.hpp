@@ -2,8 +2,8 @@
 
 #include <i3ipc++/ipc.hpp>
 
-#include "config.hpp"
 #include "components/config.hpp"
+#include "config.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
@@ -43,18 +43,6 @@ namespace modules {
   class i3_module : public event_module<i3_module> {
    public:
     using event_module::event_module;
-
-    ~i3_module() {
-      // Shutdown ipc connection {{{
-
-      try {
-        shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
-        shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
-      } catch (const std::exception& err) {
-      }
-
-      // }}}
-    }
 
     void setup() {
       // Load configuration values {{{
@@ -106,22 +94,20 @@ namespace modules {
       // }}}
     }
 
-    bool has_event() {
-      // Wait for ipc events {{{
+    void stop() {
+      // Shutdown ipc connection when before stopping the module {{{
 
-      try {
-        m_ipc.handle_event();
-        return true;
-      } catch (const std::exception& err) {
-        if (enabled()) {
-          m_log.err("%s: Error while handling ipc event, stopping module...", name());
-          m_log.err("%s: %s", name(), err.what());
-          stop();
-        }
-        return false;
-      }
+      shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
+      shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
+      event_module::stop();
 
       // }}}
+    }
+
+    bool has_event() {
+      if (!m_ipc.handle_event())
+        throw module_error("Socket connection closed...");
+      return true;
     }
 
     bool update() {
@@ -159,7 +145,8 @@ namespace modules {
             flag = i3_flag::WORKSPACE_FOCUSED;
           else if (workspace->urgent)
             flag = i3_flag::WORKSPACE_URGENT;
-          else if (!workspace->visible || (workspace->visible && workspace->output != focused_output))
+          else if (!workspace->visible ||
+                   (workspace->visible && workspace->output != focused_output))
             flag = i3_flag::WORKSPACE_UNFOCUSED;
           else
             flag = i3_flag::WORKSPACE_VISIBLE;
@@ -184,7 +171,8 @@ namespace modules {
           label->replace_token("%name%", wsname);
           label->replace_token("%icon%", icon->m_text);
           label->replace_token("%index%", to_string(workspace->num));
-          m_workspaces.emplace_back(make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
+          m_workspaces.emplace_back(
+              make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
         }
 
         return true;

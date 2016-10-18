@@ -210,13 +210,14 @@ namespace modules {
     }
 
     void stop() {
+      wakeup();
+
       std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
       {
         if (!enabled())
           return;
         m_log.trace("%s: Stop", name());
         enable(false);
-        wakeup();
         if (!on_stop.empty())
           on_stop.emit(name());
       }
@@ -391,7 +392,7 @@ namespace modules {
             CAST_MODULE(Impl)->broadcast();
           CAST_MODULE(Impl)->sleep(m_interval);
         }
-      } catch (const application_error& err) {
+      } catch (const std::exception& err) {
         this->m_log.err("%s: %s", this->name(), err.what());
         this->m_log.warn("Stopping '%s'...", this->name());
         CAST_MODULE(Impl)->stop();
@@ -435,7 +436,7 @@ namespace modules {
           lck.unlock();
           CAST_MODULE(Impl)->idle();
         }
-      } catch (const application_error& err) {
+      } catch (const std::exception& err) {
         this->m_log.err("%s: %s", this->name(), err.what());
         this->m_log.warn("Stopping '%s'...", this->name());
         CAST_MODULE(Impl)->stop();
@@ -467,7 +468,7 @@ namespace modules {
           std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
           CAST_MODULE(Impl)->poll_events();
         }
-      } catch (const application_error& err) {
+      } catch (const std::exception& err) {
         this->m_log.err("%s: %s", this->name(), err.what());
         this->m_log.warn("Stopping '%s'...", this->name());
         CAST_MODULE(Impl)->stop();
