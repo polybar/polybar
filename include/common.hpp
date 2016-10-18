@@ -31,8 +31,6 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-#define LOG(m) std::cout << m << std::endl
-
 #ifdef DEBUG
 #include "debug.hpp"
 #endif

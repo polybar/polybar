@@ -39,21 +39,32 @@ LEMONBUDDY_NS
 
 namespace net {
   DEFINE_ERROR(network_error);
-  DEFINE_ERROR(wired_network_error);
-  DEFINE_ERROR(wireless_network_error);
 
   // types {{{
 
-  struct bytes_t {
-    uint32_t transmitted = 0;
-    uint32_t received = 0;
-    std::chrono::system_clock::time_point time;
+  struct quality_range {
+    int val = 0;
+    int max = 0;
+
+    int percentage() const {
+      if (max < 0)
+        return 2 * (val + 100);
+      return static_cast<float>(val) / max * 100.0f + 0.5f;
+    }
   };
 
-  struct linkdata_t {
-    string ip_address;
-    bytes_t previous;
-    bytes_t current;
+  using bytes_t = unsigned int;
+
+  struct link_activity {
+    bytes_t transmitted = 0;
+    bytes_t received = 0;
+    chrono::system_clock::time_point time;
+  };
+
+  struct link_status {
+    string ip;
+    link_activity previous;
+    link_activity current;
   };
 
   // }}}
@@ -61,169 +72,145 @@ namespace net {
 
   class network {
    public:
+    /**
+     * Construct network interface
+     */
     explicit network(string interface) : m_interface(interface) {
       if (if_nametoindex(m_interface.c_str()) == 0)
         throw network_error("Invalid network interface \"" + m_interface + "\"");
-      if ((m_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+      if ((m_socketfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
         throw network_error("Failed to open socket");
-      std::memset(&m_data, 0, sizeof(m_data));
-      std::strncpy(m_data.ifr_name, m_interface.data(), IFNAMSIZ - 1);
     }
 
-    ~network() {
-      if (m_fd != -1)
-        close(m_fd);
+    /**
+     * Destruct network interface
+     */
+    virtual ~network() {
+      if (m_socketfd != -1)
+        close(m_socketfd);
     }
 
-    bool test_interface() {
-      if ((ioctl(m_fd, SIOCGIFFLAGS, &m_data)) == -1)
-        throw network_error("Failed to get flags");
-      if ((m_data.ifr_flags & IFF_UP) == 0)
-        return false;
-      if ((m_data.ifr_flags & IFF_RUNNING) == 0)
-        return false;
-      return true;
-    }
-
-    bool test_connection() {
-      int status = EXIT_FAILURE;
-
-      try {
-        m_ping = command_util::make_command(
-            "ping -c 2 -W 2 -I " + m_interface + " " + string(CONNECTION_TEST_IP));
-        status = m_ping->exec(true);
-        m_ping.reset();
-      } catch (std::exception& e) {
-      }
-
-      return (status == EXIT_SUCCESS);
-    }
-
-    bool test() {
-      try {
-        return test_interface() && test_connection();
-      } catch (network_error& e) {
-        return false;
-      }
-    }
-
-    bool connected() {
-      try {
-        if (!test_interface())
-          return false;
-        return file_util::get_contents("/sys/class/net/" + m_interface + "/carrier")[0] == '1';
-      } catch (network_error& e) {
-        return false;
-      }
-    }
-
-    bool query_interface() {
-      auto now = chrono::system_clock::now();
-      if ((now - m_last_query) < chrono::seconds(1))
-        return true;
-      m_last_query = now;
-
+    /**
+     * Query device driver for information
+     */
+    virtual bool query() {
       struct ifaddrs* ifaddr;
-      getifaddrs(&ifaddr);
-      bool match = false;
+
+      if (getifaddrs(&ifaddr) == -1)
+        return false;
 
       for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0)
           continue;
-        match = true;
 
         switch (ifa->ifa_addr->sa_family) {
           case AF_INET:
             char ip_buffer[NI_MAXHOST];
             getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in), ip_buffer, NI_MAXHOST, nullptr, 0,
                 NI_NUMERICHOST);
-            m_linkdata.ip_address = string(ip_buffer);
+            m_status.ip = string{ip_buffer};
             break;
 
           case AF_PACKET:
             if (ifa->ifa_data == nullptr)
               continue;
             struct rtnl_link_stats* link_state =
-                reinterpret_cast<struct rtnl_link_stats*>(ifa->ifa_data);
-            m_linkdata.previous = m_linkdata.current;
-            m_linkdata.current.transmitted = link_state->tx_bytes;
-            m_linkdata.current.received = link_state->rx_bytes;
-            m_linkdata.current.time = chrono::system_clock::now();
+                reinterpret_cast<decltype(link_state)>(ifa->ifa_data);
+            m_status.previous = m_status.current;
+            m_status.current.transmitted = link_state->tx_bytes;
+            m_status.current.received = link_state->rx_bytes;
+            m_status.current.time = chrono::system_clock::now();
             break;
         }
       }
 
       freeifaddrs(ifaddr);
 
-      return match;
+      return true;
     }
 
-    string ip() {
-      if (!test_interface())
-        throw network_error("Interface is not up");
-      if (!query_interface())
-        throw network_error("Failed to query interface");
-      return m_linkdata.ip_address;
-    }
+    /**
+     * Check current connection state
+     */
+    virtual bool connected() const = 0;
 
-    string downspeed(int minwidth = 3) {
-      if (!query_interface())
-        throw network_error("Failed to query interface");
-
-      float bytes_diff = m_linkdata.current.received - m_linkdata.previous.received;
-      float time_diff =
-          chrono::duration_cast<chrono::seconds>(m_linkdata.current.time - m_linkdata.previous.time)
-              .count();
-      float speed = bytes_diff / time_diff;
-
-      speed /= 1000;  // convert to KB
-      int suffix_n = 0;
-      vector<string> suffixes{"KB", "MB", "GB"};
-
-      while (speed >= 1000 && suffix_n < (int)suffixes.size() - 1) {
-        suffix_n++;
-        speed /= 1000;
+    /**
+     * Run ping command to test internet connectivity
+     */
+    virtual bool ping() const {
+      try {
+        auto exec = "ping -c 2 -W 2 -I " + m_interface + " " + string(CONNECTION_TEST_IP);
+        auto ping = command_util::make_command(exec);
+        return ping && ping->exec(true) == EXIT_SUCCESS;
+      } catch (const std::exception& err) {
+        return false;
       }
-
-      return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
-                                                     << std::setprecision(0) << std::fixed << speed
-                                                     << " " << suffixes[suffix_n] << "/s");
     }
 
-    string upspeed(int minwidth = 3) {
-      if (!query_interface())
-        throw network_error("Failed to query interface");
+    /**
+     * Get interface ip address
+     */
+    string ip() const {
+      return m_status.ip;
+    }
 
-      float bytes_diff = m_linkdata.current.transmitted - m_linkdata.previous.transmitted;
-      float time_diff =
-          chrono::duration_cast<chrono::seconds>(m_linkdata.current.time - m_linkdata.previous.time)
-              .count();
-      float speed = bytes_diff / time_diff;
+    /**
+     * Get download speed rate
+     */
+    string downspeed(int minwidth = 3) const {
+      float bytes_diff = m_status.current.received - m_status.previous.received;
+      return format_speedrate(bytes_diff, minwidth);
+    }
 
-      speed /= 1000;  // convert to KB
-      int suffix_n = 0;
-      vector<string> suffixes{"KB", "MB", "GB"};
-
-      while (speed >= 1000 && suffix_n < (int)suffixes.size() - 1) {
-        suffix_n++;
-        speed /= 1000;
-      }
-
-      return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
-                                                     << std::setprecision(0) << std::fixed << speed
-                                                     << " " << suffixes[suffix_n] << "/s");
+    /**
+     * Get upload speed rate
+     */
+    string upspeed(int minwidth = 3) const {
+      float bytes_diff = m_status.current.transmitted - m_status.previous.transmitted;
+      return format_speedrate(bytes_diff, minwidth);
     }
 
    protected:
-    unique_ptr<command_util::command> m_ping;
+    /**
+     * Test if the network interface is in a valid state
+     */
+    bool test_interface(struct ifreq& request) const {
+      if ((ioctl(m_socketfd, SIOCGIFFLAGS, &request)) == -1)
+        return false;
+      if ((request.ifr_flags & IFF_UP) == 0)
+        return false;
+      if ((request.ifr_flags & IFF_RUNNING) == 0)
+        return false;
+
+      auto operstate = file_util::get_contents("/sys/class/net/" + m_interface + "/operstate");
+
+      return operstate.compare(0, 2, "up") == 0;
+    }
+
+    /**
+     * Format up- and download speed
+     */
+    string format_speedrate(float bytes_diff, int minwidth) const {
+      const auto duration = m_status.current.time - m_status.previous.time;
+      float time_diff = chrono::duration_cast<chrono::seconds>(duration).count();
+      float speedrate = bytes_diff / (time_diff ? time_diff : 1);
+
+      vector<string> suffixes{"GB", "MB"};
+      string suffix{"KB"};
+
+      while ((speedrate /= 1000) > 999) {
+        suffix = suffixes.back();
+        suffixes.pop_back();
+      }
+
+      return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
+                                                     << std::setprecision(0) << std::fixed
+                                                     << speedrate << " " << suffix << "/s");
+    }
+
+    int m_socketfd = 0;
+    link_status m_status;
     string m_interface;
-    string m_ip;
-    struct ifreq m_data;
-    int m_fd = 0;
-
-    linkdata_t m_linkdata;
-
-    chrono::system_clock::time_point m_last_query;
   };
 
   // }}}
@@ -231,18 +218,56 @@ namespace net {
 
   class wired_network : public network {
    public:
-    explicit wired_network(string interface) : network(interface) {
-      struct ethtool_cmd e;
-      e.cmd = ETHTOOL_GSET;
+    explicit wired_network(string interface) : network(interface) {}
 
-      m_data.ifr_data = (caddr_t)&e;
+    /**
+     * Query device driver for information
+     */
+    bool query() override {
+      if (!network::query())
+        return false;
 
-      if (ioctl(m_fd, SIOCETHTOOL, &m_data) == 0)
-        m_linkspeed = (e.speed == USHRT_MAX ? 0 : e.speed);
+      struct ethtool_cmd ethernet_data;
+      ethernet_data.cmd = ETHTOOL_GSET;
+
+      struct ifreq request;
+      strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
+      request.ifr_data = reinterpret_cast<caddr_t>(&ethernet_data);
+
+      if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1)
+        return false;
+
+      m_linkspeed = ethernet_data.speed;
+
+      return true;
     }
 
-    string link_speed() {
-      return string((m_linkspeed == 0 ? "???" : to_string(m_linkspeed)) + " Mbit/s");
+    /**
+     * Check current connection state
+     */
+    bool connected() const override {
+      struct ifreq request;
+      struct ethtool_value ethernet_data;
+
+      strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
+      ethernet_data.cmd = ETHTOOL_GLINK;
+      request.ifr_data = reinterpret_cast<caddr_t>(&ethernet_data);
+
+      if (!network::test_interface(request))
+        return false;
+
+      if (ioctl(m_socketfd, SIOCETHTOOL, &request) != -1)
+        return ethernet_data.data != 0;
+
+      return false;
+    }
+
+    /**
+     *
+     * about the current connection
+     */
+    string linkspeed() const {
+      return (m_linkspeed == 0 ? "???" : to_string(m_linkspeed)) + " Mbit/s";
     }
 
    private:
@@ -252,182 +277,153 @@ namespace net {
   // }}}
   // class: wireless_network {{{
 
-  struct wireless_info {
-    std::bitset<5> flags;
-    string essid{IW_ESSID_MAX_SIZE + 1};
-    int quality = 0;
-    int quality_max = 0;
-    int quality_avg = 0;
-    int signal = 0;
-    int signal_max = 0;
-    int noise = 0;
-    int noise_max = 0;
-    int bitrate = 0;
-    double frequency = 0;
-  };
-
-  enum wireless_flags {
-    ESSID = 0,
-    QUALITY = 1,
-    SIGNAL = 2,
-    NOISE = 3,
-    FREQUENCY = 4,
-  };
-
   class wireless_network : public network {
    public:
-    wireless_network(string interface) : network(interface) {
-      std::strcpy((char*)&m_iw.ifr_ifrn.ifrn_name, m_interface.c_str());
+    wireless_network(string interface) : network(interface) {}
 
-      if (!m_info)
-        m_info.reset(new wireless_info());
-    }
+    /**
+     * Query the wireless device for information
+     * about the current connection
+     */
+    bool query() override {
+      if (!network::query())
+        return false;
 
-    string essid() {
-      if (!query_interface())
-        return "";
-      if (!m_info->flags.test(wireless_flags::ESSID))
-        return "";
-      return m_info->essid;
-    }
-
-    float signal_quality() {
-      if (!query_interface())
-        return 0;
-      if (m_info->flags.test(wireless_flags::QUALITY))
-        return 2 * (signal_dbm() + 100);
-      return 0;
-    }
-
-    float signal_dbm() {
-      if (!query_interface())
-        return 0;
-      if (m_info->flags.test(wireless_flags::QUALITY))
-        return m_info->quality + m_info->noise - 256;
-      return 0;
-    }
-
-   protected:
-    bool query_interface() {
-      if ((chrono::system_clock::now() - m_last_query) < chrono::seconds(1))
-        return true;
-
-      network::query_interface();
-
-      auto ifname = m_interface.c_str();
       auto socket_fd = iw_sockets_open();
 
       if (socket_fd == -1)
         return false;
 
-      auto on_exit = scope_util::make_exit_handler<>([&]() { iw_sockets_close(socket_fd); });
-      {
-        wireless_config wcfg;
+      struct iwreq req;
 
-        if (iw_get_basic_config(socket_fd, ifname, &wcfg) == -1)
-          return false;
+      if (iw_get_ext(socket_fd, m_interface.c_str(), SIOCGIWMODE, &req) == -1)
+        return false;
 
-        // reset flags
-        m_info->flags.none();
+      // Ignore interfaces in ad-hoc mode
+      if (req.u.mode == IW_MODE_ADHOC)
+        return false;
 
-        if (wcfg.has_essid && wcfg.essid_on) {
-          m_info->essid = {wcfg.essid, 0, IW_ESSID_MAX_SIZE};
-          m_info->flags |= wireless_flags::ESSID;
+      query_essid(socket_fd);
+      query_quality(socket_fd);
+
+      iw_sockets_close(socket_fd);
+
+      return true;
+    }
+
+    /**
+     * Check current connection state
+     */
+    bool connected() const override {
+      struct ifreq request;
+      strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
+
+      if (!network::test_interface(request))
+        return false;
+      if (m_essid.empty())
+        return false;
+
+      return true;
+    }
+
+    /**
+     * ESSID reported by last query
+     */
+    string essid() const {
+      return m_essid;
+    }
+
+    /**
+     * Signal strength percentage reported by last query
+     */
+    int signal() const {
+      return m_signalstrength.percentage();
+    }
+
+    /**
+     * Link quality percentage reported by last query
+     */
+    int quality() const {
+      return m_linkquality.percentage();
+    }
+
+   protected:
+    /**
+     * Query for ESSID
+     */
+    void query_essid(const int& socket_fd) {
+      char essid[IW_ESSID_MAX_SIZE + 1];
+
+      struct iwreq req;
+      req.u.essid.pointer = &essid;
+      req.u.essid.length = sizeof(essid);
+      req.u.essid.flags = 0;
+
+      if (iw_get_ext(socket_fd, m_interface.c_str(), SIOCGIWESSID, &req) != -1) {
+        m_essid = string{essid};
+      } else {
+        m_essid.clear();
+      }
+    }
+
+    /**
+     * Query for device driver quality values
+     */
+    void query_quality(const int& socket_fd) {
+      iwrange range;
+      iwstats stats;
+
+      // Fill range
+      if (iw_get_range_info(socket_fd, m_interface.c_str(), &range) == -1)
+        return;
+      // Fill stats
+      if (iw_get_stats(socket_fd, m_interface.c_str(), &stats, &range, 1) == -1)
+        return;
+
+      // Check if the driver supplies the quality value
+      if (stats.qual.updated & IW_QUAL_QUAL_INVALID)
+        return;
+      // Check if the driver supplies the quality level value
+      if (stats.qual.updated & IW_QUAL_LEVEL_INVALID)
+        return;
+
+      // Check if the link quality has been uodated
+      if (stats.qual.updated & IW_QUAL_QUAL_UPDATED) {
+        m_linkquality.val = stats.qual.qual;
+        m_linkquality.max = range.max_qual.qual;
+      }
+
+      // Check if the signal strength has been uodated
+      if (stats.qual.updated & IW_QUAL_LEVEL_UPDATED) {
+        m_signalstrength.val = stats.qual.level;
+        m_signalstrength.max = range.max_qual.level;
+
+        // Check if the values are defined in dBm
+        if (stats.qual.level > range.max_qual.level) {
+          m_signalstrength.val -= 0x100;
+          m_signalstrength.max -= 0x100;
         }
-
-        if (wcfg.has_freq) {
-          m_info->frequency = wcfg.freq;
-          m_info->flags |= wireless_flags::FREQUENCY;
-        }
-
-        if (wcfg.mode == IW_MODE_ADHOC)
-          return true;
-
-        iwrange range;
-        if (iw_get_range_info(socket_fd, ifname, &range) == -1)
-          return false;
-
-        iwstats stats;
-        if (iw_get_stats(socket_fd, ifname, &stats, &range, 1) == -1)
-          return false;
-
-        if (stats.qual.updated & IW_QUAL_RCPI) {
-          if (!(stats.qual.updated & IW_QUAL_QUAL_INVALID)) {
-            m_info->quality = stats.qual.qual;
-            m_info->quality_max = range.max_qual.qual;
-            m_info->quality_avg = range.avg_qual.qual;
-            m_info->flags |= wireless_flags::QUALITY;
-          }
-
-          if (stats.qual.updated & IW_QUAL_RCPI) {
-            if (!(stats.qual.updated & IW_QUAL_LEVEL_INVALID)) {
-              m_info->signal = stats.qual.level / 2.0 - 110 + 0.5;
-              m_info->flags |= wireless_flags::SIGNAL;
-            }
-            if (!(stats.qual.updated & IW_QUAL_NOISE_INVALID)) {
-              m_info->noise = stats.qual.noise / 2.0 - 110 + 0.5;
-              m_info->flags |= wireless_flags::NOISE;
-            }
-          } else {
-            if ((stats.qual.updated & IW_QUAL_DBM) || stats.qual.level > range.max_qual.level) {
-              if (!(stats.qual.updated & IW_QUAL_LEVEL_INVALID)) {
-                m_info->signal = stats.qual.level;
-                if (m_info->signal > 63)
-                  m_info->signal -= 256;
-                m_info->flags |= wireless_flags::SIGNAL;
-              }
-              if (!(stats.qual.updated & IW_QUAL_NOISE_INVALID)) {
-                m_info->noise = stats.qual.noise;
-                if (m_info->noise > 63)
-                  m_info->noise -= 256;
-                m_info->flags |= wireless_flags::NOISE;
-              }
-            } else {
-              if (!(stats.qual.updated & IW_QUAL_LEVEL_INVALID)) {
-                m_info->signal = stats.qual.level;
-                m_info->signal_max = range.max_qual.level;
-                m_info->flags |= wireless_flags::SIGNAL;
-              }
-              if (!(stats.qual.updated & IW_QUAL_NOISE_INVALID)) {
-                m_info->noise = stats.qual.noise;
-                m_info->noise_max = range.max_qual.noise;
-                m_info->flags |= wireless_flags::NOISE;
-              }
-            }
-          }
-        } else {
-          if (!(stats.qual.updated & IW_QUAL_QUAL_INVALID)) {
-            m_info->quality = stats.qual.qual;
-            m_info->flags |= wireless_flags::QUALITY;
-          }
-          if (!(stats.qual.updated & IW_QUAL_LEVEL_INVALID)) {
-            m_info->quality = stats.qual.level;
-            m_info->flags |= wireless_flags::SIGNAL;
-          }
-          if (!(stats.qual.updated & IW_QUAL_NOISE_INVALID)) {
-            m_info->quality = stats.qual.noise;
-            m_info->flags |= wireless_flags::NOISE;
-          }
-        }
-
-        // struct iwreq wrq;
-        // if (iw_get_ext(socket_fd, ifname, SIOCGIWRATE, &wrq) != -1)
-        //   m_info->bitrate = wrq.u.bitrate.value;
-
-        return true;
       }
     }
 
    private:
-    struct iwreq m_iw;
     shared_ptr<wireless_info> m_info;
+    string m_essid;
+    quality_range m_signalstrength;
+    quality_range m_linkquality;
   };
 
   // }}}
 
+  /**
+   * Test if interface with given name is a wireless device
+   */
   inline bool is_wireless_interface(string ifname) {
     return file_util::exists("/sys/class/net/" + ifname + "/wireless");
   }
+
+  using wireless_t = unique_ptr<wireless_network>;
+  using wired_t = unique_ptr<wired_network>;
 }
 
 LEMONBUDDY_NS_END
