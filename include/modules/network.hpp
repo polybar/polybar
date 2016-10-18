@@ -74,6 +74,11 @@ namespace modules {
         m_threads.emplace_back(thread(&network_module::subthread_routine, this));
     }
 
+    void teardown() {
+      m_wireless.reset();
+      m_wired.reset();
+    }
+
     bool update() {
       net::network* network = m_wireless ? dynamic_cast<net::network*>(m_wireless.get())
                                          : dynamic_cast<net::network*>(m_wired.get());

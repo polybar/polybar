@@ -178,9 +178,9 @@ namespace modules {
         , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
 
     ~module() {
-      if (enabled())
-        stop();
+      stop();
 
+      this->update_lock.unlock();
       std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
       {
         if (m_broadcast_thread.joinable())
@@ -210,17 +210,19 @@ namespace modules {
     }
 
     void stop() {
-      wakeup();
+      if (!enabled())
+        return;
+      std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
+      enable(false);
+      CAST_MODULE(Impl)->teardown();
+      lck.unlock();
+      m_log.trace("%s: Stop", name());
+      if (!on_stop.empty())
+        on_stop.emit(name());
+    }
 
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      {
-        if (!enabled())
-          return;
-        m_log.trace("%s: Stop", name());
-        enable(false);
-        if (!on_stop.empty())
-          on_stop.emit(name());
-      }
+    void teardown() {
+      wakeup();
     }
 
     void refresh() {
@@ -270,8 +272,8 @@ namespace modules {
     }
 
     void wakeup() {
-      std::unique_lock<std::mutex> lck(m_sleeplock);
       m_log.trace("%s: Release sleep lock", name());
+      // std::unique_lock<std::mutex> lck(m_sleeplock);
       m_sleephandler.notify_all();
     }
 
@@ -387,9 +389,11 @@ namespace modules {
         CAST_MODULE(Impl)->setup();
 
         while (CONST_CAST_MODULE(Impl).enabled()) {
-          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-          if (CAST_MODULE(Impl)->update())
-            CAST_MODULE(Impl)->broadcast();
+          {
+            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+            if (CAST_MODULE(Impl)->update())
+              CAST_MODULE(Impl)->broadcast();
+          }
           CAST_MODULE(Impl)->sleep(m_interval);
         }
       } catch (const std::exception& err) {
@@ -423,18 +427,17 @@ namespace modules {
         CAST_MODULE(Impl)->broadcast();
 
         while (CONST_CAST_MODULE(Impl).enabled()) {
-          std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
-
-          if (!CAST_MODULE(Impl)->has_event())
-            continue;
-
-          if (!CAST_MODULE(Impl)->update())
-            continue;
-
-          CAST_MODULE(Impl)->broadcast();
-
-          lck.unlock();
           CAST_MODULE(Impl)->idle();
+          {
+            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+
+            if (!CAST_MODULE(Impl)->has_event())
+              continue;
+            if (!CAST_MODULE(Impl)->update())
+              continue;
+
+            CAST_MODULE(Impl)->broadcast();
+          }
         }
       } catch (const std::exception& err) {
         this->m_log.err("%s: %s", this->name(), err.what());
@@ -465,7 +468,6 @@ namespace modules {
         CAST_MODULE(Impl)->broadcast();
 
         while (CAST_MODULE(Impl)->enabled()) {
-          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
           CAST_MODULE(Impl)->poll_events();
         }
       } catch (const std::exception& err) {
@@ -503,6 +505,7 @@ namespace modules {
       while (CONST_CAST_MODULE(Impl).enabled()) {
         for (auto&& w : watches) {
           this->m_log.trace("%s: Poll inotify watch %s", this->name(), w->path());
+          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
 
           if (w->poll(1000 / watches.size())) {
             auto event = w->get_event();

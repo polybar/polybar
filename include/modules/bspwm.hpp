@@ -43,11 +43,6 @@ namespace modules {
    public:
     using event_module::event_module;
 
-    ~bspwm_module() {
-      if (m_subscriber)
-        m_subscriber->disconnect();
-    }
-
     void setup() {
       m_monitor = m_bar.monitor->name;
       m_log.trace("%s: Primary monitor '%s'", name(), m_monitor);
@@ -103,6 +98,12 @@ namespace modules {
       m_subscriber = bspwm_util::make_subscriber();
 
       // }}}
+    }
+
+    void stop() {
+      if (m_subscriber)
+        m_subscriber->disconnect();
+      event_module::stop();
     }
 
     bool has_event() {

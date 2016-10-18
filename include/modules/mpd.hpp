@@ -16,21 +16,6 @@ namespace modules {
    public:
     using event_module::event_module;
 
-    ~mpd_module() {
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      if (m_mpd && m_mpd->connected()) {
-        try {
-          m_mpd->disconnect();
-        } catch (const mpd_exception& e) {
-          m_log.trace("%s: %s", name(), e.what());
-        }
-      }
-    }
-
-    void idle() {
-      sleep(80ms);
-    }
-
     void setup() {
       m_host = m_conf.get<string>(name(), "host", m_host);
       m_port = m_conf.get<unsigned int>(name(), "port", m_port);
@@ -103,6 +88,26 @@ namespace modules {
       }
     }
 
+    void teardown() {
+      if (m_mpd && m_mpd->connected()) {
+        try {
+          m_mpd->disconnect();
+        } catch (const mpd_exception& e) {
+          m_log.trace("%s: %s", name(), e.what());
+        }
+      } else {
+        wakeup();
+      }
+    }
+
+    void idle() {
+      if (m_mpd && m_mpd->connected())
+        sleep(80ms);
+      else {
+        sleep(10s);
+      }
+    }
+
     bool has_event() {
       if (!m_mpd->connected()) {
         m_connection_state_broadcasted = false;
@@ -114,7 +119,6 @@ namespace modules {
         }
 
         if (!m_mpd->connected()) {
-          sleep(2s);
           return false;
         }
       }

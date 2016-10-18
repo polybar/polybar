@@ -102,15 +102,6 @@ class controller {
       }
     }
 
-    m_log.trace("controller: Stop modules");
-    for (auto&& block : m_modules) {
-      for (auto&& module : block.second) {
-        module->on_update.disconnect(this, &controller::on_module_update);
-        module->on_stop.disconnect(this, &controller::on_module_stop);
-        module->stop();
-      }
-    }
-
     if (!m_threads.empty()) {
       m_log.trace("controller: Join active threads");
       for (auto&& thread : m_threads) {

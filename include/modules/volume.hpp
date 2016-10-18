@@ -108,6 +108,10 @@ namespace modules {
       // }}}
     }
 
+    void teardown() {
+      m_mixers.clear();
+    }
+
     bool has_event() {
       // Poll for mixer and control events {{{
 
