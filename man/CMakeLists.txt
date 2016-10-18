@@ -1,7 +1,4 @@
-set(MAN_PAGES_1
-  lemonbuddy.1
-  lemonbuddy_terminate.1
-  lemonbuddy_wrapper.1)
+set(MAN_PAGES_1 lemonbuddy.1)
 set(MAN_PAGES_5 lemonbuddy_config.5)
 
 INSTALL(FILES ${MAN_PAGES_1} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1 COMPONENT doc)

@@ -1,9 +1,9 @@
-.TH lemonbuddy 1 2016-06-22 "lemonbuddy 1.4.2" "User Manual"
+.TH lemonbuddy 1 2016-10-18 "lemonbuddy 2.0.0" "User Manual"
 .SH NAME
-\fBlemonbuddy\fR \- A fast and easy-to-use tool for Lemonbar.
+\fBlemonbuddy\fR \- A fast and easy-to-use tool status bar.
 .SH SYNOPSIS
 .P
-lemonbuddy \fIBAR-NAME\fR [\fB\-c\fR \fICONFIG\fR|\fB\-p\fR \fIPIPE\fR|\fB\-l\fR \fILOG_LEVEL\fR|\fB\-d\fR \fIPARAM\fR|\fB\-x\fR|\fB\-w\fR]
+lemonbuddy \fIBAR-NAME\fR [\fB\-c\fR \fICONFIG\fR|\fB\-l\fR \fILOG_LEVEL\fR|\fB\-d\fR \fIPARAM\fR|\fB\f-q\fR|\fB\-r\fR|\fB\f-s\fR|\fB\-w\fR]
 .P
 lemonbuddy [\fB\-h\fR | \fB\-\-help\fR]
 .SH DESCRIPTION
@@ -16,29 +16,32 @@ Mandatory arguments to long options are mandatory for short options too.
 \fB\-h\fR, \fB\-\-help\fR
 Show help and program options.
 .TP
+\fB\-v\fR, \fB\-\-version\fR
+Print version information.
+.TP
+\fB\-l\fR, \fB\-\-log\fR=\fILEVEL\fR
+Set how verbose \fBlemonbuddy\fR's logging is. \fILEVEL\fR must be one of: `warning` or `info`.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Be quiet (will override -l).
+.TP
 \fB\-c\fR, \fB\-\-config\fR=\fICONFIG\fR
 Specify the path to the configuration file. By default, configuration files are read from \fI$XDG_CONFIG_HOME/.config/lemonbuddy\fR. When the \fI$XDG_CONFIG_HOME\fR variable is absent, then \fI~/.config/lemonbuddy\fR directory is used instead.
 .TP
-\fB\-p\fR, \fB\-\-pipe\fR=\fIPIPE\fR
-Specify an alternate input pipe. This pipe is used by \fBlemonbuddy\fR to communicate with \fBlemonbar\fR. For more information on named pipes, see \fBmkfifo\fR(1).
-.TP
-\fB\-l\fR, \fB\-\-log\fR=\fILEVEL\fR
-Set how verbose \fBlemonbuddy\fR's logging is. \fILEVEL\fR must be one of: `warning', `info', `debug', or `trace'.
+\fB\-r\fR, \fB\-\-reload\fR
+Reload the application when the config file has been modified. (NOTE: Its recommended to only use this when setting up the bar).
 .TP
 \fB\-d\fR, \fB\-\-dump\fR=\fIPARAM\fR
 Show the value of the specified parameter \fIPARAM\fR in the section [bar/\fIBAR-NAME\fR] inside the configuration file.
 .TP
-\fB\-x\fR, \fB\-\-print\-exec\fR
-Print the generated command line string used to start the \fBlemonbar\fR process.
-.TP
 \fB\-w\fR, \fB\-\-print\-wmname\fR
 Print the generated \fIWM_NAME\fR.
 .TP
-\fB\-v\fR, \fB\-\-version\fR
-Print version information.
+\fB\-s\fR, \fB\-\-stdout\fR
+Dump content to stdout instead of rendering an X window.
 .SH SEE ALSO
 .TP
-\fBlemonbar\fR(1), \fBlemonbuddy_terminate\fR(1), \fBlemonbuddy_wrapper\fR(1), \fBlemonbuddy_config\fR(5)
+\fBlemonbuddy_config\fR(5)
 .RE
 .SH HOMEPAGE
 .sp

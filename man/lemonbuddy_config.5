@@ -1,4 +1,4 @@
-.TH lemonbuddy_config 5 2016-06-22 "lemonbuddy 1.4.2" "User Configuration"
+.TH lemonbuddy_config 5 2016-10-18 "lemonbuddy 2.0.0" "User Configuration"
 .SH NAME
 .\" This man page will need lots of updating as documentation about lemonbuddy
 .\" configuration improves.
@@ -27,6 +27,10 @@ Values defined in another section can be referenced using:
 
 key = \fI${bar/top.foreground}\fR
 .TP
+Read the value of an environment variable using:
+
+key = \fI${env:MYVAR}\fR
+.TP
 Use BAR to target the section of the current bar:
 
 key = \fI${BAR.foreground}\fR
@@ -52,7 +56,7 @@ format[-NAME]-overline   = #aa[rrggbb]
 The rest of the drawtypes follow the same pattern.
 
 .\" TODO: Describe the drawtypes
-label-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
+label-NAME[-(foreground|background|(under|over)line|font|padding|maxlen|ellipsis)] = ?
 icon-NAME[-(foreground|background|(under|over)line|font|padding)] = ?
 ramp-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
 animation-NAME-[0-9]+[-(foreground|background|(under|over)line|font|padding)] = ?
@@ -64,29 +68,32 @@ bar-NAME-indicator[-(foreground|background|(under|over)line|font|padding)] =
 bar-NAME-fill[-(foreground|background|(under|over)line|font|padding)] =
 bar-NAME-empty[-(foreground|background|(under|over)line|font|padding)] =
 
+
 .fi
 .SH APPLICATION SETTINGS
-These settings should exist in the `settings' section within the configuration file.
+These settings should exist in the `settings` section within the configuration file.
 .TP
-\fBthrottle_limit\fR and \fBthrottle_ms\fR
-Limit the amount of events sent to \fBlemonbar\fR(1) within a set timeframe. Allow at most \fIthrottle_limit\fR updates within \fIthrottle_ms\fR milliseconds.
+\fBthrottle-limit\fR and \fBthrottle-ms\fR
+Limit the amount of update events within a set timeframe. Allow at most \fIthrottle-limit\fR updates within \fIthrottle-ms\fR milliseconds.
 .SH BAR SETTINGS
 These settings should be defined in the [bar/\fIBAR\-NAME\fR] section.
 .TP
 .BR monitor
-Which display to have \fBlemonbar\fR(1) exist on. You can get a list of available outputs by using the command `xrandr -q | grep " connected" | cut -d ' ' -f1'.
+Which display to output the bar to. You can get a list of available outputs by using the command `xrandr -q | grep " connected" | cut -d ' ' -f1`.
+If unspecified, the application will pick the first one it finds.
 .TP
 \fBwidth\fR, \fBheight\fR
-How large the bar should be. You can specify the values as a percentage of the screen, for example `85%', or omit the `%' and give the dimension(s) in pixels.
+How large the bar should be. You can specify the values as a percentage of the screen, for example `85%`, or omit the `%` and give the dimension(s) in pixels.
 .TP
-\fBoffset_x\fR, \fBoffset_y\fR
+\fBoffset-x\fR, \fBoffset-y\fR
 The window offset value in pixels.
 .TP
 .BR bottom
-If this boolean is set to `true', then \fBlemonbar\fR(1) will be instructed to render itself on the bottom of the screen.
+Put the bar at the bottom of the screen.
 .TP
 .BR dock
-If this boolean is set to `true', then require \fBlemonbar\fR(1) to dock itself.
+If this boolean is set to `true`, then force the X window to dock itself.
+If you are using \fBi3\fR(1) it is recommended to use the default value.
 .TP
 .BR spacing
 This integer value is used as a multiplier when adding spaces between elements.
@@ -95,22 +102,19 @@ This integer value is used as a multiplier when adding spaces between elements.
 How high underlines and overlines should be.
 .TP
 \fBbackground\fR, \fBforeground\fR, \fBlinecolor\fR
-Specify the colors used by \fBlemobar\fR(1).
+Specify the colors used to draw the bar.
 .TP
-\fBpadding_left\fR, \fBpadding_right\fR
+\fBpadding-left\fR, \fBpadding-right\fR
 Specify the number of spaces to add at the start or end of the entire bar.
 .TP
-\fBmodule_margin_left\fR, \fBmodule_margin_right\fR
+\fBmodule-margin-left\fR, \fBmodule-margin-right\fR
 Specify the number of spaces to add before or after each module.
 .TP
 .BR font\-\fIid\fR
-Here you can specify which fonts you wish to use. You need to set \fIid\fR to be a positive integer. The font should be specified in the following format: `\fIFONT\-NAME\fR:size=\fIFONT\-SIZE\fR;\fIOFFSET\fR'. For example, you could set `font\-0' to be `NotoSans-Regular:size=8;0'.
+Here you can specify which fonts you wish to use. You need to set \fIid\fR to be a positive integer. The font should be specified in the following format: `\fIFONT\-NAME\fR:size=\fIFONT\-SIZE\fR;\fIOFFSET\fR`. For example, you could set `font\-0` to be `NotoSans-Regular:size=8;0`.
 .TP
-.BR clickareas
-This value is used by \fBlemonbar\fR(1) to specify the number of clickable areas available.
-.TP
-.BR wm_name
-The value to set \fIWM_NAME\fR to when running. This defaults to `lemonbuddy\-\fIBAR-NAME\fR_\fIMONITOR\fR'.
+.BR wm-name
+The value to set \fIWM_NAME\fR to when running. This defaults to `lemonbuddy\-\fIBAR-NAME\fR_\fIMONITOR\fR`.
 .TP
 .BR locale
 Which locale to use.
@@ -122,4 +126,4 @@ Define which modules to use in the bar.
 There are no examples yet.
 .SH SEE ALSO
 .TP
-\fBlemonbar\fB(1), \fBlemonbuddy\fR(1)
+\fBlemonbuddy\fR(1)
