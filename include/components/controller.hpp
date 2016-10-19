@@ -19,6 +19,7 @@
 #include "utils/throttle.hpp"
 
 #include "modules/backlight.hpp"
+#include "modules/xbacklight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
 #include "modules/counter.hpp"
@@ -237,10 +238,14 @@ class controller {
         }
       }
 
+      m_connection.flush();
+
       m_log.trace("controller: Listen for X events");
       while (m_running) {
-        m_connection.flush();
-        m_connection.dispatch_event(m_connection.wait_for_event());
+        auto evt = m_connection.wait_for_event();
+
+        if (evt != nullptr)
+          m_connection.dispatch_event(evt);
       }
     });
 
@@ -375,6 +380,8 @@ class controller {
           modules.emplace_back(new counter_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/backlight")
           modules.emplace_back(new backlight_module(bar, m_log, m_conf, module_name));
+        else if (type == "internal/xbacklight")
+          modules.emplace_back(new xbacklight_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/battery")
           modules.emplace_back(new battery_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/bspwm")

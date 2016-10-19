@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.hpp"
+#include "components/config.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -9,6 +10,21 @@
 LEMONBUDDY_NS
 
 namespace modules {
+  struct brightness_handle {
+    void filepath(string path) {
+      if (!file_util::exists(path))
+        throw module_error("The file '" + path + "' does not exist");
+      m_path = path;
+    }
+
+    float read() const {
+      return std::strtof(file_util::get_contents(m_path).c_str(), 0);
+    }
+
+   private:
+    string m_path;
+  };
+
   class backlight_module : public inotify_module<backlight_module> {
    public:
     using inotify_module::inotify_module;
@@ -28,29 +44,22 @@ namespace modules {
         m_ramp = get_config_ramp(m_conf, name(), TAG_RAMP);
 
       // Build path to the file where the current/maximum brightness value is located
-      m_path_val = string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card);
-      m_path_max = string_util::replace(PATH_BACKLIGHT_MAX, "%card%", card);
-
-      if (!file_util::exists(m_path_val))
-        throw module_error("backlight_module: The file '" + m_path_val + "' does not exist");
-      if (!file_util::exists(m_path_max))
-        throw module_error("backlight_module: The file '" + m_path_max + "' does not exist");
+      m_val.filepath(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+      m_max.filepath(string_util::replace(PATH_BACKLIGHT_MAX, "%card%", card));
 
       // Add inotify watch
       watch(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+    }
+
+    void idle() {
+      sleep(75ms);
     }
 
     bool on_event(inotify_event* event) {
       if (event != nullptr)
         m_log.trace("%s: %s", name(), event->filename);
 
-      auto val = file_util::get_contents(m_path_val);
-      m_val = std::stoull(val.c_str(), 0, 10);
-
-      auto max = file_util::get_contents(m_path_max);
-      m_max = std::stoull(max.c_str(), 0, 10);
-
-      m_percentage = static_cast<int>(float(m_val) / float(m_max) * 100.0f + 0.5f);
+      m_percentage = static_cast<int>(m_val.read() / m_max.read() * 100.0f + 0.5f);
 
       if (m_label) {
         m_label->reset_tokens();
@@ -72,10 +81,6 @@ namespace modules {
       return true;
     }
 
-    void idle() {
-      this_thread::sleep_for(75ms);
-    }
-
    private:
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_BAR = "<bar>";
@@ -85,12 +90,10 @@ namespace modules {
     label_t m_label;
     progressbar_t m_progressbar;
 
-    string m_path_val;
-    string m_path_max;
-    float m_val = 0;
-    float m_max = 0;
+    brightness_handle m_val;
+    brightness_handle m_max;
 
-    int m_percentage;
+    int m_percentage = 0;
   };
 }
 
