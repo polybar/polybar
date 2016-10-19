@@ -76,8 +76,6 @@ class controller {
     m_log.trace("controller: Stop modules");
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
-        module->on_update.clear();
-        module->on_stop.clear();
         module->stop();
       }
     }
@@ -211,9 +209,6 @@ class controller {
       m_log.trace("controller: Start modules");
       for (auto&& block : m_modules) {
         for (auto&& module : block.second) {
-          module->on_update.connect(this, &controller::on_module_update);
-          module->on_stop.connect(this, &controller::on_module_stop);
-
           try {
             module->start();
           } catch (const application_error& err) {
@@ -407,6 +402,11 @@ class controller {
         else
           throw application_error("Unknown module: " + module_name);
 
+        auto& module = modules.back();
+
+        module->set_writer(delegate::MakeDelegate(this, &controller::on_module_update));
+        module->set_terminator(delegate::MakeDelegate(this, &controller::on_module_stop));
+
         module_count++;
       }
     }
@@ -415,14 +415,15 @@ class controller {
       throw application_error("No modules created");
   }
 
-  void on_module_update(string module_name) {
-    if (!m_mutex.try_lock_for(50ms))
+  void on_module_update(string /* module_name */) {
+    if (!m_mutex.try_lock_for(50ms)) {
+      this_thread::yield();
       return;
+    }
     std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
     if (!m_running)
       return;
-
     if (!m_throttler->passthrough(m_throttle_strategy)) {
       m_log.trace("controller: Update event throttled");
       return;
@@ -489,7 +490,10 @@ class controller {
       m_bar->parse(contents);
   }
 
-  void on_module_stop(string module_name) {
+  void on_module_stop(string /* module_name */) {
+    if (!m_running)
+      return;
+
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
         if (module->running())
@@ -502,9 +506,12 @@ class controller {
   }
 
   void on_module_click(string input) {
-    if (!m_mutex.try_lock())
+    if (!m_clickmtx.try_lock()) {
+      this_thread::yield();
       return;
-    std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
+    }
+
+    std::lock_guard<std::mutex> guard(m_clickmtx, std::adopt_lock);
 
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
@@ -538,6 +545,7 @@ class controller {
   unique_ptr<traymanager> m_traymanager;
 
   std::timed_mutex m_mutex;
+  std::mutex m_clickmtx;
 
   stateflag m_stdout{false};
   stateflag m_running{false};

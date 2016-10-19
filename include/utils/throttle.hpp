@@ -101,8 +101,10 @@ namespace throttle_util {
     timewindow m_timewindow;
   };
 
+  using throttle_t = unique_ptr<event_throttler>;
+
   template <typename... Args>
-  auto make_throttler(Args&&... args) {
+  throttle_t make_throttler(Args&&... args) {
     return make_unique<event_throttler>(forward<Args>(args)...);
   }
 }

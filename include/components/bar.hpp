@@ -22,6 +22,7 @@
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/threading.hpp"
+#include "utils/throttle.hpp"
 #if ENABLE_I3
 #include "utils/i3.hpp"
 #endif
@@ -83,6 +84,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * This is done outside the constructor due to boost::di noexcept
    */
   void bootstrap(bool nodraw = false) {  //{{{
+    // limit the amount of allowed input events to 1 per 60ms
+    m_throttler = throttle_util::make_throttler(1, 60ms);
+
     m_screen = m_connection.screen();
     m_visual = m_connection.visual_type(m_screen, 32).get();
     auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root);
@@ -588,6 +592,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Mouse button event handler
    */
   void handle(const evt::button_press& evt) {  // {{{
+    if (!m_throttler->passthrough(throttle_util::strategy::try_once_or_leave_yolo{})) {
+      return;
+    }
+
     std::lock_guard<threading_util::spin_lock> lck(m_lock);
     {
       m_log.trace("bar: Received button press event: %i at pos(%i, %i)",
@@ -980,6 +988,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   unique_ptr<fontmanager> m_fontmanager;
 
   threading_util::spin_lock m_lock;
+  throttle_util::throttle_t m_throttler;
 
   xcb_screen_t* m_screen;
   xcb_visualtype_t* m_visual;

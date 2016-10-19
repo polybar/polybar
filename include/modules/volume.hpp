@@ -195,6 +195,7 @@ namespace modules {
         m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
 
       m_builder->node(module::get_output());
+
       return m_builder->flush();
     }
 
@@ -250,8 +251,6 @@ namespace modules {
       // Update the mute flag since we won't poll the new state when
       // sending the broadcast related to this event
       m_muted = !m_muted;
-
-      event_handled();
 
       return true;
     }

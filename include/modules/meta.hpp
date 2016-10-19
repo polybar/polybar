@@ -18,8 +18,8 @@ LEMONBUDDY_NS
 #define DEFAULT_FORMAT "format"
 
 #define DEFINE_MODULE(name, type) struct name : public type<name>
-#define CONST_CAST_MODULE(name) static_cast<name const&>(*this)
-#define CAST_MODULE(name) static_cast<name*>(this)
+#define CONST_MOD(name) static_cast<name const&>(*this)
+#define CAST_MOD(name) static_cast<name*>(this)
 
 namespace modules {
   using namespace drawtypes;
@@ -153,14 +153,13 @@ namespace modules {
     virtual void setup() = 0;
     virtual void start() = 0;
     virtual void stop() = 0;
-    virtual void refresh() = 0;
     virtual string contents() = 0;
 
     virtual bool handle_event(string cmd) = 0;
     virtual bool receive_events() const = 0;
 
-    delegate::Signal1<string> on_update;
-    delegate::Signal1<string> on_stop;
+    virtual void set_writer(delegate::Delegate1<string>&& fn) = 0;
+    virtual void set_terminator(delegate::Delegate1<string>&& fn) = 0;
   };
 
   // }}}
@@ -178,10 +177,11 @@ namespace modules {
         , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
 
     ~module() {
-      stop();
+      CAST_MOD(Impl)->stop();
 
-      this->update_lock.unlock();
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      m_updatelock.unlock();
+
+      std::lock_guard<threading_util::spin_lock> lck(m_updatelock);
       {
         if (m_broadcast_thread.joinable())
           m_broadcast_thread.join();
@@ -190,10 +190,19 @@ namespace modules {
           if (thread_.joinable())
             thread_.join();
         }
+
         m_threads.clear();
       }
 
       m_log.trace("%s: Done cleaning up", name());
+    }
+
+    void set_writer(delegate::Delegate1<string>&& fn) {
+      m_writer = forward<decltype(fn)>(fn);
+    }
+
+    void set_terminator(delegate::Delegate1<string>&& fn) {
+      m_terminator = forward<decltype(fn)>(fn);
     }
 
     string name() const {
@@ -201,32 +210,31 @@ namespace modules {
     }
 
     bool running() const {
-      return enabled();
+      return CONST_MOD(Impl).enabled();
     }
 
     void setup() {
       m_log.trace("%s: Setup", name());
-      CAST_MODULE(Impl)->setup();
+      CAST_MOD(Impl)->setup();
     }
 
     void stop() {
       if (!enabled())
         return;
-      std::unique_lock<threading_util::spin_lock> lck(this->update_lock);
-      enable(false);
-      CAST_MODULE(Impl)->teardown();
-      lck.unlock();
-      m_log.trace("%s: Stop", name());
-      if (!on_stop.empty())
-        on_stop.emit(name());
+
+      std::unique_lock<threading_util::spin_lock> lck(m_updatelock);
+      {
+        enable(false);
+        CAST_MOD(Impl)->teardown();
+        m_log.trace("%s: Stop", name());
+      }
+
+      if (m_terminator)
+        m_terminator(name());
     }
 
     void teardown() {
-      wakeup();
-    }
-
-    void refresh() {
-      m_cache = CAST_MODULE(Impl)->get_output();
+      CAST_MOD(Impl)->wakeup();
     }
 
     string contents() {
@@ -234,7 +242,7 @@ namespace modules {
     }
 
     bool handle_event(string cmd) {
-      return CAST_MODULE(Impl)->handle_event(cmd);
+      return CAST_MOD(Impl)->handle_event(cmd);
     }
 
     bool receive_events() const {
@@ -253,15 +261,11 @@ namespace modules {
     void broadcast() {
       if (!enabled())
         return;
+      else if (!m_writer)
+        m_log.warn("%s: No attach writer, ignoring broadcast...", name());
 
-      refresh();
-
-      if (contents().empty())
-        return;
-      else if (on_update.empty())
-        m_log.warn("%s: No signal handlers connected... ignoring broadcast", name());
-      else
-        on_update.emit(name());
+      m_cache = CAST_MOD(Impl)->get_output();
+      m_writer(name());
     }
 
     void idle() {}
@@ -287,7 +291,7 @@ namespace modules {
         return "";
       }
 
-      auto format_name = CONST_CAST_MODULE(Impl).get_format();
+      auto format_name = CONST_MOD(Impl).get_format();
       auto format = m_formatter->get(format_name);
 
       int i = 0;
@@ -299,7 +303,7 @@ namespace modules {
         if (tag[0] == '<' && tag[tag.length() - 1] == '>') {
           if (i > 0)
             m_builder->space(format->spacing);
-          if (!(tag_built = CONST_CAST_MODULE(Impl).build(m_builder.get(), tag)) && i > 0)
+          if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && i > 0)
             m_builder->remove_trailing_space(format->spacing);
           if (tag_built)
             i++;
@@ -314,19 +318,11 @@ namespace modules {
     }
 
    protected:
-    // Called by modules after handling action events
-    void event_handled() {
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-      {
-        if (m_broadcast_thread.joinable())
-          m_broadcast_thread.join();
-        m_broadcast_thread = thread(&module::broadcast, this);
-      }
-    }
+    delegate::Delegate1<string> m_writer;
+    delegate::Delegate1<string> m_terminator;
 
-    // concurrency::SpinLock output_lock;
-    // concurrency::SpinLock broadcast_lock;
-    threading_util::spin_lock update_lock;
+    threading_util::spin_lock m_updatelock;
+    // std::timed_mutex m_mutex;
 
     const bar_settings m_bar;
     const logger& m_log;
@@ -356,9 +352,9 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MODULE(Impl)->setup();
-      CAST_MODULE(Impl)->enable(true);
-      CAST_MODULE(Impl)->broadcast();
+      CAST_MOD(Impl)->setup();
+      CAST_MOD(Impl)->enable(true);
+      CAST_MOD(Impl)->broadcast();
     }
 
     bool build(builder*, string) const {
@@ -377,8 +373,8 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MODULE(Impl)->enable(true);
-      CAST_MODULE(Impl)->m_threads.emplace_back(thread(&timer_module::runner, this));
+      CAST_MOD(Impl)->enable(true);
+      CAST_MOD(Impl)->m_threads.emplace_back(thread(&timer_module::runner, this));
     }
 
    protected:
@@ -386,20 +382,20 @@ namespace modules {
 
     void runner() {
       try {
-        CAST_MODULE(Impl)->setup();
+        CAST_MOD(Impl)->setup();
 
-        while (CONST_CAST_MODULE(Impl).enabled()) {
+        while (CONST_MOD(Impl).enabled()) {
           {
-            std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
-            if (CAST_MODULE(Impl)->update())
-              CAST_MODULE(Impl)->broadcast();
+            std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
+            if (CAST_MOD(Impl)->update())
+              CAST_MOD(Impl)->broadcast();
           }
-          CAST_MODULE(Impl)->sleep(m_interval);
+          CAST_MOD(Impl)->sleep(m_interval);
         }
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", this->name(), err.what());
-        this->m_log.warn("Stopping '%s'...", this->name());
-        CAST_MODULE(Impl)->stop();
+        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
+        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
+        CAST_MOD(Impl)->stop();
       }
     }
   };
@@ -413,33 +409,33 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MODULE(Impl)->enable(true);
-      CAST_MODULE(Impl)->m_threads.emplace_back(thread(&event_module::runner, this));
+      CAST_MOD(Impl)->enable(true);
+      CAST_MOD(Impl)->m_threads.emplace_back(thread(&event_module::runner, this));
     }
 
    protected:
     void runner() {
       try {
-        CAST_MODULE(Impl)->setup();
+        CAST_MOD(Impl)->setup();
 
         // warmup
-        CAST_MODULE(Impl)->update();
-        CAST_MODULE(Impl)->broadcast();
+        CAST_MOD(Impl)->update();
+        CAST_MOD(Impl)->broadcast();
 
-        while (CONST_CAST_MODULE(Impl).enabled()) {
-          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+        while (CONST_MOD(Impl).enabled()) {
+          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
 
-          if (!CAST_MODULE(Impl)->has_event())
-            CAST_MODULE(Impl)->idle();
-          else if (!CAST_MODULE(Impl)->update())
-            CAST_MODULE(Impl)->idle();
+          if (!CAST_MOD(Impl)->has_event())
+            CAST_MOD(Impl)->idle();
+          else if (!CAST_MOD(Impl)->update())
+            CAST_MOD(Impl)->idle();
           else
-            CAST_MODULE(Impl)->broadcast();
+            CAST_MOD(Impl)->broadcast();
         }
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", this->name(), err.what());
-        this->m_log.warn("Stopping '%s'...", this->name());
-        CAST_MODULE(Impl)->stop();
+        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
+        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
+        CAST_MOD(Impl)->stop();
       }
     }
   };
@@ -453,34 +449,34 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MODULE(Impl)->enable(true);
-      CAST_MODULE(Impl)->m_threads.emplace_back(thread(&inotify_module::runner, this));
+      CAST_MOD(Impl)->enable(true);
+      CAST_MOD(Impl)->m_threads.emplace_back(thread(&inotify_module::runner, this));
     }
 
    protected:
     void runner() {
       try {
-        CAST_MODULE(Impl)->setup();
-        CAST_MODULE(Impl)->on_event(nullptr);  // warmup
-        CAST_MODULE(Impl)->broadcast();
+        CAST_MOD(Impl)->setup();
+        CAST_MOD(Impl)->on_event(nullptr);  // warmup
+        CAST_MOD(Impl)->broadcast();
 
-        while (CAST_MODULE(Impl)->enabled()) {
-          CAST_MODULE(Impl)->poll_events();
+        while (CAST_MOD(Impl)->enabled()) {
+          CAST_MOD(Impl)->poll_events();
         }
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", this->name(), err.what());
-        this->m_log.warn("Stopping '%s'...", this->name());
-        CAST_MODULE(Impl)->stop();
+        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
+        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
+        CAST_MOD(Impl)->stop();
       }
     }
 
     void watch(string path, int mask = IN_ALL_EVENTS) {
-      this->m_log.trace("%s: Attach inotify at %s", this->name(), path);
+      this->m_log.trace("%s: Attach inotify at %s", CONST_MOD(Impl).name(), path);
       m_watchlist.insert(make_pair(path, mask));
     }
 
     void idle() {
-      CAST_MODULE(Impl)->sleep(200ms);
+      CAST_MOD(Impl)->sleep(200ms);
     }
 
     void poll_events() {
@@ -494,28 +490,28 @@ namespace modules {
       } catch (const system_error& e) {
         watches.clear();
         this->m_log.err(
-            "%s: Error while creating inotify watch (what: %s)", this->name(), e.what());
-        CAST_MODULE(Impl)->sleep(0.1s);
+            "%s: Error while creating inotify watch (what: %s)", CONST_MOD(Impl).name(), e.what());
+        CAST_MOD(Impl)->sleep(0.1s);
         return;
       }
 
-      while (CONST_CAST_MODULE(Impl).enabled()) {
+      while (CONST_MOD(Impl).enabled()) {
         for (auto&& w : watches) {
-          this->m_log.trace("%s: Poll inotify watch %s", this->name(), w->path());
-          std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+          this->m_log.trace("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());
+          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
 
           if (w->poll(1000 / watches.size())) {
             auto event = w->get_event();
 
             w->remove();
 
-            if (CAST_MODULE(Impl)->on_event(event.get()))
-              CAST_MODULE(Impl)->broadcast();
+            if (CAST_MOD(Impl)->on_event(event.get()))
+              CAST_MOD(Impl)->broadcast();
 
             return;
           }
         }
-        CAST_MODULE(Impl)->idle();
+        CAST_MOD(Impl)->idle();
       }
     }
 

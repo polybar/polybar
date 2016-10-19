@@ -148,7 +148,7 @@ namespace command_util {
         if (WIFEXITED(m_forkstatus) && m_forkstatus > 0)
           m_log.warn("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
         else if (WIFEXITED(m_forkstatus))
-          m_log.warn("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
+          m_log.trace("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
         else if (WIFSIGNALED(m_forkstatus))
           m_log.trace("command: killed by signal %d", WTERMSIG(m_forkstatus));
         else if (WIFSTOPPED(m_forkstatus))

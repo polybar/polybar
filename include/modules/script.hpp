@@ -38,7 +38,7 @@ namespace modules {
       wakeup();
       enable(false);
       m_command.reset();
-      std::lock_guard<threading_util::spin_lock> lck(this->update_lock);
+      std::lock_guard<threading_util::spin_lock> lck(m_updatelock);
       wakeup();
     }
 
@@ -94,8 +94,8 @@ namespace modules {
 
         m_log.trace("%s: Executing '%s'", name(), exec);
 
-        cmd->exec();
-        cmd->tail([this](string contents) { m_output = contents; });
+        cmd->exec(true);
+        cmd->tail([&](string output) { m_output = output; });
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
         throw module_error("Failed to execute command, stopping module...");
@@ -130,10 +130,12 @@ namespace modules {
     }
 
     bool build(builder* builder, string tag) const {
-      if (tag != TAG_OUTPUT)
+      if (tag == TAG_OUTPUT) {
+        builder->node(m_output);
+        return true;
+      } else {
         return false;
-      builder->node(string_util::replace_all(m_output, "\n", ""));
-      return true;
+      }
     }
 
    protected:
