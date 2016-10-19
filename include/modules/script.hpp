@@ -69,7 +69,7 @@ namespace modules {
         }
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
-        throw module_error(name() + ": Failed to execute tail command, stopping module...");
+        throw module_error("Failed to execute tail command, stopping module...");
       }
 
       if (!m_command)
@@ -98,7 +98,7 @@ namespace modules {
         cmd->tail([this](string contents) { m_output = contents; });
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
-        throw module_error(name() + ": Failed to execute command, stopping module...");
+        throw module_error("Failed to execute command, stopping module...");
       }
 
       if (m_output == m_prev)

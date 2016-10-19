@@ -31,19 +31,17 @@ namespace modules {
       GET_CONFIG_VALUE(name(), m_headphoneid, "headphone-id");
 
       if (!headphone_mixer.empty() && m_headphoneid == -1)
-        throw module_error(
-            "volume_module: Missing required property value for \"headphone-id\"...");
+        throw module_error("Missing required property value for \"headphone-id\"...");
       else if (headphone_mixer.empty() && m_headphoneid != -1)
-        throw module_error(
-            "volume_module: Missing required property value for \"headphone-mixer\"...");
+        throw module_error("Missing required property value for \"headphone-mixer\"...");
 
       if (string_util::lower(speaker_mixer) == "master")
         throw module_error(
-            "volume_module: The \"Master\" mixer is already processed internally. Specify another "
+            "The \"Master\" mixer is already processed internally. Specify another "
             "mixer or comment out the \"speaker-mixer\" parameter...");
       if (string_util::lower(headphone_mixer) == "master")
         throw module_error(
-            "volume_module: The \"Master\" mixer is already processed internally. Specify another "
+            "The \"Master\" mixer is already processed internally. Specify another "
             "mixer or comment out the \"headphone-mixer\" parameter...");
 
       // }}}

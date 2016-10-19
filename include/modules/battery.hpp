@@ -34,9 +34,9 @@ namespace modules {
       // Validate paths {{{
 
       if (!file_util::exists(m_path_capacity))
-        throw module_error("battery_module: The file '" + m_path_capacity + "' does not exist");
+        throw module_error("The file '" + m_path_capacity + "' does not exist");
       if (!file_util::exists(m_path_adapter))
-        throw module_error("battery_module: The file '" + m_path_adapter + "' does not exist");
+        throw module_error("The file '" + m_path_adapter + "' does not exist");
 
       // }}}
       // Add formats and elements {{{
