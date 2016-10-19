@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "components/x11/xresources.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -24,7 +25,8 @@ class config {
   /**
    * Construct config
    */
-  explicit config(const logger& logger) : m_logger(logger) {}
+  explicit config(const logger& logger, const xresource_manager& xrm)
+      : m_logger(logger), m_xrm(xrm) {}
 
   /**
    * Load configuration and validate bar section
@@ -181,13 +183,17 @@ class config {
    */
   template <typename T = const config&>
   static di::injector<T> configure() {
-    return di::make_injector(logger::configure());
+    return di::make_injector(logger::configure(), xresource_manager::configure());
   }
 
  protected:
   /**
    * Find value of a config parameter defined as a reference
    * variable using ${section.param} or ${env:VAR}
+   * ${self.key} may be used to reference the current bar section
+   *
+   * @deprecated: ${BAR.key} has been replaced with ${self.key}
+   * but the former is kept to avoid breaking current configs
    */
   template <typename T>
   T dereference_var(string ref_section, string ref_key, string var, const T ref_val) const {
@@ -205,12 +211,25 @@ class config {
       return ref_val;
     }
 
+    if (path.find("xrdb:") == 0) {
+      if (std::is_same<string, T>())
+        return boost::lexical_cast<T>(m_xrm.get_string(path.substr(5)));
+      else if (std::is_same<float, T>())
+        return boost::lexical_cast<T>(m_xrm.get_float(path.substr(5)));
+      else if (std::is_same<int, T>())
+        return boost::lexical_cast<T>(m_xrm.get_int(path.substr(5)));
+    }
+
     auto ref_path = build_path(ref_section, ref_key);
 
     if ((n = path.find(".")) == string::npos)
       throw value_error("Invalid reference defined at [" + ref_path + "]");
 
-    auto section = string_util::replace(path.substr(0, n), "BAR", bar_section());
+    auto section = path.substr(0, n);
+
+    section = string_util::replace(section, "BAR", bar_section());
+    section = string_util::replace(section, "self", bar_section());
+
     auto key = path.substr(n + 1, path.length() - n - 1);
     auto val = m_ptree.get_optional<T>(build_path(section, key));
 
@@ -224,6 +243,7 @@ class config {
 
  private:
   const logger& m_logger;
+  const xresource_manager& m_xrm;
   ptree m_ptree;
   string m_file;
   string m_current_bar;

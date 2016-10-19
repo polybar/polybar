@@ -3,7 +3,6 @@
 #include <X11/Xutil.h>
 
 #include "common.hpp"
-#include "components/x11/xutils.hpp"
 
 LEMONBUDDY_NS
 

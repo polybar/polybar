@@ -88,11 +88,12 @@ find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Freetype REQUIRED Freetype2)
 find_package(PkgConfig)
-find_package(X11 REQUIRED COMPONENTS Xft)
+find_package(X11 REQUIRED COMPONENTS Xft Xutil)
 find_package(X11_XCB REQUIRED)
 
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
+link_libraries(${X11_X11_LIB})
 link_libraries(${X11_Xft_LIB})
 link_libraries(${X11_XCB_LIB})
 link_libraries(${BOOST_LIBRARIES})
