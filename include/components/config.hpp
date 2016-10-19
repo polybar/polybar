@@ -212,12 +212,13 @@ class config {
     }
 
     if (path.find("xrdb:") == 0) {
-      if (std::is_same<string, T>())
+      if (std::is_same<string, T>::value)
         return boost::lexical_cast<T>(m_xrm.get_string(path.substr(5)));
-      else if (std::is_same<float, T>())
+      else if (std::is_same<float, T>::value)
         return boost::lexical_cast<T>(m_xrm.get_float(path.substr(5)));
-      else if (std::is_same<int, T>())
+      else if (std::is_same<int, T>::value)
         return boost::lexical_cast<T>(m_xrm.get_int(path.substr(5)));
+      return ref_val;
     }
 
     auto ref_path = build_path(ref_section, ref_key);
