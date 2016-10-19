@@ -56,7 +56,7 @@ namespace string_util {
    */
   inline auto replace_all(const string& haystack, string needle, string replacement) {
     string replaced;
-    for (int i = 0; i < haystack.length(); i++) {
+    for (size_t i = 0; i < haystack.length(); i++) {
       if (haystack.compare(i, needle.length(), needle) == 0) {
         replaced += replacement;
         i += needle.length()-1;
