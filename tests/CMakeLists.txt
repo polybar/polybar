@@ -1,24 +1,19 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(testsuite CXX)
+#
+# Based on https://github.com/modern-cpp-examples/match3/blob/master/test/CMakeLists.txt
+#
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -include common/test.hpp")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CPPUNIT_CFLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wno-unused-parameter -Wno-unused-local-typedefs")
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+include_directories(${APP_INCLUDE_DIRS})
 
-find_package(CppUnit REQUIRED)
-add_definitions(${CPPUNIT_CFLAGS_OTHER})
+function(unit_test file)
+  string(REPLACE "/" "_" testname ${file})
+  add_executable(unit_test.${testname} ${CMAKE_CURRENT_LIST_DIR}/unit_tests/${file}.cpp)
+  add_test(unit_test.${testname} unit_test.${testname})
+endfunction()
 
-file(GLOB_RECURSE source_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-
-make_executable(testrunner
-  SOURCES
-    ${source_files}
-  TARGET_DEPENDS
-    lemonlib_static
-  CMAKE_DEPENDS
-    cppunit
-    xpp)
-
-#add_custom_command(TARGET testrunner POST_BUILD COMMAND testrunner)
-add_custom_target(tests testrunner
-  DEPENDS testrunner
-  COMMENT "Running CppUnit tests...")
+unit_test("utils/memory")
+unit_test("utils/string")
+unit_test("components/command_line")
+unit_test("components/di")
+#unit_test("components/logger")
