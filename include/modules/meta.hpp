@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <condition_variable>
-#include <fastdelegate/fastdelegate.hpp>
 #include <mutex>
 
 #include "common.hpp"
@@ -158,8 +157,8 @@ namespace modules {
     virtual bool handle_event(string cmd) = 0;
     virtual bool receive_events() const = 0;
 
-    virtual void set_writer(delegate::Delegate1<string>&& fn) = 0;
-    virtual void set_terminator(delegate::Delegate1<string>&& fn) = 0;
+    virtual void set_writer(std::function<void(string)>&& fn) = 0;
+    virtual void set_terminator(std::function<void(string)>&& fn) = 0;
   };
 
   // }}}
@@ -197,11 +196,11 @@ namespace modules {
       m_log.trace("%s: Done cleaning up", name());
     }
 
-    void set_writer(delegate::Delegate1<string>&& fn) {
+    void set_writer(std::function<void(string)>&& fn) {
       m_writer = forward<decltype(fn)>(fn);
     }
 
-    void set_terminator(delegate::Delegate1<string>&& fn) {
+    void set_terminator(std::function<void(string)>&& fn) {
       m_terminator = forward<decltype(fn)>(fn);
     }
 
@@ -261,11 +260,13 @@ namespace modules {
     void broadcast() {
       if (!enabled())
         return;
-      else if (!m_writer)
-        m_log.warn("%s: No attach writer, ignoring broadcast...", name());
 
       m_cache = CAST_MOD(Impl)->get_output();
-      m_writer(name());
+
+      if (m_writer)
+        m_writer(name());
+      else
+        m_log.warn("%s: No handler, ignoring broadcast...", name());
     }
 
     void idle() {}
@@ -318,8 +319,8 @@ namespace modules {
     }
 
    protected:
-    delegate::Delegate1<string> m_writer;
-    delegate::Delegate1<string> m_terminator;
+    function<void(string)> m_writer;
+    function<void(string)> m_terminator;
 
     threading_util::spin_lock m_updatelock;
     // std::timed_mutex m_mutex;

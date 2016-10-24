@@ -1,10 +1,8 @@
 #pragma once
 
-#include <fastdelegate/fastdelegate.hpp>
-
 #include "common.hpp"
-#include "components/types.hpp"
 #include "components/signals.hpp"
+#include "components/types.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
@@ -63,69 +61,69 @@ class parser {
       switch (tag) {
         case 'B':
           // Ignore tag if it occurs again later in the same block
-          if (data.find(" B") == string::npos && !g_signals::parser::color_change.empty())
-            g_signals::parser::color_change.emit(gc::BG, parse_color(value, m_bar.background));
+          if (data.find(" B") == string::npos && g_signals::parser::color_change)
+            g_signals::parser::color_change(gc::BG, parse_color(value, m_bar.background));
           break;
 
         case 'F':
           // Ignore tag if it occurs again later in the same block
-          if (data.find(" F") == string::npos && !g_signals::parser::color_change.empty())
-            g_signals::parser::color_change.emit(gc::FG, parse_color(value, m_bar.foreground));
+          if (data.find(" F") == string::npos && g_signals::parser::color_change)
+            g_signals::parser::color_change(gc::FG, parse_color(value, m_bar.foreground));
           break;
 
         case 'U':
           // Ignore tag if it occurs again later in the same block
-          if (data.find(" U") == string::npos && !g_signals::parser::color_change.empty()) {
-            g_signals::parser::color_change.emit(gc::UL, parse_color(value, m_bar.linecolor));
-            g_signals::parser::color_change.emit(gc::OL, parse_color(value, m_bar.linecolor));
+          if (data.find(" U") == string::npos && g_signals::parser::color_change) {
+            g_signals::parser::color_change(gc::UL, parse_color(value, m_bar.linecolor));
+            g_signals::parser::color_change(gc::OL, parse_color(value, m_bar.linecolor));
           }
           break;
 
         case 'R':
-          if (!g_signals::parser::color_change.empty()) {
-            g_signals::parser::color_change.emit(gc::BG, m_bar.foreground);
-            g_signals::parser::color_change.emit(gc::FG, m_bar.background);
+          if (g_signals::parser::color_change) {
+            g_signals::parser::color_change(gc::BG, m_bar.foreground);
+            g_signals::parser::color_change(gc::FG, m_bar.background);
           }
           break;
 
         case 'T':
-          if (data.find(" T") == string::npos && !g_signals::parser::font_change.empty())
-            g_signals::parser::font_change.emit(parse_fontindex(value));
+          if (data.find(" T") == string::npos && g_signals::parser::font_change)
+            g_signals::parser::font_change(parse_fontindex(value));
           break;
 
         case 'O':
-          if (!g_signals::parser::pixel_offset.empty())
-            g_signals::parser::pixel_offset.emit(std::atoi(value.c_str()));
+          if (g_signals::parser::pixel_offset)
+            g_signals::parser::pixel_offset(std::atoi(value.c_str()));
           break;
 
         case 'l':
-          if (!g_signals::parser::alignment_change.empty())
-            g_signals::parser::alignment_change.emit(alignment::LEFT);
+          if (g_signals::parser::alignment_change)
+            g_signals::parser::alignment_change(alignment::LEFT);
           break;
 
         case 'c':
-          if (!g_signals::parser::alignment_change.empty())
-            g_signals::parser::alignment_change.emit(alignment::CENTER);
+          if (g_signals::parser::alignment_change)
+            g_signals::parser::alignment_change(alignment::CENTER);
           break;
 
         case 'r':
-          if (!g_signals::parser::alignment_change.empty())
-            g_signals::parser::alignment_change.emit(alignment::RIGHT);
+          if (g_signals::parser::alignment_change)
+            g_signals::parser::alignment_change(alignment::RIGHT);
           break;
 
         case '+':
-          if (!g_signals::parser::attribute_set.empty())
-            g_signals::parser::attribute_set.emit(parse_attr(value[0]));
+          if (g_signals::parser::attribute_set)
+            g_signals::parser::attribute_set(parse_attr(value[0]));
           break;
 
         case '-':
-          if (!g_signals::parser::attribute_unset.empty())
-            g_signals::parser::attribute_unset.emit(parse_attr(value[0]));
+          if (g_signals::parser::attribute_unset)
+            g_signals::parser::attribute_unset(parse_attr(value[0]));
           break;
 
         case '!':
-          if (!g_signals::parser::attribute_toggle.empty())
-            g_signals::parser::attribute_toggle.emit(parse_attr(value[0]));
+          if (g_signals::parser::attribute_toggle)
+            g_signals::parser::attribute_toggle(parse_attr(value[0]));
           break;
 
         case 'A':
@@ -134,16 +132,16 @@ class parser {
             mousebtn btn = parse_action_btn(data);
             m_actions.push_back(static_cast<int>(btn));
 
-            if (!g_signals::parser::action_block_open.empty())
-              g_signals::parser::action_block_open.emit(btn, value);
+            if (g_signals::parser::action_block_open)
+              g_signals::parser::action_block_open(btn, value);
 
             // make sure we strip the correct length (btn+wrapping colons)
             if (data[0] != ':')
               value += "0";
             value += "::";
           } else if (!m_actions.empty()) {
-            if (!g_signals::parser::action_block_close.empty())
-              g_signals::parser::action_block_close.emit(parse_action_btn(data));
+            if (g_signals::parser::action_block_close)
+              g_signals::parser::action_block_close(parse_action_btn(data));
             m_actions.pop_back();
           }
           break;
@@ -170,31 +168,39 @@ class parser {
     //   size_t n = 0;
     //   while (sequence[n] != '\0' && static_cast<uint8_t>(sequence[n]) < 0x80 && ++n <= next_tag)
     //     ;
-    //   g_signals::parser::ascii_text_write.emit(data.substr(0, n));
+    //   if (g_signals::parser::ascii_text_write)
+    //     g_signals::parser::ascii_text_write(data.substr(0, n));
     //   return data.length();
     // }
 
     if (utf[0] < 0x80) {
-      g_signals::parser::ascii_text_write.emit(utf[0]);
+      if (g_signals::parser::ascii_text_write)
+        g_signals::parser::ascii_text_write(utf[0]);
       return 1;
     } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
-      g_signals::parser::unicode_text_write.emit((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f));
+      if (g_signals::parser::unicode_text_write)
+        g_signals::parser::unicode_text_write((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f));
       return 2;
     } else if ((utf[0] & 0xf0) == 0xe0) {  // 3 byte utf-8 sequence
-      g_signals::parser::unicode_text_write.emit(
-          (utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
+      if (g_signals::parser::unicode_text_write)
+        g_signals::parser::unicode_text_write(
+            (utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
       return 3;
     } else if ((utf[0] & 0xf8) == 0xf0) {  // 4 byte utf-8 sequence
-      g_signals::parser::unicode_text_write.emit(0xfffd);
+      if (g_signals::parser::unicode_text_write)
+        g_signals::parser::unicode_text_write(0xfffd);
       return 4;
     } else if ((utf[0] & 0xfc) == 0xf8) {  // 5 byte utf-8 sequence
-      g_signals::parser::unicode_text_write.emit(0xfffd);
+      if (g_signals::parser::unicode_text_write)
+        g_signals::parser::unicode_text_write(0xfffd);
       return 5;
     } else if ((utf[0] & 0xfe) == 0xfc) {  // 6 byte utf-8 sequence
-      g_signals::parser::unicode_text_write.emit(0xfffd);
+      if (g_signals::parser::unicode_text_write)
+        g_signals::parser::unicode_text_write(0xfffd);
       return 6;
     } else {  // invalid utf-8 sequence
-      g_signals::parser::ascii_text_write.emit(utf[0]);
+      if (g_signals::parser::ascii_text_write)
+        g_signals::parser::ascii_text_write(utf[0]);
       return 1;
     }
   }  // }}}

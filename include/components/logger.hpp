@@ -80,11 +80,13 @@ class logger {
    * Output a trace message
    */
   template <typename... Args>
-  void trace(string message, Args... args) const {
 #ifdef DEBUG
+  void trace(string message, Args... args) const {
     output(loglevel::TRACE, message, args...);
-#endif
   }
+#else
+  void trace(string, Args...) const {}
+#endif
 
   /**
    * Output an info message

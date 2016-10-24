@@ -46,19 +46,22 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    */
   ~bar() {
     std::lock_guard<threading_util::spin_lock> lck(m_lock);
-    g_signals::parser::alignment_change.disconnect(this, &bar::on_alignment_change);
-    g_signals::parser::attribute_set.disconnect(this, &bar::on_attribute_set);
-    g_signals::parser::attribute_unset.disconnect(this, &bar::on_attribute_unset);
-    g_signals::parser::attribute_toggle.disconnect(this, &bar::on_attribute_toggle);
-    g_signals::parser::action_block_open.disconnect(this, &bar::on_action_block_open);
-    g_signals::parser::action_block_close.disconnect(this, &bar::on_action_block_close);
-    g_signals::parser::color_change.disconnect(this, &bar::on_color_change);
-    g_signals::parser::font_change.disconnect(this, &bar::on_font_change);
-    g_signals::parser::pixel_offset.disconnect(this, &bar::on_pixel_offset);
-    g_signals::parser::ascii_text_write.disconnect(this, &bar::draw_character);
-    g_signals::parser::unicode_text_write.disconnect(this, &bar::draw_character);
-    if (m_tray.align != alignment::NONE)
-      g_signals::tray::report_slotcount.disconnect(this, &bar::on_tray_report);
+
+    // Disconnect signal handlers {{{
+    g_signals::parser::alignment_change = nullptr;
+    g_signals::parser::attribute_set = nullptr;
+    g_signals::parser::attribute_unset = nullptr;
+    g_signals::parser::attribute_toggle = nullptr;
+    g_signals::parser::action_block_open = nullptr;
+    g_signals::parser::action_block_close = nullptr;
+    g_signals::parser::color_change = nullptr;
+    g_signals::parser::font_change = nullptr;
+    g_signals::parser::pixel_offset = nullptr;
+    g_signals::parser::ascii_text_write = nullptr;
+    g_signals::parser::unicode_text_write = nullptr;
+    g_signals::tray::report_slotcount = nullptr;
+    // }}}
+
     if (m_sinkattached)
       m_connection.detach_sink(this, 1);
     m_window.destroy();
@@ -444,20 +447,22 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     // }}}
     // Connect signal handlers {{{
 
-    g_signals::parser::alignment_change.connect(this, &bar::on_alignment_change);
-    g_signals::parser::attribute_set.connect(this, &bar::on_attribute_set);
-    g_signals::parser::attribute_unset.connect(this, &bar::on_attribute_unset);
-    g_signals::parser::attribute_toggle.connect(this, &bar::on_attribute_toggle);
-    g_signals::parser::action_block_open.connect(this, &bar::on_action_block_open);
-    g_signals::parser::action_block_close.connect(this, &bar::on_action_block_close);
-    g_signals::parser::color_change.connect(this, &bar::on_color_change);
-    g_signals::parser::font_change.connect(this, &bar::on_font_change);
-    g_signals::parser::pixel_offset.connect(this, &bar::on_pixel_offset);
-    g_signals::parser::ascii_text_write.connect(this, &bar::draw_character);
-    g_signals::parser::unicode_text_write.connect(this, &bar::draw_character);
+    // clang-format off
+    g_signals::parser::alignment_change = bind(&bar::on_alignment_change, this, std::placeholders::_1);
+    g_signals::parser::attribute_set = bind(&bar::on_attribute_set, this, std::placeholders::_1);
+    g_signals::parser::attribute_unset = bind(&bar::on_attribute_unset, this, std::placeholders::_1);
+    g_signals::parser::attribute_toggle = bind(&bar::on_attribute_toggle, this, std::placeholders::_1);
+    g_signals::parser::action_block_open = bind(&bar::on_action_block_open, this, std::placeholders::_1, std::placeholders::_2);
+    g_signals::parser::action_block_close = bind(&bar::on_action_block_close, this, std::placeholders::_1);
+    g_signals::parser::color_change = bind(&bar::on_color_change, this, std::placeholders::_1, std::placeholders::_2);
+    g_signals::parser::font_change = bind(&bar::on_font_change, this, std::placeholders::_1);
+    g_signals::parser::pixel_offset = bind(&bar::on_pixel_offset, this, std::placeholders::_1);
+    g_signals::parser::ascii_text_write = bind(&bar::draw_character, this, std::placeholders::_1);
+    g_signals::parser::unicode_text_write = bind(&bar::draw_character, this, std::placeholders::_1);
+    // clang-format on
 
     if (m_tray.align != alignment::NONE)
-      g_signals::tray::report_slotcount.connect(this, &bar::on_tray_report);
+      g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, std::placeholders::_1);
 
     // }}}
 
@@ -535,11 +540,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_pixmap, m_window, m_gcontexts.at(gc::BR), 0, 0, 0, 0, m_bar.width, m_bar.height);
 
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
-    map<alignment, int> hint_num{
-        { {alignment::LEFT, 0},
-          {alignment::CENTER, 0},
-          {alignment::RIGHT, 0},
-        }};
+    map<alignment, int> hint_num{{
+        {alignment::LEFT, 0}, {alignment::CENTER, 0}, {alignment::RIGHT, 0},
+    }};
 #endif
 
     for (auto&& action : m_actions) {
@@ -625,8 +628,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_log.trace("action.start_x = %i", action.start_x);
         m_log.trace("action.end_x = %i", action.end_x);
 
-        if (!g_signals::bar::action_click.empty())
-          g_signals::bar::action_click.emit(action.command);
+        if (g_signals::bar::action_click)
+          g_signals::bar::action_click(action.command);
         else
           m_log.warn("No signal handler's connected to 'action_click'");
 
@@ -663,19 +666,19 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    */
   void handle(const evt::property_notify& evt) {  // {{{
     if (evt->window == m_window && evt->atom == WM_STATE) {
-      if (g_signals::bar::visibility_change.empty()) {
+      if (!g_signals::bar::visibility_change)
         return;
-      }
+
       try {
         auto attr = m_connection.get_window_attributes(m_window);
         if (attr->map_state == XCB_MAP_STATE_VIEWABLE)
-          g_signals::bar::visibility_change.emit(true);
+          g_signals::bar::visibility_change(true);
         else if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE)
-          g_signals::bar::visibility_change.emit(false);
+          g_signals::bar::visibility_change(false);
         else if (attr->map_state == XCB_MAP_STATE_UNMAPPED)
-          g_signals::bar::visibility_change.emit(false);
+          g_signals::bar::visibility_change(false);
         else
-          g_signals::bar::visibility_change.emit(true);
+          g_signals::bar::visibility_change(true);
       } catch (const std::exception& err) {
         m_log.warn("Failed to emit bar window's visibility change event");
       }

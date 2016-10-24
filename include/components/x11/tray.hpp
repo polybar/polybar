@@ -147,7 +147,8 @@ class traymanager
 
     // Listen for visibility change events on the bar window
     if (!m_restacked) {
-      g_signals::bar::visibility_change.connect(this, &traymanager::bar_visibility_change);
+      g_signals::bar::visibility_change =
+          bind(&traymanager::bar_visibility_change, this, std::placeholders::_1);
     }
 
     // Attempt to get control of the systray selection then
@@ -193,7 +194,8 @@ class traymanager
     }
 
     if (!m_restacked) {
-      g_signals::bar::visibility_change.disconnect(this, &traymanager::bar_visibility_change);
+      g_signals::bar::visibility_change =
+          bind(&traymanager::bar_visibility_change, this, std::placeholders::_1);
     }
 
     // Dismiss all clients by reparenting them to the root window
@@ -238,8 +240,8 @@ class traymanager
       }
     }
 
-    if (!g_signals::tray::report_slotcount.empty())
-      g_signals::tray::report_slotcount.emit(mapped_clients);
+    if (g_signals::tray::report_slotcount)
+      g_signals::tray::report_slotcount(mapped_clients);
 
     if (!width && m_mapped) {
       m_connection.unmap_window(m_tray);
@@ -540,7 +542,7 @@ class traymanager
   void handle(const evt::expose& evt) {
     if (!m_activated || m_clients.empty())
       return;
-    m_logger.trace("tray: Received expose event");
+    m_logger.trace("tray: Received expose event for %s", m_connection.id(evt->window));
     reconfigure();
   }
 
@@ -550,7 +552,7 @@ class traymanager
   void handle(const evt::visibility_notify& evt) {
     if (!m_activated || m_clients.empty())
       return;
-    m_logger.trace("tray: Received visibility_notify");
+    m_logger.trace("tray: Received visibility_notify for %s", m_connection.id(evt->window));
     reconfigure();
   }
 

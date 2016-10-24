@@ -87,7 +87,7 @@ class controller {
     }
 
     m_log.trace("controller: Deconstruct bar instance");
-    g_signals::bar::action_click.clear();
+    g_signals::bar::action_click = nullptr;
     m_bar.reset();
 
     m_log.trace("controller: Interrupt X event loop");
@@ -159,7 +159,7 @@ class controller {
         std::cout << m_bar->settings().wmname << std::endl;
         return;
       } else if (!to_stdout) {
-        g_signals::bar::action_click.connect(this, &controller::on_module_click);
+        g_signals::bar::action_click = bind(&controller::on_module_click, this, std::placeholders::_1);
       }
     } catch (const std::exception& err) {
       throw application_error("Failed to setup bar renderer: " + string{err.what()});
@@ -411,8 +411,8 @@ class controller {
 
         auto& module = modules.back();
 
-        module->set_writer(delegate::MakeDelegate(this, &controller::on_module_update));
-        module->set_terminator(delegate::MakeDelegate(this, &controller::on_module_stop));
+        module->set_writer(bind(&controller::on_module_update, this, std::placeholders::_1));
+        module->set_terminator(bind(&controller::on_module_stop, this, std::placeholders::_1));
 
         module_count++;
       }
