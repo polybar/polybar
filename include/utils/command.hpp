@@ -239,7 +239,7 @@ namespace command_util {
   template <typename... Args>
   command_t make_command(Args&&... args) {
     return make_unique<command>(
-        logger::configure().create<const logger&>(), forward<Args>(args)...);
+        configure_logger().create<const logger&>(), forward<Args>(args)...);
   }
 }
 

@@ -21,7 +21,7 @@ namespace throttle_util {
      * Only pass events when there are slots available
      */
     struct try_once_or_leave_yolo {
-      bool operator()(queue& q, limit l, timewindow t) {
+      bool operator()(queue& q, limit l, timewindow) {
         if (q.size() >= l)
           return false;
         q.emplace_back(timepoint_clock::now());
@@ -35,7 +35,7 @@ namespace throttle_util {
      * then let the event pass
      */
     struct wait_patiently_by_the_door {
-      bool operator()(queue& q, limit l, timewindow t) {
+      bool operator()(queue& q, limit l, timewindow) {
         auto now = timepoint_clock::now();
         q.emplace_back(now);
         if (q.size() >= l) {

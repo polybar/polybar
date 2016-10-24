@@ -26,18 +26,18 @@ namespace command_line {
     string flag_long;
     string desc;
     string token;
-    choices values;
+    const choices values;
 
     /**
      * Construct option
      */
     explicit option(
-        string&& flag, string&& flag_long, string&& desc, string&& token = "", choices&& c = {})
-        : flag(forward<string>(flag))
-        , flag_long(forward<string>(flag_long))
-        , desc(forward<string>(desc))
-        , token(forward<string>(token))
-        , values(forward<choices>(c)) {}
+        string flag, string flag_long, string desc, string token = "", const choices c = {})
+        : flag(flag)
+        , flag_long(flag_long)
+        , desc(desc)
+        , token(token)
+        , values(c) {}
   };
 
   // }}}
@@ -48,8 +48,8 @@ namespace command_line {
     /**
      * Construct parser
      */
-    explicit parser(string&& synopsis, const options& opts)
-        : m_synopsis(forward<string>(synopsis)), m_opts(opts) {}
+    explicit parser(const string& synopsis, const options& opts)
+        : m_synopsis(synopsis), m_opts(opts) {}
 
     /**
      * Process input values
@@ -65,23 +65,23 @@ namespace command_line {
     /**
      * Test if the passed option was provided
      */
-    bool has(string&& option) const {
-      return m_optvalues.find(forward<string>(option)) != m_optvalues.end();
+    bool has(const string& option) const {
+      return m_optvalues.find(option) != m_optvalues.end();
     }
 
     /**
      * Compares the option value with given string
      */
-    bool compare(string&& opt, string val) const {
-      return get(forward<string>(opt)) == val;
+    bool compare(string opt, string val) const {
+      return get(opt) == val;
     }
 
     /**
      * Gets the value defined for given option
      */
-    string get(string&& opt) const {
+    string get(string opt) const {
       if (has(forward<string>(opt)))
-        return m_optvalues.find(forward<string>(opt))->second;
+        return m_optvalues.find(opt)->second;
       return "";
     }
 
@@ -128,18 +128,6 @@ namespace command_line {
 
         std::cout << std::endl;
       }
-    }
-
-    /**
-     * Configure injection module
-     */
-    template <class T = parser>
-    static di::injector<T> configure(string scriptname, const options& opts) {
-      // clang-format off
-      return di::make_injector(
-          di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),
-          di::bind<>().to(opts));
-      // clang-format on
     }
 
    protected:
@@ -226,6 +214,20 @@ namespace command_line {
   };
 
   // }}}
+}
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <class T = command_line::parser>
+  di::injector<T> configure_cli_parser(string scriptname, const command_line::options& opts) {
+    // clang-format off
+    return di::make_injector(
+        di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),
+        di::bind<>().to(opts));
+    // clang-format on
+  }
 }
 
 LEMONBUDDY_NS_END

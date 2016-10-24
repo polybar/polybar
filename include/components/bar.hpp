@@ -68,20 +68,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   }
 
   /**
-   * Configure injection module
-   */
-  template <typename T = unique_ptr<bar>>
-  static di::injector<T> configure() {
-    // clang-format off
-    return di::make_injector(
-        connection::configure(),
-        config::configure(),
-        logger::configure(),
-        fontmanager::configure());
-    // clang-format on
-  }
-
-  /**
    * Create required components
    *
    * This is done outside the constructor due to boost::di noexcept
@@ -1015,5 +1001,21 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   xcb_font_t m_gcfont{0};
   XftDraw* m_xftdraw;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = unique_ptr<bar>>
+  di::injector<T> configure_bar() {
+    // clang-format off
+    return di::make_injector(
+        configure_connection(),
+        configure_config(),
+        configure_logger(),
+        configure_fontmanager());
+    // clang-format on
+  }
+}
 
 LEMONBUDDY_NS_END

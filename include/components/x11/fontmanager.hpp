@@ -61,14 +61,6 @@ class fontmanager {
     m_fonts.clear();
   }
 
-  /**
-   * Configure injection module
-   */
-  template <typename T = unique_ptr<fontmanager>>
-  static di::injector<T> configure() {
-    return di::make_injector(connection::configure(), logger::configure());
-  }
-
   void set_preferred_font(int index) {  // {{{
     if (index <= 0) {
       m_fontindex = -1;
@@ -246,5 +238,15 @@ class fontmanager {
   int m_fontindex = -1;
   XftColor m_xftcolor;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = unique_ptr<fontmanager>>
+  di::injector<T> configure_fontmanager() {
+    return di::make_injector(configure_connection(), configure_logger());
+  }
+}
 
 LEMONBUDDY_NS_END

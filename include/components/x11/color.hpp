@@ -7,6 +7,9 @@
 
 LEMONBUDDY_NS
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+
 union rgba {
   struct {
     uint8_t r;
@@ -16,6 +19,8 @@ union rgba {
   };
   uint32_t v;
 };
+
+#pragma clang diagnostic pop
 
 static map<string, class color> g_colorstore;
 

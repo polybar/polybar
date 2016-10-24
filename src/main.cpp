@@ -15,7 +15,7 @@ using namespace lemonbuddy;
 int main(int argc, char** argv) {
   XInitThreads();
 
-  logger& logger{logger::configure<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
+  logger& logger{configure_logger<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
 
   //==================================================
   // Connect to X server
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
       // Parse command line arguments
       //==================================================
       using cli_parser = command_line::parser;
-      cli_parser cli{cli_parser::configure<decltype(cli)>(argv[0], opts).create<decltype(cli)>()};
+      cli_parser cli{configure_cli_parser<decltype(cli)>(argv[0], opts).create<decltype(cli)>()};
 
       vector<string> args;
       for (int i = 1; i < argc; i++) {
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
       //==================================================
       // Load user configuration
       //==================================================
-      config& conf{config::configure<decltype(conf)>().create<decltype(conf)>()};
+      config& conf{configure_config<decltype(conf)>().create<decltype(conf)>()};
 
       if (cli.has("config"))
         conf.load(cli.get("config"), args[0]);
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
       //==================================================
       // Create controller and run application
       //==================================================
-      auto app = controller::configure(watch).create<unique_ptr<controller>>();
+      auto app = configure_controller(watch).create<unique_ptr<controller>>();
 
       app->bootstrap(cli.has("stdout"), cli.has("print-wmname"));
 

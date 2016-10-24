@@ -180,18 +180,20 @@ class connection : public xpp_connection {
     m_registry.dispatch(forward<decltype(evt)>(evt));
   }
 
-  /**
-   * Configure injection module
-   */
-  template <typename T = connection&>
-  static di::injector<T> configure() {
-    return di::make_injector(di::bind<>().to(
-        factory::generic_singleton<lemonbuddy::connection>(xutils::get_connection())));
-  }
-
  protected:
   registry m_registry{*this};
   xcb_screen_t* m_screen = nullptr;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = connection&>
+  di::injector<T> configure_connection() {
+    return di::make_injector(
+        di::bind<>().to(factory::generic_singleton<connection>(xutils::get_connection())));
+  }
+}
 
 LEMONBUDDY_NS_END

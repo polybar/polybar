@@ -145,7 +145,7 @@ namespace modules {
     static constexpr auto TAG_RAMP = "<ramp>";
 
     throttle_util::throttle_t m_throttler;
-    connection& m_connection{connection::configure().create<connection&>()};
+    connection& m_connection{configure_connection().create<connection&>()};
     monitor_t m_output;
 
     ramp_t m_ramp;

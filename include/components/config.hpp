@@ -178,14 +178,6 @@ class config {
       return vec;
   }
 
-  /**
-   * Configure injection module
-   */
-  template <typename T = const config&>
-  static di::injector<T> configure() {
-    return di::make_injector(logger::configure(), xresource_manager::configure());
-  }
-
  protected:
   /**
    * Find value of a config parameter defined as a reference
@@ -249,5 +241,15 @@ class config {
   string m_file;
   string m_current_bar;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = const config&>
+  di::injector<T> configure_config() {
+    return di::make_injector(configure_logger(), configure_xresource_manager());
+  }
+}
 
 LEMONBUDDY_NS_END

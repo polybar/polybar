@@ -70,7 +70,7 @@ namespace drawtypes {
     else
       frames = conf.get_list<string>(section, name, {});
 
-    for (int i = 0; i < (int)frames.size(); i++)
+    for (size_t i = 0; i < frames.size(); i++)
       vec.emplace_back(forward<icon_t>(
           get_optional_config_icon(conf, section, name + "-" + to_string(i), frames[i])));
 

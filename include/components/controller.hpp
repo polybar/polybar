@@ -19,7 +19,6 @@
 #include "utils/throttle.hpp"
 
 #include "modules/backlight.hpp"
-#include "modules/xbacklight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
 #include "modules/counter.hpp"
@@ -30,6 +29,7 @@
 #include "modules/script.hpp"
 #include "modules/text.hpp"
 #include "modules/unsupported.hpp"
+#include "modules/xbacklight.hpp"
 #if ENABLE_I3
 #include "modules/i3.hpp"
 #endif
@@ -269,20 +269,6 @@ class controller {
     m_log.trace("controller: Caught signal %d", caught_signal);
 
     m_reload = (caught_signal == SIGUSR1);
-  }
-
-  /**
-   * Configure injection module
-   */
-  static di::injector<unique_ptr<controller>> configure(inotify_watch_t& confwatch) {
-    // clang-format off
-    return di::make_injector(di::bind<controller>().to<controller>(),
-        di::bind<>().to(confwatch),
-        connection::configure(),
-        logger::configure(), config::configure(),
-        bar::configure(),
-        traymanager::configure());
-    // clang-format on
   }
 
  protected:
@@ -568,5 +554,24 @@ class controller {
   unique_ptr<throttle_util::event_throttler> m_throttler;
   throttle_util::strategy::try_once_or_leave_yolo m_throttle_strategy;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = unique_ptr<controller>>
+  di::injector<T> configure_controller(inotify_watch_t& confwatch) {
+    // clang-format off
+    return di::make_injector(
+        di::bind<controller>().to<controller>(),
+        di::bind<>().to(confwatch),
+        configure_connection(),
+        configure_logger(),
+        configure_config(),
+        configure_bar(),
+        configure_traymanager());
+    // clang-format on
+  }
+}
 
 LEMONBUDDY_NS_END

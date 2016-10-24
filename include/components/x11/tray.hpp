@@ -102,9 +102,8 @@ class trayclient {
 
 class traymanager
     : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-          evt::configure_request, evt::resize_request, evt::selection_clear, evt::selection_notify,
-          evt::property_notify, evt::reparent_notify, evt::destroy_notify, evt::map_notify,
-          evt::unmap_notify> {
+          evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
+          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify> {
  public:
   explicit traymanager(connection& conn, const logger& logger)
       : m_connection(conn), m_logger(logger) {
@@ -274,14 +273,6 @@ class traymanager
       } catch (const xpp::x::error::window& err) {
       }
     }
-  }
-
-  /**
-   * Configure injection module
-   */
-  template <class T = unique_ptr<traymanager>>
-  static di::injector<T> configure() {
-    return di::make_injector(logger::configure(), connection::configure());
   }
 
  protected:
@@ -637,13 +628,6 @@ class traymanager
   }
 
   /**
-   * Event callback : XCB_SELECTION_NOTIFY
-   */
-  void handle(const evt::selection_notify& evt) {
-    m_logger.trace("tray: Received selection_notify");
-  }
-
-  /**
    * Event callback : XCB_PROPERTY_NOTIFY
    */
   void handle(const evt::property_notify& evt) {
@@ -777,5 +761,15 @@ class traymanager
 };
 
 // }}}
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <class T = unique_ptr<traymanager>>
+  di::injector<T> configure_traymanager() {
+    return di::make_injector(configure_logger(), configure_connection());
+  }
+}
 
 LEMONBUDDY_NS_END

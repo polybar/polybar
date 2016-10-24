@@ -71,8 +71,8 @@ namespace socket_util {
     /**
      * Receive data
      */
-    auto receive(ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags = 0) {
-      char buffer[receive_bytes + 1];
+    auto receive(const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags = 0) {
+      char buffer[BUFSIZ];
 
       bytes_received_addr = ::recv(m_fd, buffer, receive_bytes, flags);
       if (bytes_received_addr == -1)

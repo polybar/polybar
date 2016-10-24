@@ -21,15 +21,6 @@ class xresource_manager {
       return;
   }
 
-  /**
-   * Configure injection module
-   */
-  template <typename T = const xresource_manager&>
-  static di::injector<T> configure() {
-    auto instance = factory::generic_singleton<xresource_manager>();
-    return di::make_injector(di::bind<>().to(instance));
-  }
-
   string get_string(string name) const {
     return load_value(name, "String", 64);
   }
@@ -62,5 +53,16 @@ class xresource_manager {
   char* m_manager = nullptr;
   XrmDatabase m_db;
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = const xresource_manager&>
+  di::injector<T> configure_xresource_manager() {
+    auto instance = factory::generic_singleton<xresource_manager>();
+    return di::make_injector(di::bind<>().to(instance));
+  }
+}
 
 LEMONBUDDY_NS_END

@@ -112,15 +112,6 @@ class logger {
     output(loglevel::ERROR, message, args...);
   }
 
-  /**
-   * Configure injection module
-   */
-  template <typename T = const logger&>
-  static di::injector<T> configure(loglevel level = loglevel::NONE) {
-    auto instance = factory::generic_singleton<logger>(level);
-    return di::make_injector(di::bind<>().to(instance));
-  }
-
  protected:
   template <typename T>
   decltype(auto) convert(T&& arg) const {
@@ -147,19 +138,10 @@ class logger {
     auto suffix = m_suffixes.find(level)->second;
 
 // silence the compiler
-#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
-#elif defined(__GCC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-#endif
     dprintf(m_fd, (prefix + format + suffix + "\n").c_str(), convert(values)...);
-#if defined(__clang__)
 #pragma clang diagnostic pop
-#elif defined(__GCC__)
-#pragma GCC diagnostic pop
-#endif
   }
 
  private:
@@ -195,5 +177,16 @@ class logger {
   };
   // clang-format on
 };
+
+namespace {
+  /**
+   * Configure injection module
+   */
+  template <typename T = const logger&>
+  di::injector<T> configure_logger(loglevel level = loglevel::NONE) {
+    auto instance = factory::generic_singleton<logger>(level);
+    return di::make_injector(di::bind<>().to(instance));
+  }
+}
 
 LEMONBUDDY_NS_END
