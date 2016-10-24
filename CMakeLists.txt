@@ -4,49 +4,61 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(lemonbuddy CXX)
 
+# Include local cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wno-unused-parameter -Wno-unused-local-typedefs")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g2")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+# Load cmake utility functions
+include(cmake/utils.cmake)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Warn if using an unsupported compiler
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
+  message_colored(WARNING "Unsupported compiler!" 31)
+endif()
 
+# Set default build type if not specified
 if(NOT CMAKE_BUILD_TYPE)
-  message(STATUS "No build type specified; using Release")
+  message_colored(STATUS "No build type specified; using Release" 33)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-include(cmake/utils.cmake)
-include(cmake/clang-cpp-tools.cmake)
+# Export compile commands used for custom targets
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Figure out default option values {{{
+# Generic compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic-errors")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 
+# Debug specific compiler flags
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pedantic-errors")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g2")
+
+# Release specific compiler flags
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+
+# Generic linker flags
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
+
+# Project settings {{{
+
+# Set default option values based on current environment
 find_package(ALSA QUIET)
 find_package(Libiw QUIET)
 find_package(LibMPDClient QUIET)
-find_program(CCACHE_BINARY ccache)
 find_program(I3_BINARY i3)
-find_package(CppUnit QUIET)
-if(CPPUNIT_FOUND)
-  set(BUILD_TESTS ON)
-endif()
-if(CCACHE_BINARY)
-  set(CCACHE_FOUND ON)
-endif()
 if(I3_BINARY)
   set(I3_FOUND ON)
 endif()
 
-# }}}
-# Project settings {{{
-
-option(BUILD_TESTS    "Build testsuite"        ${BUILD_TESTS})
-option(ENABLE_CCACHE  "Enable ccache support"  ${CCACHE_FOUND})
+option(BUILD_TESTS    "Build testsuite"        OFF)
+option(ENABLE_CCACHE  "Enable ccache support"  OFF)
 option(ENABLE_ALSA    "Enable alsa support"    ${ALSA_FOUND})
 option(ENABLE_I3      "Enable i3 support"      ${I3_FOUND})
 option(ENABLE_MPD     "Enable mpd support"     ${LIBMPDCLIENT_FOUND})
@@ -76,69 +88,21 @@ set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
   CACHE STRING "Path to file containing memory info")
 
 if(ENABLE_CCACHE)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "ccache")
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "ccache")
+  require_binary(ccache)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${BINPATH_ccache})
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${BINPATH_ccache})
 endif()
 
 # }}}
-# Locate dependencies {{{
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Boost REQUIRED)
-find_package(Threads REQUIRED)
-find_package(Freetype REQUIRED Freetype2)
-find_package(PkgConfig)
-find_package(X11 REQUIRED COMPONENTS Xft Xutil)
-find_package(X11_XCB REQUIRED)
-
-pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
-
-link_libraries(${X11_X11_LIB})
-link_libraries(${X11_Xft_LIB})
-link_libraries(${X11_XCB_LIB})
-link_libraries(${BOOST_LIBRARIES})
-link_libraries(${CMAKE_THREAD_LIBS_INIT})
-link_libraries(${X11_LIBRARIES})
-link_libraries(${FREETYPE_LIBRARIES})
-link_libraries(${FONTCONFIG_LIBRARIES})
-link_libraries()
-
-include_directories(
-  ${BOOST_INCLUDE_DIR}
-  ${FONTCONFIG_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/lib/boost/include
-  ${PROJECT_SOURCE_DIR}/lib/fastdelegate/include)
-
-set(XCB_PROTOS xproto randr)
-add_subdirectory(${PROJECT_SOURCE_DIR}/lib/xpp)
-link_libraries(${XPP_LIBRARIES})
-
-if(ENABLE_ALSA)
-  find_package(ALSA REQUIRED)
-  link_libraries(${ALSA_LIBRARY})
-endif()
-if(ENABLE_MPD)
-  find_package(LibMPDClient REQUIRED)
-  link_libraries(${LIBMPDCLIENT_LIBRARIES})
-endif()
-if(ENABLE_NETWORK)
-  find_package(Libiw REQUIRED)
-  link_libraries(${LIBIW_LIBRARY})
-endif()
-if(ENABLE_I3)
-  add_subdirectory(${PROJECT_SOURCE_DIR}/lib/i3ipcpp EXCLUDE_FROM_ALL)
-  include_directories(${I3IPCPP_INCLUDE_DIRS})
-  link_libraries(${I3IPCPP_LIBRARIES})
-endif()
-
-# }}}
-# Build source tree {{{
+# Add subdirectories {{{
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/man)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/bin)
 add_subdirectory(${PROJECT_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
+
 if(BUILD_TESTS)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests)
+else()
   add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests EXCLUDE_FROM_ALL)
 endif()
 
@@ -150,7 +114,6 @@ message(STATUS " Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS " Compiler C: ${CMAKE_C_COMPILER}")
 message(STATUS " Compiler C++: ${CMAKE_CXX_COMPILER}")
 message(STATUS " Compiler flags: ${CMAKE_CXX_FLAGS}")
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS " + debug flags:: ${CMAKE_CXX_FLAGS_DEBUG}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -161,14 +124,12 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   message(STATUS " + relwithdebinfo flags:: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif()
 message(STATUS "---------------------------")
-
 message(STATUS " Build testsuite        ${BUILD_TESTS}")
 message(STATUS " Enable ccache support  ${ENABLE_CCACHE}")
 message(STATUS " Enable alsa support    ${ENABLE_ALSA}")
 message(STATUS " Enable i3 support      ${ENABLE_I3}")
 message(STATUS " Enable mpd support     ${ENABLE_MPD}")
 message(STATUS " Enable network support ${ENABLE_NETWORK}")
-
 if(DISABLE_MODULES)
   message(STATUS " Disable modules        ON")
 endif()
@@ -178,11 +139,11 @@ endif()
 if(DISABLE_DRAW)
   message(STATUS " Disable drawing        ON")
 endif()
-
 message(STATUS "---------------------------")
 
 # }}}
-# Uninstall target {{{
+
+# Custom target: uninstall {{{
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake/uninstall.cmake.in
@@ -191,5 +152,28 @@ configure_file(
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND}
   -P ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake)
+
+# }}}
+# Custom target: clang-format {{{
+
+find_program(CLANG_FORMAT "clang-format")
+
+if(CLANG_FORMAT)
+  file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hpp)
+  file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+
+  add_custom_target(clang-format COMMAND ${CLANG_FORMAT}
+    -i -style=file ${HEADERS} ${SOURCES})
+endif()
+
+find_program(CLANG_TIDY "clang-tidy")
+
+# }}}
+# Custom target: clang-tidy {{{
+
+if(CLANG_TIDY)
+  add_custom_target(clang-tidy COMMAND ${CLANG_TIDY}
+    -p ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/src/main.cpp)
+endif()
 
 # }}}

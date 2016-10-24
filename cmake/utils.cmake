@@ -10,6 +10,16 @@ function(message_colored message_level text color)
 endfunction()
 
 # }}}
+# require_binary : Locates binary by name and exports its path to BINPATH_${name} {{{
+
+function(require_binary binary_name)
+  find_program(BINPATH_${binary_name} ${binary_name})
+  if(NOT BINPATH_${binary_name})
+    message_colored(FATAL_ERROR "Failed to locate ${binary_name} binary" 31)
+  endif()
+endfunction()
+
+# }}}
 # make_executable : Builds an executable target {{{
 
 function(make_executable target_name)
