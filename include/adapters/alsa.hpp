@@ -28,14 +28,14 @@ void throw_exception(string&& message, int error_code) {
 
 class alsa_ctl_interface {
  public:
-  explicit alsa_ctl_interface(int numid) {
+  explicit alsa_ctl_interface(int numid) : m_numid(numid) {
     int err = 0;
 
     snd_ctl_elem_info_alloca(&m_info);
     snd_ctl_elem_value_alloca(&m_value);
     snd_ctl_elem_id_alloca(&m_id);
 
-    snd_ctl_elem_id_set_numid(m_id, numid);
+    snd_ctl_elem_id_set_numid(m_id, m_numid);
     snd_ctl_elem_info_set_id(m_info, m_id);
 
     if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0)
@@ -58,14 +58,16 @@ class alsa_ctl_interface {
     if ((err = snd_ctl_subscribe_events(m_ctl, 1)) < 0)
       throw alsa_ctl_interface_error(
           "Could not subscribe to events: " + to_string(snd_ctl_elem_id_get_numid(m_id)));
-
-    // log_trace("Successfully initialized control interface with ID: "+ Intstring(numid));
   }
 
   ~alsa_ctl_interface() {
     std::lock_guard<threading_util::spin_lock> guard(m_lock);
     snd_ctl_close(m_ctl);
     snd_hctl_close(m_hctl);
+  }
+
+  int get_numid() {
+    return m_numid;
   }
 
   bool wait(int timeout = -1) {
@@ -103,9 +105,13 @@ class alsa_ctl_interface {
     return snd_ctl_elem_value_get_boolean(m_value, 0);
   }
 
-  void process_events() {}
+  void process_events() {
+    wait(0);
+  }
 
  private:
+  int m_numid = 0;
+
   threading_util::spin_lock m_lock;
 
   snd_hctl_t* m_hctl = nullptr;
@@ -122,7 +128,7 @@ class alsa_ctl_interface {
 
 class alsa_mixer {
  public:
-  explicit alsa_mixer(string mixer_control_name) {
+  explicit alsa_mixer(string mixer_control_name) : m_name(mixer_control_name) {
     snd_mixer_selem_id_t* mixer_id;
 
     snd_mixer_selem_id_alloca(&mixer_id);
@@ -152,6 +158,10 @@ class alsa_mixer {
     snd_mixer_elem_remove(m_mixerelement);
     snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
     snd_mixer_close(m_hardwaremixer);
+  }
+
+  string get_name() {
+    return m_name;
   }
 
   bool wait(int timeout = -1) {
@@ -239,6 +249,8 @@ class alsa_mixer {
   }
 
  private:
+  string m_name;
+
   threading_util::spin_lock m_lock;
 
   snd_mixer_t* m_hardwaremixer = nullptr;
