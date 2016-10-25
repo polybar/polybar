@@ -25,7 +25,7 @@ namespace draw_util {
    * Code: http://wmdia.sourceforge.net/
    */
   auto xcb_poly_text_16_patched(xcb_connection_t* conn, xcb_drawable_t d, xcb_gcontext_t gc,
-      int16_t x, int16_t y, uint32_t len, uint16_t* str) {
+      int16_t x, int16_t y, uint8_t len, uint16_t* str) {
     static const xcb_protocol_request_t xcb_req = {
         5,                 // count
         0,                 // ext

@@ -563,7 +563,6 @@ namespace {
   di::injector<T> configure_controller(inotify_watch_t& confwatch) {
     // clang-format off
     return di::make_injector(
-        di::bind<controller>().to<controller>(),
         di::bind<>().to(confwatch),
         configure_connection(),
         configure_logger(),

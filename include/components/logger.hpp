@@ -128,14 +128,14 @@ class logger {
   template <typename T>
   decltype(auto) convert(T&& arg) const {
     return forward<T>(arg);
-  };
+  }
 
   /**
    * Convert string to const char*
    */
   const char* convert(string arg) const {
     return arg.c_str();
-  };
+  }
 
   /**
    * Write the log message to the output channel
@@ -150,10 +150,14 @@ class logger {
     auto suffix = m_suffixes.find(level)->second;
 
 // silence the compiler
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#endif
     dprintf(m_fd, (prefix + format + suffix + "\n").c_str(), convert(values)...);
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
   }
 
  private:

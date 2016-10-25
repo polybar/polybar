@@ -120,7 +120,7 @@ namespace inotify_util {
   inline auto make_watch(string path) {
     di::injector<inotify_watch_t> injector = di::make_injector(di::bind<>().to(path));
     return injector.create<inotify_watch_t>();
-  };
+  }
 }
 
 LEMONBUDDY_NS_END

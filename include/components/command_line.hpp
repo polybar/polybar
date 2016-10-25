@@ -33,11 +33,7 @@ namespace command_line {
      */
     explicit option(
         string flag, string flag_long, string desc, string token = "", const choices c = {})
-        : flag(flag)
-        , flag_long(flag_long)
-        , desc(desc)
-        , token(token)
-        , values(c) {}
+        : flag(flag), flag_long(flag_long), desc(desc), token(token), values(c) {}
   };
 
   // }}}
@@ -101,7 +97,7 @@ namespace command_line {
       }
 
       for (auto& opt : m_opts) {
-        int pad = maxlen - opt.flag_long.length() - opt.token.length();
+        size_t pad = maxlen - opt.flag_long.length() - opt.token.length();
 
         std::cout << "  " << opt.flag << ", " << opt.flag_long;
 

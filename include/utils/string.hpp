@@ -59,7 +59,7 @@ namespace string_util {
     for (size_t i = 0; i < haystack.length(); i++) {
       if (haystack.compare(i, needle.length(), needle) == 0) {
         replaced += replacement;
-        i += needle.length()-1;
+        i += needle.length() - 1;
       } else {
         replaced += haystack[i];
       }

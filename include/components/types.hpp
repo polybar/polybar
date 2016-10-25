@@ -56,7 +56,7 @@ struct bar_settings {
     };
     snprintf(buffer, sizeof(buffer), "%dx%d+%d+%d", width, height, x, y);
     return string{*buffer};
-  };
+  }
 };
 
 struct tray_settings {
@@ -105,7 +105,6 @@ struct action_block {
 #endif
 };
 
-struct wmsettings_bspwm {
-};
+struct wmsettings_bspwm {};
 
 LEMONBUDDY_NS_END

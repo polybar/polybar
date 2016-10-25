@@ -7,20 +7,15 @@
 
 LEMONBUDDY_NS
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-
 union rgba {
   struct {
     uint8_t r;
     uint8_t g;
     uint8_t b;
     uint8_t a;
-  };
+  } _;
   uint32_t v;
 };
-
-#pragma clang diagnostic pop
 
 static map<string, class color> g_colorstore;
 
@@ -29,9 +24,9 @@ class color {
   explicit color(string hex) : m_hex(string_util::upper(hex)) {
     m_rgba.v = static_cast<uint32_t>(strtoul(&hex[1], nullptr, 16));
     // premultiply alpha
-    m_rgba.r = m_rgba.r * m_rgba.a / 255;
-    m_rgba.g = m_rgba.g * m_rgba.a / 255;
-    m_rgba.b = m_rgba.b * m_rgba.a / 255;
+    m_rgba._.r = m_rgba._.r * m_rgba._.a / 255;
+    m_rgba._.g = m_rgba._.g * m_rgba._.a / 255;
+    m_rgba._.b = m_rgba._.b * m_rgba._.a / 255;
   }
 
   explicit color(uint32_t v) {

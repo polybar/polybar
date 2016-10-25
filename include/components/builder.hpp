@@ -460,4 +460,4 @@ class builder {
   int m_fontindex = 1;
 };
 
-LEMONBUDDY_NS_END;
+LEMONBUDDY_NS_END
