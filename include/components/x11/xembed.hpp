@@ -80,7 +80,8 @@ namespace xembed {
   /**
    * Acknowledge window embedding
    */
-  inline auto notify_embedded(connection& conn, xcb_window_t win, xcb_window_t embedder, long version) {
+  inline auto notify_embedded(
+      connection& conn, xcb_window_t win, xcb_window_t embedder, long version) {
     send_message(conn, win, XEMBED_EMBEDDED_NOTIFY, 0, embedder, version);
   }
 
@@ -116,8 +117,12 @@ namespace xembed {
    * Unembed given window
    */
   inline auto unembed(connection& conn, xcb_window_t win, xcb_window_t root) {
-    conn.unmap_window(win);
-    conn.reparent_window(win, root, 0, 0);
+    try {
+      conn.unmap_window_checked(win);
+      conn.reparent_window_checked(win, root, 0, 0);
+    } catch (const xpp::x::error::window& err) {
+      // invalid window
+    }
   }
 }
 

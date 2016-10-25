@@ -177,7 +177,8 @@ class connection : public xpp_connection {
    * Dispatch event through the registry
    */
   void dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) {
-    m_registry.dispatch(forward<decltype(evt)>(evt));
+    if (evt != nullptr)
+      m_registry.dispatch(evt);
   }
 
  protected:

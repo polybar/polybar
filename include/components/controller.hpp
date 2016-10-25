@@ -84,6 +84,7 @@ class controller {
     if (m_traymanager) {
       m_log.trace("controller: Deactivate tray manager");
       m_traymanager->deactivate();
+      m_traymanager.reset();
     }
 
     m_log.trace("controller: Deconstruct bar instance");
@@ -243,8 +244,7 @@ class controller {
       m_log.trace("controller: Listen for X events");
       while (m_running) {
         auto evt = m_connection.wait_for_event();
-
-        if (evt != nullptr)
+        if (evt != nullptr && m_running)
           m_connection.dispatch_event(evt);
       }
     });
