@@ -1,6 +1,6 @@
 pkgbase = lemonbuddy
 	pkgdesc = A fast and easy-to-use status bar
-	pkgver = 2.1.1
+	pkgver = 2.1.2
 	pkgrel = 1
 	url = https://github.com/jaagr/lemonbuddy
 	arch = i686
@@ -9,8 +9,6 @@ pkgbase = lemonbuddy
 	makedepends = cmake
 	makedepends = python2
 	makedepends = pkg-config
-	makedepends = clang35
-	makedepends = libc++
 	makedepends = boost
 	depends = libxft
 	depends = xcb-util-wm

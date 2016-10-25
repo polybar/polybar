@@ -1,7 +1,7 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=lemonbuddy
-pkgver=2.1.1
+pkgver=2.1.2
 pkgrel=1
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
@@ -12,7 +12,7 @@ optdepends=("alsa-lib: volume module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "i3ipc-glib-git: i3 module support")
-makedepends=("cmake" "python2" "pkg-config" "clang35" "libc++" "boost")
+makedepends=("cmake" "python2" "pkg-config" "boost")
 conflicts=("lemonbuddy-git")
 source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
@@ -25,12 +25,7 @@ prepare() {
 
 build() {
   cd "${pkgname}/build" || exit
-  cmake \
-    -DCMAKE_C_COMPILER=clang \
-    -DCMAKE_CXX_COMPILER=clang++ \
-    -DCMAKE_EXE_LINKER_FLAGS=-lc++ \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr ..
+  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
   make
 }
 
