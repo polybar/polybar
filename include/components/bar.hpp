@@ -536,7 +536,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_log.warn("Action block not closed");
         m_log.warn("action.command = %s", action.command);
       } else {
-        m_log.trace("bar: Action details (button = %i, start_x = %i, end_x = %i, command = '%s')",
+        m_log.trace_x("bar: Action details (button = %i, start_x = %i, end_x = %i, command = '%s')",
             static_cast<int>(action.button), action.start_x, action.end_x, action.command);
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
         m_log.info("Drawing clickable area hints");
@@ -587,32 +587,33 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
     std::lock_guard<threading_util::spin_lock> lck(m_lock);
     {
-      m_log.trace("bar: Received button press event: %i at pos(%i, %i)",
+      m_log.trace_x("bar: Received button press event: %i at pos(%i, %i)",
           static_cast<int>(evt->detail), evt->event_x, evt->event_y);
 
       mousebtn button = static_cast<mousebtn>(evt->detail);
 
       for (auto&& action : m_actions) {
         if (action.active) {
-          m_log.trace("bar: Ignoring action: unclosed)");
+          m_log.trace_x("bar: Ignoring action: unclosed)");
           continue;
         } else if (action.button != button) {
-          m_log.trace("bar: Ignoring action: button mismatch");
+          m_log.trace_x("bar: Ignoring action: button mismatch");
           continue;
         } else if (action.start_x > evt->event_x) {
-          m_log.trace(
+          m_log.trace_x(
               "bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, evt->event_x);
           continue;
         } else if (action.end_x < evt->event_x) {
-          m_log.trace("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, evt->event_x);
+          m_log.trace_x(
+              "bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, evt->event_x);
           continue;
         }
 
         m_log.info("Found matching input area");
         m_log.trace("action.command = %s", action.command);
-        m_log.trace("action.button = %i", static_cast<int>(action.button));
-        m_log.trace("action.start_x = %i", action.start_x);
-        m_log.trace("action.end_x = %i", action.end_x);
+        m_log.trace_x("action.button = %i", static_cast<int>(action.button));
+        m_log.trace_x("action.start_x = %i", action.start_x);
+        m_log.trace_x("action.end_x = %i", action.end_x);
 
         if (g_signals::bar::action_click)
           g_signals::bar::action_click(action.command);
@@ -678,7 +679,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void on_alignment_change(alignment align) {  //{{{
     if (align == m_bar.align)
       return;
-    m_log.trace("bar: alignment_change(%i)", static_cast<int>(align));
+    m_log.trace_x("bar: alignment_change(%i)", static_cast<int>(align));
     m_bar.align = align;
 
     if (align == alignment::LEFT) {
@@ -697,7 +698,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     int val{static_cast<int>(attr)};
     if ((m_attributes & val) != 0)
       return;
-    m_log.trace("bar: attribute_set(%i)", val);
+    m_log.trace_x("bar: attribute_set(%i)", val);
     m_attributes |= val;
   }  //}}}
 
@@ -708,7 +709,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     int val{static_cast<int>(attr)};
     if ((m_attributes & val) == 0)
       return;
-    m_log.trace("bar: attribute_unset(%i)", val);
+    m_log.trace_x("bar: attribute_unset(%i)", val);
     m_attributes ^= val;
   }  //}}}
 
@@ -717,7 +718,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    */
   void on_attribute_toggle(attribute attr) {  //{{{
     int val{static_cast<int>(attr)};
-    m_log.trace("bar: attribute_toggle(%i)", val);
+    m_log.trace_x("bar: attribute_toggle(%i)", val);
     m_attributes ^= val;
   }  //}}}
 
@@ -727,7 +728,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void on_action_block_open(mousebtn btn, string cmd) {  //{{{
     if (btn == mousebtn::NONE)
       btn = mousebtn::LEFT;
-    m_log.trace("bar: action_block_open(%i, %s)", static_cast<int>(btn), cmd);
+    m_log.trace_x("bar: action_block_open(%i, %s)", static_cast<int>(btn), cmd);
     action_block action;
     action.active = true;
     action.align = m_bar.align;
@@ -741,7 +742,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Handle action block end
    */
   void on_action_block_close(mousebtn btn) {  //{{{
-    m_log.trace("bar: action_block_close(%i)", static_cast<int>(btn));
+    m_log.trace_x("bar: action_block_close(%i)", static_cast<int>(btn));
 
     for (auto i = m_actions.size(); i > 0; i--) {
       auto& action = m_actions[i - 1];
@@ -776,7 +777,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Handle color change
    */
   void on_color_change(gc gc_, color color_) {  //{{{
-    m_log.trace(
+    m_log.trace_x(
         "bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex(), color_.rgb());
 
     const uint32_t value_list[32]{color_.value()};
@@ -790,7 +791,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Handle font change
    */
   void on_font_change(int index) {  //{{{
-    m_log.trace("bar: font_change(%i)", index);
+    m_log.trace_x("bar: font_change(%i)", index);
     m_fontmanager->set_preferred_font(index);
   }  //}}}
 
@@ -798,7 +799,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Handle pixel offsetting
    */
   void on_pixel_offset(int px) {  //{{{
-    m_log.trace("bar: pixel_offset(%i)", px);
+    m_log.trace_x("bar: pixel_offset(%i)", px);
     draw_shift(m_xpos, px);
     m_xpos += px;
   }  //}}}

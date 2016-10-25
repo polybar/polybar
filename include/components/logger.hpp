@@ -89,6 +89,18 @@ class logger {
 #endif
 
   /**
+   * Output extra verbose trace message
+   */
+  template <typename... Args>
+#ifdef ENABLE_VERBOSE_TRACELOG
+  void trace_x(string message, Args... args) const {
+    output(loglevel::TRACE, message, args...);
+  }
+#else
+  void trace_x(string, Args...) const {}
+#endif
+
+  /**
    * Output an info message
    */
   template <typename... Args>

@@ -514,7 +514,7 @@ namespace modules {
 
       while (CONST_MOD(Impl).enabled()) {
         for (auto&& w : watches) {
-          this->m_log.trace("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());
+          this->m_log.trace_x("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());
           std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
 
           if (w->poll(1000 / watches.size())) {
