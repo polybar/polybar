@@ -32,7 +32,7 @@ module-margin-right = 2
 font-0 = fixed:size=8;1
 
 modules-left = i3
-modules-right = date
+modules-right = xbacklight date
 
 tray-position = right
 
@@ -57,6 +57,22 @@ label-urgent-padding = 2
 label-visible = %index%
 label-visible-foreground = #444
 label-visible-padding = 2
+
+
+[module/xbacklight]
+type = internal/xbacklight
+
+format = <label> <bar>
+
+label = Brightness %percentage%
+
+bar-width = 15
+bar-indicator = │
+bar-indicator-foreground = #bbffffff
+bar-fill = ─
+bar-fill-foreground = #9f78e1
+bar-empty = ─
+bar-empty-foreground = #44
 
 
 [module/date]
