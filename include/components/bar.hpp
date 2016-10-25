@@ -784,8 +784,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     const uint32_t value_list[32]{color_.value()};
     m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
 
-    if (gc_ == gc::FG)
+    if (gc_ == gc::FG) {
       m_fontmanager->allocate_color(color_);
+      m_xfont_color = color::parse(color_.rgb()).value();
+    }
   }  //}}}
 
   /**
@@ -946,6 +948,13 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       m_fontmanager->set_gcontext_font(m_gcontexts.at(gc::FG), m_gcfont);
     }
 
+    if (font->ptr && m_xfont_color != 0) {
+      m_log.trace_x("bar: Set gcontext color for xcb font");
+      const uint32_t values[1]{m_xfont_color};
+      m_connection.change_gc(m_gcontexts.at(gc::FG), XCB_GC_FOREGROUND, values);
+      m_xfont_color = 0;
+    }
+
     // TODO: cache
     auto chr_width = m_fontmanager->char_width(font, character);
 
@@ -1000,6 +1009,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   int m_xpos{0};
   int m_attributes{0};
 
+  uint32_t m_xfont_color{0};
   xcb_font_t m_gcfont{0};
   XftDraw* m_xftdraw;
 };
