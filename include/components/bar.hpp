@@ -524,6 +524,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_pixmap, m_window, m_gcontexts.at(gc::BL), 0, 0, 0, 0, m_bar.width, m_bar.height);
     m_connection.copy_area(
         m_pixmap, m_window, m_gcontexts.at(gc::BR), 0, 0, 0, 0, m_bar.width, m_bar.height);
+    m_connection.flush();
 
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
     map<alignment, int> hint_num{{
