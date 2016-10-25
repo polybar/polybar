@@ -111,7 +111,7 @@ namespace modules {
       // Query for the new backlight value
       auto& bl = m_output->backlight;
       randr_util::get_backlight_value(m_connection, m_output, bl);
-      m_percentage = math_util::percentage<float>(bl.val, bl.min, bl.max);
+      m_percentage = math_util::percentage(bl.val, bl.min, bl.max);
 
       // Update label tokens
       if (m_label) {

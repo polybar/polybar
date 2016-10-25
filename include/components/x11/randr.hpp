@@ -74,28 +74,29 @@ namespace randr_util {
   inline void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst) {
     auto reply = conn.query_output_property(mon->randr_output, Backlight);
 
+    dst.min = 0;
+    dst.max = 0;
+
     if (!reply->range || reply->length != 2)
       reply = conn.query_output_property(mon->randr_output, BACKLIGHT);
-
     if (!reply->range || reply->length != 2)
       return;
 
     auto range = reply.valid_values().begin();
 
-    dst.min = *range++;
-    dst.max = *range;
+    dst.min = static_cast<uint32_t>(*range++);
+    dst.max = static_cast<uint32_t>(*range);
   }
 
   inline void get_backlight_value(connection& conn, const monitor_t& mon, backlight_values& dst) {
     auto reply = conn.get_output_property(mon->randr_output, Backlight, XCB_ATOM_NONE, 0, 4, 0, 0);
 
-    if (!reply->num_items)
+    if (reply->num_items != 1 || reply->format != 32 || reply->type != XCB_ATOM_INTEGER)
       reply = conn.get_output_property(mon->randr_output, BACKLIGHT, XCB_ATOM_NONE, 0, 4, 0, 0);
-
-    if(!reply->num_items)
-      return;
-
-    dst.val = *reply.data().begin();
+    if (reply->num_items == 1 && reply->format == 32 && reply->type == XCB_ATOM_INTEGER)
+      dst.val = *reinterpret_cast<uint32_t*>(xcb_randr_get_output_property_data(reply.get().get()));
+    else
+      dst.val = 0;
   }
 }
 
