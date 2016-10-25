@@ -87,18 +87,24 @@ namespace modules {
       try {
         m_ipc.subscribe(i3ipc::ET_WORKSPACE);
         m_ipc.prepare_to_event_handling();
-      } catch (std::runtime_error& e) {
-        throw module_error(e.what());
+      } catch (std::runtime_error& err) {
+        throw module_error(err.what());
+      } catch (std::exception& err) {
+        throw module_error(err.what());
       }
 
       // }}}
     }
 
     void stop() {
-      // Shutdown ipc connection when before stopping the module {{{
+      // Shutdown ipc connection when stopping the module {{{
 
-      shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
-      shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
+      try {
+        shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
+        shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
+      } catch (...) {
+      }
+
       event_module::stop();
 
       // }}}

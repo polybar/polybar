@@ -152,6 +152,7 @@ namespace modules {
     virtual void setup() = 0;
     virtual void start() = 0;
     virtual void stop() = 0;
+    virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
 
     virtual bool handle_event(string cmd) = 0;
@@ -214,7 +215,16 @@ namespace modules {
 
     void setup() {
       m_log.trace("%s: Setup", name());
-      CAST_MOD(Impl)->setup();
+
+      try {
+        CAST_MOD(Impl)->setup();
+      } catch (const module_error& err) {
+        m_log.err("%s: Setup failed", name());
+        CAST_MOD(Impl)->halt(err.what());
+      } catch (const std::exception& err) {
+        m_log.err("%s: Setup failed", name());
+        CAST_MOD(Impl)->halt(err.what());
+      }
     }
 
     void stop() {
@@ -230,6 +240,12 @@ namespace modules {
 
       if (m_terminator)
         m_terminator(name());
+    }
+
+    void halt(string error_message) {
+      m_log.err("%s: %s", name(), error_message);
+      m_log.warn("Stopping '%s'...", name());
+      stop();
     }
 
     void teardown() {
@@ -353,8 +369,8 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->setup();
       CAST_MOD(Impl)->enable(true);
+      CAST_MOD(Impl)->setup();
       CAST_MOD(Impl)->broadcast();
     }
 
@@ -393,10 +409,10 @@ namespace modules {
           }
           CAST_MOD(Impl)->sleep(m_interval);
         }
+      } catch (const module_error& err) {
+        CAST_MOD(Impl)->halt(err.what());
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
-        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
-        CAST_MOD(Impl)->stop();
+        CAST_MOD(Impl)->halt(err.what());
       }
     }
   };
@@ -433,10 +449,10 @@ namespace modules {
           else
             CAST_MOD(Impl)->broadcast();
         }
+      } catch (const module_error& err) {
+        CAST_MOD(Impl)->halt(err.what());
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
-        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
-        CAST_MOD(Impl)->stop();
+        CAST_MOD(Impl)->halt(err.what());
       }
     }
   };
@@ -464,10 +480,10 @@ namespace modules {
         while (CAST_MOD(Impl)->enabled()) {
           CAST_MOD(Impl)->poll_events();
         }
+      } catch (const module_error& err) {
+        CAST_MOD(Impl)->halt(err.what());
       } catch (const std::exception& err) {
-        this->m_log.err("%s: %s", CONST_MOD(Impl).name(), err.what());
-        this->m_log.warn("Stopping '%s'...", CONST_MOD(Impl).name());
-        CAST_MOD(Impl)->stop();
+        CAST_MOD(Impl)->halt(err.what());
       }
     }
 
