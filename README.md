@@ -85,7 +85,7 @@ $ apt-get install clang-3.8 libc++-dev libc++abi-dev cmake cmake-data libboost-d
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 2.1.0 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 2.1.1 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release ..
