@@ -44,12 +44,7 @@ namespace drawtypes {
   inline auto load_ramp(const config& conf, string section, string name, bool required = true) {
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
-    icon_t ramp_defaults;
-
-    try {
-      ramp_defaults = load_icon(conf, section, name);
-    } catch (const key_error&) {
-    }
+    auto ramp_defaults = load_optional_icon(conf, section, name);
 
     vector<icon_t> vec;
     vector<string> icons;
@@ -61,10 +56,7 @@ namespace drawtypes {
 
     for (size_t i = 0; i < icons.size(); i++) {
       auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
-
-      if (ramp_defaults)
-        icon->copy_undefined(ramp_defaults);
-
+      icon->copy_undefined(ramp_defaults);
       vec.emplace_back(move(icon));
     }
 
