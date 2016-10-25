@@ -67,8 +67,8 @@ class controller {
    * threads and spawned processes
    */
   ~controller() noexcept {
-    if (!m_mutex.try_lock_for(3s)) {
-      m_log.warn("Failed to acquire lock for 3s... Forcing shutdown using SIGKILL");
+    if (!m_mutex.try_lock_for(5s)) {
+      m_log.warn("Failed to acquire lock for 5s... Forcing shutdown using SIGKILL");
       raise(SIGKILL);
     }
 
