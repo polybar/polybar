@@ -32,18 +32,18 @@ namespace modules {
 
       // Create elements for format-connected
       if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED))
-        m_ramp_signal = get_config_ramp(m_conf, name(), TAG_RAMP_SIGNAL);
+        m_ramp_signal = load_ramp(m_conf, name(), TAG_RAMP_SIGNAL);
       if (m_formatter->has(TAG_RAMP_QUALITY, FORMAT_CONNECTED))
-        m_ramp_quality = get_config_ramp(m_conf, name(), TAG_RAMP_QUALITY);
+        m_ramp_quality = load_ramp(m_conf, name(), TAG_RAMP_QUALITY);
       if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
         m_label[connection_state::CONNECTED] =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
+            load_optional_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
       }
 
       // Create elements for format-disconnected
       if (m_formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
         m_label[connection_state::DISCONNECTED] =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
+            load_optional_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
         m_label[connection_state::DISCONNECTED]->reset_tokens();
         m_label[connection_state::DISCONNECTED]->replace_token("%ifname%", m_interface);
       }
@@ -55,10 +55,10 @@ namespace modules {
 
         if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
           m_label[connection_state::PACKETLOSS] =
-              get_optional_config_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
+              load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
         }
         if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
-          m_animation_packetloss = get_config_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
+          m_animation_packetloss = load_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
       }
 
       // Get an intstance of the network interface

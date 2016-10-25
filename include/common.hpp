@@ -50,6 +50,7 @@ using namespace std::chrono_literals;
 using std::string;
 using std::stringstream;
 using std::size_t;
+using std::move;
 using std::bind;
 using std::forward;
 using std::function;

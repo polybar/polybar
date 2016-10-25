@@ -8,9 +8,6 @@
 LEMONBUDDY_NS
 
 namespace drawtypes {
-  class animation;
-  using animation_t = shared_ptr<animation>;
-
   class animation : public non_copyable_mixin<animation> {
    public:
     explicit animation(int framerate_ms) : m_framerate_ms(framerate_ms) {}
@@ -58,7 +55,13 @@ namespace drawtypes {
     }
   };
 
-  inline auto get_config_animation(
+  using animation_t = shared_ptr<animation>;
+
+  /**
+   * Create an animation by loading values
+   * from the configuration
+   */
+  inline auto load_animation(
       const config& conf, string section, string name = "animation", bool required = true) {
     vector<icon_t> vec;
     vector<string> frames;
@@ -72,7 +75,7 @@ namespace drawtypes {
 
     for (size_t i = 0; i < frames.size(); i++)
       vec.emplace_back(forward<icon_t>(
-          get_optional_config_icon(conf, section, name + "-" + to_string(i), frames[i])));
+          load_optional_icon(conf, section, name + "-" + to_string(i), frames[i])));
 
     auto framerate = conf.get<int>(section, name + "-framerate", 1000);
 

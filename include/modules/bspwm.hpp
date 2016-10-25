@@ -53,32 +53,32 @@ namespace modules {
 
       if (m_formatter->has(TAG_LABEL_STATE)) {
         m_statelabels.insert(make_pair(bspwm_flag::WORKSPACE_ACTIVE,
-            get_optional_config_label(m_conf, name(), "label-active", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-active", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(bspwm_flag::WORKSPACE_OCCUPIED,
-            get_optional_config_label(m_conf, name(), "label-occupied", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-occupied", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(bspwm_flag::WORKSPACE_URGENT,
-            get_optional_config_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(bspwm_flag::WORKSPACE_EMPTY,
-            get_optional_config_label(m_conf, name(), "label-empty", DEFAULT_WS_LABEL)));
-        m_statelabels.insert(make_pair(bspwm_flag::WORKSPACE_DIMMED,
-            get_optional_config_label(m_conf, name(), "label-dimmed")));
+            load_optional_label(m_conf, name(), "label-empty", DEFAULT_WS_LABEL)));
+        m_statelabels.insert(make_pair(
+            bspwm_flag::WORKSPACE_DIMMED, load_optional_label(m_conf, name(), "label-dimmed")));
       }
 
       if (m_formatter->has(TAG_LABEL_MODE)) {
-        m_modelabels.insert(make_pair(bspwm_flag::MODE_LAYOUT_MONOCLE,
-            get_optional_config_label(m_conf, name(), "label-monocle")));
-        m_modelabels.insert(make_pair(bspwm_flag::MODE_LAYOUT_TILED,
-            get_optional_config_label(m_conf, name(), "label-tiled")));
+        m_modelabels.insert(make_pair(
+            bspwm_flag::MODE_LAYOUT_MONOCLE, load_optional_label(m_conf, name(), "label-monocle")));
+        m_modelabels.insert(make_pair(
+            bspwm_flag::MODE_LAYOUT_TILED, load_optional_label(m_conf, name(), "label-tiled")));
         m_modelabels.insert(make_pair(bspwm_flag::MODE_STATE_FULLSCREEN,
-            get_optional_config_label(m_conf, name(), "label-fullscreen")));
+            load_optional_label(m_conf, name(), "label-fullscreen")));
         m_modelabels.insert(make_pair(bspwm_flag::MODE_STATE_FLOATING,
-            get_optional_config_label(m_conf, name(), "label-floating")));
-        m_modelabels.insert(make_pair(bspwm_flag::MODE_NODE_LOCKED,
-            get_optional_config_label(m_conf, name(), "label-locked")));
-        m_modelabels.insert(make_pair(bspwm_flag::MODE_NODE_STICKY,
-            get_optional_config_label(m_conf, name(), "label-sticky")));
-        m_modelabels.insert(make_pair(bspwm_flag::MODE_NODE_PRIVATE,
-            get_optional_config_label(m_conf, name(), "label-private")));
+            load_optional_label(m_conf, name(), "label-floating")));
+        m_modelabels.insert(make_pair(
+            bspwm_flag::MODE_NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked")));
+        m_modelabels.insert(make_pair(
+            bspwm_flag::MODE_NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky")));
+        m_modelabels.insert(make_pair(
+            bspwm_flag::MODE_NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private")));
       }
 
       m_icons = iconset_t{new iconset()};
@@ -316,7 +316,8 @@ namespace modules {
 
       try {
         auto ipc = bspwm_util::make_connection();
-        auto payload = bspwm_util::make_payload("desktop -f "+ m_monitor +":^"+ cmd.substr(strlen(EVENT_CLICK)));
+        auto payload = bspwm_util::make_payload(
+            "desktop -f " + m_monitor + ":^" + cmd.substr(strlen(EVENT_CLICK)));
 
         m_log.info("%s: Sending desktop focus command to ipc handler", name());
 

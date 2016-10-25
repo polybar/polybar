@@ -49,21 +49,20 @@ namespace modules {
           FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
       if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING))
-        m_animation_charging = get_config_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
+        m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
       if (m_formatter->has(TAG_BAR_CAPACITY))
-        m_bar_capacity = get_config_bar(m_bar, m_conf, name(), TAG_BAR_CAPACITY);
+        m_bar_capacity = load_progressbar(m_bar, m_conf, name(), TAG_BAR_CAPACITY);
       if (m_formatter->has(TAG_RAMP_CAPACITY))
-        m_ramp_capacity = get_config_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+        m_ramp_capacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
       if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
-        m_label_charging =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%");
+        m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%");
       }
       if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
         m_label_discharging =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%");
+            load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%");
       }
       if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
-        m_label_full = get_optional_config_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%");
+        m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%");
       }
 
       // }}}

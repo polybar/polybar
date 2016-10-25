@@ -76,11 +76,11 @@ namespace modules {
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
       if (m_formatter->has(TAG_LABEL))
-        m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage%");
+        m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
       if (m_formatter->has(TAG_BAR))
-        m_progressbar = get_config_bar(m_bar, m_conf, name(), TAG_BAR);
+        m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
       if (m_formatter->has(TAG_RAMP))
-        m_ramp = get_config_ramp(m_conf, name(), TAG_RAMP);
+        m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
 
       // Trigger the initial draw event
       update();

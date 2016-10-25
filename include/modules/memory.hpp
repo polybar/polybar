@@ -22,11 +22,11 @@ namespace modules {
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE});
 
       if (m_formatter->has(TAG_BAR_USED))
-        m_bars[memtype::USED] = get_config_bar(m_bar, m_conf, name(), TAG_BAR_USED);
+        m_bars[memtype::USED] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
       if (m_formatter->has(TAG_BAR_FREE))
-        m_bars[memtype::FREE] = get_config_bar(m_bar, m_conf, name(), TAG_BAR_FREE);
+        m_bars[memtype::FREE] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
       if (m_formatter->has(TAG_LABEL))
-        m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
+        m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
     }
 
     bool update() {
@@ -93,9 +93,9 @@ namespace modules {
     }
 
     bool build(builder* builder, string tag) const {
-      if (tag == TAG_BAR_USED) {
+      if (tag == TAG_BAR_USED)
         builder->node(m_bars.at(memtype::USED)->output(m_perc.at(memtype::USED)));
-      } else if (tag == TAG_BAR_FREE)
+      else if (tag == TAG_BAR_FREE)
         builder->node(m_bars.at(memtype::FREE)->output(m_perc.at(memtype::FREE)));
       else if (tag == TAG_LABEL)
         builder->node(m_label);

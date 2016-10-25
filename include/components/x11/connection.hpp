@@ -94,8 +94,9 @@ class connection : public xpp_connection {
    * Send client message event
    */
   void send_client_message(shared_ptr<xcb_client_message_event_t> message, xcb_window_t target,
-      uint32_t event_mask = 0xFFFFFF, bool propagate = false) {
-    send_event(propagate, target, event_mask, reinterpret_cast<char*>(message.get()));
+      uint32_t event_mask = 0xFFFFFF, bool propagate = false) const {
+    const char* data = reinterpret_cast<decltype(data)>(message.get());
+    send_event(propagate, target, event_mask, data);
     flush();
   }
 
@@ -111,8 +112,7 @@ class connection : public xpp_connection {
     if (target == XCB_NONE)
       target = root();
     auto message = make_client_message(XCB_NONE, target);
-    send_event(false, target, event, reinterpret_cast<char*>(message.get()));
-    flush();
+    send_client_message(message, target, event);
   }
 
   /**

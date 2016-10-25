@@ -1,7 +1,7 @@
 #pragma once
 
-#include "config.hpp"
 #include "components/config.hpp"
+#include "config.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -37,11 +37,11 @@ namespace modules {
       m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
       if (m_formatter->has(TAG_LABEL))
-        m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage%");
+        m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
       if (m_formatter->has(TAG_BAR))
-        m_progressbar = get_config_bar(m_bar, m_conf, name(), TAG_BAR);
+        m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
       if (m_formatter->has(TAG_RAMP))
-        m_ramp = get_config_ramp(m_conf, name(), TAG_RAMP);
+        m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
 
       // Build path to the file where the current/maximum brightness value is located
       m_val.filepath(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));

@@ -25,11 +25,11 @@ namespace modules {
       m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
 
       if (m_formatter->has(TAG_LABEL_TOGGLE)) {
-        m_labelopen = get_config_label(m_conf, name(), "label-open");
-        m_labelclose = get_optional_config_label(m_conf, name(), "label-close", "x");
+        m_labelopen = load_label(m_conf, name(), "label-open");
+        m_labelclose = load_optional_label(m_conf, name(), "label-close", "x");
       }
 
-      m_labelseparator = get_optional_config_label(m_conf, name(), "label-separator", "");
+      m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
 
       if (!m_formatter->has(TAG_MENU))
         return;
@@ -51,7 +51,7 @@ namespace modules {
 
           m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
           auto item = make_unique<menu_tree_item>();
-          item->label = get_config_label(m_conf, name(), item_param);
+          item->label = load_label(m_conf, name(), item_param);
           item->exec = m_conf.get<string>(name(), item_param + "-exec", EVENT_MENU_CLOSE);
           m_levels.back()->items.emplace_back(std::move(item));
         }

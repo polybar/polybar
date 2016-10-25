@@ -34,44 +34,39 @@ namespace modules {
       m_icons = iconset_t{new iconset()};
 
       if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE))
-        m_icons->add("play", get_config_icon(m_conf, name(), TAG_ICON_PLAY));
+        m_icons->add("play", load_icon(m_conf, name(), TAG_ICON_PLAY));
       if (m_formatter->has(TAG_ICON_PAUSE) || m_formatter->has(TAG_TOGGLE))
-        m_icons->add("pause", get_config_icon(m_conf, name(), TAG_ICON_PAUSE));
+        m_icons->add("pause", load_icon(m_conf, name(), TAG_ICON_PAUSE));
       if (m_formatter->has(TAG_ICON_STOP))
-        m_icons->add("stop", get_config_icon(m_conf, name(), TAG_ICON_STOP));
+        m_icons->add("stop", load_icon(m_conf, name(), TAG_ICON_STOP));
       if (m_formatter->has(TAG_ICON_PREV))
-        m_icons->add("prev", get_config_icon(m_conf, name(), TAG_ICON_PREV));
+        m_icons->add("prev", load_icon(m_conf, name(), TAG_ICON_PREV));
       if (m_formatter->has(TAG_ICON_NEXT))
-        m_icons->add("next", get_config_icon(m_conf, name(), TAG_ICON_NEXT));
+        m_icons->add("next", load_icon(m_conf, name(), TAG_ICON_NEXT));
       if (m_formatter->has(TAG_ICON_SEEKB))
-        m_icons->add("seekb", get_config_icon(m_conf, name(), TAG_ICON_SEEKB));
+        m_icons->add("seekb", load_icon(m_conf, name(), TAG_ICON_SEEKB));
       if (m_formatter->has(TAG_ICON_SEEKF))
-        m_icons->add("seekf", get_config_icon(m_conf, name(), TAG_ICON_SEEKF));
+        m_icons->add("seekf", load_icon(m_conf, name(), TAG_ICON_SEEKF));
       if (m_formatter->has(TAG_ICON_RANDOM))
-        m_icons->add("random", get_config_icon(m_conf, name(), TAG_ICON_RANDOM));
+        m_icons->add("random", load_icon(m_conf, name(), TAG_ICON_RANDOM));
       if (m_formatter->has(TAG_ICON_REPEAT))
-        m_icons->add("repeat", get_config_icon(m_conf, name(), TAG_ICON_REPEAT));
+        m_icons->add("repeat", load_icon(m_conf, name(), TAG_ICON_REPEAT));
       if (m_formatter->has(TAG_ICON_REPEAT_ONE))
-        m_icons->add("repeat_one", get_config_icon(m_conf, name(), TAG_ICON_REPEAT_ONE));
+        m_icons->add("repeat_one", load_icon(m_conf, name(), TAG_ICON_REPEAT_ONE));
 
-      if (m_formatter->has(TAG_LABEL_SONG)) {
-        m_label_song =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
-      }
-      if (m_formatter->has(TAG_LABEL_TIME)) {
-        m_label_time =
-            get_optional_config_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
-      }
+      if (m_formatter->has(TAG_LABEL_SONG))
+        m_label_song = load_optional_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
+      if (m_formatter->has(TAG_LABEL_TIME))
+        m_label_time = load_optional_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
       if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
           m_formatter->has(TAG_ICON_REPEAT_ONE)) {
         m_toggle_on_color = m_conf.get<string>(name(), "toggle-on-foreground", "");
         m_toggle_off_color = m_conf.get<string>(name(), "toggle-off-foreground", "");
       }
       if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE))
-        m_label_offline = get_config_label(m_conf, name(), TAG_LABEL_OFFLINE);
-      if (m_formatter->has(TAG_BAR_PROGRESS)) {
-        m_bar_progress = get_config_bar(m_bar, m_conf, name(), TAG_BAR_PROGRESS);
-      }
+        m_label_offline = load_label(m_conf, name(), TAG_LABEL_OFFLINE);
+      if (m_formatter->has(TAG_BAR_PROGRESS))
+        m_bar_progress = load_progressbar(m_bar, m_conf, name(), TAG_BAR_PROGRESS);
 
       // }}}
 
@@ -183,8 +178,7 @@ namespace modules {
 
       if (m_label_song) {
         m_label_song->reset_tokens();
-        m_label_song->replace_token(
-            "%artist%", !artist.empty() ? artist : "untitled artist");
+        m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
         m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
         m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
       }

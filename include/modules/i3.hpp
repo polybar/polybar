@@ -59,13 +59,13 @@ namespace modules {
 
       if (m_formatter->has(TAG_LABEL_STATE)) {
         m_statelabels.insert(make_pair(i3_flag::WORKSPACE_FOCUSED,
-            get_optional_config_label(m_conf, name(), "label-focused", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-focused", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(i3_flag::WORKSPACE_UNFOCUSED,
-            get_optional_config_label(m_conf, name(), "label-unfocused", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(i3_flag::WORKSPACE_VISIBLE,
-            get_optional_config_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
         m_statelabels.insert(make_pair(i3_flag::WORKSPACE_URGENT,
-            get_optional_config_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+            load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
       }
 
       m_icons = iconset_t{new iconset()};

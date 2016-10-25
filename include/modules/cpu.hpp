@@ -32,13 +32,13 @@ namespace modules {
           {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
       if (m_formatter->has(TAG_BAR_LOAD))
-        m_barload = get_config_bar(m_bar, m_conf, name(), TAG_BAR_LOAD);
+        m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
       if (m_formatter->has(TAG_RAMP_LOAD))
-        m_rampload = get_config_ramp(m_conf, name(), TAG_RAMP_LOAD);
+        m_rampload = load_ramp(m_conf, name(), TAG_RAMP_LOAD);
       if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE))
-        m_rampload_core = get_config_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
+        m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
       if (m_formatter->has(TAG_LABEL))
-        m_label = get_optional_config_label(m_conf, name(), TAG_LABEL, "%percentage%");
+        m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
 
       // warmup
       read_values();
