@@ -231,9 +231,10 @@ class traymanager
   void reconfigure() {
     // Ignore reconfigure requests when the
     // tray window is in the pseudo-hidden state
-    if (m_hidden) {
+    if (m_hidden)
       return;
-    }
+    if (m_tray == XCB_NONE)
+      return;
 
     uint32_t width = 0;
     uint16_t mapped_clients = 0;
@@ -249,18 +250,20 @@ class traymanager
       g_signals::tray::report_slotcount(mapped_clients);
 
     if (!width && m_mapped) {
-      m_connection.unmap_window(m_tray);
+      m_connection.unmap_window_checked(m_tray);
       return;
     } else if (width && !m_mapped) {
-      m_connection.map_window(m_tray);
+      m_connection.map_window_checked(m_tray);
       m_lastwidth = 0;
       return;
     } else if (!width) {
       return;
     }
 
-    if ((width += m_settings.spacing) == m_lastwidth)
+    if ((width += m_settings.spacing) == m_lastwidth) {
       return;
+    }
+
     m_lastwidth = width;
 
     // update window
