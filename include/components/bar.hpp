@@ -219,8 +219,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       uint32_t mask = 0;
       xcb_params_cw_t params;
       // clang-format off
-      XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, m_bar.background.value());
-      XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, m_bar.background.value());
+      XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, 0);
+      XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, 0);
       XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
       XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_bar.dock);
       XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
