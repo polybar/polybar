@@ -277,6 +277,10 @@ class traymanager
         m_connection.configure_window_checked(client->window(), XCB_CONFIG_WINDOW_X, val);
         pos_x += m_settings.width + m_settings.spacing;
       } catch (const xpp::x::error::window& err) {
+        m_log.warn("Failed to reconfigure tray client, removing... (%s)", err.what());
+        m_clients.erase(std::find(m_clients.begin(), m_clients.end(), client));
+        reconfigure();
+        return;
       }
     }
   }
@@ -486,7 +490,13 @@ class traymanager
 
         if ((client->xembed()->flags & XEMBED_MAPPED) == XEMBED_MAPPED) {
           m_log.trace("tray: XEMBED_MAPPED flag set, map client window...");
-          m_connection.map_window(client->window());
+          try {
+            m_connection.map_window_checked(client->window());
+          } catch (const xpp::x::error::window& err) {
+            m_log.warn("Failed to map tray client, removing... (%s)", err.what());
+            m_clients.erase(std::find(m_clients.begin(), m_clients.end(), client));
+            return;
+          }
         }
       }
 
@@ -502,28 +512,37 @@ class traymanager
       xembed::query(m_connection, win, client->xembed());
     } catch (const application_error& err) {
       m_log.err(err.what());
+    } catch (const xpp::x::error::window& err) {
+      m_log.warn("Failed to query for _XEMBED_INFO, removing client... (%s)", err.what());
+      m_clients.erase(std::find(m_clients.begin(), m_clients.end(), client));
+      return;
     }
 
-    m_log.trace("tray: Add tray client window to the save set");
-    m_connection.change_save_set(XCB_SET_MODE_INSERT, client->window());
+    try {
+      m_log.trace("tray: Add tray client window to the save set");
+      m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client->window());
 
-    m_log.trace("tray: Update tray client event mask");
-    const uint32_t event_mask[]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-    m_connection.change_window_attributes(client->window(), XCB_CW_EVENT_MASK, event_mask);
+      m_log.trace("tray: Update tray client event mask");
+      const uint32_t event_mask[]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+      m_connection.change_window_attributes_checked(client->window(), XCB_CW_EVENT_MASK, event_mask);
 
-    m_log.trace("tray: Reparent tray client");
-    m_connection.reparent_window(client->window(), m_tray, m_settings.spacing, m_settings.spacing);
+      m_log.trace("tray: Reparent tray client");
+      m_connection.reparent_window_checked(client->window(), m_tray, m_settings.spacing, m_settings.spacing);
 
-    m_log.trace("tray: Configure tray client size");
-    const uint32_t values[]{m_settings.width, m_settings.height};
-    m_connection.configure_window(
-        client->window(), XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
+      m_log.trace("tray: Configure tray client size");
+      const uint32_t values[]{m_settings.width, m_settings.height};
+      m_connection.configure_window_checked(
+          client->window(), XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
 
-    m_log.trace("tray: Send embbeded notification to tray client");
-    xembed::notify_embedded(m_connection, client->window(), m_tray, client->xembed()->version);
+      m_log.trace("tray: Send embbeded notification to tray client");
+      xembed::notify_embedded(m_connection, client->window(), m_tray, client->xembed()->version);
 
-    m_log.trace("tray: Map tray client");
-    m_connection.map_window(client->window());
+      m_log.trace("tray: Map tray client");
+      m_connection.map_window_checked(client->window());
+    } catch (const xpp::x::error::window& err) {
+      m_log.warn("Failed to map client, removing... (%s)", err.what());
+      m_clients.erase(std::find(m_clients.begin(), m_clients.end(), client));
+    }
   }
 
   /**
@@ -668,12 +687,17 @@ class traymanager
     xembed::query(m_connection, win, xd);
     m_log.trace("tray: _XEMBED_INFO[0]=%u _XEMBED_INFO[1]=%u", xd->version, xd->flags);
 
-    if (!client->mapped() && ((xd->flags & XEMBED_MAPPED) == XEMBED_MAPPED)) {
-      m_log.info("tray: Map client window: %s", m_connection.id(win));
-      m_connection.map_window(win);
-    } else if (client->mapped() && ((xd->flags & XEMBED_MAPPED) != XEMBED_MAPPED)) {
-      m_log.info("tray: Unmap client window: %s", m_connection.id(win));
-      m_connection.unmap_window(win);
+    try {
+      if (!client->mapped() && ((xd->flags & XEMBED_MAPPED) == XEMBED_MAPPED)) {
+        m_log.info("tray: Map client window: %s", m_connection.id(win));
+        m_connection.map_window(win);
+      } else if (client->mapped() && ((xd->flags & XEMBED_MAPPED) != XEMBED_MAPPED)) {
+        m_log.info("tray: Unmap client window: %s", m_connection.id(win));
+        m_connection.unmap_window(win);
+      }
+    } catch (const xpp::x::error::window& err) {
+      m_log.warn("Failed to map/unmap client, removing... (%s)", err.what());
+      m_clients.erase(std::find(m_clients.begin(), m_clients.end(), client));
     }
   }
 
