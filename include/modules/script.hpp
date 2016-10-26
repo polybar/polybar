@@ -31,7 +31,7 @@ namespace modules {
       m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
       m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
 
-      m_interval = interval_t{m_conf.get<float>(name(), "interval", 0.0f)};
+      m_interval = interval_t{m_conf.get<float>(name(), "interval", m_tail ? 0.0f : 2.0f)};
     }
 
     void stop() {
