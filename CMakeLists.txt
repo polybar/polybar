@@ -2,7 +2,7 @@
 # Build configuration
 #
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(lemonbuddy CXX)
+project(lemonbuddy C CXX)
 
 option(CXXLIB_CLANG "Link against libc++"    OFF)
 option(CXXLIB_GCC   "Link against stdlibc++" OFF)
