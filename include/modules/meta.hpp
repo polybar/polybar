@@ -440,14 +440,20 @@ namespace modules {
         CAST_MOD(Impl)->broadcast();
 
         while (CONST_MOD(Impl).enabled()) {
-          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
+          CAST_MOD(Impl)->idle();
 
-          if (!CAST_MOD(Impl)->has_event())
-            CAST_MOD(Impl)->idle();
-          else if (!CAST_MOD(Impl)->update())
-            CAST_MOD(Impl)->idle();
-          else
-            CAST_MOD(Impl)->broadcast();
+          if (!CONST_MOD(Impl).enabled())
+            break;
+
+          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
+          {
+            if (!CAST_MOD(Impl)->has_event())
+              continue;
+            else if (!CAST_MOD(Impl)->update())
+              continue;
+            else
+              CAST_MOD(Impl)->broadcast();
+          }
         }
       } catch (const module_error& err) {
         CAST_MOD(Impl)->halt(err.what());
