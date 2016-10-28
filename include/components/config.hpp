@@ -181,11 +181,12 @@ class config {
  protected:
   /**
    * Find value of a config parameter defined as a reference
-   * variable using ${section.param} or ${env:VAR}
-   * ${self.key} may be used to reference the current bar section
+   * variable using ${section.param}
    *
-   * @deprecated: ${BAR.key} has been replaced with ${self.key}
-   * but the former is kept to avoid breaking current configs
+   * ${BAR.key} may be used to reference the current bar section
+   * ${self.key} may be used to reference the current section
+   * ${env:key} may be used to reference an environment variable
+   * ${xrdb:key} may be used to reference a variable in the X resource db
    */
   template <typename T>
   T dereference_var(string ref_section, string ref_key, string var, const T ref_val) const {
@@ -221,7 +222,7 @@ class config {
     auto section = path.substr(0, n);
 
     section = string_util::replace(section, "BAR", bar_section());
-    section = string_util::replace(section, "self", bar_section());
+    section = string_util::replace(section, "self", ref_section);
 
     auto key = path.substr(n + 1, path.length() - n - 1);
     auto val = m_ptree.get_optional<T>(build_path(section, key));
