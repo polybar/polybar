@@ -1,9 +1,13 @@
 #!/bin/sh
 
 # Use passed argument as new tag
-[ $# -eq 1 ] && {
-  git tag "$@" || exit 1
-}
+if [ $# -eq 0 ]; then
+  version=$(git describe --tags --abbrev=0)
+  patch=${version##*.}
+  set -- "${version%.*}.$((patch+1))"
+fi
+
+git tag "$@" || exit 1
 
 # shellcheck disable=SC2016
 tag_prev=$(git tag -l | tail -2 | head -1)
