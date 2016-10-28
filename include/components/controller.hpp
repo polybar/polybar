@@ -74,7 +74,7 @@ class controller {
 
     std::lock_guard<std::timed_mutex> guard(m_mutex, std::adopt_lock);
 
-    m_log.trace("controller: Stop modules");
+    m_log.info("Stopping modules");
     for (auto&& block : m_modules) {
       for (auto&& module : block.second) {
         module->stop();
@@ -86,30 +86,35 @@ class controller {
       m_command->terminate();
     }
 
-    m_log.trace("controller: Deconstruct bar instance");
-    g_signals::bar::action_click = nullptr;
-    m_bar.reset();
+    if (m_traymanager)
+      m_traymanager.reset();
 
-    m_log.trace("controller: Interrupt X event loop");
+    if (m_bar) {
+      m_log.trace("controller: Deconstruct bar instance");
+      g_signals::bar::action_click = nullptr;
+      m_bar.reset();
+    }
+
+    m_log.info("Interrupting X event loop");
     m_connection.send_dummy_event(m_connection.root());
 
     if (m_confwatch) {
       try {
-        m_log.trace("controller: Remove config watch");
+        m_log.info("Removing config watch");
         m_confwatch->remove();
       } catch (const system_error& err) {
       }
     }
 
     if (!m_threads.empty()) {
-      m_log.trace("controller: Join active threads");
+      m_log.info("Joining active threads");
       for (auto&& thread : m_threads) {
         if (thread.joinable())
           thread.join();
       }
     }
 
-    m_log.trace("controller: Wait for spawned processes");
+    m_log.info("Waiting for spawned processes");
     while (process_util::notify_childprocess())
       ;
 
@@ -178,7 +183,7 @@ class controller {
       }
     } catch (const std::exception& err) {
       m_log.err(err.what());
-      m_log.warn("controller: Disabling tray...");
+      m_log.warn("Failed to setup tray, disabling...");
       m_traymanager.reset();
     }
 
@@ -198,7 +203,7 @@ class controller {
   auto run() {
     assert(!m_connection.connection_has_error());
 
-    m_log.info("Starting application...");
+    m_log.info("Starting application");
     m_running = true;
 
     install_sigmask();
@@ -234,7 +239,8 @@ class controller {
           m_traymanager->activate();
         } catch (const std::exception& err) {
           m_log.err(err.what());
-          m_log.err("controller: Failed to activate tray manager...");
+          m_log.err("Failed to activate tray manager, disabling...");
+          m_traymanager.reset();
         }
       }
 
@@ -318,7 +324,7 @@ class controller {
         if (!m_running)
           return;
 
-        m_log.info("Configuration file changed...");
+        m_log.info("Configuration file changed");
         kill(getpid(), SIGUSR1);
       } catch (const system_error& err) {
         m_log.err(err.what());

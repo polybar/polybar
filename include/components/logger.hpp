@@ -42,7 +42,7 @@ class logger {
       // clang-format off
       m_prefixes[loglevel::TRACE]   = "\r\033[0;90m- ";
       m_prefixes[loglevel::INFO]    = "\r\033[1;32m* \033[0m";
-      m_prefixes[loglevel::WARNING] = "\r\033[1;33mwarning: \033[0m";
+      m_prefixes[loglevel::WARNING] = "\r\033[1;33mwarn: \033[0m";
       m_prefixes[loglevel::ERROR]   = "\r\033[1;31merror: \033[0m";
 
       m_suffixes[loglevel::TRACE]   = "\033[0m";

@@ -610,8 +610,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
           continue;
         }
 
-        m_log.info("Found matching input area");
-        m_log.trace("action.command = %s", action.command);
+        m_log.trace("Found matching input area");
+        m_log.trace_x("action.command = %s", action.command);
         m_log.trace_x("action.button = %i", static_cast<int>(action.button));
         m_log.trace_x("action.start_x = %i", action.start_x);
         m_log.trace_x("action.end_x = %i", action.end_x);
