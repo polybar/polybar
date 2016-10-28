@@ -82,6 +82,11 @@ namespace modules {
       }
     }
 
+    void teardown() {
+      wakeup();
+      m_mpd.reset();
+    }
+
     inline bool connected() const {
       return m_mpd && m_mpd->connected();
     }
