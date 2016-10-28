@@ -294,7 +294,6 @@ namespace modules {
 
     void wakeup() {
       m_log.trace("%s: Release sleep lock", name());
-      // std::unique_lock<std::mutex> lck(m_sleeplock);
       m_sleephandler.notify_all();
     }
 

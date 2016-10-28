@@ -32,7 +32,7 @@ namespace command_util {
    *
    * @code cpp
    *   auto cmd = command_util::make_command(
-   *    "/bin/sh\n-c\n while read -r line; do echo data from parent process: $line; done");
+   *    "while read -r line; do echo data from parent process: $line; done");
    *   cmd->exec(false);
    *   cmd->writeline("Test");
    *   cout << cmd->readline();
@@ -40,8 +40,7 @@ namespace command_util {
    * @endcode
    *
    * @code cpp
-   *   vector<string> exec{{"/bin/sh"}, {"-c"}, {"for i in 1 2 3; do echo $i; done"}};
-   *   auto cmd = command_util::make_command(exec);
+   *   auto cmd = command_util::make_command("for i in 1 2 3; do echo $i; done");
    *   cmd->exec();
    *   cout << cmd->readline(); // 1
    *   cout << cmd->readline() << cmd->readline(); // 23
@@ -49,10 +48,8 @@ namespace command_util {
    */
   class command {
    public:
-    explicit command(const logger& logger, vector<string> cmd)
-        : command(logger, string_util::join(cmd, "\n")) {}
-
-    explicit command(const logger& logger, string cmd) : m_log(logger), m_cmd(cmd) {
+    explicit command(const logger& logger, string cmd)
+        : m_log(logger), m_cmd("/usr/bin/env\nsh\n-c\n" + cmd) {
       if (pipe(m_stdin) != 0)
         throw command_strerror("Failed to allocate input stream");
       if (pipe(m_stdout) != 0)
@@ -140,10 +137,10 @@ namespace command_util {
      * Wait for the child processs to finish
      */
     int wait() {
-      auto waitflags = WCONTINUED | WUNTRACED;
-
       do {
-        process_util::wait_for_completion(m_forkpid, &m_forkstatus, waitflags);
+        m_log.trace("command: Waiting for pid %d to finish...", m_forkpid);
+
+        process_util::wait_for_completion(m_forkpid, &m_forkstatus, WCONTINUED | WUNTRACED);
 
         if (WIFEXITED(m_forkstatus) && m_forkstatus > 0)
           m_log.warn("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
@@ -155,6 +152,8 @@ namespace command_util {
           m_log.trace("command: Stopped by signal %d", WSTOPSIG(m_forkstatus));
         else if (WIFCONTINUED(m_forkstatus) == true)
           m_log.trace("command: Continued");
+        else
+          break;
       } while (!WIFEXITED(m_forkstatus) && !WIFSIGNALED(m_forkstatus));
 
       return m_forkstatus;
@@ -162,6 +161,9 @@ namespace command_util {
 
     /**
      * Tail command output
+     *
+     * @note: This is a blocking call and will not
+     * end until the stream is closed
      */
     void tail(function<void(string)> callback) {
       io_util::tail(m_stdout[PIPE_READ], callback);
@@ -238,8 +240,7 @@ namespace command_util {
 
   template <typename... Args>
   command_t make_command(Args&&... args) {
-    return make_unique<command>(
-        configure_logger().create<const logger&>(), forward<Args>(args)...);
+    return make_unique<command>(configure_logger().create<const logger&>(), forward<Args>(args)...);
   }
 }
 

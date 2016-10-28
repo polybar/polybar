@@ -5,7 +5,6 @@
 
 LEMONBUDDY_NS
 
-#define SHELL_CMD "/usr/bin/env\nsh\n-c\n%cmd%"
 #define OUTPUT_ACTION(BUTTON)     \
   if (!m_actions[BUTTON].empty()) \
   m_builder->cmd(BUTTON, string_util::replace_all(m_actions[BUTTON], "%counter%", counter_str))
@@ -35,11 +34,12 @@ namespace modules {
     }
 
     void stop() {
+      if (m_command && m_command->is_running()) {
+        m_log.warn("%s: Stopping shell command", name());
+        m_command->terminate();
+      }
       wakeup();
-      enable(false);
-      m_command.reset();
-      std::lock_guard<threading_util::spin_lock> lck(m_updatelock);
-      wakeup();
+      event_module::stop();
     }
 
     void idle() {
@@ -64,7 +64,7 @@ namespace modules {
           auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
           m_log.trace("%s: Executing '%s'", name(), exec);
 
-          m_command = command_util::make_command(string_util::replace(SHELL_CMD, "%cmd%", exec));
+          m_command = command_util::make_command(exec);
           m_command->exec(false);
         }
       } catch (const std::exception& err) {
@@ -89,13 +89,17 @@ namespace modules {
         return true;
 
       try {
-        auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-        auto cmd = command_util::make_command(string_util::replace(SHELL_CMD, "%cmd%", exec));
+        if (m_command && m_command->is_running()) {
+          m_log.warn("%s: Previous shell command is still running...", name());
+          return false;
+        }
 
+        auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
         m_log.trace("%s: Executing '%s'", name(), exec);
 
-        cmd->exec(true);
-        cmd->tail([&](string output) { m_output = output; });
+        m_command = command_util::make_command(exec);
+        m_command->exec();
+        m_command->tail([&](string output) { m_output = output; });
       } catch (const std::exception& err) {
         m_log.err("%s: %s", name(), err.what());
         throw module_error("Failed to execute command, stopping module...");

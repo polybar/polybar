@@ -81,10 +81,9 @@ class controller {
       }
     }
 
-    if (m_traymanager) {
-      m_log.trace("controller: Deactivate tray manager");
-      m_traymanager->deactivate();
-      m_traymanager.reset();
+    if (m_command) {
+      m_log.info("Terminating running shell command");
+      m_command->terminate();
     }
 
     m_log.trace("controller: Deconstruct bar instance");
@@ -515,17 +514,21 @@ class controller {
       }
     }
 
-    m_log.trace("controller: Unrecognized input '%s'", input);
-    m_log.trace("controller: Forwarding input to shell");
-
-    auto command = command_util::make_command("/usr/bin/env\nsh\n-c\n" + input);
+    m_clickmtx.unlock();
 
     try {
-      command->exec(false);
-      command->tail([this](std::string output) { m_log.trace("> %s", output); });
-      command->wait();
+      if (m_command) {
+        m_log.warn("Terminating previous shell command");
+        m_command->terminate();
+      }
+
+      m_log.info("Executing shell command: %s", input);
+
+      m_command = command_util::make_command(input);
+      m_command->exec();
+      m_command.reset();
     } catch (const application_error& err) {
-      m_log.err(err.what());
+      m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
     }
   }
 
@@ -550,6 +553,7 @@ class controller {
 
   vector<thread> m_threads;
   map<alignment, vector<module_t>> m_modules;
+  command_util::command_t m_command;
 
   unique_ptr<throttle_util::event_throttler> m_throttler;
   throttle_util::strategy::try_once_or_leave_yolo m_throttle_strategy;
