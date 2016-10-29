@@ -4,7 +4,7 @@ language: cpp
 
 compiler:
   - clang
-# - gcc
+  - gcc
 
 addons:
   apt:
@@ -88,8 +88,8 @@ install:
 
   # Set compiler's
   #--------------------------------------------------------------------------x
-  - if [[ "${CXX}" == "clang++" ]]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
-# - if [[ "${CXX}" == "g++" ]]; then export CXX="g++-5" CC="gcc-5"; fi
+  - if [[ "${CXX}" == "clang++" ]]; then export CXX="clang++-3.8" CC="clang-3.8" CXXFLAGS="${CXXFLAGS} -Qunused-arguments"; fi
+  - if [[ "${CXX}" == "g++" ]]; then export CXX="g++-5" CC="gcc-5"; fi
 
 before_script:
   - eval "${CXX} --version"
@@ -97,7 +97,7 @@ before_script:
   - cmake --version
   - mkdir -p "${TRAVIS_BUILD_DIR}/build"
   - cd "${TRAVIS_BUILD_DIR}/build"
-  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DENABLE_CCACHE=OFF ..
+  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" ..
 
 script: make
 
