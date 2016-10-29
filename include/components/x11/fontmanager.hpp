@@ -220,6 +220,8 @@ class fontmanager {
     } else {
       if (chr < font->char_min || chr > font->char_max)
         return false;
+      if (static_cast<size_t>(chr - font->char_min) >= font->width_lut.size())
+        return false;
       if (font->width_lut[chr - font->char_min].character_width == 0)
         return false;
       return true;
