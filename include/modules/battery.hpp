@@ -178,7 +178,7 @@ namespace modules {
       int i = 0;
       const int poll_seconds = m_conf.get<float>(name(), "poll-interval", 3.0f) / dur.count();
 
-      while (enabled()) {
+      while (running()) {
         // TODO(jaagr): Keep track of when the values were last read to determine
         // if we need to trigger the event manually or not.
         if (poll_seconds > 0 && (++i % poll_seconds) == 0) {

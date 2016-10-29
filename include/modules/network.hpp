@@ -165,7 +165,7 @@ namespace modules {
       const chrono::milliseconds framerate{m_animation_packetloss->framerate()};
       const auto dur = chrono::duration<double>(framerate);
 
-      while (enabled()) {
+      while (running()) {
         if (m_connected && m_packetloss)
           broadcast();
         sleep(dur);

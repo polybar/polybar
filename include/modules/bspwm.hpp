@@ -101,8 +101,10 @@ namespace modules {
     }
 
     void stop() {
-      if (m_subscriber)
+      if (m_subscriber) {
+        m_log.info("%s: Disconnecting from socket", name());
         m_subscriber->disconnect();
+      }
       event_module::stop();
     }
 

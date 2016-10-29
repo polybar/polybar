@@ -83,7 +83,6 @@ namespace modules {
     }
 
     void teardown() {
-      wakeup();
       m_mpd.reset();
     }
 

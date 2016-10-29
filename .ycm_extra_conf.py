@@ -48,20 +48,12 @@ def DirectoryOfThisScript():
 
 flags.append('-I'+ DirectoryOfThisScript() +'/src')
 flags.append('-I'+ DirectoryOfThisScript() +'/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/lib/gsl')
-flags.append('-I'+ DirectoryOfThisScript() +'/lib/cpp_freetype/include')
+flags.append('-I'+ DirectoryOfThisScript() +'/lib/boost/include')
+flags.append('-I'+ DirectoryOfThisScript() +'/lib/concurrentqueue/include')
 flags.append('-I'+ DirectoryOfThisScript() +'/lib/i3ipcpp/include')
 flags.append('-I'+ DirectoryOfThisScript() +'/lib/xpp/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/lib/lemonbar/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/lib/fastdelegate/include')
-flags.append('-I'+ DirectoryOfThisScript() +'/lib/boost/include')
 flags.append('-I'+ DirectoryOfThisScript() +'/tests')
 flags.append('-I/usr/include/freetype2')
-flags.append('-I/usr/include/pango-1.0')
-flags.append('-I/usr/include/cairomm-1.0')
-flags.append('-I/usr/include/pangomm-1.4')
-flags.append('-I/usr/include/glibmm-2.4')
-flags.append('-I/usr/lib/cairomm-1.0/include')
 flags.append('-I/usr/include')
 
 def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):

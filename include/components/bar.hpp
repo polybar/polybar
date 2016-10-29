@@ -434,21 +434,21 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     // Connect signal handlers {{{
 
     // clang-format off
-    g_signals::parser::alignment_change = bind(&bar::on_alignment_change, this, std::placeholders::_1);
-    g_signals::parser::attribute_set = bind(&bar::on_attribute_set, this, std::placeholders::_1);
-    g_signals::parser::attribute_unset = bind(&bar::on_attribute_unset, this, std::placeholders::_1);
-    g_signals::parser::attribute_toggle = bind(&bar::on_attribute_toggle, this, std::placeholders::_1);
-    g_signals::parser::action_block_open = bind(&bar::on_action_block_open, this, std::placeholders::_1, std::placeholders::_2);
-    g_signals::parser::action_block_close = bind(&bar::on_action_block_close, this, std::placeholders::_1);
-    g_signals::parser::color_change = bind(&bar::on_color_change, this, std::placeholders::_1, std::placeholders::_2);
-    g_signals::parser::font_change = bind(&bar::on_font_change, this, std::placeholders::_1);
-    g_signals::parser::pixel_offset = bind(&bar::on_pixel_offset, this, std::placeholders::_1);
-    g_signals::parser::ascii_text_write = bind(&bar::draw_character, this, std::placeholders::_1);
-    g_signals::parser::unicode_text_write = bind(&bar::draw_character, this, std::placeholders::_1);
+    g_signals::parser::alignment_change = bind(&bar::on_alignment_change, this, placeholders::_1);
+    g_signals::parser::attribute_set = bind(&bar::on_attribute_set, this, placeholders::_1);
+    g_signals::parser::attribute_unset = bind(&bar::on_attribute_unset, this, placeholders::_1);
+    g_signals::parser::attribute_toggle = bind(&bar::on_attribute_toggle, this, placeholders::_1);
+    g_signals::parser::action_block_open = bind(&bar::on_action_block_open, this, placeholders::_1, placeholders::_2);
+    g_signals::parser::action_block_close = bind(&bar::on_action_block_close, this, placeholders::_1);
+    g_signals::parser::color_change = bind(&bar::on_color_change, this, placeholders::_1, placeholders::_2);
+    g_signals::parser::font_change = bind(&bar::on_font_change, this, placeholders::_1);
+    g_signals::parser::pixel_offset = bind(&bar::on_pixel_offset, this, placeholders::_1);
+    g_signals::parser::ascii_text_write = bind(&bar::draw_character, this, placeholders::_1);
+    g_signals::parser::unicode_text_write = bind(&bar::draw_character, this, placeholders::_1);
     // clang-format on
 
     if (m_tray.align != alignment::NONE)
-      g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, std::placeholders::_1);
+      g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
 
     // }}}
 

@@ -44,6 +44,7 @@ LEMONBUDDY_NS
 namespace di = boost::di;
 namespace chrono = std::chrono;
 namespace this_thread = std::this_thread;
+namespace placeholders = std::placeholders;
 
 using namespace std::chrono_literals;
 
@@ -53,6 +54,7 @@ using std::size_t;
 using std::move;
 using std::bind;
 using std::forward;
+using std::pair;
 using std::function;
 using std::shared_ptr;
 using std::unique_ptr;
@@ -127,5 +129,16 @@ auto read_env = [](const char* var, string&& fallback = "") {
   const char* value{getenv(var)};
   return value != nullptr ? value : fallback;
 };
+
+template <class T>
+auto time_execution(const T& expr) noexcept {
+  auto start = std::chrono::high_resolution_clock::now();
+  expr();
+  auto finish = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+}
+
+template <typename... Args>
+using callback = function<void(Args...)>;
 
 LEMONBUDDY_NS_END

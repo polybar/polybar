@@ -172,9 +172,14 @@ namespace string_util {
   }
 
   /**
+   * Hash type
+   */
+  using hash_type = unsigned long;
+
+  /**
    * Compute string hash
    */
-  inline auto hash(string src) {
+  inline hash_type hash(string src) {
     return std::hash<string>()(src);
   }
 }

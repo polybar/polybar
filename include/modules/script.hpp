@@ -56,9 +56,6 @@ namespace modules {
       if (!m_tail)
         return true;
 
-      if (!enabled())
-        return false;
-
       try {
         if (!m_command || !m_command->is_running()) {
           auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));

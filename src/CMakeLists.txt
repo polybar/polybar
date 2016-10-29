@@ -62,6 +62,7 @@ target_include_directories(${LIBRARY_NAME}_static PUBLIC ${BOOST_INCLUDE_DIR})
 target_include_directories(${LIBRARY_NAME}_static PUBLIC ${FONTCONFIG_INCLUDE_DIRS})
 target_include_directories(${LIBRARY_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(${LIBRARY_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/lib/boost/include)
+target_include_directories(${LIBRARY_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/lib/concurrentqueue/include)
 
 target_compile_definitions(${BINARY_NAME} PUBLIC
     ${X11_XCB_DEFINITIONS}
@@ -116,6 +117,7 @@ set(APP_LIBRARIES ${LIBRARY_NAME}_static ${XPP_LIBRARY} PARENT_SCOPE)
 set(APP_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/lib/boost/include
+  ${PROJECT_SOURCE_DIR}/lib/concurrentqueue/include
   ${XPP_INCLUDE_DIRS}
   PARENT_SCOPE)
 

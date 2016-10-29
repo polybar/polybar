@@ -101,14 +101,14 @@ namespace modules {
       for (auto&& tag : string_util::split(format->value, ' ')) {
         if (tag[0] != '<' || tag[tag.length() - 1] != '>')
           continue;
-        if (std::find(format->tags.begin(), format->tags.end(), tag) != format->tags.end())
+        if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end())
           continue;
-        if (std::find(whitelist.begin(), whitelist.end(), tag) != whitelist.end())
+        if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end())
           continue;
         throw undefined_format_tag("[" + m_modname + "] Undefined \"" + name + "\" tag: " + tag);
       }
 
-      m_formats.insert(make_pair(name, std::move(format)));
+      m_formats.insert(make_pair(name, move(format)));
     }
 
     shared_ptr<module_format> get(string format_name) {
@@ -158,8 +158,8 @@ namespace modules {
     virtual bool handle_event(string cmd) = 0;
     virtual bool receive_events() const = 0;
 
-    virtual void set_writer(std::function<void(string)>&& fn) = 0;
-    virtual void set_terminator(std::function<void(string)>&& fn) = 0;
+    virtual void set_update_cb(callback<>&& cb) = 0;
+    virtual void set_stop_cb(callback<>&& cb) = 0;
   };
 
   // }}}
@@ -177,32 +177,23 @@ namespace modules {
         , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
 
     ~module() {
-      CAST_MOD(Impl)->stop();
+      m_log.trace("%s: Deconstructing", name());
 
-      m_updatelock.unlock();
+      assert(!running());
 
-      std::lock_guard<threading_util::spin_lock> lck(m_updatelock);
-      {
-        if (m_broadcast_thread.joinable())
-          m_broadcast_thread.join();
-
-        for (auto&& thread_ : m_threads) {
-          if (thread_.joinable())
-            thread_.join();
+      for (auto&& thread_ : m_threads) {
+        if (thread_.joinable()) {
+          thread_.join();
         }
-
-        m_threads.clear();
       }
-
-      m_log.trace("%s: Done cleaning up", name());
     }
 
-    void set_writer(std::function<void(string)>&& fn) {
-      m_writer = forward<decltype(fn)>(fn);
+    void set_update_cb(callback<>&& cb) {
+      m_update_callback = forward<decltype(cb)>(cb);
     }
 
-    void set_terminator(std::function<void(string)>&& fn) {
-      m_terminator = forward<decltype(fn)>(fn);
+    void set_stop_cb(callback<>&& cb) {
+      m_stop_callback = forward<decltype(cb)>(cb);
     }
 
     string name() const {
@@ -210,36 +201,42 @@ namespace modules {
     }
 
     bool running() const {
-      return CONST_MOD(Impl).enabled();
+      return m_enabled.load(std::memory_order_relaxed);
     }
 
     void setup() {
-      m_log.trace("%s: Setup", name());
+      m_log.trace("%s: Setup", m_name);
 
       try {
         CAST_MOD(Impl)->setup();
-      } catch (const module_error& err) {
-        m_log.err("%s: Setup failed", name());
-        CAST_MOD(Impl)->halt(err.what());
       } catch (const std::exception& err) {
-        m_log.err("%s: Setup failed", name());
-        CAST_MOD(Impl)->halt(err.what());
+        m_log.err("%s: Setup failed", m_name);
+        halt(err.what());
       }
     }
 
     void stop() {
-      if (!enabled())
+      if (!running()) {
         return;
-
-      std::unique_lock<threading_util::spin_lock> lck(m_updatelock);
-      {
-        enable(false);
-        CAST_MOD(Impl)->teardown();
-        m_log.trace("%s: Stop", name());
       }
 
-      if (m_terminator)
-        m_terminator(name());
+      m_log.info("%s: Stopping", name());
+      m_enabled.store(false, std::memory_order_relaxed);
+
+      wakeup();
+
+      std::lock_guard<threading_util::spin_lock> guard(m_lock);
+      {
+        CAST_MOD(Impl)->teardown();
+
+        if (m_mainthread.joinable()) {
+          m_mainthread.join();
+        }
+      }
+
+      if (m_stop_callback) {
+        m_stop_callback();
+      }
     }
 
     void halt(string error_message) {
@@ -248,9 +245,7 @@ namespace modules {
       stop();
     }
 
-    void teardown() {
-      CAST_MOD(Impl)->wakeup();
-    }
+    void teardown() {}
 
     string contents() {
       return m_cache;
@@ -265,22 +260,15 @@ namespace modules {
     }
 
    protected:
-    bool enabled() const {
-      return m_enabled;
-    }
-
-    void enable(bool state) {
-      m_enabled = state;
-    }
-
     void broadcast() {
-      if (!enabled())
+      if (!running()) {
         return;
+      }
 
       m_cache = CAST_MOD(Impl)->get_output();
 
-      if (m_writer)
-        m_writer(name());
+      if (m_update_callback)
+        m_update_callback();
       else
         m_log.warn("%s: No handler, ignoring broadcast...", name());
     }
@@ -302,7 +290,7 @@ namespace modules {
     }
 
     string get_output() {
-      if (!enabled()) {
+      if (!running()) {
         m_log.trace("%s: Module is disabled", name());
         return "";
       }
@@ -334,11 +322,10 @@ namespace modules {
     }
 
    protected:
-    function<void(string)> m_writer;
-    function<void(string)> m_terminator;
+    callback<> m_update_callback;
+    callback<> m_stop_callback;
 
-    threading_util::spin_lock m_updatelock;
-    // std::timed_mutex m_mutex;
+    threading_util::spin_lock m_lock;
 
     const bar_settings m_bar;
     const logger& m_log;
@@ -351,11 +338,11 @@ namespace modules {
     unique_ptr<builder> m_builder;
     unique_ptr<module_formatter> m_formatter;
     vector<thread> m_threads;
+    thread m_mainthread;
 
    private:
-    stateflag m_enabled{false};
+    stateflag m_enabled{true};
     string m_cache;
-    thread m_broadcast_thread;
   };
 
   // }}}
@@ -368,8 +355,6 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->enable(true);
-      CAST_MOD(Impl)->setup();
       CAST_MOD(Impl)->broadcast();
     }
 
@@ -389,8 +374,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->enable(true);
-      CAST_MOD(Impl)->m_threads.emplace_back(thread(&timer_module::runner, this));
+      CAST_MOD(Impl)->m_mainthread = thread(&timer_module::runner, this);
     }
 
    protected:
@@ -398,11 +382,9 @@ namespace modules {
 
     void runner() {
       try {
-        CAST_MOD(Impl)->setup();
-
-        while (CONST_MOD(Impl).enabled()) {
+        while (CONST_MOD(Impl).running()) {
+          std::lock_guard<threading_util::spin_lock> guard(this->m_lock);
           {
-            std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
             if (CAST_MOD(Impl)->update())
               CAST_MOD(Impl)->broadcast();
           }
@@ -425,34 +407,36 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->enable(true);
-      CAST_MOD(Impl)->m_threads.emplace_back(thread(&event_module::runner, this));
+      CAST_MOD(Impl)->m_mainthread = thread(&event_module::runner, this);
     }
 
    protected:
     void runner() {
       try {
-        CAST_MOD(Impl)->setup();
+        // Send initial broadcast to warmup cache
+        if (CONST_MOD(Impl).running()) {
+          CAST_MOD(Impl)->update();
+          CAST_MOD(Impl)->broadcast();
+        }
 
-        // warmup
-        CAST_MOD(Impl)->update();
-        CAST_MOD(Impl)->broadcast();
-
-        while (CONST_MOD(Impl).enabled()) {
+        while (CONST_MOD(Impl).running()) {
           CAST_MOD(Impl)->idle();
 
-          if (!CONST_MOD(Impl).enabled())
+          if (!CONST_MOD(Impl).running())
             break;
 
-          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
+          std::lock_guard<threading_util::spin_lock> guard(this->m_lock);
           {
             if (!CAST_MOD(Impl)->has_event())
               continue;
-            else if (!CAST_MOD(Impl)->update())
+            if (!CONST_MOD(Impl).running())
+              break;
+            if (!CAST_MOD(Impl)->update())
               continue;
-            else
-              CAST_MOD(Impl)->broadcast();
           }
+
+          if (CONST_MOD(Impl).running())
+            CAST_MOD(Impl)->broadcast();
         }
       } catch (const module_error& err) {
         CAST_MOD(Impl)->halt(err.what());
@@ -471,18 +455,19 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->enable(true);
-      CAST_MOD(Impl)->m_threads.emplace_back(thread(&inotify_module::runner, this));
+      CAST_MOD(Impl)->m_mainthread = thread(&inotify_module::runner, this);
     }
 
    protected:
     void runner() {
       try {
-        CAST_MOD(Impl)->setup();
-        CAST_MOD(Impl)->on_event(nullptr);  // warmup
-        CAST_MOD(Impl)->broadcast();
+        // Send initial broadcast to warmup cache
+        if (CONST_MOD(Impl).running()) {
+          CAST_MOD(Impl)->on_event(nullptr);
+          CAST_MOD(Impl)->broadcast();
+        }
 
-        while (CAST_MOD(Impl)->enabled()) {
+        while (CONST_MOD(Impl).running()) {
           CAST_MOD(Impl)->poll_events();
         }
       } catch (const module_error& err) {
@@ -517,22 +502,28 @@ namespace modules {
         return;
       }
 
-      while (CONST_MOD(Impl).enabled()) {
-        for (auto&& w : watches) {
-          this->m_log.trace_x("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());
-          std::lock_guard<threading_util::spin_lock> lck(this->m_updatelock);
+      while (CONST_MOD(Impl).running()) {
+        std::unique_lock<threading_util::spin_lock> guard(this->m_lock);
+        {
+          for (auto&& w : watches) {
+            this->m_log.trace_x("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());
 
-          if (w->poll(1000 / watches.size())) {
-            auto event = w->get_event();
+            if (w->poll(1000 / watches.size())) {
+              auto event = w->get_event();
 
-            w->remove();
+              w->remove();
 
-            if (CAST_MOD(Impl)->on_event(event.get()))
-              CAST_MOD(Impl)->broadcast();
+              if (CAST_MOD(Impl)->on_event(event.get()))
+                CAST_MOD(Impl)->broadcast();
 
-            return;
+              return;
+            }
+
+            if (!CONST_MOD(Impl).running())
+              break;
           }
         }
+        guard.unlock();
         CAST_MOD(Impl)->idle();
       }
     }
