@@ -1,36 +1,46 @@
 # Template file for 'lemonbuddy'
 pkgname=lemonbuddy
-version=1.4.4
+version=2.1.9
 revision=1
-_i3ipcpp_version=0.3.0
-_xpp_version=1.0.0
+wrksrc="${pkgname}-${version}"
+_i3ipcpp_version=0.5.1
+_xpp_version=1.3.0
 build_style=cmake
 configure_args="
+	-DCMAKE_CXX_COMPILER=clang++
+	-DCMAKE_CXX_FLAGS=-fPIE
+	-DCMAKE_EXE_LINKER_FLAGS=-pie
 	-DENABLE_ALSA=$(vopt_if alsa ON OFF)
 	-DENABLE_I3=$(vopt_if i3 ON OFF)
 	-DENABLE_MPD=$(vopt_if mpd ON OFF)
 	-DENABLE_NETWORK=$(vopt_if network ON OFF)"
+depends=("libXft" "xcb-util-wm")
 hostmakedepends="clang pkg-config xcb-proto"
-makedepends="libX11-devel libxcb-devel boost-devel
-	${build_option_alsa:+alsa-lib-devel}
-	${build_option_i3:+i3-devel i3ipc-glib-devel libsigc++-devel jsoncpp-devel}
-	${build_option_mpd:+libmpdclient-devel}
-	${build_option_network:+wireless_tools-devel}"
-short_desc="A fast and easy-to-use tool for Lemonbar"
+makedepends="libxcb-devel libXft-devel xcb-util-wm-devel boost-devel
+	$(vopt_if alsa alsa-lib-devel)
+	$(vopt_if i3 "i3-devel jsoncpp-devel")
+	$(vopt_if mpd libmpdclient-devel)
+	$(vopt_if network wireless_tools-devel)"
+short_desc="A fast and easy-to-use status bar"
 maintainer="Michael Carlberg <c@rlberg.se>"
 license="MIT"
 homepage="https://github.com/jaagr/lemonbuddy"
 distfiles="
 	https://github.com/jaagr/lemonbuddy/archive/${version}.tar.gz
 	https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
-	${build_option_i3:+https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz}"
+	$(vopt_if i3 "https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz")"
 checksum="
-	09de151bea68bcb3d646e65628b1ce5c3bb89a2a1426bb69996976468e9c13e8
-	a0f0f7b3f007e6302835fe7dfb7b935df8c4ab8c9f76b30afb652a04199158e9
-	${build_option_i3:+85b588f957740f89a275b4b2acc27cab78ee2606f5e68e62ce61b9c1278bb366}"
+	f7e1c24d0c0abc3173da56d3586ab0c977f1c973b4ba1d8cda6fa1372d02426d
+	f66b5ff4881d359521a1516c3fd87a5ace2e95e0ca2e6a1e0ab7b66cc6d3f582
+	$(vopt_if i3 2c5243e1d3be787f8e64ce5b1a3c087999e2ccaeea1db317f6ab2df3556fa952)"
 
 build_options="alsa i3 mpd network"
 build_options_default="$build_options"
+
+case "$XBPS_TARGET_MACHINE" in
+	arm*) broken="cross-compiler with c++14 support";;
+	aarch64-musl) CXXFLAGS="-D_LINUX_IF_ETHER_H";;
+esac
 
 post_extract() {
 	[ -d ../i3ipcpp-${_i3ipcpp_version} ] && \
@@ -39,8 +49,10 @@ post_extract() {
 		mv ../xpp-${_xpp_version}/* lib/xpp/ || true
 }
 
-pre_build() {
-	./version.sh ${version}
+pre_configure() {
+	export CFLAGS="$(echo $CFLAGS | sed 's/-specs=.* //g')"
+	export CXXFLAGS="$(echo $CXXFLAGS | sed 's/-specs=.* //g')"
+	export LDFLAGS="$(echo $LDFLAGS | sed 's/-specs=.* //g')"
 }
 
 post_install() {
