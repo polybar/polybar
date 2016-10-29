@@ -43,8 +43,6 @@ namespace modules {
     }
 
     void idle() {
-      if (!enabled())
-        sleep(100ms);
       if (!m_tail)
         sleep(m_interval);
       else if (!m_command || !m_command->is_running())

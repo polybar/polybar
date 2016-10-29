@@ -17,6 +17,10 @@ namespace mpd {
   DEFINE_CHILD_ERROR(client_error, mpd_exception);
   DEFINE_CHILD_ERROR(server_error, mpd_exception);
 
+  enum class connection_state {
+    NONE = 0, CONNECTED, DISCONNECTED
+  };
+
   // type details {{{
 
   namespace details {
@@ -123,12 +127,14 @@ namespace mpd {
   class mpdstatus;
   class mpdconnection {
    public:
-    explicit mpdconnection(const logger& logger, string host, unsigned int port = 6600, string password = "", unsigned int timeout = 15)
-      : m_log(logger), m_host(host), m_port(port), m_password(password), m_timeout(timeout) {}
+    explicit mpdconnection(const logger& logger, string host, unsigned int port = 6600,
+        string password = "", unsigned int timeout = 15)
+        : m_log(logger), m_host(host), m_port(port), m_password(password), m_timeout(timeout) {}
 
     void connect() {
       try {
-        m_log.trace("mpdconnection.connect: %s, %i, \"%s\", timeout: %i", m_host, m_port, m_password, m_timeout);
+        m_log.trace("mpdconnection.connect: %s, %i, \"%s\", timeout: %i", m_host, m_port,
+            m_password, m_timeout);
         m_connection.reset(mpd_connection_new(m_host.c_str(), m_port, m_timeout * 1000));
         check_errors(m_connection.get());
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <csignal>
+
 #include "adapters/mpd.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
@@ -99,61 +101,75 @@ namespace modules {
     }
 
     bool has_event() {
-      if (!m_mpd)
-        m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+      bool def = false;
+
+      if (!connected() && m_statebroadcasted == mpd::connection_state::CONNECTED) {
+        def = true;
+      } else if (connected() && m_statebroadcasted == mpd::connection_state::DISCONNECTED) {
+        def = true;
+      }
 
       try {
+        if (!m_mpd)
+          m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
         if (!connected())
           m_mpd->connect();
-        if (m_connection_state_broadcasted)
-          m_connection_state_broadcasted = false;
       } catch (const mpd_exception& err) {
         m_log.trace("%s: %s", name(), err.what());
         m_mpd.reset();
-        return !m_connection_state_broadcasted;
+        return def;
       }
 
       if (!connected())
-        return !m_connection_state_broadcasted;
+        return def;
 
       if (!m_status)
         m_status = m_mpd->get_status_safe();
 
       try {
         m_mpd->idle();
+
         int idle_flags = 0;
+
         if ((idle_flags = m_mpd->noidle()) != 0) {
           m_status->update(idle_flags, m_mpd.get());
           return true;
-        } else if (m_status->match_state(mpdstate::PLAYING)) {
+        }
+
+        if (m_status->match_state(mpdstate::PLAYING)) {
           m_status->update_timer();
         }
       } catch (const mpd_exception& err) {
         m_log.err(err.what());
         m_mpd.reset();
-        return !m_connection_state_broadcasted;
+        return def;
       }
 
       if ((m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING)) {
         auto now = chrono::system_clock::now();
         auto diff = now - m_lastsync;
+
         if (chrono::duration_cast<chrono::milliseconds>(diff).count() > m_synctime * 1000) {
           m_lastsync = now;
           return true;
         }
       }
 
-      return !m_connection_state_broadcasted;
+      return def;
     }
 
     bool update() {
-      if (m_connection_state_broadcasted) {
-        if (!connected())
+      if (connected())
+        m_statebroadcasted = mpd::connection_state::CONNECTED;
+      else if (!connected() && m_statebroadcasted != mpd::connection_state::DISCONNECTED)
+        m_statebroadcasted = mpd::connection_state::DISCONNECTED;
+      else if (!connected())
+        return false;
+
+      if (!m_status) {
+        if (connected() && (m_status = m_mpd->get_status_safe())) {
           return false;
-        if (!m_status && !(m_status = m_mpd->get_status_safe()))
-          return false;
-      } else {
-        m_connection_state_broadcasted = true;
+        }
       }
 
       string artist;
@@ -167,8 +183,10 @@ namespace modules {
           elapsed_str = m_status->get_formatted_elapsed();
           total_str = m_status->get_formatted_total();
         }
+
         if (m_mpd) {
           auto song = m_mpd->get_song();
+
           if (song && song.get()) {
             artist = song->get_artist();
             album = song->get_album();
@@ -377,7 +395,7 @@ namespace modules {
 
     // This flag is used to let thru a broadcast once every time
     // the connection state changes
-    stateflag m_connection_state_broadcasted{false};
+    mpd::connection_state m_statebroadcasted;
   };
 }
 
