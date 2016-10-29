@@ -15,6 +15,7 @@ pkgbase = lemonbuddy-git
 	optdepends = alsa-lib: volume module support
 	optdepends = libmpdclient: mpd module support
 	optdepends = wireless_tools: network module support
+	optdepends = jsoncpp: i3 module support
 	optdepends = i3ipc-glib-git: i3 module support
 	provides = lemonbuddy
 	conflicts = lemonbuddy

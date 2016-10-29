@@ -11,6 +11,7 @@ depends=("libxft" "xcb-util-wm")
 optdepends=("alsa-lib: volume module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
+            "jsoncpp: i3 module support"
             "i3ipc-glib-git: i3 module support")
 makedepends=("cmake" "python2" "pkg-config" "boost")
 conflicts=("lemonbuddy-git")
