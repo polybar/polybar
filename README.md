@@ -89,7 +89,7 @@ $ apt-get install cmake cmake-data libboost-dev libfreetype6-dev libxcb1-dev lib
 Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 2.1.9 --recursive https://github.com/jaagr/lemonbuddy
+  $ git clone --branch 2.1.10 --recursive https://github.com/jaagr/lemonbuddy
   $ mkdir lemonbuddy/build
   $ cd lemonbuddy/build
   $ cmake -DCMAKE_BUILD_TYPE=Release ..
