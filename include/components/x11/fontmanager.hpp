@@ -188,17 +188,20 @@ class fontmanager {
       m_logger.trace("Found X font '%s'", fontname);
 
       auto query = m_connection.query_font(xfont);
+      if (query->char_infos_len == 0) {
+        m_logger.warn("X font '%s' does not contain any characters... (Verify the XLFD string)", fontname);
+        return false;
+      }
+
       fontptr->descent = query->font_descent;
       fontptr->height = query->font_ascent + query->font_descent;
       fontptr->width = query->max_bounds.character_width;
       fontptr->char_max = query->max_byte1 << 8 | query->max_char_or_byte2;
       fontptr->char_min = query->min_byte1 << 8 | query->min_char_or_byte2;
 
-      if (query->char_infos_len > 0) {
-        auto chars = query.char_infos();
-        for (auto it = chars.begin(); it != chars.end(); it++)
-          fontptr->width_lut.emplace_back(forward<xcb_charinfo_t>(*it));
-      }
+      auto chars = query.char_infos();
+      for (auto it = chars.begin(); it != chars.end(); it++)
+        fontptr->width_lut.emplace_back(forward<xcb_charinfo_t>(*it));
 
       fontptr->ptr = xfont;
 
