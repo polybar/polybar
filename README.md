@@ -61,8 +61,7 @@ available for more people.
 
 ### Dependencies
 
-A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_started.html).
-
+A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
 - cmake
 - boost
 - xcb-util-wm
@@ -71,9 +70,13 @@ A compiler with c++14 support. For example [`clang`](http://clang.llvm.org/get_s
 
 Optional dependencies for module support:
 
-- wireless_tools (required for `internal/network` support)
-- alsa-lib (required for `internal/volume` support)
-- libmpdclient (required for `internal/mpd` support)
+- jsoncpp (required by `internal/i3`)
+  - Because some distributions only offer pre-historic releases of jsoncpp,
+    a local copy of the library source (jsoncpp-1.7.7) will be built and linked
+    statically as a fallback if a valid version is not found.
+- wireless_tools (required by `internal/network`)
+- alsa-lib (required by `internal/volume`)
+- libmpdclient (required by `internal/mpd`)
 
 ~~~ sh
 $ pacman -S cmake python2 boost xcb-util-wm libxft wireless_tools alsa-lib libmpdclient
