@@ -174,16 +174,8 @@ namespace net {
     /**
      * Test if the network interface is in a valid state
      */
-    bool test_interface(struct ifreq& request) const {
-      if ((ioctl(m_socketfd, SIOCGIFFLAGS, &request)) == -1)
-        return false;
-      if ((request.ifr_flags & IFF_UP) == 0)
-        return false;
-      if ((request.ifr_flags & IFF_RUNNING) == 0)
-        return false;
-
+    bool test_interface() const {
       auto operstate = file_util::get_contents("/sys/class/net/" + m_interface + "/operstate");
-
       return operstate.compare(0, 2, "up") == 0;
     }
 
@@ -246,15 +238,15 @@ namespace net {
      * Check current connection state
      */
     bool connected() const override {
+      if (!network::test_interface())
+        return false;
+
       struct ifreq request;
       struct ethtool_value ethernet_data;
 
       strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
       ethernet_data.cmd = ETHTOOL_GLINK;
       request.ifr_data = reinterpret_cast<caddr_t>(&ethernet_data);
-
-      if (!network::test_interface(request))
-        return false;
 
       if (ioctl(m_socketfd, SIOCETHTOOL, &request) != -1)
         return ethernet_data.data != 0;
@@ -315,10 +307,13 @@ namespace net {
      * Check current connection state
      */
     bool connected() const override {
+      if (!network::test_interface())
+        return false;
+
       struct ifreq request;
       strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
 
-      if (!network::test_interface(request))
+      if ((ioctl(m_socketfd, SIOCGIFFLAGS, &request)) == -1)
         return false;
       if (m_essid.empty())
         return false;
