@@ -31,7 +31,9 @@ prepare() {
 }
 
 build() {
-  cd "${_pkgname}/build" || exit
+  cd "${_pkgname}" || exit
+  [ -x version.sh ] && ./version.sh >/dev/null
+  cd build || exit
   cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
   make
 }
