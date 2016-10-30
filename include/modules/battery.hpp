@@ -13,6 +13,7 @@
 LEMONBUDDY_NS
 
 namespace modules {
+  enum class battery_state { NONE = 0, UNKNOWN, CHARGING, DISCHARGING, FULL };
   class battery_module : public inotify_module<battery_module> {
    public:
     using inotify_module::inotify_module;
@@ -27,9 +28,6 @@ namespace modules {
       m_path_capacity = string_util::replace(PATH_BATTERY_CAPACITY, "%battery%", m_battery);
       m_path_adapter = string_util::replace(PATH_ADAPTER_STATUS, "%adapter%", m_adapter);
 
-      m_state = STATE_UNKNOWN;
-      m_percentage = 0;
-
       // }}}
       // Validate paths {{{
 
@@ -37,6 +35,12 @@ namespace modules {
         throw module_error("The file '" + m_path_capacity + "' does not exist");
       if (!file_util::exists(m_path_adapter))
         throw module_error("The file '" + m_path_adapter + "' does not exist");
+
+      // }}}
+      // Load state and capacity level {{{
+
+      m_percentage = current_percentage();
+      m_state = current_state();
 
       // }}}
       // Add formats and elements {{{
@@ -75,74 +79,55 @@ namespace modules {
     }
 
     void start() {
-      m_threads.emplace_back(thread(&battery_module::subthread_routine, this));
+      m_threads.emplace_back(thread(&battery_module::subthread, this));
       inotify_module::start();
     }
 
+    void teardown() {
+      wakeup();
+    }
+
     bool on_event(inotify_event* event) {
-      if (event != nullptr)
+      if (event != nullptr) {
         m_log.trace("%s: %s", name(), event->filename);
-
-      auto status = file_util::get_contents(m_path_adapter);
-      if (status.empty()) {
-        m_log.err("%s: Failed to read '%s'", name(), m_path_adapter);
-        return false;
+        m_notified.store(true, std::memory_order_relaxed);
       }
 
-      auto capacity = file_util::get_contents(m_path_capacity);
-      if (capacity.empty()) {
-        m_log.err("%s: Failed to read '%s'", name(), m_path_capacity);
-        return false;
+      auto state = current_state();
+      int percentage = m_percentage;
+
+      if (state != battery_state::FULL) {
+        percentage = current_percentage();
       }
 
-      int percentage = math_util::cap<float>(std::atof(capacity.c_str()), 0, 100) + 0.5;
-      int state = STATE_UNKNOWN;
-
-      switch (status[0]) {
-        case '0':
-          state = STATE_DISCHARGING;
-          break;
-        case '1':
-          state = STATE_CHARGING;
-          break;
-      }
-
-      if (state == STATE_CHARGING) {
-        if (percentage >= m_fullat)
-          percentage = 100;
-        if (percentage == 100)
-          state = STATE_FULL;
-      }
-
-      // check for nullptr since we don't want to ignore the update for the warmup run
+      // Ignore unchanged state
       if (event != nullptr && m_state == state && m_percentage == percentage) {
-        m_log.trace("%s: Ignore update since values are unchanged", name());
         return false;
       }
+
+      m_percentage = percentage;
+      m_state = state;
 
       if (m_label_charging) {
         m_label_charging->reset_tokens();
-        m_label_charging->replace_token("%percentage%", to_string(percentage) + "%");
+        m_label_charging->replace_token("%percentage%", to_string(m_percentage) + "%");
       }
       if (m_label_discharging) {
         m_label_discharging->reset_tokens();
-        m_label_discharging->replace_token("%percentage%", to_string(percentage) + "%");
+        m_label_discharging->replace_token("%percentage%", to_string(m_percentage) + "%");
       }
       if (m_label_full) {
         m_label_full->reset_tokens();
-        m_label_full->replace_token("%percentage%", to_string(percentage) + "%");
+        m_label_full->replace_token("%percentage%", to_string(m_percentage) + "%");
       }
-
-      m_state = state;
-      m_percentage = percentage;
 
       return true;
     }
 
     string get_format() const {
-      if (m_state == STATE_FULL)
+      if (m_state == battery_state::FULL)
         return FORMAT_FULL;
-      else if (m_state == STATE_CHARGING)
+      else if (m_state == battery_state::CHARGING)
         return FORMAT_CHARGING;
       else
         return FORMAT_DISCHARGING;
@@ -167,42 +152,76 @@ namespace modules {
     }
 
    protected:
-    void subthread_routine() {
-      this_thread::yield();
+    /**
+     * Read the current adapter state from
+     */
+    battery_state current_state() {
+      auto adapter_status = file_util::get_contents(m_path_adapter);
 
+      if (adapter_status.empty()) {
+        return battery_state::UNKNOWN;
+      } else if (adapter_status[0] == '0') {
+        return battery_state::DISCHARGING;
+      } else if (adapter_status[0] != '1') {
+        return battery_state::UNKNOWN;
+      } else if (m_percentage < m_fullat) {
+        return battery_state::CHARGING;
+      } else {
+        return battery_state::FULL;
+      }
+    }
+
+    /**
+     * Get the current capacity level
+     */
+    int current_percentage() {
+      auto capacity = file_util::get_contents(m_path_capacity);
+      auto value = math_util::cap<int>(std::atof(capacity.c_str()), 0, 100);
+
+      if (value >= m_fullat) {
+        return 100;
+      } else {
+        return value;
+      }
+    }
+
+    /**
+     * Subthread runner that emit update events
+     * to refresh <animation-charging> in case it is used.
+     *
+     * Will also poll for events as fallback for systems that
+     * doesn't report inotify events for files on sysfs
+     */
+    void subthread() {
       chrono::duration<double> dur = 1s;
 
-      if (m_animation_charging)
+      if (m_animation_charging) {
         dur = chrono::duration<double>(float(m_animation_charging->framerate()) / 1000.0f);
-
-      int i = 0;
-      const int poll_seconds = m_conf.get<float>(name(), "poll-interval", 3.0f) / dur.count();
-
-      while (running()) {
-        // TODO(jaagr): Keep track of when the values were last read to determine
-        // if we need to trigger the event manually or not.
-        if (poll_seconds > 0 && (++i % poll_seconds) == 0) {
-          // Trigger an inotify event in case the underlying filesystem doesn't
-          m_log.trace("%s: Poll battery capacity", name());
-          file_util::get_contents(m_path_capacity);
-          i = 0;
-        }
-
-        if (m_state == STATE_CHARGING)
-          broadcast();
-
-        sleep(dur);
       }
 
-      m_log.trace("%s: Reached end of battery subthread", name());
+      const int interval = m_conf.get<float>(name(), "poll-interval", 3.0f) / dur.count();
+
+      while (running()) {
+        for (int i = 0; running() && i < interval; ++i) {
+          if (m_state == battery_state::CHARGING) {
+            broadcast();
+          }
+          sleep(dur);
+        }
+
+        if (!running() || m_state == battery_state::CHARGING) {
+          continue;
+        }
+
+        if (!m_notified.load(std::memory_order_relaxed)) {
+          file_util::get_contents(m_path_capacity);
+        }
+      }
+
+      m_log.trace("%s: End of subthread", name());
     }
 
    private:
-    static const int STATE_UNKNOWN = 1;
-    static const int STATE_CHARGING = 2;
-    static const int STATE_DISCHARGING = 3;
-    static const int STATE_FULL = 4;
-
     static constexpr auto FORMAT_CHARGING = "format-charging";
     static constexpr auto FORMAT_DISCHARGING = "format-discharging";
     static constexpr auto FORMAT_FULL = "format-full";
@@ -226,9 +245,12 @@ namespace modules {
     string m_path_capacity;
     string m_path_adapter;
 
-    int m_state;
-    int m_percentage;
-    int m_fullat;
+    battery_state m_state = battery_state::UNKNOWN;
+    std::atomic_int m_percentage{0};
+
+    stateflag m_notified{false};
+
+    int m_fullat = 100;
   };
 }
 

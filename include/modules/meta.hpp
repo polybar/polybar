@@ -176,10 +176,8 @@ namespace modules {
         , m_builder(make_unique<builder>(bar))
         , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
 
-    ~module() {
+    ~module() noexcept {
       m_log.trace("%s: Deconstructing", name());
-
-      assert(!running());
 
       for (auto&& thread_ : m_threads) {
         if (thread_.joinable()) {
@@ -511,10 +509,17 @@ namespace modules {
             if (w->poll(1000 / watches.size())) {
               auto event = w->get_event();
 
-              w->remove();
+              for (auto&& w : watches) {
+                try {
+                  w->remove();
+                } catch (const system_error&) {
+                }
+              }
 
               if (CAST_MOD(Impl)->on_event(event.get()))
                 CAST_MOD(Impl)->broadcast();
+
+              CAST_MOD(Impl)->idle();
 
               return;
             }
