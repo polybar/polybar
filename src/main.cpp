@@ -13,8 +13,6 @@
 using namespace lemonbuddy;
 
 int main(int argc, char** argv) {
-  XInitThreads();
-
   logger& logger{configure_logger<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
 
   //==================================================
