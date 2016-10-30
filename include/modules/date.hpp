@@ -39,17 +39,17 @@ namespace modules {
       return true;
     }
 
-    string get_output() {
+    bool build(builder* builder, string tag) const {
+      if (tag != TAG_DATE) {
+        return false;
+      }
+
       if (!m_formatalt.empty())
         m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
-      m_builder->node(timer_module::get_output());
-      return m_builder->flush();
-    }
 
-    bool build(builder* builder, string tag) const {
-      if (tag == TAG_DATE)
-        builder->node(m_buffer);
-      return tag == TAG_DATE;
+      builder->node(m_buffer);
+
+      return true;
     }
 
     bool handle_event(string cmd) {
