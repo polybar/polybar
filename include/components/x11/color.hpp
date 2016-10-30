@@ -47,7 +47,7 @@ class color {
   }
 
   uint32_t alpha() const {
-    return 0xFFFF & (((value() >> 24)) | ((value() >> 24)));
+    return 0xFFFF & (((value() >> 24) << 8) | ((value() >> 24)));
   }
 
   uint32_t red() const {
