@@ -94,14 +94,6 @@ class controller {
     m_log.info("Interrupting X event loop");
     m_connection.send_dummy_event(m_connection.root());
 
-    if (m_confwatch) {
-      try {
-        m_log.info("Removing config watch");
-        m_confwatch->remove();
-      } catch (const system_error& err) {
-      }
-    }
-
     if (!m_threads.empty()) {
       m_log.info("Joining active threads");
       for (auto&& thread : m_threads) {
@@ -229,6 +221,9 @@ class controller {
       kill(getpid(), SIGTERM);
     }
 
+    uninstall_sigmask();
+    uninstall_confwatch();
+
     m_running = false;
 
     return !m_reload;
@@ -236,13 +231,10 @@ class controller {
 
  protected:
   /**
-   * Set signal mask for the current and future threads
+   * Install sigmask to prevent term signals from being raising
    */
   void install_sigmask() {
-    if (!m_running)
-      return;
-
-    m_log.trace("controller: Set sigmask for current and future threads");
+    m_log.trace("controller: Set pthread_sigmask to block term signals");
 
     sigemptyset(&m_waitmask);
     sigaddset(&m_waitmask, SIGINT);
@@ -257,6 +249,16 @@ class controller {
     sigaddset(&m_ignmask, SIGPIPE);
 
     if (pthread_sigmask(SIG_BLOCK, &m_ignmask, nullptr) == -1)
+      throw system_error();
+  }
+
+  /**
+   * Uninstall sigmask to allow term signals
+   */
+  void uninstall_sigmask() {
+    m_log.trace("controller: Set pthread_sigmask to unblock term signals");
+
+    if (pthread_sigmask(SIG_UNBLOCK, &m_waitmask, nullptr) == -1)
       throw system_error();
   }
 
@@ -298,6 +300,18 @@ class controller {
     });
   }
 
+  void uninstall_confwatch() {
+    if (!m_confwatch) {
+      return;
+    }
+
+    try {
+      m_log.info("Removing config watch");
+      m_confwatch->remove();
+    } catch (const system_error& err) {
+    }
+  }
+
   void wait_for_signal() {
     m_log.trace("controller: Wait for signal");
     m_waiting = true;
@@ -308,12 +322,12 @@ class controller {
     m_log.warn("Termination signal received, shutting down...");
     m_log.trace("controller: Caught signal %d", caught_signal);
 
+    m_reload = (caught_signal == SIGUSR1);
+    m_waiting = false;
+
     if (m_eventloop) {
       m_eventloop->stop();
     }
-
-    m_reload = (caught_signal == SIGUSR1);
-    m_waiting = false;
   }
 
   void wait_for_xevent() {
