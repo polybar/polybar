@@ -47,19 +47,19 @@ class color {
   }
 
   uint32_t alpha() const {
-    return 0xFF & (value() >> 24);
+    return 0xFFFF & (((value() >> 24)) | ((value() >> 24)));
   }
 
   uint32_t red() const {
-    return 0xFF & (rgb() >> 16);
+    return 0xFFFF & (((value() >> 16) << 8) | ((value() >> 16)));
   }
 
   uint32_t green() const {
-    return 0xFF & (rgb() >> 8);
+    return 0xFFFF & (((value() >> 8) << 8) | ((value() >> 8)));
   }
 
   uint32_t blue() const {
-    return 0xFF & rgb();
+    return 0xFFFF & ((value() << 8) | value());
   }
 
   string hex_to_rgb() const {
