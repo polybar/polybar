@@ -22,7 +22,9 @@ static map<string, class color> g_colorstore;
 class color {
  public:
   explicit color(string hex) : m_hex(string_util::upper(hex)) {
-    m_rgba.v = static_cast<uint32_t>(strtoul(&hex[1], nullptr, 16));
+    m_rgba.v = (strtoul(&hex[1], nullptr, 16));
+    m_rgb = (m_rgba.v << 8) >> 8;
+
     // premultiply alpha
     m_rgba._.r = m_rgba._.r * m_rgba._.a / 255;
     m_rgba._.g = m_rgba._.g * m_rgba._.a / 255;
@@ -33,14 +35,34 @@ class color {
     char buffer[7];
     snprintf(buffer, sizeof(buffer), "%06x", v);
     m_hex = "#" + string{buffer};
-    m_rgba.v = v;
+    m_rgba.v = (strtoul(&m_hex[1], nullptr, 16));
   }
 
   uint32_t value() const {
     return m_rgba.v;
   }
 
-  string rgb() const {
+  uint32_t rgb() const {
+    return m_rgb;
+  }
+
+  uint32_t alpha() const {
+    return 0xFF & (value() >> 24);
+  }
+
+  uint32_t red() const {
+    return 0xFF & (rgb() >> 16);
+  }
+
+  uint32_t green() const {
+    return 0xFF & (rgb() >> 8);
+  }
+
+  uint32_t blue() const {
+    return 0xFF & rgb();
+  }
+
+  string hex_to_rgb() const {
     // clang-format off
     return string_util::from_stream(stringstream()
         << "#"
@@ -52,7 +74,7 @@ class color {
     // clang-format on
   }
 
-  string hex() const {
+  string hex_to_rgba() const {
     return m_hex;
   }
 
@@ -82,6 +104,7 @@ class color {
 
  protected:
   rgba m_rgba;
+  unsigned long m_rgb;
   string m_hex;
 };
 

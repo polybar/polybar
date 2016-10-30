@@ -7,8 +7,22 @@ int main() {
 
   "color"_test = [] {
     color test{"#33990022"};
-    expect(test.hex() == "#33990022");
-    expect(test.rgb() == "#1E0006");
+    expect(test.hex_to_rgba() == "#33990022");
+    expect(test.hex_to_rgb() == "#1E0006");
+  };
+
+  "channels"_test = [] {
+    color test{"#eefb9281"};
+    expect(test.alpha() == 0xee);
+    expect(test.red() == 0xfb);
+    expect(test.green() == 0x92);
+    expect(test.blue() == 0x81);
+  };
+
+  "base"_test = [] {
+    color test{"#eefb9281"};
+    auto hex = test.hex_to_rgb();
+    expect(std::strtoul(&hex[0], 0, 16) == 0x000000);
   };
 
   "cache"_test = [] {
@@ -23,13 +37,13 @@ int main() {
   };
 
   "predefined"_test = [] {
-    expect(g_colorblack.hex() == "#FF000000");
-    expect(g_colorwhite.hex() == "#FFFFFFFF");
+    expect(g_colorblack.hex_to_rgba() == "#FF000000");
+    expect(g_colorwhite.hex_to_rgba() == "#FFFFFFFF");
   };
 
   "parse"_test = [] {
-    expect(color::parse("#ff9900", g_colorblack).hex() == "#FFFF9900");
-    expect(color::parse("invalid", g_colorwhite).hex() == "#FFFFFFFF");
-    expect(color::parse("33990022", g_colorwhite).rgb() == "#1E0006");
+    expect(color::parse("#ff9900", g_colorblack).hex_to_rgba() == "#FFFF9900");
+    expect(color::parse("invalid", g_colorwhite).hex_to_rgba() == "#FFFFFFFF");
+    expect(color::parse("33990022", g_colorwhite).hex_to_rgb() == "#1E0006");
   };
 }

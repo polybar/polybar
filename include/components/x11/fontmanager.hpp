@@ -51,8 +51,8 @@ class fontmanager {
   explicit fontmanager(connection& conn, const logger& logger)
       : m_connection(conn), m_logger(logger) {
     m_display = xlib::get_display();
-    m_visual = xlib::get_visual();
-    m_colormap = XDefaultColormap(m_display, 0);
+    m_visual = xlib::get_visual(conn.default_screen());
+    m_colormap = xlib::create_colormap(conn.default_screen());
   }
 
   ~fontmanager() {
@@ -170,8 +170,15 @@ class fontmanager {
     if (!initial_alloc)
       XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
 
-    if (!XftColorAllocName(m_display, m_visual, m_colormap, xcolor.rgb().c_str(), &m_xftcolor))
-      m_logger.err("Failed to allocate color '%s'", xcolor.hex());
+    XRenderColor color;
+
+    color.red = (xcolor.red()) << 8;
+    color.green = (xcolor.green()) << 8;
+    color.blue = (xcolor.blue()) << 8;
+    color.alpha = xcolor.alpha() << 8;
+
+    if (!XftColorAllocValue(m_display, m_visual, m_colormap, &color, &m_xftcolor))
+      m_logger.err("Failed to allocate color '%s'", xcolor.hex_to_rgba());
   }  // }}}
 
   void set_gcontext_font(gcontext& gc, xcb_font_t font) {  // {{{

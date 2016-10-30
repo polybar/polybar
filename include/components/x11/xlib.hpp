@@ -8,7 +8,7 @@ LEMONBUDDY_NS
 
 namespace xlib {
   static Display* g_display = nullptr;
-  static Visual* g_visual = nullptr;
+  static XVisualInfo g_visual_info;
 
   /**
    * Get pointer of Xlib Display
@@ -22,22 +22,16 @@ namespace xlib {
   /**
    * Get pointer of Xlib visual
    */
-  inline Visual* get_visual() {
-    if (g_visual == nullptr) {
-      XVisualInfo xv;
-      xv.depth = 32;
-      int result = 0;
-      auto result_ptr = XGetVisualInfo(get_display(), VisualDepthMask, &xv, &result);
-
-      if (result > 0)
-        g_visual = result_ptr->visual;
-      else
-        g_visual = XDefaultVisual(get_display(), 0);
-
-      free(result_ptr);
+  inline Visual* get_visual(int screen = 0) {
+    if (g_visual_info.visual == nullptr) {
+      XMatchVisualInfo(get_display(), screen, 32, TrueColor, &g_visual_info);
     }
 
-    return g_visual;
+    return g_visual_info.visual;
+  }
+
+  inline Colormap create_colormap(int screen = 0) {
+    return XCreateColormap(get_display(), XRootWindow(get_display(), screen), get_visual(), screen);
   }
 
   /**

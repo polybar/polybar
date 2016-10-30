@@ -106,9 +106,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     // }}}
     // Set bar colors {{{
 
-    m_bar.background = color::parse(m_conf.get<string>(bs, "background", m_bar.background.hex()));
-    m_bar.foreground = color::parse(m_conf.get<string>(bs, "foreground", m_bar.foreground.hex()));
-    m_bar.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", m_bar.linecolor.hex()));
+    m_bar.background = color::parse(m_conf.get<string>(bs, "background", m_bar.background.hex_to_rgba()));
+    m_bar.foreground = color::parse(m_conf.get<string>(bs, "foreground", m_bar.foreground.hex_to_rgba()));
+    m_bar.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", m_bar.linecolor.hex_to_rgba()));
 
     // }}}
     // Set border values {{{
@@ -779,14 +779,14 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    */
   void on_color_change(gc gc_, color color_) {  //{{{
     m_log.trace_x(
-        "bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex(), color_.rgb());
-
-    const uint32_t value_list[32]{color_.value()};
-    m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
+        "bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex_to_rgba(), color_.hex_to_rgb());
 
     if (gc_ == gc::FG) {
       m_fontmanager->allocate_color(color_);
-      m_xfont_color = color::parse(color_.rgb()).value();
+      m_xfont_color = color_.value();
+    } else {
+      const uint32_t value_list[32]{color_.value()};
+      m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
     }
   }  //}}}
 

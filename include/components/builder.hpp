@@ -264,7 +264,7 @@ class builder {
   void background(string color) {
     if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
       color = "#" + color.substr(color.length() - 2);
-      auto bg = m_bar.background.hex();
+      auto bg = m_bar.background.hex_to_rgba();
       color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
     } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
       color = color.substr(0, 4);
@@ -295,7 +295,7 @@ class builder {
     auto color(color_);
     if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
       color = "#" + color.substr(color.length() - 2);
-      auto bg = m_bar.foreground.hex();
+      auto bg = m_bar.foreground.hex_to_rgba();
       color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
     } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
       color = color.substr(0, 4);
@@ -315,7 +315,7 @@ class builder {
 
   void color_alpha(string alpha_) {
     auto alpha(alpha_);
-    string val = m_bar.foreground.hex();
+    string val = m_bar.foreground.hex_to_rgba();
     if (alpha.find("#") == std::string::npos) {
       alpha = "#" + alpha;
     }

@@ -144,9 +144,9 @@ namespace drawtypes {
     // avoid color bleed
     if (icon_empty && icon_indicator) {
       if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty())
-        icon_empty->m_background = bar.background.hex();
+        icon_empty->m_background = bar.background.hex_to_rgba();
       if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty())
-        icon_empty->m_foreground = bar.foreground.hex();
+        icon_empty->m_foreground = bar.foreground.hex_to_rgba();
     }
 
     progressbar->set_empty(move(icon_empty));
