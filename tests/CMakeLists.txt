@@ -12,6 +12,7 @@ function(unit_test file)
   add_test(unit_test.${testname} unit_test.${testname})
 endfunction()
 
+unit_test("utils/color")
 unit_test("utils/math")
 unit_test("utils/memory")
 unit_test("utils/string")
