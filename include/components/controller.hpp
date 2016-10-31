@@ -335,14 +335,16 @@ class controller {
 
     m_connection.flush();
 
-    while (true) {
+    while (m_running) {
       shared_ptr<xcb_generic_event_t> evt;
 
-      if ((evt = m_connection.wait_for_event()))
-        m_connection.dispatch_event(evt);
-
-      if (!m_running)
+      if (m_connection.connection_has_error()) {
         break;
+      }
+
+      if ((evt = m_connection.wait_for_event())) {
+        m_connection.dispatch_event(evt);
+      }
     }
   }
 
