@@ -145,8 +145,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     GET_CONFIG_VALUE(bs, m_bar.bottom, "bottom");
     GET_CONFIG_VALUE(bs, m_bar.spacing, "spacing");
     GET_CONFIG_VALUE(bs, m_bar.lineheight, "lineheight");
-    GET_CONFIG_VALUE(bs, m_bar.offset_x, "offset-x");
-    GET_CONFIG_VALUE(bs, m_bar.offset_y, "offset-y");
     GET_CONFIG_VALUE(bs, m_bar.padding_left, "padding-left");
     GET_CONFIG_VALUE(bs, m_bar.padding_right, "padding-right");
     GET_CONFIG_VALUE(bs, m_bar.module_margin_left, "module-margin-left");
@@ -155,13 +153,28 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     auto w = m_conf.get<string>(bs, "width", "100%");
     auto h = m_conf.get<string>(bs, "height", "24");
 
-    m_bar.width = std::atoi(w.c_str());
-    if (w.find("%") != string::npos)
-      m_bar.width = m_bar.monitor->w * (m_bar.width / 100.0) + 0.5f;
+    auto offsetx = m_conf.get<string>(bs, "offset-x", "");
+    auto offsety = m_conf.get<string>(bs, "offset-y", "");
 
-    m_bar.height = std::atoi(h.c_str());
-    if (h.find("%") != string::npos)
-      m_bar.height = m_bar.monitor->h * (m_bar.height / 100.0) + 0.5f;
+    // look for user-defined width
+    if ((m_bar.width = std::atoi(w.c_str())) && w.find("%") != string::npos) {
+      m_bar.width = math_util::percentage_to_value<int>(m_bar.width, m_bar.monitor->w);
+    }
+
+    // look for user-defined  height
+    if ((m_bar.height = std::atoi(h.c_str())) && h.find("%") != string::npos) {
+      m_bar.height = math_util::percentage_to_value<int>(m_bar.height, m_bar.monitor->h);
+    }
+
+    // look for user-defined offset-x
+    if ((m_bar.offset_x = std::atoi(offsetx.c_str())) != 0 && offsetx.find("%") != string::npos) {
+      m_bar.offset_x = math_util::percentage_to_value<int>(m_bar.offset_x, m_bar.monitor->w);
+    }
+
+    // look for user-defined offset-y
+    if ((m_bar.offset_y = std::atoi(offsety.c_str())) != 0 && offsety.find("%") != string::npos) {
+      m_bar.offset_y = math_util::percentage_to_value<int>(m_bar.offset_y, m_bar.monitor->h);
+    }
 
     // apply offsets
     m_bar.x = m_bar.offset_x + m_bar.monitor->x;
