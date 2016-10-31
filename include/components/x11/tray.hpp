@@ -427,7 +427,7 @@ class traymanager
     m_log.trace("tray: Set window _NET_SYSTEM_TRAY_VISUAL");
     const uint32_t values2[1]{m_connection.screen()->root_visual};
     m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_tray,
-        _NET_SYSTEM_TRAY_ORIENTATION, XCB_ATOM_VISUALID, 32, 1, values2);
+        _NET_SYSTEM_TRAY_VISUAL, XCB_ATOM_VISUALID, 32, 1, values2);
 
     m_log.trace("tray: Set window _NET_WM_PID");
     int pid = getpid();
