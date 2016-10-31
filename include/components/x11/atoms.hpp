@@ -26,16 +26,18 @@ static xcb_atom_t WM_PROTOCOLS;
 static xcb_atom_t WM_DELETE_WINDOW;
 static xcb_atom_t _XEMBED;
 static xcb_atom_t _XEMBED_INFO;
-static xcb_atom_t _NET_SYSTEM_TRAY_OPCODE;
 static xcb_atom_t MANAGER;
 static xcb_atom_t WM_STATE;
+static xcb_atom_t _NET_SYSTEM_TRAY_OPCODE;
 static xcb_atom_t _NET_SYSTEM_TRAY_ORIENTATION;
+static xcb_atom_t _NET_SYSTEM_TRAY_VISUAL;
+static xcb_atom_t _NET_SYSTEM_TRAY_COLORS;
 static xcb_atom_t WM_TAKE_FOCUS;
 static xcb_atom_t Backlight;
 static xcb_atom_t BACKLIGHT;
 
 // clang-format off
-static cached_atom ATOMS[24] = {
+static cached_atom ATOMS[26] = {
     {"_NET_WM_NAME", sizeof("_NET_WM_NAME") - 1, &_NET_WM_NAME},
     {"_NET_WM_DESKTOP", sizeof("_NET_WM_DESKTOP") - 1, &_NET_WM_DESKTOP},
     {"_NET_WM_WINDOW_TYPE", sizeof("_NET_WM_WINDOW_TYPE") - 1, &_NET_WM_WINDOW_TYPE},
@@ -53,10 +55,12 @@ static cached_atom ATOMS[24] = {
     {"WM_DELETE_WINDOW", sizeof("WM_DELETE_WINDOW") - 1, &WM_DELETE_WINDOW},
     {"_XEMBED", sizeof("_XEMBED") - 1, &_XEMBED},
     {"_XEMBED_INFO", sizeof("_XEMBED_INFO") - 1, &_XEMBED_INFO},
-    {"_NET_SYSTEM_TRAY_OPCODE", sizeof("_NET_SYSTEM_TRAY_OPCODE") - 1, &_NET_SYSTEM_TRAY_OPCODE},
     {"MANAGER", sizeof("MANAGER") - 1, &MANAGER},
     {"WM_STATE", sizeof("WM_STATE") - 1, &WM_STATE},
+    {"_NET_SYSTEM_TRAY_OPCODE", sizeof("_NET_SYSTEM_TRAY_OPCODE") - 1, &_NET_SYSTEM_TRAY_OPCODE},
     {"_NET_SYSTEM_TRAY_ORIENTATION", sizeof("_NET_SYSTEM_TRAY_ORIENTATION") - 1, &_NET_SYSTEM_TRAY_ORIENTATION},
+    {"_NET_SYSTEM_TRAY_VISUAL", sizeof("_NET_SYSTEM_TRAY_VISUAL") - 1, &_NET_SYSTEM_TRAY_VISUAL},
+    {"_NET_SYSTEM_TRAY_COLORS", sizeof("_NET_SYSTEM_TRAY_COLORS") - 1, &_NET_SYSTEM_TRAY_COLORS},
     {"WM_TAKE_FOCUS", sizeof("WM_TAKE_FOCUS") - 1, &WM_TAKE_FOCUS},
     {"Backlight", sizeof("Backlight") - 1, &Backlight},
     {"BACKLIGHT", sizeof("BACKLIGHT") - 1, &BACKLIGHT},

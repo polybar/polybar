@@ -9,6 +9,7 @@
 #include "components/types.hpp"
 #include "components/x11/connection.hpp"
 #include "components/x11/xembed.hpp"
+#include "utils/color.hpp"
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
 
@@ -141,6 +142,7 @@ class traymanager
       try {
         create_window();
         set_wmhints();
+        set_traycolors();
       } catch (const std::exception& err) {
         m_log.err(err.what());
         m_log.err("Cannot activate traymanager... failed to setup window");
@@ -200,13 +202,13 @@ class traymanager
       g_signals::bar::visibility_change = nullptr;
     }
 
-    m_log.trace("tray: Unembed all clients");
-    m_clients.clear();
-
     if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
       m_log.trace("tray: Unset selection owner");
       m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
     }
+
+    m_log.trace("tray: Unembed clients");
+    m_clients.clear();
 
     if (m_tray != XCB_NONE) {
       if (m_mapped) {
@@ -246,29 +248,36 @@ class traymanager
       }
     }
 
-    if (g_signals::tray::report_slotcount)
-      g_signals::tray::report_slotcount(mapped_clients);
+    m_settings.slots = mapped_clients;
 
-    if (!width && m_mapped) {
-      m_connection.unmap_window_checked(m_tray);
-      return;
-    } else if (width && !m_mapped) {
-      m_connection.map_window_checked(m_tray);
-      m_lastwidth = 0;
-      return;
-    } else if (!width) {
-      return;
+    try {
+      if (g_signals::tray::report_slotcount)
+        g_signals::tray::report_slotcount(mapped_clients);
+
+      if (!width && m_mapped) {
+        m_connection.unmap_window_checked(m_tray);
+        return;
+      } else if (width && !m_mapped) {
+        m_connection.map_window_checked(m_tray);
+        m_lastwidth = 0;
+        return;
+      } else if (!width) {
+        return;
+      } else if ((width += m_settings.spacing) == m_lastwidth) {
+        return;
+      }
+
+      m_lastwidth = width;
+
+      // clear window to get rid of frozen artifacts
+      m_connection.clear_area(1, m_tray, 0, 0, 0, 0);
+
+      // update window
+      const uint32_t val[2]{static_cast<uint32_t>(calculate_x(width)), width};
+      m_connection.configure_window(m_tray, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_WIDTH, val);
+    } catch (const std::exception& err) {
+      m_log.err("Failed to configure tray window (%s)", err.what());
     }
-
-    if ((width += m_settings.spacing) == m_lastwidth) {
-      return;
-    }
-
-    m_lastwidth = width;
-
-    // update window
-    const uint32_t val[2]{static_cast<uint32_t>(calculate_x()), width};
-    m_connection.configure_window(m_tray, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_WIDTH, val);
 
     // reposition clients
     uint32_t pos_x = m_settings.spacing;
@@ -315,10 +324,12 @@ class traymanager
   /**
    * Calculate the tray window's horizontal position
    */
-  int16_t calculate_x() const {
+  int16_t calculate_x(uint32_t width) const {
     auto x = m_settings.orig_x;
     if (m_settings.align == alignment::RIGHT)
       x -= ((m_settings.width + m_settings.spacing) * m_clients.size() + m_settings.spacing);
+    else if (m_settings.align == alignment::CENTER)
+      x -= (width / 2) - (m_settings.width / 2);
     return x;
   }
 
@@ -354,31 +365,29 @@ class traymanager
    * Create tray window
    */
   void create_window() {
-    auto x = calculate_x();
+    auto x = calculate_x(0);
     auto y = calculate_y();
+    auto scr = m_connection.screen();
+
     m_tray = m_connection.generate_id();
     m_log.trace("tray: Create tray window %s, (%ix%i+%i+%i)", m_connection.id(m_tray),
-        m_settings.width, m_settings.height, x, y);
-    auto scr = m_connection.screen();
+        m_settings.width, m_settings.height_fill, x, y);
+
     const uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK;
-    const uint32_t values[3]{m_settings.background, true,
+    const uint32_t values[4]{m_settings.background, true,
         XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+
     m_connection.create_window_checked(scr->root_depth, m_tray, scr->root, x, y,
-        m_settings.width + m_settings.spacing * 2, m_settings.height + m_settings.spacing * 2, 0,
+        m_settings.width + m_settings.spacing * 2, m_settings.height_fill, 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
 
-    try {
-      // Put the tray window above the defined sibling in the window stack
-      if (m_settings.sibling != XCB_NONE) {
-        const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-        const uint32_t value_list[2]{m_settings.sibling, XCB_STACK_MODE_ABOVE};
-        m_connection.configure_window_checked(m_tray, value_mask, value_list);
-        m_connection.flush();
-        m_restacked = true;
-      }
-    } catch (const std::exception& err) {
-      auto id = m_connection.id(m_settings.sibling);
-      m_log.trace("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
+    // Put the tray window above the defined sibling in the window stack
+    if (m_settings.sibling != XCB_NONE) {
+      const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+      const uint32_t value_list[2]{m_settings.sibling, XCB_STACK_MODE_ABOVE};
+      m_connection.configure_window_checked(m_tray, value_mask, value_list);
+      m_connection.flush();
+      m_restacked = true;
     }
   }
 
@@ -415,10 +424,41 @@ class traymanager
     m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_tray,
         _NET_SYSTEM_TRAY_ORIENTATION, _NET_SYSTEM_TRAY_ORIENTATION, 32, 1, values);
 
+    m_log.trace("tray: Set window _NET_SYSTEM_TRAY_VISUAL");
+    const uint32_t values2[1]{m_connection.screen()->root_visual};
+    m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_tray,
+        _NET_SYSTEM_TRAY_ORIENTATION, XCB_ATOM_VISUALID, 32, 1, values2);
+
     m_log.trace("tray: Set window _NET_WM_PID");
     int pid = getpid();
     m_connection.change_property(
         XCB_PROP_MODE_REPLACE, m_tray, _NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, &pid);
+  }
+
+  /**
+   * Set color atom used by clients when determing icon theme
+   */
+  void set_traycolors() {
+    m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_settings.background);
+
+    auto c = color_util::make_32bit(m_settings.background);
+    auto r = color_util::red(c);
+    auto g = color_util::green(c);
+    auto b = color_util::blue(c);
+
+    const uint32_t colors[12] = {
+        r, g, b,  // normal
+        r, g, b,  // error
+        r, g, b,  // warning
+        r, g, b,  // success
+    };
+
+    try {
+      m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_COLORS,
+          XCB_ATOM_CARDINAL, 32, 12, colors);
+    } catch (const std::exception& err) {
+      m_log.err("Failed to set tray colors");
+    }
   }
 
   /**
@@ -480,6 +520,13 @@ class traymanager
   }
 
   /**
+   * Calculates a client's y position
+   */
+  int calculate_client_ypos() {
+    return (m_settings.height_fill - m_settings.height) / 2;
+  }
+
+  /**
    * Process client docking request
    */
   void process_docking_request(xcb_window_t win) {
@@ -526,11 +573,14 @@ class traymanager
       m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client->window());
 
       m_log.trace("tray: Update tray client event mask");
-      const uint32_t event_mask[]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-      m_connection.change_window_attributes_checked(client->window(), XCB_CW_EVENT_MASK, event_mask);
+      const uint32_t event_mask[]{XCB_BACK_PIXMAP_PARENT_RELATIVE,
+          XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+      m_connection.change_window_attributes_checked(
+          client->window(), XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK, event_mask);
 
       m_log.trace("tray: Reparent tray client");
-      m_connection.reparent_window_checked(client->window(), m_tray, m_settings.spacing, m_settings.spacing);
+      m_connection.reparent_window_checked(
+          client->window(), m_tray, m_settings.spacing, calculate_client_ypos());
 
       m_log.trace("tray: Configure tray client size");
       const uint32_t values[]{m_settings.width, m_settings.height};
@@ -623,7 +673,7 @@ class traymanager
     auto client = find_client(evt->window);
     if (client) {
       m_log.trace("tray: Received configure_request for client %s", m_connection.id(evt->window));
-      client->configure_notify(calculate_client_xpos(evt->window), m_settings.spacing,
+      client->configure_notify(calculate_client_xpos(evt->window), calculate_client_ypos(),
           m_settings.width, m_settings.height);
     }
   }
@@ -638,7 +688,7 @@ class traymanager
     auto client = find_client(evt->window);
     if (client) {
       m_log.trace("tray: Received resize_request for client %s", m_connection.id(evt->window));
-      client->configure_notify(calculate_client_xpos(evt->window), m_settings.spacing,
+      client->configure_notify(calculate_client_xpos(evt->window), calculate_client_ypos(),
           m_settings.width, m_settings.height);
     }
   }

@@ -35,6 +35,8 @@ modules-left = i3
 modules-right = xbacklight date
 
 tray-position = right
+tray-background = #33ffffff
+tray-padding = 4
 
 
 [module/i3]

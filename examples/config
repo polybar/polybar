@@ -38,6 +38,8 @@ modules-center = date
 modules-right = volume memory cpu
 
 tray-position = right
+tray-background = #33ffffff
+tray-padding = 4
 
 
 [module/memory]

@@ -106,9 +106,12 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     // }}}
     // Set bar colors {{{
 
-    m_bar.background = color::parse(m_conf.get<string>(bs, "background", m_bar.background.hex_to_rgba()));
-    m_bar.foreground = color::parse(m_conf.get<string>(bs, "foreground", m_bar.foreground.hex_to_rgba()));
-    m_bar.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", m_bar.linecolor.hex_to_rgba()));
+    m_bar.background =
+        color::parse(m_conf.get<string>(bs, "background", m_bar.background.hex_to_rgba()));
+    m_bar.foreground =
+        color::parse(m_conf.get<string>(bs, "foreground", m_bar.foreground.hex_to_rgba()));
+    m_bar.linecolor =
+        color::parse(m_conf.get<string>(bs, "linecolor", m_bar.linecolor.hex_to_rgba()));
 
     // }}}
     // Set border values {{{
@@ -398,6 +401,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
         m_tray.align = alignment::LEFT;
       else if (tray_position == "right")
         m_tray.align = alignment::RIGHT;
+      else if (tray_position == "center")
+        m_tray.align = alignment::CENTER;
       else
         m_tray.align = alignment::NONE;
     } catch (const key_error& err) {
@@ -405,30 +410,76 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     }
 
     if (m_tray.align != alignment::NONE) {
-      m_tray.background = m_bar.background.value();
       m_tray.height = m_bar.height;
       m_tray.height -= m_borders.at(border::BOTTOM).size;
       m_tray.height -= m_borders.at(border::TOP).size;
+      m_tray.height_fill = m_tray.height;
 
       if (m_tray.height % 2 != 0) {
         m_tray.height--;
       }
 
-      if (m_tray.height > 24) {
-        m_tray.spacing = (m_tray.height - 24) / 2;
-        m_tray.height = 24;
+      auto maxsize = m_conf.get<int>(bs, "tray-maxsize", 16);
+      if (m_tray.height > maxsize) {
+        m_tray.spacing += (m_tray.height - maxsize) / 2;
+        m_tray.height = maxsize;
       }
 
       m_tray.width = m_tray.height;
       m_tray.orig_y = m_bar.y + m_borders.at(border::TOP).size;
 
-      if (m_tray.align == alignment::RIGHT)
-        m_tray.orig_x = m_bar.x + m_bar.width - m_borders.at(border::RIGHT).size;
-      else
-        m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
-    }
+      // Apply user-defined scaling
+      auto scale = m_conf.get<float>(bs, "tray-scale", 1.0);
+      m_tray.width *= scale;
+      m_tray.height_fill *= scale;
 
-    m_tray.sibling = m_window;
+      if (m_tray.align == alignment::RIGHT) {
+        m_tray.orig_x = m_bar.x + m_bar.width - m_borders.at(border::RIGHT).size;
+      } else if (m_tray.align == alignment::LEFT) {
+        m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
+      } else if (m_tray.align == alignment::CENTER) {
+        m_tray.orig_x = center_x() - (m_tray.width / 2);
+      }
+
+      // Set user-defined background color
+      try {
+        auto tray_background = m_conf.get<string>(bs, "tray-background");
+        m_tray.background = color::parse(tray_background).value();
+      } catch (const key_error&) {
+        m_tray.background = m_bar.background.value();
+      }
+
+      // Add user-defined padding
+      m_tray.spacing += m_conf.get<int>(bs, "tray-padding", 0);
+
+      // Add user-defiend offset
+      auto offset_x_def = m_conf.get<string>(bs, "tray-offset-x", "");
+      auto offset_y_def = m_conf.get<string>(bs, "tray-offset-y", "");
+
+      auto offset_x = std::atoi(offset_x_def.c_str());
+      auto offset_y = std::atoi(offset_y_def.c_str());
+
+      if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
+        offset_x = math_util::percentage_to_value(offset_x, m_bar.monitor->w);
+        offset_x -= m_tray.width / 2;
+      }
+
+      if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
+        offset_y = math_util::percentage_to_value(offset_y, m_bar.monitor->h);
+        offset_y -= m_tray.width / 2;
+      }
+
+      m_tray.orig_x += offset_x;
+      m_tray.orig_y += offset_y;
+
+      // Add tray update callback unless explicitly disabled
+      if (!m_conf.get<bool>(bs, "tray-detached", false)) {
+        g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
+      }
+
+      // Put the tray next to the bar in the window stack
+      m_tray.sibling = m_window;
+    }
 
     // }}}
     // Connect signal handlers {{{
@@ -446,9 +497,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
     g_signals::parser::ascii_text_write = bind(&bar::draw_character, this, placeholders::_1);
     g_signals::parser::unicode_text_write = bind(&bar::draw_character, this, placeholders::_1);
     // clang-format on
-
-    if (m_tray.align != alignment::NONE)
-      g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
 
     // }}}
 
@@ -675,6 +723,28 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
  protected:
   /**
+   * Get the horizontal center pos
+   */
+  int center_x() {
+    int x = m_bar.x;
+    x += m_bar.width;
+    x -= m_borders[border::RIGHT].size;
+    x += m_borders[border::LEFT].size;
+    x /= 2;
+    return x;
+  }
+
+  /**
+   * Get the inner width of the bar
+   */
+  int width_inner() {
+    auto w = m_bar.width;
+    w -= m_borders[border::RIGHT].size;
+    w -= m_borders[border::LEFT].size;
+    return w;
+  }
+
+  /**
    * Handle alignment update
    */
   void on_alignment_change(alignment align) {  //{{{
@@ -778,8 +848,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    * Handle color change
    */
   void on_color_change(gc gc_, color color_) {  //{{{
-    m_log.trace_x(
-        "bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex_to_rgba(), color_.hex_to_rgb());
+    m_log.trace_x("bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.hex_to_rgba(),
+        color_.hex_to_rgb());
 
     if (gc_ == gc::FG) {
       m_fontmanager->allocate_color(color_);

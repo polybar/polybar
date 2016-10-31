@@ -69,9 +69,11 @@ struct tray_settings {
     orig_y = o.orig_y;
     width = o.width;
     height = o.height;
+    height_fill = o.height_fill;
     spacing = o.spacing;
     slots = o.slots;
     sibling = o.sibling;
+    bg_pixmap = o.bg_pixmap;
     return *this;
   }
 
@@ -81,9 +83,11 @@ struct tray_settings {
   int16_t orig_y{0};
   uint16_t width{0};
   uint16_t height{0};
+  uint16_t height_fill{0};
   uint16_t spacing{0};
   uint16_t slots{0};
-  uint32_t sibling;
+  uint32_t sibling{0};
+  uint32_t bg_pixmap{0};
 };
 
 struct border_settings {
