@@ -79,8 +79,8 @@ namespace modules {
     }
 
     void start() {
-      m_threads.emplace_back(thread(&battery_module::subthread, this));
       inotify_module::start();
+      m_threads.emplace_back(thread(&battery_module::subthread, this));
     }
 
     void teardown() {
