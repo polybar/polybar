@@ -11,23 +11,9 @@ namespace modules {
    public:
     using timer_module::timer_module;
 
-    void setup() {
-      m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
-      m_formatter->add(DEFAULT_FORMAT, TAG_COUNTER, {TAG_COUNTER});
-    }
-
-    bool update() {
-      m_counter++;
-      return true;
-    }
-
-    bool build(builder* builder, string tag) const {
-      if (tag == TAG_COUNTER) {
-        builder->node(to_string(m_counter));
-        return true;
-      }
-      return false;
-    }
+    void setup();
+    bool update();
+    bool build(builder* builder, string tag) const;
 
    private:
     static constexpr auto TAG_COUNTER = "<counter>";

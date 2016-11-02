@@ -33,8 +33,8 @@ font-0 = tamzen:size=9;1
 font-1 = siji:pixelsize=10;0
 font-2 = unifont:size=6;-1
 
-modules-left = bspwm
-modules-center = mpd
+modules-left = mpd
+modules-center = bspwm
 modules-right = volume memory cpu date
 
 tray-position = right

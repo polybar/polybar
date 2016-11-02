@@ -3,7 +3,6 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "drawtypes/label.hpp"
-#include "utils/math.hpp"
 #include "utils/mixins.hpp"
 
 LEMONBUDDY_NS
@@ -14,22 +13,10 @@ namespace drawtypes {
     explicit ramp() = default;
     explicit ramp(vector<icon_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
 
-    void add(icon_t&& icon) {
-      m_icons.emplace_back(forward<decltype(icon)>(icon));
-    }
-
-    icon_t get(size_t index) {
-      return m_icons[index];
-    }
-
-    icon_t get_by_percentage(float percentage) {
-      size_t index = percentage * (m_icons.size() - 1) / 100.0f + 0.5f;
-      return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
-    }
-
-    operator bool() {
-      return !m_icons.empty();
-    }
+    void add(icon_t&& icon);
+    icon_t get(size_t index);
+    icon_t get_by_percentage(float percentage);
+    operator bool();
 
    protected:
     vector<icon_t> m_icons;
@@ -37,31 +24,7 @@ namespace drawtypes {
 
   using ramp_t = shared_ptr<ramp>;
 
-  /**
-   * Create a ramp by loading values
-   * from the configuration
-   */
-  inline auto load_ramp(const config& conf, string section, string name, bool required = true) {
-    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
-
-    auto ramp_defaults = load_optional_icon(conf, section, name);
-
-    vector<icon_t> vec;
-    vector<string> icons;
-
-    if (required)
-      icons = conf.get_list<string>(section, name);
-    else
-      icons = conf.get_list<string>(section, name, {});
-
-    for (size_t i = 0; i < icons.size(); i++) {
-      auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
-      icon->copy_undefined(ramp_defaults);
-      vec.emplace_back(move(icon));
-    }
-
-    return ramp_t{new ramp_t::element_type(move(vec))};
-  }
+  ramp_t load_ramp(const config& conf, string section, string name, bool required = true);
 }
 
 LEMONBUDDY_NS_END

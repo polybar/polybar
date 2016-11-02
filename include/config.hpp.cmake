@@ -12,11 +12,12 @@
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 ENABLE_I3
 
-#cmakedefine DISABLE_MODULES
-#cmakedefine DISABLE_TRAY
-#cmakedefine DISABLE_DRAW
+#cmakedefine ENABLE_RANDR_EXT
+#cmakedefine ENABLE_RENDER_EXT
+#cmakedefine ENABLE_DAMAGE_EXT
 
-#cmakedefine ENABLE_VERBOSE_TRACELOG
+#cmakedefine DEBUG_LOGGER
+#cmakedefine VERBOSE_TRACELOG
 
 #ifdef DEBUG
 #cmakedefine01 DRAW_CLICKABLE_AREA_HINTS

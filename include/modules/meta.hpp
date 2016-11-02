@@ -485,7 +485,7 @@ namespace modules {
     }
 
     void poll_events() {
-      vector<unique_ptr<inotify_watch>> watches;
+      vector<inotify_util::watch_t> watches;
 
       try {
         for (auto&& w : m_watchlist) {

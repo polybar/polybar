@@ -1,11 +1,9 @@
 #pragma once
 
-#include <chrono>
 #include <deque>
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "utils/scope.hpp"
 
 LEMONBUDDY_NS
 
@@ -17,32 +15,11 @@ namespace throttle_util {
   using limit = size_t;
 
   namespace strategy {
-    /**
-     * Only pass events when there are slots available
-     */
     struct try_once_or_leave_yolo {
-      bool operator()(queue& q, limit l, timewindow) {
-        if (q.size() >= l)
-          return false;
-        q.emplace_back(timepoint_clock::now());
-        return true;
-      }
+      bool operator()(queue& q, limit l, timewindow);
     };
-
-    /**
-     * If no slots are available, wait the required
-     * amount of time for a slot to become available
-     * then let the event pass
-     */
     struct wait_patiently_by_the_door {
-      bool operator()(queue& q, limit l, timewindow) {
-        auto now = timepoint_clock::now();
-        q.emplace_back(now);
-        if (q.size() >= l) {
-          this_thread::sleep_for(now - q.front());
-        }
-        return true;
-      }
+      bool operator()(queue& q, limit l, timewindow);
     };
   }
 

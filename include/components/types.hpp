@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/x11/color.hpp"
-#include "components/x11/randr.hpp"
+#include "x11/color.hpp"
+#include "x11/randr.hpp"
 
 LEMONBUDDY_NS
 
@@ -63,7 +63,6 @@ struct tray_settings {
   tray_settings() = default;
 
   tray_settings& operator=(tray_settings& o) {
-    background = o.background;
     align = o.align;
     orig_x = o.orig_x;
     orig_y = o.orig_y;
@@ -73,11 +72,10 @@ struct tray_settings {
     spacing = o.spacing;
     slots = o.slots;
     sibling = o.sibling;
-    bg_pixmap = o.bg_pixmap;
+    background = o.background;
     return *this;
   }
 
-  uint32_t background;
   alignment align{alignment::NONE};
   int16_t orig_x{0};
   int16_t orig_y{0};
@@ -87,7 +85,7 @@ struct tray_settings {
   uint16_t spacing{0};
   uint16_t slots{0};
   uint32_t sibling{0};
-  uint32_t bg_pixmap{0};
+  uint32_t background{0};
 };
 
 struct border_settings {

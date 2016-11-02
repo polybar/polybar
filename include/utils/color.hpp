@@ -4,93 +4,82 @@
 
 #include "common.hpp"
 #include "utils/string.hpp"
+#include "x11/xlib.hpp"
 
 LEMONBUDDY_NS
 
 namespace color_util {
-  template <typename ChannelType = uint8_t, typename ValueType = uint32_t>
-  struct color {
-    using type = color<ChannelType, ValueType>;
-    union {
-      struct {
-        ChannelType red;
-        ChannelType green;
-        ChannelType blue;
-        ChannelType alpha;
-      } bits;
+  template <typename T = uint8_t>
+  T alpha_channel(const uint32_t value) {
+    uint8_t a = value >> 24;
+    if (std::is_same<T, uint8_t>::value)
+      return a << 8 / 0xff;
+    else if (std::is_same<T, uint16_t>::value)
+      return a << 8 | a << 8 / 0xff;
+  }
 
-      ValueType value = 0U;
-    } colorspace;
+  template <typename T = uint8_t>
+  T red_channel(const uint32_t value) {
+    uint8_t r = value >> 16;
+    if (std::is_same<T, uint8_t>::value)
+      return r << 8 / 0xff;
+    else if (std::is_same<T, uint16_t>::value)
+      return r << 8 | r << 8 / 0xff;
+  }
 
-    explicit color(ValueType v) {
-      colorspace.value = v;
+  template <typename T = uint8_t>
+  T green_channel(const uint32_t value) {
+    uint8_t g = value >> 8;
+    if (std::is_same<T, uint8_t>::value)
+      return g << 8 / 0xff;
+    else if (std::is_same<T, uint16_t>::value)
+      return g << 8 | g << 8 / 0xff;
+  }
+
+  template <typename T = uint8_t>
+  T blue_channel(const uint32_t value) {
+    uint8_t b = value;
+    if (std::is_same<T, uint8_t>::value)
+      return b << 8 / 0xff;
+    else if (std::is_same<T, uint16_t>::value)
+      return b << 8 | b << 8 / 0xff;
+  }
+
+  template <typename T = uint8_t>
+  string hex(uint32_t color) {
+    char s[12];
+    size_t len = 0;
+
+    uint8_t a = alpha_channel<T>(color);
+    uint8_t r = red_channel<T>(color);
+    uint8_t g = green_channel<T>(color);
+    uint8_t b = blue_channel<T>(color);
+
+    if (std::is_same<T, uint16_t>::value) {
+      len = snprintf(s, sizeof(s), "#%02x%02x%02x%02x", a, r, g, b);
+    } else if (std::is_same<T, uint8_t>::value) {
+      len = snprintf(s, sizeof(s), "#%02x%02x%02x", r, g, b);
     }
-  };
 
-  template <typename T>
-  auto make_24bit(T&& value) {
-    return color<uint8_t, uint32_t>(forward<T>(value));
+    return string{s, 0, len};
   }
 
-  template <typename T>
-  auto make_32bit(T&& value) {
-    return color<uint16_t, uint32_t>(forward<T>(value));
+  inline string parse_hex(string hex) {
+    if (hex.substr(0, 1) != "#")
+      hex = "#" + hex;
+    if (hex.length() == 4)
+      hex = {'#', hex[1], hex[1], hex[2], hex[2], hex[3], hex[3]};
+    if (hex.length() == 7)
+      hex = "#ff" + hex.substr(1);
+    if (hex.length() != 9)
+      return "";
+    return hex;
   }
 
-  template <typename ValueType = uint32_t>
-  uint8_t alpha(const color<ValueType> c) {
-    return ((c.colorspace.value >> 24) << 8) | ((c.colorspace.value >> 24));
-  }
-
-  template <typename T = uint8_t, typename ValueType = uint32_t>
-  T red(const color<ValueType> c) {
-    uint8_t r = c.colorspace.value >> 16;
-    if (std::is_same<T, uint8_t>::value)
-      return r << 8 / 0xFF;
-    if (std::is_same<T, uint16_t>::value)
-      return r << 8 | r << 8 / 0xFF;
-  }
-
-  template <typename T = uint8_t, typename ValueType = uint32_t>
-  T green(const color<ValueType> c) {
-    uint8_t g = c.colorspace.value >> 8;
-    if (std::is_same<T, uint8_t>::value)
-      return g << 8 / 0xFF;
-    if (std::is_same<T, uint16_t>::value)
-      return g << 8 | g << 8 / 0xFF;
-  }
-
-  template <typename T = uint8_t, typename ValueType = uint32_t>
-  T blue(const color<ValueType> c) {
-    uint8_t b = c.colorspace.value;
-    if (std::is_same<T, uint8_t>::value)
-      return b << 8 / 0xFF;
-    if (std::is_same<T, uint16_t>::value)
-      return b << 8 | b << 8 / 0xFF;
-  }
-
-  string hex(const color<uint8_t, uint32_t> value) {
-    // clang-format off
-    return string_util::from_stream(stringstream()
-        << "#"
-        << std::setw(6)
-        << std::setfill('0')
-        << std::hex
-        << std::uppercase
-        << (value.colorspace.value & 0x00FFFFFF));
-    // clang-format on
-  }
-
-  string hex(const color<uint16_t, uint32_t> value) {
-    // clang-format off
-    return string_util::from_stream(stringstream()
-        << "#"
-        << std::setw(8)
-        << std::setfill('0')
-        << std::hex
-        << std::uppercase
-        << value.colorspace.value);
-    // clang-format on
+  inline uint32_t parse(string hex) {
+    if ((hex = parse_hex(hex)).empty())
+      return 0U;
+    return std::strtoul(&hex[1], nullptr, 16);
   }
 }
 

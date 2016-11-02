@@ -69,9 +69,17 @@ target_compile_definitions(${BINARY_NAME} PUBLIC
     ${XCB_DEFINITIONS})
 
 # xpp library
-set(XCB_PROTOS xproto randr)
+set(XCB_PROTOS xproto)
+if(ENABLE_RANDR_EXT)
+  set(XCB_PROTOS "${XCB_PROTOS}" randr)
+endif()
+if(ENABLE_RENDER_EXT)
+  set(XCB_PROTOS "${XCB_PROTOS}" render)
+endif()
+if(ENABLE_DAMAGE_EXT)
+  set(XCB_PROTOS "${XCB_PROTOS}" damage)
+endif()
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/xpp ${PROJECT_BINARY_DIR}/lib/xpp)
-
 target_link_libraries(${LIBRARY_NAME}_static PUBLIC ${XPP_LIBRARIES})
 
 # }}}

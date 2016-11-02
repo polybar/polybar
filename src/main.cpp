@@ -6,7 +6,7 @@
 #include "components/config.hpp"
 #include "components/controller.hpp"
 #include "components/logger.hpp"
-#include "components/x11/xutils.hpp"
+#include "x11/xutils.hpp"
 #include "config.hpp"
 #include "utils/inotify.hpp"
 
@@ -50,8 +50,7 @@ int main(int argc, char** argv) {
       //==================================================
       // Parse command line arguments
       //==================================================
-      using cli_parser = command_line::parser;
-      cli_parser cli{configure_cli_parser<decltype(cli)>(argv[0], opts).create<decltype(cli)>()};
+      cliparser cli{configure_cliparser<decltype(cli)>(argv[0], opts).create<decltype(cli)>()};
 
       vector<string> args;
       for (int i = 1; i < argc; i++) {
@@ -101,7 +100,7 @@ int main(int argc, char** argv) {
       //==================================================
       // Create config watch if we should track changes
       //==================================================
-      inotify_watch_t watch;
+      inotify_util::watch_t watch;
 
       if (cli.has("reload"))
         watch = inotify_util::make_watch(conf.filepath());
