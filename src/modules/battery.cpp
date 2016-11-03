@@ -80,8 +80,10 @@ namespace modules {
     // doesn't report inotify events for files on sysfs
     if (m_interval.count() > 0 && !m_notified.load(std::memory_order_relaxed)) {
       auto now = chrono::system_clock::now();
+
       if (now - m_lastpoll > m_interval) {
         m_log.info("%s: Polling values (inotify fallback)", name());
+        m_polling.store(true, std::memory_order_relaxed);
         m_lastpoll = now;
         on_event(nullptr);
         broadcast();
@@ -95,9 +97,14 @@ namespace modules {
     if (event != nullptr) {
       m_log.trace("%s: %s", name(), event->filename);
 
-      if (!m_notified.load(std::memory_order_relaxed)) {
+      if (m_polling.load(std::memory_order_relaxed)) {
+        m_log.info("%s: Inotify event reported, assuming fake...", name());
+        m_polling.store(false, std::memory_order_relaxed);
+      } else if (!m_notified.load(std::memory_order_relaxed)) {
         m_log.info("%s: Inotify event reported, disable polling fallback...", name());
         m_notified.store(true, std::memory_order_relaxed);
+      } else {
+        m_log.info("%s: Inotify event reported", name());
       }
     }
 
