@@ -10,7 +10,7 @@ namespace modules {
     m_battery = m_conf.get<string>(name(), "battery", "BAT0");
     m_adapter = m_conf.get<string>(name(), "adapter", "ADP1");
     m_fullat = m_conf.get<int>(name(), "full-at", 100);
-    m_interval = interval_t{m_conf.get<float>(name(), "poll-interval", 3.0f)};
+    m_interval = interval_t{m_conf.get<float>(name(), "poll-interval", 5.0f)};
     m_lastpoll = chrono::system_clock::now();
 
     m_path_capacity = string_util::replace(PATH_BATTERY_CAPACITY, "%battery%", m_battery);
@@ -76,17 +76,15 @@ namespace modules {
   }
 
   void battery_module::idle() {
-    // Manually poll for events as a fallback for systems that
+    // Manually poll values as a fallback for systems that
     // doesn't report inotify events for files on sysfs
-    if (m_interval.count() > 0 && !m_notified.load(std::memory_order_relaxed)) {
+    if (m_interval.count() > 0) {
       auto now = chrono::system_clock::now();
 
-      if (now - m_lastpoll > m_interval) {
-        m_log.info("%s: Polling values (inotify fallback)", name());
-        m_polling.store(true, std::memory_order_relaxed);
+      if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
-        on_event(nullptr);
-        broadcast();
+        m_log.info("%s: Polling values (inotify fallback)", name());
+        file_util::get_contents(m_path_capacity);
       }
     }
 
@@ -95,18 +93,11 @@ namespace modules {
 
   bool battery_module::on_event(inotify_event* event) {
     if (event != nullptr) {
-      m_log.trace("%s: %s", name(), event->filename);
-
-      if (m_polling.load(std::memory_order_relaxed)) {
-        m_log.info("%s: Inotify event reported, assuming fake...", name());
-        m_polling.store(false, std::memory_order_relaxed);
-      } else if (!m_notified.load(std::memory_order_relaxed)) {
-        m_log.info("%s: Inotify event reported, disable polling fallback...", name());
-        m_notified.store(true, std::memory_order_relaxed);
-      } else {
-        m_log.info("%s: Inotify event reported", name());
-      }
+      m_log.trace("%s: Inotify event reported for %s", name(), event->filename);
     }
+
+    // Reset timer to avoid unnecessary polling
+    m_lastpoll = chrono::system_clock::now();
 
     auto state = current_state();
     int percentage = m_percentage;

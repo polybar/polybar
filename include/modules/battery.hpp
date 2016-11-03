@@ -61,9 +61,6 @@ namespace modules {
     interval_t m_interval;
     chrono::system_clock::time_point m_lastpoll;
 
-    stateflag m_notified{false};
-    stateflag m_polling{false};
-
     int m_fullat = 100;
   };
 }
