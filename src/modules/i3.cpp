@@ -119,14 +119,14 @@ namespace modules {
 
         string wsname{workspace->name};
 
-        if (m_strip_wsnumbers) {
-          auto index = string_util::split(wsname, ':');
+        // Remove workspace numbers "0:"
+        if (m_strip_wsnumbers)
+          wsname.erase(0, string_util::find_nth(wsname, 0, ":", 1) + 1);
 
-          if (index.size() == 2) {
-            wsname = index[1];
-          }
-        }
+        // Trim leading and trailing whitespace
+        wsname = string_util::trim(wsname, ' ');
 
+        // Cap at configured max length
         if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen)
           wsname.erase(m_wsname_maxlen);
 
