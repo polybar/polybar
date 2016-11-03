@@ -53,6 +53,6 @@ loglevel parse_loglevel_name(string name) {
     return loglevel::TRACE;
   else
     return loglevel::NONE;
-};
+}
 
 LEMONBUDDY_NS_END

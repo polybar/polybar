@@ -111,7 +111,7 @@ namespace io_util {
 
   void interrupt_read(int write_fd) {
     char end[1] = {'\n'};
-    ::write(write_fd, end, 1);
+    (void)::write(write_fd, end, 1);
   }
 }
 
