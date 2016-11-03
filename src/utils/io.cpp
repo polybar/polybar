@@ -109,9 +109,10 @@ namespace io_util {
     return poll(fd, POLLOUT, timeout_ms);
   }
 
-  void interrupt_read(int write_fd) {
+  bool interrupt_read(int write_fd) {
     char end[1] = {'\n'};
-    (void)::write(write_fd, end, 1);
+    size_t bytes = ::write(write_fd, end, 1);
+    return bytes > 0;
   }
 }
 

@@ -20,7 +20,7 @@ namespace io_util {
   bool poll_read(int fd, int timeout_ms = 1);
   bool poll_write(int fd, int timeout_ms = 1);
 
-  void interrupt_read(int write_fd);
+  bool interrupt_read(int write_fd);
 }
 
 LEMONBUDDY_NS_END

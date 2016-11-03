@@ -1,4 +1,5 @@
 #include <mutex>
+#include <csignal>
 
 #include "components/controller.hpp"
 #include "components/signals.hpp"

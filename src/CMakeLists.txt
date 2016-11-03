@@ -7,12 +7,30 @@ set(LIBRARY_NAME lib${PROJECT_NAME})
 
 file(GLOB_RECURSE HEADERS RELATIVE ${PROJECT_SOURCE_DIR}/include *.h[p]*)
 file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR}/src *.c[p]*)
+
 list(REMOVE_ITEM SOURCES main.cpp)
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/include/config.hpp.cmake
   ${CMAKE_SOURCE_DIR}/include/config.hpp
   ESCAPE_QUOTES @ONLY)
+
+# Strip disabled libs {{{
+
+if(NOT ENABLE_ALSA)
+  list(REMOVE_ITEM SOURCES adapters/alsa.cpp modules/volume.cpp)
+endif()
+if(NOT ENABLE_MPD)
+  list(REMOVE_ITEM SOURCES adapters/mpd.cpp modules/mpd.cpp)
+endif()
+if(NOT ENABLE_NETWORK)
+  list(REMOVE_ITEM SOURCES adapters/net.cpp modules/network.cpp)
+endif()
+if(NOT ENABLE_I3)
+  list(REMOVE_ITEM SOURCES modules/i3.cpp utils/i3.cpp)
+endif()
+
+# }}}
 
 # Target: main library {{{
 
