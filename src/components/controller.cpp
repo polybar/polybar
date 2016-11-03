@@ -407,8 +407,8 @@ void controller::bootstrap_modules() {
         m_eventloop->add_module(align, move(module));
 
         module_count++;
-      } catch (const module_error& err) {
-        continue;
+      } catch (const std::runtime_error& err) {
+        m_log.err("Disabling module \"%s\" (error: %s)", module_name, err.what());
       }
     }
   }
