@@ -21,6 +21,7 @@ namespace modules {
     void setup();
     void start();
     void teardown();
+    void idle();
     bool on_event(inotify_event* event);
     string get_format() const;
     bool build(builder* builder, string tag) const;
@@ -56,6 +57,9 @@ namespace modules {
 
     battery_state m_state = battery_state::UNKNOWN;
     std::atomic_int m_percentage{0};
+
+    interval_t m_interval;
+    chrono::system_clock::time_point m_lastpoll;
 
     stateflag m_notified{false};
 

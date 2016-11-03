@@ -10,6 +10,8 @@ namespace modules {
     m_battery = m_conf.get<string>(name(), "battery", "BAT0");
     m_adapter = m_conf.get<string>(name(), "adapter", "ADP1");
     m_fullat = m_conf.get<int>(name(), "full-at", 100);
+    m_interval = interval_t{m_conf.get<float>(name(), "poll-interval", 3.0f)};
+    m_lastpoll = chrono::system_clock::now();
 
     m_path_capacity = string_util::replace(PATH_BATTERY_CAPACITY, "%battery%", m_battery);
     m_path_adapter = string_util::replace(PATH_ADAPTER_STATUS, "%adapter%", m_adapter);
@@ -73,10 +75,30 @@ namespace modules {
     wakeup();
   }
 
+  void battery_module::idle() {
+    // Manually poll for events as a fallback for systems that
+    // doesn't report inotify events for files on sysfs
+    if (m_interval.count() > 0 && !m_notified.load(std::memory_order_relaxed)) {
+      auto now = chrono::system_clock::now();
+      if (now - m_lastpoll > m_interval) {
+        m_log.info("%s: Polling values (inotify fallback)", name());
+        m_lastpoll = now;
+        on_event(nullptr);
+        broadcast();
+      }
+    }
+
+    inotify_module::idle();
+  }
+
   bool battery_module::on_event(inotify_event* event) {
     if (event != nullptr) {
       m_log.trace("%s: %s", name(), event->filename);
-      m_notified.store(true, std::memory_order_relaxed);
+
+      if (!m_notified.load(std::memory_order_relaxed)) {
+        m_log.info("%s: Inotify event reported, disable polling fallback...", name());
+        m_notified.store(true, std::memory_order_relaxed);
+      }
     }
 
     auto state = current_state();
@@ -170,9 +192,6 @@ namespace modules {
   /**
    * Subthread runner that emit update events
    * to refresh <animation-charging> in case it is used.
-   *
-   * Will also poll for events as fallback for systems that
-   * doesn't report inotify events for files on sysfs
    */
   void battery_module::subthread() {
     chrono::duration<double> dur = 1s;
@@ -181,22 +200,13 @@ namespace modules {
       dur = chrono::duration<double>(float(m_animation_charging->framerate()) / 1000.0f);
     }
 
-    const int interval = m_conf.get<float>(name(), "poll-interval", 3.0f) / dur.count();
-
     while (running()) {
-      for (int i = 0; running() && i < interval; ++i) {
+      for (int i = 0; running() && i < dur.count(); ++i) {
         if (m_state == battery_state::CHARGING) {
           broadcast();
         }
+
         sleep(dur);
-      }
-
-      if (!running() || m_state == battery_state::CHARGING) {
-        continue;
-      }
-
-      if (!m_notified.load(std::memory_order_relaxed)) {
-        file_util::get_contents(m_path_capacity);
       }
     }
 
