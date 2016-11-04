@@ -10,7 +10,6 @@
 #include "utils/command.hpp"
 #include "utils/inotify.hpp"
 #include "x11/connection.hpp"
-#include "x11/tray.hpp"
 #include "x11/types.hpp"
 
 LEMONBUDDY_NS
@@ -18,14 +17,13 @@ LEMONBUDDY_NS
 class controller {
  public:
   explicit controller(connection& conn, const logger& logger, const config& config,
-      unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<traymanager> tray,
+      unique_ptr<eventloop> eventloop, unique_ptr<bar> bar,
       inotify_util::watch_t& confwatch)
       : m_connection(conn)
       , m_log(logger)
       , m_conf(config)
       , m_eventloop(forward<decltype(eventloop)>(eventloop))
       , m_bar(forward<decltype(bar)>(bar))
-      , m_traymanager(forward<decltype(tray)>(tray))
       , m_confwatch(confwatch) {}
 
   ~controller();
@@ -43,7 +41,6 @@ class controller {
   void wait_for_signal();
   void wait_for_xevent();
 
-  void activate_tray();
   void bootstrap_modules();
 
   void on_mouse_event(string input);
@@ -57,11 +54,11 @@ class controller {
   const config& m_conf;
   unique_ptr<eventloop> m_eventloop;
   unique_ptr<bar> m_bar;
-  unique_ptr<traymanager> m_traymanager;
 
   stateflag m_running{false};
   stateflag m_reload{false};
   stateflag m_waiting{false};
+  stateflag m_trayactivated{false};
 
   sigset_t m_waitmask;
   sigset_t m_ignmask;
@@ -87,8 +84,7 @@ namespace {
         configure_logger(),
         configure_config(),
         configure_eventloop(),
-        configure_bar(),
-        configure_traymanager());
+        configure_bar());
     // clang-format on
   }
 }

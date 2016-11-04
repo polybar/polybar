@@ -12,8 +12,13 @@ namespace draw_util {
    */
   void fill(connection& c, xcb_drawable_t d, xcb_gcontext_t g, int16_t x, int16_t y, uint16_t w,
       uint16_t h) {
-    array<xcb_rectangle_t, 1> rects{{xcb_rectangle_t({x, y, w, h})}};
-    c.poly_fill_rectangle(d, g, rects.size(), rects.data());
+    xcb_rectangle_t rect;
+    rect.x = x;
+    rect.y = y;
+    rect.width = w;
+    rect.height = h;
+    const xcb_rectangle_t rects[1]{rect};
+    c.poly_fill_rectangle(d, g, 1, rects);
   }
 
   /**

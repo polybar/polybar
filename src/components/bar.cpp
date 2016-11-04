@@ -7,6 +7,7 @@
 #include "utils/string.hpp"
 #include "x11/draw.hpp"
 #include "x11/randr.hpp"
+#include "x11/wm.hpp"
 #include "x11/xlib.hpp"
 #include "x11/xutils.hpp"
 
@@ -37,8 +38,14 @@ bar::~bar() {  // {{{
   g_signals::parser::string_write = nullptr;
   g_signals::tray::report_slotcount = nullptr;  // }}}
 
-  if (m_sinkattached)
+  if (m_traymanager) {
+    m_traymanager.reset();
+  }
+
+  if (m_sinkattached) {
     m_connection.detach_sink(this, 1);
+  }
+
   m_window.destroy();
 }  // }}}
 
@@ -208,6 +215,7 @@ void bar::bootstrap(bool nodraw) {  // {{{
     // clang-format off
     XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, 0);
     XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, 0);
+    XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
     XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
     XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_bar.dock);
     XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
@@ -216,25 +224,21 @@ void bar::bootstrap(bool nodraw) {  // {{{
   }
 
   m_log.trace("bar: Set WM_NAME");
-  {
-    xcb_icccm_set_wm_name(
-        m_connection, m_window, XCB_ATOM_STRING, 8, m_bar.wmname.length(), m_bar.wmname.c_str());
-    xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
-  }
+  xcb_icccm_set_wm_name(
+      m_connection, m_window, XCB_ATOM_STRING, 8, m_bar.wmname.length(), m_bar.wmname.c_str());
+  xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
 
   m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
-  {
-    const uint32_t win_types[1] = {_NET_WM_WINDOW_TYPE_DOCK};
-    m_connection.change_property(
-        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_WINDOW_TYPE, XCB_ATOM_ATOM, 32, 1, win_types);
-  }
+  wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
 
   m_log.trace("bar: Set _NET_WM_STATE");
-  {
-    const uint32_t win_states[2] = {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE};
-    m_connection.change_property(
-        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STATE, XCB_ATOM_ATOM, 32, 2, win_states);
-  }
+  wm_util::set_wmstate(m_connection, m_window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
+
+  m_log.trace("bar: Set _NET_WM_DESKTOP");
+  wm_util::set_wmdesktop(m_connection, m_window, -1u);
+
+  m_log.trace("bar: Set _NET_WM_PID");
+  wm_util::set_wmpid(m_connection, m_window, getpid());
 
   m_log.trace("bar: Set _NET_WM_STRUT_PARTIAL");
   {
@@ -255,20 +259,6 @@ void bar::bootstrap(bool nodraw) {  // {{{
         XCB_ATOM_CARDINAL, 32, 12, value_list);
   }
 
-  m_log.trace("bar: Set _NET_WM_DESKTOP");
-  {
-    const uint32_t value_list[1]{-1u};
-    m_connection.change_property(
-        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_DESKTOP, XCB_ATOM_CARDINAL, 32, 1, value_list);
-  }
-
-  m_log.trace("bar: Set _NET_WM_PID");
-  {
-    const uint32_t value_list[1]{uint32_t(getpid())};
-    m_connection.change_property(
-        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, value_list);
-  }
-
   m_log.trace("bar: Create pixmap");
   {
     m_connection.create_pixmap(
@@ -278,8 +268,8 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   m_log.trace("bar: Map window");
   {
-    m_connection.flush();
     m_connection.map_window(m_window);
+    m_connection.flush();
   }
 
   // }}}
@@ -336,12 +326,57 @@ void bar::bootstrap(bool nodraw) {  // {{{
       uint32_t mask = 0;
       uint32_t value_list[32];
       xcb_params_gc_t params;
+      m_gcontexts.emplace(gc(i), gcontext{m_connection, m_connection.generate_id()});
+
       XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i - 1]);
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
+
       xutils::pack_values(mask, &params, value_list);
-      m_gcontexts.emplace(gc(i), gcontext{m_connection, m_connection.generate_id()});
+
       m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
     }
+  }
+
+  // }}}
+  // Setup root pixmap {{{
+
+  m_log.trace("bar: Setup root pixmap");
+  {
+    // graphics_util::get_root_pixmap(m_connection, &m_rootpixmap);
+    // graphics_util::simple_gc(m_connection, m_pixmap, &m_root_gc);
+    //
+    // if (!m_rootpixmap.pixmap || !m_pixmap || !m_root_gc) {
+    //   m_log.warn("Failed to get root pixmap for bar window background");
+    // } else {
+    //   m_log.trace("bar: rootpixmap=%x (%dx%d+%d+%d)", m_rootpixmap.pixmap, m_rootpixmap.width,
+    //       m_rootpixmap.height, m_rootpixmap.x, m_rootpixmap.y);
+    //
+    //   m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_bar.x, m_bar.y, 0, 0,
+    //       m_bar.width, m_bar.height);
+    //
+    //   auto image_reply = m_connection.get_image(
+    //       XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, 0, 0, m_bar.width, m_bar.height, XAllPlanes());
+    //
+    //   std::vector<uint8_t> image_data;
+    //   std::back_insert_iterator<decltype(image_data)> back_it(image_data);
+    //   std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
+    //
+    //   m_connection.put_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_root_gc, m_bar.width,
+    //       m_bar.height, 0, 0, 0, image_reply->depth, image_data.size(), image_data.data());
+    //
+    //   m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_bar.x, m_bar.y, 0, 0,
+    //       m_bar.width, m_bar.height);
+    //
+    //   uint32_t mask = 0;
+    //   uint32_t values[16];
+    //   xcb_params_cw_t params;
+    //   XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, m_pixmap);
+    //   xutils::pack_values(mask, &params, values);
+    //   m_connection.change_window_attributes_checked(m_window, mask, values);
+    //
+    //   m_connection.copy_area(
+    //       m_pixmap, m_window, m_root_gc, m_bar.x, m_bar.y, 0, 0, m_bar.width, m_bar.height);
+    // }
   }
 
   // }}}
@@ -376,96 +411,6 @@ void bar::bootstrap(bool nodraw) {  // {{{
   m_fontmanager->allocate_color(m_bar.foreground, true);
 
   // }}}
-  // Set tray settings {{{
-
-  try {
-    auto tray_position = m_conf.get<string>(bs, "tray-position");
-
-    if (tray_position == "left")
-      m_tray.align = alignment::LEFT;
-    else if (tray_position == "right")
-      m_tray.align = alignment::RIGHT;
-    else if (tray_position == "center")
-      m_tray.align = alignment::CENTER;
-    else
-      m_tray.align = alignment::NONE;
-  } catch (const key_error& err) {
-    m_tray.align = alignment::NONE;
-  }
-
-  if (m_tray.align != alignment::NONE) {
-    m_tray.height = m_bar.height;
-    m_tray.height -= m_borders.at(border::BOTTOM).size;
-    m_tray.height -= m_borders.at(border::TOP).size;
-    m_tray.height_fill = m_tray.height;
-
-    if (m_tray.height % 2 != 0) {
-      m_tray.height--;
-    }
-
-    auto maxsize = m_conf.get<int>(bs, "tray-maxsize", 16);
-    if (m_tray.height > maxsize) {
-      m_tray.spacing += (m_tray.height - maxsize) / 2;
-      m_tray.height = maxsize;
-    }
-
-    m_tray.width = m_tray.height;
-    m_tray.orig_y = m_bar.y + m_borders.at(border::TOP).size;
-
-    // Apply user-defined scaling
-    auto scale = m_conf.get<float>(bs, "tray-scale", 1.0);
-    m_tray.width *= scale;
-    m_tray.height_fill *= scale;
-
-    if (m_tray.align == alignment::RIGHT) {
-      m_tray.orig_x = m_bar.x + m_bar.width - m_borders.at(border::RIGHT).size;
-    } else if (m_tray.align == alignment::LEFT) {
-      m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
-    } else if (m_tray.align == alignment::CENTER) {
-      m_tray.orig_x = center_x() - (m_tray.width / 2);
-    }
-
-    // Set user-defined background color
-    auto tray_bg = m_conf.get<string>(bs, "tray-background", "");
-    if (!tray_bg.empty()) {
-      m_tray.background = color::parse(tray_bg);
-    } else {
-      m_tray.background = m_bar.background;
-    }
-
-    // Add user-defined padding
-    m_tray.spacing += m_conf.get<int>(bs, "tray-padding", 0);
-
-    // Add user-defiend offset
-    auto offset_x_def = m_conf.get<string>(bs, "tray-offset-x", "");
-    auto offset_y_def = m_conf.get<string>(bs, "tray-offset-y", "");
-
-    auto offset_x = std::atoi(offset_x_def.c_str());
-    auto offset_y = std::atoi(offset_y_def.c_str());
-
-    if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
-      offset_x = math_util::percentage_to_value(offset_x, m_bar.monitor->w);
-      offset_x -= m_tray.width / 2;
-    }
-
-    if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
-      offset_y = math_util::percentage_to_value(offset_y, m_bar.monitor->h);
-      offset_y -= m_tray.width / 2;
-    }
-
-    m_tray.orig_x += offset_x;
-    m_tray.orig_y += offset_y;
-
-    // Add tray update callback unless explicitly disabled
-    if (!m_conf.get<bool>(bs, "tray-detached", false)) {
-      g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
-    }
-
-    // Put the tray next to the bar in the window stack
-    m_tray.sibling = m_window;
-  }
-
-  // }}}
   // Connect signal handlers {{{
 
   m_log.trace("bar: Attach parser callbacks");
@@ -494,7 +439,146 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   // }}}
 
+  if (!nodraw) {
+    bootstrap_tray();
+  }
+
   m_connection.flush();
+}  // }}}
+
+/**
+ * Setup tray manager
+ */
+void bar::bootstrap_tray() {  // {{{
+  auto bs = m_conf.bar_section();
+
+  try {
+    auto tray_position = m_conf.get<string>(bs, "tray-position");
+
+    if (tray_position == "left")
+      m_tray.align = alignment::LEFT;
+    else if (tray_position == "right")
+      m_tray.align = alignment::RIGHT;
+    else if (tray_position == "center")
+      m_tray.align = alignment::CENTER;
+    else
+      m_tray.align = alignment::NONE;
+  } catch (const key_error& err) {
+    m_tray.align = alignment::NONE;
+  }
+
+  if (m_tray.align == alignment::NONE) {
+    m_log.warn("Disabling tray manager (reason: disabled in config)");
+    m_traymanager.reset();
+    return;
+  }
+
+  m_tray.height = m_bar.height;
+  m_tray.height -= m_borders.at(border::BOTTOM).size;
+  m_tray.height -= m_borders.at(border::TOP).size;
+  m_tray.height_fill = m_tray.height;
+
+  if (m_tray.height % 2 != 0) {
+    m_tray.height--;
+  }
+
+  auto maxsize = m_conf.get<int>(bs, "tray-maxsize", 16);
+  if (m_tray.height > maxsize) {
+    m_tray.spacing += (m_tray.height - maxsize) / 2;
+    m_tray.height = maxsize;
+  }
+
+  m_tray.width = m_tray.height;
+  m_tray.orig_y = m_bar.y + m_borders.at(border::TOP).size;
+
+  // Apply user-defined scaling
+  auto scale = m_conf.get<float>(bs, "tray-scale", 1.0);
+  m_tray.width *= scale;
+  m_tray.height_fill *= scale;
+
+  if (m_tray.align == alignment::RIGHT) {
+    m_tray.orig_x = m_bar.x + m_bar.width - m_borders.at(border::RIGHT).size;
+  } else if (m_tray.align == alignment::LEFT) {
+    m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
+  } else if (m_tray.align == alignment::CENTER) {
+    m_tray.orig_x = center_x() - (m_tray.width / 2);
+  }
+
+  // Set user-defined background color
+  m_conf.get<bool>(bs, "tray-transparent", m_tray.transparent);
+
+  if (m_tray.transparent) {
+    m_tray.background = 0;
+  } else {
+    auto bg = m_conf.get<string>(bs, "tray-background", "");
+    if (!bg.empty()) {
+      m_tray.background = color::parse(bg, g_colorempty);
+    }
+  }
+
+  if (color_util::alpha_channel(m_tray.background) == 0) {
+    m_tray.transparent = true;
+    m_tray.background = 0;
+  }
+
+  // Add user-defined padding
+  m_tray.spacing += m_conf.get<int>(bs, "tray-padding", 0);
+
+  // Add user-defiend offset
+  auto offset_x_def = m_conf.get<string>(bs, "tray-offset-x", "");
+  auto offset_y_def = m_conf.get<string>(bs, "tray-offset-y", "");
+
+  auto offset_x = std::atoi(offset_x_def.c_str());
+  auto offset_y = std::atoi(offset_y_def.c_str());
+
+  if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
+    offset_x = math_util::percentage_to_value(offset_x, m_bar.monitor->w);
+    offset_x -= m_tray.width / 2;
+  }
+
+  if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
+    offset_y = math_util::percentage_to_value(offset_y, m_bar.monitor->h);
+    offset_y -= m_tray.width / 2;
+  }
+
+  m_tray.orig_x += offset_x;
+  m_tray.orig_y += offset_y;
+
+  // Add tray update callback unless explicitly disabled
+  if (!m_conf.get<bool>(bs, "tray-detached", false)) {
+    g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
+  }
+
+  // Put the tray next to the bar in the window stack
+  m_tray.sibling = m_window;
+
+  try {
+    m_log.trace("controller: Setup tray manager");
+    m_traymanager->bootstrap(tray());
+  } catch (const std::exception& err) {
+    m_log.err(err.what());
+    m_log.warn("Failed to setup tray, disabling...");
+    m_traymanager.reset();
+  }
+}  // }}}
+
+/**
+ * Activate tray manager
+ */
+void bar::activate_tray() {  // {{{
+  if (!m_traymanager) {
+    return;
+  }
+
+  m_log.trace("controller: Activate tray manager");
+
+  try {
+    m_traymanager->activate();
+  } catch (const std::exception& err) {
+    m_log.err(err.what());
+    m_log.err("Failed to activate tray manager, disabling...");
+    m_traymanager.reset();
+  }
 }  // }}}
 
 /**
@@ -542,8 +626,8 @@ void bar::parse(string data, bool force) {  // {{{
 
     draw_background();
 
-    if (m_tray.align == alignment::LEFT && m_tray.slots)
-      m_xpos += ((m_tray.width + m_tray.spacing) * m_tray.slots) + m_tray.spacing;
+    if (m_tray.align == alignment::LEFT && m_tray.configured_slots)
+      m_xpos += ((m_tray.width + m_tray.spacing) * m_tray.configured_slots) + m_tray.spacing;
 
     try {
       parser parser(m_bar);
@@ -552,8 +636,9 @@ void bar::parse(string data, bool force) {  // {{{
       m_log.err("Unrecognized syntax token '%s'", err.what());
     }
 
-    if (m_tray.align == alignment::RIGHT && m_tray.slots)
-      draw_shift(m_xpos, ((m_tray.width + m_tray.spacing) * m_tray.slots) + m_tray.spacing);
+    if (m_tray.align == alignment::RIGHT && m_tray.configured_slots)
+      draw_shift(
+          m_xpos, ((m_tray.width + m_tray.spacing) * m_tray.configured_slots) + m_tray.spacing);
 
     draw_border(border::ALL);
 
@@ -569,15 +654,15 @@ void bar::parse(string data, bool force) {  // {{{
 void bar::flush() {  // {{{
   m_connection.copy_area(
       m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, 0, 0, m_bar.width, m_bar.height);
-  m_connection.copy_area(
-      m_pixmap, m_window, m_gcontexts.at(gc::BT), 0, 0, 0, 0, m_bar.width, m_bar.height);
-  m_connection.copy_area(
-      m_pixmap, m_window, m_gcontexts.at(gc::BB), 0, 0, 0, 0, m_bar.width, m_bar.height);
-  m_connection.copy_area(
-      m_pixmap, m_window, m_gcontexts.at(gc::BL), 0, 0, 0, 0, m_bar.width, m_bar.height);
-  m_connection.copy_area(
-      m_pixmap, m_window, m_gcontexts.at(gc::BR), 0, 0, 0, 0, m_bar.width, m_bar.height);
+
+  // m_connection.copy_area(
+  //     m_pixmap, m_window, m_root_gc, m_bar.x, m_bar.y, 0, 0, m_bar.width, m_bar.height);
+
   m_connection.flush();
+
+  if (g_signals::bar::redraw) {
+    g_signals::bar::redraw();
+  }
 
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
   map<alignment, int> hint_num{{
@@ -615,6 +700,13 @@ void bar::flush() {  // {{{
 #endif
     }
   }
+}  // }}}
+
+/**
+ * Refresh the bar window by clearing and redrawing the pixmaps
+ */
+void bar::refresh_window() {  // {{{
+  m_log.info("Refresh bar window");
 }  // }}}
 
 /**
@@ -693,8 +785,12 @@ void bar::handle(const evt::expose& evt) {  // {{{
  * Some might call it a dirty hack, others a crappy
  * solution... I choose to call it a masterpiece! Plus
  * it's not really any overhead worth talking about.
+ *
+ * Also tracks the root pixmap
  */
 void bar::handle(const evt::property_notify& evt) {  // {{{
+  m_log.trace("bar: property_notify");
+
   if (evt->window == m_window && evt->atom == WM_STATE) {
     if (!g_signals::bar::visibility_change) {
       return;
@@ -713,6 +809,12 @@ void bar::handle(const evt::property_notify& evt) {  // {{{
     } catch (const std::exception& err) {
       m_log.warn("Failed to emit bar window's visibility change event");
     }
+  } else if (evt->atom == _XROOTMAP_ID) {
+    refresh_window();
+  } else if (evt->atom == _XSETROOT_ID) {
+    refresh_window();
+  } else if (evt->atom == ESETROOT_PMAP_ID) {
+    refresh_window();
   }
 }  // }}}
 
@@ -744,6 +846,7 @@ int bar::width_inner() {  // {{{
 void bar::on_alignment_change(alignment align) {  // {{{
   if (align == m_bar.align)
     return;
+
   m_log.trace_x("bar: alignment_change(%i)", static_cast<int>(align));
   m_bar.align = align;
 
@@ -876,9 +979,9 @@ void bar::on_pixel_offset(int px) {  // {{{
  * Proess systray report
  */
 void bar::on_tray_report(uint16_t slots) {  // {{{
-  if (m_tray.slots != slots) {
+  if (m_tray.configured_slots != slots) {
     m_log.trace("bar: tray_report(%lu)", slots);
-    m_tray.slots = slots;
+    m_tray.configured_slots = slots;
 
     if (!m_prevdata.empty()) {
       parse(m_prevdata, true);
@@ -999,9 +1102,7 @@ int bar::draw_shift(int x, int chr_width) {  // {{{
  * Draw text character
  */
 void bar::draw_character(uint16_t character) {  // {{{
-  // TODO: cache
   auto& font = m_fontmanager->match_char(character);
-
   if (!font) {
     m_log.warn("No suitable font found for character at index %i", character);
     return;
@@ -1012,7 +1113,6 @@ void bar::draw_character(uint16_t character) {  // {{{
     m_fontmanager->set_gcontext_font(m_gcontexts.at(gc::FG), m_gcfont);
   }
 
-  // TODO: cache
   auto chr_width = m_fontmanager->char_width(font, character);
 
   // Avoid odd glyph width's for center-aligned text
@@ -1029,9 +1129,9 @@ void bar::draw_character(uint16_t character) {  // {{{
     auto color = m_fontmanager->xftcolor();
     XftDrawString16(m_xftdraw, &color, font->xft, x, y, &character, 1);
   } else {
-    character = (character >> 8) | (character << 8);
+    uint16_t ucs = ((character >> 8) | (character << 8));
     draw_util::xcb_poly_text_16_patched(
-        m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &character);
+        m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
   }
 
   draw_lines(x, chr_width);

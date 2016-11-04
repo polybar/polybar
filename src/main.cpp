@@ -1,5 +1,4 @@
 #include <X11/Xlib-xcb.h>
-#include <thread>
 
 #include "common.hpp"
 #include "components/command_line.hpp"

@@ -45,6 +45,15 @@ namespace color_util {
       return b << 8 | b << 8 / 0xff;
   }
 
+  template <typename T = uint32_t>
+  uint32_t premultiply_alpha(const T value) {
+    auto a = color_util::alpha_channel(value);
+    auto r = color_util::red_channel(value) * a / 255;
+    auto g = color_util::green_channel(value) * a / 255;
+    auto b = color_util::blue_channel(value) * a / 255;
+    return (a << 24) | (r << 16) | (g << 8) | b;
+  }
+
   template <typename T = uint8_t>
   string hex(uint32_t color) {
     char s[12];

@@ -21,6 +21,7 @@ class color {
   static color parse(string input);
 
  protected:
+  uint32_t m_value;
   uint32_t m_color;
   string m_source;
 };

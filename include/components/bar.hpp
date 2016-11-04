@@ -11,6 +11,7 @@
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fontmanager.hpp"
+#include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
@@ -20,21 +21,25 @@ LEMONBUDDY_NS
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
   explicit bar(connection& conn, const config& config, const logger& logger,
-      unique_ptr<fontmanager> fontmanager)
+      unique_ptr<fontmanager> fontmanager, unique_ptr<traymanager> traymanager)
       : m_connection(conn)
       , m_conf(config)
       , m_log(logger)
-      , m_fontmanager(forward<decltype(fontmanager)>(fontmanager)) {}
+      , m_fontmanager(forward<decltype(fontmanager)>(fontmanager))
+      , m_traymanager(forward<decltype(traymanager)>(traymanager)) {}
 
   ~bar();
 
   void bootstrap(bool nodraw = false);
+  void bootstrap_tray();
+  void activate_tray();
 
   const bar_settings settings() const;
   const tray_settings tray() const;
 
   void parse(string data, bool force = false);
   void flush();
+  void refresh_window();
 
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
@@ -67,6 +72,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   const config& m_conf;
   const logger& m_log;
   unique_ptr<fontmanager> m_fontmanager;
+  unique_ptr<traymanager> m_traymanager;
 
   threading_util::spin_lock m_lock;
   throttle_util::throttle_t m_throttler;
@@ -77,6 +83,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   window m_window{m_connection};
   colormap m_colormap{m_connection, m_connection.generate_id()};
   pixmap m_pixmap{m_connection, m_connection.generate_id()};
+
+  // xcb_gcontext_t m_root_gc{0};
+  // graphics_util::root_pixmap m_rootpixmap;
 
   bar_settings m_bar;
   tray_settings m_tray;
@@ -105,7 +114,8 @@ namespace {
         configure_connection(),
         configure_config(),
         configure_logger(),
-        configure_fontmanager());
+        configure_fontmanager(),
+        configure_traymanager());
     // clang-format on
   }
 }

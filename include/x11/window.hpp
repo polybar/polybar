@@ -17,6 +17,12 @@ class window : public xpp::window<connection_t&> {
       int16_t x, int16_t y, uint16_t w, uint16_t h, uint32_t mask, const xcb_params_cw_t* params);
 
   window create_checked(uint16_t w, uint16_t h, uint32_t mask, const xcb_params_cw_t* params);
+
+  void refresh() {
+    xutils::visibility_notify(connection(), *this, XCB_VISIBILITY_FULLY_OBSCURED);
+    xutils::visibility_notify(connection(), *this, XCB_VISIBILITY_UNOBSCURED);
+    connection().flush();
+  }
 };
 
 // struct cw_size {

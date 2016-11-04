@@ -59,10 +59,6 @@ controller::~controller() {
     m_bar.reset();
   }
 
-  if (m_traymanager) {
-    m_traymanager.reset();
-  }
-
   m_log.info("Interrupting X event loop");
   m_connection.send_dummy_event(m_connection.root());
 
@@ -97,7 +93,7 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
   // break the blocking wait call when cleaning up
   m_log.trace("controller: Listen for events on the root window");
   try {
-    const uint32_t value_list[1]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    const uint32_t value_list[2]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
     m_connection.change_window_attributes_checked(
         m_connection.root(), XCB_CW_EVENT_MASK, value_list);
   } catch (const std::exception& err) {
@@ -124,23 +120,6 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
     m_eventloop->set_input_db(bind(&controller::on_unrecognized_action, this, placeholders::_1));
   }
 
-  try {
-    if (m_writeback) {
-      m_log.trace("controller: Disabling tray (reason: stdout mode)");
-      m_traymanager.reset();
-    } else if (m_bar->tray().align == alignment::NONE) {
-      m_log.trace("controller: Disabling tray (reason: tray-position)");
-      m_traymanager.reset();
-    } else {
-      m_log.trace("controller: Setup tray manager");
-      m_traymanager->bootstrap(m_bar->tray());
-    }
-  } catch (const std::exception& err) {
-    m_log.err(err.what());
-    m_log.warn("Failed to setup tray, disabling...");
-    m_traymanager.reset();
-  }
-
   m_log.trace("controller: Setup user-defined modules");
   bootstrap_modules();
 }
@@ -156,11 +135,6 @@ bool controller::run() {
 
   install_sigmask();
   install_confwatch();
-
-  // Activate traymanager in separate thread
-  if (!m_writeback && m_traymanager) {
-    m_threads.emplace_back(thread(&controller::activate_tray, this));
-  }
 
   // Listen for X events in separate thread
   if (!m_writeback) {
@@ -260,6 +234,9 @@ void controller::install_confwatch() {
   });
 }
 
+/**
+ * Remove the config inotify watch
+ */
 void controller::uninstall_confwatch() {
   try {
     if (m_confwatch) {
@@ -271,7 +248,7 @@ void controller::uninstall_confwatch() {
 }
 
 /**
- * TODO: docstring
+ * Wait for termination signal
  */
 void controller::wait_for_signal() {
   m_log.trace("controller: Wait for signal");
@@ -292,7 +269,8 @@ void controller::wait_for_signal() {
 }
 
 /**
- * TODO: docstring
+ * Wait for X events and forward them to
+ * the event registry
  */
 void controller::wait_for_xevent() {
   m_log.trace("controller: Listen for X events");
@@ -316,21 +294,6 @@ void controller::wait_for_xevent() {
     } catch (const std::exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
     }
-  }
-}
-
-/**
- * TODO: docstring
- */
-void controller::activate_tray() {
-  m_log.trace("controller: Activate tray manager");
-
-  try {
-    m_traymanager->activate();
-  } catch (const std::exception& err) {
-    m_log.err(err.what());
-    m_log.err("Failed to activate tray manager, disabling...");
-    m_traymanager.reset();
   }
 }
 
@@ -433,7 +396,7 @@ void controller::on_mouse_event(string input) {
 }
 
 /**
- * TODO: docstring
+ * Callback for actions not handled internally by a module
  */
 void controller::on_unrecognized_action(string input) {
   try {
@@ -453,7 +416,7 @@ void controller::on_unrecognized_action(string input) {
 }
 
 /**
- * TODO: docstring
+ * Callback for module content update
  */
 void controller::on_update() {
   string contents{""};
@@ -519,6 +482,11 @@ void controller::on_update() {
     std::cout << contents << std::endl;
   } else {
     m_bar->parse(contents);
+  }
+
+  if (!m_trayactivated) {
+    m_trayactivated = true;
+    m_bar->activate_tray();
   }
 }
 

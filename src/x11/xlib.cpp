@@ -24,7 +24,7 @@ namespace xlib {
   }
 
   Colormap create_colormap(int screen) {
-    return XCreateColormap(get_display(), XRootWindow(get_display(), screen), get_visual(), screen);
+    return XDefaultColormap(get_display(), screen);
   }
 }
 
