@@ -1,7 +1,10 @@
+#include <xcb/xcb_image.h>
+
 #include "x11/tray.hpp"
 #include "utils/color.hpp"
 #include "x11/draw.hpp"
 #include "x11/window.hpp"
+#include "x11/wm.hpp"
 
 LEMONBUDDY_NS
 
@@ -115,6 +118,10 @@ traymanager::~traymanager() {
     deactivate();
   if (m_sinkattached)
     m_connection.detach_sink(this, 2);
+  if (m_pixmap)
+    xcb_free_pixmap(m_connection, m_pixmap);
+  if (m_gc)
+    xcb_free_gc(m_connection, m_gc);
 }
 
 /**
@@ -159,6 +166,11 @@ void traymanager::activate() {  // {{{
         bind(&traymanager::bar_visibility_change, this, std::placeholders::_1);
   }
 
+  // Listen for redraw events on the bar window
+  if (!g_signals::bar::redraw) {
+    g_signals::bar::redraw = bind(&traymanager::refresh_window, this);
+  }
+
   // Attempt to get control of the systray selection then
   // notify clients waiting for a manager.
   acquire_selection();
@@ -168,6 +180,7 @@ void traymanager::activate() {  // {{{
   // to get unembedded...
   if (m_othermanager != XCB_NONE)
     this_thread::sleep_for(1s);
+
   notify_clients();
 
   m_connection.flush();
@@ -193,8 +206,11 @@ void traymanager::deactivate() {  // {{{
   }
 
   if (g_signals::bar::visibility_change) {
-    m_log.trace("tray: Clear callback handlers");
     g_signals::bar::visibility_change = nullptr;
+  }
+
+  if (g_signals::bar::redraw) {
+    g_signals::bar::redraw = nullptr;
   }
 
   if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
@@ -232,55 +248,100 @@ void traymanager::reconfigure() {  // {{{
   }
 
   if (!m_mtx.try_lock()) {
-    m_log.err("already locked");
     return;
   }
 
-  std::lock_guard<std::mutex> lock(m_mtx, std::adopt_lock);
+  std::unique_lock<std::mutex> guard(m_mtx, std::adopt_lock);
 
-  reconfigure_clients();
-  reconfigure_window();
+  try {
+    reconfigure_clients();
+    reconfigure_window();
+    reconfigure_bg();
+    refresh_window();
+    m_connection.flush();
+  } catch (const std::exception& err) {
+    m_log.err("Failed to reconfigure tray (%s)", err.what());
+    return;
+  }
 
   m_connection.flush();
 
+  m_settings.configured_slots = mapped_clients();
+
   // Report status
   if (g_signals::tray::report_slotcount) {
-    m_settings.slots = mapped_clients();
-    g_signals::tray::report_slotcount(m_settings.slots);
+    g_signals::tray::report_slotcount(m_settings.configured_slots);
   }
+
+  guard.unlock();
+
+  refresh_window();
 }  // }}}
 
 /**
  * Reconfigure container window
  */
 void traymanager::reconfigure_window() {  // {{{
+  m_log.trace("tray: Reconfigure window");
+
+  if (m_tray == XCB_NONE) {
+    return;
+  }
+
   auto clients = mapped_clients();
 
   if (!clients && m_mapped) {
-    m_connection.unmap_window(m_tray);
+    m_log.trace("tray: Reconfigure window / unmap");
+    m_mapped = false;
+    m_connection.unmap_window_checked(m_tray);
   } else if (clients && !m_mapped) {
-    m_connection.map_window(m_tray);
-  } else if (clients) {
-    // clear window to get rid of frozen artifacts
-    m_connection.clear_area(1, m_tray, 0, 0, 0, 0);
-
-    // configure window
-    uint32_t mask = 0;
-    uint32_t values[7];
-    xcb_params_configure_window_t params;
-
-    XCB_AUX_ADD_PARAM(&mask, &params, width, calculate_w());
-    XCB_AUX_ADD_PARAM(&mask, &params, x, calculate_x(params.width));
-
-    xutils::pack_values(mask, &params, values);
-    m_connection.configure_window_checked(m_tray, mask, values);
+    m_log.trace("tray: Reconfigure window / map");
+    m_mapped = true;
+    m_connection.map_window_checked(m_tray);
   }
+
+  if (!m_mapped) {
+    m_log.trace("tray: Reconfigure window / ignoring unmapped");
+    return;
+  }
+
+  if (!clients) {
+    m_log.trace("tray: Reconfigure window / no clients");
+    return;
+  }
+
+  auto width = calculate_w();
+  auto x = calculate_x(width);
+
+  if (m_settings.configured_w == width && m_settings.configured_x == x) {
+    m_log.trace("tray: Reconfigure window / ignoring unchanged values w=%d x=%d", width, x);
+    return;
+  }
+
+  // configure window
+  uint32_t mask = 0;
+  uint32_t values[7];
+  xcb_params_configure_window_t params;
+
+  m_log.trace("tray: New window values, width=%d, x=%d", width, x);
+
+  XCB_AUX_ADD_PARAM(&mask, &params, width, width);
+  XCB_AUX_ADD_PARAM(&mask, &params, x, x);
+
+  xutils::pack_values(mask, &params, values);
+
+  m_connection.configure_window_checked(m_tray, mask, values);
+
+  m_settings.configured_w = width;
+  m_settings.configured_x = x;
 }  // }}}
 
 /**
  * Reconfigure clients
  */
 void traymanager::reconfigure_clients() {  // {{{
+  m_log.trace("tray: Reconfigure clients");
+
   uint32_t x = m_settings.spacing;
 
   for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
@@ -298,6 +359,114 @@ void traymanager::reconfigure_clients() {  // {{{
 }  // }}}
 
 /**
+ * Reconfigure root pixmap
+ */
+void traymanager::reconfigure_bg(bool realloc) {  // {{{
+  if (!m_settings.transparent) {
+    return;
+  }
+
+  if (m_clients.empty() || !m_mapped) {
+    return;
+  }
+
+  auto width = calculate_w();
+  auto height = calculate_h();
+
+  if (!realloc) {
+    if (width == m_prevwidth && height == m_prevheight) {
+      return;
+    } else if (!width) {
+      return;
+    }
+  }
+
+  m_log.trace("tray: Reconfigure bg");
+
+  if (!m_rootpixmap.pixmap || realloc)
+    graphics_util::get_root_pixmap(m_connection, &m_rootpixmap);
+  if (!m_pixmap)
+    graphics_util::simple_pixmap(m_connection, m_tray, width, height, &m_pixmap);
+  if (!m_gc)
+    graphics_util::simple_gc(m_connection, m_pixmap, &m_gc);
+
+  if (!m_rootpixmap.pixmap) {
+    m_log.warn("Failed to get root pixmap for tray background");
+    return;
+  }
+
+  m_log.trace("tray: rootpixmap=%x (%dx%d+%d+%d), tray=%x, pixmap=%x, gc=%x",
+      m_rootpixmap.pixmap,
+      m_rootpixmap.width,
+      m_rootpixmap.height,
+      m_rootpixmap.x,
+      m_rootpixmap.y,
+      m_tray, m_pixmap, m_gc);
+
+  m_prevwidth = width;
+  m_prevheight = height;
+
+  auto x = calculate_x(width);
+  auto y = calculate_y();
+
+  m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_gc, x, y, 0, 0, width, height);
+
+  auto image_reply = m_connection.get_image(
+      XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, 0, 0, width, height, XAllPlanes());
+
+  vector<uint8_t> image_data;
+  std::back_insert_iterator<decltype(image_data)> back_it(image_data);
+  std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
+  uint8_t* data = image_data.data();
+
+  m_connection.put_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_gc, width, height, 0, 0, 0,
+      image_reply->depth, image_data.size(), data);
+
+  m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_gc, x, y, 0, 0, width, height);
+
+  uint32_t mask = 0;
+  uint32_t values[16];
+  xcb_params_cw_t params;
+  XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, m_pixmap);
+  xutils::pack_values(mask, &params, values);
+  m_connection.change_window_attributes_checked(m_tray, mask, values);
+
+  m_connection.copy_area(m_pixmap, m_tray, m_gc, x, y, 0, 0, width, height);
+}  // }}}
+
+/**
+ * Refresh the bar window by clearing and copying
+ * the root pixmap onto it
+ */
+void traymanager::refresh_window() {  // {{{
+  if (!m_mtx.try_lock()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(m_mtx, std::adopt_lock);
+
+  if (!m_activated || !m_mapped) {
+    return;
+  }
+
+  m_log.trace("tray: Refreshing window");
+
+  auto width = calculate_w();
+  auto height = calculate_h();
+  auto x = calculate_x(width);
+  auto y = calculate_y();
+
+  m_connection.clear_area(1, m_tray, 0, 0, width, height);
+
+  if (m_rootpixmap.pixmap && m_gc && m_pixmap) {
+    // draw_util::fill(m_connection, m_pixmap, m_gc, 0, 0, width, height);
+    m_connection.copy_area(m_pixmap, m_tray, m_gc, x, y, 0, 0, width, height);
+  }
+
+  m_connection.flush();
+}  // }}}
+
+/**
  * Find the systray selection atom
  */
 void traymanager::query_atom() {  // {{{
@@ -312,10 +481,10 @@ void traymanager::query_atom() {  // {{{
  */
 void traymanager::create_window() {  // {{{
   auto scr = m_connection.screen();
-  auto x = calculate_x(0);
+  auto w = calculate_w();
+  auto h = calculate_h();
+  auto x = calculate_x(w);
   auto y = calculate_y();
-  auto w = m_settings.width + m_settings.spacing * 2;
-  auto h = m_settings.height_fill;
 
   m_tray = m_connection.generate_id();
   m_log.trace("tray: Create tray window %s, (%ix%i+%i+%i)", m_connection.id(m_tray), w, h, x, y);
@@ -324,8 +493,12 @@ void traymanager::create_window() {  // {{{
   uint32_t values[16];
   xcb_params_cw_t params;
 
-  XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, m_settings.background);
-  XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, m_settings.background);
+  if (!m_settings.transparent) {
+    XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, m_settings.background);
+    XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, m_settings.background);
+  }
+
+  XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
   XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, true);
   XCB_AUX_ADD_PARAM(&mask, &params, event_mask,
       XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY);
@@ -337,6 +510,8 @@ void traymanager::create_window() {  // {{{
   try {
     // Put the tray window above the defined sibling in the window stack
     if (m_settings.sibling != 0) {
+      m_log.trace("tray: Restacking tray window");
+
       uint32_t configure_mask = 0;
       uint32_t configure_values[7];
       xcb_params_configure_window_t configure_params;
@@ -367,14 +542,14 @@ void traymanager::set_wmhints() {  // {{{
   vector<xcb_atom_t> wm_flags;
   wm_flags.emplace_back(WM_DELETE_WINDOW);
   wm_flags.emplace_back(WM_TAKE_FOCUS);
-  xcb_icccm_set_wm_protocols(m_connection, m_tray, WM_PROTOCOLS, wm_flags.size(), wm_flags.data());
+  wm_util::set_wmprotocols(m_connection, m_tray, wm_flags);
 
   m_log.trace("tray: Set window _NET_WM_WINDOW_TYPE");
   vector<xcb_atom_t> types;
   types.emplace_back(_NET_WM_WINDOW_TYPE_DOCK);
   types.emplace_back(_NET_WM_WINDOW_TYPE_NORMAL);
-  m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _NET_WM_WINDOW_TYPE, XCB_ATOM_ATOM,
-      32, types.size(), types.data());
+  wm_util::set_wmprotocols(m_connection, m_tray, types);
+  wm_util::set_windowtype(m_connection, m_tray, types);
 
   m_log.trace("tray: Set window _NET_WM_STATE");
   vector<xcb_atom_t> states;
@@ -382,20 +557,14 @@ void traymanager::set_wmhints() {  // {{{
   m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _NET_WM_STATE, XCB_ATOM_ATOM, 32,
       states.size(), states.data());
 
+  m_log.trace("tray: Set window _NET_WM_PID");
+  wm_util::set_wmpid(m_connection, m_tray, getpid());
+
   m_log.trace("tray: Set window _NET_SYSTEM_TRAY_ORIENTATION");
-  const uint32_t values[1]{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
-  m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_ORIENTATION,
-      _NET_SYSTEM_TRAY_ORIENTATION, 32, 1, values);
+  wm_util::set_trayorientation(m_connection, m_tray, _NET_SYSTEM_TRAY_ORIENTATION_HORZ);
 
   m_log.trace("tray: Set window _NET_SYSTEM_TRAY_VISUAL");
-  const uint32_t values2[1]{m_connection.screen()->root_visual};
-  m_connection.change_property(
-      XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_VISUAL, XCB_ATOM_VISUALID, 32, 1, values2);
-
-  m_log.trace("tray: Set window _NET_WM_PID");
-  int pid = getpid();
-  m_connection.change_property(
-      XCB_PROP_MODE_REPLACE, m_tray, _NET_WM_PID, XCB_ATOM_CARDINAL, 32, 1, &pid);
+  wm_util::set_trayvisual(m_connection, m_tray, m_connection.screen()->root_visual);
 }  // }}}
 
 /**
@@ -470,11 +639,12 @@ void traymanager::process_docking_request(xcb_window_t win) {  // {{{
   auto client = find_client(win);
 
   if (client) {
-    m_log.trace("tray: Client %s is already embedded, skipping...", m_connection.id(win));
+    m_log.warn("Tray client %s already embedded, ignoring request...", m_connection.id(win));
     return;
   }
 
-  m_log.trace("tray: Process docking request from %s", m_connection.id(win));
+  m_log.info("Processing docking request from %s", m_connection.id(win));
+
   m_clients.emplace_back(
       make_shared<trayclient>(m_connection, win, m_settings.width, m_settings.height));
   client = m_clients.back();
@@ -500,7 +670,7 @@ void traymanager::process_docking_request(xcb_window_t win) {  // {{{
       XCB_AUX_ADD_PARAM(&mask, &params, event_mask,
           XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
-      if (m_settings.background != 0) {
+      if (m_settings.transparent) {
         XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, XCB_BACK_PIXMAP_PARENT_RELATIVE);
       }
 
@@ -537,12 +707,12 @@ void traymanager::process_docking_request(xcb_window_t win) {  // {{{
  * toggle the tray window whenever the visibility of the bar window changes.
  */
 void traymanager::bar_visibility_change(bool state) {  // {{{
-  // Ignore unchanged states
   if (m_hidden == !state) {
     return;
   }
 
-  // Update the psuedo-state
+  m_log.trace("tray: visibility_change %d", state);
+
   m_hidden = !state;
 
   if (!m_hidden && !m_mapped) {
@@ -559,7 +729,7 @@ void traymanager::bar_visibility_change(bool state) {  // {{{
 /**
  * Calculate x position of tray window
  */
-int16_t traymanager::calculate_x(uint32_t width) const {  // {{{
+int16_t traymanager::calculate_x(uint16_t width) const {  // {{{
   auto x = m_settings.orig_x;
   if (m_settings.align == alignment::RIGHT)
     x -= ((m_settings.width + m_settings.spacing) * m_clients.size() + m_settings.spacing);
@@ -579,7 +749,7 @@ int16_t traymanager::calculate_y() const {  // {{{
  * Calculate width of tray window
  */
 uint16_t traymanager::calculate_w() const {  // {{{
-  uint32_t width = m_settings.spacing;
+  uint16_t width = m_settings.spacing;
 
   for (auto&& client : m_clients) {
     if (client->mapped()) {
@@ -655,20 +825,20 @@ int traymanager::mapped_clients() const {  // {{{
  * Event callback : XCB_EXPOSE
  */
 void traymanager::handle(const evt::expose& evt) {  // {{{
-  if (!m_activated || m_clients.empty())
-    return;
-  m_log.trace("tray: Received expose event for %s", m_connection.id(evt->window));
-  reconfigure();
+  if (m_activated && !m_clients.empty()) {
+    m_log.trace("tray: Received expose event for %s", m_connection.id(evt->window));
+    reconfigure_window();
+  }
 }  // }}}
 
 /**
  * Event callback : XCB_VISIBILITY_NOTIFY
  */
 void traymanager::handle(const evt::visibility_notify& evt) {  // {{{
-  if (!m_activated || m_clients.empty())
-    return;
-  m_log.trace("tray: Received visibility_notify for %s", m_connection.id(evt->window));
-  reconfigure();
+  if (m_activated && !m_clients.empty()) {
+    m_log.trace("tray: Received visibility_notify for %s", m_connection.id(evt->window));
+    reconfigure_window();
+  }
 }  // }}}
 
 /**
@@ -717,13 +887,14 @@ void traymanager::handle(const evt::client_message& evt) {  // {{{
  * so we return an answer that'll put him in place.
  */
 void traymanager::handle(const evt::configure_request& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
+  }
 
   auto client = find_client(evt->window);
-
-  if (!client)
+  if (!client) {
     return;
+  }
 
   try {
     m_log.trace("tray: Client configure request %s", m_connection.id(evt->window));
@@ -738,13 +909,14 @@ void traymanager::handle(const evt::configure_request& evt) {  // {{{
  * @see tray_manager::handle(const evt::configure_request&);
  */
 void traymanager::handle(const evt::resize_request& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
+  }
 
   auto client = find_client(evt->window);
-
-  if (!client)
+  if (!client) {
     return;
+  }
 
   try {
     m_log.trace("tray: Received resize_request for client %s", m_connection.id(evt->window));
@@ -759,12 +931,13 @@ void traymanager::handle(const evt::resize_request& evt) {  // {{{
  * Event callback : XCB_SELECTION_CLEAR
  */
 void traymanager::handle(const evt::selection_clear& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
-  if (evt->selection != m_atom)
+  } else if (evt->selection != m_atom) {
     return;
-  if (evt->owner != m_tray)
+  } else if (evt->owner != m_tray) {
     return;
+  }
 
   try {
     m_log.warn("Lost systray selection, deactivating...");
@@ -782,39 +955,48 @@ void traymanager::handle(const evt::selection_clear& evt) {  // {{{
  * Event callback : XCB_PROPERTY_NOTIFY
  */
 void traymanager::handle(const evt::property_notify& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
-  if (evt->atom != _XEMBED_INFO)
-    return;
+  } else if (evt->atom == _XROOTMAP_ID) {
+    reconfigure_bg(true);
+  } else if (evt->atom == _XSETROOT_ID) {
+    reconfigure_bg(true);
+  } else if (evt->atom == ESETROOT_PMAP_ID) {
+    reconfigure_bg(true);
+  } else if (evt->atom != _XEMBED_INFO) {
+    auto client = find_client(evt->window);
+    if (!client) {
+      return;
+    }
 
-  m_log.trace("tray: _XEMBED_INFO: %s", m_connection.id(evt->window));
+    m_log.trace("tray: _XEMBED_INFO: %s", m_connection.id(evt->window));
 
-  auto client = find_client(evt->window);
-  if (!client)
-    return;
+    auto xd = client->xembed();
+    auto win = client->window();
 
-  auto xd = client->xembed();
-  auto win = client->window();
+    if (evt->state == XCB_PROPERTY_NEW_VALUE) {
+      m_log.trace("tray: _XEMBED_INFO value has changed");
+    }
 
-  if (evt->state == XCB_PROPERTY_NEW_VALUE) {
-    m_log.trace("tray: _XEMBED_INFO value has changed");
+    xembed::query(m_connection, win, xd);
+
+    m_log.trace("tray: _XEMBED_INFO[0]=%u _XEMBED_INFO[1]=%u", xd->version, xd->flags);
+
+    if ((client->xembed()->flags & XEMBED_MAPPED) & XEMBED_MAPPED) {
+      reconfigure();
+    }
   }
-
-  xembed::query(m_connection, win, xd);
-  m_log.trace("tray: _XEMBED_INFO[0]=%u _XEMBED_INFO[1]=%u", xd->version, xd->flags);
-
-  reconfigure();
 }  // }}}
 
 /**
  * Event callback : XCB_REPARENT_NOTIFY
  */
 void traymanager::handle(const evt::reparent_notify& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
+  }
 
   auto client = find_client(evt->window);
-
   if (client && evt->parent != m_tray) {
     m_log.trace("tray: Received reparent_notify for client, remove...");
     remove_client(client);
@@ -842,24 +1024,28 @@ void traymanager::handle(const evt::destroy_notify& evt) {  // {{{
  * Event callback : XCB_MAP_NOTIFY
  */
 void traymanager::handle(const evt::map_notify& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
+  }
 
   if (evt->window == m_tray && !m_mapped) {
-    if (m_mapped)
+    if (m_mapped) {
       return;
+    }
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     m_mapped = true;
-    reconfigure();
   } else {
     auto client = find_client(evt->window);
     if (client) {
       m_log.trace("tray: Received map_notify");
       m_log.trace("tray: Set client mapped");
       client->mapped(true);
-      reconfigure();
     }
+  }
+
+  if (mapped_clients() > m_settings.configured_slots) {
+    reconfigure();
   }
 }  // }}}
 
@@ -867,23 +1053,25 @@ void traymanager::handle(const evt::map_notify& evt) {  // {{{
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void traymanager::handle(const evt::unmap_notify& evt) {  // {{{
-  if (!m_activated)
+  if (!m_activated) {
     return;
+  }
 
   if (evt->window == m_tray) {
     m_log.trace("tray: Received unmap_notify");
-    if (!m_mapped)
+    if (!m_mapped) {
       return;
+    }
     m_log.trace("tray: Update container mapped flag");
     m_mapped = false;
-    reconfigure();
+    m_settings.configured_w = 0;
+    m_settings.configured_x = 0;
   } else {
     auto client = find_client(evt->window);
     if (client) {
       m_log.trace("tray: Received unmap_notify");
       m_log.trace("tray: Set client unmapped");
       client->mapped(true);
-      reconfigure();
     }
   }
 }  // }}}

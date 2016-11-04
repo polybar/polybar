@@ -11,6 +11,7 @@
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
 #include "x11/connection.hpp"
+#include "x11/graphics.hpp"
 #include "x11/xembed.hpp"
 
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
@@ -75,6 +76,8 @@ class traymanager
  protected:
   void reconfigure_window();
   void reconfigure_clients();
+  void reconfigure_bg(bool realloc = false);
+  void refresh_window();
 
   void query_atom();
   void create_window();
@@ -89,7 +92,7 @@ class traymanager
 
   void bar_visibility_change(bool state);
 
-  int16_t calculate_x(uint32_t width) const;
+  int16_t calculate_x(uint16_t width) const;
   int16_t calculate_y() const;
   uint16_t calculate_w() const;
   uint16_t calculate_h() const;
@@ -119,6 +122,12 @@ class traymanager
   vector<shared_ptr<trayclient>> m_clients;
 
   tray_settings m_settings;
+
+  xcb_gcontext_t m_gc{0};
+  xcb_pixmap_t m_pixmap{0};
+  graphics_util::root_pixmap m_rootpixmap;
+  uint16_t m_prevwidth{0};
+  uint16_t m_prevheight{0};
 
   xcb_atom_t m_atom{0};
   xcb_window_t m_tray{0};

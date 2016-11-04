@@ -12,6 +12,7 @@ namespace g_signals {
   namespace bar {
     extern callback<string> action_click;
     extern callback<bool> visibility_change;
+    extern callback<> redraw;
   }
 
   namespace parser {

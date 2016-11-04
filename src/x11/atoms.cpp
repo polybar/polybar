@@ -29,9 +29,12 @@ xcb_atom_t _NET_SYSTEM_TRAY_COLORS;
 xcb_atom_t WM_TAKE_FOCUS;
 xcb_atom_t Backlight;
 xcb_atom_t BACKLIGHT;
+xcb_atom_t _XROOTMAP_ID;
+xcb_atom_t _XSETROOT_ID;
+xcb_atom_t ESETROOT_PMAP_ID;
 
 // clang-format off
-cached_atom ATOMS[26] = {
+cached_atom ATOMS[29] = {
   {"_NET_WM_NAME", sizeof("_NET_WM_NAME") - 1, &_NET_WM_NAME},
   {"_NET_WM_DESKTOP", sizeof("_NET_WM_DESKTOP") - 1, &_NET_WM_DESKTOP},
   {"_NET_WM_WINDOW_TYPE", sizeof("_NET_WM_WINDOW_TYPE") - 1, &_NET_WM_WINDOW_TYPE},
@@ -58,5 +61,8 @@ cached_atom ATOMS[26] = {
   {"WM_TAKE_FOCUS", sizeof("WM_TAKE_FOCUS") - 1, &WM_TAKE_FOCUS},
   {"Backlight", sizeof("Backlight") - 1, &Backlight},
   {"BACKLIGHT", sizeof("BACKLIGHT") - 1, &BACKLIGHT},
+  {"_XROOTMAP_ID", sizeof("_XROOTMAP_ID") - 1, &_XROOTMAP_ID},
+  {"_XSETROOT_ID", sizeof("_XSETROOT_ID") - 1, &_XSETROOT_ID},
+  {"ESETROOT_PMAP_ID", sizeof("ESETROOT_PMAP_ID") - 1, &ESETROOT_PMAP_ID},
 };
 // clang-format on
