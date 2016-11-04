@@ -245,14 +245,19 @@ void bar::bootstrap(bool nodraw) {  // {{{
     uint32_t none{0};
     uint32_t value_list[12]{none};
 
+    auto mt = m_conf.get<int>("global/wm", "margin-top", 0);
+    auto mb = m_conf.get<int>("global/wm", "margin-bottom", 0);
+    auto ml = m_conf.get<int>("global/wm", "margin-left", 0);
+    auto mr = m_conf.get<int>("global/wm", "margin-right", 0);
+
     if (m_bar.bottom) {
-      value_list[3] = m_bar.height;
-      value_list[10] = m_bar.x;
-      value_list[11] = m_bar.x + m_bar.width;
+      value_list[3] = m_bar.height + mt;
+      value_list[10] = m_bar.x + ml;
+      value_list[11] = m_bar.x + m_bar.width + mr;
     } else {
-      value_list[2] = m_bar.height;
-      value_list[8] = m_bar.x;
-      value_list[9] = m_bar.x + m_bar.width;
+      value_list[2] = m_bar.height + mb;
+      value_list[8] = m_bar.x + ml;
+      value_list[9] = m_bar.x + m_bar.width + mr;
     }
 
     m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL,
