@@ -40,7 +40,7 @@ before_install:
 
   # Install packages : xcb
   #--------------------------------------------------------------------------x
-  - sudo apt-get install -y libxcb1-dev libxcb-util0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen libfreetype6-dev
+  - sudo apt-get install -y libxcb1-dev libxcb-util0-dev libxcb-image0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen libfreetype6-dev
 
   # Install packages : optional
   #--------------------------------------------------------------------------x
