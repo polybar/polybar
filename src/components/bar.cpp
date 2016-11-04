@@ -1104,7 +1104,6 @@ int bar::draw_shift(int x, int chr_width) {  // {{{
 void bar::draw_character(uint16_t character) {  // {{{
   auto& font = m_fontmanager->match_char(character);
   if (!font) {
-    m_log.warn("No suitable font found for character at index %i", character);
     return;
   }
 
@@ -1143,7 +1142,52 @@ void bar::draw_character(uint16_t character) {  // {{{
  */
 void bar::draw_textstring(const char* text, size_t len) {  // {{{
   for (size_t n = 0; n < len; n++) {
-    draw_character(text[n]);
+    vector<uint16_t> chars;
+    chars.emplace_back(text[n]);
+
+    auto& font = m_fontmanager->match_char(chars[0]);
+
+    if (!font) {
+      return;
+    }
+
+    if (font->ptr && font->ptr != m_gcfont) {
+      m_gcfont = font->ptr;
+      m_fontmanager->set_gcontext_font(m_gcontexts.at(gc::FG), m_gcfont);
+    }
+
+    while (n + 1 < len && text[n + 1] == chars[0]) {
+      chars.emplace_back(text[++n]);
+    }
+
+    // TODO: cache
+    auto chr_width = m_fontmanager->char_width(font, chars[0]) * chars.size();
+
+    // Avoid odd glyph width's for center-aligned text
+    // since it breaks the positioning of clickable area's
+    if (m_bar.align == alignment::CENTER && chr_width % 2)
+      chr_width++;
+
+    auto x = draw_shift(m_xpos, chr_width);
+    auto y = m_bar.vertical_mid + font->height / 2 - font->descent + font->offset_y;
+
+    // m_log.trace("Draw char(%c, width: %i) at pos(%i,%i)", character, chr_width, x, y);
+
+    if (font->xft != nullptr) {
+      auto color = m_fontmanager->xftcolor();
+      const FcChar16* drawchars = static_cast<const FcChar16*>(chars.data());
+      XftDrawString16(m_xftdraw, &color, font->xft, x, y, drawchars, chars.size());
+    } else {
+      for (size_t i = 0; i < chars.size(); i++) {
+        chars[i] = ((chars[i] >> 8) | (chars[i] << 8));
+      }
+
+      draw_util::xcb_poly_text_16_patched(
+          m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, chars.size(), chars.data());
+    }
+
+    draw_lines(x, chr_width);
+    m_xpos += chr_width;
   }
 }  // }}}
 
