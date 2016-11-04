@@ -12,6 +12,7 @@ pkgbase = lemonbuddy
 	makedepends = boost
 	depends = libxft
 	depends = xcb-util-wm
+	depends = xcb-util-image
 	optdepends = alsa-lib: volume module support
 	optdepends = libmpdclient: mpd module support
 	optdepends = wireless_tools: network module support
