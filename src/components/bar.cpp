@@ -513,6 +513,8 @@ void bar::bootstrap_tray() {  // {{{
     auto bg = m_conf.get<string>(bs, "tray-background", "");
     if (!bg.empty()) {
       m_tray.background = color::parse(bg, g_colorempty);
+    } else {
+      m_tray.background = m_bar.background;
     }
   }
 
