@@ -842,14 +842,17 @@ void bar::on_action_block_close(mousebtn btn) {  // {{{
  * Handle color change
  */
 void bar::on_color_change(gc gc_, color color_) {  // {{{
-  m_log.trace_x("bar: color_change(%i, %s -> %s)", static_cast<int>(gc_), color_.source(), color_);
-
-  if (gc_ == gc::FG) {
-    m_fontmanager->allocate_color(color_);
-  }
+  m_log.trace_x("bar: color_change(%i, %s -> #%07x)", static_cast<int>(gc_), color_.source(),
+      static_cast<uint32_t>(color_));
 
   const uint32_t value_list[]{color_};
   m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
+
+  if (gc_ == gc::FG) {
+    m_fontmanager->allocate_color(color_);
+  } else if (gc_ == gc::BG) {
+    draw_shift(m_xpos, 0);
+  }
 }  // }}}
 
 /**
