@@ -486,6 +486,10 @@ void traymanager::create_window() {  // {{{
   auto x = calculate_x(w);
   auto y = calculate_y();
 
+  if (w < 1) {
+    w = 1;
+  }
+
   m_tray = m_connection.generate_id();
   m_log.trace("tray: Create tray window %s, (%ix%i+%i+%i)", m_connection.id(m_tray), w, h, x, y);
 
