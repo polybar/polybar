@@ -1009,8 +1009,9 @@ void traymanager::handle(const evt::reparent_notify& evt) {  // {{{
 void traymanager::handle(const evt::destroy_notify& evt) {  // {{{
   if (!m_activated && evt->window == m_othermanager) {
     m_log.trace("tray: Received destroy_notify");
-    m_log.trace("tray: Systray selection is available... re-activating");
+    m_log.info("Tray selection available... re-activating");
     activate();
+    reconfigure_window();
   } else if (m_activated) {
     auto client = find_client(evt->window);
     if (client) {
