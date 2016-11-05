@@ -169,6 +169,35 @@ int alsa_mixer::get_volume() {
   return 100.0f * (vol_total / chan_n) / vol_max + 0.5f;
 }
 
+int alsa_mixer::get_normalized_volume() {
+  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
+  double normalized, min_norm;
+
+  snd_mixer_selem_get_playback_dB_range(m_mixerelement, &vol_min, &vol_max);
+
+  for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
+    if (snd_mixer_selem_has_playback_channel(
+            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+      snd_mixer_selem_get_playback_dB(
+          m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
+      vol_total += vol;
+      chan_n++;
+    }
+  }
+
+  if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100)
+    return 100.0f * (vol_total / chan_n - vol_min) / (vol_max - vol_min) + 0.5f;
+
+  normalized = pow10((vol_total / chan_n - vol_max) / 6000.0);
+  if (vol_min != SND_CTL_TLV_DB_GAIN_MUTE) {
+    min_norm = pow10((vol_min - vol_max) / 6000.0);
+    normalized = (normalized - min_norm) / (1 - min_norm);
+  }
+
+  return 100.0f * normalized + 0.5f;
+}
+
 void alsa_mixer::set_volume(float percentage) {
   if (is_muted())
     return;
@@ -179,6 +208,31 @@ void alsa_mixer::set_volume(float percentage) {
 
   snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
   snd_mixer_selem_set_playback_volume_all(m_mixerelement, vol_max * percentage / 100);
+}
+
+void alsa_mixer::set_normalized_volume(float percentage) {
+  if (is_muted())
+    return;
+
+  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+
+  long vol_min, vol_max;
+  double min_norm;
+  percentage = percentage / 100.0f;
+
+  snd_mixer_selem_get_playback_dB_range(m_mixerelement, &vol_min, &vol_max);
+
+  if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100) {
+    snd_mixer_selem_set_playback_dB_all(m_mixerelement, lrint(percentage * (vol_max - vol_min)) + vol_min, 0);
+    return;
+  }
+
+  if (vol_min != SND_CTL_TLV_DB_GAIN_MUTE) {
+    min_norm = pow10((vol_min - vol_max) / 6000.0);
+    percentage = percentage * (1 - min_norm) + min_norm;
+  }
+
+  snd_mixer_selem_set_playback_dB_all(m_mixerelement, lrint(6000.0 * log10(percentage)) + vol_max, 0);
 }
 
 void alsa_mixer::set_mute(bool mode) {

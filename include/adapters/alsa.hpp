@@ -3,12 +3,15 @@
 #include <stdio.h>
 #include <functional>
 #include <string>
+#include <cmath>
 
 #include <alsa/asoundlib.h>
 
 #include "common.hpp"
 #include "config.hpp"
 #include "utils/threading.hpp"
+
+#define MAX_LINEAR_DB_SCALE 24
 
 LEMONBUDDY_NS
 
@@ -64,7 +67,9 @@ class alsa_mixer {
   int process_events();
 
   int get_volume();
+  int get_normalized_volume();
   void set_volume(float percentage);
+  void set_normalized_volume(float percentage);
   void set_mute(bool mode);
   void toggle_mute();
   bool is_muted();
