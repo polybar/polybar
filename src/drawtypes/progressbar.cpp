@@ -62,7 +62,7 @@ namespace drawtypes {
     } else if (m_gradient) {
       size_t color = 0;
       for (size_t i = 0; i < fill_width; i++) {
-        if (i % m_colorstep == 0)
+        if (i % m_colorstep == 0 && color < m_colors.size())
           m_fill->m_foreground = m_colors[color++];
         m_builder->node(m_fill);
       }
