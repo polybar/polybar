@@ -14,6 +14,7 @@ namespace modules {
     GET_CONFIG_VALUE(name(), master_mixer_name, "master-mixer");
     GET_CONFIG_VALUE(name(), speaker_mixer_name, "speaker-mixer");
     GET_CONFIG_VALUE(name(), headphone_mixer_name, "headphone-mixer");
+    m_mapped = m_conf.get<bool>(name(), "mapped", false);
 
     if (!headphone_mixer_name.empty())
       REQ_CONFIG_VALUE(name(), m_headphoneid, "headphone-id");
@@ -110,16 +111,19 @@ namespace modules {
     m_headphones = false;
 
     if (m_mixers[mixer::MASTER]) {
-      m_volume = m_volume * m_mixers[mixer::MASTER]->get_volume() / 100.0f;
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::MASTER]->get_normalized_volume() / 100.0f :
+        m_mixers[mixer::MASTER]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::MASTER]->is_muted();
     }
 
     if (m_controls[control::HEADPHONE] && m_controls[control::HEADPHONE]->test_device_plugged()) {
       m_headphones = true;
-      m_volume = m_volume * m_mixers[mixer::HEADPHONE]->get_volume() / 100.0f;
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::HEADPHONE]->get_normalized_volume() / 100.0f :
+        m_mixers[mixer::HEADPHONE]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::HEADPHONE]->is_muted();
     } else if (m_mixers[mixer::SPEAKER]) {
-      m_volume = m_volume * m_mixers[mixer::SPEAKER]->get_volume() / 100.0f;
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::SPEAKER]->get_normalized_volume() / 100.0f :
+        m_mixers[mixer::SPEAKER]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::SPEAKER]->is_muted();
     }
 
@@ -196,11 +200,15 @@ namespace modules {
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
         for (auto&& mixer : mixers) {
-          mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
+          m_mapped ?
+            mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + 5, 0, 100)) :
+            mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
         for (auto&& mixer : mixers) {
-          mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
+          m_mapped ?
+            mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - 5, 0, 100)) :
+            mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
         }
       } else {
         return false;

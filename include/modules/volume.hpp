@@ -57,6 +57,8 @@ namespace modules {
 
     int m_headphoneid = 0;
 
+    bool m_mapped;
+
     stateflag m_muted{false};
     stateflag m_headphones{false};
 
