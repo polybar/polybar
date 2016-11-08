@@ -1,37 +1,88 @@
 #!/usr/bin/env bash
 
 function msg_err {
-  printf "\033[41;30m err \033[0m %s\n" "$@"
+  printf "\033[31;1m** \033[0m%s\n" "$@"
   exit 1
 }
 
 function msg {
-  printf "\033[36;1m info \033[0m%s\n" "$@"
+  printf "\033[32;1m** \033[0m%s\n" "$@"
 }
 
 function main
 {
-  [[ -d ./build ]] && msg_err "A build directory already exists"
   [[ -d ./.git ]] && {
+    msg "Fetching submodules"
     git submodule update --init --recursive || msg_err "Failed to clone submodules"
+  }
+
+  [[ -d ./build ]] && {
+    if [[ "$1" == "-f" ]]; then
+      msg "Removing existing build dir (-f)"
+      rm -rf ./build >/dev/null || msg_err "Failed to remove existing build dir"
+    else
+      msg_err "A build dir already exists (pass -f to replace)"
+    fi
   }
 
   mkdir ./build || msg_err "Failed to create build dir"
   cd ./build || msg_err "Failed to enter build dir"
 
-  cmake -DCMAKE_INSTALL_PREFIX=/usr .. || \
-    msg_err "Failed to generate build... read output to get a hint of what went wrong"
+  local enable_alsa="ON"
+  local enable_i3="ON"
+  local enable_network="ON"
+  local enable_mpd="ON"
 
+  msg "Setting build options"
+
+  read -r -p "$(msg "Enable i3 module ------- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
+  read -r -p "$(msg "Enable volume module --- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
+  read -r -p "$(msg "Enable network module -- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_network="OFF"
+  read -r -p "$(msg "Enable mpd module ------ [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
+
+  local cxx="c++"
+  local cc="cc"
+
+  if command -v clang++ >/dev/null; then
+    msg "Using compiler: clang++/clang"
+    cxx="clang++"
+    cc="clang"
+  elif command -v g++ >/dev/null; then
+    msg "Using compiler: g++/gcc"
+    cxx="g++"
+    cc="gcc"
+  fi
+
+  msg "Executing cmake command"
+  cmake                                       \
+    -DCMAKE_C_COMPILER="${cc}"                \
+    -DCMAKE_CXX_COMPILER="${cxx}"             \
+    -DENABLE_ALSA:BOOL="${enable_alsa}"       \
+    -DENABLE_I3:BOOL="${enable_i3}"           \
+    -DENABLE_MPD:BOOL="${enable_mpd}"         \
+    -DENABLE_NETWORK:BOOL="${enable_network}" \
+    .. || msg_err "Failed to generate build... read output to get a hint of what went wrong"
+
+  msg "Building project"
   make || msg_err "Failed to build project"
 
-  echo -e "\n"
-
-  read -N1 -p "Do you want to execute \"sudo make install\"? [Y/n] " -r choice
-  echo
-
-  if [[ "${choice^^}" == "Y" ]]; then
+  read -r -p "$(msg "Execute 'sudo make install'? [Y/n] ")" -n 1 p && echo
+  [[ "${p^^}" == "Y" ]] && {
     sudo make install || msg_err "Failed to install executables..."
-  fi
+  }
+
+  read -r -p "$(msg "Install example configuration? [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" == "Y" ]] && {
+    make userconfig || msg_err "Failed to install user configuration..."
+  }
+
+  msg "Build complete!"
+
+  exit 0
 }
 
 main "$@"
