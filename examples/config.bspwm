@@ -327,6 +327,15 @@ bar-progress-empty-font = 3
 label-time-foreground = #77
 
 
+[module/temperature]
+type = internal/temperature
+
+thermal-zone = 0
+warn-temperature = 60
+label = 🌡 %temperature%
+label-warn = 🔥 %temperature%
+
+
 [module/powermenu]
 type = custom/menu
 
