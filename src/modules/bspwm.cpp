@@ -315,8 +315,10 @@ namespace modules {
       int modes_n = 0;
 
       for (auto&& mode : m_monitors[m_index]->modes) {
-        builder->node(mode);
-        modes_n++;
+        if (*mode.get()) {
+          builder->node(mode);
+          modes_n++;
+        }
       }
 
       return modes_n > 0;
