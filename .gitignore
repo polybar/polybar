@@ -4,5 +4,6 @@ tags
 *.bak
 *.pyc
 *.tmp
+*.swp
 include/config.hpp
 .tags

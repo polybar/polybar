@@ -55,7 +55,10 @@ namespace modules {
     static constexpr auto TAG_LABEL_MONITOR = "<label-monitor>";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";
-    static constexpr auto EVENT_CLICK = "bwm";
+    static constexpr auto EVENT_PREFIX = "bwm";
+    static constexpr auto EVENT_CLICK = "bwmf";
+    static constexpr auto EVENT_SCROLL_UP = "bwmn";
+    static constexpr auto EVENT_SCROLL_DOWN = "bwmp";
 
     bspwm_util::connection_t m_subscriber;
 
