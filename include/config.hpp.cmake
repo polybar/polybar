@@ -38,6 +38,7 @@
 #define BSPWM_STATUS_PREFIX "@SETTING_BSPWM_STATUS_PREFIX@"
 #define PATH_CPU_INFO "@SETTING_PATH_CPU_INFO@"
 #define PATH_MEMORY_INFO "@SETTING_PATH_MEMORY_INFO@"
+#define PATH_TEMPERATURE_INFO "@SETTING_PATH_TEMPERATURE_INFO@"
 
 auto print_build_info = []() {
   // clang-format off
@@ -59,7 +60,8 @@ auto print_build_info = []() {
             << "PATH_BACKLIGHT_VAL    " << PATH_BACKLIGHT_VAL    << "\n"
             << "PATH_BATTERY_CAPACITY " << PATH_BATTERY_CAPACITY << "\n"
             << "PATH_CPU_INFO         " << PATH_CPU_INFO         << "\n"
-            << "PATH_MEMORY_INFO      " << PATH_MEMORY_INFO      << "\n";
+            << "PATH_MEMORY_INFO      " << PATH_MEMORY_INFO      << "\n"
+            << "PATH_TEMPERATURE_INFO " << PATH_TEMPERATURE_INFO << "\n";
   // clang-format on
 };
 

@@ -13,6 +13,7 @@
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
 #include "modules/text.hpp"
+#include "modules/temperature.hpp"
 #include "modules/unsupported.hpp"
 #include "modules/xbacklight.hpp"
 #include "utils/process.hpp"
@@ -352,6 +353,8 @@ void controller::bootstrap_modules() {
           module.reset(new volume_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/network")
           module.reset(new network_module(bar, m_log, m_conf, module_name));
+        else if (type == "internal/temperature")
+          module.reset(new temperature_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/text")
           module.reset(new text_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/script")
