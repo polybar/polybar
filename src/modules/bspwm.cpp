@@ -359,10 +359,6 @@ namespace modules {
 
     return true;
   }  // }}}
-
-  bool bspwm_module::receive_events() const {  // {{{
-    return true;
-  }  // }}}
 }
 
 LEMONBUDDY_NS_END

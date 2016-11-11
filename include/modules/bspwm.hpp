@@ -46,7 +46,9 @@ namespace modules {
     string get_output();
     bool build(builder* builder, string tag) const;
     bool handle_event(string cmd);
-    bool receive_events() const;
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto DEFAULT_WS_ICON = "ws-icon-default";

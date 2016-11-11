@@ -271,7 +271,9 @@ namespace modules {
         m_log.warn("%s: No handler, ignoring broadcast...", name());
     }
 
-    void idle() {}
+    void idle() {
+      CAST_MOD(Impl)->sleep(25ms);
+    }
 
     void sleep(chrono::duration<double> sleep_duration) {
       std::unique_lock<std::mutex> lck(m_sleeplock);
@@ -431,10 +433,9 @@ namespace modules {
               break;
             if (!CAST_MOD(Impl)->update())
               continue;
-          }
 
-          if (CONST_MOD(Impl).running())
             CAST_MOD(Impl)->broadcast();
+          }
         }
       } catch (const module_error& err) {
         CAST_MOD(Impl)->halt(err.what());

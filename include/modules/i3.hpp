@@ -50,7 +50,9 @@ namespace modules {
     bool update();
     bool build(builder* builder, string tag) const;
     bool handle_event(string cmd);
-    bool receive_events() const;
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto DEFAULT_WS_ICON = "ws-icon-default";
@@ -66,6 +68,8 @@ namespace modules {
     vector<i3_workspace_t> m_workspaces;
     iconset_t m_icons;
 
+    bool m_click = true;
+    bool m_scroll = true;
     bool m_indexsort = false;
     bool m_pinworkspaces = false;
     bool m_strip_wsnumbers = false;

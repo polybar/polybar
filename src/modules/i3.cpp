@@ -5,36 +5,31 @@
 LEMONBUDDY_NS
 
 namespace modules {
-  void i3_module::setup() {
-    // Load configuration values {{{
-
+  void i3_module::setup() {  // {{{
+    // Load configuration values
+    GET_CONFIG_VALUE(name(), m_click, "enable-click");
+    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
     GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
     GET_CONFIG_VALUE(name(), m_strip_wsnumbers, "strip-wsnumbers");
     GET_CONFIG_VALUE(name(), m_wsname_maxlen, "wsname-maxlen");
 
-    // }}}
-    // Add formats and create components {{{
-
+    // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE});
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
-      m_statelabels.insert(make_pair(i3_flag::WORKSPACE_FOCUSED,
-          load_optional_label(m_conf, name(), "label-focused", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(make_pair(i3_flag::WORKSPACE_UNFOCUSED,
-          load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(make_pair(i3_flag::WORKSPACE_VISIBLE,
-          load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(make_pair(i3_flag::WORKSPACE_URGENT,
-          load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(make_pair(
+          i3_flag::WORKSPACE_FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(make_pair(
+          i3_flag::WORKSPACE_UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(make_pair(
+          i3_flag::WORKSPACE_VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+          make_pair(i3_flag::WORKSPACE_URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
     }
 
     m_icons = iconset_t{new iconset()};
-    m_icons->add(
-        DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
-
-    // }}}
-    // Add formats and create components {{{
+    m_icons->add(DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
 
     for (auto workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');
@@ -42,44 +37,30 @@ namespace modules {
         m_icons->add(vec[0], icon_t{new icon{vec[1]}});
     }
 
-    // }}}
-    // Subscribe to ipc events {{{
-
     try {
       m_ipc.subscribe(i3ipc::ET_WORKSPACE);
       m_ipc.prepare_to_event_handling();
-    } catch (std::runtime_error& err) {
-      throw module_error(err.what());
     } catch (std::exception& err) {
       throw module_error(err.what());
     }
+  }  // }}}
 
-    // }}}
-  }
-
-  void i3_module::stop() {
-    // Shutdown ipc connection when stopping the module {{{
-
+  void i3_module::stop() {  // {{{
     try {
-      shutdown(m_ipc.get_event_socket_fd(), SHUT_RD);
-      shutdown(m_ipc.get_main_socket_fd(), SHUT_RD);
+      m_log.info("%s: Disconnecting from sockets", name());
+      shutdown(m_ipc.get_event_socket_fd(), SHUT_RDWR);
+      shutdown(m_ipc.get_main_socket_fd(), SHUT_RDWR);
     } catch (...) {
     }
 
     event_module::stop();
+  }  // }}}
 
-    // }}}
-  }
+  bool i3_module::has_event() {  // {{{
+    return m_ipc.handle_event();
+  }  // }}}
 
-  bool i3_module::has_event() {
-    if (!m_ipc.handle_event())
-      throw module_error("Socket connection closed...");
-    return true;
-  }
-
-  bool i3_module::update() {
-    // Refresh workspace data {{{
-
+  bool i3_module::update() {  // {{{
     m_workspaces.clear();
     i3_util::connection_t ipc;
 
@@ -138,8 +119,7 @@ namespace modules {
         label->replace_token("%name%", wsname);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(workspace->num));
-        m_workspaces.emplace_back(
-            make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
+        m_workspaces.emplace_back(make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
       }
 
       return true;
@@ -147,31 +127,36 @@ namespace modules {
       m_log.err("%s: %s", name(), err.what());
       return false;
     }
+  }  // }}}
 
-    // }}}
-  }
-
-  bool i3_module::build(builder* builder, string tag) const {
-    // Output workspace info {{{
-
+  bool i3_module::build(builder* builder, string tag) const {  // {{{
     if (tag != TAG_LABEL_STATE)
       return false;
 
-    for (auto&& ws : m_workspaces) {
+    if (m_scroll) {
       builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
       builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
-      builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
-      builder->node(ws.get()->label);
+    }
+
+    for (auto&& ws : m_workspaces) {
+      if (m_click) {
+        builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
+        builder->node(ws.get()->label);
+        builder->cmd_close(true);
+      } else {
+        builder->node(ws.get()->label);
+      }
+    }
+
+    if (m_scroll) {
+      builder->cmd_close(true);
       builder->cmd_close(true);
     }
+
     return true;
+  }  // }}}
 
-    // }}}
-  }
-
-  bool i3_module::handle_event(string cmd) {
-    // Send ipc commands {{{
-
+  bool i3_module::handle_event(string cmd) {  // {{{
     if (cmd.compare(0, 2, EVENT_PREFIX) != 0)
       return false;
 
@@ -193,13 +178,7 @@ namespace modules {
     }
 
     return true;
-
-    // }}}
-  }
-
-  bool i3_module::receive_events() const {
-    return true;
-  }
+  }  // }}}
 }
 
 LEMONBUDDY_NS_END
