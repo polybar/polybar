@@ -2,7 +2,7 @@
 Language: Cpp
 Standard: Cpp11
 BasedOnStyle: Google
-ColumnLimit: 100
+ColumnLimit: 120
 NamespaceIndentation: All
 AlignAfterOpenBracket: DontAlign
 AllowShortFunctionsOnASingleLine: Empty
