@@ -40,9 +40,9 @@ font-0 = fixed:pixelsize=10;0
 font-1 = unifont:size=6;-2
 font-2 = siji:pixelsize=10;0
 
-modules-left = bspwm i3 mpd
-modules-center = 
-modules-right = backlight volume memory cpu wlan eth battery temperature date powermenu
+modules-left = @MODULES_LEFT@
+modules-center = @MODULES_CENTER@
+modules-right = @MODULES_RIGHT@
 
 tray-position = right
 tray-padding = 4
@@ -257,8 +257,8 @@ bar-volume-empty-foreground = #55
 
 [module/battery]
 type = internal/battery
-battery = BAT0
-adapter = ADP1
+battery = @BATTERY@
+adapter = @ADAPTER@
 full-at = 98
 
 format-charging = <animation-charging> <label-charging>

@@ -2,6 +2,17 @@
 # Custom targets
 #
 
+# Target: userconfig {{{
+
+configure_file(
+  ${PROJECT_SOURCE_DIR}/cmake/templates/userconfig.cmake.in
+  ${PROJECT_BINARY_DIR}/userconfig.cmake
+  IMMEDIATE @ONLY)
+
+add_custom_target(userconfig COMMAND ${CMAKE_COMMAND}
+  -P ${PROJECT_BINARY_DIR}/userconfig.cmake)
+
+# }}}
 # Target: uninstall {{{
 
 configure_file(
