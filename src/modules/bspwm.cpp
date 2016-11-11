@@ -5,16 +5,14 @@
 LEMONBUDDY_NS
 
 namespace modules {
-  void bspwm_module::setup() {
-    m_monitor = m_bar.monitor->name;
+  void bspwm_module::setup() {  // {{{
+    // Create ipc subscriber
+    m_subscriber = bspwm_util::make_subscriber();
 
-    // Load configuration values {{{
-
+    // Load configuration values
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
 
-    // }}}
-    // Add formats and create components {{{
-
+    // Add formats and create components
     m_formatter->add(
         DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
 
@@ -62,24 +60,17 @@ namespace modules {
         m_icons->add(vec[0], icon_t{new icon{vec[1]}});
       }
     }
+  }  // }}}
 
-    // }}}
-    // Create ipc subscriber {{{
-
-    m_subscriber = bspwm_util::make_subscriber();
-
-    // }}}
-  }
-
-  void bspwm_module::stop() {
+  void bspwm_module::stop() {  // {{{
     if (m_subscriber) {
       m_log.info("%s: Disconnecting from socket", name());
       m_subscriber->disconnect();
     }
     event_module::stop();
-  }
+  }  // }}}
 
-  bool bspwm_module::has_event() {
+  bool bspwm_module::has_event() {  // {{{
     if (m_subscriber->poll(POLLHUP, 0)) {
       m_log.warn("%s: Reconnecting to socket...", name());
       m_subscriber = bspwm_util::make_subscriber();
@@ -88,9 +79,9 @@ namespace modules {
     ssize_t bytes = 0;
     m_subscriber->receive(1, bytes, MSG_PEEK);
     return bytes > 0;
-  }
+  }  // }}}
 
-  bool bspwm_module::update() {
+  bool bspwm_module::update() {  // {{{
     ssize_t bytes = 0;
     string data = m_subscriber->receive(BUFSIZ - 1, bytes, 0);
 
@@ -124,8 +115,8 @@ namespace modules {
 
     // Extract the string for the defined monitor
     if (m_pinworkspaces) {
-      const auto needle_active = ":M" + m_monitor + ":";
-      const auto needle_inactive = ":m" + m_monitor + ":";
+      const auto needle_active = ":M" + m_bar.monitor->name + ":";
+      const auto needle_inactive = ":m" + m_bar.monitor->name + ":";
 
       if ((pos = data.find(prefix)) != std::string::npos)
         data = data.replace(pos, prefix.length(), ":");
@@ -277,9 +268,9 @@ namespace modules {
     }
 
     return true;
-  }
+  }  // }}}
 
-  string bspwm_module::get_output() {
+  string bspwm_module::get_output() {  // {{{
     string output;
     for (m_index = 0; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
@@ -288,9 +279,9 @@ namespace modules {
       output += event_module::get_output();
     }
     return output;
-  }
+  }  // }}}
 
-  bool bspwm_module::build(builder* builder, string tag) const {
+  bool bspwm_module::build(builder* builder, string tag) const {  // {{{
     if (tag == TAG_LABEL_MONITOR) {
       builder->node(m_monitors[m_index]->label);
       return true;
@@ -325,9 +316,9 @@ namespace modules {
     }
 
     return false;
-  }
+  }  // }}}
 
-  bool bspwm_module::handle_event(string cmd) {
+  bool bspwm_module::handle_event(string cmd) {  // {{{
     if (cmd.find(EVENT_CLICK) != 0) {
       return false;
     }
@@ -356,11 +347,11 @@ namespace modules {
     }
 
     return true;
-  }
+  }  // }}}
 
-  bool bspwm_module::receive_events() const {
+  bool bspwm_module::receive_events() const {  // {{{
     return true;
-  }
+  }  // }}}
 }
 
 LEMONBUDDY_NS_END

@@ -66,7 +66,6 @@ namespace modules {
     label_t m_monitorlabel;
     iconset_t m_icons;
     bool m_pinworkspaces = true;
-    string m_monitor;
     unsigned long m_hash;
 
     // used while formatting output
