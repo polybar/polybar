@@ -196,6 +196,7 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   if (nodraw) {
     m_log.trace("bar: Abort bootstrap routine (reason: nodraw)");
+    m_traymanager.reset();
     return;
   }
 
@@ -444,9 +445,7 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   // }}}
 
-  if (!nodraw) {
-    bootstrap_tray();
-  }
+  bootstrap_tray();
 
   m_connection.flush();
 }  // }}}
