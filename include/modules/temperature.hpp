@@ -4,14 +4,13 @@
 
 #include "config.hpp"
 #include "drawtypes/label.hpp"
+#include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
-#include "utils/file.hpp"
 
 LEMONBUDDY_NS
 
 namespace modules {
   enum class temp_state { NORMAL = 0, WARN };
-
 
   class temperature_module : public timer_module<temperature_module> {
    public:
@@ -25,14 +24,15 @@ namespace modules {
    private:
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_LABEL_WARN = "<label-warn>";
+    static constexpr auto TAG_RAMP = "<ramp>";
     static constexpr auto FORMAT_WARN = "format-warn";
 
     map<temp_state, label_t> m_label;
+    ramp_t m_ramp;
 
     string m_path;
-
-    int m_zone;
-    int m_tempwarn;
+    int m_zone = 0;
+    int m_tempwarn = 0;
     int m_temp = 0;
   };
 }
