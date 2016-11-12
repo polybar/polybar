@@ -11,6 +11,8 @@ namespace modules {
 
     // Load configuration values
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
+    GET_CONFIG_VALUE(name(), m_click, "enable-click");
+    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
@@ -283,16 +285,28 @@ namespace modules {
       int workspace_n = 0;
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
-        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
-        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
-        if (ws.second.get()) {
-          string event{EVENT_CLICK};
-          event += to_string(m_index);
-          event += "+";
-          event += to_string(++workspace_n);
+        if (m_scroll) {
+          builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
+          builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
+        }
 
-          builder->cmd(mousebtn::LEFT, event);
-          builder->node(ws.second);
+        if (ws.second.get()) {
+          if (m_click) {
+            string event{EVENT_CLICK};
+            event += to_string(m_index);
+            event += "+";
+            event += to_string(++workspace_n);
+
+            builder->cmd(mousebtn::LEFT, event);
+            builder->node(ws.second);
+            builder->cmd_close(true);
+          } else {
+            builder->node(ws.second);
+          }
+        }
+
+        if (m_scroll) {
+          builder->cmd_close(true);
           builder->cmd_close(true);
         }
       }

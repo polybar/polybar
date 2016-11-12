@@ -70,6 +70,9 @@ namespace modules {
     map<state_ws, label_t> m_statelabels;
     label_t m_monitorlabel;
     iconset_t m_icons;
+
+    bool m_click = true;
+    bool m_scroll = true;
     bool m_pinworkspaces = true;
     unsigned long m_hash;
 
