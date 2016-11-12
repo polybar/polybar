@@ -9,7 +9,6 @@
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
-#include "utils/throttle.hpp"
 
 LEMONBUDDY_NS
 
@@ -35,21 +34,31 @@ namespace modules {
     void setup();
     void handle(const evt::randr_notify& evt);
     void update();
+    string get_output();
     bool build(builder* builder, string tag) const;
+    bool handle_event(string cmd);
+    bool receive_events() const {
+      return true;
+    }
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_BAR = "<bar>";
     static constexpr auto TAG_RAMP = "<ramp>";
 
-    throttle_util::throttle_t m_throttler;
+    static constexpr auto EVENT_SCROLLUP = "xbacklight+";
+    static constexpr auto EVENT_SCROLLDOWN = "xbacklight-";
+
     connection& m_connection{configure_connection().create<connection&>()};
     monitor_t m_output;
+    xcb_window_t m_proxy;
+    xcb_timestamp_t m_timestamp;
 
     ramp_t m_ramp;
     label_t m_label;
     progressbar_t m_progressbar;
 
+    bool m_scroll = true;
     int m_percentage = 0;
   };
 }

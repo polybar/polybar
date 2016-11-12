@@ -13,6 +13,7 @@
 LEMONBUDDY_NS
 
 struct backlight_values {
+  uint32_t atom = 0;
   uint32_t min = 0;
   uint32_t max = 0;
   uint32_t val = 0;

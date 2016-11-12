@@ -1,5 +1,6 @@
 #include "modules/xbacklight.hpp"
 #include "utils/math.hpp"
+#include "x11/graphics.hpp"
 
 LEMONBUDDY_NS
 
@@ -23,26 +24,27 @@ namespace modules {
       throw module_error("No matching output found for \"" + output + "\", stopping module...");
     }
 
+    // Get flag to check if we should add scroll handlers for changing value
+    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
+
     // Query randr for the backlight max and min value
     try {
       auto& backlight = m_output->backlight;
       randr_util::get_backlight_range(m_connection, m_output, backlight);
       randr_util::get_backlight_value(m_connection, m_output, backlight);
-    } catch (const std::exception& err) {
+    } catch (const exception& err) {
       throw module_error("No backlight data found for \"" + output + "\", stopping module...");
     }
 
-    // Connect with the event registry and tell randr that we
-    // want to get notified when an output property gets modified
-    m_connection.attach_sink(this, 1);
-    m_connection.select_input_checked(
-        m_connection.screen()->root, XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
+    // Create window that will proxy all RandR notify events
+    if (!graphics_util::create_window(m_connection, &m_proxy, -1, -1, 1, 1)) {
+      throw module_error("Failed to create event proxy");
+    }
 
-    // Create a throttle so that we limit the amount of events
-    // to handle since randr can burst out quite a few
-    // We will allow 1 event per 60 ms. The updates still look smooth
-    // using this setting which is important.
-    m_throttler = throttle_util::make_throttler(1, 60ms);
+    // Connect with the event registry and make sure we get
+    // notified when a RandR output property gets modified
+    m_connection.attach_sink(this, 1);
+    m_connection.select_input_checked(m_proxy, XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
@@ -64,22 +66,28 @@ namespace modules {
   void xbacklight_module::handle(const evt::randr_notify& evt) {
     if (evt->subCode != XCB_RANDR_NOTIFY_OUTPUT_PROPERTY)
       return;
+    else if (evt->u.op.status != XCB_PROPERTY_NEW_VALUE)
+      return;
+    else if (evt->u.op.window != m_proxy)
+      return;
     else if (evt->u.op.output != m_output->randr_output)
       return;
-    else if (evt->u.op.atom == Backlight)
-      update();
-    else if (evt->u.op.atom == BACKLIGHT)
-      update();
+    else if (evt->u.op.atom != m_output->backlight.atom)
+      return;
+    else if (evt->u.op.timestamp <= m_timestamp)
+      return;
+
+    // Store the timestamp with a throttle offset (ms)
+    m_timestamp = evt->u.op.timestamp + 50;
+
+    // Fetch the new values
+    update();
   }
 
   /**
    * Query the RandR extension for the new values
    */
   void xbacklight_module::update() {
-    // Test if we are allowed to handle the event
-    if (!m_throttler->passthrough(throttle_util::strategy::try_once_or_leave_yolo{}))
-      return;
-
     // Query for the new backlight value
     auto& bl = m_output->backlight;
     randr_util::get_backlight_value(m_connection, m_output, bl);
@@ -97,6 +105,29 @@ namespace modules {
   }
 
   /**
+   * Generate the module output
+   */
+  string xbacklight_module::get_output() {
+    if (m_scroll) {
+      if (m_percentage < 100)
+        m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
+      if (m_percentage > 0)
+        m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+
+      m_builder->node(static_module::get_output());
+
+      if (m_percentage < 100)
+        m_builder->cmd_close(true);
+      if (m_percentage > 0)
+        m_builder->cmd_close(true);
+    } else {
+      m_builder->node(static_module::get_output());
+    }
+
+    return m_builder->flush();
+  }
+
+  /**
    * Output content as defined in the config
    */
   bool xbacklight_module::build(builder* builder, string tag) const {
@@ -108,6 +139,36 @@ namespace modules {
       builder->node(m_label);
     else
       return false;
+    return true;
+  }
+
+  /**
+   * Process scroll events by changing backlight value
+   */
+  bool xbacklight_module::handle_event(string cmd) {
+    int value_mod = 0;
+
+    if (cmd == EVENT_SCROLLUP) {
+      value_mod = 10;
+      m_log.info("%s: Increasing value by %i%", name(), value_mod);
+    } else if (cmd == EVENT_SCROLLDOWN) {
+      value_mod = -10;
+      m_log.info("%s: Decreasing value by %i%", name(), -value_mod);
+    } else {
+      return false;
+    }
+
+    try {
+      const int new_perc = math_util::cap(m_percentage + value_mod, 0, 100);
+      const int new_value = math_util::percentage_to_value<int>(new_perc, m_output->backlight.max);
+      const int values[1]{new_value};
+
+      m_connection.change_output_property_checked(
+          m_output->randr_output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
+    } catch (const exception& err) {
+      m_log.err("%s: %s", name(), err.what());
+    }
+
     return true;
   }
 }

@@ -68,6 +68,7 @@ using std::to_string;
 using std::strerror;
 using std::getenv;
 using std::thread;
+using std::exception;
 
 using boost::optional;
 

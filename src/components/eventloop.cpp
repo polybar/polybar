@@ -61,7 +61,7 @@ void eventloop::run(chrono::duration<double, std::milli> timeframe, int limit) {
           evt = next;
           break;
         } else if (compare_events(evt, next)) {
-          m_log.trace("eventloop: Swallowing event within timeframe");
+          m_log.trace_x("eventloop: Swallowing event within timeframe");
           evt = next;
         } else {
           break;

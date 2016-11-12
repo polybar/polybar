@@ -18,10 +18,12 @@ namespace graphics_util {
     xcb_pixmap_t pixmap{0};
   };
 
-  void get_root_pixmap(connection& conn, root_pixmap* rpix);
+  bool create_window(connection& conn, xcb_window_t* win, int16_t x = 0, int16_t y = 0, uint16_t w = 1, uint16_t h = 1);
+  bool create_pixmap(connection& conn, xcb_drawable_t dst, uint16_t w, uint16_t h, xcb_pixmap_t* pixmap);
+  bool create_pixmap(connection& conn, xcb_drawable_t dst, uint16_t w, uint16_t h, uint8_t d, xcb_pixmap_t* pixmap);
+  bool create_gc(connection& conn, xcb_drawable_t drawable, xcb_gcontext_t* gc);
 
-  void simple_gc(connection& conn, xcb_drawable_t drawable, xcb_gcontext_t* gc);
-  void simple_pixmap(connection& conn, xcb_window_t dst, int w, int h, xcb_pixmap_t* pixmap);
+  bool get_root_pixmap(connection& conn, root_pixmap* rpix);
 }
 
 LEMONBUDDY_NS_END
