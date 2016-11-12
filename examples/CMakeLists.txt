@@ -33,8 +33,17 @@ string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER_STATUS})
 file(GLOB BAT_LIST RELATIVE ${PATH_BAT} ${PATH_ADP}/B*)
 file(GLOB ADP_LIST RELATIVE ${PATH_ADP} ${PATH_ADP}/A*)
 
-list(GET BAT_LIST 0 BATTERY)
-list(GET ADP_LIST 0 ADAPTER)
+if(BAT_LIST)
+  list(GET BAT_LIST 0 BATTERY)
+else()
+  set(BATTERY BAT0)
+endif()
+
+if(ADP_LIST)
+  list(GET ADP_LIST 0 ADAPTER)
+else()
+  set(ADAPTER ADP1)
+endif()
 
 # }}}
 # Configure and install {{{
