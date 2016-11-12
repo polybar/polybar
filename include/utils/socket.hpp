@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sys/poll.h>
+#include <poll.h>
 
 #include "common.hpp"
 
