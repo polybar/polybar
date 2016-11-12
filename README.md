@@ -53,10 +53,10 @@ Read more about [how the configuration works](#configuration).
 ## Getting started
 
 If you are using **Arch Linux**, you can install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
-[lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release.
+[lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release. If you are using **Void Linux**
+you can install the package [lemonbuddy](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/lemonbuddy/template) available in the official xbps repository.
 
-If you create a package for any other distribution, please consider contributing the template so that we can make the application
-available for more people.
+If you create a package for any other distribution, please consider contributing the template.
 
 
 ### Dependencies
@@ -97,26 +97,21 @@ Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you
   $ sudo make install
   ~~~
 
+There's also a helper script available in the root folder:
+
+  ~~~ sh
+  $ ./build.sh
+  ~~~
+
 
 ### Configuration
 
-*Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/lemonbuddy/wiki/Configuration).*
-
-Before customizing the bar, make sure everything works as expected by trying
-out one of the example configurations installed with the application.
-The following code will get you started:
+Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/lemonbuddy/wiki/Configuration).
 
   ~~~ sh
-  # Create the config root directory
-  $ mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
-  $ cd ${XDG_CONFIG_HOME:-$HOME/.config}/lemonbuddy
-
-  # Copy sample config for the running wm (uses a wm agnostic config as fallback)
-  $ __wm=$(pgrep -l -x "(bspwm|i3)"); __prefix=$(which lemonbuddy)
-  $ cp "${__prefix%%/bin*}/share/examples/lemonbuddy/config${__wm:+.${__wm##* }}" config
-
-  # Launch the bar
-  # (where "example" is the name of the bar as defined by [bar/NAME] in the config)
+  # Install the example configuration
+  $ make userconfig
+  # Launch the example bar
   $ lemonbuddy example
   ~~~
 
