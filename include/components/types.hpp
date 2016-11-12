@@ -59,28 +59,6 @@ struct bar_settings {
   }
 };
 
-struct tray_settings {
-  tray_settings() = default;
-  tray_settings& operator=(const tray_settings& o) = default;
-
-  alignment align{alignment::NONE};
-  int16_t orig_x{0};
-  int16_t orig_y{0};
-  int16_t configured_x{0};
-  int16_t configured_y{0};
-  uint16_t configured_w{0};
-  uint16_t configured_h{0};
-  uint16_t configured_slots{0};
-  uint16_t width{0};
-  uint16_t height{0};
-  uint16_t height_fill{0};
-  uint16_t spacing{0};
-  uint32_t sibling{0};
-  uint32_t background{0};
-  xcb_pixmap_t back_pixmap{0};
-  bool transparent{false};
-};
-
 struct border_settings {
   border_settings() = default;
   lemonbuddy::color color{g_colorblack};

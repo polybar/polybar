@@ -12,9 +12,12 @@ namespace graphics_util {
   /**
    * Create a basic window
    */
-  bool create_window(connection& conn, xcb_window_t* win, int16_t x, int16_t y, uint16_t w, uint16_t h) {
+  bool create_window(connection& conn, xcb_window_t* win, int16_t x, int16_t y, uint16_t w, uint16_t h, xcb_window_t root) {
+    if (!root) {
+      root = conn.screen()->root;
+    }
+
     try {
-      auto root = conn.screen()->root;
       auto copy = XCB_COPY_FROM_PARENT;
       *win = conn.generate_id();
       conn.create_window_checked(copy, *win, root, x, y, w, h, 0, copy, copy, 0, nullptr);
@@ -59,7 +62,7 @@ namespace graphics_util {
       uint32_t mask = 0;
       uint32_t values[32];
 
-      XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, false);
+      XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
       xutils::pack_values(mask, &params, values);
 
       *gc = conn.generate_id();

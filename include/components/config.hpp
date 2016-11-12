@@ -70,7 +70,7 @@ class config {
    * Get list of values for the current bar by name
    */
   template <typename T>
-  T get_list(string key) const {
+  vector<T> get_list(string key) const {
     return get_list<T>(bar_section(), key);
   }
 

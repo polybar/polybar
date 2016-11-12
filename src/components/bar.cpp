@@ -38,8 +38,8 @@ bar::~bar() {  // {{{
   g_signals::parser::string_write = nullptr;
   g_signals::tray::report_slotcount = nullptr;  // }}}
 
-  if (m_traymanager) {
-    m_traymanager.reset();
+  if (m_tray) {
+    m_tray.reset();
   }
 
   if (m_sinkattached) {
@@ -55,42 +55,23 @@ bar::~bar() {  // {{{
  * This is done outside the constructor due to boost::di noexcept
  */
 void bar::bootstrap(bool nodraw) {  // {{{
+  auto bs = m_conf.bar_section();
+
+  m_screen = m_connection.screen();
+
   // limit the amount of allowed input events to 1 per 60ms
   m_throttler = throttle_util::make_throttler(1, 60ms);
 
-  m_screen = m_connection.screen();
-  m_visual = m_connection.visual_type(m_screen, 32).get();
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root);
-  auto bs = m_conf.bar_section();
+  m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
+  m_opts.locale = m_conf.get<string>(bs, "locale", "");
 
-  // Look for the defined monitor {{{
+  create_monitor();
 
-  if (monitors.empty())
-    throw application_error("No monitors found");
-
-  auto monitor_name = m_conf.get<string>(bs, "monitor", "");
-  if (monitor_name.empty())
-    monitor_name = monitors[0]->name;
-
-  for (auto&& monitor : monitors) {
-    if (monitor_name.compare(monitor->name) == 0) {
-      m_bar.monitor = std::move(monitor);
-      break;
-    }
-  }
-
-  if (m_bar.monitor)
-    m_log.trace("bar: Found matching monitor %s (%ix%i+%i+%i)", m_bar.monitor->name,
-        m_bar.monitor->w, m_bar.monitor->h, m_bar.monitor->x, m_bar.monitor->y);
-  else
-    throw application_error("Could not find monitor: " + monitor_name);
-
-  // }}}
   // Set bar colors {{{
 
-  m_bar.background = color::parse(m_conf.get<string>(bs, "background", m_bar.background.source()));
-  m_bar.foreground = color::parse(m_conf.get<string>(bs, "foreground", m_bar.foreground.source()));
-  m_bar.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", m_bar.linecolor.source()));
+  m_opts.background = color::parse(m_conf.get<string>(bs, "background", m_opts.background.source()));
+  m_opts.foreground = color::parse(m_conf.get<string>(bs, "foreground", m_opts.foreground.source()));
+  m_opts.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", m_opts.linecolor.source()));
 
   // }}}
   // Set border values {{{
@@ -104,8 +85,7 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   m_borders.emplace(border::BOTTOM, border_settings{});
   m_borders[border::BOTTOM].size = m_conf.get<int>(bs, "border-bottom", bsize);
-  m_borders[border::BOTTOM].color =
-      color::parse(m_conf.get<string>(bs, "border-bottom-color", bcolor));
+  m_borders[border::BOTTOM].color = color::parse(m_conf.get<string>(bs, "border-bottom-color", bcolor));
 
   m_borders.emplace(border::LEFT, border_settings{});
   m_borders[border::LEFT].size = m_conf.get<int>(bs, "border-left", bsize);
@@ -113,308 +93,59 @@ void bar::bootstrap(bool nodraw) {  // {{{
 
   m_borders.emplace(border::RIGHT, border_settings{});
   m_borders[border::RIGHT].size = m_conf.get<int>(bs, "border-right", bsize);
-  m_borders[border::RIGHT].color =
-      color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
+  m_borders[border::RIGHT].color = color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
 
   // }}}
   // Set size and position {{{
 
-  GET_CONFIG_VALUE(bs, m_bar.dock, "dock");
-  GET_CONFIG_VALUE(bs, m_bar.bottom, "bottom");
-  GET_CONFIG_VALUE(bs, m_bar.spacing, "spacing");
-  GET_CONFIG_VALUE(bs, m_bar.lineheight, "lineheight");
-  GET_CONFIG_VALUE(bs, m_bar.padding_left, "padding-left");
-  GET_CONFIG_VALUE(bs, m_bar.padding_right, "padding-right");
-  GET_CONFIG_VALUE(bs, m_bar.module_margin_left, "module-margin-left");
-  GET_CONFIG_VALUE(bs, m_bar.module_margin_right, "module-margin-right");
-
-  auto w = m_conf.get<string>(bs, "width", "100%");
-  auto h = m_conf.get<string>(bs, "height", "24");
-
-  auto offsetx = m_conf.get<string>(bs, "offset-x", "");
-  auto offsety = m_conf.get<string>(bs, "offset-y", "");
-
-  // look for user-defined width
-  if ((m_bar.width = std::atoi(w.c_str())) && w.find("%") != string::npos) {
-    m_bar.width = math_util::percentage_to_value<int>(m_bar.width, m_bar.monitor->w);
-  }
-
-  // look for user-defined  height
-  if ((m_bar.height = std::atoi(h.c_str())) && h.find("%") != string::npos) {
-    m_bar.height = math_util::percentage_to_value<int>(m_bar.height, m_bar.monitor->h);
-  }
-
-  // look for user-defined offset-x
-  if ((m_bar.offset_x = std::atoi(offsetx.c_str())) != 0 && offsetx.find("%") != string::npos) {
-    m_bar.offset_x = math_util::percentage_to_value<int>(m_bar.offset_x, m_bar.monitor->w);
-  }
-
-  // look for user-defined offset-y
-  if ((m_bar.offset_y = std::atoi(offsety.c_str())) != 0 && offsety.find("%") != string::npos) {
-    m_bar.offset_y = math_util::percentage_to_value<int>(m_bar.offset_y, m_bar.monitor->h);
-  }
-
-  // apply offsets
-  m_bar.x = m_bar.offset_x + m_bar.monitor->x;
-  m_bar.y = m_bar.offset_y + m_bar.monitor->y;
-
-  // apply borders
-  m_bar.height += m_borders[border::TOP].size;
-  m_bar.height += m_borders[border::BOTTOM].size;
-
-  if (m_bar.bottom)
-    m_bar.y = m_bar.monitor->y + m_bar.monitor->h - m_bar.height - m_bar.offset_y;
-
-  if (m_bar.width <= 0 || m_bar.width > m_bar.monitor->w)
-    throw application_error("Resulting bar width is out of bounds");
-  if (m_bar.height <= 0 || m_bar.height > m_bar.monitor->h)
-    throw application_error("Resulting bar height is out of bounds");
-
-  m_bar.width = math_util::cap<int>(m_bar.width, 0, m_bar.monitor->w);
-  m_bar.height = math_util::cap<int>(m_bar.height, 0, m_bar.monitor->h);
-
-  m_bar.vertical_mid =
-      (m_bar.height + m_borders[border::TOP].size - m_borders[border::BOTTOM].size) / 2;
-
-  m_log.trace("bar: Resulting bar geom %ix%i+%i+%i", m_bar.width, m_bar.height, m_bar.x, m_bar.y);
+  GET_CONFIG_VALUE(bs, m_opts.dock, "dock");
+  GET_CONFIG_VALUE(bs, m_opts.bottom, "bottom");
+  GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
+  GET_CONFIG_VALUE(bs, m_opts.lineheight, "lineheight");
+  GET_CONFIG_VALUE(bs, m_opts.padding_left, "padding-left");
+  GET_CONFIG_VALUE(bs, m_opts.padding_right, "padding-right");
+  GET_CONFIG_VALUE(bs, m_opts.module_margin_left, "module-margin-left");
+  GET_CONFIG_VALUE(bs, m_opts.module_margin_right, "module-margin-right");
 
   // }}}
   // Set the WM_NAME value {{{
+  // Required early for --print-wmname
 
-  m_bar.wmname = "lemonbuddy-" + bs.substr(4) + "_" + m_bar.monitor->name;
-  m_bar.wmname = m_conf.get<string>(bs, "wm-name", m_bar.wmname);
-  m_bar.wmname = string_util::replace(m_bar.wmname, " ", "-");
-
-  // }}}
-  // Set misc parameters {{{
-
-  m_bar.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
-  m_bar.locale = m_conf.get<string>(bs, "locale", "");
+  m_opts.wmname = "lemonbuddy-" + bs.substr(4) + "_" + m_opts.monitor->name;
+  m_opts.wmname = m_conf.get<string>(bs, "wm-name", m_opts.wmname);
+  m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
   // }}}
-  // Checking nodraw {{{
+  // Check nodraw flag {{{
 
   if (nodraw) {
     m_log.trace("bar: Abort bootstrap routine (reason: nodraw)");
-    m_traymanager.reset();
+    m_tray.reset();
     return;
   }
 
   // }}}
-  // Setup graphic components and create the window {{{
+  // Setup graphic components and create window {{{
+
+  m_log.trace("bar: Get true color visual");
+  m_visual = m_connection.visual_type(m_screen, 32).get();
 
   m_log.trace("bar: Create colormap");
-  {
-    m_connection.create_colormap(
-        XCB_COLORMAP_ALLOC_NONE, m_colormap, m_screen->root, m_visual->visual_id);
-  }
+  m_colormap = colormap{m_connection, m_connection.generate_id()};
+  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_screen->root, m_visual->visual_id);
 
-  m_log.trace("bar: Create window %s", m_connection.id(m_window));
-  {
-    uint32_t mask = 0;
-    xcb_params_cw_t params;
-    // clang-format off
-    XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, 0);
-    XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, 0);
-    XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
-    XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
-    XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_bar.dock);
-    XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
-    // clang-format on
-    m_window.create_checked(m_bar.x, m_bar.y, m_bar.width, m_bar.height, mask, &params);
-  }
+  configure_geom();
+  create_window();
+  create_pixmap();
+  create_gcontexts();
+  create_rootpixmap();
+  restack_window();
+  set_wmhints();
 
-  m_log.trace("bar: Set WM_NAME");
-  xcb_icccm_set_wm_name(
-      m_connection, m_window, XCB_ATOM_STRING, 8, m_bar.wmname.length(), m_bar.wmname.c_str());
-  xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
+  // m_log.trace("bar: Listen to X RandR events");
+  // m_connection.select_input(m_window, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
 
-  m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
-  wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
-
-  m_log.trace("bar: Set _NET_WM_STATE");
-  wm_util::set_wmstate(m_connection, m_window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
-
-  m_log.trace("bar: Set _NET_WM_DESKTOP");
-  wm_util::set_wmdesktop(m_connection, m_window, -1u);
-
-  m_log.trace("bar: Set _NET_WM_PID");
-  wm_util::set_wmpid(m_connection, m_window, getpid());
-
-  m_log.trace("bar: Set _NET_WM_STRUT_PARTIAL");
-  {
-    uint32_t none{0};
-    uint32_t value_list[12]{none};
-
-    auto mt = m_conf.get<int>("global/wm", "margin-top", 0);
-    auto mb = m_conf.get<int>("global/wm", "margin-bottom", 0);
-    auto ml = m_conf.get<int>("global/wm", "margin-left", 0);
-    auto mr = m_conf.get<int>("global/wm", "margin-right", 0);
-
-    if (m_bar.bottom) {
-      value_list[3] = m_bar.height + mt;
-      value_list[10] = m_bar.x + ml;
-      value_list[11] = m_bar.x + m_bar.width + mr;
-    } else {
-      value_list[2] = m_bar.height + mb;
-      value_list[8] = m_bar.x + ml;
-      value_list[9] = m_bar.x + m_bar.width + mr;
-    }
-
-    m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL,
-        XCB_ATOM_CARDINAL, 32, 12, value_list);
-  }
-
-  m_log.trace("bar: Create pixmap");
-  {
-    m_connection.create_pixmap(
-        m_visual->visual_id == m_screen->root_visual ? XCB_COPY_FROM_PARENT : 32, m_pixmap,
-        m_window, m_bar.width, m_bar.height);
-  }
-
-  m_log.trace("bar: Map window");
-  {
-    m_connection.map_window(m_window);
-    m_connection.flush();
-  }
-
-  // }}}
-  // Restack window and put it above defined WM's root {{{
-
-  try {
-    auto wm_restack = m_conf.get<string>(bs, "wm-restack");
-    auto restacked = false;
-
-    if (wm_restack == "bspwm") {
-      restacked = bspwm_util::restack_above_root(m_connection, m_bar.monitor, m_window);
-
-    } else if (wm_restack == "i3" && m_bar.dock && ENABLE_I3) {
-#if ENABLE_I3
-      restacked = i3_util::restack_above_root(m_connection, m_bar.monitor, m_window);
-#endif
-
-    } else if (wm_restack == "i3" && !m_bar.dock) {
-      m_log.warn("Ignoring restack of i3 window (not needed when dock = false)");
-      wm_restack.clear();
-
-    } else {
-      m_log.warn("Ignoring unsupported wm-restack option '%s'", wm_restack);
-      wm_restack.clear();
-    }
-
-    if (restacked) {
-      m_log.info("Successfully restacked bar window");
-    } else if (!wm_restack.empty()) {
-      m_log.err("Failed to restack bar window");
-    }
-  } catch (const key_error& err) {
-  }
-
-  // }}}
-  // Create graphic contexts {{{
-
-  m_log.trace("bar: Create graphic contexts");
-  {
-    // clang-format off
-    vector<uint32_t> colors {
-      m_bar.background,
-      m_bar.foreground,
-      m_bar.linecolor,
-      m_bar.linecolor,
-      m_borders[border::TOP].color,
-      m_borders[border::BOTTOM].color,
-      m_borders[border::LEFT].color,
-      m_borders[border::RIGHT].color,
-    };
-    // clang-format on
-
-    for (int i = 1; i <= 8; i++) {
-      uint32_t mask = 0;
-      uint32_t value_list[32];
-      xcb_params_gc_t params;
-      m_gcontexts.emplace(gc(i), gcontext{m_connection, m_connection.generate_id()});
-
-      XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i - 1]);
-      XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
-
-      xutils::pack_values(mask, &params, value_list);
-
-      m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
-    }
-  }
-
-  // }}}
-  // Setup root pixmap {{{
-
-  m_log.trace("bar: Setup root pixmap");
-  {
-    // graphics_util::get_root_pixmap(m_connection, &m_rootpixmap);
-    // graphics_util::simple_gc(m_connection, m_pixmap, &m_root_gc);
-    //
-    // if (!m_rootpixmap.pixmap || !m_pixmap || !m_root_gc) {
-    //   m_log.warn("Failed to get root pixmap for bar window background");
-    // } else {
-    //   m_log.trace("bar: rootpixmap=%x (%dx%d+%d+%d)", m_rootpixmap.pixmap, m_rootpixmap.width,
-    //       m_rootpixmap.height, m_rootpixmap.x, m_rootpixmap.y);
-    //
-    //   m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_bar.x, m_bar.y, 0, 0,
-    //       m_bar.width, m_bar.height);
-    //
-    //   auto image_reply = m_connection.get_image(
-    //       XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, 0, 0, m_bar.width, m_bar.height, XAllPlanes());
-    //
-    //   std::vector<uint8_t> image_data;
-    //   std::back_insert_iterator<decltype(image_data)> back_it(image_data);
-    //   std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
-    //
-    //   m_connection.put_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_root_gc, m_bar.width,
-    //       m_bar.height, 0, 0, 0, image_reply->depth, image_data.size(), image_data.data());
-    //
-    //   m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_bar.x, m_bar.y, 0, 0,
-    //       m_bar.width, m_bar.height);
-    //
-    //   uint32_t mask = 0;
-    //   uint32_t values[16];
-    //   xcb_params_cw_t params;
-    //   XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, m_pixmap);
-    //   xutils::pack_values(mask, &params, values);
-    //   m_connection.change_window_attributes_checked(m_window, mask, values);
-    //
-    //   m_connection.copy_area(
-    //       m_pixmap, m_window, m_root_gc, m_bar.x, m_bar.y, 0, 0, m_bar.width, m_bar.height);
-    // }
-  }
-
-  // }}}
-  // Load fonts {{{
-
-  auto fonts_loaded = false;
-  auto fontindex = 0;
-  auto fonts = m_conf.get_list<string>(bs, "font");
-
-  for (auto f : fonts) {
-    fontindex++;
-    vector<string> fd = string_util::split(f, ';');
-    string pattern{fd[0]};
-    int offset{0};
-
-    if (fd.size() > 1)
-      offset = std::stoi(fd[1], 0, 10);
-
-    if (m_fontmanager->load(pattern, fontindex, offset))
-      fonts_loaded = true;
-    else
-      m_log.warn("Unable to load font '%s'", fd[0]);
-  }
-
-  if (!fonts_loaded) {
-    m_log.warn("Loading fallback font");
-
-    if (!m_fontmanager->load("fixed"))
-      throw application_error("Unable to load fonts");
-  }
-
-  m_fontmanager->allocate_color(m_bar.foreground, true);
+  m_connection.map_window(m_window);
 
   // }}}
   // Connect signal handlers {{{
@@ -437,15 +168,12 @@ void bar::bootstrap(bool nodraw) {  // {{{
   // clang-format on
 
   // }}}
-  // Attach event sink to registry {{{
 
-  m_log.trace("bar: Aattaching sink to registry");
+  m_log.trace("bar: Attaching sink to registry");
   m_connection.attach_sink(this, 1);
   m_sinkattached = true;
 
-  // }}}
-
-  bootstrap_tray();
+  load_fonts();
 
   m_connection.flush();
 }  // }}}
@@ -454,101 +182,106 @@ void bar::bootstrap(bool nodraw) {  // {{{
  * Setup tray manager
  */
 void bar::bootstrap_tray() {  // {{{
-  auto bs = m_conf.bar_section();
-
-  try {
-    auto tray_position = m_conf.get<string>(bs, "tray-position");
-
-    if (tray_position == "left")
-      m_tray.align = alignment::LEFT;
-    else if (tray_position == "right")
-      m_tray.align = alignment::RIGHT;
-    else if (tray_position == "center")
-      m_tray.align = alignment::CENTER;
-    else
-      m_tray.align = alignment::NONE;
-  } catch (const key_error& err) {
-    m_tray.align = alignment::NONE;
-  }
-
-  if (m_tray.align == alignment::NONE) {
-    m_log.warn("Disabling tray manager (reason: disabled in config)");
-    m_traymanager.reset();
+  if (!m_tray) {
     return;
   }
 
-  m_tray.height = m_bar.height;
-  m_tray.height -= m_borders.at(border::BOTTOM).size;
-  m_tray.height -= m_borders.at(border::TOP).size;
-  m_tray.height_fill = m_tray.height;
+  tray_settings settings;
 
-  if (m_tray.height % 2 != 0) {
-    m_tray.height--;
+  auto bs = m_conf.bar_section();
+  auto tray_position = m_conf.get<string>(bs, "tray-position");
+
+  if (tray_position == "left")
+    settings.align = alignment::LEFT;
+  else if (tray_position == "right")
+    settings.align = alignment::RIGHT;
+  else if (tray_position == "center")
+    settings.align = alignment::CENTER;
+  else
+    settings.align = alignment::NONE;
+
+  if (settings.align == alignment::NONE) {
+    m_log.warn("Disabling tray manager (reason: disabled in config)");
+    m_tray.reset();
+    return;
+  }
+
+  m_traypos = settings.align;
+
+  settings.height = m_opts.height;
+  settings.height -= m_borders.at(border::BOTTOM).size;
+  settings.height -= m_borders.at(border::TOP).size;
+  settings.height_fill = settings.height;
+
+  if (settings.height % 2 != 0) {
+    settings.height--;
   }
 
   auto maxsize = m_conf.get<int>(bs, "tray-maxsize", 16);
-  if (m_tray.height > maxsize) {
-    m_tray.spacing += (m_tray.height - maxsize) / 2;
-    m_tray.height = maxsize;
+  if (settings.height > maxsize) {
+    settings.spacing += (settings.height - maxsize) / 2;
+    settings.height = maxsize;
   }
 
-  m_tray.width = m_tray.height;
-  m_tray.orig_y = m_bar.y + m_borders.at(border::TOP).size;
+  settings.width_max = m_opts.width;
+  settings.width = settings.height;
+  settings.orig_y = m_opts.y + m_borders.at(border::TOP).size;
 
   // Apply user-defined scaling
   auto scale = m_conf.get<float>(bs, "tray-scale", 1.0);
-  m_tray.width *= scale;
-  m_tray.height_fill *= scale;
+  settings.width *= scale;
+  settings.height_fill *= scale;
 
-  if (m_tray.align == alignment::RIGHT) {
-    m_tray.orig_x = m_bar.x + m_bar.width - m_borders.at(border::RIGHT).size;
-  } else if (m_tray.align == alignment::LEFT) {
-    m_tray.orig_x = m_bar.x + m_borders.at(border::LEFT).size;
-  } else if (m_tray.align == alignment::CENTER) {
-    m_tray.orig_x = center_x() - (m_tray.width / 2);
+  if (settings.align == alignment::RIGHT) {
+    settings.orig_x = m_opts.x + m_opts.width - m_borders.at(border::RIGHT).size;
+  } else if (settings.align == alignment::LEFT) {
+    settings.orig_x = m_opts.x + m_borders.at(border::LEFT).size;
+  } else if (settings.align == alignment::CENTER) {
+    settings.orig_x = get_centerx() - (settings.width / 2);
   }
 
   // Set user-defined background color
-  m_conf.get<bool>(bs, "tray-transparent", m_tray.transparent);
-
-  if (m_tray.transparent) {
-    m_tray.background = 0;
-  } else {
+  if (!(settings.transparent = m_conf.get<bool>(bs, "tray-transparent", settings.transparent))) {
     auto bg = m_conf.get<string>(bs, "tray-background", "");
+
+    if (bg.length() > 7) {
+      m_log.warn("Alpha support for the systray is limited. See the wiki for more details.");
+    }
+
     if (!bg.empty()) {
-      m_tray.background = color::parse(bg, g_colorempty);
+      settings.background = color::parse(bg, g_colorempty);
     } else {
-      m_tray.background = m_bar.background;
+      settings.background = m_opts.background;
+    }
+
+    if (color_util::alpha_channel(settings.background) == 0) {
+      settings.transparent = true;
+      settings.background = 0;
     }
   }
 
-  if (color_util::alpha_channel(m_tray.background) == 0) {
-    m_tray.transparent = true;
-    m_tray.background = 0;
-  }
-
   // Add user-defined padding
-  m_tray.spacing += m_conf.get<int>(bs, "tray-padding", 0);
+  settings.spacing += m_conf.get<int>(bs, "tray-padding", 0);
 
   // Add user-defiend offset
   auto offset_x_def = m_conf.get<string>(bs, "tray-offset-x", "");
   auto offset_y_def = m_conf.get<string>(bs, "tray-offset-y", "");
 
-  auto offset_x = std::atoi(offset_x_def.c_str());
-  auto offset_y = std::atoi(offset_y_def.c_str());
+  auto offset_x = atoi(offset_x_def.c_str());
+  auto offset_y = atoi(offset_y_def.c_str());
 
   if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
-    offset_x = math_util::percentage_to_value(offset_x, m_bar.monitor->w);
-    offset_x -= m_tray.width / 2;
+    offset_x = math_util::percentage_to_value(offset_x, m_opts.monitor->w);
+    offset_x -= settings.width / 2;
   }
 
   if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
-    offset_y = math_util::percentage_to_value(offset_y, m_bar.monitor->h);
-    offset_y -= m_tray.width / 2;
+    offset_y = math_util::percentage_to_value(offset_y, m_opts.monitor->h);
+    offset_y -= settings.width / 2;
   }
 
-  m_tray.orig_x += offset_x;
-  m_tray.orig_y += offset_y;
+  settings.orig_x += offset_x;
+  settings.orig_y += offset_y;
 
   // Add tray update callback unless explicitly disabled
   if (!m_conf.get<bool>(bs, "tray-detached", false)) {
@@ -556,15 +289,15 @@ void bar::bootstrap_tray() {  // {{{
   }
 
   // Put the tray next to the bar in the window stack
-  m_tray.sibling = m_window;
+  settings.sibling = m_window;
 
   try {
-    m_log.trace("controller: Setup tray manager");
-    m_traymanager->bootstrap(tray());
-  } catch (const std::exception& err) {
+    m_log.trace("bar: Setup tray manager");
+    m_tray->bootstrap(settings);
+  } catch (const exception& err) {
     m_log.err(err.what());
     m_log.warn("Failed to setup tray, disabling...");
-    m_traymanager.reset();
+    m_tray.reset();
   }
 }  // }}}
 
@@ -572,18 +305,18 @@ void bar::bootstrap_tray() {  // {{{
  * Activate tray manager
  */
 void bar::activate_tray() {  // {{{
-  if (!m_traymanager) {
+  if (!m_tray) {
     return;
   }
 
-  m_log.trace("controller: Activate tray manager");
+  m_log.trace("bar: Activate tray manager");
 
   try {
-    m_traymanager->activate();
-  } catch (const std::exception& err) {
+    m_tray->activate();
+  } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Failed to activate tray manager, disabling...");
-    m_traymanager.reset();
+    m_tray.reset();
   }
 }  // }}}
 
@@ -591,14 +324,7 @@ void bar::activate_tray() {  // {{{
  * Get the bar settings container
  */
 const bar_settings bar::settings() const {  // {{{
-  return m_bar;
-}  // }}}
-
-/**
- * Get the tray settings container
- */
-const tray_settings bar::tray() const {  // {{{{
-  return m_tray;
+  return m_opts;
 }  // }}}
 
 /**
@@ -618,7 +344,7 @@ void bar::parse(string data, bool force) {  // {{{
     // TODO: move to fontmanager
     m_xftdraw = XftDrawCreate(xlib::get_display(), m_pixmap, xlib::get_visual(), m_colormap);
 
-    m_bar.align = alignment::LEFT;
+    m_opts.align = alignment::LEFT;
     m_xpos = m_borders[border::LEFT].size;
     m_attributes = 0;
 
@@ -632,25 +358,28 @@ void bar::parse(string data, bool force) {  // {{{
 
     draw_background();
 
-    if (m_tray.align == alignment::LEFT && m_tray.configured_slots)
-      m_xpos += ((m_tray.width + m_tray.spacing) * m_tray.configured_slots) + m_tray.spacing;
+    if (m_traypos == alignment::LEFT && m_trayclients > 0) {
+      auto& tray = m_tray->settings();
+      m_xpos += ((tray.width + tray.spacing) * m_trayclients) + tray.spacing;
+    }
 
     try {
-      parser parser(m_bar);
+      parser parser(m_opts);
       parser(data);
     } catch (const unrecognized_token& err) {
       m_log.err("Unrecognized syntax token '%s'", err.what());
     }
 
-    if (m_tray.align == alignment::RIGHT && m_tray.configured_slots)
-      draw_shift(
-          m_xpos, ((m_tray.width + m_tray.spacing) * m_tray.configured_slots) + m_tray.spacing);
+    if (m_traypos == alignment::RIGHT && m_trayclients > 0) {
+      auto& tray = m_tray->settings();
+      draw_shift(m_xpos, ((tray.width + tray.spacing) * m_trayclients) + tray.spacing);
+    }
 
     draw_border(border::ALL);
 
-    flush();
-
     XftDrawDestroy(m_xftdraw);
+
+    flush();
   }
 }  // }}}
 
@@ -658,12 +387,7 @@ void bar::parse(string data, bool force) {  // {{{
  * Copy the contents of the pixmap's onto the bar window
  */
 void bar::flush() {  // {{{
-  m_connection.copy_area(
-      m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, 0, 0, m_bar.width, m_bar.height);
-
-  // m_connection.copy_area(
-  //     m_pixmap, m_window, m_root_gc, m_bar.x, m_bar.y, 0, 0, m_bar.width, m_bar.height);
-
+  m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, 0, 0, m_opts.width, m_opts.height);
   m_connection.flush();
 
   if (g_signals::bar::redraw) {
@@ -689,19 +413,17 @@ void bar::flush() {  // {{{
       hint_num[action.align]++;
 
       auto x = action.start_x;
-      auto y = m_bar.y + hint_num[action.align]++ * DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y;
+      auto y = m_opts.y + hint_num[action.align]++ * DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y;
       auto w = action.end_x - action.start_x - 2;
-      auto h = m_bar.height - 2;
+      auto h = m_opts.height - 2;
 
       const uint32_t mask = XCB_CW_BORDER_PIXEL | XCB_CW_OVERRIDE_REDIRECT;
       const uint32_t border_color = hint_num[action.align] % 2 ? 0xff0000 : 0x00ff00;
       const uint32_t values[2]{border_color, true};
 
-      auto scr = m_connection.screen();
-
-      action.clickable_area = m_connection.generate_id();
-      m_connection.create_window_checked(scr->root_depth, action.clickable_area, scr->root, x, y, w,
-          h, 1, XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
+      action.clickable_area = window{m_connection, m_connection.generate_id()};
+      m_connection.create_window_checked(m_screen->root_depth, action.clickable_area, m_screen->root, x, y, w, h, 1,
+          XCB_WINDOW_CLASS_INPUT_OUTPUT, m_screen->root_visual, mask, values);
       m_connection.map_window_checked(action.clickable_area);
 #endif
     }
@@ -716,6 +438,345 @@ void bar::refresh_window() {  // {{{
 }  // }}}
 
 /**
+ * Load user-defined fonts
+ */
+void bar::load_fonts() {  // {{{
+  auto fonts_loaded = false;
+  auto fontindex = 0;
+  auto fonts = m_conf.get_list<string>("font");
+
+  for (auto f : fonts) {
+    fontindex++;
+    vector<string> fd = string_util::split(f, ';');
+    string pattern{fd[0]};
+    int offset{0};
+
+    if (fd.size() > 1)
+      offset = std::stoi(fd[1], 0, 10);
+
+    if (m_fontmanager->load(pattern, fontindex, offset))
+      fonts_loaded = true;
+    else
+      m_log.warn("Unable to load font '%s'", fd[0]);
+  }
+
+  if (!fonts_loaded) {
+    m_log.warn("Loading fallback font");
+
+    if (!m_fontmanager->load("fixed"))
+      throw application_error("Unable to load fonts");
+  }
+
+  m_fontmanager->allocate_color(m_opts.foreground, true);
+}  // }}}
+
+/**
+ * Configure geometry values
+ */
+void bar::configure_geom() {  // {{{
+  m_log.trace("bar: Configure window geometry");
+
+  auto w = m_conf.get<string>(m_conf.bar_section(), "width", "100%");
+  auto h = m_conf.get<string>(m_conf.bar_section(), "height", "24");
+
+  auto offsetx = m_conf.get<string>(m_conf.bar_section(), "offset-x", "");
+  auto offsety = m_conf.get<string>(m_conf.bar_section(), "offset-y", "");
+
+  // look for user-defined width
+  if ((m_opts.width = atoi(w.c_str())) && w.find("%") != string::npos) {
+    m_opts.width = math_util::percentage_to_value<int>(m_opts.width, m_opts.monitor->w);
+  }
+
+  // look for user-defined  height
+  if ((m_opts.height = atoi(h.c_str())) && h.find("%") != string::npos) {
+    m_opts.height = math_util::percentage_to_value<int>(m_opts.height, m_opts.monitor->h);
+  }
+
+  // look for user-defined offset-x
+  if ((m_opts.offset_x = atoi(offsetx.c_str())) != 0 && offsetx.find("%") != string::npos) {
+    m_opts.offset_x = math_util::percentage_to_value<int>(m_opts.offset_x, m_opts.monitor->w);
+  }
+
+  // look for user-defined offset-y
+  if ((m_opts.offset_y = atoi(offsety.c_str())) != 0 && offsety.find("%") != string::npos) {
+    m_opts.offset_y = math_util::percentage_to_value<int>(m_opts.offset_y, m_opts.monitor->h);
+  }
+
+  // apply offsets
+  m_opts.x = m_opts.offset_x + m_opts.monitor->x;
+  m_opts.y = m_opts.offset_y + m_opts.monitor->y;
+
+  // apply borders
+  m_opts.height += m_borders[border::TOP].size;
+  m_opts.height += m_borders[border::BOTTOM].size;
+
+  if (m_opts.bottom)
+    m_opts.y = m_opts.monitor->y + m_opts.monitor->h - m_opts.height - m_opts.offset_y;
+
+  if (m_opts.width <= 0 || m_opts.width > m_opts.monitor->w)
+    throw application_error("Resulting bar width is out of bounds");
+  if (m_opts.height <= 0 || m_opts.height > m_opts.monitor->h)
+    throw application_error("Resulting bar height is out of bounds");
+
+  m_opts.width = math_util::cap<int>(m_opts.width, 0, m_opts.monitor->w);
+  m_opts.height = math_util::cap<int>(m_opts.height, 0, m_opts.monitor->h);
+
+  m_opts.vertical_mid = (m_opts.height + m_borders[border::TOP].size - m_borders[border::BOTTOM].size) / 2;
+
+  m_log.info("Bar geometry %ix%i+%i+%i", m_opts.width, m_opts.height, m_opts.x, m_opts.y);
+}  // }}}
+
+/**
+ * Create monitor object
+ */
+void bar::create_monitor() {  // {{{
+  m_log.trace("bar: Create monitor from matching X RandR output");
+
+  auto monitors = randr_util::get_monitors(m_connection, m_screen->root);
+  if (monitors.empty()) {
+    throw application_error("No monitors found");
+  }
+
+  auto name = m_conf.get<string>(m_conf.bar_section(), "monitor", "");
+  if (name.empty()) {
+    name = monitors[0]->name;
+    m_log.warn("No monitor specified, using \"%s\"", name);
+  }
+
+  for (auto&& monitor : monitors) {
+    if (name == monitor->name) {
+      m_opts.monitor = move(monitor);
+      break;
+    }
+  }
+
+  if (!m_opts.monitor) {
+    throw application_error("Monitor \"" + name + "\" not found or disconnected");
+  }
+
+  const auto& m = m_opts.monitor;
+  m_log.trace("bar: Loaded monitor %s (%ix%i+%i+%i)", m->name, m->w, m->h, m->x, m->y);
+}  // }}}
+
+/**
+ * Create window object
+ */
+void bar::create_window() {  // {{{
+  m_log.trace("bar: Create window %s", m_connection.id(m_window));
+
+  uint32_t mask = 0;
+  xcb_params_cw_t params;
+
+  // clang-format off
+  XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, 0);
+  XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, 0);
+  XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
+  XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
+  XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_opts.dock);
+  XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
+  // clang-format on
+
+  uint32_t values[16];
+  xutils::pack_values(mask, &params, values);
+
+  m_connection.create_window_checked(32, m_window, m_screen->root, m_opts.x, m_opts.y, m_opts.width, m_opts.height, 0,
+      XCB_WINDOW_CLASS_INPUT_OUTPUT, m_visual->visual_id, mask, values);
+}  // }}}
+
+/**
+ * Create window pixmap
+ */
+void bar::create_pixmap() {  // {{{
+  m_log.trace("bar: Create pixmap (xid=%s)", m_connection.id(m_pixmap));
+  m_connection.create_pixmap(32, m_pixmap, m_window, m_opts.width, m_opts.height);
+}  // }}}
+
+/**
+ * Create window gcontexts
+ */
+void bar::create_gcontexts() {  // {{{
+  // clang-format off
+  vector<uint32_t> colors {
+    m_opts.background,
+    m_opts.foreground,
+    m_opts.linecolor,
+    m_opts.linecolor,
+    m_borders[border::TOP].color,
+    m_borders[border::BOTTOM].color,
+    m_borders[border::LEFT].color,
+    m_borders[border::RIGHT].color,
+  };
+  // clang-format on
+
+  for (int i = 1; i <= 8; i++) {
+    uint32_t mask = 0;
+    uint32_t value_list[32];
+
+    xcb_params_gc_t params;
+    XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i - 1]);
+    XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
+
+    xutils::pack_values(mask, &params, value_list);
+    m_gcontexts.emplace(gc(i), gcontext{m_connection, m_connection.generate_id()});
+
+    m_log.trace("bar: Create gcontext (gc=%i, xid=%s)", i, m_connection.id(m_gcontexts.at(gc(i))));
+    m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
+  }
+}  // }}}
+
+/**
+ * Create an X image from the root pixmap
+ * used to render pseudo-transparent backgrounds
+ */
+void bar::create_rootpixmap() {  // {{{
+#if 0
+  m_log.trace("bar: Create root pixmap");
+  graphics_util::get_root_pixmap(m_connection, &m_rootpixmap);
+  graphics_util::simple_gc(m_connection, m_pixmap, &m_root_gc);
+
+  if (!m_rootpixmap.pixmap || !m_pixmap || !m_root_gc) {
+    m_log.warn("Failed to get root pixmap for bar window background");
+  } else {
+    m_log.trace("bar: rootpixmap=%x (%dx%d+%d+%d)", m_rootpixmap.pixmap, m_rootpixmap.width,
+        m_rootpixmap.height, m_rootpixmap.x, m_rootpixmap.y);
+
+    m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_opts.x,
+    m_opts.y, 0, 0,
+        m_opts.width, m_opts.height);
+
+    auto image_reply = m_connection.get_image(
+        XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, 0, 0, m_opts.width, m_opts.height,
+        XAllPlanes());
+
+    vector<uint8_t> image_data;
+    std::back_insert_iterator<decltype(image_data)> back_it(image_data);
+    std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
+
+    m_connection.put_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_root_gc, m_opts.width,
+        m_opts.height, 0, 0, 0, image_reply->depth, image_data.size(), image_data.data());
+
+    m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_opts.x,
+    m_opts.y, 0, 0,
+        m_opts.width, m_opts.height);
+
+    uint32_t mask = 0;
+    uint32_t values[16];
+    xcb_params_cw_t params;
+    XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, m_pixmap);
+    xutils::pack_values(mask, &params, values);
+    m_connection.change_window_attributes_checked(m_window, mask, values);
+
+    m_connection.copy_area(
+        m_pixmap, m_window, m_root_gc, m_opts.x, m_opts.y, 0, 0, m_opts.width,
+        m_opts.height);
+  }
+#endif
+}  // }}}
+
+/**
+ * Move the bar window above defined sibling
+ * in the X window stack
+ */
+void bar::restack_window() {  // {{{
+  string wm_restack;
+
+  try {
+    wm_restack = m_conf.get<string>(m_conf.bar_section(), "wm-restack");
+  } catch (const key_error& err) {
+    return;
+  }
+
+  auto restacked = false;
+
+  if (wm_restack == "bspwm") {
+    restacked = bspwm_util::restack_above_root(m_connection, m_opts.monitor, m_window);
+#if ENABLE_I3
+  } else if (wm_restack == "i3" && m_opts.dock) {
+    restacked = i3_util::restack_above_root(m_connection, m_opts.monitor, m_window);
+  } else if (wm_restack == "i3" && !m_opts.dock) {
+    m_log.warn("Ignoring restack of i3 window (not needed when dock = false)");
+    wm_restack.clear();
+#endif
+  } else {
+    m_log.warn("Ignoring unsupported wm-restack option '%s'", wm_restack);
+    wm_restack.clear();
+  }
+
+  if (restacked) {
+    m_log.info("Successfully restacked bar window");
+  } else if (!wm_restack.empty()) {
+    m_log.err("Failed to restack bar window");
+  }
+}  // }}}
+
+/**
+ * Set window atom values
+ */
+void bar::set_wmhints() {  // {{{
+  m_log.trace("bar: Set WM_NAME");
+  xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.length(), m_opts.wmname.c_str());
+  xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
+
+  m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
+  wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
+
+  m_log.trace("bar: Set _NET_WM_STATE");
+  wm_util::set_wmstate(m_connection, m_window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
+
+  m_log.trace("bar: Set _NET_WM_DESKTOP");
+  wm_util::set_wmdesktop(m_connection, m_window, -1u);
+
+  m_log.trace("bar: Set _NET_WM_PID");
+  wm_util::set_wmpid(m_connection, m_window, getpid());
+
+  m_log.trace("bar: Set _NET_WM_STRUT_PARTIAL");
+  {
+    uint32_t none{0};
+    uint32_t value_list[12]{none};
+
+    auto mt = m_conf.get<int>("global/wm", "margin-top", 0);
+    auto mb = m_conf.get<int>("global/wm", "margin-bottom", 0);
+    auto ml = m_conf.get<int>("global/wm", "margin-left", 0);
+    auto mr = m_conf.get<int>("global/wm", "margin-right", 0);
+
+    if (m_opts.bottom) {
+      value_list[3] = m_opts.monitor->y + m_opts.height + mt;
+      value_list[10] = m_opts.monitor->x + m_opts.x + ml;
+      value_list[11] = m_opts.monitor->x + m_opts.x + m_opts.width + mr;
+    } else {
+      value_list[2] = m_opts.monitor->y + m_opts.height + mb;
+      value_list[8] = m_opts.monitor->x + m_opts.x + ml;
+      value_list[9] = m_opts.monitor->x + m_opts.x + m_opts.width + mr;
+    }
+
+    m_connection.change_property(
+        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL, XCB_ATOM_CARDINAL, 32, 12, value_list);
+  }
+}  // }}}
+
+/**
+ * Get the horizontal center pos
+ */
+int bar::get_centerx() {  // {{{
+  int x = m_opts.x;
+  x += m_opts.width;
+  x -= m_borders[border::RIGHT].size;
+  x += m_borders[border::LEFT].size;
+  x /= 2;
+  return x;
+}  // }}}
+
+/**
+ * Get the inner width of the bar
+ */
+int bar::get_innerwidth() {  // {{{
+  auto w = m_opts.width;
+  w -= m_borders[border::RIGHT].size;
+  w -= m_borders[border::LEFT].size;
+  return w;
+}  // }}}
+
+/**
  * Event handler for XCB_BUTTON_PRESS events
  *
  * Used to map mouse clicks to bar actions
@@ -727,8 +788,8 @@ void bar::handle(const evt::button_press& evt) {  // {{{
 
   std::lock_guard<threading_util::spin_lock> lck(m_lock);
   {
-    m_log.trace_x("bar: Received button press event: %i at pos(%i, %i)",
-        static_cast<int>(evt->detail), evt->event_x, evt->event_y);
+    m_log.trace_x("bar: Received button press event: %i at pos(%i, %i)", static_cast<int>(evt->detail), evt->event_x,
+        evt->event_y);
 
     mousebtn button = static_cast<mousebtn>(evt->detail);
 
@@ -740,8 +801,7 @@ void bar::handle(const evt::button_press& evt) {  // {{{
         m_log.trace_x("bar: Ignoring action: button mismatch");
         continue;
       } else if (action.start_x > evt->event_x) {
-        m_log.trace_x(
-            "bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, evt->event_x);
+        m_log.trace_x("bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, evt->event_x);
         continue;
       } else if (action.end_x < evt->event_x) {
         m_log.trace_x("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, evt->event_x);
@@ -772,10 +832,10 @@ void bar::handle(const evt::button_press& evt) {  // {{{
  * Used to redraw the bar
  */
 void bar::handle(const evt::expose& evt) {  // {{{
-  if (evt->window != m_window)
-    return;
-  m_log.trace("bar: Received expose event");
-  flush();
+  if (evt->window == m_window) {
+    m_log.trace("bar: Received expose event");
+    flush();
+  }
 }  // }}}
 
 /**
@@ -795,7 +855,10 @@ void bar::handle(const evt::expose& evt) {  // {{{
  * Also tracks the root pixmap
  */
 void bar::handle(const evt::property_notify& evt) {  // {{{
-  m_log.trace("bar: property_notify");
+#ifdef DEBUG
+  string atom_name = m_connection.get_atom_name(evt->atom).name();
+  m_log.trace("bar: property_notify(%s)", atom_name);
+#endif
 
   if (evt->window == m_window && evt->atom == WM_STATE) {
     if (!g_signals::bar::visibility_change) {
@@ -812,7 +875,7 @@ void bar::handle(const evt::property_notify& evt) {  // {{{
         g_signals::bar::visibility_change(false);
       else
         g_signals::bar::visibility_change(true);
-    } catch (const std::exception& err) {
+    } catch (const exception& err) {
       m_log.warn("Failed to emit bar window's visibility change event");
     }
   } else if (evt->atom == _XROOTMAP_ID) {
@@ -825,36 +888,14 @@ void bar::handle(const evt::property_notify& evt) {  // {{{
 }  // }}}
 
 /**
- * Get the horizontal center pos
- */
-int bar::center_x() {  // {{{
-  int x = m_bar.x;
-  x += m_bar.width;
-  x -= m_borders[border::RIGHT].size;
-  x += m_borders[border::LEFT].size;
-  x /= 2;
-  return x;
-}  // }}}
-
-/**
- * Get the inner width of the bar
- */
-int bar::width_inner() {  // {{{
-  auto w = m_bar.width;
-  w -= m_borders[border::RIGHT].size;
-  w -= m_borders[border::LEFT].size;
-  return w;
-}  // }}}
-
-/**
  * Handle alignment update
  */
 void bar::on_alignment_change(alignment align) {  // {{{
-  if (align == m_bar.align)
+  if (align == m_opts.align)
     return;
 
   m_log.trace_x("bar: alignment_change(%i)", static_cast<int>(align));
-  m_bar.align = align;
+  m_opts.align = align;
 
   if (align == alignment::LEFT) {
     m_xpos = m_borders[border::LEFT].size;
@@ -905,7 +946,7 @@ void bar::on_action_block_open(mousebtn btn, string cmd) {  // {{{
   m_log.trace_x("bar: action_block_open(%i, %s)", static_cast<int>(btn), cmd);
   action_block action;
   action.active = true;
-  action.align = m_bar.align;
+  action.align = m_opts.align;
   action.button = btn;
   action.start_x = m_xpos;
   action.command = string_util::replace_all(cmd, ":", "\\:");
@@ -929,7 +970,7 @@ void bar::on_action_block_close(mousebtn btn) {  // {{{
     if (action.align == alignment::LEFT) {
       action.end_x = m_xpos;
     } else if (action.align == alignment::CENTER) {
-      int base_x = m_bar.width;
+      int base_x = m_opts.width;
       base_x -= m_borders[border::RIGHT].size;
       base_x /= 2;
       base_x += m_borders[border::LEFT].size;
@@ -938,7 +979,7 @@ void bar::on_action_block_close(mousebtn btn) {  // {{{
       action.start_x = base_x - clickable_width / 2 + action.start_x / 2;
       action.end_x = action.start_x + clickable_width;
     } else if (action.align == alignment::RIGHT) {
-      int base_x = m_bar.width - m_borders[border::RIGHT].size;
+      int base_x = m_opts.width - m_borders[border::RIGHT].size;
       action.start_x = base_x - m_xpos + action.start_x;
       action.end_x = base_x;
     }
@@ -951,8 +992,8 @@ void bar::on_action_block_close(mousebtn btn) {  // {{{
  * Handle color change
  */
 void bar::on_color_change(gc gc_, color color_) {  // {{{
-  m_log.trace_x("bar: color_change(%i, %s -> #%07x)", static_cast<int>(gc_), color_.source(),
-      static_cast<uint32_t>(color_));
+  m_log.trace_x(
+      "bar: color_change(%i, %s -> #%07x)", static_cast<int>(gc_), color_.source(), static_cast<uint32_t>(color_));
 
   const uint32_t value_list[]{color_};
   m_connection.change_gc(m_gcontexts.at(gc_), XCB_GC_FOREGROUND, value_list);
@@ -985,13 +1026,15 @@ void bar::on_pixel_offset(int px) {  // {{{
  * Proess systray report
  */
 void bar::on_tray_report(uint16_t slots) {  // {{{
-  if (m_tray.configured_slots != slots) {
-    m_log.trace("bar: tray_report(%lu)", slots);
-    m_tray.configured_slots = slots;
+  if (m_trayclients == slots) {
+    return;
+  }
 
-    if (!m_prevdata.empty()) {
-      parse(m_prevdata, true);
-    }
+  m_log.trace("bar: tray_report(%lu)", slots);
+  m_trayclients = slots;
+
+  if (!m_prevdata.empty()) {
+    parse(m_prevdata, true);
   }
 }  // }}}
 
@@ -999,7 +1042,7 @@ void bar::on_tray_report(uint16_t slots) {  // {{{
  * Draw background onto the pixmap
  */
 void bar::draw_background() {  // {{{
-  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), 0, 0, m_bar.width, m_bar.height);
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), 0, 0, m_opts.width, m_opts.height);
 }  // }}}
 
 /**
@@ -1012,34 +1055,31 @@ void bar::draw_border(border border_) {  // {{{
 
     case border::TOP:
       if (m_borders[border::TOP].size > 0) {
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BT),
-            m_borders[border::LEFT].size, 0,
-            m_bar.width - m_borders[border::LEFT].size - m_borders[border::RIGHT].size,
-            m_borders[border::TOP].size);
+        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BT), m_borders[border::LEFT].size, 0,
+            m_opts.width - m_borders[border::LEFT].size - m_borders[border::RIGHT].size, m_borders[border::TOP].size);
       }
       break;
 
     case border::BOTTOM:
       if (m_borders[border::BOTTOM].size > 0) {
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BB),
-            m_borders[border::LEFT].size, m_bar.height - m_borders[border::BOTTOM].size,
-            m_bar.width - m_borders[border::LEFT].size - m_borders[border::RIGHT].size,
+        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BB), m_borders[border::LEFT].size,
+            m_opts.height - m_borders[border::BOTTOM].size,
+            m_opts.width - m_borders[border::LEFT].size - m_borders[border::RIGHT].size,
             m_borders[border::BOTTOM].size);
       }
       break;
 
     case border::LEFT:
       if (m_borders[border::LEFT].size > 0) {
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BL), 0, 0,
-            m_borders[border::LEFT].size, m_bar.height);
+        draw_util::fill(
+            m_connection, m_pixmap, m_gcontexts.at(gc::BL), 0, 0, m_borders[border::LEFT].size, m_opts.height);
       }
       break;
 
     case border::RIGHT:
       if (m_borders[border::RIGHT].size > 0) {
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BR),
-            m_bar.width - m_borders[border::RIGHT].size, 0, m_borders[border::RIGHT].size,
-            m_bar.height);
+        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BR), m_opts.width - m_borders[border::RIGHT].size, 0,
+            m_borders[border::RIGHT].size, m_opts.height);
       }
       break;
 
@@ -1056,16 +1096,16 @@ void bar::draw_border(border border_) {  // {{{
  * Draw over- and underline onto the pixmap
  */
 void bar::draw_lines(int x, int w) {  // {{{
-  if (!m_bar.lineheight)
+  if (!m_opts.lineheight)
     return;
 
   if (m_attributes & static_cast<int>(attribute::o))
-    draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, m_borders[border::TOP].size,
-        w, m_bar.lineheight);
+    draw_util::fill(
+        m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, m_borders[border::TOP].size, w, m_opts.lineheight);
 
   if (m_attributes & static_cast<int>(attribute::u))
     draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::UL), x,
-        m_bar.height - m_borders[border::BOTTOM].size - m_bar.lineheight, w, m_bar.lineheight);
+        m_opts.height - m_borders[border::BOTTOM].size - m_opts.lineheight, w, m_opts.lineheight);
 }  // }}}
 
 /**
@@ -1074,28 +1114,27 @@ void bar::draw_lines(int x, int w) {  // {{{
 int bar::draw_shift(int x, int chr_width) {  // {{{
   int delta = chr_width;
 
-  if (m_bar.align == alignment::CENTER) {
-    int base_x = m_bar.width;
+  if (m_opts.align == alignment::CENTER) {
+    int base_x = m_opts.width;
     base_x -= m_borders[border::RIGHT].size;
     base_x /= 2;
     base_x += m_borders[border::LEFT].size;
-    m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0,
-        base_x - (x + chr_width) / 2, 0, x, m_bar.height);
+    m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0, base_x - (x + chr_width) / 2,
+        0, x, m_opts.height);
     x = base_x - (x + chr_width) / 2 + x;
     delta /= 2;
-  } else if (m_bar.align == alignment::RIGHT) {
-    m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_bar.width - x, 0,
-        m_bar.width - x - chr_width, 0, x, m_bar.height);
-    x = m_bar.width - chr_width - m_borders[border::RIGHT].size;
+  } else if (m_opts.align == alignment::RIGHT) {
+    m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_opts.width - x, 0,
+        m_opts.width - x - chr_width, 0, x, m_opts.height);
+    x = m_opts.width - chr_width - m_borders[border::RIGHT].size;
   }
 
-  draw_util::fill(
-      m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, m_bar.width - x, m_bar.height);
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, m_opts.width - x, m_opts.height);
 
   // Translate pos of clickable areas
-  if (m_bar.align != alignment::LEFT)
+  if (m_opts.align != alignment::LEFT)
     for (auto&& action : m_actions) {
-      if (action.active || action.align != m_bar.align)
+      if (action.active || action.align != m_opts.align)
         continue;
       action.start_x -= delta;
       action.end_x -= delta;
@@ -1122,11 +1161,11 @@ void bar::draw_character(uint16_t character) {  // {{{
 
   // Avoid odd glyph width's for center-aligned text
   // since it breaks the positioning of clickable area's
-  if (m_bar.align == alignment::CENTER && chr_width % 2)
+  if (m_opts.align == alignment::CENTER && chr_width % 2)
     chr_width++;
 
   auto x = draw_shift(m_xpos, chr_width);
-  auto y = m_bar.vertical_mid + font->height / 2 - font->descent + font->offset_y;
+  auto y = m_opts.vertical_mid + font->height / 2 - font->descent + font->offset_y;
 
   // m_log.trace("Draw char(%c, width: %i) at pos(%i,%i)", character, chr_width, x, y);
 
@@ -1135,8 +1174,7 @@ void bar::draw_character(uint16_t character) {  // {{{
     XftDrawString16(m_xftdraw, &color, font->xft, x, y, &character, 1);
   } else {
     uint16_t ucs = ((character >> 8) | (character << 8));
-    draw_util::xcb_poly_text_16_patched(
-        m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
+    draw_util::xcb_poly_text_16_patched(m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
   }
 
   draw_lines(x, chr_width);
@@ -1171,11 +1209,11 @@ void bar::draw_textstring(const char* text, size_t len) {  // {{{
 
     // Avoid odd glyph width's for center-aligned text
     // since it breaks the positioning of clickable area's
-    if (m_bar.align == alignment::CENTER && chr_width % 2)
+    if (m_opts.align == alignment::CENTER && chr_width % 2)
       chr_width++;
 
     auto x = draw_shift(m_xpos, chr_width);
-    auto y = m_bar.vertical_mid + font->height / 2 - font->descent + font->offset_y;
+    auto y = m_opts.vertical_mid + font->height / 2 - font->descent + font->offset_y;
 
     // m_log.trace("Draw char(%c, width: %i) at pos(%i,%i)", character, chr_width, x, y);
 

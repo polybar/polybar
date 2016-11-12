@@ -1,5 +1,5 @@
-#include <mutex>
 #include <csignal>
+#include <mutex>
 
 #include "components/controller.hpp"
 #include "components/signals.hpp"
@@ -12,8 +12,8 @@
 #include "modules/memory.hpp"
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
-#include "modules/text.hpp"
 #include "modules/temperature.hpp"
+#include "modules/text.hpp"
 #include "modules/unsupported.hpp"
 #include "modules/xbacklight.hpp"
 #include "utils/process.hpp"
@@ -95,16 +95,16 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
   m_log.trace("controller: Listen for events on the root window");
   try {
     const uint32_t value_list[2]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-    m_connection.change_window_attributes_checked(
-        m_connection.root(), XCB_CW_EVENT_MASK, value_list);
-  } catch (const std::exception& err) {
+    m_connection.change_window_attributes_checked(m_connection.root(), XCB_CW_EVENT_MASK, value_list);
+  } catch (const exception& err) {
     throw application_error("Failed to change root window event mask: " + string{err.what()});
   }
 
   try {
     m_log.trace("controller: Setup bar");
     m_bar->bootstrap(m_writeback || dump_wmname);
-  } catch (const std::exception& err) {
+    m_bar->bootstrap_tray();
+  } catch (const exception& err) {
     throw application_error("Failed to setup bar renderer: " + string{err.what()});
   }
 
@@ -292,7 +292,7 @@ void controller::wait_for_xevent() {
       if (evt != nullptr) {
         m_connection.dispatch_event(evt);
       }
-    } catch (const std::exception& err) {
+    } catch (const exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
     }
   }
@@ -364,10 +364,10 @@ void controller::bootstrap_modules() {
         else
           throw application_error("Unknown module: " + module_name);
 
-        module->set_update_cb(bind(&eventloop::enqueue, m_eventloop.get(),
-            eventloop::entry_t{static_cast<int>(event_type::UPDATE)}));
-        module->set_stop_cb(bind(&eventloop::enqueue, m_eventloop.get(),
-            eventloop::entry_t{static_cast<int>(event_type::CHECK)}));
+        module->set_update_cb(
+            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<int>(event_type::UPDATE)}));
+        module->set_stop_cb(
+            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<int>(event_type::CHECK)}));
 
         module->setup();
 

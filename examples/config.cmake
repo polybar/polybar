@@ -46,6 +46,8 @@ modules-right = @MODULES_RIGHT@
 
 tray-position = right
 tray-padding = 4
+;tray-transparent = true
+;tray-background = #0063ff
 
 ;wm-restack = bspwm
 

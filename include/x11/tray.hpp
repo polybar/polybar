@@ -1,18 +1,12 @@
 #pragma once
 
 #include <xcb/xcb.h>
-#include <xcb/xcb_icccm.h>
 #include <mutex>
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "components/signals.hpp"
 #include "components/types.hpp"
-#include "utils/memory.hpp"
-#include "utils/process.hpp"
-#include "x11/connection.hpp"
 #include "x11/graphics.hpp"
-#include "x11/xembed.hpp"
 
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
 #define _NET_SYSTEM_TRAY_ORIENTATION_VERT 1
@@ -26,13 +20,44 @@
 
 LEMONBUDDY_NS
 
-// class definition : trayclient {{{
+// fwd declarations
+class connection;
+struct xembed_data;
 
-class trayclient {
+using root_pixmap = graphics_util::root_pixmap;
+
+// class definition : settings {{{
+
+struct tray_settings {
+  tray_settings() = default;
+  tray_settings& operator=(const tray_settings& o) = default;
+
+  alignment align{alignment::NONE};
+  int16_t orig_x{0};
+  int16_t orig_y{0};
+  int16_t configured_x{0};
+  int16_t configured_y{0};
+  uint16_t configured_w{0};
+  uint16_t configured_h{0};
+  uint16_t configured_slots{0};
+  uint16_t width{0};
+  uint16_t width_max{0};
+  uint16_t height{0};
+  uint16_t height_fill{0};
+  uint16_t spacing{0};
+  uint32_t sibling{0};
+  uint32_t background{0};
+  bool transparent{false};
+};
+
+// }}}
+// class definition : tray_client {{{
+
+class tray_client {
  public:
-  explicit trayclient(connection& conn, xcb_window_t win, uint16_t w, uint16_t h);
+  explicit tray_client(connection& conn, xcb_window_t win, uint16_t w, uint16_t h);
 
-  ~trayclient();
+  ~tray_client();
 
   bool match(const xcb_window_t& win) const;
   bool mapped() const;
@@ -57,16 +82,17 @@ class trayclient {
 };
 
 // }}}
-// class definition : traymanager {{{
+// class definition : tray_manager {{{
 
-class traymanager
-    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-          evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
-          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify> {
+class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
+                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
+                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify> {
  public:
-  explicit traymanager(connection& conn, const logger& logger);
+  explicit tray_manager(connection& conn, const logger& logger);
 
-  ~traymanager();
+  ~tray_manager();
+
+  const tray_settings settings() const;
 
   void bootstrap(tray_settings settings);
   void activate();
@@ -81,6 +107,8 @@ class traymanager
 
   void query_atom();
   void create_window();
+  void create_bg(bool realloc = false);
+  void restack_window();
   void set_wmhints();
   void set_traycolors();
 
@@ -100,8 +128,8 @@ class traymanager
   int16_t calculate_client_x(const xcb_window_t& win);
   int16_t calculate_client_y();
 
-  shared_ptr<trayclient> find_client(const xcb_window_t& win) const;
-  void remove_client(shared_ptr<trayclient>& client, bool reconfigure = true);
+  shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
+  void remove_client(shared_ptr<tray_client>& client, bool reconfigure = true);
   int mapped_clients() const;
 
   void handle(const evt::expose& evt);
@@ -119,13 +147,13 @@ class traymanager
  private:
   connection& m_connection;
   const logger& m_log;
-  vector<shared_ptr<trayclient>> m_clients;
+  vector<shared_ptr<tray_client>> m_clients;
 
-  tray_settings m_settings;
+  tray_settings m_opts;
 
   xcb_gcontext_t m_gc{0};
   xcb_pixmap_t m_pixmap{0};
-  graphics_util::root_pixmap m_rootpixmap;
+  root_pixmap m_rootpixmap;
   uint16_t m_prevwidth{0};
   uint16_t m_prevheight{0};
 
@@ -151,8 +179,8 @@ namespace {
   /**
    * Configure injection module
    */
-  template <class T = unique_ptr<traymanager>>
-  di::injector<T> configure_traymanager() {
+  template <class T = unique_ptr<tray_manager>>
+  di::injector<T> configure_tray_manager() {
     return di::make_injector(configure_logger(), configure_connection());
   }
 }

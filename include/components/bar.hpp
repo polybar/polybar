@@ -20,13 +20,13 @@ LEMONBUDDY_NS
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  explicit bar(connection& conn, const config& config, const logger& logger,
-      unique_ptr<fontmanager> fontmanager, unique_ptr<traymanager> traymanager)
+  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<fontmanager> fontmanager,
+      unique_ptr<tray_manager> tray_manager)
       : m_connection(conn)
       , m_conf(config)
       , m_log(logger)
       , m_fontmanager(forward<decltype(fontmanager)>(fontmanager))
-      , m_traymanager(forward<decltype(traymanager)>(traymanager)) {}
+      , m_tray(forward<decltype(tray_manager)>(tray_manager)) {}
 
   ~bar();
 
@@ -35,19 +35,28 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void activate_tray();
 
   const bar_settings settings() const;
-  const tray_settings tray() const;
 
   void parse(string data, bool force = false);
+
+ protected:
   void flush();
   void refresh_window();
+  void load_fonts();
+  void configure_geom();
+  void create_monitor();
+  void create_window();
+  void create_pixmap();
+  void create_gcontexts();
+  void create_rootpixmap();
+  void restack_window();
+  void set_wmhints();
+
+  int get_centerx();
+  int get_innerwidth();
 
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
-
- protected:
-  int center_x();
-  int width_inner();
 
   void on_alignment_change(alignment align);
   void on_attribute_set(attribute attr);
@@ -72,7 +81,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   const config& m_conf;
   const logger& m_log;
   unique_ptr<fontmanager> m_fontmanager;
-  unique_ptr<traymanager> m_traymanager;
+  unique_ptr<tray_manager> m_tray;
 
   threading_util::spin_lock m_lock;
   throttle_util::throttle_t m_throttler;
@@ -87,13 +96,15 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   // xcb_gcontext_t m_root_gc{0};
   // graphics_util::root_pixmap m_rootpixmap;
 
-  bar_settings m_bar;
-  tray_settings m_tray;
+  bar_settings m_opts;
   map<border, border_settings> m_borders;
   map<gc, gcontext> m_gcontexts;
   vector<action_block> m_actions;
 
   stateflag m_sinkattached{false};
+
+  alignment m_traypos{alignment::NONE};
+  uint16_t m_trayclients{0};
 
   string m_prevdata;
   int m_xpos{0};
@@ -115,7 +126,7 @@ namespace {
         configure_config(),
         configure_logger(),
         configure_fontmanager(),
-        configure_traymanager());
+        configure_tray_manager());
     // clang-format on
   }
 }

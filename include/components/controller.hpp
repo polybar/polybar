@@ -16,9 +16,8 @@ LEMONBUDDY_NS
 
 class controller {
  public:
-  explicit controller(connection& conn, const logger& logger, const config& config,
-      unique_ptr<eventloop> eventloop, unique_ptr<bar> bar,
-      inotify_util::watch_t& confwatch)
+  explicit controller(connection& conn, const logger& logger, const config& config, unique_ptr<eventloop> eventloop,
+      unique_ptr<bar> bar, inotify_util::watch_t& confwatch)
       : m_connection(conn)
       , m_log(logger)
       , m_conf(config)
