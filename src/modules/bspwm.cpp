@@ -289,6 +289,8 @@ namespace modules {
       int workspace_n = 0;
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
+        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
+        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
         if (ws.second.get()) {
           string event{EVENT_CLICK};
           event += to_string(m_index);
@@ -319,28 +321,37 @@ namespace modules {
   }  // }}}
 
   bool bspwm_module::handle_event(string cmd) {  // {{{
-    if (cmd.find(EVENT_CLICK) != 0) {
+    if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }
 
     try {
-      cmd.erase(0, strlen(EVENT_CLICK));
-
-      size_t separator = string_util::find_nth(cmd, 0, "+", 1);
-      size_t monitor_n = std::atoi(cmd.substr(0, separator).c_str());
-      string workspace_n = cmd.substr(separator + 1);
-
-      if (monitor_n < m_monitors.size()) {
+      auto send_command = [this](string payload_cmd, string log_info) {
         auto ipc = bspwm_util::make_connection();
-        auto payload = bspwm_util::make_payload(
-            "desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n);
-
-        m_log.info("%s: Sending desktop focus command to ipc handler", name());
-
+        auto payload = bspwm_util::make_payload(payload_cmd);
+        m_log.info("%s: %s", name(), log_info);
         ipc->send(payload->data, payload->len, 0);
         ipc->disconnect();
-      } else {
-        m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
+      };
+      if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
+        cmd.erase(0, strlen(EVENT_CLICK));
+
+        size_t separator = string_util::find_nth(cmd, 0, "+", 1);
+        size_t monitor_n = std::atoi(cmd.substr(0, separator).c_str());
+        string workspace_n = cmd.substr(separator + 1);
+
+        if (monitor_n < m_monitors.size()) {
+          send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
+            "Sending desktop focus command to ipc handler");
+        } else {
+          m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
+        }
+      }
+      else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+        send_command("desktop -f next", "Sending desktop next command to ipc handler");
+      }
+      else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+        send_command("desktop -f prev", "Sending desktop prev command to ipc handler");
       }
     } catch (const system_error& err) {
       m_log.err("%s: %s", name(), err.what());
