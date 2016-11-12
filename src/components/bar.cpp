@@ -532,19 +532,22 @@ void bar::configure_geom() {  // {{{
 void bar::create_monitor() {  // {{{
   m_log.trace("bar: Create monitor from matching X RandR output");
 
-  auto monitors = randr_util::get_monitors(m_connection, m_screen->root);
+  auto strict = m_conf.get<bool>(m_conf.bar_section(), "monitor-strict", false);
+  auto monitors = randr_util::get_monitors(m_connection, m_screen->root, strict);
+
   if (monitors.empty()) {
     throw application_error("No monitors found");
   }
 
   auto name = m_conf.get<string>(m_conf.bar_section(), "monitor", "");
+
   if (name.empty()) {
     name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", name);
   }
 
   for (auto&& monitor : monitors) {
-    if (name == monitor->name) {
+    if (monitor->match(name, strict)) {
       m_opts.monitor = move(monitor);
       break;
     }
@@ -841,18 +844,14 @@ void bar::handle(const evt::expose& evt) {  // {{{
 /**
  * Event handler for XCB_PROPERTY_NOTIFY events
  *
- * Used to emit events whenever the bar window's
- * visibility gets changes. This allows us to toggle the
+ * - Emit events whenever the bar window's
+ * visibility gets changed. This allows us to toggle the
  * state of the tray container even though the tray
- * window restacking failed.
+ * window restacking failed.  Used as a fallback for
+ * tedious WM's, like i3.
  *
- * This is used as a fallback for tedious WM's, like i3.
- *
- * Some might call it a dirty hack, others a crappy
- * solution... I choose to call it a masterpiece! Plus
- * it's not really any overhead worth talking about.
- *
- * Also tracks the root pixmap
+ * - Track the root pixmap atom to update the
+ * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {  // {{{
 #ifdef DEBUG

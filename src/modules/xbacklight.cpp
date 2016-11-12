@@ -10,10 +10,11 @@ namespace modules {
    */
   void xbacklight_module::setup() {
     auto output = m_conf.get<string>(name(), "output", m_bar.monitor->name);
+    auto strict = m_conf.get<bool>(name(), "monitor-strict", false);
 
     // Grab a list of all outputs and try to find the one defined in the config
-    for (auto&& mon : randr_util::get_monitors(m_connection, m_connection.root())) {
-      if (mon->name == output) {
+    for (auto&& mon : randr_util::get_monitors(m_connection, m_connection.root(), strict)) {
+      if (mon->match(output, strict)) {
         m_output.swap(mon);
         break;
       }
@@ -70,7 +71,7 @@ namespace modules {
       return;
     else if (evt->u.op.window != m_proxy)
       return;
-    else if (evt->u.op.output != m_output->randr_output)
+    else if (evt->u.op.output != m_output->output)
       return;
     else if (evt->u.op.atom != m_output->backlight.atom)
       return;
@@ -164,7 +165,7 @@ namespace modules {
       const int values[1]{new_value};
 
       m_connection.change_output_property_checked(
-          m_output->randr_output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
+          m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());
     }

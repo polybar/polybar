@@ -8,7 +8,7 @@ namespace randr_util {
    */
   monitor_t make_monitor(xcb_randr_output_t randr, string name, int w, int h, int x, int y) {
     monitor_t mon{new monitor_t::element_type{}};
-    mon->randr_output = randr;
+    mon->output = randr;
     mon->name = name;
     mon->x = x;
     mon->y = y;
@@ -20,14 +20,14 @@ namespace randr_util {
   /**
    * Create a list of all available randr outputs
    */
-  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root) {
+  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only) {
     vector<monitor_t> monitors;
     auto outputs = conn.get_screen_resources(root).outputs();
 
     for (auto it = outputs.begin(); it != outputs.end(); it++) {
       try {
         auto info = conn.get_output_info(*it);
-        if (info->connection != XCB_RANDR_CONNECTION_CONNECTED)
+        if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED)
           continue;
         auto crtc = conn.get_crtc_info(info->crtc);
         string name{info.name().begin(), info.name().end()};
@@ -54,14 +54,14 @@ namespace randr_util {
    */
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst) {
     auto atom = Backlight;
-    auto reply = conn.query_output_property(mon->randr_output, atom);
+    auto reply = conn.query_output_property(mon->output, atom);
 
     dst.min = 0;
     dst.max = 0;
 
     if (!reply->range || reply->length != 2) {
       atom = BACKLIGHT;
-      reply = conn.query_output_property(mon->randr_output, atom);
+      reply = conn.query_output_property(mon->output, atom);
     }
 
     if (!reply->range || reply->length != 2) {
@@ -84,7 +84,7 @@ namespace randr_util {
       return;
     }
 
-    auto reply = conn.get_output_property(mon->randr_output, dst.atom, XCB_ATOM_NONE, 0, 4, 0, 0);
+    auto reply = conn.get_output_property(mon->output, dst.atom, XCB_ATOM_NONE, 0, 4, 0, 0);
 
     if (reply->num_items == 1 && reply->format == 32 && reply->type == XCB_ATOM_INTEGER)
       dst.val = *reinterpret_cast<uint32_t*>(xcb_randr_get_output_property_data(reply.get().get()));
