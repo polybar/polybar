@@ -189,7 +189,7 @@ void bar::bootstrap_tray() {  // {{{
   tray_settings settings;
 
   auto bs = m_conf.bar_section();
-  auto tray_position = m_conf.get<string>(bs, "tray-position");
+  auto tray_position = m_conf.get<string>(bs, "tray-position", "");
 
   if (tray_position == "left")
     settings.align = alignment::LEFT;
