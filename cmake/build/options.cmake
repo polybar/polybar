@@ -2,6 +2,41 @@
 # Build options
 #
 
+# Default value for: ENABLE_ALSA {{{
+
+find_package(ALSA QUIET)
+if(NOT DEFINED ENABLE_ALSA AND NOT ALSA_FOUND)
+  set(ENABLE_ALSA OFF CACHE STRING "Module support for alsa-lib")
+endif()
+
+# }}}
+# Default value for: ENABLE_NETWORK {{{
+
+find_package(Libiw QUIET)
+if(NOT DEFINED ENABLE_NETWORK AND NOT LIBIW_FOUND)
+  set(ENABLE_NETWORK OFF CACHE STRING "Module support for wireless_tools")
+endif()
+
+# }}}
+# Default value for: ENABLE_MPD {{{
+
+find_package(LibMPDClient QUIET)
+if(NOT DEFINED ENABLE_MPD AND NOT LIBMPDCLIENT_FOUND)
+  set(ENABLE_MPD OFF CACHE STRING "Module support for libmpdclient")
+endif()
+
+# }}}
+# Default value for: ENABLE_I3 {{{
+
+find_program(I3_BINARY i3)
+if(NOT DEFINED ENABLE_I3 AND NOT I3_BINARY)
+  set(ENABLE_I3 OFF CACHE STRING "Module support for i3wm")
+endif()
+
+# }}}
+
+# Define build options {{{
+
 option(CXXLIB_CLANG       "Link against libc++"        OFF)
 option(CXXLIB_GCC         "Link against stdlibc++"     OFF)
 
@@ -18,6 +53,9 @@ option(ENABLE_NETWORK     "Enable network support"     ON)
 option(ENABLE_RANDR_EXT   "Enable RandR X extension"   ON)
 option(ENABLE_RENDER_EXT  "Enable Render X extension"  OFF)
 option(ENABLE_DAMAGE_EXT  "Enable Damage X extension"  OFF)
+
+# }}}
+# Set cache vars {{{
 
 set(SETTING_ALSA_SOUNDCARD "default"
   CACHE STRING "Name of the ALSA soundcard driver")
@@ -42,19 +80,4 @@ set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
 
-find_package(ALSA QUIET)
-if(NOT ALSA_FOUND)
-  set(ENABLE_ALSA OFF)
-endif()
-find_package(Libiw QUIET)
-if(NOT LIBIW_FOUND)
-  set(ENABLE_NETWORK OFF)
-endif()
-find_package(LibMPDClient QUIET)
-if(NOT LIBMPDCLIENT_FOUND)
-  set(ENABLE_MPD OFF)
-endif()
-find_program(I3_BINARY i3)
-if(NOT I3_BINARY)
-  set(ENABLE_I3 OFF)
-endif()
+# }}}
