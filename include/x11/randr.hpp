@@ -21,10 +21,10 @@ struct backlight_values {
 
 struct randr_output {
   string name;
-  int w = 0;
-  int h = 0;
-  int x = 0;
-  int y = 0;
+  uint16_t w = 0;
+  uint16_t h = 0;
+  int16_t x = 0;
+  int16_t y = 0;
   xcb_randr_output_t output;
   backlight_values backlight;
 
@@ -43,7 +43,7 @@ struct randr_output {
 using monitor_t = shared_ptr<randr_output>;
 
 namespace randr_util {
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, int w, int h, int x, int y);
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, uint16_t w, uint16_t h, int16_t x, int16_t y);
   vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false);
 
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst);

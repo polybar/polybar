@@ -90,7 +90,7 @@ void connection::send_client_message(shared_ptr<xcb_client_message_event_t> mess
 void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
   if (target == XCB_NONE)
     target = root();
-  auto message = make_client_message(XCB_NONE, target);
+  auto message = make_client_message(XCB_VISIBILITY_NOTIFY, target);
   send_client_message(message, target, event);
 }
 

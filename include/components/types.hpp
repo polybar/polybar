@@ -13,6 +13,21 @@ enum class attribute { NONE = 0, o = 2, u = 4 };
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
 enum class gc { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
 
+enum class strut {
+  LEFT = 0,
+  RIGHT,
+  TOP,
+  BOTTOM,
+  LEFT_START_Y,
+  LEFT_END_Y,
+  RIGHT_START_Y,
+  RIGHT_END_Y,
+  TOP_START_X,
+  TOP_END_X,
+  BOTTOM_START_X,
+  BOTTOM_END_X,
+};
+
 struct bar_settings {
   bar_settings() = default;
 

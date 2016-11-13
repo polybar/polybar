@@ -49,6 +49,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void create_gcontexts();
   void create_rootpixmap();
   void restack_window();
+  void map_window();
   void set_wmhints();
 
   int get_centerx();
@@ -89,7 +90,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   xcb_screen_t* m_screen;
   xcb_visualtype_t* m_visual;
 
-  window m_window{m_connection};
+  window m_window{m_connection, m_connection.generate_id()};
   colormap m_colormap{m_connection, m_connection.generate_id()};
   pixmap m_pixmap{m_connection, m_connection.generate_id()};
 

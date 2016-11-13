@@ -6,7 +6,7 @@ namespace randr_util {
   /**
    * Define monitor
    */
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, int w, int h, int x, int y) {
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, uint16_t w, uint16_t h, int16_t x, int16_t y) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = name;
@@ -27,6 +27,8 @@ namespace randr_util {
     for (auto it = outputs.begin(); it != outputs.end(); it++) {
       try {
         auto info = conn.get_output_info(*it);
+        if (info->crtc == XCB_NONE)
+          continue;
         if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED)
           continue;
         auto crtc = conn.get_crtc_info(info->crtc);
@@ -37,7 +39,35 @@ namespace randr_util {
       }
     }
 
-    // use the same sort algo as lemonbar, to match the defaults
+    // clang-format off
+    const auto remove_monitor = [&](const monitor_t& monitor) {
+      monitors.erase(find(monitors.begin(), monitors.end(), monitor));
+    };
+    // clang-format on
+
+    for (auto m = monitors.rbegin(); m != monitors.rend(); m++) {
+      if ((*m)->w == 0) {
+        remove_monitor(*m);
+        continue;
+      }
+
+      // Test if there are any clones in the set
+      for (auto m2 = monitors.begin(); m2 != monitors.end(); m2++) {
+        if ((*m) == (*m2) || (*m2)->w == 0) {
+          continue;
+        }
+
+        // clang-format off
+        if ((*m2)->x >= (*m)->x && (*m2)->x + (*m2)->w <= (*m)->x + (*m)->w &&
+            (*m2)->y >= (*m)->y && (*m2)->y + (*m2)->h <= (*m)->y + (*m)->h) {
+          // Reset width so that the output gets
+          // removed in the base loop
+          (*m2)->w = 0;
+        }
+        // clang-format on
+      }
+    }
+
     sort(monitors.begin(), monitors.end(), [](monitor_t& m1, monitor_t& m2) -> bool {
       if (m1->x < m2->x || m1->y + m1->h <= m2->y)
         return 1;

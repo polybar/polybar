@@ -46,7 +46,8 @@ bar::~bar() {  // {{{
     m_connection.detach_sink(this, 1);
   }
 
-  m_window.destroy();
+  m_connection.destroy_window(m_window);
+  m_connection.flush();
 }  // }}}
 
 /**
@@ -140,12 +141,13 @@ void bar::bootstrap(bool nodraw) {  // {{{
   create_gcontexts();
   create_rootpixmap();
   restack_window();
+  map_window();
   set_wmhints();
 
   // m_log.trace("bar: Listen to X RandR events");
   // m_connection.select_input(m_window, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
 
-  m_connection.map_window(m_window);
+  m_connection.flush();
 
   // }}}
   // Connect signal handlers {{{
@@ -174,8 +176,6 @@ void bar::bootstrap(bool nodraw) {  // {{{
   m_sinkattached = true;
 
   load_fonts();
-
-  m_connection.flush();
 }  // }}}
 
 /**
@@ -271,12 +271,12 @@ void bar::bootstrap_tray() {  // {{{
   auto offset_y = atoi(offset_y_def.c_str());
 
   if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
-    offset_x = math_util::percentage_to_value(offset_x, m_opts.monitor->w);
+    offset_x = math_util::percentage_to_value<int>(offset_x, m_opts.monitor->w);
     offset_x -= settings.width / 2;
   }
 
   if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
-    offset_y = math_util::percentage_to_value(offset_y, m_opts.monitor->h);
+    offset_y = math_util::percentage_to_value<int>(offset_y, m_opts.monitor->h);
     offset_y -= settings.width / 2;
   }
 
@@ -713,12 +713,30 @@ void bar::restack_window() {  // {{{
 }  // }}}
 
 /**
+ * Map window and reconfigure its position
+ */
+void bar::map_window() {  // {{{
+  try {
+    m_window.map_checked();
+    m_window.reconfigure_pos(m_opts.x, m_opts.y);
+  } catch (const exception& err) {
+    m_log.err("Failed to map bar window");
+  }
+}  // }}}
+
+/**
  * Set window atom values
  */
 void bar::set_wmhints() {  // {{{
   m_log.trace("bar: Set WM_NAME");
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.length(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
+
+  m_log.trace("bar: Set WM_NORMAL_HINTS");
+  xcb_size_hints_t hints;
+  xcb_icccm_size_hints_set_position(&hints, true, m_opts.x, m_opts.y);
+  xcb_icccm_size_hints_set_size(&hints, true, m_opts.width, m_opts.height);
+  xcb_icccm_set_wm_normal_hints(m_connection, m_window, &hints);
 
   m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
   wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
@@ -732,28 +750,48 @@ void bar::set_wmhints() {  // {{{
   m_log.trace("bar: Set _NET_WM_PID");
   wm_util::set_wmpid(m_connection, m_window, getpid());
 
-  m_log.trace("bar: Set _NET_WM_STRUT_PARTIAL");
+  m_log.trace("bar: Set _NET_WM_STRUT / _NET_WM_STRUT_PARTIAL");
   {
     uint32_t none{0};
-    uint32_t value_list[12]{none};
+    uint32_t strut[12]{none};
 
     auto mt = m_conf.get<int>("global/wm", "margin-top", 0);
     auto mb = m_conf.get<int>("global/wm", "margin-bottom", 0);
     auto ml = m_conf.get<int>("global/wm", "margin-left", 0);
     auto mr = m_conf.get<int>("global/wm", "margin-right", 0);
 
+    auto geom = m_connection.get_geometry(m_screen->root);
+    auto base_x = geom->x + m_opts.monitor->x;
+    auto max_x = base_x + m_opts.monitor->w;
+    auto height = m_opts.height + m_opts.offset_y;
+    auto width = m_opts.width + m_opts.offset_x;
+    auto start_x = base_x + m_opts.offset_x - ml;
+    auto end_x = base_x + width - m_opts.offset_x + mr;
+
+    // clang-format off
     if (m_opts.bottom) {
-      value_list[3] = m_opts.monitor->y + m_opts.height + mt;
-      value_list[10] = m_opts.monitor->x + m_opts.x + ml;
-      value_list[11] = m_opts.monitor->x + m_opts.x + m_opts.width + mr;
+      auto base_y = geom->y + geom->height - m_opts.monitor->h - m_opts.monitor->y;
+
+      strut[static_cast<int>(strut::BOTTOM)] =
+        math_util::cap<int>(base_y + height + mt, base_y, base_y + m_opts.monitor->h);
+      strut[static_cast<int>(strut::BOTTOM_START_X)] =
+        math_util::cap<int>(start_x, base_x, max_x);
+      strut[static_cast<int>(strut::BOTTOM_END_X)] =
+        math_util::cap<int>(end_x, base_x, max_x);
     } else {
-      value_list[2] = m_opts.monitor->y + m_opts.height + mb;
-      value_list[8] = m_opts.monitor->x + m_opts.x + ml;
-      value_list[9] = m_opts.monitor->x + m_opts.x + m_opts.width + mr;
+      auto base_y = geom->y + m_opts.monitor->y;
+
+      strut[static_cast<int>(strut::TOP)] =
+        math_util::cap<int>(base_y + height + mb, base_y, base_y + m_opts.monitor->h);
+      strut[static_cast<int>(strut::TOP_START_X)] =
+        math_util::cap<int>(start_x, base_x, max_x);
+      strut[static_cast<int>(strut::TOP_END_X)] =
+        math_util::cap<int>(end_x, base_x, max_x);
     }
 
-    m_connection.change_property(
-        XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL, XCB_ATOM_CARDINAL, 32, 12, value_list);
+    m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT, XCB_ATOM_CARDINAL, 32, 4, strut);
+    m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL, XCB_ATOM_CARDINAL, 32, 12, strut);
+    // clang-format on
   }
 }  // }}}
 
