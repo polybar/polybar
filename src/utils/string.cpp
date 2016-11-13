@@ -158,11 +158,47 @@ namespace string_util {
   }
 
   /**
+   * Create a float value string
+   */
+  string floatval(float value, int decimals, bool fixed, string locale) {
+    stringstream ss;
+    ss.precision(decimals);
+    if (!locale.empty())
+      ss.imbue(std::locale(locale.c_str()));
+    if (fixed)
+      ss << std::fixed;
+    ss << value;
+    return ss.str();
+  }
+
+  /**
+   * Format a filesize string
+   */
+  string filesize(unsigned long long bytes, int decimals, bool fixed, string locale) {
+    vector<string> suffixes{"TB", "GB", "MB"};
+    string suffix{"KB"};
+
+    while ((bytes /= 1000) > 999) {
+      suffix = suffixes.back();
+      suffixes.pop_back();
+    }
+
+    stringstream ss;
+    ss.precision(decimals);
+    if (!locale.empty())
+      ss.imbue(std::locale(locale.c_str()));
+    if (fixed)
+      ss << std::fixed;
+    ss << bytes << " " << suffix;
+    return ss.str();
+  }
+
+  /**
    * Get the resulting string from a ostream/
    *
    * Example usage:
    * @code cpp
-   *   string_util::from_stream(std::stringstream() << ...);
+   *   string_util::from_stream(stringstream() << ...);
    * @endcode
    */
   string from_stream(const std::basic_ostream<char>& os) {

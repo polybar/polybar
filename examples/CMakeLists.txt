@@ -3,7 +3,7 @@
 #
 
 set(MODULES_LEFT "bspwm i3 mpd")
-set(MODULES_CENTER "")
+set(MODULES_CENTER "filesystem")
 set(MODULES_RIGHT "backlight volume memory cpu wlan eth battery temperature date powermenu")
 
 # Strip disabled modules {{{

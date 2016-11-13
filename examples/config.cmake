@@ -52,6 +52,24 @@ tray-padding = 4
 ;wm-restack = bspwm
 
 
+[module/filesystem]
+type = internal/fs
+interval = 25
+
+disk-0 = /
+disk-1 = /home
+disk-2 = /invalid/mountpoint
+
+;fixed-values = true
+;spacing = 4
+
+label-mounted = %mountpoint%: %percentage_free%
+
+label-unmounted = %mountpoint%: not mounted
+label-unmounted-foreground = #55
+
+
+
 [module/bspwm]
 type = internal/bspwm
 ws-icon-default = x

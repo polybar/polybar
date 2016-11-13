@@ -28,6 +28,8 @@ namespace string_util {
   vector<string>& split_into(string s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);
   size_t find_nth(string haystack, size_t pos, string needle, size_t nth);
+  string floatval(float value, int decimals = 2, bool fixed = false, string locale = "");
+  string filesize(unsigned long long bytes, int decimals = 2, bool fixed = false, string locale = "");
   string from_stream(const std::basic_ostream<char>& os);
   hash_type hash(string src);
 }

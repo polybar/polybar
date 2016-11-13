@@ -9,6 +9,7 @@
 #include "modules/counter.hpp"
 #include "modules/cpu.hpp"
 #include "modules/date.hpp"
+#include "modules/fs.hpp"
 #include "modules/memory.hpp"
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
@@ -343,6 +344,8 @@ void controller::bootstrap_modules() {
           module.reset(new cpu_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/date")
           module.reset(new date_module(bar, m_log, m_conf, module_name));
+        else if (type == "internal/fs")
+          module.reset(new fs_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/memory")
           module.reset(new memory_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/i3")
