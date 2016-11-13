@@ -62,10 +62,12 @@ controller::~controller() {
     m_eventloop.reset();
   }
 
+#if DEBUG
   if (m_ipc) {
     m_log.info("Deconstructing ipc");
     m_ipc.reset();
   }
+#endif
 
   if (m_bar) {
     m_log.info("Deconstructing bar");

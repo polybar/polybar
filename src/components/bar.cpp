@@ -1,7 +1,11 @@
 #include <xcb/xcb_icccm.h>
 
 #include "components/bar.hpp"
+#include "components/parser.hpp"
+#include "components/signals.hpp"
 #include "utils/bspwm.hpp"
+#include "x11/draw.hpp"
+#include "x11/graphics.hpp"
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
@@ -20,7 +24,7 @@ LEMONBUDDY_NS
 /**
  * Cleanup signal handlers and destroy the bar window
  */
-bar::~bar() {  // {{{
+bar::~bar() {
   std::lock_guard<threading_util::spin_lock> lck(m_lock);
 
   // Disconnect signal handlers {{{
@@ -48,14 +52,14 @@ bar::~bar() {  // {{{
 
   m_connection.destroy_window(m_window);
   m_connection.flush();
-}  // }}}
+}
 
 /**
  * Create required components
  *
  * This is done outside the constructor due to boost::di noexcept
  */
-void bar::bootstrap(bool nodraw) {  // {{{
+void bar::bootstrap(bool nodraw) {
   auto bs = m_conf.bar_section();
 
   m_screen = m_connection.screen();
@@ -144,18 +148,14 @@ void bar::bootstrap(bool nodraw) {  // {{{
   create_window();
   create_pixmap();
   create_gcontexts();
-  create_rootpixmap();
   restack_window();
   set_wmhints();
   map_window();
 
-  // m_log.trace("bar: Listen to X RandR events");
-  // m_connection.select_input(m_window, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
-
   m_connection.flush();
 
   // }}}
-  // Connect signal handlers {{{
+  // Connect signal handlers and attach sink {{{
 
   m_log.trace("bar: Attach parser callbacks");
 
@@ -174,19 +174,23 @@ void bar::bootstrap(bool nodraw) {  // {{{
   g_signals::parser::string_write = bind(&bar::draw_textstring, this, placeholders::_1, placeholders::_2);
   // clang-format on
 
-  // }}}
-
   m_log.trace("bar: Attaching sink to registry");
   m_connection.attach_sink(this, 1);
   m_sinkattached = true;
 
+  // }}}
+  // Load fonts {{{
+
+  m_log.trace("bar: Load fonts");
   load_fonts();
-}  // }}}
+
+  // }}}
+}
 
 /**
  * Setup tray manager
  */
-void bar::bootstrap_tray() {  // {{{
+void bar::bootstrap_tray() {
   if (!m_tray) {
     return;
   }
@@ -304,12 +308,12 @@ void bar::bootstrap_tray() {  // {{{
     m_log.warn("Failed to setup tray, disabling...");
     m_tray.reset();
   }
-}  // }}}
+}
 
 /**
  * Activate tray manager
  */
-void bar::activate_tray() {  // {{{
+void bar::activate_tray() {
   if (!m_tray) {
     return;
   }
@@ -323,14 +327,14 @@ void bar::activate_tray() {  // {{{
     m_log.err("Failed to activate tray manager, disabling...");
     m_tray.reset();
   }
-}  // }}}
+}
 
 /**
  * Get the bar settings container
  */
-const bar_settings bar::settings() const {  // {{{
+const bar_settings bar::settings() const {
   return m_opts;
-}  // }}}
+}
 
 /**
  * Parse input string and redraw the bar window
@@ -338,7 +342,7 @@ const bar_settings bar::settings() const {  // {{{
  * @param data Input string
  * @param force Unless true, do not parse unchanged data
  */
-void bar::parse(string data, bool force) {  // {{{
+void bar::parse(string data, bool force) {
   std::lock_guard<threading_util::spin_lock> lck(m_lock);
   {
     if (data == m_prevdata && !force)
@@ -386,12 +390,12 @@ void bar::parse(string data, bool force) {  // {{{
 
     flush();
   }
-}  // }}}
+}
 
 /**
  * Copy the contents of the pixmap's onto the bar window
  */
-void bar::flush() {  // {{{
+void bar::flush() {
   m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, 0, 0, m_opts.width, m_opts.height);
   m_connection.flush();
 
@@ -433,19 +437,19 @@ void bar::flush() {  // {{{
 #endif
     }
   }
-}  // }}}
+}
 
 /**
  * Refresh the bar window by clearing and redrawing the pixmaps
  */
-void bar::refresh_window() {  // {{{
+void bar::refresh_window() {
   m_log.info("Refresh bar window");
-}  // }}}
+}
 
 /**
  * Load user-defined fonts
  */
-void bar::load_fonts() {  // {{{
+void bar::load_fonts() {
   auto fonts_loaded = false;
   auto fontindex = 0;
   auto fonts = m_conf.get_list<string>("font");
@@ -473,12 +477,12 @@ void bar::load_fonts() {  // {{{
   }
 
   m_fontmanager->allocate_color(m_opts.foreground, true);
-}  // }}}
+}
 
 /**
  * Configure geometry values
  */
-void bar::configure_geom() {  // {{{
+void bar::configure_geom() {
   m_log.trace("bar: Configure window geometry");
 
   auto w = m_conf.get<string>(m_conf.bar_section(), "width", "100%");
@@ -529,12 +533,12 @@ void bar::configure_geom() {  // {{{
   m_opts.vertical_mid = (m_opts.height + m_borders[border::TOP].size - m_borders[border::BOTTOM].size) / 2;
 
   m_log.info("Bar geometry %ix%i+%i+%i", m_opts.width, m_opts.height, m_opts.x, m_opts.y);
-}  // }}}
+}
 
 /**
  * Create monitor object
  */
-void bar::create_monitor() {  // {{{
+void bar::create_monitor() {
   m_log.trace("bar: Create monitor from matching X RandR output");
 
   auto strict = m_conf.get<bool>(m_conf.bar_section(), "monitor-strict", false);
@@ -564,15 +568,16 @@ void bar::create_monitor() {  // {{{
 
   const auto& m = m_opts.monitor;
   m_log.trace("bar: Loaded monitor %s (%ix%i+%i+%i)", m->name, m->w, m->h, m->x, m->y);
-}  // }}}
+}
 
 /**
  * Create window object
  */
-void bar::create_window() {  // {{{
+void bar::create_window() {
   m_log.trace("bar: Create window %s", m_connection.id(m_window));
 
-  uint32_t mask = 0;
+  uint32_t mask{0};
+  uint32_t values[16]{0};
   xcb_params_cw_t params;
 
   // clang-format off
@@ -584,25 +589,23 @@ void bar::create_window() {  // {{{
   XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
   // clang-format on
 
-  uint32_t values[16];
   xutils::pack_values(mask, &params, values);
-
   m_connection.create_window_checked(32, m_window, m_screen->root, m_opts.x, m_opts.y, m_opts.width, m_opts.height, 0,
       XCB_WINDOW_CLASS_INPUT_OUTPUT, m_visual->visual_id, mask, values);
-}  // }}}
+}
 
 /**
  * Create window pixmap
  */
-void bar::create_pixmap() {  // {{{
+void bar::create_pixmap() {
   m_log.trace("bar: Create pixmap (xid=%s)", m_connection.id(m_pixmap));
   m_connection.create_pixmap(32, m_pixmap, m_window, m_opts.width, m_opts.height);
-}  // }}}
+}
 
 /**
  * Create window gcontexts
  */
-void bar::create_gcontexts() {  // {{{
+void bar::create_gcontexts() {
   // clang-format off
   vector<uint32_t> colors {
     m_opts.background,
@@ -617,8 +620,8 @@ void bar::create_gcontexts() {  // {{{
   // clang-format on
 
   for (int i = 1; i <= 8; i++) {
-    uint32_t mask = 0;
-    uint32_t value_list[32];
+    uint32_t mask{0};
+    uint32_t value_list[32]{0};
 
     xcb_params_gc_t params;
     XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i - 1]);
@@ -630,62 +633,13 @@ void bar::create_gcontexts() {  // {{{
     m_log.trace("bar: Create gcontext (gc=%i, xid=%s)", i, m_connection.id(m_gcontexts.at(gc(i))));
     m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
   }
-}  // }}}
-
-/**
- * Create an X image from the root pixmap
- * used to render pseudo-transparent backgrounds
- */
-void bar::create_rootpixmap() {  // {{{
-#if 0
-  m_log.trace("bar: Create root pixmap");
-  graphics_util::get_root_pixmap(m_connection, &m_rootpixmap);
-  graphics_util::simple_gc(m_connection, m_pixmap, &m_root_gc);
-
-  if (!m_rootpixmap.pixmap || !m_pixmap || !m_root_gc) {
-    m_log.warn("Failed to get root pixmap for bar window background");
-  } else {
-    m_log.trace("bar: rootpixmap=%x (%dx%d+%d+%d)", m_rootpixmap.pixmap, m_rootpixmap.width,
-        m_rootpixmap.height, m_rootpixmap.x, m_rootpixmap.y);
-
-    m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_opts.x,
-    m_opts.y, 0, 0,
-        m_opts.width, m_opts.height);
-
-    auto image_reply = m_connection.get_image(
-        XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, 0, 0, m_opts.width, m_opts.height,
-        XAllPlanes());
-
-    vector<uint8_t> image_data;
-    std::back_insert_iterator<decltype(image_data)> back_it(image_data);
-    std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
-
-    m_connection.put_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_root_gc, m_opts.width,
-        m_opts.height, 0, 0, 0, image_reply->depth, image_data.size(), image_data.data());
-
-    m_connection.copy_area(m_rootpixmap.pixmap, m_pixmap, m_root_gc, m_opts.x,
-    m_opts.y, 0, 0,
-        m_opts.width, m_opts.height);
-
-    uint32_t mask = 0;
-    uint32_t values[16];
-    xcb_params_cw_t params;
-    XCB_AUX_ADD_PARAM(&mask, &params, back_pixmap, m_pixmap);
-    xutils::pack_values(mask, &params, values);
-    m_connection.change_window_attributes_checked(m_window, mask, values);
-
-    m_connection.copy_area(
-        m_pixmap, m_window, m_root_gc, m_opts.x, m_opts.y, 0, 0, m_opts.width,
-        m_opts.height);
-  }
-#endif
-}  // }}}
+}
 
 /**
  * Move the bar window above defined sibling
  * in the X window stack
  */
-void bar::restack_window() {  // {{{
+void bar::restack_window() {
   string wm_restack;
 
   try {
@@ -715,29 +669,32 @@ void bar::restack_window() {  // {{{
   } else if (!wm_restack.empty()) {
     m_log.err("Failed to restack bar window");
   }
-}  // }}}
+}
 
 /**
  * Map window and reconfigure its position
  */
-void bar::map_window() {  // {{{
-  try {
-    m_window.map_checked();
+void bar::map_window() {
+  auto w = m_opts.width + m_opts.offset_x;
+  auto h = m_opts.height + m_opts.offset_y;
+  auto x = m_opts.x;
+  auto y = m_opts.y;
 
-    auto w = m_opts.width + m_opts.offset_x;
-    auto h = m_opts.height + m_opts.offset_y;
-
-    m_window.reconfigure_struts(m_opts.monitor, w, h, m_opts.x, m_opts.y, m_opts.bottom);
-    m_window.reconfigure_pos(m_opts.x, m_opts.y);
-  } catch (const exception& err) {
-    m_log.err("Failed to map bar window");
+  if (m_opts.bottom) {
+    h += m_opts.margins.t;
+  } else {
+    h += m_opts.margins.b;
   }
-}  // }}}
+
+  m_window.map_checked();
+  m_window.reconfigure_struts(w, h, x, m_opts.bottom);
+  m_window.reconfigure_pos(x, y);
+}
 
 /**
  * Set window atom values
  */
-void bar::set_wmhints() {  // {{{
+void bar::set_wmhints() {
   m_log.trace("bar: Set WM_NAME");
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.length(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
@@ -759,40 +716,36 @@ void bar::set_wmhints() {  // {{{
 
   m_log.trace("bar: Set _NET_WM_PID");
   wm_util::set_wmpid(m_connection, m_window, getpid());
-
-  m_log.trace("bar: Set _NET_WM_STRUT / _NET_WM_STRUT_PARTIAL");
-  m_window.reconfigure_struts(m_opts.monitor, m_opts.width + m_opts.offset_x, m_opts.height + m_opts.offset_y, m_opts.x,
-      m_opts.y, m_opts.bottom);
-}  // }}}
+}
 
 /**
  * Get the horizontal center pos
  */
-int bar::get_centerx() {  // {{{
+int bar::get_centerx() {
   int x = m_opts.x;
   x += m_opts.width;
   x -= m_borders[border::RIGHT].size;
   x += m_borders[border::LEFT].size;
   x /= 2;
   return x;
-}  // }}}
+}
 
 /**
  * Get the inner width of the bar
  */
-int bar::get_innerwidth() {  // {{{
+int bar::get_innerwidth() {
   auto w = m_opts.width;
   w -= m_borders[border::RIGHT].size;
   w -= m_borders[border::LEFT].size;
   return w;
-}  // }}}
+}
 
 /**
  * Event handler for XCB_BUTTON_PRESS events
  *
  * Used to map mouse clicks to bar actions
  */
-void bar::handle(const evt::button_press& evt) {  // {{{
+void bar::handle(const evt::button_press& evt) {
   if (!m_throttler->passthrough(throttle_util::strategy::try_once_or_leave_yolo{})) {
     return;
   }
@@ -835,19 +788,19 @@ void bar::handle(const evt::button_press& evt) {  // {{{
 
     m_log.warn("No matching input area found");
   }
-}  // }}}
+}
 
 /**
  * Event handler for XCB_EXPOSE events
  *
  * Used to redraw the bar
  */
-void bar::handle(const evt::expose& evt) {  // {{{
+void bar::handle(const evt::expose& evt) {
   if (evt->window == m_window) {
     m_log.trace("bar: Received expose event");
     flush();
   }
-}  // }}}
+}
 
 /**
  * Event handler for XCB_PROPERTY_NOTIFY events
@@ -861,8 +814,8 @@ void bar::handle(const evt::expose& evt) {  // {{{
  * - Track the root pixmap atom to update the
  * pseudo-transparent background when it changes
  */
-void bar::handle(const evt::property_notify& evt) {  // {{{
-#ifdef DEBUG
+void bar::handle(const evt::property_notify& evt) {
+#if DEBUG
   string atom_name = m_connection.get_atom_name(evt->atom).name();
   m_log.trace("bar: property_notify(%s)", atom_name);
 #endif
@@ -892,12 +845,12 @@ void bar::handle(const evt::property_notify& evt) {  // {{{
   } else if (evt->atom == ESETROOT_PMAP_ID) {
     refresh_window();
   }
-}  // }}}
+}
 
 /**
  * Handle alignment update
  */
-void bar::on_alignment_change(alignment align) {  // {{{
+void bar::on_alignment_change(alignment align) {
   if (align == m_opts.align)
     return;
 
@@ -911,43 +864,43 @@ void bar::on_alignment_change(alignment align) {  // {{{
   } else {
     m_xpos = 0;
   }
-}  // }}}
+}
 
 /**
  * Handle attribute on state
  */
-void bar::on_attribute_set(attribute attr) {  // {{{
+void bar::on_attribute_set(attribute attr) {
   int val{static_cast<int>(attr)};
   if ((m_attributes & val) != 0)
     return;
   m_log.trace_x("bar: attribute_set(%i)", val);
   m_attributes |= val;
-}  // }}}
+}
 
 /**
  * Handle attribute off state
  */
-void bar::on_attribute_unset(attribute attr) {  // {{{
+void bar::on_attribute_unset(attribute attr) {
   int val{static_cast<int>(attr)};
   if ((m_attributes & val) == 0)
     return;
   m_log.trace_x("bar: attribute_unset(%i)", val);
   m_attributes ^= val;
-}  // }}}
+}
 
 /**
  * Handle attribute toggle state
  */
-void bar::on_attribute_toggle(attribute attr) {  // {{{
+void bar::on_attribute_toggle(attribute attr) {
   int val{static_cast<int>(attr)};
   m_log.trace_x("bar: attribute_toggle(%i)", val);
   m_attributes ^= val;
-}  // }}}
+}
 
 /**
  * Handle action block start
  */
-void bar::on_action_block_open(mousebtn btn, string cmd) {  // {{{
+void bar::on_action_block_open(mousebtn btn, string cmd) {
   if (btn == mousebtn::NONE)
     btn = mousebtn::LEFT;
   m_log.trace_x("bar: action_block_open(%i, %s)", static_cast<int>(btn), cmd);
@@ -958,12 +911,12 @@ void bar::on_action_block_open(mousebtn btn, string cmd) {  // {{{
   action.start_x = m_xpos;
   action.command = string_util::replace_all(cmd, ":", "\\:");
   m_actions.emplace_back(action);
-}  // }}}
+}
 
 /**
  * Handle action block end
  */
-void bar::on_action_block_close(mousebtn btn) {  // {{{
+void bar::on_action_block_close(mousebtn btn) {
   m_log.trace_x("bar: action_block_close(%i)", static_cast<int>(btn));
 
   for (auto i = m_actions.size(); i > 0; i--) {
@@ -993,12 +946,12 @@ void bar::on_action_block_close(mousebtn btn) {  // {{{
 
     return;
   }
-}  // }}}
+}
 
 /**
  * Handle color change
  */
-void bar::on_color_change(gc gc_, color color_) {  // {{{
+void bar::on_color_change(gc gc_, color color_) {
   m_log.trace_x(
       "bar: color_change(%i, %s -> #%07x)", static_cast<int>(gc_), color_.source(), static_cast<uint32_t>(color_));
 
@@ -1010,29 +963,29 @@ void bar::on_color_change(gc gc_, color color_) {  // {{{
   } else if (gc_ == gc::BG) {
     draw_shift(m_xpos, 0);
   }
-}  // }}}
+}
 
 /**
  * Handle font change
  */
-void bar::on_font_change(int index) {  // {{{
+void bar::on_font_change(int index) {
   m_log.trace_x("bar: font_change(%i)", index);
   m_fontmanager->set_preferred_font(index);
-}  // }}}
+}
 
 /**
  * Handle pixel offsetting
  */
-void bar::on_pixel_offset(int px) {  // {{{
+void bar::on_pixel_offset(int px) {
   m_log.trace_x("bar: pixel_offset(%i)", px);
   draw_shift(m_xpos, px);
   m_xpos += px;
-}  // }}}
+}
 
 /**
  * Proess systray report
  */
-void bar::on_tray_report(uint16_t slots) {  // {{{
+void bar::on_tray_report(uint16_t slots) {
   if (m_trayclients == slots) {
     return;
   }
@@ -1043,19 +996,19 @@ void bar::on_tray_report(uint16_t slots) {  // {{{
   if (!m_prevdata.empty()) {
     parse(m_prevdata, true);
   }
-}  // }}}
+}
 
 /**
  * Draw background onto the pixmap
  */
-void bar::draw_background() {  // {{{
+void bar::draw_background() {
   draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), 0, 0, m_opts.width, m_opts.height);
-}  // }}}
+}
 
 /**
  * Draw borders onto the pixmap
  */
-void bar::draw_border(border border_) {  // {{{
+void bar::draw_border(border border_) {
   switch (border_) {
     case border::NONE:
       break;
@@ -1097,12 +1050,12 @@ void bar::draw_border(border border_) {  // {{{
       draw_border(border::RIGHT);
       break;
   }
-}  // }}}
+}
 
 /**
  * Draw over- and underline onto the pixmap
  */
-void bar::draw_lines(int x, int w) {  // {{{
+void bar::draw_lines(int x, int w) {
   if (!m_opts.lineheight)
     return;
 
@@ -1113,12 +1066,12 @@ void bar::draw_lines(int x, int w) {  // {{{
   if (m_attributes & static_cast<int>(attribute::u))
     draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::UL), x,
         m_opts.height - m_borders[border::BOTTOM].size - m_opts.lineheight, w, m_opts.lineheight);
-}  // }}}
+}
 
 /**
  * Shift the contents of the pixmap horizontally
  */
-int bar::draw_shift(int x, int chr_width) {  // {{{
+int bar::draw_shift(int x, int chr_width) {
   int delta = chr_width;
 
   if (m_opts.align == alignment::CENTER) {
@@ -1139,16 +1092,17 @@ int bar::draw_shift(int x, int chr_width) {  // {{{
   draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, m_opts.width - x, m_opts.height);
 
   // Translate pos of clickable areas
-  if (m_opts.align != alignment::LEFT)
+  if (m_opts.align != alignment::LEFT) {
     for (auto&& action : m_actions) {
       if (action.active || action.align != m_opts.align)
         continue;
       action.start_x -= delta;
       action.end_x -= delta;
     }
+  }
 
   return x;
-}  // }}}
+}
 
 /**
  * Draw text character

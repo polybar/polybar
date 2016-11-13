@@ -3,20 +3,19 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
-#include "components/parser.hpp"
-#include "components/signals.hpp"
 #include "components/types.hpp"
 #include "utils/threading.hpp"
 #include "utils/throttle.hpp"
 #include "x11/connection.hpp"
-#include "x11/draw.hpp"
 #include "x11/fontmanager.hpp"
-#include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
 
 LEMONBUDDY_NS
+
+// fwd
+class tray_manager;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
@@ -37,7 +36,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   const bar_settings settings() const;
 
   void parse(string data, bool force = false);
-
+int i = 0;
  protected:
   void flush();
   void refresh_window();
@@ -47,7 +46,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void create_window();
   void create_pixmap();
   void create_gcontexts();
-  void create_rootpixmap();
   void restack_window();
   void map_window();
   void set_wmhints();

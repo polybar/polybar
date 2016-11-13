@@ -14,13 +14,12 @@ class window : public xpp::window<connection_t&> {
 
   explicit window(connection_t& conn) : xpp::window<connection_t&>(conn, conn.generate_id()) {}
 
-  window create_checked(int16_t x = 0, int16_t y = 0, uint16_t w = 1, uint16_t h = 1);
-  window create_checked(int16_t x, int16_t y, uint16_t w, uint16_t h, uint32_t mask, const xcb_params_cw_t* p);
-  window create_checked(uint16_t w, uint16_t h, uint32_t mask, const xcb_params_cw_t* p);
+  window create_checked(
+      int16_t x, int16_t y, uint16_t w, uint16_t h, uint32_t mask = 0, const xcb_params_cw_t* p = nullptr);
 
   window reconfigure_geom(uint16_t w, uint16_t h, int16_t x = 0, int16_t y = 0);
   window reconfigure_pos(int16_t x, int16_t y);
-  window reconfigure_struts(const monitor_t& mon, uint16_t w, uint16_t h, int16_t x, int16_t y, bool bottom = false);
+  window reconfigure_struts(uint16_t w, uint16_t h, int16_t x, bool bottom = false);
 
   void redraw();
 };
