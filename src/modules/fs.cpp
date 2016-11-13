@@ -21,8 +21,7 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
-    m_formatter->add(
-        FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
+    m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED))
       m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%");
@@ -56,7 +55,7 @@ namespace modules {
       auto& disk = m_disks.back();
 
       while (mtab->next(&mount)) {
-        if (strncmp(mount->mnt_dir, mountpoint.c_str(), strlen(mount->mnt_dir)) != 0) {
+        if (string{mount->mnt_dir} != mountpoint) {
           continue;
         }
 
@@ -118,13 +117,8 @@ namespace modules {
       builder->node(m_barused->output(disk->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_rampcapacity->get_by_percentage(disk->percentage_free));
-    } else if (tag == TAG_LABEL_MOUNTED || tag == TAG_LABEL_UNMOUNTED) {
-      label_t label;
-
-      if (tag == TAG_LABEL_MOUNTED)
-        label = m_labelmounted->clone();
-      else
-        label = m_labelunmounted->clone();
+    } else if (tag == TAG_LABEL_MOUNTED) {
+      auto& label = m_labelmounted;
 
       label->reset_tokens();
       label->replace_token("%mountpoint%", disk->mountpoint);
@@ -139,6 +133,10 @@ namespace modules {
       label->replace_token("%used%", string_util::filesize(disk->bytes_used, 2, m_fixed, m_bar.locale));
 
       builder->node(label);
+    } else if (tag == TAG_LABEL_UNMOUNTED) {
+      m_labelunmounted->reset_tokens();
+      m_labelunmounted->replace_token("%mountpoint%", disk->mountpoint);
+      builder->node(m_labelunmounted);
     } else {
       return false;
     }
