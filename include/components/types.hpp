@@ -28,6 +28,13 @@ enum class strut {
   BOTTOM_END_X,
 };
 
+struct strut_margins {
+  uint16_t t;
+  uint16_t b;
+  uint16_t l;
+  uint16_t r;
+};
+
 struct bar_settings {
   bar_settings() = default;
 
@@ -64,6 +71,8 @@ struct bar_settings {
   string wmname;
 
   int16_t vertical_mid{0};
+
+  strut_margins margins;
 
   string geom() {
     char buffer[32]{

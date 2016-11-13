@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "x11/connection.hpp"
+#include "x11/randr.hpp"
 
 LEMONBUDDY_NS
 
@@ -19,6 +20,7 @@ class window : public xpp::window<connection_t&> {
 
   window reconfigure_geom(uint16_t w, uint16_t h, int16_t x = 0, int16_t y = 0);
   window reconfigure_pos(int16_t x, int16_t y);
+  window reconfigure_struts(const monitor_t& mon, uint16_t w, uint16_t h, int16_t x, int16_t y, bool bottom = false);
 
   void redraw();
 };

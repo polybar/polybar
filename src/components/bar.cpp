@@ -108,6 +108,11 @@ void bar::bootstrap(bool nodraw) {  // {{{
   GET_CONFIG_VALUE(bs, m_opts.module_margin_left, "module-margin-left");
   GET_CONFIG_VALUE(bs, m_opts.module_margin_right, "module-margin-right");
 
+  m_opts.margins.l = m_conf.get<int>("global/wm", "margin-left", 0);
+  m_opts.margins.r = m_conf.get<int>("global/wm", "margin-right", 0);
+  m_opts.margins.t = m_conf.get<int>("global/wm", "margin-top", 0);
+  m_opts.margins.b = m_conf.get<int>("global/wm", "margin-bottom", 0);
+
   // }}}
   // Set the WM_NAME value {{{
   // Required early for --print-wmname
@@ -141,8 +146,8 @@ void bar::bootstrap(bool nodraw) {  // {{{
   create_gcontexts();
   create_rootpixmap();
   restack_window();
-  map_window();
   set_wmhints();
+  map_window();
 
   // m_log.trace("bar: Listen to X RandR events");
   // m_connection.select_input(m_window, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
@@ -718,6 +723,11 @@ void bar::restack_window() {  // {{{
 void bar::map_window() {  // {{{
   try {
     m_window.map_checked();
+
+    auto w = m_opts.width + m_opts.offset_x;
+    auto h = m_opts.height + m_opts.offset_y;
+
+    m_window.reconfigure_struts(m_opts.monitor, w, h, m_opts.x, m_opts.y, m_opts.bottom);
     m_window.reconfigure_pos(m_opts.x, m_opts.y);
   } catch (const exception& err) {
     m_log.err("Failed to map bar window");
@@ -751,48 +761,8 @@ void bar::set_wmhints() {  // {{{
   wm_util::set_wmpid(m_connection, m_window, getpid());
 
   m_log.trace("bar: Set _NET_WM_STRUT / _NET_WM_STRUT_PARTIAL");
-  {
-    uint32_t none{0};
-    uint32_t strut[12]{none};
-
-    auto mt = m_conf.get<int>("global/wm", "margin-top", 0);
-    auto mb = m_conf.get<int>("global/wm", "margin-bottom", 0);
-    auto ml = m_conf.get<int>("global/wm", "margin-left", 0);
-    auto mr = m_conf.get<int>("global/wm", "margin-right", 0);
-
-    auto geom = m_connection.get_geometry(m_screen->root);
-    auto base_x = geom->x + m_opts.monitor->x;
-    auto max_x = base_x + m_opts.monitor->w;
-    auto height = m_opts.height + m_opts.offset_y;
-    auto width = m_opts.width + m_opts.offset_x;
-    auto start_x = base_x + m_opts.offset_x - ml;
-    auto end_x = base_x + width - m_opts.offset_x + mr;
-
-    // clang-format off
-    if (m_opts.bottom) {
-      auto base_y = geom->y + geom->height - m_opts.monitor->h - m_opts.monitor->y;
-
-      strut[static_cast<int>(strut::BOTTOM)] =
-        math_util::cap<int>(base_y + height + mt, base_y, base_y + m_opts.monitor->h);
-      strut[static_cast<int>(strut::BOTTOM_START_X)] =
-        math_util::cap<int>(start_x, base_x, max_x);
-      strut[static_cast<int>(strut::BOTTOM_END_X)] =
-        math_util::cap<int>(end_x, base_x, max_x);
-    } else {
-      auto base_y = geom->y + m_opts.monitor->y;
-
-      strut[static_cast<int>(strut::TOP)] =
-        math_util::cap<int>(base_y + height + mb, base_y, base_y + m_opts.monitor->h);
-      strut[static_cast<int>(strut::TOP_START_X)] =
-        math_util::cap<int>(start_x, base_x, max_x);
-      strut[static_cast<int>(strut::TOP_END_X)] =
-        math_util::cap<int>(end_x, base_x, max_x);
-    }
-
-    m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT, XCB_ATOM_CARDINAL, 32, 4, strut);
-    m_connection.change_property(XCB_PROP_MODE_REPLACE, m_window, _NET_WM_STRUT_PARTIAL, XCB_ATOM_CARDINAL, 32, 12, strut);
-    // clang-format on
-  }
+  m_window.reconfigure_struts(m_opts.monitor, m_opts.width + m_opts.offset_x, m_opts.height + m_opts.offset_y, m_opts.x,
+      m_opts.y, m_opts.bottom);
 }  // }}}
 
 /**
