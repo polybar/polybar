@@ -13,7 +13,7 @@ namespace modules {
    * setting up required components
    */
   void fs_module::setup() {
-    m_mounts = m_conf.get_list<string>(name(), "disk");
+    m_mountpoints = m_conf.get_list<string>(name(), "mount");
     m_fixed = m_conf.get<bool>(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get<int>(name(), "spacing", m_spacing);
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 30));
@@ -36,47 +36,47 @@ namespace modules {
   }
 
   /**
-   * Update disk values by reading mtab entries
+   * Update values by reading mtab entries
    */
   bool fs_module::update() {
-    m_disks.clear();
+    m_mounts.clear();
 
     struct statvfs buffer;
-    struct mntent* mount = nullptr;
+    struct mntent* mnt = nullptr;
 
-    for (auto&& mountpoint : m_mounts) {
-      m_disks.emplace_back(new fs_disk{mountpoint, false});
+    for (auto&& mountpoint : m_mountpoints) {
+      m_mounts.emplace_back(new fs_mount{mountpoint, false});
 
       if (statvfs(mountpoint.c_str(), &buffer) == -1) {
         continue;
       }
 
       auto mtab = make_unique<mtab_util::reader>();
-      auto& disk = m_disks.back();
+      auto& mount = m_mounts.back();
 
-      while (mtab->next(&mount)) {
-        if (string{mount->mnt_dir} != mountpoint) {
+      while (mtab->next(&mnt)) {
+        if (string{mnt->mnt_dir} != mountpoint) {
           continue;
         }
 
-        disk->mounted = true;
-        disk->mountpoint = mount->mnt_dir;
-        disk->type = mount->mnt_type;
-        disk->fsname = mount->mnt_fsname;
+        mount->mounted = true;
+        mount->mountpoint = mnt->mnt_dir;
+        mount->type = mnt->mnt_type;
+        mount->fsname = mnt->mnt_fsname;
 
         auto b_total = buffer.f_bsize * buffer.f_blocks;
         auto b_free = buffer.f_bsize * buffer.f_bfree;
         auto b_used = b_total - b_free;
 
-        disk->bytes_total = b_total;
-        disk->bytes_free = b_free;
-        disk->bytes_used = b_used;
+        mount->bytes_total = b_total;
+        mount->bytes_free = b_free;
+        mount->bytes_used = b_used;
 
-        disk->percentage_free = math_util::percentage<unsigned long long, float>(b_free, 0, b_total);
-        disk->percentage_used = math_util::percentage<unsigned long long, float>(b_used, 0, b_total);
+        mount->percentage_free = math_util::percentage<unsigned long long, float>(b_free, 0, b_total);
+        mount->percentage_used = math_util::percentage<unsigned long long, float>(b_used, 0, b_total);
 
-        disk->percentage_free_s = string_util::floatval(disk->percentage_free, 2, m_fixed, m_bar.locale);
-        disk->percentage_used_s = string_util::floatval(disk->percentage_used, 2, m_fixed, m_bar.locale);
+        mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
+        mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
       }
     }
 
@@ -89,7 +89,7 @@ namespace modules {
   string fs_module::get_output() {
     string output;
 
-    for (m_index = 0; m_index < m_disks.size(); ++m_index) {
+    for (m_index = 0; m_index < m_mounts.size(); ++m_index) {
       if (!output.empty())
         m_builder->space(m_spacing);
       output += timer_module::get_output();
@@ -102,40 +102,35 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
-    return m_disks[m_index]->mounted ? FORMAT_MOUNTED : FORMAT_UNMOUNTED;
+    return m_mounts[m_index]->mounted ? FORMAT_MOUNTED : FORMAT_UNMOUNTED;
   }
 
   /**
    * Output content using configured format tags
    */
   bool fs_module::build(builder* builder, string tag) const {
-    auto& disk = m_disks[m_index];
+    auto& mount = m_mounts[m_index];
 
     if (tag == TAG_BAR_FREE) {
-      builder->node(m_barfree->output(disk->percentage_free));
+      builder->node(m_barfree->output(mount->percentage_free));
     } else if (tag == TAG_BAR_USED) {
-      builder->node(m_barused->output(disk->percentage_used));
+      builder->node(m_barused->output(mount->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
-      builder->node(m_rampcapacity->get_by_percentage(disk->percentage_free));
+      builder->node(m_rampcapacity->get_by_percentage(mount->percentage_free));
     } else if (tag == TAG_LABEL_MOUNTED) {
-      auto& label = m_labelmounted;
-
-      label->reset_tokens();
-      label->replace_token("%mountpoint%", disk->mountpoint);
-      label->replace_token("%type%", disk->type);
-      label->replace_token("%fsname%", disk->fsname);
-
-      label->replace_token("%percentage_free%", disk->percentage_free_s + "%");
-      label->replace_token("%percentage_used%", disk->percentage_used_s + "%");
-
-      label->replace_token("%total%", string_util::filesize(disk->bytes_total, 1, m_fixed, m_bar.locale));
-      label->replace_token("%free%", string_util::filesize(disk->bytes_free, 2, m_fixed, m_bar.locale));
-      label->replace_token("%used%", string_util::filesize(disk->bytes_used, 2, m_fixed, m_bar.locale));
-
-      builder->node(label);
+      m_labelmounted->reset_tokens();
+      m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
+      m_labelmounted->replace_token("%type%", mount->type);
+      m_labelmounted->replace_token("%fsname%", mount->fsname);
+      m_labelmounted->replace_token("%percentage_free%", mount->percentage_free_s + "%");
+      m_labelmounted->replace_token("%percentage_used%", mount->percentage_used_s + "%");
+      m_labelmounted->replace_token("%total%", string_util::filesize(mount->bytes_total, 1, m_fixed, m_bar.locale));
+      m_labelmounted->replace_token("%free%", string_util::filesize(mount->bytes_free, 2, m_fixed, m_bar.locale));
+      m_labelmounted->replace_token("%used%", string_util::filesize(mount->bytes_used, 2, m_fixed, m_bar.locale));
+      builder->node(m_labelmounted);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
       m_labelunmounted->reset_tokens();
-      m_labelunmounted->replace_token("%mountpoint%", disk->mountpoint);
+      m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
       builder->node(m_labelunmounted);
     } else {
       return false;

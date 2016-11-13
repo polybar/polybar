@@ -56,9 +56,9 @@ tray-padding = 4
 type = internal/fs
 interval = 25
 
-disk-0 = /
-disk-1 = /home
-disk-2 = /invalid/mountpoint
+mount-0 = /
+mount-1 = /home
+mount-2 = /invalid/mountpoint
 
 ;fixed-values = true
 ;spacing = 4

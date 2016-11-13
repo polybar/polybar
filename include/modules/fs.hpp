@@ -13,7 +13,7 @@ namespace modules {
   /**
    * Filesystem structure
    */
-  struct fs_disk {
+  struct fs_mount {
     string mountpoint;
     bool mounted = false;
 
@@ -30,11 +30,11 @@ namespace modules {
     string percentage_free_s;
     string percentage_used_s;
 
-    explicit fs_disk(const string& mountpoint, bool mounted = false)
+    explicit fs_mount(const string& mountpoint, bool mounted = false)
         : mountpoint(mountpoint), mounted(mounted) {}
   };
 
-  using fs_disk_t = unique_ptr<fs_disk>;
+  using fs_mount_t = unique_ptr<fs_mount>;
 
   /**
    * Module used to display filesystem stats.
@@ -64,8 +64,8 @@ namespace modules {
     progressbar_t m_barfree;
     ramp_t m_rampcapacity;
 
-    vector<string> m_mounts;
-    vector<fs_disk_t> m_disks;
+    vector<string> m_mountpoints;
+    vector<fs_mount_t> m_mounts;
     bool m_fixed = false;
     int m_spacing = 2;
 
