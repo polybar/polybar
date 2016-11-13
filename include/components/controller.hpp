@@ -4,8 +4,8 @@
 #include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
+#include "components/ipc.hpp"
 #include "components/logger.hpp"
-#include "components/signals.hpp"
 #include "config.hpp"
 #include "utils/command.hpp"
 #include "utils/inotify.hpp"
@@ -17,12 +17,13 @@ LEMONBUDDY_NS
 class controller {
  public:
   explicit controller(connection& conn, const logger& logger, const config& config, unique_ptr<eventloop> eventloop,
-      unique_ptr<bar> bar, inotify_util::watch_t& confwatch)
+      unique_ptr<bar> bar, unique_ptr<ipc> ipc, inotify_util::watch_t& confwatch)
       : m_connection(conn)
       , m_log(logger)
       , m_conf(config)
       , m_eventloop(forward<decltype(eventloop)>(eventloop))
       , m_bar(forward<decltype(bar)>(bar))
+      , m_ipc(forward<decltype(ipc)>(ipc))
       , m_confwatch(confwatch) {}
 
   ~controller();
@@ -53,6 +54,7 @@ class controller {
   const config& m_conf;
   unique_ptr<eventloop> m_eventloop;
   unique_ptr<bar> m_bar;
+  unique_ptr<ipc> m_ipc;
 
   stateflag m_running{false};
   stateflag m_reload{false};
@@ -67,7 +69,7 @@ class controller {
   inotify_util::watch_t& m_confwatch;
   command_util::command_t m_command;
 
-  bool m_writeback = false;
+  bool m_writeback{false};
 };
 
 namespace {
@@ -83,7 +85,8 @@ namespace {
         configure_logger(),
         configure_config(),
         configure_eventloop(),
-        configure_bar());
+        configure_bar(),
+        configure_ipc());
     // clang-format on
   }
 }

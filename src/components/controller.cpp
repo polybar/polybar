@@ -2,6 +2,12 @@
 #include <mutex>
 
 #include "components/controller.hpp"
+
+#include "components/bar.hpp"
+#include "components/config.hpp"
+#include "components/eventloop.hpp"
+#include "components/ipc.hpp"
+#include "components/logger.hpp"
 #include "components/signals.hpp"
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
@@ -56,6 +62,11 @@ controller::~controller() {
     m_eventloop.reset();
   }
 
+  if (m_ipc) {
+    m_log.info("Deconstructing ipc");
+    m_ipc.reset();
+  }
+
   if (m_bar) {
     m_log.info("Deconstructing bar");
     m_bar.reset();
@@ -94,30 +105,23 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
   // Listen for events on the root window to be able to
   // break the blocking wait call when cleaning up
   m_log.trace("controller: Listen for events on the root window");
-  try {
-    const uint32_t value_list[2]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-    m_connection.change_window_attributes_checked(m_connection.root(), XCB_CW_EVENT_MASK, value_list);
-  } catch (const exception& err) {
-    throw application_error("Failed to change root window event mask: " + string{err.what()});
-  }
+  const uint32_t value_list[2]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+  m_connection.change_window_attributes_checked(m_connection.root(), XCB_CW_EVENT_MASK, value_list);
 
-  try {
-    m_log.trace("controller: Setup bar");
-    m_bar->bootstrap(m_writeback || dump_wmname);
-    m_bar->bootstrap_tray();
-  } catch (const exception& err) {
-    throw application_error("Failed to setup bar renderer: " + string{err.what()});
-  }
+  m_log.trace("controller: Setup bar");
+  m_bar->bootstrap(m_writeback || dump_wmname);
+  m_bar->bootstrap_tray();
 
   if (dump_wmname) {
     std::cout << m_bar->settings().wmname << std::endl;
     return;
   }
 
-  m_log.trace("controller: Attach eventloop callbacks");
+  m_log.trace("controller: Attach eventloop update callback");
   m_eventloop->set_update_cb(bind(&controller::on_update, this));
 
   if (!m_writeback) {
+    m_log.trace("controller: Attach eventloop input callback");
     g_signals::bar::action_click = bind(&controller::on_mouse_event, this, placeholders::_1);
     m_eventloop->set_input_db(bind(&controller::on_unrecognized_action, this, placeholders::_1));
   }
@@ -137,6 +141,11 @@ bool controller::run() {
 
   install_sigmask();
   install_confwatch();
+
+#if DEBUG
+  // Start listening for ipc messages
+  m_threads.emplace_back(thread(&ipc::receive_messages, m_ipc.get()));
+#endif
 
   // Listen for X events in separate thread
   if (!m_writeback) {

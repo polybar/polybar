@@ -37,26 +37,24 @@ namespace io_util {
   }
 
   string readline(int read_fd, int& bytes_read) {
-    std::stringstream buffer;
+    stringstream buffer;
     char char_;
-
+    int bytes = 0;
     bytes_read = 0;
 
-    while ((bytes_read += ::read(read_fd, &char_, 1)) > 0) {
-      buffer << char_;
+    while ((bytes = ::read(read_fd, &char_, 1)) > 0) {
+      if (bytes <= 0)
+        break;
       if (char_ == '\n' || char_ == '\x00')
         break;
+      bytes_read += bytes;
+      buffer << char_;
     }
 
-    if (bytes_read == 0) {
-      // Reached EOF
-    } else if (bytes_read == -1) {
-      // Read failed
-    } else {
-      return string_util::strip_trailing_newline(buffer.str());
-    }
+    if (bytes_read <= 0)
+      return "";
 
-    return "";
+    return string_util::strip_trailing_newline(buffer.str());
   }
 
   string readline(int read_fd) {
