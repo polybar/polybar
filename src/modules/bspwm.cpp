@@ -284,12 +284,12 @@ namespace modules {
     } else if (tag == TAG_LABEL_STATE) {
       int workspace_n = 0;
 
-      for (auto&& ws : m_monitors[m_index]->workspaces) {
-        if (m_scroll) {
-          builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
-          builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
-        }
+      if (m_scroll) {
+        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
+        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
+      }
 
+      for (auto&& ws : m_monitors[m_index]->workspaces) {
         if (ws.second.get()) {
           if (m_click) {
             string event{EVENT_CLICK};
@@ -304,11 +304,11 @@ namespace modules {
             builder->node(ws.second);
           }
         }
+      }
 
-        if (m_scroll) {
-          builder->cmd_close(true);
-          builder->cmd_close(true);
-        }
+      if (m_scroll) {
+        builder->cmd_close(true);
+        builder->cmd_close(true);
       }
 
       return workspace_n > 0;
