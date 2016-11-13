@@ -178,7 +178,7 @@ namespace string_util {
     vector<string> suffixes{"TB", "GB", "MB"};
     string suffix{"KB"};
 
-    while ((bytes /= 1000) > 999) {
+    while ((bytes /= 1024) >= 1024) {
       suffix = suffixes.back();
       suffixes.pop_back();
     }
