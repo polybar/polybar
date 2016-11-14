@@ -1,6 +1,6 @@
 pkgbase = lemonbuddy
 	pkgdesc = A fast and easy-to-use status bar
-	pkgver = 2.2.6
+	pkgver = 2.2.7
 	pkgrel = 1
 	url = https://github.com/jaagr/lemonbuddy
 	arch = i686
@@ -19,7 +19,7 @@ pkgbase = lemonbuddy
 	optdepends = jsoncpp: i3 module support
 	optdepends = i3ipc-glib-git: i3 module support
 	conflicts = lemonbuddy-git
-	source = lemonbuddy::git+https://github.com/jaagr/lemonbuddy.git#tag=2.2.6
+	source = lemonbuddy::git+https://github.com/jaagr/lemonbuddy.git#tag=2.2.7
 	md5sums = SKIP
 
 pkgname = lemonbuddy
