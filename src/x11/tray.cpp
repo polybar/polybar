@@ -174,11 +174,6 @@ void tray_manager::activate() {  // {{{
     g_signals::bar::visibility_change = bind(&tray_manager::bar_visibility_change, this, std::placeholders::_1);
   }
 
-  // Listen for redraw events on the bar window
-  if (!g_signals::bar::redraw) {
-    g_signals::bar::redraw = bind(&tray_manager::refresh_window, this);
-  }
-
   // Attempt to get control of the systray selection then
   // notify clients waiting for a manager.
   acquire_selection();
@@ -217,10 +212,6 @@ void tray_manager::deactivate() {  // {{{
     g_signals::bar::visibility_change = nullptr;
   }
 
-  if (g_signals::bar::redraw) {
-    g_signals::bar::redraw = nullptr;
-  }
-
   if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
     m_log.trace("tray: Unset selection owner");
     m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
@@ -253,6 +244,8 @@ void tray_manager::deactivate() {  // {{{
   m_pixmap = 0;
   m_gc = 0;
   m_rootpixmap.pixmap = 0;
+  m_prevwidth = 0;
+  m_prevheight = 0;
 
   m_connection.flush();
 }  // }}}
@@ -459,7 +452,7 @@ void tray_manager::refresh_window() {  // {{{
 
   std::lock_guard<std::mutex> lock(m_mtx, std::adopt_lock);
 
-  if (!m_activated || !m_mapped) {
+  if (!m_activated || !m_mapped || m_hidden) {
     return;
   }
 
@@ -1073,7 +1066,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {  // {{{
     m_log.trace("tray: Received destroy_notify");
     m_log.info("Tray selection available... re-activating");
     activate();
-    reconfigure_window();
+    window{m_connection, m_tray}.redraw();
   } else if (m_activated) {
     auto client = find_client(evt->window);
     if (client) {

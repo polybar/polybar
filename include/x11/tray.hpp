@@ -168,7 +168,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   thread m_delayed_activation;
 
-  bool m_restacked = false;
+  bool m_restacked{false};
 
   std::mutex m_mtx;
 };

@@ -7,7 +7,6 @@ LEMONBUDDY_NS
  */
 callback<string> g_signals::bar::action_click = nullptr;
 callback<bool> g_signals::bar::visibility_change = nullptr;
-callback<> g_signals::bar::redraw = nullptr;
 
 /**
  * Signals used to communicate with the input parser

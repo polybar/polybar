@@ -399,10 +399,6 @@ void bar::flush() {
   m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, 0, 0, m_opts.width, m_opts.height);
   m_connection.flush();
 
-  if (g_signals::bar::redraw) {
-    g_signals::bar::redraw();
-  }
-
 #if DEBUG and DRAW_CLICKABLE_AREA_HINTS
   map<alignment, int> hint_num{{
       {alignment::LEFT, 0}, {alignment::CENTER, 0}, {alignment::RIGHT, 0},
