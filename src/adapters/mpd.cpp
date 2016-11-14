@@ -315,6 +315,7 @@ namespace mpd {
     m_status.reset(mpd_run_status(*conn));
     m_updated_at = chrono::system_clock::now();
     m_songid = mpd_status_get_song_id(m_status.get());
+    m_queuelen = mpd_status_get_queue_length(m_status.get());
     m_random = mpd_status_get_random(m_status.get());
     m_repeat = mpd_status_get_repeat(m_status.get());
     m_single = mpd_status_get_single(m_status.get());
@@ -323,7 +324,7 @@ namespace mpd {
   }
 
   void mpdstatus::update(int event, mpdconnection* connection) {
-    if (connection == nullptr || (event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS)) == false)
+    if (connection == nullptr || (event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_PLAYLIST)) == false)
       return;
 
     fetch_data(connection);
@@ -373,6 +374,10 @@ namespace mpd {
 
   int mpdstatus::get_songid() const {
     return m_songid;
+  }
+
+  int mpdstatus::get_queuelen() const {
+    return m_queuelen;
   }
 
   unsigned mpdstatus::get_total_time() const {

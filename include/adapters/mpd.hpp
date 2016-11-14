@@ -139,6 +139,7 @@ namespace mpd {
     bool match_state(mpdstate state) const;
 
     int get_songid() const;
+    int get_queuelen() const;
     unsigned get_total_time() const;
     unsigned get_elapsed_time() const;
     unsigned get_elapsed_percentage();
@@ -157,6 +158,7 @@ namespace mpd {
     bool m_single = false;
 
     int m_songid;
+    int m_queuelen;
 
     unsigned long m_total_time;
     unsigned long m_elapsed_time;

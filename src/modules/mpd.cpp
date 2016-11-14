@@ -215,6 +215,15 @@ namespace modules {
     return connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
   }
 
+  string mpd_module::get_output() {
+    if (m_status && m_status->get_queuelen() == 0) {
+      m_log.info("%s: Hiding module since queue is empty", name());
+      return "";
+    } else {
+      return event_module::get_output();
+    }
+  }
+
   bool mpd_module::build(builder* builder, string tag) const {
     bool is_playing = false;
     bool is_paused = false;

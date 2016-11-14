@@ -25,14 +25,12 @@ namespace modules {
     bool has_event();
     bool update();
     string get_format() const;
+    string get_output();
     bool build(builder* builder, string tag) const;
     bool handle_event(string cmd);
     bool receive_events() const;
 
    private:
-    // static const int PROGRESSBAR_THREAD_SYNC_COUNT = 10;
-    // const chrono::duration<double> PROGRESSBAR_THREAD_INTERVAL = 1s;
-
     static constexpr auto FORMAT_ONLINE = "format-online";
     static constexpr auto TAG_BAR_PROGRESS = "<bar-progress>";
     static constexpr auto TAG_TOGGLE = "<toggle>";
