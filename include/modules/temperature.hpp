@@ -34,6 +34,7 @@ namespace modules {
     int m_zone = 0;
     int m_tempwarn = 0;
     int m_temp = 0;
+    int m_perc = 0;
   };
 }
 

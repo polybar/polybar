@@ -28,6 +28,7 @@ namespace modules {
 
   bool temperature_module::update() {
     m_temp = std::atoi(file_util::get_contents(m_path).c_str()) / 1000.0f + 0.5f;
+    m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
@@ -55,7 +56,7 @@ namespace modules {
     else if (tag == TAG_LABEL_WARN)
       builder->node(m_label.at(temp_state::WARN));
     else if (tag == TAG_RAMP)
-      builder->node(m_ramp->get_by_percentage(math_util::cap(m_temp, 0, m_tempwarn)));
+      builder->node(m_ramp->get_by_percentage(m_perc));
     else
       return false;
     return true;
