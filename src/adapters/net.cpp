@@ -62,7 +62,7 @@ namespace net {
   bool network::query(bool accumulate) {
     struct ifaddrs* ifaddr;
 
-    if (getifaddrs(&ifaddr) == -1)
+    if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr)
       return false;
 
     m_status.previous = m_status.current;
@@ -71,11 +71,12 @@ namespace net {
     m_status.current.time = chrono::system_clock::now();
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-      if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0) {
-        if (!accumulate || ifa->ifa_addr->sa_family != AF_PACKET) {
+      if (ifa->ifa_data == nullptr || ifa->ifa_addr == nullptr)
+        continue;
+
+      if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0)
+        if (!accumulate || ifa->ifa_addr->sa_family != AF_PACKET)
           continue;
-        }
-      }
 
       switch (ifa->ifa_addr->sa_family) {
         case AF_INET:
@@ -85,9 +86,9 @@ namespace net {
           break;
 
         case AF_PACKET:
-          if (ifa->ifa_data == nullptr)
-            continue;
           struct rtnl_link_stats* link_state = reinterpret_cast<decltype(link_state)>(ifa->ifa_data);
+          if (link_state == nullptr)
+            continue;
           m_status.current.transmitted += link_state->tx_bytes;
           m_status.current.received += link_state->rx_bytes;
           break;
