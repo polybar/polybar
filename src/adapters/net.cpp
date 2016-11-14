@@ -46,6 +46,7 @@ namespace net {
       throw network_error("Invalid network interface \"" + m_interface + "\"");
     if ((m_socketfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
       throw network_error("Failed to open socket");
+    check_tuntap();
   }
 
   /**
@@ -71,11 +72,11 @@ namespace net {
     m_status.current.time = chrono::system_clock::now();
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-      if (ifa->ifa_data == nullptr || ifa->ifa_addr == nullptr)
+      if (ifa->ifa_addr == nullptr)
         continue;
 
       if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0)
-        if (!accumulate || ifa->ifa_addr->sa_family != AF_PACKET)
+        if (!accumulate || (ifa->ifa_data == nullptr && ifa->ifa_addr->sa_family != AF_PACKET))
           continue;
 
       switch (ifa->ifa_addr->sa_family) {
@@ -86,6 +87,8 @@ namespace net {
           break;
 
         case AF_PACKET:
+          if (ifa->ifa_data == nullptr)
+            continue;
           struct rtnl_link_stats* link_state = reinterpret_cast<decltype(link_state)>(ifa->ifa_data);
           if (link_state == nullptr)
             continue;
@@ -137,6 +140,32 @@ namespace net {
   }
 
   /**
+   * Query driver info to check if the
+   * interface is a TUN/TAP device
+   */
+  void network::check_tuntap() {
+    struct ethtool_drvinfo driver;
+    struct ifreq request;
+
+    driver.cmd = ETHTOOL_GDRVINFO;
+
+    strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 0);
+
+    request.ifr_data = reinterpret_cast<caddr_t>(&driver);
+
+    if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1)
+      return;
+
+    // Check if it's a TUN/TAP device
+    if (strncmp(driver.bus_info, "tun", 3) == 0)
+      m_tuntap = true;
+    else if (strncmp(driver.bus_info, "tap", 3) == 0)
+      m_tuntap = true;
+    else
+      m_tuntap = false;
+  }
+
+  /**
    * Test if the network interface is in a valid state
    */
   bool network::test_interface() const {
@@ -171,20 +200,22 @@ namespace net {
    * Query device driver for information
    */
   bool wired_network::query(bool accumulate) {
-    if (!network::query(accumulate))
+    if (m_tuntap)
+      return true;
+    else if (!network::query(accumulate))
       return false;
 
-    struct ethtool_cmd ethernet_data;
-    ethernet_data.cmd = ETHTOOL_GSET;
-
     struct ifreq request;
+    struct ethtool_cmd data;
+
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
-    request.ifr_data = reinterpret_cast<caddr_t>(&ethernet_data);
+    data.cmd = ETHTOOL_GSET;
+    request.ifr_data = reinterpret_cast<caddr_t>(&data);
 
     if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1)
       return false;
 
-    m_linkspeed = ethernet_data.speed;
+    m_linkspeed = data.speed;
 
     return true;
   }
@@ -193,20 +224,20 @@ namespace net {
    * Check current connection state
    */
   bool wired_network::connected() const {
-    if (!network::test_interface())
+    if (!m_tuntap && !network::test_interface())
       return false;
 
+    struct ethtool_value data;
     struct ifreq request;
-    struct ethtool_value ethernet_data;
 
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
-    ethernet_data.cmd = ETHTOOL_GLINK;
-    request.ifr_data = reinterpret_cast<caddr_t>(&ethernet_data);
+    data.cmd = ETHTOOL_GLINK;
+    request.ifr_data = reinterpret_cast<caddr_t>(&data);
 
-    if (ioctl(m_socketfd, SIOCETHTOOL, &request) != -1)
-      return ethernet_data.data != 0;
+    if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1)
+      return false;
 
-    return false;
+    return data.data != 0;
   }
 
   /**
@@ -256,16 +287,7 @@ namespace net {
   bool wireless_network::connected() const {
     if (!network::test_interface())
       return false;
-
-    struct ifreq request;
-    strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
-
-    if ((ioctl(m_socketfd, SIOCGIFFLAGS, &request)) == -1)
-      return false;
-    if (m_essid.empty())
-      return false;
-
-    return true;
+    return !m_essid.empty();
   }
 
   /**

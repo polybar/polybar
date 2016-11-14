@@ -21,8 +21,8 @@ namespace net {
   // types {{{
 
   struct quality_range {
-    int val = 0;
-    int max = 0;
+    int val{0};
+    int max{0};
 
     int percentage() const {
       if (max < 0)
@@ -34,15 +34,15 @@ namespace net {
   using bytes_t = unsigned int;
 
   struct link_activity {
-    bytes_t transmitted = 0;
-    bytes_t received = 0;
+    bytes_t transmitted{0};
+    bytes_t received{0};
     chrono::system_clock::time_point time;
   };
 
   struct link_status {
     string ip;
-    link_activity previous;
-    link_activity current;
+    link_activity previous{};
+    link_activity current{};
   };
 
   // }}}
@@ -62,12 +62,14 @@ namespace net {
     string upspeed(int minwidth = 3) const;
 
    protected:
+    void check_tuntap();
     bool test_interface() const;
     string format_speedrate(float bytes_diff, int minwidth) const;
 
-    int m_socketfd = 0;
-    link_status m_status;
+    int m_socketfd{0};
+    link_status m_status{};
     string m_interface;
+    bool m_tuntap{false};
   };
 
   // }}}
@@ -82,7 +84,7 @@ namespace net {
     string linkspeed() const;
 
    private:
-    int m_linkspeed = 0;
+    int m_linkspeed{0};
   };
 
   // }}}
@@ -106,8 +108,8 @@ namespace net {
    private:
     shared_ptr<wireless_info> m_info;
     string m_essid;
-    quality_range m_signalstrength;
-    quality_range m_linkquality;
+    quality_range m_signalstrength{};
+    quality_range m_linkquality{};
   };
 
   // }}}
