@@ -8,6 +8,7 @@ namespace modules {
     REQ_CONFIG_VALUE(name(), m_interface, "interface");
     GET_CONFIG_VALUE(name(), m_ping_nth_update, "ping-interval");
     GET_CONFIG_VALUE(name(), m_udspeed_minwidth, "udspeed-minwidth");
+    GET_CONFIG_VALUE(name(), m_accumulate, "accumulate-stats");
 
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
@@ -67,7 +68,7 @@ namespace modules {
     net::network* network = m_wireless ? dynamic_cast<net::network*>(m_wireless.get())
                                        : dynamic_cast<net::network*>(m_wired.get());
 
-    if (!network->query()) {
+    if (!network->query(m_accumulate)) {
       m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
       return false;
     }

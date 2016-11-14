@@ -53,7 +53,7 @@ namespace net {
     explicit network(string interface);
     virtual ~network();
 
-    virtual bool query();
+    virtual bool query(bool accumulate = false);
     virtual bool connected() const = 0;
     virtual bool ping() const;
 
@@ -77,7 +77,7 @@ namespace net {
    public:
     explicit wired_network(string interface) : network(interface) {}
 
-    bool query() override;
+    bool query(bool accumulate = false) override;
     bool connected() const override;
     string linkspeed() const;
 
@@ -92,7 +92,7 @@ namespace net {
    public:
     wireless_network(string interface) : network(interface) {}
 
-    bool query() override;
+    bool query(bool accumulate = false) override;
     bool connected() const override;
 
     string essid() const;

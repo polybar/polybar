@@ -59,33 +59,37 @@ namespace net {
   /**
    * Query device driver for information
    */
-  bool network::query() {
+  bool network::query(bool accumulate) {
     struct ifaddrs* ifaddr;
 
     if (getifaddrs(&ifaddr) == -1)
       return false;
 
+    m_status.previous = m_status.current;
+    m_status.current.transmitted = 0;
+    m_status.current.received = 0;
+    m_status.current.time = chrono::system_clock::now();
+
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-      if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0)
-        continue;
+      if (m_interface.compare(0, m_interface.length(), ifa->ifa_name) != 0) {
+        if (!accumulate || ifa->ifa_addr->sa_family != AF_PACKET) {
+          continue;
+        }
+      }
 
       switch (ifa->ifa_addr->sa_family) {
         case AF_INET:
           char ip_buffer[NI_MAXHOST];
-          getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in), ip_buffer, NI_MAXHOST, nullptr, 0,
-              NI_NUMERICHOST);
+          getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in), ip_buffer, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
           m_status.ip = string{ip_buffer};
           break;
 
         case AF_PACKET:
           if (ifa->ifa_data == nullptr)
             continue;
-          struct rtnl_link_stats* link_state =
-              reinterpret_cast<decltype(link_state)>(ifa->ifa_data);
-          m_status.previous = m_status.current;
-          m_status.current.transmitted = link_state->tx_bytes;
-          m_status.current.received = link_state->rx_bytes;
-          m_status.current.time = chrono::system_clock::now();
+          struct rtnl_link_stats* link_state = reinterpret_cast<decltype(link_state)>(ifa->ifa_data);
+          m_status.current.transmitted += link_state->tx_bytes;
+          m_status.current.received += link_state->rx_bytes;
           break;
       }
     }
@@ -155,9 +159,8 @@ namespace net {
       suffixes.pop_back();
     }
 
-    return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ')
-                                                   << std::setprecision(0) << std::fixed
-                                                   << speedrate << " " << suffix << "/s");
+    return string_util::from_stream(stringstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0)
+                                                   << std::fixed << speedrate << " " << suffix << "/s");
   }
 
   // }}}
@@ -166,8 +169,8 @@ namespace net {
   /**
    * Query device driver for information
    */
-  bool wired_network::query() {
-    if (!network::query())
+  bool wired_network::query(bool accumulate) {
+    if (!network::query(accumulate))
       return false;
 
     struct ethtool_cmd ethernet_data;
@@ -220,8 +223,8 @@ namespace net {
    * Query the wireless device for information
    * about the current connection
    */
-  bool wireless_network::query() {
-    if (!network::query())
+  bool wireless_network::query(bool accumulate) {
+    if (!network::query(accumulate))
       return false;
 
     auto socket_fd = iw_sockets_open();

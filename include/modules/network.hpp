@@ -55,6 +55,7 @@ namespace modules {
     string m_interface;
     int m_ping_nth_update = 0;
     int m_udspeed_minwidth = 3;
+    bool m_accumulate = false;
   };
 }
 
