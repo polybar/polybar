@@ -3,12 +3,6 @@
 
 #include "components/controller.hpp"
 
-#include "components/bar.hpp"
-#include "components/config.hpp"
-#include "components/eventloop.hpp"
-#include "components/ipc.hpp"
-#include "components/logger.hpp"
-#include "components/signals.hpp"
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
@@ -16,6 +10,7 @@
 #include "modules/cpu.hpp"
 #include "modules/date.hpp"
 #include "modules/fs.hpp"
+#include "modules/ipc.hpp"
 #include "modules/memory.hpp"
 #include "modules/menu.hpp"
 #include "modules/script.hpp"
@@ -23,6 +18,13 @@
 #include "modules/text.hpp"
 #include "modules/unsupported.hpp"
 #include "modules/xbacklight.hpp"
+
+#include "components/bar.hpp"
+#include "components/config.hpp"
+#include "components/eventloop.hpp"
+#include "components/ipc.hpp"
+#include "components/logger.hpp"
+#include "components/signals.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
@@ -62,12 +64,10 @@ controller::~controller() {
     m_eventloop.reset();
   }
 
-#if DEBUG
   if (m_ipc) {
     m_log.info("Deconstructing ipc");
     m_ipc.reset();
   }
-#endif
 
   if (m_bar) {
     m_log.info("Deconstructing bar");
@@ -103,6 +103,13 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
 
   m_log.trace("controller: Query X extension data");
   m_connection.query_extensions();
+
+  if (m_conf.get<bool>(m_conf.bar_section(), "enable-ipc", false)) {
+    m_log.trace("controller: Create IPC handler");
+    m_ipc = configure_ipc().create<decltype(m_ipc)>();
+  } else {
+    m_log.warn("Inter-process communication support disabled");
+  }
 
   // Listen for events on the root window to be able to
   // break the blocking wait call when cleaning up
@@ -144,10 +151,10 @@ bool controller::run() {
   install_sigmask();
   install_confwatch();
 
-#if DEBUG
-  // Start listening for ipc messages
-  m_threads.emplace_back(thread(&ipc::receive_messages, m_ipc.get()));
-#endif
+  // Start ipc receiver if its enabled
+  if (m_conf.get<bool>(m_conf.bar_section(), "enable-ipc", false)) {
+    m_threads.emplace_back(thread(&ipc::receive_messages, m_ipc.get()));
+  }
 
   // Listen for X events in separate thread
   if (!m_writeback) {
@@ -337,6 +344,10 @@ void controller::bootstrap_modules() {
     }
 
     for (auto& module_name : string_util::split(m_conf.get<string>(bs, confkey, ""), ' ')) {
+      if (module_name.empty()) {
+        continue;
+      }
+
       try {
         auto type = m_conf.get<string>("module/" + module_name, "type");
         module_t module;
@@ -375,7 +386,13 @@ void controller::bootstrap_modules() {
           module.reset(new script_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/menu")
           module.reset(new menu_module(bar, m_log, m_conf, module_name));
-        else
+        else if (type == "custom/ipc") {
+          if (!m_ipc)
+            throw application_error("Inter-process communication support needs to be enabled");
+          module.reset(new ipc_module(bar, m_log, m_conf, module_name));
+          m_ipc->attach_callback(
+              bind(&ipc_module::on_message, dynamic_cast<ipc_module*>(module.get()), placeholders::_1));
+        } else
           throw application_error("Unknown module: " + module_name);
 
         module->set_update_cb(

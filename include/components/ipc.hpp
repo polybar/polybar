@@ -6,6 +6,18 @@
 LEMONBUDDY_NS
 
 /**
+ * Message types
+ */
+struct ipc_command {
+  static constexpr auto prefix{"cmd:"};
+  string payload;
+};
+struct ipc_hook {
+  static constexpr auto prefix{"hook:"};
+  string payload;
+};
+
+/**
  * Component used for inter-process communication.
  *
  * A unique messaging channel will be setup for each
@@ -14,26 +26,23 @@ LEMONBUDDY_NS
  */
 class ipc {
  public:
-  struct message_internal {
-    static constexpr auto prefix{"app:"};
-  };
-  struct message_command {
-    static constexpr auto prefix{"cmd:"};
-  };
-  struct message_custom {
-    static constexpr auto prefix{"custom:"};
-  };
-
   explicit ipc(const logger& logger) : m_log(logger) {}
   ~ipc();
 
+  void attach_callback(callback<const ipc_command&>&& cb);
+  void attach_callback(callback<const ipc_hook&>&& cb);
   void receive_messages();
 
  protected:
-  void parse(string payload);
+  void parse(const string& payload) const;
+  void delegate(const ipc_command& msg) const;
+  void delegate(const ipc_hook& msg) const;
 
  private:
   const logger& m_log;
+
+  vector<callback<const ipc_command&>> m_command_callbacks;
+  vector<callback<const ipc_hook&>> m_hook_callbacks;
 
   stateflag m_running{false};
 

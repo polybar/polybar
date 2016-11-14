@@ -80,4 +80,7 @@ namespace command_util {
   }
 }
 
+using command = command_util::command;
+using command_t = command_util::command_t;
+
 LEMONBUDDY_NS_END

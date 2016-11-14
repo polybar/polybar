@@ -28,6 +28,20 @@ ipc::~ipc() {
 }
 
 /**
+ * Register listener callback for ipc_command messages
+ */
+void ipc::attach_callback(callback<const ipc_command&>&& cb) {
+  m_command_callbacks.emplace_back(cb);
+}
+
+/**
+ * Register listener callback for ipc_hook messages
+ */
+void ipc::attach_callback(callback<const ipc_hook&>&& cb) {
+  m_hook_callbacks.emplace_back(cb);
+}
+
+/**
  * Start listening for event messages
  */
 void ipc::receive_messages() {
@@ -50,18 +64,36 @@ void ipc::receive_messages() {
  * Process received message and delegate
  * valid events to the target modules
  */
-void ipc::parse(string payload) {
+void ipc::parse(const string& payload) const {
   if (payload.empty()) {
     return;
-  } else if (payload.find(message_internal::prefix) == 0) {
-    m_log.info("Received internal message: (payload=%s)", payload);
-  } else if (payload.find(message_command::prefix) == 0) {
-    m_log.info("Received command message: (payload=%s)", payload);
-  } else if (payload.find(message_custom::prefix) == 0) {
-    m_log.info("Received custom message: (payload=%s)", payload);
+  } else if (payload.find(ipc_command::prefix) == 0) {
+    delegate(ipc_command{payload});
+  } else if (payload.find(ipc_hook::prefix) == 0) {
+    delegate(ipc_hook{payload});
   } else {
-    m_log.info("Received unknown message: (payload=%s)", payload);
+    m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }
+}
+
+/**
+ * Send ipc message to attached listeners
+ */
+void ipc::delegate(const ipc_command& message) const {
+  if (!m_command_callbacks.empty())
+    for (auto&& callback : m_command_callbacks) callback(message);
+  else
+    m_log.warn("Unhandled message (payload=%s)", message.payload);
+}
+
+/**
+ * Send ipc message to attached listeners
+ */
+void ipc::delegate(const ipc_hook& message) const {
+  if (!m_hook_callbacks.empty())
+    for (auto&& callback : m_hook_callbacks) callback(message);
+  else
+    m_log.warn("Unhandled message (payload=%s)", message.payload);
 }
 
 LEMONBUDDY_NS_END

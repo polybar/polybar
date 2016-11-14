@@ -17,13 +17,12 @@ LEMONBUDDY_NS
 class controller {
  public:
   explicit controller(connection& conn, const logger& logger, const config& config, unique_ptr<eventloop> eventloop,
-      unique_ptr<bar> bar, unique_ptr<ipc> ipc, inotify_util::watch_t& confwatch)
+      unique_ptr<bar> bar, inotify_util::watch_t& confwatch)
       : m_connection(conn)
       , m_log(logger)
       , m_conf(config)
       , m_eventloop(forward<decltype(eventloop)>(eventloop))
       , m_bar(forward<decltype(bar)>(bar))
-      , m_ipc(forward<decltype(ipc)>(ipc))
       , m_confwatch(confwatch) {}
 
   ~controller();
@@ -85,8 +84,7 @@ namespace {
         configure_logger(),
         configure_config(),
         configure_eventloop(),
-        configure_bar(),
-        configure_ipc());
+        configure_bar());
     // clang-format on
   }
 }
