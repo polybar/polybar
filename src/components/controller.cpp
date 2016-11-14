@@ -302,7 +302,8 @@ void controller::wait_for_xevent() {
       int error = 0;
 
       if ((error = m_connection.connection_has_error()) != 0) {
-        m_log.err("Error in X event loop, aborting... (%s)", m_connection.error_str(error));
+        m_log.err("Error in X event loop, terminating... (%s)", m_connection.error_str(error));
+        kill(getpid(), SIGTERM);
         break;
       }
 
