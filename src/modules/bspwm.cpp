@@ -31,6 +31,14 @@ namespace modules {
       m_statelabels.insert(
           make_pair(state_ws::WORKSPACE_EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_WS_LABEL)));
       m_statelabels.insert(make_pair(state_ws::WORKSPACE_DIMMED, load_optional_label(m_conf, name(), "label-dimmed")));
+      m_statelabels.insert(make_pair(
+          state_ws::WORKSPACE_DIMMED_ACTIVE, load_optional_label(m_conf, name(), "label-dimmed-active")));
+      m_statelabels.insert(make_pair(
+          state_ws::WORKSPACE_DIMMED_URGENT, load_optional_label(m_conf, name(), "label-dimmed-urgent")));
+      m_statelabels.insert(make_pair(
+          state_ws::WORKSPACE_DIMMED_EMPTY, load_optional_label(m_conf, name(), "label-dimmed-empty")));
+      m_statelabels.insert(make_pair(
+          state_ws::WORKSPACE_DIMMED_OCCUPIED, load_optional_label(m_conf, name(), "label-dimmed-occupied")));
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
@@ -248,6 +256,22 @@ namespace modules {
 
         if (!m_monitors.back()->focused) {
           label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED)->second);
+          switch (workspace_flag) {
+              case state_ws::WORKSPACE_ACTIVE:
+                  label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_ACTIVE)->second);
+                  break;
+              case state_ws::WORKSPACE_OCCUPIED:
+                  label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_OCCUPIED)->second);
+                  break;
+              case state_ws::WORKSPACE_URGENT:
+                  label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_URGENT)->second);
+                  break;
+              case state_ws::WORKSPACE_EMPTY:
+                  label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_EMPTY)->second);
+                  break;
+              default:
+                  break;
+          }
         }
 
         label->reset_tokens();
