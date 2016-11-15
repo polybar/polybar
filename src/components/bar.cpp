@@ -64,6 +64,10 @@ void bar::bootstrap(bool nodraw) {
 
   m_screen = m_connection.screen();
 
+  auto geom = m_connection.get_geometry(m_screen->root);
+  m_screensize.w = geom->width;
+  m_screensize.h = geom->height;
+
   // limit the amount of allowed input events to 1 per 60ms
   m_throttler = throttle_util::make_throttler(1, 60ms);
 
@@ -671,6 +675,7 @@ void bar::restack_window() {
  * Map window and reconfigure its position
  */
 void bar::map_window() {
+  auto geom = m_connection.get_geometry(m_screen->root);
   auto w = m_opts.width + m_opts.offset_x;
   auto h = m_opts.height + m_opts.offset_y;
   auto x = m_opts.x;
@@ -680,6 +685,10 @@ void bar::map_window() {
     h += m_opts.margins.t;
   } else {
     h += m_opts.margins.b;
+  }
+
+  if (m_opts.bottom && m_opts.monitor->y + m_opts.monitor->h < m_screensize.h) {
+    h += m_screensize.h - (m_opts.monitor->y + m_opts.monitor->h);
   }
 
   m_window.map_checked();

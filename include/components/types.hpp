@@ -13,6 +13,11 @@ enum class attribute { NONE = 0, o = 2, u = 4 };
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
 enum class gc { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
 
+struct rect {
+  uint16_t w{0};
+  uint16_t h{0};
+};
+
 enum class strut {
   LEFT = 0,
   RIGHT,

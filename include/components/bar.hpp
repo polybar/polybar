@@ -36,7 +36,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   const bar_settings settings() const;
 
   void parse(string data, bool force = false);
-int i = 0;
+
  protected:
   void flush();
   void refresh_window();
@@ -86,6 +86,8 @@ int i = 0;
   throttle_util::throttle_t m_throttler;
 
   xcb_screen_t* m_screen;
+  rect m_screensize{};
+
   xcb_visualtype_t* m_visual;
 
   window m_window{m_connection, m_connection.generate_id()};
