@@ -15,6 +15,10 @@ namespace modules {
     WORKSPACE_EMPTY,
     WORKSPACE_OCCUPIED,
     WORKSPACE_DIMMED,  // used when the monitor is out of focus
+    WORKSPACE_DIMMED_ACTIVE,
+    WORKSPACE_DIMMED_URGENT,
+    WORKSPACE_DIMMED_EMPTY,
+    WORKSPACE_DIMMED_OCCUPIED
   };
   enum class state_mode {
     MODE_NONE,
