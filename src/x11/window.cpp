@@ -62,11 +62,11 @@ window window::reconfigure_struts(uint16_t w, uint16_t h, int16_t x, bool bottom
   if (bottom) {
     values[static_cast<int>(strut::BOTTOM)] = h;
     values[static_cast<int>(strut::BOTTOM_START_X)] = x;
-    values[static_cast<int>(strut::BOTTOM_END_X)] = x + w;
+    values[static_cast<int>(strut::BOTTOM_END_X)] = x + w - 1;
   } else {
     values[static_cast<int>(strut::TOP)] = h;
     values[static_cast<int>(strut::TOP_START_X)] = x;
-    values[static_cast<int>(strut::TOP_END_X)] = x + w;
+    values[static_cast<int>(strut::TOP_END_X)] = x + w - 1;
   }
 
   conn.change_property_checked(XCB_PROP_MODE_REPLACE, *this, _NET_WM_STRUT, XCB_ATOM_CARDINAL, 32, 4, values);
