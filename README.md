@@ -45,10 +45,11 @@ It has built-in functionality to generate content for the most commonly used wid
 - Time-based shell script execution
 - Command output tailing
 - User-defined menu tree
+- Inter-process messaging
 - And more...
 
-Each bar contains a set of modules, which in turn defines a set of formatting rules and options.
-Read more about [how the configuration works](#configuration).
+[See the wiki for more details](https://github.com/jaagr/lemonbuddy/wiki).
+
 
 ## Getting started
 
