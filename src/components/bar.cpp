@@ -452,7 +452,11 @@ void bar::refresh_window() {
 void bar::load_fonts() {
   auto fonts_loaded = false;
   auto fontindex = 0;
-  auto fonts = m_conf.get_list<string>("font");
+  auto fonts = m_conf.get_list<string>(m_conf.bar_section(), "font", {});
+
+  if (fonts.empty()) {
+    m_log.warn("No fonts specified, using fallback font \"fixed\"");
+  }
 
   for (auto f : fonts) {
     fontindex++;
@@ -469,11 +473,12 @@ void bar::load_fonts() {
       m_log.warn("Unable to load font '%s'", fd[0]);
   }
 
-  if (!fonts_loaded) {
-    m_log.warn("Loading fallback font");
+  if (!fonts_loaded && !fonts.empty()) {
+    m_log.warn("Unable to load fonts, using fallback font \"fixed\"");
+  }
 
-    if (!m_fontmanager->load("fixed"))
-      throw application_error("Unable to load fonts");
+  if (!fonts_loaded && !m_fontmanager->load("fixed")) {
+    throw application_error("Unable to load fonts");
   }
 
   m_fontmanager->allocate_color(m_opts.foreground, true);
