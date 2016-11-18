@@ -116,8 +116,6 @@ void bar::bootstrap(bool nodraw) {
   GET_CONFIG_VALUE(bs, m_opts.module_margin_left, "module-margin-left");
   GET_CONFIG_VALUE(bs, m_opts.module_margin_right, "module-margin-right");
 
-  m_opts.margins.l = m_conf.get<int>("global/wm", "margin-left", 0);
-  m_opts.margins.r = m_conf.get<int>("global/wm", "margin-right", 0);
   m_opts.margins.t = m_conf.get<int>("global/wm", "margin-top", 0);
   m_opts.margins.b = m_conf.get<int>("global/wm", "margin-bottom", 0);
 
@@ -694,6 +692,8 @@ void bar::map_window() {
 
   if (m_opts.bottom && m_opts.monitor->y + m_opts.monitor->h < m_screensize.h) {
     h += m_screensize.h - (m_opts.monitor->y + m_opts.monitor->h);
+  } else if (!m_opts.bottom) {
+    h += m_opts.monitor->y;
   }
 
   m_window.map_checked();
