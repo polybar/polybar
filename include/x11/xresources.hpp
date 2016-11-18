@@ -10,9 +10,9 @@ class xresource_manager {
  public:
   explicit xresource_manager();
 
-  string get_string(string name) const;
-  float get_float(string name) const;
-  int get_int(string name) const;
+  string get_string(string name, string fallback = "") const;
+  float get_float(string name, float fallback = 0.0f) const;
+  int get_int(string name, int fallback = 0) const;
 
  protected:
   string load_value(string key, string res_type, size_t n) const;

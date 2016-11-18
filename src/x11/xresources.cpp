@@ -16,16 +16,25 @@ xresource_manager::xresource_manager() {
     return;
 }
 
-string xresource_manager::get_string(string name) const {
-  return load_value(name, "String", 64);
+string xresource_manager::get_string(string name, string fallback) const {
+  auto result = load_value(name, "String", 64);
+  if (result.empty())
+    return fallback;
+  return result;
 }
 
-float xresource_manager::get_float(string name) const {
-  return std::strtof(load_value(name, "String", 64).c_str(), 0);
+float xresource_manager::get_float(string name, float fallback) const {
+  auto result = load_value(name, "String", 64);
+  if (result.empty())
+    return fallback;
+  return strtof(result.c_str(), 0);
 }
 
-int xresource_manager::get_int(string name) const {
-  return std::atoi(load_value(name, "String", 64).c_str());
+int xresource_manager::get_int(string name, int fallback) const {
+  auto result = load_value(name, "String", 64);
+  if (result.empty())
+    return fallback;
+  return atoi(result.c_str());
 }
 
 string xresource_manager::load_value(string key, string res_type, size_t n) const {

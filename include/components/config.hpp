@@ -21,8 +21,7 @@ DEFINE_ERROR(key_error);
 
 class config {
  public:
-  explicit config(const logger& logger, const xresource_manager& xrm)
-      : m_logger(logger), m_xrm(xrm) {}
+  explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
 
   void load(string file, string barname);
   string filepath() const;
@@ -50,7 +49,7 @@ class config {
 
     auto str_val = m_ptree.get<string>(build_path(section, key));
 
-    return dereference_var<T>(section, key, str_val, val.get());
+    return dereference<T>(section, key, str_val, val.get());
   }
 
   /**
@@ -62,8 +61,7 @@ class config {
     auto val = m_ptree.get_optional<T>(build_path(section, key));
     auto str_val = m_ptree.get_optional<string>(build_path(section, key));
 
-    return dereference_var<T>(
-        section, key, str_val.get_value_or(""), val.get_value_or(default_value));
+    return dereference<T>(section, key, str_val.get_value_or(""), val.get_value_or(default_value));
   }
 
   /**
@@ -82,10 +80,9 @@ class config {
     vector<T> vec;
     optional<T> value;
 
-    while ((value = m_ptree.get_optional<T>(
-                build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
+    while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
       auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
-      vec.emplace_back(dereference_var<T>(section, key, str_val, value.get()));
+      vec.emplace_back(dereference<T>(section, key, str_val, value.get()));
     }
 
     if (vec.empty())
@@ -103,10 +100,9 @@ class config {
     vector<T> vec;
     optional<T> value;
 
-    while ((value = m_ptree.get_optional<T>(
-                build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
+    while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
       auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
-      vec.emplace_back(dereference_var<T>(section, key, str_val, value.get()));
+      vec.emplace_back(dereference<T>(section, key, str_val, value.get()));
     }
 
     if (vec.empty())
@@ -117,59 +113,93 @@ class config {
 
  protected:
   /**
-   * Find value of a config parameter defined as a reference
-   * variable using ${section.param}
-   *
-   * ${BAR.key} may be used to reference the current bar section
-   * ${self.key} may be used to reference the current section
-   * ${env:key} may be used to reference an environment variable
-   * ${xrdb:key} may be used to reference a variable in the X resource db
+   * Dereference value reference
    */
   template <typename T>
-  T dereference_var(string ref_section, string ref_key, string var, const T ref_val) const {
-    auto n = var.find("${");
-    auto m = var.find("}");
+  T dereference(string section, string key, string var, const T value) const {
+    if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
+      return value;
+    }
 
-    if (n != 0 || m != var.length() - 1)
-      return ref_val;
-
-    auto path = var.substr(2, m - 2);
+    auto path = var.substr(2, var.length() - 3);
+    size_t pos;
 
     if (path.find("env:") == 0) {
-      if (has_env(path.substr(4).c_str()))
-        return boost::lexical_cast<T>(read_env(path.substr(4).c_str()));
-      return ref_val;
+      return dereference_env<T>(path.substr(4), value);
+    } else if (path.find("xrdb:") == 0) {
+      return dereference_xrdb<T>(path.substr(5), value);
+    } else if ((pos = path.find(".")) != string::npos) {
+      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1));
+    } else {
+      throw value_error("Invalid reference defined at [" + build_path(section, key) + "]");
     }
+  }
 
-    if (path.find("xrdb:") == 0) {
-      if (std::is_same<string, T>::value)
-        return boost::lexical_cast<T>(m_xrm.get_string(path.substr(5)));
-      else if (std::is_same<float, T>::value)
-        return boost::lexical_cast<T>(m_xrm.get_float(path.substr(5)));
-      else if (std::is_same<int, T>::value)
-        return boost::lexical_cast<T>(m_xrm.get_int(path.substr(5)));
-      return ref_val;
-    }
-
-    auto ref_path = build_path(ref_section, ref_key);
-
-    if ((n = path.find(".")) == string::npos)
-      throw value_error("Invalid reference defined at [" + ref_path + "]");
-
-    auto section = path.substr(0, n);
+  /**
+   * Dereference local value reference defined using:
+   *  ${root.key}
+   *  ${self.key}
+   *  ${section.key}
+   */
+  template <typename T>
+  T dereference_local(string section, string key) const {
+    if (section == "BAR")
+      m_logger.warn("${BAR.key} is deprecated. Use ${root.key} instead");
 
     section = string_util::replace(section, "BAR", bar_section());
-    section = string_util::replace(section, "self", ref_section);
+    section = string_util::replace(section, "root", bar_section());
+    section = string_util::replace(section, "self", section);
 
-    auto key = path.substr(n + 1, path.length() - n - 1);
-    auto val = m_ptree.get_optional<T>(build_path(section, key));
+    auto path = build_path(section, key);
+    auto result = m_ptree.get_optional<T>(path);
 
-    if (val == boost::none)
-      throw value_error("Unexisting reference defined at [" + ref_path + "]");
+    if (result == boost::none)
+      throw value_error("Unexisting reference defined [" + path + "]");
 
-    auto str_val = m_ptree.get<string>(build_path(section, key));
+    return dereference<T>(section, key, m_ptree.get<string>(path), result.get());
+  }
 
-    return dereference_var<T>(section, key, str_val, val.get());
+  /**
+   * Dereference environment variable reference defined using:
+   *  ${env:key}
+   *  ${env:key:fallback value}
+   */
+  template <typename T>
+  T dereference_env(string var, T fallback) const {
+    size_t pos;
+
+    if ((pos = var.find(":")) != string::npos) {
+      fallback = boost::lexical_cast<T>(var.substr(pos + 1));
+      var.erase(pos);
+    }
+
+    if (has_env(var.c_str()))
+      return boost::lexical_cast<T>(read_env(var.c_str()));
+
+    return fallback;
+  }
+
+  /**
+   * Dereference X resource db value defined using:
+   *  ${xrdb:key}
+   *  ${xrdb:key:fallback value}
+   */
+  template <typename T>
+  T dereference_xrdb(string var, T fallback) const {
+    size_t pos;
+
+    if ((pos = var.find(":")) != string::npos) {
+      fallback = boost::lexical_cast<T>(var.substr(pos + 1));
+      var.erase(pos);
+    }
+
+    if (std::is_same<string, T>::value)
+      return boost::lexical_cast<T>(m_xrm.get_string(var, boost::lexical_cast<string>(fallback)));
+    else if (std::is_same<float, T>::value)
+      return boost::lexical_cast<T>(m_xrm.get_float(var, boost::lexical_cast<float>(fallback)));
+    else if (std::is_same<int, T>::value)
+      return boost::lexical_cast<T>(m_xrm.get_int(var, boost::lexical_cast<int>(fallback)));
+    return fallback;
   }
 
  private:

@@ -37,7 +37,7 @@ module-margin-left = 1
 module-margin-right = 2
 
 font-0 = fixed:pixelsize=10;0
-font-1 = unifont:size=6;-2
+font-1 = unifont:size=6:heavy;-2
 font-2 = siji:pixelsize=10;0
 
 modules-left = @MODULES_LEFT@
