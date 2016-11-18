@@ -116,7 +116,7 @@ Details on how to setup and configure the bar and each module have been moved to
   ~~~
 
 **NOTE:** If the bar output looks odd, it's probably because you're
-missing he fonts defined in the config. Update the config or install the
+missing the fonts defined in the config. Update the config or install the
 missing fonts.
 
 
