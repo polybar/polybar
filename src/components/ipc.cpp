@@ -42,6 +42,13 @@ void ipc::attach_callback(callback<const ipc_hook&>&& cb) {
 }
 
 /**
+ * Register listener callback for ipc_action messages
+ */
+void ipc::attach_callback(callback<const ipc_action&>&& cb) {
+  m_action_callbacks.emplace_back(cb);
+}
+
+/**
  * Start listening for event messages
  */
 void ipc::receive_messages() {
@@ -71,6 +78,8 @@ void ipc::parse(const string& payload) const {
     delegate(ipc_command{payload});
   } else if (payload.find(ipc_hook::prefix) == 0) {
     delegate(ipc_hook{payload});
+  } else if (payload.find(ipc_action::prefix) == 0) {
+    delegate(ipc_action{payload});
   } else {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }
@@ -92,6 +101,16 @@ void ipc::delegate(const ipc_command& message) const {
 void ipc::delegate(const ipc_hook& message) const {
   if (!m_hook_callbacks.empty())
     for (auto&& callback : m_hook_callbacks) callback(message);
+  else
+    m_log.warn("Unhandled message (payload=%s)", message.payload);
+}
+
+/**
+ * Send ipc message to attached listeners
+ */
+void ipc::delegate(const ipc_action& message) const {
+  if (!m_action_callbacks.empty())
+    for (auto&& callback : m_action_callbacks) callback(message);
   else
     m_log.warn("Unhandled message (payload=%s)", message.payload);
 }

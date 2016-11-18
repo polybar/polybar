@@ -107,8 +107,9 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
   if (m_conf.get<bool>(m_conf.bar_section(), "enable-ipc", false)) {
     m_log.trace("controller: Create IPC handler");
     m_ipc = configure_ipc().create<decltype(m_ipc)>();
+    m_ipc->attach_callback(bind(&controller::on_ipc_action, this, placeholders::_1));
   } else {
-    m_log.warn("Inter-process communication support disabled");
+    m_log.info("Inter-process messaging disabled");
   }
 
   // Listen for events on the root window to be able to
@@ -389,7 +390,7 @@ void controller::bootstrap_modules() {
           module.reset(new menu_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/ipc") {
           if (!m_ipc)
-            throw application_error("Inter-process communication support needs to be enabled");
+            throw application_error("Inter-process messaging needs to be enabled");
           module.reset(new ipc_module(bar, m_log, m_conf, module_name));
           m_ipc->attach_callback(
               bind(&ipc_module::on_message, dynamic_cast<ipc_module*>(module.get()), placeholders::_1));
@@ -414,6 +415,24 @@ void controller::bootstrap_modules() {
 
   if (module_count == 0)
     throw application_error("No modules created");
+}
+
+/**
+ * Callback for received ipc actions
+ */
+void controller::on_ipc_action(const ipc_action& message) {
+  string action = message.payload.substr(strlen(ipc_action::prefix));
+
+  if (action.empty()) {
+    m_log.err("Cannot enqueue empty IPC action");
+    return;
+  }
+
+  eventloop::entry_t evt{static_cast<int>(event_type::INPUT)};
+  snprintf(evt.data, sizeof(evt.data), "%s", action.c_str());
+
+  m_log.info("Enqueuing IPC action: %s", action);
+  m_eventloop->enqueue(evt);
 }
 
 /**
