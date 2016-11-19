@@ -48,7 +48,7 @@ void builder::node(string str, bool add_space) {
       break;
 
     } else if ((n = s.find("%{F-}")) == 0) {
-      color_close(!m_lazy);
+      color_close(true);
       s.erase(0, 5);
 
     } else if ((n = s.find("%{F#")) == 0 && (m = s.find("}")) != string::npos) {
@@ -59,7 +59,7 @@ void builder::node(string str, bool add_space) {
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{B-}")) == 0) {
-      background_close(!m_lazy);
+      background_close(true);
       s.erase(0, 5);
 
     } else if ((n = s.find("%{B#")) == 0 && (m = s.find("}")) != string::npos) {
@@ -67,7 +67,7 @@ void builder::node(string str, bool add_space) {
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{T-}")) == 0) {
-      font_close(!m_lazy);
+      font_close(true);
       s.erase(0, 5);
 
     } else if ((n = s.find("%{T")) == 0 && (m = s.find("}")) != string::npos) {
@@ -75,7 +75,7 @@ void builder::node(string str, bool add_space) {
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{U-}")) == 0) {
-      line_color_close(!m_lazy);
+      line_color_close(true);
       s.erase(0, 5);
 
     } else if ((n = s.find("%{U#")) == 0 && (m = s.find("}")) != string::npos) {
