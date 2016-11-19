@@ -97,9 +97,21 @@ before_script:
   - cmake --version
   - mkdir -p "${TRAVIS_BUILD_DIR}/build"
   - cd "${TRAVIS_BUILD_DIR}/build"
-  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" ..
+  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DBUILD_TESTS:BOOL=ON ..
 
-script: make
+script:
+  - make
+  - |
+    for test in tests/unit_test.*; do
+      if [ -x $test ]; then
+        echo -n "${test##*/} ";
+        if $test; then
+          echo -e "\033[1;32mpassed\033[0m";
+        else
+          echo -e "\033[1;31mfailed\033[0m";
+        fi
+      fi
+    done
 
 notifications:
   irc:

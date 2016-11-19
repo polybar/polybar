@@ -3,6 +3,7 @@
 
 #include "components/logger.hpp"
 #include "utils/inotify.hpp"
+#include "utils/string.hpp"
 
 #define CONFIGURE_ARGS(T, V, Args) configure_##T<decltype(V)>(Args).create<decltype(V)>()
 #define CONFIGURE(T, V) configure_##T<decltype(V)>().create<decltype(V)>()
@@ -18,9 +19,9 @@ int main() {
     boost::shared_ptr<logger> instance4{CONFIGURE(logger, instance4)};
     // clang-format on
 
-    string mem_addr1{string_util::from_stream(std::stringstream() << &instance1)};
-    string mem_addr2{string_util::from_stream(std::stringstream() << &instance2)};
-    string mem_addr3{string_util::from_stream(std::stringstream() << instance3.get())};
+    string mem_addr1{string_util::from_stream(stringstream() << &instance1)};
+    string mem_addr2{string_util::from_stream(stringstream() << &instance2)};
+    string mem_addr3{string_util::from_stream(stringstream() << instance3.get())};
 
     expect(mem_addr1 == mem_addr2);
     expect(mem_addr2 == mem_addr3);
@@ -28,10 +29,10 @@ int main() {
   };
 
   "unique"_test = [] {
-    unique_ptr<inotify_watch> instance1{inotify_util::make_watch("A")};
-    unique_ptr<inotify_watch> instance2{inotify_util::make_watch("B")};
-    shared_ptr<inotify_watch> instance3{inotify_util::make_watch("B")};
-    shared_ptr<inotify_watch> instance4{inotify_util::make_watch("B")};
+    inotify_util::watch_t instance1{inotify_util::make_watch("A")};
+    inotify_util::watch_t instance2{inotify_util::make_watch("B")};
+    inotify_util::watch_t instance3{inotify_util::make_watch("B")};
+    inotify_util::watch_t instance4{inotify_util::make_watch("B")};
 
     expect(instance1.get() != instance2.get());
     expect(instance2.get() != instance3.get());

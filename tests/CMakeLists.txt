@@ -9,6 +9,7 @@ include_directories(${APP_INCLUDE_DIRS})
 function(unit_test file)
   string(REPLACE "/" "_" testname ${file})
   add_executable(unit_test.${testname} ${CMAKE_CURRENT_LIST_DIR}/unit_tests/${file}.cpp)
+  target_link_libraries(unit_test.${testname} ${APP_LIBRARIES})
   add_test(unit_test.${testname} unit_test.${testname})
 endfunction()
 

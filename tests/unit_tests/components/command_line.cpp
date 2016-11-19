@@ -3,7 +3,6 @@
 
 int main() {
   using namespace polybar;
-  using cli_parser = command_line::parser;
 
   // clang-format off
   const command_line::options opts{
@@ -13,60 +12,60 @@ int main() {
   // clang-format on
 
   "has_short"_test = [&opts] {
-    auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("-f", ' '));
     expect(cli.has("flag"));
     expect(!cli.has("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("-f -o foo", ' '));
     expect(cli.has("flag"));
     expect(cli.has("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("-o baz", ' '));
     expect(!cli.has("flag"));
     expect(cli.has("option"));
   };
 
   "has_long"_test = [&opts] {
-    auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--flag", ' '));
     expect(cli.has("flag"));
     expect(!cli.has("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--flag --option=foo", ' '));
     expect(cli.has("flag"));
     expect(cli.has("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--option=foo --flag", ' '));
     expect(cli.has("flag"));
     expect(cli.has("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--option=baz", ' '));
     expect(!cli.has("flag"));
     expect(cli.has("option"));
   };
 
   "compare"_test = [&opts] {
-    auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("-o baz", ' '));
     expect(cli.compare("option", "baz"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--option=foo", ' '));
     expect(cli.compare("option", "foo"));
   };
 
   "get"_test = [&opts] {
-    auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--option=baz", ' '));
     expect("baz" == cli.get("option"));
 
-    cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+    cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
     cli.process_input(string_util::split("--option=foo", ' '));
     expect("foo" == cli.get("option"));
   };
@@ -78,7 +77,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input1);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -88,7 +87,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input2);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -98,7 +97,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input3);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -113,7 +112,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input1);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -123,7 +122,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input2);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -138,7 +137,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input1);
     } catch (const command_line::argument_error&) {
       exception_thrown = true;
@@ -148,7 +147,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = configure_cli_parser<cli_parser>("cmd", opts).create<cli_parser>();
+      auto cli = configure_cliparser<cliparser>("cmd", opts).create<cliparser>();
       cli.process_input(input2);
     } catch (const command_line::argument_error&) {
       exception_thrown = true;
