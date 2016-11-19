@@ -2,7 +2,7 @@
 
 #include "modules/meta.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   class date_module : public timer_module<date_module> {
@@ -27,4 +27,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

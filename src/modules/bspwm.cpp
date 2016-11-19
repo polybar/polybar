@@ -2,7 +2,7 @@
 
 #include "modules/bspwm.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void bspwm_module::setup() {  // {{{
@@ -392,4 +392,4 @@ namespace modules {
   }  // }}}
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

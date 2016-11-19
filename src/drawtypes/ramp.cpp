@@ -1,7 +1,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   void ramp::add(icon_t&& icon) {
@@ -48,4 +48,4 @@ namespace drawtypes {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

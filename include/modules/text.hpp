@@ -2,7 +2,7 @@
 
 #include "modules/meta.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   class text_module : public static_module<text_module> {
@@ -15,4 +15,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

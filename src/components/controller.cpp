@@ -42,7 +42,7 @@
 #include "modules/volume.hpp"
 #endif
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using namespace modules;
 
@@ -547,4 +547,4 @@ void controller::on_update() {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

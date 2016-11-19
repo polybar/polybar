@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace socket_util {
   class unix_connection {
@@ -41,4 +41,4 @@ namespace socket_util {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

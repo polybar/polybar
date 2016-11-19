@@ -6,7 +6,7 @@
 #include "config.hpp"
 #include "drawtypes/label.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define DEFAULT_SPACING -1
 
@@ -94,4 +94,4 @@ class builder {
   int m_fontindex = 1;
 };
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

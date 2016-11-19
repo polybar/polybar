@@ -1,6 +1,6 @@
 #include "x11/icccm.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace icccm_util {
   string get_wm_name(xcb_connection_t* conn, xcb_window_t win) {
@@ -20,4 +20,4 @@ namespace icccm_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -1,7 +1,7 @@
 #include "utils/scope.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "on_exit"_test = [] {
     auto flag = false;

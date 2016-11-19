@@ -13,7 +13,7 @@
 
 #define MAX_LINEAR_DB_SCALE 24
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 DEFINE_ERROR(alsa_exception);
 DEFINE_CHILD_ERROR(alsa_ctl_interface_error, alsa_exception);
@@ -85,4 +85,4 @@ class alsa_mixer {
 
 // }}}
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

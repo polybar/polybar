@@ -3,7 +3,7 @@
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace process_util {
   /**
@@ -111,4 +111,4 @@ namespace process_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

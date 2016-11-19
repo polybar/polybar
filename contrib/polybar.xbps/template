@@ -1,5 +1,5 @@
-# Template file for 'lemonbuddy'
-pkgname=lemonbuddy
+# Template file for 'polybar'
+pkgname=polybar
 version=2.1.9
 revision=1
 wrksrc="${pkgname}-${version}"
@@ -24,9 +24,9 @@ makedepends="libxcb-devel libXft-devel xcb-util-wm-devel boost-devel
 short_desc="A fast and easy-to-use status bar"
 maintainer="Michael Carlberg <c@rlberg.se>"
 license="MIT"
-homepage="https://github.com/jaagr/lemonbuddy"
+homepage="https://github.com/jaagr/polybar"
 distfiles="
-	https://github.com/jaagr/lemonbuddy/archive/${version}.tar.gz
+	https://github.com/jaagr/polybar/archive/${version}.tar.gz
 	https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
 	$(vopt_if i3 "https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz")"
 checksum="

@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace math_util {
   /**
@@ -43,4 +43,4 @@ namespace math_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

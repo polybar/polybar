@@ -104,9 +104,8 @@ script: make
 notifications:
   irc:
     channels:
-      - "irc.freenode.net#lemonbuddy"
+      - "irc.freenode.org#polybar"
     template:
       - "%{author} pushed #%{commit} \"%{commit_subject}\" -> %{repository_name}/%{branch}"
       - "Build #%{build_number}: %{result} // Compare at %{compare_url}"
-    use_notice: true
     skip_join: true

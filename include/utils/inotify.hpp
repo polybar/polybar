@@ -6,7 +6,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 struct inotify_event {
   string filename;
@@ -41,4 +41,4 @@ namespace inotify_util {
   watch_t make_watch(string path);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

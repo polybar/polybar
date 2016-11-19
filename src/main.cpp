@@ -9,7 +9,7 @@
 #include "config.hpp"
 #include "utils/inotify.hpp"
 
-using namespace lemonbuddy;
+using namespace polybar;
 
 int main(int argc, char** argv) {
   XInitThreads();
@@ -82,9 +82,9 @@ int main(int argc, char** argv) {
       if (cli.has("config"))
         conf.load(cli.get("config"), args[0]);
       else if (has_env("XDG_CONFIG_HOME"))
-        conf.load(read_env("XDG_CONFIG_HOME") + "/lemonbuddy/config", args[0]);
+        conf.load(read_env("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
       else if (has_env("HOME"))
-        conf.load(read_env("HOME") + "/.config/lemonbuddy/config", args[0]);
+        conf.load(read_env("HOME") + "/.config/polybar/config", args[0]);
       else
         throw application_error("Define configuration using --config=PATH");
 

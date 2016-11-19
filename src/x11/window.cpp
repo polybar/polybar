@@ -7,7 +7,7 @@
 
 #include "components/types.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Create window and check for errors
@@ -120,4 +120,4 @@ void window::redraw() {
   conn.flush();
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

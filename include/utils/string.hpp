@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace string_util {
   /**
@@ -34,4 +34,4 @@ namespace string_util {
   hash_type hash(string src);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

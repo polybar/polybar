@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace ewmh_util {
   bool setup(connection& conn, xcb_ewmh_connection_t* dst);
@@ -18,4 +18,4 @@ namespace ewmh_util {
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

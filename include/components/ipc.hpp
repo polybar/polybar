@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "components/logger.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Message types
@@ -67,4 +67,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

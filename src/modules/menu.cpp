@@ -1,7 +1,7 @@
 #include "modules/menu.hpp"
 #include "utils/scope.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void menu_module::setup() {
@@ -112,4 +112,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -9,7 +9,7 @@
 #include "common.hpp"
 #include "components/logger.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace mpd {
   DEFINE_ERROR(mpd_exception);
@@ -168,4 +168,4 @@ namespace mpd {
   // }}}
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

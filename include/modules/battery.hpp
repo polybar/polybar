@@ -10,7 +10,7 @@
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   enum class battery_state { NONE = 0, UNKNOWN, CHARGING, DISCHARGING, FULL };
@@ -65,4 +65,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

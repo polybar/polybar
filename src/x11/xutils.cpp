@@ -2,7 +2,7 @@
 #include "x11/connection.hpp"
 #include "x11/xlib.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace xutils {
   xcb_connection_t* g_connection_ptr = nullptr;
@@ -47,4 +47,4 @@ namespace xutils {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "components/logger.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace throttle_util {
   using timewindow = chrono::duration<double, std::milli>;
@@ -86,4 +86,4 @@ namespace throttle_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

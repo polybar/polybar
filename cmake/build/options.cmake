@@ -79,7 +79,7 @@ set(SETTING_PATH_MEMORY_INFO "/proc/meminfo"
   CACHE STRING "Path to file containing memory info")
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
-set(SETTING_PATH_MESSAGING_FIFO "/tmp/lemonbuddy_mqueue.%pid%"
+set(SETTING_PATH_MESSAGING_FIFO "/tmp/polybar_mqueue.%pid%"
   CACHE STRING "Path to file containing the current temperature")
 
 # }}}

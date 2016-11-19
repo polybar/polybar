@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace mtab_util {
   /**
@@ -33,4 +33,4 @@ namespace mtab_util {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

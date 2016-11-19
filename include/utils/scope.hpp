@@ -4,7 +4,7 @@
 
 #include "components/logger.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace scope_util {
   template <typename... Args>
@@ -38,4 +38,4 @@ namespace scope_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

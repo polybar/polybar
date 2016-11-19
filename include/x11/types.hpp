@@ -19,7 +19,7 @@
 #include "common.hpp"
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 // xpp types {{{
 
@@ -116,4 +116,4 @@ namespace evt {
 #endif
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

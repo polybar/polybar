@@ -3,7 +3,7 @@
 #
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-project(lemonbuddy C CXX)
+project(polybar C CXX)
 
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}

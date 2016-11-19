@@ -1,7 +1,7 @@
 #include "utils/math.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "cap"_test = [] {
     expect(math_util::cap<int>(8, 0, 10) == 8);

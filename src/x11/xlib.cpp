@@ -1,6 +1,6 @@
 #include "x11/xlib.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace xlib {
   Display* g_display = nullptr;
@@ -28,4 +28,4 @@ namespace xlib {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

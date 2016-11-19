@@ -2,7 +2,7 @@
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void temperature_module::setup() {
@@ -63,4 +63,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

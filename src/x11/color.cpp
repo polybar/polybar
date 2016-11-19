@@ -4,7 +4,7 @@
 #include "utils/string.hpp"
 #include "x11/color.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 map<string, color> g_colorstore;
 color g_colorempty{"#00000000"};
@@ -73,4 +73,4 @@ color color::parse(string input) {
   return parse(input, g_colorempty);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

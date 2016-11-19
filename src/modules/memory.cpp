@@ -1,6 +1,6 @@
 #include "modules/memory.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void memory_module::setup() {
@@ -92,4 +92,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

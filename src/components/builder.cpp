@@ -2,7 +2,7 @@
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 void builder::set_lazy(bool mode) {
   m_lazy = mode;
@@ -412,4 +412,4 @@ void builder::tag_close(char tag) {
   append("%{" + string({tag}) + "-}");
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

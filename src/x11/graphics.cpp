@@ -6,7 +6,7 @@
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace graphics_util {
   /**
@@ -112,4 +112,4 @@ namespace graphics_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

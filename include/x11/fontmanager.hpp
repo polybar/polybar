@@ -11,7 +11,7 @@
 #include "x11/types.hpp"
 #include "x11/xlib.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define XFT_MAXCHARS (1 << 16)
 extern array<char, XFT_MAXCHARS> xft_widths;
@@ -89,4 +89,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -1,6 +1,6 @@
 #include "modules/date.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void date_module::setup() {
@@ -60,4 +60,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

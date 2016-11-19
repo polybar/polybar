@@ -1,0 +1,48 @@
+.TH polybar 1 2016-10-18 "polybar 2.0.0" "User Manual"
+.SH NAME
+\fBpolybar\fR \- A fast and easy-to-use tool status bar.
+.SH SYNOPSIS
+.P
+polybar \fIBAR-NAME\fR [\fB\-c\fR \fICONFIG\fR|\fB\-l\fR \fILOG_LEVEL\fR|\fB\-d\fR \fIPARAM\fR|\fB\f-q\fR|\fB\-r\fR|\fB\f-s\fR|\fB\-w\fR]
+.P
+polybar [\fB\-h\fR | \fB\-\-help\fR]
+.SH DESCRIPTION
+\fBPolybar\fR aims to help users build beautiful and highly customizable status bars without messing with named pipes, MacGyver-like scripting or non-blocking loops lobotomizing your CPU.
+.P
+Please not that the project is still in early development, so please report any anomalies by creating an issue on GitHub (\fIhttps://github.com/jaagr/polybar\fR).
+.P
+Mandatory arguments to long options are mandatory for short options too.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help and program options.
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Print version information.
+.TP
+\fB\-l\fR, \fB\-\-log\fR=\fILEVEL\fR
+Set how verbose \fBpolybar\fR's logging is. \fILEVEL\fR must be one of: `warning` or `info`.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Be quiet (will override -l).
+.TP
+\fB\-c\fR, \fB\-\-config\fR=\fICONFIG\fR
+Specify the path to the configuration file. By default, configuration files are read from \fI$XDG_CONFIG_HOME/.config/polybar\fR. When the \fI$XDG_CONFIG_HOME\fR variable is absent, then \fI~/.config/polybar\fR directory is used instead.
+.TP
+\fB\-r\fR, \fB\-\-reload\fR
+Reload the application when the config file has been modified. (NOTE: Its recommended to only use this when setting up the bar).
+.TP
+\fB\-d\fR, \fB\-\-dump\fR=\fIPARAM\fR
+Show the value of the specified parameter \fIPARAM\fR in the section [bar/\fIBAR-NAME\fR] inside the configuration file.
+.TP
+\fB\-w\fR, \fB\-\-print\-wmname\fR
+Print the generated \fIWM_NAME\fR.
+.TP
+\fB\-s\fR, \fB\-\-stdout\fR
+Dump content to stdout instead of rendering an X window.
+.SH SEE ALSO
+.TP
+\fBpolybar_config\fR(5)
+.RE
+.SH HOMEPAGE
+.sp
+https://github.com/jaagr/polybar

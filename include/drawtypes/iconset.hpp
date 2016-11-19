@@ -4,7 +4,7 @@
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   class iconset : public non_copyable_mixin<iconset> {
@@ -21,4 +21,4 @@ namespace drawtypes {
   using iconset_t = shared_ptr<iconset>;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

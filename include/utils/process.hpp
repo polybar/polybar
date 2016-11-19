@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace process_util {
   bool in_parent_process(pid_t pid);
@@ -22,4 +22,4 @@ namespace process_util {
   void unblock_signal(int sig);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

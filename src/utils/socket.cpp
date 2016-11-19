@@ -7,7 +7,7 @@
 #include "utils/mixins.hpp"
 #include "utils/socket.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using std::snprintf;
 using std::strlen;
@@ -94,4 +94,4 @@ namespace socket_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

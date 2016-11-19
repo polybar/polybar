@@ -5,7 +5,7 @@ struct mytype {
 };
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "make_malloc_ptr"_test = [] {
     auto ptr = memory_util::make_malloc_ptr<mytype>();

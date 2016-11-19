@@ -5,7 +5,7 @@
 #include "utils/io.hpp"
 #include "utils/process.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace command_util {
   command::command(const logger& logger, string cmd)
@@ -183,4 +183,4 @@ namespace command_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

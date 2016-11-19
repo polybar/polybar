@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 enum class loglevel {
   NONE = 0,
@@ -135,10 +135,10 @@ class logger {
    */
   // clang-format off
   map<loglevel, string> m_prefixes {
-    {loglevel::TRACE,   "lemonbuddy|trace  "},
-    {loglevel::INFO,    "lemonbuddy|info   "},
-    {loglevel::WARNING, "lemonbuddy|warn   "},
-    {loglevel::ERROR,   "lemonbuddy|error  "},
+    {loglevel::TRACE,   "polybar|trace  "},
+    {loglevel::INFO,    "polybar|info   "},
+    {loglevel::WARNING, "polybar|warn   "},
+    {loglevel::ERROR,   "polybar|error  "},
   };
 
   /**
@@ -164,4 +164,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

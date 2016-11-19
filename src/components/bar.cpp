@@ -19,7 +19,7 @@
 #include "utils/i3.hpp"
 #endif
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Cleanup signal handlers and destroy the bar window
@@ -123,7 +123,7 @@ void bar::bootstrap(bool nodraw) {
   // Set the WM_NAME value {{{
   // Required early for --print-wmname
 
-  m_opts.wmname = "lemonbuddy-" + bs.substr(4) + "_" + m_opts.monitor->name;
+  m_opts.wmname = "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name;
   m_opts.wmname = m_conf.get<string>(bs, "wm-name", m_opts.wmname);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
@@ -707,7 +707,7 @@ void bar::map_window() {
 void bar::set_wmhints() {
   m_log.trace("bar: Set WM_NAME");
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.length(), m_opts.wmname.c_str());
-  xcb_icccm_set_wm_class(m_connection, m_window, 21, "lemonbuddy\0Lemonbuddy");
+  xcb_icccm_set_wm_class(m_connection, m_window, 15, "polybar\0Polybar");
 
   m_log.trace("bar: Set WM_NORMAL_HINTS");
   xcb_size_hints_t hints;
@@ -1206,4 +1206,4 @@ void bar::draw_textstring(const char* text, size_t len) {  // {{{
   }
 }  // }}}
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

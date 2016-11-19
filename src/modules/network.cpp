@@ -1,6 +1,6 @@
 #include "modules/network.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void network_module::setup() {
@@ -161,4 +161,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

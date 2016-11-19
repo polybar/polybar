@@ -3,7 +3,7 @@
 #include "x11/xlib.hpp"
 #include "x11/xresources.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 xresource_manager::xresource_manager() {
   XrmInitialize();
@@ -52,4 +52,4 @@ string xresource_manager::load_value(string key, string res_type, size_t n) cons
   return "";
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -12,7 +12,7 @@
 #include "utils/string.hpp"
 #include "utils/threading.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define DEFAULT_FORMAT "format"
 
@@ -541,4 +541,4 @@ namespace modules {
   // }}}
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

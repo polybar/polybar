@@ -4,7 +4,7 @@
 #include "components/config.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * TODO: Remove icon_t
@@ -72,4 +72,4 @@ namespace drawtypes {
   icon_t load_optional_icon(const config& conf, string section, string name, string def = "");
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

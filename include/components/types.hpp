@@ -4,7 +4,7 @@
 #include "x11/color.hpp"
 #include "x11/randr.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 enum class border { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
@@ -90,7 +90,7 @@ struct bar_settings {
 
 struct border_settings {
   border_settings() = default;
-  lemonbuddy::color color{g_colorblack};
+  polybar::color color{g_colorblack};
   uint16_t size{0};
 };
 
@@ -109,4 +109,4 @@ struct action_block {
 
 struct wmsettings_bspwm {};
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

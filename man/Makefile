@@ -1,7 +1,7 @@
 .PHONY: all release update-dates update-versions clean
 
 # Constant declarations
-PROGRAM_NAME = lemonbuddy
+PROGRAM_NAME = polybar
 VERSION = $(shell git describe --tags)
 DATE = $(shell date +%Y-%m-%d)
 
@@ -28,10 +28,10 @@ update-dates:
 	@echo '[GZ] $(notdir $@)'
 	@gzip -c $< > $@
 
-lemonbuddy: lemonbuddy.1
+polybar: polybar.1
 	mandoc -a $<
 
-lemonbuddy_config: lemonbuddy_config.5
+polybar_config: polybar_config.5
 	mandoc -a $<
 
 clean:

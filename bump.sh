@@ -18,12 +18,12 @@ tag_prev="${tag_curr%.*}.$((tag_curr_patch-1))"
 
 sed -r "s/${tag_prev}/${tag_curr}/g" -i \
   README.md CMakeLists.txt \
-  contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO \
-  contrib/lemonbuddy-git.aur/PKGBUILD contrib/lemonbuddy-git.aur/.SRCINFO
+  contrib/polybar.aur/PKGBUILD contrib/polybar.aur/.SRCINFO \
+  contrib/polybar-git.aur/PKGBUILD contrib/polybar-git.aur/.SRCINFO
 
 git add -u README.md CMakeLists.txt \
-  contrib/lemonbuddy.aur/PKGBUILD contrib/lemonbuddy.aur/.SRCINFO \
-  contrib/lemonbuddy-git.aur/PKGBUILD contrib/lemonbuddy-git.aur/.SRCINFO \
+  contrib/polybar.aur/PKGBUILD contrib/polybar.aur/.SRCINFO \
+  contrib/polybar-git.aur/PKGBUILD contrib/polybar-git.aur/.SRCINFO \
   include/version.hpp
 
 git commit -m "build: Bump version to ${tag_curr}"

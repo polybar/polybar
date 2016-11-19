@@ -54,7 +54,7 @@ configure_file(
   ESCAPE_QUOTES @ONLY)
 
 install(FILES config
-  DESTINATION share/examples/lemonbuddy
+  DESTINATION share/examples/polybar
   COMPONENT config)
 
 # }}}

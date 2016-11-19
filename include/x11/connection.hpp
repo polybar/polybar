@@ -13,7 +13,7 @@
 #include "x11/types.hpp"
 #include "x11/xutils.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using xpp_connection = xpp::connection<
 #ifdef ENABLE_DAMAGE_EXT
@@ -97,4 +97,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "utils/color.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 class color {
  public:
@@ -31,4 +31,4 @@ extern color g_colorempty;
 extern color g_colorblack;
 extern color g_colorwhite;
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

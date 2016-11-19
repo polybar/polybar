@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace xlib {
   extern Display* g_display;
@@ -37,4 +37,4 @@ namespace xlib {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

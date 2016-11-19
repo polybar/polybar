@@ -11,7 +11,7 @@
 #include "common.hpp"
 #include "config.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace net {
   DEFINE_ERROR(network_error);
@@ -118,4 +118,4 @@ namespace net {
   using wired_t = unique_ptr<wired_network>;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

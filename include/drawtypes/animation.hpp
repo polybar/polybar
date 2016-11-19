@@ -5,7 +5,7 @@
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   class animation : public non_copyable_mixin<animation> {
@@ -38,4 +38,4 @@ namespace drawtypes {
       const config& conf, string section, string name = "animation", bool required = true);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

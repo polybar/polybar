@@ -26,7 +26,7 @@
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace net {
   /**
@@ -372,4 +372,4 @@ namespace net {
   // }}}
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

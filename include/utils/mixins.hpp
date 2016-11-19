@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Base class for non copyable objects
@@ -32,4 +32,4 @@ class non_movable_mixin {
   non_movable_mixin& operator=(non_movable_mixin&&);
 };
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

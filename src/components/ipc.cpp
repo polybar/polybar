@@ -7,7 +7,7 @@
 #include "utils/io.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Interrupt the blocked listener and
@@ -115,4 +115,4 @@ void ipc::delegate(const ipc_action& message) const {
     m_log.warn("Unhandled message (payload=%s)", message.payload);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

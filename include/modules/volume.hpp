@@ -8,7 +8,7 @@
 #include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
@@ -66,4 +66,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

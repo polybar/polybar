@@ -1,7 +1,7 @@
 #include "drawtypes/progressbar.hpp"
 #include "utils/math.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   void progressbar::set_fill(icon_t&& fill) {
@@ -125,4 +125,4 @@ namespace drawtypes {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

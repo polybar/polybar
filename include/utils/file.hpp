@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace file_util {
   /**
@@ -34,4 +34,4 @@ namespace file_util {
   bool is_fifo(string filename);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

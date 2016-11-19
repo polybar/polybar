@@ -1,7 +1,7 @@
 #include "utils/inotify.hpp"
 #include "utils/memory.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace inotify_util {
   /**
@@ -92,4 +92,4 @@ namespace inotify_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

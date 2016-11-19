@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 class connection;
 
@@ -26,4 +26,4 @@ namespace graphics_util {
   bool get_root_pixmap(connection& conn, root_pixmap* rpix);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

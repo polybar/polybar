@@ -3,7 +3,7 @@
 #include "x11/color.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "color"_test = [] {
     color test{"#33990022"};

@@ -20,13 +20,13 @@
 
 #include "config.hpp"
 
-#define LEMONBUDDY_NS    \
-  namespace lemonbuddy { \
+#define POLYBAR_NS    \
+  namespace polybar { \
     inline namespace v2_0_0 {
-#define LEMONBUDDY_NS_END \
+#define POLYBAR_NS_END \
   }                       \
   }
-#define LEMONBUDDY_NS_PATH "lemonbuddy::v2_0_0"
+#define POLYBAR_NS_PATH "polybar::v2_0_0"
 
 #define PIPE_READ 0
 #define PIPE_WRITE 1
@@ -35,7 +35,7 @@
 #include "debug.hpp"
 #endif
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 //==================================================
 // Include common types (i.e, unclutter editor!)
@@ -142,4 +142,4 @@ auto time_execution(const T& expr) noexcept {
 template <typename... Args>
 using callback = function<void(Args...)>;
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

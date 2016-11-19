@@ -8,7 +8,7 @@
 #define CONFIGURE(T, V) configure_##T<decltype(V)>().create<decltype(V)>()
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "singleton"_test = [] {
     // clang-format off

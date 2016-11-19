@@ -8,7 +8,7 @@
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace i3_util {
   /**
@@ -57,4 +57,4 @@ namespace i3_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

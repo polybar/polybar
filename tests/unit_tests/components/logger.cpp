@@ -1,7 +1,7 @@
 #include "components/logger.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "output"_test = [] {
     auto l = logger::configure<logger>(loglevel::TRACE).create<logger>();

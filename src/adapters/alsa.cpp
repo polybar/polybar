@@ -1,6 +1,6 @@
 #include "adapters/alsa.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 // class : alsa_ctl_interface {{{
 
@@ -264,4 +264,4 @@ bool alsa_mixer::is_muted() {
 
 // }}}
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

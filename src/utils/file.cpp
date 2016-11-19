@@ -6,7 +6,7 @@
 #include <fstream>
 #include "utils/scope.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace file_util {
   /**
@@ -84,4 +84,4 @@ namespace file_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

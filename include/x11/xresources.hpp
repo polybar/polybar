@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 class xresource_manager {
  public:
@@ -33,4 +33,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

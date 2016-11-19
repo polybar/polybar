@@ -3,7 +3,7 @@
 #include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   struct menu_tree_item {
@@ -41,4 +41,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

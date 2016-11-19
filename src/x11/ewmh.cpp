@@ -1,6 +1,6 @@
 #include "x11/ewmh.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace ewmh_util {
   bool setup(connection& conn, xcb_ewmh_connection_t* dst) {
@@ -61,4 +61,4 @@ namespace ewmh_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

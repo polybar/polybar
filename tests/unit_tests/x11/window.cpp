@@ -1,7 +1,7 @@
 #include "x11/window.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "cw_create"_test = [] {
     // clang-format off

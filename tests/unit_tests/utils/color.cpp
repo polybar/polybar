@@ -2,7 +2,7 @@
 #include "utils/color.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "rgb"_test = []{
     uint32_t color{0x123456};

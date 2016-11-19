@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "components/types.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * @TODO: Allow multiple signal handlers
@@ -35,4 +35,4 @@ namespace g_signals {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

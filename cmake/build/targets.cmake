@@ -17,11 +17,11 @@ add_custom_target(userconfig COMMAND ${CMAKE_COMMAND}
 
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake/templates/uninstall.cmake.in
-  ${PROJECT_BINARY_DIR}/uninstall.cmake
+  ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake
   IMMEDIATE @ONLY)
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND}
-  -P ${PROJECT_BINARY_DIR}/cuninstall.cmake)
+  -P ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake)
 
 # }}}
 # Target: clang-format {{{

@@ -2,7 +2,7 @@
 
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Preload required xcb atoms
@@ -144,4 +144,4 @@ void connection::dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) cons
   m_registry.dispatch(evt);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

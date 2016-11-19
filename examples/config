@@ -1,7 +1,7 @@
 ;=====================================================
 ;
-;   To learn more about how to configure Lemonbuddy
-;   go to https://github.com/jaagr/lemonbuddy
+;   To learn more about how to configure Polybar
+;   go to https://github.com/jaagr/polybar
 ;
 ;   The README contains alot of information
 ;

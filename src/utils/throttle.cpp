@@ -1,6 +1,6 @@
 #include "utils/throttle.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace throttle_util {
   namespace strategy {
@@ -30,4 +30,4 @@ namespace throttle_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

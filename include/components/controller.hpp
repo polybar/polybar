@@ -12,7 +12,7 @@
 #include "x11/connection.hpp"
 #include "x11/types.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 class controller {
  public:
@@ -90,4 +90,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

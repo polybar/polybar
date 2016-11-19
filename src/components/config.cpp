@@ -1,7 +1,7 @@
 #include "components/config.hpp"
 #include "utils/file.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Load configuration and validate bar section
@@ -68,4 +68,4 @@ string config::build_path(const string& section, const string& key) const {
   return section + "." + key;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

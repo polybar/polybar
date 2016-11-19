@@ -1,7 +1,7 @@
 #include "components/eventloop.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Deconstruct eventloop
@@ -237,4 +237,4 @@ void eventloop::on_quit() {
   m_running = false;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

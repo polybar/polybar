@@ -3,7 +3,7 @@
 
 #include "components/command_line.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Print application usage message
@@ -158,4 +158,4 @@ void cliparser::parse(string input, string input_next) {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

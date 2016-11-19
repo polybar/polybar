@@ -6,7 +6,7 @@
 #include "components/logger.hpp"
 #include "modules/meta.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using module_t = unique_ptr<modules::module_interface>;
 using modulemap_t = map<alignment, vector<module_t>>;
@@ -73,4 +73,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

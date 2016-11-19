@@ -7,7 +7,7 @@
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   class progressbar : public non_copyable_mixin<progressbar> {
@@ -48,4 +48,4 @@ namespace drawtypes {
       const bar_settings& bar, const config& conf, string section, string name);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

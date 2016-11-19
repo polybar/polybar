@@ -16,7 +16,7 @@
     }                                                                                   \
   }
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
 #if not ENABLE_I3
@@ -33,4 +33,4 @@ namespace modules {
 #endif
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

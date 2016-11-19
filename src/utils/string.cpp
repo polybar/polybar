@@ -3,7 +3,7 @@
 
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace string_util {
   /**
@@ -213,4 +213,4 @@ namespace string_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

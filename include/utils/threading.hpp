@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace threading_util {
   namespace locking_strategy {
@@ -59,4 +59,4 @@ namespace threading_util {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

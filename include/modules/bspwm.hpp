@@ -5,7 +5,7 @@
 #include "modules/meta.hpp"
 #include "utils/bspwm.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   enum class state_ws {
@@ -85,4 +85,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -5,7 +5,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 class connection;
 
@@ -20,4 +20,4 @@ namespace xutils {
   void visibility_notify(connection& conn, const xcb_window_t& win, xcb_visibility_t state);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

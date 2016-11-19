@@ -6,7 +6,7 @@
 #include "utils/string.hpp"
 #include "x11/xlib.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace color_util {
   template <typename T = uint8_t>
@@ -92,4 +92,4 @@ namespace color_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

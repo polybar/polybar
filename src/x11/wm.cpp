@@ -3,7 +3,7 @@
 #include "x11/atoms.hpp"
 #include "x11/wm.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace wm_util {
   void set_wmname(connection& conn, xcb_window_t win, string wm_name, string wm_class) {
@@ -47,4 +47,4 @@ namespace wm_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

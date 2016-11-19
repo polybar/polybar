@@ -4,7 +4,7 @@
 #include "components/signals.hpp"
 #include "components/types.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 DEFINE_ERROR(unrecognized_token);
 
@@ -27,4 +27,4 @@ class parser {
   vector<int> m_actions;
 };
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

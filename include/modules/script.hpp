@@ -3,7 +3,7 @@
 #include "modules/meta.hpp"
 #include "utils/command.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define OUTPUT_ACTION(BUTTON)     \
   if (!m_actions[BUTTON].empty()) \
@@ -40,4 +40,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

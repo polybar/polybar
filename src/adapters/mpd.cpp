@@ -1,7 +1,7 @@
 #include "adapters/mpd.hpp"
 #include "utils/math.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace mpd {
   void check_connection(mpd_connection* conn) {
@@ -416,4 +416,4 @@ namespace mpd {
   // }}}
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

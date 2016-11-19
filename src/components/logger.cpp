@@ -1,7 +1,7 @@
 #include "components/logger.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Construct logger
@@ -55,4 +55,4 @@ loglevel parse_loglevel_name(string name) {
     return loglevel::NONE;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

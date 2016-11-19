@@ -1,7 +1,7 @@
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   void animation::add(icon_t&& frame) {
@@ -59,4 +59,4 @@ namespace drawtypes {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

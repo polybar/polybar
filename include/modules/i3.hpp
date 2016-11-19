@@ -10,7 +10,7 @@
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   // meta types {{{
@@ -79,4 +79,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

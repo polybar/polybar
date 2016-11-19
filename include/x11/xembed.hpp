@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define XEMBED_VERSION 0
 #define XEMBED_MAPPED (1 << 0)
@@ -43,4 +43,4 @@ namespace xembed {
   void unembed(connection& conn, xcb_window_t win, xcb_window_t root);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

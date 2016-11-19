@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace io_util {
   string read(int read_fd, int bytes_to_read, int& bytes_read_loc, int& status_loc);
@@ -23,4 +23,4 @@ namespace io_util {
   bool interrupt_read(int write_fd);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

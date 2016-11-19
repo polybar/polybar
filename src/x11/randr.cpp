@@ -1,6 +1,6 @@
 #include "x11/randr.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace randr_util {
   /**
@@ -121,4 +121,4 @@ namespace randr_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -15,10 +15,10 @@
 #define SYSTEM_TRAY_BEGIN_MESSAGE 1
 #define SYSTEM_TRAY_CANCEL_MESSAGE 2
 
-#define TRAY_WM_NAME "Lemonbuddy tray window"
-#define TRAY_WM_CLASS "tray\0Lemonbuddy"
+#define TRAY_WM_NAME "Polybar tray window"
+#define TRAY_WM_CLASS "tray\0Polybar"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 // fwd declarations
 class connection;
@@ -185,4 +185,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

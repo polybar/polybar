@@ -4,7 +4,7 @@
 #include "components/logger.hpp"
 #include "utils/threading.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace command_util {
   DEFINE_ERROR(command_error);
@@ -83,4 +83,4 @@ namespace command_util {
 using command = command_util::command;
 using command_t = command_util::command_t;
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

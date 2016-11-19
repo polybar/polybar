@@ -1,6 +1,6 @@
 #include "components/signals.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Signals used to communicate with the bar window
@@ -29,4 +29,4 @@ callback<const char*, size_t> g_signals::parser::string_write = nullptr;
  */
 callback<uint16_t> g_signals::tray::report_slotcount = nullptr;
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

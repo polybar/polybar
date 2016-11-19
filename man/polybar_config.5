@@ -1,12 +1,12 @@
-.TH lemonbuddy_config 5 2016-10-18 "lemonbuddy 2.0.0" "User Configuration"
+.TH polybar_config 5 2016-10-18 "polybar 2.0.0" "User Configuration"
 .SH NAME
-.\" This man page will need lots of updating as documentation about lemonbuddy
+.\" This man page will need lots of updating as documentation about polybar
 .\" configuration improves.
-\fBlemonbuddy_config\fR \- Configuration for a \fBlemonbuddy\fR(1) bar.
+\fBpolybar_config\fR \- Configuration for a \fBpolybar\fR(1) bar.
 .SH SYNOPSIS
-.BR $XDG_CONFIG_HOME/.config/lemonbuddy/config
+.BR $XDG_CONFIG_HOME/.config/polybar/config
 .P
-.BR ~/.config/lemonbuddy/config
+.BR ~/.config/polybar/config
 .SH SYNTAX
 .nf
 .TP
@@ -114,7 +114,7 @@ Specify the number of spaces to add before or after each module.
 Here you can specify which fonts you wish to use. You need to set \fIid\fR to be a positive integer. The font should be specified in the following format: `\fIFONT\-NAME\fR:size=\fIFONT\-SIZE\fR;\fIOFFSET\fR`. For example, you could set `font\-0` to be `NotoSans-Regular:size=8;0`.
 .TP
 .BR wm-name
-The value to set \fIWM_NAME\fR to when running. This defaults to `lemonbuddy\-\fIBAR-NAME\fR_\fIMONITOR\fR`.
+The value to set \fIWM_NAME\fR to when running. This defaults to `polybar\-\fIBAR-NAME\fR_\fIMONITOR\fR`.
 .TP
 .BR locale
 Which locale to use.
@@ -126,4 +126,4 @@ Define which modules to use in the bar.
 There are no examples yet.
 .SH SEE ALSO
 .TP
-\fBlemonbuddy\fR(1)
+\fBpolybar\fR(1)

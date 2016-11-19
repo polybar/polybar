@@ -12,7 +12,7 @@
 #include "x11/wm.hpp"
 #include "x11/xembed.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 // implementation : tray_client {{{
 
@@ -594,8 +594,8 @@ void tray_manager::restack_window() {  // {{{
  */
 void tray_manager::set_wmhints() {  // {{{
   m_log.trace("tray: Set window WM_NAME / WM_CLASS", m_connection.id(m_tray));
-  xcb_icccm_set_wm_name(m_connection, m_tray, XCB_ATOM_STRING, 8, 22, TRAY_WM_NAME);
-  xcb_icccm_set_wm_class(m_connection, m_tray, 15, TRAY_WM_CLASS);
+  xcb_icccm_set_wm_name(m_connection, m_tray, XCB_ATOM_STRING, 8, 19, TRAY_WM_NAME);
+  xcb_icccm_set_wm_class(m_connection, m_tray, 12, TRAY_WM_CLASS);
 
   m_log.trace("tray: Set window WM_PROTOCOLS");
   vector<xcb_atom_t> wm_flags;
@@ -1134,4 +1134,4 @@ void tray_manager::handle(const evt::unmap_notify& evt) {  // {{{
 
 // }}}
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

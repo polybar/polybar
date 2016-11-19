@@ -1,7 +1,7 @@
 #include "modules/battery.hpp"
 #include "utils/math.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void battery_module::setup() {
@@ -212,4 +212,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

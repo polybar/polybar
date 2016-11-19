@@ -5,7 +5,7 @@
 #include "utils/mtab.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   /**
@@ -140,4 +140,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

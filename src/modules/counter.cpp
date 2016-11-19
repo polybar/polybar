@@ -1,6 +1,6 @@
 #include "modules/counter.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void counter_module::setup() {
@@ -22,4 +22,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

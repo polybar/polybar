@@ -9,7 +9,7 @@
 #include "utils/string.hpp"
 #include "x11/xresources.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 #define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
 #define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
@@ -220,4 +220,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

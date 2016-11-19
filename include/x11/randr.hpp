@@ -10,7 +10,7 @@
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 struct backlight_values {
   uint32_t atom = 0;
@@ -50,4 +50,4 @@ namespace randr_util {
   void get_backlight_value(connection& conn, const monitor_t& mon, backlight_values& dst);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

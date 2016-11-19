@@ -1,6 +1,6 @@
 #include "x11/xembed.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace xembed {
   /**
@@ -96,4 +96,4 @@ namespace xembed {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

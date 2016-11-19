@@ -10,7 +10,7 @@
 #include "x11/icccm.hpp"
 #include "x11/window.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   /**
@@ -87,4 +87,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

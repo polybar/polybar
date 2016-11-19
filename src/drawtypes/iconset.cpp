@@ -1,6 +1,6 @@
 #include "drawtypes/iconset.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   void iconset::add(string id, icon_t&& icon) {
@@ -23,4 +23,4 @@ namespace drawtypes {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

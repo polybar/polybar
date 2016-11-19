@@ -11,7 +11,7 @@
 #include "x11/randr.hpp"
 #include "x11/window.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace bspwm_util {
   struct payload;
@@ -33,4 +33,4 @@ namespace bspwm_util {
   connection_t make_subscriber();
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

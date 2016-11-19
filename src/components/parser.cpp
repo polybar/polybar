@@ -2,7 +2,7 @@
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 /**
  * Parse input data
@@ -248,4 +248,4 @@ string parser::parse_action_cmd(string data) {
   return string_util::trim(data.substr(start, end), ':');
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

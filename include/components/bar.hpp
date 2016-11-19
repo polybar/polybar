@@ -12,7 +12,7 @@
 #include "x11/types.hpp"
 #include "x11/window.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 // fwd
 class tray_manager;
@@ -132,4 +132,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

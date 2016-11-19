@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace command_line {
   DEFINE_ERROR(argument_error);
@@ -80,4 +80,4 @@ namespace {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

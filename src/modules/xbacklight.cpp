@@ -2,7 +2,7 @@
 #include "utils/math.hpp"
 #include "x11/graphics.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   /**
@@ -181,4 +181,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

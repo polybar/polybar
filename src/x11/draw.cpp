@@ -4,7 +4,7 @@
 #include "x11/color.hpp"
 #include "x11/draw.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace draw_util {
   /**
@@ -60,4 +60,4 @@ namespace draw_util {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

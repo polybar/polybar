@@ -3,7 +3,7 @@
 #include "modules/meta.hpp"
 #include "utils/command.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 struct ipc_hook;  // fwd
 
@@ -41,4 +41,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

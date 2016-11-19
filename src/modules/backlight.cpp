@@ -1,7 +1,7 @@
 #include "modules/backlight.hpp"
 #include "utils/file.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace modules {
   void brightness_handle::filepath(string path) {
@@ -67,4 +67,4 @@ namespace modules {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -1,7 +1,7 @@
 #include "x11/connection.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "id"_test = [] {
     connection& conn{connection::configure().create<connection&>()};

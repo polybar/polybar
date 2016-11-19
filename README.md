@@ -1,11 +1,11 @@
-# Lemonbuddy
+# Polybar
 
-[![Build Status](https://travis-ci.org/jaagr/lemonbuddy.svg?branch=master)](https://travis-ci.org/jaagr/lemonbuddy)
-[![MIT License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000?style=plastic)](https://github.com/jaagr/lemonbuddy/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/jaagr/polybar.svg?branch=master)](https://travis-ci.org/jaagr/polybar)
+[![MIT License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000?style=plastic)](https://github.com/jaagr/polybar/blob/master/LICENSE)
 
 A fast and easy-to-use tool for creating status bars.
 
-**Lemonbuddy** aims to help users build beautiful and highly customizable status bars
+**Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
 Heres a few screenshots showing you what it can look like:
 
@@ -15,7 +15,7 @@ Heres a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
 Please note that the project still is in early development, so please report any
-problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issues/new).
+problems by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new).
 
 
 ## Table of Contents
@@ -31,7 +31,7 @@ problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issue
 
 ## Introduction
 
-The main purpose of **Lemonbuddy** is to help users create awesome status bars.
+The main purpose of **Polybar** is to help users create awesome status bars.
 It has built-in functionality to generate content for the most commonly used widgets, such as:
 
 - Window title
@@ -49,14 +49,14 @@ It has built-in functionality to generate content for the most commonly used wid
 - Inter-process messaging
 - And more...
 
-[See the wiki for more details](https://github.com/jaagr/lemonbuddy/wiki).
+[See the wiki for more details](https://github.com/jaagr/polybar/wiki).
 
 
 ## Getting started
 
-If you are using **Arch Linux**, you can install the AUR package [lemonbuddy-git](https://aur.archlinux.org/packages/lemonbuddy-git/) to get the latest version, or
-[lemonbuddy](https://aur.archlinux.org/packages/lemonbuddy/) for the latest stable release. If you are using **Void Linux**
-you can install the package [lemonbuddy](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/lemonbuddy/template) available in the official xbps repository.
+If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
+[polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release. If you are using **Void Linux**
+you can install the package [polybar](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/polybar/template) available in the official xbps repository.
 
 If you create a package for any other distribution, please consider contributing the template.
 
@@ -89,12 +89,12 @@ $ apt-get install cmake cmake-data libboost-dev libfreetype6-dev libxcb1-dev lib
 
 ### Building from source
 
-Please [report any problems](https://github.com/jaagr/lemonbuddy/issues/new) you run into when building the project.
+Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 2.2.8 --recursive https://github.com/jaagr/lemonbuddy
-  $ mkdir lemonbuddy/build
-  $ cd lemonbuddy/build
+  $ git clone --branch 2.2.8 --recursive https://github.com/jaagr/polybar
+  $ mkdir polybar/build
+  $ cd polybar/build
   $ cmake -DCMAKE_BUILD_TYPE=Release ..
   $ sudo make install
   ~~~
@@ -108,13 +108,13 @@ There's also a helper script available in the root folder:
 
 ### Configuration
 
-Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/lemonbuddy/wiki/Configuration).
+Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/polybar/wiki/Configuration).
 
   ~~~ sh
   # Install the example configuration
   $ make userconfig
   # Launch the example bar
-  $ lemonbuddy example
+  $ polybar example
   ~~~
 
 **NOTE:** If the bar output looks odd, it's probably because you're
@@ -124,9 +124,9 @@ missing fonts.
 
 ### Running
 
-See the wiki page on [how to launch the bar when starting your WM](https://github.com/jaagr/lemonbuddy/wiki/Running-the-app).
+See the wiki page on [how to launch the bar when starting your WM](https://github.com/jaagr/polybar/wiki/Running-the-app).
 
 
 ## License
 
-Lemonbuddy is licensed under the MIT license. [See LICENSE for more information](https://github.com/jaagr/lemonbuddy/blob/master/LICENSE).
+Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/jaagr/polybar/blob/master/LICENSE).

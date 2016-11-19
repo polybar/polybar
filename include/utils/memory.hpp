@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace memory_util {
   /**
@@ -25,4 +25,4 @@ namespace memory_util {
   using malloc_ptr_t = shared_ptr<T>;
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

@@ -1,6 +1,6 @@
 #include "drawtypes/label.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   string label::get() const {
@@ -109,4 +109,4 @@ namespace drawtypes {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

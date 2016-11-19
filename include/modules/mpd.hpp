@@ -9,7 +9,7 @@
 #include "modules/meta.hpp"
 #include "utils/threading.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using namespace mpd;
 
@@ -89,4 +89,4 @@ namespace modules {
   };
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

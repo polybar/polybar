@@ -2,7 +2,7 @@
 #include "utils/string.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
   using cli_parser = command_line::parser;
 
   // clang-format off

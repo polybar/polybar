@@ -5,7 +5,7 @@
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace drawtypes {
   class ramp : public non_copyable_mixin<ramp> {
@@ -27,4 +27,4 @@ namespace drawtypes {
   ramp_t load_ramp(const config& conf, string section, string name, bool required = true);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

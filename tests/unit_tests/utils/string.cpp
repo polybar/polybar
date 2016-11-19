@@ -3,7 +3,7 @@
 #include "utils/string.hpp"
 
 int main() {
-  using namespace lemonbuddy;
+  using namespace polybar;
 
   "upper"_test = [] { expect(string_util::upper("FOO") == "FOO"); };
 

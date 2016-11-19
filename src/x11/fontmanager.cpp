@@ -2,7 +2,7 @@
 #include "utils/memory.hpp"
 #include "utils/color.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 array<char, XFT_MAXCHARS> xft_widths;
 array<wchar_t, XFT_MAXCHARS> xft_chars;
@@ -190,4 +190,4 @@ bool fontmanager::has_glyph(font_t& font, uint16_t chr) {
   }
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

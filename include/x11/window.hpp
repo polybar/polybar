@@ -4,7 +4,7 @@
 #include "x11/connection.hpp"
 #include "x11/randr.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 using connection_t = connection;
 
@@ -161,4 +161,4 @@ class window : public xpp::window<connection_t&> {
 //   const xcb_params_cw_t* m_params;
 // };
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END

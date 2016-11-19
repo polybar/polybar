@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "x11/connection.hpp"
 
-LEMONBUDDY_NS
+POLYBAR_NS
 
 namespace draw_util {
   void fill(connection& c, xcb_drawable_t d, xcb_gcontext_t g, int16_t x, int16_t y, uint16_t w,
@@ -13,4 +13,4 @@ namespace draw_util {
       xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str);
 }
 
-LEMONBUDDY_NS_END
+POLYBAR_NS_END
