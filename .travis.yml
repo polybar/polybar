@@ -26,6 +26,7 @@ env:
     - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
     - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
     - PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
+    - JOBS=4
 
 cache:
   directories:
