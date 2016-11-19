@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.hpp"
 #include "config.hpp"
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
@@ -13,7 +14,23 @@
 POLYBAR_NS
 
 namespace modules {
-  enum class battery_state { NONE = 0, UNKNOWN, CHARGING, DISCHARGING, FULL };
+  enum class battery_state {
+    NONE = 0,
+    CHARGING,
+    DISCHARGING,
+    FULL,
+  };
+
+  enum class battery_value {
+    NONE = 0,
+    ADAPTER,
+    CAPACITY,
+    CAPACITY_MAX,
+    CAPACITY_PERC,
+    VOLTAGE,
+    RATE,
+  };
+
   class battery_module : public inotify_module<battery_module> {
    public:
     using inotify_module::inotify_module;
@@ -29,6 +46,7 @@ namespace modules {
    protected:
     int current_percentage();
     battery_state current_state();
+    string current_time();
     void subthread();
 
    private:
@@ -43,6 +61,8 @@ namespace modules {
     static constexpr auto TAG_LABEL_DISCHARGING = "<label-discharging>";
     static constexpr auto TAG_LABEL_FULL = "<label-full>";
 
+    static const int SKIP_N_UNCHANGED{3};
+
     animation_t m_animation_charging;
     ramp_t m_ramp_capacity;
     progressbar_t m_bar_capacity;
@@ -50,18 +70,14 @@ namespace modules {
     label_t m_label_discharging;
     label_t m_label_full;
 
-    string m_battery;
-    string m_adapter;
-    string m_path_capacity;
-    string m_path_adapter;
-
-    battery_state m_state = battery_state::UNKNOWN;
-    std::atomic_int m_percentage{0};
-
+    battery_state m_state{battery_state::DISCHARGING};
+    map<battery_value, string> m_valuepath;
+    std::atomic<int> m_percentage{0};
+    int m_fullat{100};
     interval_t m_interval;
     chrono::system_clock::time_point m_lastpoll;
-
-    int m_fullat = 100;
+    string m_timeformat;
+    int m_unchanged{SKIP_N_UNCHANGED};
   };
 }
 

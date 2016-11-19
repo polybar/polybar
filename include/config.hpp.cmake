@@ -28,18 +28,23 @@
 #endif
 
 #define BUILDER_SPACE_TOKEN "%__"
+
 #define ALSA_SOUNDCARD "@SETTING_ALSA_SOUNDCARD@"
-#define CONNECTION_TEST_IP "@SETTING_CONNECTION_TEST_IP@"
-#define PATH_BACKLIGHT_VAL "@SETTING_PATH_BACKLIGHT_VAL@"
-#define PATH_BACKLIGHT_MAX "@SETTING_PATH_BACKLIGHT_MAX@"
-#define PATH_BATTERY_CAPACITY "@SETTING_PATH_BATTERY_CAPACITY@"
-#define PATH_ADAPTER_STATUS "@SETTING_PATH_ADAPTER_STATUS@"
 #define BSPWM_SOCKET_PATH "@SETTING_BSPWM_SOCKET_PATH@"
 #define BSPWM_STATUS_PREFIX "@SETTING_BSPWM_STATUS_PREFIX@"
+#define CONNECTION_TEST_IP "@SETTING_CONNECTION_TEST_IP@"
+#define PATH_ADAPTER_STATUS "@SETTING_PATH_ADAPTER_STATUS@"
+#define PATH_BACKLIGHT_MAX "@SETTING_PATH_BACKLIGHT_MAX@"
+#define PATH_BACKLIGHT_VAL "@SETTING_PATH_BACKLIGHT_VAL@"
+#define PATH_BATTERY_CAPACITY "@SETTING_PATH_BATTERY_CAPACITY@"
+#define PATH_BATTERY_CAPACITY_MAX "@SETTING_PATH_BATTERY_CAPACITY_MAX@"
+#define PATH_BATTERY_CAPACITY_PERC "@SETTING_PATH_BATTERY_CAPACITY_PERC@"
+#define PATH_BATTERY_RATE "@SETTING_PATH_BATTERY_RATE@"
+#define PATH_BATTERY_VOLTAGE "@SETTING_PATH_BATTERY_VOLTAGE@"
 #define PATH_CPU_INFO "@SETTING_PATH_CPU_INFO@"
 #define PATH_MEMORY_INFO "@SETTING_PATH_MEMORY_INFO@"
-#define PATH_TEMPERATURE_INFO "@SETTING_PATH_TEMPERATURE_INFO@"
 #define PATH_MESSAGING_FIFO "@SETTING_PATH_MESSAGING_FIFO@"
+#define PATH_TEMPERATURE_INFO "@SETTING_PATH_TEMPERATURE_INFO@"
 
 auto print_build_info = []() {
   // clang-format off
@@ -51,18 +56,23 @@ auto print_build_info = []() {
               << (ENABLE_MPD      ? "+" : "-") << "mpd "
               << (ENABLE_NETWORK  ? "+" : "-") << "network "
             << "\n\n"
-            << "ALSA_SOUNDCARD        " << ALSA_SOUNDCARD        << "\n"
-            << "BSPWM_SOCKET_PATH     " << BSPWM_SOCKET_PATH     << "\n"
-            << "BSPWM_STATUS_PREFIX   " << BSPWM_STATUS_PREFIX   << "\n"
-            << "BUILDER_SPACE_TOKEN   " << BUILDER_SPACE_TOKEN   << "\n"
-            << "CONNECTION_TEST_IP    " << CONNECTION_TEST_IP    << "\n"
-            << "PATH_ADAPTER_STATUS   " << PATH_ADAPTER_STATUS   << "\n"
-            << "PATH_BACKLIGHT_MAX    " << PATH_BACKLIGHT_MAX    << "\n"
-            << "PATH_BACKLIGHT_VAL    " << PATH_BACKLIGHT_VAL    << "\n"
-            << "PATH_BATTERY_CAPACITY " << PATH_BATTERY_CAPACITY << "\n"
-            << "PATH_CPU_INFO         " << PATH_CPU_INFO         << "\n"
-            << "PATH_MEMORY_INFO      " << PATH_MEMORY_INFO      << "\n"
-            << "PATH_TEMPERATURE_INFO " << PATH_TEMPERATURE_INFO << "\n";
+            << "ALSA_SOUNDCARD              " << ALSA_SOUNDCARD             << "\n"
+            << "BSPWM_SOCKET_PATH           " << BSPWM_SOCKET_PATH          << "\n"
+            << "BSPWM_STATUS_PREFIX         " << BSPWM_STATUS_PREFIX        << "\n"
+            << "BUILDER_SPACE_TOKEN         " << BUILDER_SPACE_TOKEN        << "\n"
+            << "CONNECTION_TEST_IP          " << CONNECTION_TEST_IP         << "\n"
+            << "PATH_ADAPTER_STATUS         " << PATH_ADAPTER_STATUS        << "\n"
+            << "PATH_BACKLIGHT_MAX          " << PATH_BACKLIGHT_MAX         << "\n"
+            << "PATH_BACKLIGHT_VAL          " << PATH_BACKLIGHT_VAL         << "\n"
+            << "PATH_BATTERY_CAPACITY       " << PATH_BATTERY_CAPACITY      << "\n"
+            << "PATH_BATTERY_CAPACITY       " << PATH_BATTERY_CAPACITY      << "\n"
+            << "PATH_BATTERY_CAPACITY_MAX   " << PATH_BATTERY_CAPACITY_MAX  << "\n"
+            << "PATH_BATTERY_CAPACITY_PERC  " << PATH_BATTERY_CAPACITY_PERC << "\n"
+            << "PATH_BATTERY_RATE           " << PATH_BATTERY_RATE          << "\n"
+            << "PATH_BATTERY_VOLTAGE        " << PATH_BATTERY_VOLTAGE       << "\n"
+            << "PATH_CPU_INFO               " << PATH_CPU_INFO              << "\n"
+            << "PATH_MEMORY_INFO            " << PATH_MEMORY_INFO           << "\n"
+            << "PATH_TEMPERATURE_INFO       " << PATH_TEMPERATURE_INFO      << "\n";
   // clang-format on
 };
 
