@@ -2,7 +2,7 @@
 # Contributor: Michael Carlberg <c@rlberg.se>
 _pkgname=lemonbuddy
 pkgname="${_pkgname}-git"
-pkgver=2.2.7
+pkgver=2.2.8
 pkgrel=1
 pkgdesc="A fast and easy-to-use tool for Lemonbar"
 arch=("i686" "x86_64")
