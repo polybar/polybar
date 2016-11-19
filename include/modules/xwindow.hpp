@@ -82,9 +82,7 @@ namespace modules {
     static constexpr auto TAG_LABEL = "<label>";
 
     xcb_ewmh_connection_t m_ewmh;
-    xcb_timestamp_t m_timestamp;
     unique_ptr<active_window> m_active;
-
     label_t m_label;
   };
 }

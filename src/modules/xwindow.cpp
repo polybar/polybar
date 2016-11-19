@@ -56,9 +56,7 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xwindow_module::handle(const evt::property_notify& evt) {
-    if (evt->time <= m_timestamp) {
-      return;
-    } else if (evt->atom == _NET_ACTIVE_WINDOW) {
+    if (evt->atom == _NET_ACTIVE_WINDOW) {
       update();
     } else if (evt->atom == _NET_CURRENT_DESKTOP) {
       update();
@@ -69,8 +67,6 @@ namespace modules {
     } else {
       return;
     }
-
-    m_timestamp = evt->time;
   }
 
   /**
