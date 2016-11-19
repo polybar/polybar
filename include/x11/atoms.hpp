@@ -8,10 +8,14 @@ struct cached_atom {
   xcb_atom_t* atom;
 };
 
-extern cached_atom ATOMS[29];
+extern cached_atom ATOMS[33];
 
+extern xcb_atom_t _NET_SUPPORTED;
+extern xcb_atom_t _NET_CURRENT_DESKTOP;
+extern xcb_atom_t _NET_ACTIVE_WINDOW;
 extern xcb_atom_t _NET_WM_NAME;
 extern xcb_atom_t _NET_WM_DESKTOP;
+extern xcb_atom_t _NET_WM_VISIBLE_NAME;
 extern xcb_atom_t _NET_WM_WINDOW_TYPE;
 extern xcb_atom_t _NET_WM_WINDOW_TYPE_DOCK;
 extern xcb_atom_t _NET_WM_WINDOW_TYPE_NORMAL;

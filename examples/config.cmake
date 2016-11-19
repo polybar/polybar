@@ -52,6 +52,12 @@ tray-padding = 4
 ;wm-restack = bspwm
 
 
+[module/xwindow]
+type = internal/xwindow
+label = %title%
+label-maxlen = 30
+
+
 [module/filesystem]
 type = internal/fs
 interval = 25

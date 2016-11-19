@@ -62,6 +62,13 @@ namespace modules {
   }
 
   /**
+   * Disconnect from the event registry
+   */
+  void xbacklight_module::teardown() {
+    m_connection.detach_sink(this, 1);
+  }
+
+  /**
    * Handler for XCB_RANDR_NOTIFY events
    */
   void xbacklight_module::handle(const evt::randr_notify& evt) {

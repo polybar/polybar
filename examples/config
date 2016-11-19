@@ -41,7 +41,7 @@ font-1 = unifont:size=6:heavy;-2
 font-2 = siji:pixelsize=10;0
 
 modules-left = bspwm i3 mpd
-modules-center = 
+modules-center = xwindow
 modules-right = backlight volume memory cpu wlan eth battery temperature date powermenu
 
 tray-position = right
@@ -50,6 +50,12 @@ tray-padding = 4
 ;tray-background = #0063ff
 
 ;wm-restack = bspwm
+
+
+[module/xwindow]
+type = internal/xwindow
+label = %title%
+label-maxlen = 30
 
 
 [module/filesystem]

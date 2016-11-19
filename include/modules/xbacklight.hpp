@@ -32,6 +32,7 @@ namespace modules {
     using static_module::static_module;
 
     void setup();
+    void teardown();
     void handle(const evt::randr_notify& evt);
     void update();
     string get_output();

@@ -20,6 +20,9 @@ namespace memory_util {
   inline auto countof(T& p) {
     return sizeof(p) / sizeof(p[0]);
   }
+
+  template <typename T>
+  using malloc_ptr_t = shared_ptr<T>;
 }
 
 LEMONBUDDY_NS_END

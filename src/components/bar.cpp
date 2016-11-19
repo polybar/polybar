@@ -722,7 +722,7 @@ void bar::set_wmhints() {
   wm_util::set_wmstate(m_connection, m_window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
 
   m_log.trace("bar: Set _NET_WM_DESKTOP");
-  wm_util::set_wmdesktop(m_connection, m_window, -1u);
+  wm_util::set_wmdesktop(m_connection, m_window, 0xFFFFFFFF);
 
   m_log.trace("bar: Set _NET_WM_PID");
   wm_util::set_wmpid(m_connection, m_window, getpid());

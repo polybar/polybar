@@ -18,6 +18,7 @@
 #include "modules/text.hpp"
 #include "modules/unsupported.hpp"
 #include "modules/xbacklight.hpp"
+#include "modules/xwindow.hpp"
 
 #include "components/bar.hpp"
 #include "components/config.hpp"
@@ -358,8 +359,6 @@ void controller::bootstrap_modules() {
           module.reset(new counter_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/backlight")
           module.reset(new backlight_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/xbacklight")
-          module.reset(new xbacklight_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/battery")
           module.reset(new battery_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/bspwm")
@@ -382,6 +381,10 @@ void controller::bootstrap_modules() {
           module.reset(new network_module(bar, m_log, m_conf, module_name));
         else if (type == "internal/temperature")
           module.reset(new temperature_module(bar, m_log, m_conf, module_name));
+        else if (type == "internal/xbacklight")
+          module.reset(new xbacklight_module(bar, m_log, m_conf, module_name));
+        else if (type == "internal/xwindow")
+          module.reset(new xwindow_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/text")
           module.reset(new text_module(bar, m_log, m_conf, module_name));
         else if (type == "custom/script")

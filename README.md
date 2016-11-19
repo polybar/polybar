@@ -34,6 +34,7 @@ problems by [creating an issue ticket](https://github.com/jaagr/lemonbuddy/issue
 The main purpose of **Lemonbuddy** is to help users create awesome status bars.
 It has built-in functionality to generate content for the most commonly used widgets, such as:
 
+- Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
 - [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)

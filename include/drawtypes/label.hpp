@@ -52,6 +52,7 @@ namespace drawtypes {
     operator bool();
     label_t clone();
     void reset_tokens();
+    bool has_token(string token);
     void replace_token(string token, string replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);

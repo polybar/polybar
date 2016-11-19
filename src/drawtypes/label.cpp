@@ -20,6 +20,10 @@ namespace drawtypes {
     m_tokenized = m_text;
   }
 
+  bool label::has_token(string token) {
+    return m_text.find(token) != string::npos;
+  }
+
   void label::replace_token(string token, string replacement) {
     m_tokenized = string_util::replace_all(m_tokenized, token, replacement);
   }

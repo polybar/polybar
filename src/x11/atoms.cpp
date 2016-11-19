@@ -3,8 +3,12 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_atom.h>
 
+xcb_atom_t _NET_SUPPORTED;
+xcb_atom_t _NET_CURRENT_DESKTOP;
+xcb_atom_t _NET_ACTIVE_WINDOW;
 xcb_atom_t _NET_WM_NAME;
 xcb_atom_t _NET_WM_DESKTOP;
+xcb_atom_t _NET_WM_VISIBLE_NAME;
 xcb_atom_t _NET_WM_WINDOW_TYPE;
 xcb_atom_t _NET_WM_WINDOW_TYPE_DOCK;
 xcb_atom_t _NET_WM_WINDOW_TYPE_NORMAL;
@@ -34,9 +38,13 @@ xcb_atom_t _XSETROOT_ID;
 xcb_atom_t ESETROOT_PMAP_ID;
 
 // clang-format off
-cached_atom ATOMS[29] = {
+cached_atom ATOMS[33] = {
+  {"_NET_SUPPORTED", sizeof("_NET_SUPPORTED") - 1, &_NET_SUPPORTED},
+  {"_NET_CURRENT_DESKTOP", sizeof("_NET_CURRENT_DESKTOP") - 1, &_NET_CURRENT_DESKTOP},
+  {"_NET_ACTIVE_WINDOW", sizeof("_NET_ACTIVE_WINDOW") - 1, &_NET_ACTIVE_WINDOW},
   {"_NET_WM_NAME", sizeof("_NET_WM_NAME") - 1, &_NET_WM_NAME},
   {"_NET_WM_DESKTOP", sizeof("_NET_WM_DESKTOP") - 1, &_NET_WM_DESKTOP},
+  {"_NET_WM_VISIBLE_NAME", sizeof("_NET_WM_VISIBLE_NAME") - 1, &_NET_WM_VISIBLE_NAME},
   {"_NET_WM_WINDOW_TYPE", sizeof("_NET_WM_WINDOW_TYPE") - 1, &_NET_WM_WINDOW_TYPE},
   {"_NET_WM_WINDOW_TYPE_DOCK", sizeof("_NET_WM_WINDOW_TYPE_DOCK") - 1, &_NET_WM_WINDOW_TYPE_DOCK},
   {"_NET_WM_WINDOW_TYPE_NORMAL", sizeof("_NET_WM_WINDOW_TYPE_NORMAL") - 1, &_NET_WM_WINDOW_TYPE_NORMAL},
