@@ -75,7 +75,8 @@ int main() {
     unsigned long hashB1{string_util::hash("Foo")};
     unsigned long hashB2{string_util::hash("Bar")};
     expect(hashA1 == hashA2);
-    expect(hashA1 != hashB1 != hashB2);
+    expect(hashA1 != hashB1);
+    expect(hashA1 != hashB2);
     expect(hashB1 != hashB2);
   };
 }

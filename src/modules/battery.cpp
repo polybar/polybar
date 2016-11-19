@@ -114,13 +114,35 @@ namespace modules {
     m_percentage = percentage;
     m_state = state;
 
+    string time_remaining;
+    auto rate = strtoul(file_util::get_contents("/sys/class/power_supply/BAT0/current_now").c_str(), nullptr, 10) / 1000;
+    // int rate{atoi(file_util::get_contents("/sys/class/power_supply/BAT0/current_now").c_str()) / 1000};
+    // time_remaining = to_string(rate);
+    auto capacity = strtoul(file_util::get_contents("/sys/class/power_supply/BAT0/charge_now").c_str(), nullptr, 10) / 1000;
+    auto voltage = strtoul(file_util::get_contents("/sys/class/power_supply/BAT0/voltage_now").c_str(), nullptr, 10) / 1000;
+    capacity = capacity * 1000 / voltage;
+    rate = rate * 1000 / voltage;
+    printf("rate=%lu cap=%lu volt=%lu\n", rate, capacity, voltage);
+    int seconds = 3600 * capacity / rate;
+
+    int hours = seconds / 3600;
+    seconds -= 3600 * hours;
+    int minutes = seconds / 60;
+    seconds -= 60 * minutes;
+    char buffer[9]{0};
+    snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", hours, minutes, seconds);
+    time_remaining = buffer;
+
+
     if (m_label_charging) {
       m_label_charging->reset_tokens();
       m_label_charging->replace_token("%percentage%", to_string(m_percentage) + "%");
+      m_label_charging->replace_token("%time%", time_remaining);
     }
     if (m_label_discharging) {
       m_label_discharging->reset_tokens();
       m_label_discharging->replace_token("%percentage%", to_string(m_percentage) + "%");
+      m_label_discharging->replace_token("%time%", time_remaining);
     }
     if (m_label_full) {
       m_label_full->reset_tokens();

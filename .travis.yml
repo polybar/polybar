@@ -18,100 +18,33 @@ addons:
 
 env:
   global:
+    - BUILD_TESTS="ON"
     - BUILD_TYPE="Release"
     - LLVM_VERSION="3.8.1"
     - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
     - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
     - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
     - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+    - PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
 
 cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/cmake
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
 
-before_install:
-  - sudo apt-add-repository -y "ppa:george-edison55/george-edison"
-  - sudo apt-get -qq update
-
-  # Install packages : core
-  #--------------------------------------------------------------------------x
-  - sudo apt-get install -y cmake cmake-data libboost-dev
-
-  # Install packages : xcb
-  #--------------------------------------------------------------------------x
-  - sudo apt-get install -y libxcb1-dev libxcb-util0-dev libxcb-image0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen libfreetype6-dev
-
-  # Install packages : optional
-  #--------------------------------------------------------------------------x
-  - sudo apt-get install -y i3-wm libiw-dev libasound2-dev libmpdclient-dev
-
 install:
-  # Install dependencies in ${TRAVIS_BUILD_DIR}/deps
-  #--------------------------------------------------------------------------x
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - LLVM_ROOT="${DEPS_DIR}/llvm-${LLVM_VERSION}"
-  - mkdir -p "${DEPS_DIR}"
-
-  # Update python path to make sure we find the xcbgen module
-  #--------------------------------------------------------------------------x
-  - export PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
-
-  # Install a later version of cmake
-  #--------------------------------------------------------------------------x
-  - |
-    cd "${DEPS_DIR}"
-    if [[ -z "$(ls -A ${DEPS_DIR}/cmake/bin 2>/dev/null)" ]]; then
-      mkdir -p cmake && travis_retry wget --no-check-certificate --quiet -O - "${CMAKE_URL}" | tar --strip-components=1 -xz -C cmake
-    fi
-  - export PATH="${DEPS_DIR}/cmake/bin:${PATH}"
-
-  # Install LLVM libc++
-  #--------------------------------------------------------------------------x
-  - |
-    if [[ "${CXX}" == "clang++" ]] && [[ -z "$(ls -A ${LLVM_ROOT}/install/include 2>/dev/null)" ]]; then
-      mkdir -p "${LLVM_ROOT}" "${LLVM_ROOT}/build" "${LLVM_ROOT}/projects/libcxx" "${LLVM_ROOT}/projects/libcxxabi"
-      travis_retry wget --quiet -O - "${LLVM_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}"
-      travis_retry wget --quiet -O - "${LIBCXX_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}/projects/libcxx"
-      travis_retry wget --quiet -O - "${LIBCXXABI_URL}" | tar --strip-components=1 -xJ -C "${LLVM_ROOT}/projects/libcxxabi"
-      (cd "${LLVM_ROOT}/build" && cmake .. -DCMAKE_CXX_COMPILER=clang++ && make cxxabi cxx -j2)
-      (cd "${LLVM_ROOT}/build/projects/libcxx" && make install)
-      (cd "${LLVM_ROOT}/build/projects/libcxxabi" && make install)
-      export CXXFLAGS="${CXXFLAGS} -I${LLVM_ROOT}/install/include"
-      export CXXFLAGS="${CXXFLAGS} -I${LLVM_ROOT}/install/include/c++/v1"
-      export CXXFLAGS="${CXXFLAGS} -stdlib=libc++"
-      export LDFLAGS="${LDFLAGS} -L${LLVM_ROOT}/install/lib"
-      export LDFLAGS="${LDFLAGS} -lc++"
-      export LDFLAGS="${LDFLAGS} -lc++abi"
-      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_ROOT}/install/lib"
-    fi
-
-  # Set compiler's
-  #--------------------------------------------------------------------------x
-  - if [[ "${CXX}" == "clang++" ]]; then export CXX="clang++-3.8" CC="clang-3.8" CXXFLAGS="${CXXFLAGS} -Qunused-arguments"; fi
-  - if [[ "${CXX}" == "g++" ]]; then export CXX="g++-5" CC="gcc-5"; fi
+  - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/install_deps.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/install_cmake.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/install_libcpp.sh
 
 before_script:
-  - eval "${CXX} --version"
-  - eval "${CC} --version"
-  - cmake --version
-  - mkdir -p "${TRAVIS_BUILD_DIR}/build"
-  - cd "${TRAVIS_BUILD_DIR}/build"
-  - cmake -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" -DCMAKE_CXX_FLAGS="${CXXFLAGS}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DBUILD_TESTS:BOOL=ON ..
+  - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/configure.sh
 
 script:
-  - make
-  - |
-    for test in tests/unit_test.*; do
-      if [ -x $test ]; then
-        echo -n "${test##*/} ";
-        if $test; then
-          echo -e "\033[1;32mpassed\033[0m";
-        else
-          echo -e "\033[1;31mfailed\033[0m";
-        fi
-      fi
-    done
+  - source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
 
 notifications:
   email: false
@@ -119,5 +52,8 @@ notifications:
     channels:
       - "irc.freenode.org#polybar"
     template:
-      - "%{author} pushed #%{commit} \"%{commit_subject}\" -> %{repository_name}/%{branch}"
-      - "Build #%{build_number}: %{result} // Compare at %{compare_url}"
+      - "%{author} pushed #%{commit} \"%{commit_subject}\" to %{repository_name}/%{branch}"
+      - "Build #%{build_number} %{result} / %{build_url} (diff: %{compare_url})"
+    use_notice: true
+    on_success: change
+    on_failure: change
