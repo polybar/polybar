@@ -114,10 +114,10 @@ script:
     done
 
 notifications:
+  email: false
   irc:
     channels:
       - "irc.freenode.org#polybar"
     template:
       - "%{author} pushed #%{commit} \"%{commit_subject}\" -> %{repository_name}/%{branch}"
       - "Build #%{build_number}: %{result} // Compare at %{compare_url}"
-    skip_join: true
