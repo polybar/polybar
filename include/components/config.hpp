@@ -129,7 +129,7 @@ class config {
     } else if (path.find("xrdb:") == 0) {
       return dereference_xrdb<T>(path.substr(5), value);
     } else if ((pos = path.find(".")) != string::npos) {
-      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1));
+      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
       throw value_error("Invalid reference defined at [" + build_path(section, key) + "]");
     }
@@ -142,13 +142,13 @@ class config {
    *  ${section.key}
    */
   template <typename T>
-  T dereference_local(string section, string key) const {
+  T dereference_local(string section, string key, string current_section) const {
     if (section == "BAR")
       m_logger.warn("${BAR.key} is deprecated. Use ${root.key} instead");
 
-    section = string_util::replace(section, "BAR", bar_section());
-    section = string_util::replace(section, "root", bar_section());
-    section = string_util::replace(section, "self", section);
+    section = string_util::replace(section, "BAR", bar_section(), 0, 3);
+    section = string_util::replace(section, "root", bar_section(), 0, 4);
+    section = string_util::replace(section, "self", current_section, 0, 4);
 
     auto path = build_path(section, key);
     auto result = m_ptree.get_optional<T>(path);

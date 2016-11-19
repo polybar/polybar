@@ -14,11 +14,21 @@ int main() {
     expect(!string_util::compare("foo", "bar"));
   };
 
-  "replace"_test = [] { expect(string_util::replace("Foo bar baz", "a", "x") == "Foo bxr baz"); };
+  "replace"_test = [] {
+    expect(string_util::replace("abc", "b", ".") == "a.c");
+    expect(string_util::replace("aaa", "a", ".", 1, 2) == "a.a");
+    expect(string_util::replace("aaa", "a", ".", 0, 2) == ".aa");
+    expect(string_util::replace("Foo bar baz", "a", "x") == "Foo bxr baz");
+    expect(string_util::replace("foooobar", "o", "x", 2, 3) == "foxoobar");
+    expect(string_util::replace("foooobar", "o", "x", 0, 1) == "foooobar");
+  };
 
   "replace_all"_test = [] {
-    expect(string_util::replace_all("Foo bar baz", "a", "x") == "Foo bxr bxz");
+    expect(string_util::replace_all("Foo bar baza", "a", "x") == "Foo bxr bxzx");
     expect(string_util::replace_all("hehehe", "he", "hoo") == "hoohoohoo");
+    expect(string_util::replace_all("hehehe", "he", "hoo", 0, 2) == "hoohehe");
+    expect(string_util::replace_all("hehehe", "he", "hoo", 4) == "hehehoo");
+    expect(string_util::replace_all("hehehe", "he", "hoo", 0, 1) == "hehehe");
     expect(string_util::replace_all("131313", "3", "13") == "113113113");
   };
 
