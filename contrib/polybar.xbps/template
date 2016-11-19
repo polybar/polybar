@@ -1,44 +1,46 @@
 # Template file for 'polybar'
 pkgname=polybar
-version=2.1.9
+version=2.3.0
 revision=1
 wrksrc="${pkgname}-${version}"
 _i3ipcpp_version=0.5.1
-_xpp_version=1.3.0
+_xpp_version=1.3.1
 build_style=cmake
-configure_args="
-	-DCMAKE_CXX_COMPILER=clang++
-	-DCMAKE_CXX_FLAGS=-fPIE
-	-DCMAKE_EXE_LINKER_FLAGS=-pie
-	-DENABLE_ALSA=$(vopt_if alsa ON OFF)
-	-DENABLE_I3=$(vopt_if i3 ON OFF)
-	-DENABLE_MPD=$(vopt_if mpd ON OFF)
-	-DENABLE_NETWORK=$(vopt_if network ON OFF)"
-depends=("libXft" "xcb-util-wm")
+replaces="lemonbuddy>=0"
+configure_args="-DCMAKE_CXX_COMPILER=clang++
+ -DCMAKE_CXX_FLAGS=-fPIE
+ -DCMAKE_EXE_LINKER_FLAGS=-pie
+ -DENABLE_ALSA=$(vopt_if alsa ON OFF)
+ -DENABLE_I3=$(vopt_if i3 ON OFF)
+ -DENABLE_MPD=$(vopt_if mpd ON OFF)
+ -DENABLE_NETWORK=$(vopt_if network ON OFF)"
+depends="libXft xcb-util-wm xcb-util-image"
 hostmakedepends="clang pkg-config xcb-proto"
-makedepends="libxcb-devel libXft-devel xcb-util-wm-devel boost-devel
-	$(vopt_if alsa alsa-lib-devel)
-	$(vopt_if i3 "i3-devel jsoncpp-devel")
-	$(vopt_if mpd libmpdclient-devel)
-	$(vopt_if network wireless_tools-devel)"
+makedepends="libxcb-devel libXft-devel xcb-util-image-devel xcb-util-wm-devel boost-devel
+ $(vopt_if alsa alsa-lib-devel)
+ $(vopt_if i3 i3-devel)
+ $(vopt_if i3 jsoncpp-devel)
+ $(vopt_if mpd libmpdclient-devel)
+ $(vopt_if network wireless_tools-devel)"
 short_desc="A fast and easy-to-use status bar"
 maintainer="Michael Carlberg <c@rlberg.se>"
 license="MIT"
 homepage="https://github.com/jaagr/polybar"
 distfiles="
-	https://github.com/jaagr/polybar/archive/${version}.tar.gz
-	https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
-	$(vopt_if i3 "https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz")"
+ https://github.com/jaagr/polybar/archive/${version}.tar.gz
+ https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
+ $(vopt_if i3 https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz)"
 checksum="
-	f7e1c24d0c0abc3173da56d3586ab0c977f1c973b4ba1d8cda6fa1372d02426d
-	f66b5ff4881d359521a1516c3fd87a5ace2e95e0ca2e6a1e0ab7b66cc6d3f582
-	$(vopt_if i3 2c5243e1d3be787f8e64ce5b1a3c087999e2ccaeea1db317f6ab2df3556fa952)"
+ 962252d5e5ac44f630c2598b63ecd5ed269f64899008114fbccf05455b93e742
+ de92b258a136aa782a876d3058009a31238cc92f16038aa243ea6d55057e2ed1
+ $(vopt_if i3 2c5243e1d3be787f8e64ce5b1a3c087999e2ccaeea1db317f6ab2df3556fa952)"
 
 build_options="alsa i3 mpd network"
 build_options_default="$build_options"
 
 case "$XBPS_TARGET_MACHINE" in
 	arm*) broken="cross-compiler with c++14 support";;
+	aarch64*) broken="cross-compiler with c++14 support";;
 	aarch64-musl) CXXFLAGS="-D_LINUX_IF_ETHER_H";;
 esac
 
@@ -47,12 +49,6 @@ post_extract() {
 		mv ../i3ipcpp-${_i3ipcpp_version}/* lib/i3ipcpp/ || true
 	[ -d ../xpp-${_xpp_version} ] &&  \
 		mv ../xpp-${_xpp_version}/* lib/xpp/ || true
-}
-
-pre_configure() {
-	export CFLAGS="$(echo $CFLAGS | sed 's/-specs=.* //g')"
-	export CXXFLAGS="$(echo $CXXFLAGS | sed 's/-specs=.* //g')"
-	export LDFLAGS="$(echo $LDFLAGS | sed 's/-specs=.* //g')"
 }
 
 post_install() {
