@@ -44,14 +44,17 @@ namespace drawtypes {
 
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
+    auto anim_defaults = load_optional_icon(conf, section, name);
+
     if (required)
       frames = conf.get_list<string>(section, name);
     else
       frames = conf.get_list<string>(section, name, {});
 
-    for (size_t i = 0; i < frames.size(); i++)
-      vec.emplace_back(
-          forward<icon_t>(load_optional_icon(conf, section, name + "-" + to_string(i), frames[i])));
+    for (size_t i = 0; i < frames.size(); i++) {
+      vec.emplace_back(forward<icon_t>(load_optional_icon(conf, section, name + "-" + to_string(i), frames[i])));
+      vec.back()->copy_undefined(anim_defaults);
+    }
 
     auto framerate = conf.get<int>(section, name + "-framerate", 1000);
 
