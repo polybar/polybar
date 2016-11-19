@@ -20,6 +20,22 @@ POLYBAR_NS
 #define CONST_MOD(name) static_cast<name const&>(*this)
 #define CAST_MOD(name) static_cast<name*>(this)
 
+// fwd decl
+namespace drawtypes {
+  class label;
+  using label_t = shared_ptr<label>;
+  class ramp;
+  using ramp_t = shared_ptr<ramp>;
+  class progressbar;
+  using progressbar_t = shared_ptr<progressbar>;
+  class animation;
+  using animation_t = shared_ptr<animation>;
+  using icon = label;
+  using icon_t = label_t;
+  class iconset;
+  using iconset_t = shared_ptr<iconset>;
+}
+
 namespace modules {
   using namespace drawtypes;
 
@@ -81,8 +97,7 @@ namespace modules {
 
   class module_formatter {
    public:
-    explicit module_formatter(const config& conf, string modname)
-        : m_conf(conf), m_modname(modname) {}
+    explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {}) {
       auto format = make_unique<module_format>();
@@ -495,8 +510,7 @@ namespace modules {
         }
       } catch (const system_error& e) {
         watches.clear();
-        this->m_log.err(
-            "%s: Error while creating inotify watch (what: %s)", CONST_MOD(Impl).name(), e.what());
+        this->m_log.err("%s: Error while creating inotify watch (what: %s)", CONST_MOD(Impl).name(), e.what());
         CAST_MOD(Impl)->sleep(0.1s);
         return;
       }

@@ -1,4 +1,8 @@
 #include "modules/volume.hpp"
+
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS

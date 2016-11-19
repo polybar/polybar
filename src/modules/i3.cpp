@@ -2,9 +2,16 @@
 
 #include "modules/i3.hpp"
 
+#include "drawtypes/iconset.hpp"
+#include "drawtypes/label.hpp"
+
 POLYBAR_NS
 
 namespace modules {
+  i3_workspace::operator bool() {
+    return label && *label;
+  }
+
   void i3_module::setup() {  // {{{
     // Load configuration values
     GET_CONFIG_VALUE(name(), m_click, "enable-click");

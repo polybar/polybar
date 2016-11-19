@@ -2,14 +2,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
-#include "drawtypes/animation.hpp"
-#include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
-#include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
-#include "utils/file.hpp"
-#include "utils/inotify.hpp"
-#include "utils/string.hpp"
 
 POLYBAR_NS
 

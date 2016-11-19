@@ -1,6 +1,5 @@
 #pragma once
 
-#include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
 
 POLYBAR_NS

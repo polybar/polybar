@@ -1,7 +1,5 @@
 #pragma once
 
-#include "drawtypes/iconset.hpp"
-#include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
 #include "utils/bspwm.hpp"
 

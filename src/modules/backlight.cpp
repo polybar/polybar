@@ -1,4 +1,7 @@
 #include "modules/backlight.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 
 POLYBAR_NS

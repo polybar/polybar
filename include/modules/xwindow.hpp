@@ -3,7 +3,6 @@
 #include <bitset>
 
 #include "components/config.hpp"
-#include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
 #include "x11/connection.hpp"
 #include "x11/ewmh.hpp"

@@ -1,5 +1,8 @@
 #include <sys/statvfs.h>
 
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "modules/fs.hpp"
 #include "utils/math.hpp"
 #include "utils/mtab.hpp"

@@ -1,4 +1,6 @@
 #include "modules/memory.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
 
 POLYBAR_NS
 
@@ -60,8 +62,8 @@ namespace modules {
       m_label->reset_tokens();
 
       auto replace_unit = [](label_t& label, string token, float value, string unit) {
-        auto formatted = string_util::from_stream(
-            stringstream() << std::setprecision(2) << std::fixed << value << " " << unit);
+        auto formatted =
+            string_util::from_stream(stringstream() << std::setprecision(2) << std::fixed << value << " " << unit);
         label->replace_token(token, formatted);
       };
 

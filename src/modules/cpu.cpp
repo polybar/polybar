@@ -1,4 +1,7 @@
 #include "modules/cpu.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -7,8 +10,7 @@ namespace modules {
   void cpu_module::setup() {
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL,
-        {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     if (m_formatter->has(TAG_BAR_LOAD))
       m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
@@ -92,8 +94,8 @@ namespace modules {
         m_cputimes.back()->nice = std::stoull(values[2].c_str(), 0, 10);
         m_cputimes.back()->system = std::stoull(values[3].c_str(), 0, 10);
         m_cputimes.back()->idle = std::stoull(values[4].c_str(), 0, 10);
-        m_cputimes.back()->total = m_cputimes.back()->user + m_cputimes.back()->nice +
-                                   m_cputimes.back()->system + m_cputimes.back()->idle;
+        m_cputimes.back()->total =
+            m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system + m_cputimes.back()->idle;
       }
     } catch (const std::ios_base::failure& e) {
       m_log.err("Failed to read CPU values (what: %s)", e.what());

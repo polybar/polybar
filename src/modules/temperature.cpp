@@ -1,4 +1,7 @@
 #include "modules/temperature.hpp"
+
+#include "drawtypes/label.hpp"
+#include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 

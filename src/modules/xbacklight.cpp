@@ -1,4 +1,8 @@
 #include "modules/xbacklight.hpp"
+
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 #include "x11/graphics.hpp"
 

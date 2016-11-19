@@ -2,10 +2,6 @@
 
 #include "adapters/net.hpp"
 #include "components/config.hpp"
-#include "drawtypes/animation.hpp"
-#include "drawtypes/animation.hpp"
-#include "drawtypes/label.hpp"
-#include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
 
 POLYBAR_NS

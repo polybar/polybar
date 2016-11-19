@@ -4,7 +4,6 @@
 #include "components/config.hpp"
 #include "components/types.hpp"
 #include "config.hpp"
-#include "drawtypes/label.hpp"
 
 POLYBAR_NS
 
@@ -13,6 +12,14 @@ POLYBAR_NS
 #ifndef BUILDER_SPACE_TOKEN
 #define BUILDER_SPACE_TOKEN "%__"
 #endif
+
+// fwd decl
+namespace drawtypes {
+  class label;
+  using label_t = shared_ptr<label>;
+  using icon = label;
+  using icon_t = label_t;
+}
 
 using namespace drawtypes;
 

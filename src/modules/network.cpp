@@ -1,5 +1,9 @@
 #include "modules/network.hpp"
 
+#include "drawtypes/animation.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/ramp.hpp"
+
 POLYBAR_NS
 
 namespace modules {

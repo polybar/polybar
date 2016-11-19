@@ -2,9 +2,6 @@
 
 #include "components/config.hpp"
 #include "config.hpp"
-#include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
-#include "drawtypes/ramp.hpp"
 #include "modules/meta.hpp"
 
 POLYBAR_NS

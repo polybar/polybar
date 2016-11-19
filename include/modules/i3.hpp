@@ -4,8 +4,6 @@
 
 #include "components/config.hpp"
 #include "config.hpp"
-#include "drawtypes/iconset.hpp"
-#include "drawtypes/label.hpp"
 #include "modules/meta.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
@@ -31,9 +29,7 @@ namespace modules {
     i3_workspace(int index_, i3_flag flag_, label_t&& label_)
         : index(index_), flag(flag_), label(forward<decltype(label_)>(label_)) {}
 
-    operator bool() {
-      return label && *label;
-    }
+    operator bool();
   };
 
   using i3_workspace_t = unique_ptr<i3_workspace>;

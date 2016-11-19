@@ -1,4 +1,6 @@
 #include "modules/xwindow.hpp"
+
+#include "drawtypes/label.hpp"
 #include "x11/atoms.hpp"
 #include "x11/graphics.hpp"
 

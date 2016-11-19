@@ -3,9 +3,6 @@
 #include <csignal>
 
 #include "adapters/mpd.hpp"
-#include "drawtypes/iconset.hpp"
-#include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
 #include "modules/meta.hpp"
 #include "utils/threading.hpp"
 

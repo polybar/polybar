@@ -1,4 +1,6 @@
 #include "modules/menu.hpp"
+
+#include "drawtypes/label.hpp"
 #include "utils/scope.hpp"
 
 POLYBAR_NS

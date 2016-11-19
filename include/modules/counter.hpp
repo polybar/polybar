@@ -4,8 +4,6 @@
 
 POLYBAR_NS
 
-using namespace drawtypes;
-
 namespace modules {
   class counter_module : public timer_module<counter_module> {
    public:

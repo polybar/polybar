@@ -1,4 +1,9 @@
 #include "modules/battery.hpp"
+#include "drawtypes/animation.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
+#include "utils/file.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS

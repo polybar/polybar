@@ -1,5 +1,9 @@
 #include "modules/mpd.hpp"
 
+#include "drawtypes/iconset.hpp"
+#include "drawtypes/label.hpp"
+#include "drawtypes/progressbar.hpp"
+
 POLYBAR_NS
 
 using namespace mpd;
@@ -14,9 +18,9 @@ namespace modules {
     // Add formats and elements {{{
 
     m_formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG,
-        {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
-            TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY,
-            TAG_ICON_PAUSE, TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF});
+        {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM, TAG_ICON_REPEAT,
+            TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE, TAG_ICON_NEXT,
+            TAG_ICON_SEEKB, TAG_ICON_SEEKF});
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
 
@@ -199,11 +203,9 @@ namespace modules {
     }
 
     if (m_icons->has("random"))
-      m_icons->get("random")->m_foreground =
-          m_status && m_status->random() ? m_toggle_on_color : m_toggle_off_color;
+      m_icons->get("random")->m_foreground = m_status && m_status->random() ? m_toggle_on_color : m_toggle_off_color;
     if (m_icons->has("repeat"))
-      m_icons->get("repeat")->m_foreground =
-          m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
+      m_icons->get("repeat")->m_foreground = m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
     if (m_icons->has("repeat_one"))
       m_icons->get("repeat_one")->m_foreground =
           m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
