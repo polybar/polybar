@@ -19,16 +19,18 @@ namespace i3_util {
     auto children = conn.query_tree(conn.screen()->root).children();
 
     for (auto it = children.begin(); it != children.end(); it++) {
-      auto cookie = xcb_icccm_get_wm_name(conn, *it);
       xcb_icccm_get_text_property_reply_t reply;
+      reply.name = nullptr;
 
-      if (xcb_icccm_get_wm_name_reply(conn, cookie, &reply, nullptr) == 0)
-        continue;
+      if (xcb_icccm_get_wm_name_reply(conn, xcb_icccm_get_wm_name(conn, *it), &reply, nullptr)) {
+        if (("[i3 con] output " + output_name).compare(0, 16 + output_name.length(), reply.name) == 0) {
+          roots.emplace_back(*it);
+        }
+      }
 
-      if (("[i3 con] output " + output_name).compare(0, 16 + output_name.length(), reply.name) != 0)
-        continue;
-
-      roots.emplace_back(*it);
+      if (reply.name != nullptr) {
+        xcb_icccm_get_text_property_reply_wipe(&reply);
+      }
     }
 
     return roots;

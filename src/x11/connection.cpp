@@ -3,6 +3,7 @@
 #include "x11/connection.hpp"
 
 LEMONBUDDY_NS
+
 /**
  * Preload required xcb atoms
  */

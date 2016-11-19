@@ -13,17 +13,18 @@ namespace bspwm_util {
     auto children = conn.query_tree(conn.screen()->root).children();
 
     for (auto it = children.begin(); it != children.end(); it++) {
-      auto cookie = xcb_icccm_get_wm_class(conn, *it);
       xcb_icccm_get_wm_class_reply_t reply;
+      reply.class_name = reply.instance_name = nullptr;
 
-      if (xcb_icccm_get_wm_class_reply(conn, cookie, &reply, nullptr) == 0)
-        continue;
+      if (xcb_icccm_get_wm_class_reply(conn, xcb_icccm_get_wm_class(conn, *it), &reply, nullptr)) {
+        if (string_util::compare("Bspwm", reply.class_name) && string_util::compare("root", reply.instance_name)) {
+          roots.emplace_back(*it);
+        }
+      }
 
-      if (!string_util::compare("Bspwm", reply.class_name) ||
-          !string_util::compare("root", reply.instance_name))
-        continue;
-
-      roots.emplace_back(*it);
+      if (reply.class_name != nullptr || reply.instance_name != nullptr) {
+        xcb_icccm_get_wm_class_reply_wipe(&reply);
+      }
     }
 
     return roots;
