@@ -37,7 +37,7 @@ module-margin-left = 1
 module-margin-right = 2
 
 font-0 = fixed:pixelsize=10;0
-font-1 = unifont:size=6:heavy;-2
+font-1 = unifont:size=6:heavy:fontformat=truetype;-2
 font-2 = siji:pixelsize=10;0
 
 modules-left = @MODULES_LEFT@
@@ -257,7 +257,7 @@ type = internal/volume
 format-volume = <label-volume> <bar-volume>
 
 label-volume = VOL
-label-volume-foreground = ${BAR.foreground}
+label-volume-foreground = ${root.foreground}
 
 label-muted =  sound muted
 label-muted-foreground = #55

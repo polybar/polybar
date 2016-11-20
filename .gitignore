@@ -7,3 +7,4 @@ tags
 *.swp
 include/config.hpp
 .tags
+examples/config
