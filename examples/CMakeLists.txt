@@ -46,6 +46,34 @@ else()
 endif()
 
 # }}}
+# Get network interfaces {{{
+
+if(ENABLE_NETWORK)
+  string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY_CAPACITY})
+  string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER_STATUS})
+
+  file(GLOB IFLIST RELATIVE /sys/class/net /sys/class/net/*)
+
+  foreach(INTERFACE ${IFLIST})
+    if(NOT ${INTERFACE} STREQUAL "lo")
+      file(GLOB IS_WIRELESS /sys/class/net/${INTERFACE}/wireless)
+      if(IS_WIRELESS)
+        set(INTERFACE_WLAN ${INTERFACE})
+      else()
+        set(INTERFACE_ETH ${INTERFACE})
+      endif()
+    endif()
+  endforeach()
+
+  if(NOT INTERFACE_ETH)
+    set(INTERFACE_ETH net0)
+  endif()
+  if(NOT INTERFACE_WLAN)
+    set(INTERFACE_WLAN net1)
+  endif()
+endif()
+
+# }}}
 # Configure and install {{{
 
 configure_file(

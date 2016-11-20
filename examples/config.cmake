@@ -10,18 +10,17 @@
 [global/wm]
 margin-top = 5
 margin-bottom = 5
-margin-left = 5
-margin-right = 5
 
 
 [bar/example]
-;monitor = HDMI-1
+;monitor = ${env:MONITOR:HDMI-1}
 dock = false
 width = 100%
 height = 27
 offset-x = 0
 offset-y = 0
 
+;background = ${xrdb:color9}
 background = #ee222222
 foreground = #dfdfdf
 linecolor = #555
@@ -45,7 +44,7 @@ modules-center = @MODULES_CENTER@
 modules-right = @MODULES_RIGHT@
 
 tray-position = right
-tray-padding = 4
+tray-padding = 2
 ;tray-transparent = true
 ;tray-background = #0063ff
 
@@ -65,9 +64,6 @@ interval = 25
 mount-0 = /
 mount-1 = /home
 mount-2 = /invalid/mountpoint
-
-;fixed-values = true
-;spacing = 4
 
 label-mounted = %mountpoint%: %percentage_free%
 
@@ -163,52 +159,20 @@ bar-empty-foreground = #55
 [module/cpu]
 type = internal/cpu
 interval = 2
-
-format = <label> <bar-load>
-label = CPU
-
-bar-load-width = 10
-bar-load-foreground-0 = #55aa55
-bar-load-foreground-1 = #55aa55
-bar-load-foreground-2 = #f5a70a
-bar-load-foreground-3 = #ff5555
-bar-load-gradient = false
-bar-load-indicator = │
-bar-load-indicator-font = 2
-bar-load-indicator-foreground = #ff
-bar-load-fill = ─
-bar-load-fill-font = 2
-bar-load-empty = ─
-bar-load-empty-font = 2
-bar-load-empty-foreground = #55
+label = %{F#666}%{F#cc} %percentage%
+label-underline = #f90000
 
 
 [module/memory]
 type = internal/memory
 interval = 2
-
-format = <label> <bar-used>
-label = RAM
-
-bar-used-width = 10
-bar-used-foreground-0 = #55aa55
-bar-used-foreground-1 = #55aa55
-bar-used-foreground-2 = #f5a70a
-bar-used-foreground-3 = #ff5555
-bar-used-gradient = false
-bar-used-indicator = │
-bar-used-indicator-font = 2
-bar-used-indicator-foreground = #ff
-bar-used-fill = ─
-bar-used-fill-font = 2
-bar-used-empty = ─
-bar-used-empty-font = 2
-bar-used-empty-foreground = #55
+label = %{F#665}%{F#cc} %percentage_used%
+label-underline = #4bffdc
 
 
 [module/wlan]
 type = internal/network
-interface = net1
+interface = @INTERFACE_WLAN@
 interval = 3.0
 
 format-connected = <ramp-signal> <label-connected>
@@ -229,7 +193,7 @@ ramp-signal-foreground = #55
 
 [module/eth]
 type = internal/network
-interface = net0
+interface = @INTERFACE_ETH@
 interval = 3.0
 
 format-connected-underline = #55aa55
@@ -242,17 +206,14 @@ label-disconnected-foreground = #55
 
 [module/date]
 type = internal/date
-date = %%{F#55}%{F#ff} %Y-%m-%d  %%{F#55}%%{F#ff} %H:%M
-date-alt = %%{F#55}%{F#ff} %Y-%m-%d  %%{F#55}%%{F#ff} %H:%M:%S
+date = %%{F#55}%%{F#ff} %H:%M
+date-alt = %%{F#55}%{F#ff} %Y-%m-%d  %%{F#55}%%{F#ff} %H:%M
 interval = 5
 format-underline = #0a6cf5
 
 
 [module/volume]
 type = internal/volume
-;speaker-mixer = Speaker
-;headphone-mixer = Headphone
-;headphone-id = 9
 
 format-volume = <label-volume> <bar-volume>
 
