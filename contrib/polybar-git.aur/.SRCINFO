@@ -1,0 +1,29 @@
+pkgbase = polybar-git
+	pkgdesc = A fast and easy-to-use status bar
+	pkgver = 2.3.0
+	pkgrel = 1
+	url = https://github.com/jaagr/polybar
+	arch = i686
+	arch = x86_64
+	license = MIT
+	makedepends = cmake
+	makedepends = python2
+	makedepends = pkg-config
+	makedepends = boost
+	depends = libxft
+	depends = xcb-util-wm
+	depends = xcb-util-image
+	optdepends = alsa-lib: volume module support
+	optdepends = libmpdclient: mpd module support
+	optdepends = wireless_tools: network module support
+	optdepends = jsoncpp: i3 module support
+	optdepends = i3ipc-glib-git: i3 module support
+	provides = polybar
+	conflicts = polybar
+	conflicts = lemonbuddy-git
+	conflicts = lemonbuddy
+	source = polybar::git+https://github.com/jaagr/polybar.git
+	md5sums = SKIP
+
+pkgname = polybar-git
+
