@@ -1,10 +1,22 @@
 #include <X11/Xlib.h>
 
+#include "utils/factory.hpp"
 #include "x11/xlib.hpp"
 #include "x11/xresources.hpp"
 
 POLYBAR_NS
 
+/**
+ * Configure injection module
+ */
+di::injector<const xresource_manager&> configure_xresource_manager() {
+  auto instance = factory_util::generic_singleton<xresource_manager>();
+  return di::make_injector(di::bind<>().to(instance));
+}
+
+/**
+ * Construct manager instance
+ */
 xresource_manager::xresource_manager() {
   XrmInitialize();
 
@@ -16,6 +28,9 @@ xresource_manager::xresource_manager() {
     return;
 }
 
+/**
+ * Get string value from the X resource db
+ */
 string xresource_manager::get_string(string name, string fallback) const {
   auto result = load_value(name, "String", 64);
   if (result.empty())
@@ -23,6 +38,9 @@ string xresource_manager::get_string(string name, string fallback) const {
   return result;
 }
 
+/**
+ * Get float value from the X resource db
+ */
 float xresource_manager::get_float(string name, float fallback) const {
   auto result = load_value(name, "String", 64);
   if (result.empty())
@@ -30,6 +48,9 @@ float xresource_manager::get_float(string name, float fallback) const {
   return strtof(result.c_str(), 0);
 }
 
+/**
+ * Get integer value from the X resource db
+ */
 int xresource_manager::get_int(string name, int fallback) const {
   auto result = load_value(name, "String", 64);
   if (result.empty())
@@ -37,6 +58,9 @@ int xresource_manager::get_int(string name, int fallback) const {
   return atoi(result.c_str());
 }
 
+/**
+ * Query the database for given key
+ */
 string xresource_manager::load_value(string key, string res_type, size_t n) const {
   if (m_manager == nullptr)
     return "";

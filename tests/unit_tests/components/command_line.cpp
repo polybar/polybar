@@ -1,5 +1,5 @@
-#include "components/command_line.hpp"
-#include "utils/string.hpp"
+#include "components/command_line.cpp"
+#include "utils/string.cpp"
 
 int main() {
   using namespace polybar;

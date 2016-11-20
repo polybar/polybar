@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
 #include "components/ipc.hpp"
@@ -13,6 +12,14 @@
 #include "x11/types.hpp"
 
 POLYBAR_NS
+
+// fwd decl {{{
+
+class bar;
+
+// }}}
+
+using watch_t = inotify_util::watch_t;
 
 class controller {
  public:
@@ -72,22 +79,6 @@ class controller {
   bool m_writeback{false};
 };
 
-namespace {
-  /**
-   * Configure injection module
-   */
-  template <typename T = unique_ptr<controller>>
-  di::injector<T> configure_controller(inotify_util::watch_t& confwatch) {
-    // clang-format off
-    return di::make_injector(
-        di::bind<>().to(confwatch),
-        configure_connection(),
-        configure_logger(),
-        configure_config(),
-        configure_eventloop(),
-        configure_bar());
-    // clang-format on
-  }
-}
+di::injector<unique_ptr<controller>> configure_controller(watch_t& confwatch);
 
 POLYBAR_NS_END

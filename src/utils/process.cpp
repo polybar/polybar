@@ -1,4 +1,5 @@
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "utils/process.hpp"
 #include "utils/string.hpp"

@@ -2,6 +2,7 @@
 
 #include "x11/atoms.hpp"
 #include "x11/wm.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 

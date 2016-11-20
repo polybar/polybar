@@ -1,12 +1,19 @@
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
+#include <chrono>
+#include <thread>
 
 #include "components/signals.hpp"
+#include "components/types.hpp"
 #include "utils/color.hpp"
+#include "utils/factory.hpp"
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
+#include "x11/color.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
+#include "x11/events.hpp"
+#include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/window.hpp"
 #include "x11/wm.hpp"
@@ -182,7 +189,7 @@ void tray_manager::activate() {  // {{{
   // replaced, we delay the notification broadcast to allow the clients
   // to get unembedded...
   if (m_othermanager)
-    this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(std::chrono::seconds{1});
 
   notify_clients();
 
@@ -842,7 +849,7 @@ int16_t tray_manager::calculate_client_y() {  // {{{
 shared_ptr<tray_client> tray_manager::find_client(const xcb_window_t& win) const {  // {{{
   for (auto&& client : m_clients)
     if (client->match(win)) {
-      return shared_ptr<tray_client>{client.get(), null_deleter{}};
+      return shared_ptr<tray_client>{client.get(), factory_util::null_deleter{}};
     }
   return {};
 }  // }}}

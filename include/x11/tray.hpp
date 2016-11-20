@@ -1,12 +1,11 @@
 #pragma once
 
 #include <xcb/xcb.h>
-#include <mutex>
 
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
-#include "x11/graphics.hpp"
+#include "utils/concurrency.hpp"
 
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
 #define _NET_SYSTEM_TRAY_ORIENTATION_VERT 1
@@ -23,6 +22,10 @@ POLYBAR_NS
 // fwd declarations
 class connection;
 struct xembed_data;
+
+namespace graphics_util {
+  struct root_pixmap;
+}
 
 using root_pixmap = graphics_util::root_pixmap;
 

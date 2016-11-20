@@ -1,11 +1,13 @@
 #pragma once
 
+#include <boost/optional.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "utils/env.hpp"
 #include "utils/string.hpp"
 #include "x11/xresources.hpp"
 
@@ -78,7 +80,7 @@ class config {
   template <typename T>
   vector<T> get_list(string section, string key) const {
     vector<T> vec;
-    optional<T> value;
+    boost::optional<T> value;
 
     while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
       auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
@@ -98,7 +100,7 @@ class config {
   template <typename T>
   vector<T> get_list(string section, string key, vector<T> default_value) const {
     vector<T> vec;
-    optional<T> value;
+    boost::optional<T> value;
 
     while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
       auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
@@ -173,8 +175,8 @@ class config {
       var.erase(pos);
     }
 
-    if (has_env(var.c_str()))
-      return boost::lexical_cast<T>(read_env(var.c_str()));
+    if (env_util::has(var.c_str()))
+      return boost::lexical_cast<T>(env_util::get(var.c_str()));
 
     return fallback;
   }

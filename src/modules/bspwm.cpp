@@ -5,9 +5,15 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/event_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<bspwm_module>;
+  template class event_module<bspwm_module>;
+
   void bspwm_module::setup() {  // {{{
     // Create ipc subscriber
     m_subscriber = bspwm_util::make_subscriber();

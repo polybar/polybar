@@ -5,6 +5,7 @@
 #include "x11/window.hpp"
 #include "x11/xutils.hpp"
 
+#include "x11/color.hpp"
 #include "components/types.hpp"
 
 POLYBAR_NS

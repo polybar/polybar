@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <iwlib.h>
@@ -12,6 +13,8 @@
 #include "config.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 namespace net {
   DEFINE_ERROR(network_error);

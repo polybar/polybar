@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <algorithm>
 
 #include "components/command_line.hpp"
 

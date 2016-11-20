@@ -1,9 +1,13 @@
 #pragma once
 
-#include "modules/meta.hpp"
+#include <chrono>
+
+#include "modules/meta/event_module.hpp"
 #include "utils/command.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 #define OUTPUT_ACTION(BUTTON)     \
   if (!m_actions[BUTTON].empty()) \
@@ -29,7 +33,7 @@ namespace modules {
 
     string m_exec;
     bool m_tail = false;
-    interval_t m_interval = 0s;
+    chrono::duration<double> m_interval{0};
     size_t m_maxlen = 0;
     bool m_ellipsis = true;
     map<mousebtn, string> m_actions;

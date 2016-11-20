@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/meta.hpp"
+#include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS
 

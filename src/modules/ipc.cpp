@@ -1,9 +1,16 @@
 #include "modules/ipc.hpp"
+
 #include "components/ipc.hpp"
+
+#include "modules/meta/base.inl"
+#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
+  template class module<ipc_module>;
+  template class static_module<ipc_module>;
+
   /**
    * Load user-defined ipc hooks and
    * create formatting tags

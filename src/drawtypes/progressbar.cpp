@@ -1,3 +1,6 @@
+#include "x11/color.hpp"
+#include "components/types.hpp"
+
 #include "drawtypes/progressbar.hpp"
 #include "utils/math.hpp"
 

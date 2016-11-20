@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include "common.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -22,7 +23,6 @@ class logger {
   explicit logger(string level_name) : logger(parse_loglevel_name(level_name)) {}
 
   void verbosity(loglevel level);
-
   void verbosity(string level);
 
   /**
@@ -159,7 +159,7 @@ namespace {
    */
   template <typename T = const logger&>
   di::injector<T> configure_logger(loglevel level = loglevel::NONE) {
-    auto instance = factory::generic_singleton<logger>(level);
+    auto instance = factory_util::generic_singleton<logger>(level);
     return di::make_injector(di::bind<>().to(instance));
   }
 }

@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
-#include "modules/meta.hpp"
+#include "modules/meta/inotify_module.hpp"
 
 POLYBAR_NS
 
@@ -67,7 +67,7 @@ namespace modules {
     map<battery_value, string> m_valuepath;
     std::atomic<int> m_percentage{0};
     int m_fullat{100};
-    interval_t m_interval;
+    chrono::duration<double> m_interval;
     chrono::system_clock::time_point m_lastpoll;
     string m_timeformat;
     int m_unchanged{SKIP_N_UNCHANGED};

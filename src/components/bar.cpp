@@ -4,13 +4,14 @@
 #include "components/parser.hpp"
 #include "components/signals.hpp"
 #include "utils/bspwm.hpp"
-#include "x11/draw.hpp"
-#include "x11/graphics.hpp"
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/draw.hpp"
-#include "x11/randr.hpp"
+#include "x11/draw.hpp"
+#include "x11/fonts.hpp"
+#include "x11/graphics.hpp"
+#include "x11/tray.hpp"
 #include "x11/wm.hpp"
 #include "x11/xlib.hpp"
 #include "x11/xutils.hpp"
@@ -22,10 +23,35 @@
 POLYBAR_NS
 
 /**
+ * Configure injection module
+ */
+di::injector<unique_ptr<bar>> configure_bar() {
+  // clang-format off
+  return di::make_injector(
+      configure_connection(),
+      configure_config(),
+      configure_logger(),
+      configure_font_manager(),
+      configure_tray_manager());
+  // clang-format on
+}
+
+/**
+ * Construct bar instance
+ */
+bar::bar(connection& conn, const config& config, const logger& logger, unique_ptr<font_manager> font_manager,
+    unique_ptr<tray_manager> tray_manager)
+    : m_connection(conn)
+    , m_conf(config)
+    , m_log(logger)
+    , m_fontmanager(forward<decltype(font_manager)>(font_manager))
+    , m_tray(forward<decltype(tray_manager)>(tray_manager)) {}
+
+/**
  * Cleanup signal handlers and destroy the bar window
  */
 bar::~bar() {
-  std::lock_guard<threading_util::spin_lock> lck(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> lck(m_lock);
 
   // Disconnect signal handlers {{{
   g_signals::parser::alignment_change = nullptr;
@@ -69,7 +95,7 @@ void bar::bootstrap(bool nodraw) {
   m_screensize.h = geom->height;
 
   // limit the amount of allowed input events to 1 per 60ms
-  m_throttler = throttle_util::make_throttler(1, 60ms);
+  m_throttler = throttle_util::make_throttler(1, chrono::milliseconds{60});
 
   m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
   m_opts.locale = m_conf.get<string>(bs, "locale", "");
@@ -345,14 +371,14 @@ const bar_settings bar::settings() const {
  * @param force Unless true, do not parse unchanged data
  */
 void bar::parse(string data, bool force) {
-  std::lock_guard<threading_util::spin_lock> lck(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> lck(m_lock);
   {
     if (data == m_prevdata && !force)
       return;
 
     m_prevdata = data;
 
-    // TODO: move to fontmanager
+    // TODO: move to font_manager
     m_xftdraw = XftDrawCreate(xlib::get_display(), m_pixmap, xlib::get_visual(), m_colormap);
 
     m_opts.align = alignment::LEFT;
@@ -760,7 +786,7 @@ void bar::handle(const evt::button_press& evt) {
     return;
   }
 
-  std::lock_guard<threading_util::spin_lock> lck(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> lck(m_lock);
   {
     m_log.trace_x("bar: Received button press event: %i at pos(%i, %i)", static_cast<int>(evt->detail), evt->event_x,
         evt->event_y);

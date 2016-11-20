@@ -1,6 +1,7 @@
 #pragma once
 
-#include "modules/meta.hpp"
+#include "modules/meta/event_module.hpp"
+#include "modules/meta/timer_module.hpp"
 
 #define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
   class MODULE_NAME : public module<MODULE_NAME> {                                      \

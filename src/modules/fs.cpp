@@ -1,16 +1,23 @@
 #include <sys/statvfs.h>
 
+#include "modules/fs.hpp"
+
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "modules/fs.hpp"
 #include "utils/math.hpp"
 #include "utils/mtab.hpp"
 #include "utils/string.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/timer_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<fs_module>;
+  template class timer_module<fs_module>;
+
   /**
    * Bootstrap the module by reading config values and
    * setting up required components

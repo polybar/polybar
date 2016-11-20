@@ -1,11 +1,15 @@
 #pragma once
 
+#include <chrono>
+
 #include "common.hpp"
 #include "components/config.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 namespace drawtypes {
   class animation : public non_copyable_mixin<animation> {

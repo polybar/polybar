@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/meta.hpp"
+#include "modules/meta/event_module.hpp"
 #include "utils/bspwm.hpp"
 
 POLYBAR_NS

@@ -3,7 +3,6 @@
 #include <xcb/xcb_icccm.h>
 
 #include "common.hpp"
-#include "x11/connection.hpp"
 
 POLYBAR_NS
 

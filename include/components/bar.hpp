@@ -4,11 +4,10 @@
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
-#include "utils/threading.hpp"
+#include "utils/concurrency.hpp"
 #include "utils/throttle.hpp"
 #include "x11/connection.hpp"
-#include "x11/fontmanager.hpp"
-#include "x11/tray.hpp"
+#include "x11/events.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
 
@@ -16,17 +15,12 @@ POLYBAR_NS
 
 // fwd
 class tray_manager;
+class font_manager;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<fontmanager> fontmanager,
-      unique_ptr<tray_manager> tray_manager)
-      : m_connection(conn)
-      , m_conf(config)
-      , m_log(logger)
-      , m_fontmanager(forward<decltype(fontmanager)>(fontmanager))
-      , m_tray(forward<decltype(tray_manager)>(tray_manager)) {}
-
+  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<font_manager> font_manager,
+      unique_ptr<tray_manager> tray_manager);
   ~bar();
 
   void bootstrap(bool nodraw = false);
@@ -79,10 +73,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   connection& m_connection;
   const config& m_conf;
   const logger& m_log;
-  unique_ptr<fontmanager> m_fontmanager;
+  unique_ptr<font_manager> m_fontmanager;
   unique_ptr<tray_manager> m_tray;
 
-  threading_util::spin_lock m_lock;
+  concurrency_util::spin_lock m_lock;
   throttle_util::throttle_t m_throttler;
 
   xcb_screen_t* m_screen;
@@ -115,21 +109,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   XftDraw* m_xftdraw;
 };
 
-namespace {
-  /**
-   * Configure injection module
-   */
-  template <typename T = unique_ptr<bar>>
-  di::injector<T> configure_bar() {
-    // clang-format off
-    return di::make_injector(
-        configure_connection(),
-        configure_config(),
-        configure_logger(),
-        configure_fontmanager(),
-        configure_tray_manager());
-    // clang-format on
-  }
-}
+di::injector<unique_ptr<bar>> configure_bar();
 
 POLYBAR_NS_END

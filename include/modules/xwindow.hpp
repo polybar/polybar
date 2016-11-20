@@ -3,13 +3,15 @@
 #include <bitset>
 
 #include "components/config.hpp"
-#include "modules/meta.hpp"
-#include "x11/connection.hpp"
+#include "modules/meta/static_module.hpp"
+#include "x11/events.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 #include "x11/window.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace modules {
   /**

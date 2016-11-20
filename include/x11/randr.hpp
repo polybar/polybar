@@ -3,14 +3,22 @@
 #include "config.hpp"
 
 #ifndef ENABLE_RANDR_EXT
-#error "RandR extension is disabled..."
+#error "X RandR extension is disabled..."
 #endif
 
+#include <xpp/proto/randr.hpp>
+#include <xpp/xpp.hpp>
+
 #include "common.hpp"
-#include "utils/memory.hpp"
-#include "x11/connection.hpp"
 
 POLYBAR_NS
+
+class connection;
+
+namespace evt {
+  using randr_notify = xpp::randr::event::notify<connection&>;
+  using randr_screen_change_notify = xpp::randr::event::screen_change_notify<connection&>;
+}
 
 struct backlight_values {
   uint32_t atom = 0;
@@ -28,16 +36,7 @@ struct randr_output {
   xcb_randr_output_t output;
   backlight_values backlight;
 
-  /**
-   * Workaround for the inconsistent naming
-   * of outputs between my intel and nvidia
-   * drivers (xf86-video-intel drops the dash)
-   */
-  bool match(const string& o, bool strict = false) const {
-    if (strict && name != o)
-      return false;
-    return name == o || name == string_util::replace(o, "-", "");
-  }
+  bool match(const string& o, bool strict = false) const;
 };
 
 using monitor_t = shared_ptr<randr_output>;

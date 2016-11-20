@@ -1,26 +1,43 @@
-#include "x11/fontmanager.hpp"
-#include "utils/memory.hpp"
+#include <X11/Xlib-xcb.h>
+
 #include "utils/color.hpp"
+#include "utils/memory.hpp"
+#include "x11/connection.hpp"
+#include "x11/fonts.hpp"
+#include "x11/xlib.hpp"
 
 POLYBAR_NS
+
+/**
+ * Configure injection module
+ */
+di::injector<unique_ptr<font_manager>> configure_font_manager() {
+  return di::make_injector(configure_connection(), configure_logger());
+}
 
 array<char, XFT_MAXCHARS> xft_widths;
 array<wchar_t, XFT_MAXCHARS> xft_chars;
 
-fontmanager::fontmanager(connection& conn, const logger& logger)
-    : m_connection(conn), m_logger(logger) {
+void fonttype_deleter::operator()(fonttype* f) {
+  if (f->xft != nullptr)
+    XftFontClose(xlib::get_display(), f->xft);
+  else
+    xcb_close_font(xutils::get_connection(), f->ptr);
+}
+
+font_manager::font_manager(connection& conn, const logger& logger) : m_connection(conn), m_logger(logger) {
   m_display = xlib::get_display();
   m_visual = xlib::get_visual(conn.default_screen());
   m_colormap = xlib::create_colormap(conn.default_screen());
 }
 
-fontmanager::~fontmanager() {
+font_manager::~font_manager() {
   XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
   XFreeColormap(m_display, m_colormap);
   m_fonts.clear();
 }
 
-void fontmanager::set_preferred_font(int index) {
+void font_manager::set_preferred_font(int index) {
   if (index <= 0) {
     m_fontindex = -1;
     return;
@@ -34,15 +51,15 @@ void fontmanager::set_preferred_font(int index) {
   }
 }
 
-bool fontmanager::load(string name, int fontindex, int offset_y) {
+bool font_manager::load(string name, int fontindex, int offset_y) {
   if (fontindex != -1 && m_fonts.find(fontindex) != m_fonts.end()) {
     m_logger.warn("A font with index '%i' has already been loaded, skip...", fontindex);
     return false;
   } else if (fontindex == -1) {
     fontindex = m_fonts.size();
-    m_logger.trace("fontmanager: Assign font '%s' to index '%d'", name.c_str(), fontindex);
+    m_logger.trace("font_manager: Assign font '%s' to index '%d'", name.c_str(), fontindex);
   } else {
-    m_logger.trace("fontmanager: Add font '%s' to index '%i'", name, fontindex);
+    m_logger.trace("font_manager: Add font '%s' to index '%i'", name, fontindex);
   }
 
   m_fonts.emplace(make_pair(fontindex, font_t{new fonttype(), fonttype_deleter{}}));
@@ -51,13 +68,13 @@ bool fontmanager::load(string name, int fontindex, int offset_y) {
   m_fonts[fontindex]->xft = nullptr;
 
   if (open_xcb_font(m_fonts[fontindex], name)) {
-    m_logger.trace("fontmanager: Successfully loaded X font '%s'", name);
+    m_logger.trace("font_manager: Successfully loaded X font '%s'", name);
   } else if ((m_fonts[fontindex]->xft = XftFontOpenName(m_display, 0, name.c_str())) != nullptr) {
     m_fonts[fontindex]->ptr = 0;
     m_fonts[fontindex]->ascent = m_fonts[fontindex]->xft->ascent;
     m_fonts[fontindex]->descent = m_fonts[fontindex]->xft->descent;
     m_fonts[fontindex]->height = m_fonts[fontindex]->ascent + m_fonts[fontindex]->descent;
-    m_logger.trace("fontmanager: Successfully loaded Freetype font '%s'", name);
+    m_logger.trace("font_manager: Successfully loaded Freetype font '%s'", name);
   } else {
     return false;
   }
@@ -75,7 +92,7 @@ bool fontmanager::load(string name, int fontindex, int offset_y) {
   return true;
 }
 
-font_t& fontmanager::match_char(uint16_t chr) {
+font_t& font_manager::match_char(uint16_t chr) {
   static font_t notfound;
   if (!m_fonts.empty()) {
     if (m_fontindex != -1 && size_t(m_fontindex) <= m_fonts.size()) {
@@ -91,7 +108,7 @@ font_t& fontmanager::match_char(uint16_t chr) {
   return notfound;
 }
 
-int fontmanager::char_width(font_t& font, uint16_t chr) {
+int font_manager::char_width(font_t& font, uint16_t chr) {
   if (!font)
     return 0;
 
@@ -121,11 +138,11 @@ int fontmanager::char_width(font_t& font, uint16_t chr) {
   return 0;
 }
 
-XftColor fontmanager::xftcolor() {
+XftColor font_manager::xftcolor() {
   return m_xftcolor;
 }
 
-void fontmanager::allocate_color(XRenderColor color, bool initial_alloc) {
+void font_manager::allocate_color(XRenderColor color, bool initial_alloc) {
   if (!initial_alloc)
     XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
 
@@ -133,12 +150,12 @@ void fontmanager::allocate_color(XRenderColor color, bool initial_alloc) {
     m_logger.err("Failed to allocate color");
 }
 
-void fontmanager::set_gcontext_font(gcontext& gc, xcb_font_t font) {
+void font_manager::set_gcontext_font(gcontext& gc, xcb_font_t font) {
   const uint32_t values[1]{font};
   m_connection.change_gc(gc, XCB_GC_FONT, values);
 }
 
-bool fontmanager::open_xcb_font(font_t& fontptr, string fontname) {
+bool font_manager::open_xcb_font(font_t& fontptr, string fontname) {
   try {
     font xfont(m_connection, m_connection.generate_id());
 
@@ -147,8 +164,7 @@ bool fontmanager::open_xcb_font(font_t& fontptr, string fontname) {
 
     auto query = m_connection.query_font(xfont);
     if (query->char_infos_len == 0) {
-      m_logger.warn(
-          "X font '%s' does not contain any characters... (Verify the XLFD string)", fontname);
+      m_logger.warn("X font '%s' does not contain any characters... (Verify the XLFD string)", fontname);
       return false;
     }
 
@@ -166,21 +182,21 @@ bool fontmanager::open_xcb_font(font_t& fontptr, string fontname) {
 
     return true;
   } catch (const xpp::x::error::name& e) {
-    m_logger.trace("fontmanager: Could not find X font '%s'", fontname);
+    m_logger.trace("font_manager: Could not find X font '%s'", fontname);
   } catch (const shared_ptr<xcb_generic_error_t>& e) {
-    m_logger.trace("fontmanager: Could not find X font '%s'", fontname);
+    m_logger.trace("font_manager: Could not find X font '%s'", fontname);
   } catch (const std::exception& e) {
-    m_logger.trace("fontmanager: Could not find X font '%s' (what: %s)", fontname, e.what());
+    m_logger.trace("font_manager: Could not find X font '%s' (what: %s)", fontname, e.what());
   }
 
   return false;
 }
 
-bool fontmanager::has_glyph(font_t& font, uint16_t chr) {
+bool font_manager::has_glyph(font_t& font, uint16_t chr) {
   if (font->xft != nullptr) {
     return XftCharExists(m_display, font->xft, (FcChar32)chr) == true;
   } else {
-     if (chr < font->char_min || chr > font->char_max)
+    if (chr < font->char_min || chr > font->char_max)
       return false;
     if (static_cast<size_t>(chr - font->char_min) >= font->width_lut.size())
       return false;

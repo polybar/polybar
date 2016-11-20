@@ -5,6 +5,7 @@
 #include <xcb/xcb.h>
 #include <iomanip>
 #include <xpp/xpp.hpp>
+#include <boost/optional.hpp>
 
 #include "common.hpp"
 #include "utils/memory.hpp"
@@ -12,6 +13,16 @@
 #include "x11/atoms.hpp"
 #include "x11/types.hpp"
 #include "x11/xutils.hpp"
+
+#ifdef ENABLE_DAMAGE_EXT
+#include "x11/damage.hpp"
+#endif
+#ifdef ENABLE_RANDR_EXT
+#include "x11/randr.hpp"
+#endif
+#ifdef ENABLE_RENDER_EXT
+#include "x11/render.hpp"
+#endif
 
 POLYBAR_NS
 
@@ -60,7 +71,7 @@ class connection : public xpp_connection {
 
   void send_dummy_event(xcb_window_t t, uint32_t ev = XCB_EVENT_MASK_STRUCTURE_NOTIFY) const;
 
-  optional<xcb_visualtype_t*> visual_type(xcb_screen_t* screen, int match_depth = 32);
+  boost::optional<xcb_visualtype_t*> visual_type(xcb_screen_t* screen, int match_depth = 32);
 
   static string error_str(int error_code);
 
@@ -86,15 +97,6 @@ class connection : public xpp_connection {
   xcb_screen_t* m_screen = nullptr;
 };
 
-namespace {
-  /**
-   * Configure injection module
-   */
-  template <typename T = connection&>
-  di::injector<T> configure_connection() {
-    return di::make_injector(
-        di::bind<>().to(factory::generic_singleton<connection>(xutils::get_connection())));
-  }
-}
+di::injector<connection&> configure_connection();
 
 POLYBAR_NS_END

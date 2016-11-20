@@ -1,8 +1,22 @@
 #include "x11/randr.hpp"
+#include "x11/connection.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
 
+/**
+ * Workaround for the inconsistent naming
+ * of outputs between my intel and nvidia
+ * drivers (xf86-video-intel drops the dash)
+ */
+bool randr_output::match(const string& o, bool strict) const {
+  if (strict && name != o)
+    return false;
+  return name == o || name == string_util::replace(o, "-", "");
+}
+
 namespace randr_util {
+
   /**
    * Define monitor
    */

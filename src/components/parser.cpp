@@ -1,3 +1,6 @@
+#include "x11/color.hpp"
+#include "components/types.hpp"
+
 #include "components/parser.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"

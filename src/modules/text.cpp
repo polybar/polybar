@@ -1,8 +1,14 @@
 #include "modules/text.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/static_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<text_module>;
+  template class static_module<text_module>;
+
   void text_module::setup() {
     m_formatter->add("content", "", {});
 

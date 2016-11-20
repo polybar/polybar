@@ -22,15 +22,6 @@ class xresource_manager {
   XrmDatabase m_db;
 };
 
-namespace {
-  /**
-   * Configure injection module
-   */
-  template <typename T = const xresource_manager&>
-  di::injector<T> configure_xresource_manager() {
-    auto instance = factory::generic_singleton<xresource_manager>();
-    return di::make_injector(di::bind<>().to(instance));
-  }
-}
+di::injector<const xresource_manager&> configure_xresource_manager();
 
 POLYBAR_NS_END

@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "components/ipc.hpp"
 #include "config.hpp"

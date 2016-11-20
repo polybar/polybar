@@ -1,9 +1,12 @@
 #pragma once
 
+#include <xcb/xcb.h>
+
 #include "common.hpp"
-#include "x11/connection.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace wm_util {
   void set_wmname(connection& conn, xcb_window_t win, string wm_name, string wm_class);

@@ -3,13 +3,16 @@
 #
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -include common/test.hpp")
 
-include_directories(${CMAKE_CURRENT_LIST_DIR})
-include_directories(${APP_INCLUDE_DIRS})
+include_directories(
+  ${APP_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR})
+link_libraries(${APP_LIBRARIES})
 
 function(unit_test file)
   string(REPLACE "/" "_" testname ${file})
-  add_executable(unit_test.${testname} ${CMAKE_CURRENT_LIST_DIR}/unit_tests/${file}.cpp)
-  target_link_libraries(unit_test.${testname} ${APP_LIBRARIES})
+  add_executable(unit_test.${testname} ${CMAKE_CURRENT_LIST_DIR}/unit_tests/${file}.cpp ${SOURCE_DEPS})
   add_test(unit_test.${testname} unit_test.${testname})
 endfunction()
 
@@ -19,7 +22,6 @@ unit_test("utils/memory")
 unit_test("utils/string")
 unit_test("components/command_line")
 unit_test("components/di")
-#unit_test("components/logger")
-#unit_test("x11/color")
-#unit_test("x11/connection")
-#unit_test("x11/window")
+unit_test("x11/color")
+unit_test("x11/connection")
+unit_test("x11/winspec")

@@ -1,5 +1,8 @@
+#include <algorithm>
+
 #include "components/config.hpp"
 #include "utils/file.hpp"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
@@ -25,10 +28,11 @@ void config::load(string file, string barname) {
   if (std::find(bars.begin(), bars.end(), m_current_bar) == bars.end())
     throw application_error("Undefined bar: " + m_current_bar);
 
-  if (has_env("XDG_CONFIG_HOME"))
-    file = string_util::replace(file, read_env("XDG_CONFIG_HOME"), "$XDG_CONFIG_HOME");
-  if (has_env("HOME"))
-    file = string_util::replace(file, read_env("HOME"), "~");
+  if (env_util::has("XDG_CONFIG_HOME"))
+    file = string_util::replace(file, env_util::get("XDG_CONFIG_HOME"), "$XDG_CONFIG_HOME");
+  if (env_util::has("HOME"))
+    file = string_util::replace(file, env_util::get("HOME"), "~");
+
   m_logger.trace("config: Loaded %s", file);
   m_logger.trace("config: Current bar section: [%s]", bar_section());
 }

@@ -5,12 +5,17 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/event_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
-  void volume_module::setup() {
-    // Load configuration values {{{
+  template class module<volume_module>;
+  template class event_module<volume_module>;
 
+  void volume_module::setup() {
+    // Load configuration values
     string master_mixer_name{"Master"};
     string speaker_mixer_name;
     string headphone_mixer_name;
@@ -18,7 +23,7 @@ namespace modules {
     GET_CONFIG_VALUE(name(), master_mixer_name, "master-mixer");
     GET_CONFIG_VALUE(name(), speaker_mixer_name, "speaker-mixer");
     GET_CONFIG_VALUE(name(), headphone_mixer_name, "headphone-mixer");
-    m_mapped = m_conf.get<bool>(name(), "mapped", false);
+    GET_CONFIG_VALUE(name(), m_mapped, "mapped");
 
     if (!headphone_mixer_name.empty())
       REQ_CONFIG_VALUE(name(), m_headphoneid, "headphone-id");
@@ -28,9 +33,7 @@ namespace modules {
     if (string_util::compare(headphone_mixer_name, "master"))
       throw module_error("Master mixer is already defined");
 
-    // }}}
-    // Setup mixers {{{
-
+    // Setup mixers
     try {
       if (!master_mixer_name.empty())
         m_mixers[mixer::MASTER].reset(new mixer_t::element_type{master_mixer_name});
@@ -48,9 +51,7 @@ namespace modules {
       throw module_error(err.what());
     }
 
-    // }}}
-    // Add formats and elements {{{
-
+    // Add formats and elements
     m_formatter->add(
         FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
     m_formatter->add(
@@ -66,8 +67,6 @@ namespace modules {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
       m_ramp_headphones = load_ramp(m_conf, name(), TAG_RAMP_HEADPHONES, false);
     }
-
-    // }}}
   }
 
   void volume_module::teardown() {
@@ -75,8 +74,7 @@ namespace modules {
   }
 
   bool volume_module::has_event() {
-    // Poll for mixer and control events {{{
-
+    // Poll for mixer and control events
     try {
       if (m_mixers[mixer::MASTER] && m_mixers[mixer::MASTER]->wait(25))
         return true;
@@ -91,13 +89,10 @@ namespace modules {
     }
 
     return false;
-
-    // }}}
   }
 
   bool volume_module::update() {
-    // Consume pending events {{{
-
+    // Consume pending events
     if (m_mixers[mixer::MASTER])
       m_mixers[mixer::MASTER]->process_events();
     if (m_mixers[mixer::SPEAKER])
@@ -107,9 +102,7 @@ namespace modules {
     if (m_controls[control::HEADPHONE])
       m_controls[control::HEADPHONE]->process_events();
 
-    // }}}
-    // Get volume, mute and headphone state {{{
-
+    // Get volume, mute and headphone state
     m_volume = 100;
     m_muted = false;
     m_headphones = false;
@@ -131,9 +124,7 @@ namespace modules {
       m_muted = m_muted || m_mixers[mixer::SPEAKER]->is_muted();
     }
 
-    // }}}
-    // Replace label tokens {{{
-
+    // Replace label tokens
     if (m_label_volume) {
       m_label_volume->reset_tokens();
       m_label_volume->replace_token("%percentage%", to_string(m_volume) + "%");
@@ -143,8 +134,6 @@ namespace modules {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume) + "%");
     }
-
-    // }}}
 
     return true;
   }

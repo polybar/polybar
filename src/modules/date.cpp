@@ -1,8 +1,14 @@
 #include "modules/date.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/timer_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<date_module>;
+  template class timer_module<date_module>;
+
   void date_module::setup() {
     if (!m_bar.locale.empty())
       setlocale(LC_TIME, m_bar.locale.c_str());

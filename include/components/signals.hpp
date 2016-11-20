@@ -1,9 +1,21 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/types.hpp"
+
+#include "utils/functional.hpp"
 
 POLYBAR_NS
+
+// fwd decl {{{
+
+enum class mousebtn;
+enum class syntaxtag;
+enum class alignment;
+enum class attribute;
+enum class gc;
+class color;
+
+// }}}
 
 /**
  * @TODO: Allow multiple signal handlers

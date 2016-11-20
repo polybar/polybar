@@ -1,13 +1,24 @@
 #pragma once
 
+#include <atomic>
 #include <mutex>
+#include <thread>
 
 #include "common.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
 
-namespace threading_util {
+namespace this_thread = std::this_thread;
+
+using std::thread;
+
+template <typename T>
+using atomic = std::atomic<T>;
+
+using stateflag = atomic<bool>;
+
+namespace concurrency_util {
   namespace locking_strategy {
     struct no_backoff {
       bool operator()() {

@@ -4,9 +4,15 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/timer_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<network_module>;
+  template class timer_module<network_module>;
+
   void network_module::setup() {
     // Load configuration values
     REQ_CONFIG_VALUE(name(), m_interface, "interface");
@@ -69,8 +75,8 @@ namespace modules {
   }
 
   bool network_module::update() {
-    net::network* network = m_wireless ? dynamic_cast<net::network*>(m_wireless.get())
-                                       : dynamic_cast<net::network*>(m_wired.get());
+    net::network* network = m_wireless ? static_cast<net::network*>(m_wireless.get())
+                                       : static_cast<net::network*>(m_wired.get());
 
     if (!network->query(m_accumulate)) {
       m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);

@@ -1,4 +1,5 @@
 #include <sys/wait.h>
+#include <unistd.h>
 #include <csignal>
 
 #include "utils/command.hpp"
@@ -8,8 +9,7 @@
 POLYBAR_NS
 
 namespace command_util {
-  command::command(const logger& logger, string cmd)
-      : m_log(logger), m_cmd("/usr/bin/env\nsh\n-c\n" + cmd) {
+  command::command(const logger& logger, string cmd) : m_log(logger), m_cmd("/usr/bin/env\nsh\n-c\n" + cmd) {
     if (pipe(m_stdin) != 0)
       throw command_strerror("Failed to allocate input stream");
     if (pipe(m_stdout) != 0)
@@ -142,7 +142,7 @@ namespace command_util {
    * Write line to command input channel
    */
   int command::writeline(string data) {
-    std::lock_guard<threading_util::spin_lock> lck(m_pipelock);
+    std::lock_guard<concurrency_util::spin_lock> lck(m_pipelock);
     return io_util::writeline(m_stdin[PIPE_WRITE], data);
   }
 
@@ -150,7 +150,7 @@ namespace command_util {
    * Read a line from the commands output stream
    */
   string command::readline() {
-    std::lock_guard<threading_util::spin_lock> lck(m_pipelock);
+    std::lock_guard<concurrency_util::spin_lock> lck(m_pipelock);
     return io_util::readline(m_stdout[PIPE_READ]);
   }
 

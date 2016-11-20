@@ -1,4 +1,7 @@
+#include <thread>
+
 #include "adapters/mpd.hpp"
+#include "components/logger.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -82,10 +85,13 @@ namespace mpd {
   // }}}
   // class: mpdconnection {{{
 
+  mpdconnection::mpdconnection(
+      const logger& logger, string host, unsigned int port, string password, unsigned int timeout)
+      : m_log(logger), m_host(host), m_port(port), m_password(password), m_timeout(timeout) {}
+
   void mpdconnection::connect() {
     try {
-      m_log.trace("mpdconnection.connect: %s, %i, \"%s\", timeout: %i", m_host, m_port, m_password,
-          m_timeout);
+      m_log.trace("mpdconnection.connect: %s, %i, \"%s\", timeout: %i", m_host, m_port, m_password, m_timeout);
       m_connection.reset(mpd_connection_new(m_host.c_str(), m_port, m_timeout * 1000));
       check_errors(m_connection.get());
 
@@ -127,7 +133,7 @@ namespace mpd {
       } catch (const mpd_exception& e) {
       }
 
-      this_thread::sleep_for(chrono::duration<double>(interval));
+      std::this_thread::sleep_for(chrono::duration<double>(interval));
     }
 
     return false;

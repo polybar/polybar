@@ -2,7 +2,8 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "utils/threading.hpp"
+#include "utils/concurrency.hpp"
+#include "utils/functional.hpp"
 
 POLYBAR_NS
 
@@ -69,7 +70,7 @@ namespace command_util {
     pid_t m_forkpid;
     int m_forkstatus;
 
-    threading_util::spin_lock m_pipelock;
+    concurrency_util::spin_lock m_pipelock;
   };
 
   using command_t = unique_ptr<command>;

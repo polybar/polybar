@@ -1,11 +1,14 @@
 #pragma once
 
 #include <deque>
+#include <chrono>
 
 #include "common.hpp"
 #include "components/logger.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 namespace throttle_util {
   using timewindow = chrono::duration<double, std::milli>;

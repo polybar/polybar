@@ -1,7 +1,7 @@
-
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 #include "utils/file.hpp"
 #include "utils/mixins.hpp"
@@ -67,8 +67,7 @@ namespace socket_util {
   /**
    * Receive data
    */
-  string unix_connection::receive(
-      const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags) {
+  string unix_connection::receive(const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags) {
     char buffer[BUFSIZ];
 
     bytes_received_addr = ::recv(m_fd, buffer, receive_bytes, flags);

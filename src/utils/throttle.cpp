@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "utils/throttle.hpp"
 
 POLYBAR_NS
@@ -23,7 +25,7 @@ namespace throttle_util {
       auto now = timepoint_clock::now();
       q.emplace_back(now);
       if (q.size() >= l) {
-        this_thread::sleep_for(now - q.front());
+        std::this_thread::sleep_for(now - q.front());
       }
       return true;
     }

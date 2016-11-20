@@ -1,13 +1,13 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "x11/connection.hpp"
 #include "x11/randr.hpp"
-#include "x11/xutils.hpp"
 #include "config.hpp"
-#include "modules/meta.hpp"
+#include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace modules {
   /**
@@ -28,6 +28,8 @@ namespace modules {
    public:
     using static_module::static_module;
 
+    xbacklight_module(const bar_settings bar, const logger& logger, const config& config, string name);
+
     void setup();
     void teardown();
     void handle(const evt::randr_notify& evt);
@@ -47,7 +49,7 @@ namespace modules {
     static constexpr auto EVENT_SCROLLUP = "xbacklight+";
     static constexpr auto EVENT_SCROLLDOWN = "xbacklight-";
 
-    connection& m_connection{configure_connection().create<connection&>()};
+    connection& m_connection;
     monitor_t m_output;
     xcb_window_t m_proxy;
     xcb_timestamp_t m_timestamp;

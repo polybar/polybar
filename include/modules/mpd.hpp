@@ -1,14 +1,17 @@
 #pragma once
 
 #include <csignal>
+#include <chrono>
 
 #include "adapters/mpd.hpp"
-#include "modules/meta.hpp"
-#include "utils/threading.hpp"
+#include "modules/meta/event_module.hpp"
+#include "utils/concurrency.hpp"
 
 POLYBAR_NS
 
 using namespace mpd;
+
+namespace chrono = std::chrono;
 
 namespace modules {
   class mpd_module : public event_module<mpd_module> {

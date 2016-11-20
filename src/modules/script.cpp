@@ -1,8 +1,14 @@
 #include "modules/script.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/event_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<script_module>;
+  template class event_module<script_module>;
+
   void script_module::setup() {
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
 
@@ -19,7 +25,7 @@ namespace modules {
     m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
 
-    m_interval = interval_t{m_conf.get<float>(name(), "interval", m_tail ? 0.0f : 2.0f)};
+    m_interval = chrono::duration<double>{m_conf.get<float>(name(), "interval", m_tail ? 0.0f : 2.0f)};
   }
 
   void script_module::stop() {

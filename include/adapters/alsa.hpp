@@ -9,7 +9,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
-#include "utils/threading.hpp"
+#include "utils/concurrency.hpp"
 
 #define MAX_LINEAR_DB_SCALE 24
 
@@ -42,7 +42,7 @@ class alsa_ctl_interface {
  private:
   int m_numid = 0;
 
-  threading_util::spin_lock m_lock;
+  concurrency_util::spin_lock m_lock;
 
   snd_hctl_t* m_hctl = nullptr;
   snd_hctl_elem_t* m_elem = nullptr;
@@ -77,7 +77,7 @@ class alsa_mixer {
  private:
   string m_name;
 
-  threading_util::spin_lock m_lock;
+  concurrency_util::spin_lock m_lock;
 
   snd_mixer_t* m_hardwaremixer = nullptr;
   snd_mixer_elem_t* m_mixerelement = nullptr;

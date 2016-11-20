@@ -1,14 +1,27 @@
 #include "modules/xbacklight.hpp"
-
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
+#include "x11/connection.hpp"
 #include "x11/graphics.hpp"
+
+#include "modules/meta/base.inl"
+#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
+  template class module<xbacklight_module>;
+  template class static_module<xbacklight_module>;
+
+  /**
+   * Construct module
+   */
+  xbacklight_module::xbacklight_module(const bar_settings bar, const logger& logger, const config& config, string name)
+      : static_module<xbacklight_module>(bar, logger, config, name)
+      , m_connection(configure_connection().create<connection&>()) {}
+
   /**
    * Bootstrap the module by grabbing all required components
    */

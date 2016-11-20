@@ -37,7 +37,7 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
 }
 
 alsa_ctl_interface::~alsa_ctl_interface() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   snd_ctl_close(m_ctl);
   snd_hctl_close(m_hctl);
 }
@@ -49,7 +49,7 @@ int alsa_ctl_interface::get_numid() {
 bool alsa_ctl_interface::wait(int timeout) {
   assert(m_ctl);
 
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   int err = 0;
 
@@ -73,7 +73,7 @@ bool alsa_ctl_interface::test_device_plugged() {
   assert(m_elem);
   assert(m_value);
 
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   int err = 0;
   if ((err = snd_hctl_elem_read(m_elem, m_value)) < 0)
@@ -114,7 +114,7 @@ alsa_mixer::alsa_mixer(string mixer_control_name) : m_name(mixer_control_name) {
 }
 
 alsa_mixer::~alsa_mixer() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   snd_mixer_elem_remove(m_mixerelement);
   snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
   snd_mixer_close(m_hardwaremixer);
@@ -127,7 +127,7 @@ string alsa_mixer::get_name() {
 bool alsa_mixer::wait(int timeout) {
   assert(m_hardwaremixer);
 
-  std::unique_lock<threading_util::spin_lock> guard(m_lock);
+  std::unique_lock<concurrency_util::spin_lock> guard(m_lock);
 
   int err = 0;
 
@@ -140,7 +140,7 @@ bool alsa_mixer::wait(int timeout) {
 }
 
 int alsa_mixer::process_events() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   int num_events = snd_mixer_handle_events(m_hardwaremixer);
 
@@ -151,7 +151,7 @@ int alsa_mixer::process_events() {
 }
 
 int alsa_mixer::get_volume() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
 
   snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
@@ -170,7 +170,7 @@ int alsa_mixer::get_volume() {
 }
 
 int alsa_mixer::get_normalized_volume() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
   double normalized, min_norm;
 
@@ -202,7 +202,7 @@ void alsa_mixer::set_volume(float percentage) {
   if (is_muted())
     return;
 
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   long vol_min, vol_max;
 
@@ -214,7 +214,7 @@ void alsa_mixer::set_normalized_volume(float percentage) {
   if (is_muted())
     return;
 
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   long vol_min, vol_max;
   double min_norm;
@@ -236,19 +236,19 @@ void alsa_mixer::set_normalized_volume(float percentage) {
 }
 
 void alsa_mixer::set_mute(bool mode) {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   snd_mixer_selem_set_playback_switch_all(m_mixerelement, mode);
 }
 
 void alsa_mixer::toggle_mute() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   int state;
   snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_MONO, &state);
   snd_mixer_selem_set_playback_switch_all(m_mixerelement, !state);
 }
 
 bool alsa_mixer::is_muted() {
-  std::lock_guard<threading_util::spin_lock> guard(m_lock);
+  std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   int state = 0;
   for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (snd_mixer_selem_has_playback_channel(

@@ -3,13 +3,15 @@
 #include <mpd/client.h>
 #include <stdlib.h>
 #include <chrono>
-#include <memory>
-#include <string>
 
 #include "common.hpp"
-#include "components/logger.hpp"
 
 POLYBAR_NS
+
+// fwd
+class logger;
+
+namespace chrono = std::chrono;
 
 namespace mpd {
   DEFINE_ERROR(mpd_exception);
@@ -72,9 +74,8 @@ namespace mpd {
   class mpdstatus;
   class mpdconnection {
    public:
-    explicit mpdconnection(const logger& logger, string host, unsigned int port = 6600,
-        string password = "", unsigned int timeout = 15)
-        : m_log(logger), m_host(host), m_port(port), m_password(password), m_timeout(timeout) {}
+    explicit mpdconnection(
+        const logger& logger, string host, unsigned int port = 6600, string password = "", unsigned int timeout = 15);
 
     void connect();
     void disconnect();

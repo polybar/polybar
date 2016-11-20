@@ -2,6 +2,7 @@
 #pragma once
 
 #include <iostream>
+#include <chrono>
 
 template <class T>
 void benchmark_execution_speed(const T& expr) noexcept {

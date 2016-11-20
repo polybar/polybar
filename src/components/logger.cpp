@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "components/logger.hpp"
 #include "utils/string.hpp"
 

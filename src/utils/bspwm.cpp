@@ -1,6 +1,7 @@
 #include <sys/un.h>
 
 #include "utils/bspwm.hpp"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
@@ -67,7 +68,7 @@ namespace bspwm_util {
   string get_socket_path() {
     string env_path;
 
-    if ((env_path = read_env("BSPWM_SOCKET")).empty() == false)
+    if ((env_path = env_util::get("BSPWM_SOCKET")).empty() == false)
       return env_path;
 
     struct sockaddr_un sa;

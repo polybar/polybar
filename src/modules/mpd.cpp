@@ -4,11 +4,17 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/event_module.inl"
+
 POLYBAR_NS
 
 using namespace mpd;
 
 namespace modules {
+  template class module<mpd_module>;
+  template class event_module<mpd_module>;
+
   void mpd_module::setup() {
     m_host = m_conf.get<string>(name(), "host", m_host);
     m_port = m_conf.get<unsigned int>(name(), "port", m_port);

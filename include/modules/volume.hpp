@@ -3,7 +3,7 @@
 #include "adapters/alsa.hpp"
 #include "components/config.hpp"
 #include "config.hpp"
-#include "modules/meta.hpp"
+#include "modules/meta/event_module.hpp"
 
 POLYBAR_NS
 
@@ -51,14 +51,10 @@ namespace modules {
 
     map<mixer, mixer_t> m_mixers;
     map<control, control_t> m_controls;
-
-    int m_headphoneid = 0;
-
-    bool m_mapped;
-
+    int m_headphoneid{0};
+    bool m_mapped{false};
     stateflag m_muted{false};
     stateflag m_headphones{false};
-
     std::atomic<int> m_volume{0};
   };
 }

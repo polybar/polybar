@@ -1,14 +1,22 @@
 #include "modules/battery.hpp"
+
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+
+#include "modules/meta/base.inl"
+#include "modules/meta/inotify_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
+  template class module<battery_module>;
+  template class inotify_module<battery_module>;
+
   /**
    * Bootstrap module by setting up required components
    */
@@ -30,7 +38,7 @@ namespace modules {
     }
 
     m_fullat = m_conf.get<int>(name(), "full-at", 100);
-    m_interval = interval_t{m_conf.get<float>(name(), "poll-interval", 5.0f)};
+    m_interval = chrono::duration<double>{m_conf.get<float>(name(), "poll-interval", 5.0f)};
     m_lastpoll = chrono::system_clock::now();
 
     // Load state and capacity level

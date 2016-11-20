@@ -1,10 +1,11 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+#include <chrono>
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "modules/meta.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -30,7 +31,7 @@ class eventloop {
   ~eventloop() noexcept;
 
   bool enqueue(const entry_t& i);
-  void run(chrono::duration<double, std::milli> timeframe, int limit);
+  void run(std::chrono::duration<double, std::milli> timeframe, int limit);
   void stop();
 
   void set_update_cb(callback<>&& cb);

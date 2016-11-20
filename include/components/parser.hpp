@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 #include "components/signals.hpp"
-#include "components/types.hpp"
 
 POLYBAR_NS
 

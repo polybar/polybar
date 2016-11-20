@@ -1,10 +1,17 @@
 #include "modules/memory.hpp"
+
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+
+#include "modules/meta/base.inl"
+#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
+  template class module<memory_module>;
+  template class timer_module<memory_module>;
+
   void memory_module::setup() {
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 

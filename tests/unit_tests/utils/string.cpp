@@ -1,6 +1,6 @@
 #include <iomanip>
 
-#include "utils/string.hpp"
+#include "utils/string.cpp"
 
 int main() {
   using namespace polybar;

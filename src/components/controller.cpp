@@ -1,5 +1,9 @@
+#include <chrono>
 #include <csignal>
 #include <mutex>
+
+#include "x11/color.hpp"
+#include "components/bar.hpp"
 
 #include "components/controller.hpp"
 
@@ -20,7 +24,6 @@
 #include "modules/xbacklight.hpp"
 #include "modules/xwindow.hpp"
 
-#include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
 #include "components/ipc.hpp"
@@ -45,6 +48,23 @@
 POLYBAR_NS
 
 using namespace modules;
+
+namespace chrono = std::chrono;
+
+/**
+ * Configure injection module
+ */
+di::injector<unique_ptr<controller>> configure_controller(watch_t& confwatch) {
+  // clang-format off
+  return di::make_injector(
+      di::bind<>().to(confwatch),
+      configure_connection(),
+      configure_logger(),
+      configure_config(),
+      configure_eventloop(),
+      configure_bar());
+  // clang-format on
+}
 
 /**
  * Stop modules and cleanup X components,
@@ -231,7 +251,7 @@ void controller::install_confwatch() {
   }
 
   m_threads.emplace_back([this] {
-    this_thread::sleep_for(1s);
+    this_thread::sleep_for(chrono::seconds{1});
 
     try {
       if (!m_running)
@@ -396,7 +416,7 @@ void controller::bootstrap_modules() {
             throw application_error("Inter-process messaging needs to be enabled");
           module.reset(new ipc_module(bar, m_log, m_conf, module_name));
           m_ipc->attach_callback(
-              bind(&ipc_module::on_message, dynamic_cast<ipc_module*>(module.get()), placeholders::_1));
+              bind(&ipc_module::on_message, static_cast<ipc_module*>(module.get()), placeholders::_1));
         } else
           throw application_error("Unknown module: " + module_name);
 

@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "utils/inotify.hpp"
 #include "utils/memory.hpp"
 

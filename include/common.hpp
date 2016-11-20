@@ -4,18 +4,13 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #endif
 
-#include <atomic>
 #include <boost/di.hpp>
-#include <boost/optional.hpp>
 #include <cassert>
 #include <cerrno>
-#include <chrono>
 #include <cstring>
-#include <functional>
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "config.hpp"
@@ -28,8 +23,19 @@
   }
 #define POLYBAR_NS_PATH "polybar::v2_0_0"
 
+#ifndef PIPE_READ
 #define PIPE_READ 0
+#endif
+#ifndef PIPE_WRITE
 #define PIPE_WRITE 1
+#endif
+
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 #ifdef DEBUG
 #include "debug.hpp"
@@ -42,11 +48,7 @@ POLYBAR_NS
 //==================================================
 
 namespace di = boost::di;
-namespace chrono = std::chrono;
-namespace this_thread = std::this_thread;
 namespace placeholders = std::placeholders;
-
-using namespace std::chrono_literals;
 
 using std::string;
 using std::stringstream;
@@ -66,35 +68,7 @@ using std::map;
 using std::vector;
 using std::to_string;
 using std::strerror;
-using std::getenv;
-using std::thread;
 using std::exception;
-
-using boost::optional;
-
-using stateflag = std::atomic<bool>;
-
-//==================================================
-// Instance factory
-//==================================================
-
-namespace factory {
-  template <class InstanceType, class... Deps>
-  unique_ptr<InstanceType> generic_instance(Deps... deps) {
-    return make_unique<InstanceType>(deps...);
-  }
-
-  template <class InstanceType, class... Deps>
-  shared_ptr<InstanceType> generic_singleton(Deps... deps) {
-    static auto instance = make_shared<InstanceType>(deps...);
-    return instance;
-  }
-}
-
-struct null_deleter {
-  template <typename T>
-  void operator()(T*) const {}
-};
 
 //==================================================
 // Errors and exceptions
@@ -120,26 +94,5 @@ class system_error : public application_error {
     using parent::parent;                 \
   }
 #define DEFINE_ERROR(error) DEFINE_CHILD_ERROR(error, application_error)
-
-//==================================================
-// Various tools and helpers functions
-//==================================================
-
-auto has_env = [](const char* var) { return getenv(var) != nullptr; };
-auto read_env = [](const char* var, string&& fallback = "") {
-  const char* value{getenv(var)};
-  return value != nullptr ? value : fallback;
-};
-
-template <class T>
-auto time_execution(const T& expr) noexcept {
-  auto start = std::chrono::high_resolution_clock::now();
-  expr();
-  auto finish = std::chrono::high_resolution_clock::now();
-  return std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-}
-
-template <typename... Args>
-using callback = function<void(Args...)>;
 
 POLYBAR_NS_END

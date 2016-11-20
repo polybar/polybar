@@ -5,9 +5,15 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/event_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<i3_module>;
+  template class event_module<i3_module>;
+
   i3_workspace::operator bool() {
     return label && *label;
   }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #include "version.hpp"
 
@@ -21,7 +22,7 @@
 
 #ifdef DEBUG
 #cmakedefine01 DRAW_CLICKABLE_AREA_HINTS
-#cmakedefine DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y @DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y@
+#cmakedefine DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y @DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y @
 #ifndef DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y
 #define DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y 0
 #endif
@@ -46,16 +47,31 @@
 #define PATH_MESSAGING_FIFO "@SETTING_PATH_MESSAGING_FIFO@"
 #define PATH_TEMPERATURE_INFO "@SETTING_PATH_TEMPERATURE_INFO@"
 
-auto print_build_info = []() {
-  // clang-format off
-  std::cout << APP_NAME << " " << GIT_TAG
-            << "\n\n"
-            << "Built with: "
-              << (ENABLE_ALSA     ? "+" : "-") << "alsa "
-              << (ENABLE_I3       ? "+" : "-") << "i3 "
-              << (ENABLE_MPD      ? "+" : "-") << "mpd "
-              << (ENABLE_NETWORK  ? "+" : "-") << "network "
-            << "\n\n"
+auto version_details = [](const std::vector<std::string>& args) {
+  for (auto&& arg : args) {
+  if (arg.compare(0, 3, "-vv") == 0)
+      return true;
+  }
+  return false;
+};
+
+// clang-format off
+auto print_build_info = [](bool extended = false) {
+  std::cout << APP_NAME << " " << GIT_TAG << " " << "\n"
+            << "\n"
+            << "Features: "
+            << (ENABLE_ALSA    ? "+" : "-") << "alsa "
+            << (ENABLE_I3      ? "+" : "-") << "i3 "
+            << (ENABLE_MPD     ? "+" : "-") << "mpd "
+            << (ENABLE_NETWORK ? "+" : "-") << "network "
+            << "\n";
+  if (!extended)
+    return;
+  std::cout << "\n"
+            << "Build type: @CMAKE_BUILD_TYPE@" << "\n"
+            << "Compiler flags: @CMAKE_CXX_FLAGS@" << "\n"
+            << "Linker flags: @CMAKE_EXE_LINKER_FLAGS@" << "\n"
+            << "\n"
             << "ALSA_SOUNDCARD              " << ALSA_SOUNDCARD             << "\n"
             << "BSPWM_SOCKET_PATH           " << BSPWM_SOCKET_PATH          << "\n"
             << "BSPWM_STATUS_PREFIX         " << BSPWM_STATUS_PREFIX        << "\n"
@@ -73,7 +89,7 @@ auto print_build_info = []() {
             << "PATH_CPU_INFO               " << PATH_CPU_INFO              << "\n"
             << "PATH_MEMORY_INFO            " << PATH_MEMORY_INFO           << "\n"
             << "PATH_TEMPERATURE_INFO       " << PATH_TEMPERATURE_INFO      << "\n";
-  // clang-format on
 };
+// clang-format on
 
 // vim:ft=cpp

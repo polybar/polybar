@@ -1,12 +1,18 @@
 #include "modules/xwindow.hpp"
-
 #include "drawtypes/label.hpp"
 #include "x11/atoms.hpp"
+#include "x11/connection.hpp"
 #include "x11/graphics.hpp"
+
+#include "modules/meta/base.inl"
+#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
+  template class module<xwindow_module>;
+  template class static_module<xwindow_module>;
+
   /**
    * Bootstrap the module
    */

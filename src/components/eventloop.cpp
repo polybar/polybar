@@ -1,5 +1,8 @@
 #include "components/eventloop.hpp"
+#include "components/types.hpp"
 #include "utils/string.hpp"
+#include "utils/time.hpp"
+#include "x11/color.hpp"
 
 POLYBAR_NS
 
@@ -10,7 +13,7 @@ eventloop::~eventloop() noexcept {
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
       auto module_name = module->name();
-      auto cleanup_ms = time_execution([&module] {
+      auto cleanup_ms = time_util::measure([&module] {
         module->stop();
         module.reset();
       });
@@ -38,7 +41,7 @@ bool eventloop::enqueue(const entry_t& i) {
  * @param timeframe Time to wait for subsequent events
  * @param limit Maximum amount of subsequent events to swallow within timeframe
  */
-void eventloop::run(chrono::duration<double, std::milli> timeframe, int limit) {
+void eventloop::run(std::chrono::duration<double, std::milli> timeframe, int limit) {
   m_log.info("Starting event loop", timeframe.count(), limit);
   m_running = true;
 

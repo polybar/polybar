@@ -1,9 +1,9 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
 
-#include "components/logger.hpp"
-#include "utils/inotify.hpp"
-#include "utils/string.hpp"
+#include "components/logger.cpp"
+#include "utils/inotify.cpp"
+#include "utils/string.cpp"
 
 #define CONFIGURE_ARGS(T, V, Args) configure_##T<decltype(V)>(Args).create<decltype(V)>()
 #define CONFIGURE(T, V) configure_##T<decltype(V)>().create<decltype(V)>()

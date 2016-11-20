@@ -1,13 +1,16 @@
 #include <X11/Xlib-xcb.h>
 
 #include "common.hpp"
+
+#include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
 #include "components/controller.hpp"
 #include "components/logger.hpp"
-#include "x11/xutils.hpp"
 #include "config.hpp"
+#include "utils/env.hpp"
 #include "utils/inotify.hpp"
+#include "x11/xutils.hpp"
 
 using namespace polybar;
 
@@ -67,7 +70,7 @@ int main(int argc, char** argv) {
         cli.usage();
         return EXIT_SUCCESS;
       } else if (cli.has("version")) {
-        print_build_info();
+        print_build_info(version_details(args));
         return EXIT_SUCCESS;
       } else if (args.empty() || args[0][0] == '-') {
         cli.usage();
@@ -81,10 +84,10 @@ int main(int argc, char** argv) {
 
       if (cli.has("config"))
         conf.load(cli.get("config"), args[0]);
-      else if (has_env("XDG_CONFIG_HOME"))
-        conf.load(read_env("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
-      else if (has_env("HOME"))
-        conf.load(read_env("HOME") + "/.config/polybar/config", args[0]);
+      else if (env_util::has("XDG_CONFIG_HOME"))
+        conf.load(env_util::get("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
+      else if (env_util::has("HOME"))
+        conf.load(env_util::get("HOME") + "/.config/polybar/config", args[0]);
       else
         throw application_error("Define configuration using --config=PATH");
 

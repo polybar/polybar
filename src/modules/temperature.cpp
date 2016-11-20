@@ -5,9 +5,15 @@
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 
+#include "modules/meta/base.inl"
+#include "modules/meta/timer_module.inl"
+
 POLYBAR_NS
 
 namespace modules {
+  template class module<temperature_module>;
+  template class timer_module<temperature_module>;
+
   void temperature_module::setup() {
     m_zone = m_conf.get<int>(name(), "thermal-zone", 0);
     m_tempwarn = m_conf.get<int>(name(), "warn-temperature", 80);

@@ -1,8 +1,16 @@
 #include "config.hpp"
 
+#include "utils/factory.hpp"
 #include "x11/connection.hpp"
 
 POLYBAR_NS
+
+/**
+ * Configure injection module
+ */
+di::injector<connection&> configure_connection() {
+  return di::make_injector(di::bind<>().to(factory_util::generic_singleton<connection>(xutils::get_connection())));
+}
 
 /**
  * Preload required xcb atoms
@@ -36,8 +44,7 @@ void connection::query_extensions() {
  * Create X window id string
  */
 string connection::id(xcb_window_t w) const {
-  return string_util::from_stream(
-      std::stringstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w);
+  return string_util::from_stream(std::stringstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w);
 }
 
 /**
@@ -52,8 +59,7 @@ xcb_screen_t* connection::screen() {
 /**
  * Creates an instance of shared_ptr<xcb_client_message_event_t>
  */
-shared_ptr<xcb_client_message_event_t> connection::make_client_message(
-    xcb_atom_t type, xcb_window_t target) const {
+shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_t type, xcb_window_t target) const {
   auto client_message = memory_util::make_malloc_ptr<xcb_client_message_event_t>(size_t{32});
 
   client_message->response_type = XCB_CLIENT_MESSAGE;
@@ -74,8 +80,8 @@ shared_ptr<xcb_client_message_event_t> connection::make_client_message(
 /**
  * Send client message event
  */
-void connection::send_client_message(shared_ptr<xcb_client_message_event_t> message,
-    xcb_window_t target, uint32_t event_mask, bool propagate) const {
+void connection::send_client_message(
+    shared_ptr<xcb_client_message_event_t> message, xcb_window_t target, uint32_t event_mask, bool propagate) const {
   const char* data = reinterpret_cast<decltype(data)>(message.get());
   send_event(propagate, target, event_mask, data);
   flush();
@@ -99,14 +105,12 @@ void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
  * Try to get a visual type for the given screen that
  * matches the given depth
  */
-optional<xcb_visualtype_t*> connection::visual_type(xcb_screen_t* screen, int match_depth) {
+boost::optional<xcb_visualtype_t*> connection::visual_type(xcb_screen_t* screen, int match_depth) {
   xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
   if (depth_iter.data) {
     for (; depth_iter.rem; xcb_depth_next(&depth_iter))
       if (match_depth == 0 || match_depth == depth_iter.data->depth)
-        for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem;
-             xcb_visualtype_next(&it))
-          return it.data;
+        for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) return it.data;
     if (match_depth > 0)
       return visual_type(screen, 0);
   }

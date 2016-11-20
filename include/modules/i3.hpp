@@ -4,7 +4,7 @@
 
 #include "components/config.hpp"
 #include "config.hpp"
-#include "modules/meta.hpp"
+#include "modules/meta/event_module.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
