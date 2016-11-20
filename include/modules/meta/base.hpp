@@ -16,6 +16,9 @@
 
 POLYBAR_NS
 
+namespace chrono = std::chrono;
+using namespace std::chrono_literals;
+
 #define DEFAULT_FORMAT "format"
 
 #define DEFINE_MODULE(name, type) struct name : public type<name>
@@ -44,8 +47,6 @@ class builder;
 // }}}
 
 namespace modules {
-  namespace chrono = std::chrono;
-  using namespace std::chrono_literals;
   using namespace drawtypes;
 
   DEFINE_ERROR(module_error);
