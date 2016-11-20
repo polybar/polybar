@@ -18,6 +18,8 @@ namespace string_util {
   bool compare(const string& s1, const string& s2);
   string replace(const string& haystack, string needle, string repl, size_t start = 0, size_t end = string::npos);
   string replace_all(const string& haystack, string needle, string repl, size_t start = 0, size_t end = string::npos);
+  string replace_all_bounded(const string& haystack, string needle, string replacement,
+    size_t min, size_t max, size_t start = 0, size_t end = string::npos);
   string squeeze(const string& haystack, char needle);
   string strip(const string& haystack, char needle);
   string strip_trailing_newline(const string& haystack);

@@ -13,11 +13,12 @@ namespace drawtypes {
 
   label_t label::clone() {
     return label_t{new label(m_text, m_foreground, m_background, m_underline, m_overline, m_font,
-        m_padding, m_margin, m_maxlen, m_ellipsis)};
+        m_padding, m_margin, m_maxlen, m_ellipsis, m_token_bounds)};
   }
 
   void label::reset_tokens() {
     m_tokenized = m_text;
+    m_token_iterator = m_token_bounds.begin();
   }
 
   bool label::has_token(string token) {
@@ -25,7 +26,13 @@ namespace drawtypes {
   }
 
   void label::replace_token(string token, string replacement) {
-    m_tokenized = string_util::replace_all(m_tokenized, token, replacement);
+    if (m_text.find(token) == string::npos)
+      return;
+
+    m_tokenized = string_util::replace_all_bounded(m_tokenized, token, replacement,
+      m_token_iterator->min, m_token_iterator->max);
+
+    m_token_iterator++;
   }
 
   void label::replace_defined_values(const label_t& label) {
@@ -64,6 +71,8 @@ namespace drawtypes {
    * Create a label by loading values from the configuration
    */
   label_t load_label(const config& conf, string section, string name, bool required, string def) {
+    vector<struct bounds> bound;
+
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     string text;
@@ -73,6 +82,28 @@ namespace drawtypes {
     else
       text = conf.get<string>(section, name, def);
 
+    vector<string> text_split = string_util::split(text, '%');
+
+    // get rid of false positives (lemonbar-style declarations)
+    for (size_t i = 0; i < text_split.size(); i++) {
+      if (!text_split[i].empty() && text_split[i].at(0) == '{')
+        text_split.erase(text_split.begin() + i--);
+    }
+
+    for (size_t i = 1; i < text_split.size(); i += 2) {
+      struct bounds bound_vals = {0, 0};
+      size_t delim_min = text_split[i].find(':'), delim_max = text_split[i].find(':', delim_min + 1);
+      if (delim_min != string::npos) {
+        if (delim_max != string::npos) {
+          bound_vals.min = stoul(text_split[i].substr(delim_min + 1, delim_max - delim_min - 1));
+          bound_vals.max = stoul(text_split[i].substr(delim_max + 1));
+        }
+        else
+          bound_vals.min = stoul(text_split[i].substr(delim_min + 1));
+      }
+      bound.push_back(bound_vals);
+      text = string_util::replace_all(text, text_split[i], text_split[i].substr(0, delim_min));
+    }
     // clang-format off
     return label_t{new label_t::element_type(text,
         conf.get<string>(section, name + "-foreground", ""),
@@ -83,7 +114,8 @@ namespace drawtypes {
         conf.get<int>(section, name + "-padding", 0),
         conf.get<int>(section, name + "-margin", 0),
         conf.get<size_t>(section, name + "-maxlen", 0),
-        conf.get<bool>(section, name + "-ellipsis", true))};
+        conf.get<bool>(section, name + "-ellipsis", true),
+        bound)};
     // clang-format on
   }
 
