@@ -41,4 +41,9 @@ int main() {
     expect(math_util::percentage_to_value(200, 5) == 5);
     expect(math_util::percentage_to_value(-30, 5) == 0);
   };
+
+  "ranged_percentage_to_value"_test = [] {
+    expect(math_util::percentage_to_value(50, 200, 300) == 250);
+    expect(math_util::percentage_to_value(50, 1, 5) == 3);
+  };
 }

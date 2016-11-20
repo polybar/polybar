@@ -41,6 +41,17 @@ namespace math_util {
     else
       return cap<ReturnType>(percentage * max_value / 100.0f, 0.0f, max_value);
   }
+
+  /**
+   * Get value for percentage of `min_value` to `max_value`
+   */
+  template <typename ValueType, typename ReturnType = int>
+  ReturnType percentage_to_value(ValueType percentage, ValueType min_value, ValueType max_value) {
+    if (std::is_integral<ReturnType>())
+      return cap<ReturnType>(percentage * (max_value - min_value) / 100.0f + 0.5f, 0, max_value - min_value) + min_value;
+    else
+      return cap<ReturnType>(percentage * (max_value - min_value) / 100.0f, 0.0f, max_value - min_value) + min_value;
+  }
 }
 
 POLYBAR_NS_END

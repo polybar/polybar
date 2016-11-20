@@ -1,4 +1,5 @@
 #include "adapters/alsa.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -166,7 +167,7 @@ int alsa_mixer::get_volume() {
     }
   }
 
-  return 100.0f * (vol_total / chan_n) / vol_max + 0.5f;
+  return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
 }
 
 int alsa_mixer::get_normalized_volume() {
@@ -187,7 +188,7 @@ int alsa_mixer::get_normalized_volume() {
   }
 
   if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100)
-    return 100.0f * (vol_total / chan_n - vol_min) / (vol_max - vol_min) + 0.5f;
+    return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
 
   normalized = pow10((vol_total / chan_n - vol_max) / 6000.0);
   if (vol_min != SND_CTL_TLV_DB_GAIN_MUTE) {
@@ -205,9 +206,8 @@ void alsa_mixer::set_volume(float percentage) {
   std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
 
   long vol_min, vol_max;
-
   snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
-  snd_mixer_selem_set_playback_volume_all(m_mixerelement, vol_max * percentage / 100);
+  snd_mixer_selem_set_playback_volume_all(m_mixerelement, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
 }
 
 void alsa_mixer::set_normalized_volume(float percentage) {
