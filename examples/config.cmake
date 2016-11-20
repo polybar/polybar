@@ -250,9 +250,9 @@ format-underline = #0a6cf5
 
 [module/volume]
 type = internal/volume
-speaker-mixer = Speaker
-headphone-mixer = Headphone
-headphone-id = 9
+;speaker-mixer = Speaker
+;headphone-mixer = Headphone
+;headphone-id = 9
 
 format-volume = <label-volume> <bar-volume>
 
