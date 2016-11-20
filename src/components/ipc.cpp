@@ -20,7 +20,7 @@ ipc::~ipc() {
   if (!m_fifo.empty()) {
     m_log.info("Interrupting ipc message receiver");
 
-    auto f{make_unique<file_util::file_ptr>(m_fifo)};
+    auto f = make_unique<file_util::file_ptr>(m_fifo);
     char p[1]{'q'};
 
     fwrite(p, sizeof(char), sizeof(p), (*f)());

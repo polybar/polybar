@@ -20,8 +20,8 @@ window window::create_checked(int16_t x, int16_t y, uint16_t w, uint16_t h, uint
     *this = conn.generate_id();
   }
 
-  auto root{conn.screen()->root};
-  auto copy{XCB_COPY_FROM_PARENT};
+  auto root = conn.screen()->root;
+  auto copy = XCB_COPY_FROM_PARENT;
   uint32_t values[16]{0};
   xutils::pack_values(mask, p, values);
   conn.create_window_checked(copy, *this, root, x, y, w, h, 0, copy, copy, mask, values);

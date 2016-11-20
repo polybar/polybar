@@ -11,15 +11,15 @@ POLYBAR_NS
  * Message types
  */
 struct ipc_command {
-  static constexpr auto prefix{"cmd:"};
+  static constexpr const char* prefix{"cmd:"};
   string payload;
 };
 struct ipc_hook {
-  static constexpr auto prefix{"hook:"};
+  static constexpr const char* prefix{"hook:"};
   string payload;
 };
 struct ipc_action {
-  static constexpr auto prefix{"action:"};
+  static constexpr const char* prefix{"action:"};
   string payload;
 };
 
