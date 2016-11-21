@@ -27,8 +27,8 @@ endif()
 # }}}
 # Get battery/adapter name {{{
 
-string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY_CAPACITY})
-string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER_STATUS})
+string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY})
+string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER})
 
 file(GLOB BAT_LIST RELATIVE ${PATH_BAT} ${PATH_ADP}/B*)
 file(GLOB ADP_LIST RELATIVE ${PATH_ADP} ${PATH_ADP}/A*)
@@ -49,9 +49,6 @@ endif()
 # Get network interfaces {{{
 
 if(ENABLE_NETWORK)
-  string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY_CAPACITY})
-  string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER_STATUS})
-
   file(GLOB IFLIST RELATIVE /sys/class/net /sys/class/net/*)
 
   foreach(INTERFACE ${IFLIST})

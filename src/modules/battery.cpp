@@ -21,21 +21,43 @@ namespace modules {
    * Bootstrap module by setting up required components
    */
   void battery_module::setup() {
-    // Load configuration values
     auto battery = m_conf.get<string>(name(), "battery", "BAT0");
     auto adapter = m_conf.get<string>(name(), "adapter", "ADP1");
 
-    m_valuepath[battery_value::ADAPTER] = string_util::replace(PATH_ADAPTER_STATUS, "%adapter%", adapter);
-    m_valuepath[battery_value::CAPACITY] = string_util::replace(PATH_BATTERY_CAPACITY, "%battery%", battery);
-    m_valuepath[battery_value::CAPACITY_MAX] = string_util::replace(PATH_BATTERY_CAPACITY_MAX, "%battery%", battery);
-    m_valuepath[battery_value::CAPACITY_PERC] = string_util::replace(PATH_BATTERY_CAPACITY_PERC, "%battery%", battery);
-    m_valuepath[battery_value::VOLTAGE] = string_util::replace(PATH_BATTERY_VOLTAGE, "%battery%", battery);
-    m_valuepath[battery_value::RATE] = string_util::replace(PATH_BATTERY_RATE, "%battery%", battery);
+    auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", adapter) + "/";
+    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", battery) + "/";
 
-    for (auto&& file : m_valuepath) {
-      if (!file_util::exists(file.second))
-        throw module_error("The file '" + file.second + "' does not exist");
+    if (!file_util::exists(path_adapter + "online"))
+      throw module_error("The file '" + path_adapter + "online' does not exist");
+    m_valuepath[battery_value::ADAPTER] = path_adapter + "online";
+
+    if (!file_util::exists(path_battery + "capacity"))
+      throw module_error("The file '" + path_battery + "capacity' does not exist");
+    m_valuepath[battery_value::CAPACITY_PERC] = path_battery + "capacity";
+
+    if (!file_util::exists(path_battery + "voltage_now"))
+      throw module_error("The file '" + path_battery + "voltage_now' does not exist");
+    m_valuepath[battery_value::VOLTAGE] = path_battery + "voltage_now";
+
+    for (auto&& file : vector<string>{"charge", "energy"}) {
+      if (file_util::exists(path_battery + file + "_now"))
+        m_valuepath[battery_value::CAPACITY] = path_battery + file + "_now";
+      if (file_util::exists(path_battery + file + "_full"))
+        m_valuepath[battery_value::CAPACITY_MAX] = path_battery + file + "_full";
     }
+
+    if (m_valuepath[battery_value::CAPACITY].empty())
+      throw module_error("The file '" + path_battery + "[charge|energy]_now' does not exist");
+    if (m_valuepath[battery_value::CAPACITY_MAX].empty())
+      throw module_error("The file '" + path_battery + "[charge|energy]_full' does not exist");
+
+    for (auto&& file : vector<string>{"current", "power"}) {
+      if (file_util::exists(path_battery + file + "_now"))
+        m_valuepath[battery_value::RATE] = path_battery + file + "_now";
+    }
+
+    if (m_valuepath[battery_value::RATE].empty())
+      throw module_error("The file '" + path_battery + "[current|power]_now' does not exist");
 
     m_fullat = m_conf.get<int>(name(), "full-at", 100);
     m_interval = chrono::duration<double>{m_conf.get<float>(name(), "poll-interval", 5.0f)};
