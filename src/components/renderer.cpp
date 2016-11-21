@@ -3,7 +3,8 @@
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
-#include "x11/winspec.hpp"
+#include "x11/xlib.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -64,8 +65,8 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
     vector<uint32_t> colors {
       m_bar.background,
       m_bar.foreground,
-      m_bar.linecolor,
-      m_bar.linecolor,
+      m_bar.overline.color,
+      m_bar.underline.color,
       m_bar.borders.at(edge::TOP).color,
       m_bar.borders.at(edge::BOTTOM).color,
       m_bar.borders.at(edge::LEFT).color,
@@ -278,19 +279,17 @@ void renderer::fill_border(const map<edge, border_settings>& borders, edge borde
 }
 
 void renderer::fill_overline(int16_t x, uint16_t w) {
-  if (!m_bar.lineheight || !(m_attributes & static_cast<int>(attribute::o)))
+  if (!m_bar.overline.size || !(m_attributes & static_cast<int>(attribute::o)))
     return;
-
-  draw_util::fill(
-      m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, m_bar.borders.at(edge::TOP).size, w, m_bar.lineheight);
+  int16_t y{static_cast<int16_t>(m_bar.borders.at(edge::TOP).size)};
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, y, w, m_bar.overline.size);
 }
 
 void renderer::fill_underline(int16_t x, uint16_t w) {
-  if (!m_bar.lineheight || !(m_attributes & static_cast<int>(attribute::u)))
+  if (!m_bar.underline.size || !(m_attributes & static_cast<int>(attribute::u)))
     return;
-
-  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::UL), x,
-      m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size - m_bar.lineheight, w, m_bar.lineheight);
+  int16_t y{static_cast<int16_t>(m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size - m_bar.underline.size)};
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::UL), x, y, w, m_bar.underline.size);
 }
 
 void renderer::draw_character(uint16_t character) {

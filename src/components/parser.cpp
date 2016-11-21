@@ -63,10 +63,15 @@ void parser::codeblock(string data) {
         break;
 
       case 'U':
-        // Ignore tag if it occurs again later in the same block
-        if (data.find(" U") == string::npos && g_signals::parser::color_change) {
-          g_signals::parser::color_change(gc::UL, parse_color(value, m_bar.linecolor));
-          g_signals::parser::color_change(gc::OL, parse_color(value, m_bar.linecolor));
+        if (g_signals::parser::color_change) {
+          if (value[0] == 'u' && data.find(" Uu") == string::npos) {
+            g_signals::parser::color_change(gc::UL, parse_color(value.substr(1), m_bar.underline.color));
+          } else if (value[0] == 'o' && data.find(" Uo") == string::npos) {
+            g_signals::parser::color_change(gc::OL, parse_color(value.substr(1), m_bar.overline.color));
+          } else if (data.find(" U") == string::npos) {
+            g_signals::parser::color_change(gc::UL, parse_color(value, m_bar.underline.color));
+            g_signals::parser::color_change(gc::OL, parse_color(value, m_bar.overline.color));
+          }
         }
         break;
 

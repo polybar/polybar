@@ -16,6 +16,8 @@ string builder::flush() {
     while (m_counters[syntaxtag::B] > 0) background_close(true);
     while (m_counters[syntaxtag::F] > 0) color_close(true);
     while (m_counters[syntaxtag::T] > 0) font_close(true);
+    while (m_counters[syntaxtag::Uo] > 0) overline_color_close(true);
+    while (m_counters[syntaxtag::Uu] > 0) underline_color_close(true);
     while (m_counters[syntaxtag::U] > 0) line_color_close(true);
     while (m_counters[syntaxtag::u] > 0) underline_close(true);
     while (m_counters[syntaxtag::o] > 0) overline_close(true);
@@ -79,6 +81,22 @@ void builder::node(string str, bool add_space) {
     } else if ((n = s.find("%{U-}")) == 0) {
       line_color_close(true);
       s.erase(0, 5);
+
+    } else if ((n = s.find("%{Uu-}")) == 0) {
+      underline_color_close(true);
+      s.erase(0, 5);
+
+    } else if ((n = s.find("%{Uo-}")) == 0) {
+      overline_color_close(true);
+      s.erase(0, 5);
+
+    } else if ((n = s.find("%{Uu#")) == 0 && (m = s.find("}")) != string::npos) {
+      underline_color(s.substr(n + 4, m - 4));
+      s.erase(n, m + 1);
+
+    } else if ((n = s.find("%{Uo#")) == 0 && (m = s.find("}")) != string::npos) {
+      overline_color(s.substr(n + 4, m - 4));
+      s.erase(n, m + 1);
 
     } else if ((n = s.find("%{U#")) == 0 && (m = s.find("}")) != string::npos) {
       line_color(s.substr(n + 3, m - 3));
@@ -347,9 +365,53 @@ void builder::line_color_close(bool force) {
   tag_close('U');
 }
 
+void builder::overline_color(string color) {
+  if (color.empty() && m_counters[syntaxtag::Uo] > 0)
+    overline_color_close(true);
+  if (color.empty() || color == m_colors[syntaxtag::Uo])
+    return;
+  if (m_lazy && m_counters[syntaxtag::Uo] > 0)
+    overline_color_close(true);
+
+  m_counters[syntaxtag::Uo]++;
+  m_colors[syntaxtag::Uo] = color;
+  append("%{Uo" + color + "}");
+}
+
+void builder::overline_color_close(bool force) {
+  if ((!force && m_lazy) || m_counters[syntaxtag::Uo] <= 0)
+    return;
+
+  m_counters[syntaxtag::Uo]--;
+  m_colors[syntaxtag::Uo] = "";
+  append("%{Uu-}");
+}
+
+void builder::underline_color(string color) {
+  if (color.empty() && m_counters[syntaxtag::Uu] > 0)
+    underline_color_close(true);
+  if (color.empty() || color == m_colors[syntaxtag::Uu])
+    return;
+  if (m_lazy && m_counters[syntaxtag::Uu] > 0)
+    underline_color_close(true);
+
+  m_counters[syntaxtag::Uu]++;
+  m_colors[syntaxtag::Uu] = color;
+  append("%{Uu" + color + "}");
+}
+
+void builder::underline_color_close(bool force) {
+  if ((!force && m_lazy) || m_counters[syntaxtag::Uu] <= 0)
+    return;
+
+  m_counters[syntaxtag::Uu]--;
+  m_colors[syntaxtag::Uu] = "";
+  append("%{Uu-}");
+}
+
 void builder::overline(string color) {
   if (!color.empty())
-    line_color(color);
+    overline_color(color);
   if (m_counters[syntaxtag::o] > 0)
     return;
 
@@ -367,7 +429,7 @@ void builder::overline_close(bool force) {
 
 void builder::underline(string color) {
   if (!color.empty())
-    line_color(color);
+    underline_color(color);
   if (m_counters[syntaxtag::u] > 0)
     return;
 

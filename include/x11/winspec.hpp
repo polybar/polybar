@@ -116,16 +116,21 @@ class winspec {
   }
 
   xcb_window_t operator<<(cw_flush f) {
-    if (m_window == XCB_NONE) {
+    if (!m_window) {
       m_window = m_connection.generate_id();
+    }
+
+    uint32_t values[16]{0};
+    if (m_params != nullptr) {
+      xutils::pack_values(m_mask, m_params, values);
     }
 
     if (f.checked) {
       m_connection.create_window_checked(
-          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, m_params);
+          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
     } else {
       m_connection.create_window(
-          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, m_params);
+          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
     }
 
     return m_window;
@@ -134,18 +139,17 @@ class winspec {
  protected:
   connection& m_connection;
   uint32_t m_window;
-
-  uint8_t m_depth;
-  xcb_window_t m_parent;
+  uint32_t m_parent;
   int16_t m_x;
   int16_t m_y;
   uint16_t m_width;
   uint16_t m_height;
-  uint16_t m_border;
-  uint16_t m_class;
+  uint8_t m_depth{XCB_COPY_FROM_PARENT};
+  uint16_t m_border{XCB_COPY_FROM_PARENT};
+  uint16_t m_class{XCB_COPY_FROM_PARENT};
   xcb_visualid_t m_visual;
   uint32_t m_mask;
-  const xcb_params_cw_t* m_params;
+  const xcb_params_cw_t* m_params{nullptr};
 };
 
 POLYBAR_NS_END

@@ -58,6 +58,10 @@ class builder {
 
   void line_color(string color);
   void line_color_close(bool force = false);
+  void overline_color(string color);
+  void overline_color_close(bool force = false);
+  void underline_color(string color);
+  void underline_color_close(bool force = false);
 
   void overline(string color = "");
   void overline_close(bool force = false);
@@ -85,6 +89,8 @@ class builder {
       {syntaxtag::F, 0},
       {syntaxtag::T, 0},
       {syntaxtag::U, 0},
+      {syntaxtag::Uo, 0},
+      {syntaxtag::Uu, 0},
       {syntaxtag::O, 0},
       {syntaxtag::R, 0},
       // clang-format on
@@ -95,6 +101,8 @@ class builder {
       {syntaxtag::B, ""},
       {syntaxtag::F, ""},
       {syntaxtag::U, ""},
+      {syntaxtag::Uu, ""},
+      {syntaxtag::Uo, ""},
       // clang-format on
   };
 

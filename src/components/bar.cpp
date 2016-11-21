@@ -8,14 +8,10 @@
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
-#include "x11/draw.hpp"
-#include "x11/draw.hpp"
 #include "x11/fonts.hpp"
 #include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/wm.hpp"
-#include "x11/xlib.hpp"
-#include "x11/xutils.hpp"
 
 #if ENABLE_I3
 #include "utils/i3.hpp"
@@ -94,7 +90,23 @@ void bar::bootstrap(bool nodraw) {
 
   m_opts.background = color::parse(m_conf.get<string>(bs, "background", color_util::hex<uint16_t>(m_opts.background)));
   m_opts.foreground = color::parse(m_conf.get<string>(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
-  m_opts.linecolor = color::parse(m_conf.get<string>(bs, "linecolor", color_util::hex<uint16_t>(m_opts.linecolor)));
+
+  auto linecolor = color::parse(m_conf.get<string>(bs, "linecolor", "#f00"));
+  auto lineheight = m_conf.get<int>(bs, "lineheight", 0);
+
+  try {
+    m_opts.overline.size = m_conf.get<int16_t>(bs, "overline-size", lineheight);
+    m_opts.overline.color = color::parse(m_conf.get<string>(bs, "overline-color"));
+  } catch (const key_error& err) {
+    m_opts.overline.color = linecolor;
+  }
+
+  try {
+    m_opts.underline.size = m_conf.get<uint16_t>(bs, "underline-size", lineheight);
+    m_opts.underline.color = color::parse(m_conf.get<string>(bs, "underline-color"));
+  } catch (const key_error& err) {
+    m_opts.underline.color = linecolor;
+  }
 
   // }}}
   // Set border values {{{
@@ -128,7 +140,6 @@ void bar::bootstrap(bool nodraw) {
 
   GET_CONFIG_VALUE(bs, m_opts.force_docking, "dock");
   GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
-  GET_CONFIG_VALUE(bs, m_opts.lineheight, "lineheight");
   GET_CONFIG_VALUE(bs, m_opts.padding.left, "padding-left");
   GET_CONFIG_VALUE(bs, m_opts.padding.right, "padding-right");
   GET_CONFIG_VALUE(bs, m_opts.module_margin.left, "module-margin-left");

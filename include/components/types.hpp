@@ -8,7 +8,7 @@ POLYBAR_NS
 
 enum class edge : uint8_t { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 enum class alignment : uint8_t { NONE = 0, LEFT, CENTER, RIGHT };
-enum class syntaxtag : uint8_t { NONE = 0, A, B, F, T, U, O, R, o, u };
+enum class syntaxtag : uint8_t { NONE = 0, A, B, F, T, U, Uu, Uo, O, R, o, u };
 enum class attribute : uint8_t { NONE = 0, o = 1 << 0, u = 1 << 1 };
 enum class mousebtn : uint8_t { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
 enum class gc : uint8_t { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
@@ -54,6 +54,11 @@ struct border_settings {
   uint16_t size{0};
 };
 
+struct line_settings {
+  uint32_t color{0xFF000000};
+  uint16_t size{0};
+};
+
 struct bar_settings {
   monitor_t monitor;
 
@@ -70,11 +75,12 @@ struct bar_settings {
 
   uint32_t background{0xFFFFFFFF};
   uint32_t foreground{0xFF0000FF};
-  uint32_t linecolor{0xFF000000};
+
+  line_settings underline;
+  line_settings overline;
 
   map<edge, border_settings> borders;
 
-  int8_t lineheight{0};
   int8_t spacing{1};
   string separator;
 
