@@ -64,7 +64,7 @@ struct bar_settings {
 
   edge origin{edge::BOTTOM};
 
-  size size{0, 0};
+  struct size size{0, 0};
   position pos{0, 0};
   position offset{0, 0};
   position center{0, 0};
