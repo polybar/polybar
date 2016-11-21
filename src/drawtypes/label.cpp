@@ -72,37 +72,55 @@ namespace drawtypes {
    */
   label_t load_label(const config& conf, string section, string name, bool required, string def) {
     vector<struct bounds> bound;
+    size_t start, end, pos;
 
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     string text;
+    string line{text};
 
     if (required)
       text = conf.get<string>(section, name);
     else
       text = conf.get<string>(section, name, def);
 
-    vector<string> text_split = string_util::split(text, '%');
+    while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
+      auto token = line.substr(start, end);
 
-    // get rid of false positives (lemonbar-style declarations)
-    for (size_t i = 0; i < text_split.size(); i++) {
-      if (!text_split[i].empty() && text_split[i].at(0) == '{')
-        text_split.erase(text_split.begin() + i--);
-    }
+      line.erase(0, end);
 
-    for (size_t i = 1; i < text_split.size(); i += 2) {
-      struct bounds bound_vals = {0, 0};
-      size_t delim_min = text_split[i].find(':'), delim_max = text_split[i].find(':', delim_min + 1);
-      if (delim_min != string::npos) {
-        if (delim_max != string::npos) {
-          bound_vals.min = stoul(text_split[i].substr(delim_min + 1, delim_max - delim_min - 1));
-          bound_vals.max = stoul(text_split[i].substr(delim_max + 1));
-        }
-        else
-          bound_vals.min = stoul(text_split[i].substr(delim_min + 1));
+      // ignore false positives (lemonbar-style declarations)
+      if (token[1] == '{')
+        continue;
+
+      bound.emplace_back(bounds{0, 0});
+
+      // find min delimiter
+      if ((pos = token.find(':')) == string::npos)
+        continue;
+
+      // strip min/max specifiers from the label string token
+      text = string_util::replace(text, token, token.substr(0, pos));
+
+      try {
+        bound.back().min = std::stoul(&token[pos + 1], nullptr, 10);
+      } catch (const std::invalid_argument& err) {
+        continue;
       }
-      bound.push_back(bound_vals);
-      text = string_util::replace_all(text, text_split[i], text_split[i].substr(0, delim_min));
+
+      // find max delimiter
+      if ((pos = token.find(':', pos + 1)) == string::npos)
+        continue;
+
+      try {
+        bound.back().max = std::stoul(&token[pos + 1], nullptr, 10);
+      } catch (const std::invalid_argument& err) {
+        continue;
+      }
+
+      // ignore max lengths less than min
+      if (bound.back().max < bound.back().min)
+        bound.back().max = 0;
     }
     // clang-format off
     return label_t{new label_t::element_type(text,
