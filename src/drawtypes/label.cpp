@@ -26,7 +26,7 @@ namespace drawtypes {
   }
 
   void label::replace_token(string token, string replacement) {
-    if (m_text.find(token) == string::npos)
+    if (m_text.find(token) == string::npos || m_token_iterator == m_token_bounds.end())
       return;
 
     m_tokenized = string_util::replace_all_bounded(m_tokenized, token, replacement,
@@ -77,12 +77,13 @@ namespace drawtypes {
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     string text;
-    string line{text};
 
     if (required)
       text = conf.get<string>(section, name);
     else
       text = conf.get<string>(section, name, def);
+
+    string line{text};
 
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
       auto token = line.substr(start, end);
