@@ -1,25 +1,44 @@
 #pragma once
+#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA
+#error "Support has been enabled for all optional modules"
+#endif
 
-#include "modules/meta/event_module.hpp"
-#include "modules/meta/timer_module.hpp"
-
-#define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
-  class MODULE_NAME : public module<MODULE_NAME> {                                      \
-   public:                                                                              \
-    using module<MODULE_NAME>::module;                                                  \
-    MODULE_NAME(const bar_settings b, const logger& l, const config& c, string n)       \
-        : module<MODULE_NAME>::module(b, l, c, n) {                                     \
-      throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
-    }                                                                                   \
-    void start() {}                                                                     \
-    bool build(builder*, string) const {                                                \
-      return true;                                                                      \
-    }                                                                                   \
-  }
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
 namespace modules {
+  struct module_interface;
+
+#define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
+  class MODULE_NAME : public module_interface {                                         \
+   public:                                                                              \
+    MODULE_NAME(const bar_settings, const logger&, const config&, string) {             \
+      throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
+    }                                                                                   \
+    string name() const {                                                               \
+      return "";                                                                        \
+    }                                                                                   \
+    bool running() const {                                                              \
+      return false;                                                                     \
+    }                                                                                   \
+    void setup() {}                                                                     \
+    void start() {}                                                                     \
+    void stop() {}                                                                      \
+    void halt(string) {}                                                                \
+    string contents() {                                                                 \
+      return "";                                                                        \
+    }                                                                                   \
+    bool handle_event(string) {                                                         \
+      return false;                                                                     \
+    }                                                                                   \
+    bool receive_events() const {                                                       \
+      return false;                                                                     \
+    }                                                                                   \
+    void set_update_cb(callback<>&&) {}                                                 \
+    void set_stop_cb(callback<>&&) {}                                                   \
+  }
+
 #if not ENABLE_I3
   DEFINE_UNSUPPORTED_MODULE(i3_module, "internal/i3");
 #endif
