@@ -23,13 +23,18 @@ offset-y = 0
 ;background = ${xrdb:color9}
 background = #ee222222
 foreground = #dfdfdf
-linecolor = #555
+
+;lineheight = 1
+;linecolor = #555
+overline-size = 2
+overline-color = #f00
+underline-size = 2
+underline-color = #00f
 
 border-bottom = 2
 border-bottom-color = #333
 
 spacing = 1
-lineheight = 1
 padding-left = 0
 padding-right = 2
 module-margin-left = 1
