@@ -37,21 +37,7 @@ font_manager::~font_manager() {
   m_fonts.clear();
 }
 
-void font_manager::set_preferred_font(int index) {
-  if (index <= 0) {
-    m_fontindex = -1;
-    return;
-  }
-
-  for (auto&& font : m_fonts) {
-    if (font.first == index) {
-      m_fontindex = index;
-      break;
-    }
-  }
-}
-
-bool font_manager::load(string name, int fontindex, int offset_y) {
+bool font_manager::load(string name, int8_t fontindex, int8_t offset_y) {
   if (fontindex != -1 && m_fonts.find(fontindex) != m_fonts.end()) {
     m_logger.warn("A font with index '%i' has already been loaded, skip...", fontindex);
     return false;
@@ -92,6 +78,20 @@ bool font_manager::load(string name, int fontindex, int offset_y) {
   return true;
 }
 
+void font_manager::set_preferred_font(int8_t index) {
+  if (index <= 0) {
+    m_fontindex = -1;
+    return;
+  }
+
+  for (auto&& font : m_fonts) {
+    if (font.first == index) {
+      m_fontindex = index;
+      break;
+    }
+  }
+}
+
 font_t& font_manager::match_char(uint16_t chr) {
   static font_t notfound;
   if (!m_fonts.empty()) {
@@ -108,7 +108,7 @@ font_t& font_manager::match_char(uint16_t chr) {
   return notfound;
 }
 
-int font_manager::char_width(font_t& font, uint16_t chr) {
+uint8_t font_manager::char_width(font_t& font, uint16_t chr) {
   if (!font)
     return 0;
 
@@ -142,6 +142,28 @@ XftColor font_manager::xftcolor() {
   return m_xftcolor;
 }
 
+XftDraw* font_manager::xftdraw() {
+  return m_xftdraw;
+}
+
+XftDraw* font_manager::create_xftdraw(xcb_pixmap_t pm, xcb_colormap_t cm) {
+  m_xftdraw = XftDrawCreate(xlib::get_display(), pm, xlib::get_visual(), cm);
+  return m_xftdraw;
+}
+
+void font_manager::destroy_xftdraw() {
+  XftDrawDestroy(m_xftdraw);
+}
+
+void font_manager::allocate_color(uint32_t color, bool initial_alloc) {
+  XRenderColor x;
+  x.red = color_util::red_channel<uint16_t>(color);
+  x.green = color_util::green_channel<uint16_t>(color);
+  x.blue = color_util::blue_channel<uint16_t>(color);
+  x.alpha = color_util::alpha_channel<uint16_t>(color);
+  allocate_color(x, initial_alloc);
+}
+
 void font_manager::allocate_color(XRenderColor color, bool initial_alloc) {
   if (!initial_alloc)
     XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
@@ -150,7 +172,7 @@ void font_manager::allocate_color(XRenderColor color, bool initial_alloc) {
     m_logger.err("Failed to allocate color");
 }
 
-void font_manager::set_gcontext_font(gcontext& gc, xcb_font_t font) {
+void font_manager::set_gcontext_font(xcb_gcontext_t gc, xcb_font_t font) {
   const uint32_t values[1]{font};
   m_connection.change_gc(gc, XCB_GC_FONT, values);
 }

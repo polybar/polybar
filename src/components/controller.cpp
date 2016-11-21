@@ -2,11 +2,13 @@
 #include <csignal>
 #include <mutex>
 
-#include "x11/color.hpp"
 #include "components/bar.hpp"
-
+#include "components/config.hpp"
 #include "components/controller.hpp"
-
+#include "components/eventloop.hpp"
+#include "components/ipc.hpp"
+#include "components/logger.hpp"
+#include "components/signals.hpp"
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
@@ -22,12 +24,6 @@
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
 #include "modules/xwindow.hpp"
-
-#include "components/config.hpp"
-#include "components/eventloop.hpp"
-#include "components/ipc.hpp"
-#include "components/logger.hpp"
-#include "components/signals.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
@@ -44,7 +40,7 @@
 #include "modules/volume.hpp"
 #endif
 
-#if not (ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA)
 #include "modules/unsupported.hpp"
 #endif
 
@@ -499,14 +495,16 @@ void controller::on_unrecognized_action(string input) {
  * Callback for module content update
  */
 void controller::on_update() {
+  const bar_settings& bar{m_bar->settings()};
+
   string contents{""};
-  string separator{m_bar->settings().separator};
+  string separator{bar.separator};
 
-  string padding_left(m_bar->settings().padding_left, ' ');
-  string padding_right(m_bar->settings().padding_right, ' ');
+  string padding_left(bar.padding.left, ' ');
+  string padding_right(bar.padding.right, ' ');
 
-  auto margin_left = m_bar->settings().module_margin_left;
-  auto margin_right = m_bar->settings().module_margin_right;
+  auto margin_left = bar.module_margin.left;
+  auto margin_right = bar.module_margin.right;
 
   for (const auto& block : m_eventloop->modules()) {
     string block_contents;

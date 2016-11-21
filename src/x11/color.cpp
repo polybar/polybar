@@ -41,7 +41,7 @@ color::operator XRenderColor() const {
 }
 
 color::operator string() const {
-  return color_util::hex(m_color);
+  return color_util::hex<uint8_t>(m_color);
 }
 
 color::operator uint32_t() const {

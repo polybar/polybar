@@ -115,9 +115,9 @@ namespace drawtypes {
     // avoid color bleed
     if (icon_empty && icon_indicator) {
       if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty())
-        icon_empty->m_background = bar.background.source();
+        icon_empty->m_background = color_util::hex<uint16_t>(bar.background);
       if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty())
-        icon_empty->m_foreground = bar.foreground.source();
+        icon_empty->m_foreground = color_util::hex<uint16_t>(bar.foreground);
     }
 
     progressbar->set_empty(move(icon_empty));

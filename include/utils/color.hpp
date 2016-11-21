@@ -54,7 +54,7 @@ namespace color_util {
     return (a << 24) | (r << 16) | (g << 8) | b;
   }
 
-  template <typename T = uint8_t>
+  template <typename T>
   string hex(uint32_t color) {
     char s[12];
     size_t len = 0;
@@ -85,9 +85,9 @@ namespace color_util {
     return hex;
   }
 
-  inline uint32_t parse(string hex) {
+  inline uint32_t parse(string hex, uint32_t fallback = 0) {
     if ((hex = parse_hex(hex)).empty())
-      return 0U;
+      return fallback;
     return std::strtoul(&hex[1], nullptr, 16);
   }
 }

@@ -1,11 +1,12 @@
-#include "x11/color.hpp"
-#include "components/types.hpp"
-
 #include "components/parser.hpp"
+#include "components/signals.hpp"
+#include "components/types.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
+
+parser::parser(const bar_settings& bar) : m_bar(bar) {}
 
 /**
  * Parse input data
@@ -111,11 +112,6 @@ void parser::codeblock(string data) {
           g_signals::parser::attribute_unset(parse_attr(value[0]));
         break;
 
-      case '!':
-        if (g_signals::parser::attribute_toggle)
-          g_signals::parser::attribute_toggle(parse_attr(value[0]));
-        break;
-
       case 'A':
         if (isdigit(data[0]) || data[0] == ':') {
           value = parse_action_cmd(data);
@@ -172,8 +168,7 @@ size_t parser::text(string data) {
     return 2;
   } else if ((utf[0] & 0xf0) == 0xe0) {  // 3 byte utf-8 sequence
     if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write(
-          (utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
+      g_signals::parser::unicode_text_write((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
     return 3;
   } else if ((utf[0] & 0xf8) == 0xf0) {  // 4 byte utf-8 sequence
     if (g_signals::parser::unicode_text_write)
@@ -197,20 +192,26 @@ size_t parser::text(string data) {
 /**
  * TODO: docstring
  */
-color parser::parse_color(string s, color fallback) {
-  if (s.empty() || s == "-")
+uint32_t parser::parse_color(string s, uint32_t fallback) {
+  uint32_t color{0};
+  if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback)
     return fallback;
-  return color::parse(s, fallback);
+  return color_util::premultiply_alpha(color);
 }
 
 /**
  * TODO: docstring
  */
-int parser::parse_fontindex(string s) {
-  if (s.empty() || s == "-")
+int8_t parser::parse_fontindex(string s) {
+  if (s.empty() || s == "-") {
     return -1;
-  char* p = (char*)s.c_str();
-  return std::strtoul(p, &p, 10);
+  }
+
+  try {
+    return std::stoul(s.c_str(), nullptr, 10);
+  } catch (const std::invalid_argument& err) {
+    return -1;
+  }
 }
 
 /**
@@ -246,8 +247,11 @@ mousebtn parser::parse_action_btn(string data) {
  * TODO: docstring
  */
 string parser::parse_action_cmd(string data) {
-  auto start = string_util::find_nth(data, 0, ":", 1);
-  auto end = string_util::find_nth(data, 0, ":", 2);
+  size_t start, end;
+  if ((start = data.find(':')) == string::npos)
+    return "";
+  if ((end = data.find(':', start + 1)) == string::npos)
+    return "";
   return string_util::trim(data.substr(start, end), ':');
 }
 

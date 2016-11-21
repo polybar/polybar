@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 #include "components/config.hpp"
-#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/throttle.hpp"
@@ -15,11 +14,12 @@ POLYBAR_NS
 
 // fwd
 class tray_manager;
-class font_manager;
+class logger;
+class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<font_manager> font_manager,
+  explicit bar(connection& conn, const config& config, const logger& logger,
       unique_ptr<tray_manager> tray_manager);
   ~bar();
 
@@ -32,14 +32,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void parse(string data, bool force = false);
 
  protected:
-  void flush();
   void refresh_window();
-  void load_fonts();
-  void configure_geom();
   void create_monitor();
-  void create_window();
-  void create_pixmap();
-  void create_gcontexts();
+  void configure_geom();
   void restack_window();
   void map_window();
   void set_wmhints();
@@ -51,62 +46,35 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
 
-  void on_alignment_change(alignment align);
-  void on_attribute_set(attribute attr);
-  void on_attribute_unset(attribute attr);
-  void on_attribute_toggle(attribute attr);
-  void on_action_block_open(mousebtn btn, string cmd);
-  void on_action_block_close(mousebtn btn);
-  void on_color_change(gc gc_, color color_);
+  void on_alignment_change(const alignment align);
+  void on_attribute_set(const attribute attr);
+  void on_attribute_unset(const attribute attr);
+  void on_attribute_toggle(const attribute attr);
+  void on_action_block_open(const mousebtn btn, string cmd);
+  void on_action_block_close(const mousebtn btn);
+  void on_color_change(const gc gc_, uint32_t color);
   void on_font_change(int index);
   void on_pixel_offset(int px);
   void on_tray_report(uint16_t slots);
-
-  void draw_background();
-  void draw_border(border border_);
-  void draw_lines(int x, int w);
-  int draw_shift(int x, int chr_width);
-  void draw_character(uint16_t character);
-  void draw_textstring(const char* text, size_t len);
 
  private:
   connection& m_connection;
   const config& m_conf;
   const logger& m_log;
-  unique_ptr<font_manager> m_fontmanager;
   unique_ptr<tray_manager> m_tray;
-
-  concurrency_util::spin_lock m_lock;
-  throttle_util::throttle_t m_throttler;
-
-  xcb_screen_t* m_screen;
-  rect m_screensize{};
-
-  xcb_visualtype_t* m_visual;
-
-  window m_window{m_connection, m_connection.generate_id()};
-  colormap m_colormap{m_connection, m_connection.generate_id()};
-  pixmap m_pixmap{m_connection, m_connection.generate_id()};
-
-  // xcb_gcontext_t m_root_gc{0};
-  // graphics_util::root_pixmap m_rootpixmap;
+  unique_ptr<renderer> m_renderer;
 
   bar_settings m_opts;
-  map<border, border_settings> m_borders;
-  map<gc, gcontext> m_gcontexts;
-  vector<action_block> m_actions;
+  xcb_window_t m_window;
+  xcb_screen_t* m_screen;
+  size m_screensize{};
+  bool m_sinkattached{false};
+  string m_lastinput;
 
-  stateflag m_sinkattached{false};
+  alignment m_trayalign{alignment::NONE};
+  uint8_t m_trayclients{0};
 
-  alignment m_traypos{alignment::NONE};
-  uint16_t m_trayclients{0};
-
-  string m_prevdata;
-  int m_xpos{0};
-  int m_attributes{0};
-
-  xcb_font_t m_gcfont{0};
-  XftDraw* m_xftdraw;
+  std::mutex m_mutex;
 };
 
 di::injector<unique_ptr<bar>> configure_bar();

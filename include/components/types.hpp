@@ -6,19 +6,13 @@
 
 POLYBAR_NS
 
-enum class border { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
-enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
-enum class syntaxtag { NONE = 0, A, B, F, T, U, O, R, o, u };
-enum class attribute { NONE = 0, o = 2, u = 4 };
-enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
-enum class gc { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
-
-struct rect {
-  uint16_t w{0};
-  uint16_t h{0};
-};
-
-enum class strut {
+enum class edge : uint8_t { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
+enum class alignment : uint8_t { NONE = 0, LEFT, CENTER, RIGHT };
+enum class syntaxtag : uint8_t { NONE = 0, A, B, F, T, U, O, R, o, u };
+enum class attribute : uint8_t { NONE = 0, o = 1 << 0, u = 1 << 1 };
+enum class mousebtn : uint8_t { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
+enum class gc : uint8_t { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
+enum class strut : uint16_t {
   LEFT = 0,
   RIGHT,
   TOP,
@@ -33,80 +27,73 @@ enum class strut {
   BOTTOM_END_X,
 };
 
-struct strut_margins {
-  uint16_t t;
-  uint16_t b;
-  uint16_t l;
-  uint16_t r;
-};
-
-struct bar_settings {
-  bar_settings() = default;
-
-  string locale;
-
+struct position {
   int16_t x{0};
   int16_t y{0};
-  uint16_t width{0};
-  uint16_t height{0};
+};
 
-  int16_t offset_y{0};
-  int16_t offset_x{0};
+struct size {
+  uint16_t w{0};
+  uint16_t h{0};
+};
 
-  uint16_t padding_left{0};
-  uint16_t padding_right{0};
+struct side_values {
+  uint16_t left{0};
+  uint16_t right{0};
+};
 
-  int16_t module_margin_left{0};
-  int16_t module_margin_right{2};
-
-  int16_t lineheight{0};
-  int16_t spacing{1};
-  string separator;
-
-  color background{g_colorwhite};
-  color foreground{g_colorblack};
-  color linecolor{g_colorblack};
-
-  alignment align{alignment::RIGHT};
-
-  bool bottom{false};
-  bool dock{false};
-
-  monitor_t monitor;
-  string wmname;
-
-  int16_t vertical_mid{0};
-
-  strut_margins margins;
-
-  string geom() {
-    char buffer[32]{
-        '\0',
-    };
-    snprintf(buffer, sizeof(buffer), "%dx%d+%d+%d", width, height, x, y);
-    return string{*buffer};
-  }
+struct edge_values {
+  uint16_t left{0};
+  uint16_t right{0};
+  uint16_t top{0};
+  uint16_t bottom{0};
 };
 
 struct border_settings {
-  border_settings() = default;
-  polybar::color color{g_colorblack};
+  uint32_t color{0xFF000000};
   uint16_t size{0};
 };
 
-struct action_block {
-  action_block() = default;
-  mousebtn button{mousebtn::NONE};
-  string command;
-  int16_t start_x{0};
-  int16_t end_x{0};
-  alignment align;
-  bool active{true};
-#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
-  xcb_window_t clickable_area;
-#endif
+struct bar_settings {
+  monitor_t monitor;
+
+  edge origin{edge::BOTTOM};
+
+  size size{0, 0};
+  position pos{0, 0};
+  position offset{0, 0};
+  position center{0, 0};
+  side_values padding{0, 0};
+  side_values margin{0, 0};
+  side_values module_margin{0, 2};
+  edge_values strut{0, 0, 0, 0};
+
+  uint32_t background{0xFFFFFFFF};
+  uint32_t foreground{0xFF0000FF};
+  uint32_t linecolor{0xFF000000};
+
+  map<edge, border_settings> borders;
+
+  int8_t lineheight{0};
+  int8_t spacing{1};
+  string separator;
+
+  string wmname;
+  string locale;
+
+  bool force_docking{false};
 };
 
-struct wmsettings_bspwm {};
+struct action_block {
+  alignment align{alignment::NONE};
+  int16_t start_x{0};
+  int16_t end_x{0};
+  mousebtn button{mousebtn::NONE};
+  string command;
+  bool active{true};
+#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
+  xcb_window_t hint;
+#endif
+};
 
 POLYBAR_NS_END

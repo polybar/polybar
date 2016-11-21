@@ -248,7 +248,7 @@ void builder::font_close(bool force) {
 void builder::background(string color) {
   if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
     color = "#" + color.substr(color.length() - 2);
-    auto bg = m_bar.background.source();
+    auto bg = color_util::hex<uint16_t>(m_bar.background);
     color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
   } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
     color = color.substr(0, 4);
@@ -279,7 +279,7 @@ void builder::color(string color_) {
   auto color(color_);
   if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
     color = "#" + color.substr(color.length() - 2);
-    auto fg = m_bar.foreground.source();
+    auto fg = color_util::hex<uint16_t>(m_bar.foreground);
     color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
   } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
     color = color.substr(0, 4);
@@ -299,7 +299,7 @@ void builder::color(string color_) {
 
 void builder::color_alpha(string alpha_) {
   auto alpha(alpha_);
-  string val = m_bar.foreground.source();
+  string val = color_util::hex<uint16_t>(m_bar.foreground);
   if (alpha.find("#") == std::string::npos) {
     alpha = "#" + alpha;
   }
