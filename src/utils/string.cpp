@@ -79,6 +79,20 @@ namespace string_util {
   }
 
   /**
+   * Replace all occurrences with bounded replacement
+   */
+  string replace_all_bounded(const string& haystack, string needle, string replacement,
+    size_t min, size_t max, size_t start, size_t end) {
+    if (max != 0 && replacement.length() > max) {
+      replacement = replacement.erase(max);
+    }
+    else if (min != 0 && replacement.length() < min) {
+      replacement.insert(0, min - replacement.length(), ' ');
+    }
+    return replace_all(haystack, needle, replacement, start, end);
+  }
+
+  /**
    * Replace all consecutive occurrences of needle in haystack
    */
   string squeeze(const string& haystack, char needle) {

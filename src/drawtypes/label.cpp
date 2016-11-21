@@ -13,11 +13,12 @@ namespace drawtypes {
 
   label_t label::clone() {
     return label_t{new label(m_text, m_foreground, m_background, m_underline, m_overline, m_font,
-        m_padding, m_margin, m_maxlen, m_ellipsis)};
+        m_padding, m_margin, m_maxlen, m_ellipsis, m_token_bounds)};
   }
 
   void label::reset_tokens() {
     m_tokenized = m_text;
+    m_token_iterator = m_token_bounds.begin();
   }
 
   bool label::has_token(string token) {
@@ -25,7 +26,13 @@ namespace drawtypes {
   }
 
   void label::replace_token(string token, string replacement) {
-    m_tokenized = string_util::replace_all(m_tokenized, token, replacement);
+    if (m_text.find(token) == string::npos || m_token_iterator == m_token_bounds.end())
+      return;
+
+    m_tokenized = string_util::replace_all_bounded(m_tokenized, token, replacement,
+      m_token_iterator->min, m_token_iterator->max);
+
+    m_token_iterator++;
   }
 
   void label::replace_defined_values(const label_t& label) {
@@ -64,6 +71,9 @@ namespace drawtypes {
    * Create a label by loading values from the configuration
    */
   label_t load_label(const config& conf, string section, string name, bool required, string def) {
+    vector<struct bounds> bound;
+    size_t start, end, pos;
+
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     string text;
@@ -73,6 +83,46 @@ namespace drawtypes {
     else
       text = conf.get<string>(section, name, def);
 
+    string line{text};
+
+    while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
+      auto token = line.substr(start, end);
+
+      line.erase(0, end);
+
+      // ignore false positives (lemonbar-style declarations)
+      if (token[1] == '{')
+        continue;
+
+      bound.emplace_back(bounds{0, 0});
+
+      // find min delimiter
+      if ((pos = token.find(':')) == string::npos)
+        continue;
+
+      // strip min/max specifiers from the label string token
+      text = string_util::replace(text, token, token.substr(0, pos));
+
+      try {
+        bound.back().min = std::stoul(&token[pos + 1], nullptr, 10);
+      } catch (const std::invalid_argument& err) {
+        continue;
+      }
+
+      // find max delimiter
+      if ((pos = token.find(':', pos + 1)) == string::npos)
+        continue;
+
+      try {
+        bound.back().max = std::stoul(&token[pos + 1], nullptr, 10);
+      } catch (const std::invalid_argument& err) {
+        continue;
+      }
+
+      // ignore max lengths less than min
+      if (bound.back().max < bound.back().min)
+        bound.back().max = 0;
+    }
     // clang-format off
     return label_t{new label_t::element_type(text,
         conf.get<string>(section, name + "-foreground", ""),
@@ -83,7 +133,8 @@ namespace drawtypes {
         conf.get<int>(section, name + "-padding", 0),
         conf.get<int>(section, name + "-margin", 0),
         conf.get<size_t>(section, name + "-maxlen", 0),
-        conf.get<bool>(section, name + "-ellipsis", true))};
+        conf.get<bool>(section, name + "-ellipsis", true),
+        bound)};
     // clang-format on
   }
 
