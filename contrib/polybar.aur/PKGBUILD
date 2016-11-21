@@ -15,7 +15,7 @@ optdepends=("alsa-lib: volume module support"
             "i3ipc-glib-git: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config")
-makedepends=("cmake" "python" "pkg-config" "boost")
+makedepends=("cmake" "python" "python2" "pkg-config" "boost")
 conflicts=("polybar-git" "lemonbuddy-git" "lemonbuddy")
 source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
