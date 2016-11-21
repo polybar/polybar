@@ -20,7 +20,6 @@
 #include "modules/script.hpp"
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
-#include "modules/unsupported.hpp"
 #include "modules/xbacklight.hpp"
 #include "modules/xwindow.hpp"
 
@@ -43,6 +42,10 @@
 #endif
 #if ENABLE_ALSA
 #include "modules/volume.hpp"
+#endif
+
+#if not (ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA)
+#include "modules/unsupported.hpp"
 #endif
 
 POLYBAR_NS
