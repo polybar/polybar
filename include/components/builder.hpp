@@ -25,7 +25,7 @@ using namespace drawtypes;
 
 class builder {
  public:
-  explicit builder(const bar_settings bar, bool lazy = true) : m_bar(bar), m_lazy(lazy) {}
+  explicit builder(const bar_settings bar, bool lazy = false) : m_bar(bar), m_lazy(lazy) {}
 
   void set_lazy(bool mode);
 
