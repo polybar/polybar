@@ -36,7 +36,11 @@ di::injector<unique_ptr<bar>> configure_bar() {
  * Construct bar instance
  */
 bar::bar(connection& conn, const config& config, const logger& logger, unique_ptr<tray_manager> tray_manager)
-    : m_connection(conn), m_conf(config), m_log(logger), m_tray(forward<decltype(tray_manager)>(tray_manager)) {}
+    : m_connection(conn)
+    , m_conf(config)
+    , m_log(logger)
+    , m_tray(forward<decltype(tray_manager)>(tray_manager))
+    , m_screen(conn.screen()) {}
 
 /**
  * Cleanup signal handlers and destroy the bar window
@@ -58,13 +62,7 @@ bar::~bar() {
   g_signals::parser::string_write = nullptr;
   g_signals::tray::report_slotcount = nullptr;  // }}}
 
-  if (m_tray) {
-    m_tray.reset();
-  }
-
-  if (m_sinkattached) {
-    m_connection.detach_sink(this, 1);
-  }
+  m_connection.detach_sink(this, 1);
 }
 
 /**
@@ -75,88 +73,75 @@ bar::~bar() {
 void bar::bootstrap(bool nodraw) {
   auto bs = m_conf.bar_section();
 
-  m_screen = m_connection.screen();
+  setup_monitor();
 
-  auto geom = m_connection.get_geometry(m_screen->root);
-  m_screensize.w = geom->width;
-  m_screensize.h = geom->height;
+  m_log.trace("bar: Load config values");
+  {
+    m_opts.locale = m_conf.get<string>(bs, "locale", "");
+    m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
+    m_opts.wmname = m_conf.get<string>(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
+    m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
-  m_opts.locale = m_conf.get<string>(bs, "locale", "");
-  m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
+    if (m_conf.get<bool>(bs, "bottom", false))
+      m_opts.origin = edge::BOTTOM;
 
-  create_monitor();
+    GET_CONFIG_VALUE(bs, m_opts.force_docking, "dock");
+    GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
+    GET_CONFIG_VALUE(bs, m_opts.padding.left, "padding-left");
+    GET_CONFIG_VALUE(bs, m_opts.padding.right, "padding-right");
+    GET_CONFIG_VALUE(bs, m_opts.module_margin.left, "module-margin-left");
+    GET_CONFIG_VALUE(bs, m_opts.module_margin.right, "module-margin-right");
 
-  // Set bar colors {{{
-
-  m_opts.background = color::parse(m_conf.get<string>(bs, "background", color_util::hex<uint16_t>(m_opts.background)));
-  m_opts.foreground = color::parse(m_conf.get<string>(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
-
-  auto linecolor = color::parse(m_conf.get<string>(bs, "linecolor", "#f00"));
-  auto lineheight = m_conf.get<int>(bs, "lineheight", 0);
-
-  try {
-    m_opts.overline.size = m_conf.get<int16_t>(bs, "overline-size", lineheight);
-    m_opts.overline.color = color::parse(m_conf.get<string>(bs, "overline-color"));
-  } catch (const key_error& err) {
-    m_opts.overline.color = linecolor;
+    m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);
+    m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
   }
 
-  try {
-    m_opts.underline.size = m_conf.get<uint16_t>(bs, "underline-size", lineheight);
-    m_opts.underline.color = color::parse(m_conf.get<string>(bs, "underline-color"));
-  } catch (const key_error& err) {
-    m_opts.underline.color = linecolor;
+  m_log.trace("bar: Load color values");
+  {
+    m_opts.background =
+        color::parse(m_conf.get<string>(bs, "background", color_util::hex<uint16_t>(m_opts.background)));
+    m_opts.foreground =
+        color::parse(m_conf.get<string>(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
+
+    auto linecolor = color::parse(m_conf.get<string>(bs, "linecolor", "#f00"));
+    auto lineheight = m_conf.get<int>(bs, "lineheight", 0);
+
+    try {
+      m_opts.overline.size = m_conf.get<int16_t>(bs, "overline-size", lineheight);
+      m_opts.overline.color = color::parse(m_conf.get<string>(bs, "overline-color"));
+    } catch (const key_error& err) {
+      m_opts.overline.color = linecolor;
+    }
+
+    try {
+      m_opts.underline.size = m_conf.get<uint16_t>(bs, "underline-size", lineheight);
+      m_opts.underline.color = color::parse(m_conf.get<string>(bs, "underline-color"));
+    } catch (const key_error& err) {
+      m_opts.underline.color = linecolor;
+    }
   }
 
-  // }}}
-  // Set border values {{{
+  m_log.trace("bar: Load border values");
+  {
+    auto bsize = m_conf.get<int>(bs, "border-size", 0);
+    auto bcolor = m_conf.get<string>(bs, "border-color", "#00000000");
 
-  auto bsize = m_conf.get<int>(bs, "border-size", 0);
-  auto bcolor = m_conf.get<string>(bs, "border-color", "#00000000");
+    m_opts.borders.emplace(edge::TOP, border_settings{});
+    m_opts.borders[edge::TOP].size = m_conf.get<int>(bs, "border-top", bsize);
+    m_opts.borders[edge::TOP].color = color::parse(m_conf.get<string>(bs, "border-top-color", bcolor));
 
-  m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.get<int>(bs, "border-top", bsize);
-  m_opts.borders[edge::TOP].color = color::parse(m_conf.get<string>(bs, "border-top-color", bcolor));
+    m_opts.borders.emplace(edge::BOTTOM, border_settings{});
+    m_opts.borders[edge::BOTTOM].size = m_conf.get<int>(bs, "border-bottom", bsize);
+    m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get<string>(bs, "border-bottom-color", bcolor));
 
-  m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.get<int>(bs, "border-bottom", bsize);
-  m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get<string>(bs, "border-bottom-color", bcolor));
+    m_opts.borders.emplace(edge::LEFT, border_settings{});
+    m_opts.borders[edge::LEFT].size = m_conf.get<int>(bs, "border-left", bsize);
+    m_opts.borders[edge::LEFT].color = color::parse(m_conf.get<string>(bs, "border-left-color", bcolor));
 
-  m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.get<int>(bs, "border-left", bsize);
-  m_opts.borders[edge::LEFT].color = color::parse(m_conf.get<string>(bs, "border-left-color", bcolor));
-
-  m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.get<int>(bs, "border-right", bsize);
-  m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
-
-  // }}}
-  // Set size and position {{{
-
-  if (m_conf.get<bool>(bs, "bottom", false))
-    m_opts.origin = edge::BOTTOM;
-  else
-    m_opts.origin = edge::TOP;
-
-  GET_CONFIG_VALUE(bs, m_opts.force_docking, "dock");
-  GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
-  GET_CONFIG_VALUE(bs, m_opts.padding.left, "padding-left");
-  GET_CONFIG_VALUE(bs, m_opts.padding.right, "padding-right");
-  GET_CONFIG_VALUE(bs, m_opts.module_margin.left, "module-margin-left");
-  GET_CONFIG_VALUE(bs, m_opts.module_margin.right, "module-margin-right");
-
-  m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);
-  m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
-
-  // }}}
-  // Set the WM_NAME value {{{
-  // Required early for --print-wmname
-
-  m_opts.wmname = m_conf.get<string>(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
-  m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
-
-  // }}}
-  // Check nodraw flag {{{
+    m_opts.borders.emplace(edge::RIGHT, border_settings{});
+    m_opts.borders[edge::RIGHT].size = m_conf.get<int>(bs, "border-right", bsize);
+    m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
+  }
 
   if (nodraw) {
     m_log.trace("bar: Abort bootstrap routine (reason: nodraw)");
@@ -164,52 +149,47 @@ void bar::bootstrap(bool nodraw) {
     return;
   }
 
-  // }}}
-  // Connect signal handlers and attach sink {{{
-
-  m_log.trace("bar: Attach parser callbacks");
-
-  // clang-format off
-  g_signals::parser::alignment_change = [this](const alignment align) {
-    m_renderer->set_alignment(align);
-  };
-  g_signals::parser::attribute_set = [this](const attribute attr) {
-    m_renderer->set_attribute(attr, true);
-  };
-  g_signals::parser::attribute_unset = [this](const attribute attr) {
-    m_renderer->set_attribute(attr, false);
-  };
-  g_signals::parser::action_block_open = [this](const mousebtn btn, string cmd) {
-    m_renderer->begin_action(btn, cmd);
-  };
-  g_signals::parser::action_block_close = [this](const mousebtn btn) {
-    m_renderer->end_action(btn);
-  };
-  g_signals::parser::color_change= [this](const gc gcontext, const uint32_t color) {
-    m_renderer->set_foreground(gcontext, color);
-  };
-  g_signals::parser::font_change = [this](const int8_t font) {
-    m_renderer->set_fontindex(font);
-  };
-  g_signals::parser::pixel_offset = [this](const int16_t px) {
-    m_renderer->shift_content(px);
-  };
-  g_signals::parser::ascii_text_write = [this](const uint16_t c) {
-    m_renderer->draw_character(c);
-  };
-  g_signals::parser::unicode_text_write = [this](const uint16_t c) {
-    m_renderer->draw_character(c);
-  };
-  g_signals::parser::string_write = [this](const char* text, const size_t len) {
-    m_renderer->draw_textstring(text, len);
-  };
-  // clang-format on
+  m_log.trace("bar: Attach parser signal handlers");
+  {
+    // clang-format off
+    g_signals::parser::alignment_change = [this](const alignment align) {
+      m_renderer->set_alignment(align);
+    };
+    g_signals::parser::attribute_set = [this](const attribute attr) {
+      m_renderer->set_attribute(attr, true);
+    };
+    g_signals::parser::attribute_unset = [this](const attribute attr) {
+      m_renderer->set_attribute(attr, false);
+    };
+    g_signals::parser::action_block_open = [this](const mousebtn btn, string cmd) {
+      m_renderer->begin_action(btn, cmd);
+    };
+    g_signals::parser::action_block_close = [this](const mousebtn btn) {
+      m_renderer->end_action(btn);
+    };
+    g_signals::parser::color_change= [this](const gc gcontext, const uint32_t color) {
+      m_renderer->set_foreground(gcontext, color);
+    };
+    g_signals::parser::font_change = [this](const int8_t font) {
+      m_renderer->set_fontindex(font);
+    };
+    g_signals::parser::pixel_offset = [this](const int16_t px) {
+      m_renderer->shift_content(px);
+    };
+    g_signals::parser::ascii_text_write = [this](const uint16_t c) {
+      m_renderer->draw_character(c);
+    };
+    g_signals::parser::unicode_text_write = [this](const uint16_t c) {
+      m_renderer->draw_character(c);
+    };
+    g_signals::parser::string_write = [this](const char* text, const size_t len) {
+      m_renderer->draw_textstring(text, len);
+    };
+    // clang-format on
+  }
 
   m_log.trace("bar: Attaching sink to registry");
   m_connection.attach_sink(this, 1);
-  m_sinkattached = true;
-
-  // }}}
 
   configure_geom();
 
@@ -217,11 +197,10 @@ void bar::bootstrap(bool nodraw) {
   m_window = m_renderer->window();
 
   restack_window();
-  set_wmhints();
-  map_window();
+  reconfigure_window();
 
+  m_connection.map_window(m_window);
   m_connection.flush();
-
 }
 
 /**
@@ -283,7 +262,7 @@ void bar::bootstrap_tray() {
   } else if (settings.align == alignment::LEFT) {
     settings.orig_x = m_opts.pos.x + m_opts.borders.at(edge::LEFT).size;
   } else if (settings.align == alignment::CENTER) {
-    settings.orig_x = get_centerx() - (settings.width / 2);
+    settings.orig_x = m_opts.center.x - (settings.width / 2);
   }
 
   // Set user-defined background color
@@ -331,7 +310,17 @@ void bar::bootstrap_tray() {
 
   // Add tray update callback unless explicitly disabled
   if (!m_conf.get<bool>(bs, "tray-detached", false)) {
-    g_signals::tray::report_slotcount = bind(&bar::on_tray_report, this, placeholders::_1);
+    g_signals::tray::report_slotcount = [this](uint16_t slots) {
+      m_log.trace("bar: Tray reports %lu slots", slots);
+
+      if (m_trayclients != slots) {
+        m_trayclients = slots;
+
+        if (!m_lastinput.empty()) {
+          parse(m_lastinput, true);
+        }
+      }
+    };
   }
 
   // Put the tray next to the bar in the window stack
@@ -411,13 +400,6 @@ void bar::parse(string data, bool force) {
 }
 
 /**
- * Refresh the bar window by clearing and redrawing the pixmaps
- */
-void bar::refresh_window() {
-  m_log.info("Refresh bar window");
-}
-
-/**
  * Configure geometry values
  */
 void bar::configure_geom() {
@@ -468,7 +450,10 @@ void bar::configure_geom() {
   m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
   m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
 
-  m_opts.center.y = (m_opts.size.h + m_opts.borders[edge::TOP].size - m_opts.borders[edge::BOTTOM].size) / 2;
+  m_opts.center.y = m_opts.size.h + m_opts.borders[edge::TOP].size - m_opts.borders[edge::BOTTOM].size;
+  m_opts.center.y /= 2;
+  m_opts.center.x = m_opts.pos.x + m_opts.size.w - m_opts.borders[edge::RIGHT].size + m_opts.borders[edge::LEFT].size;
+  m_opts.center.x /= 2;
 
   m_log.info("Bar geometry %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 }
@@ -476,7 +461,7 @@ void bar::configure_geom() {
 /**
  * Create monitor object
  */
-void bar::create_monitor() {
+void bar::setup_monitor() {
   m_log.trace("bar: Create monitor from matching X RandR output");
 
   auto strict = m_conf.get<bool>(m_conf.bar_section(), "monitor-strict", false);
@@ -545,9 +530,10 @@ void bar::restack_window() {
 }
 
 /**
- * Map window and reconfigure its position
+ * Reconfigure window by updating atom values
+ * and moving it to the correct position
  */
-void bar::map_window() {
+void bar::reconfigure_window() {
   auto geom = m_connection.get_geometry(m_screen->root);
   auto w = m_opts.size.w + m_opts.offset.x;
   auto h = m_opts.size.h + m_opts.offset.y;
@@ -560,65 +546,37 @@ void bar::map_window() {
     h += m_opts.strut.bottom;
   }
 
-  if (m_opts.origin == edge::BOTTOM && m_opts.monitor->y + m_opts.monitor->h < m_screensize.h) {
-    h += m_screensize.h - (m_opts.monitor->y + m_opts.monitor->h);
+  if (m_opts.origin == edge::BOTTOM && m_opts.monitor->y + m_opts.monitor->h < geom->height) {
+    h += geom->height - (m_opts.monitor->y + m_opts.monitor->h);
   } else if (m_opts.origin != edge::BOTTOM) {
     h += m_opts.monitor->y;
   }
 
   window win{m_connection, m_window};
-  win.map_checked();
   win.reconfigure_struts(w, h, x, m_opts.origin == edge::BOTTOM);
   win.reconfigure_pos(x, y);
-}
 
-/**
- * Set window atom values
- */
-void bar::set_wmhints() {
-  m_log.trace("bar: Set WM_NAME");
+  m_log.trace("bar: Set window WM_NAME");
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.size(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_window, 15, "polybar\0Polybar");
 
-  m_log.trace("bar: Set WM_NORMAL_HINTS");
+  m_log.trace("bar: Set window WM_NORMAL_HINTS");
   xcb_size_hints_t hints;
   xcb_icccm_size_hints_set_position(&hints, true, m_opts.pos.x, m_opts.pos.y);
   xcb_icccm_size_hints_set_size(&hints, true, m_opts.size.w, m_opts.size.h);
   xcb_icccm_set_wm_normal_hints(m_connection, m_window, &hints);
 
-  m_log.trace("bar: Set _NET_WM_WINDOW_TYPE");
+  m_log.trace("bar: Set window _NET_WM_WINDOW_TYPE");
   wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
 
-  m_log.trace("bar: Set _NET_WM_STATE");
+  m_log.trace("bar: Set window _NET_WM_STATE");
   wm_util::set_wmstate(m_connection, m_window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
 
-  m_log.trace("bar: Set _NET_WM_DESKTOP");
+  m_log.trace("bar: Set window _NET_WM_DESKTOP");
   wm_util::set_wmdesktop(m_connection, m_window, 0xFFFFFFFF);
 
-  m_log.trace("bar: Set _NET_WM_PID");
+  m_log.trace("bar: Set window _NET_WM_PID");
   wm_util::set_wmpid(m_connection, m_window, getpid());
-}
-
-/**
- * Get the horizontal center pos
- */
-int bar::get_centerx() {
-  int x = m_opts.pos.x;
-  x += m_opts.size.w;
-  x -= m_opts.borders[edge::RIGHT].size;
-  x += m_opts.borders[edge::LEFT].size;
-  x /= 2;
-  return x;
-}
-
-/**
- * Get the inner width of the bar
- */
-int bar::get_innerwidth() {
-  auto w = m_opts.size.w;
-  w -= m_opts.borders[edge::RIGHT].size;
-  w -= m_opts.borders[edge::LEFT].size;
-  return w;
 }
 
 /**
@@ -714,28 +672,6 @@ void bar::handle(const evt::property_notify& evt) {
     } catch (const exception& err) {
       m_log.warn("Failed to emit bar window's visibility change event");
     }
-  } else if (evt->atom == _XROOTMAP_ID) {
-    refresh_window();
-  } else if (evt->atom == _XSETROOT_ID) {
-    refresh_window();
-  } else if (evt->atom == ESETROOT_PMAP_ID) {
-    refresh_window();
-  }
-}
-
-/**
- * Proess systray report
- */
-void bar::on_tray_report(uint16_t slots) {
-  if (m_trayclients == slots) {
-    return;
-  }
-
-  m_log.trace("bar: tray_report(%lu)", slots);
-  m_trayclients = slots;
-
-  if (!m_lastinput.empty()) {
-    parse(m_lastinput, true);
   }
 }
 

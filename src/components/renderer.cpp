@@ -27,15 +27,15 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
     : m_connection(conn), m_log(logger), m_fontmanager(forward<decltype(font_manager)>(font_manager)), m_bar(bar) {
   auto screen = m_connection.screen();
 
-  m_log.trace("bar: Get true color visual");
+  m_log.trace("renderer: Get true color visual");
   m_visual = m_connection.visual_type(screen, 32).get();
 
-  m_log.trace("bar: Create colormap");
+  m_log.trace("renderer: Create colormap");
   m_colormap = m_connection.generate_id();
   m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, screen->root, m_visual->visual_id);
 
   m_window = m_connection.generate_id();
-  m_log.trace("bar: Create window %s", m_connection.id(m_window));
+  m_log.trace("renderer: Create window %s", m_connection.id(m_window));
   {
     uint32_t mask{0};
     uint32_t values[16]{0};
@@ -56,10 +56,10 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
   }
 
   m_pixmap = m_connection.generate_id();
-  m_log.trace("bar: Create pixmap (xid=%s)", m_connection.id(m_pixmap));
+  m_log.trace("renderer: Create pixmap (xid=%s)", m_connection.id(m_pixmap));
   m_connection.create_pixmap(32, m_pixmap, m_window, m_bar.size.w, m_bar.size.h);
 
-  m_log.trace("bar: Create gcontexts");
+  m_log.trace("renderer: Create gcontexts");
   {
     // clang-format off
     vector<uint32_t> colors {
@@ -85,12 +85,12 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
       xutils::pack_values(mask, &params, value_list);
       m_gcontexts.emplace(gc(i), m_connection.generate_id());
 
-      m_log.trace("bar: Create gcontext (gc=%i, xid=%s)", i, m_connection.id(m_gcontexts.at(gc(i))));
+      m_log.trace("renderer: Create gcontext (gc=%i, xid=%s)", i, m_connection.id(m_gcontexts.at(gc(i))));
       m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
     }
   }
 
-  m_log.trace("bar: Load fonts");
+  m_log.trace("renderer: Load fonts");
   {
     auto fonts_loaded = false;
     auto fontindex = 0;
@@ -144,6 +144,20 @@ void renderer::begin() {
 }
 
 void renderer::end() {
+  redraw();
+  m_fontmanager->destroy_xftdraw();
+
+#ifdef DEBUG
+  debughints();
+#endif
+
+  m_reserve = 0;
+  m_reserve_at = edge::NONE;
+}
+
+void renderer::redraw() {
+  m_log.info("renderer: redrawing");
+
   xcb_rectangle_t rect{0, 0, m_bar.size.w, m_bar.size.h};
 
   if (m_reserve_at == edge::LEFT) {
@@ -158,18 +172,7 @@ void renderer::end() {
   m_connection.copy_area(
       m_pixmap, m_window, m_gcontexts.at(gc::FG), rect.x, rect.y, rect.x, rect.y, rect.width, rect.height);
   m_connection.flush();
-
-  m_fontmanager->destroy_xftdraw();
-
-#ifdef DEBUG
-  debughints();
-#endif
-
-  m_reserve = 0;
-  m_reserve_at = edge::NONE;
 }
-
-void renderer::redraw() {}
 
 void renderer::reserve_space(edge side, uint16_t w) {
   m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<uint8_t>(side), w);

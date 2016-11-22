@@ -11,7 +11,7 @@ namespace chrono = std::chrono;
 namespace time_util {
   using clock_t = chrono::high_resolution_clock;
 
-  template <typename T, typename Dur = chrono::milliseconds>
+  template <typename T, typename Dur = chrono::microseconds>
   auto measure(const T& expr) noexcept {
     auto start = clock_t::now();
     expr();

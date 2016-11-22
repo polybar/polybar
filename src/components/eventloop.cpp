@@ -17,7 +17,7 @@ eventloop::~eventloop() noexcept {
         module->stop();
         module.reset();
       });
-      m_log.trace("eventloop: Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
+      m_log.trace("eventloop: Deconstruction of %s took %lu microsec.", module_name, cleanup_ms);
     }
   }
 }

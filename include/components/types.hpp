@@ -62,7 +62,7 @@ struct line_settings {
 struct bar_settings {
   monitor_t monitor;
 
-  edge origin{edge::BOTTOM};
+  edge origin{edge::TOP};
 
   struct size size{0, 0};
   position pos{0, 0};
@@ -88,6 +88,17 @@ struct bar_settings {
   string locale;
 
   bool force_docking{false};
+
+  const xcb_rectangle_t inner_area() const {
+    xcb_rectangle_t rect{pos.x, pos.y, size.w, size.h};
+    rect.y += borders.at(edge::TOP).size;
+    rect.height -= borders.at(edge::TOP).size;
+    rect.height -= borders.at(edge::BOTTOM).size;
+    rect.x += borders.at(edge::LEFT).size;
+    rect.width -= borders.at(edge::LEFT).size;
+    rect.width -= borders.at(edge::RIGHT).size;
+    return rect;
+  }
 };
 
 struct action_block {

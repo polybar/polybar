@@ -219,9 +219,11 @@ void tray_manager::deactivate() {  // {{{
     g_signals::bar::visibility_change = nullptr;
   }
 
-  if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
-    m_log.trace("tray: Unset selection owner");
-    m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
+  if (!m_connection.connection_has_error()) {
+    if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
+      m_log.trace("tray: Unset selection owner");
+      m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
+    }
   }
 
   m_log.trace("tray: Unembed clients");

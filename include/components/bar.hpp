@@ -32,30 +32,14 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void parse(string data, bool force = false);
 
  protected:
-  void refresh_window();
-  void create_monitor();
+  void setup_monitor();
   void configure_geom();
   void restack_window();
-  void map_window();
-  void set_wmhints();
-
-  int get_centerx();
-  int get_innerwidth();
+  void reconfigure_window();
 
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
-
-  void on_alignment_change(const alignment align);
-  void on_attribute_set(const attribute attr);
-  void on_attribute_unset(const attribute attr);
-  void on_attribute_toggle(const attribute attr);
-  void on_action_block_open(const mousebtn btn, string cmd);
-  void on_action_block_close(const mousebtn btn);
-  void on_color_change(const gc gc_, uint32_t color);
-  void on_font_change(int index);
-  void on_pixel_offset(int px);
-  void on_tray_report(uint16_t slots);
 
  private:
   connection& m_connection;
@@ -64,17 +48,17 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;
 
-  bar_settings m_opts;
-  xcb_window_t m_window;
   xcb_screen_t* m_screen;
-  size m_screensize{};
-  bool m_sinkattached{false};
-  string m_lastinput;
+  xcb_window_t m_window;
+
+  bar_settings m_opts;
 
   alignment m_trayalign{alignment::NONE};
   uint8_t m_trayclients{0};
 
   std::mutex m_mutex;
+
+  string m_lastinput;
 };
 
 di::injector<unique_ptr<bar>> configure_bar();
