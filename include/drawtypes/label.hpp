@@ -11,8 +11,8 @@ POLYBAR_NS
  */
 
 namespace drawtypes {
-
   struct bounds {
+    string token;
     size_t min;
     size_t max;
   };
@@ -42,7 +42,7 @@ namespace drawtypes {
     explicit label(string text, string foreground = "", string background = "",
         string underline = "", string overline = "", int font = 0, int padding = 0, int margin = 0,
         size_t maxlen = 0, bool ellipsis = true,
-        const vector<struct bounds>& bound = vector<struct bounds>())
+        const vector<struct bounds>& bound = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
@@ -68,7 +68,6 @@ namespace drawtypes {
    private:
     string m_text, m_tokenized;
     const vector<struct bounds> m_token_bounds;
-    vector<struct bounds>::const_iterator m_token_iterator;
 
   };
 

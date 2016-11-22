@@ -18,7 +18,6 @@ namespace drawtypes {
 
   void label::reset_tokens() {
     m_tokenized = m_text;
-    m_token_iterator = m_token_bounds.begin();
   }
 
   bool label::has_token(string token) {
@@ -26,13 +25,14 @@ namespace drawtypes {
   }
 
   void label::replace_token(string token, string replacement) {
-    if (m_text.find(token) == string::npos || m_token_iterator == m_token_bounds.end())
+    if (!has_token(token))
       return;
 
-    m_tokenized = string_util::replace_all_bounded(m_tokenized, token, replacement,
-      m_token_iterator->min, m_token_iterator->max);
-
-    m_token_iterator++;
+    for (auto&& bound : m_token_bounds) {
+      if (token != bound.token)
+        continue;
+      m_tokenized = string_util::replace_all_bounded(m_tokenized, token, replacement, bound.min, bound.max);
+    }
   }
 
   void label::replace_defined_values(const label_t& label) {
@@ -86,7 +86,7 @@ namespace drawtypes {
     string line{text};
 
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
-      auto token = line.substr(start, end);
+      auto token = line.substr(start, end + 1);
 
       line.erase(0, end);
 
@@ -94,14 +94,15 @@ namespace drawtypes {
       if (token[1] == '{')
         continue;
 
-      bound.emplace_back(bounds{0, 0});
+      bound.emplace_back(bounds{token, 0, 0});
 
       // find min delimiter
       if ((pos = token.find(':')) == string::npos)
         continue;
 
       // strip min/max specifiers from the label string token
-      text = string_util::replace(text, token, token.substr(0, pos));
+      bound.back().token = token.substr(0, pos) + '%';
+      text = string_util::replace(text, token, bound.back().token);
 
       try {
         bound.back().min = std::stoul(&token[pos + 1], nullptr, 10);
@@ -123,6 +124,7 @@ namespace drawtypes {
       if (bound.back().max < bound.back().min)
         bound.back().max = 0;
     }
+
     // clang-format off
     return label_t{new label_t::element_type(text,
         conf.get<string>(section, name + "-foreground", ""),
