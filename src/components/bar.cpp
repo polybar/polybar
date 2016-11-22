@@ -204,6 +204,10 @@ void bar::bootstrap(bool nodraw) {
 
   m_connection.map_window(m_window);
   m_connection.flush();
+
+  // Render empty bar
+  m_renderer->begin();
+  m_renderer->end();
 }
 
 /**
