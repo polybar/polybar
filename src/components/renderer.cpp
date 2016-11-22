@@ -181,15 +181,16 @@ void renderer::reserve_space(edge side, uint16_t w) {
 }
 
 void renderer::set_background(const gc gcontext, const uint32_t color) {
-  if (color == m_background)
+  if (color == m_background && gcontext == m_background_gc)
     return;
   m_log.trace_x("renderer: set_background(%i, #%08x)", static_cast<uint8_t>(gcontext), color);
   m_connection.change_gc(m_gcontexts.at(gcontext), XCB_GC_BACKGROUND, &color);
   m_background = color;
+  m_background_gc = gcontext;
 }
 
 void renderer::set_foreground(const gc gcontext, const uint32_t color) {
-  if (color == m_foreground)
+  if (color == m_foreground && gcontext == m_foreground_gc)
     return;
   m_log.trace_x("renderer: set_foreground(%i, #%08x)", static_cast<uint8_t>(gcontext), color);
   m_connection.change_gc(m_gcontexts.at(gcontext), XCB_GC_FOREGROUND, &color);
@@ -198,6 +199,7 @@ void renderer::set_foreground(const gc gcontext, const uint32_t color) {
   else if (gcontext == gc::BG)
     shift_content(0);
   m_foreground = color;
+  m_foreground_gc = gcontext;
 }
 
 void renderer::set_fontindex(const uint8_t font) {
