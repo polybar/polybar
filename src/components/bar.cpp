@@ -585,6 +585,10 @@ void bar::reconfigure_window() {
  * Used to map mouse clicks to bar actions
  */
 void bar::handle(const evt::button_press& evt) {
+  if (!m_mutex.try_lock()) {
+    return;
+  }
+
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
   m_log.trace_x("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
