@@ -20,6 +20,8 @@ namespace modules {
     GET_CONFIG_VALUE(name(), m_udspeed_minwidth, "udspeed-minwidth");
     GET_CONFIG_VALUE(name(), m_accumulate, "accumulate-stats");
 
+    m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
+
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
     // Add formats

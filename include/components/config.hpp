@@ -30,6 +30,7 @@ class config {
   string bar_section() const;
   vector<string> defined_bars() const;
   string build_path(const string& section, const string& key) const;
+  void warn_deprecated(string section, string key, string replacement) const;
 
   /**
    * Get parameter for the current bar by name

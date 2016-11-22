@@ -106,6 +106,9 @@ void bar::bootstrap(bool nodraw) {
     auto linecolor = color::parse(m_conf.get<string>(bs, "linecolor", "#f00"));
     auto lineheight = m_conf.get<int>(bs, "lineheight", 0);
 
+    m_conf.warn_deprecated(bs, "linecolor", "{underline,overline}-color");
+    m_conf.warn_deprecated(bs, "lineheight", "{underline,overline}-size");
+
     try {
       m_opts.overline.size = m_conf.get<int16_t>(bs, "overline-size", lineheight);
       m_opts.overline.color = color::parse(m_conf.get<string>(bs, "overline-color"));

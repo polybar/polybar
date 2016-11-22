@@ -74,7 +74,7 @@ struct bar_settings {
   edge_values strut{0, 0, 0, 0};
 
   uint32_t background{0xFFFFFFFF};
-  uint32_t foreground{0xFF0000FF};
+  uint32_t foreground{0xFF000000};
 
   line_settings underline;
   line_settings overline;

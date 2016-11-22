@@ -1,8 +1,8 @@
 #include <algorithm>
 
 #include "components/config.hpp"
-#include "utils/file.hpp"
 #include "utils/env.hpp"
+#include "utils/file.hpp"
 
 POLYBAR_NS
 
@@ -70,6 +70,17 @@ vector<string> config::defined_bars() const {
  */
 string config::build_path(const string& section, const string& key) const {
   return section + "." + key;
+}
+
+/**
+ * Print a deprecation warning if the given parameter is set
+ */
+void config::warn_deprecated(string section, string key, string replacement) const {
+  try {
+    auto value = get<string>(section, key);
+    m_logger.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, replacement);
+  } catch (const key_error& err) {
+  }
 }
 
 POLYBAR_NS_END
