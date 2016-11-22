@@ -24,7 +24,7 @@ int main() {
 
   "hex"_test = [] {
     uint32_t colorA{0x123456};
-    expect(color_util::hex(colorA).compare("#123456") == 0);
+    expect(color_util::hex<uint8_t>(colorA).compare("#123456") == 0);
     uint32_t colorB{0xCC123456};
     expect(color_util::hex<uint16_t>(colorB).compare("#cc123456") == 0);
     uint32_t colorC{0x00ffffff};
