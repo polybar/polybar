@@ -44,14 +44,14 @@ namespace modules {
     stateflag m_connected{false};
     stateflag m_packetloss{false};
 
-    int m_signal = 0;
-    int m_quality = 0;
-    int m_counter = -1;  // -1 to ignore the first run
+    int m_signal{0};
+    int m_quality{0};
+    int m_counter{-1};  // -1 to ignore the first run
 
     string m_interface;
-    int m_ping_nth_update = 0;
-    int m_udspeed_minwidth = 3;
-    bool m_accumulate = false;
+    int m_ping_nth_update{0};
+    int m_udspeed_minwidth{0};
+    bool m_accumulate{false};
   };
 }
 
