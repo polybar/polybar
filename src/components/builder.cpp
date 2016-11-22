@@ -84,11 +84,11 @@ void builder::node(string str, bool add_space) {
 
     } else if ((n = s.find("%{Uu-}")) == 0) {
       underline_color_close(true);
-      s.erase(0, 5);
+      s.erase(0, 6);
 
     } else if ((n = s.find("%{Uo-}")) == 0) {
       overline_color_close(true);
-      s.erase(0, 5);
+      s.erase(0, 6);
 
     } else if ((n = s.find("%{Uu#")) == 0 && (m = s.find("}")) != string::npos) {
       underline_color(s.substr(n + 4, m - 4));
