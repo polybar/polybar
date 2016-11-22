@@ -23,8 +23,10 @@ class renderer {
 
   void reserve_space(edge side, uint16_t w);
 
-  void set_background(const gc gcontext, const uint32_t color);
-  void set_foreground(const gc gcontext, const uint32_t color);
+  void set_background(const uint32_t color);
+  void set_foreground(const uint32_t color);
+  void set_underline(const uint32_t color);
+  void set_overline(const uint32_t color);
   void set_fontindex(const uint8_t font);
   void set_alignment(const alignment align);
   void set_attribute(const attribute attr, const bool state);
@@ -73,8 +75,8 @@ class renderer {
 
   uint32_t m_background{0};
   uint32_t m_foreground{0};
-  gc m_background_gc{gc::NONE};
-  gc m_foreground_gc{gc::NONE};
+  uint32_t m_underline{0};
+  uint32_t m_overline{0};
 
   edge m_reserve_at{edge::NONE};
   uint16_t m_reserve;

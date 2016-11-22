@@ -180,26 +180,38 @@ void renderer::reserve_space(edge side, uint16_t w) {
   m_reserve_at = side;
 }
 
-void renderer::set_background(const gc gcontext, const uint32_t color) {
-  if (color == m_background && gcontext == m_background_gc)
+void renderer::set_background(const uint32_t color) {
+  if (color == m_background)
     return;
-  m_log.trace_x("renderer: set_background(%i, #%08x)", static_cast<uint8_t>(gcontext), color);
-  m_connection.change_gc(m_gcontexts.at(gcontext), XCB_GC_BACKGROUND, &color);
+  m_log.trace_x("renderer: set_background(#%08x)", color);
+  m_connection.change_gc(m_gcontexts.at(gc::BG), XCB_GC_FOREGROUND, &color);
   m_background = color;
-  m_background_gc = gcontext;
+  shift_content(0);
 }
 
-void renderer::set_foreground(const gc gcontext, const uint32_t color) {
-  if (color == m_foreground && gcontext == m_foreground_gc)
+void renderer::set_foreground(const uint32_t color) {
+  if (color == m_foreground)
     return;
-  m_log.trace_x("renderer: set_foreground(%i, #%08x)", static_cast<uint8_t>(gcontext), color);
-  m_connection.change_gc(m_gcontexts.at(gcontext), XCB_GC_FOREGROUND, &color);
-  if (gcontext == gc::FG)
-    m_fontmanager->allocate_color(color);
-  else if (gcontext == gc::BG)
-    shift_content(0);
+  m_log.trace_x("renderer: set_foreground(#%08x)", color);
+  m_connection.change_gc(m_gcontexts.at(gc::FG), XCB_GC_FOREGROUND, &color);
+  m_fontmanager->allocate_color(color);
   m_foreground = color;
-  m_foreground_gc = gcontext;
+}
+
+void renderer::set_underline(const uint32_t color) {
+  if (color == m_foreground)
+    return;
+  m_log.trace_x("renderer: set_underline(#%08x)", color);
+  m_connection.change_gc(m_gcontexts.at(gc::UL), XCB_GC_FOREGROUND, &color);
+  m_underline = color;
+}
+
+void renderer::set_overline(const uint32_t color) {
+  if (color == m_foreground)
+    return;
+  m_log.trace_x("renderer: set_overline(#%08x)", color);
+  m_connection.change_gc(m_gcontexts.at(gc::OL), XCB_GC_FOREGROUND, &color);
+  m_overline = color;
 }
 
 void renderer::set_fontindex(const uint8_t font) {

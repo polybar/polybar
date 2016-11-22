@@ -171,7 +171,14 @@ void bar::bootstrap(bool nodraw) {
       m_renderer->end_action(btn);
     };
     g_signals::parser::color_change= [this](const gc gcontext, const uint32_t color) {
-      m_renderer->set_foreground(gcontext, color);
+      if (gcontext == gc::BG)
+        m_renderer->set_background(color);
+      else if (gcontext == gc::FG)
+        m_renderer->set_foreground(color);
+      else if (gcontext == gc::UL)
+        m_renderer->set_underline(color);
+      else if (gcontext == gc::OL)
+        m_renderer->set_overline(color);
     };
     g_signals::parser::font_change = [this](const int8_t font) {
       m_renderer->set_fontindex(font);
