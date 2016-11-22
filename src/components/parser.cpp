@@ -64,10 +64,12 @@ void parser::codeblock(string data) {
 
       case 'U':
         if (g_signals::parser::color_change) {
-          if (value[0] == 'u' && data.find(" Uu") == string::npos) {
-            g_signals::parser::color_change(gc::UL, parse_color(value.substr(1), m_bar.underline.color));
-          } else if (value[0] == 'o' && data.find(" Uo") == string::npos) {
-            g_signals::parser::color_change(gc::OL, parse_color(value.substr(1), m_bar.overline.color));
+          if (value[0] == 'u') {
+            if (data.find(" Uu") == string::npos)
+              g_signals::parser::color_change(gc::UL, parse_color(value.substr(1), m_bar.underline.color));
+          } else if (value[0] == 'o') {
+            if (data.find(" Uo") == string::npos)
+              g_signals::parser::color_change(gc::OL, parse_color(value.substr(1), m_bar.overline.color));
           } else if (data.find(" U") == string::npos) {
             g_signals::parser::color_change(gc::UL, parse_color(value, m_bar.underline.color));
             g_signals::parser::color_change(gc::OL, parse_color(value, m_bar.overline.color));

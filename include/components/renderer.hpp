@@ -73,6 +73,8 @@ class renderer {
 
   uint32_t m_background{0};
   uint32_t m_foreground{0};
+  gc m_background_gc{gc::NONE};
+  gc m_foreground_gc{gc::NONE};
 
   edge m_reserve_at{edge::NONE};
   uint16_t m_reserve;
