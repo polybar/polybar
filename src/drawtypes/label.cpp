@@ -88,12 +88,13 @@ namespace drawtypes {
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
       auto token = line.substr(start, end - start + 1);
 
-      line.erase(start, end - start + 1);
-
       // ignore false positives (lemonbar-style declarations)
-      if (token[1] == '{')
+      if (token[1] == '{') {
+        line.erase(0, start + 1);
         continue;
+      }
 
+      line.erase(start, end - start + 1);
       bound.emplace_back(bounds{token, 0, 0});
 
       // find min delimiter
