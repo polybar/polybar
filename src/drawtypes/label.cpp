@@ -86,9 +86,9 @@ namespace drawtypes {
     string line{text};
 
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
-      auto token = line.substr(start, end + 1);
+      auto token = line.substr(start, end - start + 1);
 
-      line.erase(0, end);
+      line.erase(start, end - start + 1);
 
       // ignore false positives (lemonbar-style declarations)
       if (token[1] == '{')
