@@ -11,17 +11,15 @@ void builder::set_lazy(bool mode) {
 }
 
 string builder::flush() {
-  if (m_lazy) {
-    while (m_counters[syntaxtag::A] > 0) cmd_close(true);
-    while (m_counters[syntaxtag::B] > 0) background_close(true);
-    while (m_counters[syntaxtag::F] > 0) color_close(true);
-    while (m_counters[syntaxtag::T] > 0) font_close(true);
-    while (m_counters[syntaxtag::Uo] > 0) overline_color_close(true);
-    while (m_counters[syntaxtag::Uu] > 0) underline_color_close(true);
-    while (m_counters[syntaxtag::U] > 0) line_color_close(true);
-    while (m_counters[syntaxtag::u] > 0) underline_close(true);
-    while (m_counters[syntaxtag::o] > 0) overline_close(true);
-  }
+  while (m_counters[syntaxtag::A] > 0) cmd_close(true);
+  while (m_counters[syntaxtag::B] > 0) background_close(true);
+  while (m_counters[syntaxtag::F] > 0) color_close(true);
+  while (m_counters[syntaxtag::T] > 0) font_close(true);
+  while (m_counters[syntaxtag::Uo] > 0) overline_color_close(true);
+  while (m_counters[syntaxtag::Uu] > 0) underline_color_close(true);
+  while (m_counters[syntaxtag::U] > 0) line_color_close(true);
+  while (m_counters[syntaxtag::u] > 0) underline_close(true);
+  while (m_counters[syntaxtag::o] > 0) overline_close(true);
 
   string output = m_output.data();
 
