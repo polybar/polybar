@@ -4,15 +4,17 @@
 
 POLYBAR_NS
 
+class logger;
 struct bar_settings;
 enum class attribute : uint8_t;
 enum class mousebtn : uint8_t;
 
 DEFINE_ERROR(unrecognized_token);
+DEFINE_ERROR(unrecognized_attribute);
 
 class parser {
  public:
-  explicit parser(const bar_settings& bar);
+  explicit parser(const logger& logger, const bar_settings& bar);
   void operator()(string data);
   void codeblock(string data);
   size_t text(string data);
@@ -25,6 +27,7 @@ class parser {
   string parse_action_cmd(string data);
 
  private:
+  const logger& m_log;
   const bar_settings& m_bar;
   vector<int> m_actions;
 };

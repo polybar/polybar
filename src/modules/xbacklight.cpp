@@ -142,9 +142,9 @@ namespace modules {
       m_builder->node(static_module::get_output());
 
       if (m_percentage < 100)
-        m_builder->cmd_close(true);
+        m_builder->cmd_close();
       if (m_percentage > 0)
-        m_builder->cmd_close(true);
+        m_builder->cmd_close();
     } else {
       m_builder->node(static_module::get_output());
     }

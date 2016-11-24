@@ -1,3 +1,6 @@
+#include <cassert>
+
+#include "components/logger.hpp"
 #include "components/parser.hpp"
 #include "components/signals.hpp"
 #include "components/types.hpp"
@@ -6,13 +9,34 @@
 
 POLYBAR_NS
 
-parser::parser(const bar_settings& bar) : m_bar(bar) {}
+/**
+ * Construct parser instance
+ */
+parser::parser(const logger& logger, const bar_settings& bar) : m_log(logger), m_bar(bar) {
+  assert(g_signals::parser::background_change != nullptr);
+  assert(g_signals::parser::foreground_change != nullptr);
+  assert(g_signals::parser::underline_change != nullptr);
+  assert(g_signals::parser::overline_change != nullptr);
+  assert(g_signals::parser::alignment_change != nullptr);
+  assert(g_signals::parser::attribute_set != nullptr);
+  assert(g_signals::parser::attribute_unset != nullptr);
+  assert(g_signals::parser::attribute_toggle != nullptr);
+  assert(g_signals::parser::font_change != nullptr);
+  assert(g_signals::parser::pixel_offset != nullptr);
+  assert(g_signals::parser::action_block_open != nullptr);
+  assert(g_signals::parser::action_block_close != nullptr);
+  assert(g_signals::parser::ascii_text_write != nullptr);
+  assert(g_signals::parser::unicode_text_write != nullptr);
+  assert(g_signals::parser::string_write != nullptr);
+}
 
 /**
- * Parse input data
+ * Process input string
  */
 void parser::operator()(string data) {
   size_t pos;
+
+  m_log.trace_x("parser: %s", data);
 
   while (data.length()) {
     if (data.compare(0, 2, "%{") == 0 && (pos = data.find("}")) != string::npos) {
@@ -27,7 +51,7 @@ void parser::operator()(string data) {
 }
 
 /**
- * Parse contents in tag blocks, i.e: %{...}
+ * Process contents within tag blocks, i.e: %{...}
  */
 void parser::codeblock(string data) {
   size_t pos;
@@ -38,7 +62,7 @@ void parser::codeblock(string data) {
     if (data.empty())
       break;
 
-    char tag = data[0];
+    char tag{data[0]};
     string value;
 
     // Remove the tag
@@ -51,72 +75,61 @@ void parser::codeblock(string data) {
 
     switch (tag) {
       case 'B':
-        // Ignore tag if it occurs again later in the same block
-        if (data.find(" B") == string::npos && g_signals::parser::color_change)
-          g_signals::parser::color_change(gc::BG, parse_color(value, m_bar.background));
+        g_signals::parser::background_change(parse_color(value, m_bar.background));
         break;
 
       case 'F':
-        // Ignore tag if it occurs again later in the same block
-        if (data.find(" F") == string::npos && g_signals::parser::color_change)
-          g_signals::parser::color_change(gc::FG, parse_color(value, m_bar.foreground));
-        break;
-
-      case 'U':
-        if (g_signals::parser::color_change) {
-          if (value[0] == 'u') {
-            if (data.find(" Uu") == string::npos)
-              g_signals::parser::color_change(gc::UL, parse_color(value.substr(1), m_bar.underline.color));
-          } else if (value[0] == 'o') {
-            if (data.find(" Uo") == string::npos)
-              g_signals::parser::color_change(gc::OL, parse_color(value.substr(1), m_bar.overline.color));
-          } else if (data.find(" U") == string::npos) {
-            g_signals::parser::color_change(gc::UL, parse_color(value, m_bar.underline.color));
-            g_signals::parser::color_change(gc::OL, parse_color(value, m_bar.overline.color));
-          }
-        }
-        break;
-
-      case 'R':
-        if (g_signals::parser::color_change) {
-          g_signals::parser::color_change(gc::BG, m_bar.foreground);
-          g_signals::parser::color_change(gc::FG, m_bar.background);
-        }
+        g_signals::parser::foreground_change(parse_color(value, m_bar.foreground));
         break;
 
       case 'T':
-        if (data.find(" T") == string::npos && g_signals::parser::font_change)
-          g_signals::parser::font_change(parse_fontindex(value));
+        g_signals::parser::font_change(parse_fontindex(value));
+        break;
+
+      case 'U':
+        g_signals::parser::underline_change(parse_color(value, m_bar.underline.color));
+        g_signals::parser::overline_change(parse_color(value, m_bar.overline.color));
+        break;
+
+      case 'u':
+        g_signals::parser::underline_change(parse_color(value, m_bar.underline.color));
+        break;
+
+      case 'o':
+        g_signals::parser::overline_change(parse_color(value, m_bar.overline.color));
+        break;
+
+      case 'R':
+        g_signals::parser::background_change(m_bar.foreground);
+        g_signals::parser::foreground_change(m_bar.background);
         break;
 
       case 'O':
-        if (g_signals::parser::pixel_offset)
-          g_signals::parser::pixel_offset(std::atoi(value.c_str()));
+        g_signals::parser::pixel_offset(atoi(value.c_str()));
         break;
 
       case 'l':
-        if (g_signals::parser::alignment_change)
-          g_signals::parser::alignment_change(alignment::LEFT);
+        g_signals::parser::alignment_change(alignment::LEFT);
         break;
 
       case 'c':
-        if (g_signals::parser::alignment_change)
-          g_signals::parser::alignment_change(alignment::CENTER);
+        g_signals::parser::alignment_change(alignment::CENTER);
         break;
 
       case 'r':
-        if (g_signals::parser::alignment_change)
-          g_signals::parser::alignment_change(alignment::RIGHT);
+        g_signals::parser::alignment_change(alignment::RIGHT);
         break;
 
       case '+':
-        if (g_signals::parser::attribute_set)
-          g_signals::parser::attribute_set(parse_attr(value[0]));
+        g_signals::parser::attribute_set(parse_attr(value[0]));
         break;
 
       case '-':
-        if (g_signals::parser::attribute_unset)
-          g_signals::parser::attribute_unset(parse_attr(value[0]));
+        g_signals::parser::attribute_unset(parse_attr(value[0]));
+        break;
+
+      case '!':
+        g_signals::parser::attribute_toggle(parse_attr(value[0]));
         break;
 
       case 'A':
@@ -125,16 +138,14 @@ void parser::codeblock(string data) {
           mousebtn btn = parse_action_btn(data);
           m_actions.push_back(static_cast<int>(btn));
 
-          if (g_signals::parser::action_block_open)
-            g_signals::parser::action_block_open(btn, value);
+          g_signals::parser::action_block_open(btn, value);
 
           // make sure we strip the correct length (btn+wrapping colons)
-          if (data[0] != ':')
+          if (value[0] != ':')
             value += "0";
           value += "::";
         } else if (!m_actions.empty()) {
-          if (g_signals::parser::action_block_close)
-            g_signals::parser::action_block_close(parse_action_btn(data));
+          g_signals::parser::action_block_close(parse_action_btn(value));
           m_actions.pop_back();
         }
         break;
@@ -149,12 +160,12 @@ void parser::codeblock(string data) {
 }
 
 /**
- * Parse text strings
+ * Process text contents
  */
 size_t parser::text(string data) {
   uint8_t* utf = (uint8_t*)data.c_str();
 
-  if (g_signals::parser::string_write && utf[0] < 0x80) {
+  if (utf[0] < 0x80) {
     // grab all consecutive ascii chars
     size_t next_tag = data.find("%{");
     if (next_tag != string::npos) {
@@ -165,39 +176,29 @@ size_t parser::text(string data) {
       ;
     g_signals::parser::string_write(data.substr(0, n).c_str(), n);
     return n;
-  } else if (utf[0] < 0x80) {
-    if (g_signals::parser::ascii_text_write)
-      g_signals::parser::ascii_text_write(utf[0]);
-    return 1;
   } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
-    if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f));
+    g_signals::parser::unicode_text_write((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f));
     return 2;
   } else if ((utf[0] & 0xf0) == 0xe0) {  // 3 byte utf-8 sequence
-    if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
+    g_signals::parser::unicode_text_write((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
     return 3;
   } else if ((utf[0] & 0xf8) == 0xf0) {  // 4 byte utf-8 sequence
-    if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write(0xfffd);
+    g_signals::parser::unicode_text_write(0xfffd);
     return 4;
   } else if ((utf[0] & 0xfc) == 0xf8) {  // 5 byte utf-8 sequence
-    if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write(0xfffd);
+    g_signals::parser::unicode_text_write(0xfffd);
     return 5;
   } else if ((utf[0] & 0xfe) == 0xfc) {  // 6 byte utf-8 sequence
-    if (g_signals::parser::unicode_text_write)
-      g_signals::parser::unicode_text_write(0xfffd);
+    g_signals::parser::unicode_text_write(0xfffd);
     return 6;
   } else {  // invalid utf-8 sequence
-    if (g_signals::parser::ascii_text_write)
-      g_signals::parser::ascii_text_write(utf[0]);
+    g_signals::parser::ascii_text_write(utf[0]);
     return 1;
   }
 }
 
 /**
- * TODO: docstring
+ * Process color hex string and convert it to the correct value
  */
 uint32_t parser::parse_color(string s, uint32_t fallback) {
   uint32_t color{0};
@@ -207,10 +208,10 @@ uint32_t parser::parse_color(string s, uint32_t fallback) {
 }
 
 /**
- * TODO: docstring
+ * Process font index and convert it to the correct value
  */
 int8_t parser::parse_fontindex(string s) {
-  if (s.empty() || s == "-") {
+  if (s.empty() || s[0] == '-') {
     return -1;
   }
 
@@ -222,22 +223,21 @@ int8_t parser::parse_fontindex(string s) {
 }
 
 /**
- * TODO: docstring
+ * Process attribute token and convert it to the correct value
  */
-attribute parser::parse_attr(const char s) {
-  switch (s) {
+attribute parser::parse_attr(const char attr) {
+  switch (attr) {
     case 'o':
-      return attribute::o;
-      break;
+      return attribute::OVERLINE;
     case 'u':
-      return attribute::u;
-      break;
+      return attribute::UNDERLINE;
+    default:
+      throw unrecognized_attribute(string{attr});
   }
-  return attribute::NONE;
 }
 
 /**
- * TODO: docstring
+ * Process action button token and convert it to the correct value
  */
 mousebtn parser::parse_action_btn(string data) {
   if (data[0] == ':')
@@ -251,7 +251,7 @@ mousebtn parser::parse_action_btn(string data) {
 }
 
 /**
- * TODO: docstring
+ * Process action command string
  */
 string parser::parse_action_cmd(string data) {
   size_t start, end;

@@ -55,11 +55,11 @@ namespace modules {
     if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
       builder->cmd(mousebtn::LEFT, string(EVENT_MENU_OPEN) + "0");
       builder->node(m_labelopen);
-      builder->cmd_close(true);
+      builder->cmd_close();
     } else if (tag == TAG_LABEL_TOGGLE && m_level > -1) {
       builder->cmd(mousebtn::LEFT, EVENT_MENU_CLOSE);
       builder->node(m_labelclose);
-      builder->cmd_close(true);
+      builder->cmd_close();
     } else if (tag == TAG_MENU && m_level > -1) {
       for (auto&& item : m_levels[m_level]->items) {
         if (item != m_levels[m_level]->items.front())
@@ -68,7 +68,7 @@ namespace modules {
           builder->node(m_labelseparator, true);
         builder->cmd(mousebtn::LEFT, item->exec);
         builder->node(item->label);
-        builder->cmd_close(true);
+        builder->cmd_close();
       }
     } else {
       return false;

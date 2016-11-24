@@ -88,7 +88,23 @@ namespace color_util {
   inline uint32_t parse(string hex, uint32_t fallback = 0) {
     if ((hex = parse_hex(hex)).empty())
       return fallback;
-    return std::strtoul(&hex[1], nullptr, 16);
+    return strtoul(&hex[1], nullptr, 16);
+  }
+
+  inline string simplify_hex(string hex) {
+    // convert #ffrrggbb to #rrggbb
+    if (hex.length() == 9 && hex[1] == 'f' && hex[2] == 'f') {
+      hex.erase(1, 2);
+    }
+
+    // convert #rrggbb to #rgb
+    if (hex.length() == 7) {
+      if (hex[1] == hex[2] && hex[3] == hex[4] && hex[5] == hex[6]) {
+        hex = {'#', hex[1], hex[3], hex[5]};
+      }
+    }
+
+    return hex;
   }
 }
 

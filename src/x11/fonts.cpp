@@ -38,10 +38,10 @@ font_manager::~font_manager() {
 }
 
 bool font_manager::load(string name, int8_t fontindex, int8_t offset_y) {
-  if (fontindex != -1 && m_fonts.find(fontindex) != m_fonts.end()) {
+  if (fontindex != DEFAULT_FONT_INDEX && m_fonts.find(fontindex) != m_fonts.end()) {
     m_logger.warn("A font with index '%i' has already been loaded, skip...", fontindex);
     return false;
-  } else if (fontindex == -1) {
+  } else if (fontindex == DEFAULT_FONT_INDEX) {
     fontindex = m_fonts.size();
     m_logger.trace("font_manager: Assign font '%s' to index '%d'", name.c_str(), fontindex);
   } else {
@@ -80,7 +80,7 @@ bool font_manager::load(string name, int8_t fontindex, int8_t offset_y) {
 
 void font_manager::set_preferred_font(int8_t index) {
   if (index <= 0) {
-    m_fontindex = -1;
+    m_fontindex = DEFAULT_FONT_INDEX;
     return;
   }
 
@@ -95,7 +95,7 @@ void font_manager::set_preferred_font(int8_t index) {
 font_t& font_manager::match_char(uint16_t chr) {
   static font_t notfound;
   if (!m_fonts.empty()) {
-    if (m_fontindex != -1 && size_t(m_fontindex) <= m_fonts.size()) {
+    if (m_fontindex != DEFAULT_FONT_INDEX && size_t(m_fontindex) <= m_fonts.size()) {
       auto iter = m_fonts.find(m_fontindex);
       if (iter != m_fonts.end() && has_glyph(iter->second, chr))
         return iter->second;

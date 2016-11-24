@@ -332,7 +332,7 @@ namespace modules {
 
             builder->cmd(mousebtn::LEFT, event);
             builder->node(ws.second);
-            builder->cmd_close(true);
+            builder->cmd_close();
           } else {
             builder->node(ws.second);
           }
@@ -340,8 +340,8 @@ namespace modules {
       }
 
       if (m_scroll) {
-        builder->cmd_close(true);
-        builder->cmd_close(true);
+        builder->cmd_close();
+        builder->cmd_close();
       }
 
       return workspace_n > 0;

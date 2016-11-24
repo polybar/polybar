@@ -430,7 +430,7 @@ void controller::bootstrap_modules() {
 
         module_count++;
       } catch (const std::runtime_error& err) {
-        m_log.err("Disabling module \"%s\" (error: %s)", module_name, err.what());
+        m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
       }
     }
   }
@@ -555,8 +555,8 @@ void controller::on_update() {
     block_contents = string_util::replace_all(block_contents, "B-}%{B#", "B#");
     block_contents = string_util::replace_all(block_contents, "F-}%{F#", "F#");
     block_contents = string_util::replace_all(block_contents, "U-}%{U#", "U#");
-    block_contents = string_util::replace_all(block_contents, "Uu-}%{Uu#", "Uu#");
-    block_contents = string_util::replace_all(block_contents, "Uo-}%{Uo#", "Uo#");
+    block_contents = string_util::replace_all(block_contents, "u-}%{u#", "u#");
+    block_contents = string_util::replace_all(block_contents, "o-}%{o#", "o#");
 
     // Join consecutive tags
     contents += string_util::replace_all(block_contents, "}%{", " ");
@@ -564,13 +564,22 @@ void controller::on_update() {
 
   if (m_writeback) {
     std::cout << contents << std::endl;
-  } else {
-    m_bar->parse(contents);
+    return;
   }
 
-  if (!m_trayactivated) {
-    m_trayactivated = true;
-    m_bar->activate_tray();
+  try {
+    m_bar->parse(contents);
+  } catch (const exception& err) {
+    m_log.err("Failed to update bar contents (reason: %s)", err.what());
+  }
+
+  try {
+    if (!m_trayactivated) {
+      m_trayactivated = true;
+      m_bar->activate_tray();
+    }
+  } catch (const exception& err) {
+    m_log.err("Failed to active tray manager (reason: %s)", err.what());
   }
 }
 

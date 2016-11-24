@@ -155,15 +155,15 @@ namespace modules {
       if (m_click) {
         builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
         builder->node(ws.get()->label);
-        builder->cmd_close(true);
+        builder->cmd_close();
       } else {
         builder->node(ws.get()->label);
       }
     }
 
     if (m_scroll) {
-      builder->cmd_close(true);
-      builder->cmd_close(true);
+      builder->cmd_close();
+      builder->cmd_close();
     }
 
     return true;

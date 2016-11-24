@@ -1,3 +1,4 @@
+#include <cassert>
 #include <thread>
 
 #include "adapters/mpd.hpp"

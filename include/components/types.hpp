@@ -6,14 +6,28 @@
 
 POLYBAR_NS
 
-enum class edge : uint8_t { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
-enum class alignment : uint8_t { NONE = 0, LEFT, CENTER, RIGHT };
-enum class syntaxtag : uint8_t { NONE = 0, A, B, F, T, U, Uu, Uo, O, R, o, u };
-enum class attribute : uint8_t { NONE = 0, o = 1 << 0, u = 1 << 1 };
-enum class mousebtn : uint8_t { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
-enum class gc : uint8_t { NONE = 0, BG, FG, OL, UL, BT, BB, BL, BR };
+enum class edge : uint8_t { NONE = 0U, TOP, BOTTOM, LEFT, RIGHT, ALL };
+
+enum class alignment : uint8_t { NONE = 0U, LEFT, CENTER, RIGHT };
+
+enum class attribute : uint8_t { NONE = 0U, UNDERLINE, OVERLINE };
+
+enum class syntaxtag : uint8_t {
+  NONE = 0U,
+  A,  // mouse action
+  B,  // background color
+  F,  // foreground color
+  T,  // font index
+  O,  // pixel offset
+  R,  // flip colors
+  o,  // overline color
+  u,  // underline color
+};
+
+enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
+
 enum class strut : uint16_t {
-  LEFT = 0,
+  LEFT = 0U,
   RIGHT,
   TOP,
   BOTTOM,
@@ -33,45 +47,45 @@ struct position {
 };
 
 struct size {
-  uint16_t w{0};
-  uint16_t h{0};
+  uint16_t w{1U};
+  uint16_t h{1U};
 };
 
 struct side_values {
-  uint16_t left{0};
-  uint16_t right{0};
+  uint16_t left{0U};
+  uint16_t right{0U};
 };
 
 struct edge_values {
-  uint16_t left{0};
-  uint16_t right{0};
-  uint16_t top{0};
-  uint16_t bottom{0};
+  uint16_t left{0U};
+  uint16_t right{0U};
+  uint16_t top{0U};
+  uint16_t bottom{0U};
 };
 
 struct border_settings {
   uint32_t color{0xFF000000};
-  uint16_t size{0};
+  uint16_t size{0U};
 };
 
 struct line_settings {
   uint32_t color{0xFF000000};
-  uint16_t size{0};
+  uint16_t size{0U};
 };
 
 struct bar_settings {
   monitor_t monitor;
-
   edge origin{edge::TOP};
-
-  struct size size{0, 0};
+  struct size size {
+    1U, 1U
+  };
   position pos{0, 0};
   position offset{0, 0};
   position center{0, 0};
-  side_values padding{0, 0};
-  side_values margin{0, 0};
-  side_values module_margin{0, 2};
-  edge_values strut{0, 0, 0, 0};
+  side_values padding{0U, 0U};
+  side_values margin{0U, 0U};
+  side_values module_margin{0U, 2U};
+  edge_values strut{0U, 0U, 0U, 0U};
 
   uint32_t background{0xFFFFFFFF};
   uint32_t foreground{0xFF000000};
@@ -81,7 +95,7 @@ struct bar_settings {
 
   map<edge, border_settings> borders;
 
-  int8_t spacing{1};
+  uint8_t spacing{1U};
   string separator;
 
   string wmname;
@@ -89,8 +103,12 @@ struct bar_settings {
 
   bool force_docking{false};
 
-  const xcb_rectangle_t inner_area() const {
+  const xcb_rectangle_t inner_area(bool local_coords = false) const {
     xcb_rectangle_t rect{pos.x, pos.y, size.w, size.h};
+    if (local_coords) {
+      rect.x = 0;
+      rect.y = 0;
+    }
     rect.y += borders.at(edge::TOP).size;
     rect.height -= borders.at(edge::TOP).size;
     rect.height -= borders.at(edge::BOTTOM).size;

@@ -30,4 +30,10 @@ int main() {
     uint32_t colorC{0x00ffffff};
     expect(color_util::hex<uint16_t>(colorC).compare("#00ffffff") == 0);
   };
+
+  "simplify"_test = [] {
+    expect(color_util::simplify_hex("#ff223344") == "#234");
+    expect(color_util::simplify_hex("#ee223344") == "#ee223344");
+    expect(color_util::simplify_hex("#ff234567") == "#234567");
+  };
 }

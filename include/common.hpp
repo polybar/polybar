@@ -5,7 +5,6 @@
 #endif
 
 #include <boost/di.hpp>
-#include <cassert>
 #include <cerrno>
 #include <cstring>
 #include <map>

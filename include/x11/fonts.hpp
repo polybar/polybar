@@ -42,7 +42,7 @@ class font_manager {
   explicit font_manager(connection& conn, const logger& logger);
   ~font_manager();
 
-  bool load(string name, int8_t fontindex = -1, int8_t offset_y = 0);
+  bool load(string name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
 
   void set_preferred_font(int8_t index);
 
@@ -72,7 +72,7 @@ class font_manager {
   Colormap m_colormap{};
 
   map<uint8_t, font_t> m_fonts;
-  int8_t m_fontindex{-1};
+  int8_t m_fontindex{DEFAULT_FONT_INDEX};
 
   XftColor m_xftcolor{};
   XftDraw* m_xftdraw{nullptr};

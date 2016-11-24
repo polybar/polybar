@@ -19,6 +19,8 @@
 
 POLYBAR_NS
 
+namespace ph = std::placeholders;
+
 /**
  * Configure injection module
  */
@@ -47,21 +49,6 @@ bar::bar(connection& conn, const config& config, const logger& logger, unique_pt
  */
 bar::~bar() {
   std::lock_guard<std::mutex> guard(m_mutex);
-
-  // Disconnect signal handlers {{{
-  g_signals::parser::alignment_change = nullptr;
-  g_signals::parser::attribute_set = nullptr;
-  g_signals::parser::attribute_unset = nullptr;
-  g_signals::parser::action_block_open = nullptr;
-  g_signals::parser::action_block_close = nullptr;
-  g_signals::parser::color_change = nullptr;
-  g_signals::parser::font_change = nullptr;
-  g_signals::parser::pixel_offset = nullptr;
-  g_signals::parser::ascii_text_write = nullptr;
-  g_signals::parser::unicode_text_write = nullptr;
-  g_signals::parser::string_write = nullptr;
-  g_signals::tray::report_slotcount = nullptr;  // }}}
-
   m_connection.detach_sink(this, 1);
 }
 
@@ -152,52 +139,6 @@ void bar::bootstrap(bool nodraw) {
     return;
   }
 
-  m_log.trace("bar: Attach parser signal handlers");
-  {
-    // clang-format off
-    g_signals::parser::alignment_change = [this](const alignment align) {
-      m_renderer->set_alignment(align);
-    };
-    g_signals::parser::attribute_set = [this](const attribute attr) {
-      m_renderer->set_attribute(attr, true);
-    };
-    g_signals::parser::attribute_unset = [this](const attribute attr) {
-      m_renderer->set_attribute(attr, false);
-    };
-    g_signals::parser::action_block_open = [this](const mousebtn btn, string cmd) {
-      m_renderer->begin_action(btn, cmd);
-    };
-    g_signals::parser::action_block_close = [this](const mousebtn btn) {
-      m_renderer->end_action(btn);
-    };
-    g_signals::parser::color_change= [this](const gc gcontext, const uint32_t color) {
-      if (gcontext == gc::BG)
-        m_renderer->set_background(color);
-      else if (gcontext == gc::FG)
-        m_renderer->set_foreground(color);
-      else if (gcontext == gc::UL)
-        m_renderer->set_underline(color);
-      else if (gcontext == gc::OL)
-        m_renderer->set_overline(color);
-    };
-    g_signals::parser::font_change = [this](const int8_t font) {
-      m_renderer->set_fontindex(font);
-    };
-    g_signals::parser::pixel_offset = [this](const int16_t px) {
-      m_renderer->shift_content(px);
-    };
-    g_signals::parser::ascii_text_write = [this](const uint16_t c) {
-      m_renderer->draw_character(c);
-    };
-    g_signals::parser::unicode_text_write = [this](const uint16_t c) {
-      m_renderer->draw_character(c);
-    };
-    g_signals::parser::string_write = [this](const char* text, const size_t len) {
-      m_renderer->draw_textstring(text, len);
-    };
-    // clang-format on
-  }
-
   m_log.trace("bar: Attaching sink to registry");
   m_connection.attach_sink(this, 1);
 
@@ -210,11 +151,33 @@ void bar::bootstrap(bool nodraw) {
   reconfigure_window();
 
   m_connection.map_window(m_window);
-  m_connection.flush();
+
+  m_log.trace("bar: Attach parser signal handlers");
+  g_signals::parser::background_change = bind(&renderer::set_background, m_renderer.get(), ph::_1);
+  g_signals::parser::foreground_change = bind(&renderer::set_foreground, m_renderer.get(), ph::_1);
+  g_signals::parser::underline_change = bind(&renderer::set_underline, m_renderer.get(), ph::_1);
+  g_signals::parser::overline_change = bind(&renderer::set_overline, m_renderer.get(), ph::_1);
+  g_signals::parser::pixel_offset = bind(&renderer::fill_shift, m_renderer.get(), ph::_1);
+  g_signals::parser::alignment_change = bind(&renderer::set_alignment, m_renderer.get(), ph::_1);
+  g_signals::parser::attribute_set = bind(&renderer::set_attribute, m_renderer.get(), ph::_1, true);
+  g_signals::parser::attribute_unset = bind(&renderer::set_attribute, m_renderer.get(), ph::_1, false);
+  g_signals::parser::attribute_toggle = bind(&renderer::toggle_attribute, m_renderer.get(), ph::_1);
+  g_signals::parser::action_block_open = bind(&renderer::begin_action, m_renderer.get(), ph::_1, ph::_2);
+  g_signals::parser::action_block_close = bind(&renderer::end_action, m_renderer.get(), ph::_1);
+  g_signals::parser::font_change = bind(&renderer::set_fontindex, m_renderer.get(), ph::_1);
+  g_signals::parser::ascii_text_write = bind(&renderer::draw_character, m_renderer.get(), ph::_1);
+  g_signals::parser::unicode_text_write = bind(&renderer::draw_character, m_renderer.get(), ph::_1);
+  g_signals::parser::string_write = bind(&renderer::draw_textstring, m_renderer.get(), ph::_1, ph::_2);
 
   // Render empty bar
-  m_renderer->begin();
-  m_renderer->end();
+  try {
+    m_renderer->begin();
+    m_renderer->end();
+  } catch (const exception& err) {
+    throw application_error("Failed to output empty bar window (reason: " + string{err.what()} + ")");
+  }
+
+  m_connection.flush();
 }
 
 /**
@@ -404,13 +367,18 @@ void bar::parse(string data, bool force) {
   m_renderer->begin();
 
   try {
-    parser parser(m_opts);
+    parser parser{m_log, m_opts};
     parser(data);
   } catch (const unrecognized_token& err) {
     m_log.err("Unrecognized syntax token '%s'", err.what());
+  } catch (const unrecognized_attribute& err) {
+    m_log.err("Unrecognized attribute '%s'", err.what());
+  } catch (const exception& err) {
+    m_log.err("Error parsing contents (err: %s)", err.what());
   }
 
   m_renderer->end();
+  m_connection.flush();
 }
 
 /**
@@ -666,7 +634,6 @@ void bar::handle(const evt::expose& evt) {
  * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
-  (void)evt;
 #if DEBUG
   string atom_name = m_connection.get_atom_name(evt->atom).name();
   m_log.trace("bar: property_notify(%s)", atom_name);
@@ -674,7 +641,7 @@ void bar::handle(const evt::property_notify& evt) {
 
   if (evt->window == m_window && evt->atom == WM_STATE) {
     if (!g_signals::bar::visibility_change) {
-      return;
+      return m_log.trace("bar: no callback handler set for bar visibility change");
     }
 
     try {

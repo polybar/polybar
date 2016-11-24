@@ -1,5 +1,5 @@
-#include "x11/color.hpp"
 #include "components/types.hpp"
+#include "x11/color.hpp"
 
 #include "drawtypes/progressbar.hpp"
 #include "utils/math.hpp"
@@ -7,6 +7,9 @@
 POLYBAR_NS
 
 namespace drawtypes {
+  progressbar::progressbar(const bar_settings bar, int width, string format)
+      : m_builder(make_unique<builder>(bar)), m_format(format), m_width(width) {}
+
   void progressbar::set_fill(icon_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
   }
@@ -82,8 +85,7 @@ namespace drawtypes {
    * Create a progressbar by loading values
    * from the configuration
    */
-  progressbar_t load_progressbar(
-      const bar_settings& bar, const config& conf, string section, string name) {
+  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, string section, string name) {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
