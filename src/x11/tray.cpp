@@ -527,6 +527,8 @@ void tray_manager::create_window() {  // {{{
 
   m_connection.create_window_checked(
       scr->root_depth, m_tray, scr->root, x, y, w, h, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
+
+  xutils::compton_shadow_exclude(m_connection, m_tray);
 }  // }}}
 
 /**

@@ -1,3 +1,4 @@
+#include "x11/atoms.hpp"
 #include "x11/xutils.hpp"
 #include "x11/connection.hpp"
 #include "x11/xlib.hpp"
@@ -44,6 +45,11 @@ namespace xutils {
     notify->state = state;
     const char* data = reinterpret_cast<const char*>(notify.get());
     conn.send_event(true, win, XCB_EVENT_MASK_NO_EVENT, data);
+  }
+
+  void compton_shadow_exclude(connection& conn, const xcb_window_t& win) {
+    const uint32_t shadow = 0;
+    conn.change_property(XCB_PROP_MODE_REPLACE, win, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
   }
 }
 
