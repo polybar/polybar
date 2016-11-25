@@ -34,6 +34,7 @@ namespace modules {
     static constexpr auto FORMAT_ONLINE = "format-online";
     static constexpr auto TAG_BAR_PROGRESS = "<bar-progress>";
     static constexpr auto TAG_TOGGLE = "<toggle>";
+    static constexpr auto TAG_TOGGLE_STOP = "<toggle-stop>";
     static constexpr auto TAG_LABEL_SONG = "<label-song>";
     static constexpr auto TAG_LABEL_TIME = "<label-time>";
     static constexpr auto TAG_ICON_RANDOM = "<icon-random>";
