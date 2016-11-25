@@ -6,6 +6,7 @@
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "utils/concurrency.hpp"
+#include "x11/events.hpp"
 
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
 #define _NET_SYSTEM_TRAY_ORIENTATION_VERT 1
@@ -99,7 +100,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void bootstrap(tray_settings settings);
   void activate();
-  void deactivate();
+  void deactivate(bool clear_selection = true);
   void reconfigure();
 
  protected:
@@ -167,7 +168,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   stateflag m_activated{false};
   stateflag m_mapped{false};
   stateflag m_hidden{false};
-  stateflag m_sinkattached{false};
 
   thread m_delayed_activation;
 

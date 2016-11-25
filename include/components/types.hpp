@@ -103,12 +103,14 @@ struct bar_settings {
 
   bool force_docking{false};
 
-  const xcb_rectangle_t inner_area(bool local_coords = false) const {
-    xcb_rectangle_t rect{pos.x, pos.y, size.w, size.h};
-    if (local_coords) {
-      rect.x = 0;
-      rect.y = 0;
+  const xcb_rectangle_t inner_area(bool abspos = false) const {
+    xcb_rectangle_t rect{0, 0, size.w, size.h};
+
+    if (abspos) {
+      rect.x = pos.x;
+      rect.y = pos.y;
     }
+
     rect.y += borders.at(edge::TOP).size;
     rect.height -= borders.at(edge::TOP).size;
     rect.height -= borders.at(edge::BOTTOM).size;
@@ -126,9 +128,10 @@ struct action_block {
   mousebtn button{mousebtn::NONE};
   string command;
   bool active{true};
-#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
-  xcb_window_t hint;
-#endif
+
+  uint16_t width() const {
+    return end_x - start_x;
+  }
 };
 
 POLYBAR_NS_END

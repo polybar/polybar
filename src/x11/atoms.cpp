@@ -36,9 +36,10 @@ xcb_atom_t BACKLIGHT;
 xcb_atom_t _XROOTMAP_ID;
 xcb_atom_t _XSETROOT_ID;
 xcb_atom_t ESETROOT_PMAP_ID;
+xcb_atom_t _COMPTON_SHADOW;
 
 // clang-format off
-cached_atom ATOMS[33] = {
+cached_atom ATOMS[34] = {
   {"_NET_SUPPORTED", sizeof("_NET_SUPPORTED") - 1, &_NET_SUPPORTED},
   {"_NET_CURRENT_DESKTOP", sizeof("_NET_CURRENT_DESKTOP") - 1, &_NET_CURRENT_DESKTOP},
   {"_NET_ACTIVE_WINDOW", sizeof("_NET_ACTIVE_WINDOW") - 1, &_NET_ACTIVE_WINDOW},
@@ -72,5 +73,6 @@ cached_atom ATOMS[33] = {
   {"_XROOTMAP_ID", sizeof("_XROOTMAP_ID") - 1, &_XROOTMAP_ID},
   {"_XSETROOT_ID", sizeof("_XSETROOT_ID") - 1, &_XSETROOT_ID},
   {"ESETROOT_PMAP_ID", sizeof("ESETROOT_PMAP_ID") - 1, &ESETROOT_PMAP_ID},
+  {"_COMPTON_SHADOW", sizeof("_COMPTON_SHADOW") - 1, &_COMPTON_SHADOW},
 };
 // clang-format on

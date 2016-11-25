@@ -80,10 +80,6 @@ namespace modules {
     chrono::system_clock::time_point m_lastsync;
     float m_synctime = 1.0f;
 
-    string m_progress_fill;
-    string m_progress_empty;
-    string m_progress_indicator;
-
     // This flag is used to let thru a broadcast once every time
     // the connection state changes
     mpd::connection_state m_statebroadcasted;

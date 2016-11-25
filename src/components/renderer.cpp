@@ -3,6 +3,7 @@
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
+#include "x11/winspec.hpp"
 #include "x11/xlib.hpp"
 #include "x11/xutils.hpp"
 
@@ -27,41 +28,44 @@ di::injector<unique_ptr<renderer>> configure_renderer(const bar_settings& bar, c
  */
 renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manager> font_manager,
     const bar_settings& bar, const vector<string>& fonts)
-    : m_connection(conn), m_log(logger), m_fontmanager(forward<decltype(font_manager)>(font_manager)), m_bar(bar) {
-  auto screen = m_connection.screen();
+    : m_connection(conn)
+    , m_log(logger)
+    , m_fontmanager(forward<decltype(font_manager)>(font_manager))
+    , m_bar(bar)
+    , m_rect(bar.inner_area()) {
+  m_log.trace("renderer: Get TrueColor visual");
+  m_visual = m_connection.visual_type(m_connection.screen(), 32).get();
 
-  m_log.trace("renderer: Get true color visual");
-  m_visual = m_connection.visual_type(screen, 32).get();
-
-  m_log.trace("renderer: Create colormap");
+  m_log.trace("renderer: Allocate colormap");
   m_colormap = m_connection.generate_id();
-  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, screen->root, m_visual->visual_id);
+  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_connection.screen()->root, m_visual->visual_id);
 
-  m_window = m_connection.generate_id();
-  m_log.trace("renderer: Create window (xid=%s)", m_connection.id(m_window));
+  m_log.trace("renderer: Allocate output window");
   {
-    uint32_t mask{0};
-    uint32_t values[16]{0};
-    xcb_params_cw_t params;
-
-    XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, 0);
-    XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, 0);
-    XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
-    XCB_AUX_ADD_PARAM(&mask, &params, colormap, m_colormap);
-    XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, m_bar.force_docking);
-    XCB_AUX_ADD_PARAM(&mask, &params, event_mask,
-        XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS);
-
-    xutils::pack_values(mask, &params, values);
-    m_connection.create_window(32, m_window, screen->root, m_bar.pos.x, m_bar.pos.y, m_bar.size.w, m_bar.size.h, 0,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT, m_visual->visual_id, mask, values);
+    // clang-format off
+    m_window = winspec(m_connection)
+      << cw_size(m_bar.size)
+      << cw_pos(m_bar.pos)
+      << cw_depth(32)
+      << cw_visual(m_visual->visual_id)
+      << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
+      << cw_params_back_pixel(0)
+      << cw_params_border_pixel(0)
+      << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
+      << cw_params_colormap(m_colormap)
+      << cw_params_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE
+                             |XCB_EVENT_MASK_EXPOSURE
+                             |XCB_EVENT_MASK_BUTTON_PRESS)
+      << cw_params_override_redirect(m_bar.force_docking)
+      << cw_flush(true);
+    // clang-format on
   }
 
+  m_log.trace("renderer: Allocate window pixmap");
   m_pixmap = m_connection.generate_id();
-  m_log.trace("renderer: Create pixmap (xid=%s)", m_connection.id(m_pixmap));
-  m_connection.create_pixmap(32, m_pixmap, m_window, m_bar.size.w, m_bar.size.h);
+  m_connection.create_pixmap(32, m_pixmap, m_window, m_rect.width, m_rect.height);
 
-  m_log.trace("renderer: Create gcontexts");
+  m_log.trace("renderer: Allocate graphic contexts");
   {
     // clang-format off
     vector<uint32_t> colors {
@@ -79,15 +83,14 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
     for (int i = 0; i < 8; i++) {
       uint32_t mask{0};
       uint32_t value_list[32]{0};
-      xcb_params_gc_t params;
 
+      xcb_params_gc_t params;
       XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i]);
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
-
       xutils::pack_values(mask, &params, value_list);
-      m_gcontexts.emplace(gc(i), m_connection.generate_id());
+
       m_colors.emplace(gc(i), colors[i]);
-      m_log.trace("renderer: Create gcontext (gc=%i, xid=%s)", i, m_connection.id(m_gcontexts.at(gc(i))));
+      m_gcontexts.emplace(gc(i), m_connection.generate_id());
       m_connection.create_gc(m_gcontexts.at(gc(i)), m_pixmap, mask, value_list);
     }
   }
@@ -138,18 +141,11 @@ xcb_window_t renderer::window() const {
 void renderer::begin() {
   m_log.trace_x("renderer: begin");
 
-#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
-  for (auto&& action : m_actions) {
-    m_connection.destroy_window(action.hint);
-  }
-#endif
-
-  m_currentx = m_bar.inner_area(true).x;
+  m_rect = m_bar.inner_area();
+  m_alignment = alignment::NONE;
+  m_currentx = 0;
   m_attributes = 0;
   m_actions.clear();
-
-  fill_border(m_bar.borders, edge::ALL);
-  fill_background();
 
   m_fontmanager->create_xftdraw(m_pixmap, m_colormap);
 }
@@ -160,33 +156,64 @@ void renderer::begin() {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  redraw();
   m_fontmanager->destroy_xftdraw();
 
-#ifdef DEBUG
-  debughints();
+#ifdef DEBUG_HINTS
+  debug_hints();
 #endif
 
-  m_reserve = 0;
-  m_reserve_at = edge::NONE;
+  flush(false);
 }
 
 /**
  * Redraw window contents
  */
-void renderer::redraw() {
-  m_log.info("Redrawing");
+void renderer::flush(bool clear) {
+  const xcb_rectangle_t& r = m_rect;
 
-  xcb_rectangle_t r{0, 0, m_bar.size.w, m_bar.size.h};
+  xcb_rectangle_t top{0, 0, 0U, 0U};
+  top.x += m_bar.borders.at(edge::LEFT).size;
+  top.width += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
+  top.height += m_bar.borders.at(edge::TOP).size;
 
-  if (m_reserve_at == edge::LEFT) {
-    r.x += m_reserve;
-    r.width -= m_reserve;
-  } else if (m_reserve_at == edge::RIGHT) {
-    r.width -= m_reserve;
+  xcb_rectangle_t bottom{0, 0, 0U, 0U};
+  bottom.x += m_bar.borders.at(edge::LEFT).size;
+  bottom.y += m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size;
+  bottom.width += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
+  bottom.height += m_bar.borders.at(edge::BOTTOM).size;
+
+  xcb_rectangle_t left{0, 0, 0U, 0U};
+  left.width += m_bar.borders.at(edge::LEFT).size;
+  left.height += m_bar.size.h;
+
+  xcb_rectangle_t right{0, 0, 0U, 0U};
+  right.x += m_bar.size.w - m_bar.borders.at(edge::RIGHT).size;
+  right.width += m_bar.borders.at(edge::RIGHT).size;
+  right.height += m_bar.size.h;
+
+  m_log.trace("renderer: clear window contents");
+  m_connection.clear_area(false, m_window, 0, 0, m_bar.size.w, m_bar.size.h);
+
+  m_log.trace("renderer: copy pixmap (clear=%i)", clear);
+  m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, r.x, r.y, r.width, r.height);
+
+  m_log.trace_x("renderer: draw top border (%lupx, %08x)", top.height, m_bar.borders.at(edge::TOP).color);
+  draw_util::fill(m_connection, m_window, m_gcontexts.at(gc::BT), top);
+
+  m_log.trace_x("renderer: draw bottom border (%lupx, %08x)", bottom.height, m_bar.borders.at(edge::BOTTOM).color);
+  draw_util::fill(m_connection, m_window, m_gcontexts.at(gc::BB), bottom);
+
+  m_log.trace_x("renderer: draw left border (%lupx, %08x)", left.width, m_bar.borders.at(edge::LEFT).color);
+  draw_util::fill(m_connection, m_window, m_gcontexts.at(gc::BL), left);
+
+  m_log.trace_x("renderer: draw right border (%lupx, %08x)", right.width, m_bar.borders.at(edge::RIGHT).color);
+  draw_util::fill(m_connection, m_window, m_gcontexts.at(gc::BR), right);
+
+  if (clear) {
+    m_connection.clear_area(false, m_pixmap, 0, 0, r.width, r.height);
   }
 
-  m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), r.x, r.y, r.x, r.y, r.width, r.height);
+  m_connection.flush();
 }
 
 /**
@@ -194,8 +221,31 @@ void renderer::redraw() {
  */
 void renderer::reserve_space(edge side, uint16_t w) {
   m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<uint8_t>(side), w);
-  m_reserve = w;
-  m_reserve_at = side;
+
+  switch (side) {
+    case edge::NONE:
+      break;
+    case edge::TOP:
+      m_rect.y += w;
+      m_rect.height -= w;
+      break;
+    case edge::BOTTOM:
+      m_rect.height -= w;
+      break;
+    case edge::LEFT:
+      m_rect.x += w;
+      m_rect.width -= w;
+      break;
+    case edge::RIGHT:
+      m_rect.width -= w;
+      break;
+    case edge::ALL:
+      m_rect.x += w;
+      m_rect.y += w;
+      m_rect.width -= w * 2;
+      m_rect.height -= w * 2;
+      break;
+  }
 }
 
 /**
@@ -268,22 +318,9 @@ void renderer::set_alignment(const alignment align) {
     return m_log.trace_x("renderer: ignoring unchanged alignment(%i)", static_cast<uint8_t>(align));
   }
 
-  if (align == alignment::LEFT) {
-    m_currentx = m_bar.borders.at(edge::LEFT).size;
-  } else if (align == alignment::RIGHT) {
-    m_currentx = m_bar.borders.at(edge::RIGHT).size;
-  } else {
-    m_currentx = 0;
-  }
-
-  if (align == alignment::LEFT && m_reserve_at == edge::LEFT) {
-    m_currentx += m_reserve;
-  } else if (align == alignment::RIGHT && m_reserve_at == edge::RIGHT) {
-    m_currentx += m_reserve;
-  }
-
   m_log.trace_x("renderer: set_alignment(%i)", static_cast<uint8_t>(align));
   m_alignment = align;
+  m_currentx = 0;
 }
 
 /**
@@ -319,52 +356,7 @@ bool renderer::check_attribute(const attribute attr) {
  */
 void renderer::fill_background() {
   m_log.trace_x("renderer: fill_background");
-
-  xcb_rectangle_t rect{0, 0, m_bar.size.w, m_bar.size.h};
-
-  if (m_reserve_at == edge::LEFT) {
-    rect.x += m_reserve;
-    rect.width -= m_reserve;
-  } else if (m_reserve_at == edge::RIGHT) {
-    rect.width -= m_reserve;
-  }
-
-  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), rect.x, rect.y, rect.width, rect.height);
-}
-
-/**
- * Fill border area
- */
-void renderer::fill_border(const map<edge, border_settings>& borders, edge border) {
-  m_log.trace_x("renderer: fill_border(%i)", static_cast<uint8_t>(border));
-
-  for (auto&& b : borders) {
-    if (!b.second.size || (border != edge::ALL && b.first != border))
-      continue;
-
-    switch (b.first) {
-      case edge::TOP:
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BT), borders.at(edge::LEFT).size, 0,
-            m_bar.size.w - borders.at(edge::LEFT).size - borders.at(edge::RIGHT).size, borders.at(edge::TOP).size);
-        break;
-      case edge::BOTTOM:
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BB), borders.at(edge::LEFT).size,
-            m_bar.size.h - borders.at(edge::BOTTOM).size,
-            m_bar.size.w - borders.at(edge::LEFT).size - borders.at(edge::RIGHT).size, borders.at(edge::BOTTOM).size);
-        break;
-      case edge::LEFT:
-        draw_util::fill(
-            m_connection, m_pixmap, m_gcontexts.at(gc::BL), 0, 0, borders.at(edge::LEFT).size, m_bar.size.h);
-        break;
-      case edge::RIGHT:
-        draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BR), m_bar.size.w - borders.at(edge::RIGHT).size, 0,
-            borders.at(edge::RIGHT).size, m_bar.size.h);
-        break;
-
-      default:
-        break;
-    }
-  }
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), 0, 0, m_rect.width, m_rect.height);
 }
 
 /**
@@ -377,8 +369,7 @@ void renderer::fill_overline(int16_t x, uint16_t w) {
     return m_log.trace_x("renderer: not filling overline (size=0)");
   }
   m_log.trace_x("renderer: fill_overline(%i, #%08x)", m_bar.overline.size, m_colors[gc::OL]);
-  const xcb_rectangle_t inner{m_bar.inner_area(true)};
-  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, inner.y, w, m_bar.overline.size);
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::OL), x, 0, w, m_bar.overline.size);
 }
 
 /**
@@ -391,8 +382,7 @@ void renderer::fill_underline(int16_t x, uint16_t w) {
     return m_log.trace_x("renderer: not filling underline (size=0)");
   }
   m_log.trace_x("renderer: fill_underline(%i, #%08x)", m_bar.underline.size, m_colors[gc::UL]);
-  const xcb_rectangle_t inner{m_bar.inner_area(true)};
-  int16_t y{static_cast<int16_t>(inner.height - m_bar.underline.size)};
+  int16_t y{static_cast<int16_t>(m_rect.height - m_bar.underline.size)};
   draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::UL), x, y, w, m_bar.underline.size);
 }
 
@@ -407,7 +397,7 @@ void renderer::fill_shift(const int16_t px) {
  * Draw character glyph
  */
 void renderer::draw_character(uint16_t character) {
-  m_log.trace_x("renderer: draw_character(\"%c\")", character);
+  m_log.trace_x("renderer: draw_character");
 
   auto& font = m_fontmanager->match_char(character);
 
@@ -428,7 +418,7 @@ void renderer::draw_character(uint16_t character) {
     width++;
 
   auto x = shift_content(width);
-  auto y = m_bar.center.y + font->height / 2 - font->descent + font->offset_y;
+  auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
   if (font->xft != nullptr) {
     auto color = m_fontmanager->xftcolor();
@@ -473,7 +463,7 @@ void renderer::draw_textstring(const char* text, size_t len) {
       width++;
 
     auto x = shift_content(width);
-    auto y = m_bar.center.y + font->height / 2 - font->descent + font->offset_y;
+    auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
     if (font->xft != nullptr) {
       auto color = m_fontmanager->xftcolor();
@@ -510,31 +500,32 @@ void renderer::begin_action(const mousebtn btn, const string cmd) {
  * End action block at the current position
  */
 void renderer::end_action(const mousebtn btn) {
-  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
-    if (!action->active || action->button != btn)
-      continue;
+  int16_t clickable_width{0};
 
-    m_log.trace_x("renderer: end_action(%i, %s)", static_cast<uint8_t>(btn), action->command.c_str());
+  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
+    if (!action->active || action->align != m_alignment || action->button != btn)
+      continue;
 
     action->active = false;
 
-    if (action->align == alignment::LEFT) {
-      action->end_x = m_currentx;
-    } else if (action->align == alignment::CENTER) {
-      int base_x{m_bar.size.w};
-      int clickable_width{m_currentx - action->start_x};
-      base_x -= m_bar.borders.at(edge::RIGHT).size;
-      base_x /= 2;
-      base_x += m_bar.borders.at(edge::LEFT).size;
-      action->start_x = base_x - clickable_width / 2 + action->start_x / 2;
-      action->end_x = action->start_x + clickable_width;
-    } else if (action->align == alignment::RIGHT) {
-      int base_x{m_bar.size.w - m_bar.borders.at(edge::RIGHT).size};
-      if (m_reserve_at == edge::RIGHT)
-        base_x -= m_reserve;
-      action->start_x = base_x - m_currentx + action->start_x;
-      action->end_x = base_x;
+    switch (action->align) {
+      case alignment::NONE:
+        break;
+      case alignment::LEFT:
+        action->end_x = m_currentx;
+        break;
+      case alignment::CENTER:
+        clickable_width = m_currentx - action->start_x;
+        action->start_x = m_rect.width / 2 - clickable_width / 2 + action->start_x / 2;
+        action->end_x = action->start_x + clickable_width;
+        break;
+      case alignment::RIGHT:
+        action->start_x = m_rect.width - m_currentx + action->start_x;
+        action->end_x = m_rect.width;
+        break;
     }
+
+    m_log.trace_x("renderer: end_action(%i, %s, %i)", static_cast<uint8_t>(btn), action->command, action->width());
 
     return;
   }
@@ -550,30 +541,33 @@ const vector<action_block> renderer::get_actions() {
 /**
  * Shift contents by given pixel value
  */
-int16_t renderer::shift_content(const int16_t x, const int16_t shift_x) {
+int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   m_log.trace_x("renderer: shift_content(%i)", shift_x);
 
-  int delta = shift_x;
-  int x2{x};
+  int16_t delta{shift_x};
+  int16_t base_x{0};
 
-  if (m_alignment == alignment::CENTER) {
-    int base_x = m_bar.size.w;
-    base_x -= m_bar.borders.at(edge::RIGHT).size;
-    base_x /= 2;
-    base_x += m_bar.borders.at(edge::LEFT).size;
-    m_connection.copy_area(
-        m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0, base_x - (x + shift_x) / 2, 0, x, m_bar.size.h);
-    x2 = base_x - (x + shift_x) / 2 + x;
-    delta /= 2;
-  } else if (m_alignment == alignment::RIGHT) {
-    m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), m_bar.size.w - x, 0, m_bar.size.w - x - shift_x,
-        0, x, m_bar.size.h);
-    x2 = m_bar.size.w - shift_x - m_bar.borders.at(edge::RIGHT).size;
-    if (m_reserve_at == edge::RIGHT)
-      x2 -= m_reserve;
+  switch (m_alignment) {
+    case alignment::NONE:
+      break;
+    case alignment::LEFT:
+      break;
+    case alignment::CENTER:
+      base_x = static_cast<int16_t>(m_rect.width / 2);
+      m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0, base_x - (x + shift_x) / 2,
+          0, x, m_rect.height);
+      x = base_x - (x + shift_x) / 2 + x;
+      delta /= 2;
+      break;
+    case alignment::RIGHT:
+      base_x = static_cast<int16_t>(m_rect.width - x);
+      m_connection.copy_area(
+          m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x, 0, base_x - shift_x, 0, x, m_rect.height);
+      x = m_rect.width - shift_x;
+      break;
   }
 
-  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x2, 0, m_bar.size.w - x, m_bar.size.h);
+  draw_util::fill(m_connection, m_pixmap, m_gcontexts.at(gc::BG), x, 0, m_rect.width - x, m_rect.height);
 
   // Translate pos of clickable areas
   if (m_alignment != alignment::LEFT) {
@@ -587,10 +581,10 @@ int16_t renderer::shift_content(const int16_t x, const int16_t shift_x) {
 
   m_currentx += shift_x;
 
-  fill_underline(x2, shift_x);
-  fill_overline(x2, shift_x);
+  fill_underline(x, shift_x);
+  fill_overline(x, shift_x);
 
-  return x2;
+  return x;
 }
 
 /**
@@ -600,39 +594,59 @@ int16_t renderer::shift_content(const int16_t shift_x) {
   return shift_content(m_currentx, shift_x);
 }
 
+#ifdef DEBUG_HINTS
 /**
  * Draw debugging hints onto the output window
  */
-void renderer::debughints() {
-#if DEBUG and DRAW_CLICKABLE_AREA_HINTS
-  m_log.info("Drawing debug hints");
-
+void renderer::debug_hints() {
+  uint16_t border_width{1};
   map<alignment, int> hint_num{{
-      {alignment::LEFT, 0}, {alignment::CENTER, 0}, {alignment::RIGHT, 0},
+      // clang-format off
+      {alignment::LEFT, 0},
+      {alignment::CENTER, 0},
+      {alignment::RIGHT, 0},
+      // clang-format on
   }};
+
+  for (auto&& hintwin : m_debughints) {
+    m_connection.destroy_window(hintwin);
+  }
+
+  m_debughints.clear();
 
   for (auto&& action : m_actions) {
     if (action.active) {
       continue;
     }
 
-    hint_num[action.align]++;
+    uint8_t num{static_cast<uint8_t>(hint_num.find(action.align)->second++)};
+    int16_t x{static_cast<int16_t>(m_bar.pos.x + m_rect.x + action.start_x)};
+    int16_t y{static_cast<int16_t>(m_bar.pos.y + m_rect.y)};
+    uint16_t w{static_cast<uint16_t>(action.width() - border_width * 2)};
+    uint16_t h{static_cast<uint16_t>(m_rect.height - border_width * 2)};
 
-    auto x = action.start_x;
-    auto y = m_bar.y + hint_num[action.align]++ * DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y;
-    auto w = action.end_x - action.start_x - 2;
-    auto h = m_bar.size.h - 2;
+    x += num * DEBUG_HINTS_OFFSET_X;
+    y += num * DEBUG_HINTS_OFFSET_Y;
 
-    const uint32_t mask = XCB_CW_BORDER_PIXEL | XCB_CW_OVERRIDE_REDIRECT;
-    const uint32_t border_color = hint_num[action.align] % 2 ? 0xff0000 : 0x00ff00;
-    const uint32_t values[2]{border_color, true};
+    xcb_window_t hintwin{m_connection.generate_id()};
+    m_debughints.emplace_back(hintwin);
 
-    action.hint = m_connection.generate_id();
-    m_connection.create_window(m_screen->root_depth, action.hint, m_screen->root, x, y, w, h, 1,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT, m_screen->root_visual, mask, values);
-    m_connection.map_window(action.hint);
+    // clang-format off
+    winspec(m_connection, hintwin)
+      << cw_size(w, h)
+      << cw_pos(x, y)
+      << cw_border(border_width)
+      << cw_params_border_pixel(num % 2 ? 0xFFFF0000 : 0xFF00FF00)
+      << cw_params_override_redirect(true)
+      << cw_flush()
+      ;
+    // clang-format on
+
+    xutils::compton_shadow_exclude(m_connection, hintwin);
+    m_connection.map_window(hintwin);
+    m_log.info("Debug hint created (x=%i width=%i)", action.start_x, action.width());
   }
-#endif
 }
+#endif
 
 POLYBAR_NS_END

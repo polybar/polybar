@@ -12,10 +12,10 @@
 #include "x11/color.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
-#include "x11/events.hpp"
 #include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/window.hpp"
+#include "x11/winspec.hpp"
 #include "x11/wm.hpp"
 #include "x11/xembed.hpp"
 
@@ -122,14 +122,11 @@ void tray_client::configure_notify(int16_t x, int16_t y) const {  // {{{
 
 tray_manager::tray_manager(connection& conn, const logger& logger) : m_connection(conn), m_log(logger) {
   m_connection.attach_sink(this, 2);
-  m_sinkattached = true;
 }
 
 tray_manager::~tray_manager() {
-  if (m_activated)
-    deactivate();
-  if (m_sinkattached)
-    m_connection.detach_sink(this, 2);
+  m_connection.detach_sink(this, 2);
+  deactivate();
 }
 
 /**
@@ -155,7 +152,7 @@ void tray_manager::activate() {  // {{{
     return;
   }
 
-  m_log.info("Activating tray_manager");
+  m_log.info("Activating tray manager");
   m_activated = true;
 
   try {
@@ -166,14 +163,9 @@ void tray_manager::activate() {  // {{{
     set_traycolors();
   } catch (const exception& err) {
     m_log.err(err.what());
-    m_log.err("Cannot activate tray_manager... failed to setup window");
+    m_log.err("Cannot activate tray manager... failed to setup window");
     m_activated = false;
     return;
-  }
-
-  if (!m_sinkattached) {
-    m_connection.attach_sink(this, 2);
-    m_sinkattached = true;
   }
 
   // Listen for visibility change events on the bar window
@@ -185,12 +177,7 @@ void tray_manager::activate() {  // {{{
   // notify clients waiting for a manager.
   acquire_selection();
 
-  // If replacing an existing manager or if re-activating from getting
-  // replaced, we delay the notification broadcast to allow the clients
-  // to get unembedded...
-  if (m_othermanager)
-    std::this_thread::sleep_for(std::chrono::seconds{1});
-
+  // Notify pending tray clients
   notify_clients();
 
   m_connection.flush();
@@ -199,12 +186,12 @@ void tray_manager::activate() {  // {{{
 /**
  * Deactivate systray management
  */
-void tray_manager::deactivate() {  // {{{
+void tray_manager::deactivate(bool clear_selection) {  // {{{
   if (!m_activated) {
     return;
   }
 
-  m_log.info("Deactivating tray_manager");
+  m_log.info("Deactivating tray manager");
   m_activated = false;
 
   if (m_delayed_activation.joinable())
@@ -219,11 +206,9 @@ void tray_manager::deactivate() {  // {{{
     g_signals::bar::visibility_change = nullptr;
   }
 
-  if (!m_connection.connection_has_error()) {
-    if (m_connection.get_selection_owner_unchecked(m_atom).owner<xcb_window_t>() == m_tray) {
-      m_log.trace("tray: Unset selection owner");
-      m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
-    }
+  if (!m_connection.connection_has_error() && clear_selection) {
+    m_log.trace("tray: Unset selection owner");
+    m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
   }
 
   m_log.trace("tray: Unembed clients");
@@ -255,6 +240,11 @@ void tray_manager::deactivate() {  // {{{
   m_rootpixmap.pixmap = 0;
   m_prevwidth = 0;
   m_prevheight = 0;
+  m_opts.configured_x = 0;
+  m_opts.configured_y = 0;
+  m_opts.configured_w = 0;
+  m_opts.configured_h = 0;
+  m_opts.configured_slots = 0;
 
   m_connection.flush();
 }  // }}}
@@ -497,36 +487,24 @@ void tray_manager::query_atom() {  // {{{
  * Create tray window
  */
 void tray_manager::create_window() {  // {{{
-  auto scr = m_connection.screen();
-  auto w = calculate_w();
-  auto h = calculate_h();
-  auto x = calculate_x(w);
-  auto y = calculate_y();
+  m_log.trace("tray: Create tray window");
 
-  if (w < 1) {
-    w = 1;
-  }
-
-  m_tray = m_connection.generate_id();
-  m_log.trace("tray: Create tray window %s, (%ix%i+%i+%i)", m_connection.id(m_tray), w, h, x, y);
-
-  uint32_t mask = 0;
-  uint32_t values[16];
-  xcb_params_cw_t params;
+  auto win = winspec(m_connection, m_tray)
+    << cw_size(calculate_w(), calculate_h())
+    << cw_pos(calculate_x(calculate_w()), calculate_y())
+    << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
+    << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
+    << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY)
+    << cw_params_override_redirect(true)
+    ;
 
   if (!m_opts.transparent) {
-    XCB_AUX_ADD_PARAM(&mask, &params, back_pixel, m_opts.background);
-    XCB_AUX_ADD_PARAM(&mask, &params, border_pixel, m_opts.background);
+    win << cw_params_back_pixel(m_opts.background);
+    win << cw_params_border_pixel(m_opts.background);
   }
 
-  XCB_AUX_ADD_PARAM(&mask, &params, backing_store, XCB_BACKING_STORE_WHEN_MAPPED);
-  XCB_AUX_ADD_PARAM(&mask, &params, override_redirect, true);
-  XCB_AUX_ADD_PARAM(&mask, &params, event_mask, XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY);
-
-  xutils::pack_values(mask, &params, values);
-
-  m_connection.create_window_checked(
-      scr->root_depth, m_tray, scr->root, x, y, w, h, 0, XCB_WINDOW_CLASS_INPUT_OUTPUT, scr->root_visual, mask, values);
+  m_tray = win << cw_flush();
+  m_log.info("Tray window: %s", m_connection.id(m_tray));
 
   xutils::compton_shadow_exclude(m_connection, m_tray);
 }  // }}}
@@ -662,13 +640,14 @@ void tray_manager::set_traycolors() {  // {{{
  * Acquire the systray selection
  */
 void tray_manager::acquire_selection() {  // {{{
-  xcb_window_t owner = m_connection.get_selection_owner_unchecked(m_atom)->owner;
+  xcb_window_t owner{m_connection.get_selection_owner_unchecked(m_atom)->owner};
 
   if (owner == m_tray) {
     m_log.info("tray: Already managing the systray selection");
     return;
   } else if ((m_othermanager = owner)) {
     m_log.info("Replacing selection manager %s", m_connection.id(owner));
+    std::this_thread::sleep_for(std::chrono::seconds{1});
   }
 
   m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
@@ -1011,7 +990,7 @@ void tray_manager::handle(const evt::selection_clear& evt) {  // {{{
     m_othermanager = 0;
   }
 
-  deactivate();
+  deactivate(false);
 }  // }}}
 
 /**
@@ -1073,8 +1052,11 @@ void tray_manager::handle(const evt::reparent_notify& evt) {  // {{{
  * Event callback : XCB_DESTROY_NOTIFY
  */
 void tray_manager::handle(const evt::destroy_notify& evt) {  // {{{
-  if (!m_activated && evt->window == m_othermanager) {
+  if (m_activated && evt->window == m_tray) {
+    deactivate();
+  } else if (!m_activated && evt->window == m_othermanager && evt->window != m_tray) {
     m_log.trace("tray: Received destroy_notify");
+    std::this_thread::sleep_for(std::chrono::seconds{1});
     m_log.info("Tray selection available... re-activating");
     activate();
     window{m_connection, m_tray}.redraw();
@@ -1131,8 +1113,10 @@ void tray_manager::handle(const evt::unmap_notify& evt) {  // {{{
     }
     m_log.trace("tray: Update container mapped flag");
     m_mapped = false;
-    m_opts.configured_w = 0;
-    m_opts.configured_x = 0;
+    if (!m_hidden) {
+      m_opts.configured_w = 0;
+      m_opts.configured_x = 0;
+    }
   } else {
     auto client = find_client(evt->window);
     if (client) {

@@ -19,31 +19,28 @@
 
 #cmakedefine DEBUG_LOGGER
 #cmakedefine VERBOSE_TRACELOG
+#cmakedefine DEBUG_HINTS
 
-#ifdef DEBUG
-#cmakedefine01 DRAW_CLICKABLE_AREA_HINTS
-#cmakedefine DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y @DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y @
-#ifndef DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y
-#define DRAW_CLICKABLE_AREA_HINTS_OFFSET_Y 0
-#endif
+#ifdef DEBUG_HINTS
+static const int DEBUG_HINTS_OFFSET_X{@DEBUG_HINTS_OFFSET_X@};
+static const int DEBUG_HINTS_OFFSET_Y{@DEBUG_HINTS_OFFSET_Y@};
 #endif
 
-static constexpr const char* ALSA_SOUNDCARD{"default"};
-static constexpr const char* BSPWM_SOCKET_PATH{"/tmp/bspwm_0_0-socket"};
-static constexpr const char* BSPWM_STATUS_PREFIX{"W"};
-static constexpr const char* CONNECTION_TEST_IP{"8.8.8.8"};
-static constexpr const char* PATH_ADAPTER{"/sys/class/power_supply/%adapter%"};
-static constexpr const char* PATH_BACKLIGHT_MAX{"/sys/class/backlight/%card%/max_brightness"};
-static constexpr const char* PATH_BACKLIGHT_VAL{"/sys/class/backlight/%card%/brightness"};
-static constexpr const char* PATH_BATTERY{"/sys/class/power_supply/%battery%"};
-static constexpr const char* PATH_CPU_INFO{"/proc/stat"};
-static constexpr const char* PATH_MEMORY_INFO{"/proc/meminfo"};
-static constexpr const char* PATH_MESSAGING_FIFO{"/tmp/polybar_mqueue.%pid%"};
-static constexpr const char* PATH_TEMPERATURE_INFO{"/sys/class/thermal/thermal_zone%zone%/temp"};
-
-static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
+static constexpr const char* ALSA_SOUNDCARD{"@SETTING_ALSA_SOUNDCARD@"};
+static constexpr const char* BSPWM_SOCKET_PATH{"@SETTING_BSPWM_SOCKET_PATH@"};
+static constexpr const char* BSPWM_STATUS_PREFIX{"@SETTING_BSPWM_STATUS_PREFIX@"};
+static constexpr const char* CONNECTION_TEST_IP{"@SETTING_CONNECTION_TEST_IP@"};
+static constexpr const char* PATH_ADAPTER{"@SETTING_PATH_ADAPTER@"};
+static constexpr const char* PATH_BACKLIGHT_MAX{"@SETTING_PATH_BACKLIGHT_MAX@"};
+static constexpr const char* PATH_BACKLIGHT_VAL{"@SETTING_PATH_BACKLIGHT_VAL@"};
+static constexpr const char* PATH_BATTERY{"@SETTING_PATH_BATTERY@"};
+static constexpr const char* PATH_CPU_INFO{"@SETTING_PATH_CPU_INFO@"};
+static constexpr const char* PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
+static constexpr const char* PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
+static constexpr const char* PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
 
 static const int8_t DEFAULT_FONT_INDEX{-1};
+static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
 
 auto version_details = [](const std::vector<std::string>& args) {
   for (auto&& arg : args) {

@@ -12,8 +12,6 @@ POLYBAR_NS
  * This will also close any unclosed tags
  */
 string builder::flush() {
-  if (m_tags[syntaxtag::A])
-    cmd_close();
   if (m_tags[syntaxtag::B])
     background_close();
   if (m_tags[syntaxtag::F])
@@ -29,11 +27,15 @@ string builder::flush() {
   if ((m_attributes >> static_cast<uint8_t>(attribute::OVERLINE)) & 1U)
     overline_close();
 
+  while (m_tags[syntaxtag::A]) {
+    cmd_close();
+  }
+
   string output = m_output.data();
 
   // reset values
-  for (auto& counter : m_tags) counter.second = 0;
-  for (auto& value : m_colors) value.second = "";
+  m_tags.clear();
+  m_colors.clear();
   m_output.clear();
   m_fontindex = 1;
 
@@ -478,8 +480,10 @@ string builder::foreground_hex() {
  * Insert directive to change value of given tag
  */
 void builder::tag_open(syntaxtag tag, string value) {
-  if (m_tags.find(tag) != m_tags.end())
-    m_tags[tag]++;
+  if (m_tags.find(tag) == m_tags.end())
+    m_tags[tag] = 0;
+
+  m_tags[tag]++;
 
   switch (tag) {
     case syntaxtag::NONE:
@@ -536,7 +540,7 @@ void builder::tag_open(attribute attr) {
  * Insert directive to reset given tag if it's open and closable
  */
 void builder::tag_close(syntaxtag tag) {
-  if (!m_tags[tag] || m_tags.find(tag) == m_tags.end())
+  if (m_tags.find(tag) == m_tags.end() || !m_tags[tag])
     return;
 
   m_tags[tag]--;

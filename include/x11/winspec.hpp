@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/types.hpp"
 #include "x11/connection.hpp"
 
 POLYBAR_NS
@@ -8,46 +9,108 @@ POLYBAR_NS
 using connection_t = connection;
 
 struct cw_size {
-  cw_size(uint16_t w, uint16_t h) : w(w), h(h) {}
-  uint16_t w;
-  uint16_t h;
+  explicit cw_size(uint16_t w, uint16_t h) : w(w), h(h) {}
+  explicit cw_size(struct size size) : w(size.w), h(size.h) {}
+  uint16_t w{1};
+  uint16_t h{1};
 };
 struct cw_pos {
-  cw_pos(int16_t x, int16_t y) : x(x), y(y) {}
-  int16_t x;
-  int16_t y;
+  explicit cw_pos(int16_t x, int16_t y) : x(x), y(y) {}
+  explicit cw_pos(struct position pos) : x(pos.x), y(pos.y) {}
+  int16_t x{0};
+  int16_t y{0};
 };
 struct cw_border {
-  cw_border(uint16_t border_width) : border_width(border_width) {}
-  uint16_t border_width;
+  explicit cw_border(uint16_t border_width) : border_width(border_width) {}
+  uint16_t border_width{0};
 };
 struct cw_class {
-  cw_class(uint16_t class_) : class_(class_) {}
-  uint16_t class_;
+  explicit cw_class(uint16_t class_) : class_(class_) {}
+  uint16_t class_{XCB_COPY_FROM_PARENT};
 };
 struct cw_parent {
-  cw_parent(xcb_window_t parent) : parent(parent) {}
-  xcb_window_t parent;
+  explicit cw_parent(xcb_window_t parent) : parent(parent) {}
+  xcb_window_t parent{XCB_NONE};
 };
 struct cw_depth {
-  cw_depth(uint8_t depth) : depth(depth) {}
-  uint8_t depth;
+  explicit cw_depth(uint8_t depth) : depth(depth) {}
+  uint8_t depth{XCB_COPY_FROM_PARENT};
 };
 struct cw_visual {
-  cw_visual(xcb_visualid_t visualid) : visualid(visualid) {}
-  xcb_visualid_t visualid;
+  explicit cw_visual(xcb_visualid_t visualid) : visualid(visualid) {}
+  xcb_visualid_t visualid{XCB_COPY_FROM_PARENT};
 };
 struct cw_mask {
-  cw_mask(uint32_t mask) : mask(mask) {}
-  const uint32_t mask;
+  explicit cw_mask(uint32_t mask) : mask(mask) {}
+  const uint32_t mask{0};
 };
 struct cw_params {
-  cw_params(const xcb_params_cw_t* params) : params(params) {}
-  const xcb_params_cw_t* params;
+  explicit cw_params(const xcb_params_cw_t* params) : params(params) {}
+  const xcb_params_cw_t* params{nullptr};
+};
+struct cw_params_back_pixel {
+  explicit cw_params_back_pixel(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_back_pixmap {
+  explicit cw_params_back_pixmap(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_backing_pixel {
+  explicit cw_params_backing_pixel(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_backing_planes {
+  explicit cw_params_backing_planes(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_backing_store {
+  explicit cw_params_backing_store(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_bit_gravity {
+  explicit cw_params_bit_gravity(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_border_pixel {
+  explicit cw_params_border_pixel(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_border_pixmap {
+  explicit cw_params_border_pixmap(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_colormap {
+  explicit cw_params_colormap(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_cursor {
+  explicit cw_params_cursor(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_dont_propagate {
+  explicit cw_params_dont_propagate(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_event_mask {
+  explicit cw_params_event_mask(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_override_redirect {
+  explicit cw_params_override_redirect(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_save_under {
+  explicit cw_params_save_under(uint32_t value) : value(value) {}
+  uint32_t value{0};
+};
+struct cw_params_win_gravity {
+  explicit cw_params_win_gravity(uint32_t value) : value(value) {}
+  uint32_t value{0};
 };
 struct cw_flush {
-  cw_flush(bool checked = true) : checked(checked) {}
-  bool checked;
+  explicit cw_flush(bool checked = false) : checked(checked) {}
+  bool checked{false};
 };
 
 /**
@@ -55,7 +118,7 @@ struct cw_flush {
  *
  * Example usage:
  * @code cpp
- *   auto win = winspec(conn)
+ *   auto win = winspec(m_connection)
  *     << cw_size(100, 200)
  *     << cw_pos(10, -20)
  *     << cw_border(9)
@@ -66,90 +129,52 @@ struct cw_flush {
  */
 class winspec {
  public:
-  explicit winspec(connection& conn, uint32_t id = XCB_NONE) : m_connection(conn), m_window(id) {}
+  explicit winspec(connection& conn);
+  explicit winspec(connection& conn, const xcb_window_t& window);
 
-  explicit operator xcb_window_t() const {
-    return m_window;
-  }
+  explicit operator xcb_window_t() const;
+  explicit operator xcb_rectangle_t() const;
 
-  explicit operator xcb_rectangle_t() const {
-    return {m_x, m_y, m_width, m_height};
-  }
+  xcb_window_t operator<<(const cw_flush& f);
 
-  winspec& operator<<(cw_size w) {
-    m_width = w.w;
-    m_height = w.h;
-    return *this;
-  }
-  winspec& operator<<(cw_pos p) {
-    m_x = p.x;
-    m_y = p.y;
-    return *this;
-  }
-  winspec& operator<<(cw_border b) {
-    m_border = b.border_width;
-    return *this;
-  }
-  winspec& operator<<(cw_class c) {
-    m_class = c.class_;
-    return *this;
-  }
-  winspec& operator<<(cw_parent p) {
-    m_parent = p.parent;
-    return *this;
-  }
-  winspec& operator<<(cw_depth d) {
-    m_depth = d.depth;
-    return *this;
-  }
-  winspec& operator<<(cw_visual v) {
-    m_visual = v.visualid;
-    return *this;
-  }
-  winspec& operator<<(cw_mask m) {
-    m_mask = m.mask;
-    return *this;
-  }
-  winspec& operator<<(cw_params p) {
-    m_params = p.params;
-    return *this;
-  }
-
-  xcb_window_t operator<<(cw_flush f) {
-    if (!m_window) {
-      m_window = m_connection.generate_id();
-    }
-
-    uint32_t values[16]{0};
-    if (m_params != nullptr) {
-      xutils::pack_values(m_mask, m_params, values);
-    }
-
-    if (f.checked) {
-      m_connection.create_window_checked(
-          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
-    } else {
-      m_connection.create_window(
-          m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
-    }
-
-    return m_window;
-  }
+  winspec& operator<<(const cw_size& size);
+  winspec& operator<<(const cw_pos& p);
+  winspec& operator<<(const cw_border& b);
+  winspec& operator<<(const cw_class& c);
+  winspec& operator<<(const cw_parent& p);
+  winspec& operator<<(const cw_depth& d);
+  winspec& operator<<(const cw_visual& v);
+  winspec& operator<<(const cw_params_back_pixel& p);
+  winspec& operator<<(const cw_params_back_pixmap& p);
+  winspec& operator<<(const cw_params_backing_pixel& p);
+  winspec& operator<<(const cw_params_backing_planes& p);
+  winspec& operator<<(const cw_params_backing_store& p);
+  winspec& operator<<(const cw_params_bit_gravity& p);
+  winspec& operator<<(const cw_params_border_pixel& p);
+  winspec& operator<<(const cw_params_border_pixmap& p);
+  winspec& operator<<(const cw_params_colormap& p);
+  winspec& operator<<(const cw_params_cursor& p);
+  winspec& operator<<(const cw_params_dont_propagate& p);
+  winspec& operator<<(const cw_params_event_mask& p);
+  winspec& operator<<(const cw_params_override_redirect& p);
+  winspec& operator<<(const cw_params_save_under& p);
+  winspec& operator<<(const cw_params_win_gravity& p);
 
  protected:
   connection& m_connection;
-  uint32_t m_window;
-  uint32_t m_parent;
-  int16_t m_x;
-  int16_t m_y;
-  uint16_t m_width;
-  uint16_t m_height;
+
+  xcb_window_t m_window{XCB_NONE};
+  uint32_t m_parent{XCB_NONE};
   uint8_t m_depth{XCB_COPY_FROM_PARENT};
-  uint16_t m_border{XCB_COPY_FROM_PARENT};
   uint16_t m_class{XCB_COPY_FROM_PARENT};
-  xcb_visualid_t m_visual;
-  uint32_t m_mask;
-  const xcb_params_cw_t* m_params{nullptr};
+  xcb_visualid_t m_visual{XCB_COPY_FROM_PARENT};
+  int16_t m_x{0};
+  int16_t m_y{0};
+  uint16_t m_width{1U};
+  uint16_t m_height{1U};
+  uint16_t m_border{0};
+  uint32_t m_mask{0};
+  xcb_params_cw_t m_params{};
 };
 
 POLYBAR_NS_END

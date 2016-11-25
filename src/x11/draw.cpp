@@ -10,15 +10,15 @@ namespace draw_util {
   /**
    * Fill region of drawable with color defined by gcontext
    */
-  void fill(connection& c, xcb_drawable_t d, xcb_gcontext_t g, int16_t x, int16_t y, uint16_t w,
-      uint16_t h) {
-    xcb_rectangle_t rect;
-    rect.x = x;
-    rect.y = y;
-    rect.width = w;
-    rect.height = h;
-    const xcb_rectangle_t rects[1]{rect};
-    c.poly_fill_rectangle(d, g, 1, rects);
+  void fill(connection& conn, xcb_drawable_t d, xcb_gcontext_t g, const xcb_rectangle_t rect) {
+    conn.poly_fill_rectangle(d, g, 1, &rect);
+  }
+
+  /**
+   * Fill region of drawable with color defined by gcontext
+   */
+  void fill(connection& conn, xcb_drawable_t d, xcb_gcontext_t g, int16_t x, int16_t y, uint16_t w, uint16_t h) {
+    fill(conn, d, g, {x, y, w, h});
   }
 
   /**
@@ -26,8 +26,8 @@ namespace draw_util {
    *
    * Code: http://wmdia.sourceforge.net/
    */
-  xcb_void_cookie_t xcb_poly_text_16_patched(xcb_connection_t* conn, xcb_drawable_t d,
-      xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str) {
+  xcb_void_cookie_t xcb_poly_text_16_patched(
+      xcb_connection_t* conn, xcb_drawable_t d, xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str) {
     static const xcb_protocol_request_t xcb_req = {
         5,                 // count
         0,                 // ext

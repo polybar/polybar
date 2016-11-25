@@ -21,7 +21,7 @@ class renderer {
 
   void begin();
   void end();
-  void redraw();
+  void flush(bool clear);
 
   void reserve_space(edge side, uint16_t w);
 
@@ -36,7 +36,6 @@ class renderer {
   bool check_attribute(const attribute attr);
 
   void fill_background();
-  void fill_border(const map<edge, border_settings>& borders, edge border);
   void fill_overline(int16_t x, uint16_t w);
   void fill_underline(int16_t x, uint16_t w);
   void fill_shift(const int16_t px);
@@ -49,10 +48,13 @@ class renderer {
   const vector<action_block> get_actions();
 
  protected:
-  int16_t shift_content(const int16_t x, const int16_t shift_x);
+  int16_t shift_content(int16_t x, const int16_t shift_x);
   int16_t shift_content(const int16_t shift_x);
 
-  void debughints();
+#ifdef DEBUG_HINTS
+  vector<xcb_window_t> m_debughints;
+  void debug_hints();
+#endif
 
  private:
   connection& m_connection;
@@ -60,6 +62,8 @@ class renderer {
   unique_ptr<font_manager> m_fontmanager;
 
   const bar_settings& m_bar;
+
+  xcb_rectangle_t m_rect{0, 0, 0U, 0U};
 
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
@@ -79,9 +83,6 @@ class renderer {
   int8_t m_fontindex{DEFAULT_FONT_INDEX};
 
   xcb_font_t m_gcfont{XCB_NONE};
-
-  edge m_reserve_at{edge::NONE};
-  uint16_t m_reserve;
 };
 
 di::injector<unique_ptr<renderer>> configure_renderer(const bar_settings& bar, const vector<string>& fonts);

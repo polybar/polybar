@@ -150,7 +150,7 @@ namespace modules {
     if (!m_muted && m_volume > 0)
       m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
 
-    m_builder->node(module::get_output());
+    m_builder->append(module::get_output());
 
     return m_builder->flush();
   }

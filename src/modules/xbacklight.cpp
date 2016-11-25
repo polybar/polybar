@@ -133,21 +133,12 @@ namespace modules {
    * Generate the module output
    */
   string xbacklight_module::get_output() {
-    if (m_scroll) {
-      if (m_percentage < 100)
-        m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-      if (m_percentage > 0)
-        m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+    if (m_scroll && m_percentage < 100)
+      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
+    if (m_scroll && m_percentage > 0)
+      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
 
-      m_builder->node(static_module::get_output());
-
-      if (m_percentage < 100)
-        m_builder->cmd_close();
-      if (m_percentage > 0)
-        m_builder->cmd_close();
-    } else {
-      m_builder->node(static_module::get_output());
-    }
+    m_builder->append(static_module::get_output());
 
     return m_builder->flush();
   }

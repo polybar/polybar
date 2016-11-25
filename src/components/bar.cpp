@@ -49,7 +49,9 @@ bar::bar(connection& conn, const config& config, const logger& logger, unique_pt
  */
 bar::~bar() {
   std::lock_guard<std::mutex> guard(m_mutex);
+  g_signals::tray::report_slotcount = nullptr;
   m_connection.detach_sink(this, 1);
+  m_tray.reset();
 }
 
 /**
@@ -147,6 +149,8 @@ void bar::bootstrap(bool nodraw) {
   m_renderer = configure_renderer(m_opts, m_conf.get_list<string>(bs, "font", {})).create<unique_ptr<renderer>>();
   m_window = m_renderer->window();
 
+  m_log.info("Bar window: %s", m_connection.id(m_window));
+
   restack_window();
   reconfigure_window();
 
@@ -173,11 +177,10 @@ void bar::bootstrap(bool nodraw) {
   try {
     m_renderer->begin();
     m_renderer->end();
+    m_renderer->flush(false);
   } catch (const exception& err) {
     throw application_error("Failed to output empty bar window (reason: " + string{err.what()} + ")");
   }
-
-  m_connection.flush();
 }
 
 /**
@@ -239,7 +242,7 @@ void bar::bootstrap_tray() {
   } else if (settings.align == alignment::LEFT) {
     settings.orig_x = m_opts.pos.x + m_opts.borders.at(edge::LEFT).size;
   } else if (settings.align == alignment::CENTER) {
-    settings.orig_x = m_opts.center.x - (settings.width / 2);
+    settings.orig_x = m_opts.pos.x + m_opts.center.x - (settings.width / 2);
   }
 
   // Set user-defined background color
@@ -357,6 +360,8 @@ void bar::parse(string data, bool force) {
 
   m_lastinput = data;
 
+  m_renderer->begin();
+
   if (m_trayclients) {
     if (m_tray && m_trayalign == alignment::LEFT)
       m_renderer->reserve_space(edge::LEFT, m_tray->settings().configured_w);
@@ -364,21 +369,16 @@ void bar::parse(string data, bool force) {
       m_renderer->reserve_space(edge::RIGHT, m_tray->settings().configured_w);
   }
 
-  m_renderer->begin();
+  m_renderer->fill_background();
 
   try {
     parser parser{m_log, m_opts};
     parser(data);
-  } catch (const unrecognized_token& err) {
-    m_log.err("Unrecognized syntax token '%s'", err.what());
-  } catch (const unrecognized_attribute& err) {
-    m_log.err("Unrecognized attribute '%s'", err.what());
-  } catch (const exception& err) {
-    m_log.err("Error parsing contents (err: %s)", err.what());
+  } catch (const parser_error& err) {
+    m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
 
   m_renderer->end();
-  m_connection.flush();
 }
 
 /**
@@ -432,12 +432,17 @@ void bar::configure_geom() {
   m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
   m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
 
-  m_opts.center.y = m_opts.size.h + m_opts.borders[edge::TOP].size - m_opts.borders[edge::BOTTOM].size;
+  m_opts.center.y = m_opts.size.h;
+  m_opts.center.y -= m_opts.borders[edge::BOTTOM].size;
   m_opts.center.y /= 2;
-  m_opts.center.x = m_opts.pos.x + m_opts.size.w - m_opts.borders[edge::RIGHT].size + m_opts.borders[edge::LEFT].size;
-  m_opts.center.x /= 2;
+  m_opts.center.y += m_opts.borders[edge::TOP].size;
 
-  m_log.info("Bar geometry %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
+  m_opts.center.x = m_opts.size.w;
+  m_opts.center.x -= m_opts.borders[edge::RIGHT].size;
+  m_opts.center.x /= 2;
+  m_opts.center.x += m_opts.borders[edge::LEFT].size;
+
+  m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 }
 
 /**
@@ -575,7 +580,8 @@ void bar::handle(const evt::button_press& evt) {
 
   m_log.trace_x("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
-  mousebtn button = static_cast<mousebtn>(evt->detail);
+  const mousebtn button{static_cast<mousebtn>(evt->detail)};
+  const int16_t event_x{static_cast<int16_t>(evt->event_x - m_opts.inner_area().x)};
 
   for (auto&& action : m_renderer->get_actions()) {
     if (action.active) {
@@ -584,11 +590,11 @@ void bar::handle(const evt::button_press& evt) {
     } else if (action.button != button) {
       m_log.trace_x("bar: Ignoring action: button mismatch");
       continue;
-    } else if (action.start_x > evt->event_x) {
-      m_log.trace_x("bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, evt->event_x);
+    } else if (action.start_x >= event_x) {
+      m_log.trace_x("bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, event_x);
       continue;
-    } else if (action.end_x < evt->event_x) {
-      m_log.trace_x("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, evt->event_x);
+    } else if (action.end_x <= event_x) {
+      m_log.trace_x("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, event_x);
       continue;
     }
 
@@ -617,7 +623,7 @@ void bar::handle(const evt::button_press& evt) {
 void bar::handle(const evt::expose& evt) {
   if (evt->window == m_window) {
     m_log.trace("bar: Received expose event");
-    m_renderer->redraw();
+    m_renderer->flush(false);
   }
 }
 

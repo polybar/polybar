@@ -9,8 +9,10 @@ struct bar_settings;
 enum class attribute : uint8_t;
 enum class mousebtn : uint8_t;
 
-DEFINE_ERROR(unrecognized_token);
-DEFINE_ERROR(unrecognized_attribute);
+DEFINE_ERROR(parser_error);
+DEFINE_CHILD_ERROR(unrecognized_token, parser_error);
+DEFINE_CHILD_ERROR(unrecognized_attribute, parser_error);
+DEFINE_CHILD_ERROR(unclosed_actionblocks, parser_error);
 
 class parser {
  public:

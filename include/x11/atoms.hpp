@@ -8,7 +8,7 @@ struct cached_atom {
   xcb_atom_t* atom;
 };
 
-extern cached_atom ATOMS[33];
+extern cached_atom ATOMS[34];
 
 extern xcb_atom_t _NET_SUPPORTED;
 extern xcb_atom_t _NET_CURRENT_DESKTOP;
@@ -43,3 +43,4 @@ extern xcb_atom_t BACKLIGHT;
 extern xcb_atom_t _XROOTMAP_ID;
 extern xcb_atom_t _XSETROOT_ID;
 extern xcb_atom_t ESETROOT_PMAP_ID;
+extern xcb_atom_t _COMPTON_SHADOW;

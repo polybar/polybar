@@ -48,6 +48,10 @@ void parser::operator()(string data) {
       data.erase(0, text(data.substr(0, pos)));
     }
   }
+
+  if (!m_actions.empty()) {
+    throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
+  }
 }
 
 /**
@@ -151,7 +155,7 @@ void parser::codeblock(string data) {
         break;
 
       default:
-        throw unrecognized_token(string{tag});
+        throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
     }
 
     if (!data.empty())
@@ -232,7 +236,7 @@ attribute parser::parse_attr(const char attr) {
     case 'u':
       return attribute::UNDERLINE;
     default:
-      throw unrecognized_attribute(string{attr});
+      throw unrecognized_token("Unrecognized attribute '" + string{attr} + "'");
   }
 }
 
