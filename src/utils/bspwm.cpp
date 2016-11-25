@@ -80,6 +80,7 @@ namespace bspwm_util {
       return BSPWM_SOCKET_PATH;
 
     snprintf(sa.sun_path, sizeof(sa.sun_path), "/tmp/bspwm%s_%i_%i-socket", host, dsp, scr);
+    free(host);
 
     return sa.sun_path;
   }
