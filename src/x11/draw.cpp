@@ -30,7 +30,7 @@ namespace draw_util {
       xcb_connection_t* conn, xcb_drawable_t d, xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str) {
     static const xcb_protocol_request_t xcb_req = {
         5,                 // count
-        0,                 // ext
+        nullptr,           // ext
         XCB_POLY_TEXT_16,  // opcode
         1                  // isvoid
     };
@@ -47,13 +47,13 @@ namespace draw_util {
     xcb_lendelta[1] = 0;
     xcb_parts[2].iov_base = reinterpret_cast<char*>(&xcb_out);
     xcb_parts[2].iov_len = sizeof(xcb_out);
-    xcb_parts[3].iov_base = 0;
+    xcb_parts[3].iov_base = nullptr;
     xcb_parts[3].iov_len = -xcb_parts[2].iov_len & 3;
     xcb_parts[4].iov_base = xcb_lendelta;
     xcb_parts[4].iov_len = sizeof(xcb_lendelta);
     xcb_parts[5].iov_base = reinterpret_cast<char*>(str);
     xcb_parts[5].iov_len = len * sizeof(int16_t);
-    xcb_parts[6].iov_base = 0;
+    xcb_parts[6].iov_base = nullptr;
     xcb_parts[6].iov_len = -(xcb_parts[4].iov_len + xcb_parts[5].iov_len) & 3;
     xcb_ret.sequence = xcb_send_request(conn, 0, xcb_parts + 2, &xcb_req);
     return xcb_ret;

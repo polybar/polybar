@@ -1,4 +1,5 @@
 #include "x11/xembed.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 
@@ -9,8 +10,9 @@ namespace xembed {
   xembed_data* query(connection& conn, xcb_window_t win, xembed_data* data) {
     auto info = conn.get_property(false, win, _XEMBED_INFO, XCB_GET_PROPERTY_TYPE_ANY, 0L, 2);
 
-    if (info->value_len == 0)
+    if (info->value_len == 0) {
       throw application_error("Invalid _XEMBED_INFO for window " + conn.id(win));
+    }
 
     std::vector<uint32_t> xembed_data{info.value<uint32_t>().begin(), info.value<uint32_t>().end()};
 

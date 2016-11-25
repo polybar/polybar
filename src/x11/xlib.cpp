@@ -10,8 +10,9 @@ namespace xlib {
    * Get pointer of Xlib Display
    */
   Display* get_display() {
-    if (g_display == nullptr)
+    if (g_display == nullptr) {
       g_display = XOpenDisplay(nullptr);
+    }
     return g_display;
   }
 

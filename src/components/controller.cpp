@@ -100,14 +100,16 @@ controller::~controller() {
   if (!m_threads.empty()) {
     m_log.info("Joining active threads");
     for (auto&& thread : m_threads) {
-      if (thread.joinable())
+      if (thread.joinable()) {
         thread.join();
+      }
     }
   }
 
   m_log.info("Waiting for spawned processes");
-  while (process_util::notify_childprocess())
+  while (process_util::notify_childprocess()) {
     ;
+  }
 
   m_connection.flush();
 }
@@ -222,14 +224,16 @@ void controller::install_sigmask() {
   sigaddset(&m_waitmask, SIGTERM);
   sigaddset(&m_waitmask, SIGUSR1);
 
-  if (pthread_sigmask(SIG_BLOCK, &m_waitmask, nullptr) == -1)
+  if (pthread_sigmask(SIG_BLOCK, &m_waitmask, nullptr) == -1) {
     throw system_error();
+  }
 
   sigemptyset(&m_ignmask);
   sigaddset(&m_ignmask, SIGPIPE);
 
-  if (pthread_sigmask(SIG_BLOCK, &m_ignmask, nullptr) == -1)
+  if (pthread_sigmask(SIG_BLOCK, &m_ignmask, nullptr) == -1) {
     throw system_error();
+  }
 }
 
 /**
@@ -238,16 +242,18 @@ void controller::install_sigmask() {
 void controller::uninstall_sigmask() {
   m_log.trace("controller: Set pthread_sigmask to unblock term signals");
 
-  if (pthread_sigmask(SIG_UNBLOCK, &m_waitmask, nullptr) == -1)
+  if (pthread_sigmask(SIG_UNBLOCK, &m_waitmask, nullptr) == -1) {
     throw system_error();
+  }
 }
 
 /**
  * Listen for changes to the config file
  */
 void controller::install_confwatch() {
-  if (!m_running)
+  if (!m_running) {
     return;
+  }
 
   if (!m_confwatch) {
     m_log.trace("controller: Config watch not set, skip...");
@@ -256,8 +262,9 @@ void controller::install_confwatch() {
 
   m_threads.emplace_back([&] {
     try {
-      if (!m_running)
+      if (!m_running) {
         return;
+      }
 
       m_log.trace("controller: Attach config watch");
       m_confwatch->attach(IN_MODIFY);
@@ -374,50 +381,52 @@ void controller::bootstrap_modules() {
         auto type = m_conf.get<string>("module/" + module_name, "type");
         module_t module;
 
-        if (type == "internal/counter")
+        if (type == "internal/counter") {
           module.reset(new counter_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/backlight")
+        } else if (type == "internal/backlight") {
           module.reset(new backlight_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/battery")
+        } else if (type == "internal/battery") {
           module.reset(new battery_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/bspwm")
+        } else if (type == "internal/bspwm") {
           module.reset(new bspwm_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/cpu")
+        } else if (type == "internal/cpu") {
           module.reset(new cpu_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/date")
+        } else if (type == "internal/date") {
           module.reset(new date_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/fs")
+        } else if (type == "internal/fs") {
           module.reset(new fs_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/memory")
+        } else if (type == "internal/memory") {
           module.reset(new memory_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/i3")
+        } else if (type == "internal/i3") {
           module.reset(new i3_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/mpd")
+        } else if (type == "internal/mpd") {
           module.reset(new mpd_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/volume")
+        } else if (type == "internal/volume") {
           module.reset(new volume_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/network")
+        } else if (type == "internal/network") {
           module.reset(new network_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/temperature")
+        } else if (type == "internal/temperature") {
           module.reset(new temperature_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/xbacklight")
+        } else if (type == "internal/xbacklight") {
           module.reset(new xbacklight_module(bar, m_log, m_conf, module_name));
-        else if (type == "internal/xwindow")
+        } else if (type == "internal/xwindow") {
           module.reset(new xwindow_module(bar, m_log, m_conf, module_name));
-        else if (type == "custom/text")
+        } else if (type == "custom/text") {
           module.reset(new text_module(bar, m_log, m_conf, module_name));
-        else if (type == "custom/script")
+        } else if (type == "custom/script") {
           module.reset(new script_module(bar, m_log, m_conf, module_name));
-        else if (type == "custom/menu")
+        } else if (type == "custom/menu") {
           module.reset(new menu_module(bar, m_log, m_conf, module_name));
-        else if (type == "custom/ipc") {
-          if (!m_ipc)
+        } else if (type == "custom/ipc") {
+          if (!m_ipc) {
             throw application_error("Inter-process messaging needs to be enabled");
+          }
           module.reset(new ipc_module(bar, m_log, m_conf, module_name));
           m_ipc->attach_callback(
               bind(&ipc_module::on_message, static_cast<ipc_module*>(module.get()), placeholders::_1));
-        } else
+        } else {
           throw application_error("Unknown module: " + module_name);
+        }
 
         module->set_update_cb(
             bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<int>(event_type::UPDATE)}));
@@ -435,8 +444,9 @@ void controller::bootstrap_modules() {
     }
   }
 
-  if (module_count == 0)
+  if (module_count == 0) {
     throw application_error("No modules created");
+  }
 }
 
 /**
@@ -460,7 +470,7 @@ void controller::on_ipc_action(const ipc_action& message) {
 /**
  * Callback for clicked bar actions
  */
-void controller::on_mouse_event(string input) {
+void controller::on_mouse_event(const string& input) {
   eventloop::entry_t evt{static_cast<int>(event_type::INPUT)};
 
   if (input.length() > sizeof(evt.data)) {
@@ -497,7 +507,7 @@ void controller::on_unrecognized_action(string input) {
 void controller::on_update() {
   const bar_settings& bar{m_bar->settings()};
 
-  string contents{""};
+  string contents;
   string separator{bar.separator};
 
   string padding_left(bar.padding.left, ' ');
@@ -512,33 +522,39 @@ void controller::on_update() {
     bool is_center = false;
     bool is_right = false;
 
-    if (block.first == alignment::LEFT)
+    if (block.first == alignment::LEFT) {
       is_left = true;
-    else if (block.first == alignment::CENTER)
+    } else if (block.first == alignment::CENTER) {
       is_center = true;
-    else if (block.first == alignment::RIGHT)
+    } else if (block.first == alignment::RIGHT) {
       is_right = true;
+    }
 
     for (const auto& module : block.second) {
       auto module_contents = module->contents();
 
-      if (module_contents.empty())
+      if (module_contents.empty()) {
         continue;
+      }
 
-      if (!block_contents.empty() && !separator.empty())
+      if (!block_contents.empty() && !separator.empty()) {
         block_contents += separator;
+      }
 
-      if (!(is_left && module == block.second.front()))
+      if (!(is_left && module == block.second.front())) {
         block_contents += string(margin_left, ' ');
+      }
 
       block_contents += module->contents();
 
-      if (!(is_right && module == block.second.back()))
+      if (!(is_right && module == block.second.back())) {
         block_contents += string(margin_right, ' ');
+      }
     }
 
-    if (block_contents.empty())
+    if (block_contents.empty()) {
       continue;
+    }
 
     if (is_left) {
       contents += "%{l}";

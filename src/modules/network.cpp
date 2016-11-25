@@ -29,10 +29,12 @@ namespace modules {
     m_formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, {TAG_LABEL_DISCONNECTED});
 
     // Create elements for format-connected
-    if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED))
+    if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED)) {
       m_ramp_signal = load_ramp(m_conf, name(), TAG_RAMP_SIGNAL);
-    if (m_formatter->has(TAG_RAMP_QUALITY, FORMAT_CONNECTED))
+    }
+    if (m_formatter->has(TAG_RAMP_QUALITY, FORMAT_CONNECTED)) {
       m_ramp_quality = load_ramp(m_conf, name(), TAG_RAMP_QUALITY);
+    }
     if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
       m_label[connection_state::CONNECTED] =
           load_optional_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
@@ -53,19 +55,22 @@ namespace modules {
       if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
         m_label[connection_state::PACKETLOSS] = load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
       }
-      if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
+      if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS)) {
         m_animation_packetloss = load_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
+      }
     }
 
     // Get an intstance of the network interface
-    if (net::is_wireless_interface(m_interface))
-      m_wireless = net::wireless_t{new net::wireless_t::element_type(m_interface)};
-    else
-      m_wired = net::wired_t{new net::wired_t::element_type(m_interface)};
+    if (net::is_wireless_interface(m_interface)) {
+      m_wireless = make_unique<net::wireless_network>(m_interface);
+    } else {
+      m_wired = make_unique<net::wired_network>(m_interface);
+    };
 
     // We only need to start the subthread if the packetloss animation is used
-    if (m_animation_packetloss)
+    if (m_animation_packetloss) {
       m_threads.emplace_back(thread(&network_module::subthread_routine, this));
+    }
   }
 
   void network_module::teardown() {
@@ -121,38 +126,42 @@ namespace modules {
       }
     };
 
-    if (m_label[connection_state::CONNECTED])
+    if (m_label[connection_state::CONNECTED]) {
       replace_tokens(m_label[connection_state::CONNECTED]);
-    if (m_label[connection_state::PACKETLOSS])
+    }
+    if (m_label[connection_state::PACKETLOSS]) {
       replace_tokens(m_label[connection_state::PACKETLOSS]);
+    }
 
     return true;
   }
 
   string network_module::get_format() const {
-    if (!m_connected)
+    if (!m_connected) {
       return FORMAT_DISCONNECTED;
-    else if (m_packetloss && m_ping_nth_update > 0)
+    } else if (m_packetloss && m_ping_nth_update > 0) {
       return FORMAT_PACKETLOSS;
-    else
+    } else {
       return FORMAT_CONNECTED;
+    }
   }
 
-  bool network_module::build(builder* builder, string tag) const {
-    if (tag == TAG_LABEL_CONNECTED)
+  bool network_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_LABEL_CONNECTED) {
       builder->node(m_label.at(connection_state::CONNECTED));
-    else if (tag == TAG_LABEL_DISCONNECTED)
+    } else if (tag == TAG_LABEL_DISCONNECTED) {
       builder->node(m_label.at(connection_state::DISCONNECTED));
-    else if (tag == TAG_LABEL_PACKETLOSS)
+    } else if (tag == TAG_LABEL_PACKETLOSS) {
       builder->node(m_label.at(connection_state::PACKETLOSS));
-    else if (tag == TAG_ANIMATION_PACKETLOSS)
+    } else if (tag == TAG_ANIMATION_PACKETLOSS) {
       builder->node(m_animation_packetloss->get());
-    else if (tag == TAG_RAMP_SIGNAL)
+    } else if (tag == TAG_RAMP_SIGNAL) {
       builder->node(m_ramp_signal->get_by_percentage(m_signal));
-    else if (tag == TAG_RAMP_QUALITY)
+    } else if (tag == TAG_RAMP_QUALITY) {
       builder->node(m_ramp_quality->get_by_percentage(m_quality));
-    else
+    } else {
       return false;
+    }
     return true;
   }
 
@@ -161,8 +170,9 @@ namespace modules {
     const auto dur = chrono::duration<double>(framerate);
 
     while (running()) {
-      if (m_connected && m_packetloss)
+      if (m_connected && m_packetloss) {
         broadcast();
+      }
       sleep(dur);
     }
 

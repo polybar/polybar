@@ -16,7 +16,7 @@ namespace socket_util {
     int disconnect();
 
     ssize_t send(const void* data, size_t len, int flags = 0);
-    ssize_t send(string data, int flags = 0);
+    ssize_t send(const string& data, int flags = 0);
 
     string receive(const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags = 0);
     bool poll(short int events = POLLIN, int timeout_ms = -1);

@@ -11,7 +11,7 @@ namespace modules {
 
     void setup();
     bool update();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);
     bool receive_events() const;
 

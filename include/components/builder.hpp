@@ -31,7 +31,7 @@ class builder {
   void append(string text);
   void node(string str, bool add_space = false);
   void node(string str, int font_index, bool add_space = false);
-  void node(label_t label, bool add_space = false);
+  void node(const label_t& label, bool add_space = false);
   void offset(int pixels = 0);
   void space(int width = DEFAULT_SPACING);
   void remove_trailing_space(int width = DEFAULT_SPACING);
@@ -42,15 +42,15 @@ class builder {
   void color(string color);
   void color_alpha(string alpha);
   void color_close();
-  void line_color(string color);
+  void line_color(const string& color);
   void line_color_close();
   void overline_color(string color);
   void overline_color_close();
   void underline_color(string color);
   void underline_color_close();
-  void overline(string color = "");
+  void overline(const string& color = "");
   void overline_close();
-  void underline(string color = "");
+  void underline(const string& color = "");
   void underline_close();
   void cmd(mousebtn index, string action, bool condition = true);
   void cmd_close();
@@ -59,7 +59,7 @@ class builder {
   string background_hex();
   string foreground_hex();
 
-  void tag_open(syntaxtag tag, string value);
+  void tag_open(syntaxtag tag, const string& value);
   void tag_open(attribute attr);
   void tag_close(syntaxtag tag);
   void tag_close(attribute attr);

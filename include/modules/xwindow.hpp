@@ -77,7 +77,7 @@ namespace modules {
     void handle(const evt::property_notify& evt);
     void update();
     string get_output();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

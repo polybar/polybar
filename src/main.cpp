@@ -126,10 +126,11 @@ int main(int argc, char** argv) {
       ctrl->run();
 
       if (ctrl->completed()) {
-        quit = true;
+        throw exit_success{};
       } else {
         logger.info("Reloading application...");
       }
+
     } catch (const exit_success& term) {
       exit_code = EXIT_SUCCESS;
       quit = true;

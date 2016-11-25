@@ -26,10 +26,12 @@ namespace drawtypes {
     auto now = chrono::system_clock::now();
     auto diff = chrono::duration_cast<chrono::milliseconds>(now - m_lastupdate);
 
-    if (diff.count() < m_framerate_ms)
+    if (diff.count() < m_framerate_ms) {
       return;
-    if (++m_frame >= m_framecount)
+    }
+    if (++m_frame >= m_framecount) {
       m_frame = 0;
+    }
 
     m_lastupdate = now;
   }
@@ -38,7 +40,7 @@ namespace drawtypes {
    * Create an animation by loading values
    * from the configuration
    */
-  animation_t load_animation(const config& conf, string section, string name, bool required) {
+  animation_t load_animation(const config& conf, const string& section, string name, bool required) {
     vector<icon_t> vec;
     vector<string> frames;
 
@@ -46,10 +48,11 @@ namespace drawtypes {
 
     auto anim_defaults = load_optional_icon(conf, section, name);
 
-    if (required)
+    if (required) {
       frames = conf.get_list<string>(section, name);
-    else
+    } else {
       frames = conf.get_list<string>(section, name, {});
+    }
 
     for (size_t i = 0; i < frames.size(); i++) {
       vec.emplace_back(forward<icon_t>(load_optional_icon(conf, section, name + "-" + to_string(i), frames[i])));
@@ -58,7 +61,7 @@ namespace drawtypes {
 
     auto framerate = conf.get<int>(section, name + "-framerate", 1000);
 
-    return animation_t{new animation(move(vec), framerate)};
+    return make_shared<animation>(move(vec), framerate);
   }
 }
 

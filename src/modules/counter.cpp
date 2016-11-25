@@ -19,7 +19,7 @@ namespace modules {
     return true;
   }
 
-  bool counter_module::build(builder* builder, string tag) const {
+  bool counter_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_COUNTER) {
       builder->node(to_string(m_counter));
       return true;

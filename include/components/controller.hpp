@@ -52,7 +52,7 @@ class controller {
   void bootstrap_modules();
 
   void on_ipc_action(const ipc_action& message);
-  void on_mouse_event(string input);
+  void on_mouse_event(const string& input);
   void on_unrecognized_action(string input);
   void on_update();
 

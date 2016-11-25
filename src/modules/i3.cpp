@@ -41,13 +41,14 @@ namespace modules {
           make_pair(i3_flag::WORKSPACE_URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
     }
 
-    m_icons = iconset_t{new iconset()};
-    m_icons->add(DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
+    m_icons = make_shared<iconset>();
+    m_icons->add(DEFAULT_WS_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
 
-    for (auto workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
+    for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');
-      if (vec.size() == 2)
-        m_icons->add(vec[0], icon_t{new icon{vec[1]}});
+      if (vec.size() == 2) {
+        m_icons->add(vec[0], make_shared<label>(vec[1]));
+      }
     }
 
     try {
@@ -82,11 +83,12 @@ namespace modules {
       vector<shared_ptr<i3ipc::workspace_t>> sorted = workspaces;
       string focused_output;
 
-      for (auto&& workspace : workspaces)
+      for (auto&& workspace : workspaces) {
         if (workspace->focused) {
           focused_output = workspace->output;
           break;
         }
+      }
 
       if (m_indexsort) {
         using ws_t = shared_ptr<i3ipc::workspace_t>;
@@ -98,31 +100,35 @@ namespace modules {
       }
 
       for (auto&& workspace : sorted) {
-        if (m_pinworkspaces && workspace->output != m_bar.monitor->name)
+        if (m_pinworkspaces && workspace->output != m_bar.monitor->name) {
           continue;
+        }
 
         auto flag = i3_flag::WORKSPACE_NONE;
-        if (workspace->focused)
+        if (workspace->focused) {
           flag = i3_flag::WORKSPACE_FOCUSED;
-        else if (workspace->urgent)
+        } else if (workspace->urgent) {
           flag = i3_flag::WORKSPACE_URGENT;
-        else if (!workspace->visible || (workspace->visible && workspace->output != focused_output))
+        } else if (!workspace->visible || (workspace->visible && workspace->output != focused_output)) {
           flag = i3_flag::WORKSPACE_UNFOCUSED;
-        else
+        } else {
           flag = i3_flag::WORKSPACE_VISIBLE;
+        }
 
         string wsname{workspace->name};
 
         // Remove workspace numbers "0:"
-        if (m_strip_wsnumbers)
+        if (m_strip_wsnumbers) {
           wsname.erase(0, string_util::find_nth(wsname, 0, ":", 1) + 1);
+        }
 
         // Trim leading and trailing whitespace
         wsname = string_util::trim(wsname, ' ');
 
         // Cap at configured max length
-        if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen)
+        if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen) {
           wsname.erase(m_wsname_maxlen);
+        }
 
         auto icon = m_icons->get(workspace->name, DEFAULT_WS_ICON);
         auto label = m_statelabels.find(flag)->second->clone();
@@ -132,7 +138,7 @@ namespace modules {
         label->replace_token("%name%", wsname);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(workspace->num));
-        m_workspaces.emplace_back(make_unique<i3_workspace>(workspace->num, flag, std::move(label)));
+        m_workspaces.emplace_back(make_unique<i3_workspace>(workspace->num, flag, move(label)));
       }
 
       return true;
@@ -142,9 +148,10 @@ namespace modules {
     }
   }  // }}}
 
-  bool i3_module::build(builder* builder, string tag) const {  // {{{
-    if (tag != TAG_LABEL_STATE)
+  bool i3_module::build(builder* builder, const string& tag) const {  // {{{
+    if (tag != TAG_LABEL_STATE) {
       return false;
+    }
 
     if (m_scroll) {
       builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
@@ -153,11 +160,11 @@ namespace modules {
 
     for (auto&& ws : m_workspaces) {
       if (m_click) {
-        builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws.get()->index));
-        builder->node(ws.get()->label);
+        builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+        builder->node(ws->label);
         builder->cmd_close();
       } else {
-        builder->node(ws.get()->label);
+        builder->node(ws->label);
       }
     }
 
@@ -170,8 +177,9 @@ namespace modules {
   }  // }}}
 
   bool i3_module::handle_event(string cmd) {  // {{{
-    if (cmd.compare(0, 2, EVENT_PREFIX) != 0)
+    if (cmd.compare(0, 2, EVENT_PREFIX) != 0) {
       return false;
+    }
 
     try {
       i3_util::connection_t ipc;

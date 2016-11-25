@@ -15,7 +15,7 @@ enum class loglevel {
   TRACE,
 };
 
-loglevel parse_loglevel_name(string name);
+loglevel parse_loglevel_name(const string& name);
 
 class logger {
  public:

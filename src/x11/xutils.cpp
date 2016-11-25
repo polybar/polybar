@@ -10,8 +10,9 @@ namespace xutils {
   xcb_connection_t* get_connection() {
     if (g_connection_ptr == nullptr) {
       Display* dsp;
-      if ((dsp = xlib::get_display()) == nullptr)
+      if ((dsp = xlib::get_display()) == nullptr) {
         return nullptr;
+      }
       XSetEventQueueOwner(dsp, XCBOwnsEventQueue);
       g_connection_ptr = XGetXCBConnection(dsp);
     }

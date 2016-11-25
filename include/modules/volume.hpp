@@ -24,7 +24,7 @@ namespace modules {
     bool update();
     string get_format() const;
     string get_output();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);
     bool receive_events() const;
 
@@ -49,8 +49,8 @@ namespace modules {
     label_t m_label_volume;
     label_t m_label_muted;
 
-    map<mixer, mixer_t> m_mixers;
-    map<control, control_t> m_controls;
+    map<mixer, mixer_t> m_mixer;
+    map<control, control_t> m_ctrl;
     int m_headphoneid{0};
     bool m_mapped{false};
     stateflag m_muted{false};

@@ -27,37 +27,46 @@ namespace modules {
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", adapter) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", battery) + "/";
 
-    if (!file_util::exists(path_adapter + "online"))
+    if (!file_util::exists(path_adapter + "online")) {
       throw module_error("The file '" + path_adapter + "online' does not exist");
+    }
     m_valuepath[battery_value::ADAPTER] = path_adapter + "online";
 
-    if (!file_util::exists(path_battery + "capacity"))
+    if (!file_util::exists(path_battery + "capacity")) {
       throw module_error("The file '" + path_battery + "capacity' does not exist");
+    }
     m_valuepath[battery_value::CAPACITY_PERC] = path_battery + "capacity";
 
-    if (!file_util::exists(path_battery + "voltage_now"))
+    if (!file_util::exists(path_battery + "voltage_now")) {
       throw module_error("The file '" + path_battery + "voltage_now' does not exist");
+    }
     m_valuepath[battery_value::VOLTAGE] = path_battery + "voltage_now";
 
     for (auto&& file : vector<string>{"charge", "energy"}) {
-      if (file_util::exists(path_battery + file + "_now"))
+      if (file_util::exists(path_battery + file + "_now")) {
         m_valuepath[battery_value::CAPACITY] = path_battery + file + "_now";
-      if (file_util::exists(path_battery + file + "_full"))
+      }
+      if (file_util::exists(path_battery + file + "_full")) {
         m_valuepath[battery_value::CAPACITY_MAX] = path_battery + file + "_full";
+      }
     }
 
-    if (m_valuepath[battery_value::CAPACITY].empty())
+    if (m_valuepath[battery_value::CAPACITY].empty()) {
       throw module_error("The file '" + path_battery + "[charge|energy]_now' does not exist");
-    if (m_valuepath[battery_value::CAPACITY_MAX].empty())
+    }
+    if (m_valuepath[battery_value::CAPACITY_MAX].empty()) {
       throw module_error("The file '" + path_battery + "[charge|energy]_full' does not exist");
+    }
 
     for (auto&& file : vector<string>{"current", "power"}) {
-      if (file_util::exists(path_battery + file + "_now"))
+      if (file_util::exists(path_battery + file + "_now")) {
         m_valuepath[battery_value::RATE] = path_battery + file + "_now";
+      }
     }
 
-    if (m_valuepath[battery_value::RATE].empty())
+    if (m_valuepath[battery_value::RATE].empty()) {
       throw module_error("The file '" + path_battery + "[current|power]_now' does not exist");
+    }
 
     m_fullat = m_conf.get<int>(name(), "full-at", 100);
     m_interval = chrono::duration<double>{m_conf.get<float>(name(), "poll-interval", 5.0f)};
@@ -74,18 +83,24 @@ namespace modules {
         FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_DISCHARGING});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
-    if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING))
+    if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
-    if (m_formatter->has(TAG_BAR_CAPACITY))
+    }
+    if (m_formatter->has(TAG_BAR_CAPACITY)) {
       m_bar_capacity = load_progressbar(m_bar, m_conf, name(), TAG_BAR_CAPACITY);
-    if (m_formatter->has(TAG_RAMP_CAPACITY))
+    }
+    if (m_formatter->has(TAG_RAMP_CAPACITY)) {
       m_ramp_capacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
-    if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING))
+    }
+    if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
       m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%");
-    if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING))
+    }
+    if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
       m_label_discharging = load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%");
-    if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL))
+    }
+    if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%");
+    }
 
     // Create inotify watches
     watch(m_valuepath[battery_value::CAPACITY_PERC], IN_ACCESS);
@@ -93,8 +108,9 @@ namespace modules {
 
     // Setup time if token is used
     if (m_label_charging->has_token("%time%") || m_label_discharging->has_token("%time%")) {
-      if (!m_bar.locale.empty())
+      if (!m_bar.locale.empty()) {
         setlocale(LC_TIME, m_bar.locale.c_str());
+      }
       m_timeformat = m_conf.get<string>(name(), "time-format", "%H:%M:%S");
     }
   }
@@ -167,14 +183,16 @@ namespace modules {
     string time_remaining;
 
     if (m_state == battery_state::CHARGING && m_label_charging) {
-      if (!m_timeformat.empty())
+      if (!m_timeformat.empty()) {
         time_remaining = current_time();
+      }
       m_label_charging->reset_tokens();
       m_label_charging->replace_token("%percentage%", to_string(m_percentage) + "%");
       m_label_charging->replace_token("%time%", time_remaining);
     } else if (m_state == battery_state::DISCHARGING && m_label_discharging) {
-      if (!m_timeformat.empty())
+      if (!m_timeformat.empty()) {
         time_remaining = current_time();
+      }
       m_label_discharging->reset_tokens();
       m_label_discharging->replace_token("%percentage%", to_string(m_percentage) + "%");
       m_label_discharging->replace_token("%time%", time_remaining);
@@ -190,32 +208,34 @@ namespace modules {
    * Get the output format based on state
    */
   string battery_module::get_format() const {
-    if (m_state == battery_state::FULL)
+    if (m_state == battery_state::FULL) {
       return FORMAT_FULL;
-    else if (m_state == battery_state::CHARGING)
+    } else if (m_state == battery_state::CHARGING) {
       return FORMAT_CHARGING;
-    else
+    } else {
       return FORMAT_DISCHARGING;
+    }
   }
 
   /**
    * Generate the module output using defined drawtypes
    */
-  bool battery_module::build(builder* builder, string tag) const {
-    if (tag == TAG_ANIMATION_CHARGING)
+  bool battery_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_ANIMATION_CHARGING) {
       builder->node(m_animation_charging->get());
-    else if (tag == TAG_BAR_CAPACITY) {
+    } else if (tag == TAG_BAR_CAPACITY) {
       builder->node(m_bar_capacity->output(m_percentage));
-    } else if (tag == TAG_RAMP_CAPACITY)
+    } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_ramp_capacity->get_by_percentage(m_percentage));
-    else if (tag == TAG_LABEL_CHARGING)
+    } else if (tag == TAG_LABEL_CHARGING) {
       builder->node(m_label_charging);
-    else if (tag == TAG_LABEL_DISCHARGING)
+    } else if (tag == TAG_LABEL_DISCHARGING) {
       builder->node(m_label_discharging);
-    else if (tag == TAG_LABEL_FULL)
+    } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
-    else
+    } else {
       return false;
+    }
     return true;
   }
 
@@ -273,15 +293,16 @@ namespace modules {
     }
 
     struct tm t {
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr
     };
 
     if (rate && volt && cap) {
       cap = cap * 1000 / volt;
       rate = rate * 1000 / volt;
 
-      if (!rate)
+      if (!rate) {
         rate = -1;
+      }
 
       chrono::seconds sec{3600 * cap / rate};
 

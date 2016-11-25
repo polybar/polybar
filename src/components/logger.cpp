@@ -1,6 +1,9 @@
 #include <unistd.h>
 
+#include <utility>
+
 #include "components/logger.hpp"
+#include "errors.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -28,8 +31,9 @@ logger::logger(loglevel level) : m_level(level) {
  */
 void logger::verbosity(loglevel level) {
 #ifndef DEBUG
-  if (level == loglevel::TRACE)
+  if (level == loglevel::TRACE) {
     throw application_error("not a debug build: trace disabled...");
+  }
 #endif
   m_level = level;
 }
@@ -38,23 +42,24 @@ void logger::verbosity(loglevel level) {
  * Set output verbosity by loglevel name
  */
 void logger::verbosity(string level) {
-  verbosity(parse_loglevel_name(level));
+  verbosity(parse_loglevel_name(move(level)));
 }
 
 /**
  * Convert given loglevel name to its enum type counterpart
  */
-loglevel parse_loglevel_name(string name) {
-  if (string_util::compare(name, "error"))
+loglevel parse_loglevel_name(const string& name) {
+  if (string_util::compare(name, "error")) {
     return loglevel::ERROR;
-  else if (string_util::compare(name, "warning"))
+  } else if (string_util::compare(name, "warning")) {
     return loglevel::WARNING;
-  else if (string_util::compare(name, "info"))
+  } else if (string_util::compare(name, "info")) {
     return loglevel::INFO;
-  else if (string_util::compare(name, "trace"))
+  } else if (string_util::compare(name, "trace")) {
     return loglevel::TRACE;
-  else
+  } else {
     return loglevel::NONE;
+  }
 }
 
 POLYBAR_NS_END

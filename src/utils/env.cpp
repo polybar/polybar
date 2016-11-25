@@ -1,4 +1,5 @@
 #include <thread>
+#include <utility>
 
 #include "utils/env.hpp"
 
@@ -11,7 +12,7 @@ namespace env_util {
 
   string get(const char* var, string fallback) {
     const char* value{std::getenv(var)};
-    return value != nullptr ? value : fallback;
+    return value != nullptr ? value : move(fallback);
   }
 }
 

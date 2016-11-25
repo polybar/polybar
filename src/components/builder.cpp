@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "components/builder.hpp"
 
 #include "drawtypes/label.hpp"
@@ -12,20 +14,27 @@ POLYBAR_NS
  * This will also close any unclosed tags
  */
 string builder::flush() {
-  if (m_tags[syntaxtag::B])
+  if (m_tags[syntaxtag::B]) {
     background_close();
-  if (m_tags[syntaxtag::F])
+  }
+  if (m_tags[syntaxtag::F]) {
     color_close();
-  if (m_tags[syntaxtag::T])
+  }
+  if (m_tags[syntaxtag::T]) {
     font_close();
-  if (m_tags[syntaxtag::o])
+  }
+  if (m_tags[syntaxtag::o]) {
     overline_color_close();
-  if (m_tags[syntaxtag::u])
+  }
+  if (m_tags[syntaxtag::u]) {
     underline_color_close();
-  if ((m_attributes >> static_cast<uint8_t>(attribute::UNDERLINE)) & 1U)
+  }
+  if ((m_attributes >> static_cast<uint8_t>(attribute::UNDERLINE)) & 1U) {
     underline_close();
-  if ((m_attributes >> static_cast<uint8_t>(attribute::OVERLINE)) & 1U)
+  }
+  if ((m_attributes >> static_cast<uint8_t>(attribute::OVERLINE)) & 1U) {
     overline_close();
+  }
 
   while (m_tags[syntaxtag::A]) {
     cmd_close();
@@ -46,12 +55,13 @@ string builder::flush() {
  * Insert raw text string
  */
 void builder::append(string text) {
-  string str(text);
+  string str(move(text));
   size_t len{str.length()};
-  if (len > 2 && str[0] == '"' && str[len - 1] == '"')
+  if (len > 2 && str[0] == '"' && str[len - 1] == '"') {
     m_output += str.substr(1, len - 2);
-  else
+  } else {
     m_output += str;
+  }
 }
 
 /**
@@ -61,7 +71,7 @@ void builder::append(string text) {
  */
 void builder::node(string str, bool add_space) {
   string::size_type n, m;
-  string s(str);
+  string s(move(str));
 
   while (true) {
     if (s.empty()) {
@@ -71,18 +81,19 @@ void builder::node(string str, bool add_space) {
       color_close();
       s.erase(0, 5);
 
-    } else if ((n = s.find("%{F#")) == 0 && (m = s.find("}")) != string::npos) {
-      if (m - n - 4 == 2)
+    } else if ((n = s.find("%{F#")) == 0 && (m = s.find('}')) != string::npos) {
+      if (m - n - 4 == 2) {
         color_alpha(s.substr(n + 3, m - 3));
-      else
+      } else {
         color(s.substr(n + 3, m - 3));
+      }
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{B-}")) == 0) {
       background_close();
       s.erase(0, 5);
 
-    } else if ((n = s.find("%{B#")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{B#")) == 0 && (m = s.find('}')) != string::npos) {
       background(s.substr(n + 3, m - 3));
       s.erase(n, m + 1);
 
@@ -90,7 +101,7 @@ void builder::node(string str, bool add_space) {
       font_close();
       s.erase(0, 5);
 
-    } else if ((n = s.find("%{T")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{T")) == 0 && (m = s.find('}')) != string::npos) {
       font(std::atoi(s.substr(n + 3, m - 3).c_str()));
       s.erase(n, m + 1);
 
@@ -106,15 +117,15 @@ void builder::node(string str, bool add_space) {
       overline_color_close();
       s.erase(0, 5);
 
-    } else if ((n = s.find("%{u#")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{u#")) == 0 && (m = s.find('}')) != string::npos) {
       underline_color(s.substr(n + 3, m - 3));
       s.erase(n, m + 1);
 
-    } else if ((n = s.find("%{o#")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{o#")) == 0 && (m = s.find('}')) != string::npos) {
       overline_color(s.substr(n + 3, m - 3));
       s.erase(n, m + 1);
 
-    } else if ((n = s.find("%{U#")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{U#")) == 0 && (m = s.find('}')) != string::npos) {
       line_color(s.substr(n + 3, m - 3));
       s.erase(n, m + 1);
 
@@ -138,7 +149,7 @@ void builder::node(string str, bool add_space) {
       cmd_close();
       s.erase(0, 4);
 
-    } else if ((n = s.find("%{")) == 0 && (m = s.find("}")) != string::npos) {
+    } else if ((n = s.find("%{")) == 0 && (m = s.find('}')) != string::npos) {
       append(s.substr(n, m + 1));
       s.erase(n, m + 1);
 
@@ -146,14 +157,17 @@ void builder::node(string str, bool add_space) {
       append(s.substr(0, n));
       s.erase(0, n);
 
-    } else
+    } else {
       break;
+    }
   }
 
-  if (!s.empty())
+  if (!s.empty()) {
     append(s);
-  if (add_space)
+  }
+  if (add_space) {
     space();
+  }
 }
 
 /**
@@ -163,16 +177,17 @@ void builder::node(string str, bool add_space) {
  */
 void builder::node(string str, int font_index, bool add_space) {
   font(font_index);
-  node(str, add_space);
+  node(move(str), add_space);
   font_close();
 }
 
 /**
  * Insert tags for given label
  */
-void builder::node(label_t label, bool add_space) {
-  if (!label || !*label)
+void builder::node(const label_t& label, bool add_space) {
+  if (!label || !*label) {
     return;
+  }
 
   string text{label->get()};
 
@@ -186,50 +201,63 @@ void builder::node(label_t label, bool add_space) {
   //   underline_close();
 
   // TODO: Replace with margin-left
-  if (label->m_margin > 0)
+  if (label->m_margin > 0) {
     space(label->m_margin);
+  }
 
-  if (!label->m_overline.empty())
+  if (!label->m_overline.empty()) {
     overline(label->m_overline);
-  if (!label->m_underline.empty())
+  }
+  if (!label->m_underline.empty()) {
     underline(label->m_underline);
+  }
 
-  if (!label->m_background.empty())
+  if (!label->m_background.empty()) {
     background(label->m_background);
-  if (!label->m_foreground.empty())
+  }
+  if (!label->m_foreground.empty()) {
     color(label->m_foreground);
+  }
 
   // TODO: Replace with padding-left
-  if (label->m_padding > 0)
+  if (label->m_padding > 0) {
     space(label->m_padding);
+  }
 
   node(text, label->m_font, add_space);
 
   // TODO: Replace with padding-right
-  if (label->m_padding > 0)
+  if (label->m_padding > 0) {
     space(label->m_padding);
+  }
 
-  if (!label->m_background.empty())
+  if (!label->m_background.empty()) {
     background_close();
-  if (!label->m_foreground.empty())
+  }
+  if (!label->m_foreground.empty()) {
     color_close();
+  }
 
-  if (!label->m_underline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::u] > 0))
+  if (!label->m_underline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::u] > 0)) {
     underline_close();
-  if (!label->m_overline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::o] > 0))
+  }
+  if (!label->m_overline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::o] > 0)) {
     overline_close();
+  }
 
   // TODO: Replace with margin-right
-  if (label->m_margin > 0)
+  if (label->m_margin > 0) {
     space(label->m_margin);
+  }
 }
 
 /**
  * Insert tag that will offset the contents by given pixels
  */
 void builder::offset(int pixels) {
-  if (pixels == 0)
+  if (pixels == 0) {
     return;
+  }
   tag_open(syntaxtag::O, to_string(pixels));
 }
 
@@ -237,10 +265,12 @@ void builder::offset(int pixels) {
  * Insert spaces
  */
 void builder::space(int width) {
-  if (width == DEFAULT_SPACING)
+  if (width == DEFAULT_SPACING) {
     width = m_bar.spacing;
-  if (width <= 0)
+  }
+  if (width <= 0) {
     return;
+  }
   string str(width, ' ');
   append(str);
 }
@@ -249,14 +279,17 @@ void builder::space(int width) {
  * Remove trailing space
  */
 void builder::remove_trailing_space(int width) {
-  if (width == DEFAULT_SPACING)
+  if (width == DEFAULT_SPACING) {
     width = m_bar.spacing;
-  if (width <= 0)
+  }
+  if (width <= 0) {
     return;
+  }
   string::size_type spacing = width;
   string str(spacing, ' ');
-  if (m_output.length() >= spacing && m_output.substr(m_output.length() - spacing) == str)
+  if (m_output.length() >= spacing && m_output.substr(m_output.length() - spacing) == str) {
     m_output = m_output.substr(0, m_output.length() - spacing);
+  }
 }
 
 /**
@@ -279,7 +312,7 @@ void builder::font_close() {
  * Insert tag to alter the current background color
  */
 void builder::background(string color) {
-  if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
+  if (color.length() == 2 || (color.find('#') == 0 && color.length() == 3)) {
     string bg{background_hex()};
     color = "#" + color.substr(color.length() - 2);
     color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
@@ -304,7 +337,7 @@ void builder::background_close() {
  * Insert tag to alter the current foreground color
  */
 void builder::color(string color) {
-  if (color.length() == 2 || (color.find("#") == 0 && color.length() == 3)) {
+  if (color.length() == 2 || (color.find('#') == 0 && color.length() == 3)) {
     string fg{foreground_hex()};
     color = "#" + color.substr(color.length() - 2);
     color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
@@ -323,7 +356,7 @@ void builder::color(string color) {
 void builder::color_alpha(string alpha) {
   string val{foreground_hex()};
 
-  if (alpha.find("#") == std::string::npos) {
+  if (alpha.find('#') == std::string::npos) {
     alpha = "#" + alpha;
   }
 
@@ -350,7 +383,7 @@ void builder::color_close() {
 /**
  * Insert tag to alter the current overline/underline color
  */
-void builder::line_color(string color) {
+void builder::line_color(const string& color) {
   overline_color(color);
   underline_color(color);
 }
@@ -402,11 +435,12 @@ void builder::underline_color_close() {
 /**
  * Insert tag to enable the overline attribute
  */
-void builder::overline(string color) {
-  if (!color.empty())
+void builder::overline(const string& color) {
+  if (!color.empty()) {
     overline_color(color);
-  else
+  } else {
     tag_open(attribute::OVERLINE);
+  }
 }
 
 /**
@@ -419,11 +453,12 @@ void builder::overline_close() {
 /**
  * Insert tag to enable the underline attribute
  */
-void builder::underline(string color) {
-  if (!color.empty())
+void builder::underline(const string& color) {
+  if (!color.empty()) {
     underline_color(color);
-  else
+  } else {
     tag_open(attribute::UNDERLINE);
+  }
 }
 
 /**
@@ -439,8 +474,9 @@ void builder::underline_close() {
 void builder::cmd(mousebtn index, string action, bool condition) {
   int button = static_cast<int>(index);
 
-  if (!condition || action.empty())
+  if (!condition || action.empty()) {
     return;
+  }
 
   action = string_util::replace_all(action, ":", "\\:");
   action = string_util::replace_all(action, "$", "\\$");
@@ -462,8 +498,9 @@ void builder::cmd_close() {
  * Get default background hex string
  */
 string builder::background_hex() {
-  if (m_background.empty())
+  if (m_background.empty()) {
     m_background = color_util::hex<uint16_t>(m_bar.background);
+  }
   return m_background;
 }
 
@@ -471,17 +508,19 @@ string builder::background_hex() {
  * Get default foreground hex string
  */
 string builder::foreground_hex() {
-  if (m_foreground.empty())
+  if (m_foreground.empty()) {
     m_foreground = color_util::hex<uint16_t>(m_bar.foreground);
+  }
   return m_foreground;
 }
 
 /**
  * Insert directive to change value of given tag
  */
-void builder::tag_open(syntaxtag tag, string value) {
-  if (m_tags.find(tag) == m_tags.end())
+void builder::tag_open(syntaxtag tag, const string& value) {
+  if (m_tags.find(tag) == m_tags.end()) {
     m_tags[tag] = 0;
+  }
 
   m_tags[tag]++;
 
@@ -519,8 +558,9 @@ void builder::tag_open(syntaxtag tag, string value) {
  * Insert directive to use given attribute unless already set
  */
 void builder::tag_open(attribute attr) {
-  if ((m_attributes >> static_cast<uint8_t>(attr)) & 1U)
+  if ((m_attributes >> static_cast<uint8_t>(attr)) & 1U) {
     return;
+  }
 
   m_attributes |= 1U << static_cast<uint8_t>(attr);
 
@@ -540,8 +580,9 @@ void builder::tag_open(attribute attr) {
  * Insert directive to reset given tag if it's open and closable
  */
 void builder::tag_close(syntaxtag tag) {
-  if (m_tags.find(tag) == m_tags.end() || !m_tags[tag])
+  if (m_tags.find(tag) == m_tags.end() || !m_tags[tag]) {
     return;
+  }
 
   m_tags[tag]--;
 
@@ -577,8 +618,9 @@ void builder::tag_close(syntaxtag tag) {
  * Insert directive to remove given attribute if set
  */
 void builder::tag_close(attribute attr) {
-  if (!((m_attributes >> static_cast<uint8_t>(attr)) & 1U))
+  if (!((m_attributes >> static_cast<uint8_t>(attr)) & 1U)) {
     return;
+  }
 
   m_attributes &= ~(1U << static_cast<uint8_t>(attr));
 

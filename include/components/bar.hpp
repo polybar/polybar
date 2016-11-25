@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
+#include "errors.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/throttle.hpp"
 #include "x11/connection.hpp"
@@ -28,7 +29,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   const bar_settings settings() const;
 
-  void parse(string data, bool force = false);
+  void parse(const string& data, bool force = false);
 
  protected:
   void setup_monitor();

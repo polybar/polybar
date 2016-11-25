@@ -10,8 +10,8 @@ namespace drawtypes {
   class iconset : public non_copyable_mixin<iconset> {
    public:
     void add(string id, icon_t&& icon);
-    bool has(string id);
-    icon_t get(string id, string fallback_id = "");
+    bool has(const string& id);
+    icon_t get(const string& id, const string& fallback_id = "");
     operator bool();
 
    protected:

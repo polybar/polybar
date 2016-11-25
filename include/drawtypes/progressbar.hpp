@@ -12,7 +12,7 @@ POLYBAR_NS
 namespace drawtypes {
   class progressbar : public non_copyable_mixin<progressbar> {
    public:
-    explicit progressbar(const bar_settings bar, int width, string format);
+    explicit progressbar(const bar_settings& bar, int width, string format);
 
     void set_fill(icon_t&& fill);
     void set_empty(icon_t&& empty);
@@ -40,7 +40,7 @@ namespace drawtypes {
 
   using progressbar_t = shared_ptr<progressbar>;
 
-  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, string section, string name);
+  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name);
 }
 
 POLYBAR_NS_END

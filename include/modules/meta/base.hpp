@@ -9,6 +9,7 @@
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
+#include "errors.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
@@ -78,9 +79,9 @@ namespace modules {
     explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
-    bool has(string tag, string format_name);
-    bool has(string tag);
-    shared_ptr<module_format> get(string format_name);
+    bool has(const string& tag, const string& format_name);
+    bool has(const string& tag);
+    shared_ptr<module_format> get(const string& format_name);
 
    protected:
     const config& m_conf;

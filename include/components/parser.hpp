@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 
@@ -24,9 +25,9 @@ class parser {
  protected:
   uint32_t parse_color(string s, uint32_t fallback = 0);
   int8_t parse_fontindex(string s);
-  attribute parse_attr(const char s);
+  attribute parse_attr(const char attr);
   mousebtn parse_action_btn(string data);
-  string parse_action_cmd(string data);
+  string parse_action_cmd(const string& data);
 
  private:
   const logger& m_log;

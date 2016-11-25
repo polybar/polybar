@@ -7,7 +7,7 @@
 POLYBAR_NS
 
 namespace wm_util {
-  void set_wmname(connection& conn, xcb_window_t win, string wm_name, string wm_class) {
+  void set_wmname(connection& conn, xcb_window_t win, const string& wm_name, const string& wm_class) {
     xcb_icccm_set_wm_name(conn, win, XCB_ATOM_STRING, 8, wm_name.length(), wm_name.c_str());
     xcb_icccm_set_wm_class(conn, win, wm_class.length(), wm_class.c_str());
   }

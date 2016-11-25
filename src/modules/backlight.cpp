@@ -14,14 +14,15 @@ namespace modules {
   template class module<backlight_module>;
   template class inotify_module<backlight_module>;
 
-  void brightness_handle::filepath(string path) {
-    if (!file_util::exists(path))
+  void brightness_handle::filepath(const string& path) {
+    if (!file_util::exists(path)) {
       throw module_error("The file '" + path + "' does not exist");
+    }
     m_path = path;
   }
 
   float brightness_handle::read() const {
-    return std::strtof(file_util::get_contents(m_path).c_str(), 0);
+    return std::strtof(file_util::get_contents(m_path).c_str(), nullptr);
   }
 
   void backlight_module::setup() {
@@ -31,12 +32,15 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
-    if (m_formatter->has(TAG_LABEL))
+    if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
-    if (m_formatter->has(TAG_BAR))
+    }
+    if (m_formatter->has(TAG_BAR)) {
       m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
-    if (m_formatter->has(TAG_RAMP))
+    }
+    if (m_formatter->has(TAG_RAMP)) {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+    }
 
     // Build path to the file where the current/maximum brightness value is located
     m_val.filepath(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
@@ -51,8 +55,9 @@ namespace modules {
   }
 
   bool backlight_module::on_event(inotify_event* event) {
-    if (event != nullptr)
+    if (event != nullptr) {
       m_log.trace("%s: %s", name(), event->filename);
+    }
 
     m_percentage = static_cast<int>(m_val.read() / m_max.read() * 100.0f + 0.5f);
 
@@ -64,15 +69,16 @@ namespace modules {
     return true;
   }
 
-  bool backlight_module::build(builder* builder, string tag) const {
-    if (tag == TAG_BAR)
+  bool backlight_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_BAR) {
       builder->node(m_progressbar->output(m_percentage));
-    else if (tag == TAG_RAMP)
+    } else if (tag == TAG_RAMP) {
       builder->node(m_ramp->get_by_percentage(m_percentage));
-    else if (tag == TAG_LABEL)
+    } else if (tag == TAG_LABEL) {
       builder->node(m_label);
-    else
+    } else {
       return false;
+    }
     return true;
   }
 }

@@ -1,5 +1,7 @@
-#include "modules/meta/base.hpp"
+#include <utility>
+
 #include "components/builder.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -7,35 +9,48 @@ namespace modules {
   // module_format {{{
 
   string module_format::decorate(builder* builder, string output) {
-    if (offset != 0)
+    if (offset != 0) {
       builder->offset(offset);
-    if (margin > 0)
+    }
+    if (margin > 0) {
       builder->space(margin);
-    if (!bg.empty())
+    }
+    if (!bg.empty()) {
       builder->background(bg);
-    if (!fg.empty())
+    }
+    if (!fg.empty()) {
       builder->color(fg);
-    if (!ul.empty())
+    }
+    if (!ul.empty()) {
       builder->underline(ul);
-    if (!ol.empty())
+    }
+    if (!ol.empty()) {
       builder->overline(ol);
-    if (padding > 0)
+    }
+    if (padding > 0) {
       builder->space(padding);
+    }
 
-    builder->append(output);
+    builder->append(move(output));
 
-    if (padding > 0)
+    if (padding > 0) {
       builder->space(padding);
-    if (!ol.empty())
+    }
+    if (!ol.empty()) {
       builder->overline_close();
-    if (!ul.empty())
+    }
+    if (!ul.empty()) {
       builder->underline_close();
-    if (!fg.empty())
+    }
+    if (!fg.empty()) {
       builder->color_close();
-    if (!bg.empty())
+    }
+    if (!bg.empty()) {
       builder->background_close();
-    if (margin > 0)
+    }
+    if (margin > 0) {
       builder->space(margin);
+    }
 
     return builder->flush();
   }
@@ -46,7 +61,7 @@ namespace modules {
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
     auto format = make_unique<module_format>();
 
-    format->value = m_conf.get<string>(m_modname, name, fallback);
+    format->value = m_conf.get<string>(m_modname, name, move(fallback));
     format->fg = m_conf.get<string>(m_modname, name + "-foreground", "");
     format->bg = m_conf.get<string>(m_modname, name + "-background", "");
     format->ul = m_conf.get<string>(m_modname, name + "-underline", "");
@@ -58,36 +73,43 @@ namespace modules {
     format->tags.swap(tags);
 
     for (auto&& tag : string_util::split(format->value, ' ')) {
-      if (tag[0] != '<' || tag[tag.length() - 1] != '>')
+      if (tag[0] != '<' || tag[tag.length() - 1] != '>') {
         continue;
-      if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end())
+      }
+      if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end()) {
         continue;
-      if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end())
+      }
+      if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end()) {
         continue;
+      }
       throw undefined_format_tag("[" + m_modname + "] Undefined \"" + name + "\" tag: " + tag);
     }
 
     m_formats.insert(make_pair(name, move(format)));
   }
 
-  bool module_formatter::has(string tag, string format_name) {
+  bool module_formatter::has(const string& tag, const string& format_name) {
     auto format = m_formats.find(format_name);
-    if (format == m_formats.end())
-      throw undefined_format(format_name.c_str());
+    if (format == m_formats.end()) {
+      throw undefined_format(format_name);
+    }
     return format->second->value.find(tag) != string::npos;
   }
 
-  bool module_formatter::has(string tag) {
-    for (auto&& format : m_formats)
-      if (format.second->value.find(tag) != string::npos)
+  bool module_formatter::has(const string& tag) {
+    for (auto&& format : m_formats) {
+      if (format.second->value.find(tag) != string::npos) {
         return true;
+      }
+    }
     return false;
   }
 
-  shared_ptr<module_format> module_formatter::get(string format_name) {
+  shared_ptr<module_format> module_formatter::get(const string& format_name) {
     auto format = m_formats.find(format_name);
-    if (format == m_formats.end())
+    if (format == m_formats.end()) {
       throw undefined_format("Format \"" + format_name + "\" has not been added");
+    }
     return format->second;
   }
 

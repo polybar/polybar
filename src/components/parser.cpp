@@ -39,12 +39,13 @@ void parser::operator()(string data) {
   m_log.trace_x("parser: %s", data);
 
   while (data.length()) {
-    if (data.compare(0, 2, "%{") == 0 && (pos = data.find("}")) != string::npos) {
+    if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
       codeblock(data.substr(2, pos - 2));
       data.erase(0, pos + 1);
     } else {
-      if ((pos = data.find("%{")) == string::npos)
+      if ((pos = data.find("%{")) == string::npos) {
         pos = data.length();
+      }
       data.erase(0, text(data.substr(0, pos)));
     }
   }
@@ -63,8 +64,9 @@ void parser::codeblock(string data) {
   while (data.length()) {
     data = string_util::ltrim(data, ' ');
 
-    if (data.empty())
+    if (data.empty()) {
       break;
+    }
 
     char tag{data[0]};
     string value;
@@ -72,10 +74,11 @@ void parser::codeblock(string data) {
     // Remove the tag
     data.erase(0, 1);
 
-    if ((pos = data.find_first_of(" }")) != string::npos)
+    if ((pos = data.find_first_of(" }")) != string::npos) {
       value = data.substr(0, pos);
-    else
+    } else {
       value = data;
+    }
 
     switch (tag) {
       case 'B':
@@ -145,8 +148,9 @@ void parser::codeblock(string data) {
           g_signals::parser::action_block_open(btn, value);
 
           // make sure we strip the correct length (btn+wrapping colons)
-          if (value[0] != ':')
+          if (value[0] != ':') {
             value += "0";
+          }
           value += "::";
         } else if (!m_actions.empty()) {
           g_signals::parser::action_block_close(parse_action_btn(value));
@@ -158,8 +162,9 @@ void parser::codeblock(string data) {
         throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
     }
 
-    if (!data.empty())
+    if (!data.empty()) {
       data.erase(0, !value.empty() ? value.length() : 1);
+    }
   }
 }
 
@@ -176,8 +181,9 @@ size_t parser::text(string data) {
       data.erase(next_tag);
     }
     size_t n = 0;
-    while (utf[n] != '\0' && utf[++n] < 0x80)
+    while (utf[n] != '\0' && utf[++n] < 0x80) {
       ;
+    }
     g_signals::parser::string_write(data.substr(0, n).c_str(), n);
     return n;
   } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
@@ -206,8 +212,9 @@ size_t parser::text(string data) {
  */
 uint32_t parser::parse_color(string s, uint32_t fallback) {
   uint32_t color{0};
-  if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback)
+  if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback) {
     return fallback;
+  }
   return color_util::premultiply_alpha(color);
 }
 
@@ -220,7 +227,7 @@ int8_t parser::parse_fontindex(string s) {
   }
 
   try {
-    return std::stoul(s.c_str(), nullptr, 10);
+    return std::stoul(s, nullptr, 10);
   } catch (const std::invalid_argument& err) {
     return -1;
   }
@@ -244,25 +251,28 @@ attribute parser::parse_attr(const char attr) {
  * Process action button token and convert it to the correct value
  */
 mousebtn parser::parse_action_btn(string data) {
-  if (data[0] == ':')
+  if (data[0] == ':') {
     return mousebtn::LEFT;
-  else if (isdigit(data[0]))
+  } else if (isdigit(data[0])) {
     return static_cast<mousebtn>(data[0] - '0');
-  else if (!m_actions.empty())
+  } else if (!m_actions.empty()) {
     return static_cast<mousebtn>(m_actions.back());
-  else
+  } else {
     return mousebtn::NONE;
+  }
 }
 
 /**
  * Process action command string
  */
-string parser::parse_action_cmd(string data) {
+string parser::parse_action_cmd(const string& data) {
   size_t start, end;
-  if ((start = data.find(':')) == string::npos)
+  if ((start = data.find(':')) == string::npos) {
     return "";
-  if ((end = data.find(':', start + 1)) == string::npos)
+  }
+  if ((end = data.find(':', start + 1)) == string::npos) {
     return "";
+  }
   return string_util::trim(data.substr(start, end), ':');
 }
 

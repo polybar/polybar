@@ -24,14 +24,16 @@ namespace modules {
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
 
-    if (!m_formatter->has(TAG_MENU))
+    if (!m_formatter->has(TAG_MENU)) {
       return;
+    }
 
     while (true) {
       string level_param{"menu-" + to_string(m_levels.size())};
 
-      if (m_conf.get<string>(name(), level_param + "-0", "").empty())
+      if (m_conf.get<string>(name(), level_param + "-0", "").empty()) {
         break;
+      }
 
       m_log.trace("%s: Creating menu level %i", name(), m_levels.size());
       m_levels.emplace_back(make_unique<menu_tree>());
@@ -39,19 +41,20 @@ namespace modules {
       while (true) {
         string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
 
-        if (m_conf.get<string>(name(), item_param, "").empty())
+        if (m_conf.get<string>(name(), item_param, "").empty()) {
           break;
+        }
 
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
         auto item = make_unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
         item->exec = m_conf.get<string>(name(), item_param + "-exec", EVENT_MENU_CLOSE);
-        m_levels.back()->items.emplace_back(std::move(item));
+        m_levels.back()->items.emplace_back(move(item));
       }
     }
   }
 
-  bool menu_module::build(builder* builder, string tag) const {
+  bool menu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
       builder->cmd(mousebtn::LEFT, string(EVENT_MENU_OPEN) + "0");
       builder->node(m_labelopen);
@@ -62,10 +65,12 @@ namespace modules {
       builder->cmd_close();
     } else if (tag == TAG_MENU && m_level > -1) {
       for (auto&& item : m_levels[m_level]->items) {
-        if (item != m_levels[m_level]->items.front())
+        if (item != m_levels[m_level]->items.front()) {
           builder->space();
-        if (*m_labelseparator)
+        }
+        if (*m_labelseparator) {
           builder->node(m_labelseparator, true);
+        }
         builder->cmd(mousebtn::LEFT, item->exec);
         builder->node(item->label);
         builder->cmd_close();
@@ -77,16 +82,19 @@ namespace modules {
   }
 
   bool menu_module::handle_event(string cmd) {
-    if (cmd.compare(0, 4, "menu") != 0)
+    if (cmd.compare(0, 4, "menu") != 0) {
       return false;
+    }
 
     // broadcast update when leaving leaving the function
     auto exit_handler = scope_util::make_exit_handler<>([this]() {
       if (!m_threads.empty()) {
         m_log.trace("%s: Cleaning up previous broadcast threads", name());
-        for (auto&& thread : m_threads)
-          if (thread.joinable())
+        for (auto&& thread : m_threads) {
+          if (thread.joinable()) {
             thread.join();
+          }
+        }
         m_threads.clear();
       }
 
@@ -97,9 +105,9 @@ namespace modules {
     if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
       auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
 
-      if (level.empty())
+      if (level.empty()) {
         level = "0";
-
+      }
       m_level = std::atoi(level.c_str());
       m_log.info("%s: Opening menu level '%i'", name(), static_cast<int>(m_level));
 

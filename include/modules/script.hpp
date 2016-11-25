@@ -24,7 +24,7 @@ namespace modules {
     bool has_event();
     bool update();
     string get_output();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    protected:
     static constexpr auto TAG_OUTPUT = "<output>";

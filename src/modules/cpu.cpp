@@ -19,14 +19,18 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
-    if (m_formatter->has(TAG_BAR_LOAD))
+    if (m_formatter->has(TAG_BAR_LOAD)) {
       m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
-    if (m_formatter->has(TAG_RAMP_LOAD))
+    }
+    if (m_formatter->has(TAG_RAMP_LOAD)) {
       m_rampload = load_ramp(m_conf, name(), TAG_RAMP_LOAD);
-    if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE))
+    }
+    if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE)) {
       m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
-    if (m_formatter->has(TAG_LABEL))
+    }
+    if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
+    }
 
     // warmup
     read_values();
@@ -34,16 +38,18 @@ namespace modules {
   }
 
   bool cpu_module::update() {
-    if (!read_values())
+    if (!read_values()) {
       return false;
+    }
 
     m_total = 0.0f;
     m_load.clear();
 
     auto cores_n = m_cputimes.size();
 
-    if (!cores_n)
+    if (!cores_n) {
       return false;
+    }
 
     for (size_t i = 0; i < cores_n; i++) {
       auto load = get_load(i);
@@ -61,23 +67,25 @@ namespace modules {
     return true;
   }
 
-  bool cpu_module::build(builder* builder, string tag) const {
-    if (tag == TAG_LABEL)
+  bool cpu_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_LABEL) {
       builder->node(m_label);
-    else if (tag == TAG_BAR_LOAD)
+    } else if (tag == TAG_BAR_LOAD) {
       builder->node(m_barload->output(m_total));
-    else if (tag == TAG_RAMP_LOAD)
+    } else if (tag == TAG_RAMP_LOAD) {
       builder->node(m_rampload->get_by_percentage(m_total));
-    else if (tag == TAG_RAMP_LOAD_PER_CORE) {
+    } else if (tag == TAG_RAMP_LOAD_PER_CORE) {
       auto i = 0;
       for (auto&& load : m_load) {
-        if (i++ > 0)
+        if (i++ > 0) {
           builder->space(1);
+        }
         builder->node(m_rampload_core->get_by_percentage(load));
       }
       builder->node(builder->flush());
-    } else
+    } else {
       return false;
+    }
     return true;
   }
 
@@ -91,16 +99,17 @@ namespace modules {
 
       while (std::getline(in, str) && str.compare(0, 3, "cpu") == 0) {
         // skip line with accumulated value
-        if (str.compare(0, 4, "cpu ") == 0)
+        if (str.compare(0, 4, "cpu ") == 0) {
           continue;
+        }
 
         auto values = string_util::split(str, ' ');
 
         m_cputimes.emplace_back(new cpu_time);
-        m_cputimes.back()->user = std::stoull(values[1].c_str(), 0, 10);
-        m_cputimes.back()->nice = std::stoull(values[2].c_str(), 0, 10);
-        m_cputimes.back()->system = std::stoull(values[3].c_str(), 0, 10);
-        m_cputimes.back()->idle = std::stoull(values[4].c_str(), 0, 10);
+        m_cputimes.back()->user = std::stoull(values[1], nullptr, 10);
+        m_cputimes.back()->nice = std::stoull(values[2], nullptr, 10);
+        m_cputimes.back()->system = std::stoull(values[3], nullptr, 10);
+        m_cputimes.back()->idle = std::stoull(values[4], nullptr, 10);
         m_cputimes.back()->total =
             m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system + m_cputimes.back()->idle;
       }
@@ -112,10 +121,11 @@ namespace modules {
   }
 
   float cpu_module::get_load(size_t core) const {
-    if (m_cputimes.empty() || m_cputimes_prev.empty())
+    if (m_cputimes.empty() || m_cputimes_prev.empty()) {
       return 0;
-    else if (core >= m_cputimes.size() || core >= m_cputimes_prev.size())
+    } else if (core >= m_cputimes.size() || core >= m_cputimes_prev.size()) {
       return 0;
+    }
 
     auto& last = m_cputimes[core];
     auto& prev = m_cputimes_prev[core];
@@ -125,8 +135,9 @@ namespace modules {
 
     auto diff = last->total - prev->total;
 
-    if (diff == 0)
+    if (diff == 0) {
       return 0;
+    }
 
     float percentage = 100.0f * (diff - (last_idle - prev_idle)) / diff;
 

@@ -1,5 +1,6 @@
 #include <cassert>
 #include <thread>
+#include <utility>
 
 #include "adapters/mpd.hpp"
 #include "components/logger.hpp"
@@ -9,15 +10,17 @@ POLYBAR_NS
 
 namespace mpd {
   void check_connection(mpd_connection* conn) {
-    if (conn == nullptr)
+    if (conn == nullptr) {
       throw client_error("Not connected to MPD server", MPD_ERROR_STATE);
+    }
   }
 
   void check_errors(mpd_connection* conn) {
     mpd_error code = mpd_connection_get_error(conn);
 
-    if (code == MPD_ERROR_SUCCESS)
+    if (code == MPD_ERROR_SUCCESS) {
       return;
+    }
 
     auto msg = mpd_connection_get_error_message(conn);
 
@@ -34,8 +37,9 @@ namespace mpd {
 
   namespace details {
     void mpd_connection_deleter::operator()(mpd_connection* conn) {
-      if (conn != nullptr)
+      if (conn != nullptr) {
         mpd_connection_free(conn);
+      }
     }
 
     void mpd_status_deleter::operator()(mpd_status* status) {
@@ -51,30 +55,33 @@ namespace mpd {
   // class: mpdsong {{{
 
   mpdsong::operator bool() {
-    return m_song.get() != nullptr;
+    return m_song != nullptr;
   }
 
   string mpdsong::get_artist() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ARTIST, 0);
-    if (tag == nullptr)
+    if (tag == nullptr) {
       return "";
+    }
     return string{tag};
   }
 
   string mpdsong::get_album() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ALBUM, 0);
-    if (tag == nullptr)
+    if (tag == nullptr) {
       return "";
+    }
     return string{tag};
   }
 
   string mpdsong::get_title() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_TITLE, 0);
-    if (tag == nullptr)
+    if (tag == nullptr) {
       return "";
+    }
     return string{tag};
   }
 
@@ -88,7 +95,7 @@ namespace mpd {
 
   mpdconnection::mpdconnection(
       const logger& logger, string host, unsigned int port, string password, unsigned int timeout)
-      : m_log(logger), m_host(host), m_port(port), m_password(password), m_timeout(timeout) {}
+      : m_log(logger), m_host(move(host)), m_port(port), m_password(move(password)), m_timeout(timeout) {}
 
   void mpdconnection::connect() {
     try {
@@ -118,14 +125,16 @@ namespace mpd {
   }
 
   bool mpdconnection::connected() {
-    if (!m_connection)
+    if (!m_connection) {
       return false;
-    return m_connection.get() != nullptr;
+    }
+    return m_connection != nullptr;
   }
 
   bool mpdconnection::retry_connection(int interval) {
-    if (connected())
+    if (connected()) {
       return true;
+    }
 
     while (true) {
       try {
@@ -146,8 +155,9 @@ namespace mpd {
 
   void mpdconnection::idle() {
     check_connection(m_connection.get());
-    if (m_idle)
+    if (m_idle) {
       return;
+    }
     mpd_send_idle(m_connection.get());
     check_errors(m_connection.get());
     m_idle = true;
@@ -188,8 +198,8 @@ namespace mpd {
     mpd_song_t song{mpd_recv_song(m_connection.get()), mpd_song_t::deleter_type{}};
     mpd_response_finish(m_connection.get());
     check_errors(m_connection.get());
-    if (song.get() != nullptr) {
-      return make_unique<mpdsong>(std::move(song));
+    if (song != nullptr) {
+      return make_unique<mpdsong>(move(song));
     }
     return unique_ptr<mpdsong>{};
   }
@@ -314,8 +324,9 @@ namespace mpd {
 
   mpdstatus::mpdstatus(mpdconnection* conn, bool autoupdate) {
     fetch_data(conn);
-    if (autoupdate)
+    if (autoupdate) {
       update(-1, conn);
+    }
   }
 
   void mpdstatus::fetch_data(mpdconnection* conn) {
@@ -331,8 +342,9 @@ namespace mpd {
   }
 
   void mpdstatus::update(int event, mpdconnection* connection) {
-    if (connection == nullptr || (event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_PLAYLIST)) == false)
+    if (connection == nullptr || !static_cast<bool>(event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_PLAYLIST))) {
       return;
+    }
 
     fetch_data(connection);
 
@@ -396,8 +408,9 @@ namespace mpd {
   }
 
   unsigned mpdstatus::get_elapsed_percentage() {
-    if (m_total_time == 0)
+    if (m_total_time == 0) {
       return 0;
+    }
     return static_cast<int>(float(m_elapsed_time) / float(m_total_time) * 100.0 + 0.5f);
   }
 
@@ -414,8 +427,9 @@ namespace mpd {
   }
 
   int mpdstatus::get_seek_position(int percentage) {
-    if (m_total_time == 0)
+    if (m_total_time == 0) {
       return 0;
+    }
     math_util::cap<int>(0, 100, percentage);
     return float(m_total_time) * percentage / 100.0f + 0.5f;
   }

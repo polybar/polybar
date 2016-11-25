@@ -1,5 +1,7 @@
 #include <iomanip>
+#include <utility>
 
+#include "errors.hpp"
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "x11/color.hpp"
@@ -70,7 +72,7 @@ color color::parse(string input, color fallback) {
 }
 
 color color::parse(string input) {
-  return parse(input, g_colorempty);
+  return parse(move(input), g_colorempty);
 }
 
 POLYBAR_NS_END

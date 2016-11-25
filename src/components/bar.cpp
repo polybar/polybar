@@ -71,8 +71,9 @@ void bar::bootstrap(bool nodraw) {
     m_opts.wmname = m_conf.get<string>(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
     m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
-    if (m_conf.get<bool>(bs, "bottom", false))
+    if (m_conf.get<bool>(bs, "bottom", false)) {
       m_opts.origin = edge::BOTTOM;
+    }
 
     GET_CONFIG_VALUE(bs, m_opts.force_docking, "dock");
     GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
@@ -196,14 +197,15 @@ void bar::bootstrap_tray() {
   auto bs = m_conf.bar_section();
   auto tray_position = m_conf.get<string>(bs, "tray-position", "");
 
-  if (tray_position == "left")
+  if (tray_position == "left") {
     settings.align = alignment::LEFT;
-  else if (tray_position == "right")
+  } else if (tray_position == "right") {
     settings.align = alignment::RIGHT;
-  else if (tray_position == "center")
+  } else if (tray_position == "center") {
     settings.align = alignment::CENTER;
-  else
+  } else {
     settings.align = alignment::NONE;
+  }
 
   if (settings.align == alignment::NONE) {
     m_log.warn("Disabling tray manager (reason: disabled in config)");
@@ -275,12 +277,12 @@ void bar::bootstrap_tray() {
   auto offset_x = atoi(offset_x_def.c_str());
   auto offset_y = atoi(offset_y_def.c_str());
 
-  if (offset_x != 0 && offset_x_def.find("%") != string::npos) {
+  if (offset_x != 0 && offset_x_def.find('%') != string::npos) {
     offset_x = math_util::percentage_to_value<int>(offset_x, m_opts.monitor->w);
     offset_x -= settings.width / 2;
   }
 
-  if (offset_y != 0 && offset_y_def.find("%") != string::npos) {
+  if (offset_y != 0 && offset_y_def.find('%') != string::npos) {
     offset_y = math_util::percentage_to_value<int>(offset_y, m_opts.monitor->h);
     offset_y -= settings.width / 2;
   }
@@ -348,25 +350,27 @@ const bar_settings bar::settings() const {
  * @param data Input string
  * @param force Unless true, do not parse unchanged data
  */
-void bar::parse(string data, bool force) {
+void bar::parse(const string& data, bool force) {
   if (!m_mutex.try_lock()) {
     return;
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
-  if (data == m_lastinput && !force)
+  if (data == m_lastinput && !force) {
     return;
+  }
 
   m_lastinput = data;
 
   m_renderer->begin();
 
   if (m_trayclients) {
-    if (m_tray && m_trayalign == alignment::LEFT)
+    if (m_tray && m_trayalign == alignment::LEFT) {
       m_renderer->reserve_space(edge::LEFT, m_tray->settings().configured_w);
-    else if (m_tray && m_trayalign == alignment::RIGHT)
+    } else if (m_tray && m_trayalign == alignment::RIGHT) {
       m_renderer->reserve_space(edge::RIGHT, m_tray->settings().configured_w);
+    }
   }
 
   m_renderer->fill_background();
@@ -394,22 +398,22 @@ void bar::configure_geom() {
   auto offsety = m_conf.get<string>(m_conf.bar_section(), "offset-y", "");
 
   // look for user-defined width
-  if ((m_opts.size.w = atoi(w.c_str())) && w.find("%") != string::npos) {
+  if ((m_opts.size.w = atoi(w.c_str())) && w.find('%') != string::npos) {
     m_opts.size.w = math_util::percentage_to_value<int>(m_opts.size.w, m_opts.monitor->w);
   }
 
   // look for user-defined  height
-  if ((m_opts.size.h = atoi(h.c_str())) && h.find("%") != string::npos) {
+  if ((m_opts.size.h = atoi(h.c_str())) && h.find('%') != string::npos) {
     m_opts.size.h = math_util::percentage_to_value<int>(m_opts.size.h, m_opts.monitor->h);
   }
 
   // look for user-defined offset-x
-  if ((m_opts.offset.x = atoi(offsetx.c_str())) != 0 && offsetx.find("%") != string::npos) {
+  if ((m_opts.offset.x = atoi(offsetx.c_str())) != 0 && offsetx.find('%') != string::npos) {
     m_opts.offset.x = math_util::percentage_to_value<int>(m_opts.offset.x, m_opts.monitor->w);
   }
 
   // look for user-defined offset-y
-  if ((m_opts.offset.y = atoi(offsety.c_str())) != 0 && offsety.find("%") != string::npos) {
+  if ((m_opts.offset.y = atoi(offsety.c_str())) != 0 && offsety.find('%') != string::npos) {
     m_opts.offset.y = math_util::percentage_to_value<int>(m_opts.offset.y, m_opts.monitor->h);
   }
 
@@ -421,13 +425,16 @@ void bar::configure_geom() {
   m_opts.size.h += m_opts.borders[edge::TOP].size;
   m_opts.size.h += m_opts.borders[edge::BOTTOM].size;
 
-  if (m_opts.origin == edge::BOTTOM)
+  if (m_opts.origin == edge::BOTTOM) {
     m_opts.pos.y = m_opts.monitor->y + m_opts.monitor->h - m_opts.size.h - m_opts.offset.y;
+  }
 
-  if (m_opts.size.w <= 0 || m_opts.size.w > m_opts.monitor->w)
+  if (m_opts.size.w <= 0 || m_opts.size.w > m_opts.monitor->w) {
     throw application_error("Resulting bar width is out of bounds");
-  if (m_opts.size.h <= 0 || m_opts.size.h > m_opts.monitor->h)
+  }
+  if (m_opts.size.h <= 0 || m_opts.size.h > m_opts.monitor->h) {
     throw application_error("Resulting bar height is out of bounds");
+  }
 
   m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
   m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
@@ -604,10 +611,11 @@ void bar::handle(const evt::button_press& evt) {
     m_log.trace_x("action.start_x = %i", action.start_x);
     m_log.trace_x("action.end_x = %i", action.end_x);
 
-    if (g_signals::bar::action_click)
+    if (g_signals::bar::action_click) {
       g_signals::bar::action_click(action.command);
-    else
+    } else {
       m_log.warn("No signal handler's connected to 'action_click'");
+    }
 
     return;
   }
@@ -652,14 +660,15 @@ void bar::handle(const evt::property_notify& evt) {
 
     try {
       auto attr = m_connection.get_window_attributes(m_window);
-      if (attr->map_state == XCB_MAP_STATE_VIEWABLE)
+      if (attr->map_state == XCB_MAP_STATE_VIEWABLE) {
         g_signals::bar::visibility_change(true);
-      else if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE)
+      } else if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE) {
         g_signals::bar::visibility_change(false);
-      else if (attr->map_state == XCB_MAP_STATE_UNMAPPED)
+      } else if (attr->map_state == XCB_MAP_STATE_UNMAPPED) {
         g_signals::bar::visibility_change(false);
-      else
+      } else {
         g_signals::bar::visibility_change(true);
+      }
     } catch (const exception& err) {
       m_log.warn("Failed to emit bar window's visibility change event");
     }

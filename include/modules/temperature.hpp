@@ -17,7 +17,7 @@ namespace modules {
     void setup();
     bool update();
     string get_format() const;
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

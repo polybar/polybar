@@ -90,30 +90,39 @@ void ipc::parse(const string& payload) const {
  * Send ipc message to attached listeners
  */
 void ipc::delegate(const ipc_command& message) const {
-  if (!m_command_callbacks.empty())
-    for (auto&& callback : m_command_callbacks) callback(message);
-  else
+  if (!m_command_callbacks.empty()) {
+    for (auto&& callback : m_command_callbacks) {
+      callback(message);
+    }
+  } else {
     m_log.warn("Unhandled message (payload=%s)", message.payload);
+  }
 }
 
 /**
  * Send ipc message to attached listeners
  */
 void ipc::delegate(const ipc_hook& message) const {
-  if (!m_hook_callbacks.empty())
-    for (auto&& callback : m_hook_callbacks) callback(message);
-  else
+  if (!m_hook_callbacks.empty()) {
+    for (auto&& callback : m_hook_callbacks) {
+      callback(message);
+    }
+  } else {
     m_log.warn("Unhandled message (payload=%s)", message.payload);
+  }
 }
 
 /**
  * Send ipc message to attached listeners
  */
 void ipc::delegate(const ipc_action& message) const {
-  if (!m_action_callbacks.empty())
-    for (auto&& callback : m_action_callbacks) callback(message);
-  else
+  if (!m_action_callbacks.empty()) {
+    for (auto&& callback : m_action_callbacks) {
+      callback(message);
+    }
+  } else {
     m_log.warn("Unhandled message (payload=%s)", message.payload);
+  }
 }
 
 POLYBAR_NS_END

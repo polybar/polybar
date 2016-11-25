@@ -12,6 +12,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 
@@ -20,7 +21,7 @@ namespace chrono = std::chrono;
 namespace net {
   DEFINE_ERROR(network_error);
 
-  bool is_wireless_interface(string ifname);
+  bool is_wireless_interface(const string& ifname);
 
   // types {{{
 

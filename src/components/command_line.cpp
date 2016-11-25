@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <utility>
 
 #include "components/command_line.hpp"
 
@@ -16,8 +17,8 @@ void cliparser::usage() const {
   // which is used to align the description fields
   size_t maxlen{0};
 
-  for (auto it = m_opts.begin(); it != m_opts.end(); ++it) {
-    size_t len{it->flag_long.length() + it->flag.length() + 4};
+  for (const auto& m_opt : m_opts) {
+    size_t len{m_opt.flag_long.length() + m_opt.flag.length() + 4};
     maxlen = len > maxlen ? len : maxlen;
   }
 
@@ -72,60 +73,62 @@ bool cliparser::has(const string& option) const {
  * Gets the value defined for given option
  */
 string cliparser::get(string opt) const {
-  if (has(forward<string>(opt)))
+  if (has(forward<string>(opt))) {
     return m_optvalues.find(opt)->second;
+  }
   return "";
 }
 
 /**
  * Compare option value with given string
  */
-bool cliparser::compare(string opt, string val) const {
-  return get(opt) == val;
+bool cliparser::compare(string opt, const string& val) const {
+  return get(move(opt)) == val;
 }
 
 /**
  * Compare option with its short version
  */
-auto cliparser::is_short(string option, string opt_short) const {
+auto cliparser::is_short(const string& option, const string& opt_short) const {
   return option.compare(0, opt_short.length(), opt_short) == 0;
 }
 
 /**
  * Compare option with its long version
  */
-auto cliparser::is_long(string option, string opt_long) const {
+auto cliparser::is_long(const string& option, const string& opt_long) const {
   return option.compare(0, opt_long.length(), opt_long) == 0;
 }
 
 /**
  * Compare option with both versions
  */
-auto cliparser::is(string option, string opt_short, string opt_long) const {
-  return is_short(option, opt_short) || is_long(option, opt_long);
+auto cliparser::is(const string& option, string opt_short, string opt_long) const {
+  return is_short(option, move(opt_short)) || is_long(option, move(opt_long));
 }
 
 /**
  * Parse option value
  */
-auto cliparser::parse_value(string input, string input_next, choices values) const {
-  string opt = input;
+auto cliparser::parse_value(string input, const string& input_next, choices values) const {
+  string opt = move(input);
   size_t pos;
   string value;
 
-  if (input_next.empty() && opt.compare(0, 2, "--") != 0)
+  if (input_next.empty() && opt.compare(0, 2, "--") != 0) {
     throw value_error("Missing value for " + opt);
-  else if ((pos = opt.find("=")) == string::npos && opt.compare(0, 2, "--") == 0)
+  } else if ((pos = opt.find('=')) == string::npos && opt.compare(0, 2, "--") == 0) {
     throw value_error("Missing value for " + opt);
-  else if (pos == string::npos && !input_next.empty())
+  } else if (pos == string::npos && !input_next.empty()) {
     value = input_next;
-  else {
+  } else {
     value = opt.substr(pos + 1);
     opt = opt.substr(0, pos);
   }
 
-  if (!values.empty() && std::find(values.begin(), values.end(), value) == values.end())
+  if (!values.empty() && std::find(values.begin(), values.end(), value) == values.end()) {
     throw value_error("Invalid value '" + value + "' for argument " + string{opt});
+  }
 
   return value;
 }
@@ -133,21 +136,22 @@ auto cliparser::parse_value(string input, string input_next, choices values) con
 /**
  * Parse and validate passed arguments and flags
  */
-void cliparser::parse(string input, string input_next) {
+void cliparser::parse(const string& input, const string& input_next) {
   if (m_skipnext) {
     m_skipnext = false;
-    if (!input_next.empty())
+    if (!input_next.empty()) {
       return;
+    }
   }
 
   for (auto&& opt : m_opts) {
     if (is(input, opt.flag, opt.flag_long)) {
       if (opt.token.empty()) {
-        m_optvalues.insert(std::make_pair(opt.flag_long.substr(2), ""));
+        m_optvalues.insert(make_pair(opt.flag_long.substr(2), ""));
       } else {
         auto value = parse_value(input, input_next, opt.values);
         m_skipnext = (value == input_next);
-        m_optvalues.insert(std::make_pair(opt.flag_long.substr(2), value));
+        m_optvalues.insert(make_pair(opt.flag_long.substr(2), value));
       }
 
       return;

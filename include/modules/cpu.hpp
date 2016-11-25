@@ -24,7 +24,7 @@ namespace modules {
 
     void setup();
     bool update();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    protected:
     bool read_values();

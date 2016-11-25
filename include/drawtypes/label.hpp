@@ -59,8 +59,8 @@ namespace drawtypes {
     operator bool();
     label_t clone();
     void reset_tokens();
-    bool has_token(string token);
-    void replace_token(string token, string replacement);
+    bool has_token(const string& token);
+    void replace_token(const string& token, string replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 
@@ -69,7 +69,7 @@ namespace drawtypes {
     const vector<struct bounds> m_token_bounds;
   };
 
-  label_t load_label(const config& conf, string section, string name, bool required = true, string def = "");
+  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = "");
 
   label_t load_optional_label(const config& conf, string section, string name, string def = "");
 

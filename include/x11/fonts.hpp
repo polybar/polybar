@@ -42,7 +42,7 @@ class font_manager {
   explicit font_manager(connection& conn, const logger& logger);
   ~font_manager();
 
-  bool load(string name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
+  bool load(const string& name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
 
   void set_preferred_font(int8_t index);
 

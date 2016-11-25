@@ -1,5 +1,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <sstream>
+#include <utility>
 
 #include "utils/string.hpp"
 
@@ -18,7 +19,9 @@ namespace string_util {
    */
   string upper(const string& s) {
     string str(s);
-    for (auto& c : str) c = toupper(c);
+    for (auto& c : str) {
+      c = toupper(c);
+    }
     return str;
   }
 
@@ -27,7 +30,9 @@ namespace string_util {
    */
   string lower(const string& s) {
     string str(s);
-    for (auto& c : str) c = tolower(c);
+    for (auto& c : str) {
+      c = tolower(c);
+    }
     return str;
   }
 
@@ -41,13 +46,14 @@ namespace string_util {
   /**
    * Replace first occurence of needle in haystack
    */
-  string replace(const string& haystack, string needle, string reply, size_t start, size_t end) {
+  string replace(const string& haystack, const string& needle, const string& reply, size_t start, size_t end) {
     string str(haystack);
     string::size_type pos;
 
     if (needle != reply && (pos = str.find(needle, start)) != string::npos) {
-      if (end == string::npos || pos < end)
+      if (end == string::npos || pos < end) {
         str = str.replace(pos, needle.length(), reply);
+      }
     }
 
     return str;
@@ -56,11 +62,12 @@ namespace string_util {
   /**
    * Replace all occurences of needle in haystack
    */
-  string replace_all(const string& haystack, string needle, string reply, size_t start, size_t end) {
+  string replace_all(const string& haystack, const string& needle, const string& reply, size_t start, size_t end) {
     string replaced;
 
-    if (end == string::npos)
+    if (end == string::npos) {
       end = haystack.length();
+    }
 
     for (size_t i = 0; i < haystack.length(); i++) {
       if (i < start) {
@@ -88,7 +95,7 @@ namespace string_util {
     } else if (min != 0 && replacement.length() < min) {
       replacement.insert(0, min - replacement.length(), ' ');
     }
-    return replace_all(haystack, needle, replacement, start, end);
+    return replace_all(haystack, move(needle), replacement, start, end);
   }
 
   /**
@@ -96,7 +103,9 @@ namespace string_util {
    */
   string squeeze(const string& haystack, char needle) {
     string result = haystack;
-    while (result.find({needle, needle}) != string::npos) result = replace_all(result, {needle, needle}, {needle});
+    while (result.find({needle, needle}) != string::npos) {
+      result = replace_all(result, {needle, needle}, {needle});
+    }
     return result;
   }
 
@@ -106,7 +115,9 @@ namespace string_util {
   string strip(const string& haystack, char needle) {
     string str(haystack);
     string::size_type pos;
-    while ((pos = str.find(needle)) != string::npos) str.erase(pos, 1);
+    while ((pos = str.find(needle)) != string::npos) {
+      str.erase(pos, 1);
+    }
     return str;
   }
 
@@ -115,8 +126,9 @@ namespace string_util {
    */
   string strip_trailing_newline(const string& haystack) {
     string str(haystack);
-    if (str[str.length() - 1] == '\n')
+    if (str[str.length() - 1] == '\n') {
       str.erase(str.length() - 1, 1);
+    }
     return str;
   }
 
@@ -125,7 +137,9 @@ namespace string_util {
    */
   string ltrim(const string& haystack, char needle) {
     string str(haystack);
-    while (str[0] == needle) str.erase(0, 1);
+    while (str[0] == needle) {
+      str.erase(0, 1);
+    }
     return str;
   }
 
@@ -134,7 +148,9 @@ namespace string_util {
    */
   string rtrim(const string& haystack, char needle) {
     string str(haystack);
-    while (str[str.length() - 1] == needle) str.erase(str.length() - 1, 1);
+    while (str[str.length() - 1] == needle) {
+      str.erase(str.length() - 1, 1);
+    }
     return str;
   }
 
@@ -150,17 +166,21 @@ namespace string_util {
    */
   string join(vector<string> strs, string delim) {
     string str;
-    for (auto& s : strs) str.append((str.empty() ? "" : delim) + s);
+    for (auto& s : strs) {
+      str.append((str.empty() ? "" : move(delim)) + s);
+    }
     return str;
   }
 
   /**
    * Explode string by delim into container
    */
-  vector<string>& split_into(string s, char delim, vector<string>& container) {
+  vector<string>& split_into(const string& s, char delim, vector<string>& container) {
     string str;
     stringstream buffer(s);
-    while (getline(buffer, str, delim)) container.emplace_back(str);
+    while (getline(buffer, str, delim)) {
+      container.emplace_back(str);
+    }
     return container;
   }
 
@@ -175,23 +195,26 @@ namespace string_util {
   /**
    * Find the nth occurence of needle in haystack starting from pos
    */
-  size_t find_nth(string haystack, size_t pos, string needle, size_t nth) {
+  size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth) {
     size_t found_pos = haystack.find(needle, pos);
-    if (1 == nth || string::npos == found_pos)
+    if (1 == nth || string::npos == found_pos) {
       return found_pos;
+    }
     return find_nth(haystack, found_pos + 1, needle, nth - 1);
   }
 
   /**
    * Create a float value string
    */
-  string floatval(float value, int decimals, bool fixed, string locale) {
+  string floatval(float value, int decimals, bool fixed, const string& locale) {
     stringstream ss;
     ss.precision(decimals);
-    if (!locale.empty())
+    if (!locale.empty()) {
       ss.imbue(std::locale(locale.c_str()));
-    if (fixed)
+    }
+    if (fixed) {
       ss << std::fixed;
+    }
     ss << value;
     return ss.str();
   }
@@ -199,7 +222,7 @@ namespace string_util {
   /**
    * Format a filesize string
    */
-  string filesize(unsigned long long bytes, int decimals, bool fixed, string locale) {
+  string filesize(unsigned long long bytes, int decimals, bool fixed, const string& locale) {
     vector<string> suffixes{"TB", "GB", "MB"};
     string suffix{"KB"};
 
@@ -210,10 +233,12 @@ namespace string_util {
 
     stringstream ss;
     ss.precision(decimals);
-    if (!locale.empty())
+    if (!locale.empty()) {
       ss.imbue(std::locale(locale.c_str()));
-    if (fixed)
+    }
+    if (fixed) {
       ss << std::fixed;
+    }
     ss << bytes << " " << suffix;
     return ss.str();
   }
@@ -233,7 +258,7 @@ namespace string_util {
   /**
    * Compute string hash
    */
-  hash_type hash(string src) {
+  hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
 }

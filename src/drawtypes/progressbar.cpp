@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "components/types.hpp"
 #include "x11/color.hpp"
 
@@ -7,8 +9,8 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  progressbar::progressbar(const bar_settings bar, int width, string format)
-      : m_builder(make_unique<builder>(bar)), m_format(format), m_width(width) {}
+  progressbar::progressbar(const bar_settings& bar, int width, string format)
+      : m_builder(make_unique<builder>(bar)), m_format(move(format)), m_width(width) {}
 
   void progressbar::set_fill(icon_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
@@ -19,8 +21,9 @@ namespace drawtypes {
   }
 
   void progressbar::set_indicator(icon_t&& indicator) {
-    if (!m_indicator && indicator.get())
+    if (!m_indicator && indicator.get()) {
       m_width--;
+    }
     m_indicator = forward<decltype(indicator)>(indicator);
   }
 
@@ -31,10 +34,11 @@ namespace drawtypes {
   void progressbar::set_colors(vector<string>&& colors) {
     m_colors = forward<decltype(colors)>(colors);
 
-    if (m_colors.empty())
+    if (m_colors.empty()) {
       m_colorstep = 1;
-    else
+    } else {
       m_colorstep = m_width / m_colors.size();
+    }
   }
 
   string progressbar::output(float percentage) {
@@ -54,7 +58,9 @@ namespace drawtypes {
     output = string_util::replace_all(output, "%indicator%", m_builder->flush());
 
     // Output empty icons
-    while (empty_width--) m_builder->node(m_empty);
+    while (empty_width--) {
+      m_builder->node(m_empty);
+    }
     output = string_util::replace_all(output, "%empty%", m_builder->flush());
 
     return output;
@@ -68,8 +74,9 @@ namespace drawtypes {
     } else if (m_gradient) {
       size_t color = 0;
       for (size_t i = 0; i < fill_width; i++) {
-        if (i % m_colorstep == 0 && color < m_colors.size())
+        if (i % m_colorstep == 0 && color < m_colors.size()) {
           m_fill->m_foreground = m_colors[color++];
+        }
         m_builder->node(m_fill);
       }
     } else {
@@ -85,17 +92,19 @@ namespace drawtypes {
    * Create a progressbar by loading values
    * from the configuration
    */
-  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, string section, string name) {
+  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name) {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     string format = "%fill%%indicator%%empty%";
     unsigned int width;
 
-    if ((format = conf.get<decltype(format)>(section, name + "-format", format)).empty())
+    if ((format = conf.get<decltype(format)>(section, name + "-format", format)).empty()) {
       throw application_error("Invalid format defined at [" + conf.build_path(section, name) + "]");
-    if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1)
+    }
+    if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
       throw application_error("Invalid width defined at [" + conf.build_path(section, name) + "]");
+    }
 
     progressbar_t progressbar{new progressbar_t::element_type(bar, width, format)};
     progressbar->set_gradient(conf.get<bool>(section, name + "-gradient", true));
@@ -105,21 +114,26 @@ namespace drawtypes {
     icon_t icon_fill;
     icon_t icon_indicator;
 
-    if (format.find("%empty%") != string::npos)
+    if (format.find("%empty%") != string::npos) {
       icon_empty = load_icon(conf, section, name + "-empty");
-    if (format.find("%fill%") != string::npos)
+    }
+    if (format.find("%fill%") != string::npos) {
       icon_fill = load_icon(conf, section, name + "-fill");
-    if (format.find("%indicator%") != string::npos)
+    }
+    if (format.find("%indicator%") != string::npos) {
       icon_indicator = load_icon(conf, section, name + "-indicator");
+    }
 
     // If a foreground/background color is defined for the indicator
     // but not for the empty icon we use the bar's default colors to
     // avoid color bleed
     if (icon_empty && icon_indicator) {
-      if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty())
+      if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty()) {
         icon_empty->m_background = color_util::hex<uint16_t>(bar.background);
-      if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty())
+      }
+      if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty()) {
         icon_empty->m_foreground = color_util::hex<uint16_t>(bar.foreground);
+      }
     }
 
     progressbar->set_empty(move(icon_empty));

@@ -19,10 +19,11 @@ array<char, XFT_MAXCHARS> xft_widths;
 array<wchar_t, XFT_MAXCHARS> xft_chars;
 
 void fonttype_deleter::operator()(fonttype* f) {
-  if (f->xft != nullptr)
+  if (f->xft != nullptr) {
     XftFontClose(xlib::get_display(), f->xft);
-  else
+  } else {
     xcb_close_font(xutils::get_connection(), f->ptr);
+  }
 }
 
 font_manager::font_manager(connection& conn, const logger& logger) : m_connection(conn), m_logger(logger) {
@@ -37,7 +38,7 @@ font_manager::~font_manager() {
   m_fonts.clear();
 }
 
-bool font_manager::load(string name, int8_t fontindex, int8_t offset_y) {
+bool font_manager::load(const string& name, int8_t fontindex, int8_t offset_y) {
   if (fontindex != DEFAULT_FONT_INDEX && m_fonts.find(fontindex) != m_fonts.end()) {
     m_logger.warn("A font with index '%i' has already been loaded, skip...", fontindex);
     return false;
@@ -67,9 +68,11 @@ bool font_manager::load(string name, int8_t fontindex, int8_t offset_y) {
 
   int max_height = 0;
 
-  for (auto& iter : m_fonts)
-    if (iter.second->height > max_height)
+  for (auto& iter : m_fonts) {
+    if (iter.second->height > max_height) {
       max_height = iter.second->height;
+    }
+  }
 
   for (auto& iter : m_fonts) {
     iter.second->height = max_height;
@@ -97,30 +100,36 @@ font_t& font_manager::match_char(uint16_t chr) {
   if (!m_fonts.empty()) {
     if (m_fontindex != DEFAULT_FONT_INDEX && size_t(m_fontindex) <= m_fonts.size()) {
       auto iter = m_fonts.find(m_fontindex);
-      if (iter != m_fonts.end() && has_glyph(iter->second, chr))
+      if (iter != m_fonts.end() && has_glyph(iter->second, chr)) {
         return iter->second;
+      }
     }
     for (auto& font : m_fonts) {
-      if (has_glyph(font.second, chr))
+      if (has_glyph(font.second, chr)) {
         return font.second;
+      }
     }
   }
   return notfound;
 }
 
 uint8_t font_manager::char_width(font_t& font, uint16_t chr) {
-  if (!font)
+  if (!font) {
     return 0;
+  }
 
   if (font->xft == nullptr) {
-    if (static_cast<size_t>(chr - font->char_min) < font->width_lut.size())
+    if (static_cast<size_t>(chr - font->char_min) < font->width_lut.size()) {
       return font->width_lut[chr - font->char_min].character_width;
-    else
+    } else {
       return font->width;
+    }
   }
 
   auto index = chr % XFT_MAXCHARS;
-  while (xft_chars[index] != 0 && xft_chars[index] != chr) index = (index + 1) % XFT_MAXCHARS;
+  while (xft_chars[index] != 0 && xft_chars[index] != chr) {
+    index = (index + 1) % XFT_MAXCHARS;
+  }
 
   if (!xft_chars[index]) {
     XGlyphInfo gi;
@@ -165,11 +174,13 @@ void font_manager::allocate_color(uint32_t color, bool initial_alloc) {
 }
 
 void font_manager::allocate_color(XRenderColor color, bool initial_alloc) {
-  if (!initial_alloc)
+  if (!initial_alloc) {
     XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
+  }
 
-  if (!XftColorAllocValue(m_display, m_visual, m_colormap, &color, &m_xftcolor))
+  if (!XftColorAllocValue(m_display, m_visual, m_colormap, &color, &m_xftcolor)) {
     m_logger.err("Failed to allocate color");
+  }
 }
 
 void font_manager::set_gcontext_font(xcb_gcontext_t gc, xcb_font_t font) {
@@ -197,8 +208,9 @@ bool font_manager::open_xcb_font(font_t& fontptr, string fontname) {
     fontptr->char_min = query->min_byte1 << 8 | query->min_char_or_byte2;
 
     auto chars = query.char_infos();
-    for (auto it = chars.begin(); it != chars.end(); it++)
+    for (auto it = chars.begin(); it != chars.end(); it++) {
       fontptr->width_lut.emplace_back(forward<xcb_charinfo_t>(*it));
+    }
 
     fontptr->ptr = xfont;
 
@@ -216,14 +228,17 @@ bool font_manager::open_xcb_font(font_t& fontptr, string fontname) {
 
 bool font_manager::has_glyph(font_t& font, uint16_t chr) {
   if (font->xft != nullptr) {
-    return XftCharExists(m_display, font->xft, (FcChar32)chr) == true;
+    return static_cast<bool>(XftCharExists(m_display, font->xft, (FcChar32)chr));
   } else {
-    if (chr < font->char_min || chr > font->char_max)
+    if (chr < font->char_min || chr > font->char_max) {
       return false;
-    if (static_cast<size_t>(chr - font->char_min) >= font->width_lut.size())
+    }
+    if (static_cast<size_t>(chr - font->char_min) >= font->width_lut.size()) {
       return false;
-    if (font->width_lut[chr - font->char_min].character_width == 0)
+    }
+    if (font->width_lut[chr - font->char_min].character_width == 0) {
       return false;
+    }
     return true;
   }
 }

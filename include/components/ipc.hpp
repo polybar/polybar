@@ -42,9 +42,9 @@ class ipc {
 
  protected:
   void parse(const string& payload) const;
-  void delegate(const ipc_command& msg) const;
-  void delegate(const ipc_hook& msg) const;
-  void delegate(const ipc_action& msg) const;
+  void delegate(const ipc_command& message) const;
+  void delegate(const ipc_hook& message) const;
+  void delegate(const ipc_action& message) const;
 
  private:
   const logger& m_log;

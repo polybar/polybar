@@ -28,7 +28,7 @@ namespace bspwm_util {
 
   string get_socket_path();
 
-  payload_t make_payload(string cmd);
+  payload_t make_payload(const string& cmd);
   connection_t make_connection();
   connection_t make_subscriber();
 }

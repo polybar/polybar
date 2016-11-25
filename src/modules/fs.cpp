@@ -33,16 +33,21 @@ namespace modules {
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
-    if (m_formatter->has(TAG_LABEL_MOUNTED))
+    if (m_formatter->has(TAG_LABEL_MOUNTED)) {
       m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%");
-    if (m_formatter->has(TAG_LABEL_UNMOUNTED))
+    }
+    if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
       m_labelunmounted = load_optional_label(m_conf, name(), TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
-    if (m_formatter->has(TAG_BAR_FREE))
+    }
+    if (m_formatter->has(TAG_BAR_FREE)) {
       m_barfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
-    if (m_formatter->has(TAG_BAR_USED))
+    }
+    if (m_formatter->has(TAG_BAR_USED)) {
       m_barused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
-    if (m_formatter->has(TAG_RAMP_CAPACITY))
+    }
+    if (m_formatter->has(TAG_RAMP_CAPACITY)) {
       m_rampcapacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+    }
   }
 
   /**
@@ -100,8 +105,9 @@ namespace modules {
     string output;
 
     for (m_index = 0; m_index < m_mounts.size(); ++m_index) {
-      if (!output.empty())
+      if (!output.empty()) {
         m_builder->space(m_spacing);
+      }
       output += timer_module::get_output();
     }
 
@@ -118,7 +124,7 @@ namespace modules {
   /**
    * Output content using configured format tags
    */
-  bool fs_module::build(builder* builder, string tag) const {
+  bool fs_module::build(builder* builder, const string& tag) const {
     auto& mount = m_mounts[m_index];
 
     if (tag == TAG_BAR_FREE) {

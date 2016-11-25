@@ -4,6 +4,14 @@
 #endif
 
 #include "modules/meta/base.hpp"
+#include "modules/meta/base.inl"
+
+#if not(ENABLE_ALSA && ENABLE_I3 && ENABLE_MPD)
+#include "modules/meta/event_module.inl"
+#endif
+#if not ENABLE_NETWORK
+#include "modules/meta/timer_module.inl"
+#endif
 
 POLYBAR_NS
 

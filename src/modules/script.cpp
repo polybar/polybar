@@ -38,16 +38,18 @@ namespace modules {
   }
 
   void script_module::idle() {
-    if (!m_tail)
+    if (!m_tail) {
       sleep(m_interval);
-    else if (!m_command || !m_command->is_running())
+    } else if (!m_command || !m_command->is_running()) {
       sleep(m_interval);
+    }
   }
 
   bool script_module::has_event() {
     // Non tail commands should always run
-    if (!m_tail)
+    if (!m_tail) {
       return true;
+    }
 
     try {
       if (!m_command || !m_command->is_running()) {
@@ -62,11 +64,13 @@ namespace modules {
       throw module_error("Failed to execute tail command, stopping module...");
     }
 
-    if (!m_command)
+    if (!m_command) {
       return false;
+    }
 
-    if ((m_output = m_command->readline()) == m_prev)
+    if ((m_output = m_command->readline()) == m_prev) {
       return false;
+    }
 
     m_prev = m_output;
 
@@ -75,8 +79,9 @@ namespace modules {
 
   bool script_module::update() {
     // Tailing commands always update
-    if (m_tail)
+    if (m_tail) {
       return true;
+    }
 
     try {
       if (m_command && m_command->is_running()) {
@@ -95,18 +100,20 @@ namespace modules {
       throw module_error("Failed to execute command, stopping module...");
     }
 
-    if (m_output == m_prev)
+    if (m_output == m_prev) {
       return false;
+    }
 
     m_prev = m_output;
     return true;
   }
 
   string script_module::get_output() {
-    if (m_output.empty())
+    if (m_output.empty()) {
       return " ";
 
-    // Truncate output to the defined max length
+      // Truncate output to the defined max length
+    }
     if (m_maxlen > 0 && m_output.length() > m_maxlen) {
       m_output.erase(m_maxlen);
       m_output += m_ellipsis ? "..." : "";
@@ -123,7 +130,7 @@ namespace modules {
     return m_builder->flush();
   }
 
-  bool script_module::build(builder* builder, string tag) const {
+  bool script_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_OUTPUT) {
       builder->node(m_output);
       return true;

@@ -15,7 +15,7 @@ class xresource_manager {
   int get_int(string name, int fallback = 0) const;
 
  protected:
-  string load_value(string key, string res_type, size_t n) const;
+  string load_value(const string& key, const string& res_type, size_t n) const;
 
  private:
   char* m_manager = nullptr;

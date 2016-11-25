@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xcb/xcb.h>
+#include <chrono>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -19,6 +20,9 @@
 #define TRAY_WM_CLASS "tray\0Polybar"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
+using namespace std::chrono_literals;
 
 // fwd declarations
 class connection;
@@ -100,6 +104,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void bootstrap(tray_settings settings);
   void activate();
+  void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
   void reconfigure();
 
@@ -118,6 +123,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void acquire_selection();
   void notify_clients();
+  void notify_clients_delayed(chrono::duration<double, std::milli> delay = 1s);
 
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
@@ -168,8 +174,9 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   stateflag m_activated{false};
   stateflag m_mapped{false};
   stateflag m_hidden{false};
+  stateflag m_acquired_selection{false};
 
-  thread m_delayed_activation;
+  thread m_delaythread;
 
   bool m_restacked{false};
 

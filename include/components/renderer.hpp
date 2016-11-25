@@ -44,7 +44,7 @@ class renderer {
   void draw_character(const uint16_t character);
   void draw_textstring(const char* text, const size_t len);
 
-  void begin_action(const mousebtn btn, const string cmd);
+  void begin_action(const mousebtn btn, const string& cmd);
   void end_action(const mousebtn btn);
   const vector<action_block> get_actions();
 

@@ -8,7 +8,7 @@ POLYBAR_NS
 
 namespace modules {
   struct brightness_handle {
-    void filepath(string path);
+    void filepath(const string& path);
     float read() const;
 
    private:
@@ -22,7 +22,7 @@ namespace modules {
     void setup();
     void idle();
     bool on_event(inotify_event* event);
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

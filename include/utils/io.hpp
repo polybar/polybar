@@ -10,10 +10,10 @@ namespace io_util {
   string readline(int read_fd, int& bytes_read);
   string readline(int read_fd);
 
-  size_t write(int write_fd, string data);
-  size_t writeline(int write_fd, string data);
+  size_t write(int write_fd, const string& data);
+  size_t writeline(int write_fd, const string& data);
 
-  void tail(int read_fd, function<void(string)> callback);
+  void tail(int read_fd, const function<void(string)>& callback);
   void tail(int read_fd, int writeback_fd);
 
   bool poll(int fd, short int events, int timeout_ms = 1);

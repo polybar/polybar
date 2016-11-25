@@ -64,13 +64,13 @@ namespace modules {
           make_pair(state_mode::MODE_NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private")));
     }
 
-    m_icons = iconset_t{new iconset()};
-    m_icons->add(DEFAULT_WS_ICON, icon_t{new icon(m_conf.get<string>(name(), DEFAULT_WS_ICON, ""))});
+    m_icons = make_shared<iconset>();
+    m_icons->add(DEFAULT_WS_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
 
-    for (auto workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
+    for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], icon_t{new icon{vec[1]}});
+        m_icons->add(vec[0], make_shared<label>(vec[1]));
       }
     }
   }  // }}}
@@ -98,23 +98,28 @@ namespace modules {
     ssize_t bytes = 0;
     string data = m_subscriber->receive(BUFSIZ - 1, bytes, 0);
 
-    if (bytes == 0)
+    if (bytes == 0) {
       return false;
+    }
 
     data = string_util::strip_trailing_newline(data);
 
     unsigned long pos;
-    while ((pos = data.find("\n")) != string::npos) data.erase(pos);
+    while ((pos = data.find('\n')) != string::npos) {
+      data.erase(pos);
+    }
 
-    if (data.empty())
+    if (data.empty()) {
       return false;
+    }
 
     const auto prefix = string{BSPWM_STATUS_PREFIX};
 
     // If there were more than 1 row available in the channel
     // we'll strip out the old updates
-    if ((pos = data.find_last_of(prefix)) > 0)
+    if ((pos = data.find_last_of(prefix)) > 0) {
       data = data.substr(pos);
+    }
 
     if (data.compare(0, prefix.length(), prefix) != 0) {
       m_log.err("%s: Unknown status '%s'", name(), data);
@@ -122,8 +127,9 @@ namespace modules {
     }
 
     unsigned long hash;
-    if ((hash = string_util::hash(data)) == m_hash)
+    if ((hash = string_util::hash(data)) == m_hash) {
       return false;
+    }
     m_hash = hash;
 
     // Extract the string for the defined monitor
@@ -131,16 +137,21 @@ namespace modules {
       const auto needle_active = ":M" + m_bar.monitor->name + ":";
       const auto needle_inactive = ":m" + m_bar.monitor->name + ":";
 
-      if ((pos = data.find(prefix)) != string::npos)
+      if ((pos = data.find(prefix)) != string::npos) {
         data = data.replace(pos, prefix.length(), ":");
-      if ((pos = data.find(needle_active)) != string::npos)
+      }
+      if ((pos = data.find(needle_active)) != string::npos) {
         data.erase(0, pos + 1);
-      if ((pos = data.find(needle_inactive)) != string::npos)
+      }
+      if ((pos = data.find(needle_inactive)) != string::npos) {
         data.erase(0, pos + 1);
-      if ((pos = data.find(":m", 1)) != string::npos)
+      }
+      if ((pos = data.find(":m", 1)) != string::npos) {
         data.erase(pos);
-      if ((pos = data.find(":M", 1)) != string::npos)
+      }
+      if ((pos = data.find(":M", 1)) != string::npos) {
         data.erase(pos);
+      }
     } else if ((pos = data.find(prefix)) != string::npos) {
       data = data.replace(pos, prefix.length(), ":");
     } else {
@@ -156,7 +167,7 @@ namespace modules {
         continue;
       }
 
-      auto value = tag.size() > 0 ? tag.substr(1) : "";
+      auto value = !tag.empty() ? tag.substr(1) : "";
       auto workspace_flag = state_ws::WORKSPACE_NONE;
       auto mode_flag = state_mode::MODE_NONE;
 
@@ -310,7 +321,7 @@ namespace modules {
     return output;
   }  // }}}
 
-  bool bspwm_module::build(builder* builder, string tag) const {  // {{{
+  bool bspwm_module::build(builder* builder, const string& tag) const {  // {{{
     if (tag == TAG_LABEL_MONITOR) {
       builder->node(m_monitors[m_index]->label);
       return true;

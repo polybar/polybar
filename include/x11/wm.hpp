@@ -9,7 +9,7 @@ POLYBAR_NS
 class connection;
 
 namespace wm_util {
-  void set_wmname(connection& conn, xcb_window_t win, string wm_name, string wm_class);
+  void set_wmname(connection& conn, xcb_window_t win, const string& wm_name, const string& wm_class);
   void set_wmprotocols(connection& conn, xcb_window_t win, vector<xcb_atom_t> flags);
   void set_windowtype(connection& conn, xcb_window_t win, vector<xcb_atom_t> types);
   void set_wmstate(connection& conn, xcb_window_t win, vector<xcb_atom_t> states);

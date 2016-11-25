@@ -18,7 +18,7 @@ namespace modules {
   /**
    * Construct module
    */
-  xbacklight_module::xbacklight_module(const bar_settings bar, const logger& logger, const config& config, string name)
+  xbacklight_module::xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xbacklight_module>(bar, logger, config, name)
       , m_connection(configure_connection().create<connection&>()) {}
 
@@ -67,12 +67,15 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
-    if (m_formatter->has(TAG_LABEL))
+    if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
-    if (m_formatter->has(TAG_BAR))
+    }
+    if (m_formatter->has(TAG_BAR)) {
       m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
-    if (m_formatter->has(TAG_RAMP))
+    }
+    if (m_formatter->has(TAG_RAMP)) {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+    }
 
     // Trigger the initial draw event
     update();
@@ -89,18 +92,19 @@ namespace modules {
    * Handler for XCB_RANDR_NOTIFY events
    */
   void xbacklight_module::handle(const evt::randr_notify& evt) {
-    if (evt->subCode != XCB_RANDR_NOTIFY_OUTPUT_PROPERTY)
+    if (evt->subCode != XCB_RANDR_NOTIFY_OUTPUT_PROPERTY) {
       return;
-    else if (evt->u.op.status != XCB_PROPERTY_NEW_VALUE)
+    } else if (evt->u.op.status != XCB_PROPERTY_NEW_VALUE) {
       return;
-    else if (evt->u.op.window != m_proxy)
+    } else if (evt->u.op.window != m_proxy) {
       return;
-    else if (evt->u.op.output != m_output->output)
+    } else if (evt->u.op.output != m_output->output) {
       return;
-    else if (evt->u.op.atom != m_output->backlight.atom)
+    } else if (evt->u.op.atom != m_output->backlight.atom) {
       return;
-    else if (evt->u.op.timestamp <= m_timestamp)
+    } else if (evt->u.op.timestamp <= m_timestamp) {
       return;
+    }
 
     // Store the timestamp with a throttle offset (ms)
     m_timestamp = evt->u.op.timestamp + 50;
@@ -133,10 +137,12 @@ namespace modules {
    * Generate the module output
    */
   string xbacklight_module::get_output() {
-    if (m_scroll && m_percentage < 100)
+    if (m_scroll && m_percentage < 100) {
       m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-    if (m_scroll && m_percentage > 0)
+    }
+    if (m_scroll && m_percentage > 0) {
       m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+    }
 
     m_builder->append(static_module::get_output());
 
@@ -146,15 +152,16 @@ namespace modules {
   /**
    * Output content as defined in the config
    */
-  bool xbacklight_module::build(builder* builder, string tag) const {
-    if (tag == TAG_BAR)
+  bool xbacklight_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_BAR) {
       builder->node(m_progressbar->output(m_percentage));
-    else if (tag == TAG_RAMP)
+    } else if (tag == TAG_RAMP) {
       builder->node(m_ramp->get_by_percentage(m_percentage));
-    else if (tag == TAG_LABEL)
+    } else if (tag == TAG_LABEL) {
       builder->node(m_label);
-    else
+    } else {
       return false;
+    }
     return true;
   }
 

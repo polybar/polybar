@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <utility>
 
 #include "components/config.hpp"
 #include "utils/env.hpp"
@@ -13,10 +14,11 @@ POLYBAR_NS
  */
 void config::load(string file, string barname) {
   m_file = file;
-  m_current_bar = barname;
+  m_current_bar = move(barname);
 
-  if (!file_util::exists(file))
+  if (!file_util::exists(file)) {
     throw application_error("Could not find config file: " + file);
+  }
 
   try {
     boost::property_tree::read_ini(file, m_ptree);
@@ -25,13 +27,16 @@ void config::load(string file, string barname) {
   }
 
   auto bars = defined_bars();
-  if (std::find(bars.begin(), bars.end(), m_current_bar) == bars.end())
+  if (std::find(bars.begin(), bars.end(), m_current_bar) == bars.end()) {
     throw application_error("Undefined bar: " + m_current_bar);
+  }
 
-  if (env_util::has("XDG_CONFIG_HOME"))
+  if (env_util::has("XDG_CONFIG_HOME")) {
     file = string_util::replace(file, env_util::get("XDG_CONFIG_HOME"), "$XDG_CONFIG_HOME");
-  if (env_util::has("HOME"))
+  }
+  if (env_util::has("HOME")) {
     file = string_util::replace(file, env_util::get("HOME"), "~");
+  }
 
   m_logger.trace("config: Loaded %s", file);
   m_logger.trace("config: Current bar section: [%s]", bar_section());
@@ -58,8 +63,9 @@ vector<string> config::defined_bars() const {
   vector<string> bars;
 
   for (auto&& p : m_ptree) {
-    if (p.first.compare(0, 4, "bar/") == 0)
+    if (p.first.compare(0, 4, "bar/") == 0) {
       bars.emplace_back(p.first.substr(4));
+    }
   }
 
   return bars;
@@ -75,10 +81,10 @@ string config::build_path(const string& section, const string& key) const {
 /**
  * Print a deprecation warning if the given parameter is set
  */
-void config::warn_deprecated(string section, string key, string replacement) const {
+void config::warn_deprecated(const string& section, const string& key, string replacement) const {
   try {
     auto value = get<string>(section, key);
-    m_logger.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, replacement);
+    m_logger.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, move(replacement));
   } catch (const key_error& err) {
   }
 }

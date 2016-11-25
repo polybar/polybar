@@ -39,16 +39,21 @@ namespace modules {
    * Wrap the output with defined mouse actions
    */
   string ipc_module::get_output() {
-    if (!m_actions[mousebtn::LEFT].empty())
+    if (!m_actions[mousebtn::LEFT].empty()) {
       m_builder->cmd(mousebtn::LEFT, m_actions[mousebtn::LEFT]);
-    if (!m_actions[mousebtn::MIDDLE].empty())
+    }
+    if (!m_actions[mousebtn::MIDDLE].empty()) {
       m_builder->cmd(mousebtn::MIDDLE, m_actions[mousebtn::MIDDLE]);
-    if (!m_actions[mousebtn::RIGHT].empty())
+    }
+    if (!m_actions[mousebtn::RIGHT].empty()) {
       m_builder->cmd(mousebtn::RIGHT, m_actions[mousebtn::RIGHT]);
-    if (!m_actions[mousebtn::SCROLL_UP].empty())
+    }
+    if (!m_actions[mousebtn::SCROLL_UP].empty()) {
       m_builder->cmd(mousebtn::SCROLL_UP, m_actions[mousebtn::SCROLL_UP]);
-    if (!m_actions[mousebtn::SCROLL_DOWN].empty())
+    }
+    if (!m_actions[mousebtn::SCROLL_DOWN].empty()) {
       m_builder->cmd(mousebtn::SCROLL_DOWN, m_actions[mousebtn::SCROLL_DOWN]);
+    }
 
     m_builder->append(module::get_output());
 
@@ -58,11 +63,12 @@ namespace modules {
   /**
    * Output content retrieved from hook commands
    */
-  bool ipc_module::build(builder* builder, string tag) const {
-    if (tag == TAG_OUTPUT)
+  bool ipc_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_OUTPUT) {
       builder->node(m_output);
-    else
+    } else {
       return false;
+    }
     return true;
   }
 

@@ -28,7 +28,7 @@ eventloop::~eventloop() noexcept {
 bool eventloop::enqueue(const entry_t& i) {
   bool enqueued;
 
-  if ((enqueued = m_queue.enqueue(i)) == false) {
+  if (!(enqueued = m_queue.enqueue(i))) {
     m_log.warn("Failed to queue event (%d)", i.type);
   }
 
@@ -74,10 +74,12 @@ void eventloop::run(std::chrono::duration<double, std::milli> timeframe, int lim
 
     forward_event(evt);
 
-    if (match_event(next, event_type::NONE))
+    if (match_event(next, event_type::NONE)) {
       continue;
-    if (compare_events(evt, next))
+    }
+    if (compare_events(evt, next)) {
       continue;
+    }
 
     forward_event(next);
   }
@@ -112,7 +114,7 @@ void eventloop::set_input_db(callback<string>&& cb) {
  * Add module to alignment block
  */
 void eventloop::add_module(const alignment pos, module_t&& module) {
-  modulemap_t::iterator it = m_modules.lower_bound(pos);
+  auto it = m_modules.lower_bound(pos);
 
   if (it != m_modules.end() && !(m_modules.key_comp()(pos, it->first))) {
     it->second.emplace_back(forward<module_t>(module));
@@ -193,13 +195,20 @@ void eventloop::on_update() {
 /**
  * Handler for enqueued INPUT events
  */
-void eventloop::on_input(string input) {
+void eventloop::on_input(char* input) {
   m_log.trace("eventloop: Received INPUT event");
+
+  if (!m_modulelock.try_lock()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> guard(m_modulelock, std::adopt_lock);
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
-      if (!module->receive_events())
+      if (!module->receive_events()) {
         continue;
+      }
       if (module->handle_event(input)) {
         return;
       }
@@ -223,8 +232,9 @@ void eventloop::on_check() {
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
-      if (module->running())
+      if (module->running()) {
         return;
+      }
     }
   }
 

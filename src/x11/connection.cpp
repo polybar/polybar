@@ -1,5 +1,6 @@
 #include "config.hpp"
 
+#include "errors.hpp"
 #include "utils/factory.hpp"
 #include "x11/connection.hpp"
 
@@ -62,8 +63,9 @@ void connection::query_extensions() {
 #endif
 #ifdef ENABLE_RANDR_EXT
   randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
-  if (!extension<xpp::randr::extension>()->present)
+  if (!extension<xpp::randr::extension>()->present) {
     throw application_error("Missing X extension: RandR");
+  }
 #endif
 
   s_extensions_loaded = true;
@@ -80,8 +82,9 @@ string connection::id(xcb_window_t w) const {
  * Get pointer to the default xcb screen
  */
 xcb_screen_t* connection::screen() {
-  if (m_screen == nullptr)
+  if (m_screen == nullptr) {
     m_screen = screen_of_display(default_screen());
+  }
   return m_screen;
 }
 
@@ -109,8 +112,8 @@ shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_
 /**
  * Send client message event
  */
-void connection::send_client_message(
-    shared_ptr<xcb_client_message_event_t> message, xcb_window_t target, uint32_t event_mask, bool propagate) const {
+void connection::send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
+    uint32_t event_mask, bool propagate) const {
   const char* data = reinterpret_cast<decltype(data)>(message.get());
   send_event(propagate, target, event_mask, data);
   flush();
@@ -124,8 +127,9 @@ void connection::send_client_message(
  * except the obvious event polling
  */
 void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
-  if (target == XCB_NONE)
+  if (target == XCB_NONE) {
     target = root();
+  }
   auto message = make_client_message(XCB_VISIBILITY_NOTIFY, target);
   send_client_message(message, target, event);
 }
@@ -137,11 +141,16 @@ void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
 boost::optional<xcb_visualtype_t*> connection::visual_type(xcb_screen_t* screen, int match_depth) {
   xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
   if (depth_iter.data) {
-    for (; depth_iter.rem; xcb_depth_next(&depth_iter))
-      if (match_depth == 0 || match_depth == depth_iter.data->depth)
-        for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) return it.data;
-    if (match_depth > 0)
+    for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
+      if (match_depth == 0 || match_depth == depth_iter.data->depth) {
+        for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
+          return it.data;
+        }
+      }
+    }
+    if (match_depth > 0) {
       return visual_type(screen, 0);
+    }
   }
   return {};
 }

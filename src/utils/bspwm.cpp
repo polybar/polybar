@@ -1,5 +1,6 @@
 #include <sys/un.h>
 
+#include "errors.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/env.hpp"
 
@@ -41,10 +42,12 @@ namespace bspwm_util {
     for (auto&& root : root_windows(conn)) {
       auto geom = conn.get_geometry(root);
 
-      if (mon->x != geom->x || mon->y != geom->y)
+      if (mon->x != geom->x || mon->y != geom->y) {
         continue;
-      if (mon->w != geom->width || mon->h != geom->height)
+      }
+      if (mon->w != geom->width || mon->h != geom->height) {
         continue;
+      }
 
       const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
       const uint32_t value_list[2]{root, XCB_STACK_MODE_ABOVE};
@@ -68,16 +71,18 @@ namespace bspwm_util {
   string get_socket_path() {
     string env_path;
 
-    if ((env_path = env_util::get("BSPWM_SOCKET")).empty() == false)
+    if (!(env_path = env_util::get("BSPWM_SOCKET")).empty()) {
       return env_path;
+    }
 
     struct sockaddr_un sa;
     char* host = nullptr;
     int dsp = 0;
     int scr = 0;
 
-    if (xcb_parse_display(nullptr, &host, &dsp, &scr) == 0)
+    if (xcb_parse_display(nullptr, &host, &dsp, &scr) == 0) {
       return BSPWM_SOCKET_PATH;
+    }
 
     snprintf(sa.sun_path, sizeof(sa.sun_path), "/tmp/bspwm%s_%i_%i-socket", host, dsp, scr);
     free(host);
@@ -89,7 +94,7 @@ namespace bspwm_util {
    * Generate a payload object with properly formatted data
    * ready to be sent to the bspwm ipc controller
    */
-  payload_t make_payload(string cmd) {
+  payload_t make_payload(const string& cmd) {
     payload_t payload{new payload_t::element_type{}};
     auto size = sizeof(payload->data);
     int offset = 0;
@@ -135,8 +140,9 @@ namespace bspwm_util {
   connection_t make_subscriber() {
     auto conn = make_connection();
     auto payload = make_payload("subscribe report");
-    if (conn->send(payload->data, payload->len, 0) == 0)
+    if (conn->send(payload->data, payload->len, 0) == 0) {
       throw system_error("Failed to initialize subscriber");
+    }
     return conn;
   }
 }

@@ -17,12 +17,15 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE});
 
-    if (m_formatter->has(TAG_BAR_USED))
+    if (m_formatter->has(TAG_BAR_USED)) {
       m_bars[memtype::USED] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
-    if (m_formatter->has(TAG_BAR_FREE))
+    }
+    if (m_formatter->has(TAG_BAR_FREE)) {
       m_bars[memtype::FREE] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
-    if (m_formatter->has(TAG_LABEL))
+    }
+    if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
+    }
   }
 
   bool memory_module::update() {
@@ -42,7 +45,7 @@ namespace modules {
 
       while (std::getline(in, str) && i++ < 3) {
         size_t off = str.find_first_of("1234567890", str.find(':'));
-        buffer << std::strtol(&str[off], 0, 10) << std::endl;
+        buffer << std::strtol(&str[off], nullptr, 10) << std::endl;
       }
 
       buffer >> rdbuf;
@@ -57,10 +60,11 @@ namespace modules {
       m_log.err("Failed to read memory values (what: %s)", e.what());
     }
 
-    if (kb_total > 0)
+    if (kb_total > 0) {
       m_perc[memtype::FREE] = (kb_avail / kb_total) * 100.0f + 0.5f;
-    else
+    } else {
       m_perc[memtype::FREE] = 0;
+    }
 
     m_perc[memtype::USED] = 100 - m_perc[memtype::FREE];
 
@@ -88,15 +92,16 @@ namespace modules {
     return true;
   }
 
-  bool memory_module::build(builder* builder, string tag) const {
-    if (tag == TAG_BAR_USED)
+  bool memory_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_BAR_USED) {
       builder->node(m_bars.at(memtype::USED)->output(m_perc.at(memtype::USED)));
-    else if (tag == TAG_BAR_FREE)
+    } else if (tag == TAG_BAR_FREE) {
       builder->node(m_bars.at(memtype::FREE)->output(m_perc.at(memtype::FREE)));
-    else if (tag == TAG_LABEL)
+    } else if (tag == TAG_LABEL) {
       builder->node(m_label);
-    else
+    } else {
       return false;
+    }
     return true;
   }
 }

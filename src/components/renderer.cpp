@@ -1,5 +1,6 @@
 #include "components/renderer.hpp"
 #include "components/logger.hpp"
+#include "errors.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
@@ -100,29 +101,34 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
     auto fonts_loaded = false;
     auto fontindex = 0;
 
-    if (fonts.empty())
+    if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
+    }
 
-    for (auto f : fonts) {
+    for (const auto& f : fonts) {
       fontindex++;
       vector<string> fd{string_util::split(f, ';')};
       string pattern{fd[0]};
       int offset{0};
 
-      if (fd.size() > 1)
-        offset = std::stoi(fd[1], 0, 10);
+      if (fd.size() > 1) {
+        offset = std::stoi(fd[1], nullptr, 10);
+      }
 
-      if (m_fontmanager->load(pattern, fontindex, offset))
+      if (m_fontmanager->load(pattern, fontindex, offset)) {
         fonts_loaded = true;
-      else
+      } else {
         m_log.warn("Unable to load font '%s'", fd[0]);
+      }
     }
 
-    if (!fonts_loaded && !fonts.empty())
+    if (!fonts_loaded && !fonts.empty()) {
       m_log.warn("Unable to load fonts, using fallback font \"fixed\"");
+    }
 
-    if (!fonts_loaded && !m_fontmanager->load("fixed"))
+    if (!fonts_loaded && !m_fontmanager->load("fixed")) {
       throw application_error("Unable to load fonts");
+    }
 
     m_fontmanager->allocate_color(m_bar.foreground, true);
   }
@@ -423,8 +429,9 @@ void renderer::draw_character(uint16_t character) {
 
   // Avoid odd glyph width's for center-aligned text
   // since it breaks the positioning of clickable area's
-  if (m_alignment == alignment::CENTER && width % 2)
+  if (m_alignment == alignment::CENTER && width % 2) {
     width++;
+  }
 
   auto x = shift_content(width);
   auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
@@ -468,8 +475,9 @@ void renderer::draw_textstring(const char* text, size_t len) {
 
     // Avoid odd glyph width's for center-aligned text
     // since it breaks the positioning of clickable area's
-    if (m_alignment == alignment::CENTER && width % 2)
+    if (m_alignment == alignment::CENTER && width % 2) {
       width++;
+    }
 
     auto x = shift_content(width);
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
@@ -479,8 +487,8 @@ void renderer::draw_textstring(const char* text, size_t len) {
       const FcChar16* drawchars = static_cast<const FcChar16*>(chars.data());
       XftDrawString16(m_fontmanager->xftdraw(), &color, font->xft, x, y, drawchars, chars.size());
     } else {
-      for (size_t i = 0; i < chars.size(); i++) {
-        chars[i] = ((chars[i] >> 8) | (chars[i] << 8));
+      for (unsigned short& i : chars) {
+        i = ((i >> 8) | (i << 8));
       }
 
       draw_util::xcb_poly_text_16_patched(
@@ -492,15 +500,16 @@ void renderer::draw_textstring(const char* text, size_t len) {
 /**
  * Create new action block at the current position
  */
-void renderer::begin_action(const mousebtn btn, const string cmd) {
+void renderer::begin_action(const mousebtn btn, const string& cmd) {
   action_block action{};
   action.button = btn;
   action.align = m_alignment;
   action.start_x = m_currentx;
   action.command = string_util::replace_all(cmd, ":", "\\:");
   action.active = true;
-  if (action.button == mousebtn::NONE)
+  if (action.button == mousebtn::NONE) {
     action.button = mousebtn::LEFT;
+  }
   m_log.trace_x("renderer: begin_action(%i, %s)", static_cast<uint8_t>(action.button), cmd.c_str());
   m_actions.emplace_back(action);
 }
@@ -512,8 +521,9 @@ void renderer::end_action(const mousebtn btn) {
   int16_t clickable_width{0};
 
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
-    if (!action->active || action->align != m_alignment || action->button != btn)
+    if (!action->active || action->align != m_alignment || action->button != btn) {
       continue;
+    }
 
     action->active = false;
 
@@ -581,8 +591,9 @@ int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   // Translate pos of clickable areas
   if (m_alignment != alignment::LEFT) {
     for (auto&& action : m_actions) {
-      if (action.active || action.align != m_alignment)
+      if (action.active || action.align != m_alignment) {
         continue;
+      }
       action.start_x -= delta;
       action.end_x -= delta;
     }

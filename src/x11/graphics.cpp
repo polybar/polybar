@@ -2,6 +2,7 @@
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_util.h>
 
+#include "errors.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"

@@ -17,7 +17,7 @@ namespace modules {
     void teardown();
     bool update();
     string get_format() const;
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    protected:
     void subthread_routine();

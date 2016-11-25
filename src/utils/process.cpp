@@ -1,6 +1,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "errors.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
@@ -24,16 +25,19 @@ namespace process_util {
   /**
    * Replace process with command
    */
-  void exec(string cmd) {
+  void exec(const string& cmd) {
     vector<char*> c_args;
     vector<string> args;
 
-    if (string_util::contains(cmd, "\n"))
+    if (string_util::contains(cmd, "\n")) {
       string_util::split_into(cmd, '\n', args);
-    else
+    } else {
       string_util::split_into(cmd, ' ', args);
+    }
 
-    for (auto&& argument : args) c_args.emplace_back(const_cast<char*>(argument.c_str()));
+    for (auto&& argument : args) {
+      c_args.emplace_back(const_cast<char*>(argument.c_str()));
+    }
     c_args.emplace_back(nullptr);
 
     execvp(c_args[0], c_args.data());
@@ -107,8 +111,9 @@ namespace process_util {
     sigset_t sigmask;
     sigemptyset(&sigmask);
     sigaddset(&sigmask, sig);
-    if (pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr) == -1)
+    if (pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr) == -1) {
       throw system_error("Failed to change pthread_sigmask");
+    }
   }
 }
 

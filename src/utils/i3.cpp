@@ -14,7 +14,7 @@ namespace i3_util {
   /**
    * Get all i3 root windows
    */
-  vector<xcb_window_t> root_windows(connection& conn, string output_name) {
+  vector<xcb_window_t> root_windows(connection& conn, const string& output_name) {
     vector<xcb_window_t> roots;
     auto children = conn.query_tree(conn.screen()->root).children();
 

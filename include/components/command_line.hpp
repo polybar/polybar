@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 
@@ -40,15 +41,15 @@ namespace command_line {
 
     bool has(const string& option) const;
     string get(string opt) const;
-    bool compare(string opt, string val) const;
+    bool compare(string opt, const string& val) const;
 
    protected:
-    auto is_short(string option, string opt_short) const;
-    auto is_long(string option, string opt_long) const;
-    auto is(string option, string opt_short, string opt_long) const;
+    auto is_short(const string& option, const string& opt_short) const;
+    auto is_long(const string& option, const string& opt_long) const;
+    auto is(const string& option, string opt_short, string opt_long) const;
 
-    auto parse_value(string input, string input_next, choices values) const;
-    void parse(string input, string input_next = "");
+    auto parse_value(string input, const string& input_next, choices values) const;
+    void parse(const string& input, const string& input_next = "");
 
    private:
     string m_synopsis;

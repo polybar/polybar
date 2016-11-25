@@ -1,10 +1,11 @@
 #include <fcntl.h>
 #include <poll.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
 
+#include "errors.hpp"
 #include "utils/io.hpp"
 #include "utils/string.hpp"
 
@@ -14,8 +15,9 @@ namespace io_util {
   string read(int read_fd, int bytes_to_read, int& bytes_read_loc, int& status_loc) {
     char buffer[BUFSIZ - 1];
 
-    if (bytes_to_read == -1)
+    if (bytes_to_read == -1) {
       bytes_to_read = sizeof(buffer);
+    }
 
     status_loc = 0;
 
@@ -43,17 +45,19 @@ namespace io_util {
     bytes_read = 0;
 
     while ((bytes = ::read(read_fd, &char_, 1)) > 0) {
-      if (bytes <= 0)
+      if (bytes <= 0) {
         break;
-      if (char_ == '\n' || char_ == '\x00')
+      }
+      if (char_ == '\n' || char_ == '\x00') {
         break;
+      }
       bytes_read += bytes;
       buffer << char_;
     }
 
-    if (bytes_read <= 0)
+    if (bytes_read <= 0) {
       return "";
-
+    }
     return string_util::strip_trailing_newline(buffer.str());
   }
 
@@ -62,25 +66,28 @@ namespace io_util {
     return readline(read_fd, bytes_read);
   }
 
-  size_t write(int write_fd, string data) {
+  size_t write(int write_fd, const string& data) {
     return ::write(write_fd, data.c_str(), strlen(data.c_str()));
   }
 
-  size_t writeline(int write_fd, string data) {
-    if (data.length() == 0)
+  size_t writeline(int write_fd, const string& data) {
+    if (data.length() == 0) {
       return -1;
-    if (data.substr(data.length() - 1, 1) != "\n")
+    }
+    if (data.substr(data.length() - 1, 1) != "\n") {
       return io_util::write(write_fd, data + "\n");
-    else
+    } else {
       return io_util::write(write_fd, data);
+    }
   }
 
-  void tail(int read_fd, function<void(string)> callback) {
+  void tail(int read_fd, const function<void(string)>& callback) {
     int bytes_read;
     while (true) {
       auto line = io_util::readline(read_fd, bytes_read);
-      if (bytes_read <= 0)
+      if (bytes_read <= 0) {
         break;
+      }
       callback(line);
     }
   }

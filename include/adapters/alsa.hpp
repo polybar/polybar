@@ -9,6 +9,7 @@
 
 #include "common.hpp"
 #include "config.hpp"
+#include "errors.hpp"
 #include "utils/concurrency.hpp"
 
 #define MAX_LINEAR_DB_SCALE 24
@@ -40,17 +41,17 @@ class alsa_ctl_interface {
   void process_events();
 
  private:
-  int m_numid = 0;
+  int m_numid{0};
 
-  concurrency_util::spin_lock m_lock;
+  std::mutex m_lock;
 
-  snd_hctl_t* m_hctl = nullptr;
-  snd_hctl_elem_t* m_elem = nullptr;
+  snd_hctl_t* m_hctl{nullptr};
+  snd_hctl_elem_t* m_elem{nullptr};
 
-  snd_ctl_t* m_ctl = nullptr;
-  snd_ctl_elem_info_t* m_info = nullptr;
-  snd_ctl_elem_value_t* m_value = nullptr;
-  snd_ctl_elem_id_t* m_id = nullptr;
+  snd_ctl_t* m_ctl{nullptr};
+  snd_ctl_elem_info_t* m_info{nullptr};
+  snd_ctl_elem_value_t* m_value{nullptr};
+  snd_ctl_elem_id_t* m_id{nullptr};
 };
 
 // }}}
@@ -58,7 +59,7 @@ class alsa_ctl_interface {
 
 class alsa_mixer {
  public:
-  explicit alsa_mixer(string mixer_control_name);
+  explicit alsa_mixer(const string& mixer_control_name);
   ~alsa_mixer();
 
   string get_name();
@@ -77,10 +78,10 @@ class alsa_mixer {
  private:
   string m_name;
 
-  concurrency_util::spin_lock m_lock;
+  std::mutex m_lock;
 
-  snd_mixer_t* m_hardwaremixer = nullptr;
-  snd_mixer_elem_t* m_mixerelement = nullptr;
+  snd_mixer_t* m_hardwaremixer{nullptr};
+  snd_mixer_elem_t* m_mixerelement{nullptr};
 };
 
 // }}}

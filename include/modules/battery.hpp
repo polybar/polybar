@@ -34,7 +34,7 @@ namespace modules {
     void idle();
     bool on_event(inotify_event* event);
     string get_format() const;
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    protected:
     int current_percentage();

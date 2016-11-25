@@ -3,6 +3,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "errors.hpp"
 #include "utils/file.hpp"
 #include "utils/mixins.hpp"
 #include "utils/socket.hpp"
@@ -20,22 +21,25 @@ namespace socket_util {
     struct sockaddr_un socket_addr;
     socket_addr.sun_family = AF_UNIX;
 
-    if ((m_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+    if ((m_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
       throw system_error("Failed to open unix connection");
+    }
 
     snprintf(socket_addr.sun_path, sizeof(socket_addr.sun_path), "%s", m_socketpath.c_str());
     auto len = sizeof(socket_addr);
 
-    if (connect(m_fd, reinterpret_cast<struct sockaddr*>(&socket_addr), len) == -1)
+    if (connect(m_fd, reinterpret_cast<struct sockaddr*>(&socket_addr), len) == -1) {
       throw system_error("Failed to connect to socket");
+    }
   }
 
   /**
    * Destructor: closes file descriptor
    */
   unix_connection::~unix_connection() noexcept {
-    if (m_fd != -1)
+    if (m_fd != -1) {
       close(m_fd);
+    }
   }
 
   /**
@@ -51,8 +55,9 @@ namespace socket_util {
   ssize_t unix_connection::send(const void* data, size_t len, int flags) {
     ssize_t bytes_sent = 0;
 
-    if ((bytes_sent = ::send(m_fd, data, len, flags)) == -1)
+    if ((bytes_sent = ::send(m_fd, data, len, flags)) == -1) {
       throw system_error("Failed to transmit data");
+    }
 
     return bytes_sent;
   }
@@ -60,7 +65,7 @@ namespace socket_util {
   /**
    * Transmit string data
    */
-  ssize_t unix_connection::send(string data, int flags) {
+  ssize_t unix_connection::send(const string& data, int flags) {
     return send(data.c_str(), data.length(), flags);
   }
 
@@ -71,8 +76,9 @@ namespace socket_util {
     char buffer[BUFSIZ];
 
     bytes_received_addr = ::recv(m_fd, buffer, receive_bytes, flags);
-    if (bytes_received_addr == -1)
+    if (bytes_received_addr == -1) {
       throw system_error("Failed to receive data");
+    }
 
     buffer[bytes_received_addr] = 0;
     return string{buffer};
@@ -86,8 +92,9 @@ namespace socket_util {
     fds[0].fd = m_fd;
     fds[0].events = events;
 
-    if (::poll(fds, 1, timeout_ms) == -1)
+    if (::poll(fds, 1, timeout_ms) == -1) {
       throw system_error("Failed to poll file descriptor");
+    }
 
     return fds[0].revents & events;
   }

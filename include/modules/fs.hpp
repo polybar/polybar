@@ -43,7 +43,7 @@ namespace modules {
     bool update();
     string get_format() const;
     string get_output();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
 
    private:
     static constexpr auto FORMAT_MOUNTED = "format-mounted";

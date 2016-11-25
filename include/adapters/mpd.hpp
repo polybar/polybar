@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "common.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 

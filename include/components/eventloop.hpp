@@ -49,7 +49,7 @@ class eventloop {
   void forward_event(entry_t evt);
 
   void on_update();
-  void on_input(string input);
+  void on_input(char* input);
   void on_check();
   void on_quit();
 

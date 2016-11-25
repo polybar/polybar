@@ -1,9 +1,10 @@
-#include "utils/file.hpp"
-
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <fstream>
+
+#include "errors.hpp"
+#include "utils/file.hpp"
 #include "utils/scope.hpp"
 
 POLYBAR_NS
@@ -13,8 +14,9 @@ namespace file_util {
    * Destructor: close file handler
    */
   file_ptr::~file_ptr() {
-    if (m_ptr != nullptr)
+    if (m_ptr != nullptr) {
       fclose(m_ptr);
+    }
   }
 
   /**
@@ -34,7 +36,7 @@ namespace file_util {
   /**
    * Checks if the given file exist
    */
-  bool exists(string filename) {
+  bool exists(const string& filename) {
     struct stat buffer;
     return stat(filename.c_str(), &buffer) == 0;
   }
@@ -42,7 +44,7 @@ namespace file_util {
   /**
    * Gets the contents of the given file
    */
-  string get_contents(string filename) {
+  string get_contents(const string& filename) {
     try {
       std::ifstream ifs(filename);
       string contents((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
@@ -58,8 +60,9 @@ namespace file_util {
   void set_block(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     flags &= ~O_NONBLOCK;
-    if (fcntl(fd, F_SETFL, flags) == -1)
+    if (fcntl(fd, F_SETFL, flags) == -1) {
       throw system_error("Failed to unset O_NONBLOCK");
+    }
   }
 
   /**
@@ -68,8 +71,9 @@ namespace file_util {
   void set_nonblock(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     flags |= O_NONBLOCK;
-    if (fcntl(fd, F_SETFL, flags) == -1)
+    if (fcntl(fd, F_SETFL, flags) == -1) {
       throw system_error("Failed to set O_NONBLOCK");
+    }
   }
 
   /**

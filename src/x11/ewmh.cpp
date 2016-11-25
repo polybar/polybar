@@ -39,21 +39,24 @@ namespace ewmh_util {
 
   string get_visible_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
-    if (!xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr))
+    if (!xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr)) {
       return "";
+    }
     return get_reply_string(&utf8_reply);
   }
 
   string get_icon_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
-    if (!xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr))
+    if (!xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr)) {
       return "";
+    }
     return get_reply_string(&utf8_reply);
   }
 
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply) {
-    if (reply == nullptr || !reply->strings_len)
+    if (reply == nullptr || !reply->strings_len) {
       return "";
+    }
     char buffer[BUFSIZ]{'\0'};
     strncpy(buffer, reply->strings, reply->strings_len);
     xcb_ewmh_get_utf8_strings_reply_wipe(reply);

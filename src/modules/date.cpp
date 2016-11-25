@@ -10,8 +10,9 @@ namespace modules {
   template class timer_module<date_module>;
 
   void date_module::setup() {
-    if (!m_bar.locale.empty())
+    if (!m_bar.locale.empty()) {
       setlocale(LC_TIME, m_bar.locale.c_str());
+    }
 
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
@@ -22,8 +23,9 @@ namespace modules {
   }
 
   bool date_module::update() {
-    if (!m_formatter->has(TAG_DATE))
+    if (!m_formatter->has(TAG_DATE)) {
       return false;
+    }
 
     auto time = std::time(nullptr);
     auto date_format = m_toggled ? m_formatalt : m_format;
@@ -31,21 +33,23 @@ namespace modules {
 
     std::strftime(buffer, sizeof(buffer), date_format.c_str(), std::localtime(&time));
 
-    if (std::strncmp(buffer, m_buffer, sizeof(buffer)) == 0)
+    if (std::strncmp(buffer, m_buffer, sizeof(buffer)) == 0) {
       return false;
-    else
+    } else {
       std::memmove(m_buffer, buffer, sizeof(buffer));
+    }
 
     return true;
   }
 
-  bool date_module::build(builder* builder, string tag) const {
+  bool date_module::build(builder* builder, const string& tag) const {
     if (tag != TAG_DATE) {
       return false;
     }
 
-    if (!m_formatalt.empty())
+    if (!m_formatalt.empty()) {
       m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+    }
 
     builder->node(m_buffer);
 

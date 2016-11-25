@@ -19,7 +19,7 @@ namespace modules {
     using static_module::static_module;
 
     void setup();
-    bool build(builder* builder, string tag) const;
+    bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);
     bool receive_events() const;
 

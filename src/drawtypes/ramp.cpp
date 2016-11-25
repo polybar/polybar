@@ -25,7 +25,7 @@ namespace drawtypes {
    * Create a ramp by loading values
    * from the configuration
    */
-  ramp_t load_ramp(const config& conf, string section, string name, bool required) {
+  ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
     auto ramp_defaults = load_optional_icon(conf, section, name);
@@ -33,10 +33,11 @@ namespace drawtypes {
     vector<icon_t> vec;
     vector<string> icons;
 
-    if (required)
+    if (required) {
       icons = conf.get_list<string>(section, name);
-    else
+    } else {
       icons = conf.get_list<string>(section, name, {});
+    }
 
     for (size_t i = 0; i < icons.size(); i++) {
       auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
@@ -44,7 +45,7 @@ namespace drawtypes {
       vec.emplace_back(move(icon));
     }
 
-    return ramp_t{new ramp_t::element_type(move(vec))};
+    return make_shared<ramp>(move(vec));
   }
 }
 

@@ -15,15 +15,19 @@ winspec::operator xcb_rectangle_t() const {
 xcb_window_t winspec::operator<<(const cw_flush& f) {
   uint32_t values[16]{0};
 
-  if (m_window == XCB_NONE)
+  if (m_window == XCB_NONE) {
     m_window = m_connection.generate_id();
-  if (m_parent == XCB_NONE)
+  }
+  if (m_parent == XCB_NONE) {
     m_parent = m_connection.screen()->root;
+  }
 
-  if (m_width <= 0)
+  if (m_width <= 0) {
     m_width = 1;
-  if (m_height <= 0)
+  }
+  if (m_height <= 0) {
     m_height = 1;
+  }
 
   xutils::pack_values(m_mask, &m_params, values);
 

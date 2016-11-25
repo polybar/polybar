@@ -1,7 +1,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <csignal>
+#include <utility>
 
+#include "errors.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
 #include "utils/process.hpp"
@@ -10,50 +12,65 @@ POLYBAR_NS
 
 namespace command_util {
   command::command(const logger& logger, string cmd) : m_log(logger), m_cmd("/usr/bin/env\nsh\n-c\n" + cmd) {
-    if (pipe(m_stdin) != 0)
+    if (pipe(m_stdin) != 0) {
       throw command_strerror("Failed to allocate input stream");
-    if (pipe(m_stdout) != 0)
+    }
+    if (pipe(m_stdout) != 0) {
       throw command_strerror("Failed to allocate output stream");
+    }
   }
 
   command::~command() {
-    if (is_running())
+    if (is_running()) {
       terminate();
+    }
 
-    if (m_stdin[PIPE_READ] > 0)
+    if (m_stdin[PIPE_READ] > 0) {
       close(m_stdin[PIPE_READ]);
-    if (m_stdin[PIPE_WRITE] > 0)
+    }
+    if (m_stdin[PIPE_WRITE] > 0) {
       close(m_stdin[PIPE_WRITE]);
-    if (m_stdout[PIPE_READ] > 0)
+    }
+    if (m_stdout[PIPE_READ] > 0) {
       close(m_stdout[PIPE_READ]);
-    if (m_stdout[PIPE_WRITE] > 0)
+    }
+    if (m_stdout[PIPE_WRITE] > 0) {
       close(m_stdout[PIPE_WRITE]);
+    }
   }
 
   /**
    * Execute the command
    */
   int command::exec(bool wait_for_completion) {
-    if ((m_forkpid = fork()) == -1)
+    if ((m_forkpid = fork()) == -1) {
       throw system_error("Failed to fork process");
+    }
 
     if (process_util::in_forked_process(m_forkpid)) {
-      if (dup2(m_stdin[PIPE_READ], STDIN_FILENO) == -1)
+      if (dup2(m_stdin[PIPE_READ], STDIN_FILENO) == -1) {
         throw command_strerror("Failed to redirect stdin in child process");
-      if (dup2(m_stdout[PIPE_WRITE], STDOUT_FILENO) == -1)
+      }
+      if (dup2(m_stdout[PIPE_WRITE], STDOUT_FILENO) == -1) {
         throw command_strerror("Failed to redirect stdout in child process");
-      if (dup2(m_stdout[PIPE_WRITE], STDERR_FILENO) == -1)
+      }
+      if (dup2(m_stdout[PIPE_WRITE], STDERR_FILENO) == -1) {
         throw command_strerror("Failed to redirect stderr in child process");
+      }
 
       // Close file descriptors that won't be used by the child
-      if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1)
+      if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1) {
         throw command_strerror("Failed to close fd");
-      if ((m_stdin[PIPE_WRITE] = close(m_stdin[PIPE_WRITE])) == -1)
+      }
+      if ((m_stdin[PIPE_WRITE] = close(m_stdin[PIPE_WRITE])) == -1) {
         throw command_strerror("Failed to close fd");
-      if ((m_stdout[PIPE_READ] = close(m_stdout[PIPE_READ])) == -1)
+      }
+      if ((m_stdout[PIPE_READ] = close(m_stdout[PIPE_READ])) == -1) {
         throw command_strerror("Failed to close fd");
-      if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1)
+      }
+      if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1) {
         throw command_strerror("Failed to close fd");
+      }
 
       // Make sure SIGTERM is raised
       process_util::unblock_signal(SIGTERM);
@@ -64,10 +81,12 @@ namespace command_util {
       throw command_error("Exec failed");
     } else {
       // Close file descriptors that won't be used by the parent
-      if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1)
+      if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1) {
         throw command_strerror("Failed to close fd");
-      if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1)
+      }
+      if ((m_stdout[PIPE_WRITE] = close(m_stdout[PIPE_WRITE])) == -1) {
         throw command_strerror("Failed to close fd");
+      }
 
       if (wait_for_completion) {
         auto status = wait();
@@ -97,8 +116,9 @@ namespace command_util {
    * Check if command is running
    */
   bool command::is_running() {
-    if (m_forkpid > 0)
+    if (m_forkpid > 0) {
       return process_util::wait_for_completion_nohang(m_forkpid, &m_forkstatus) > -1;
+    }
     return false;
   }
 
@@ -111,18 +131,19 @@ namespace command_util {
 
       process_util::wait_for_completion(m_forkpid, &m_forkstatus, WCONTINUED | WUNTRACED);
 
-      if (WIFEXITED(m_forkstatus) && m_forkstatus > 0)
+      if (WIFEXITED(m_forkstatus) && m_forkstatus > 0) {
         m_log.warn("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
-      else if (WIFEXITED(m_forkstatus))
+      } else if (WIFEXITED(m_forkstatus)) {
         m_log.trace("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
-      else if (WIFSIGNALED(m_forkstatus))
+      } else if (WIFSIGNALED(m_forkstatus)) {
         m_log.trace("command: killed by signal %d", WTERMSIG(m_forkstatus));
-      else if (WIFSTOPPED(m_forkstatus))
+      } else if (WIFSTOPPED(m_forkstatus)) {
         m_log.trace("command: Stopped by signal %d", WSTOPSIG(m_forkstatus));
-      else if (WIFCONTINUED(m_forkstatus) == true)
+      } else if (WIFCONTINUED(m_forkstatus)) {
         m_log.trace("command: Continued");
-      else
+      } else {
         break;
+      }
     } while (!WIFEXITED(m_forkstatus) && !WIFSIGNALED(m_forkstatus));
 
     return m_forkstatus;
@@ -135,7 +156,7 @@ namespace command_util {
    * end until the stream is closed
    */
   void command::tail(callback<string> callback) {
-    io_util::tail(m_stdout[PIPE_READ], callback);
+    io_util::tail(m_stdout[PIPE_READ], move(callback));
   }
 
   /**
@@ -143,7 +164,7 @@ namespace command_util {
    */
   int command::writeline(string data) {
     std::lock_guard<concurrency_util::spin_lock> lck(m_pipelock);
-    return io_util::writeline(m_stdin[PIPE_WRITE], data);
+    return io_util::writeline(m_stdin[PIPE_WRITE], move(data));
   }
 
   /**

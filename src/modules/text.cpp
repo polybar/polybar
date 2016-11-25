@@ -12,8 +12,9 @@ namespace modules {
   void text_module::setup() {
     m_formatter->add("content", "", {});
 
-    if (m_formatter->get("content")->value.empty())
+    if (m_formatter->get("content")->value.empty()) {
       throw module_error(name() + ".content is empty or undefined");
+    }
 
     m_formatter->get("content")->value =
         string_util::replace_all(m_formatter->get("content")->value, " ", BUILDER_SPACE_TOKEN);
@@ -30,16 +31,21 @@ namespace modules {
     auto scroll_up = m_conf.get<string>(name(), "scroll-up", "");
     auto scroll_down = m_conf.get<string>(name(), "scroll-down", "");
 
-    if (!click_left.empty())
+    if (!click_left.empty()) {
       m_builder->cmd(mousebtn::LEFT, click_left);
-    if (!click_middle.empty())
+    }
+    if (!click_middle.empty()) {
       m_builder->cmd(mousebtn::MIDDLE, click_middle);
-    if (!click_right.empty())
+    }
+    if (!click_right.empty()) {
       m_builder->cmd(mousebtn::RIGHT, click_right);
-    if (!scroll_up.empty())
+    }
+    if (!scroll_up.empty()) {
       m_builder->cmd(mousebtn::SCROLL_UP, scroll_up);
-    if (!scroll_down.empty())
+    }
+    if (!scroll_down.empty()) {
       m_builder->cmd(mousebtn::SCROLL_DOWN, scroll_down);
+    }
 
     m_builder->append(module::get_output());
 

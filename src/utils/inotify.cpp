@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include "errors.hpp"
 #include "utils/inotify.hpp"
 #include "utils/memory.hpp"
 
@@ -10,20 +11,24 @@ namespace inotify_util {
    * Destructor
    */
   inotify_watch::~inotify_watch() noexcept {
-    if (m_wd != -1)
+    if (m_wd != -1) {
       inotify_rm_watch(m_fd, m_wd);
-    if (m_fd != -1)
+    }
+    if (m_fd != -1) {
       close(m_fd);
+    }
   }
 
   /**
    * Attach inotify watch
    */
   void inotify_watch::attach(int mask) {
-    if (m_fd == -1 && (m_fd = inotify_init()) == -1)
+    if (m_fd == -1 && (m_fd = inotify_init()) == -1) {
       throw system_error("Failed to allocate inotify fd");
-    if ((m_wd = inotify_add_watch(m_fd, m_path.c_str(), mask)) == -1)
+    }
+    if ((m_wd = inotify_add_watch(m_fd, m_path.c_str(), mask)) == -1) {
       throw system_error("Failed to attach inotify watch");
+    }
     m_mask |= mask;
   }
 
@@ -31,8 +36,9 @@ namespace inotify_util {
    * Remove inotify watch
    */
   void inotify_watch::remove() {
-    if (inotify_rm_watch(m_fd, m_wd) == -1)
+    if (inotify_rm_watch(m_fd, m_wd) == -1) {
       throw system_error("Failed to remove inotify watch");
+    }
     m_wd = -1;
     m_mask = 0;
   }
@@ -43,8 +49,9 @@ namespace inotify_util {
    * @brief A wait_ms of -1 blocks until an event is fired
    */
   bool inotify_watch::poll(int wait_ms) {
-    if (m_fd == -1)
+    if (m_fd == -1) {
       return false;
+    }
 
     struct pollfd fds[1];
     fds[0].fd = m_fd;
@@ -61,8 +68,9 @@ namespace inotify_util {
   unique_ptr<event_t> inotify_watch::get_event() {
     auto event = make_unique<event_t>();
 
-    if (m_fd == -1 || m_wd == -1)
+    if (m_fd == -1 || m_wd == -1) {
       return event;
+    }
 
     char buffer[1024];
     size_t bytes = read(m_fd, buffer, 1024);
