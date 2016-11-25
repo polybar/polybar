@@ -16,13 +16,40 @@ di::injector<connection&> configure_connection() {
  * Preload required xcb atoms
  */
 void connection::preload_atoms() {
-  for (auto&& a : ATOMS) *a.atom = intern_atom(false, a.len, a.name).atom();
+  static bool s_atoms_loaded{false};
+
+  if (s_atoms_loaded) {
+    return;
+  }
+
+  vector<xcb_intern_atom_cookie_t> cookies(memory_util::countof(ATOMS));
+  xcb_intern_atom_reply_t* reply{nullptr};
+
+  for (size_t i = 0; i < cookies.size(); i++) {
+    cookies[i] = xcb_intern_atom_unchecked(*this, false, ATOMS[i].len, ATOMS[i].name);
+  }
+
+  for (size_t i = 0; i < cookies.size(); i++) {
+    if ((reply = xcb_intern_atom_reply(*this, cookies[i], nullptr)) != nullptr) {
+      *ATOMS[i].atom = reply->atom;
+    }
+
+    free(reply);
+  }
+
+  s_atoms_loaded = true;
 }
 
 /**
  * Check if required X extensions are available
  */
 void connection::query_extensions() {
+  static bool s_extensions_loaded{false};
+
+  if (s_extensions_loaded) {
+    return;
+  }
+
 #ifdef ENABLE_DAMAGE_EXT
   damage().query_version(XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
   if (!extension<xpp::damage::extension>()->present)
@@ -38,6 +65,8 @@ void connection::query_extensions() {
   if (!extension<xpp::randr::extension>()->present)
     throw application_error("Missing X extension: RandR");
 #endif
+
+  s_extensions_loaded = true;
 }
 
 /**
