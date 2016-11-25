@@ -129,6 +129,15 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
 }
 
 /**
+ * Deconstruct instance
+ */
+renderer::~renderer() {
+  if (m_window != XCB_NONE) {
+    m_connection.destroy_window(m_window);
+  }
+}
+
+/**
  * Get output window
  */
 xcb_window_t renderer::window() const {

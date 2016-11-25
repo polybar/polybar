@@ -16,6 +16,7 @@ class renderer {
 
   explicit renderer(connection& conn, const logger& logger, unique_ptr<font_manager> font_manager,
       const bar_settings& bar, const vector<string>& fonts);
+  ~renderer();
 
   xcb_window_t window() const;
 
