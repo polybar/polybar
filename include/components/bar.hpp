@@ -56,9 +56,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   alignment m_trayalign{alignment::NONE};
   uint8_t m_trayclients{0};
 
-  std::mutex m_mutex;
-
   string m_lastinput;
+
+  std::mutex m_mutex;
 };
 
 di::injector<unique_ptr<bar>> configure_bar();

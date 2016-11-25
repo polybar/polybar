@@ -70,17 +70,13 @@ di::injector<unique_ptr<controller>> configure_controller(watch_t& confwatch) {
  * threads and spawned processes
  */
 controller::~controller() {
-  g_signals::bar::action_click = nullptr;
-
   if (m_command) {
     m_log.info("Terminating running shell command");
-    m_command->terminate();
+    m_command.reset();
   }
 
   if (m_eventloop) {
     m_log.info("Deconstructing eventloop");
-    m_eventloop->set_update_cb(nullptr);
-    m_eventloop->set_input_db(nullptr);
     m_eventloop.reset();
   }
 
@@ -189,9 +185,8 @@ void controller::run() {
 
   // Start event loop
   if (m_eventloop) {
-    auto throttle_ms = m_conf.get<double>("settings", "throttle-ms", 10);
-    auto throttle_limit = m_conf.get<int>("settings", "throttle-limit", 5);
-    m_eventloop->run(chrono::duration<double, std::milli>(throttle_ms), throttle_limit);
+    m_eventloop->start();
+    m_eventloop->wait();
   }
 
   // Wake up signal thread
@@ -325,6 +320,7 @@ void controller::wait_for_xevent() {
 
   m_connection.flush();
 
+  shared_ptr<xcb_generic_event_t> evt;
   while (m_running) {
     try {
       int error = 0;
@@ -332,12 +328,7 @@ void controller::wait_for_xevent() {
       if ((error = m_connection.connection_has_error()) != 0) {
         m_log.err("Error in X event loop, terminating... (%s)", m_connection.error_str(error));
         kill(getpid(), SIGTERM);
-        break;
-      }
-
-      auto evt = m_connection.wait_for_event();
-
-      if (evt != nullptr) {
+      } else if ((evt = m_connection.wait_for_event()) != nullptr) {
         m_connection.dispatch_event(evt);
       }
     } catch (const exception& err) {
@@ -352,7 +343,6 @@ void controller::wait_for_xevent() {
 void controller::bootstrap_modules() {
   const bar_settings bar{m_bar->settings()};
   string bs{m_conf.bar_section()};
-  size_t module_count = 0;
 
   for (int i = 0; i < 3; i++) {
     alignment align = static_cast<alignment>(i + 1);
@@ -429,22 +419,19 @@ void controller::bootstrap_modules() {
         }
 
         module->set_update_cb(
-            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<int>(event_type::UPDATE)}));
+            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<uint8_t>(event_type::UPDATE)}));
         module->set_stop_cb(
-            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<int>(event_type::CHECK)}));
-
+            bind(&eventloop::enqueue, m_eventloop.get(), eventloop::entry_t{static_cast<uint8_t>(event_type::CHECK)}));
         module->setup();
 
         m_eventloop->add_module(align, move(module));
-
-        module_count++;
       } catch (const std::runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
       }
     }
   }
 
-  if (module_count == 0) {
+  if (!m_eventloop->module_count()) {
     throw application_error("No modules created");
   }
 }
@@ -453,6 +440,10 @@ void controller::bootstrap_modules() {
  * Callback for received ipc actions
  */
 void controller::on_ipc_action(const ipc_action& message) {
+  if (!m_eventloop) {
+    return;
+  }
+
   string action = message.payload.substr(strlen(ipc_action::prefix));
 
   if (action.empty()) {
@@ -460,7 +451,7 @@ void controller::on_ipc_action(const ipc_action& message) {
     return;
   }
 
-  eventloop::entry_t evt{static_cast<int>(event_type::INPUT)};
+  eventloop::entry_t evt{static_cast<uint8_t>(event_type::INPUT)};
   snprintf(evt.data, sizeof(evt.data), "%s", action.c_str());
 
   m_log.info("Enqueuing IPC action: %s", action);
@@ -471,13 +462,20 @@ void controller::on_ipc_action(const ipc_action& message) {
  * Callback for clicked bar actions
  */
 void controller::on_mouse_event(const string& input) {
-  eventloop::entry_t evt{static_cast<int>(event_type::INPUT)};
+  if (!m_eventloop) {
+    return;
+  }
+
+  eventloop::entry_t evt{static_cast<uint8_t>(event_type::INPUT)};
 
   if (input.length() > sizeof(evt.data)) {
-    m_log.warn("Ignoring input event (size)");
-  } else {
-    snprintf(evt.data, sizeof(evt.data), "%s", input.c_str());
-    m_eventloop->enqueue(evt);
+    return m_log.warn("Ignoring input event (size)");
+  }
+
+  snprintf(evt.data, sizeof(evt.data), "%s", input.c_str());
+
+  if (!m_eventloop->enqueue_delayed(evt)) {
+    m_log.trace_x("controller: Dispatcher busy");
   }
 }
 
@@ -505,6 +503,10 @@ void controller::on_unrecognized_action(string input) {
  * Callback for module content update
  */
 void controller::on_update() {
+  if (!m_bar) {
+    return;
+  }
+
   const bar_settings& bar{m_bar->settings()};
 
   string contents;
