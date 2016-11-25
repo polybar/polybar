@@ -28,17 +28,21 @@ namespace inotify_util {
     void remove();
     bool poll(int wait_ms = 1000);
     unique_ptr<event_t> get_event();
+    bool await_match();
     const string path() const;
 
    protected:
     string m_path;
     int m_fd = -1;
     int m_wd = -1;
+    int m_mask = 0;
   };
 
   using watch_t = unique_ptr<inotify_watch>;
 
   watch_t make_watch(string path);
+
+  bool match(const event_t* evt, int mask);
 }
 
 POLYBAR_NS_END

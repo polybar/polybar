@@ -254,9 +254,7 @@ void controller::install_confwatch() {
     return;
   }
 
-  m_threads.emplace_back([this] {
-    this_thread::sleep_for(chrono::seconds{1});
-
+  m_threads.emplace_back([&] {
     try {
       if (!m_running)
         return;
@@ -265,13 +263,10 @@ void controller::install_confwatch() {
       m_confwatch->attach(IN_MODIFY);
 
       m_log.trace("controller: Wait for config file inotify event");
-      m_confwatch->get_event();
-
-      if (!m_running)
-        return;
-
-      m_log.info("Configuration file changed");
-      kill(getpid(), SIGUSR1);
+      if (m_confwatch->await_match() && m_running) {
+        m_log.info("Configuration file changed");
+        kill(getpid(), SIGUSR1);
+      }
     } catch (const system_error& err) {
       m_log.err(err.what());
       m_log.trace("controller: Reset config watch");
