@@ -18,7 +18,7 @@
   namespace polybar { \
     inline namespace v2_0_0 {
 #define POLYBAR_NS_END \
-  }                       \
+  }                    \
   }
 #define POLYBAR_NS_PATH "polybar::v2_0_0"
 

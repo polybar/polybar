@@ -25,8 +25,7 @@ namespace modules {
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
     // Add formats
-    m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED,
-        {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
+    m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
     m_formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, {TAG_LABEL_DISCONNECTED});
 
     // Create elements for format-connected
@@ -41,8 +40,7 @@ namespace modules {
 
     // Create elements for format-disconnected
     if (m_formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
-      m_label[connection_state::DISCONNECTED] =
-          load_optional_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
+      m_label[connection_state::DISCONNECTED] = load_optional_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
       m_label[connection_state::DISCONNECTED]->reset_tokens();
       m_label[connection_state::DISCONNECTED]->replace_token("%ifname%", m_interface);
     }
@@ -53,8 +51,7 @@ namespace modules {
           {TAG_ANIMATION_PACKETLOSS, TAG_LABEL_PACKETLOSS, TAG_LABEL_CONNECTED});
 
       if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
-        m_label[connection_state::PACKETLOSS] =
-            load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
+        m_label[connection_state::PACKETLOSS] = load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
       }
       if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS))
         m_animation_packetloss = load_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
@@ -77,8 +74,8 @@ namespace modules {
   }
 
   bool network_module::update() {
-    net::network* network = m_wireless ? static_cast<net::network*>(m_wireless.get())
-                                       : static_cast<net::network*>(m_wired.get());
+    net::network* network =
+        m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
     if (!network->query(m_accumulate)) {
       m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);

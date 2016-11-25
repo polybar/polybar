@@ -52,10 +52,8 @@ namespace modules {
     }
 
     // Add formats and elements
-    m_formatter->add(
-        FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
-    m_formatter->add(
-        FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
+    m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
+    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
 
     if (m_formatter->has(TAG_BAR_VOLUME))
       m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
@@ -108,19 +106,19 @@ namespace modules {
     m_headphones = false;
 
     if (m_mixers[mixer::MASTER]) {
-      m_volume = m_volume * (m_mapped ? m_mixers[mixer::MASTER]->get_normalized_volume() / 100.0f :
-        m_mixers[mixer::MASTER]->get_volume() / 100.0f);
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::MASTER]->get_normalized_volume() / 100.0f
+                                      : m_mixers[mixer::MASTER]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::MASTER]->is_muted();
     }
 
     if (m_controls[control::HEADPHONE] && m_controls[control::HEADPHONE]->test_device_plugged()) {
       m_headphones = true;
-      m_volume = m_volume * (m_mapped ? m_mixers[mixer::HEADPHONE]->get_normalized_volume() / 100.0f :
-        m_mixers[mixer::HEADPHONE]->get_volume() / 100.0f);
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::HEADPHONE]->get_normalized_volume() / 100.0f
+                                      : m_mixers[mixer::HEADPHONE]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::HEADPHONE]->is_muted();
     } else if (m_mixers[mixer::SPEAKER]) {
-      m_volume = m_volume * (m_mapped ? m_mixers[mixer::SPEAKER]->get_normalized_volume() / 100.0f :
-        m_mixers[mixer::SPEAKER]->get_volume() / 100.0f);
+      m_volume = m_volume * (m_mapped ? m_mixers[mixer::SPEAKER]->get_normalized_volume() / 100.0f
+                                      : m_mixers[mixer::SPEAKER]->get_volume() / 100.0f);
       m_muted = m_muted || m_mixers[mixer::SPEAKER]->is_muted();
     }
 
@@ -193,15 +191,13 @@ namespace modules {
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
         for (auto&& mixer : mixers) {
-          m_mapped ?
-            mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + 5, 0, 100)) :
-            mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
+          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + 5, 0, 100))
+                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
         for (auto&& mixer : mixers) {
-          m_mapped ?
-            mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - 5, 0, 100)) :
-            mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
+          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - 5, 0, 100))
+                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
         }
       } else {
         return false;

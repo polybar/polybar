@@ -1,6 +1,11 @@
 #include "adapters/net.hpp"
 
+#include <cerrno>
+#include <cstdio>
+#include <fstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
 #include <limits.h>
 #include <linux/ethtool.h>
@@ -10,11 +15,6 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <sys/socket.h>
-#include <cerrno>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <sstream>
 
 #ifdef inline
 #undef inline

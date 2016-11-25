@@ -1,6 +1,6 @@
 #include "x11/randr.hpp"
-#include "x11/connection.hpp"
 #include "utils/string.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 

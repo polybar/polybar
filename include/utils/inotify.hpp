@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sys/inotify.h>
 #include <poll.h>
+#include <sys/inotify.h>
 #include <cstdio>
 
 #include "common.hpp"

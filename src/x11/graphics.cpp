@@ -12,7 +12,8 @@ namespace graphics_util {
   /**
    * Create a basic window
    */
-  bool create_window(connection& conn, xcb_window_t* win, int16_t x, int16_t y, uint16_t w, uint16_t h, xcb_window_t root) {
+  bool create_window(
+      connection& conn, xcb_window_t* win, int16_t x, int16_t y, uint16_t w, uint16_t h, xcb_window_t root) {
     if (!root) {
       root = conn.screen()->root;
     }

@@ -39,9 +39,8 @@ namespace drawtypes {
     bool m_ellipsis = true;
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
-    explicit label(string text, string foreground = "", string background = "",
-        string underline = "", string overline = "", int font = 0, int padding = 0, int margin = 0,
-        size_t maxlen = 0, bool ellipsis = true,
+    explicit label(string text, string foreground = "", string background = "", string underline = "",
+        string overline = "", int font = 0, int padding = 0, int margin = 0, size_t maxlen = 0, bool ellipsis = true,
         const vector<struct bounds>& bound = {})
         : m_foreground(foreground)
         , m_background(background)
@@ -68,16 +67,13 @@ namespace drawtypes {
    private:
     string m_text, m_tokenized;
     const vector<struct bounds> m_token_bounds;
-
   };
 
-  label_t load_label(
-      const config& conf, string section, string name, bool required = true, string def = "");
+  label_t load_label(const config& conf, string section, string name, bool required = true, string def = "");
 
   label_t load_optional_label(const config& conf, string section, string name, string def = "");
 
-  icon_t load_icon(
-      const config& conf, string section, string name, bool required = true, string def = "");
+  icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = "");
 
   icon_t load_optional_icon(const config& conf, string section, string name, string def = "");
 }

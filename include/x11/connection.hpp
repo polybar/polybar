@@ -3,9 +3,9 @@
 #include <X11/X.h>
 #include <X11/Xlib-xcb.h>
 #include <xcb/xcb.h>
+#include <boost/optional.hpp>
 #include <iomanip>
 #include <xpp/xpp.hpp>
-#include <boost/optional.hpp>
 
 #include "common.hpp"
 #include "utils/memory.hpp"
@@ -63,8 +63,7 @@ class connection : public xpp_connection {
 
   xcb_screen_t* screen();
 
-  shared_ptr<xcb_client_message_event_t> make_client_message(
-      xcb_atom_t type, xcb_window_t target) const;
+  shared_ptr<xcb_client_message_event_t> make_client_message(xcb_atom_t type, xcb_window_t target) const;
 
   void send_client_message(shared_ptr<xcb_client_message_event_t> message, xcb_window_t target,
       uint32_t event_mask = 0xFFFFFF, bool propagate = false) const;

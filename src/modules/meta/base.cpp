@@ -1,5 +1,5 @@
-#include "components/builder.hpp"
 #include "modules/meta/base.hpp"
+#include "components/builder.hpp"
 
 POLYBAR_NS
 

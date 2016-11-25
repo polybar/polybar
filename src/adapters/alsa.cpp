@@ -16,8 +16,7 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
   snd_ctl_elem_info_set_id(m_info, m_id);
 
   if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0)
-    throw_exception<alsa_ctl_interface_error>(
-        "Could not open control '" + string{ALSA_SOUNDCARD} + "'", err);
+    throw_exception<alsa_ctl_interface_error>("Could not open control '" + string{ALSA_SOUNDCARD} + "'", err);
 
   if ((err = snd_ctl_elem_info(m_ctl, m_info)) < 0)
     throw_exception<alsa_ctl_interface_error>("Could not get control datal", err);
@@ -29,12 +28,10 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
   if ((err = snd_hctl_load(m_hctl)) < 0)
     throw_exception<alsa_ctl_interface_error>("Failed to load hctl", err);
   if ((m_elem = snd_hctl_find_elem(m_hctl, m_id)) == nullptr)
-    throw alsa_ctl_interface_error(
-        "Could not find control with id " + to_string(snd_ctl_elem_id_get_numid(m_id)));
+    throw alsa_ctl_interface_error("Could not find control with id " + to_string(snd_ctl_elem_id_get_numid(m_id)));
 
   if ((err = snd_ctl_subscribe_events(m_ctl, 1)) < 0)
-    throw alsa_ctl_interface_error(
-        "Could not subscribe to events: " + to_string(snd_ctl_elem_id_get_numid(m_id)));
+    throw alsa_ctl_interface_error("Could not subscribe to events: " + to_string(snd_ctl_elem_id_get_numid(m_id)));
 }
 
 alsa_ctl_interface::~alsa_ctl_interface() {
@@ -158,10 +155,8 @@ int alsa_mixer::get_volume() {
   snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
 
   for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-    if (snd_mixer_selem_has_playback_channel(
-            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
-      snd_mixer_selem_get_playback_volume(
-          m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
+    if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+      snd_mixer_selem_get_playback_volume(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
       vol_total += vol;
       chan_n++;
     }
@@ -178,10 +173,8 @@ int alsa_mixer::get_normalized_volume() {
   snd_mixer_selem_get_playback_dB_range(m_mixerelement, &vol_min, &vol_max);
 
   for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-    if (snd_mixer_selem_has_playback_channel(
-            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
-      snd_mixer_selem_get_playback_dB(
-          m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
+    if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+      snd_mixer_selem_get_playback_dB(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
       vol_total += vol;
       chan_n++;
     }
@@ -207,7 +200,8 @@ void alsa_mixer::set_volume(float percentage) {
 
   long vol_min, vol_max;
   snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
-  snd_mixer_selem_set_playback_volume_all(m_mixerelement, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
+  snd_mixer_selem_set_playback_volume_all(
+      m_mixerelement, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
 }
 
 void alsa_mixer::set_normalized_volume(float percentage) {
@@ -251,11 +245,9 @@ bool alsa_mixer::is_muted() {
   std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
   int state = 0;
   for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-    if (snd_mixer_selem_has_playback_channel(
-            m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+    if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
       int state_ = 0;
-      snd_mixer_selem_get_playback_switch(
-          m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &state_);
+      snd_mixer_selem_get_playback_switch(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &state_);
       state = state || state_;
     }
   }

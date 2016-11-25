@@ -489,14 +489,15 @@ void tray_manager::query_atom() {  // {{{
 void tray_manager::create_window() {  // {{{
   m_log.trace("tray: Create tray window");
 
+  // clang-format off
   auto win = winspec(m_connection, m_tray)
     << cw_size(calculate_w(), calculate_h())
     << cw_pos(calculate_x(calculate_w()), calculate_y())
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY)
-    << cw_params_override_redirect(true)
-    ;
+    << cw_params_override_redirect(true);
+  // clang-format on
 
   if (!m_opts.transparent) {
     win << cw_params_back_pixel(m_opts.background);

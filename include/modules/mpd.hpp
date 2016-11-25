@@ -1,7 +1,7 @@
 #pragma once
 
-#include <csignal>
 #include <chrono>
+#include <csignal>
 
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"

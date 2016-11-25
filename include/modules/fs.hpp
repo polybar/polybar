@@ -27,8 +27,7 @@ namespace modules {
     string percentage_free_s;
     string percentage_used_s;
 
-    explicit fs_mount(const string& mountpoint, bool mounted = false)
-        : mountpoint(mountpoint), mounted(mounted) {}
+    explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
   };
 
   using fs_mount_t = unique_ptr<fs_mount>;

@@ -163,7 +163,7 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
 /**
  * Launch the controller
  */
-bool controller::run() {
+void controller::run() {
   assert(!m_connection.connection_has_error());
 
   m_log.info("Starting application");
@@ -201,8 +201,13 @@ bool controller::run() {
   uninstall_confwatch();
 
   m_running = false;
+}
 
-  return !m_reload;
+/**
+ * Get completion state
+ */
+bool controller::completed() {
+  return !m_running && !m_reload;
 }
 
 /**

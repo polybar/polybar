@@ -1,5 +1,5 @@
-#include "x11/atoms.hpp"
 #include "x11/xutils.hpp"
+#include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/xlib.hpp"
 

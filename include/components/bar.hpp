@@ -19,8 +19,7 @@ class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  explicit bar(connection& conn, const config& config, const logger& logger,
-      unique_ptr<tray_manager> tray_manager);
+  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<tray_manager> tray_manager);
   ~bar();
 
   void bootstrap(bool nodraw = false);

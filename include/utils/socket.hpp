@@ -36,9 +36,8 @@ namespace socket_util {
    *   conn->receive(...);
    * @endcode
    */
-  auto make_unix_connection = [](string&& path) -> unique_ptr<unix_connection> {
-    return make_unique<unix_connection>(forward<string>(path));
-  };
+  auto make_unix_connection = [](
+      string&& path) -> unique_ptr<unix_connection> { return make_unique<unix_connection>(forward<string>(path)); };
 }
 
 POLYBAR_NS_END

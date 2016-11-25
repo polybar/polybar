@@ -12,8 +12,8 @@ namespace drawtypes {
   }
 
   label_t label::clone() {
-    return label_t{new label(m_text, m_foreground, m_background, m_underline, m_overline, m_font,
-        m_padding, m_margin, m_maxlen, m_ellipsis, m_token_bounds)};
+    return label_t{new label(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding, m_margin,
+        m_maxlen, m_ellipsis, m_token_bounds)};
   }
 
   void label::reset_tokens() {

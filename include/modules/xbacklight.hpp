@@ -1,9 +1,9 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "x11/randr.hpp"
 #include "config.hpp"
 #include "modules/meta/static_module.hpp"
+#include "x11/randr.hpp"
 
 POLYBAR_NS
 
@@ -23,8 +23,7 @@ namespace modules {
    *
    * TODO: Implement backlight configuring using scroll events
    */
-  class xbacklight_module : public static_module<xbacklight_module>,
-                            public xpp::event::sink<evt::randr_notify> {
+  class xbacklight_module : public static_module<xbacklight_module>, public xpp::event::sink<evt::randr_notify> {
    public:
     using static_module::static_module;
 

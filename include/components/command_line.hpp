@@ -23,8 +23,7 @@ namespace command_line {
     string token;
     const choices values;
 
-    explicit option(
-        string flag, string flag_long, string desc, string token = "", const choices c = {})
+    explicit option(string flag, string flag_long, string desc, string token = "", const choices c = {})
         : flag(flag), flag_long(flag_long), desc(desc), token(token), values(c) {}
   };
 
@@ -33,8 +32,7 @@ namespace command_line {
 
   class parser {
    public:
-    explicit parser(const string& synopsis, const options& opts)
-        : m_synopsis(synopsis), m_opts(opts) {}
+    explicit parser(const string& synopsis, const options& opts) : m_synopsis(synopsis), m_opts(opts) {}
 
     void usage() const;
 

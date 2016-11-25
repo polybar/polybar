@@ -1,7 +1,7 @@
 #pragma once
 
-#include <deque>
 #include <chrono>
+#include <deque>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -41,8 +41,7 @@ namespace throttle_util {
     /**
      * Construct throttler
      */
-    explicit event_throttler(int limit, timewindow timewindow)
-        : m_limit(limit), m_timewindow(timewindow) {}
+    explicit event_throttler(int limit, timewindow timewindow) : m_limit(limit), m_timewindow(timewindow) {}
 
     /**
      * Check if event is allowed to pass

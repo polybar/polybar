@@ -69,23 +69,23 @@ class builder {
   string m_output;
 
   map<syntaxtag, int> m_tags{
-    // clang-format off
-    {syntaxtag::A, 0},
-    {syntaxtag::B, 0},
-    {syntaxtag::F, 0},
-    {syntaxtag::T, 0},
-    {syntaxtag::u, 0},
-    {syntaxtag::o, 0},
-    // clang-format on
+      // clang-format off
+      {syntaxtag::A, 0},
+      {syntaxtag::B, 0},
+      {syntaxtag::F, 0},
+      {syntaxtag::T, 0},
+      {syntaxtag::u, 0},
+      {syntaxtag::o, 0},
+      // clang-format on
   };
 
   map<syntaxtag, string> m_colors{
-    // clang-format off
-    {syntaxtag::B, ""},
-    {syntaxtag::F, ""},
-    {syntaxtag::u, ""},
-    {syntaxtag::o, ""},
-    // clang-format on
+      // clang-format off
+      {syntaxtag::B, ""},
+      {syntaxtag::F, ""},
+      {syntaxtag::u, ""},
+      {syntaxtag::o, ""},
+      // clang-format on
   };
 
   uint8_t m_attributes{static_cast<uint8_t>(attribute::NONE)};

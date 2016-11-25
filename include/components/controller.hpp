@@ -35,7 +35,9 @@ class controller {
   ~controller();
 
   void bootstrap(bool writeback = false, bool dump_wmname = false);
-  bool run();
+
+  void run();
+  bool completed();
 
  protected:
   void install_sigmask();

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <stdio.h>
+#include <cmath>
 #include <functional>
 #include <string>
-#include <cmath>
 
 #include <alsa/asoundlib.h>
 

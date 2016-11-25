@@ -10,8 +10,7 @@ namespace file_util {
    */
   class file_ptr {
    public:
-    explicit file_ptr(const string& path, const string& mode = "a+")
-        : m_path(string(path)), m_mode(string(mode)) {
+    explicit file_ptr(const string& path, const string& mode = "a+") : m_path(string(path)), m_mode(string(mode)) {
       m_ptr = fopen(m_path.c_str(), m_mode.c_str());
     }
 

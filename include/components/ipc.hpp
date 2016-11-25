@@ -2,8 +2,8 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "utils/functional.hpp"
 #include "utils/concurrency.hpp"
+#include "utils/functional.hpp"
 
 POLYBAR_NS
 
