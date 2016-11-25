@@ -1,6 +1,23 @@
 ---
-Checks: 'clang-analyzer-core-*,clang-analyzer-nullability-*,clang-analyzer-unix-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*'
-WarningsAsErrors: ''
+Checks: '-*,performance-faster-string-find,performance-for-range-copy,readability-*,modernize-*,-modernize-raw-string-literal,-modernize-use-bool-literals,-readability-implicit-bool-cast,-readability-else-after-return,-readability-named-parameter'
+CheckOptions:
+  - key:             modernize-loop-convert.NamingStyle
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalConstantPrefix
+    value:           'g_'
+  - key:             readability-identifier-naming.ClassCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ClassConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.ClassMethodCase
+    value:           lower_case
+  - key:             readability-identifier-naming.MemberCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ProtectedMemberPrefix
+    value:           'm_'
+  - key:             readability-identifier-naming.PrivateMemberPrefix
+    value:           'm_'
 HeaderFilterRegex: ''
+WarningsAsErrors: ''
 AnalyzeTemporaryDtors: false
 ...

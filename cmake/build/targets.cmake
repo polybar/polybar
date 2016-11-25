@@ -24,27 +24,24 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND}
   -P ${PROJECT_BINARY_DIR}/cmake/uninstall.cmake)
 
 # }}}
-# Target: clang-format {{{
+# Target: codeformat (clang-format) {{{
 
-find_program(CLANG_FORMAT "clang-format")
-
-if(CLANG_FORMAT)
-  file(GLOB_RECURSE HEADERS ${PROJECT_SOURCE_DIR}/include/*.hpp)
-  file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-  add_custom_target(clang-format COMMAND ${CLANG_FORMAT}
-    -i -style=file ${HEADERS} ${SOURCES})
-endif()
-
-find_program(CLANG_TIDY "clang-tidy")
+add_custom_target(codeformat)
+add_custom_command(TARGET codeformat COMMAND
+  ${PROJECT_SOURCE_DIR}/common/clang-format.sh ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include)
 
 # }}}
-# Target: clang-tidy {{{
+# Target: codecheck (clang-tidy) {{{
 
-if(CLANG_TIDY)
-  add_custom_target(clang-tidy
-    COMMAND ${CLANG_TIDY} -p
-    ${PROJECT_BINARY_DIR}
-    ${PROJECT_SOURCE_DIR}/src/main.cpp)
-endif()
+add_custom_target(codecheck)
+add_custom_command(TARGET codecheck COMMAND
+  ${PROJECT_SOURCE_DIR}/common/clang-tidy.sh ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/src)
+
+# }}}
+# Target: codecheck-fix (clang-tidy + clang-format) {{{
+
+add_custom_target(codecheck-fix)
+add_custom_command(TARGET codecheck-fix COMMAND
+  ${PROJECT_SOURCE_DIR}/common/clang-tidy.sh ${PROJECT_BINARY_DIR} -fix ${PROJECT_SOURCE_DIR}/src)
 
 # }}}
