@@ -41,7 +41,7 @@ namespace modules {
     if (!scroll_down.empty())
       m_builder->cmd(mousebtn::SCROLL_DOWN, scroll_down);
 
-    m_builder->node(module::get_output());
+    m_builder->append(module::get_output());
 
     return m_builder->flush();
   }

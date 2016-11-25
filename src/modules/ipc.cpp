@@ -50,7 +50,7 @@ namespace modules {
     if (!m_actions[mousebtn::SCROLL_DOWN].empty())
       m_builder->cmd(mousebtn::SCROLL_DOWN, m_actions[mousebtn::SCROLL_DOWN]);
 
-    m_builder->node(module::get_output());
+    m_builder->append(module::get_output());
 
     return m_builder->flush();
   }

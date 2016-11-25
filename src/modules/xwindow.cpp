@@ -106,7 +106,7 @@ namespace modules {
    * Generate the module output
    */
   string xwindow_module::get_output() {
-    m_builder->node(static_module::get_output());
+    m_builder->append(static_module::get_output());
     return m_builder->flush();
   }
 
