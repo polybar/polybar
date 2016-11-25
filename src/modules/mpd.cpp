@@ -24,7 +24,7 @@ namespace modules {
     // Add formats and elements {{{
 
     m_formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG,
-        {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM, TAG_ICON_REPEAT,
+        {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM, TAG_ICON_REPEAT,
             TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE, TAG_ICON_NEXT,
             TAG_ICON_SEEKB, TAG_ICON_SEEKF});
 
@@ -32,11 +32,11 @@ namespace modules {
 
     m_icons = iconset_t{new iconset()};
 
-    if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE))
+    if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP))
       m_icons->add("play", load_icon(m_conf, name(), TAG_ICON_PLAY));
     if (m_formatter->has(TAG_ICON_PAUSE) || m_formatter->has(TAG_TOGGLE))
       m_icons->add("pause", load_icon(m_conf, name(), TAG_ICON_PAUSE));
-    if (m_formatter->has(TAG_ICON_STOP))
+    if (m_formatter->has(TAG_ICON_STOP) || m_formatter->has(TAG_TOGGLE_STOP))
       m_icons->add("stop", load_icon(m_conf, name(), TAG_ICON_STOP));
     if (m_formatter->has(TAG_ICON_PREV))
       m_icons->add("prev", load_icon(m_conf, name(), TAG_ICON_PREV));
@@ -271,11 +271,11 @@ namespace modules {
       icon_cmd(EVENT_REPEAT_ONE, m_icons->get("repeat_one"));
     else if (tag == TAG_ICON_PREV)
       icon_cmd(EVENT_PREV, m_icons->get("prev"));
-    else if (tag == TAG_ICON_STOP && (is_playing || is_paused))
+    else if ((tag == TAG_ICON_STOP || tag == TAG_TOGGLE_STOP) && (is_playing || is_paused))
       icon_cmd(EVENT_STOP, m_icons->get("stop"));
     else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing)
       icon_cmd(EVENT_PAUSE, m_icons->get("pause"));
-    else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE) && !is_playing)
+    else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE || tag == TAG_TOGGLE_STOP) && !is_playing)
       icon_cmd(EVENT_PLAY, m_icons->get("play"));
     else if (tag == TAG_ICON_NEXT)
       icon_cmd(EVENT_NEXT, m_icons->get("next"));
