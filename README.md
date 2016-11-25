@@ -125,7 +125,7 @@ missing fonts.
 
 ### Running
 
-See the wiki page on [how to launch the bar when starting your WM](https://github.com/jaagr/polybar/wiki/Running-the-app).
+[See the wiki for details on how to run polybar](https://github.com/jaagr/polybar/wiki).
 
 
 ## License
