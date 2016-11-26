@@ -206,9 +206,6 @@ void renderer::flush(bool clear) {
   right.width += m_bar.borders.at(edge::RIGHT).size;
   right.height += m_bar.size.h;
 
-  m_log.trace("renderer: clear window contents");
-  m_connection.clear_area(false, m_window, 0, 0, m_bar.size.w, m_bar.size.h);
-
   m_log.trace("renderer: copy pixmap (clear=%i)", clear);
   m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, r.x, r.y, r.width, r.height);
 
