@@ -87,14 +87,19 @@ namespace ewmh_util {
 
     vector<string> names;
     char buffer[BUFSIZ];
+    size_t len{0};
 
-    for (size_t n = 0, len = 0; n < reply.strings_len; n++) {
+    for (size_t n = 0; n < reply.strings_len; n++) {
       if (reply.strings[n] == '\0') {
         names.emplace_back(buffer, len);
         len = 0;
       } else {
         buffer[len++] = reply.strings[n];
       }
+    }
+
+    if (len) {
+      names.emplace_back(buffer, len);
     }
 
     return names;
