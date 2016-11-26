@@ -10,33 +10,51 @@
 #include "common.hpp"
 #include "x11/types.hpp"
 
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_DAMAGE_EXT
 #include "x11/damage.hpp"
 #endif
-#ifdef ENABLE_RENDER_EXT
+#if ENABLE_RENDER_EXT
 #include "x11/render.hpp"
 #endif
-#ifdef ENABLE_RANDR_EXT
+#if ENABLE_RANDR_EXT
 #include "x11/randr.hpp"
+#endif
+#if ENABLE_SYNC_EXT
+#include "x11/sync.hpp"
+#endif
+#if ENABLE_COMPOSITE_EXT
+#include "x11/composite.hpp"
 #endif
 
 POLYBAR_NS
 
 using xpp_connection = xpp::connection<
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_DAMAGE_EXT
     xpp::damage::extension
 #endif
-#ifdef ENABLE_RANDR_EXT
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_RANDR_EXT
+#if ENABLE_DAMAGE_EXT
     ,
 #endif
     xpp::randr::extension
 #endif
-#ifdef ENABLE_RENDER_EXT
-#ifdef ENABLE_RANDR_EXT
+#if ENABLE_RENDER_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT)
     ,
 #endif
     xpp::render::extension
+#endif
+#if ENABLE_SYNC_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT || ENABLE_RENDER_EXT)
+    ,
+#endif
+    xpp::sync::extension
+#endif
+#if ENABLE_COMPOSITE_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT || ENABLE_RENDER_EXT || ENABLE_SYNC_EXT)
+    ,
+#endif
+    xpp::composite::extension
 #endif
     >;
 

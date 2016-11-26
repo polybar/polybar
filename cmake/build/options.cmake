@@ -51,9 +51,11 @@ option(ENABLE_I3          "Enable i3 support"          ON)
 option(ENABLE_MPD         "Enable mpd support"         ON)
 option(ENABLE_NETWORK     "Enable network support"     ON)
 
-option(ENABLE_RANDR_EXT   "Enable RandR X extension"   ON)
-option(ENABLE_RENDER_EXT  "Enable Render X extension"  OFF)
-option(ENABLE_DAMAGE_EXT  "Enable Damage X extension"  OFF)
+option(ENABLE_RANDR_EXT     "Enable RandR X extension"   ON)
+option(ENABLE_RENDER_EXT    "Enable Render X extension"  OFF)
+option(ENABLE_DAMAGE_EXT    "Enable Damage X extension"  OFF)
+option(ENABLE_SYNC_EXT      "Enable Sync X extension"    OFF)
+option(ENABLE_COMPOSITE_EXT "Enable Sync X extension"    OFF)
 
 # }}}
 # Set cache vars {{{

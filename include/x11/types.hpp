@@ -4,18 +4,28 @@
 
 // fwd
 namespace xpp {
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_DAMAGE_EXT
   namespace damage {
     class extension;
   }
 #endif
-#ifdef ENABLE_RANDR_EXT
+#if ENABLE_RANDR_EXT
   namespace randr {
     class extension;
   }
 #endif
-#ifdef ENABLE_RENDER_EXT
+#if ENABLE_SYNC_EXT
+  namespace sync {
+    class extension;
+  }
+#endif
+#if ENABLE_RENDER_EXT
   namespace render {
+    class extension;
+  }
+#endif
+#if ENABLE_COMPOSITE_EXT
+  namespace composite {
     class extension;
   }
 #endif
@@ -38,20 +48,32 @@ using font = xpp::font<connection&>;
 using cursor = xpp::cursor<connection&>;
 
 using registry = xpp::event::registry<connection&,
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_DAMAGE_EXT
     xpp::damage::extension
 #endif
-#ifdef ENABLE_RANDR_EXT
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_RANDR_EXT
+#if ENABLE_DAMAGE_EXT
     ,
 #endif
     xpp::randr::extension
 #endif
-#ifdef ENABLE_RENDER_EXT
-#ifdef ENABLE_RANDR_EXT
+#if ENABLE_RENDER_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT)
     ,
 #endif
     xpp::render::extension
+#endif
+#if ENABLE_SYNC_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT || ENABLE_RENDER_EXT)
+    ,
+#endif
+    xpp::sync::extension
+#endif
+#if ENABLE_COMPOSITE_EXT
+#if (ENABLE_RANDR_EXT || ENABLE_DAMAGE_EXT || ENABLE_RENDER_EXT || ENABLE_COMPOSITE_EXT)
+    ,
+#endif
+    xpp::composite::extension
 #endif
     >;
 

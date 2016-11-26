@@ -17,9 +17,11 @@
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 ENABLE_I3
 
-#cmakedefine ENABLE_RANDR_EXT
-#cmakedefine ENABLE_RENDER_EXT
-#cmakedefine ENABLE_DAMAGE_EXT
+#cmakedefine01 ENABLE_RANDR_EXT
+#cmakedefine01 ENABLE_RENDER_EXT
+#cmakedefine01 ENABLE_DAMAGE_EXT
+#cmakedefine01 ENABLE_SYNC_EXT
+#cmakedefine01 ENABLE_COMPOSITE_EXT
 
 #cmakedefine DEBUG_LOGGER
 #cmakedefine VERBOSE_TRACELOG

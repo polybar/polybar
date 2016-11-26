@@ -2,8 +2,9 @@
 
 #include "config.hpp"
 
-#ifndef ENABLE_RENDER_EXT
+#if not ENABLE_RENDER_EXT
 #error "X Render extension is disabled..."
 #endif
 
+#include <xcb/render.h>
 #include <xpp/proto/render.hpp>

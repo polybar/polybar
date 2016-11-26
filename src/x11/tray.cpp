@@ -22,6 +22,21 @@
 #include "x11/xembed.hpp"
 #include "x11/xutils.hpp"
 
+// ====================================================================================================
+//
+// TODO: 32-bit visual
+//
+// _NET_SYSTEM_TRAY_VISUAL visual_id VISUALID/32
+//
+// The property should be set by the tray manager to indicate the preferred visual for icon windows.
+//
+// To avoid ambiguity about the colormap to use this visual must either be the default visual for
+// the screen or it must be a TrueColor visual. If this property is set to a visual with an alpha
+// channel, the tray manager must use the Composite extension to composite the icon against the
+// background using PictOpOver.
+//
+// ====================================================================================================
+
 POLYBAR_NS
 
 // implementation : tray_client {{{

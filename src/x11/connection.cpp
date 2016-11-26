@@ -53,19 +53,30 @@ void connection::query_extensions() {
     return;
   }
 
-#ifdef ENABLE_DAMAGE_EXT
+#if ENABLE_DAMAGE_EXT
   damage().query_version(XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
   if (!extension<xpp::damage::extension>()->present)
     throw application_error("Missing X extension: Damage");
 #endif
-#ifdef ENABLE_RENDER_EXT
+#if ENABLE_RENDER_EXT
   render().query_version(XCB_RENDER_MAJOR_VERSION, XCB_RENDER_MINOR_VERSION);
   if (!extension<xpp::render::extension>()->present)
     throw application_error("Missing X extension: Render");
 #endif
-#ifdef ENABLE_RANDR_EXT
+#if ENABLE_RANDR_EXT
   randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
   if (!extension<xpp::randr::extension>()->present) {
+    throw application_error("Missing X extension: RandR");
+  }
+#endif
+#if ENABLE_SYNC_EXT
+  if (!extension<xpp::sync::extension>()->present) {
+    throw application_error("Missing X extension: Sync");
+  }
+#endif
+#if ENABLE_COMPOSITE_EXT
+  composite().query_version(XCB_COMPOSITE_MAJOR_VERSION, XCB_COMPOSITE_MINOR_VERSION);
+  if (!extension<xpp::composite::extension>()->present) {
     throw application_error("Missing X extension: RandR");
   }
 #endif

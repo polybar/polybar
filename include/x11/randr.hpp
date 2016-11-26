@@ -2,10 +2,11 @@
 
 #include "config.hpp"
 
-#ifndef ENABLE_RANDR_EXT
+#if not ENABLE_RANDR_EXT
 #error "X RandR extension is disabled..."
 #endif
 
+#include <xcb/randr.h>
 #include <xpp/proto/randr.hpp>
 #include <xpp/xpp.hpp>
 
