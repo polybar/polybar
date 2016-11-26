@@ -14,6 +14,7 @@
 POLYBAR_NS
 
 class connection;
+struct position;
 
 namespace evt {
   using randr_notify = xpp::randr::event::notify<connection&>;
@@ -37,6 +38,7 @@ struct randr_output {
   backlight_values backlight;
 
   bool match(const string& o, bool strict = false) const;
+  bool match(const position& p) const;
 };
 
 using monitor_t = shared_ptr<randr_output>;

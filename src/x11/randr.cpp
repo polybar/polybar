@@ -1,5 +1,6 @@
 #include <utility>
 
+#include "components/types.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
@@ -17,6 +18,13 @@ bool randr_output::match(const string& o, bool strict) const {
     return false;
   }
   return name == o || name == string_util::replace(o, "-", "");
+}
+
+/**
+ * Match position
+ */
+bool randr_output::match(const position& p) const {
+  return p.x == x && p.y == y;
 }
 
 namespace randr_util {

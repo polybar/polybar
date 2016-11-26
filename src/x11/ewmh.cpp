@@ -1,3 +1,4 @@
+#include "components/types.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/xutils.hpp"
 
@@ -79,6 +80,19 @@ namespace ewmh_util {
       return desktop;
     }
     return XCB_NONE;
+  }
+
+  vector<position> get_desktop_viewports(xcb_ewmh_connection_t* conn, int screen) {
+    xcb_ewmh_get_desktop_viewport_reply_t reply;
+    xcb_ewmh_get_desktop_viewport_reply(conn, xcb_ewmh_get_desktop_viewport(conn, screen), &reply, nullptr);
+
+    vector<position> viewports;
+
+    for (size_t n = 0; n < reply.desktop_viewport_len; n++) {
+      viewports.emplace_back(position{static_cast<int16_t>(reply.desktop_viewport[n].x), static_cast<int16_t>(reply.desktop_viewport[n].y)});
+    }
+
+    return viewports;
   }
 
   vector<string> get_desktop_names(xcb_ewmh_connection_t* conn, int screen) {

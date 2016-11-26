@@ -345,6 +345,7 @@ namespace modules {
             builder->node(ws.second);
             builder->cmd_close();
           } else {
+            workspace_n++;
             builder->node(ws.second);
           }
         }

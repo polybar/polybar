@@ -7,6 +7,8 @@
 
 POLYBAR_NS
 
+struct position;
+
 using ewmh_connection_t = memory_util::malloc_ptr_t<xcb_ewmh_connection_t>;
 
 namespace ewmh_util {
@@ -21,6 +23,7 @@ namespace ewmh_util {
   string get_icon_name(xcb_ewmh_connection_t* conn, xcb_window_t win);
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply);
 
+  vector<position> get_desktop_viewports(xcb_ewmh_connection_t* conn, int screen = 0);
   vector<string> get_desktop_names(xcb_ewmh_connection_t* conn, int screen = 0);
   uint32_t get_current_desktop(xcb_ewmh_connection_t* conn, int screen = 0);
   xcb_window_t get_active_window(xcb_ewmh_connection_t* conn, int screen = 0);

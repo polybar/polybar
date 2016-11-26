@@ -1,6 +1,8 @@
-#include "modules/xworkspaces.hpp"
+#include <utility>
+
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "modules/xworkspaces.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 
@@ -25,7 +27,8 @@ namespace modules {
    * Bootstrap the module
    */
   void xworkspaces_module::setup() {
-    connection& conn{configure_connection().create<decltype(conn)>()};
+    // Load config values
+    m_pinworkspaces = m_conf.get<bool>(name(), "pin-workspaces", m_pinworkspaces);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -33,22 +36,36 @@ namespace modules {
     }
 
     // Check if the WM supports _NET_CURRENT_DESKTOP
-    if (!ewmh_util::supports(m_ewmh.get(), _NET_CURRENT_DESKTOP)) {
-      throw module_error("The WM does not list _NET_CURRENT_DESKTOP as a supported hint");
+    if (!ewmh_util::supports(m_ewmh.get(), m_ewmh->_NET_CURRENT_DESKTOP)) {
+      throw module_error("The WM does not support _NET_CURRENT_DESKTOP, aborting...");
     }
 
-    // Add formats and elements
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
+    // Check if the WM supports _NET_DESKTOP_VIEWPORT
+    if (!ewmh_util::supports(m_ewmh.get(), m_ewmh->_NET_DESKTOP_VIEWPORT) && m_pinworkspaces) {
+      throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
+    } else if (!m_pinworkspaces) {
+      m_monitorsupport = true;
+    }
 
-    if (m_formatter->has(TAG_LABEL)) {
+    // Get list of monitors
+    m_monitors = randr_util::get_monitors(m_connection, m_connection.root(), false);
+
+    // Add formats and elements
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
+
+    if (m_formatter->has(TAG_LABEL_MONITOR)) {
+      m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_LABEL_MONITOR);
+    }
+
+    if (m_formatter->has(TAG_LABEL_STATE)) {
       m_labels.insert(
-          make_pair(desktop_state::ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_LABEL)));
+          make_pair(desktop_state::ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_LABEL_STATE)));
+      m_labels.insert(make_pair(
+          desktop_state::OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL_STATE)));
       m_labels.insert(
-          make_pair(desktop_state::OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL)));
+          make_pair(desktop_state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL_STATE)));
       m_labels.insert(
-          make_pair(desktop_state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL)));
-      m_labels.insert(
-          make_pair(desktop_state::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL)));
+          make_pair(desktop_state::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL_STATE)));
     }
 
     m_icons = make_shared<iconset>();
@@ -62,73 +79,33 @@ namespace modules {
     }
 
     // Make sure we get notified when root properties change
-    window{conn, conn.root()}.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
+    window{m_connection, m_connection.root()}.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
 
-    // Connect with the event registry
-    conn.attach_sink(this, 1);
-
-    // Get desktops
-    rebuild_desktops();
-    set_current_desktop();
-
-    // Trigger the initial draw event
     update();
   }
 
+  void xworkspaces_module::start() {
+    // Connect with the event registry
+    m_connection.attach_sink(this, 3);
+    static_module::start();
+  }
   /**
    * Disconnect from the event registry
    */
   void xworkspaces_module::teardown() {
-    connection& conn{configure_connection().create<decltype(conn)>()};
-    conn.detach_sink(this, 1);
+    m_connection.detach_sink(this, 3);
   }
 
   /**
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES && !m_throttle.throttle(evt->time)) {
-      rebuild_desktops();
-    } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP && !m_throttle.throttle(evt->time)) {
-      set_current_desktop();
+    if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
+      update();
+    } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
+      update();
     } else {
       return;
-    }
-
-    update();
-
-    // m_log.err("%lu %s", evt->time, m_connection.get_atom_name(evt->atom).name());
-  }
-
-  /**
-   * Update the currently active window and query its title
-   */
-  void xworkspaces_module::update() {
-    size_t desktop_index{0};
-
-    for (const auto& desktop : m_desktops) {
-      switch (desktop->state) {
-        case desktop_state::ACTIVE:
-          desktop->label = m_labels[desktop_state::ACTIVE]->clone();
-          break;
-        case desktop_state::EMPTY:
-          desktop->label = m_labels[desktop_state::EMPTY]->clone();
-          break;
-        case desktop_state::URGENT:
-          desktop->label = m_labels[desktop_state::URGENT]->clone();
-          break;
-        case desktop_state::OCCUPIED:
-          desktop->label = m_labels[desktop_state::URGENT]->clone();
-          break;
-        case desktop_state::NONE:
-          continue;
-          break;
-      }
-
-      desktop->label->reset_tokens();
-      desktop->label->replace_token("%name%", desktop->name);
-      desktop->label->replace_token("%icon%", m_icons->get(desktop->name, DEFAULT_ICON)->get());
-      desktop->label->replace_token("%index%", to_string(++desktop_index));
     }
 
     // Emit notification to trigger redraw
@@ -136,11 +113,69 @@ namespace modules {
   }
 
   /**
+   * Fetch and parse data
+   */
+  void xworkspaces_module::update() {
+    auto current = ewmh_util::get_current_desktop(m_ewmh.get());
+    auto names = ewmh_util::get_desktop_names(m_ewmh.get());
+    vector<position> viewports;
+    size_t num{0};
+    position pos;
+
+    if (m_monitorsupport) {
+      viewports = ewmh_util::get_desktop_viewports(m_ewmh.get());
+      num = std::min(names.size(), viewports.size());
+    } else {
+      num = names.size();
+    }
+
+    m_viewports.clear();
+
+    for (size_t n = 0; n < num; n++) {
+      if (m_pinworkspaces && !m_bar.monitor->match(viewports[n])) {
+        continue;
+      }
+
+      if (m_monitorsupport && (n == 0 || pos.x != viewports[n].x || pos.y != viewports[n].y)) {
+        m_viewports.emplace_back(make_unique<viewport>());
+
+        for (auto&& monitor : m_monitors) {
+          if (monitor->match(viewports[n])) {
+            m_viewports.back()->name = monitor->name;
+            m_viewports.back()->pos.x = static_cast<int16_t>(monitor->x);
+            m_viewports.back()->pos.y = static_cast<int16_t>(monitor->y);
+            m_viewports.back()->state = viewport_state::FOCUSED;
+            m_viewports.back()->label = m_monitorlabel->clone();
+            m_viewports.back()->label->replace_token("%name%", monitor->name);
+            pos = m_viewports.back()->pos;
+            break;
+          }
+        }
+      } else if (!m_monitorsupport && n == 0) {
+        m_viewports.emplace_back(make_unique<viewport>());
+        m_viewports.back()->state = viewport_state::NONE;
+      }
+
+      if (current == n) {
+        m_viewports.back()->desktops.emplace_back(make_pair(desktop_state::ACTIVE, m_labels[desktop_state::ACTIVE]->clone()));
+      } else {
+        m_viewports.back()->desktops.emplace_back(make_pair(desktop_state::EMPTY, m_labels[desktop_state::EMPTY]->clone()));
+      }
+
+      auto& desktop = m_viewports.back()->desktops.back();
+      desktop.second->reset_tokens();
+      desktop.second->replace_token("%name%", names[n]);
+      desktop.second->replace_token("%icon%", m_icons->get(names[n], DEFAULT_ICON)->get());
+      desktop.second->replace_token("%index%", to_string(n));
+    }
+  }
+
+  /**
    * Generate module output
    */
   string xworkspaces_module::get_output() {
     string output;
-    for (m_index = 0; m_index < m_desktops.size(); m_index++) {
+    for (m_index = 0; m_index < m_viewports.size(); m_index++) {
       if (m_index > 0) {
         m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
@@ -153,38 +188,21 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL && m_desktops[m_index]->state != desktop_state::NONE) {
-      builder->node(m_desktops[m_index]->label);
-    } else {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Rebuild the list of desktops
-   */
-  void xworkspaces_module::rebuild_desktops() {
-    m_desktops.clear();
-
-    for (auto&& name : ewmh_util::get_desktop_names(m_ewmh.get())) {
-      m_desktops.emplace_back(make_unique<desktop>(move(name), desktop_state::EMPTY));
-    }
-  }
-
-  /**
-   * Flag the desktop that is currently active
-   */
-  void xworkspaces_module::set_current_desktop() {
-    auto current = ewmh_util::get_current_desktop(m_ewmh.get());
-
-    for (auto&& desktop : m_desktops) {
-      desktop->state = desktop_state::EMPTY;
+    if (tag == TAG_LABEL_MONITOR && m_viewports[m_index]->state != viewport_state::NONE) {
+      builder->node(m_viewports[m_index]->label);
+      return true;
+    } else if (tag == TAG_LABEL_STATE) {
+      size_t num{0};
+      for (auto&& d : m_viewports[m_index]->desktops) {
+        if (d.second.get()) {
+          num++;
+          builder->node(d.second);
+        }
+      }
+      return num > 0;
     }
 
-    if (m_desktops.size() > current) {
-      m_desktops[current]->state = desktop_state::ACTIVE;
-    }
+    return false;
   }
 }
 
