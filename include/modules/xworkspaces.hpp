@@ -51,6 +51,10 @@ namespace modules {
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
+    bool handle_event(string cmd);
+    bool receive_events() const {
+      return true;
+    }
 
    protected:
     void rebuild_desktops();
@@ -64,6 +68,11 @@ namespace modules {
     static constexpr const char* TAG_LABEL_MONITOR{"<label-monitor>"};
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
 
+    static constexpr const char* EVENT_PREFIX{"xworkspaces-"};
+    static constexpr const char* EVENT_CLICK{"focus="};
+    static constexpr const char* EVENT_SCROLL_UP{"next"};
+    static constexpr const char* EVENT_SCROLL_DOWN{"prev"};
+
     connection& m_connection;
     ewmh_connection_t m_ewmh;
     vector<monitor_t> m_monitors;
@@ -74,6 +83,8 @@ namespace modules {
     label_t m_monitorlabel;
     iconset_t m_icons;
     bool m_pinworkspaces{false};
+    bool m_click{true};
+    bool m_scroll{true};
     size_t m_index{0};
   };
 }

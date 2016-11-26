@@ -29,6 +29,8 @@ namespace modules {
   void xworkspaces_module::setup() {
     // Load config values
     m_pinworkspaces = m_conf.get<bool>(name(), "pin-workspaces", m_pinworkspaces);
+    m_click = m_conf.get<bool>(name(), "enable-click", m_click);
+    m_scroll = m_conf.get<bool>(name(), "enable-scroll", m_scroll);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -157,9 +159,11 @@ namespace modules {
       }
 
       if (current == n) {
-        m_viewports.back()->desktops.emplace_back(make_pair(desktop_state::ACTIVE, m_labels[desktop_state::ACTIVE]->clone()));
+        m_viewports.back()->desktops.emplace_back(
+            make_pair(desktop_state::ACTIVE, m_labels[desktop_state::ACTIVE]->clone()));
       } else {
-        m_viewports.back()->desktops.emplace_back(make_pair(desktop_state::EMPTY, m_labels[desktop_state::EMPTY]->clone()));
+        m_viewports.back()->desktops.emplace_back(
+            make_pair(desktop_state::EMPTY, m_labels[desktop_state::EMPTY]->clone()));
       }
 
       auto& desktop = m_viewports.back()->desktops.back();
@@ -193,16 +197,61 @@ namespace modules {
       return true;
     } else if (tag == TAG_LABEL_STATE) {
       size_t num{0};
-      for (auto&& d : m_viewports[m_index]->desktops) {
-        if (d.second.get()) {
+
+      if (m_scroll) {
+        builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_PREFIX} + string{EVENT_SCROLL_DOWN});
+        builder->cmd(mousebtn::SCROLL_UP, string{EVENT_PREFIX} + string{EVENT_SCROLL_UP});
+      }
+
+      for (auto&& desktop : m_viewports[m_index]->desktops) {
+        if (!desktop.second.get()) {
+          continue;
+        }
+
+        if (m_click) {
+          builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(num++));
+          builder->node(desktop.second);
+          builder->cmd_close();
+        } else {
           num++;
-          builder->node(d.second);
+          builder->node(desktop.second);
         }
       }
+
+      if (m_scroll) {
+        builder->cmd_close();
+        builder->cmd_close();
+      }
+
       return num > 0;
     }
 
     return false;
+  }
+
+  bool xworkspaces_module::handle_event(string cmd) {
+    if (cmd.find(EVENT_PREFIX) != 0) {
+      return false;
+    }
+
+    cmd.erase(0, strlen(EVENT_PREFIX));
+
+    if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
+      cmd.erase(0, strlen(EVENT_CLICK));
+      ewmh_util::change_current_desktop(m_ewmh.get(), atoi(cmd.c_str()));
+
+    } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+      auto current = ewmh_util::get_current_desktop(m_ewmh.get());
+      ewmh_util::change_current_desktop(m_ewmh.get(), current + 1);
+
+    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+      auto current = ewmh_util::get_current_desktop(m_ewmh.get());
+      ewmh_util::change_current_desktop(m_ewmh.get(), current - 1);
+    }
+
+    m_connection.flush();
+
+    return true;
   }
 }
 

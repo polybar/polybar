@@ -131,6 +131,10 @@ namespace ewmh_util {
     }
     return win;
   }
+
+  void change_current_desktop(xcb_ewmh_connection_t* conn, uint32_t desktop) {
+    xcb_ewmh_request_change_current_desktop(conn, 0, desktop, XCB_CURRENT_TIME);
+  }
 }
 
 POLYBAR_NS_END
