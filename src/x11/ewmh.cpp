@@ -83,10 +83,12 @@ namespace ewmh_util {
   }
 
   vector<position> get_desktop_viewports(xcb_ewmh_connection_t* conn, int screen) {
-    xcb_ewmh_get_desktop_viewport_reply_t reply;
-    xcb_ewmh_get_desktop_viewport_reply(conn, xcb_ewmh_get_desktop_viewport(conn, screen), &reply, nullptr);
-
     vector<position> viewports;
+    xcb_ewmh_get_desktop_viewport_reply_t reply;
+
+    if (!xcb_ewmh_get_desktop_viewport_reply(conn, xcb_ewmh_get_desktop_viewport(conn, screen), &reply, nullptr)) {
+      return viewports;
+    }
 
     for (size_t n = 0; n < reply.desktop_viewport_len; n++) {
       viewports.emplace_back(position{static_cast<int16_t>(reply.desktop_viewport[n].x), static_cast<int16_t>(reply.desktop_viewport[n].y)});
@@ -96,10 +98,13 @@ namespace ewmh_util {
   }
 
   vector<string> get_desktop_names(xcb_ewmh_connection_t* conn, int screen) {
-    xcb_ewmh_get_utf8_strings_reply_t reply;
-    xcb_ewmh_get_desktop_names_reply(conn, xcb_ewmh_get_desktop_names(conn, screen), &reply, nullptr);
-
     vector<string> names;
+    xcb_ewmh_get_utf8_strings_reply_t reply;
+
+    if (!xcb_ewmh_get_desktop_names_reply(conn, xcb_ewmh_get_desktop_names(conn, screen), &reply, nullptr)) {
+      return names;
+    }
+
     char buffer[BUFSIZ];
     size_t len{0};
 
@@ -120,8 +125,10 @@ namespace ewmh_util {
   }
 
   xcb_window_t get_active_window(xcb_ewmh_connection_t* conn, int screen) {
-    xcb_window_t win{XCB_NONE};
-    xcb_ewmh_get_active_window_reply(conn, xcb_ewmh_get_active_window(conn, screen), &win, nullptr);
+    xcb_window_t win{0};
+    if (!xcb_ewmh_get_active_window_reply(conn, xcb_ewmh_get_active_window(conn, screen), &win, nullptr)) {
+      return XCB_NONE;
+    }
     return win;
   }
 }

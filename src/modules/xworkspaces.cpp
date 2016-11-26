@@ -44,7 +44,7 @@ namespace modules {
     if (!ewmh_util::supports(m_ewmh.get(), m_ewmh->_NET_DESKTOP_VIEWPORT) && m_pinworkspaces) {
       throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
     } else if (!m_pinworkspaces) {
-      m_monitorsupport = true;
+      m_monitorsupport = false;
     }
 
     // Get list of monitors
