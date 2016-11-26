@@ -6,6 +6,7 @@
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 

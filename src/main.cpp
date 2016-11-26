@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/xutils.hpp"
 
 using namespace polybar;
@@ -145,6 +146,7 @@ int main(int argc, char** argv) {
   }
 
   logger.trace("Close connection to X server");
+  ewmh_util::dealloc();
   xcb_disconnect(connection);
   close(xfd);
 

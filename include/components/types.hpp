@@ -134,4 +134,18 @@ struct action_block {
   }
 };
 
+struct event_timer {
+  xcb_timestamp_t event{0};
+  uint32_t delay_ms{0U};
+
+  bool throttle(xcb_timestamp_t evt) {
+    if (evt > event + delay_ms) {
+      event = evt;
+      return false;
+    } else {
+      return true;
+    }
+  };
+};
+
 POLYBAR_NS_END

@@ -8,10 +8,14 @@
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
+#include "x11/atoms.hpp"
+#include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/fonts.hpp"
 #include "x11/graphics.hpp"
 #include "x11/tray.hpp"
 #include "x11/wm.hpp"
+#include "x11/xutils.hpp"
 
 #if ENABLE_I3
 #include "utils/i3.hpp"
@@ -84,6 +88,8 @@ void bar::bootstrap(bool nodraw) {
 
     m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);
     m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
+
+    m_buttonpress.delay_ms = xutils::event_timer_ms(m_conf, xcb_button_press_event_t{});
   }
 
   m_log.trace("bar: Load color values");
@@ -554,12 +560,6 @@ void bar::reconfigure_window() {
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.size(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_window, 15, "polybar\0Polybar");
 
-  m_log.trace("bar: Set window WM_NORMAL_HINTS");
-  xcb_size_hints_t hints;
-  xcb_icccm_size_hints_set_position(&hints, true, m_opts.pos.x, m_opts.pos.y);
-  xcb_icccm_size_hints_set_size(&hints, true, m_opts.size.w, m_opts.size.h);
-  xcb_icccm_set_wm_normal_hints(m_connection, m_window, &hints);
-
   m_log.trace("bar: Set window _NET_WM_WINDOW_TYPE");
   wm_util::set_windowtype(m_connection, m_window, {_NET_WM_WINDOW_TYPE_DOCK});
 
@@ -584,6 +584,10 @@ void bar::handle(const evt::button_press& evt) {
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
+  if (m_buttonpress.throttle(evt->time)) {
+    return m_log.trace_x("bar: Ignoring button press (throttled)...");
+  }
 
   m_log.trace_x("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 

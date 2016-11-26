@@ -3,13 +3,23 @@
 #include "config.hpp"
 
 // fwd
-#ifdef ENABLE_RANDR_EXT
 namespace xpp {
+#ifdef ENABLE_DAMAGE_EXT
+  namespace damage {
+    class extension;
+  }
+#endif
+#ifdef ENABLE_RANDR_EXT
   namespace randr {
     class extension;
   }
-}
 #endif
+#ifdef ENABLE_RENDER_EXT
+  namespace render {
+    class extension;
+  }
+#endif
+}
 
 #include <xpp/xpp.hpp>
 

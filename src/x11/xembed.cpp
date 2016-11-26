@@ -1,5 +1,6 @@
 #include "x11/xembed.hpp"
 #include "errors.hpp"
+#include "x11/atoms.hpp"
 
 POLYBAR_NS
 

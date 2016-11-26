@@ -59,6 +59,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_lastinput;
 
   std::mutex m_mutex;
+
+  event_timer m_buttonpress{};
 };
 
 di::injector<unique_ptr<bar>> configure_bar();

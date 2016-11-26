@@ -1,6 +1,7 @@
 #include <utility>
 
 #include "utils/string.hpp"
+#include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/randr.hpp"
 

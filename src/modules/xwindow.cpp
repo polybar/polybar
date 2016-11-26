@@ -20,12 +20,12 @@ namespace modules {
     connection& conn{configure_connection().create<decltype(conn)>()};
 
     // Initialize ewmh atoms
-    if (!ewmh_util::setup(conn, &m_ewmh)) {
+    if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
     }
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
-    if (!ewmh_util::supports(&m_ewmh, _NET_ACTIVE_WINDOW)) {
+    if (!ewmh_util::supports(m_ewmh.get(), _NET_ACTIVE_WINDOW)) {
       throw module_error("The WM does not list _NET_ACTIVE_WINDOW as a supported hint");
     }
 
@@ -81,14 +81,14 @@ namespace modules {
    * Update the currently active window and query its title
    */
   void xwindow_module::update() {
-    xcb_window_t win{ewmh_util::get_active_window(&m_ewmh)};
+    xcb_window_t win{ewmh_util::get_active_window(m_ewmh.get())};
     string title;
 
     if (m_active && m_active->match(win)) {
-      title = m_active->title(&m_ewmh);
+      title = m_active->title(m_ewmh.get());
     } else if (win != XCB_NONE) {
       m_active = make_unique<active_window>(win);
-      title = m_active->title(&m_ewmh);
+      title = m_active->title(m_ewmh.get());
     } else {
       m_active.reset();
     }

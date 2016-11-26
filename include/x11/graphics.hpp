@@ -3,10 +3,9 @@
 #include <xcb/xcb.h>
 
 #include "common.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
-
-class connection;
 
 namespace graphics_util {
   struct root_pixmap {

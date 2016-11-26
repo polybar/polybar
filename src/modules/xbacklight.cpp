@@ -5,6 +5,7 @@
 #include "utils/math.hpp"
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"
+#include "x11/xutils.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/static_module.inl"
@@ -59,6 +60,9 @@ namespace modules {
       throw module_error("Failed to create event proxy");
     }
 
+    // Get the throttle time
+    m_randrnotify.delay_ms = xutils::event_timer_ms(m_conf, xcb_randr_notify_event_t{});
+
     // Connect with the event registry and make sure we get
     // notified when a RandR output property gets modified
     m_connection.attach_sink(this, 1);
@@ -102,15 +106,11 @@ namespace modules {
       return;
     } else if (evt->u.op.atom != m_output->backlight.atom) {
       return;
-    } else if (evt->u.op.timestamp <= m_timestamp) {
-      return;
+    } else if (m_randrnotify.throttle(evt->u.op.timestamp)) {
+      return m_log.trace_x("%s: Ignoring randr notify (throttled)...", name());
+    } else {
+      update();
     }
-
-    // Store the timestamp with a throttle offset (ms)
-    m_timestamp = evt->u.op.timestamp + 50;
-
-    // Fetch the new values
-    update();
   }
 
   /**

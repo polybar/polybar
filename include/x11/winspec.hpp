@@ -1,12 +1,12 @@
 #pragma once
 
+#include <xcb/xcb_aux.h>
+
 #include "common.hpp"
 #include "components/types.hpp"
 #include "x11/connection.hpp"
 
 POLYBAR_NS
-
-using connection_t = connection;
 
 struct cw_size {
   explicit cw_size(uint16_t w, uint16_t h) : w(w), h(h) {}

@@ -3,6 +3,7 @@
 #include "errors.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/env.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 

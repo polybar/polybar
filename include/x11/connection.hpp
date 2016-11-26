@@ -8,20 +8,16 @@
 #include <xpp/xpp.hpp>
 
 #include "common.hpp"
-#include "utils/memory.hpp"
-#include "utils/string.hpp"
-#include "x11/atoms.hpp"
 #include "x11/types.hpp"
-#include "x11/xutils.hpp"
 
 #ifdef ENABLE_DAMAGE_EXT
 #include "x11/damage.hpp"
 #endif
-#ifdef ENABLE_RANDR_EXT
-#include "x11/randr.hpp"
-#endif
 #ifdef ENABLE_RENDER_EXT
 #include "x11/render.hpp"
+#endif
+#ifdef ENABLE_RANDR_EXT
+#include "x11/randr.hpp"
 #endif
 
 POLYBAR_NS

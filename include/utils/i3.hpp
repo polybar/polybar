@@ -3,10 +3,11 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
-#include "x11/connection.hpp"
 #include "x11/randr.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace i3_util {
   using connection_t = i3ipc::connection;

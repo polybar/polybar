@@ -1,8 +1,10 @@
-#include "config.hpp"
-
+#include "x11/connection.hpp"
 #include "errors.hpp"
 #include "utils/factory.hpp"
-#include "x11/connection.hpp"
+#include "utils/memory.hpp"
+#include "utils/string.hpp"
+#include "x11/atoms.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <xcb/xcb.h>
+
 #include "common.hpp"
-#include "x11/connection.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace draw_util {
   void fill(connection& conn, xcb_drawable_t d, xcb_gcontext_t g, const xcb_rectangle_t rect);

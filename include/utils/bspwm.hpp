@@ -7,11 +7,12 @@
 #include "config.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
-#include "x11/connection.hpp"
 #include "x11/randr.hpp"
 #include "x11/window.hpp"
 
 POLYBAR_NS
+
+class connection;
 
 namespace bspwm_util {
   struct payload;

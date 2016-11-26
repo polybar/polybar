@@ -2,6 +2,7 @@
 
 #include "utils/string.hpp"
 #include "x11/color.hpp"
+#include "x11/connection.hpp"
 #include "x11/draw.hpp"
 
 POLYBAR_NS

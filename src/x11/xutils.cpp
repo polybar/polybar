@@ -1,22 +1,33 @@
-#include "x11/xutils.hpp"
+#include <xcb/xcb.h>
+
+#include "components/config.hpp"
+#include "utils/memory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/xlib.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
 namespace xutils {
-  xcb_connection_t* g_connection_ptr = nullptr;
+  xcb_connection_t* g_connection_ptr{nullptr};
   xcb_connection_t* get_connection() {
     if (g_connection_ptr == nullptr) {
-      Display* dsp;
-      if ((dsp = xlib::get_display()) == nullptr) {
-        return nullptr;
+      Display* dsp{xlib::get_display()};
+      if (dsp != nullptr) {
+        XSetEventQueueOwner(dsp, XCBOwnsEventQueue);
+        g_connection_ptr = XGetXCBConnection(dsp);
       }
-      XSetEventQueueOwner(dsp, XCBOwnsEventQueue);
-      g_connection_ptr = XGetXCBConnection(dsp);
     }
     return g_connection_ptr;
+  }
+
+  uint32_t event_timer_ms(const config& conf, const xcb_button_press_event_t&) {
+    return conf.get<uint32_t>("settings", "x-delay-buttonpress", 25);
+  }
+
+  uint32_t event_timer_ms(const config& conf, const xcb_randr_notify_event_t&) {
+    return conf.get<uint32_t>("settings", "x-delay-randrnotify", 50);
   }
 
   void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
@@ -49,7 +60,7 @@ namespace xutils {
   }
 
   void compton_shadow_exclude(connection& conn, const xcb_window_t& win) {
-    const uint32_t shadow = 0;
+    const uint32_t shadow{0};
     conn.change_property(XCB_PROP_MODE_REPLACE, win, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
   }
 }

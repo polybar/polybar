@@ -49,7 +49,7 @@ namespace modules {
     connection& m_connection;
     monitor_t m_output;
     xcb_window_t m_proxy;
-    xcb_timestamp_t m_timestamp;
+    event_timer m_randrnotify{};
 
     ramp_t m_ramp;
     label_t m_label;

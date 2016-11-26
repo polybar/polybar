@@ -5,6 +5,7 @@
 #include "x11/connection.hpp"
 #include "x11/fonts.hpp"
 #include "x11/xlib.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 

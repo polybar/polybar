@@ -7,6 +7,7 @@
 #include "utils/i3.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 

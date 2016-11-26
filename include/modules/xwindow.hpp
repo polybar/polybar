@@ -80,9 +80,9 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr const char* TAG_LABEL{"<label>"};
 
-    xcb_ewmh_connection_t m_ewmh;
+    ewmh_connection_t m_ewmh;
     unique_ptr<active_window> m_active;
     label_t m_label;
   };
