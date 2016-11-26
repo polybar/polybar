@@ -24,6 +24,7 @@
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
 #include "modules/xwindow.hpp"
+#include "modules/xworkspaces.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
@@ -401,6 +402,8 @@ void controller::bootstrap_modules() {
           module.reset(new xbacklight_module(bar, m_log, m_conf, module_name));
         } else if (type == "internal/xwindow") {
           module.reset(new xwindow_module(bar, m_log, m_conf, module_name));
+        } else if (type == "internal/xworkspaces") {
+          module.reset(new xworkspaces_module(bar, m_log, m_conf, module_name));
         } else if (type == "custom/text") {
           module.reset(new text_module(bar, m_log, m_conf, module_name));
         } else if (type == "custom/script") {
