@@ -8,6 +8,22 @@ POLYBAR_NS
 
 namespace math_util {
   /**
+   * Get the min value
+   */
+  template <typename ValueType>
+  ValueType min(ValueType one, ValueType two) {
+     return one < two ? one : two;
+  }
+
+  /**
+   * Get the max value
+   */
+  template <typename ValueType>
+  ValueType max(ValueType one, ValueType two) {
+     return one > two ? one : two;
+  }
+
+  /**
    * Limit value T by min and max bounds
    */
   template <typename ValueType>

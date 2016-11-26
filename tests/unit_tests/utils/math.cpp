@@ -3,6 +3,18 @@
 int main() {
   using namespace polybar;
 
+  "min"_test = [] {
+    expect(math_util::min<int>(2, 5) == 2);
+    expect(math_util::min<int>(-8, -50) == -50);
+    expect(math_util::min<uint8_t>(0, -5) == 0);
+  };
+
+  "min"_test = [] {
+    expect(math_util::max<int>(2, 5) == 5);
+    expect(math_util::max<int>(-8, -50) == -8);
+    expect(math_util::max<uint8_t>(0, (1 << 8) - 5));
+  };
+
   "cap"_test = [] {
     expect(math_util::cap<int>(8, 0, 10) == 8);
     expect(math_util::cap<int>(-8, 0, 10) == 0);
