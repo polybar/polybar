@@ -3,6 +3,7 @@
 #include "components/bar.hpp"
 #include "components/parser.hpp"
 #include "components/renderer.hpp"
+#include "components/screen.hpp"
 #include "components/signals.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
@@ -34,6 +35,7 @@ di::injector<unique_ptr<bar>> configure_bar() {
       configure_connection(),
       configure_config(),
       configure_logger(),
+      configure_screen(),
       configure_tray_manager());
   // clang-format on
 }
@@ -41,12 +43,9 @@ di::injector<unique_ptr<bar>> configure_bar() {
 /**
  * Construct bar instance
  */
-bar::bar(connection& conn, const config& config, const logger& logger, unique_ptr<tray_manager> tray_manager)
-    : m_connection(conn)
-    , m_conf(config)
-    , m_log(logger)
-    , m_tray(forward<decltype(tray_manager)>(tray_manager))
-    , m_screen(conn.screen()) {}
+bar::bar(connection& conn, const config& config, const logger& logger, unique_ptr<screen> screen,
+    unique_ptr<tray_manager> tray_manager)
+    : m_connection(conn), m_conf(config), m_log(logger), m_screen(move(screen)), m_tray(move(tray_manager)) {}
 
 /**
  * Cleanup signal handlers and destroy the bar window
@@ -465,7 +464,7 @@ void bar::setup_monitor() {
   m_log.trace("bar: Create monitor from matching X RandR output");
 
   auto strict = m_conf.get<bool>(m_conf.bar_section(), "monitor-strict", false);
-  auto monitors = randr_util::get_monitors(m_connection, m_screen->root, strict);
+  auto monitors = randr_util::get_monitors(m_connection, m_screen->root(), strict);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
@@ -534,7 +533,7 @@ void bar::restack_window() {
  * and moving it to the correct position
  */
 void bar::reconfigure_window() {
-  auto geom = m_connection.get_geometry(m_screen->root);
+  auto geom = m_connection.get_geometry(m_screen->root());
   auto w = m_opts.size.w + m_opts.offset.x;
   auto h = m_opts.size.h + m_opts.offset.y;
   auto x = m_opts.pos.x;

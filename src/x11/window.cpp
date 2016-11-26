@@ -41,12 +41,7 @@ window window::change_event_mask(uint32_t mask) {
  * Add given event to the event mask unless already added
  */
 window window::ensure_event_mask(uint32_t event) {
-  auto attributes = get_attributes();
-
-  if ((attributes->your_event_mask & event) != event) {
-    change_event_mask(attributes->your_event_mask | event);
-  }
-
+  connection().ensure_event_mask(*this, event);
   return *this;
 }
 

@@ -1,0 +1,86 @@
+#include <csignal>
+#include <thread>
+
+#include "components/config.hpp"
+#include "components/logger.hpp"
+#include "components/screen.hpp"
+#include "components/types.hpp"
+#include "x11/connection.hpp"
+#include "x11/randr.hpp"
+#include "x11/winspec.hpp"
+
+POLYBAR_NS
+
+/**
+ * Configure injection module
+ */
+di::injector<unique_ptr<screen>> configure_screen() {
+  return di::make_injector(configure_connection(), configure_logger(), configure_config());
+}
+
+/**
+ * Construct screen instance
+ */
+screen::screen(connection& conn, const logger& logger, const config& conf)
+    : m_connection(conn)
+    , m_log(logger)
+    , m_conf(conf)
+    , m_root(conn.root())
+    , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
+  // Check if the reloading has been disabled by the user
+  if (!m_conf.get<bool>("settings", "screenchange-reload", false)) {
+    return;
+  }
+
+  // clang-format off
+  m_proxy = winspec(m_connection)
+    << cw_size(1U, 1U)
+    << cw_pos(-1, -1)
+    << cw_parent(m_root)
+    << cw_params_override_redirect(true)
+    << cw_params_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE)
+    << cw_flush(true);
+  // clang-format on
+
+  // Receive randr events
+  m_connection.randr().select_input(m_proxy, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
+  m_connection.ensure_event_mask(m_root, XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY);
+
+  // Create window used as event proxy
+  m_connection.map_window(m_proxy);
+  m_connection.flush();
+
+  // Wait until the proxy window has been mapped
+  using evt = xcb_map_notify_event_t;
+  m_connection.wait_for_response<evt, XCB_MAP_NOTIFY>([&](const evt& evt) -> bool { return evt.window == m_proxy; });
+  m_connection.clear_event_mask(m_root);
+
+  // Finally attach the sink the process randr events
+  m_connection.attach_sink(this, 1);
+}
+
+/**
+ * Deconstruct screen instance
+ */
+screen::~screen() {
+  m_connection.detach_sink(this, 1);
+
+  if (m_proxy) {
+    m_connection.destroy_window(m_proxy);
+  }
+}
+
+/**
+ * Handle XCB_RANDR_SCREEN_CHANGE_NOTIFY events
+ *
+ * If the screen dimensions have changed we raise USR1 to trigger a reload
+ */
+void screen::handle(const evt::randr_screen_change_notify& evt) {
+  if (!m_sigraised && evt->request_window == m_proxy) {
+    m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
+    m_sigraised = true;
+    kill(getpid(), SIGUSR1);
+  }
+}
+
+POLYBAR_NS_END

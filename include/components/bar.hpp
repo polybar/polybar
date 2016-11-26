@@ -14,13 +14,14 @@
 POLYBAR_NS
 
 // fwd
+class screen;
 class tray_manager;
 class logger;
 class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<tray_manager> tray_manager);
+  explicit bar(connection& conn, const config& config, const logger& logger, unique_ptr<screen> screen, unique_ptr<tray_manager> tray_manager);
   ~bar();
 
   void bootstrap(bool nodraw = false);
@@ -45,12 +46,11 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   connection& m_connection;
   const config& m_conf;
   const logger& m_log;
+  unique_ptr<screen> m_screen;
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;
 
-  xcb_screen_t* m_screen;
   xcb_window_t m_window;
-
   bar_settings m_opts;
 
   alignment m_trayalign{alignment::NONE};

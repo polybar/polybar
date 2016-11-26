@@ -102,6 +102,26 @@ xcb_screen_t* connection::screen() {
 }
 
 /**
+ * Add given event to the event mask unless already added
+ */
+void connection::ensure_event_mask(xcb_window_t win, uint32_t event) {
+  auto attributes = get_window_attributes(win);
+  uint32_t mask{attributes->your_event_mask | event};
+
+  if (!(attributes->your_event_mask & event)) {
+    change_window_attributes(win, XCB_CW_EVENT_MASK, &mask);
+  }
+}
+
+/**
+ * Clear event mask for the given window
+ */
+void connection::clear_event_mask(xcb_window_t win) {
+  uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+  change_window_attributes(win, XCB_CW_EVENT_MASK, &mask);
+}
+
+/**
  * Creates an instance of shared_ptr<xcb_client_message_event_t>
  */
 shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_t type, xcb_window_t target) const {

@@ -69,6 +69,30 @@ class connection : public xpp_connection {
 
   virtual ~connection() {}
 
+  template <typename Event, uint32_t ResponseType>
+  void wait_for_response(function<bool(const Event&)> check_event) {
+    auto fd = get_file_descriptor();
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    while (true) {
+      if (select(fd + 1, &fds, nullptr, nullptr, nullptr) > 0) {
+        shared_ptr<xcb_generic_event_t> evt;
+
+        if ((evt = poll_for_event()) && evt->response_type == ResponseType) {
+          if (check_event(reinterpret_cast<const xcb_map_notify_event_t&>(*(evt.get())))) {
+            break;
+          }
+        }
+      }
+
+      if (connection_has_error()) {
+        break;
+      }
+    }
+  }
+
   void preload_atoms();
 
   void query_extensions();
@@ -76,6 +100,9 @@ class connection : public xpp_connection {
   string id(xcb_window_t w) const;
 
   xcb_screen_t* screen();
+
+  void ensure_event_mask(xcb_window_t win, uint32_t event);
+  void clear_event_mask(xcb_window_t win);
 
   shared_ptr<xcb_client_message_event_t> make_client_message(xcb_atom_t type, xcb_window_t target) const;
 
