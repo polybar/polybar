@@ -2,6 +2,11 @@
 # Create executable
 #
 
+execute_process(COMMAND git describe --tags --dirty=-git
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  OUTPUT_VARIABLE APP_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/include/config.hpp.cmake
   ${CMAKE_SOURCE_DIR}/include/config.hpp

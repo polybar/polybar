@@ -6,6 +6,10 @@
 #include "version.hpp"
 
 #define APP_NAME "@PROJECT_NAME@"
+#cmakedefine APP_VERSION "@APP_VERSION@"
+#ifndef APP_VERSION
+#define APP_VERSION GIT_TAG
+#endif
 #define BASE_PATH "@PROJECT_SOURCE_DIR@"
 
 #cmakedefine01 ENABLE_ALSA
@@ -52,7 +56,7 @@ auto version_details = [](const std::vector<std::string>& args) {
 
 // clang-format off
 auto print_build_info = [](bool extended = false) {
-  std::cout << APP_NAME << " " << GIT_TAG << " " << "\n"
+  std::cout << APP_NAME << " " << APP_VERSION << " " << "\n"
             << "\n"
             << "Features: "
             << (ENABLE_ALSA    ? "+" : "-") << "alsa "
