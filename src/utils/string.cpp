@@ -164,10 +164,10 @@ namespace string_util {
   /**
    * Join all strings in vector into a single string separated by delim
    */
-  string join(vector<string> strs, string delim) {
+  string join(const vector<string>& strs, const string& delim) {
     string str;
     for (auto& s : strs) {
-      str.append((str.empty() ? "" : move(delim)) + s);
+      str += (str.empty() ? "" : delim) + s;
     }
     return str;
   }

@@ -28,7 +28,7 @@ namespace string_util {
   string ltrim(const string& haystack, char needle);
   string rtrim(const string& haystack, char needle);
   string trim(const string& haystack, char needle);
-  string join(vector<string> strs, string delim);
+  string join(const vector<string>& strs, const string& delim);
   vector<string>& split_into(const string& s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth);
