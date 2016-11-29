@@ -33,6 +33,16 @@ class config {
   string build_path(const string& section, const string& key) const;
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
+
+  /**
+   * Returns true if a given parameter exists
+   */
+  template <typename T>
+  bool has(string section, string key) const {
+    auto val = m_ptree.get_optional<T>(build_path(section, key));
+    return (val != boost::none);
+  }
+
   /**
    * Get parameter for the current bar by name
    */
