@@ -22,13 +22,13 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(int index, state state_, label_t&& label)
+      explicit workspace(int index, enum state state_, label_t&& label)
           : index(index), state(state_), label(forward<label_t>(label)) {}
 
       operator bool();
 
       int index;
-      state state;
+      enum state state;
       label_t label;
     };
 
