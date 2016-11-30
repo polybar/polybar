@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_RANDR_EXT
+#if not WITH_XRANDR
 #error "X RandR extension is disabled..."
 #endif
 

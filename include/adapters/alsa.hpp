@@ -1,11 +1,20 @@
 #pragma once
 
+#include <assert.h>
+#include <poll.h>
 #include <stdio.h>
+#include <alsa/global.h>
+#include <alsa/input.h>
+#include <alsa/output.h>
+#include <alsa/error.h>
+#include <alsa/conf.h>
+#include <alsa/pcm.h>
+#include <alsa/control.h>
+#include <alsa/mixer.h>
+
 #include <cmath>
 #include <functional>
 #include <string>
-
-#include <alsa/asoundlib.h>
 
 #include "common.hpp"
 #include "config.hpp"

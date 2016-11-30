@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_DAMAGE_EXT
+#if not WITH_XDAMAGE
 #error "X Damage extension is disabled..."
 #endif
 

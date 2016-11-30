@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_XKB_EXT
+#if not WITH_XKB
 #error "X xkb extension is disabled..."
 #endif
 

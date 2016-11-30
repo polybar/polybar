@@ -17,12 +17,12 @@
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 ENABLE_I3
 
-#cmakedefine01 ENABLE_RANDR_EXT
-#cmakedefine01 ENABLE_RENDER_EXT
-#cmakedefine01 ENABLE_DAMAGE_EXT
-#cmakedefine01 ENABLE_SYNC_EXT
-#cmakedefine01 ENABLE_COMPOSITE_EXT
-#cmakedefine01 ENABLE_XKB_EXT
+#cmakedefine01 WITH_XRANDR
+#cmakedefine01 WITH_XRENDER
+#cmakedefine01 WITH_XDAMAGE
+#cmakedefine01 WITH_XSYNC
+#cmakedefine01 WITH_XCOMPOSITE
+#cmakedefine01 WITH_XKB
 #cmakedefine XPP_EXTENSION_LIST @XPP_EXTENSION_LIST@
 
 #cmakedefine DEBUG_LOGGER

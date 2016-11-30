@@ -53,35 +53,35 @@ void connection::query_extensions() {
     return;
   }
 
-#if ENABLE_DAMAGE_EXT
+#if WITH_XDAMAGE
   damage().query_version(XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
   if (!extension<xpp::damage::extension>()->present)
     throw application_error("Missing X extension: Damage");
 #endif
-#if ENABLE_RENDER_EXT
+#if WITH_XRENDER
   render().query_version(XCB_RENDER_MAJOR_VERSION, XCB_RENDER_MINOR_VERSION);
   if (!extension<xpp::render::extension>()->present)
     throw application_error("Missing X extension: Render");
 #endif
-#if ENABLE_RANDR_EXT
+#if WITH_XRANDR
   randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
   if (!extension<xpp::randr::extension>()->present) {
     throw application_error("Missing X extension: RandR");
   }
 #endif
-#if ENABLE_SYNC_EXT
+#if WITH_XSYNC
   sync().initialize(XCB_SYNC_MAJOR_VERSION, XCB_SYNC_MINOR_VERSION);
   if (!extension<xpp::sync::extension>()->present) {
     throw application_error("Missing X extension: Sync");
   }
 #endif
-#if ENABLE_COMPOSITE_EXT
+#if WITH_XCOMPOSITE
   composite().query_version(XCB_COMPOSITE_MAJOR_VERSION, XCB_COMPOSITE_MINOR_VERSION);
   if (!extension<xpp::composite::extension>()->present) {
     throw application_error("Missing X extension: Composite");
   }
 #endif
-#if ENABLE_XKB_EXT
+#if WITH_XKB
   xkb().use_extension(XCB_XKB_MAJOR_VERSION, XCB_XKB_MINOR_VERSION);
   if (!extension<xpp::xkb::extension>()->present) {
     throw application_error("Missing X extension: Xkb");

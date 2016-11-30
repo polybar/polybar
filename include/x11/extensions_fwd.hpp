@@ -3,32 +3,32 @@
 #include "common.hpp"
 
 namespace xpp {
-#if ENABLE_DAMAGE_EXT
+#if WITH_XDAMAGE
   namespace damage {
     class extension;
   }
 #endif
-#if ENABLE_RANDR_EXT
+#if WITH_XRANDR
   namespace randr {
     class extension;
   }
 #endif
-#if ENABLE_SYNC_EXT
+#if WITH_XSYNC
   namespace sync {
     class extension;
   }
 #endif
-#if ENABLE_RENDER_EXT
+#if WITH_XRENDER
   namespace render {
     class extension;
   }
 #endif
-#if ENABLE_COMPOSITE_EXT
+#if WITH_XCOMPOSITE
   namespace composite {
     class extension;
   }
 #endif
-#if ENABLE_XKB_EXT
+#if WITH_XKB
   namespace xkb {
     class extension;
   }

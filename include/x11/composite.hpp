@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_COMPOSITE_EXT
+#if not WITH_XCOMPOSITE
 #error "X Composite extension is disabled..."
 #endif
 

@@ -2,7 +2,7 @@
 # Generate configuration file
 #
 
-set(MODULES_LEFT "bspwm i3 mpd")
+set(MODULES_LEFT "bspwm i3")
 set(MODULES_CENTER "xwindow")
 set(MODULES_RIGHT "backlight volume memory cpu wlan eth battery temperature date powermenu")
 
@@ -14,13 +14,10 @@ endif()
 if(NOT ENABLE_I3)
   string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
 endif()
-if(NOT ENABLE_MPD)
-  string(REPLACE " mpd" "" MODULES_LEFT ${MODULES_LEFT})
-endif()
 if(NOT ENABLE_NETWORK)
   string(REPLACE " wlan eth" "" MODULES_RIGHT ${MODULES_RIGHT})
 endif()
-if(NOT ENABLE_RANDR_EXT)
+if(NOT WITH_XRANDR)
   string(REPLACE "backlight " "" MODULES_RIGHT ${MODULES_RIGHT})
 endif()
 

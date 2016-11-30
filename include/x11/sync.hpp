@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_SYNC_EXT
+#if not WITH_XSYNC
 #error "X Sync extension is disabled..."
 #endif
 

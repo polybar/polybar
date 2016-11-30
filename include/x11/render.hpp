@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 
-#if not ENABLE_RENDER_EXT
+#if not WITH_XRENDER
 #error "X Render extension is disabled..."
 #endif
 
