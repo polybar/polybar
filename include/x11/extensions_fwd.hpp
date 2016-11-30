@@ -28,12 +28,9 @@ namespace xpp {
     class extension;
   }
 #endif
-}
-
-POLYBAR_NS
-
 #if ENABLE_XKB_EXT
-  class xkb_extension;
+  namespace xkb {
+    class extension;
+  }
 #endif
-
-POLYBAR_NS_END
+}

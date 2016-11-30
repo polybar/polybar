@@ -99,12 +99,14 @@ namespace modules {
     if (tag == TAG_LABEL_LAYOUT) {
       builder->node(m_layout);
     } else if (tag == TAG_LABEL_INDICATOR) {
+      size_t n{0};
       for (auto&& indicator : m_indicators) {
-        if (indicator != *m_indicators.begin()) {
+        if (n++) {
           builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
         }
         builder->node(indicator.second);
       }
+      return n > 0;
     } else {
       return false;
     }
@@ -154,7 +156,7 @@ namespace modules {
    * Handler for XCB_XKB_INDICATOR_STATE_NOTIFY events
    */
   void xkeyboard_module::handle(const evt::xkb_indicator_state_notify& evt) {
-    if (m_xkbnotify.allow(evt->time)) {
+    if (m_xkbnotify.allow(evt->time) && m_keyboard) {
       m_keyboard->set(m_connection.xkb().get_state(XCB_XKB_ID_USE_CORE_KBD)->lockedMods);
       update();
     }
