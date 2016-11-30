@@ -33,7 +33,6 @@ class config {
   string build_path(const string& section, const string& key) const;
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
-
   /**
    * Returns true if a given parameter exists
    */

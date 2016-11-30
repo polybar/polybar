@@ -70,13 +70,9 @@ namespace drawtypes {
   };
 
   label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = "");
-
   label_t load_optional_label(const config& conf, string section, string name, string def = "");
 
-  label_t load_either_config_label(const config& conf, string section, string name1, string name2, string def = "");
-
   icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = "");
-
   icon_t load_optional_icon(const config& conf, string section, string name, string def = "");
 }
 

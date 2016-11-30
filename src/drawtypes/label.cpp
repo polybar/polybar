@@ -167,13 +167,6 @@ namespace drawtypes {
     return load_label(conf, move(section), move(name), false, move(def));
   }
 
-  label_t load_either_config_label(const config& conf, string section, string name1, string name2, string def) {
-    if (conf.has<string>(section, name1))
-      return load_label(conf, section, name1, true, "");
-    else
-      return load_optional_label(conf, section, name2, def);
-  }
-
   /**
    * Create an icon by loading values from the configuration
    */

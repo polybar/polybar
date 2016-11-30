@@ -10,6 +10,28 @@
 
 POLYBAR_NS
 
+namespace {
+  using bspwm_state = modules::bspwm_module::state;
+
+  uint32_t make_mask(bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
+    uint32_t mask{0U};
+    if (static_cast<uint32_t>(s1))
+      mask |= 1 << (static_cast<uint32_t>(s1) - 1);
+    if (static_cast<uint32_t>(s2))
+      mask |= 1 << (static_cast<uint32_t>(s2) - 1);
+    return mask;
+  }
+
+  // uint32_t check_mask(uint32_t base, bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
+  //   uint32_t mask{0U};
+  //   if (static_cast<uint32_t>(s1))
+  //     mask |= 1 << (static_cast<uint32_t>(s1) - 1);
+  //   if (static_cast<uint32_t>(s2))
+  //     mask |= 1 << (static_cast<uint32_t>(s2) - 1);
+  //   return (base & mask) == mask;
+  // }
+}
+
 namespace modules {
   template class module<bspwm_module>;
   template class event_module<bspwm_module>;
@@ -37,49 +59,65 @@ namespace modules {
     }
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(make_pair(
-          state_ws::WORKSPACE_OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-                           make_pair(state_ws::WORKSPACE_FOCUSED_OCCUPIED, load_either_config_label(m_conf, name(), "label-focused-occupied", "label-focused", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-                           make_pair(state_ws::WORKSPACE_FOCUSED_URGENT, load_either_config_label(m_conf, name(), "label-focused-urgent", "label-focused", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(
-                           make_pair(state_ws::WORKSPACE_FOCUSED_EMPTY, load_either_config_label(m_conf, name(), "label-focused-empty", "label-focused", DEFAULT_WS_LABEL)));
-      m_statelabels.insert(make_pair(state_ws::WORKSPACE_DIMMED, load_optional_label(m_conf, name(), "label-dimmed")));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_DIMMED_ACTIVE, load_optional_label(m_conf, name(), "label-dimmed-active")));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_DIMMED_URGENT, load_optional_label(m_conf, name(), "label-dimmed-urgent")));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_DIMMED_EMPTY, load_optional_label(m_conf, name(), "label-dimmed-empty")));
-      m_statelabels.insert(
-          make_pair(state_ws::WORKSPACE_DIMMED_OCCUPIED, load_optional_label(m_conf, name(), "label-dimmed-occupied")));
+      // XXX: Warn about deprecated parameters
+      m_conf.warn_deprecated(name(), "label-dimmed-active", "label-dimmed-focused");
+
+      // clang-format off
+      try {
+        m_statelabels.emplace(make_mask(state::FOCUSED), load_label(m_conf, name(), "label-active", DEFAULT_LABEL));
+        m_conf.warn_deprecated(name(), "label-active", "label-focused and label-dimmed-focused");
+      } catch (const key_error& err) {
+        m_statelabels.emplace(make_mask(state::FOCUSED), load_optional_label(m_conf, name(), "label-focused", DEFAULT_LABEL));
+      }
+
+      m_statelabels.emplace(make_mask(state::OCCUPIED),
+          load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL));
+      m_statelabels.emplace(make_mask(state::URGENT),
+          load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL));
+      m_statelabels.emplace(make_mask(state::EMPTY),
+          load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL));
+      m_statelabels.emplace(make_mask(state::DIMMED),
+          load_optional_label(m_conf, name(), "label-dimmed"));
+
+      vector<pair<state, string>> focused_overrides{
+        {state::OCCUPIED, "label-focused-occupied"},
+        {state::URGENT, "label-focused-urgent"},
+        {state::EMPTY, "label-focused-empty"}};
+
+      for (auto&& os : focused_overrides) {
+        uint32_t mask{make_mask(state::FOCUSED, os.first)};
+        try {
+          m_statelabels.emplace(mask, load_label(m_conf, name(), os.second));
+        } catch (const key_error& err) {
+          m_statelabels.emplace(mask, m_statelabels.at(make_mask(state::FOCUSED))->clone());
+        }
+      }
+
+      vector<pair<state, string>> dimmed_overrides{
+        {state::FOCUSED, "label-dimmed-focused"},
+        {state::OCCUPIED, "label-dimmed-occupied"},
+        {state::URGENT, "label-dimmed-urgent"},
+        {state::EMPTY, "label-dimmed-empty"}};
+
+      for (auto&& os : dimmed_overrides) {
+        m_statelabels.emplace(make_mask(state::DIMMED, os.first),
+            load_optional_label(m_conf, name(), os.second, m_statelabels.at(make_mask(os.first))->get()));
+      }
+      // clang-format on
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
-      m_modelabels.insert(
-          make_pair(state_mode::MODE_LAYOUT_MONOCLE, load_optional_label(m_conf, name(), "label-monocle")));
-      m_modelabels.insert(make_pair(state_mode::MODE_LAYOUT_TILED, load_optional_label(m_conf, name(), "label-tiled")));
-      m_modelabels.insert(
-          make_pair(state_mode::MODE_STATE_FULLSCREEN, load_optional_label(m_conf, name(), "label-fullscreen")));
-      m_modelabels.insert(
-          make_pair(state_mode::MODE_STATE_FLOATING, load_optional_label(m_conf, name(), "label-floating")));
-      m_modelabels.insert(make_pair(state_mode::MODE_NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked")));
-      m_modelabels.insert(make_pair(state_mode::MODE_NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky")));
-      m_modelabels.insert(
-          make_pair(state_mode::MODE_NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private")));
+      m_modelabels.emplace(mode::LAYOUT_MONOCLE, load_optional_label(m_conf, name(), "label-monocle"));
+      m_modelabels.emplace(mode::LAYOUT_TILED, load_optional_label(m_conf, name(), "label-tiled"));
+      m_modelabels.emplace(mode::STATE_FULLSCREEN, load_optional_label(m_conf, name(), "label-fullscreen"));
+      m_modelabels.emplace(mode::STATE_FLOATING, load_optional_label(m_conf, name(), "label-floating"));
+      m_modelabels.emplace(mode::NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked"));
+      m_modelabels.emplace(mode::NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky"));
+      m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private"));
     }
 
     m_icons = make_shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
+    m_icons->add(DEFAULT_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_ICON, "")));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');
@@ -182,8 +220,8 @@ namespace modules {
       }
 
       auto value = !tag.empty() ? tag.substr(1) : "";
-      auto workspace_flag = state_ws::WORKSPACE_NONE;
-      auto mode_flag = state_mode::MODE_NONE;
+      auto mode_flag = mode::NONE;
+      uint32_t workspace_mask{0U};
 
       if (tag[0] == 'm' || tag[0] == 'M') {
         m_monitors.emplace_back(make_unique<bspwm_monitor>());
@@ -203,32 +241,32 @@ namespace modules {
           m_monitors.back()->focused = true;
           break;
         case 'F':
-          workspace_flag = state_ws::WORKSPACE_FOCUSED_EMPTY;
+          workspace_mask = make_mask(state::FOCUSED, state::EMPTY);
           break;
         case 'O':
-          workspace_flag = state_ws::WORKSPACE_FOCUSED_OCCUPIED;
+          workspace_mask = make_mask(state::FOCUSED, state::OCCUPIED);
           break;
         case 'U':
-          workspace_flag = state_ws::WORKSPACE_FOCUSED_URGENT;
+          workspace_mask = make_mask(state::FOCUSED, state::URGENT);
           break;
         case 'f':
-          workspace_flag = state_ws::WORKSPACE_EMPTY;
+          workspace_mask = make_mask(state::EMPTY);
           break;
         case 'o':
-          workspace_flag = state_ws::WORKSPACE_OCCUPIED;
+          workspace_mask = make_mask(state::OCCUPIED);
           break;
         case 'u':
-          workspace_flag = state_ws::WORKSPACE_URGENT;
+          workspace_mask = make_mask(state::URGENT);
           break;
         case 'L':
           switch (value[0]) {
             case 0:
               break;
             case 'M':
-              mode_flag = state_mode::MODE_LAYOUT_MONOCLE;
+              mode_flag = mode::LAYOUT_MONOCLE;
               break;
             case 'T':
-              mode_flag = state_mode::MODE_LAYOUT_TILED;
+              mode_flag = mode::LAYOUT_TILED;
               break;
             default:
               m_log.warn("%s: Undefined L => '%s'", name(), value);
@@ -242,10 +280,10 @@ namespace modules {
             case 'T':
               break;
             case '=':
-              mode_flag = state_mode::MODE_STATE_FULLSCREEN;
+              mode_flag = mode::STATE_FULLSCREEN;
               break;
             case 'F':
-              mode_flag = state_mode::MODE_STATE_FLOATING;
+              mode_flag = mode::STATE_FLOATING;
               break;
             default:
               m_log.warn("%s: Undefined T => '%s'", name(), value);
@@ -262,19 +300,19 @@ namespace modules {
               case 0:
                 break;
               case 'L':
-                mode_flag = state_mode::MODE_NODE_LOCKED;
+                mode_flag = mode::NODE_LOCKED;
                 break;
               case 'S':
-                mode_flag = state_mode::MODE_NODE_STICKY;
+                mode_flag = mode::NODE_STICKY;
                 break;
               case 'P':
-                mode_flag = state_mode::MODE_NODE_PRIVATE;
+                mode_flag = mode::NODE_PRIVATE;
                 break;
               default:
                 m_log.warn("%s: Undefined G => '%s'", name(), value.substr(i, 1));
             }
 
-            if (mode_flag != state_mode::MODE_NONE && !m_modelabels.empty()) {
+            if (mode_flag != mode::NONE && !m_modelabels.empty()) {
               m_monitors.back()->modes.emplace_back(m_modelabels.find(mode_flag)->second->clone());
             }
           }
@@ -284,28 +322,21 @@ namespace modules {
           m_log.warn("%s: Undefined tag => '%s'", name(), tag.substr(0, 1));
       }
 
-      if (workspace_flag != state_ws::WORKSPACE_NONE && m_formatter->has(TAG_LABEL_STATE)) {
-        auto icon = m_icons->get(value, DEFAULT_WS_ICON);
-        auto label = m_statelabels.find(workspace_flag)->second->clone();
+      if (workspace_mask && m_formatter->has(TAG_LABEL_STATE)) {
+        auto icon = m_icons->get(value, DEFAULT_ICON);
+        auto label = m_statelabels.at(workspace_mask)->clone();
 
         if (!m_monitors.back()->focused) {
-          label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED)->second);
-          switch (workspace_flag) {
-            case state_ws::WORKSPACE_ACTIVE:
-              label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_ACTIVE)->second);
-              break;
-            case state_ws::WORKSPACE_OCCUPIED:
-              label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_OCCUPIED)->second);
-              break;
-            case state_ws::WORKSPACE_URGENT:
-              label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_URGENT)->second);
-              break;
-            case state_ws::WORKSPACE_EMPTY:
-              label->replace_defined_values(m_statelabels.find(state_ws::WORKSPACE_DIMMED_EMPTY)->second);
-              break;
-            default:
-              break;
-          }
+          if (m_statelabels[make_mask(state::DIMMED)])
+            label->replace_defined_values(m_statelabels[make_mask(state::DIMMED)]);
+          if (workspace_mask & make_mask(state::EMPTY))
+            label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::EMPTY)]);
+          if (workspace_mask & make_mask(state::OCCUPIED))
+            label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::OCCUPIED)]);
+          if (workspace_mask & make_mask(state::FOCUSED))
+            label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::FOCUSED)]);
+          if (workspace_mask & make_mask(state::URGENT))
+            label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::URGENT)]);
         }
 
         label->reset_tokens();
@@ -313,10 +344,10 @@ namespace modules {
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(++workspace_n));
 
-        m_monitors.back()->workspaces.emplace_back(make_pair(workspace_flag, move(label)));
+        m_monitors.back()->workspaces.emplace_back(workspace_mask, move(label));
       }
 
-      if (mode_flag != state_mode::MODE_NONE && !m_modelabels.empty()) {
+      if (mode_flag != mode::NONE && !m_modelabels.empty()) {
         m_monitors.back()->modes.emplace_back(m_modelabels.find(mode_flag)->second->clone());
       }
     }
@@ -339,7 +370,7 @@ namespace modules {
     if (tag == TAG_LABEL_MONITOR) {
       builder->node(m_monitors[m_index]->label);
       return true;
-    } else if (tag == TAG_LABEL_STATE) {
+    } else if (tag == TAG_LABEL_STATE && !m_monitors[m_index]->workspaces.empty()) {
       int workspace_n = 0;
 
       if (m_scroll) {
@@ -350,12 +381,7 @@ namespace modules {
       for (auto&& ws : m_monitors[m_index]->workspaces) {
         if (ws.second.get()) {
           if (m_click) {
-            string event{EVENT_CLICK};
-            event += to_string(m_index);
-            event += "+";
-            event += to_string(++workspace_n);
-
-            builder->cmd(mousebtn::LEFT, event);
+            builder->cmd(mousebtn::LEFT, EVENT_CLICK + to_string(m_index) + "+" + to_string(++workspace_n));
             builder->node(ws.second);
             builder->cmd_close();
           } else {
@@ -371,7 +397,7 @@ namespace modules {
       }
 
       return workspace_n > 0;
-    } else if (tag == TAG_LABEL_MODE && m_monitors[m_index]->focused) {
+    } else if (tag == TAG_LABEL_MODE && m_monitors[m_index]->focused && !m_monitors[m_index]->modes.empty()) {
       int modes_n = 0;
 
       for (auto&& mode : m_monitors[m_index]->modes) {
