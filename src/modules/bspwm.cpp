@@ -1,9 +1,9 @@
 #include <sys/socket.h>
 
-#include "modules/bspwm.hpp"
-
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "modules/bspwm.hpp"
+#include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/event_module.inl"
@@ -14,7 +14,13 @@ namespace modules {
   template class module<bspwm_module>;
   template class event_module<bspwm_module>;
 
-  void bspwm_module::setup() {  // {{{
+  void bspwm_module::setup() {
+    auto socket_path = bspwm_util::get_socket_path();
+
+    if (!file_util::exists(socket_path)) {
+      throw module_error("Could not find socket: " + (socket_path.empty() ? "<empty>" : socket_path));
+    }
+
     // Create ipc subscriber
     m_subscriber = bspwm_util::make_subscriber();
 
@@ -73,17 +79,17 @@ namespace modules {
         m_icons->add(vec[0], make_shared<label>(vec[1]));
       }
     }
-  }  // }}}
+  }
 
-  void bspwm_module::stop() {  // {{{
+  void bspwm_module::stop() {
     if (m_subscriber) {
       m_log.info("%s: Disconnecting from socket", name());
       m_subscriber->disconnect();
     }
     event_module::stop();
-  }  // }}}
+  }
 
-  bool bspwm_module::has_event() {  // {{{
+  bool bspwm_module::has_event() {
     if (m_subscriber->poll(POLLHUP, 0)) {
       m_log.warn("%s: Reconnecting to socket...", name());
       m_subscriber = bspwm_util::make_subscriber();
@@ -92,9 +98,9 @@ namespace modules {
     ssize_t bytes = 0;
     m_subscriber->receive(1, bytes, MSG_PEEK);
     return bytes > 0;
-  }  // }}}
+  }
 
-  bool bspwm_module::update() {  // {{{
+  bool bspwm_module::update() {
     ssize_t bytes = 0;
     string data = m_subscriber->receive(BUFSIZ - 1, bytes, 0);
 
@@ -308,9 +314,9 @@ namespace modules {
     }
 
     return true;
-  }  // }}}
+  }
 
-  string bspwm_module::get_output() {  // {{{
+  string bspwm_module::get_output() {
     string output;
     for (m_index = 0; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
@@ -319,9 +325,9 @@ namespace modules {
       output += event_module::get_output();
     }
     return output;
-  }  // }}}
+  }
 
-  bool bspwm_module::build(builder* builder, const string& tag) const {  // {{{
+  bool bspwm_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_MONITOR) {
       builder->node(m_monitors[m_index]->label);
       return true;
@@ -371,9 +377,9 @@ namespace modules {
     }
 
     return false;
-  }  // }}}
+  }
 
-  bool bspwm_module::handle_event(string cmd) {  // {{{
+  bool bspwm_module::handle_event(string cmd) {
     if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }
@@ -410,7 +416,7 @@ namespace modules {
     }
 
     return true;
-  }  // }}}
+  }
 }
 
 POLYBAR_NS_END
