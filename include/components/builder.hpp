@@ -32,6 +32,8 @@ class builder {
   void node(string str, bool add_space = false);
   void node(string str, int font_index, bool add_space = false);
   void node(const label_t& label, bool add_space = false);
+  void node_repeat(string str, size_t n, bool add_space = false);
+  void node_repeat(const label_t& label, size_t n, bool add_space = false);
   void offset(int pixels = 0);
   void space(int width = DEFAULT_SPACING);
   void remove_trailing_space(int width = DEFAULT_SPACING);

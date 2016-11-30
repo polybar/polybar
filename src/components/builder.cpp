@@ -102,7 +102,7 @@ void builder::node(string str, bool add_space) {
       s.erase(0, 5);
 
     } else if ((n = s.find("%{T")) == 0 && (m = s.find('}')) != string::npos) {
-      font(std::atoi(s.substr(n + 3, m - 3).c_str()));
+      font(atoi(s.substr(n + 3, m - 3).c_str()));
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{U-}")) == 0) {
@@ -252,6 +252,30 @@ void builder::node(const label_t& label, bool add_space) {
 }
 
 /**
+ * Repeat text string n times
+ */
+void builder::node_repeat(string str, size_t n, bool add_space) {
+  string text;
+  while (n--) {
+    text += str;
+  }
+  node(text, add_space);
+}
+
+/**
+ * Repeat label contents n times
+ */
+void builder::node_repeat(const label_t& label, size_t n, bool add_space) {
+  string text;
+  while (n--) {
+    text += label->get();
+  }
+  label_t tmp{new label_t::element_type{text}};
+  tmp->replace_defined_values(label);
+  node(tmp, add_space);
+}
+
+/**
  * Insert tag that will offset the contents by given pixels
  */
 void builder::offset(int pixels) {
@@ -296,6 +320,9 @@ void builder::remove_trailing_space(int width) {
  * Insert tag to alter the current font index
  */
 void builder::font(int index) {
+  if (index == 0) {
+    return;
+  }
   m_fontindex = index;
   tag_open(syntaxtag::T, to_string(index));
 }
@@ -356,7 +383,7 @@ void builder::color(string color) {
 void builder::color_alpha(string alpha) {
   string val{foreground_hex()};
 
-  if (alpha.find('#') == std::string::npos) {
+  if (alpha.find('#') == string::npos) {
     alpha = "#" + alpha;
   }
 

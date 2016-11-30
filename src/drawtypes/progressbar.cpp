@@ -58,9 +58,7 @@ namespace drawtypes {
     output = string_util::replace_all(output, "%indicator%", m_builder->flush());
 
     // Output empty icons
-    while (empty_width--) {
-      m_builder->node(m_empty);
-    }
+    m_builder->node_repeat(m_empty, empty_width);
     output = string_util::replace_all(output, "%empty%", m_builder->flush());
 
     return output;
@@ -68,23 +66,19 @@ namespace drawtypes {
 
   void progressbar::fill(unsigned int perc, unsigned int fill_width) {
     if (m_colors.empty()) {
-      for (size_t i = 0; i < fill_width; i++) {
-        m_builder->node(m_fill);
-      }
+      m_builder->node_repeat(m_fill, fill_width);
     } else if (m_gradient) {
       size_t color = 0;
       for (size_t i = 0; i < fill_width; i++) {
         if (i % m_colorstep == 0 && color < m_colors.size()) {
           m_fill->m_foreground = m_colors[color++];
         }
-        m_builder->node(m_fill);
+        m_builder->node(m_fill->get());
       }
     } else {
       size_t color = math_util::percentage_to_value<size_t>(perc, m_colors.size() - 1);
       m_fill->m_foreground = m_colors[color];
-      for (size_t i = 0; i < fill_width; i++) {
-        m_builder->node(m_fill);
-      }
+      m_builder->node_repeat(m_fill, fill_width);
     }
   }
 

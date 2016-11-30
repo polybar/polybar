@@ -52,6 +52,19 @@ namespace drawtypes {
     if (!label->m_overline.empty()) {
       m_overline = label->m_overline;
     }
+    if (label->m_font != 0) {
+      m_font = label->m_font;
+    }
+    if (label->m_padding != 0) {
+      m_padding = label->m_padding;
+    }
+    if (label->m_margin != 0) {
+      m_margin = label->m_margin;
+    }
+    if (label->m_maxlen != 0) {
+      m_maxlen = label->m_maxlen;
+      m_ellipsis = label->m_ellipsis;
+    }
   }
 
   void label::copy_undefined(const label_t& label) {
