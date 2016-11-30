@@ -440,6 +440,9 @@ void renderer::draw_character(uint16_t character) {
     uint16_t ucs = ((character >> 8) | (character << 8));
     draw_util::xcb_poly_text_16_patched(m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
   }
+
+  fill_underline(x, width);
+  fill_overline(x, width);
 }
 
 /**
@@ -491,6 +494,9 @@ void renderer::draw_textstring(const char* text, size_t len) {
       draw_util::xcb_poly_text_16_patched(
           m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, chars.size(), chars.data());
     }
+
+    fill_underline(x, width);
+    fill_overline(x, width);
   }
 }
 
@@ -597,9 +603,6 @@ int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   }
 
   m_currentx += shift_x;
-
-  fill_underline(x, shift_x);
-  fill_overline(x, shift_x);
 
   return x;
 }
