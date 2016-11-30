@@ -84,7 +84,7 @@ Optional dependencies for module support:
 
 ~~~ sh
 $ pacman -S cmake python2 boost xcb-util-image xcb-util-wm libxft wireless_tools alsa-lib libmpdclient
-$ apt-get install cmake cmake-data libboost-dev libfreetype6-dev libxcb1-dev libx11-xcb-dev libxcb-util0-dev libxcb-image0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev xcb-proto python-xcbgen i3-wm libiw-dev libasound2-dev libmpdclient-dev
+$ apt-get install cmake cmake-data libboost-dev libfreetype6-dev libxcb1-dev libx11-xcb-dev libxcb-util0-dev libxcb-image0-dev libxcb-randr0-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-xkb-dev xcb-proto python-xcbgen i3-wm libiw-dev libasound2-dev libmpdclient-dev
 ~~~
 
 
