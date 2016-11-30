@@ -61,7 +61,7 @@ namespace modules {
     }
 
     // Get the throttle time
-    m_randrnotify.delay_ms = xutils::event_timer_ms(m_conf, xcb_randr_notify_event_t{});
+    m_randrnotify.offset = xutils::event_timer_ms(m_conf, xcb_randr_notify_event_t{});
 
     // Connect with the event registry and make sure we get
     // notified when a RandR output property gets modified
@@ -106,7 +106,7 @@ namespace modules {
       return;
     } else if (evt->u.op.atom != m_output->backlight.atom) {
       return;
-    } else if (m_randrnotify.throttle(evt->u.op.timestamp)) {
+    } else if (m_randrnotify.deny(evt->u.op.timestamp)) {
       return m_log.trace_x("%s: Ignoring randr notify (throttled)...", name());
     } else {
       update();

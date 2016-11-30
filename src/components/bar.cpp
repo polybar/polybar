@@ -88,7 +88,7 @@ void bar::bootstrap(bool nodraw) {
     m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);
     m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
 
-    m_buttonpress.delay_ms = xutils::event_timer_ms(m_conf, xcb_button_press_event_t{});
+    m_buttonpress.offset = xutils::event_timer_ms(m_conf, xcb_button_press_event_t{});
   }
 
   m_log.trace("bar: Load color values");
@@ -584,7 +584,7 @@ void bar::handle(const evt::button_press& evt) {
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
-  if (m_buttonpress.throttle(evt->time)) {
+  if (m_buttonpress.deny(evt->time)) {
     return m_log.trace_x("bar: Ignoring button press (throttled)...");
   }
 

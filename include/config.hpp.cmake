@@ -22,6 +22,8 @@
 #cmakedefine01 ENABLE_DAMAGE_EXT
 #cmakedefine01 ENABLE_SYNC_EXT
 #cmakedefine01 ENABLE_COMPOSITE_EXT
+#cmakedefine01 ENABLE_XKB_EXT
+#cmakedefine XPP_EXTENSION_LIST @XPP_EXTENSION_LIST@
 
 #cmakedefine DEBUG_LOGGER
 #cmakedefine VERBOSE_TRACELOG

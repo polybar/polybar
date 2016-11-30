@@ -2,16 +2,6 @@
 # Create executable
 #
 
-execute_process(COMMAND git describe --tags --dirty=-git
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  OUTPUT_VARIABLE APP_VERSION
-  OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
-
-configure_file(
-  ${PROJECT_SOURCE_DIR}/include/config.hpp.cmake
-  ${CMAKE_SOURCE_DIR}/include/config.hpp
-  ESCAPE_QUOTES @ONLY)
-
 # Generate source tree {{{
 
 file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR}/src *.c[p]*)
@@ -55,20 +45,33 @@ set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 set(XCB_PROTOS xproto)
 if(ENABLE_RANDR_EXT)
   set(XCB_PROTOS "${XCB_PROTOS}" randr)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::randr::extension)
 endif()
 if(ENABLE_RENDER_EXT)
   set(XCB_PROTOS "${XCB_PROTOS}" render)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::render::extension)
 endif()
 if(ENABLE_DAMAGE_EXT)
   set(XCB_PROTOS "${XCB_PROTOS}" damage)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::damage::extension)
 endif()
 if(ENABLE_SYNC_EXT)
   set(XCB_PROTOS "${XCB_PROTOS}" sync)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::sync::extension)
 endif()
 if(ENABLE_COMPOSITE_EXT)
   set(XCB_PROTOS "${XCB_PROTOS}" composite)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::composite::extension)
 endif()
+if(ENABLE_XKB_EXT)
+  set(XCB_PROTOS "${XCB_PROTOS}" xkb)
+  set(XPP_EXTENSION_LIST ${XPP_EXTENSION_LIST} xpp::xkb::extension)
+endif()
+
+string(REPLACE ";" ", " XPP_EXTENSION_LIST "${XPP_EXTENSION_LIST}")
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/xpp ${PROJECT_BINARY_DIR}/lib/xpp)
+
 set(APP_LIBRARIES ${APP_LIBRARIES} ${XPP_LIBRARIES})
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${XPP_INCLUDE_DIRS})
 
@@ -132,3 +135,13 @@ set(APP_LIBRARIES ${APP_LIBRARIES} PARENT_SCOPE)
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} PARENT_SCOPE)
 
 # }}}
+
+execute_process(COMMAND git describe --tags --dirty=-git
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  OUTPUT_VARIABLE APP_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+
+configure_file(
+  ${PROJECT_SOURCE_DIR}/include/config.hpp.cmake
+  ${CMAKE_SOURCE_DIR}/include/config.hpp
+  ESCAPE_QUOTES @ONLY)

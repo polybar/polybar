@@ -23,6 +23,7 @@
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
+#include "modules/xkeyboard.hpp"
 #include "modules/xwindow.hpp"
 #include "modules/xworkspaces.hpp"
 #include "utils/process.hpp"
@@ -400,6 +401,8 @@ void controller::bootstrap_modules() {
           module.reset(new temperature_module(bar, m_log, m_conf, module_name));
         } else if (type == "internal/xbacklight") {
           module.reset(new xbacklight_module(bar, m_log, m_conf, module_name));
+        } else if (type == "internal/xkeyboard") {
+          module.reset(new xkeyboard_module(bar, m_log, m_conf, module_name));
         } else if (type == "internal/xwindow") {
           module.reset(new xwindow_module(bar, m_log, m_conf, module_name));
         } else if (type == "internal/xworkspaces") {

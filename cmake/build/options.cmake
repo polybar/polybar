@@ -56,6 +56,7 @@ option(ENABLE_RENDER_EXT    "Enable Render X extension"  OFF)
 option(ENABLE_DAMAGE_EXT    "Enable Damage X extension"  OFF)
 option(ENABLE_SYNC_EXT      "Enable Sync X extension"    OFF)
 option(ENABLE_COMPOSITE_EXT "Enable Sync X extension"    OFF)
+option(ENABLE_XKB_EXT       "Enable Sync X extension"    ON)
 
 # }}}
 # Set cache vars {{{

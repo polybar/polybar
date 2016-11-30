@@ -135,16 +135,17 @@ struct action_block {
 };
 
 struct event_timer {
-  xcb_timestamp_t event{0};
-  uint32_t delay_ms{0U};
+  xcb_timestamp_t event{0L};
+  xcb_timestamp_t offset{1L};
 
-  bool throttle(xcb_timestamp_t evt) {
-    if (evt > event + delay_ms) {
-      event = evt;
-      return false;
-    } else {
-      return true;
-    }
+  bool allow(xcb_timestamp_t time) {
+    bool pass = time >= event + offset;
+    event = time;
+    return pass;
+  };
+
+  bool deny(xcb_timestamp_t time) {
+    return !allow(time);
   };
 };
 

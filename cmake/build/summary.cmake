@@ -60,4 +60,5 @@ colored_option(STATUS " Enable X Render      ${ENABLE_RENDER_EXT}" ENABLE_RENDER
 colored_option(STATUS " Enable X Damage      ${ENABLE_DAMAGE_EXT}" ENABLE_DAMAGE_EXT "32;1" "37;2")
 colored_option(STATUS " Enable X Sync        ${ENABLE_SYNC_EXT}" ENABLE_SYNC_EXT "32;1" "37;2")
 colored_option(STATUS " Enable X Composite   ${ENABLE_COMPOSITE_EXT}" ENABLE_COMPOSITE_EXT "32;1" "37;2")
+colored_option(STATUS " Enable X Xkb         ${ENABLE_XKB_EXT}" ENABLE_XKB_EXT "32;1" "37;2")
 message(STATUS "--------------------------")
