@@ -44,7 +44,15 @@ namespace modules {
       m_statelabels.insert(
           make_pair(state_ws::WORKSPACE_URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
       m_statelabels.insert(
+          make_pair(state_ws::WORKSPACE_OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
           make_pair(state_ws::WORKSPACE_EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+                           make_pair(state_ws::WORKSPACE_FOCUSED_OCCUPIED, load_either_config_label(m_conf, name(), "label-focused-occupied", "label-focused", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+                           make_pair(state_ws::WORKSPACE_FOCUSED_URGENT, load_either_config_label(m_conf, name(), "label-focused-urgent", "label-focused", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+                           make_pair(state_ws::WORKSPACE_FOCUSED_EMPTY, load_either_config_label(m_conf, name(), "label-focused-empty", "label-focused", DEFAULT_WS_LABEL)));
       m_statelabels.insert(make_pair(state_ws::WORKSPACE_DIMMED, load_optional_label(m_conf, name(), "label-dimmed")));
       m_statelabels.insert(
           make_pair(state_ws::WORKSPACE_DIMMED_ACTIVE, load_optional_label(m_conf, name(), "label-dimmed-active")));
@@ -195,22 +203,22 @@ namespace modules {
           m_monitors.back()->focused = true;
           break;
         case 'F':
-          workspace_flag = state_ws::WORKSPACE_ACTIVE;
+          workspace_flag = state_ws::WORKSPACE_FOCUSED_EMPTY;
           break;
         case 'O':
-          workspace_flag = state_ws::WORKSPACE_ACTIVE;
+          workspace_flag = state_ws::WORKSPACE_FOCUSED_OCCUPIED;
+          break;
+        case 'U':
+          workspace_flag = state_ws::WORKSPACE_FOCUSED_URGENT;
+          break;
+        case 'f':
+          workspace_flag = state_ws::WORKSPACE_EMPTY;
           break;
         case 'o':
           workspace_flag = state_ws::WORKSPACE_OCCUPIED;
           break;
-        case 'U':
-          workspace_flag = state_ws::WORKSPACE_URGENT;
-          break;
         case 'u':
           workspace_flag = state_ws::WORKSPACE_URGENT;
-          break;
-        case 'f':
-          workspace_flag = state_ws::WORKSPACE_EMPTY;
           break;
         case 'L':
           switch (value[0]) {
