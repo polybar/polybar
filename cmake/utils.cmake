@@ -63,14 +63,13 @@ function(make_executable target_name)
   endforeach()
 
   # link libraries that are build as part of this project
-  target_link_libraries(${target_name} ${BIN_TARGET_DEPENDS}
-                                           ${BIN_RAW_DEPENDS})
+  target_link_libraries(${target_name} ${BIN_TARGET_DEPENDS} ${BIN_RAW_DEPENDS})
 
   # install targets
   install(TARGETS ${target_name}
-          RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endfunction()
 
 # }}}
@@ -149,13 +148,13 @@ function(make_library target_name)
     set_target_properties(${library_target_name} PROPERTIES OUTPUT_NAME ${target_name})
 
     # install headers
-    install(FILES ${LIBRARY_HEADERS} DESTINATION include/${LIB_HEADERS_ABS})
+    install(FILES ${LIBRARY_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
 
     # install targets
     install(TARGETS ${LIBRARY_TARGETS}
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib)
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
   endforeach()
 endfunction()
 
