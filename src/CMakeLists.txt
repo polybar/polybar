@@ -19,6 +19,25 @@ if(NOT ENABLE_I3)
   list(REMOVE_ITEM SOURCES modules/i3.cpp utils/i3.cpp)
 endif()
 
+if(NOT WITH_XCOMPOSITE)
+  list(REMOVE_ITEM SOURCES x11/composite.cpp)
+endif()
+if(NOT WITH_XDAMAGE)
+  list(REMOVE_ITEM SOURCES x11/damage.cpp)
+endif()
+if(NOT WITH_XRANDR)
+  list(REMOVE_ITEM SOURCES x11/randr.cpp)
+endif()
+if(NOT WITH_XRENDER)
+  list(REMOVE_ITEM SOURCES x11/render.cpp)
+endif()
+if(NOT WITH_XSYNC)
+  list(REMOVE_ITEM SOURCES x11/sync.cpp)
+endif()
+if(NOT WITH_XKB)
+  list(REMOVE_ITEM SOURCES x11/xkb.cpp modules/xkeyboard.cpp)
+endif()
+
 # }}}
 # Locate dependencies {{{
 

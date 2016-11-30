@@ -23,7 +23,6 @@
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
-#include "modules/xkeyboard.hpp"
 #include "modules/xwindow.hpp"
 #include "modules/xworkspaces.hpp"
 #include "utils/process.hpp"
@@ -41,8 +40,11 @@
 #if ENABLE_ALSA
 #include "modules/volume.hpp"
 #endif
+#if WITH_XKB
+#include "modules/xkeyboard.hpp"
+#endif
 
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && WITH_XKB)
 #include "modules/unsupported.hpp"
 #endif
 

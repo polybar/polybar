@@ -1,5 +1,5 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA
+#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && WITH_XKB
 #error "Support has been enabled for all optional modules"
 #endif
 
@@ -11,6 +11,9 @@
 #endif
 #if not ENABLE_NETWORK
 #include "modules/meta/timer_module.inl"
+#endif
+#if not WITH_XKB
+#include "modules/meta/static_module.inl"
 #endif
 
 POLYBAR_NS
@@ -58,6 +61,9 @@ namespace modules {
 #endif
 #if not ENABLE_ALSA
   DEFINE_UNSUPPORTED_MODULE(volume_module, "internal/volume");
+#endif
+#if not WITH_XKB
+  DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
 #endif
 }
 
