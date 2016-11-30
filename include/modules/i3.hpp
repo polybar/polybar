@@ -11,33 +11,27 @@
 POLYBAR_NS
 
 namespace modules {
-  // meta types {{{
-
-  enum class i3_flag {
-    WORKSPACE_NONE,
-    WORKSPACE_FOCUSED,
-    WORKSPACE_UNFOCUSED,
-    WORKSPACE_VISIBLE,
-    WORKSPACE_URGENT,
-  };
-
-  struct i3_workspace {
-    int index;
-    i3_flag flag;
-    label_t label;
-
-    i3_workspace(int index_, i3_flag flag_, label_t&& label_)
-        : index(index_), flag(flag_), label(forward<decltype(label_)>(label_)) {}
-
-    operator bool();
-  };
-
-  using i3_workspace_t = unique_ptr<i3_workspace>;
-
-  // }}}
-
   class i3_module : public event_module<i3_module> {
    public:
+    enum class state {
+      NONE,
+      FOCUSED,
+      UNFOCUSED,
+      VISIBLE,
+      URGENT,
+    };
+
+    struct workspace {
+      explicit workspace(int index, state state_, label_t&& label)
+          : index(index), state(state_), label(forward<label_t>(label)) {}
+
+      operator bool();
+
+      int index;
+      state state;
+      label_t label;
+    };
+
     using event_module::event_module;
 
     void setup();
@@ -51,18 +45,25 @@ namespace modules {
     }
 
    private:
-    static constexpr auto DEFAULT_WS_ICON = "ws-icon-default";
-    static constexpr auto DEFAULT_WS_LABEL = "%icon% %name%";
-    static constexpr auto TAG_LABEL_STATE = "<label-state>";
+    static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
+    static constexpr const char* DEFAULT_MODE{"default"};
+    static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};
+    static constexpr const char* DEFAULT_WS_LABEL{"%icon% %name%"};
 
-    static constexpr auto EVENT_PREFIX = "i3";
-    static constexpr auto EVENT_CLICK = "i3-wsfocus-";
-    static constexpr auto EVENT_SCROLL_UP = "i3-wsnext";
-    static constexpr auto EVENT_SCROLL_DOWN = "i3-wsprev";
+    static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
+    static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};
 
-    map<i3_flag, label_t> m_statelabels;
-    vector<i3_workspace_t> m_workspaces;
+    static constexpr const char* EVENT_PREFIX{"i3"};
+    static constexpr const char* EVENT_CLICK{"i3-wsfocus-"};
+    static constexpr const char* EVENT_SCROLL_UP{"i3-wsnext"};
+    static constexpr const char* EVENT_SCROLL_DOWN{"i3-wsprev"};
+
+    map<state, label_t> m_statelabels;
+    vector<unique_ptr<workspace>> m_workspaces;
     iconset_t m_icons;
+
+    label_t m_modelabel;
+    bool m_modeactive{false};
 
     bool m_click = true;
     bool m_scroll = true;
@@ -71,7 +72,7 @@ namespace modules {
     bool m_strip_wsnumbers = false;
     size_t m_wsname_maxlen = 0;
 
-    i3_util::connection_t m_ipc;
+    unique_ptr<i3_util::connection_t> m_ipc;
   };
 }
 
