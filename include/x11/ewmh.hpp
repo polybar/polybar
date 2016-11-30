@@ -19,6 +19,7 @@ namespace ewmh_util {
 
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen = 0);
 
+  string get_wm_name(xcb_ewmh_connection_t* conn, xcb_window_t win);
   string get_visible_name(xcb_ewmh_connection_t* conn, xcb_window_t win);
   string get_icon_name(xcb_ewmh_connection_t* conn, xcb_window_t win);
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply);

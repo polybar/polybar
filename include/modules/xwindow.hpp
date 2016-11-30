@@ -52,6 +52,8 @@ namespace modules {
 
       if (!(title = ewmh_util::get_visible_name(ewmh, m_window)).empty()) {
         return title;
+      } else if (!(title = ewmh_util::get_wm_name(ewmh, m_window)).empty()) {
+        return title;
       } else if (!(title = icccm_util::get_wm_name(m_connection, m_window)).empty()) {
         return title;
       } else {

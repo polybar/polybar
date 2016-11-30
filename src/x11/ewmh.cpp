@@ -48,30 +48,37 @@ namespace ewmh_util {
     return supports;
   }
 
+  string get_wm_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
+    xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
+    if (xcb_ewmh_get_wm_name_reply(conn, xcb_ewmh_get_wm_name(conn, win), &utf8_reply, nullptr)) {
+      return get_reply_string(&utf8_reply);
+    }
+    return "";
+  }
+
   string get_visible_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
-    if (!xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr)) {
-      return "";
+    if (xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr)) {
+      return get_reply_string(&utf8_reply);
     }
-    return get_reply_string(&utf8_reply);
+    return "";
   }
 
   string get_icon_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
-    if (!xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr)) {
-      return "";
+    if (xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr)) {
+      return get_reply_string(&utf8_reply);
     }
-    return get_reply_string(&utf8_reply);
+    return "";
   }
 
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply) {
-    if (reply == nullptr || !reply->strings_len) {
+    if (reply == nullptr) {
       return "";
     }
-    char buffer[BUFSIZ]{'\0'};
-    strncpy(buffer, reply->strings, reply->strings_len);
+    string str(reply->strings, reply->strings_len);
     xcb_ewmh_get_utf8_strings_reply_wipe(reply);
-    return buffer;
+    return str;
   }
 
   uint32_t get_current_desktop(xcb_ewmh_connection_t* conn, int screen) {
