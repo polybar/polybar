@@ -266,11 +266,18 @@ mousebtn parser::parse_action_btn(string data) {
  * Process action command string
  */
 string parser::parse_action_cmd(const string& data) {
-  size_t start, end;
-  if ((start = data.find(':')) == string::npos) {
+  size_t start{0};
+  while ((start = data.find(':', start)) != string::npos && data[start - 1] == '\\') {
+    start++;
+  }
+  if (start == string::npos) {
     return "";
   }
-  if ((end = data.find(':', start + 1)) == string::npos) {
+  size_t end{start + 1};
+  while ((end = data.find(':', end)) != string::npos && data[end - 1] == '\\') {
+    end++;
+  }
+  if (end == string::npos) {
     return "";
   }
   return string_util::trim(data.substr(start, end), ':');

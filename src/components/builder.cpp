@@ -145,10 +145,6 @@ void builder::node(string str, bool add_space) {
       overline_close();
       s.erase(0, 5);
 
-    } else if ((n = s.find("%{A}")) == 0) {
-      cmd_close();
-      s.erase(0, 4);
-
     } else if ((n = s.find("%{")) == 0 && (m = s.find('}')) != string::npos) {
       append(s.substr(n, m + 1));
       s.erase(n, m + 1);
@@ -506,10 +502,6 @@ void builder::cmd(mousebtn index, string action, bool condition) {
   }
 
   action = string_util::replace_all(action, ":", "\\:");
-  action = string_util::replace_all(action, "$", "\\$");
-  action = string_util::replace_all(action, "}", "\\}");
-  action = string_util::replace_all(action, "{", "\\{");
-  action = string_util::replace_all(action, "%", "\x0025");
 
   tag_open(syntaxtag::A, to_string(button) + ":" + action + ":");
 }
