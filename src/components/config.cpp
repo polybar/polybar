@@ -55,21 +55,19 @@ void config::copy_inherited() {
   for (auto&& section : m_ptree) {
     for (auto&& param : section.second) {
       if (param.first.compare(KEY_INHERIT) == 0) {
-        // Find and validate parent section
-        auto inherit_section = param.second.get_value<string>();
-
-        // Dereference value
-        inherit_section = dereference<string>(section.first, param.first, inherit_section, inherit_section);
-
-        if (inherit_section.empty()) {
-          throw value_error("[" + section.first + ".inherit] requires a value");
+        // Get name of base section
+        auto inherit = param.second.get_value<string>();
+        if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
+          throw value_error("[" + section.first + "." + KEY_INHERIT + "] requires a value");
         }
-        auto base_section = m_ptree.get_child_optional(inherit_section);
+
+        // Find and validate base section
+        auto base_section = m_ptree.get_child_optional(inherit);
         if (!base_section || base_section.value().empty()) {
-          throw value_error("[" + section.first + ".inherit] points to an invalid section \"" + inherit_section + "\"");
+          throw value_error("[" + section.first + "." + KEY_INHERIT + "] invalid reference \"" + inherit + "\"");
         }
 
-        m_logger.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit_section);
+        m_logger.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
 
         // Iterate the the base and copy the parameters
         // that hasn't been defined for the sub-section
