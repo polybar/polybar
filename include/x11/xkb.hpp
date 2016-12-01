@@ -8,6 +8,8 @@
 
 #if defined(__clang__)
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
 #pragma clang diagnostic ignored "-Wkeyword-macro"
 #endif
 #define explicit mask_cxx_explicit_keyword
