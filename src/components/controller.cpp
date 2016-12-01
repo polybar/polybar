@@ -1,5 +1,4 @@
 #include <chrono>
-#include <csignal>
 #include <mutex>
 
 #include "components/bar.hpp"
@@ -74,19 +73,16 @@ di::injector<unique_ptr<controller>> configure_controller(watch_t& confwatch) {
  * threads and spawned processes
  */
 controller::~controller() {
+  pthread_sigmask(SIG_UNBLOCK, &m_blockmask, nullptr);
+
+  sigset_t sig;
+  sigemptyset(&sig);
+  sigaddset(&sig, SIGALRM);
+  pthread_sigmask(SIG_BLOCK, &sig, nullptr);
+
   if (m_command) {
     m_log.info("Terminating running shell command");
     m_command.reset();
-  }
-
-  if (m_eventloop) {
-    m_log.info("Deconstructing eventloop");
-    m_eventloop.reset();
-  }
-
-  if (m_ipc) {
-    m_log.info("Deconstructing ipc");
-    m_ipc.reset();
   }
 
   if (m_bar) {
@@ -94,15 +90,25 @@ controller::~controller() {
     m_bar.reset();
   }
 
-  m_log.info("Interrupting X event loop");
-  m_connection.send_dummy_event(m_connection.root());
+  if (m_ipc) {
+    m_log.info("Deconstructing ipc");
+    m_ipc.reset();
+  }
 
-  if (!m_threads.empty()) {
-    m_log.info("Joining active threads");
-    for (auto&& thread : m_threads) {
-      if (thread.joinable()) {
-        thread.join();
-      }
+  if (m_eventloop) {
+    m_log.info("Deconstructing eventloop");
+    m_eventloop.reset();
+  }
+
+  if (!m_writeback) {
+    m_log.info("Interrupting X event loop");
+    m_connection.send_dummy_event(m_connection.root());
+  }
+
+  m_log.info("Joining active threads");
+  for (auto&& th : m_threads) {
+    if (th.second.joinable()) {
+      th.second.join();
     }
   }
 
@@ -115,9 +121,16 @@ controller::~controller() {
 }
 
 /**
- * Setup X environment
+ * Initialize components and setup X environment
  */
 void controller::bootstrap(bool writeback, bool dump_wmname) {
+  // Add all signals to the block mask
+  sigfillset(&m_blockmask);
+
+  if (pthread_sigmask(SIG_BLOCK, &m_blockmask, nullptr) == -1) {
+    throw system_error("Failed to block signals");
+  }
+
   m_writeback = writeback;
 
   m_log.trace("controller: Initialize X atom cache");
@@ -171,37 +184,57 @@ void controller::run() {
   m_log.info("Starting application");
   m_running = true;
 
-  install_sigmask();
-  install_confwatch();
+  if (m_confwatch && !m_writeback) {
+    m_threads[thread_role::CONF_LISTENER] = thread(&controller::wait_for_configwatch, this);
+  }
 
   // Start ipc receiver if its enabled
   if (m_conf.get<bool>(m_conf.bar_section(), "enable-ipc", false)) {
-    m_threads.emplace_back(thread(&ipc::receive_messages, m_ipc.get()));
+    m_threads[thread_role::IPC_LISTENER] = thread(&ipc::receive_messages, m_ipc.get());
   }
 
   // Listen for X events in separate thread
   if (!m_writeback) {
-    m_threads.emplace_back(thread(&controller::wait_for_xevent, this));
+    m_threads[thread_role::EVENT_QUEUE_X] = thread(&controller::wait_for_xevent, this);
   }
-
-  // Wait for term signal in separate thread
-  m_threads.emplace_back(thread(&controller::wait_for_signal, this));
 
   // Start event loop
   if (m_eventloop) {
-    m_eventloop->start();
-    m_eventloop->wait();
+    m_threads[thread_role::EVENT_QUEUE] = thread(&controller::wait_for_eventloop, this);
   }
 
-  // Wake up signal thread
-  if (m_waiting) {
-    kill(getpid(), SIGTERM);
-  }
+  m_log.trace("controller: Wait for signal");
+  m_waiting = true;
 
-  uninstall_sigmask();
-  uninstall_confwatch();
+  sigemptyset(&m_waitmask);
+  sigaddset(&m_waitmask, SIGINT);
+  sigaddset(&m_waitmask, SIGQUIT);
+  sigaddset(&m_waitmask, SIGTERM);
+  sigaddset(&m_waitmask, SIGUSR1);
+  sigaddset(&m_waitmask, SIGALRM);
+
+  int caught_signal = 0;
+  sigwait(&m_waitmask, &caught_signal);
 
   m_running = false;
+  m_waiting = false;
+
+  if (caught_signal == SIGUSR1) {
+    m_reload = true;
+  }
+
+  m_log.warn("Termination signal received, shutting down...");
+  m_log.trace("controller: Caught signal %d", caught_signal);
+
+  if (m_eventloop) {
+    m_log.trace("controller: Stopping event loop");
+    m_eventloop->stop();
+  }
+
+  if (!m_writeback && m_confwatch) {
+    m_log.trace("controller: Removing config watch");
+    m_confwatch->remove(true);
+  }
 }
 
 /**
@@ -212,107 +245,23 @@ bool controller::completed() {
 }
 
 /**
- * Set signal mask for the current and future threads
- */
-void controller::install_sigmask() {
-  m_log.trace("controller: Set pthread_sigmask to block term signals");
-
-  sigemptyset(&m_waitmask);
-  sigaddset(&m_waitmask, SIGINT);
-  sigaddset(&m_waitmask, SIGQUIT);
-  sigaddset(&m_waitmask, SIGTERM);
-  sigaddset(&m_waitmask, SIGUSR1);
-
-  if (pthread_sigmask(SIG_BLOCK, &m_waitmask, nullptr) == -1) {
-    throw system_error();
-  }
-
-  sigemptyset(&m_ignmask);
-  sigaddset(&m_ignmask, SIGPIPE);
-
-  if (pthread_sigmask(SIG_BLOCK, &m_ignmask, nullptr) == -1) {
-    throw system_error();
-  }
-}
-
-/**
- * Uninstall sigmask to allow term signals
- */
-void controller::uninstall_sigmask() {
-  m_log.trace("controller: Set pthread_sigmask to unblock term signals");
-
-  if (pthread_sigmask(SIG_UNBLOCK, &m_waitmask, nullptr) == -1) {
-    throw system_error();
-  }
-}
-
-/**
  * Listen for changes to the config file
  */
-void controller::install_confwatch() {
-  if (!m_running) {
-    return;
-  }
-
-  if (!m_confwatch) {
-    m_log.trace("controller: Config watch not set, skip...");
-    return;
-  }
-
-  m_threads.emplace_back([&] {
-    try {
-      if (!m_running) {
-        return;
-      }
-
-      m_log.trace("controller: Attach config watch");
-      m_confwatch->attach(IN_MODIFY);
-
-      m_log.trace("controller: Wait for config file inotify event");
-      if (m_confwatch->await_match() && m_running) {
-        m_log.info("Configuration file changed");
-        kill(getpid(), SIGUSR1);
-      }
-    } catch (const system_error& err) {
-      m_log.err(err.what());
-      m_log.trace("controller: Reset config watch");
-      m_confwatch.reset();
-    }
-  });
-}
-
-/**
- * Remove the config inotify watch
- */
-void controller::uninstall_confwatch() {
+void controller::wait_for_configwatch() {
   try {
-    if (m_confwatch) {
-      m_log.info("Removing config watch");
-      m_confwatch->remove();
+    m_log.trace("controller: Attach config watch");
+    m_confwatch->attach(IN_MODIFY);
+
+    m_log.trace("controller: Wait for config file inotify event");
+    if (m_confwatch->await_match() && m_running) {
+      m_log.info("Configuration file changed");
+      kill(getpid(), SIGUSR1);
     }
   } catch (const system_error& err) {
+    m_log.err(err.what());
+    m_log.trace("controller: Reset config watch");
+    m_confwatch.reset();
   }
-}
-
-/**
- * Wait for termination signal
- */
-void controller::wait_for_signal() {
-  m_log.trace("controller: Wait for signal");
-  m_waiting = true;
-
-  int caught_signal = 0;
-  sigwait(&m_waitmask, &caught_signal);
-
-  m_log.warn("Termination signal received, shutting down...");
-  m_log.trace("controller: Caught signal %d", caught_signal);
-
-  if (m_eventloop) {
-    m_eventloop->stop();
-  }
-
-  m_reload = (caught_signal == SIGUSR1);
-  m_waiting = false;
 }
 
 /**
@@ -338,6 +287,21 @@ void controller::wait_for_xevent() {
     } catch (const exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
     }
+  }
+}
+
+/**
+ * Start event loop and wait for it to finish
+ */
+void controller::wait_for_eventloop() {
+  m_eventloop->start();
+  m_eventloop->wait();
+
+  this_thread::sleep_for(250ms);
+
+  if (m_running) {
+    m_log.trace("controller: eventloop ended, raising SIGALRM");
+    kill(getpid(), SIGALRM);
   }
 }
 

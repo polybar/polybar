@@ -35,8 +35,8 @@ namespace inotify_util {
   /**
    * Remove inotify watch
    */
-  void inotify_watch::remove() {
-    if (inotify_rm_watch(m_fd, m_wd) == -1) {
+  void inotify_watch::remove(bool force) {
+    if (inotify_rm_watch(m_fd, m_wd) == -1 && !force) {
       throw system_error("Failed to remove inotify watch");
     }
     m_wd = -1;

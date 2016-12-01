@@ -25,7 +25,7 @@ namespace inotify_util {
     ~inotify_watch() noexcept;
 
     void attach(int mask = IN_MODIFY);
-    void remove();
+    void remove(bool force = false);
     bool poll(int wait_ms = 1000);
     unique_ptr<event_t> get_event();
     bool await_match();

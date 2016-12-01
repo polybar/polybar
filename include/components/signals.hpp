@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 
+#include "components/eventloop.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
@@ -17,13 +18,34 @@ enum class attribute : uint8_t;
 
 /**
  * @TODO: Allow multiple signal handlers
+ * @TODO: Encapsulate signals
  */
 namespace g_signals {
+  /**
+   * Helper used to create no-op "callbacks"
+   */
+  template <typename... T>
+  static callback<T...> noop = [](T...) {};
+
+  /**
+   * Signals used to communicate with the event loop
+   */
+  namespace event {
+    extern callback<const eventloop::entry_t&> enqueue;
+    extern callback<const eventloop::entry_t&> enqueue_delayed;
+  }
+
+  /**
+   * Signals used to communicate with the bar window
+   */
   namespace bar {
     extern callback<string> action_click;
     extern callback<const bool> visibility_change;
   }
 
+  /**
+   * Signals used to communicate with the input parser
+   */
   namespace parser {
     extern callback<const uint32_t> background_change;
     extern callback<const uint32_t> foreground_change;
@@ -42,6 +64,9 @@ namespace g_signals {
     extern callback<const char*, const size_t> string_write;
   }
 
+  /**
+   * Signals used to communicate with the tray manager
+   */
   namespace tray {
     extern callback<const uint16_t> report_slotcount;
   }

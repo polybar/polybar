@@ -69,7 +69,7 @@ void config::copy_inherited() {
 
         m_logger.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
 
-        // Iterate the the base and copy the parameters
+        // Iterate the base and copy the parameters
         // that hasn't been defined for the sub-section
         for (auto&& base_param : *base_section) {
           if (!section.second.get_child_optional(base_param.first)) {

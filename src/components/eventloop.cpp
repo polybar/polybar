@@ -1,5 +1,8 @@
+#include <csignal>
+
 #include "components/eventloop.hpp"
 #include "components/types.hpp"
+#include "components/signals.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/color.hpp"
@@ -13,20 +16,27 @@ eventloop::eventloop(const logger& logger, const config& config) : m_log(logger)
   m_delayed_time = duration_t{m_conf.get<double>("settings", "eventloop-delayed-time", 25)};
   m_swallow_time = duration_t{m_conf.get<double>("settings", "eventloop-swallow-time", 10)};
   m_swallow_limit = m_conf.get<size_t>("settings", "eventloop-swallow", 5U);
+
+  g_signals::event::enqueue = bind(&eventloop::enqueue, this, placeholders::_1);
+  g_signals::event::enqueue_delayed = bind(&eventloop::enqueue_delayed, this, placeholders::_1);
 }
 
 /**
  * Deconstruct eventloop
  */
-eventloop::~eventloop() noexcept {
+eventloop::~eventloop() {
+  g_signals::event::enqueue = g_signals::noop<const eventloop::entry_t&>;
+  g_signals::event::enqueue_delayed = g_signals::noop<const eventloop::entry_t&>;
+
   m_update_cb = nullptr;
   m_unrecognized_input_cb = nullptr;
 
   if (m_delayed_thread.joinable()) {
     m_delayed_thread.join();
   }
-
-  std::lock_guard<std::mutex> guard(m_modulelock, std::adopt_lock);
+  if (m_queue_thread.joinable()) {
+    m_queue_thread.join();
+  }
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
@@ -129,8 +139,6 @@ void eventloop::set_input_db(callback<string>&& cb) {
  * Add module to alignment block
  */
 void eventloop::add_module(const alignment pos, module_t&& module) {
-  std::lock_guard<std::mutex> guard(m_modulelock, std::adopt_lock);
-
   auto it = m_modules.lower_bound(pos);
 
   if (it != m_modules.end() && !(m_modules.key_comp()(pos, it->first))) {
@@ -164,8 +172,6 @@ size_t eventloop::module_count() const {
  * Start module threads
  */
 void eventloop::dispatch_modules() {
-  std::lock_guard<std::mutex> guard(m_modulelock);
-
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
       try {
@@ -211,7 +217,7 @@ void eventloop::dispatch_queue_worker() {
     forward_event(evt);
   }
 
-  m_log.trace("eventloop: Reached end of queue worker thread");
+  m_log.info("Queue worker done");
 }
 
 /**
@@ -233,7 +239,7 @@ void eventloop::dispatch_delayed_worker() {
     m_delayed_entry.type = 0;
   }
 
-  m_log.trace("eventloop: Reached end of delayed worker thread");
+  m_log.info("Delayed worker done");
 }
 
 /**
@@ -267,7 +273,7 @@ void eventloop::forward_event(entry_t evt) {
   } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
     on_check();
   } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-    on_quit();
+    on_quit(reinterpret_cast<const quit_event&>(evt));
   } else {
     m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
   }
@@ -292,12 +298,6 @@ void eventloop::on_update() {
 void eventloop::on_input(char* input) {
   m_log.trace("eventloop: Received INPUT event");
 
-  if (!m_modulelock.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_modulelock, std::adopt_lock);
-
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
       if (!module->receive_events()) {
@@ -320,34 +320,29 @@ void eventloop::on_input(char* input) {
  * Handler for enqueued CHECK events
  */
 void eventloop::on_check() {
-  if (!m_running) {
-    return;
-  }
-
-  if (!m_modulelock.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_modulelock, std::adopt_lock);
-
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
-      if (module->running()) {
+      if (m_running && module->running()) {
         return;
       }
     }
   }
 
   m_log.warn("No running modules...");
+
   stop();
 }
 
 /**
  * Handler for enqueued QUIT events
  */
-void eventloop::on_quit() {
+void eventloop::on_quit(const quit_event& quit) {
   m_log.trace("eventloop: Received QUIT event");
   m_running = false;
+
+  if (quit.reload) {
+    kill(getpid(), SIGUSR1);
+  }
 }
 
 POLYBAR_NS_END

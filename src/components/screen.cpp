@@ -5,6 +5,8 @@
 #include "components/logger.hpp"
 #include "components/screen.hpp"
 #include "components/types.hpp"
+#include "components/signals.hpp"
+#include "components/eventloop.hpp"
 #include "x11/connection.hpp"
 #include "x11/randr.hpp"
 #include "x11/winspec.hpp"
@@ -27,6 +29,8 @@ screen::screen(connection& conn, const logger& logger, const config& conf)
     , m_conf(conf)
     , m_root(conn.root())
     , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
+  assert(g_signals::event::enqueue != nullptr);
+
   // Check if the reloading has been disabled by the user
   if (!m_conf.get<bool>("settings", "screenchange-reload", false)) {
     return;
@@ -65,7 +69,7 @@ screen::screen(connection& conn, const logger& logger, const config& conf)
 screen::~screen() {
   m_connection.detach_sink(this, 1);
 
-  if (m_proxy) {
+  if (m_proxy != XCB_NONE) {
     m_connection.destroy_window(m_proxy);
   }
 }
@@ -79,7 +83,9 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   if (!m_sigraised && evt->request_window == m_proxy) {
     m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
     m_sigraised = true;
-    kill(getpid(), SIGUSR1);
+    quit_event quit{};
+    quit.reload = true;
+    g_signals::event::enqueue(reinterpret_cast<const eventloop::entry_t&>(quit));
   }
 }
 

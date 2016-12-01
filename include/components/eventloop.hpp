@@ -25,6 +25,11 @@ struct event {
   char data[256]{'\0'};
 };
 
+struct quit_event {
+  const uint8_t type{static_cast<uint8_t>(event_type::QUIT)};
+  bool reload{false};
+};
+
 class eventloop {
  public:
   /**
@@ -35,8 +40,7 @@ class eventloop {
   using duration_t = chrono::duration<double, std::milli>;
 
   explicit eventloop(const logger& logger, const config& config);
-
-  ~eventloop() noexcept;
+  ~eventloop();
 
   void start();
   void wait();
@@ -64,7 +68,7 @@ class eventloop {
   void on_update();
   void on_input(char* input);
   void on_check();
-  void on_quit();
+  void on_quit(const quit_event& quit);
 
  private:
   const logger& m_log;
@@ -79,11 +83,6 @@ class eventloop {
    * @brief Loaded modules
    */
   modulemap_t m_modules;
-
-  /**
-   * @brief Lock used when accessing the module map
-   */
-  std::mutex m_modulelock;
 
   /**
    * @brief Flag to indicate current run state
