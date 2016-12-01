@@ -93,7 +93,7 @@ $ apt-get install cmake cmake-data libboost-dev libfreetype6-dev libxcb1-dev lib
 Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 2.3.5 --recursive https://github.com/jaagr/polybar
+  $ git clone --branch 2.3.6 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
   $ cmake -DCMAKE_BUILD_TYPE=Release ..
