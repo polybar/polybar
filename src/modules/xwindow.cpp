@@ -14,11 +14,64 @@ namespace modules {
   template class static_module<xwindow_module>;
 
   /**
+   * Wrapper used to update the event mask of the
+   * currently active to enable title tracking
+   */
+  active_window::active_window(xcb_window_t win)
+      : m_connection(configure_connection().create<decltype(m_connection)>()), m_window(m_connection, win) {
+    try {
+      m_window.change_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
+    } catch (const xpp::x::error::window& err) {
+    }
+  }
+
+  /**
+   * Deconstruct window object
+   */
+  active_window::~active_window() {
+    try {
+      m_window.change_event_mask(XCB_EVENT_MASK_NO_EVENT);
+    } catch (const xpp::x::error::window& err) {
+    }
+  }
+
+  /**
+   * Check if current window matches passed value
+   */
+  bool active_window::match(const xcb_window_t win) const {
+    return m_window == win;
+  }
+
+  /**
+   * Get the title by returning the first non-empty value of:
+   *  _NET_WM_VISIBLE_NAME
+   *  _NET_WM_NAME
+   */
+  string active_window::title(xcb_ewmh_connection_t* ewmh) const {
+    string title;
+
+    if (!(title = ewmh_util::get_visible_name(ewmh, m_window)).empty()) {
+      return title;
+    } else if (!(title = ewmh_util::get_wm_name(ewmh, m_window)).empty()) {
+      return title;
+    } else if (!(title = icccm_util::get_wm_name(m_connection, m_window)).empty()) {
+      return title;
+    } else {
+      return "";
+    }
+  }
+
+  /**
+   * Construct module
+   */
+  xwindow_module::xwindow_module(const bar_settings& bar, const logger& logger, const config& config, string name)
+      : static_module<xwindow_module>(bar, logger, config, name)
+      , m_connection(configure_connection().create<connection&>()) {}
+
+  /**
    * Bootstrap the module
    */
   void xwindow_module::setup() {
-    connection& conn{configure_connection().create<decltype(conn)>()};
-
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
@@ -42,11 +95,10 @@ namespace modules {
     }
 
     // Make sure we get notified when root properties change
-    window root{conn, conn.root()};
-    root.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
+    m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     // Connect with the event registry
-    conn.attach_sink(this, 1);
+    m_connection.attach_sink(this, 1);
 
     // Trigger the initial draw event
     update();
@@ -56,8 +108,7 @@ namespace modules {
    * Disconnect from the event registry
    */
   void xwindow_module::teardown() {
-    connection& conn{configure_connection().create<decltype(conn)>()};
-    conn.detach_sink(this, 1);
+    m_connection.detach_sink(this, 1);
   }
 
   /**
@@ -100,14 +151,6 @@ namespace modules {
 
     // Emit notification to trigger redraw
     broadcast();
-  }
-
-  /**
-   * Generate the module output
-   */
-  string xwindow_module::get_output() {
-    m_builder->append(static_module::get_output());
-    return m_builder->flush();
   }
 
   /**
