@@ -131,15 +131,15 @@ namespace modules {
           continue;
         }
 
-        auto state = state::NONE;
+        auto ws_state = state::NONE;
         if (ws->focused) {
-          state = state::FOCUSED;
+          ws_state = state::FOCUSED;
         } else if (ws->urgent) {
-          state = state::URGENT;
+          ws_state = state::URGENT;
         } else if (!ws->visible || (ws->visible && ws->output != focused_output)) {
-          state = state::UNFOCUSED;
+          ws_state = state::UNFOCUSED;
         } else {
-          state = state::VISIBLE;
+          ws_state = state::VISIBLE;
         }
 
         string wsname{ws->name};
@@ -158,14 +158,14 @@ namespace modules {
         }
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON);
-        auto label = m_statelabels.find(state)->second->clone();
+        auto label = m_statelabels.find(ws_state)->second->clone();
 
         label->reset_tokens();
         label->replace_token("%output%", ws->output);
         label->replace_token("%name%", wsname);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(make_unique<workspace>(ws->num, state, move(label)));
+        m_workspaces.emplace_back(make_unique<workspace>(ws->num, ws_state, move(label)));
       }
 
       return true;
