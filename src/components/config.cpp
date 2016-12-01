@@ -63,7 +63,7 @@ void config::copy_inherited() {
 
         // Find and validate base section
         auto base_section = m_ptree.get_child_optional(inherit);
-        if (!base_section || base_section.value().empty()) {
+        if (base_section == boost::none) {
           throw value_error("[" + section.first + "." + KEY_INHERIT + "] invalid reference \"" + inherit + "\"");
         }
 
