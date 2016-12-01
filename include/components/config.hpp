@@ -24,9 +24,12 @@ DEFINE_ERROR(key_error);
 
 class config {
  public:
+  static constexpr const char* KEY_INHERIT{"inherit"};
+
   explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
 
   void load(string file, string barname);
+  void copy_inherited();
   string filepath() const;
   string bar_section() const;
   vector<string> defined_bars() const;

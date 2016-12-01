@@ -40,6 +40,47 @@ void config::load(string file, string barname) {
 
   m_logger.trace("config: Loaded %s", file);
   m_logger.trace("config: Current bar section: [%s]", bar_section());
+
+  copy_inherited();
+}
+
+/**
+ * Look for sections set up to inherit from a base section
+ * and copy the missing parameters
+ *
+ *   [sub/seciton]
+ *   inherit = base/section
+ */
+void config::copy_inherited() {
+  for (auto&& section : m_ptree) {
+    for (auto&& param : section.second) {
+      if (param.first.compare(KEY_INHERIT) == 0) {
+        // Find and validate parent section
+        auto inherit_section = param.second.get_value<string>();
+
+        // Dereference value
+        inherit_section = dereference<string>(section.first, param.first, inherit_section, inherit_section);
+
+        if (inherit_section.empty()) {
+          throw value_error("[" + section.first + ".inherit] requires a value");
+        }
+        auto base_section = m_ptree.get_child_optional(inherit_section);
+        if (!base_section || base_section.value().empty()) {
+          throw value_error("[" + section.first + ".inherit] points to an invalid section \"" + inherit_section + "\"");
+        }
+
+        m_logger.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit_section);
+
+        // Iterate the the base and copy the parameters
+        // that hasn't been defined for the sub-section
+        for (auto&& base_param : *base_section) {
+          if (!section.second.get_child_optional(base_param.first)) {
+            section.second.put_child(base_param.first, base_param.second);
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
