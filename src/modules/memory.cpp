@@ -99,6 +99,10 @@ namespace modules {
       builder->node(m_bars.at(memtype::FREE)->output(m_perc.at(memtype::FREE)));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     } else {
       return false;
     }

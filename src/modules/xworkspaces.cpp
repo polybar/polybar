@@ -223,6 +223,10 @@ namespace modules {
       }
 
       return num > 0;
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     }
 
     return false;

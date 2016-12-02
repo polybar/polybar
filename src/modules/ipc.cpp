@@ -66,6 +66,10 @@ namespace modules {
   bool ipc_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_OUTPUT) {
       builder->node(m_output);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     } else {
       return false;
     }

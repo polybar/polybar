@@ -107,6 +107,10 @@ namespace modules {
         builder->node(indicator.second);
       }
       return n > 0;
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     } else {
       return false;
     }

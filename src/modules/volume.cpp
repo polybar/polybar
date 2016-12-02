@@ -189,6 +189,7 @@ namespace modules {
   }
 
   bool volume_module::build(builder* builder, const string& tag) const {
+    string format = get_format();
     if (tag == TAG_BAR_VOLUME) {
       builder->node(m_bar_volume->output(m_volume));
     } else if (tag == TAG_RAMP_VOLUME && (!m_headphones || !*m_ramp_headphones)) {
@@ -199,6 +200,10 @@ namespace modules {
       builder->node(m_label_volume);
     } else if (tag == TAG_LABEL_MUTED) {
       builder->node(m_label_muted);
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }

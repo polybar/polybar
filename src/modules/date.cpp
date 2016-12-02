@@ -49,6 +49,10 @@ namespace modules {
 
     if (!m_formatalt.empty()) {
       m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     }
 
     builder->node(m_buffer);

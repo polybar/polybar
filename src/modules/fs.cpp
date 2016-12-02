@@ -126,6 +126,7 @@ namespace modules {
    */
   bool fs_module::build(builder* builder, const string& tag) const {
     auto& mount = m_mounts[m_index];
+    string format = get_format();
 
     if (tag == TAG_BAR_FREE) {
       builder->node(m_barfree->output(mount->percentage_free));
@@ -148,6 +149,10 @@ namespace modules {
       m_labelunmounted->reset_tokens();
       m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
       builder->node(m_labelunmounted);
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }

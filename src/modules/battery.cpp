@@ -221,6 +221,7 @@ namespace modules {
    * Generate the module output using defined drawtypes
    */
   bool battery_module::build(builder* builder, const string& tag) const {
+    string format = get_format();
     if (tag == TAG_ANIMATION_CHARGING) {
       builder->node(m_animation_charging->get());
     } else if (tag == TAG_BAR_CAPACITY) {
@@ -233,6 +234,10 @@ namespace modules {
       builder->node(m_label_discharging);
     } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }
