@@ -59,6 +59,8 @@ namespace modules {
   struct module_format {
     string value;
     vector<string> tags;
+    label_t prefix;
+    label_t suffix;
     string fg;
     string bg;
     string ul;

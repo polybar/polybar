@@ -159,7 +159,7 @@ namespace modules {
     int i = 0;
     bool tag_built = true;
 
-    for (auto tag : string_util::split(format->value, ' ')) {
+    for (auto&& tag : string_util::split(format->value, ' ')) {
       bool is_blankspace = tag.empty();
 
       if (tag[0] == '<' && tag[tag.length() - 1] == '>') {

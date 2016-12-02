@@ -2,6 +2,7 @@
 
 #include "components/builder.hpp"
 #include "modules/meta/base.hpp"
+#include "drawtypes/label.hpp"
 
 POLYBAR_NS
 
@@ -31,7 +32,11 @@ namespace modules {
       builder->space(padding);
     }
 
-    builder->append(move(output));
+    if (!output.empty()) {
+      builder->node(prefix);
+      builder->append(move(output));
+      builder->node(suffix);
+    }
 
     if (padding > 0) {
       builder->space(padding);
@@ -71,6 +76,18 @@ namespace modules {
     format->margin = m_conf.get<int>(m_modname, name + "-margin", 0);
     format->offset = m_conf.get<int>(m_modname, name + "-offset", 0);
     format->tags.swap(tags);
+
+    try {
+      format->prefix = load_label(m_conf, m_modname, name + "-prefix");
+    } catch (const key_error& err) {
+      // prefix not defined
+    }
+
+    try {
+      format->suffix = load_label(m_conf, m_modname, name + "-suffix");
+    } catch (const key_error& err) {
+      // suffix not defined
+    }
 
     for (auto&& tag : string_util::split(format->value, ' ')) {
       if (tag[0] != '<' || tag[tag.length() - 1] != '>') {
