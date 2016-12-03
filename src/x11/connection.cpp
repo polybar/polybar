@@ -102,8 +102,8 @@ string connection::id(xcb_window_t w) const {
 /**
  * Get pointer to the default xcb screen
  */
-xcb_screen_t* connection::screen() {
-  if (m_screen == nullptr) {
+xcb_screen_t* connection::screen(bool realloc) {
+  if (m_screen == nullptr || realloc) {
     m_screen = screen_of_display(default_screen());
   }
   return m_screen;

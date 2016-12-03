@@ -59,7 +59,7 @@ class connection : public xpp_connection {
 
   string id(xcb_window_t w) const;
 
-  xcb_screen_t* screen();
+  xcb_screen_t* screen(bool realloc = false);
 
   void ensure_event_mask(xcb_window_t win, uint32_t event);
   void clear_event_mask(xcb_window_t win);

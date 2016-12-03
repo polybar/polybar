@@ -36,6 +36,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   xcb_window_t m_root;
   xcb_window_t m_proxy{XCB_NONE};
 
+  vector<monitor_t> m_monitors;
   struct size m_size{0U, 0U};
   bool m_sigraised{false};
 };

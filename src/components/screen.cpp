@@ -28,6 +28,7 @@ screen::screen(connection& conn, const logger& logger, const config& conf)
     , m_log(logger)
     , m_conf(conf)
     , m_root(conn.root())
+    , m_monitors(randr_util::get_monitors(m_connection, m_root, true))
     , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
   assert(g_signals::event::enqueue != nullptr);
 
@@ -80,9 +81,29 @@ screen::~screen() {
  * If the screen dimensions have changed we raise USR1 to trigger a reload
  */
 void screen::handle(const evt::randr_screen_change_notify& evt) {
-  if (!m_sigraised && evt->request_window == m_proxy) {
+  if (m_sigraised || evt->request_window != m_proxy) {
+    return;
+  }
+
+  auto screen = m_connection.screen(true);
+  auto changed = false;
+
+  if (screen->width_in_pixels != m_size.w || screen->height_in_pixels != m_size.h) {
+    changed = true;
+  } else {
+    auto monitors = randr_util::get_monitors(m_connection, m_root, true);
+
+    for (size_t n = 0; n < monitors.size(); n++) {
+      if (n < m_monitors.size() && monitors[n]->output != m_monitors[n]->output) {
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
     m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
     m_sigraised = true;
+
     quit_event quit{};
     quit.reload = true;
     g_signals::event::enqueue(reinterpret_cast<const eventloop::entry_t&>(quit));
