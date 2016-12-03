@@ -101,7 +101,7 @@ struct bar_settings {
   string wmname;
   string locale;
 
-  bool force_docking{false};
+  bool override_redirect{false};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect{0, 0, size.w, size.h};

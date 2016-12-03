@@ -57,7 +57,7 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
       << cw_params_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE
                              |XCB_EVENT_MASK_EXPOSURE
                              |XCB_EVENT_MASK_BUTTON_PRESS)
-      << cw_params_override_redirect(m_bar.force_docking)
+      << cw_params_override_redirect(m_bar.override_redirect)
       << cw_flush(true);
     // clang-format on
   }

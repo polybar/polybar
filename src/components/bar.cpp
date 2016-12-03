@@ -77,7 +77,13 @@ void bar::bootstrap(bool nodraw) {
       m_opts.origin = edge::BOTTOM;
     }
 
-    GET_CONFIG_VALUE(bs, m_opts.force_docking, "dock");
+    try {
+      m_opts.override_redirect = m_conf.get<bool>(bs, "dock");
+      m_conf.warn_deprecated(bs, "dock", "override-redirect");
+    } catch (const key_error& err) {
+      m_opts.override_redirect = m_conf.get<bool>(bs, "override-redirect", m_opts.override_redirect);
+    }
+
     GET_CONFIG_VALUE(bs, m_opts.spacing, "spacing");
     GET_CONFIG_VALUE(bs, m_opts.padding.left, "padding-left");
     GET_CONFIG_VALUE(bs, m_opts.padding.right, "padding-right");
@@ -503,10 +509,10 @@ void bar::restack_window() {
   if (wm_restack == "bspwm") {
     restacked = bspwm_util::restack_above_root(m_connection, m_opts.monitor, m_window);
 #if ENABLE_I3
-  } else if (wm_restack == "i3" && m_opts.force_docking) {
+  } else if (wm_restack == "i3" && m_opts.override_redirect) {
     restacked = i3_util::restack_above_root(m_connection, m_opts.monitor, m_window);
-  } else if (wm_restack == "i3" && !m_opts.force_docking) {
-    m_log.warn("Ignoring restack of i3 window (not needed when dock = false)");
+  } else if (wm_restack == "i3" && !m_opts.override_redirect) {
+    m_log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
     wm_restack.clear();
 #endif
   } else {
