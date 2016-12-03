@@ -276,17 +276,22 @@ void controller::wait_for_xevent() {
   shared_ptr<xcb_generic_event_t> evt;
   while (m_running) {
     try {
-      int error = 0;
-
-      if ((error = m_connection.connection_has_error()) != 0) {
-        m_log.err("Error in X event loop, terminating... (%s)", m_connection.error_str(error));
-        kill(getpid(), SIGTERM);
-      } else if ((evt = m_connection.wait_for_event()) != nullptr && m_running) {
+      if ((evt = m_connection.wait_for_event()) != nullptr && m_running) {
         m_connection.dispatch_event(evt);
       }
+    } catch (xpp::connection_error& err) {
+      m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
     } catch (const exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
     }
+
+    if (m_connection.connection_has_error()) {
+      break;
+    }
+  }
+
+  if (m_running) {
+    kill(getpid(), SIGTERM);
   }
 }
 
