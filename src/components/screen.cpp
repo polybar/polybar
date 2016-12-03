@@ -60,14 +60,14 @@ screen::screen(connection& conn, const logger& logger, const config& conf)
   m_connection.clear_event_mask(m_root);
 
   // Finally attach the sink the process randr events
-  m_connection.attach_sink(this, 1);
+  m_connection.attach_sink(this, SINK_PRIORITY_SCREEN);
 }
 
 /**
  * Deconstruct screen instance
  */
 screen::~screen() {
-  m_connection.detach_sink(this, 1);
+  m_connection.detach_sink(this, SINK_PRIORITY_SCREEN);
 
   if (m_proxy != XCB_NONE) {
     m_connection.destroy_window(m_proxy);

@@ -65,7 +65,7 @@ namespace modules {
 
     // Connect with the event registry and make sure we get
     // notified when a RandR output property gets modified
-    m_connection.attach_sink(this, 1);
+    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
     m_connection.select_input_checked(m_proxy, XCB_RANDR_NOTIFY_MASK_OUTPUT_PROPERTY);
 
     // Add formats and elements
@@ -89,7 +89,7 @@ namespace modules {
    * Disconnect from the event registry
    */
   void xbacklight_module::teardown() {
-    m_connection.detach_sink(this, 1);
+    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**

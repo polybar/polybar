@@ -38,7 +38,7 @@ namespace modules {
     }
 
     // Connect to the event registry
-    m_connection.attach_sink(this, 3);
+    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
 
     // Setup extension
     m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
@@ -55,7 +55,7 @@ namespace modules {
    * Disconnect from the event registry
    */
   void xkeyboard_module::teardown() {
-    m_connection.detach_sink(this, 3);
+    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**

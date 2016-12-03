@@ -53,7 +53,7 @@ bar::bar(connection& conn, const config& config, const logger& logger, unique_pt
 bar::~bar() {
   std::lock_guard<std::mutex> guard(m_mutex);
   g_signals::tray::report_slotcount = nullptr;
-  m_connection.detach_sink(this, 1);
+  m_connection.detach_sink(this, SINK_PRIORITY_BAR);
   m_tray.reset();
 }
 
@@ -148,7 +148,7 @@ void bar::bootstrap(bool nodraw) {
   }
 
   m_log.trace("bar: Attaching sink to registry");
-  m_connection.attach_sink(this, 1);
+  m_connection.attach_sink(this, SINK_PRIORITY_BAR);
 
   configure_geom();
 

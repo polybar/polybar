@@ -45,7 +45,6 @@ namespace modules {
     xworkspaces_module(const bar_settings& bar, const logger& logger, const config& config, string name);
 
     void setup();
-    void start();
     void teardown();
     void handle(const evt::property_notify& evt);
     void update();

@@ -98,7 +98,7 @@ namespace modules {
     m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     // Connect with the event registry
-    m_connection.attach_sink(this, 1);
+    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
 
     // Trigger the initial draw event
     update();
@@ -108,7 +108,7 @@ namespace modules {
    * Disconnect from the event registry
    */
   void xwindow_module::teardown() {
-    m_connection.detach_sink(this, 1);
+    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**

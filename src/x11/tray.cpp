@@ -139,11 +139,11 @@ void tray_client::configure_notify(int16_t x, int16_t y) const {  // {{{
 // implementation : tray_manager {{{
 
 tray_manager::tray_manager(connection& conn, const logger& logger) : m_connection(conn), m_log(logger) {
-  m_connection.attach_sink(this, 2);
+  m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
 tray_manager::~tray_manager() {
-  m_connection.detach_sink(this, 2);
+  m_connection.detach_sink(this, SINK_PRIORITY_TRAY);
 
   if (m_delaythread.joinable()) {
     m_delaythread.join();
