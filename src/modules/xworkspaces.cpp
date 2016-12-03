@@ -83,13 +83,13 @@ namespace modules {
       }
     }
 
+    update();
+
     // Make sure we get notified when root properties change
     window{m_connection, m_connection.root()}.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     // Connect with the event registry
     m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
-
-    update();
   }
 
   /**
@@ -188,7 +188,9 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL_MONITOR && m_viewports[m_index]->state != viewport_state::NONE) {
+    if (m_index >= m_viewports.size()) {
+      m_log.warn("%s: Invalid index (index=%lu, viewports=%lu)", name(), m_index, m_viewports.size());
+    } else if (tag == TAG_LABEL_MONITOR && m_viewports[m_index]->state != viewport_state::NONE) {
       builder->node(m_viewports[m_index]->label);
       return true;
     } else if (tag == TAG_LABEL_STATE) {
