@@ -159,10 +159,12 @@ void bar::bootstrap(bool nodraw) {
 
   restack_window();
 
+  m_log.trace("bar: Reconfigure window");
   reconfigure_struts();
   reconfigure_wm_hints();
 
-  m_connection.map_window(m_window);
+  m_log.trace("bar: Map window");
+  m_connection.map_window_checked(m_window);
 
   // Reconfigure window position after mapping (required by Openbox)
   // Required by Openbox
@@ -341,6 +343,7 @@ void bar::activate_tray() {
 
   try {
     m_tray->activate();
+    broadcast_visibility();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Failed to activate tray manager, disabling...");
@@ -588,6 +591,29 @@ void bar::reconfigure_wm_hints() {
 }
 
 /**
+ * Broadcast current map state
+ */
+void bar::broadcast_visibility() {
+  if (!g_signals::bar::visibility_change) {
+    return m_log.trace("bar: no callback handler set for bar visibility change");
+  }
+
+  try {
+    auto attr = m_connection.get_window_attributes(m_window);
+
+    if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE) {
+      g_signals::bar::visibility_change(false);
+    } else if (attr->map_state == XCB_MAP_STATE_UNMAPPED) {
+      g_signals::bar::visibility_change(false);
+    } else {
+      g_signals::bar::visibility_change(true);
+    }
+  } catch (const exception& err) {
+    return;
+  }
+}
+
+/**
  * Event handler for XCB_BUTTON_PRESS events
  *
  * Used to map mouse clicks to bar actions
@@ -647,7 +673,7 @@ void bar::handle(const evt::button_press& evt) {
  * Used to redraw the bar
  */
 void bar::handle(const evt::expose& evt) {
-  if (evt->window == m_window) {
+  if (evt->window == m_window && evt->count == 0) {
     m_log.trace("bar: Received expose event");
     m_renderer->flush(false);
   }
@@ -666,30 +692,13 @@ void bar::handle(const evt::expose& evt) {
  * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
-#if DEBUG
+#ifdef VERBOSE_TRACELOG
   string atom_name = m_connection.get_atom_name(evt->atom).name();
-  m_log.trace("bar: property_notify(%s)", atom_name);
+  m_log.trace_x("bar: property_notify(%s)", atom_name);
 #endif
 
   if (evt->window == m_window && evt->atom == WM_STATE) {
-    if (!g_signals::bar::visibility_change) {
-      return m_log.trace("bar: no callback handler set for bar visibility change");
-    }
-
-    try {
-      auto attr = m_connection.get_window_attributes(m_window);
-      if (attr->map_state == XCB_MAP_STATE_VIEWABLE) {
-        g_signals::bar::visibility_change(true);
-      } else if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE) {
-        g_signals::bar::visibility_change(false);
-      } else if (attr->map_state == XCB_MAP_STATE_UNMAPPED) {
-        g_signals::bar::visibility_change(false);
-      } else {
-        g_signals::bar::visibility_change(true);
-      }
-    } catch (const exception& err) {
-      m_log.warn("Failed to emit bar window's visibility change event");
-    }
+    broadcast_visibility();
   }
 }
 

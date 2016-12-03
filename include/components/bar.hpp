@@ -39,6 +39,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_pos();
   void reconfigure_struts();
   void reconfigure_wm_hints();
+  void broadcast_visibility();
 
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
