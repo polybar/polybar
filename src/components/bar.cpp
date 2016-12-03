@@ -158,9 +158,15 @@ void bar::bootstrap(bool nodraw) {
   m_log.info("Bar window: %s", m_connection.id(m_window));
 
   restack_window();
-  reconfigure_window();
+
+  reconfigure_struts();
+  reconfigure_wm_hints();
 
   m_connection.map_window(m_window);
+
+  // Reconfigure window position after mapping (required by Openbox)
+  // Required by Openbox
+  reconfigure_pos();
 
   m_log.trace("bar: Attach parser signal handlers");
   g_signals::parser::background_change = bind(&renderer::set_background, m_renderer.get(), ph::_1);
@@ -529,15 +535,20 @@ void bar::restack_window() {
 }
 
 /**
- * Reconfigure window by updating atom values
- * and moving it to the correct position
+ * Reconfigure window position
  */
-void bar::reconfigure_window() {
+void bar::reconfigure_pos() {
+  window win{m_connection, m_window};
+  win.reconfigure_pos(m_opts.pos.x, m_opts.pos.y);
+}
+
+/**
+ * Reconfigure window strut values
+ */
+void bar::reconfigure_struts() {
   auto geom = m_connection.get_geometry(m_screen->root());
   auto w = m_opts.size.w + m_opts.offset.x;
   auto h = m_opts.size.h + m_opts.offset.y;
-  auto x = m_opts.pos.x;
-  auto y = m_opts.pos.y;
 
   if (m_opts.origin == edge::BOTTOM) {
     h += m_opts.strut.top;
@@ -552,9 +563,13 @@ void bar::reconfigure_window() {
   }
 
   window win{m_connection, m_window};
-  win.reconfigure_struts(w, h, x, m_opts.origin == edge::BOTTOM);
-  win.reconfigure_pos(x, y);
+  win.reconfigure_struts(w, h, m_opts.pos.x, m_opts.origin == edge::BOTTOM);
+}
 
+/**
+ * Reconfigure window wm hint values
+ */
+void bar::reconfigure_wm_hints() {
   m_log.trace("bar: Set window WM_NAME");
   xcb_icccm_set_wm_name(m_connection, m_window, XCB_ATOM_STRING, 8, m_opts.wmname.size(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_window, 15, "polybar\0Polybar");

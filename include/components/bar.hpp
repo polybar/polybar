@@ -36,7 +36,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void setup_monitor();
   void configure_geom();
   void restack_window();
-  void reconfigure_window();
+  void reconfigure_pos();
+  void reconfigure_struts();
+  void reconfigure_wm_hints();
 
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
