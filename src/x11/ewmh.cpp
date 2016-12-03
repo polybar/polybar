@@ -6,7 +6,6 @@ POLYBAR_NS
 
 namespace ewmh_util {
   ewmh_connection_t g_ewmh_connection{nullptr};
-
   ewmh_connection_t initialize() {
     if (!g_ewmh_connection) {
       g_ewmh_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(

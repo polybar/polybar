@@ -20,10 +20,6 @@ struct exit_success {};
 struct exit_failure {};
 
 int main(int argc, char** argv) {
-  uint8_t exit_code{EXIT_SUCCESS};
-  bool reload{false};
-  int xfd;
-
   // clang-format off
   const command_line::options opts{
     command_line::option{"-h", "--help", "Show help options"},
@@ -40,20 +36,19 @@ int main(int argc, char** argv) {
 
   logger& logger{configure_logger<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
 
+  uint8_t exit_code{EXIT_SUCCESS};
+  bool reload{false};
+
   try {
     //==================================================
     // Connect to X server
     //==================================================
     XInitThreads();
 
-    xcb_connection_t* connection{nullptr};
-
-    if ((connection = xutils::get_connection()) == nullptr) {
+    if (!xutils::get_connection()) {
       logger.err("A connection to X could not be established... ");
       throw exit_failure{};
     }
-
-    xfd = xcb_get_file_descriptor(connection);
 
     //==================================================
     // Parse command line arguments
@@ -137,10 +132,6 @@ int main(int argc, char** argv) {
   } catch (const exception& err) {
     logger.err(err.what());
     exit_code = EXIT_FAILURE;
-  }
-
-  if (xfd != 0) {
-    close(xfd);
   }
 
   if (!reload) {

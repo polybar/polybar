@@ -118,7 +118,6 @@ controller::~controller() {
   }
 
   m_connection.flush();
-  m_connection.disconnect();
 }
 
 /**

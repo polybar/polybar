@@ -12,8 +12,6 @@ struct position;
 using ewmh_connection_t = memory_util::malloc_ptr_t<xcb_ewmh_connection_t>;
 
 namespace ewmh_util {
-  extern ewmh_connection_t g_ewmh_connection;
-
   ewmh_connection_t initialize();
 
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen = 0);

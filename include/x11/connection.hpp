@@ -20,6 +20,8 @@ class connection : public xpp_connection {
  public:
   explicit connection() {}
   explicit connection(xcb_connection_t* conn) : xpp_connection(conn) {}
+  explicit connection(xcb_connection_t* conn, int connection_fd)
+      : xpp_connection(conn), m_connection_fd(connection_fd) {}
 
   connection& operator=(const connection&) {
     return *this;
@@ -92,7 +94,8 @@ class connection : public xpp_connection {
 
  protected:
   registry m_registry{*this};
-  xcb_screen_t* m_screen = nullptr;
+  xcb_screen_t* m_screen{nullptr};
+  int m_connection_fd{0};
 };
 
 di::injector<connection&> configure_connection();

@@ -10,16 +10,29 @@
 POLYBAR_NS
 
 namespace xutils {
-  xcb_connection_t* g_connection_ptr{nullptr};
+  shared_ptr<int> g_connection_fd;
+  shared_ptr<xcb_connection_t> g_connection_ptr;
+
   xcb_connection_t* get_connection() {
-    if (g_connection_ptr == nullptr) {
+    if (!g_connection_ptr) {
       Display* dsp{xlib::get_display()};
+
       if (dsp != nullptr) {
         XSetEventQueueOwner(dsp, XCBOwnsEventQueue);
-        g_connection_ptr = XGetXCBConnection(dsp);
+        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp), bind(xcb_disconnect, placeholders::_1));
       }
     }
-    return g_connection_ptr;
+
+    return g_connection_ptr.get();
+  }
+
+  int get_connection_fd() {
+    if (!g_connection_fd) {
+      auto fd = xcb_get_file_descriptor(get_connection());
+      g_connection_fd = shared_ptr<int>(new int{fd}, factory_util::fd_deleter{});
+    }
+
+    return *g_connection_fd.get();
   }
 
   uint32_t event_timer_ms(const config& conf, const xcb_button_press_event_t&) {

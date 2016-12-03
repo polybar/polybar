@@ -4,6 +4,7 @@
 #include <xcb/xcb_util.h>
 
 #include "common.hpp"
+#include "utils/memory.hpp"
 #include "x11/randr.hpp"
 
 POLYBAR_NS
@@ -13,6 +14,7 @@ class config;
 
 namespace xutils {
   xcb_connection_t* get_connection();
+  int get_connection_fd();
 
   uint32_t event_timer_ms(const config& conf, const xcb_button_press_event_t&);
   uint32_t event_timer_ms(const config& conf, const xcb_randr_notify_event_t&);
