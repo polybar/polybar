@@ -342,8 +342,8 @@ void bar::activate_tray() {
   m_log.trace("bar: Activate tray manager");
 
   try {
-    m_tray->activate();
     broadcast_visibility();
+    m_tray->activate();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Failed to activate tray manager, disabling...");
