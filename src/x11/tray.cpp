@@ -165,6 +165,9 @@ const tray_settings tray_manager::settings() const {  // {{{
 void tray_manager::bootstrap(tray_settings settings) {  // {{{
   m_opts = settings;
   query_atom();
+
+  // Listen for visibility change events on the bar window
+  g_signals::bar::visibility_change = bind(&tray_manager::bar_visibility_change, this, placeholders::_1);
 }  // }}}
 
 /**
@@ -189,11 +192,6 @@ void tray_manager::activate() {  // {{{
     m_log.err("Cannot activate tray manager... failed to setup window");
     m_activated = false;
     return;
-  }
-
-  // Listen for visibility change events on the bar window
-  if (!m_restacked && !g_signals::bar::visibility_change) {
-    g_signals::bar::visibility_change = bind(&tray_manager::bar_visibility_change, this, std::placeholders::_1);
   }
 
   // Attempt to get control of the systray selection then
@@ -779,7 +777,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {  // {{{
  * toggle the tray window whenever the visibility of the bar window changes.
  */
 void tray_manager::bar_visibility_change(bool state) {  // {{{
-  if (m_hidden == !state) {
+  if (!m_activated || m_restacked || m_hidden == !state) {
     return;
   }
 
