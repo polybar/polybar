@@ -1,4 +1,5 @@
 #include "modules/script.hpp"
+#include "drawtypes/label.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/event_module.inl"
@@ -10,14 +11,13 @@ namespace modules {
   template class event_module<script_module>;
 
   void script_module::setup() {
-    m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
-
-    // Load configuration values
-
     REQ_CONFIG_VALUE(name(), m_exec, "exec");
     GET_CONFIG_VALUE(name(), m_tail, "tail");
     GET_CONFIG_VALUE(name(), m_maxlen, "maxlen");
     GET_CONFIG_VALUE(name(), m_ellipsis, "ellipsis");
+
+    m_conf.warn_deprecated(
+        name(), "maxlen", "\"format = <label>\" and \"label = %output:0:" + to_string(m_maxlen) + "%\"");
 
     m_actions[mousebtn::LEFT] = m_conf.get<string>(name(), "click-left", "");
     m_actions[mousebtn::MIDDLE] = m_conf.get<string>(name(), "click-middle", "");
@@ -25,7 +25,15 @@ namespace modules {
     m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
 
-    m_interval = chrono::duration<double>{m_conf.get<float>(name(), "interval", m_tail ? 0.0f : 2.0f)};
+    m_interval = chrono::duration<double>{m_conf.get<double>(name(), "interval", m_tail ? 0.0 : 5.0)};
+
+    m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT, TAG_LABEL});
+
+    if (m_formatter->has(TAG_LABEL)) {
+      m_label = load_optional_label(m_conf, name(), "label", "%output%");
+    } else if (m_formatter->has(TAG_OUTPUT)) {
+      m_log.warn("%s: The format tag <output> is deprecated, use <label> instead", name());
+    }
   }
 
   void script_module::stop() {
@@ -46,7 +54,6 @@ namespace modules {
   }
 
   bool script_module::has_event() {
-    // Non tail commands should always run
     if (!m_tail) {
       return true;
     }
@@ -78,7 +85,6 @@ namespace modules {
   }
 
   bool script_module::update() {
-    // Tailing commands always update
     if (m_tail) {
       return true;
     }
@@ -105,9 +111,13 @@ namespace modules {
   string script_module::get_output() {
     if (m_output.empty()) {
       return " ";
-
-      // Truncate output to the defined max length
     }
+
+    if (m_label) {
+      m_label->reset_tokens();
+      m_label->replace_token("%output%", m_output);
+    }
+
     if (m_maxlen > 0 && m_output.length() > m_maxlen) {
       m_output.erase(m_maxlen);
       m_output += m_ellipsis ? "..." : "";
@@ -127,10 +137,13 @@ namespace modules {
   bool script_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_OUTPUT) {
       builder->node(m_output);
-      return true;
+    } else if (tag == TAG_LABEL) {
+      builder->node(m_label);
     } else {
       return false;
     }
+
+    return true;
   }
 }
 

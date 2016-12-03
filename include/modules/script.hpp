@@ -27,20 +27,25 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    static constexpr auto TAG_OUTPUT = "<output>";
+    static constexpr const char* TAG_OUTPUT{"<output>"};
+    static constexpr const char* TAG_LABEL{"<label>"};
 
     command_util::command_t m_command;
 
     string m_exec;
-    bool m_tail = false;
+    bool m_tail{false};
     chrono::duration<double> m_interval{0};
-    size_t m_maxlen = 0;
-    bool m_ellipsis = true;
     map<mousebtn, string> m_actions;
 
+    label_t m_label;
     string m_output;
     string m_prev;
     int m_counter{0};
+
+    // @deprecated
+    size_t m_maxlen{0};
+    // @deprecated
+    bool m_ellipsis{true};
   };
 }
 
