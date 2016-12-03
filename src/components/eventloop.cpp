@@ -124,7 +124,7 @@ bool eventloop::enqueue_delayed(const entry_t& entry) {
 /**
  * Set callback handler for UPDATE events
  */
-void eventloop::set_update_cb(callback<>&& cb) {
+void eventloop::set_update_cb(callback<bool>&& cb) {
   m_update_cb = forward<decltype(cb)>(cb);
 }
 
@@ -267,9 +267,9 @@ inline bool eventloop::compare_events(entry_t evt, entry_t evt2) {
  */
 void eventloop::forward_event(entry_t evt) {
   if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-    on_update();
+    on_update(reinterpret_cast<const update_event&>(evt));
   } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
-    on_input(evt.data);
+    on_input(reinterpret_cast<const input_event&>(evt));
   } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
     on_check();
   } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
@@ -282,11 +282,11 @@ void eventloop::forward_event(entry_t evt) {
 /**
  * Handler for enqueued UPDATE events
  */
-void eventloop::on_update() {
+void eventloop::on_update(const update_event& evt) {
   m_log.trace("eventloop: Received UPDATE event");
 
   if (m_update_cb) {
-    m_update_cb();
+    m_update_cb(evt.force);
   } else {
     m_log.warn("No callback to handle update");
   }
@@ -295,7 +295,7 @@ void eventloop::on_update() {
 /**
  * Handler for enqueued INPUT events
  */
-void eventloop::on_input(char* input) {
+void eventloop::on_input(const input_event& evt) {
   m_log.trace("eventloop: Received INPUT event");
 
   for (auto&& block : m_modules) {
@@ -303,14 +303,14 @@ void eventloop::on_input(char* input) {
       if (!module->receive_events()) {
         continue;
       }
-      if (module->handle_event(input)) {
+      if (module->handle_event(evt.data)) {
         return;
       }
     }
   }
 
   if (m_unrecognized_input_cb) {
-    m_unrecognized_input_cb(input);
+    m_unrecognized_input_cb(evt.data);
   } else {
     m_log.warn("No callback to handle unrecognized input");
   }
@@ -336,11 +336,11 @@ void eventloop::on_check() {
 /**
  * Handler for enqueued QUIT events
  */
-void eventloop::on_quit(const quit_event& quit) {
+void eventloop::on_quit(const quit_event& evt) {
   m_log.trace("eventloop: Received QUIT event");
   m_running = false;
 
-  if (quit.reload) {
+  if (evt.reload) {
     kill(getpid(), SIGUSR1);
   }
 }

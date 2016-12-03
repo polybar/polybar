@@ -100,14 +100,13 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
     }
   }
 
-  if (changed) {
-    m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
-    m_sigraised = true;
-
-    quit_event quit{};
-    quit.reload = true;
-    g_signals::event::enqueue(reinterpret_cast<const eventloop::entry_t&>(quit));
+  if (!changed) {
+    return;
   }
+
+  m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
+  m_sigraised = true;
+  g_signals::event::enqueue(eventloop::make(quit_event{}, true));
 }
 
 POLYBAR_NS_END

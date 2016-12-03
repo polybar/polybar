@@ -163,7 +163,7 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
   }
 
   m_log.trace("controller: Attach eventloop update callback");
-  m_eventloop->set_update_cb(bind(&controller::on_update, this));
+  m_eventloop->set_update_cb(bind(&controller::on_update, this, placeholders::_1));
 
   if (!m_writeback) {
     m_log.trace("controller: Attach eventloop input callback");
@@ -418,16 +418,14 @@ void controller::on_ipc_action(const ipc_action& message) {
 
   string action = message.payload.substr(strlen(ipc_action::prefix));
 
-  if (action.empty()) {
+  if (action.size() >= sizeof(input_event::data)) {
+    m_log.warn("Ignoring input event (size)");
+  } else if (action.empty()) {
     m_log.err("Cannot enqueue empty IPC action");
-    return;
+  } else {
+    m_log.info("Enqueuing IPC action: %s", action);
+    m_eventloop->enqueue(eventloop::make(input_event{}, action));
   }
-
-  eventloop::entry_t evt{static_cast<uint8_t>(event_type::INPUT)};
-  snprintf(evt.data, sizeof(evt.data), "%s", action.c_str());
-
-  m_log.info("Enqueuing IPC action: %s", action);
-  m_eventloop->enqueue(evt);
 }
 
 /**
@@ -436,17 +434,9 @@ void controller::on_ipc_action(const ipc_action& message) {
 void controller::on_mouse_event(const string& input) {
   if (!m_eventloop) {
     return;
-  }
-
-  eventloop::entry_t evt{static_cast<uint8_t>(event_type::INPUT)};
-
-  if (input.length() > sizeof(evt.data)) {
-    return m_log.warn("Ignoring input event (size)");
-  }
-
-  snprintf(evt.data, sizeof(evt.data), "%s", input.c_str());
-
-  if (!m_eventloop->enqueue_delayed(evt)) {
+  } else if (input.length() >= sizeof(input_event::data)) {
+    m_log.warn("Ignoring input event (size)");
+  } else if (!m_eventloop->enqueue_delayed(eventloop::make(input_event{}, input))) {
     m_log.trace_x("controller: Dispatcher busy");
   }
 }
@@ -474,7 +464,7 @@ void controller::on_unrecognized_action(string input) {
 /**
  * Callback for module content update
  */
-void controller::on_update() {
+void controller::on_update(bool force) {
   if (!m_bar) {
     return;
   }
@@ -558,18 +548,18 @@ void controller::on_update() {
   }
 
   try {
-    m_bar->parse(contents);
-  } catch (const exception& err) {
-    m_log.err("Failed to update bar contents (reason: %s)", err.what());
-  }
-
-  try {
     if (!m_trayactivated) {
       m_trayactivated = true;
       m_bar->activate_tray();
     }
   } catch (const exception& err) {
     m_log.err("Failed to active tray manager (reason: %s)", err.what());
+  }
+
+  try {
+    m_bar->parse(contents, force);
+  } catch (const exception& err) {
+    m_log.err("Failed to update bar contents (reason: %s)", err.what());
   }
 }
 

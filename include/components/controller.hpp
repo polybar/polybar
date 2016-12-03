@@ -56,7 +56,7 @@ class controller {
   void on_ipc_action(const ipc_action& message);
   void on_mouse_event(const string& input);
   void on_unrecognized_action(string input);
-  void on_update();
+  void on_update(bool force);
 
  private:
   enum class thread_role {

@@ -30,6 +30,16 @@ struct quit_event {
   bool reload{false};
 };
 
+struct update_event {
+  const uint8_t type{static_cast<uint8_t>(event_type::UPDATE)};
+  bool force{false};
+};
+
+struct input_event {
+  const uint8_t type{static_cast<uint8_t>(event_type::INPUT)};
+  char data[256]{'\0'};
+};
+
 class eventloop {
  public:
   /**
@@ -49,12 +59,27 @@ class eventloop {
   bool enqueue(const entry_t& entry);
   bool enqueue_delayed(const entry_t& entry);
 
-  void set_update_cb(callback<>&& cb);
+  void set_update_cb(callback<bool>&& cb);
   void set_input_db(callback<string>&& cb);
 
   void add_module(const alignment pos, module_t&& module);
   const modulemap_t& modules() const;
   size_t module_count() const;
+
+  static const eventloop::entry_t& make(update_event&& event, bool force = false) {
+    event.force = force;
+    return reinterpret_cast<const eventloop::entry_t&>(event);
+  }
+
+  static const eventloop::entry_t& make(quit_event&& event, bool reload = false) {
+    event.reload = reload;
+    return reinterpret_cast<const eventloop::entry_t&>(event);
+  }
+
+  static const eventloop::entry_t& make(input_event&& event, const string& data) {
+    snprintf(event.data, sizeof(event.data), "%s", data.c_str());
+    return reinterpret_cast<const eventloop::entry_t&>(event);
+  }
 
  protected:
   void dispatch_modules();
@@ -65,10 +90,10 @@ class eventloop {
   inline bool compare_events(entry_t evt, entry_t evt2);
   void forward_event(entry_t evt);
 
-  void on_update();
-  void on_input(char* input);
+  void on_update(const update_event& evt);
+  void on_input(const input_event& evt);
   void on_check();
-  void on_quit(const quit_event& quit);
+  void on_quit(const quit_event& evt);
 
  private:
   const logger& m_log;
@@ -92,7 +117,7 @@ class eventloop {
   /**
    * @brief Callback fired when receiving UPDATE events
    */
-  callback<> m_update_cb;
+  callback<bool> m_update_cb;
 
   /**
    * @brief Callback fired for unprocessed INPUT events
