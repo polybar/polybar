@@ -5,6 +5,7 @@
 #include "modules/xworkspaces.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/static_module.inl"
@@ -60,14 +61,16 @@ namespace modules {
     }
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
-      m_labels.insert(
-          make_pair(desktop_state::ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_LABEL_STATE)));
+      // clang-format off
+      m_labels.insert(make_pair(
+          desktop_state::ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_LABEL_STATE)));
       m_labels.insert(make_pair(
           desktop_state::OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL_STATE)));
-      m_labels.insert(
-          make_pair(desktop_state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL_STATE)));
-      m_labels.insert(
-          make_pair(desktop_state::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL_STATE)));
+      m_labels.insert(make_pair(
+          desktop_state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL_STATE)));
+      m_labels.insert(make_pair(
+          desktop_state::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL_STATE)));
+      // clang-format on
     }
 
     m_icons = make_shared<iconset>();
@@ -124,7 +127,7 @@ namespace modules {
 
     if (m_monitorsupport) {
       viewports = ewmh_util::get_desktop_viewports(m_ewmh.get());
-      num = std::min(names.size(), viewports.size());
+      num = math_util::min(names.size(), viewports.size());
     } else {
       num = names.size();
     }
@@ -156,19 +159,14 @@ namespace modules {
         m_viewports.back()->state = viewport_state::NONE;
       }
 
-      if (current == n) {
-        m_viewports.back()->desktops.emplace_back(
-            make_pair(desktop_state::ACTIVE, m_labels[desktop_state::ACTIVE]->clone()));
-      } else {
-        m_viewports.back()->desktops.emplace_back(
-            make_pair(desktop_state::EMPTY, m_labels[desktop_state::EMPTY]->clone()));
-      }
+      desktop_state state{current == n ? desktop_state::ACTIVE : desktop_state::EMPTY};
+      m_viewports.back()->desktops.emplace_back(make_unique<desktop>(n, state, m_labels[state]->clone()));
 
       auto& desktop = m_viewports.back()->desktops.back();
-      desktop.second->reset_tokens();
-      desktop.second->replace_token("%name%", names[n]);
-      desktop.second->replace_token("%icon%", m_icons->get(names[n], DEFAULT_ICON)->get());
-      desktop.second->replace_token("%index%", to_string(n));
+      desktop->label->reset_tokens();
+      desktop->label->replace_token("%name%", names[n]);
+      desktop->label->replace_token("%icon%", m_icons->get(names[n], DEFAULT_ICON)->get());
+      desktop->label->replace_token("%index%", to_string(n));
     }
   }
 
@@ -202,18 +200,19 @@ namespace modules {
       }
 
       for (auto&& desktop : m_viewports[m_index]->desktops) {
-        if (!desktop.second.get()) {
+        if (!desktop->label.get()) {
           continue;
         }
 
-        if (m_click) {
-          builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(num++));
-          builder->node(desktop.second);
+        if (m_click && desktop->state != desktop_state::ACTIVE) {
+          builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
+          builder->node(desktop->label);
           builder->cmd_close();
         } else {
-          num++;
-          builder->node(desktop.second);
+          builder->node(desktop->label);
         }
+
+        num++;
       }
 
       if (m_scroll) {
@@ -234,20 +233,48 @@ namespace modules {
 
     cmd.erase(0, strlen(EVENT_PREFIX));
 
-    if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-      cmd.erase(0, strlen(EVENT_CLICK));
-      ewmh_util::change_current_desktop(m_ewmh.get(), atoi(cmd.c_str()));
+    uint32_t new_desktop{0};
+    uint32_t min_desktop{0};
+    uint32_t max_desktop{0};
+    uint32_t current_desktop{ewmh_util::get_current_desktop(m_ewmh.get())};
 
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
-      auto current = ewmh_util::get_current_desktop(m_ewmh.get());
-      ewmh_util::change_current_desktop(m_ewmh.get(), current + 1);
-
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-      auto current = ewmh_util::get_current_desktop(m_ewmh.get());
-      ewmh_util::change_current_desktop(m_ewmh.get(), current - 1);
+    for (auto&& viewport : m_viewports) {
+      for (auto&& desktop : viewport->desktops) {
+        if (min_desktop == 0) {
+          min_desktop = desktop->index;
+          max_desktop = math_util::max<uint16_t>(max_desktop, desktop->index);
+        } else {
+          min_desktop = math_util::min<uint16_t>(min_desktop, desktop->index);
+          max_desktop = math_util::max<uint16_t>(max_desktop, desktop->index);
+        }
+      }
     }
 
-    m_connection.flush();
+    if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
+      new_desktop = atoi(cmd.substr(strlen(EVENT_CLICK)).c_str());
+
+    } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+      new_desktop = math_util::min<uint32_t>(max_desktop, current_desktop + 1);
+
+      if (new_desktop == current_desktop) {
+        new_desktop = min_desktop;
+      }
+
+    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+      new_desktop = math_util::max<uint32_t>(min_desktop, current_desktop - 1);
+
+      if (new_desktop == current_desktop) {
+        new_desktop = max_desktop;
+      }
+    }
+
+    if (new_desktop != current_desktop) {
+      m_log.info("%s: Requesting change to desktop #%lu", name(), new_desktop);
+      ewmh_util::change_current_desktop(m_ewmh.get(), new_desktop);
+      m_connection.flush();
+    } else {
+      m_log.info("%s: Ignoring change to current desktop", name());
+    }
 
     return true;
   }

@@ -29,10 +29,17 @@ namespace modules {
     UNFOCUSED,
   };
 
+  struct desktop {
+    explicit desktop(size_t index, desktop_state state, label_t&& label) : index(index), state(state), label(label) {}
+    size_t index;
+    desktop_state state;
+    label_t label;
+  };
+
   struct viewport {
     position pos;
     string name;
-    vector<pair<desktop_state, label_t>> desktops;
+    vector<unique_ptr<desktop>> desktops;
     viewport_state state;
     label_t label;
   };
