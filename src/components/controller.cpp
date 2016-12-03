@@ -281,7 +281,7 @@ void controller::wait_for_xevent() {
       if ((error = m_connection.connection_has_error()) != 0) {
         m_log.err("Error in X event loop, terminating... (%s)", m_connection.error_str(error));
         kill(getpid(), SIGTERM);
-      } else if ((evt = m_connection.wait_for_event()) != nullptr) {
+      } else if ((evt = m_connection.wait_for_event()) != nullptr && m_running) {
         m_connection.dispatch_event(evt);
       }
     } catch (const exception& err) {
