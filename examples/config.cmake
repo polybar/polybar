@@ -7,6 +7,11 @@
 ;
 ;=====================================================
 
+[colors]
+background = #222
+foreground = #dfdfdf
+
+
 [global/wm]
 margin-top = 5
 margin-bottom = 5
@@ -14,18 +19,15 @@ margin-bottom = 5
 
 [bar/example]
 ;monitor = ${env:MONITOR:HDMI-1}
-dock = false
 width = 100%
 height = 27
 offset-x = 0
 offset-y = 0
 
 ;background = ${xrdb:color9}
-background = #ee222222
-foreground = #dfdfdf
+background = ${colors.background}
+foreground = ${colors.foreground}
 
-;lineheight = 1
-;linecolor = #555
 overline-size = 2
 overline-color = #f00
 underline-size = 2
@@ -54,13 +56,21 @@ tray-padding = 2
 ;tray-background = #0063ff
 
 ;wm-restack = bspwm
+;wm-restack = i3
 
+;override-redirect = true
 
 [module/xwindow]
 type = internal/xwindow
-label = %title%
-label-maxlen = 30
+label = %title:0:30%
 
+[module/xkeyboard]
+type = internal/xkeyboard
+blacklist-0 = num lock
+label-layout = %{F#666}%{F#cc} %layout%
+label-indicator-padding = 2
+label-indicator-background = #e60053
+label-layout-underline = #e60053
 
 [module/filesystem]
 type = internal/fs
@@ -75,16 +85,14 @@ label-mounted = %mountpoint%: %percentage_free%
 label-unmounted = %mountpoint%: not mounted
 label-unmounted-foreground = #55
 
-
-
 [module/bspwm]
 type = internal/bspwm
 ws-icon-default = x
 
-label-active = %index%
-label-active-background = #ee333333
-label-active-underline= #cc333333
-label-active-padding = 2
+label-focused = %index%
+label-focused-background = #ee333333
+label-focused-underline= #cc333333
+label-focused-padding = 2
 
 label-occupied = %index%
 label-occupied-padding = 2
@@ -97,28 +105,31 @@ label-empty = %index%
 label-empty-foreground = #55
 label-empty-padding = 2
 
-
 [module/i3]
 type = internal/i3
-format = <label-state>
+format = <label-state> <label-mode>
 index-sort = true
 
+label-mode = %mode%
+label-mode-padding = 2
+label-mode-foreground = #fff
+label-mode-background = #e60053
+
 label-focused = %index%
-label-focused-background = #ee333333
-label-focused-underline= #cc333333
-label-focused-padding = 2
+label-focused-background = ${module/bspwm.label-focused-background}
+label-focused-underline = ${module/bspwm.label-focused-underline}
+label-focused-padding = ${module/bspwm.label-focused-padding}
 
 label-unfocused = %index%
-label-unfocused-padding = 2
+label-unfocused-padding = ${module/bspwm.label-occupied-padding}
 
 label-urgent = %index%!
-label-urgent-background = #bd2c40
-label-urgent-padding = 2
+label-urgent-background = ${module/bspwm.label-urgent-padding}
+label-urgent-padding = ${module/bspwm.label-urgent-padding}
 
 label-visible = %index%
-label-visible-foreground = #55
-label-visible-padding = 2
-
+label-visible-foreground = ${module/bspwm.label-empty-padding}
+label-visible-padding = ${module/bspwm.label-empty-padding}
 
 [module/mpd]
 type = internal/mpd
@@ -142,7 +153,6 @@ icon-repeat = 
 toggle-on-foreground = #e60053
 toggle-off-foreground = #66
 
-
 [module/backlight]
 type = internal/xbacklight
 
@@ -160,20 +170,17 @@ bar-empty = ─
 bar-empty-font = 2
 bar-empty-foreground = #55
 
-
 [module/cpu]
 type = internal/cpu
 interval = 2
 label = %{F#666}%{F#cc} %percentage%
 label-underline = #f90000
 
-
 [module/memory]
 type = internal/memory
 interval = 2
-label = %{F#665}%{F#cc} %percentage_used%
+label = %{F#666}%{F#cc} %percentage_used%
 label-underline = #4bffdc
-
 
 [module/wlan]
 type = internal/network
@@ -195,7 +202,6 @@ ramp-signal-3 = 
 ramp-signal-4 = 
 ramp-signal-foreground = #55
 
-
 [module/eth]
 type = internal/network
 interface = @INTERFACE_ETH@
@@ -208,14 +214,12 @@ label-connected = %{F#55}%{F#ff} %local_ip%
 label-disconnected = %ifname% disconnected
 label-disconnected-foreground = #55
 
-
 [module/date]
 type = internal/date
 date = %%{F#55}%%{F#ff} %H:%M
 date-alt = %%{F#55}%{F#ff} %Y-%m-%d  %%{F#55}%%{F#ff} %H:%M
 interval = 5
 format-underline = #0a6cf5
-
 
 [module/volume]
 type = internal/volume
@@ -246,7 +250,6 @@ bar-volume-empty = ─
 bar-volume-empty-font = 2
 bar-volume-empty-foreground = #55
 
-
 [module/battery]
 type = internal/battery
 battery = @BATTERY@
@@ -271,7 +274,6 @@ animation-charging-2 = 
 animation-charging-foreground = #55
 animation-charging-framerate = 750
 
-
 [module/temperature]
 type = internal/temperature
 thermal-zone = 0
@@ -290,7 +292,6 @@ ramp-0 = 
 ramp-1 = 
 ramp-2 = 
 ramp-foreground = #55
-
 
 [module/powermenu]
 type = custom/menu

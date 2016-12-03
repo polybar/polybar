@@ -2,9 +2,9 @@
 # Generate configuration file
 #
 
-set(MODULES_LEFT "bspwm i3")
-set(MODULES_CENTER "xwindow")
-set(MODULES_RIGHT "backlight volume memory cpu wlan eth battery temperature date powermenu")
+set(MODULES_LEFT "bspwm i3 xwindow")
+set(MODULES_CENTER "")
+set(MODULES_RIGHT "backlight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
 
 # Strip disabled modules {{{
 
@@ -19,6 +19,9 @@ if(NOT ENABLE_NETWORK)
 endif()
 if(NOT WITH_XRANDR)
   string(REPLACE "backlight " "" MODULES_RIGHT ${MODULES_RIGHT})
+endif()
+if(NOT WITH_XKB)
+  string(REPLACE "xkeyboard " "" MODULES_RIGHT ${MODULES_RIGHT})
 endif()
 
 # }}}
