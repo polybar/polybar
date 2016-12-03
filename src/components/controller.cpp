@@ -118,6 +118,7 @@ controller::~controller() {
   }
 
   m_connection.flush();
+  m_connection.disconnect();
 }
 
 /**
@@ -178,7 +179,7 @@ void controller::bootstrap(bool writeback, bool dump_wmname) {
 /**
  * Launch the controller
  */
-void controller::run() {
+bool controller::run() {
   assert(!m_connection.connection_has_error());
 
   m_log.info("Starting application");
@@ -235,12 +236,7 @@ void controller::run() {
     m_log.trace("controller: Removing config watch");
     m_confwatch->remove(true);
   }
-}
 
-/**
- * Get completion state
- */
-bool controller::completed() {
   return !m_running && !m_reload;
 }
 

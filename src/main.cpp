@@ -10,6 +10,7 @@
 #include "config.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
+#include "utils/process.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/xutils.hpp"
 
@@ -20,7 +21,8 @@ struct exit_failure {};
 
 int main(int argc, char** argv) {
   uint8_t exit_code{EXIT_SUCCESS};
-  stateflag quit{false};
+  bool reload{false};
+  int xfd;
 
   // clang-format off
   const command_line::options opts{
@@ -38,119 +40,120 @@ int main(int argc, char** argv) {
 
   logger& logger{configure_logger<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
 
-  //==================================================
-  // Connect to X server
-  //==================================================
-  XInitThreads();
+  try {
+    //==================================================
+    // Connect to X server
+    //==================================================
+    XInitThreads();
 
-  xcb_connection_t* connection{nullptr};
+    xcb_connection_t* connection{nullptr};
 
-  if ((connection = xutils::get_connection()) == nullptr) {
-    logger.err("A connection to X could not be established... ");
-    throw exit_failure{};
-  }
-
-  int xfd{xcb_get_file_descriptor(connection)};
-
-  while (!quit) {
-    try {
-      //==================================================
-      // Parse command line arguments
-      //==================================================
-      vector<string> args(argv + 1, argv + argc);
-      cliparser cli{configure_cliparser<decltype(cli)>(argv[0], opts).create<decltype(cli)>()};
-      cli.process_input(args);
-
-      if (cli.has("quiet")) {
-        logger.verbosity(loglevel::ERROR);
-      } else if (cli.has("log")) {
-        logger.verbosity(cli.get("log"));
-      }
-
-      if (cli.has("help")) {
-        cli.usage();
-        throw exit_success{};
-      } else if (cli.has("version")) {
-        print_build_info(version_details(args));
-        throw exit_success{};
-      } else if (args.empty() || args[0][0] == '-') {
-        cli.usage();
-        throw exit_failure{};
-      }
-
-      //==================================================
-      // Load user configuration
-      //==================================================
-      config& conf{configure_config<decltype(conf)>().create<decltype(conf)>()};
-
-      if (cli.has("config")) {
-        conf.load(cli.get("config"), args[0]);
-      } else if (env_util::has("XDG_CONFIG_HOME")) {
-        conf.load(env_util::get("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
-      } else if (env_util::has("HOME")) {
-        conf.load(env_util::get("HOME") + "/.config/polybar/config", args[0]);
-      } else {
-        throw application_error("Define configuration using --config=PATH");
-      }
-
-      //==================================================
-      // Dump requested data
-      //==================================================
-      if (cli.has("dump")) {
-        std::cout << conf.get<string>(conf.bar_section(), cli.get("dump")) << std::endl;
-        throw exit_success{};
-      }
-
-      //==================================================
-      // Create config watch if we should track changes
-      //==================================================
-      inotify_util::watch_t watch;
-
-      if (cli.has("reload")) {
-        watch = inotify_util::make_watch(conf.filepath());
-      }
-
-      //==================================================
-      // Create controller
-      //==================================================
-      auto ctrl = configure_controller(watch).create<unique_ptr<controller>>();
-
-      ctrl->bootstrap(cli.has("stdout"), cli.has("print-wmname"));
-
-      if (cli.has("print-wmname")) {
-        throw exit_success{};
-      }
-
-      //==================================================
-      // Run application
-      //==================================================
-      ctrl->run();
-
-      if (ctrl->completed()) {
-        throw exit_success{};
-      } else {
-        logger.info("Reloading application...");
-      }
-
-    } catch (const exit_success& term) {
-      exit_code = EXIT_SUCCESS;
-      quit = true;
-    } catch (const exit_failure& term) {
-      exit_code = EXIT_FAILURE;
-      quit = true;
-    } catch (const exception& err) {
-      logger.err(err.what());
-      exit_code = EXIT_FAILURE;
-      quit = true;
+    if ((connection = xutils::get_connection()) == nullptr) {
+      logger.err("A connection to X could not be established... ");
+      throw exit_failure{};
     }
+
+    xfd = xcb_get_file_descriptor(connection);
+
+    //==================================================
+    // Parse command line arguments
+    //==================================================
+    string scriptname{argv[0]};
+    vector<string> args(argv + 1, argv + argc);
+
+    cliparser cli{configure_cliparser<decltype(cli)>(scriptname, opts).create<decltype(cli)>()};
+    cli.process_input(args);
+
+    if (cli.has("quiet")) {
+      logger.verbosity(loglevel::ERROR);
+    } else if (cli.has("log")) {
+      logger.verbosity(cli.get("log"));
+    }
+
+    if (cli.has("help")) {
+      cli.usage();
+      throw exit_success{};
+    } else if (cli.has("version")) {
+      print_build_info(version_details(args));
+      throw exit_success{};
+    } else if (args.empty() || args[0][0] == '-') {
+      cli.usage();
+      throw exit_failure{};
+    }
+
+    //==================================================
+    // Load user configuration
+    //==================================================
+    config& conf{configure_config<decltype(conf)>().create<decltype(conf)>()};
+
+    if (cli.has("config")) {
+      conf.load(cli.get("config"), args[0]);
+    } else if (env_util::has("XDG_CONFIG_HOME")) {
+      conf.load(env_util::get("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
+    } else if (env_util::has("HOME")) {
+      conf.load(env_util::get("HOME") + "/.config/polybar/config", args[0]);
+    } else {
+      throw application_error("Define configuration using --config=PATH");
+    }
+
+    //==================================================
+    // Dump requested data
+    //==================================================
+    if (cli.has("dump")) {
+      std::cout << conf.get<string>(conf.bar_section(), cli.get("dump")) << std::endl;
+      throw exit_success{};
+    }
+
+    //==================================================
+    // Create config watch if we should track changes
+    //==================================================
+    inotify_util::watch_t watch;
+
+    if (cli.has("reload")) {
+      watch = inotify_util::make_watch(conf.filepath());
+    }
+
+    //==================================================
+    // Create controller
+    //==================================================
+    auto ctrl = configure_controller(watch).create<unique_ptr<controller>>();
+
+    ctrl->bootstrap(cli.has("stdout"), cli.has("print-wmname"));
+
+    if (cli.has("print-wmname")) {
+      throw exit_success{};
+    }
+
+    //==================================================
+    // Run application
+    //==================================================
+    if (!ctrl->run()) {
+      reload = true;
+    }
+  } catch (const exit_success& term) {
+    exit_code = EXIT_SUCCESS;
+  } catch (const exit_failure& term) {
+    exit_code = EXIT_FAILURE;
+  } catch (const exception& err) {
+    logger.err(err.what());
+    exit_code = EXIT_FAILURE;
   }
 
-  logger.trace("Close connection to X server");
-  ewmh_util::dealloc();
-  xcb_disconnect(connection);
-  close(xfd);
+  if (xfd != 0) {
+    close(xfd);
+  }
 
-  logger.info("Reached end of application...");
+  if (!reload) {
+    logger.info("Reached end of application...");
+    return exit_code;
+  }
 
-  return exit_code;
+  try {
+    logger.info("Reload application...");
+    process_util::exec(argv[0], argv);
+  } catch (const system_error& err) {
+    logger.err("execlp() failed (%s)", strerror(errno));
+  }
+
+  return EXIT_FAILURE;
 }

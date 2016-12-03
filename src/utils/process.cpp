@@ -23,6 +23,14 @@ namespace process_util {
   }
 
   /**
+   * Replace current process
+   */
+  void exec(char* cmd, char** args) {
+    execvp(cmd, args);
+    throw system_error("execvp() failed");
+  }
+
+  /**
    * Replace process with command
    */
   void exec(const string& cmd) {
@@ -38,11 +46,8 @@ namespace process_util {
     for (auto&& argument : args) {
       c_args.emplace_back(const_cast<char*>(argument.c_str()));
     }
-    c_args.emplace_back(nullptr);
 
-    execvp(c_args[0], c_args.data());
-
-    throw system_error("Failed to execute command");
+    exec(c_args[0], c_args.data());
   }
 
   /**

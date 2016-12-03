@@ -8,6 +8,7 @@ namespace process_util {
   bool in_parent_process(pid_t pid);
   bool in_forked_process(pid_t pid);
 
+  void exec(char* cmd, char** args);
   void exec(const string& cmd);
 
   pid_t wait_for_completion(pid_t process_id, int* status_addr, int waitflags = 0);
