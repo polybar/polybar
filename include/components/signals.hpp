@@ -63,13 +63,6 @@ namespace g_signals {
     extern callback<const uint16_t> unicode_text_write;
     extern callback<const char*, const size_t> string_write;
   }
-
-  /**
-   * Signals used to communicate with the tray manager
-   */
-  namespace tray {
-    extern callback<const uint16_t> report_slotcount;
-  }
 }
 
 POLYBAR_NS_END

@@ -40,13 +40,6 @@ namespace g_signals {
     callback<const uint16_t> unicode_text_write{noop<const uint16_t>};
     callback<const char*, const size_t> string_write{noop<const char*, const size_t>};
   }
-
-  /**
-   * Signals used to communicate with the tray manager
-   */
-  namespace tray {
-    callback<const uint16_t> report_slotcount{noop<const uint16_t>};
-  }
 }
 
 POLYBAR_NS_END

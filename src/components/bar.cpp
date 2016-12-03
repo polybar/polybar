@@ -52,7 +52,6 @@ bar::bar(connection& conn, const config& config, const logger& logger, unique_pt
  */
 bar::~bar() {
   std::lock_guard<std::mutex> guard(m_mutex);
-  g_signals::tray::report_slotcount = nullptr;
   m_connection.detach_sink(this, SINK_PRIORITY_BAR);
   m_tray.reset();
 }
@@ -226,7 +225,7 @@ void bar::bootstrap_tray() {
     return;
   }
 
-  m_trayalign = settings.align;
+  settings.detached = m_conf.get<bool>(bs, "tray-detached", false);
 
   settings.height = m_opts.size.h;
   settings.height -= m_opts.borders.at(edge::BOTTOM).size;
@@ -303,21 +302,6 @@ void bar::bootstrap_tray() {
   settings.orig_x += offset_x;
   settings.orig_y += offset_y;
 
-  // Add tray update callback unless explicitly disabled
-  if (!m_conf.get<bool>(bs, "tray-detached", false)) {
-    g_signals::tray::report_slotcount = [this](uint16_t slots) {
-      m_log.trace("bar: Tray reports %lu slots", slots);
-
-      if (m_trayclients != slots) {
-        m_trayclients = slots;
-
-        if (!m_lastinput.empty()) {
-          parse(m_lastinput, true);
-        }
-      }
-    };
-  }
-
   // Put the tray next to the bar in the window stack
   settings.sibling = m_window;
 
@@ -379,10 +363,10 @@ void bar::parse(const string& data, bool force) {
 
   m_renderer->begin();
 
-  if (m_trayclients) {
-    if (m_tray && m_trayalign == alignment::LEFT) {
+  if (m_tray->settings().configured_slots) {
+    if (m_tray && m_tray->settings().align == alignment::LEFT) {
       m_renderer->reserve_space(edge::LEFT, m_tray->settings().configured_w);
-    } else if (m_tray && m_trayalign == alignment::RIGHT) {
+    } else if (m_tray && m_tray->settings().align == alignment::RIGHT) {
       m_renderer->reserve_space(edge::RIGHT, m_tray->settings().configured_w);
     }
   }

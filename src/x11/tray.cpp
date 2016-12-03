@@ -198,8 +198,6 @@ void tray_manager::activate() {
   // notify clients waiting for a manager.
   acquire_selection();
 
-  m_connection.flush();
-
   // Notify pending tray clients
   notify_clients();
 
@@ -207,6 +205,8 @@ void tray_manager::activate() {
   if (m_othermanager != XCB_NONE && m_othermanager != m_tray) {
     notify_clients_delayed();
   }
+
+  m_connection.flush();
 }
 
 /**
@@ -220,9 +220,8 @@ void tray_manager::deactivate(bool clear_selection) {
   m_log.info("Deactivating tray manager");
   m_activated = false;
 
-  if (g_signals::tray::report_slotcount) {
-    m_log.trace("tray: Report empty slotcount");
-    g_signals::tray::report_slotcount(0);
+  if (!m_opts.detached) {
+    g_signals::event::enqueue(eventloop::make(update_event{}, true));
   }
 
   if (g_signals::bar::visibility_change) {
@@ -298,9 +297,8 @@ void tray_manager::reconfigure() {
 
   m_opts.configured_slots = mapped_clients();
 
-  // Report status
-  if (g_signals::tray::report_slotcount) {
-    g_signals::tray::report_slotcount(m_opts.configured_slots);
+  if (!m_opts.detached) {
+    g_signals::event::enqueue(eventloop::make(update_event{}, true));
   }
 
   guard.unlock();
@@ -316,21 +314,18 @@ void tray_manager::reconfigure() {
 void tray_manager::reconfigure_window() {
   m_log.trace("tray: Reconfigure window (mapped=%i, clients=%i)", static_cast<bool>(m_mapped), m_clients.size());
 
-  if (!m_tray || m_hidden) {
+  if (!m_tray) {
     return;
   }
 
   auto clients = mapped_clients();
-  auto mapped = static_cast<bool>(m_mapped);
 
-  if (!clients && m_mapped) {
+  if (!clients && m_mapped && !m_hidden) {
     m_log.trace("tray: Reconfigure window / unmap");
     m_connection.unmap_window_checked(m_tray);
-  } else if (clients && !m_mapped) {
+  } else if (clients && !m_mapped && !m_hidden) {
     m_log.trace("tray: Reconfigure window / map");
     m_connection.map_window_checked(m_tray);
-  } else if (!mapped || !clients) {
-    return;
   }
 
   auto width = calculate_w();
@@ -1086,7 +1081,6 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     m_mapped = true;
-    redraw_window();
   } else {
     auto client = find_client(evt->window);
 
@@ -1114,8 +1108,6 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Update container mapped flag");
     m_mapped = false;
-    m_opts.configured_w = 0;
-    m_opts.configured_x = 0;
   } else {
     auto client = find_client(evt->window);
 

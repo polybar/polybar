@@ -56,6 +56,7 @@ struct tray_settings {
   uint32_t sibling{0};
   uint32_t background{0};
   bool transparent{false};
+  bool detached{false};
 };
 
 // }}}
