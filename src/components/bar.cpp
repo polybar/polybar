@@ -179,11 +179,11 @@ void bar::bootstrap(bool nodraw) {
   g_signals::parser::unicode_text_write = bind(&renderer::draw_character, m_renderer.get(), ph::_1);
   g_signals::parser::string_write = bind(&renderer::draw_textstring, m_renderer.get(), ph::_1, ph::_2);
 
-  // Render empty bar
   try {
+    m_log.trace("bar: Drawing empty bar");
     m_renderer->begin();
+    m_renderer->fill_background();
     m_renderer->end();
-    m_renderer->flush(false);
   } catch (const exception& err) {
     throw application_error("Failed to output empty bar window (reason: " + string{err.what()} + ")");
   }
