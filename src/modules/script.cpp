@@ -84,14 +84,8 @@ namespace modules {
     }
 
     try {
-      if (m_command && m_command->is_running()) {
-        m_log.warn("%s: Previous shell command is still running...", name());
-        return false;
-      }
-
       auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-      m_log.trace("%s: Executing '%s'", name(), exec);
-
+      m_log.info("%s: Executing \"%s\"", name(), exec);
       m_command = command_util::make_command(exec);
       m_command->exec();
       m_command->tail([&](string output) { m_output = output; });

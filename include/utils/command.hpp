@@ -50,7 +50,7 @@ namespace command_util {
     bool is_running();
     int wait();
 
-    void tail(callback<string> callback);
+    void tail(callback<string> cb);
     int writeline(string data);
     string readline();
 

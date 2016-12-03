@@ -93,7 +93,7 @@ namespace io_util {
   }
 
   void tail(int read_fd, int writeback_fd) {
-    tail(read_fd, [&writeback_fd](string data) { io_util::writeline(writeback_fd, data); });
+    tail(read_fd, [&](string data) { io_util::writeline(writeback_fd, data); });
   }
 
   bool poll(int fd, short int events, int timeout_ms) {

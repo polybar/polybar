@@ -11,7 +11,7 @@
 POLYBAR_NS
 
 namespace command_util {
-  command::command(const logger& logger, string cmd) : m_log(logger), m_cmd("/usr/bin/env\nsh\n-c\n" + cmd) {
+  command::command(const logger& logger, string cmd) : m_log(logger), m_cmd(cmd) {
     if (pipe(m_stdin) != 0) {
       throw command_strerror("Failed to allocate input stream");
     }
@@ -76,9 +76,7 @@ namespace command_util {
       process_util::unblock_signal(SIGTERM);
 
       setpgid(m_forkpid, 0);
-      process_util::exec(m_cmd);
-
-      throw command_error("Exec failed");
+      process_util::exec_sh(m_cmd.c_str());
     } else {
       // Close file descriptors that won't be used by the parent
       if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1) {
@@ -155,8 +153,8 @@ namespace command_util {
    * @note: This is a blocking call and will not
    * end until the stream is closed
    */
-  void command::tail(callback<string> callback) {
-    io_util::tail(m_stdout[PIPE_READ], move(callback));
+  void command::tail(callback<string> cb) {
+    io_util::tail(m_stdout[PIPE_READ], move(cb));
   }
 
   /**

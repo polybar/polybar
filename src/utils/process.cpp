@@ -2,6 +2,7 @@
 #include <unistd.h>
 
 #include "errors.hpp"
+#include "utils/env.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
 
@@ -23,7 +24,7 @@ namespace process_util {
   }
 
   /**
-   * Replace current process
+   * Execute command
    */
   void exec(char* cmd, char** args) {
     execvp(cmd, args);
@@ -31,23 +32,12 @@ namespace process_util {
   }
 
   /**
-   * Replace process with command
+   * Execute command using shell
    */
-  void exec(const string& cmd) {
-    vector<char*> c_args;
-    vector<string> args;
-
-    if (string_util::contains(cmd, "\n")) {
-      string_util::split_into(cmd, '\n', args);
-    } else {
-      string_util::split_into(cmd, ' ', args);
-    }
-
-    for (auto&& argument : args) {
-      c_args.emplace_back(const_cast<char*>(argument.c_str()));
-    }
-
-    exec(c_args[0], c_args.data());
+  void exec_sh(const char* cmd) {
+    static const char* shell = env_util::get("SHELL", "/bin/sh").c_str();
+    execlp(shell, shell, "-c", cmd, nullptr);
+    throw system_error("execvp() failed");
   }
 
   /**

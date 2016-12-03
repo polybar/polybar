@@ -9,7 +9,7 @@ namespace process_util {
   bool in_forked_process(pid_t pid);
 
   void exec(char* cmd, char** args);
-  void exec(const string& cmd);
+  void exec_sh(const char* cmd);
 
   pid_t wait_for_completion(pid_t process_id, int* status_addr, int waitflags = 0);
   pid_t wait_for_completion(int* status_addr, int waitflags = 0);
