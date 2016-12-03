@@ -8,9 +8,9 @@ namespace memory_util {
   /**
    * Create a shared pointer using malloc/free
    */
-  template <typename T>
-  inline auto make_malloc_ptr(size_t size = sizeof(T)) {
-    return shared_ptr<T>(static_cast<T*>(malloc(size)), free);
+  template <typename T, typename Deleter = decltype(free)>
+  inline auto make_malloc_ptr(size_t size = sizeof(T), Deleter deleter = free) {
+    return shared_ptr<T>(static_cast<T*>(malloc(size)), deleter);
   }
 
   /**

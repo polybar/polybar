@@ -1,5 +1,5 @@
-#include "components/types.hpp"
 #include "x11/ewmh.hpp"
+#include "components/types.hpp"
 #include "x11/xutils.hpp"
 
 POLYBAR_NS
@@ -9,19 +9,16 @@ namespace ewmh_util {
 
   ewmh_connection_t initialize() {
     if (!g_ewmh_connection) {
-      g_ewmh_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>();
+      g_ewmh_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
+          sizeof(xcb_ewmh_connection_t), bind(xcb_ewmh_connection_wipe, std::placeholders::_1));
+
       auto* xconn = xutils::get_connection();
       auto* conn = g_ewmh_connection.get();
+
       xcb_ewmh_init_atoms_replies(conn, xcb_ewmh_init_atoms(xconn, conn), nullptr);
     }
-    return g_ewmh_connection;
-  }
 
-  void dealloc() {
-    if (g_ewmh_connection) {
-      xcb_ewmh_connection_wipe(g_ewmh_connection.get());
-      g_ewmh_connection.reset();
-    }
+    return g_ewmh_connection;
   }
 
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen) {
@@ -98,7 +95,8 @@ namespace ewmh_util {
     }
 
     for (size_t n = 0; n < reply.desktop_viewport_len; n++) {
-      viewports.emplace_back(position{static_cast<int16_t>(reply.desktop_viewport[n].x), static_cast<int16_t>(reply.desktop_viewport[n].y)});
+      viewports.emplace_back(position{
+          static_cast<int16_t>(reply.desktop_viewport[n].x), static_cast<int16_t>(reply.desktop_viewport[n].y)});
     }
 
     return viewports;

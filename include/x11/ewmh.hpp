@@ -15,7 +15,6 @@ namespace ewmh_util {
   extern ewmh_connection_t g_ewmh_connection;
 
   ewmh_connection_t initialize();
-  void dealloc();
 
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen = 0);
 
