@@ -9,9 +9,9 @@
 
 [colors]
 background = #222
-background-dark = #bb
+background-alt = #444
 foreground = #dfdfdf
-foreground-dark = #55
+foreground-alt = #55
 primary = #ffb52a
 secondary = #e60053
 alert = #bd2c40
@@ -73,7 +73,7 @@ blacklist-0 = num lock
 
 format-underline = ${colors.secondary}
 format-prefix = " "
-format-prefix-foreground = ${colors.foreground-dark}
+format-prefix-foreground = ${colors.foreground-alt}
 
 label-layout = %layout%
 
@@ -92,14 +92,14 @@ mount-2 = /invalid/mountpoint
 label-mounted = %mountpoint%: %percentage_free%
 
 label-unmounted = %mountpoint%: not mounted
-label-unmounted-foreground = ${colors.foreground-dark}
+label-unmounted-foreground = ${colors.foreground-alt}
 
 [module/bspwm]
 type = internal/bspwm
 ws-icon-default = x
 
 label-focused = %index%
-label-focused-background = ${colors.foreground-dark}
+label-focused-background = ${colors.background-alt}
 label-focused-underline= ${colors.primary}
 label-focused-padding = 2
 
@@ -111,7 +111,7 @@ label-urgent-background = ${colors.alert}
 label-urgent-padding = 2
 
 label-empty = %index%
-label-empty-foreground = ${colors.foreground-dark}
+label-empty-foreground = ${colors.foreground-alt}
 label-empty-padding = 2
 
 [module/i3]
@@ -177,13 +177,13 @@ bar-fill-font = 2
 bar-fill-foreground = #9f78e1
 bar-empty = ─
 bar-empty-font = 2
-bar-empty-foreground = ${colors.foreground-dark}
+bar-empty-foreground = ${colors.foreground-alt}
 
 [module/cpu]
 type = internal/cpu
 interval = 2
 format-prefix = " "
-format-prefix-foreground = ${colors.foreground-dark}
+format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #f90000
 label = %percentage%
 
@@ -191,7 +191,7 @@ label = %percentage%
 type = internal/memory
 interval = 2
 format-prefix = " "
-format-prefix-foreground = ${colors.foreground-dark}
+format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #4bffdc
 label = %percentage_used%
 
@@ -206,14 +206,14 @@ format-disconnected-underline = ${self.format-connected-underline}
 
 label-connected = %essid%
 label-disconnected = %ifname% disconnected
-label-disconnected-foreground = ${colors.foreground-dark}
+label-disconnected-foreground = ${colors.foreground-alt}
 
 ramp-signal-0 = 
 ramp-signal-1 = 
 ramp-signal-2 = 
 ramp-signal-3 = 
 ramp-signal-4 = 
-ramp-signal-foreground = ${colors.foreground-dark}
+ramp-signal-foreground = ${colors.foreground-alt}
 
 [module/eth]
 type = internal/network
@@ -222,19 +222,19 @@ interval = 3.0
 
 format-connected-underline = #55aa55
 format-connected-prefix = " "
-format-connected-foreground-foreground = ${colors.foreground-dark}
+format-connected-foreground-foreground = ${colors.foreground-alt}
 label-connected = %local_ip%
 
 format-disconnected-underline = ${self.format-connected-underline}
 label-disconnected = %ifname% disconnected
-label-disconnected-foreground = ${colors.foreground-dark}
+label-disconnected-foreground = ${colors.foreground-alt}
 
 [module/date]
 type = internal/date
 date = %H:%M
 interval = 5
 format-prefix = " "
-format-prefix-foreground = ${colors.foreground-dark}
+format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #0a6cf5
 
 [module/volume]
@@ -245,7 +245,7 @@ label-volume = VOL
 label-volume-foreground = ${root.foreground}
 
 format-muted-prefix = " "
-format-muted-foreground = ${colors.foreground-dark}
+format-muted-foreground = ${colors.foreground-alt}
 label-muted = sound muted
 
 bar-volume-width = 10
@@ -264,7 +264,7 @@ bar-volume-fill = ─
 bar-volume-fill-font = 2
 bar-volume-empty = ─
 bar-volume-empty-font = 2
-bar-volume-empty-foreground = ${colors.foreground-dark}
+bar-volume-empty-foreground = ${colors.foreground-alt}
 
 [module/battery]
 type = internal/battery
@@ -279,18 +279,18 @@ format-discharging = <ramp-capacity> <label-discharging>
 format-discharging-underline = ${self.format-charging-underline}
 
 format-full-prefix = " "
-format-full-prefix-foreground = ${colors.foreground-dark}
+format-full-prefix-foreground = ${colors.foreground-alt}
 format-full-underline = ${self.format-charging-underline}
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
 ramp-capacity-2 = 
-ramp-capacity-foreground = ${colors.foreground-dark}
+ramp-capacity-foreground = ${colors.foreground-alt}
 
 animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
-animation-charging-foreground = ${colors.foreground-dark}
+animation-charging-foreground = ${colors.foreground-alt}
 animation-charging-framerate = 750
 
 [module/temperature]
@@ -310,7 +310,7 @@ label-warn-foreground = ${colors.secondary}
 ramp-0 = 
 ramp-1 = 
 ramp-2 = 
-ramp-foreground = ${colors.foreground-dark}
+ramp-foreground = ${colors.foreground-alt}
 
 [module/powermenu]
 type = custom/menu
@@ -320,7 +320,7 @@ label-open-foreground = ${colors.secondary}
 label-close =  cancel
 label-close-foreground = ${colors.secondary}
 label-separator = |
-label-separator-foreground = ${colors.foreground-dark}
+label-separator-foreground = ${colors.foreground-alt}
 
 menu-0-0 = reboot
 menu-0-0-exec = menu-open-1
