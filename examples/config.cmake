@@ -65,7 +65,7 @@ tray-padding = 2
 
 [module/xwindow]
 type = internal/xwindow
-label = %title:0:30%
+label = %title:0:30:...%
 
 [module/xkeyboard]
 type = internal/xkeyboard

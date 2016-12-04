@@ -14,8 +14,13 @@ namespace drawtypes {
   }
 
   label_t label::clone() {
+    vector<token> tokens;
+    if (!m_tokens.empty()) {
+      std::back_insert_iterator<decltype(tokens)> back_it(tokens);
+      std::copy(m_tokens.begin(), m_tokens.end(), back_it);
+    }
     return make_shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding, m_margin,
-        m_maxlen, m_ellipsis, m_token_bounds);
+        m_maxlen, m_ellipsis, move(tokens));
   }
 
   void label::reset_tokens() {
@@ -31,11 +36,15 @@ namespace drawtypes {
       return;
     }
 
-    for (auto&& bound : m_token_bounds) {
-      if (token != bound.token) {
-        continue;
+    for (auto&& tok : m_tokens) {
+      if (token == tok.token) {
+        if (tok.max != 0 && replacement.length() > tok.max) {
+          replacement = replacement.erase(tok.max) + tok.suffix;
+        } else if (tok.min != 0 && replacement.length() < tok.min) {
+          replacement.insert(0, tok.min - replacement.length(), ' ');
+        }
+        m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
       }
-      m_tokenized = string_util::replace_all_bounded(m_tokenized, token, move(replacement), bound.min, bound.max);
     }
   }
 
@@ -99,7 +108,7 @@ namespace drawtypes {
    * Create a label by loading values from the configuration
    */
   label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
-    vector<struct bounds> bound;
+    vector<token> tokens;
     size_t start, end, pos;
 
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
@@ -115,46 +124,52 @@ namespace drawtypes {
     string line{text};
 
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
-      auto token = line.substr(start, end - start + 1);
+      auto token_str = line.substr(start, end - start + 1);
 
       // ignore false positives (lemonbar-style declarations)
-      if (token[1] == '{') {
+      if (token_str[1] == '{') {
         line.erase(0, start + 1);
         continue;
       }
 
       line.erase(start, end - start + 1);
-      bound.emplace_back(bounds{token, 0, 0});
+      tokens.emplace_back(token{token_str, 0, 0});
+      auto& token = tokens.back();
 
       // find min delimiter
-      if ((pos = token.find(':')) == string::npos) {
+      if ((pos = token_str.find(':')) == string::npos) {
         continue;
       }
 
       // strip min/max specifiers from the label string token
-      bound.back().token = token.substr(0, pos) + '%';
-      text = string_util::replace(text, token, bound.back().token);
+      token.token = token_str.substr(0, pos) + '%';
+      text = string_util::replace(text, token_str, token.token);
 
       try {
-        bound.back().min = std::stoul(&token[pos + 1], nullptr, 10);
+        token.min = std::stoul(&token_str[pos + 1], nullptr, 10);
       } catch (const std::invalid_argument& err) {
         continue;
       }
 
       // find max delimiter
-      if ((pos = token.find(':', pos + 1)) == string::npos) {
+      if ((pos = token_str.find(':', pos + 1)) == string::npos) {
         continue;
       }
 
       try {
-        bound.back().max = std::stoul(&token[pos + 1], nullptr, 10);
+        token.max = std::stoul(&token_str[pos + 1], nullptr, 10);
       } catch (const std::invalid_argument& err) {
         continue;
       }
 
       // ignore max lengths less than min
-      if (bound.back().max < bound.back().min) {
-        bound.back().max = 0;
+      if (token.max < token.min) {
+        token.max = 0;
+      }
+
+      // find suffix delimiter
+      if ((pos = token_str.find(':', pos + 1)) != string::npos) {
+        token.suffix = token_str.substr(pos + 1, end - pos - 1);
       }
     }
 
@@ -169,7 +184,7 @@ namespace drawtypes {
         conf.get<int>(section, name + "-margin", 0),
         conf.get<size_t>(section, name + "-maxlen", 0),
         conf.get<bool>(section, name + "-ellipsis", true),
-        bound);
+        move(tokens));
     // clang-format on
   }
 
