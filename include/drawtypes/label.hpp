@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "components/config.hpp"
+#include "components/types.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
@@ -34,15 +35,15 @@ namespace drawtypes {
     string m_underline;
     string m_overline;
     int m_font = 0;
-    int m_padding = 0;
-    int m_margin = 0;
+    struct side_values m_padding = {0,0};
+    struct side_values m_margin = {0,0};
     size_t m_maxlen = 0;
     bool m_ellipsis = true;
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = "", string background = "", string underline = "",
-        string overline = "", int font = 0, int padding = 0, int margin = 0, size_t maxlen = 0, bool ellipsis = true,
-        vector<token>&& tokens = {})
+        string overline = "", int font = 0, struct side_values padding = {0,0}, struct side_values margin = {0,0},
+        size_t maxlen = 0, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)

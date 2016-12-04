@@ -64,11 +64,17 @@ namespace drawtypes {
     if (label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (label->m_padding != 0) {
-      m_padding = label->m_padding;
+    if (label->m_padding.left != 0) {
+      m_padding.left = label->m_padding.left;
     }
-    if (label->m_margin != 0) {
-      m_margin = label->m_margin;
+    if (label->m_padding.right != 0) {
+      m_padding.right = label->m_padding.right;
+    }
+    if (label->m_margin.left != 0) {
+      m_margin.left = label->m_margin.left;
+    }
+    if (label->m_margin.right != 0) {
+      m_margin.right = label->m_margin.right;
     }
     if (label->m_maxlen != 0) {
       m_maxlen = label->m_maxlen;
@@ -92,11 +98,17 @@ namespace drawtypes {
     if (m_font == 0 && label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (m_padding == 0 && label->m_padding != 0) {
-      m_padding = label->m_padding;
+    if (m_padding.left == 0 && label->m_padding.left != 0) {
+      m_padding.left = label->m_padding.left;
     }
-    if (m_margin == 0 && label->m_margin != 0) {
-      m_margin = label->m_margin;
+    if (m_padding.right == 0 && label->m_padding.right != 0) {
+      m_padding.right = label->m_padding.right;
+    }
+    if (m_margin.left == 0 && label->m_margin.left != 0) {
+      m_margin.left = label->m_margin.left;
+    }
+    if (m_margin.right == 0 && label->m_margin.right != 0) {
+      m_margin.right = label->m_margin.right;
     }
     if (m_maxlen == 0 && label->m_maxlen != 0) {
       m_maxlen = label->m_maxlen;
@@ -115,11 +127,23 @@ namespace drawtypes {
 
     string text;
 
+    struct side_values padding, margin;
+
     if (required) {
       text = conf.get<string>(section, name);
     } else {
       text = conf.get<string>(section, name, move(def));
     }
+
+    const auto get_left_right = [&](string key) {
+      auto value = conf.get<int>(section, key, 0);
+      auto left = conf.get<int>(section, key + "-left", value);
+      auto right = conf.get<int>(section, key + "-right", value);
+      return side_values {static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
+    };
+
+    padding = get_left_right(name + "-padding");
+    margin = get_left_right(name + "-margin");
 
     string line{text};
 
@@ -180,8 +204,8 @@ namespace drawtypes {
         conf.get<string>(section, name + "-underline", ""),
         conf.get<string>(section, name + "-overline", ""),
         conf.get<int>(section, name + "-font", 0),
-        conf.get<int>(section, name + "-padding", 0),
-        conf.get<int>(section, name + "-margin", 0),
+        padding,
+        margin,
         conf.get<size_t>(section, name + "-maxlen", 0),
         conf.get<bool>(section, name + "-ellipsis", true),
         move(tokens));
