@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "components/config.hpp"
+#include "components/types.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
@@ -16,11 +17,6 @@ namespace drawtypes {
     size_t min;
     size_t max;
     string suffix{""};
-  };
-
-  struct sides {
-    int left;
-    int right;
   };
 
   class label;
@@ -39,14 +35,14 @@ namespace drawtypes {
     string m_underline;
     string m_overline;
     int m_font = 0;
-    struct sides m_padding = {0,0};
-    struct sides m_margin = {0,0};
+    struct side_values m_padding = {0,0};
+    struct side_values m_margin = {0,0};
     size_t m_maxlen = 0;
     bool m_ellipsis = true;
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = "", string background = "", string underline = "",
-        string overline = "", int font = 0, struct sides padding = {0,0}, struct sides margin = {0,0},
+        string overline = "", int font = 0, struct side_values padding = {0,0}, struct side_values margin = {0,0},
         size_t maxlen = 0, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)

@@ -136,19 +136,10 @@ namespace drawtypes {
     }
 
     const auto get_left_right = [&](string key) {
-      int left = conf.get<int>(section, key + "-left", 0),
-          right = conf.get<int>(section, key + "-right", 0),
-          all = conf.get<int>(section, key, 0);
-
-      if(all > 0) {
-        if(left > 0 || right > 0)
-          throw value_error("Multiple definitions for " + key);
-        else {
-          left = all;
-          right = all;
-        }
-      }
-      return sides {left, right};
+      auto value = conf.get<int>(section, key, 0);
+      auto left = conf.get<int>(section, key + "-left", value);
+      auto right = conf.get<int>(section, key + "-right", value);
+      return side_values {left, right};
     };
 
     padding = get_left_right(name + "-padding");
