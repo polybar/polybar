@@ -60,8 +60,17 @@ namespace modules {
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
     auto format = make_unique<module_format>();
+    auto prefix = tag_prefix(name);
+    auto suffix = tag_suffix(name);
+
+    tags.emplace_back(prefix);
+    tags.emplace_back(suffix);
 
     format->value = m_conf.get<string>(m_modname, name, move(fallback));
+    format->prefix = make_pair(prefix,
+      load_optional_label(m_conf, m_modname, prefix.substr(1, prefix.size() - 2), ""));
+    format->suffix = make_pair(suffix,
+      load_optional_label(m_conf, m_modname, suffix.substr(1, prefix.size() - 2), ""));
     format->fg = m_conf.get<string>(m_modname, name + "-foreground", "");
     format->bg = m_conf.get<string>(m_modname, name + "-background", "");
     format->ul = m_conf.get<string>(m_modname, name + "-underline", "");

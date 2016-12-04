@@ -23,6 +23,10 @@ namespace modules {
     if (tag == TAG_COUNTER) {
       builder->node(to_string(m_counter));
       return true;
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->prefix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->prefix.second);
+    } else if (tag == m_formatter->get(DEFAULT_FORMAT)->suffix.first) {
+      builder->node(m_formatter->get(DEFAULT_FORMAT)->suffix.second);
     }
     return false;
   }

@@ -9,6 +9,7 @@
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
+#include "drawtypes/label.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
@@ -54,11 +55,28 @@ namespace modules {
   DEFINE_CHILD_ERROR(undefined_format, module_error);
   DEFINE_CHILD_ERROR(undefined_format_tag, module_error);
 
+  inline string tagify(string name) {
+      if (name.find('-') != string::npos) {
+        name.erase(0, name.find('-'));
+      }
+      else
+        name.clear();
+      return name;
+  }
+  inline string tag_prefix(string name) {
+      return "<prefix" + tagify(name) + ">";
+  }
+  inline string tag_suffix(string name) {
+      return "<suffix" + tagify(name) + ">";
+  }
+
   // class definition : module_format {{{
 
   struct module_format {
     string value;
     vector<string> tags;
+    pair<string, label_t> prefix;
+    pair<string, label_t> suffix;
     string fg;
     string bg;
     string ul;

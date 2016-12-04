@@ -67,12 +67,17 @@ namespace modules {
   }
 
   bool temperature_module::build(builder* builder, const string& tag) const {
+    string format = get_format();
     if (tag == TAG_LABEL) {
       builder->node(m_label.at(temp_state::NORMAL));
     } else if (tag == TAG_LABEL_WARN) {
       builder->node(m_label.at(temp_state::WARN));
     } else if (tag == TAG_RAMP) {
       builder->node(m_ramp->get_by_percentage(m_perc));
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }

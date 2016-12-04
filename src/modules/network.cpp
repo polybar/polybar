@@ -147,6 +147,7 @@ namespace modules {
   }
 
   bool network_module::build(builder* builder, const string& tag) const {
+    string format = get_format();
     if (tag == TAG_LABEL_CONNECTED) {
       builder->node(m_label.at(connection_state::CONNECTED));
     } else if (tag == TAG_LABEL_DISCONNECTED) {
@@ -159,6 +160,10 @@ namespace modules {
       builder->node(m_ramp_signal->get_by_percentage(m_signal));
     } else if (tag == TAG_RAMP_QUALITY) {
       builder->node(m_ramp_quality->get_by_percentage(m_quality));
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }

@@ -259,6 +259,7 @@ namespace modules {
     bool is_paused = false;
     bool is_stopped = true;
     int elapsed_percentage = 0;
+    string format = get_format();
 
     if (m_status) {
       elapsed_percentage = m_status->get_elapsed_percentage();
@@ -308,6 +309,10 @@ namespace modules {
       icon_cmd(string(EVENT_SEEK).append("-5"), m_icons->get("seekb"));
     } else if (tag == TAG_ICON_SEEKF) {
       icon_cmd(string(EVENT_SEEK).append("+5"), m_icons->get("seekf"));
+    } else if (tag == m_formatter->get(format)->prefix.first) {
+      builder->node(m_formatter->get(format)->prefix.second);
+    } else if (tag == m_formatter->get(format)->suffix.first) {
+      builder->node(m_formatter->get(format)->suffix.second);
     } else {
       return false;
     }
