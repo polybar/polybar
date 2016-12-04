@@ -9,13 +9,16 @@
 
 [colors]
 background = #222
+background-dark = #bb
 foreground = #dfdfdf
-
+foreground-dark = #55
+primary = #ffb52a
+secondary = #e60053
+alert = #bd2c40
 
 [global/wm]
 margin-top = 5
 margin-bottom = 5
-
 
 [bar/example]
 ;monitor = ${env:MONITOR:HDMI-1}
@@ -67,10 +70,16 @@ label = %title:0:30%
 [module/xkeyboard]
 type = internal/xkeyboard
 blacklist-0 = num lock
-label-layout = %{F#666}%{F#cc} %layout%
+
+format-underline = ${colors.secondary}
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-dark}
+
+label-layout = %layout%
+
 label-indicator-padding = 2
-label-indicator-background = #e60053
-label-layout-underline = #e60053
+label-indicator-background = ${colors.secondary}
+label-indicator-underline = ${colors.secondary}
 
 [module/filesystem]
 type = internal/fs
@@ -83,26 +92,26 @@ mount-2 = /invalid/mountpoint
 label-mounted = %mountpoint%: %percentage_free%
 
 label-unmounted = %mountpoint%: not mounted
-label-unmounted-foreground = #55
+label-unmounted-foreground = ${colors.foreground-dark}
 
 [module/bspwm]
 type = internal/bspwm
 ws-icon-default = x
 
 label-focused = %index%
-label-focused-background = #ee333333
-label-focused-underline= #cc333333
+label-focused-background = ${colors.foreground-dark}
+label-focused-underline= ${colors.primary}
 label-focused-padding = 2
 
 label-occupied = %index%
 label-occupied-padding = 2
 
 label-urgent = %index%
-label-urgent-background = #bd2c40
+label-urgent-background = ${colors.alert}
 label-urgent-padding = 2
 
 label-empty = %index%
-label-empty-foreground = #55
+label-empty-foreground = ${colors.foreground-dark}
 label-empty-padding = 2
 
 [module/i3]
@@ -112,8 +121,8 @@ index-sort = true
 
 label-mode = %mode%
 label-mode-padding = 2
-label-mode-foreground = #fff
-label-mode-background = #e60053
+label-mode-foreground = #000
+label-mode-background = ${colors.primary}
 
 label-focused = %index%
 label-focused-background = ${module/bspwm.label-focused-background}
@@ -124,7 +133,7 @@ label-unfocused = %index%
 label-unfocused-padding = ${module/bspwm.label-occupied-padding}
 
 label-urgent = %index%!
-label-urgent-background = ${module/bspwm.label-urgent-padding}
+label-urgent-background = ${colors.alert}
 label-urgent-padding = ${module/bspwm.label-urgent-padding}
 
 label-visible = %index%
@@ -150,7 +159,7 @@ icon-seekf = 
 icon-random = 
 icon-repeat = 
 
-toggle-on-foreground = #e60053
+toggle-on-foreground = ${colors.primary}
 toggle-off-foreground = #66
 
 [module/backlight]
@@ -168,19 +177,23 @@ bar-fill-font = 2
 bar-fill-foreground = #9f78e1
 bar-empty = ─
 bar-empty-font = 2
-bar-empty-foreground = #55
+bar-empty-foreground = ${colors.foreground-dark}
 
 [module/cpu]
 type = internal/cpu
 interval = 2
-label = %{F#666}%{F#cc} %percentage%
-label-underline = #f90000
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-dark}
+format-underline = #f90000
+label = %percentage%
 
 [module/memory]
 type = internal/memory
 interval = 2
-label = %{F#666}%{F#cc} %percentage_used%
-label-underline = #4bffdc
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-dark}
+format-underline = #4bffdc
+label = %percentage_used%
 
 [module/wlan]
 type = internal/network
@@ -193,14 +206,14 @@ format-disconnected-underline = ${self.format-connected-underline}
 
 label-connected = %essid%
 label-disconnected = %ifname% disconnected
-label-disconnected-foreground = #55
+label-disconnected-foreground = ${colors.foreground-dark}
 
 ramp-signal-0 = 
 ramp-signal-1 = 
 ramp-signal-2 = 
 ramp-signal-3 = 
 ramp-signal-4 = 
-ramp-signal-foreground = #55
+ramp-signal-foreground = ${colors.foreground-dark}
 
 [module/eth]
 type = internal/network
@@ -208,29 +221,32 @@ interface = @INTERFACE_ETH@
 interval = 3.0
 
 format-connected-underline = #55aa55
-format-disconnected-underline = ${self.format-connected-underline}
+format-connected-prefix = " "
+format-connected-foreground-foreground = ${colors.foreground-dark}
+label-connected = %local_ip%
 
-label-connected = %{F#55}%{F#ff} %local_ip%
+format-disconnected-underline = ${self.format-connected-underline}
 label-disconnected = %ifname% disconnected
-label-disconnected-foreground = #55
+label-disconnected-foreground = ${colors.foreground-dark}
 
 [module/date]
 type = internal/date
-date = %%{F#55}%%{F#ff} %H:%M
-date-alt = %%{F#55}%{F#ff} %Y-%m-%d  %%{F#55}%%{F#ff} %H:%M
+date = %H:%M
 interval = 5
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-dark}
 format-underline = #0a6cf5
 
 [module/volume]
 type = internal/volume
 
 format-volume = <label-volume> <bar-volume>
-
 label-volume = VOL
 label-volume-foreground = ${root.foreground}
 
-label-muted =  sound muted
-label-muted-foreground = #55
+format-muted-prefix = " "
+format-muted-foreground = ${colors.foreground-dark}
+label-muted = sound muted
 
 bar-volume-width = 10
 bar-volume-foreground-0 = #55aa55
@@ -248,7 +264,7 @@ bar-volume-fill = ─
 bar-volume-fill-font = 2
 bar-volume-empty = ─
 bar-volume-empty-font = 2
-bar-volume-empty-foreground = #55
+bar-volume-empty-foreground = ${colors.foreground-dark}
 
 [module/battery]
 type = internal/battery
@@ -258,20 +274,23 @@ full-at = 98
 
 format-charging = <animation-charging> <label-charging>
 format-charging-underline = #ffb52a
+
 format-discharging = <ramp-capacity> <label-discharging>
 format-discharging-underline = ${self.format-charging-underline}
-format-full = %{F#55}%{F#ff}  <label-full>
+
+format-full-prefix = " "
+format-full-prefix-foreground = ${colors.foreground-dark}
 format-full-underline = ${self.format-charging-underline}
 
 ramp-capacity-0 = 
 ramp-capacity-1 = 
 ramp-capacity-2 = 
-ramp-capacity-foreground = #55
+ramp-capacity-foreground = ${colors.foreground-dark}
 
 animation-charging-0 = 
 animation-charging-1 = 
 animation-charging-2 = 
-animation-charging-foreground = #55
+animation-charging-foreground = ${colors.foreground-dark}
 animation-charging-framerate = 750
 
 [module/temperature]
@@ -286,22 +305,22 @@ format-warn-underline = ${self.format-underline}
 
 label = %temperature%
 label-warn = %temperature%
-label-warn-foreground = #e60053
+label-warn-foreground = ${colors.secondary}
 
 ramp-0 = 
 ramp-1 = 
 ramp-2 = 
-ramp-foreground = #55
+ramp-foreground = ${colors.foreground-dark}
 
 [module/powermenu]
 type = custom/menu
 
 label-open =  power
-label-open-foreground = #e60053
+label-open-foreground = ${colors.secondary}
 label-close =  cancel
-label-close-foreground = #e60053
+label-close-foreground = ${colors.secondary}
 label-separator = |
-label-separator-foreground = #55
+label-separator-foreground = ${colors.foreground-dark}
 
 menu-0-0 = reboot
 menu-0-0-exec = menu-open-1
