@@ -76,6 +76,15 @@ namespace mpd {
     return string{tag};
   }
 
+  string mpdsong::get_date() {
+    assert(m_song);
+    auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_DATE, 0);
+    if (tag == nullptr) {
+      return "";
+    }
+    return string{tag};
+  }
+
   string mpdsong::get_title() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_TITLE, 0);
