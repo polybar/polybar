@@ -191,6 +191,7 @@ namespace modules {
     string artist;
     string album;
     string title;
+    string date;
     string elapsed_str;
     string total_str;
 
@@ -207,6 +208,7 @@ namespace modules {
           artist = song->get_artist();
           album = song->get_album();
           title = song->get_title();
+          date = song->get_date();
         }
       }
     } catch (const mpd_exception& err) {
@@ -219,6 +221,7 @@ namespace modules {
       m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
+      m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
     }
 
     if (m_label_time) {

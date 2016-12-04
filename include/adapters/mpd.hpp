@@ -63,6 +63,7 @@ namespace mpd {
     string get_artist();
     string get_album();
     string get_title();
+    string get_date();
     unsigned get_duration();
 
    private:
