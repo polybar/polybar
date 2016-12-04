@@ -423,13 +423,6 @@ void renderer::draw_character(uint16_t character) {
   }
 
   auto width = m_fontmanager->char_width(font, character);
-
-  // Avoid odd glyph width's for center-aligned text
-  // since it breaks the positioning of clickable area's
-  if (m_alignment == alignment::CENTER && width % 2) {
-    width++;
-  }
-
   auto x = shift_content(width);
   auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
@@ -472,13 +465,6 @@ void renderer::draw_textstring(const char* text, size_t len) {
 
     // TODO: cache
     auto width = m_fontmanager->char_width(font, chars[0]) * chars.size();
-
-    // Avoid odd glyph width's for center-aligned text
-    // since it breaks the positioning of clickable area's
-    if (m_alignment == alignment::CENTER && width % 2) {
-      width++;
-    }
-
     auto x = shift_content(width);
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
@@ -566,8 +552,8 @@ const vector<action_block> renderer::get_actions() {
 int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   m_log.trace_x("renderer: shift_content(%i)", shift_x);
 
-  int16_t delta{shift_x};
   int16_t base_x{0};
+  double delta{static_cast<double>(shift_x)};
 
   switch (m_alignment) {
     case alignment::NONE:
@@ -656,6 +642,10 @@ void renderer::debug_hints() {
       << cw_size(w, h)
       << cw_pos(x, y)
       << cw_border(border_width)
+      << cw_depth(32)
+      << cw_visual(m_visual->visual_id)
+      << cw_params_colormap(m_colormap)
+      << cw_params_back_pixel(0)
       << cw_params_border_pixel(num % 2 ? 0xFFFF0000 : 0xFF00FF00)
       << cw_params_override_redirect(true)
       << cw_flush()
@@ -664,7 +654,7 @@ void renderer::debug_hints() {
 
     xutils::compton_shadow_exclude(m_connection, hintwin);
     m_connection.map_window(hintwin);
-    m_log.info("Debug hint created (x=%i width=%i)", action.start_x, action.width());
+    m_log.info("Debug hint created (x=%lu width=%lu)", x, w);
   }
 }
 #endif

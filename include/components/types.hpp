@@ -123,14 +123,14 @@ struct bar_settings {
 
 struct action_block {
   alignment align{alignment::NONE};
-  int16_t start_x{0};
-  int16_t end_x{0};
+  double start_x{0.0};
+  double end_x{0.0};
   mousebtn button{mousebtn::NONE};
   string command;
   bool active{true};
 
   uint16_t width() const {
-    return end_x - start_x;
+    return static_cast<uint16_t>(end_x - start_x + 0.5);
   }
 };
 
