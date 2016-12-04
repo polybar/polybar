@@ -55,13 +55,7 @@ string builder::flush() {
  * Insert raw text string
  */
 void builder::append(string text) {
-  string str(move(text));
-  size_t len{str.length()};
-  if (len > 2 && str[0] == '"' && str[len - 1] == '"') {
-    m_output += str.substr(1, len - 2);
-  } else {
-    m_output += str;
-  }
+  m_output += text;
 }
 
 /**
