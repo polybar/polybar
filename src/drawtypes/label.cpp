@@ -127,7 +127,7 @@ namespace drawtypes {
 
     string text;
 
-    struct sides padding, margin;
+    struct side_values padding, margin;
 
     if (required) {
       text = conf.get<string>(section, name);
@@ -139,7 +139,7 @@ namespace drawtypes {
       auto value = conf.get<int>(section, key, 0);
       auto left = conf.get<int>(section, key + "-left", value);
       auto right = conf.get<int>(section, key + "-right", value);
-      return side_values {left, right};
+      return side_values {static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
     };
 
     padding = get_left_right(name + "-padding");
