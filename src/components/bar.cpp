@@ -369,10 +369,10 @@ void bar::parse(const string& data, bool force) {
 
   m_renderer->begin();
 
-  if (m_tray && m_tray->settings().configured_slots) {
-    if (m_tray && m_tray->settings().align == alignment::LEFT) {
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
+    if (m_tray->settings().align == alignment::LEFT) {
       m_renderer->reserve_space(edge::LEFT, m_tray->settings().configured_w);
-    } else if (m_tray && m_tray->settings().align == alignment::RIGHT) {
+    } else if (m_tray->settings().align == alignment::RIGHT) {
       m_renderer->reserve_space(edge::RIGHT, m_tray->settings().configured_w);
     }
   }
