@@ -27,7 +27,7 @@ namespace modules {
 
     m_interval = chrono::duration<double>{m_conf.get<double>(name(), "interval", m_tail ? 0.0 : 5.0)};
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT, TAG_LABEL});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_OUTPUT, TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), "label", "%output%");
