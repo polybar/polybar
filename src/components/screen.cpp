@@ -2,11 +2,11 @@
 #include <thread>
 
 #include "components/config.hpp"
+#include "components/eventloop.hpp"
 #include "components/logger.hpp"
 #include "components/screen.hpp"
-#include "components/types.hpp"
 #include "components/signals.hpp"
-#include "components/eventloop.hpp"
+#include "components/types.hpp"
 #include "x11/connection.hpp"
 #include "x11/randr.hpp"
 #include "x11/winspec.hpp"

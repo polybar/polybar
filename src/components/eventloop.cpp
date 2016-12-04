@@ -1,8 +1,8 @@
 #include <csignal>
 
 #include "components/eventloop.hpp"
-#include "components/types.hpp"
 #include "components/signals.hpp"
+#include "components/types.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/color.hpp"

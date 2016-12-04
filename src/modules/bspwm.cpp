@@ -15,10 +15,12 @@ namespace {
 
   uint32_t make_mask(bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
     uint32_t mask{0U};
-    if (static_cast<uint32_t>(s1))
+    if (static_cast<uint32_t>(s1)) {
       mask |= 1 << (static_cast<uint32_t>(s1) - 1);
-    if (static_cast<uint32_t>(s2))
+    }
+    if (static_cast<uint32_t>(s2)) {
       mask |= 1 << (static_cast<uint32_t>(s2) - 1);
+    }
     return mask;
   }
 
@@ -327,16 +329,21 @@ namespace modules {
         auto label = m_statelabels.at(workspace_mask)->clone();
 
         if (!m_monitors.back()->focused) {
-          if (m_statelabels[make_mask(state::DIMMED)])
+          if (m_statelabels[make_mask(state::DIMMED)]) {
             label->replace_defined_values(m_statelabels[make_mask(state::DIMMED)]);
-          if (workspace_mask & make_mask(state::EMPTY))
+          }
+          if (workspace_mask & make_mask(state::EMPTY)) {
             label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::EMPTY)]);
-          if (workspace_mask & make_mask(state::OCCUPIED))
+          }
+          if (workspace_mask & make_mask(state::OCCUPIED)) {
             label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::OCCUPIED)]);
-          if (workspace_mask & make_mask(state::FOCUSED))
+          }
+          if (workspace_mask & make_mask(state::FOCUSED)) {
             label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::FOCUSED)]);
-          if (workspace_mask & make_mask(state::URGENT))
+          }
+          if (workspace_mask & make_mask(state::URGENT)) {
             label->replace_defined_values(m_statelabels[make_mask(state::DIMMED, state::URGENT)]);
+          }
         }
 
         label->reset_tokens();

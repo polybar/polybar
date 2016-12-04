@@ -61,7 +61,7 @@ class keyboard {
       : layouts(forward<decltype(layouts)>(layouts_)), indicators(forward<decltype(indicators)>(indicators_)) {}
 
   const indicator& get(const indicator::type& i) const;
-  void set(uint32_t indicator_state);
+  void set(uint32_t state);
   bool on(const indicator::type&) const;
 
   const string group_name(size_t index = 0) const;

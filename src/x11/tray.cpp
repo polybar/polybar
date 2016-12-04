@@ -677,7 +677,6 @@ void tray_manager::notify_clients_delayed(chrono::duration<double, std::milli> d
     this_thread::sleep_for(delay);
     notify_clients();
   });
-
 }
 
 /**

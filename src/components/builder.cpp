@@ -250,7 +250,7 @@ void builder::node(const label_t& label, bool add_space) {
 /**
  * Repeat text string n times
  */
-void builder::node_repeat(string str, size_t n, bool add_space) {
+void builder::node_repeat(const string& str, size_t n, bool add_space) {
   string text;
   while (n--) {
     text += str;

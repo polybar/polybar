@@ -3,9 +3,9 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/xworkspaces.hpp"
+#include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/static_module.inl"

@@ -130,7 +130,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
 
-  void bar_visibility_change(bool state);
+  void bar_visibility_change(bool visible);
 
   int16_t calculate_x(uint16_t width) const;
   int16_t calculate_y() const;
