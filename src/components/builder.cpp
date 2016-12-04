@@ -196,9 +196,8 @@ void builder::node(const label_t& label, bool add_space) {
   // if ((label->m_underline.empty() && m_tags[syntaxtag::u] > 0) || (m_tags[syntaxtag::u] > 0 && label->m_margin > 0))
   //   underline_close();
 
-  // TODO: Replace with margin-left
-  if (label->m_margin > 0) {
-    space(label->m_margin);
+  if (label->m_margin.left > 0) {
+    space(label->m_margin.left);
   }
 
   if (!label->m_overline.empty()) {
@@ -215,16 +214,14 @@ void builder::node(const label_t& label, bool add_space) {
     color(label->m_foreground);
   }
 
-  // TODO: Replace with padding-left
-  if (label->m_padding > 0) {
-    space(label->m_padding);
+  if (label->m_padding.left > 0) {
+    space(label->m_padding.left);
   }
 
   node(text, label->m_font, add_space);
 
-  // TODO: Replace with padding-right
-  if (label->m_padding > 0) {
-    space(label->m_padding);
+  if (label->m_padding.right > 0) {
+    space(label->m_padding.right);
   }
 
   if (!label->m_background.empty()) {
@@ -234,16 +231,15 @@ void builder::node(const label_t& label, bool add_space) {
     color_close();
   }
 
-  if (!label->m_underline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::u] > 0)) {
+  if (!label->m_underline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::u] > 0)) {
     underline_close();
   }
-  if (!label->m_overline.empty() || (label->m_margin > 0 && m_tags[syntaxtag::o] > 0)) {
+  if (!label->m_overline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::o] > 0)) {
     overline_close();
   }
 
-  // TODO: Replace with margin-right
-  if (label->m_margin > 0) {
-    space(label->m_margin);
+  if (label->m_margin.right > 0) {
+    space(label->m_margin.right);
   }
 }
 
