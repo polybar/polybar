@@ -73,6 +73,22 @@ struct line_settings {
   uint16_t size{0U};
 };
 
+struct action {
+  mousebtn button{mousebtn::NONE};
+  string command;
+};
+
+struct action_block : public action {
+  alignment align{alignment::NONE};
+  double start_x{0.0};
+  double end_x{0.0};
+  bool active{true};
+
+  uint16_t width() const {
+    return static_cast<uint16_t>(end_x - start_x + 0.5);
+  }
+};
+
 struct bar_settings {
   monitor_t monitor;
   edge origin{edge::TOP};
@@ -103,6 +119,8 @@ struct bar_settings {
 
   bool override_redirect{false};
 
+  vector<action> actions;
+
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect{0, 0, size.w, size.h};
 
@@ -118,19 +136,6 @@ struct bar_settings {
     rect.width -= borders.at(edge::LEFT).size;
     rect.width -= borders.at(edge::RIGHT).size;
     return rect;
-  }
-};
-
-struct action_block {
-  alignment align{alignment::NONE};
-  double start_x{0.0};
-  double end_x{0.0};
-  mousebtn button{mousebtn::NONE};
-  string command;
-  bool active{true};
-
-  uint16_t width() const {
-    return static_cast<uint16_t>(end_x - start_x + 0.5);
   }
 };
 

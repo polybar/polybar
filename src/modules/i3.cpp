@@ -206,22 +206,18 @@ namespace modules {
   }
 
   bool i3_module::handle_event(string cmd) {
-    if (cmd.compare(0, 2, EVENT_PREFIX) != 0) {
-      return false;
-    }
-
     try {
-      i3_util::connection_t ipc;
-
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        ipc.send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
+        i3_util::connection_t{}.send_command("workspace number " + cmd.substr(strlen(EVENT_CLICK)));
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
         m_log.info("%s: Sending workspace prev command to ipc handler", name());
-        ipc.send_command("workspace next_on_output");
+        i3_util::connection_t{}.send_command("workspace next_on_output");
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
         m_log.info("%s: Sending workspace next command to ipc handler", name());
-        ipc.send_command("workspace prev_on_output");
+        i3_util::connection_t{}.send_command("workspace prev_on_output");
+      } else {
+        return false;
       }
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());

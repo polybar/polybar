@@ -63,6 +63,25 @@ tray-padding = 2
 
 ;override-redirect = true
 
+; Cycle bspwm desktops when scrolling on the bar (unless caught by module)
+;
+;   NOTE: You should probably disable scrolling for
+;   the bspwm module by setting `enable-scroll = false`
+;   in the module section
+;
+;scroll-up = bspc desktop -f prev.local
+;scroll-down = bspc desktop -f next.local
+
+; Cycle i3 workspaces when scrolling on the bar (unless caught by module)
+;
+;   NOTE: You should probably disable scrolling for
+;   the i3 module by setting `enable-scroll = false`
+;   in the module section
+;
+;scroll-up = i3-msg workspace prev_on_output
+;scroll-down = i3-msg workspace next_on_output
+
+
 [module/xwindow]
 type = internal/xwindow
 label = %title:0:30:...%

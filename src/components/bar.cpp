@@ -94,6 +94,29 @@ void bar::bootstrap(bool nodraw) {
     m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
 
     m_buttonpress.offset = xutils::event_timer_ms(m_conf, xcb_button_press_event_t{});
+
+    // Get fallback click handlers
+    auto click_left = m_conf.get<string>(bs, "click-left", "");
+    auto click_middle = m_conf.get<string>(bs, "click-middle", "");
+    auto click_right = m_conf.get<string>(bs, "click-right", "");
+    auto scroll_up = m_conf.get<string>(bs, "scroll-up", "");
+    auto scroll_down = m_conf.get<string>(bs, "scroll-down", "");
+
+    if (!click_left.empty()) {
+      m_opts.actions.emplace_back(action{mousebtn::LEFT, move(click_left)});
+    }
+    if (!click_middle.empty()) {
+      m_opts.actions.emplace_back(action{mousebtn::MIDDLE, move(click_middle)});
+    }
+    if (!click_right.empty()) {
+      m_opts.actions.emplace_back(action{mousebtn::RIGHT, move(click_right)});
+    }
+    if (!scroll_up.empty()) {
+      m_opts.actions.emplace_back(action{mousebtn::SCROLL_UP, move(scroll_up)});
+    }
+    if (!scroll_down.empty()) {
+      m_opts.actions.emplace_back(action{mousebtn::SCROLL_DOWN, move(scroll_down)});
+    }
   }
 
   m_log.trace("bar: Load color values");
@@ -638,7 +661,6 @@ void bar::handle(const evt::button_press& evt) {
       m_log.trace_x("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, event_x);
       continue;
     }
-
     m_log.trace("Found matching input area");
     m_log.trace_x("action.command = %s", action.command);
     m_log.trace_x("action.button = %i", static_cast<int>(action.button));
@@ -647,11 +669,21 @@ void bar::handle(const evt::button_press& evt) {
 
     if (g_signals::bar::action_click) {
       g_signals::bar::action_click(action.command);
-    } else {
-      m_log.warn("No signal handler's connected to 'action_click'");
     }
 
     return;
+  }
+
+  for (auto&& action : m_opts.actions) {
+    if (action.button == button && !action.command.empty()) {
+      m_log.trace("Triggering fallback click handler: %s", action.command);
+
+      if (g_signals::bar::action_click) {
+        g_signals::bar::action_click(action.command);
+      }
+
+      return;
+    }
   }
 
   m_log.warn("No matching input area found");
