@@ -22,32 +22,47 @@ namespace modules {
    */
   void battery_module::setup() {
     auto battery = m_conf.get<string>(name(), "battery", "BAT0");
+    auto battery_snd = m_conf.get<string>(name(), "battery_snd", battery);
     auto adapter = m_conf.get<string>(name(), "adapter", "ADP1");
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", adapter) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", battery) + "/";
+    auto path_battery_snd = string_util::replace(PATH_BATTERY, "%battery%", battery_snd) + "/";
 
     if (!file_util::exists(path_adapter + "online")) {
       throw module_error("The file '" + path_adapter + "online' does not exist");
     }
     m_valuepath[battery_value::ADAPTER] = path_adapter + "online";
 
-    if (!file_util::exists(path_battery + "capacity")) {
-      throw module_error("The file '" + path_battery + "capacity' does not exist");
+    for (auto&& file : vector<string>{path_battery, path_battery_snd}) {
+      if (!file_util::exists(file + "capacity")) {
+        throw module_error("The file '" + file + "capacity' does not exist");
+      }
     }
+
     m_valuepath[battery_value::CAPACITY_PERC] = path_battery + "capacity";
+    m_valuepath[battery_value::CAPACITY_PERC_SND] = path_battery_snd + "capacity";
 
     if (!file_util::exists(path_battery + "voltage_now")) {
       throw module_error("The file '" + path_battery + "voltage_now' does not exist");
     }
     m_valuepath[battery_value::VOLTAGE] = path_battery + "voltage_now";
 
-    for (auto&& file : vector<string>{"charge", "energy"}) {
+    for (auto&& file : vector<string>{"energy", "charge"}) {
       if (file_util::exists(path_battery + file + "_now")) {
         m_valuepath[battery_value::CAPACITY] = path_battery + file + "_now";
       }
+      
+      if (file_util::exists(path_battery_snd + file + "_now")) {
+        m_valuepath[battery_value::CAPACITY_SND] = path_battery_snd + file + "_now";
+      }
+
       if (file_util::exists(path_battery + file + "_full")) {
         m_valuepath[battery_value::CAPACITY_MAX] = path_battery + file + "_full";
+      }
+      
+      if (file_util::exists(path_battery_snd + file + "_full")) {
+        m_valuepath[battery_value::CAPACITY_MAX_SND] = path_battery_snd + file + "_full";
       }
     }
 
@@ -104,6 +119,7 @@ namespace modules {
 
     // Create inotify watches
     watch(m_valuepath[battery_value::CAPACITY_PERC], IN_ACCESS);
+    watch(m_valuepath[battery_value::CAPACITY_PERC_SND], IN_ACCESS);
     watch(m_valuepath[battery_value::ADAPTER], IN_ACCESS);
 
     // Setup time if token is used
@@ -148,6 +164,7 @@ namespace modules {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
         file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC]);
+        file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC_SND]);
       }
     }
 
@@ -263,12 +280,15 @@ namespace modules {
    */
   int battery_module::current_percentage() {
     auto capacity = file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC]);
+    auto capacity_snd = file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC_SND]);
     auto value = math_util::cap<int>(std::atof(capacity.c_str()), 0, 100);
+    auto value_snd = math_util::cap<int>(std::atof(capacity_snd.c_str()), 0, 100);
 
-    if (value >= m_fullat) {
+    auto avg_value = (value + value_snd) / 2;
+    if (avg_value >= m_fullat) {
       return 100;
     } else {
-      return value;
+      return avg_value;
     }
   }
 

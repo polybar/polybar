@@ -20,6 +20,9 @@ namespace modules {
     CAPACITY,
     CAPACITY_MAX,
     CAPACITY_PERC,
+	CAPACITY_SND,
+	CAPACITY_MAX_SND,
+	CAPACITY_PERC_SND,
     VOLTAGE,
     RATE,
   };
