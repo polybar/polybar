@@ -55,7 +55,7 @@ class builder {
   void underline(const string& color = "");
   void underline_close();
   void cmd(mousebtn index, string action, bool condition = true);
-  void cmd_close();
+  void cmd_close(bool condition = true);
 
  protected:
   string background_hex();

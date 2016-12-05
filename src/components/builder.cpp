@@ -503,8 +503,10 @@ void builder::cmd(mousebtn index, string action, bool condition) {
 /**
  * Close command tag
  */
-void builder::cmd_close() {
-  tag_close(syntaxtag::A);
+void builder::cmd_close(bool condition) {
+  if (condition) {
+    tag_close(syntaxtag::A);
+  }
 }
 
 /**

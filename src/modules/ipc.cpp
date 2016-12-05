@@ -39,6 +39,11 @@ namespace modules {
    * Wrap the output with defined mouse actions
    */
   string ipc_module::get_output() {
+    // Get the module output early so that
+    // the format prefix/suffix also gets wrapper
+    // with the cmd handlers
+    string output{module::get_output()};
+
     if (!m_actions[mousebtn::LEFT].empty()) {
       m_builder->cmd(mousebtn::LEFT, m_actions[mousebtn::LEFT]);
     }
@@ -55,7 +60,7 @@ namespace modules {
       m_builder->cmd(mousebtn::SCROLL_DOWN, m_actions[mousebtn::SCROLL_DOWN]);
     }
 
-    m_builder->append(module::get_output());
+    m_builder->append(output);
 
     return m_builder->flush();
   }

@@ -25,6 +25,11 @@ namespace modules {
   }
 
   string text_module::get_output() {
+    // Get the module output early so that
+    // the format prefix/suffix also gets wrapper
+    // with the cmd handlers
+    string output{module::get_output()};
+
     auto click_left = m_conf.get<string>(name(), "click-left", "");
     auto click_middle = m_conf.get<string>(name(), "click-middle", "");
     auto click_right = m_conf.get<string>(name(), "click-right", "");
@@ -47,7 +52,7 @@ namespace modules {
       m_builder->cmd(mousebtn::SCROLL_DOWN, scroll_down);
     }
 
-    m_builder->append(module::get_output());
+    m_builder->append(output);
 
     return m_builder->flush();
   }

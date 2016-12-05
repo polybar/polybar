@@ -123,13 +123,17 @@ namespace modules {
       m_output += m_ellipsis ? "..." : "";
     }
 
+
     auto counter_str = to_string(m_counter);
+    string output{module::get_output()};
+
     OUTPUT_ACTION(mousebtn::LEFT);
     OUTPUT_ACTION(mousebtn::MIDDLE);
     OUTPUT_ACTION(mousebtn::RIGHT);
     OUTPUT_ACTION(mousebtn::SCROLL_UP);
     OUTPUT_ACTION(mousebtn::SCROLL_DOWN);
-    m_builder->append(module::get_output());
+
+    m_builder->append(output);
 
     return m_builder->flush();
   }

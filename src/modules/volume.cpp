@@ -174,16 +174,16 @@ namespace modules {
   }
 
   string volume_module::get_output() {
+    // Get the module output early so that
+    // the format prefix/suffix also gets wrapper
+    // with the cmd handlers
+    string output{module::get_output()};
+
     m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
+    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP, !m_muted && m_volume < 100);
+    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN, !m_muted && m_volume > 0);
 
-    if (!m_muted && m_volume < 100) {
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-    }
-    if (!m_muted && m_volume > 0) {
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
-    }
-
-    m_builder->append(module::get_output());
+    m_builder->append(output);
 
     return m_builder->flush();
   }
