@@ -13,16 +13,27 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);
-    bool receive_events() const;
+    bool receive_events() const {
+      return true;
+    }
 
    private:
-    static constexpr auto TAG_DATE = "<date>";
+    static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto EVENT_TOGGLE = "datetoggle";
 
-    string m_format;
-    string m_formatalt;
+    // @deprecated: Use <label>
+    static constexpr auto TAG_DATE = "<date>";
 
-    char m_buffer[256] = {'\0'};
+    label_t m_label;
+
+    string m_dateformat;
+    string m_dateformat_alt;
+    string m_timeformat;
+    string m_timeformat_alt;
+
+    string m_date;
+    string m_time;
+
     stateflag m_toggled{false};
   };
 }
