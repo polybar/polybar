@@ -437,6 +437,12 @@ namespace modules {
       }
     };
 
+    string modifier;
+
+    if (m_pinworkspaces) {
+      modifier = ".local";
+    }
+
     if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
       cmd.erase(0, strlen(EVENT_CLICK));
 
@@ -451,9 +457,9 @@ namespace modules {
         m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
       }
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
-      send_command("desktop -f next", "Sending desktop next command to ipc handler");
+      send_command("desktop -f next" + modifier, "Sending desktop next command to ipc handler");
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-      send_command("desktop -f prev", "Sending desktop prev command to ipc handler");
+      send_command("desktop -f prev" + modifier, "Sending desktop prev command to ipc handler");
     }
 
     return true;
