@@ -57,6 +57,12 @@ class renderer {
   void debug_hints();
 #endif
 
+ protected:
+  struct reserve_area {
+    edge side{edge::NONE};
+    uint16_t size{0U};
+  };
+
  private:
   connection& m_connection;
   const logger& m_log;
@@ -65,6 +71,9 @@ class renderer {
   const bar_settings& m_bar;
 
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
+
+  xcb_rectangle_t m_cleared{0, 0, 0U, 0U};
+  reserve_area m_cleararea{};
 
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;

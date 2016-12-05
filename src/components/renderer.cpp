@@ -1,9 +1,11 @@
 #include "components/renderer.hpp"
 #include "components/logger.hpp"
+#include "components/types.hpp"
 #include "errors.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
+#include "x11/generic.hpp"
 #include "x11/winspec.hpp"
 #include "x11/xlib.hpp"
 #include "x11/xutils.hpp"
@@ -206,7 +208,39 @@ void renderer::flush(bool clear) {
   right.width += m_bar.borders.at(edge::RIGHT).size;
   right.height += m_bar.size.h;
 
-  m_log.trace("renderer: copy pixmap (clear=%i)", clear);
+  // Calculate the area that was reserved so that we
+  // can clear any previous content drawn at the same location
+  xcb_rectangle_t clear_area{0, 0, 0U, 0U};
+
+  if (m_cleararea.size && m_cleararea.side == edge::RIGHT) {
+    clear_area.x = m_bar.size.w - m_cleararea.size;
+    clear_area.y = 0;
+    clear_area.width = m_cleararea.size;
+    clear_area.height = m_bar.size.h;
+  } else if (m_cleararea.size && m_cleararea.side == edge::LEFT) {
+    clear_area.x = m_rect.x;
+    clear_area.y = m_rect.y;
+    clear_area.width = m_cleararea.size;
+    clear_area.height = m_rect.height;
+  } else if (m_cleararea.size && m_cleararea.side == edge::TOP) {
+    clear_area.x = m_rect.x;
+    clear_area.y = m_rect.y;
+    clear_area.width = m_rect.width;
+    clear_area.height = m_cleararea.size;
+  } else if (m_cleararea.size && m_cleararea.side == edge::TOP) {
+    clear_area.x = m_rect.x;
+    clear_area.y = m_rect.y + m_rect.height - m_cleararea.size;
+    clear_area.width = m_rect.width;
+    clear_area.height = m_cleararea.size;
+  }
+
+  if (clear_area != m_cleared && clear_area != 0) {
+    m_log.trace("renderer: clearing area %dx%d+%d+%d", clear_area.width, clear_area.height, clear_area.x, clear_area.y);
+    m_connection.clear_area(0, m_window, clear_area.x, clear_area.y, clear_area.width, clear_area.height);
+    m_cleared = clear_area;
+  }
+
+  m_log.trace("renderer: copy pixmap (clear=%i, geom=%dx%d+%d+%d)", clear, r.width, r.height, r.x, r.y);
   m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, r.x, r.y, r.width, r.height);
 
   m_log.trace_x("renderer: draw top border (%lupx, %08x)", top.height, m_bar.borders.at(edge::TOP).color);
@@ -233,6 +267,9 @@ void renderer::flush(bool clear) {
  */
 void renderer::reserve_space(edge side, uint16_t w) {
   m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<uint8_t>(side), w);
+
+  m_cleararea.side = side;
+  m_cleararea.size = w;
 
   switch (side) {
     case edge::NONE:

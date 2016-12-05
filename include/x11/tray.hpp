@@ -68,6 +68,10 @@ class tray_client {
 
   ~tray_client();
 
+  uint16_t width() const;
+  uint16_t height() const;
+  void clear_window() const;
+
   bool match(const xcb_window_t& win) const;
   bool mapped() const;
   void mapped(bool state);
@@ -114,7 +118,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void reconfigure_clients();
   void reconfigure_bg(bool realloc = false);
   void refresh_window();
-  void redraw_window();
+  void redraw_window(bool realloc_bg = false);
 
   void query_atom();
   void create_window();

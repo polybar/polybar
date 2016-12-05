@@ -52,6 +52,22 @@ tray_client::~tray_client() {
   xembed::unembed(m_connection, window(), m_connection.root());
 }
 
+uint16_t tray_client::width() const {
+  return m_width;
+}
+
+uint16_t tray_client::height() const {
+  return m_height;
+}
+
+void tray_client::clear_window() const {
+  try {
+    m_connection.clear_area_checked(1, window(), 0, 0, width(), height());
+  } catch (const xpp::x::error::window& err) {
+    // ignore
+  }
+}
+
 /**
  * Match given window against client window
  */
@@ -399,8 +415,19 @@ void tray_manager::reconfigure_bg(bool realloc) {
     return m_log.err("Failed to get root pixmap for tray background (realloc=%i)", realloc);
   }
 
-  m_log.trace("tray: rootpixmap=%x (%dx%d+%d+%d), tray=%x, pixmap=%x, gc=%x", m_rootpixmap.pixmap, m_rootpixmap.width,
-      m_rootpixmap.height, m_rootpixmap.x, m_rootpixmap.y, m_tray, m_pixmap, m_gc);
+  if (realloc) {
+    // clang-format off
+    m_log.info("Tray root pixmap (rootpmap=%s, geom=%dx%d+%d+%d, tray=%s, pmap=%s, gc=%s)",
+        m_connection.id(m_rootpixmap.pixmap),
+        m_rootpixmap.width,
+        m_rootpixmap.height,
+        m_rootpixmap.x,
+        m_rootpixmap.y,
+        m_connection.id(m_tray),
+        m_connection.id(m_pixmap),
+        m_connection.id(m_gc));
+    // clang-format on
+  }
 
   m_prevwidth = w;
   m_prevheight = h;
@@ -410,6 +437,14 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
   auto px = m_rootpixmap.x + x;
   auto py = m_rootpixmap.y + y;
+
+  // Make sure we don't try to copy void content
+  if (px + w > m_rootpixmap.width) {
+    w -= px + w - m_rootpixmap.width;
+  }
+  if (py + h > m_rootpixmap.height) {
+    h -= py + h - m_rootpixmap.height;
+  }
 
   if (realloc) {
     vector<uint8_t> image_data;
@@ -461,10 +496,10 @@ void tray_manager::refresh_window() {
     draw_util::fill(m_connection, m_pixmap, m_gc, 0, 0, width, height);
   }
 
-  m_connection.clear_area(1, m_tray, 0, 0, width, height);
+  m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
   for (auto&& client : m_clients) {
-    m_connection.clear_area(1, client->window(), 0, 0, m_opts.width, height);
+    client->clear_window();
   }
 
   m_connection.flush();
@@ -473,9 +508,9 @@ void tray_manager::refresh_window() {
 /**
  * Redraw window
  */
-void tray_manager::redraw_window() {
+void tray_manager::redraw_window(bool realloc_bg) {
   m_log.info("Redraw tray container (id=%s)", m_connection.id(m_tray));
-  reconfigure_bg(true);
+  reconfigure_bg(realloc_bg);
   refresh_window();
 }
 
@@ -501,7 +536,9 @@ void tray_manager::create_window() {
     << cw_pos(calculate_x(calculate_w()), calculate_y())
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
-    << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT | XCB_EVENT_MASK_STRUCTURE_NOTIFY)
+    << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+                           |XCB_EVENT_MASK_STRUCTURE_NOTIFY
+                           |XCB_EVENT_MASK_EXPOSURE)
     << cw_params_override_redirect(true);
   // clang-format on
 
@@ -880,7 +917,6 @@ int tray_manager::mapped_clients() const {
  */
 void tray_manager::handle(const evt::expose& evt) {
   if (m_activated && !m_clients.empty() && evt->count == 0) {
-    reconfigure_window();
     redraw_window();
   }
 }
@@ -1001,11 +1037,11 @@ void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
     return;
   } else if (evt->atom == _XROOTMAP_ID) {
-    redraw_window();
+    redraw_window(true);
   } else if (evt->atom == _XSETROOT_ID) {
-    redraw_window();
+    redraw_window(true);
   } else if (evt->atom == ESETROOT_PMAP_ID) {
-    redraw_window();
+    redraw_window(true);
   } else if (evt->atom == _XEMBED_INFO) {
     auto client = find_client(evt->window);
 
