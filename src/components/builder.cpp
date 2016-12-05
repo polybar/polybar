@@ -67,6 +67,10 @@ void builder::node(string str, bool add_space) {
   string::size_type n, m;
   string s(move(str));
 
+  if ((n = s.size()) > 2 && s[0] == '"' && s[n - 1] == '"') {
+    s = s.substr(1, n - 2);
+  }
+
   while (true) {
     if (s.empty()) {
       break;
