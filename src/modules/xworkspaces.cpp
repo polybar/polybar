@@ -22,7 +22,7 @@ namespace modules {
   xworkspaces_module::xworkspaces_module(
       const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xworkspaces_module>(bar, logger, config, name)
-      , m_connection(configure_connection().create<connection&>()) {}
+      , m_connection(make_connection()) {}
 
   /**
    * Bootstrap the module
@@ -73,13 +73,13 @@ namespace modules {
       // clang-format on
     }
 
-    m_icons = make_shared<iconset>();
-    m_icons->add(DEFAULT_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_ICON, "")));
+    m_icons = factory_util::shared<iconset>();
+    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get<string>(name(), DEFAULT_ICON, "")));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
       auto vec = string_util::split(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], make_shared<label>(vec[1]));
+        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
     }
 

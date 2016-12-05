@@ -30,7 +30,7 @@ namespace modules {
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
 
-    m_icons = make_shared<iconset>();
+    m_icons = factory_util::shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
       m_icons->add("play", load_icon(m_conf, name(), TAG_ICON_PLAY));

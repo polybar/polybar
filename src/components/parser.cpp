@@ -2,33 +2,21 @@
 
 #include "components/logger.hpp"
 #include "components/parser.hpp"
-#include "components/signals.hpp"
 #include "components/types.hpp"
+#include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
 
+using namespace signals::parser;
+
 /**
  * Construct parser instance
  */
-parser::parser(const logger& logger, const bar_settings& bar) : m_log(logger), m_bar(bar) {
-  assert(g_signals::parser::background_change != nullptr);
-  assert(g_signals::parser::foreground_change != nullptr);
-  assert(g_signals::parser::underline_change != nullptr);
-  assert(g_signals::parser::overline_change != nullptr);
-  assert(g_signals::parser::alignment_change != nullptr);
-  assert(g_signals::parser::attribute_set != nullptr);
-  assert(g_signals::parser::attribute_unset != nullptr);
-  assert(g_signals::parser::attribute_toggle != nullptr);
-  assert(g_signals::parser::font_change != nullptr);
-  assert(g_signals::parser::pixel_offset != nullptr);
-  assert(g_signals::parser::action_block_open != nullptr);
-  assert(g_signals::parser::action_block_close != nullptr);
-  assert(g_signals::parser::ascii_text_write != nullptr);
-  assert(g_signals::parser::unicode_text_write != nullptr);
-  assert(g_signals::parser::string_write != nullptr);
-}
+parser::parser(signal_emitter& emitter, const logger& logger, const bar_settings& bar)
+    : m_sig(emitter), m_log(logger), m_bar(bar) {}
 
 /**
  * Process input string
@@ -82,61 +70,61 @@ void parser::codeblock(string data) {
 
     switch (tag) {
       case 'B':
-        g_signals::parser::background_change(parse_color(value, m_bar.background));
+        m_sig.emit(change_background{parse_color(value, m_bar.background)});
         break;
 
       case 'F':
-        g_signals::parser::foreground_change(parse_color(value, m_bar.foreground));
+        m_sig.emit(change_foreground{parse_color(value, m_bar.foreground)});
         break;
 
       case 'T':
-        g_signals::parser::font_change(parse_fontindex(value));
+        m_sig.emit(change_font{parse_fontindex(value)});
         break;
 
       case 'U':
-        g_signals::parser::underline_change(parse_color(value, m_bar.underline.color));
-        g_signals::parser::overline_change(parse_color(value, m_bar.overline.color));
+        m_sig.emit(change_underline{parse_color(value, m_bar.underline.color)});
+        m_sig.emit(change_overline{parse_color(value, m_bar.overline.color)});
         break;
 
       case 'u':
-        g_signals::parser::underline_change(parse_color(value, m_bar.underline.color));
+        m_sig.emit(change_underline{parse_color(value, m_bar.underline.color)});
         break;
 
       case 'o':
-        g_signals::parser::overline_change(parse_color(value, m_bar.overline.color));
+        m_sig.emit(change_overline{parse_color(value, m_bar.overline.color)});
         break;
 
       case 'R':
-        g_signals::parser::background_change(m_bar.foreground);
-        g_signals::parser::foreground_change(m_bar.background);
+        m_sig.emit(change_background{parse_color(value, m_bar.foreground)});
+        m_sig.emit(change_foreground{parse_color(value, m_bar.background)});
         break;
 
       case 'O':
-        g_signals::parser::pixel_offset(atoi(value.c_str()));
+        m_sig.emit(offset_pixel{static_cast<int16_t>(std::atoi(value.c_str()))});
         break;
 
       case 'l':
-        g_signals::parser::alignment_change(alignment::LEFT);
+        m_sig.emit(change_alignment{alignment::LEFT});
         break;
 
       case 'c':
-        g_signals::parser::alignment_change(alignment::CENTER);
+        m_sig.emit(change_alignment{alignment::CENTER});
         break;
 
       case 'r':
-        g_signals::parser::alignment_change(alignment::RIGHT);
+        m_sig.emit(change_alignment{alignment::RIGHT});
         break;
 
       case '+':
-        g_signals::parser::attribute_set(parse_attr(value[0]));
+        m_sig.emit(attribute_set{parse_attr(value[0])});
         break;
 
       case '-':
-        g_signals::parser::attribute_unset(parse_attr(value[0]));
+        m_sig.emit(attribute_unset{parse_attr(value[0])});
         break;
 
       case '!':
-        g_signals::parser::attribute_toggle(parse_attr(value[0]));
+        m_sig.emit(attribute_toggle{parse_attr(value[0])});
         break;
 
       case 'A':
@@ -145,7 +133,7 @@ void parser::codeblock(string data) {
           mousebtn btn = parse_action_btn(data);
           m_actions.push_back(static_cast<int>(btn));
 
-          g_signals::parser::action_block_open(btn, value);
+          m_sig.emit(action_begin{action{btn, value}});
 
           // make sure we strip the correct length (btn+wrapping colons)
           if (value[0] != ':') {
@@ -153,7 +141,7 @@ void parser::codeblock(string data) {
           }
           value += "::";
         } else if (!m_actions.empty()) {
-          g_signals::parser::action_block_close(parse_action_btn(value));
+          m_sig.emit(action_end{parse_action_btn(value)});
           m_actions.pop_back();
         }
         break;
@@ -172,7 +160,7 @@ void parser::codeblock(string data) {
  * Process text contents
  */
 size_t parser::text(string data) {
-  uint8_t* utf = (uint8_t*)data.c_str();
+  uint8_t* utf = reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str()));
 
   if (utf[0] < 0x80) {
     // grab all consecutive ascii chars
@@ -184,25 +172,26 @@ size_t parser::text(string data) {
     while (utf[n] != '\0' && utf[++n] < 0x80) {
       ;
     }
-    g_signals::parser::string_write(data.substr(0, n).c_str(), n);
+    m_sig.emit(write_text_string{data.substr(0, n)});
     return n;
   } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
-    g_signals::parser::unicode_text_write((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f));
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f))});
     return 2;
   } else if ((utf[0] & 0xf0) == 0xe0) {  // 3 byte utf-8 sequence
-    g_signals::parser::unicode_text_write((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f));
+    m_sig.emit(
+        write_text_unicode{static_cast<uint16_t>((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f))});
     return 3;
   } else if ((utf[0] & 0xf8) == 0xf0) {  // 4 byte utf-8 sequence
-    g_signals::parser::unicode_text_write(0xfffd);
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 4;
   } else if ((utf[0] & 0xfc) == 0xf8) {  // 5 byte utf-8 sequence
-    g_signals::parser::unicode_text_write(0xfffd);
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 5;
   } else if ((utf[0] & 0xfe) == 0xfc) {  // 6 byte utf-8 sequence
-    g_signals::parser::unicode_text_write(0xfffd);
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 6;
   } else {  // invalid utf-8 sequence
-    g_signals::parser::ascii_text_write(utf[0]);
+    m_sig.emit(write_text_ascii{utf[0]});
     return 1;
   }
 }

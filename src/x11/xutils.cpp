@@ -35,14 +35,6 @@ namespace xutils {
     return *g_connection_fd.get();
   }
 
-  uint32_t event_timer_ms(const config& conf, const xcb_button_press_event_t&) {
-    return conf.get<uint32_t>("settings", "x-delay-buttonpress", 25);
-  }
-
-  uint32_t event_timer_ms(const config& conf, const xcb_randr_notify_event_t&) {
-    return conf.get<uint32_t>("settings", "x-delay-randrnotify", 50);
-  }
-
   void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
     for (; mask; mask >>= 1, src++) {
       if (mask & 1) {

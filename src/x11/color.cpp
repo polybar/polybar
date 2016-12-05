@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <utility>
+#include <map>
 
 #include "errors.hpp"
 #include "utils/color.hpp"
@@ -8,7 +9,7 @@
 
 POLYBAR_NS
 
-map<string, color> g_colorstore;
+std::map<string, color> g_colorstore;
 color g_colorempty{"#00000000"};
 color g_colorblack{"#ff000000"};
 color g_colorwhite{"#ffffffff"};

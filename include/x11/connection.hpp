@@ -8,9 +8,11 @@
 #include <xpp/xpp.hpp>
 
 #include "common.hpp"
+#include "utils/factory.hpp"
 #include "x11/extensions.hpp"
 #include "x11/registry.hpp"
 #include "x11/types.hpp"
+#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -18,8 +20,7 @@ using xpp_connection = xpp::connection<XPP_EXTENSION_LIST>;
 
 class connection : public xpp_connection {
  public:
-  explicit connection() {}
-  explicit connection(xcb_connection_t* conn) : xpp_connection(conn) {}
+  explicit connection(xcb_connection_t* conn) : connection(conn, 0) {}
   explicit connection(xcb_connection_t* conn, int connection_fd)
       : xpp_connection(conn), m_connection_fd(connection_fd) {}
 
@@ -54,7 +55,6 @@ class connection : public xpp_connection {
   }
 
   void preload_atoms();
-
   void query_extensions();
 
   string id(xcb_window_t w) const;
@@ -98,6 +98,14 @@ class connection : public xpp_connection {
   int m_connection_fd{0};
 };
 
-di::injector<connection&> configure_connection();
+namespace {
+  /**
+   * Configure injection module
+   */
+  inline connection& make_connection() {
+    auto instance = factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd());
+    return static_cast<connection&>(*instance);
+  }
+}
 
 POLYBAR_NS_END

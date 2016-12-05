@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "common.hpp"
 #include "x11/color.hpp"
 #include "x11/randr.hpp"
@@ -80,8 +82,8 @@ struct action {
 
 struct action_block : public action {
   alignment align{alignment::NONE};
-  double start_x{0.0};
-  double end_x{0.0};
+  volatile double start_x{0.0};
+  volatile double end_x{0.0};
   bool active{true};
 
   uint16_t width() const {
@@ -90,6 +92,11 @@ struct action_block : public action {
 };
 
 struct bar_settings {
+  explicit bar_settings() = default;
+  bar_settings(const bar_settings& other) = default;
+
+  xcb_window_t window;
+
   monitor_t monitor;
   edge origin{edge::TOP};
   struct size size {
@@ -109,7 +116,7 @@ struct bar_settings {
   line_settings underline;
   line_settings overline;
 
-  map<edge, border_settings> borders;
+  std::unordered_map<edge, border_settings> borders;
 
   uint8_t spacing{1U};
   string separator;
@@ -128,13 +135,20 @@ struct bar_settings {
       rect.x = pos.x;
       rect.y = pos.y;
     }
-
-    rect.y += borders.at(edge::TOP).size;
-    rect.height -= borders.at(edge::TOP).size;
-    rect.height -= borders.at(edge::BOTTOM).size;
-    rect.x += borders.at(edge::LEFT).size;
-    rect.width -= borders.at(edge::LEFT).size;
-    rect.width -= borders.at(edge::RIGHT).size;
+    if (borders.find(edge::TOP) != borders.end()) {
+      rect.y += borders.at(edge::TOP).size;
+      rect.height -= borders.at(edge::TOP).size;
+    }
+    if (borders.find(edge::BOTTOM) != borders.end()) {
+      rect.height -= borders.at(edge::BOTTOM).size;
+    }
+    if (borders.find(edge::LEFT) != borders.end()) {
+      rect.x += borders.at(edge::LEFT).size;
+      rect.width -= borders.at(edge::LEFT).size;
+    }
+    if (borders.find(edge::RIGHT) != borders.end()) {
+      rect.width -= borders.at(edge::RIGHT).size;
+    }
     return rect;
   }
 };

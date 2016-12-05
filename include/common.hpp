@@ -4,12 +4,8 @@
 #define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
 #endif
 
-#include <boost/di.hpp>
-#include <cstring>
-#include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "config.hpp"
 
@@ -41,7 +37,6 @@
 
 POLYBAR_NS
 
-namespace di = boost::di;
 namespace placeholders = std::placeholders;
 
 using std::string;
@@ -58,7 +53,6 @@ using std::make_unique;
 using std::make_shared;
 using std::make_pair;
 using std::array;
-using std::map;
 using std::vector;
 using std::to_string;
 

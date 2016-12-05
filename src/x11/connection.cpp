@@ -9,14 +9,6 @@
 POLYBAR_NS
 
 /**
- * Configure injection module
- */
-di::injector<connection&> configure_connection() {
-  return di::make_injector(di::bind<>().to(
-      factory_util::generic_singleton<connection>(xutils::get_connection(), xutils::get_connection_fd())));
-}
-
-/**
  * Preload required xcb atoms
  */
 void connection::preload_atoms() {

@@ -18,7 +18,7 @@ namespace modules {
    * currently active to enable title tracking
    */
   active_window::active_window(xcb_window_t win)
-      : m_connection(configure_connection().create<decltype(m_connection)>()), m_window(m_connection, win) {
+      : m_connection(make_connection()), m_window(m_connection, win) {
     try {
       m_window.change_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
     } catch (const xpp::x::error::window& err) {
@@ -66,7 +66,7 @@ namespace modules {
    */
   xwindow_module::xwindow_module(const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xwindow_module>(bar, logger, config, name)
-      , m_connection(configure_connection().create<connection&>()) {}
+      , m_connection(make_connection()) {}
 
   /**
    * Bootstrap the module

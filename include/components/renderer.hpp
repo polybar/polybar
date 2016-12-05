@@ -1,7 +1,13 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/logger.hpp"
 #include "components/types.hpp"
+#include "events/signal_emitter.hpp"
+#include "events/signal_fwd.hpp"
+#include "events/signal_receiver.hpp"
+#include "x11/connection.hpp"
+#include "x11/fonts.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
@@ -10,12 +16,17 @@ class connection;
 class font_manager;
 class logger;
 
-class renderer {
+using namespace signals::parser;
+
+class renderer
+    : public signal_receiver<SIGN_PRIORITY_RENDERER, change_background, change_foreground, change_underline,
+          change_overline, change_font, change_alignment, offset_pixel, attribute_set, attribute_unset,
+          attribute_toggle, action_begin, action_end, write_text_ascii, write_text_unicode, write_text_string> {
  public:
   enum class gc : uint8_t { BG, FG, OL, UL, BT, BB, BL, BR };
 
-  explicit renderer(connection& conn, const logger& logger, unique_ptr<font_manager> font_manager,
-      const bar_settings& bar, const vector<string>& fonts);
+  explicit renderer(connection& conn, signal_emitter& emitter, const logger& logger,
+      unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts);
   ~renderer();
 
   xcb_window_t window() const;
@@ -52,6 +63,22 @@ class renderer {
   int16_t shift_content(int16_t x, const int16_t shift_x);
   int16_t shift_content(const int16_t shift_x);
 
+  bool on(const change_background& evt);
+  bool on(const change_foreground& evt);
+  bool on(const change_underline& evt);
+  bool on(const change_overline& evt);
+  bool on(const change_font& evt);
+  bool on(const change_alignment& evt);
+  bool on(const offset_pixel& evt);
+  bool on(const attribute_set& evt);
+  bool on(const attribute_unset& evt);
+  bool on(const attribute_toggle& evt);
+  bool on(const action_begin& evt);
+  bool on(const action_end& evt);
+  bool on(const write_text_ascii& evt);
+  bool on(const write_text_unicode& evt);
+  bool on(const write_text_string& evt);
+
 #ifdef DEBUG_HINTS
   vector<xcb_window_t> m_debughints;
   void debug_hints();
@@ -65,13 +92,13 @@ class renderer {
 
  private:
   connection& m_connection;
+  signal_emitter& m_sig;
   const logger& m_log;
   unique_ptr<font_manager> m_fontmanager;
 
   const bar_settings& m_bar;
 
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
-
   xcb_rectangle_t m_cleared{0, 0, 0U, 0U};
   reserve_area m_cleararea{};
 
@@ -95,6 +122,21 @@ class renderer {
   xcb_font_t m_gcfont{XCB_NONE};
 };
 
-di::injector<unique_ptr<renderer>> configure_renderer(const bar_settings& bar, const vector<string>& fonts);
+namespace {
+  /**
+   * Configure injection module
+   */
+  inline unique_ptr<renderer> make_renderer(const bar_settings& bar, const vector<string>& fonts) {
+    // clang-format off
+    return factory_util::unique<renderer>(
+          make_connection(),
+          make_signal_emitter(),
+          make_logger(),
+          make_font_manager(),
+          bar,
+          fonts);
+    // clang-format on
+  }
+}
 
 POLYBAR_NS_END

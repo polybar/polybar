@@ -105,13 +105,12 @@ namespace inotify_util {
     return m_path;
   }
 
-  watch_t make_watch(string path) {
-    di::injector<watch_t> injector = di::make_injector(di::bind<>().to(path));
-    return injector.create<watch_t>();
-  }
-
   bool match(const event_t* evt, int mask) {
     return (evt->mask & mask) == mask;
+  }
+
+  watch_t make_watch(string path) {
+    return watch_t{new watch_t::element_type{path}};
   }
 }
 

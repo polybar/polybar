@@ -4,11 +4,15 @@
 
 #include "components/ipc.hpp"
 #include "config.hpp"
+#include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "utils/file.hpp"
 #include "utils/io.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
+
+using namespace signals::ipc;
 
 /**
  * Interrupt the blocked listener and
@@ -26,27 +30,6 @@ ipc::~ipc() {
     fwrite(p, sizeof(char), sizeof(p), (*f)());
     unlink(m_fifo.c_str());
   }
-}
-
-/**
- * Register listener callback for ipc_command messages
- */
-void ipc::attach_callback(callback<const ipc_command&>&& cb) {
-  m_command_callbacks.emplace_back(cb);
-}
-
-/**
- * Register listener callback for ipc_hook messages
- */
-void ipc::attach_callback(callback<const ipc_hook&>&& cb) {
-  m_hook_callbacks.emplace_back(cb);
-}
-
-/**
- * Register listener callback for ipc_action messages
- */
-void ipc::attach_callback(callback<const ipc_action&>&& cb) {
-  m_action_callbacks.emplace_back(cb);
 }
 
 /**
@@ -76,52 +59,19 @@ void ipc::parse(const string& payload) const {
   if (payload.empty()) {
     return;
   } else if (payload.find(ipc_command::prefix) == 0) {
-    delegate(ipc_command{payload});
+    ipc_command msg{};
+    memcpy(msg.payload, &payload[0], payload.size());
+    m_sig.emit(process_command{move(msg)});
   } else if (payload.find(ipc_hook::prefix) == 0) {
-    delegate(ipc_hook{payload});
+    ipc_hook msg{};
+    memcpy(msg.payload, &payload[0], payload.size());
+    m_sig.emit(process_hook{move(msg)});
   } else if (payload.find(ipc_action::prefix) == 0) {
-    delegate(ipc_action{payload});
+    ipc_action msg{};
+    memcpy(msg.payload, &payload[0], payload.size());
+    m_sig.emit(process_action{move(msg)});
   } else {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
-  }
-}
-
-/**
- * Send ipc message to attached listeners
- */
-void ipc::delegate(const ipc_command& message) const {
-  if (!m_command_callbacks.empty()) {
-    for (auto&& callback : m_command_callbacks) {
-      callback(message);
-    }
-  } else {
-    m_log.warn("Unhandled message (payload=%s)", message.payload);
-  }
-}
-
-/**
- * Send ipc message to attached listeners
- */
-void ipc::delegate(const ipc_hook& message) const {
-  if (!m_hook_callbacks.empty()) {
-    for (auto&& callback : m_hook_callbacks) {
-      callback(message);
-    }
-  } else {
-    m_log.warn("Unhandled message (payload=%s)", message.payload);
-  }
-}
-
-/**
- * Send ipc message to attached listeners
- */
-void ipc::delegate(const ipc_action& message) const {
-  if (!m_action_callbacks.empty()) {
-    for (auto&& callback : m_action_callbacks) {
-      callback(message);
-    }
-  } else {
-    m_log.warn("Unhandled message (payload=%s)", message.payload);
   }
 }
 

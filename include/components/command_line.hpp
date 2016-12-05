@@ -1,7 +1,10 @@
 #pragma once
 
+#include <map>
+
 #include "common.hpp"
 #include "errors.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -12,7 +15,7 @@ namespace command_line {
   class option;
   using choices = vector<string>;
   using options = vector<option>;
-  using values = map<string, string>;
+  using values = std::map<string, string>;
 
   // class definition : option {{{
 
@@ -69,13 +72,8 @@ namespace {
   /**
    * Configure injection module
    */
-  template <class T = cliparser>
-  di::injector<T> configure_cliparser(string scriptname, const clioptions& opts) {
-    // clang-format off
-    return di::make_injector(
-        di::bind<>().to("Usage: " + scriptname + " bar_name [OPTION...]"),
-        di::bind<>().to(opts));
-    // clang-format on
+  inline unique_ptr<cliparser> make_command_line(string scriptname, const clioptions& opts) {
+    return factory_util::unique<cliparser>("Usage: " + scriptname + " bar_name [OPTION...]", opts);
   }
 }
 

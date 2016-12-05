@@ -5,33 +5,28 @@
 #include "components/eventloop.hpp"
 #include "components/logger.hpp"
 #include "components/screen.hpp"
-#include "components/signals.hpp"
 #include "components/types.hpp"
+#include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "x11/connection.hpp"
 #include "x11/randr.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS
 
-/**
- * Configure injection module
- */
-di::injector<unique_ptr<screen>> configure_screen() {
-  return di::make_injector(configure_connection(), configure_logger(), configure_config());
-}
+using namespace signals::eventloop;
 
 /**
  * Construct screen instance
  */
-screen::screen(connection& conn, const logger& logger, const config& conf)
+screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf)
     : m_connection(conn)
+    , m_sig(emitter)
     , m_log(logger)
     , m_conf(conf)
     , m_root(conn.root())
     , m_monitors(randr_util::get_monitors(m_connection, m_root, true))
     , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
-  assert(g_signals::event::enqueue != nullptr);
-
   // Check if the reloading has been disabled by the user
   if (!m_conf.get<bool>("settings", "screenchange-reload", false)) {
     return;
@@ -105,8 +100,8 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   }
 
   m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
+  m_sig.emit(process_quit{eventloop::make_quit_evt(true)});
   m_sigraised = true;
-  g_signals::event::enqueue(eventloop::make(quit_event{}, true));
 }
 
 POLYBAR_NS_END

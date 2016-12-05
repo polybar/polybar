@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include <X11/Xft/Xft.h>
 
 #include "common.hpp"
@@ -26,7 +28,7 @@ class color {
   string m_source;
 };
 
-extern map<string, class color> g_colorstore;
+extern std::map<string, class color> g_colorstore;
 extern color g_colorempty;
 extern color g_colorblack;
 extern color g_colorwhite;

@@ -18,7 +18,7 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xkeyboard_module>(bar, logger, config, name)
-      , m_connection(configure_connection().create<connection&>()) {}
+      , m_connection(make_connection()) {}
 
   /**
    * Bootstrap the module

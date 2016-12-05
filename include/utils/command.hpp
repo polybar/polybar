@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "errors.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
 
@@ -73,15 +74,13 @@ namespace command_util {
     concurrency_util::spin_lock m_pipelock;
   };
 
-  using command_t = unique_ptr<command>;
-
   template <typename... Args>
-  command_t make_command(Args&&... args) {
-    return make_unique<command>(configure_logger().create<const logger&>(), forward<Args>(args)...);
+  unique_ptr<command> make_command(Args&&... args) {
+    return make_unique<command>(make_logger(), forward<Args>(args)...);
   }
 }
 
 using command = command_util::command;
-using command_t = command_util::command_t;
+using command_t = unique_ptr<command>;
 
 POLYBAR_NS_END

@@ -25,7 +25,7 @@ namespace modules {
    */
   class xbacklight_module : public static_module<xbacklight_module>, public xpp::event::sink<evt::randr_notify> {
    public:
-    xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name);
+    explicit xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name);
 
     void setup();
     void teardown();
@@ -39,24 +39,23 @@ namespace modules {
     }
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR = "<bar>";
-    static constexpr auto TAG_RAMP = "<ramp>";
+    static constexpr const char* TAG_LABEL{"<label>"};
+    static constexpr const char* TAG_BAR{"<bar>"};
+    static constexpr const char* TAG_RAMP{"<ramp>"};
 
-    static constexpr auto EVENT_SCROLLUP = "xbacklight+";
-    static constexpr auto EVENT_SCROLLDOWN = "xbacklight-";
+    static constexpr const char* EVENT_SCROLLUP{"xbacklight+"};
+    static constexpr const char* EVENT_SCROLLDOWN{"xbacklight-"};
 
     connection& m_connection;
     monitor_t m_output;
     xcb_window_t m_proxy;
-    event_timer m_randrnotify{};
 
     ramp_t m_ramp;
     label_t m_label;
     progressbar_t m_progressbar;
 
-    bool m_scroll = true;
-    int m_percentage = 0;
+    bool m_scroll{true};
+    int m_percentage{0};
   };
 }
 

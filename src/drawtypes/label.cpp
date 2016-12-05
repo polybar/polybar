@@ -19,7 +19,7 @@ namespace drawtypes {
       std::back_insert_iterator<decltype(tokens)> back_it(tokens);
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
-    return make_shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding, m_margin,
+    return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding, m_margin,
         m_maxlen, m_ellipsis, move(tokens));
   }
 
@@ -145,7 +145,7 @@ namespace drawtypes {
       auto value = conf.get<int>(section, key, 0);
       auto left = conf.get<int>(section, key + "-left", value);
       auto right = conf.get<int>(section, key + "-right", value);
-      return side_values {static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
+      return side_values{static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
     };
 
     padding = get_left_right(name + "-padding");

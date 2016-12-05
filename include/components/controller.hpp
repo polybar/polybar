@@ -3,11 +3,16 @@
 #include <csignal>
 
 #include "common.hpp"
+#include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
+#include "components/types.hpp"
 #include "config.hpp"
+#include "events/signal_emitter.hpp"
+#include "events/signal_fwd.hpp"
+#include "events/signal_receiver.hpp"
 #include "utils/command.hpp"
 #include "utils/inotify.hpp"
 #include "x11/connection.hpp"
@@ -18,65 +23,46 @@ POLYBAR_NS
 // fwd decl {{{
 
 class bar;
+struct bar_settings;
 
 // }}}
 
 using watch_t = inotify_util::watch_t;
 
-class controller {
- public:
-  explicit controller(connection& conn, const logger& logger, const config& config, unique_ptr<eventloop> eventloop,
-      unique_ptr<bar> bar, inotify_util::watch_t& confwatch)
-      : m_connection(conn)
-      , m_log(logger)
-      , m_conf(config)
-      , m_eventloop(forward<decltype(eventloop)>(eventloop))
-      , m_bar(forward<decltype(bar)>(bar))
-      , m_confwatch(confwatch) {}
+namespace sig_ev = signals::eventloop;
+namespace sig_ui = signals::ui;
+namespace sig_ipc = signals::ipc;
 
+class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::process_update, sig_ev::process_input,
+                       sig_ev::process_quit, sig_ui::button_press, sig_ipc::process_action, sig_ipc::process_command,
+                       sig_ipc::process_hook> {
+ public:
+  explicit controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
+      unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback);
   ~controller();
 
-  void bootstrap(bool writeback = false, bool dump_wmname = false);
+  void setup();
   bool run();
 
+  const bar_settings opts() const;
+
  protected:
-  void install_sigmask();
-  void uninstall_sigmask();
-
-  void install_confwatch();
-  void uninstall_confwatch();
-
   void wait_for_signal();
   void wait_for_xevent();
   void wait_for_eventloop();
   void wait_for_configwatch();
 
-  void bootstrap_modules();
-
-  void on_ipc_action(const ipc_action& message);
-  void on_mouse_event(const string& input);
-  void on_unrecognized_action(string input);
-  void on_update(bool force);
-
- private:
-  enum class thread_role {
-    EVENT_QUEUE,
-    EVENT_QUEUE_X,
-    IPC_LISTENER,
-    CONF_LISTENER,
-  };
-
-  bool is_thread_joinable(thread_role&& role) {
-    if (m_threads.find(role) == m_threads.end()) {
-      return false;
-    } else {
-      return m_threads[role].joinable();
-    }
-  }
+  bool on(const sig_ev::process_update& evt);
+  bool on(const sig_ev::process_input& evt);
+  bool on(const sig_ev::process_quit& evt);
+  bool on(const sig_ui::button_press& evt);
+  bool on(const sig_ipc::process_action& evt);
+  bool on(const sig_ipc::process_command& evt);
+  bool on(const sig_ipc::process_hook& evt);
 
  private:
   connection& m_connection;
-  registry m_registry{m_connection};
+  signal_emitter& m_sig;
   const logger& m_log;
   const config& m_conf;
   unique_ptr<eventloop> m_eventloop;
@@ -86,18 +72,37 @@ class controller {
   stateflag m_running{false};
   stateflag m_reload{false};
   stateflag m_waiting{false};
-  stateflag m_trayactivated{false};
 
-  sigset_t m_blockmask;
   sigset_t m_waitmask;
-  map<thread_role, thread> m_threads;
+  vector<thread> m_threads;
 
-  inotify_util::watch_t& m_confwatch;
-  command_util::command_t m_command;
+  watch_t m_confwatch;
+  command_t m_command;
 
   bool m_writeback{false};
 };
 
-di::injector<unique_ptr<controller>> configure_controller(watch_t& confwatch);
+namespace {
+  inline unique_ptr<controller> make_controller(watch_t&& confwatch, bool enableipc = false, bool writeback = false) {
+    unique_ptr<ipc> ipc;
+
+    if (enableipc) {
+      ipc = make_ipc();
+    }
+
+    // clang-format off
+    return factory_util::unique<controller>(
+        make_connection(),
+        make_signal_emitter(),
+        make_logger(),
+        make_confreader(),
+        make_eventloop(),
+        make_bar(),
+        move(ipc),
+        move(confwatch),
+        writeback);
+    // clang-format on
+  }
+}
 
 POLYBAR_NS_END

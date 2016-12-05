@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 
-#include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
 #include "components/controller.hpp"
@@ -11,7 +10,6 @@
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
-#include "x11/ewmh.hpp"
 #include "x11/xutils.hpp"
 
 using namespace polybar;
@@ -34,20 +32,34 @@ int main(int argc, char** argv) {
   };
   // clang-format on
 
-  logger& logger{configure_logger<decltype(logger)>(loglevel::WARNING).create<decltype(logger)>()};
-
   uint8_t exit_code{EXIT_SUCCESS};
   bool reload{false};
+
+  logger& logger{const_cast<class logger&>(make_logger(loglevel::WARNING))};
 
   try {
     //==================================================
     // Connect to X server
     //==================================================
     XInitThreads();
+    xcb_connection_t* xcbconn{nullptr};
 
-    if (!xutils::get_connection()) {
+    if ((xcbconn = xutils::get_connection()) == nullptr) {
       logger.err("A connection to X could not be established... ");
       throw exit_failure{};
+    }
+
+    connection{xcbconn}.preload_atoms();
+    connection{xcbconn}.query_extensions();
+
+    //==================================================
+    // Block all signals by default
+    //==================================================
+    sigset_t blockmask;
+    sigfillset(&blockmask);
+
+    if (pthread_sigmask(SIG_BLOCK, &blockmask, nullptr) == -1) {
+      throw system_error("Failed to block signals");
     }
 
     //==================================================
@@ -56,33 +68,33 @@ int main(int argc, char** argv) {
     string scriptname{argv[0]};
     vector<string> args(argv + 1, argv + argc);
 
-    cliparser cli{configure_cliparser<decltype(cli)>(scriptname, opts).create<decltype(cli)>()};
-    cli.process_input(args);
+    unique_ptr<cliparser> cli{make_command_line(scriptname, opts)};
+    cli->process_input(args);
 
-    if (cli.has("quiet")) {
+    if (cli->has("quiet")) {
       logger.verbosity(loglevel::ERROR);
-    } else if (cli.has("log")) {
-      logger.verbosity(cli.get("log"));
+    } else if (cli->has("log")) {
+      logger.verbosity(cli->get("log"));
     }
 
-    if (cli.has("help")) {
-      cli.usage();
+    if (cli->has("help")) {
+      cli->usage();
       throw exit_success{};
-    } else if (cli.has("version")) {
+    } else if (cli->has("version")) {
       print_build_info(version_details(args));
       throw exit_success{};
     } else if (args.empty() || args[0][0] == '-') {
-      cli.usage();
+      cli->usage();
       throw exit_failure{};
     }
 
     //==================================================
     // Load user configuration
     //==================================================
-    config& conf{configure_config<decltype(conf)>().create<decltype(conf)>()};
+    config& conf{const_cast<config&>(make_confreader())};
 
-    if (cli.has("config")) {
-      conf.load(cli.get("config"), args[0]);
+    if (cli->has("config")) {
+      conf.load(cli->get("config"), args[0]);
     } else if (env_util::has("XDG_CONFIG_HOME")) {
       conf.load(env_util::get("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
     } else if (env_util::has("HOME")) {
@@ -94,36 +106,42 @@ int main(int argc, char** argv) {
     //==================================================
     // Dump requested data
     //==================================================
-    if (cli.has("dump")) {
-      std::cout << conf.get<string>(conf.bar_section(), cli.get("dump")) << std::endl;
+    if (cli->has("dump")) {
+      std::cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << std::endl;
       throw exit_success{};
     }
 
     //==================================================
-    // Create config watch if we should track changes
+    // Create controller and run application
     //==================================================
-    inotify_util::watch_t watch;
+    unique_ptr<controller> ctrl;
+    bool enable_ipc{conf.get<bool>(conf.bar_section(), "enable-ipc", false)};
+    watch_t confwatch;
 
-    if (cli.has("reload")) {
-      watch = inotify_util::make_watch(conf.filepath());
+    if (cli->has("print-wmname")) {
+      enable_ipc = false;
+    } else if (cli->has("reload")) {
+      inotify_util::make_watch(conf.filepath());
     }
 
-    //==================================================
-    // Create controller
-    //==================================================
-    auto ctrl = configure_controller(watch).create<unique_ptr<controller>>();
+    ctrl = make_controller(move(confwatch), enable_ipc, cli->has("stdout"));
 
-    ctrl->bootstrap(cli.has("stdout"), cli.has("print-wmname"));
-
-    if (cli.has("print-wmname")) {
+    if (cli->has("print-wmname")) {
+      std::cout << ctrl->opts().wmname << std::endl;
       throw exit_success{};
     }
 
-    //==================================================
-    // Run application
-    //==================================================
+    ctrl->setup();
+
     if (!ctrl->run()) {
       reload = true;
+    }
+
+    //==================================================
+    // Unblock signals
+    //==================================================
+    if (pthread_sigmask(SIG_UNBLOCK, &blockmask, nullptr) == -1) {
+      throw system_error("Failed to unblock signals");
     }
   } catch (const exit_success& term) {
     exit_code = EXIT_SUCCESS;

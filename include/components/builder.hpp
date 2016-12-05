@@ -1,11 +1,15 @@
 #pragma once
 
+#include <map>
+
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
 #include "config.hpp"
 
 POLYBAR_NS
+
+using std::map;
 
 #define DEFAULT_SPACING -1
 
@@ -28,7 +32,7 @@ class builder {
   explicit builder(const bar_settings bar) : m_bar(bar) {}
 
   string flush();
-  void append(string text);
+  void append(const string& text);
   void node(string str, bool add_space = false);
   void node(string str, int font_index, bool add_space = false);
   void node(const label_t& label, bool add_space = false);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "config.hpp"
 
 #if not WITH_XKB
@@ -23,6 +25,8 @@
 #include "common.hpp"
 
 POLYBAR_NS
+
+using std::map;
 
 // fwd
 class connection;

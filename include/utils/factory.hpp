@@ -20,14 +20,19 @@ namespace factory_util {
     }
   };
 
-  template <class InstanceType, class... Deps>
-  unique_ptr<InstanceType> generic_instance(Deps... deps) {
-    return make_unique<InstanceType>(deps...);
+  template <typename T, typename... Deps>
+  unique_ptr<T> unique(Deps&&... deps) {
+    return make_unique<T>(forward<Deps>(deps)...);
   }
 
-  template <class InstanceType, class... Deps>
-  shared_ptr<InstanceType> generic_singleton(Deps... deps) {
-    static auto instance = make_shared<InstanceType>(deps...);
+  template <typename T, typename... Deps>
+  shared_ptr<T> shared(Deps&&... deps) {
+    return make_shared<T>(forward<Deps>(deps)...);
+  }
+
+  template <class T, class... Deps>
+  shared_ptr<T> singleton(Deps&&... deps) {
+    static auto instance = make_shared<T>(forward<Deps>(deps)...);
     return instance;
   }
 }

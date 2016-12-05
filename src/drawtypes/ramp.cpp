@@ -45,7 +45,7 @@ namespace drawtypes {
       vec.emplace_back(move(icon));
     }
 
-    return make_shared<ramp>(move(vec));
+    return factory_util::shared<ramp>(move(vec));
   }
 }
 

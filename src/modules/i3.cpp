@@ -55,13 +55,13 @@ namespace modules {
       m_modelabel = load_optional_label(m_conf, name(), "label-mode", "%mode%");
     }
 
-    m_icons = make_shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, make_shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
+    m_icons = factory_util::shared<iconset>();
+    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], make_shared<label>(vec[1]));
+        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
     }
 

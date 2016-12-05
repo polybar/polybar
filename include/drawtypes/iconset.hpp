@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "common.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
@@ -15,7 +17,7 @@ namespace drawtypes {
     operator bool();
 
    protected:
-    map<string, icon_t> m_icons;
+    std::map<string, icon_t> m_icons;
   };
 
   using iconset_t = shared_ptr<iconset>;

@@ -1,7 +1,5 @@
 #include <unistd.h>
 
-#include <utility>
-
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "utils/string.hpp"
@@ -12,8 +10,8 @@ POLYBAR_NS
  * Construct logger
  */
 logger::logger(loglevel level) : m_level(level) {
+  // clang-format off
   if (isatty(m_fd)) {
-    // clang-format off
     m_prefixes[loglevel::TRACE]   = "\r\033[0;90m- ";
     m_prefixes[loglevel::INFO]    = "\r\033[1;32m* \033[0m";
     m_prefixes[loglevel::WARNING] = "\r\033[1;33mwarn: \033[0m";
@@ -22,8 +20,17 @@ logger::logger(loglevel level) : m_level(level) {
     m_suffixes[loglevel::INFO]    = "\033[0m";
     m_suffixes[loglevel::WARNING] = "\033[0m";
     m_suffixes[loglevel::ERROR]   = "\033[0m";
-    // clang-format on
+  } else {
+    m_prefixes.emplace(make_pair(loglevel::TRACE,   "polybar|trace  "));
+    m_prefixes.emplace(make_pair(loglevel::INFO,    "polybar|infoe  "));
+    m_prefixes.emplace(make_pair(loglevel::WARNING, "polybar|warne  "));
+    m_prefixes.emplace(make_pair(loglevel::ERROR,   "polybar|error  "));
+    m_suffixes.emplace(make_pair(loglevel::TRACE,   ""));
+    m_suffixes.emplace(make_pair(loglevel::INFO,    ""));
+    m_suffixes.emplace(make_pair(loglevel::WARNING, ""));
+    m_suffixes.emplace(make_pair(loglevel::ERROR,   ""));
   }
+  // clang-format on
 }
 
 /**

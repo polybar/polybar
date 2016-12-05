@@ -4,6 +4,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <map>
 
 #include "common.hpp"
 #include "components/config.hpp"
@@ -19,6 +20,7 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
+using std::map;
 
 #define DEFAULT_FORMAT "format"
 

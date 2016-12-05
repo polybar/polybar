@@ -21,7 +21,7 @@ namespace modules {
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xbacklight_module>(bar, logger, config, name)
-      , m_connection(configure_connection().create<connection&>()) {}
+      , m_connection(make_connection()) {}
 
   /**
    * Bootstrap the module by grabbing all required components
@@ -59,9 +59,6 @@ namespace modules {
     if (!graphics_util::create_window(m_connection, &m_proxy, -1, -1, 1, 1)) {
       throw module_error("Failed to create event proxy");
     }
-
-    // Get the throttle time
-    m_randrnotify.offset = xutils::event_timer_ms(m_conf, xcb_randr_notify_event_t{});
 
     // Connect with the event registry and make sure we get
     // notified when a RandR output property gets modified
@@ -106,8 +103,6 @@ namespace modules {
       return;
     } else if (evt->u.op.atom != m_output->backlight.atom) {
       return;
-    } else if (m_randrnotify.deny(evt->u.op.timestamp)) {
-      return m_log.trace_x("%s: Ignoring randr notify (throttled)...", name());
     } else {
       update();
     }
@@ -142,8 +137,8 @@ namespace modules {
     // with the cmd handlers
     string output{module::get_output()};
 
-    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP, m_scroll && m_percentage < 100);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN, m_scroll && m_percentage > 0);
+    m_builder->cmd(mousebtn::SCROLL_UP, string{EVENT_SCROLLUP}, m_scroll && m_percentage < 100);
+    m_builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_SCROLLDOWN}, m_scroll && m_percentage > 0);
 
     m_builder->append(output);
 

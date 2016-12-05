@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "components/config.hpp"
+#include "components/logger.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 

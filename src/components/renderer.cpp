@@ -2,6 +2,9 @@
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
+#include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
+#include "events/signal.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
@@ -13,29 +16,18 @@
 POLYBAR_NS
 
 /**
- * Configure injection module
- */
-di::injector<unique_ptr<renderer>> configure_renderer(const bar_settings& bar, const vector<string>& fonts) {
-  // clang-format off
-  return di::make_injector(
-      di::bind<>().to(bar),
-      di::bind<>().to(fonts),
-      configure_connection(),
-      configure_logger(),
-      configure_font_manager());
-  // clang-format on
-}
-
-/**
  * Construct renderer instance
  */
-renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manager> font_manager,
-    const bar_settings& bar, const vector<string>& fonts)
+renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logger,
+    unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts)
     : m_connection(conn)
+    , m_sig(emitter)
     , m_log(logger)
     , m_fontmanager(forward<decltype(font_manager)>(font_manager))
-    , m_bar(bar)
-    , m_rect(bar.inner_area()) {
+    , m_bar(forward<const bar_settings&>(bar))
+    , m_rect(m_bar.inner_area()) {
+  m_sig.attach(this);
+
   m_log.trace("renderer: Get TrueColor visual");
   m_visual = m_connection.visual_type(m_connection.screen(), 32).get();
 
@@ -127,11 +119,9 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
     if (!fonts_loaded && !fonts.empty()) {
       m_log.warn("Unable to load fonts, using fallback font \"fixed\"");
     }
-
     if (!fonts_loaded && !m_fontmanager->load("fixed")) {
       throw application_error("Unable to load fonts");
     }
-
     m_fontmanager->allocate_color(m_bar.foreground, true);
   }
 }
@@ -140,6 +130,8 @@ renderer::renderer(connection& conn, const logger& logger, unique_ptr<font_manag
  * Deconstruct instance
  */
 renderer::~renderer() {
+  m_sig.detach(this);
+
   if (m_window != XCB_NONE) {
     m_connection.destroy_window(m_window);
   }
@@ -183,7 +175,7 @@ void renderer::end() {
 }
 
 /**
- * Redraw window contents
+ * Flush pixmap contents onto the target window
  */
 void renderer::flush(bool clear) {
   const xcb_rectangle_t& r = m_rect;
@@ -291,110 +283,14 @@ void renderer::reserve_space(edge side, uint16_t w) {
 }
 
 /**
- * Change value of background gc
- */
-void renderer::set_background(const uint32_t color) {
-  if (m_colors[gc::BG] == color) {
-    return m_log.trace_x("renderer: ignoring unchanged background color(#%08x)", color);
-  }
-  m_log.trace_x("renderer: set_background(#%08x)", color);
-  m_connection.change_gc(m_gcontexts.at(gc::BG), XCB_GC_FOREGROUND, &color);
-  m_colors[gc::BG] = color;
-  shift_content(0);
-}
-
-/**
- * Change value of foreground gc
- */
-void renderer::set_foreground(const uint32_t color) {
-  if (m_colors[gc::FG] == color) {
-    return m_log.trace_x("renderer: ignoring unchanged foreground color(#%08x)", color);
-  }
-  m_log.trace_x("renderer: set_foreground(#%08x)", color);
-  m_connection.change_gc(m_gcontexts.at(gc::FG), XCB_GC_FOREGROUND, &color);
-  m_fontmanager->allocate_color(color);
-  m_colors[gc::FG] = color;
-}
-
-/**
- * Change value of underline gc
- */
-void renderer::set_underline(const uint32_t color) {
-  if (m_colors[gc::UL] == color) {
-    return m_log.trace_x("renderer: ignoring unchanged underline color(#%08x)", color);
-  }
-  m_log.trace_x("renderer: set_underline(#%08x)", color);
-  m_connection.change_gc(m_gcontexts.at(gc::UL), XCB_GC_FOREGROUND, &color);
-  m_colors[gc::UL] = color;
-}
-
-/**
- * Change value of overline gc
- */
-void renderer::set_overline(const uint32_t color) {
-  if (m_colors[gc::OL] == color) {
-    return m_log.trace_x("renderer: ignoring unchanged overline color(#%08x)", color);
-  }
-  m_log.trace_x("renderer: set_overline(#%08x)", color);
-  m_connection.change_gc(m_gcontexts.at(gc::OL), XCB_GC_FOREGROUND, &color);
-  m_colors[gc::OL] = color;
-}
-
-/**
- * Change preferred font index used when matching glyphs
- */
-void renderer::set_fontindex(const int8_t font) {
-  if (m_fontindex == font) {
-    return m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<int8_t>(font));
-  }
-  m_log.trace_x("renderer: set_fontindex(%i)", static_cast<int8_t>(font));
-  m_fontmanager->set_preferred_font(font);
-  m_fontindex = font;
-}
-
-/**
- * Change current alignment
- */
-void renderer::set_alignment(const alignment align) {
-  if (align == m_alignment) {
-    return m_log.trace_x("renderer: ignoring unchanged alignment(%i)", static_cast<uint8_t>(align));
-  }
-
-  m_log.trace_x("renderer: set_alignment(%i)", static_cast<uint8_t>(align));
-  m_alignment = align;
-  m_currentx = 0;
-}
-
-/**
- * Enable/remove attribute
- */
-void renderer::set_attribute(const attribute attr, bool state) {
-  m_log.trace_x("renderer: set_attribute(%i, %i)", static_cast<uint8_t>(attr), state);
-
-  if (state) {
-    m_attributes |= 1U << static_cast<uint8_t>(attr);
-  } else {
-    m_attributes &= ~(1U << static_cast<uint8_t>(attr));
-  }
-}
-
-/**
- * Toggle attribute
- */
-void renderer::toggle_attribute(const attribute attr) {
-  m_log.trace_x("renderer: toggle_attribute(%i)", static_cast<uint8_t>(attr));
-  m_attributes ^= 1U << static_cast<uint8_t>(attr);
-}
-
-/**
- * Check if the given attribute is set
+ * Check if given attribute is enabled
  */
 bool renderer::check_attribute(const attribute attr) {
   return (m_attributes >> static_cast<uint8_t>(attr)) & 1U;
 }
 
 /**
- * Fill background area
+ * Fill background color
  */
 void renderer::fill_background() {
   m_log.trace_x("renderer: fill_background");
@@ -402,7 +298,7 @@ void renderer::fill_background() {
 }
 
 /**
- * Fill overline area
+ * Fill overline color
  */
 void renderer::fill_overline(int16_t x, uint16_t w) {
   if (!check_attribute(attribute::OVERLINE)) {
@@ -415,7 +311,7 @@ void renderer::fill_overline(int16_t x, uint16_t w) {
 }
 
 /**
- * Fill underline area
+ * Fill underline color
  */
 void renderer::fill_underline(int16_t x, uint16_t w) {
   if (!check_attribute(attribute::UNDERLINE)) {
@@ -429,7 +325,7 @@ void renderer::fill_underline(int16_t x, uint16_t w) {
 }
 
 /**
- * Shift filled area by given pixels
+ * @see shift_content
  */
 void renderer::fill_shift(const int16_t px) {
   shift_content(px);
@@ -469,7 +365,7 @@ void renderer::draw_character(uint16_t character) {
 }
 
 /**
- * Draw character glyphs
+ * Draw consecutive character glyphs
  */
 void renderer::draw_textstring(const char* text, size_t len) {
   m_log.trace_x("renderer: draw_textstring(\"%s\")", text);
@@ -493,7 +389,6 @@ void renderer::draw_textstring(const char* text, size_t len) {
       chars.emplace_back(text[++n]);
     }
 
-    // TODO: cache
     auto width = m_fontmanager->char_width(font, chars[0]) * chars.size();
     auto x = shift_content(width);
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
@@ -517,70 +412,14 @@ void renderer::draw_textstring(const char* text, size_t len) {
 }
 
 /**
- * Create new action block at the current position
- */
-void renderer::begin_action(const mousebtn btn, const string& cmd) {
-  action_block action{};
-  action.button = btn;
-  action.align = m_alignment;
-  action.start_x = m_currentx;
-  action.command = string_util::replace_all(cmd, ":", "\\:");
-  action.active = true;
-  if (action.button == mousebtn::NONE) {
-    action.button = mousebtn::LEFT;
-  }
-  m_log.trace_x("renderer: begin_action(%i, %s)", static_cast<uint8_t>(action.button), cmd.c_str());
-  m_actions.emplace_back(action);
-}
-
-/**
- * End action block at the current position
- */
-void renderer::end_action(const mousebtn btn) {
-  int16_t clickable_width{0};
-
-  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
-    if (!action->active || action->align != m_alignment || action->button != btn) {
-      continue;
-    }
-
-    action->active = false;
-
-    switch (action->align) {
-      case alignment::NONE:
-        break;
-      case alignment::LEFT:
-        action->end_x = m_currentx;
-        break;
-      case alignment::CENTER:
-        clickable_width = m_currentx - action->start_x;
-        action->start_x = m_rect.width / 2 - clickable_width / 2 + action->start_x / 2;
-        action->end_x = action->start_x + clickable_width;
-        break;
-      case alignment::RIGHT:
-        action->start_x = m_rect.width - m_currentx + action->start_x;
-        action->end_x = m_rect.width;
-        break;
-    }
-
-    action->start_x += m_bar.pos.x + m_rect.x;
-    action->end_x += m_bar.pos.x + m_rect.x;
-
-    m_log.trace_x("renderer: end_action(%i, %s, %i)", static_cast<uint8_t>(btn), action->command, action->width());
-
-    return;
-  }
-}
-
-/**
- * Get all action blocks
+ * Get completed action blocks
  */
 const vector<action_block> renderer::get_actions() {
   return m_actions;
 }
 
 /**
- * Shift contents by given pixel value
+ * Shift pixmap content by given value
  */
 int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   m_log.trace_x("renderer: shift_content(%i)", shift_x);
@@ -628,7 +467,7 @@ int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
 }
 
 /**
- * Shift contents by given pixel value
+ * @see shift_content
  */
 int16_t renderer::shift_content(const int16_t shift_x) {
   return shift_content(m_currentx, shift_x);
@@ -636,7 +475,7 @@ int16_t renderer::shift_content(const int16_t shift_x) {
 
 #ifdef DEBUG_HINTS
 /**
- * Draw debugging hints onto the output window
+ * Draw boxes at the location of each created action block
  */
 void renderer::debug_hints() {
   uint16_t border_width{1};
@@ -684,5 +523,186 @@ void renderer::debug_hints() {
   }
 }
 #endif
+
+bool renderer::on(const change_background& evt) {
+  uint32_t color{*evt()};
+
+  if (m_colors[gc::BG] == color) {
+    m_log.trace_x("renderer: ignoring unchanged background color(#%08x)", color);
+  } else {
+    m_log.trace_x("renderer: set_background(#%08x)", color);
+    m_connection.change_gc(m_gcontexts.at(gc::BG), XCB_GC_FOREGROUND, &color);
+    m_colors[gc::BG] = color;
+    shift_content(0);
+  }
+
+  return true;
+}
+
+bool renderer::on(const change_foreground& evt) {
+  uint32_t color{*evt()};
+
+  if (m_colors[gc::FG] == color) {
+    m_log.trace_x("renderer: ignoring unchanged foreground color(#%08x)", color);
+  } else {
+    m_log.trace_x("renderer: set_foreground(#%08x)", color);
+    m_connection.change_gc(m_gcontexts.at(gc::FG), XCB_GC_FOREGROUND, &color);
+    m_fontmanager->allocate_color(color);
+    m_colors[gc::FG] = color;
+  }
+
+  return true;
+}
+
+bool renderer::on(const change_underline& evt) {
+  uint32_t color{*evt()};
+
+  if (m_colors[gc::UL] == color) {
+    m_log.trace_x("renderer: ignoring unchanged underline color(#%08x)", color);
+  } else {
+    m_log.trace_x("renderer: set_underline(#%08x)", color);
+    m_connection.change_gc(m_gcontexts.at(gc::UL), XCB_GC_FOREGROUND, &color);
+    m_colors[gc::UL] = color;
+  }
+
+  return true;
+}
+
+bool renderer::on(const change_overline& evt) {
+  uint32_t color{*evt()};
+
+  if (m_colors[gc::OL] == color) {
+    m_log.trace_x("renderer: ignoring unchanged overline color(#%08x)", color);
+  } else {
+    m_log.trace_x("renderer: set_overline(#%08x)", color);
+    m_connection.change_gc(m_gcontexts.at(gc::OL), XCB_GC_FOREGROUND, &color);
+    m_colors[gc::OL] = color;
+  }
+
+  return true;
+}
+
+bool renderer::on(const change_font& evt) {
+  int8_t font{*evt()};
+
+  if (m_fontindex == font) {
+    m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<int8_t>(font));
+  } else {
+    m_log.trace_x("renderer: set_fontindex(%i)", static_cast<int8_t>(font));
+    m_fontmanager->set_preferred_font(font);
+    m_fontindex = font;
+  }
+
+  return true;
+}
+
+bool renderer::on(const change_alignment& evt) {
+  alignment align{*evt()};
+
+  if (align == m_alignment) {
+    m_log.trace_x("renderer: ignoring unchanged alignment(%i)", static_cast<uint8_t>(align));
+  } else {
+    m_log.trace_x("renderer: set_alignment(%i)", static_cast<uint8_t>(align));
+    m_alignment = align;
+    m_currentx = 0;
+  }
+
+  return true;
+}
+
+bool renderer::on(const offset_pixel& evt) {
+  shift_content(*evt());
+  return true;
+}
+
+bool renderer::on(const attribute_set& evt) {
+  m_log.trace_x("renderer: attribute_set(%i, %i)", static_cast<uint8_t>(*evt()), true);
+  m_attributes |= 1U << static_cast<uint8_t>(*evt());
+  return true;
+}
+
+bool renderer::on(const attribute_unset& evt) {
+  m_log.trace_x("renderer: attribute_unset(%i, %i)", static_cast<uint8_t>(*evt()), true);
+  m_attributes &= ~(1U << static_cast<uint8_t>(*evt()));
+  return true;
+}
+
+bool renderer::on(const attribute_toggle& evt) {
+  m_log.trace_x("renderer: attribute_toggle(%i)", static_cast<uint8_t>(*evt()));
+  m_attributes ^= 1U << static_cast<uint8_t>(*evt());
+  return true;
+}
+
+bool renderer::on(const action_begin& evt) {
+  action a{*evt()};
+  action_block action{};
+  action.button = a.button;
+  action.align = m_alignment;
+  action.start_x = m_currentx;
+  action.command = string_util::replace_all(a.command, ":", "\\:");
+  action.active = true;
+
+  if (action.button == mousebtn::NONE) {
+    action.button = mousebtn::LEFT;
+  }
+
+  m_log.trace_x("renderer: action_begin(%i, %s)", static_cast<uint8_t>(a.button), a.command.c_str());
+  m_actions.emplace_back(action);
+
+  return true;
+}
+
+bool renderer::on(const action_end& evt) {
+  mousebtn btn{*evt()};
+  int16_t clickable_width{0};
+
+  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
+    if (!action->active || action->align != m_alignment || action->button != btn) {
+      continue;
+    }
+
+    action->active = false;
+
+    switch (action->align) {
+      case alignment::NONE:
+        break;
+      case alignment::LEFT:
+        action->end_x = m_currentx;
+        break;
+      case alignment::CENTER:
+        clickable_width = m_currentx - action->start_x;
+        action->start_x = m_rect.width / 2 - clickable_width / 2 + action->start_x / 2;
+        action->end_x = action->start_x + clickable_width;
+        break;
+      case alignment::RIGHT:
+        action->start_x = m_rect.width - m_currentx + action->start_x;
+        action->end_x = m_rect.width;
+        break;
+    }
+
+    action->start_x += m_bar.pos.x + m_rect.x;
+    action->end_x += m_bar.pos.x + m_rect.x;
+
+    m_log.trace_x("renderer: action_end(%i, %s, %i)", static_cast<uint8_t>(btn), action->command, action->width());
+  }
+
+  return true;
+}
+
+bool renderer::on(const write_text_ascii& evt) {
+  draw_character(*evt());
+  return true;
+}
+
+bool renderer::on(const write_text_unicode& evt) {
+  draw_character(*evt());
+  return true;
+}
+
+bool renderer::on(const write_text_string& evt) {
+  string text{*evt()};
+  draw_textstring(text.c_str(), text.size());
+  return true;
+}
 
 POLYBAR_NS_END

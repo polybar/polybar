@@ -22,6 +22,6 @@ class xresource_manager {
   XrmDatabase m_db;
 };
 
-di::injector<const xresource_manager&> configure_xresource_manager();
+const xresource_manager& make_xresource_manager();
 
 POLYBAR_NS_END

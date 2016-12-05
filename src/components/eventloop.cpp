@@ -1,8 +1,8 @@
 #include <csignal>
 
 #include "components/eventloop.hpp"
-#include "components/signals.hpp"
 #include "components/types.hpp"
+#include "events/signal.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/color.hpp"
@@ -12,31 +12,18 @@ POLYBAR_NS
 /**
  * Construct eventloop instance
  */
-eventloop::eventloop(const logger& logger, const config& config) : m_log(logger), m_conf(config) {
-  m_delayed_time = duration_t{m_conf.get<double>("settings", "eventloop-delayed-time", 25)};
+eventloop::eventloop(signal_emitter& emitter, const logger& logger, const config& config)
+    : m_sig(emitter), m_log(logger), m_conf(config) {
   m_swallow_time = duration_t{m_conf.get<double>("settings", "eventloop-swallow-time", 10)};
   m_swallow_limit = m_conf.get<size_t>("settings", "eventloop-swallow", 5U);
-
-  g_signals::event::enqueue = bind(&eventloop::enqueue, this, placeholders::_1);
-  g_signals::event::enqueue_delayed = bind(&eventloop::enqueue_delayed, this, placeholders::_1);
+  m_sig.attach(this);
 }
 
 /**
  * Deconstruct eventloop
  */
 eventloop::~eventloop() {
-  g_signals::event::enqueue = g_signals::noop<const eventloop::entry_t&>;
-  g_signals::event::enqueue_delayed = g_signals::noop<const eventloop::entry_t&>;
-
-  m_update_cb = nullptr;
-  m_unrecognized_input_cb = nullptr;
-
-  if (m_delayed_thread.joinable()) {
-    m_delayed_thread.join();
-  }
-  if (m_queue_thread.joinable()) {
-    m_queue_thread.join();
-  }
+  m_sig.detach(this);
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
@@ -45,7 +32,7 @@ eventloop::~eventloop() {
         module->stop();
         module.reset();
       });
-      m_log.trace("eventloop: Deconstruction of %s took %lu microsec.", module_name, cleanup_ms);
+      m_log.info("eventloop: Deconstruction of %s took %lu microsec.", module_name, cleanup_ms);
     }
   }
 }
@@ -56,19 +43,61 @@ eventloop::~eventloop() {
 void eventloop::start() {
   m_log.info("Starting event loop");
   m_running = true;
-
   dispatch_modules();
 
-  m_queue_thread = thread(&eventloop::dispatch_queue_worker, this);
-  m_delayed_thread = thread(&eventloop::dispatch_delayed_worker, this);
+  while (m_running) {
+    event evt, next;
+    input_data data;
+
+    m_queue.wait_dequeue(evt);
+
+    if (!m_running) {
+      break;
+    }
+
+    if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+      while (m_running && m_inputqueue.try_dequeue(data)) {
+        m_sig.emit(process_input{move(data)});
+      }
+    } else {
+      size_t swallowed{0};
+      while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_time)) {
+        if (next.type == static_cast<uint8_t>(event_type::QUIT)) {
+          evt = next;
+          break;
+
+        } else if (next.type == static_cast<uint8_t>(event_type::INPUT)) {
+          evt = next;
+          break;
+
+        } else if (!compare_events(evt, next)) {
+          enqueue(move(next));
+          break;
+
+        } else {
+          m_log.trace_x("eventloop: Swallowing event within timeframe");
+          evt = next;
+        }
+      }
+
+      if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+        while (m_inputqueue.try_dequeue(data)) {
+          m_sig.emit(process_input{move(data)});
+        }
+      } else {
+        forward_event(evt);
+      }
+    }
+  }
+
+  m_log.info("Queue worker done");
 }
 
-/**
- * Wait for worker threads to end
- */
-void eventloop::wait() {
-  if (m_queue_thread.joinable()) {
-    m_queue_thread.join();
+void eventloop::process_inputqueue() {
+  input_data data{};
+
+  while (m_inputqueue.try_dequeue(data)) {
+    m_sig.emit(process_input{move(data)});
   }
 }
 
@@ -78,61 +107,33 @@ void eventloop::wait() {
 void eventloop::stop() {
   m_log.info("Stopping event loop");
   m_running = false;
-
-  if (m_delayed_thread.joinable()) {
-    m_delayed_cond.notify_one();
-  }
-
-  enqueue({static_cast<uint8_t>(event_type::QUIT)});
+  m_sig.emit(enqueue_quit{make_quit_evt(false)});
 }
 
 /**
  * Enqueue event
  */
-bool eventloop::enqueue(const entry_t& entry) {
-  if (m_queue.enqueue(entry)) {
-    return true;
-  }
-  m_log.warn("Failed to enqueue event (%d)", entry.type);
-  return false;
-}
+bool eventloop::enqueue(event&& evt) {
+  uint8_t type{static_cast<uint8_t>(evt.type)};
 
-/**
- * Delay enqueue by given time
- */
-bool eventloop::enqueue_delayed(const entry_t& entry) {
-  if (!m_delayed_lock.try_lock()) {
+  if (!m_queue.enqueue(move(evt))) {
+    m_log.warn("Failed to enqueue event (%d)", static_cast<uint8_t>(type));
     return false;
   }
 
-  std::unique_lock<std::mutex> guard(m_delayed_lock, std::adopt_lock);
+  return true;
+}
 
-  if (m_delayed_entry.type != 0) {
+/**
+ * Enqueue input event
+ */
+bool eventloop::enqueue(input_data&& evt) {
+  if (!m_inputqueue.enqueue(move(evt))) {
+    m_log.warn("Failed to enqueue input_data");
     return false;
   }
 
-  m_delayed_entry = entry;
-
-  if (m_queue.enqueue(entry)) {
-    return true;
-  }
-
-  m_delayed_entry.type = 0;
-  return false;
-}
-
-/**
- * Set callback handler for UPDATE events
- */
-void eventloop::set_update_cb(callback<bool>&& cb) {
-  m_update_cb = forward<decltype(cb)>(cb);
-}
-
-/**
- * Set callback handler for raw INPUT events
- */
-void eventloop::set_input_db(callback<string>&& cb) {
-  m_unrecognized_input_cb = forward<decltype(cb)>(cb);
+  return true;
 }
 
 /**
@@ -185,164 +186,100 @@ void eventloop::dispatch_modules() {
 }
 
 /**
- * Dispatch queue worker thread
- */
-void eventloop::dispatch_queue_worker() {
-  while (m_running) {
-    entry_t evt, next{static_cast<uint8_t>(event_type::NONE)};
-    m_queue.wait_dequeue(evt);
-
-    if (!m_running) {
-      break;
-    }
-
-    if (m_delayed_entry.type != 0 && compare_events(evt, m_delayed_entry)) {
-      m_delayed_cond.notify_one();
-    }
-
-    size_t swallowed{0};
-    while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_time)) {
-      if (match_event(next, event_type::QUIT)) {
-        evt = next;
-        break;
-      } else if (!compare_events(evt, next)) {
-        enqueue(move(next));
-        break;
-      }
-
-      m_log.trace_x("eventloop: Swallowing event within timeframe");
-      evt = next;
-    }
-
-    forward_event(evt);
-  }
-
-  m_log.info("Queue worker done");
-}
-
-/**
- * Dispatch delayed worker thread
- */
-void eventloop::dispatch_delayed_worker() {
-  while (true) {
-    // wait for notification
-    while (m_running && m_delayed_entry.type != 0) {
-      std::unique_lock<std::mutex> guard(m_delayed_lock);
-      m_delayed_cond.wait(guard, [&] { return m_delayed_entry.type != 0 || !m_running; });
-    }
-
-    if (!m_running) {
-      break;
-    }
-
-    this_thread::sleep_for(m_delayed_time);
-    m_delayed_entry.type = 0;
-  }
-
-  m_log.info("Delayed worker done");
-}
-
-/**
- * Test if event matches given type
- */
-inline bool eventloop::match_event(entry_t evt, event_type type) {
-  return static_cast<uint8_t>(type) == evt.type;
-}
-
-/**
  * Compare given events
  */
-inline bool eventloop::compare_events(entry_t evt, entry_t evt2) {
-  if (evt.type != evt2.type) {
-    return false;
-  } else if (match_event(evt, event_type::INPUT)) {
-    return evt.data[0] == evt2.data[0] && strncmp(evt.data, evt2.data, strlen(evt.data)) == 0;
-  }
+inline bool eventloop::compare_events(event evt, event evt2) {
+  return evt.type != evt2.type;
+}
 
-  return true;
+inline bool eventloop::compare_events(input_data data, input_data data2) {
+  return data.data[0] == data2.data[0] && strncmp(data.data, data2.data, strlen(data.data)) == 0;
 }
 
 /**
  * Forward event to handler based on type
  */
-void eventloop::forward_event(entry_t evt) {
-  if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-    on_update(reinterpret_cast<const update_event&>(evt));
-  } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
-    on_input(reinterpret_cast<const input_event&>(evt));
+void eventloop::forward_event(event evt) {
+  if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
+    m_sig.emit(process_quit{reinterpret_cast<event&&>(evt)});
+  } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
+    m_sig.emit(process_update{reinterpret_cast<event&&>(evt)});
   } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
-    on_check();
-  } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-    on_quit(reinterpret_cast<const quit_event&>(evt));
+    m_sig.emit(process_check{reinterpret_cast<event&&>(evt)});
   } else {
     m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
   }
 }
 
-/**
- * Handler for enqueued UPDATE events
- */
-void eventloop::on_update(const update_event& evt) {
-  m_log.trace("eventloop: Received UPDATE event");
-
-  if (m_update_cb) {
-    m_update_cb(evt.force);
-  } else {
-    m_log.warn("No callback to handle update");
-  }
-}
-
-/**
- * Handler for enqueued INPUT events
- */
-void eventloop::on_input(const input_event& evt) {
-  m_log.trace("eventloop: Received INPUT event");
+bool eventloop::on(const process_input& evt) {
+  string input{(*evt()).data};
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
-      if (!module->receive_events()) {
-        continue;
-      }
-      if (module->handle_event(evt.data)) {
-        return;
+      if (module->receive_events() && module->handle_event(input)) {
+        return true;
       }
     }
   }
 
-  if (m_unrecognized_input_cb) {
-    m_unrecognized_input_cb(evt.data);
-  } else {
-    m_log.warn("No callback to handle unrecognized input");
-  }
+  m_log.warn("Input event \"%s\" was rejected by all modules, passing to shell...", input);
+
+  return false;
 }
 
-/**
- * Handler for enqueued CHECK events
- */
-void eventloop::on_check() {
+bool eventloop::on(const process_check&) {
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
       if (m_running && module->running()) {
-        return;
+        return true;
       }
     }
   }
-
   m_log.warn("No running modules...");
-
-  stop();
+  enqueue(make_quit_evt(false));
+  return true;
 }
 
-/**
- * Handler for enqueued QUIT events
- */
-void eventloop::on_quit(const quit_event& evt) {
-  m_log.trace("eventloop: Received QUIT event");
+bool eventloop::on(const process_quit& evt) {
+  assert((*evt()).type == static_cast<uint8_t>(event_type::QUIT));
+  const event quit{static_cast<const event>(*evt())};
+  m_log.info("Processing QUIT event (reload=%i)", quit.flag);
   m_running = false;
+  return !quit.flag;  // break emit chain if reload flag isn't set
+}
 
-  if (evt.reload) {
-    kill(getpid(), SIGUSR1);
+bool eventloop::on(const enqueue_event& evt) {
+  m_log.trace("eventloop: enqueuing event (type=%i)", (*evt()).type);
+  return enqueue(static_cast<event>(*evt()));
+}
+
+bool eventloop::on(const enqueue_quit& evt) {
+  assert((*evt()).type == static_cast<uint8_t>(event_type::QUIT));
+  if (m_running) {
+    const event quit{reinterpret_cast<const event&>(*evt())};
+    m_log.info("Enqueuing QUIT event (reload=%i)", quit.flag);
+    return enqueue(static_cast<event>(*evt()));
   }
+  return true;
+}
+
+bool eventloop::on(const enqueue_update& evt) {
+  event update{reinterpret_cast<const event&>(*evt())};
+  assert(update.type == static_cast<uint8_t>(event_type::UPDATE));
+  m_log.trace("eventloop: enqueuing UPDATE event (force=%i)", update.flag);
+  return enqueue(move(update));
+}
+
+bool eventloop::on(const enqueue_input& evt) {
+  m_log.trace("eventloop: enqueuing INPUT event");
+  return enqueue(input_data{(*evt())}) && enqueue(make_input_evt());
+}
+
+bool eventloop::on(const enqueue_check& evt) {
+  event check{reinterpret_cast<const event&>(*evt())};
+  assert(check.type == static_cast<uint8_t>(event_type::CHECK));
+  m_log.trace("eventloop: enqueuing CHECK event");
+  return enqueue(move(check));
 }
 
 POLYBAR_NS_END

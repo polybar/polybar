@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cerrno>
+#include <cstring>
 
 #include "common.hpp"
 

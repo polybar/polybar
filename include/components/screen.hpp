@@ -1,7 +1,10 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/config.hpp"
+#include "components/logger.hpp"
 #include "components/types.hpp"
+#include "events/signal_emitter.hpp"
 #include "x11/events.hpp"
 #include "x11/window.hpp"
 
@@ -11,10 +14,11 @@ POLYBAR_NS
 class config;
 class logger;
 class connection;
+class signal_emitter;
 
 class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
  public:
-  explicit screen(connection& conn, const logger& logger, const config& conf);
+  explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
   ~screen();
 
   struct size size() const {
@@ -30,6 +34,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
 
  private:
   connection& m_connection;
+  signal_emitter& m_sig;
   const logger& m_log;
   const config& m_conf;
 
@@ -37,10 +42,20 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   xcb_window_t m_proxy{XCB_NONE};
 
   vector<monitor_t> m_monitors;
-  struct size m_size{0U, 0U};
+  struct size m_size {
+    0U, 0U
+  };
   bool m_sigraised{false};
 };
 
-di::injector<unique_ptr<screen>> configure_screen();
+namespace {
+  /**
+   * Configure injection module
+   */
+  inline unique_ptr<screen> make_screen() {
+    return factory_util::unique<screen>(
+        make_connection(), make_signal_emitter(), make_logger(), make_confreader());
+  }
+}
 
 POLYBAR_NS_END

@@ -2,8 +2,10 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "events/signal_emitter.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -12,15 +14,15 @@ POLYBAR_NS
  */
 struct ipc_command {
   static constexpr const char* prefix{"cmd:"};
-  string payload;
+  char payload[EVENT_SIZE]{'\0'};
 };
 struct ipc_hook {
   static constexpr const char* prefix{"hook:"};
-  string payload;
+  char payload[EVENT_SIZE]{'\0'};
 };
 struct ipc_action {
   static constexpr const char* prefix{"action:"};
-  string payload;
+  char payload[EVENT_SIZE]{'\0'};
 };
 
 /**
@@ -32,40 +34,28 @@ struct ipc_action {
  */
 class ipc {
  public:
-  explicit ipc(const logger& logger) : m_log(logger) {}
+  explicit ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {}
   ~ipc();
 
-  void attach_callback(callback<const ipc_command&>&& cb);
-  void attach_callback(callback<const ipc_hook&>&& cb);
-  void attach_callback(callback<const ipc_action&>&& cb);
   void receive_messages();
 
  protected:
   void parse(const string& payload) const;
-  void delegate(const ipc_command& message) const;
-  void delegate(const ipc_hook& message) const;
-  void delegate(const ipc_action& message) const;
 
  private:
+  signal_emitter& m_sig;
   const logger& m_log;
-
-  vector<callback<const ipc_command&>> m_command_callbacks;
-  vector<callback<const ipc_hook&>> m_hook_callbacks;
-  vector<callback<const ipc_action&>> m_action_callbacks;
-
-  stateflag m_running{false};
-
   string m_fifo;
   int m_fd;
+  stateflag m_running{false};
 };
 
 namespace {
   /**
    * Configure injection module
    */
-  template <typename T = unique_ptr<ipc>>
-  di::injector<T> configure_ipc() {
-    return di::make_injector(configure_logger());
+  inline unique_ptr<ipc> make_ipc() {
+    return factory_util::unique<ipc>(make_signal_emitter(), make_logger());
   }
 }
 

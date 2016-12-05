@@ -32,7 +32,7 @@ namespace modules {
    */
   class xwindow_module : public static_module<xwindow_module>, public xpp::event::sink<evt::property_notify> {
    public:
-    xwindow_module(const bar_settings&, const logger&, const config&, string);
+    explicit xwindow_module(const bar_settings&, const logger&, const config&, string);
 
     void setup();
     void teardown();

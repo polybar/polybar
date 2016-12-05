@@ -268,9 +268,9 @@ namespace {
   /**
    * Configure injection module
    */
-  template <typename T = const config&>
-  di::injector<T> configure_config() {
-    return di::make_injector(configure_logger(), configure_xresource_manager());
+  inline const config& make_confreader() {
+    shared_ptr<config> instance = factory_util::singleton<config>(make_logger(), make_xresource_manager());
+    return static_cast<config&>(*instance);
   }
 }
 

@@ -1,5 +1,5 @@
 #include <X11/Xlib.h>
-
+#include <cstring>
 #include <utility>
 
 #include "utils/factory.hpp"
@@ -11,9 +11,9 @@ POLYBAR_NS
 /**
  * Configure injection module
  */
-di::injector<const xresource_manager&> configure_xresource_manager() {
-  auto instance = factory_util::generic_singleton<xresource_manager>();
-  return di::make_injector(di::bind<>().to(instance));
+const xresource_manager& make_xresource_manager() {
+  auto instance = factory_util::singleton<xresource_manager>();
+  return static_cast<const xresource_manager&>(*instance);
 }
 
 /**

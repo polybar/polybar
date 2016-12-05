@@ -30,7 +30,7 @@ namespace modules {
     static constexpr const char* TAG_OUTPUT{"<output>"};
     static constexpr const char* TAG_LABEL{"<label>"};
 
-    command_util::command_t m_command;
+    unique_ptr<command> m_command;
 
     string m_exec;
     bool m_tail{false};

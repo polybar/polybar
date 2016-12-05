@@ -78,6 +78,6 @@ class font_manager {
   XftDraw* m_xftdraw{nullptr};
 };
 
-di::injector<unique_ptr<font_manager>> configure_font_manager();
+unique_ptr<font_manager> make_font_manager();
 
 POLYBAR_NS_END

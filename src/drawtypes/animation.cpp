@@ -61,7 +61,7 @@ namespace drawtypes {
 
     auto framerate = conf.get<int>(section, name + "-framerate", 1000);
 
-    return make_shared<animation>(move(vec), framerate);
+    return factory_util::shared<animation>(move(vec), framerate);
   }
 }
 
