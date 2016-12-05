@@ -58,10 +58,10 @@ namespace modules {
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";
 
-    static constexpr auto EVENT_PREFIX = "bwm";
-    static constexpr auto EVENT_CLICK = "bwmf";
-    static constexpr auto EVENT_SCROLL_UP = "bwmn";
-    static constexpr auto EVENT_SCROLL_DOWN = "bwmp";
+    static constexpr const char* EVENT_PREFIX{"bspwm-desk"};
+    static constexpr const char* EVENT_CLICK{"bspwm-deskfocus"};
+    static constexpr const char* EVENT_SCROLL_UP{"bspwm-desknext"};
+    static constexpr const char* EVENT_SCROLL_DOWN{"bspwm-deskprev"};
 
     bspwm_util::connection_t m_subscriber;
 
