@@ -73,7 +73,7 @@ namespace drawtypes {
         if (i % m_colorstep == 0 && color < m_colors.size()) {
           m_fill->m_foreground = m_colors[color++];
         }
-        m_builder->node(m_fill->get());
+        m_builder->node(m_fill);
       }
     } else {
       size_t color = math_util::percentage_to_value<size_t>(perc, m_colors.size() - 1);
