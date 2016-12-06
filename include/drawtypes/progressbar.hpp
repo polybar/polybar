@@ -17,6 +17,8 @@ namespace drawtypes {
     void set_fill(icon_t&& fill);
     void set_empty(icon_t&& empty);
     void set_indicator(icon_t&& indicator);
+    void set_left(icon_t&& left);
+    void set_right(icon_t&& right);
     void set_gradient(bool mode);
     void set_colors(vector<string>&& colors);
 
@@ -36,6 +38,8 @@ namespace drawtypes {
     icon_t m_fill;
     icon_t m_empty;
     icon_t m_indicator;
+    icon_t m_left;
+    icon_t m_right;
   };
 
   using progressbar_t = shared_ptr<progressbar>;

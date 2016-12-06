@@ -222,6 +222,7 @@ namespace modules {
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
       m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
+      m_label_song->replace_token("%year%", !date.empty() ? date.substr(0,4) : "unknown year");
     }
 
     if (m_label_time) {
