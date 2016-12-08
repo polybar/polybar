@@ -41,9 +41,11 @@ namespace modules {
     m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
 
     // Setup extension
+    // clang-format off
     m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
+        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
+        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
+    // clang-format on
 
     // Create keyboard object
     query_keyboard();
@@ -64,8 +66,9 @@ namespace modules {
   void xkeyboard_module::update() {
     if (m_layout) {
       m_layout->reset_tokens();
-      m_layout->replace_token("%name%", m_keyboard->group_name());
-      m_layout->replace_token("%layout%", m_keyboard->layout_name());
+      m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
+      m_layout->replace_token("%layout%", m_keyboard->layout_name(m_keyboard->current()));
+      m_layout->replace_token("%number%", to_string(m_keyboard->current()));
     }
 
     if (m_indicator) {
@@ -121,7 +124,8 @@ namespace modules {
     try {
       auto layouts = xkb_util::get_layouts(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto indicators = xkb_util::get_indicators(m_connection, XCB_XKB_ID_USE_CORE_KBD);
-      m_keyboard = make_unique<keyboard>(move(layouts), move(indicators));
+      auto current_group = xkb_util::get_current_group(m_connection, XCB_XKB_ID_USE_CORE_KBD);
+      m_keyboard = make_unique<keyboard>(move(layouts), move(indicators), current_group);
       return true;
     } catch (const exception& err) {
       throw module_error("Failed to query keyboard, err: " + string{err.what()});
@@ -148,6 +152,16 @@ namespace modules {
   void xkeyboard_module::handle(const evt::xkb_new_keyboard_notify& evt) {
     if (evt->changed & XCB_XKB_NKN_DETAIL_KEYCODES && m_xkbnotify.allow(evt->time)) {
       query_keyboard();
+      update();
+    }
+  }
+
+  /**
+   * Handler for XCB_XKB_STATE_NOTIFY events
+   */
+  void xkeyboard_module::handle(const evt::xkb_state_notify& evt) {
+    if (m_keyboard && evt->changed & XCB_XKB_STATE_PART_GROUP_STATE && m_xkbnotify.allow(evt->time)) {
+      m_keyboard->current(evt->group);
       update();
     }
   }

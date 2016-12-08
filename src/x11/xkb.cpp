@@ -30,6 +30,20 @@ bool keyboard::on(const indicator::type& i) const {
 }
 
 /**
+ * Set current group number
+ */
+void keyboard::current(uint8_t group) {
+  current_group = group;
+}
+
+/**
+ * Get current group number
+ */
+uint8_t keyboard::current() const {
+  return current_group;
+}
+
+/**
  * Get current group name
  */
 const string keyboard::group_name(size_t index) const {
@@ -43,10 +57,10 @@ const string keyboard::group_name(size_t index) const {
  * Get current layout name
  */
 const string keyboard::layout_name(size_t index) const {
-  if (!layouts.empty() && index < layouts.size() && !layouts[index].symbols.empty()) {
-    return layouts[index].symbols[0];
+  if (index >= layouts.size() || index >= layouts[index].symbols.size()) {
+    return "";
   }
-  return "";
+  return layouts[index].symbols[index];
 }
 
 /**
@@ -57,6 +71,14 @@ const string keyboard::indicator_name(const indicator::type& i) const {
 }
 
 namespace xkb_util {
+  /**
+   * Get current group number
+   */
+  uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device) {
+    auto reply = xcb_xkb_get_state_reply(conn, xcb_xkb_get_state(conn, device), nullptr);
+    return reply ? reply->group : 0;
+  }
+
   /**
    * Get keyboard layouts
    */
@@ -136,8 +158,8 @@ namespace xkb_util {
    * Parse symbol name and exclude entries blacklisted entries
    */
   string parse_layout_symbol(string&& name) {
-    auto pos = name.find('(');
-    if (pos != string::npos) {
+    size_t pos;
+    while ((pos = name.find_first_of({'(', ':'})) != string::npos) {
       name.erase(pos);
     }
     if (string_util::contains(LAYOUT_SYMBOL_BLACKLIST, ";" + name + ";")) {

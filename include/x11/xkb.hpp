@@ -57,13 +57,14 @@ class keyboard {
     vector<string> symbols;
   };
 
-  explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_)
-      : layouts(forward<decltype(layouts)>(layouts_)), indicators(forward<decltype(indicators)>(indicators_)) {}
+  explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_, uint8_t group)
+      : layouts(forward<decltype(layouts)>(layouts_)), indicators(forward<decltype(indicators)>(indicators_)), current_group(group) {}
 
   const indicator& get(const indicator::type& i) const;
   void set(uint32_t state);
   bool on(const indicator::type&) const;
-
+  void current(uint8_t  group);
+  uint8_t current() const;
   const string group_name(size_t index = 0) const;
   const string layout_name(size_t index = 0) const;
   const string indicator_name(const indicator::type&) const;
@@ -71,14 +72,16 @@ class keyboard {
  private:
   vector<layout> layouts;
   map<indicator::type, indicator> indicators;
+  uint8_t current_group{0};
 };
 
 namespace xkb_util {
   static constexpr const char* LAYOUT_SYMBOL_BLACKLIST{";group;inet;pc;"};
 
-  string parse_layout_symbol(string&& name);
+  uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device);
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device);
   map<keyboard::indicator::type, keyboard::indicator> get_indicators(connection& conn, xcb_xkb_device_spec_t device);
+  string parse_layout_symbol(string&& name);
 }
 
 POLYBAR_NS_END

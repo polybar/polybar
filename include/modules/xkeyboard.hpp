@@ -17,7 +17,7 @@ namespace modules {
    * Keyboard module using the X keyboard extension
    */
   class xkeyboard_module : public static_module<xkeyboard_module>,
-                           public xpp::event::sink<evt::xkb_new_keyboard_notify, evt::xkb_indicator_state_notify> {
+                           public xpp::event::sink<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify> {
    public:
     xkeyboard_module(const bar_settings& bar, const logger& logger, const config& config, string name);
 
@@ -31,6 +31,7 @@ namespace modules {
     bool blacklisted(const string& indicator_name);
 
     void handle(const evt::xkb_new_keyboard_notify& evt);
+    void handle(const evt::xkb_state_notify& evt);
     void handle(const evt::xkb_indicator_state_notify& evt);
 
    private:
