@@ -39,7 +39,8 @@ using font_t = unique_ptr<fonttype, fonttype_deleter>;
 
 class font_manager {
  public:
-  static unique_ptr<font_manager> make();
+  using make_type = unique_ptr<font_manager>;
+  static make_type make();
 
   explicit font_manager(connection& conn, const logger& logger);
   ~font_manager();

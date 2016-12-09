@@ -14,7 +14,7 @@ POLYBAR_NS
 /**
  * Create instance
  */
-unique_ptr<font_manager> font_manager::make() {
+font_manager::make_type font_manager::make() {
   return factory_util::unique<font_manager>(connection::make(), logger::make());
 }
 

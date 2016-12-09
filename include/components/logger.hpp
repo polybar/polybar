@@ -20,7 +20,8 @@ loglevel parse_loglevel_name(const string& name);
 
 class logger {
  public:
-  static const logger& make(loglevel level = loglevel::NONE);
+  using make_type = const logger&;
+  static make_type make(loglevel level = loglevel::NONE);
 
   explicit logger(loglevel level);
   explicit logger(string level_name) : logger(parse_loglevel_name(level_name)) {}

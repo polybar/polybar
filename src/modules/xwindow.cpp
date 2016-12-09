@@ -64,8 +64,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xwindow_module::xwindow_module(const bar_settings& bar, const logger& logger, const config& config, string name)
-      : static_module<xwindow_module>(bar, logger, config, name), m_connection(connection::make()) {}
+  xwindow_module::xwindow_module(const bar_settings& bar, string name)
+      : static_module<xwindow_module>(bar, name), m_connection(connection::make()) {}
 
   /**
    * Bootstrap the module

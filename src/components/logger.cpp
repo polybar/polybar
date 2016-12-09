@@ -10,7 +10,7 @@ POLYBAR_NS
 /**
  * Create instance
  */
-const logger& logger::make(loglevel level) {
+logger::make_type logger::make(loglevel level) {
   auto instance = factory_util::singleton<const logger>(level);
   return static_cast<const logger&>(*instance);
 }

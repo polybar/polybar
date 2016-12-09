@@ -18,7 +18,8 @@ extern signal_receivers_t g_signal_receivers;
  */
 class signal_emitter {
  public:
-  static signal_emitter& make();
+  using make_type = signal_emitter&;
+  static make_type make();
 
   explicit signal_emitter() = default;
   virtual ~signal_emitter() {}

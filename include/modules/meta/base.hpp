@@ -123,7 +123,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings bar, const logger& logger, const config& config, string name);
+    module(const bar_settings bar, string name);
     ~module() noexcept;
 
     void set_update_cb(callback<>&& cb);

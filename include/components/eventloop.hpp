@@ -54,7 +54,8 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   using duration_t = std::chrono::duration<double, std::milli>;
 
  public:
-  static unique_ptr<eventloop> make();
+  using make_type = unique_ptr<eventloop>;
+  static make_type make();
 
   explicit eventloop(signal_emitter& emitter, const logger& logger, const config& config);
   ~eventloop();

@@ -19,8 +19,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xbacklight_module::xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name)
-      : static_module<xbacklight_module>(bar, logger, config, name)
+  xbacklight_module::xbacklight_module(const bar_settings& bar, string name)
+      : static_module<xbacklight_module>(bar, move(name))
       , m_connection(connection::make()) {}
 
   /**

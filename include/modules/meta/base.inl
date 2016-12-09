@@ -1,4 +1,6 @@
 #include "components/builder.hpp"
+#include "components/logger.hpp"
+#include "components/config.hpp"
 
 POLYBAR_NS
 
@@ -6,10 +8,10 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings bar, const logger& logger, const config& config, string name)
+  module<Impl>::module(const bar_settings bar, string name)
         : m_bar(bar)
-        , m_log(logger)
-        , m_conf(config)
+        , m_log(logger::make())
+        , m_conf(config::make())
         , m_name("module/" + name)
         , m_builder(make_unique<builder>(bar))
         , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}

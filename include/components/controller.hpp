@@ -4,18 +4,12 @@
 
 #include "common.hpp"
 #include "components/bar.hpp"
-#include "components/config.hpp"
-#include "components/eventloop.hpp"
 #include "components/ipc.hpp"
-#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "config.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/command.hpp"
-#include "utils/inotify.hpp"
-#include "x11/connection.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
@@ -23,7 +17,20 @@ POLYBAR_NS
 // fwd decl {{{
 
 class bar;
+class config;
+class connection;
+class eventloop;
+class logger;
 struct bar_settings;
+namespace inotify_util {
+  class inotify_watch;
+  using watch_t = unique_ptr<inotify_watch>;
+}
+namespace command_util {
+  class command;
+}
+using command = command_util::command;
+using command_t = unique_ptr<command>;
 
 // }}}
 
@@ -37,7 +44,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
                        sig_ev::process_quit, sig_ui::button_press, sig_ipc::process_action, sig_ipc::process_command,
                        sig_ipc::process_hook> {
  public:
-  static unique_ptr<controller> make(watch_t&& confwatch, bool enable_ipc = false, bool writeback = false);
+  using make_type = unique_ptr<controller>;
+  static make_type make(string&& path_confwatch, bool enable_ipc = false, bool writeback = false);
 
   explicit controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
       unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback);

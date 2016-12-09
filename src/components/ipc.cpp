@@ -18,7 +18,7 @@ using namespace signals::ipc;
 /**
  * Create instance
  */
-unique_ptr<ipc> ipc::make() {
+ipc::make_type ipc::make() {
   return factory_util::unique<ipc>(signal_emitter::make(), logger::make());
 }
 

@@ -7,9 +7,12 @@
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "modules/meta/factory.hpp"
+#include "utils/command.hpp"
 #include "utils/factory.hpp"
+#include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
+#include "x11/connection.hpp"
 #include "x11/xutils.hpp"
 
 POLYBAR_NS
@@ -19,13 +22,7 @@ using namespace modules;
 /**
  * Create instance
  */
-unique_ptr<controller> controller::make(watch_t&& confwatch, bool enable_ipc, bool writeback) {
-  unique_ptr<ipc> ipc;
-
-  if (enable_ipc) {
-    ipc = ipc::make();
-  }
-
+controller::make_type controller::make(string&& path_confwatch, bool enable_ipc, bool writeback) {
   // clang-format off
   return factory_util::unique<controller>(
       connection::make(),
@@ -34,8 +31,8 @@ unique_ptr<controller> controller::make(watch_t&& confwatch, bool enable_ipc, bo
       config::make(),
       eventloop::make(),
       bar::make(),
-      move(ipc),
-      move(confwatch),
+      enable_ipc ? ipc::make() : ipc::make_type{},
+      !path_confwatch.empty() ? inotify_util::make_watch(path_confwatch) : watch_t{},
       writeback);
   // clang-format on
 }
@@ -124,7 +121,7 @@ void controller::setup() {
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        unique_ptr<module_interface> module{make_module(move(type), m_bar->settings(), m_log, m_conf, module_name)};
+        unique_ptr<module_interface> module{make_module(move(type), m_bar->settings(), module_name)};
 
         module->set_update_cb([&] {
           if (m_eventloop && m_running) {
@@ -340,7 +337,7 @@ bool controller::on(const sig_ev::process_update& evt) {
 
   try {
     if (!m_writeback) {
-      m_bar->parse(contents, evt());
+      m_bar->parse(move(contents), evt());
     } else {
       std::cout << contents << std::endl;
     }
@@ -362,7 +359,7 @@ bool controller::on(const sig_ev::process_input& evt) {
 
     m_log.info("Executing shell command: %s", input);
 
-    m_command = command_util::make_command(input);
+    m_command = command_util::make_command(move(input));
     m_command->exec();
     m_command.reset();
   } catch (const application_error& err) {
@@ -404,6 +401,7 @@ bool controller::on(const sig_ipc::process_action& evt) {
     m_log.err("Cannot enqueue empty ipc action");
   } else {
     m_log.info("Enqueuing ipc action: %s", action);
+    m_eventloop->enqueue(eventloop::make_input_data(move(action)));
     m_eventloop->enqueue(eventloop::make_input_evt());
   }
   return true;

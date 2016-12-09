@@ -19,7 +19,7 @@ namespace modules {
   class xkeyboard_module : public static_module<xkeyboard_module>,
                            public xpp::event::sink<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify> {
    public:
-    explicit xkeyboard_module(const bar_settings& bar, const logger& logger, const config& config, string name);
+    explicit xkeyboard_module(const bar_settings& bar, string name);
 
     void setup();
     void teardown();

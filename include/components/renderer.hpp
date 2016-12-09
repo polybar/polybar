@@ -25,7 +25,8 @@ class renderer
  public:
   enum class gc : uint8_t { BG, FG, OL, UL, BT, BB, BL, BR };
 
-  static unique_ptr<renderer> make(const bar_settings& bar, vector<string>&& fonts);
+  using make_type = unique_ptr<renderer>;
+  static make_type make(const bar_settings& bar, vector<string>&& fonts);
 
   explicit renderer(connection& conn, signal_emitter& emitter, const logger& logger,
       unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts);

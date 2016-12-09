@@ -117,17 +117,17 @@ int main(int argc, char** argv) {
     // Create controller and run application
     //==================================================
     unique_ptr<controller> ctrl;
+    string path_confwatch;
     bool enable_ipc{false};
-    watch_t confwatch;
 
     if (!cli->has("print-wmname")) {
       enable_ipc = conf.get<bool>(conf.bar_section(), "enable-ipc", false);
     }
     if (!cli->has("print-wmname") && cli->has("reload")) {
-      inotify_util::make_watch(conf.filepath());
+      path_confwatch = conf.filepath();
     }
 
-    ctrl = controller::make(move(confwatch), enable_ipc, cli->has("stdout"));
+    ctrl = controller::make(move(path_confwatch), enable_ipc, cli->has("stdout"));
 
     if (cli->has("print-wmname")) {
       cout << ctrl->opts().wmname << endl;

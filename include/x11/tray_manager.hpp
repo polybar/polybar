@@ -65,7 +65,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
                      public signal_receiver<SIGN_PRIORITY_TRAY, visibility_change> {
  public:
-  static unique_ptr<tray_manager> make();
+  using make_type = unique_ptr<tray_manager>;
+  static make_type make();
 
   explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger);
 

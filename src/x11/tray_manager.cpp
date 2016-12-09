@@ -46,7 +46,7 @@ using namespace wm_util;
 /**
  * Create instance
  */
-unique_ptr<tray_manager> tray_manager::make() {
+tray_manager::make_type tray_manager::make() {
   return factory_util::unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make());
 }
 

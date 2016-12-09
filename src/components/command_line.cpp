@@ -10,7 +10,7 @@ POLYBAR_NS
 /**
  * Create instance
  */
-unique_ptr<cliparser> cliparser::make(string scriptname, const clioptions& opts) {
+cliparser::make_type cliparser::make(string scriptname, const clioptions& opts) {
   return factory_util::unique<cliparser>("Usage: " + scriptname + " bar_name [OPTION...]", opts);
 }
 

@@ -18,7 +18,8 @@ class signal_emitter;
 
 class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
  public:
-  static unique_ptr<screen> make();
+  using make_type = unique_ptr<screen>;
+  static make_type make();
 
   explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
   ~screen();

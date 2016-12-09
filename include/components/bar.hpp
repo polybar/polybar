@@ -25,7 +25,8 @@ class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
-  static unique_ptr<bar> make();
+  using make_type = unique_ptr<bar>;
+  static make_type make();
 
   explicit bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
       unique_ptr<screen> screen, unique_ptr<tray_manager> tray_manager);

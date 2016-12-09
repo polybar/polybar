@@ -36,7 +36,8 @@ namespace command_line {
 
   class parser {
    public:
-    static unique_ptr<parser> make(string scriptname, const options& opts);
+    using make_type = unique_ptr<parser>;
+    static make_type make(string scriptname, const options& opts);
 
     explicit parser(const string& synopsis, const options& opts) : m_synopsis(synopsis), m_opts(opts) {}
 

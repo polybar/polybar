@@ -19,7 +19,7 @@ using namespace signals::eventloop;
 /**
  * Create instance
  */
-unique_ptr<screen> screen::make() {
+screen::make_type screen::make() {
   return factory_util::unique<screen>(
       connection::make(), signal_emitter::make(), logger::make(), config::make());
 }

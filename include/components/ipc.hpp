@@ -33,7 +33,8 @@ struct ipc_action {
  */
 class ipc {
  public:
-  static unique_ptr<ipc> make();
+  using make_type = unique_ptr<ipc>;
+  static make_type make();
 
   explicit ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {}
   ~ipc();

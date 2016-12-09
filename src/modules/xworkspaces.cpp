@@ -21,8 +21,8 @@ namespace modules {
    * Construct module
    */
   xworkspaces_module::xworkspaces_module(
-      const bar_settings& bar, const logger& logger, const config& config, string name)
-      : static_module<xworkspaces_module>(bar, logger, config, name)
+      const bar_settings& bar, string name)
+      : static_module<xworkspaces_module>(bar, move(name))
       , m_connection(connection::make()) {}
 
   /**

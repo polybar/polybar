@@ -17,7 +17,7 @@ POLYBAR_NS
 /**
  * Create instance
  */
-unique_ptr<eventloop> eventloop::make() {
+eventloop::make_type eventloop::make() {
   return factory_util::unique<eventloop>(signal_emitter::make(), logger::make(), config::make());
 }
 

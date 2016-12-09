@@ -61,7 +61,7 @@ namespace randr_util {
         }
         auto crtc = conn.get_crtc_info(info->crtc);
         string name{info.name().begin(), info.name().end()};
-        monitors.emplace_back(make_monitor(*it, name, crtc->width, crtc->height, crtc->x, crtc->y));
+        monitors.emplace_back(make_monitor(*it, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
       } catch (const xpp::randr::error::bad_crtc&) {
       } catch (const xpp::randr::error::bad_output&) {
       }

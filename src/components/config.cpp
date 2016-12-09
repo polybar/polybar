@@ -13,9 +13,9 @@ POLYBAR_NS
 /**
  * Create instance
  */
-const config& config::make() {
-  shared_ptr<config> instance = factory_util::singleton<config>(logger::make(), xresource_manager::make());
-  return static_cast<config&>(*instance);
+config::make_type config::make() {
+  auto instance = factory_util::singleton<const config>(logger::make(), xresource_manager::make());
+  return static_cast<const config&>(*instance);
 }
 
 /**

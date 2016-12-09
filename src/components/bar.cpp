@@ -35,7 +35,7 @@ using namespace wm_util;
 /**
  * Create instance
  */
-unique_ptr<bar> bar::make() {
+bar::make_type bar::make() {
   // clang-format off
   return factory_util::unique<bar>(
         connection::make(),

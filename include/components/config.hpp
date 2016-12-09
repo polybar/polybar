@@ -26,7 +26,8 @@ class config {
   using valuemap_t = std::unordered_map<string, string>;
   using sectionmap_t = std::unordered_map<string, valuemap_t>;
 
-  static const config& make();
+  using make_type = const config&;
+  static make_type make();
 
   explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
 

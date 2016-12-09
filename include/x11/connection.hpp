@@ -20,7 +20,8 @@ using xpp_connection = xpp::connection<XPP_EXTENSION_LIST>;
 
 class connection : public xpp_connection {
  public:
-  static connection& make();
+  using make_type = connection&;
+  static make_type make();
 
   explicit connection(xcb_connection_t* conn) : connection(conn, 0) {}
   explicit connection(xcb_connection_t* conn, int connection_fd)
