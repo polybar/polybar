@@ -16,6 +16,21 @@
 POLYBAR_NS
 
 /**
+ * Create instance
+ */
+unique_ptr<renderer> renderer::make(const bar_settings& bar, vector<string>&& fonts) {
+  // clang-format off
+  return factory_util::unique<renderer>(
+      connection::make(),
+      signal_emitter::make(),
+      logger::make(),
+      font_manager::make(),
+      forward<decltype(bar)>(bar),
+      forward<decltype(fonts)>(fonts));
+  // clang-format on
+}
+
+/**
  * Construct renderer instance
  */
 renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logger,

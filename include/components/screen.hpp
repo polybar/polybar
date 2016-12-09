@@ -18,6 +18,8 @@ class signal_emitter;
 
 class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
  public:
+  static unique_ptr<screen> make();
+
   explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
   ~screen();
 
@@ -47,15 +49,5 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   };
   bool m_sigraised{false};
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline unique_ptr<screen> make_screen() {
-    return factory_util::unique<screen>(
-        make_connection(), make_signal_emitter(), make_logger(), make_confreader());
-  }
-}
 
 POLYBAR_NS_END

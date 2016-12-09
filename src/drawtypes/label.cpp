@@ -1,6 +1,7 @@
 #include <utility>
 
 #include "drawtypes/label.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -19,8 +20,8 @@ namespace drawtypes {
       std::back_insert_iterator<decltype(tokens)> back_it(tokens);
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
-    return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding, m_margin,
-        m_maxlen, m_ellipsis, move(tokens));
+    return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
+        m_margin, m_maxlen, m_ellipsis, move(tokens));
   }
 
   void label::reset_tokens() {
@@ -204,7 +205,7 @@ namespace drawtypes {
     }
 
     // clang-format off
-    return make_shared<label>(text,
+    return factory_util::shared<label>(text,
         conf.get<string>(section, name + "-foreground", ""),
         conf.get<string>(section, name + "-background", ""),
         conf.get<string>(section, name + "-underline", ""),

@@ -5,7 +5,6 @@
 #include "events/signal_emitter.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -34,6 +33,8 @@ struct ipc_action {
  */
 class ipc {
  public:
+  static unique_ptr<ipc> make();
+
   explicit ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {}
   ~ipc();
 
@@ -49,14 +50,5 @@ class ipc {
   int m_fd;
   stateflag m_running{false};
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline unique_ptr<ipc> make_ipc() {
-    return factory_util::unique<ipc>(make_signal_emitter(), make_logger());
-  }
-}
 
 POLYBAR_NS_END

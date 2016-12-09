@@ -2,20 +2,32 @@
 
 #include <moodycamel/blockingconcurrentqueue.h>
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 #include "common.hpp"
-#include "components/logger.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "modules/meta/base.hpp"
+#include "utils/concurrency.hpp"
 
 POLYBAR_NS
+
+// fwd
+namespace modules {
+  struct module_interface;
+}
+enum class alignment : uint8_t;
+class config;
+class logger;
 
 using namespace signals::eventloop;
 
 using module_t = unique_ptr<modules::module_interface>;
-using modulemap_t = map<alignment, vector<module_t>>;
+using modulemap_t = std::map<alignment, vector<module_t>>;
+
+using namespace std::chrono_literals;
 
 class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, process_input, process_check,
                       enqueue_event, enqueue_quit, enqueue_update, enqueue_input, enqueue_check> {
@@ -39,9 +51,11 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
 
   template <typename EventType>
   using queue_t = moodycamel::BlockingConcurrentQueue<EventType>;
-  using duration_t = chrono::duration<double, std::milli>;
+  using duration_t = std::chrono::duration<double, std::milli>;
 
  public:
+  static unique_ptr<eventloop> make();
+
   explicit eventloop(signal_emitter& emitter, const logger& logger, const config& config);
   ~eventloop();
 
@@ -55,23 +69,11 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   const modulemap_t& modules() const;
   size_t module_count() const;
 
-  static auto make_quit_evt(bool reload = false) {
-    return event{static_cast<uint8_t>(event_type::QUIT), reload};
-  }
-  static auto make_update_evt(bool force = false) {
-    return event{static_cast<uint8_t>(event_type::UPDATE), force};
-  }
-  static auto make_input_evt() {
-    return event{static_cast<uint8_t>(event_type::INPUT)};
-  }
-  static auto make_input_data(string&& data) {
-    input_data d{};
-    memcpy(d.data, &data[0], sizeof(d.data));
-    return d;
-  }
-  static auto make_check_evt() {
-    return event{static_cast<uint8_t>(event_type::CHECK)};
-  }
+  static event make_quit_evt(bool reload = false);
+  static event make_update_evt(bool force = false);
+  static event make_input_evt();
+  static event make_check_evt();
+  static input_data make_input_data(string&& data);
 
  protected:
   void process_inputqueue();
@@ -127,11 +129,5 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
    */
   size_t m_swallow_limit{0};
 };
-
-namespace {
-  inline unique_ptr<eventloop> make_eventloop() {
-    return make_unique<eventloop>(make_signal_emitter(), make_logger(), make_confreader());
-  }
-}
 
 POLYBAR_NS_END

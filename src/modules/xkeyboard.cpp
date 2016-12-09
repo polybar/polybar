@@ -1,6 +1,7 @@
 #include "modules/xkeyboard.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 
@@ -17,8 +18,7 @@ namespace modules {
    * Construct module
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, const logger& logger, const config& config, string name)
-      : static_module<xkeyboard_module>(bar, logger, config, name)
-      , m_connection(make_connection()) {}
+      : static_module<xkeyboard_module>(bar, logger, config, name), m_connection(connection::make()) {}
 
   /**
    * Bootstrap the module
@@ -125,7 +125,7 @@ namespace modules {
       auto layouts = xkb_util::get_layouts(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto indicators = xkb_util::get_indicators(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto current_group = xkb_util::get_current_group(m_connection, XCB_XKB_ID_USE_CORE_KBD);
-      m_keyboard = make_unique<keyboard>(move(layouts), move(indicators), current_group);
+      m_keyboard = factory_util::unique<keyboard>(move(layouts), move(indicators), current_group);
       return true;
     } catch (const exception& err) {
       throw module_error("Failed to query keyboard, err: " + string{err.what()});

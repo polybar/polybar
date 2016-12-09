@@ -18,6 +18,8 @@ extern signal_receivers_t g_signal_receivers;
  */
 class signal_emitter {
  public:
+  static signal_emitter& make();
+
   explicit signal_emitter() = default;
   virtual ~signal_emitter() {}
 
@@ -98,15 +100,5 @@ class signal_emitter {
     }
   }
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline signal_emitter& make_signal_emitter() {
-    auto instance = factory_util::singleton<signal_emitter>();
-    return static_cast<signal_emitter&>(*instance);
-  }
-}
 
 POLYBAR_NS_END

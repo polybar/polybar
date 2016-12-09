@@ -1,13 +1,43 @@
 #include <csignal>
+#include <cstring>
 
 #include "components/eventloop.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
+#include "components/logger.hpp"
+#include "components/config.hpp"
+#include "modules/meta/base.hpp"
+#include "utils/factory.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/color.hpp"
 
 POLYBAR_NS
+
+/**
+ * Create instance
+ */
+unique_ptr<eventloop> eventloop::make() {
+  return factory_util::unique<eventloop>(signal_emitter::make(), logger::make(), config::make());
+}
+
+eventloop::event eventloop::make_quit_evt(bool reload) {
+  return event{static_cast<uint8_t>(event_type::QUIT), reload};
+}
+eventloop::event eventloop::make_update_evt(bool force) {
+  return event{static_cast<uint8_t>(event_type::UPDATE), force};
+}
+eventloop::event eventloop::make_input_evt() {
+  return event{static_cast<uint8_t>(event_type::INPUT)};
+}
+eventloop::event eventloop::make_check_evt() {
+  return event{static_cast<uint8_t>(event_type::CHECK)};
+}
+eventloop::input_data eventloop::make_input_data(string&& data) {
+  input_data d{};
+  memcpy(d.data, &data[0], sizeof(d.data));
+  return d;
+}
 
 /**
  * Construct eventloop instance

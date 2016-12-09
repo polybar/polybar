@@ -2,9 +2,18 @@
 
 #include "components/logger.hpp"
 #include "errors.hpp"
+#include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
+
+/**
+ * Create instance
+ */
+const logger& logger::make(loglevel level) {
+  auto instance = factory_util::singleton<const logger>(level);
+  return static_cast<const logger&>(*instance);
+}
 
 /**
  * Construct logger

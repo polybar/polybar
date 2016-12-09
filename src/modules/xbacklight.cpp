@@ -21,7 +21,7 @@ namespace modules {
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xbacklight_module>(bar, logger, config, name)
-      , m_connection(make_connection()) {}
+      , m_connection(connection::make()) {}
 
   /**
    * Bootstrap the module by grabbing all required components

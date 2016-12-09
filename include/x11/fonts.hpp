@@ -4,7 +4,6 @@
 #include <xcb/xcbext.h>
 
 #include "common.hpp"
-#include "components/logger.hpp"
 #include "x11/color.hpp"
 #include "x11/types.hpp"
 
@@ -12,6 +11,7 @@ POLYBAR_NS
 
 // fwd
 class connection;
+class logger;
 
 #define XFT_MAXCHARS (1 << 16)
 extern array<char, XFT_MAXCHARS> xft_widths;
@@ -39,6 +39,8 @@ using font_t = unique_ptr<fonttype, fonttype_deleter>;
 
 class font_manager {
  public:
+  static unique_ptr<font_manager> make();
+
   explicit font_manager(connection& conn, const logger& logger);
   ~font_manager();
 
@@ -71,13 +73,11 @@ class font_manager {
   Visual* m_visual{nullptr};
   Colormap m_colormap{};
 
-  map<uint8_t, font_t> m_fonts;
+  std::map<uint8_t, font_t> m_fonts;
   int8_t m_fontindex{DEFAULT_FONT_INDEX};
 
   XftColor m_xftcolor{};
   XftDraw* m_xftdraw{nullptr};
 };
-
-unique_ptr<font_manager> make_font_manager();
 
 POLYBAR_NS_END

@@ -26,7 +26,7 @@ class config {
   using valuemap_t = std::unordered_map<string, string>;
   using sectionmap_t = std::unordered_map<string, valuemap_t>;
 
-  static constexpr const char* KEY_INHERIT{"inherit"};
+  static const config& make();
 
   explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
 
@@ -257,21 +257,13 @@ class config {
   }
 
  private:
+  static constexpr const char* KEY_INHERIT{"inherit"};
+
   const logger& m_logger;
   const xresource_manager& m_xrm;
   string m_file;
   string m_current_bar;
   sectionmap_t m_sections;
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline const config& make_confreader() {
-    shared_ptr<config> instance = factory_util::singleton<config>(make_logger(), make_xresource_manager());
-    return static_cast<config&>(*instance);
-  }
-}
 
 POLYBAR_NS_END

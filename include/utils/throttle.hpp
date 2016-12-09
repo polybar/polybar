@@ -5,6 +5,7 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -84,7 +85,7 @@ namespace throttle_util {
 
   template <typename... Args>
   throttle_t make_throttler(Args&&... args) {
-    return make_unique<event_throttler>(forward<Args>(args)...);
+    return factory_util::unique<event_throttler>(forward<Args>(args)...);
   }
 }
 

@@ -5,6 +5,7 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/mtab.hpp"
 #include "utils/string.hpp"
@@ -66,7 +67,7 @@ namespace modules {
         continue;
       }
 
-      auto mtab = make_unique<mtab_util::reader>();
+      auto mtab = factory_util::unique<mtab_util::reader>();
       auto& mount = m_mounts.back();
 
       while (mtab->next(&mnt)) {

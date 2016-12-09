@@ -4,6 +4,7 @@
 #include "drawtypes/label.hpp"
 #include "modules/bspwm.hpp"
 #include "utils/file.hpp"
+#include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/event_module.inl"
@@ -226,7 +227,7 @@ namespace modules {
       uint32_t workspace_mask{0U};
 
       if (tag[0] == 'm' || tag[0] == 'M') {
-        m_monitors.emplace_back(make_unique<bspwm_monitor>());
+        m_monitors.emplace_back(factory_util::unique<bspwm_monitor>());
         m_monitors.back()->name = value;
 
         if (m_monitorlabel) {

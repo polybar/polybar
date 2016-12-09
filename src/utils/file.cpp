@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "errors.hpp"
+#include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/scope.hpp"
 
@@ -80,7 +81,7 @@ namespace file_util {
    * Checks if the given file is a named pipe
    */
   bool is_fifo(string filename) {
-    auto fileptr = make_unique<file_ptr>(filename);
+    auto fileptr = factory_util::unique<file_ptr>(filename);
     int fd = fileno((*fileptr)());
     struct stat statbuf;
     fstat(fd, &statbuf);

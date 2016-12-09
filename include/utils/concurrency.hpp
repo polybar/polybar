@@ -12,11 +12,7 @@ POLYBAR_NS
 namespace this_thread = std::this_thread;
 
 using std::thread;
-
-template <typename T>
-using atomic = std::atomic<T>;
-
-using stateflag = atomic<bool>;
+using stateflag = std::atomic<bool>;
 
 namespace concurrency_util {
   namespace locking_strategy {

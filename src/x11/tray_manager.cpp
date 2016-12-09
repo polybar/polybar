@@ -43,6 +43,13 @@ POLYBAR_NS
 
 using namespace wm_util;
 
+/**
+ * Create instance
+ */
+unique_ptr<tray_manager> tray_manager::make() {
+  return factory_util::unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make());
+}
+
 tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger)
     : m_connection(conn), m_sig(emitter), m_log(logger) {}
 
@@ -54,7 +61,7 @@ tray_manager::~tray_manager() {
 }
 
 void tray_manager::setup(const bar_settings& bar_opts) {
-  auto conf = make_confreader();
+  auto conf = config::make();
   auto bs = conf.bar_section();
   auto tray_position = conf.get<string>(bs, "tray-position", "");
 

@@ -25,6 +25,8 @@ class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
+  static unique_ptr<bar> make();
+
   explicit bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
       unique_ptr<screen> screen, unique_ptr<tray_manager> tray_manager);
 
@@ -62,22 +64,5 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   event_timer m_buttonpress{0L, 5L};
 };
-
-namespace {
-  /**
-   * Configure bar controller
-   */
-  inline unique_ptr<bar> make_bar() {
-    // clang-format off
-    return factory_util::unique<bar>(
-          make_connection(),
-          make_signal_emitter(),
-          make_confreader(),
-          make_logger(),
-          make_screen(),
-          make_tray_manager());
-    // clang-format on
-  }
-}
 
 POLYBAR_NS_END

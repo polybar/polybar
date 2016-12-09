@@ -3,6 +3,7 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/xworkspaces.hpp"
+#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
@@ -22,7 +23,7 @@ namespace modules {
   xworkspaces_module::xworkspaces_module(
       const bar_settings& bar, const logger& logger, const config& config, string name)
       : static_module<xworkspaces_module>(bar, logger, config, name)
-      , m_connection(make_connection()) {}
+      , m_connection(connection::make()) {}
 
   /**
    * Bootstrap the module
@@ -140,7 +141,7 @@ namespace modules {
       }
 
       if (m_monitorsupport && (n == 0 || pos.x != viewports[n].x || pos.y != viewports[n].y)) {
-        m_viewports.emplace_back(make_unique<viewport>());
+        m_viewports.emplace_back(factory_util::unique<viewport>());
 
         for (auto&& monitor : m_monitors) {
           if (monitor->match(viewports[n])) {
@@ -155,12 +156,12 @@ namespace modules {
           }
         }
       } else if (!m_monitorsupport && n == 0) {
-        m_viewports.emplace_back(make_unique<viewport>());
+        m_viewports.emplace_back(factory_util::unique<viewport>());
         m_viewports.back()->state = viewport_state::NONE;
       }
 
       desktop_state state{current == n ? desktop_state::ACTIVE : desktop_state::EMPTY};
-      m_viewports.back()->desktops.emplace_back(make_unique<desktop>(n, state, m_labels[state]->clone()));
+      m_viewports.back()->desktops.emplace_back(factory_util::unique<desktop>(n, state, m_labels[state]->clone()));
 
       auto& desktop = m_viewports.back()->desktops.back();
       desktop->label->reset_tokens();

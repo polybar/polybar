@@ -5,6 +5,7 @@
 #include "common.hpp"
 
 #include "components/logger.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -36,7 +37,7 @@ namespace scope_util {
    */
   template <typename Fn = function<void()>, typename... Args>
   decltype(auto) make_exit_handler(Fn&& fn, Args&&... args) {
-    return make_unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
+    return factory_util::unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
   }
 }
 

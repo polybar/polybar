@@ -4,11 +4,19 @@
 #include <utility>
 
 #include "components/config.hpp"
-#include "components/logger.hpp"
 #include "utils/env.hpp"
+#include "utils/factory.hpp"
 #include "utils/file.hpp"
 
 POLYBAR_NS
+
+/**
+ * Create instance
+ */
+const config& config::make() {
+  shared_ptr<config> instance = factory_util::singleton<config>(logger::make(), xresource_manager::make());
+  return static_cast<config&>(*instance);
+}
 
 /**
  * Load configuration and validate bar section

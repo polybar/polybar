@@ -17,6 +17,14 @@ POLYBAR_NS
 using namespace signals::eventloop;
 
 /**
+ * Create instance
+ */
+unique_ptr<screen> screen::make() {
+  return factory_util::unique<screen>(
+      connection::make(), signal_emitter::make(), logger::make(), config::make());
+}
+
+/**
  * Construct screen instance
  */
 screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf)

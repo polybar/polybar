@@ -37,6 +37,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
                        sig_ev::process_quit, sig_ui::button_press, sig_ipc::process_action, sig_ipc::process_command,
                        sig_ipc::process_hook> {
  public:
+  static unique_ptr<controller> make(watch_t&& confwatch, bool enable_ipc = false, bool writeback = false);
+
   explicit controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
       unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback);
   ~controller();
@@ -81,28 +83,5 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
 
   bool m_writeback{false};
 };
-
-namespace {
-  inline unique_ptr<controller> make_controller(watch_t&& confwatch, bool enableipc = false, bool writeback = false) {
-    unique_ptr<ipc> ipc;
-
-    if (enableipc) {
-      ipc = make_ipc();
-    }
-
-    // clang-format off
-    return factory_util::unique<controller>(
-        make_connection(),
-        make_signal_emitter(),
-        make_logger(),
-        make_confreader(),
-        make_eventloop(),
-        make_bar(),
-        move(ipc),
-        move(confwatch),
-        writeback);
-    // clang-format on
-  }
-}
 
 POLYBAR_NS_END

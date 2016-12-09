@@ -3,6 +3,7 @@
 #include <poll.h>
 
 #include "common.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -36,8 +37,9 @@ namespace socket_util {
    *   conn->receive(...);
    * @endcode
    */
-  auto make_unix_connection = [](
-      string&& path) -> unique_ptr<unix_connection> { return make_unique<unix_connection>(forward<string>(path)); };
+  auto make_unix_connection = [](string&& path) -> unique_ptr<unix_connection> {
+    return factory_util::unique<unix_connection>(forward<string>(path));
+  };
 }
 
 POLYBAR_NS_END

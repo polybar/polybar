@@ -13,6 +13,7 @@
 #include "events/signal_emitter.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
+#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
@@ -30,6 +31,21 @@ POLYBAR_NS
 
 using namespace signals::ui;
 using namespace wm_util;
+
+/**
+ * Create instance
+ */
+unique_ptr<bar> bar::make() {
+  // clang-format off
+  return factory_util::unique<bar>(
+        connection::make(),
+        signal_emitter::make(),
+        config::make(),
+        logger::make(),
+        screen::make(),
+        tray_manager::make());
+  // clang-format on
+}
 
 /**
  * Construct bar instance
@@ -196,7 +212,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_log.trace("bar: Create renderer");
   auto fonts = m_conf.get_list<string>(m_conf.bar_section(), "font", {});
-  m_renderer = make_renderer(m_opts, move(fonts));
+  m_renderer = renderer::make(m_opts, move(fonts));
 
   m_log.trace("bar: Attaching sink to registry");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);

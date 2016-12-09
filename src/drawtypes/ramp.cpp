@@ -1,4 +1,5 @@
 #include "drawtypes/ramp.hpp"
+#include "utils/factory.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -45,7 +46,7 @@ namespace drawtypes {
       vec.emplace_back(move(icon));
     }
 
-    return factory_util::shared<ramp>(move(vec));
+    return factory_util::shared<drawtypes::ramp>(move(vec));
   }
 }
 

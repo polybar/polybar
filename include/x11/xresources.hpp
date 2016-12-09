@@ -8,6 +8,8 @@ POLYBAR_NS
 
 class xresource_manager {
  public:
+  static const xresource_manager& make();
+
   explicit xresource_manager();
 
   string get_string(string name, string fallback = "") const;
@@ -21,7 +23,5 @@ class xresource_manager {
   char* m_manager = nullptr;
   XrmDatabase m_db;
 };
-
-const xresource_manager& make_xresource_manager();
 
 POLYBAR_NS_END

@@ -9,6 +9,14 @@
 POLYBAR_NS
 
 /**
+ * Create instance
+ */
+connection& connection::make() {
+  auto instance = factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd());
+  return static_cast<connection&>(*instance);
+}
+
+/**
  * Preload required xcb atoms
  */
 void connection::preload_atoms() {

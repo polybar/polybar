@@ -3,6 +3,7 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+#include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/event_module.inl"
@@ -86,7 +87,7 @@ namespace modules {
     m_lastsync = chrono::system_clock::now();
 
     try {
-      m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+      m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       m_mpd->connect();
       m_status = m_mpd->get_status();
     } catch (const mpd_exception& err) {
@@ -122,7 +123,7 @@ namespace modules {
 
     try {
       if (!m_mpd) {
-        m_mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+        m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       }
       if (!connected()) {
         m_mpd->connect();
@@ -323,7 +324,7 @@ namespace modules {
     }
 
     try {
-      auto mpd = make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+      auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       mpd->connect();
 
       auto status = mpd->get_status();

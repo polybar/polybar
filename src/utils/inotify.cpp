@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include "errors.hpp"
+#include "utils/factory.hpp"
 #include "utils/inotify.hpp"
 #include "utils/memory.hpp"
 
@@ -66,7 +67,7 @@ namespace inotify_util {
    * Get the latest inotify event
    */
   unique_ptr<event_t> inotify_watch::get_event() {
-    auto event = make_unique<event_t>();
+    auto event = factory_util::unique<event_t>();
 
     if (m_fd == -1 || m_wd == -1) {
       return event;

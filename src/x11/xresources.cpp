@@ -9,9 +9,9 @@
 POLYBAR_NS
 
 /**
- * Configure injection module
+ * Create instance
  */
-const xresource_manager& make_xresource_manager() {
+const xresource_manager& xresource_manager::make() {
   auto instance = factory_util::singleton<xresource_manager>();
   return static_cast<const xresource_manager&>(*instance);
 }

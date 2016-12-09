@@ -1,16 +1,15 @@
 #include <utility>
 
-#include "components/types.hpp"
-#include "x11/color.hpp"
-
 #include "drawtypes/progressbar.hpp"
+#include "drawtypes/label.hpp"
+#include "utils/factory.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
   progressbar::progressbar(const bar_settings& bar, int width, string format)
-      : m_builder(make_unique<builder>(bar)), m_format(move(format)), m_width(width) {}
+      : m_builder(factory_util::unique<builder>(bar)), m_format(move(format)), m_width(width) {}
 
   void progressbar::set_fill(icon_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
@@ -100,9 +99,9 @@ namespace drawtypes {
       throw application_error("Invalid width defined at [" + section + "." + name + "]");
     }
 
-    progressbar_t progressbar{new progressbar_t::element_type(bar, width, format)};
-    progressbar->set_gradient(conf.get<bool>(section, name + "-gradient", true));
-    progressbar->set_colors(conf.get_list<string>(section, name + "-foreground", {}));
+    auto pbar = factory_util::shared<progressbar>(bar, width, format);
+    pbar->set_gradient(conf.get<bool>(section, name + "-gradient", true));
+    pbar->set_colors(conf.get_list<string>(section, name + "-foreground", {}));
 
     icon_t icon_empty;
     icon_t icon_fill;
@@ -130,11 +129,11 @@ namespace drawtypes {
       }
     }
 
-    progressbar->set_empty(move(icon_empty));
-    progressbar->set_fill(move(icon_fill));
-    progressbar->set_indicator(move(icon_indicator));
+    pbar->set_empty(move(icon_empty));
+    pbar->set_fill(move(icon_fill));
+    pbar->set_indicator(move(icon_indicator));
 
-    return progressbar;
+    return pbar;
   }
 }
 

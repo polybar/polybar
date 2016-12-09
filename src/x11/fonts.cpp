@@ -1,5 +1,6 @@
 #include <X11/Xlib-xcb.h>
 
+#include "components/logger.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/memory.hpp"
@@ -11,10 +12,10 @@
 POLYBAR_NS
 
 /**
- * Configure injection module
+ * Create instance
  */
-unique_ptr<font_manager> make_font_manager() {
-  return factory_util::unique<font_manager>(make_connection(), make_logger());
+unique_ptr<font_manager> font_manager::make() {
+  return factory_util::unique<font_manager>(connection::make(), logger::make());
 }
 
 array<char, XFT_MAXCHARS> xft_widths;

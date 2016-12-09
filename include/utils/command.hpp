@@ -4,6 +4,7 @@
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
+#include "utils/factory.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
@@ -76,7 +77,7 @@ namespace command_util {
 
   template <typename... Args>
   unique_ptr<command> make_command(Args&&... args) {
-    return make_unique<command>(make_logger(), forward<Args>(args)...);
+    return factory_util::unique<command>(logger::make(), forward<Args>(args)...);
   }
 }
 

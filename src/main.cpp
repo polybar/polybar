@@ -1,7 +1,6 @@
 #include <X11/Xlib-xcb.h>
 
 #include "common.hpp"
-
 #include "components/command_line.hpp"
 #include "components/config.hpp"
 #include "components/controller.hpp"
@@ -13,6 +12,9 @@
 #include "x11/xutils.hpp"
 
 using namespace polybar;
+
+using std::cout;
+using std::endl;
 
 struct exit_success {};
 struct exit_failure {};
@@ -35,7 +37,7 @@ int main(int argc, char** argv) {
   uint8_t exit_code{EXIT_SUCCESS};
   bool reload{false};
 
-  logger& logger{const_cast<class logger&>(make_logger(loglevel::WARNING))};
+  logger& logger{const_cast<class logger&>(logger::make(loglevel::WARNING))};
 
   try {
     //==================================================
@@ -68,7 +70,7 @@ int main(int argc, char** argv) {
     string scriptname{argv[0]};
     vector<string> args(argv + 1, argv + argc);
 
-    unique_ptr<cliparser> cli{make_command_line(scriptname, opts)};
+    unique_ptr<cliparser> cli{command_line::parser::make(scriptname, opts)};
     cli->process_input(args);
 
     if (cli->has("quiet")) {
@@ -91,7 +93,7 @@ int main(int argc, char** argv) {
     //==================================================
     // Load user configuration
     //==================================================
-    config& conf{const_cast<config&>(make_confreader())};
+    config& conf{const_cast<config&>(config::make())};
 
     if (cli->has("config")) {
       conf.load(cli->get("config"), args[0]);
@@ -107,7 +109,7 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      std::cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << std::endl;
+      cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << endl;
       throw exit_success{};
     }
 
@@ -115,19 +117,20 @@ int main(int argc, char** argv) {
     // Create controller and run application
     //==================================================
     unique_ptr<controller> ctrl;
-    bool enable_ipc{conf.get<bool>(conf.bar_section(), "enable-ipc", false)};
+    bool enable_ipc{false};
     watch_t confwatch;
 
-    if (cli->has("print-wmname")) {
-      enable_ipc = false;
-    } else if (cli->has("reload")) {
+    if (!cli->has("print-wmname")) {
+      enable_ipc = conf.get<bool>(conf.bar_section(), "enable-ipc", false);
+    }
+    if (!cli->has("print-wmname") && cli->has("reload")) {
       inotify_util::make_watch(conf.filepath());
     }
 
-    ctrl = make_controller(move(confwatch), enable_ipc, cli->has("stdout"));
+    ctrl = controller::make(move(confwatch), enable_ipc, cli->has("stdout"));
 
     if (cli->has("print-wmname")) {
-      std::cout << ctrl->opts().wmname << std::endl;
+      cout << ctrl->opts().wmname << endl;
       throw exit_success{};
     }
 

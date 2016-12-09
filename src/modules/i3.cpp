@@ -3,6 +3,7 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/i3.hpp"
+#include "utils/factory.hpp"
 #include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
@@ -25,7 +26,7 @@ namespace modules {
       throw module_error("Could not find socket: " + (socket_path.empty() ? "<empty>" : socket_path));
     }
 
-    m_ipc = make_unique<i3ipc::connection>();
+    m_ipc = factory_util::unique<i3ipc::connection>();
 
     // Load configuration values
     GET_CONFIG_VALUE(name(), m_click, "enable-click");
@@ -151,7 +152,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(make_unique<workspace>(ws->num, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->num, ws_state, move(label)));
       }
 
       return true;

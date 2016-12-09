@@ -16,6 +16,33 @@ POLYBAR_NS
 
 using namespace modules;
 
+/**
+ * Create instance
+ */
+unique_ptr<controller> controller::make(watch_t&& confwatch, bool enable_ipc, bool writeback) {
+  unique_ptr<ipc> ipc;
+
+  if (enable_ipc) {
+    ipc = ipc::make();
+  }
+
+  // clang-format off
+  return factory_util::unique<controller>(
+      connection::make(),
+      signal_emitter::make(),
+      logger::make(),
+      config::make(),
+      eventloop::make(),
+      bar::make(),
+      move(ipc),
+      move(confwatch),
+      writeback);
+  // clang-format on
+}
+
+/**
+ * Construct controller object
+ */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
     unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback)
     : m_connection(conn)
@@ -28,6 +55,9 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     , m_confwatch(move(confwatch))
     , m_writeback(writeback) {}
 
+/**
+ * Deconstruct controller object
+ */
 controller::~controller() {
   if (m_eventloop) {
     m_log.info("Deconstructing eventloop");

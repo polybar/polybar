@@ -65,6 +65,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
                      public signal_receiver<SIGN_PRIORITY_TRAY, visibility_change> {
  public:
+  static unique_ptr<tray_manager> make();
+
   explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger);
 
   ~tray_manager();
@@ -155,14 +157,5 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   std::mutex m_mtx;
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline unique_ptr<tray_manager> make_tray_manager() {
-    return factory_util::unique<tray_manager>(make_connection(), make_signal_emitter(), make_logger());
-  }
-}
 
 POLYBAR_NS_END

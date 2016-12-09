@@ -1,22 +1,22 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "x11/connection.hpp"
 #include "x11/fonts.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
 
+// fwd
 class connection;
 class font_manager;
 class logger;
 
 using namespace signals::parser;
+using std::map;
 
 class renderer
     : public signal_receiver<SIGN_PRIORITY_RENDERER, change_background, change_foreground, change_underline,
@@ -24,6 +24,8 @@ class renderer
           attribute_toggle, action_begin, action_end, write_text_ascii, write_text_unicode, write_text_string> {
  public:
   enum class gc : uint8_t { BG, FG, OL, UL, BT, BB, BL, BR };
+
+  static unique_ptr<renderer> make(const bar_settings& bar, vector<string>&& fonts);
 
   explicit renderer(connection& conn, signal_emitter& emitter, const logger& logger,
       unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts);
@@ -121,22 +123,5 @@ class renderer
 
   xcb_font_t m_gcfont{XCB_NONE};
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline unique_ptr<renderer> make_renderer(const bar_settings& bar, const vector<string>& fonts) {
-    // clang-format off
-    return factory_util::unique<renderer>(
-          make_connection(),
-          make_signal_emitter(),
-          make_logger(),
-          make_font_manager(),
-          bar,
-          fonts);
-    // clang-format on
-  }
-}
 
 POLYBAR_NS_END

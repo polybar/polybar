@@ -4,12 +4,17 @@
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
-#include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
+  // fwd
+  class label;
+  using label_t = shared_ptr<label>;
+  using icon = label;
+  using icon_t = label_t;
+
   class progressbar : public non_copyable_mixin<progressbar> {
    public:
     explicit progressbar(const bar_settings& bar, int width, string format);

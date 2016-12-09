@@ -6,6 +6,7 @@
 #include "config.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/io.hpp"
 #include "utils/string.hpp"
@@ -13,6 +14,13 @@
 POLYBAR_NS
 
 using namespace signals::ipc;
+
+/**
+ * Create instance
+ */
+unique_ptr<ipc> ipc::make() {
+  return factory_util::unique<ipc>(signal_emitter::make(), logger::make());
+}
 
 /**
  * Interrupt the blocked listener and

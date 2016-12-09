@@ -5,7 +5,6 @@
 #include <string>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -21,6 +20,8 @@ loglevel parse_loglevel_name(const string& name);
 
 class logger {
  public:
+  static const logger& make(loglevel level = loglevel::NONE);
+
   explicit logger(loglevel level);
   explicit logger(string level_name) : logger(parse_loglevel_name(level_name)) {}
 
@@ -133,15 +134,5 @@ class logger {
    */
   std::map<loglevel, string> m_suffixes;
 };
-
-/**
- * Configure injection module
- */
-namespace {
-  inline const logger& make_logger(loglevel level = loglevel::NONE) {
-    auto instance = factory_util::singleton<const logger>(level);
-    return static_cast<const logger&>(*instance);
-  }
-}
 
 POLYBAR_NS_END

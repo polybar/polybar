@@ -36,6 +36,8 @@ namespace command_line {
 
   class parser {
    public:
+    static unique_ptr<parser> make(string scriptname, const options& opts);
+
     explicit parser(const string& synopsis, const options& opts) : m_synopsis(synopsis), m_opts(opts) {}
 
     void usage() const;
@@ -67,14 +69,5 @@ namespace command_line {
 using cliparser = command_line::parser;
 using clioption = command_line::option;
 using clioptions = command_line::options;
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline unique_ptr<cliparser> make_command_line(string scriptname, const clioptions& opts) {
-    return factory_util::unique<cliparser>("Usage: " + scriptname + " bar_name [OPTION...]", opts);
-  }
-}
 
 POLYBAR_NS_END

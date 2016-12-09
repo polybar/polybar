@@ -20,6 +20,8 @@ using xpp_connection = xpp::connection<XPP_EXTENSION_LIST>;
 
 class connection : public xpp_connection {
  public:
+  static connection& make();
+
   explicit connection(xcb_connection_t* conn) : connection(conn, 0) {}
   explicit connection(xcb_connection_t* conn, int connection_fd)
       : xpp_connection(conn), m_connection_fd(connection_fd) {}
@@ -97,15 +99,5 @@ class connection : public xpp_connection {
   xcb_screen_t* m_screen{nullptr};
   int m_connection_fd{0};
 };
-
-namespace {
-  /**
-   * Configure injection module
-   */
-  inline connection& make_connection() {
-    auto instance = factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd());
-    return static_cast<connection&>(*instance);
-  }
-}
 
 POLYBAR_NS_END
