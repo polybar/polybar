@@ -68,9 +68,10 @@ int main(int argc, char** argv) {
     // Parse command line arguments
     //==================================================
     string scriptname{argv[0]};
-    vector<string> args(argv + 1, argv + argc);
+    vector<string> args{argv + 1, argv + argc};
 
-    unique_ptr<cliparser> cli{command_line::parser::make(scriptname, opts)};
+    cliparser::make_type cli{cliparser::make(move(scriptname), opts)};
+
     cli->process_input(args);
 
     if (cli->has("quiet")) {
@@ -93,17 +94,19 @@ int main(int argc, char** argv) {
     //==================================================
     // Load user configuration
     //==================================================
-    config& conf{const_cast<config&>(config::make())};
+    string confpath;
 
     if (cli->has("config")) {
-      conf.load(cli->get("config"), args[0]);
+      confpath = cli->get("config");
     } else if (env_util::has("XDG_CONFIG_HOME")) {
-      conf.load(env_util::get("XDG_CONFIG_HOME") + "/polybar/config", args[0]);
+      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
     } else if (env_util::has("HOME")) {
-      conf.load(env_util::get("HOME") + "/.config/polybar/config", args[0]);
+      confpath = env_util::get("HOME") + "/.config/polybar/config";
     } else {
       throw application_error("Define configuration using --config=PATH");
     }
+
+    config::make_type conf{config::make(move(confpath), args[0])};
 
     //==================================================
     // Dump requested data

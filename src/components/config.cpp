@@ -13,9 +13,19 @@ POLYBAR_NS
 /**
  * Create instance
  */
-config::make_type config::make() {
-  auto instance = factory_util::singleton<const config>(logger::make(), xresource_manager::make());
-  return static_cast<const config&>(*instance);
+config::make_type config::make(string path, string bar) {
+  return static_cast<const config&>(
+      *factory_util::singleton<const config>(logger::make(), xresource_manager::make(), move(path), move(bar)));
+}
+
+/**
+ * Construct config object
+ */
+config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
+    : m_logger(logger), m_xrm(xrm) {
+  if (!path.empty() && !bar.empty()) {
+    load(forward<decltype(path)>(path), forward<decltype(bar)>(bar));
+  }
 }
 
 /**

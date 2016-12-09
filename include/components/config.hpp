@@ -27,9 +27,9 @@ class config {
   using sectionmap_t = std::unordered_map<string, valuemap_t>;
 
   using make_type = const config&;
-  static make_type make();
+  static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
+  explicit config(const logger& logger, const xresource_manager& xrm, string&& path = "", string&& bar = "");
 
   void load(string file, string barname);
   string filepath() const;
