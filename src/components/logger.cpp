@@ -11,11 +11,6 @@ POLYBAR_NS
  * Create instance
  */
 logger::make_type logger::make(loglevel level) {
-#ifndef DEBUG
-  if (level == loglevel::TRACE) {
-    throw application_error("not a debug build: trace disabled...");
-  }
-#endif
   return static_cast<const logger&>(*factory_util::singleton<const logger>(level));
 }
 
@@ -52,7 +47,7 @@ logger::logger(loglevel level) : m_level(level) {
 void logger::verbosity(loglevel&& level) {
 #ifndef DEBUG
   if (level == loglevel::TRACE) {
-    throw application_error("Not a debug build; trace disabled...");
+    throw application_error("Trace logging is only enabled for debug builds...");
   }
 #endif
   m_level = forward<decltype(level)>(level);

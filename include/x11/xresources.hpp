@@ -8,7 +8,8 @@ POLYBAR_NS
 
 class xresource_manager {
  public:
-  static const xresource_manager& make();
+  using make_type = const xresource_manager&;
+  static make_type make();
 
   explicit xresource_manager();
 

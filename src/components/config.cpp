@@ -14,8 +14,8 @@ POLYBAR_NS
  * Create instance
  */
 config::make_type config::make(string path, string bar) {
-  return static_cast<const config&>(
-      *factory_util::singleton<const config>(logger::make(), xresource_manager::make(), move(path), move(bar)));
+  return static_cast<config::make_type>(*factory_util::singleton<std::remove_reference_t<config::make_type>>(
+      *factory_util::singleton<const config>(logger::make(), xresource_manager::make(), move(path), move(bar))));
 }
 
 /**

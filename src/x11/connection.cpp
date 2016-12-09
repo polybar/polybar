@@ -12,8 +12,8 @@ POLYBAR_NS
  * Create instance
  */
 connection::make_type connection::make() {
-  return static_cast<connection&>(
-      *factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd()));
+  return static_cast<connection::make_type>(*factory_util::singleton<std::remove_reference_t<connection::make_type>>(
+      xutils::get_connection(), xutils::get_connection_fd()));
 }
 
 /**

@@ -48,8 +48,9 @@ int main(int argc, char** argv) {
       throw exit_failure{};
     }
 
-    connection{xcbconn}.preload_atoms();
-    connection{xcbconn}.query_extensions();
+    connection conn{xcbconn};
+    conn.preload_atoms();
+    conn.query_extensions();
 
     //==================================================
     // Block all signals by default
@@ -160,8 +161,9 @@ int main(int argc, char** argv) {
   }
 
   try {
-    logger.info("Reload application...");
-    process_util::exec(argv[0], argv);
+    logger.warn("Re-launching application...");
+    logger.info("Re-launching application...");
+    process_util::exec(move(argv[0]), move(argv));
   } catch (const system_error& err) {
     logger.err("execlp() failed (%s)", strerror(errno));
   }

@@ -32,7 +32,7 @@ controller::make_type controller::make(string&& path_confwatch, bool enable_ipc,
       eventloop::make(),
       bar::make(),
       enable_ipc ? ipc::make() : ipc::make_type{},
-      !path_confwatch.empty() ? inotify_util::make_watch(path_confwatch) : watch_t{},
+      !path_confwatch.empty() ? inotify_util::make_watch(forward<decltype(path_confwatch)>(path_confwatch)) : watch_t{},
       writeback);
   // clang-format on
 }
