@@ -11,8 +11,12 @@ POLYBAR_NS
  * Create instance
  */
 logger::make_type logger::make(loglevel level) {
-  auto instance = factory_util::singleton<const logger>(level);
-  return static_cast<const logger&>(*instance);
+#ifndef DEBUG
+  if (level == loglevel::TRACE) {
+    throw application_error("not a debug build: trace disabled...");
+  }
+#endif
+  return static_cast<const logger&>(*factory_util::singleton<const logger>(level));
 }
 
 /**
@@ -45,26 +49,19 @@ logger::logger(loglevel level) : m_level(level) {
 /**
  * Set output verbosity
  */
-void logger::verbosity(loglevel level) {
+void logger::verbosity(loglevel&& level) {
 #ifndef DEBUG
   if (level == loglevel::TRACE) {
-    throw application_error("not a debug build: trace disabled...");
+    throw application_error("Not a debug build; trace disabled...");
   }
 #endif
-  m_level = level;
-}
-
-/**
- * Set output verbosity by loglevel name
- */
-void logger::verbosity(string level) {
-  verbosity(parse_loglevel_name(move(level)));
+  m_level = forward<decltype(level)>(level);
 }
 
 /**
  * Convert given loglevel name to its enum type counterpart
  */
-loglevel parse_loglevel_name(const string& name) {
+loglevel logger::parse_verbosity(const string& name, loglevel fallback) {
   if (string_util::compare(name, "error")) {
     return loglevel::ERROR;
   } else if (string_util::compare(name, "warning")) {
@@ -74,7 +71,7 @@ loglevel parse_loglevel_name(const string& name) {
   } else if (string_util::compare(name, "trace")) {
     return loglevel::TRACE;
   } else {
-    return loglevel::NONE;
+    return fallback;
   }
 }
 

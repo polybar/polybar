@@ -16,18 +16,16 @@ enum class loglevel : uint8_t {
   TRACE,
 };
 
-loglevel parse_loglevel_name(const string& name);
-
 class logger {
  public:
   using make_type = const logger&;
   static make_type make(loglevel level = loglevel::NONE);
 
   explicit logger(loglevel level);
-  explicit logger(string level_name) : logger(parse_loglevel_name(level_name)) {}
 
-  void verbosity(loglevel level);
-  void verbosity(string level);
+  static loglevel parse_verbosity(const string& name, loglevel fallback = loglevel::NONE);
+
+  void verbosity(loglevel&& level);
 
 #ifdef DEBUG_LOGGER  // {{{
   template <typename... Args>

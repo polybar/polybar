@@ -22,9 +22,9 @@ struct exit_failure {};
 int main(int argc, char** argv) {
   // clang-format off
   const command_line::options opts{
-    command_line::option{"-h", "--help", "Show help options"},
+      command_line::option{"-h", "--help", "Show help options"},
       command_line::option{"-v", "--version", "Print version information"},
-      command_line::option{"-l", "--log", "Set the logging verbosity (default: WARNING)", "LEVEL", {"warning", "info", "trace"}},
+      command_line::option{"-l", "--log", "Set the logging verbosity (default: WARNING)", "LEVEL", {"error", "warning", "info", "trace"}},
       command_line::option{"-q", "--quiet", "Be quiet (will override -l)"},
       command_line::option{"-c", "--config", "Path to the configuration file", "FILE"},
       command_line::option{"-r", "--reload", "Reload when the configuration has been modified"},
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   uint8_t exit_code{EXIT_SUCCESS};
   bool reload{false};
 
-  logger& logger{const_cast<class logger&>(logger::make(loglevel::WARNING))};
+  logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::WARNING))};
 
   try {
     //==================================================
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
     if (cli->has("quiet")) {
       logger.verbosity(loglevel::ERROR);
     } else if (cli->has("log")) {
-      logger.verbosity(cli->get("log"));
+      logger.verbosity(logger::parse_verbosity(cli->get("log")));
     }
 
     if (cli->has("help")) {
