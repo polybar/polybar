@@ -6,16 +6,20 @@ POLYBAR_NS
 // class : alsa_ctl_interface {{{
 
 alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
-  snd_ctl_elem_info_alloca(&m_info);
-  snd_ctl_elem_value_alloca(&m_value);
-  snd_ctl_elem_id_alloca(&m_id);
+  snd_ctl_elem_info_malloc(&m_info);
 
   if (m_info == nullptr) {
     throw alsa_ctl_interface_error("Failed to allocate alsa_ctl info");
   }
+
+  snd_ctl_elem_value_malloc(&m_value);
+
   if (m_value == nullptr) {
     throw alsa_ctl_interface_error("Failed to allocate alsa_ctl value");
   }
+
+  snd_ctl_elem_id_malloc(&m_id);
+
   if (m_id == nullptr) {
     throw alsa_ctl_interface_error("Failed to allocate alsa_ctl id");
   }
@@ -25,9 +29,11 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
 
   int err = 0;
 
-  if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) < 0) {
+  if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) == -1) {
     throw_exception<alsa_ctl_interface_error>("Could not open control '" + string{ALSA_SOUNDCARD} + "'", err);
   }
+
+  snd_config_update_free_global();
 
   if ((err = snd_ctl_elem_info(m_ctl, m_info)) < 0) {
     throw_exception<alsa_ctl_interface_error>("Could not get control datal", err);
@@ -35,12 +41,16 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
 
   snd_ctl_elem_info_get_id(m_info, m_id);
 
-  if ((err = snd_hctl_open(&m_hctl, ALSA_SOUNDCARD, 0)) < 0) {
+  if ((err = snd_hctl_open(&m_hctl, ALSA_SOUNDCARD, 0)) == -1) {
     throw_exception<alsa_ctl_interface_error>("Failed to open hctl", err);
   }
+
+  snd_config_update_free_global();
+
   if (m_hctl == nullptr || (err = snd_hctl_load(m_hctl)) < 0) {
     throw_exception<alsa_ctl_interface_error>("Failed to load hctl", err);
   }
+
   if ((m_elem = snd_hctl_find_elem(m_hctl, m_id)) == nullptr) {
     throw alsa_ctl_interface_error("Could not find control with id " + to_string(snd_ctl_elem_id_get_numid(m_id)));
   }
@@ -52,8 +62,21 @@ alsa_ctl_interface::alsa_ctl_interface(int numid) : m_numid(numid) {
 
 alsa_ctl_interface::~alsa_ctl_interface() {
   std::lock_guard<std::mutex> guard(m_lock);
-  snd_ctl_close(m_ctl);
-  snd_hctl_close(m_hctl);
+  if (m_info != nullptr) {
+    snd_ctl_elem_info_free(m_info);
+  }
+  if (m_value != nullptr) {
+    snd_ctl_elem_value_free(m_value);
+  }
+  if (m_id != nullptr) {
+    snd_ctl_elem_id_free(m_id);
+  }
+  if (m_ctl != nullptr) {
+    snd_ctl_close(m_ctl);
+  }
+  if (m_hctl != nullptr) {
+    snd_hctl_close(m_hctl);
+  }
 }
 
 int alsa_ctl_interface::get_numid() {
@@ -71,23 +94,22 @@ bool alsa_ctl_interface::wait(int timeout) {
 
   int err = 0;
 
-  if ((err = snd_ctl_wait(m_ctl, timeout)) < 0) {
+  if ((err = snd_ctl_wait(m_ctl, timeout)) == -1) {
     throw_exception<alsa_ctl_interface_error>("Failed to wait for events", err);
   }
 
   snd_ctl_event_t* event;
   snd_ctl_event_alloca(&event);
 
-  if ((err = snd_ctl_read(m_ctl, event)) < 0) {
-    return false;
-  }
-  if (snd_ctl_event_get_type(event) != SND_CTL_EVENT_ELEM) {
+  if ((err = snd_ctl_read(m_ctl, event)) == -1) {
     return false;
   }
 
-  auto mask = snd_ctl_event_elem_get_mask(event);
+  if (snd_ctl_event_get_type(event) == SND_CTL_EVENT_ELEM) {
+    return snd_ctl_event_elem_get_mask(event) & SND_CTL_EVENT_MASK_VALUE;
+  }
 
-  return mask & SND_CTL_EVENT_MASK_VALUE;
+  return false;
 }
 
 bool alsa_ctl_interface::test_device_plugged() {
@@ -114,37 +136,38 @@ void alsa_ctl_interface::process_events() {
 // }}}
 // class : alsa_mixer {{{
 
-alsa_mixer::alsa_mixer(const string& mixer_control_name) : m_name(mixer_control_name) {
+alsa_mixer::alsa_mixer(string mixer_control_name) : m_name(move(mixer_control_name)) {
   if (m_name.empty()) {
     throw alsa_mixer_error("Invalid control name");
   }
 
-  snd_mixer_selem_id_t* mixer_id{nullptr};
-  snd_mixer_selem_id_alloca(&mixer_id);
+  snd_mixer_selem_id_malloc(&m_mixerid);
 
-  if (mixer_id == nullptr) {
+  if (m_mixerid == nullptr) {
     throw alsa_mixer_error("Failed to allocate mixer id");
   }
 
   int err = 0;
-
-  if ((err = snd_mixer_open(&m_hardwaremixer, 1)) < 0) {
+  if ((err = snd_mixer_open(&m_hardwaremixer, 1)) == -1) {
     throw_exception<alsa_mixer_error>("Failed to open hardware mixer", err);
   }
-  if ((err = snd_mixer_attach(m_hardwaremixer, ALSA_SOUNDCARD)) < 0) {
+
+  snd_config_update_free_global();
+
+  if ((err = snd_mixer_attach(m_hardwaremixer, ALSA_SOUNDCARD)) == -1) {
     throw_exception<alsa_mixer_error>("Failed to attach hardware mixer control", err);
   }
-  if ((err = snd_mixer_selem_register(m_hardwaremixer, nullptr, nullptr)) < 0) {
+  if ((err = snd_mixer_selem_register(m_hardwaremixer, nullptr, nullptr)) == -1) {
     throw_exception<alsa_mixer_error>("Failed to register simple mixer element", err);
   }
-  if ((err = snd_mixer_load(m_hardwaremixer)) < 0) {
+  if ((err = snd_mixer_load(m_hardwaremixer)) == -1) {
     throw_exception<alsa_mixer_error>("Failed to load mixer", err);
   }
 
-  snd_mixer_selem_id_set_index(mixer_id, 0);
-  snd_mixer_selem_id_set_name(mixer_id, m_name.c_str());
+  snd_mixer_selem_id_set_index(m_mixerid, 0);
+  snd_mixer_selem_id_set_name(m_mixerid, m_name.c_str());
 
-  if ((m_mixerelement = snd_mixer_find_selem(m_hardwaremixer, mixer_id)) == nullptr) {
+  if ((m_mixerelement = snd_mixer_find_selem(m_hardwaremixer, m_mixerid)) == nullptr) {
     throw alsa_mixer_error("Cannot find simple element");
   }
 
@@ -153,9 +176,16 @@ alsa_mixer::alsa_mixer(const string& mixer_control_name) : m_name(mixer_control_
 
 alsa_mixer::~alsa_mixer() {
   std::lock_guard<std::mutex> guard(m_lock);
-  snd_mixer_elem_remove(m_mixerelement);
-  snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
-  snd_mixer_close(m_hardwaremixer);
+  if (m_mixerid != nullptr) {
+    snd_mixer_selem_id_free(m_mixerid);
+  }
+  if (m_mixerelement != nullptr) {
+    snd_mixer_elem_free(m_mixerelement);
+  }
+  if (m_hardwaremixer != nullptr) {
+    snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
+    snd_mixer_close(m_hardwaremixer);
+  }
 }
 
 string alsa_mixer::get_name() {
@@ -173,7 +203,7 @@ bool alsa_mixer::wait(int timeout) {
 
   int err = 0;
 
-  if ((err = snd_mixer_wait(m_hardwaremixer, timeout)) < 0) {
+  if ((err = snd_mixer_wait(m_hardwaremixer, timeout)) == -1) {
     throw_exception<alsa_mixer_error>("Failed to wait for events", err);
   }
 
@@ -190,7 +220,6 @@ int alsa_mixer::process_events() {
   std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
   int num_events = snd_mixer_handle_events(m_hardwaremixer);
-
   if (num_events < 0) {
     throw_exception<alsa_mixer_error>("Failed to process pending events", num_events);
   }

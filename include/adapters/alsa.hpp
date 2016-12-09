@@ -72,9 +72,9 @@ class alsa_ctl_interface {
   void process_events();
 
  private:
-  int m_numid{0};
-
   std::mutex m_lock;
+
+  int m_numid{0};
 
   snd_hctl_t* m_hctl{nullptr};
   snd_hctl_elem_t* m_elem{nullptr};
@@ -90,7 +90,7 @@ class alsa_ctl_interface {
 
 class alsa_mixer {
  public:
-  explicit alsa_mixer(const string& mixer_control_name);
+  explicit alsa_mixer(string mixer_control_name);
   ~alsa_mixer();
 
   string get_name();
@@ -107,10 +107,11 @@ class alsa_mixer {
   bool is_muted();
 
  private:
-  string m_name;
-
   std::mutex m_lock;
 
+  string m_name;
+
+  snd_mixer_selem_id_t* m_mixerid{nullptr};
   snd_mixer_t* m_hardwaremixer{nullptr};
   snd_mixer_elem_t* m_mixerelement{nullptr};
 };
