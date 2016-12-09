@@ -10,9 +10,16 @@ POLYBAR_NS
 /**
  * Create instance
  */
-cliparser::make_type cliparser::make(string scriptname, const clioptions& opts) {
-  return factory_util::unique<cliparser>("Usage: " + scriptname + " bar_name [OPTION...]", opts);
+cliparser::make_type cliparser::make(string&& scriptname, const clioptions&& opts) {
+  return factory_util::unique<cliparser>(
+      "Usage: " + scriptname + " bar_name [OPTION...]", forward<decltype(opts)>(opts));
 }
+
+/**
+ * Construct parser
+ */
+cliparser::parser(string&& synopsis, const options&& opts)
+    : m_synopsis(forward<decltype(synopsis)>(synopsis)), m_opts(forward<decltype(opts)>(opts)) {}
 
 /**
  * Print application usage message

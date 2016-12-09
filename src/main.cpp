@@ -13,9 +13,6 @@
 
 using namespace polybar;
 
-using std::cout;
-using std::endl;
-
 struct exit_success {};
 struct exit_failure {};
 
@@ -70,8 +67,7 @@ int main(int argc, char** argv) {
     string scriptname{argv[0]};
     vector<string> args{argv + 1, argv + argc};
 
-    cliparser::make_type cli{cliparser::make(move(scriptname), opts)};
-
+    cliparser::make_type cli{cliparser::make(move(scriptname), move(opts))};
     cli->process_input(args);
 
     if (cli->has("quiet")) {
@@ -112,7 +108,7 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << endl;
+      std::cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << std::endl;
       throw exit_success{};
     }
 
@@ -133,7 +129,7 @@ int main(int argc, char** argv) {
     ctrl = controller::make(move(path_confwatch), enable_ipc, cli->has("stdout"));
 
     if (cli->has("print-wmname")) {
-      cout << ctrl->opts().wmname << endl;
+      std::cout << ctrl->opts().wmname << std::endl;
       throw exit_success{};
     }
 

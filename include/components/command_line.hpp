@@ -37,9 +37,9 @@ namespace command_line {
   class parser {
    public:
     using make_type = unique_ptr<parser>;
-    static make_type make(string scriptname, const options& opts);
+    static make_type make(string&& scriptname, const options&& opts);
 
-    explicit parser(const string& synopsis, const options& opts) : m_synopsis(synopsis), m_opts(opts) {}
+    explicit parser(string&& synopsis, const options&& opts);
 
     void usage() const;
 
@@ -59,7 +59,7 @@ namespace command_line {
 
    private:
     string m_synopsis;
-    options m_opts;
+    const options m_opts;
     values m_optvalues;
     bool m_skipnext = false;
   };
