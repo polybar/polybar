@@ -34,6 +34,18 @@ xresource_manager::xresource_manager() {
 }
 
 /**
+ * Deconstruct instance
+ */
+xresource_manager::~xresource_manager() {
+  if (m_db != nullptr) {
+    XrmDestroyDatabase(m_db);
+  }
+  if (m_manager != nullptr) {
+    XFree(m_manager);
+  }
+}
+
+/**
  * Get string value from the X resource db
  */
 string xresource_manager::get_string(string name, string fallback) const {

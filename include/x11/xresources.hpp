@@ -12,6 +12,7 @@ class xresource_manager {
   static make_type make();
 
   explicit xresource_manager();
+  ~xresource_manager();
 
   string get_string(string name, string fallback = "") const;
   float get_float(string name, float fallback = 0.0f) const;
@@ -21,7 +22,7 @@ class xresource_manager {
   string load_value(const string& key, const string& res_type, size_t n) const;
 
  private:
-  char* m_manager = nullptr;
+  char* m_manager{nullptr};
   XrmDatabase m_db;
 };
 
