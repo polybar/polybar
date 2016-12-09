@@ -159,6 +159,7 @@ namespace net {
 
     driver.cmd = ETHTOOL_GDRVINFO;
 
+    memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 0);
 
     request.ifr_data = reinterpret_cast<caddr_t>(&driver);
@@ -221,6 +222,7 @@ namespace net {
     struct ifreq request;
     struct ethtool_cmd data;
 
+    memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GSET;
     request.ifr_data = reinterpret_cast<caddr_t>(&data);
@@ -245,6 +247,7 @@ namespace net {
     struct ethtool_value data;
     struct ifreq request;
 
+    memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GLINK;
     request.ifr_data = reinterpret_cast<caddr_t>(&data);
