@@ -501,6 +501,10 @@ void controller::on_update(bool force) {
         continue;
       }
 
+      if (!block_contents.empty() && !(is_right && module == block.second.back())) {
+        block_contents += string(margin_right, ' ');
+      }
+
       if (!block_contents.empty() && !separator.empty()) {
         block_contents += separator;
       }
@@ -510,10 +514,6 @@ void controller::on_update(bool force) {
       }
 
       block_contents += module->contents();
-
-      if (!(is_right && module == block.second.back())) {
-        block_contents += string(margin_right, ' ');
-      }
     }
 
     if (block_contents.empty()) {
