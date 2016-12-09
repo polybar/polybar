@@ -8,8 +8,7 @@ signal_receivers_t g_signal_receivers;
  * Create instance
  */
 signal_emitter::make_type signal_emitter::make() {
-  auto instance = factory_util::singleton<signal_emitter>();
-  return static_cast<signal_emitter&>(*instance);
+  return static_cast<signal_emitter&>(*factory_util::singleton<signal_emitter>());
 }
 
 POLYBAR_NS_END

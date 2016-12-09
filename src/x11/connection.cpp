@@ -12,8 +12,8 @@ POLYBAR_NS
  * Create instance
  */
 connection::make_type connection::make() {
-  auto instance = factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd());
-  return static_cast<connection&>(*instance);
+  return static_cast<connection&>(
+      *factory_util::singleton<connection>(xutils::get_connection(), xutils::get_connection_fd()));
 }
 
 /**

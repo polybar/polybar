@@ -12,8 +12,7 @@ POLYBAR_NS
  * Create instance
  */
 const xresource_manager& xresource_manager::make() {
-  auto instance = factory_util::singleton<xresource_manager>();
-  return static_cast<const xresource_manager&>(*instance);
+  return static_cast<const xresource_manager&>(*factory_util::singleton<xresource_manager>());
 }
 
 /**
