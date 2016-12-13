@@ -180,7 +180,7 @@ alsa_mixer::~alsa_mixer() {
     snd_mixer_selem_id_free(m_mixerid);
   }
   if (m_mixerelement != nullptr) {
-    snd_mixer_elem_free(m_mixerelement);
+    snd_mixer_elem_remove(m_mixerelement);
   }
   if (m_hardwaremixer != nullptr) {
     snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
