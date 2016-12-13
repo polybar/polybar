@@ -1,3 +1,6 @@
+#include <istream>
+#include <fstream>
+
 #include "modules/memory.hpp"
 
 #include "drawtypes/label.hpp"

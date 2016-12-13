@@ -1,3 +1,6 @@
+#include <istream>
+#include <fstream>
+
 #include "modules/cpu.hpp"
 
 #include "drawtypes/label.hpp"

@@ -276,7 +276,7 @@ void bar::bootstrap_tray() {
   settings.orig_y = m_opts.pos.y + m_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
-  auto scale = m_conf.get<float>(bs, "tray-scale", 1.0);
+  auto scale = m_conf.get<float>(bs, "tray-scale", 1.0f);
   settings.width *= scale;
   settings.height_fill *= scale;
 

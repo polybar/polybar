@@ -1,7 +1,5 @@
 #pragma once
 
-#include <istream>
-
 #include "config.hpp"
 #include "modules/meta/timer_module.hpp"
 

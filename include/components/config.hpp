@@ -1,9 +1,7 @@
 #pragma once
 
-#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -14,42 +12,44 @@
 
 POLYBAR_NS
 
+using boost::optional;
+using boost::none;
+
 #define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
 #define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
-
-using ptree = boost::property_tree::ptree;
 
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);
 
 class config {
  public:
+  using valuemap_t = std::unordered_map<string, string>;
+  using sectionmap_t = std::unordered_map<string, valuemap_t>;
+
   static constexpr const char* KEY_INHERIT{"inherit"};
 
   explicit config(const logger& logger, const xresource_manager& xrm) : m_logger(logger), m_xrm(xrm) {}
 
   void load(string file, string barname);
-  void copy_inherited();
   string filepath() const;
   string bar_section() const;
   vector<string> defined_bars() const;
-  string build_path(const string& section, const string& key) const;
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
   /**
    * Returns true if a given parameter exists
    */
   template <typename T>
-  bool has(string section, string key) const {
-    auto val = m_ptree.get_optional<T>(build_path(section, key));
-    return (val != boost::none);
+  bool has(const string& section, const string& key) const {
+    auto it = m_sections.find(section);
+    return it != m_sections.end() && it->second.find(key) != it->second.end();
   }
 
   /**
    * Get parameter for the current bar by name
    */
   template <typename T>
-  T get(string key) const {
+  T get(const string& key) const {
     return get<T>(bar_section(), key);
   }
 
@@ -57,15 +57,20 @@ class config {
    * Get value of a variable by section and parameter name
    */
   template <typename T>
-  T get(string section, string key) const {
-    auto val = m_ptree.get_optional<T>(build_path(section, key));
+  T get(const string& section, const string& key) const {
+    optional<T> value{opt<T>(section, key)};
 
-    if (val == boost::none)
+    if (value == none) {
       throw key_error("Missing parameter [" + section + "." + key + "]");
+    }
 
-    auto str_val = m_ptree.get<string>(build_path(section, key));
+    string string_value{opt<string>(section, key).get()};
 
-    return dereference<T>(section, key, str_val, val.get());
+    if (!string_value.empty()) {
+      return dereference<T>(section, key, opt<string>(section, key).get(), value.get());
+    }
+
+    return move(value.get());
   }
 
   /**
@@ -73,18 +78,27 @@ class config {
    * with a default value in case the parameter isn't defined
    */
   template <typename T>
-  T get(string section, string key, T default_value) const {
-    auto val = m_ptree.get_optional<T>(build_path(section, key));
-    auto str_val = m_ptree.get_optional<string>(build_path(section, key));
+  T get(const string& section, const string& key, const T& default_value) const {
+    optional<T> value{opt<T>(section, key)};
 
-    return dereference<T>(section, key, str_val.get_value_or(""), val.get_value_or(default_value));
+    if (value == none) {
+      return default_value;
+    }
+
+    string string_value{opt<string>(section, key).get()};
+
+    if (!string_value.empty()) {
+      return dereference<T>(section, key, opt<string>(section, key).get(), value.get());
+    }
+
+    return move(value.get());
   }
 
   /**
    * Get list of values for the current bar by name
    */
   template <typename T>
-  vector<T> get_list(string key) const {
+  vector<T> get_list(const string& key) const {
     return get_list<T>(bar_section(), key);
   }
 
@@ -92,13 +106,18 @@ class config {
    * Get list of values by section and parameter name
    */
   template <typename T>
-  vector<T> get_list(string section, string key) const {
+  vector<T> get_list(const string& section, const string& key) const {
     vector<T> vec;
-    boost::optional<T> value;
+    optional<T> value;
 
-    while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
-      auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
-      vec.emplace_back(dereference<T>(section, key, str_val, value.get()));
+    while ((value = opt<T>(section, key + "-" + to_string(vec.size()))) != none) {
+      string string_value{get<string>(section, key + "-" + to_string(vec.size()))};
+
+      if (!string_value.empty()) {
+        vec.emplace_back(dereference<T>(section, key, move(string_value), move(value.get())));
+      } else {
+        vec.emplace_back(move(value.get()));
+      }
     }
 
     if (vec.empty())
@@ -112,13 +131,18 @@ class config {
    * with a default list in case the list isn't defined
    */
   template <typename T>
-  vector<T> get_list(string section, string key, vector<T> default_value) const {
+  vector<T> get_list(const string& section, const string& key, const vector<T>& default_value) const {
     vector<T> vec;
-    boost::optional<T> value;
+    optional<T> value;
 
-    while ((value = m_ptree.get_optional<T>(build_path(section, key) + "-" + to_string(vec.size()))) != boost::none) {
-      auto str_val = m_ptree.get<string>(build_path(section, key) + "-" + to_string(vec.size()));
-      vec.emplace_back(dereference<T>(section, key, str_val, value.get()));
+    while ((value = opt<T>(section, key + "-" + to_string(vec.size()))) != none) {
+      string string_value{get<string>(section, key + "-" + to_string(vec.size()))};
+
+      if (!string_value.empty()) {
+        vec.emplace_back(dereference<T>(section, key, move(string_value), move(value.get())));
+      } else {
+        vec.emplace_back(move(value.get()));
+      }
     }
 
     if (vec.empty())
@@ -128,26 +152,44 @@ class config {
   }
 
  protected:
+  void read();
+  void copy_inherited();
+
+  template <typename T>
+  T convert(string&& value) const;
+
+  template <typename T>
+  const optional<T> opt(const string& section, const string& key) const {
+    sectionmap_t::const_iterator s;
+    valuemap_t::const_iterator v;
+
+    if ((s = m_sections.find(section)) != m_sections.end() && (v = s->second.find(key)) != s->second.end()) {
+      return {convert<T>(string{v->second})};
+    }
+
+    return none;
+  }
+
   /**
    * Dereference value reference
    */
   template <typename T>
-  T dereference(string section, string key, string var, const T value) const {
+  T dereference(const string& section, const string& key, const string& var, T fallback) const {
     if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
-      return value;
+      return fallback;
     }
 
     auto path = var.substr(2, var.length() - 3);
     size_t pos;
 
-    if (path.find("env:") == 0) {
-      return dereference_env<T>(path.substr(4), value);
-    } else if (path.find("xrdb:") == 0) {
-      return dereference_xrdb<T>(path.substr(5), value);
+    if (path.compare(0, 4, "env:") == 0) {
+      return dereference_env<T>(path.substr(4), fallback);
+    } else if (path.compare(0, 5, "xrdb:") == 0) {
+      return dereference_xrdb<T>(path.substr(5), fallback);
     } else if ((pos = path.find(".")) != string::npos) {
       return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
-      throw value_error("Invalid reference defined at [" + build_path(section, key) + "]");
+      throw value_error("Invalid reference defined at [" + section + "." + key + "]");
     }
   }
 
@@ -158,21 +200,22 @@ class config {
    *  ${section.key}
    */
   template <typename T>
-  T dereference_local(string section, string key, string current_section) const {
-    if (section == "BAR")
+  T dereference_local(string section, const string& key, const string& current_section) const {
+    if (section == "BAR") {
       m_logger.warn("${BAR.key} is deprecated. Use ${root.key} instead");
+    }
 
     section = string_util::replace(section, "BAR", bar_section(), 0, 3);
     section = string_util::replace(section, "root", bar_section(), 0, 4);
     section = string_util::replace(section, "self", current_section, 0, 4);
 
-    auto path = build_path(section, key);
-    auto result = m_ptree.get_optional<T>(path);
+    optional<T> result{opt<T>(section, key)};
 
-    if (result == boost::none)
-      throw value_error("Unexisting reference defined [" + path + "]");
+    if (result == none) {
+      throw value_error("Unexisting reference defined [" + section + "." + key + "]");
+    }
 
-    return dereference<T>(section, key, m_ptree.get<string>(path), result.get());
+    return dereference<T>(section, key, opt<string>(section, key).get(), result.get());
   }
 
   /**
@@ -185,14 +228,15 @@ class config {
     size_t pos;
 
     if ((pos = var.find(":")) != string::npos) {
-      fallback = boost::lexical_cast<T>(var.substr(pos + 1));
+      fallback = convert<T>(var.substr(pos + 1));
       var.erase(pos);
     }
 
-    if (env_util::has(var.c_str()))
-      return boost::lexical_cast<T>(env_util::get(var.c_str()));
-
-    return fallback;
+    if (env_util::has(var.c_str())) {
+      return convert<T>(env_util::get(var.c_str()));
+    } else {
+      return fallback;
+    }
   }
 
   /**
@@ -205,25 +249,19 @@ class config {
     size_t pos;
 
     if ((pos = var.find(":")) != string::npos) {
-      fallback = boost::lexical_cast<T>(var.substr(pos + 1));
-      var.erase(pos);
+      return convert<T>(m_xrm.get_string(var.substr(0, pos), var.substr(pos + 1)));
     }
 
-    if (std::is_same<string, T>::value)
-      return boost::lexical_cast<T>(m_xrm.get_string(var, boost::lexical_cast<string>(fallback)));
-    else if (std::is_same<float, T>::value)
-      return boost::lexical_cast<T>(m_xrm.get_float(var, boost::lexical_cast<float>(fallback)));
-    else if (std::is_same<int, T>::value)
-      return boost::lexical_cast<T>(m_xrm.get_int(var, boost::lexical_cast<int>(fallback)));
-    return fallback;
+    string str{m_xrm.get_string(var, "")};
+    return str.empty() ? fallback : convert<T>(move(str));
   }
 
  private:
   const logger& m_logger;
   const xresource_manager& m_xrm;
-  ptree m_ptree;
   string m_file;
   string m_current_bar;
+  sectionmap_t m_sections;
 };
 
 namespace {

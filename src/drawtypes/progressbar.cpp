@@ -94,10 +94,10 @@ namespace drawtypes {
     unsigned int width;
 
     if ((format = conf.get<decltype(format)>(section, name + "-format", format)).empty()) {
-      throw application_error("Invalid format defined at [" + conf.build_path(section, name) + "]");
+      throw application_error("Invalid format defined at [" + section + "." + name + "]");
     }
     if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
-      throw application_error("Invalid width defined at [" + conf.build_path(section, name) + "]");
+      throw application_error("Invalid width defined at [" + section + "." + name + "]");
     }
 
     progressbar_t progressbar{new progressbar_t::element_type(bar, width, format)};
