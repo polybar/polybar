@@ -125,6 +125,7 @@ label-empty-padding = 2
 type = internal/i3
 format = <label-state> <label-mode>
 index-sort = true
+wrapping-scroll = false
 
 label-mode = %mode%
 label-mode-padding = 2

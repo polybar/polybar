@@ -13,6 +13,18 @@ POLYBAR_NS
 
 namespace i3_util {
   /**
+   * Get currently focused workspace
+   */
+  shared_ptr<workspace_t> focused_workspace(const connection_t& conn) {
+    for (auto&& ws : conn.get_workspaces()) {
+      if (ws->focused) {
+        return ws;
+      }
+    }
+    return nullptr;
+  }
+
+  /**
    * Get all i3 root windows
    */
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name) {
