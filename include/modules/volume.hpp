@@ -1,18 +1,22 @@
 #pragma once
 
-#include "adapters/alsa.hpp"
-#include "components/config.hpp"
 #include "config.hpp"
 #include "modules/meta/event_module.hpp"
 
 POLYBAR_NS
 
+// fwd
+namespace alsa {
+  class mixer;
+  class control;
+}
+
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
   enum class control { NONE = 0, HEADPHONE };
 
-  using mixer_t = shared_ptr<alsa_mixer>;
-  using control_t = shared_ptr<alsa_ctl_interface>;
+  using mixer_t = shared_ptr<alsa::mixer>;
+  using control_t = shared_ptr<alsa::control>;
 
   class volume_module : public event_module<volume_module> {
    public:

@@ -1,5 +1,7 @@
 #include "modules/volume.hpp"
-
+#include "adapters/alsa/control.hpp"
+#include "adapters/alsa/generic.hpp"
+#include "adapters/alsa/mixer.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -9,6 +11,8 @@
 #include "modules/meta/event_module.inl"
 
 POLYBAR_NS
+
+using namespace alsa;
 
 namespace modules {
   template class module<volume_module>;
@@ -53,9 +57,9 @@ namespace modules {
       if (m_mixer.empty()) {
         throw module_error("No configured mixers");
       }
-    } catch (const alsa_mixer_error& err) {
+    } catch (const mixer_error& err) {
       throw module_error(err.what());
-    } catch (const alsa_ctl_interface_error& err) {
+    } catch (const control_error& err) {
       throw module_error(err.what());
     }
 

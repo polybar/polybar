@@ -32,7 +32,7 @@ namespace factory_util {
 
   template <class T, class... Deps>
   shared_ptr<T> singleton(Deps&&... deps) {
-    static auto instance = make_shared<T>(forward<Deps>(deps)...);
+    static shared_ptr<T> instance{make_shared<T>(forward<Deps>(deps)...)};
     return instance;
   }
 }
