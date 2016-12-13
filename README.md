@@ -94,7 +94,7 @@ $ apt-get install i3-wm libasound2-dev libmpdclient-dev libiw-dev
 Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 2.3.12 --recursive https://github.com/jaagr/polybar
+  $ git clone --branch 2.3.13 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
   $ cmake -DCMAKE_BUILD_TYPE=Release ..
