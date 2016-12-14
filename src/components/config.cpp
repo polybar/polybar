@@ -86,6 +86,8 @@ void config::parse_file() {
   while (std::getline(in, line)) {
     lineno++;
 
+    line = string_util::replace_all(line, "\t", "");
+
     // Ignore empty lines and comments
     if (line.empty() || line[0] == ';' || line[0] == '#') {
       continue;

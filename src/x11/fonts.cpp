@@ -260,7 +260,7 @@ bool font_manager::open_xcb_font(fonttype_pointer& fontptr, string fontname) {
 
 bool font_manager::has_glyph(fonttype_pointer& font, uint16_t chr) {
   if (font->xft != nullptr) {
-    return static_cast<bool>(XftCharExists(m_display.get(), font->xft, (FcChar32)chr));
+    return static_cast<bool>(XftCharExists(m_display.get(), font->xft, static_cast<FcChar32>(chr)));
   } else {
     if (chr < font->char_min || chr > font->char_max) {
       return false;
