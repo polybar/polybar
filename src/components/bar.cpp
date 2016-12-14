@@ -642,28 +642,24 @@ void bar::handle(const evt::button_press& evt) {
     return m_log.trace_x("bar: Ignoring button press (throttled)...");
   }
 
-  m_log.trace_x("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
+  m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
   const mousebtn button{static_cast<mousebtn>(evt->detail)};
-  const int16_t event_x{static_cast<int16_t>(evt->event_x - m_opts.inner_area().x)};
 
   for (auto&& action : m_renderer->get_actions()) {
     if (action.active) {
-      m_log.trace_x("bar: Ignoring action: unclosed)");
       continue;
     } else if (action.button != button) {
-      m_log.trace_x("bar: Ignoring action: button mismatch");
       continue;
-    } else if (action.start_x >= event_x) {
-      m_log.trace_x("bar: Ignoring action: start_x(%i) > event_x(%i)", action.start_x, event_x);
+    } else if (action.start_x >= evt->event_x) {
       continue;
-    } else if (action.end_x <= event_x) {
-      m_log.trace_x("bar: Ignoring action: end_x(%i) < event_x(%i)", action.end_x, event_x);
+    } else if (action.end_x < evt->event_x) {
       continue;
     }
+
     m_log.trace("Found matching input area");
     m_log.trace_x("action.command = %s", action.command);
-    m_log.trace_x("action.button = %i", static_cast<int>(action.button));
+    m_log.trace_x("action.button = %i", evt->detail);
     m_log.trace_x("action.start_x = %i", action.start_x);
     m_log.trace_x("action.end_x = %i", action.end_x);
 

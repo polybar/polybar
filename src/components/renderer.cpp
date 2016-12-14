@@ -213,13 +213,13 @@ void renderer::flush(bool clear) {
   xcb_rectangle_t clear_area{0, 0, 0U, 0U};
 
   if (m_cleararea.size && m_cleararea.side == edge::RIGHT) {
-    clear_area.x = m_bar.size.w - m_cleararea.size;
+    clear_area.x = m_bar.size.w - m_cleararea.size - right.width;
     clear_area.y = 0;
     clear_area.width = m_cleararea.size;
     clear_area.height = m_bar.size.h;
   } else if (m_cleararea.size && m_cleararea.side == edge::LEFT) {
-    clear_area.x = m_rect.x;
-    clear_area.y = m_rect.y;
+    clear_area.x = left.width;
+    clear_area.y = top.height;
     clear_area.width = m_cleararea.size;
     clear_area.height = m_rect.height;
   } else if (m_cleararea.size && m_cleararea.side == edge::TOP) {
@@ -570,6 +570,9 @@ void renderer::end_action(const mousebtn btn) {
         break;
     }
 
+    action->start_x += m_bar.pos.x + m_rect.x;
+    action->end_x += m_bar.pos.x + m_rect.x;
+
     m_log.trace_x("renderer: end_action(%i, %s, %i)", static_cast<uint8_t>(btn), action->command, action->width());
 
     return;
@@ -590,7 +593,7 @@ int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
   m_log.trace_x("renderer: shift_content(%i)", shift_x);
 
   int16_t base_x{0};
-  double delta{static_cast<double>(shift_x)};
+  double delta{0.0};
 
   switch (m_alignment) {
     case alignment::NONE:
@@ -602,13 +605,14 @@ int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
       m_connection.copy_area(m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x - x / 2, 0, base_x - (x + shift_x) / 2,
           0, x, m_rect.height);
       x = base_x - (x + shift_x) / 2 + x;
-      delta /= 2;
+      delta = static_cast<double>(shift_x) / 2;
       break;
     case alignment::RIGHT:
       base_x = static_cast<int16_t>(m_rect.width - x);
       m_connection.copy_area(
           m_pixmap, m_pixmap, m_gcontexts.at(gc::FG), base_x, 0, base_x - shift_x, 0, x, m_rect.height);
       x = m_rect.width - shift_x;
+      delta = static_cast<double>(shift_x);
       break;
   }
 
@@ -662,22 +666,15 @@ void renderer::debug_hints() {
       continue;
     }
 
-    uint8_t num{static_cast<uint8_t>(hint_num.find(action.align)->second++)};
-    int16_t x{static_cast<int16_t>(m_bar.pos.x + m_rect.x + action.start_x)};
-    int16_t y{static_cast<int16_t>(m_bar.pos.y + m_rect.y)};
-    uint16_t w{static_cast<uint16_t>(action.width() - border_width * 2)};
-    uint16_t h{static_cast<uint16_t>(m_rect.height - border_width * 2)};
-
-    x += num * DEBUG_HINTS_OFFSET_X;
-    y += num * DEBUG_HINTS_OFFSET_Y;
-
     xcb_window_t hintwin{m_connection.generate_id()};
     m_debughints.emplace_back(hintwin);
 
+    uint8_t num{static_cast<uint8_t>(hint_num.find(action.align)->second++)};
+
     // clang-format off
     winspec(m_connection, hintwin)
-      << cw_size(w, h)
-      << cw_pos(x, y)
+      << cw_size(action.width() - border_width * 2, m_rect.height - border_width * 2)
+      << cw_pos(action.start_x + num * DEBUG_HINTS_OFFSET_X, m_bar.pos.y + m_rect.y + num * DEBUG_HINTS_OFFSET_Y)
       << cw_border(border_width)
       << cw_depth(32)
       << cw_visual(m_visual->visual_id)
@@ -691,7 +688,6 @@ void renderer::debug_hints() {
 
     xutils::compton_shadow_exclude(m_connection, hintwin);
     m_connection.map_window(hintwin);
-    m_log.info("Debug hint created (x=%lu width=%lu)", x, w);
   }
 }
 #endif
