@@ -7,7 +7,7 @@
 file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR}/src *.c[p]*)
 
 if(NOT ENABLE_ALSA)
-  list(REMOVE_ITEM SOURCES adapters/alsa.cpp modules/volume.cpp)
+  list(REMOVE_ITEM SOURCES adapters/alsa/mixer.cpp adapters/alsa/control.cpp modules/volume.cpp)
 endif()
 if(NOT ENABLE_MPD)
   list(REMOVE_ITEM SOURCES adapters/mpd.cpp modules/mpd.cpp)
