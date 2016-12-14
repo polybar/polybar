@@ -45,3 +45,17 @@ add_custom_command(TARGET codecheck-fix COMMAND
   ${PROJECT_SOURCE_DIR}/common/clang-tidy.sh ${PROJECT_BINARY_DIR} -fix ${PROJECT_SOURCE_DIR}/src)
 
 # }}}
+
+# Target: memcheck (valgrind) {{{
+
+add_custom_target(memcheck)
+add_custom_command(TARGET memcheck COMMAND
+  valgrind
+  --tool=memcheck
+  --leak-check=yes
+  --track-origins=yes
+  --show-reachable=yes
+  --suppressions=${PROJECT_SOURCE_DIR}/.valgrind-suppressions
+  ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME} example --config=${PROJECT_SOURCE_DIR}/examples/config)
+
+# }}}

@@ -1,0 +1,68 @@
+{
+   xft/fontconfig
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:FcPatternCreate
+   fun:FcFontRenderPrepare
+   fun:FcFontMatch
+   fun:XftFontMatch
+   fun:XftFontOpenName
+   ...
+   ...
+   ...
+   ...
+   ...
+   ...
+}
+{
+   xft/fontconfig
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:/usr/lib/libfontconfig.so.1.9.2
+   obj:/usr/lib/libfontconfig.so.1.9.2
+   fun:FcPatternAddDouble
+   obj:/usr/lib/libXft.so.2.3.2
+   obj:/usr/lib/libXft.so.2.3.2
+   obj:/usr/lib/libXft.so.2.3.2
+   obj:/usr/lib/libXft.so.2.3.2
+   fun:XftDefaultHasRender
+   fun:XftDefaultSubstitute
+   fun:XftFontMatch
+   fun:XftFontOpenName
+}
+{
+   xft/fontconfig
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:XftFontCheckGlyph
+   fun:XftGlyphRender
+   fun:XftDrawGlyphs
+   fun:XftDrawString16
+   ...
+   ...
+   ...
+   ...
+   ...
+   ...
+   ...
+}
+{
+   xft/fontconfig
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   obj:/usr/lib/libfontconfig.so.1.9.2
+   obj:/usr/lib/libfontconfig.so.1.9.2
+   fun:FcFontRenderPrepare
+   fun:FcFontMatch
+   fun:XftFontMatch
+   fun:XftFontOpenName
+   ...
+   ...
+   ...
+   ...
+   ...
+}
