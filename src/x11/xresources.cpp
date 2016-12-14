@@ -22,13 +22,11 @@ xresource_manager::make_type xresource_manager::make() {
 xresource_manager::xresource_manager() {
   XrmInitialize();
 
-  if (xlib::get_display() == nullptr) {
+  if ((m_display = xlib::get_display()) == nullptr) {
     return;
-  }
-  if ((m_manager = XResourceManagerString(xlib::get_display())) == nullptr) {
+  } else if ((m_manager = XResourceManagerString(xlib::get_display())) == nullptr) {
     return;
-  }
-  if ((m_db = XrmGetStringDatabase(m_manager)) == nullptr) {
+  } else if ((m_db = XrmGetStringDatabase(m_manager)) == nullptr) {
     return;
   }
 }

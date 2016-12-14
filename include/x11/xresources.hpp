@@ -1,5 +1,6 @@
 #pragma once
 
+#include <X11/X.h>
 #include <X11/Xresource.h>
 
 #include "common.hpp"
@@ -22,8 +23,9 @@ class xresource_manager {
   string load_value(const string& key, const string& res_type, size_t n) const;
 
  private:
-  char* m_manager{nullptr};
+  Display* m_display{nullptr};
   XrmDatabase m_db;
+  char* m_manager{nullptr};
 };
 
 POLYBAR_NS_END
