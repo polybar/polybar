@@ -27,6 +27,7 @@ using namespace signals::eventloop;
 using module_t = unique_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 
+namespace chrono = std::chrono;
 using namespace std::chrono_literals;
 
 class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, process_input, process_check,
@@ -45,13 +46,8 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
     bool flag{false};
   };
 
-  struct input_data {
-    char data[EVENT_SIZE];
-  };
-
   template <typename EventType>
   using queue_t = moodycamel::BlockingConcurrentQueue<EventType>;
-  using duration_t = std::chrono::duration<double, std::milli>;
 
  public:
   using make_type = unique_ptr<eventloop>;
@@ -64,7 +60,7 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   void stop();
 
   bool enqueue(event&& evt);
-  bool enqueue(input_data&& evt);
+  bool enqueue(string&& evt);
 
   void add_module(const alignment pos, module_t&& module);
   const modulemap_t& modules() const;
@@ -74,16 +70,11 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   static event make_update_evt(bool force = false);
   static event make_input_evt();
   static event make_check_evt();
-  static input_data make_input_data(string&& data);
 
  protected:
-  void process_inputqueue();
   void dispatch_modules();
 
-  inline bool compare_events(event evt, event evt2);
-  inline bool compare_events(input_data data, input_data data1);
-
-  void forward_event(event evt);
+  void handle_inputdata();
 
   bool on(const process_input& evt);
   bool on(const process_check& evt);
@@ -106,11 +97,6 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   queue_t<event> m_queue;
 
   /**
-   * @brief Event queue
-   */
-  queue_t<input_data> m_inputqueue;
-
-  /**
    * @brief Loaded modules
    */
   modulemap_t m_modules;
@@ -123,12 +109,32 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   /**
    * @brief Time to wait for subsequent events
    */
-  duration_t m_swallow_time{0ms};
+  chrono::milliseconds m_swallow_update{10ms};
 
   /**
    * @brief Maximum amount of subsequent events to swallow within timeframe
    */
-  size_t m_swallow_limit{0};
+  size_t m_swallow_limit{5U};
+
+  /**
+   * @brief Time to throttle input events
+   */
+  chrono::milliseconds m_swallow_input{0};
+
+  /**
+   * @brief Mutex used to guard input data
+   */
+  std::mutex m_inputlock;
+
+  /**
+   * @brief Time of last handled input event
+   */
+  chrono::time_point<chrono::system_clock, decltype(m_swallow_input)> m_lastinput;
+
+  /**
+   * @brief Input data
+   */
+  string m_inputdata;
 };
 
 POLYBAR_NS_END

@@ -1,11 +1,11 @@
 #include <csignal>
 #include <cstring>
 
+#include "components/config.hpp"
 #include "components/eventloop.hpp"
+#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
-#include "components/logger.hpp"
-#include "components/config.hpp"
 #include "modules/meta/base.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
@@ -21,31 +21,16 @@ eventloop::make_type eventloop::make() {
   return factory_util::unique<eventloop>(signal_emitter::make(), logger::make(), config::make());
 }
 
-eventloop::event eventloop::make_quit_evt(bool reload) {
-  return event{static_cast<uint8_t>(event_type::QUIT), reload};
-}
-eventloop::event eventloop::make_update_evt(bool force) {
-  return event{static_cast<uint8_t>(event_type::UPDATE), force};
-}
-eventloop::event eventloop::make_input_evt() {
-  return event{static_cast<uint8_t>(event_type::INPUT)};
-}
-eventloop::event eventloop::make_check_evt() {
-  return event{static_cast<uint8_t>(event_type::CHECK)};
-}
-eventloop::input_data eventloop::make_input_data(string&& data) {
-  input_data d{};
-  memcpy(d.data, &data[0], sizeof(d.data));
-  return d;
-}
-
 /**
  * Construct eventloop instance
  */
 eventloop::eventloop(signal_emitter& emitter, const logger& logger, const config& config)
     : m_sig(emitter), m_log(logger), m_conf(config) {
-  m_swallow_time = duration_t{m_conf.get<double>("settings", "eventloop-swallow-time", 10)};
-  m_swallow_limit = m_conf.get<size_t>("settings", "eventloop-swallow", 5U);
+  m_swallow_limit = m_conf.deprecated<size_t>("settings", "eventloop-swallow", "throttle-output", m_swallow_limit);
+  m_swallow_update = m_conf.deprecated<chrono::milliseconds>(
+      "settings", "eventloop-swallow-time", "throttle-output-for", m_swallow_update);
+  m_swallow_input =
+      m_conf.get<chrono::milliseconds>("settings", "throttle-input-for", m_swallow_update * m_swallow_limit);
   m_sig.attach(this);
 }
 
@@ -77,7 +62,6 @@ void eventloop::start() {
 
   while (m_running) {
     event evt, next;
-    input_data data;
 
     m_queue.wait_dequeue(evt);
 
@@ -86,12 +70,10 @@ void eventloop::start() {
     }
 
     if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
-      while (m_running && m_inputqueue.try_dequeue(data)) {
-        m_sig.emit(process_input{move(data)});
-      }
+      handle_inputdata();
     } else {
       size_t swallowed{0};
-      while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_time)) {
+      while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_update)) {
         if (next.type == static_cast<uint8_t>(event_type::QUIT)) {
           evt = next;
           break;
@@ -100,8 +82,8 @@ void eventloop::start() {
           evt = next;
           break;
 
-        } else if (!compare_events(evt, next)) {
-          enqueue(move(next));
+        } else if (evt.type != next.type) {
+          m_queue.try_enqueue(move(next));
           break;
 
         } else {
@@ -111,24 +93,20 @@ void eventloop::start() {
       }
 
       if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
-        while (m_inputqueue.try_dequeue(data)) {
-          m_sig.emit(process_input{move(data)});
-        }
+        handle_inputdata();
+      } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
+        m_sig.emit(process_quit{reinterpret_cast<event&&>(evt)});
+      } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
+        m_sig.emit(process_update{reinterpret_cast<event&&>(evt)});
+      } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
+        m_sig.emit(process_check{reinterpret_cast<event&&>(evt)});
       } else {
-        forward_event(evt);
+        m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
     }
   }
 
   m_log.info("Queue worker done");
-}
-
-void eventloop::process_inputqueue() {
-  input_data data{};
-
-  while (m_inputqueue.try_dequeue(data)) {
-    m_sig.emit(process_input{move(data)});
-  }
 }
 
 /**
@@ -155,15 +133,25 @@ bool eventloop::enqueue(event&& evt) {
 }
 
 /**
- * Enqueue input event
+ * Enqueue input data
  */
-bool eventloop::enqueue(input_data&& evt) {
-  if (!m_inputqueue.enqueue(move(evt))) {
-    m_log.warn("Failed to enqueue input_data");
+bool eventloop::enqueue(string&& input_data) {
+  if (m_inputlock.try_lock()) {
     return false;
   }
 
-  return true;
+  std::lock_guard<std::mutex> guard(m_inputlock, std::adopt_lock);
+
+  if (!m_inputdata.empty()) {
+    m_log.trace("eventloop: Swallowing input event (pending data)");
+    return false;
+  } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
+    m_log.trace("eventloop: Swallowing input event (throttled)");
+    return false;
+  }
+
+  m_inputdata = forward<string>(input_data);
+  return enqueue(make_input_evt());
 }
 
 /**
@@ -216,33 +204,19 @@ void eventloop::dispatch_modules() {
 }
 
 /**
- * Compare given events
+ * Process pending input data
  */
-inline bool eventloop::compare_events(event evt, event evt2) {
-  return evt.type != evt2.type;
-}
-
-inline bool eventloop::compare_events(input_data data, input_data data2) {
-  return data.data[0] == data2.data[0] && strncmp(data.data, data2.data, strlen(data.data)) == 0;
-}
-
-/**
- * Forward event to handler based on type
- */
-void eventloop::forward_event(event evt) {
-  if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-    m_sig.emit(process_quit{reinterpret_cast<event&&>(evt)});
-  } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-    m_sig.emit(process_update{reinterpret_cast<event&&>(evt)});
-  } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
-    m_sig.emit(process_check{reinterpret_cast<event&&>(evt)});
-  } else {
-    m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
+void eventloop::handle_inputdata() {
+  std::lock_guard<std::mutex> guard(m_inputlock);
+  if (!m_inputdata.empty()) {
+    m_sig.emit(process_input{move(m_inputdata)});
+    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
+    m_inputdata.clear();
   }
 }
 
 bool eventloop::on(const process_input& evt) {
-  string input{(*evt()).data};
+  string input{*evt()};
 
   for (auto&& block : m_modules) {
     for (auto&& module : block.second) {
@@ -302,7 +276,7 @@ bool eventloop::on(const enqueue_update& evt) {
 
 bool eventloop::on(const enqueue_input& evt) {
   m_log.trace("eventloop: enqueuing INPUT event");
-  return enqueue(input_data{(*evt())}) && enqueue(make_input_evt());
+  return enqueue(string{move(*evt())});
 }
 
 bool eventloop::on(const enqueue_check& evt) {
@@ -310,6 +284,19 @@ bool eventloop::on(const enqueue_check& evt) {
   assert(check.type == static_cast<uint8_t>(event_type::CHECK));
   m_log.trace("eventloop: enqueuing CHECK event");
   return enqueue(move(check));
+}
+
+eventloop::event eventloop::make_quit_evt(bool reload) {
+  return event{static_cast<uint8_t>(event_type::QUIT), reload};
+}
+eventloop::event eventloop::make_update_evt(bool force) {
+  return event{static_cast<uint8_t>(event_type::UPDATE), force};
+}
+eventloop::event eventloop::make_input_evt() {
+  return event{static_cast<uint8_t>(event_type::INPUT)};
+}
+eventloop::event eventloop::make_check_evt() {
+  return event{static_cast<uint8_t>(event_type::CHECK)};
 }
 
 POLYBAR_NS_END

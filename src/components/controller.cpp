@@ -32,7 +32,7 @@ controller::make_type controller::make(string&& path_confwatch, bool enable_ipc,
       eventloop::make(),
       bar::make(),
       enable_ipc ? ipc::make() : ipc::make_type{},
-      !path_confwatch.empty() ? inotify_util::make_watch(forward<decltype(path_confwatch)>(path_confwatch)) : watch_t{},
+      !path_confwatch.empty() ? inotify_util::make_watch(forward<decltype(path_confwatch)>(move(path_confwatch))) : watch_t{},
       writeback);
   // clang-format on
 }
@@ -41,36 +41,24 @@ controller::make_type controller::make(string&& path_confwatch, bool enable_ipc,
  * Construct controller object
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback)
+    unique_ptr<eventloop>&& eventloop, unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, watch_t&& confwatch, bool writeback)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
-    , m_eventloop(move(eventloop))
-    , m_bar(move(bar))
-    , m_ipc(move(ipc))
-    , m_confwatch(move(confwatch))
+    , m_eventloop(forward<decltype(eventloop)>(eventloop))
+    , m_bar(forward<decltype(bar)>(bar))
+    , m_ipc(forward<decltype(ipc)>(ipc))
+    , m_confwatch(forward<decltype(confwatch)>(confwatch))
     , m_writeback(writeback) {}
 
 /**
  * Deconstruct controller object
  */
 controller::~controller() {
-  if (m_eventloop) {
-    m_log.info("Deconstructing eventloop");
-    m_eventloop.reset();
-  }
   if (m_command) {
     m_log.info("Terminating running shell command");
     m_command.reset();
-  }
-  if (m_bar) {
-    m_log.info("Deconstructing bar");
-    m_bar.reset();
-  }
-  if (m_ipc) {
-    m_log.info("Deconstructing ipc");
-    m_ipc.reset();
   }
   if (!m_writeback) {
     m_log.info("Interrupting X event loop");
@@ -89,12 +77,13 @@ controller::~controller() {
     ;
   }
 
-  m_sig.detach(this);
   m_connection.flush();
 }
 
 void controller::setup() {
-  string bs{m_conf.bar_section()};
+  if (!m_writeback) {
+    m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_STRUCTURE_NOTIFY);
+  }
 
   string bs{m_conf.section()};
   m_log.trace("controller: Setup user-defined modules");
@@ -150,10 +139,11 @@ void controller::setup() {
 
 bool controller::run() {
   assert(!m_connection.connection_has_error());
-  m_sig.attach(this);
 
   m_log.info("Starting application");
   m_running = true;
+
+  m_sig.attach(this);
 
   if (m_confwatch && !m_writeback) {
     m_threads.emplace_back(thread(&controller::wait_for_configwatch, this));
@@ -191,13 +181,20 @@ bool controller::run() {
   m_log.warn("Termination signal received, shutting down...");
   m_log.trace("controller: Caught signal %d", caught_signal);
 
-  // Signal the eventloop, in case it's still running
-  m_eventloop->enqueue(eventloop::make_quit_evt(false));
+  m_sig.detach(this);
 
   if (m_eventloop) {
+    // Signal the eventloop, in case it's still running
+    m_eventloop->enqueue(eventloop::make_quit_evt(false));
+
     m_log.trace("controller: Stopping event loop");
     m_eventloop->stop();
   }
+
+  if (m_ipc) {
+    m_ipc.reset();
+  }
+
   if (!m_writeback && m_confwatch) {
     m_log.trace("controller: Removing config watch");
     m_confwatch->remove(true);
@@ -351,7 +348,7 @@ bool controller::on(const sig_ev::process_update& evt) {
 
 bool controller::on(const sig_ev::process_input& evt) {
   try {
-    string input{(*evt()).data};
+    string input{*evt()};
 
     if (m_command) {
       m_log.warn("Terminating previous shell command");
@@ -382,13 +379,12 @@ bool controller::on(const sig_ui::button_press& evt) {
 
   string input{*evt()};
 
-  if (input.length() >= sizeof(eventloop::input_data)) {
-    m_log.warn("Ignoring input event (size)");
-  } else if (!m_sig.emit(enqueue_input{eventloop::make_input_data(move(input))})) {
-    m_log.trace_x("controller: Dispatcher busy");
+  if (input.empty()) {
+    m_log.err("Cannot enqueue empty input");
+    return false;
   }
 
-  return true;
+  return m_sig.emit(enqueue_input{move(input)});
 }
 
 bool controller::on(const sig_ipc::process_action& evt) {
@@ -396,16 +392,13 @@ bool controller::on(const sig_ipc::process_action& evt) {
   string action{a.payload};
   action.erase(0, strlen(ipc_action::prefix));
 
-  if (action.size() >= sizeof(eventloop::input_data)) {
-    m_log.warn("Ignoring input event (size)");
-  } else if (action.empty()) {
+  if (action.empty()) {
     m_log.err("Cannot enqueue empty ipc action");
-  } else {
-    m_log.info("Enqueuing ipc action: %s", action);
-    m_eventloop->enqueue(eventloop::make_input_data(move(action)));
-    m_eventloop->enqueue(eventloop::make_input_evt());
+    return false;
   }
-  return true;
+
+  m_log.info("Enqueuing ipc action: %s", action);
+  return m_sig.emit(enqueue_input{move(action)});
 }
 
 bool controller::on(const sig_ipc::process_command& evt) {

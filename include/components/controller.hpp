@@ -48,7 +48,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   static make_type make(string&& path_confwatch, bool enable_ipc = false, bool writeback = false);
 
   explicit controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-      unique_ptr<eventloop> eventloop, unique_ptr<bar> bar, unique_ptr<ipc> ipc, watch_t confwatch, bool writeback);
+      unique_ptr<eventloop>&& eventloop, unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, watch_t&& confwatch, bool writeback);
   ~controller();
 
   void setup();

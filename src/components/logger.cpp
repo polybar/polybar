@@ -11,7 +11,7 @@ POLYBAR_NS
  * Create instance
  */
 logger::make_type logger::make(loglevel level) {
-  return static_cast<const logger&>(*factory_util::singleton<const logger>(level));
+  return static_cast<logger::make_type>(*factory_util::singleton<std::remove_reference_t<logger::make_type>>(level));
 }
 
 /**
@@ -29,10 +29,10 @@ logger::logger(loglevel level) : m_level(level) {
     m_suffixes[loglevel::WARNING] = "\033[0m";
     m_suffixes[loglevel::ERROR]   = "\033[0m";
   } else {
-    m_prefixes.emplace(make_pair(loglevel::TRACE,   "polybar|trace  "));
-    m_prefixes.emplace(make_pair(loglevel::INFO,    "polybar|infoe  "));
-    m_prefixes.emplace(make_pair(loglevel::WARNING, "polybar|warne  "));
-    m_prefixes.emplace(make_pair(loglevel::ERROR,   "polybar|error  "));
+    m_prefixes.emplace(make_pair(loglevel::TRACE,   "polybar|trace: "));
+    m_prefixes.emplace(make_pair(loglevel::INFO,    "polybar|info:  "));
+    m_prefixes.emplace(make_pair(loglevel::WARNING, "polybar|warn:  "));
+    m_prefixes.emplace(make_pair(loglevel::ERROR,   "polybar|error: "));
     m_suffixes.emplace(make_pair(loglevel::TRACE,   ""));
     m_suffixes.emplace(make_pair(loglevel::INFO,    ""));
     m_suffixes.emplace(make_pair(loglevel::WARNING, ""));

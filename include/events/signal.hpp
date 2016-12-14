@@ -92,13 +92,13 @@ namespace signals {
 
     DEFINE_VALUE_SIGNAL(1, process_quit, eventloop_t::event);
     DEFINE_VALUE_SIGNAL(2, process_update, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(3, process_input, eventloop_t::input_data);
+    DEFINE_VALUE_SIGNAL(3, process_input, string);
     DEFINE_VALUE_SIGNAL(4, process_check, eventloop_t::event);
 
     DEFINE_VALUE_SIGNAL(5, enqueue_event, eventloop_t::event);
     DEFINE_VALUE_SIGNAL(6, enqueue_quit, eventloop_t::event);
     DEFINE_VALUE_SIGNAL(7, enqueue_update, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(8, enqueue_input, eventloop_t::input_data);
+    DEFINE_VALUE_SIGNAL(8, enqueue_input, string);
     DEFINE_VALUE_SIGNAL(9, enqueue_check, eventloop_t::event);
   }
 
