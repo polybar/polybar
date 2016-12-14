@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include "common.hpp"
 
 POLYBAR_NS
@@ -10,7 +12,9 @@ namespace memory_util {
    */
   template <typename T, typename Deleter = decltype(free)>
   inline auto make_malloc_ptr(size_t size = sizeof(T), Deleter deleter = free) {
-    return shared_ptr<T>(static_cast<T*>(malloc(size)), deleter);
+    shared_ptr<T> ptr{static_cast<T*>(malloc(size)), deleter};
+    memset(ptr.get(), 0, size);
+    return ptr;
   }
 
   /**
