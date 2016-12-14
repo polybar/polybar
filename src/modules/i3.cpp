@@ -107,55 +107,44 @@ namespace modules {
     i3_util::connection_t ipc;
 
     try {
-      auto workspaces = ipc.get_workspaces();
-      vector<shared_ptr<i3ipc::workspace_t>> sorted = workspaces;
-      string focused_output;
+      vector<shared_ptr<i3_util::workspace_t>> workspaces;
 
-      for (auto&& ws : workspaces) {
-        if (ws->focused) {
-          focused_output = ws->output;
-          break;
-        }
+      if (m_pinworkspaces) {
+        workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
+      } else {
+        workspaces = i3_util::workspaces(ipc);
       }
 
       if (m_indexsort) {
-        using ws_t = shared_ptr<i3ipc::workspace_t>;
-        // clang-format off
-        sort(sorted.begin(), sorted.end(), [](ws_t ws1, ws_t ws2){
-            return ws1->num < ws2->num;
-        });
-        // clang-format on
+        sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
       }
 
-      for (auto&& ws : sorted) {
-        if (m_pinworkspaces && ws->output != m_bar.monitor->name) {
-          continue;
-        }
+      for (auto&& ws : workspaces) {
+        state ws_state{state::NONE};
 
-        auto ws_state = state::NONE;
         if (ws->focused) {
           ws_state = state::FOCUSED;
         } else if (ws->urgent) {
           ws_state = state::URGENT;
-        } else if (!ws->visible || (ws->visible && ws->output != focused_output)) {
+        } else if (!ws->visible || (ws->visible && ws->output != m_bar.monitor->name)) {
           ws_state = state::UNFOCUSED;
         } else {
           ws_state = state::VISIBLE;
         }
 
-        string wsname{ws->name};
+        string ws_name{ws->name};
 
         // Remove workspace numbers "0:"
         if (m_strip_wsnumbers) {
-          wsname.erase(0, string_util::find_nth(wsname, 0, ":", 1) + 1);
+          ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
         }
 
         // Trim leading and trailing whitespace
-        wsname = string_util::trim(wsname, ' ');
+        ws_name = string_util::trim(ws_name, ' ');
 
         // Cap at configured max length
-        if (m_wsname_maxlen > 0 && wsname.length() > m_wsname_maxlen) {
-          wsname.erase(m_wsname_maxlen);
+        if (m_wsname_maxlen > 0 && ws_name.length() > m_wsname_maxlen) {
+          ws_name.erase(m_wsname_maxlen);
         }
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON);
@@ -163,7 +152,7 @@ namespace modules {
 
         label->reset_tokens();
         label->replace_token("%output%", ws->output);
-        label->replace_token("%name%", wsname);
+        label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
         m_workspaces.emplace_back(make_unique<workspace>(ws->num, ws_state, move(label)));
@@ -208,7 +197,6 @@ namespace modules {
 
   bool i3_module::handle_event(string cmd) {
     try {
-
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         const i3_util::connection_t conn{};
         const string workspace_num{cmd.substr(strlen(EVENT_CLICK))};
@@ -222,16 +210,16 @@ namespace modules {
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
         const i3_util::connection_t conn{};
 
-        if (m_wrap || conn.get_workspaces().back()->num != i3_util::focused_workspace(conn)->num) {
+        if (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).back() != *i3_util::focused_workspace(conn)) {
           m_log.info("%s: Sending workspace next command to ipc handler", name());
           conn.send_command("workspace next_on_output");
         } else {
-          m_log.warn("%s: Ignoring workspace next command (reason: `wrap = false`)", name());
+          m_log.warn("%s: Ignoring workspace next command (reason: `wrapping-scroll = false`)", name());
         }
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
         const i3_util::connection_t conn{};
 
-        if (m_wrap || conn.get_workspaces().front()->num != i3_util::focused_workspace(conn)->num) {
+        if (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).front() != *i3_util::focused_workspace(conn)) {
           m_log.info("%s: Sending workspace prev command to ipc handler", name());
           conn.send_command("workspace prev_on_output");
         } else {

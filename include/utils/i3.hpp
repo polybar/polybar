@@ -13,10 +13,22 @@ namespace i3_util {
   using connection_t = i3ipc::connection;
   using workspace_t = i3ipc::workspace_t;
 
+  const auto ws_numsort = [](shared_ptr<workspace_t> a, shared_ptr<workspace_t> b) { return a->num < b->num; };
+
+  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output = "");
   shared_ptr<workspace_t> focused_workspace(const connection_t&);
 
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name = "");
   bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win);
+}
+
+namespace {
+  inline bool operator==(i3_util::workspace_t& a, i3_util::workspace_t& b) {
+    return a.num == b.num && a.output == b.output;
+  }
+  inline bool operator!=(i3_util::workspace_t& a, i3_util::workspace_t& b) {
+    return !(a == b);
+  }
 }
 
 POLYBAR_NS_END

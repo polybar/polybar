@@ -13,6 +13,19 @@ POLYBAR_NS
 
 namespace i3_util {
   /**
+   * Get all workspaces for given output
+   */
+  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output) {
+    vector<shared_ptr<workspace_t>> result;
+    for (auto&& ws : conn.get_workspaces()) {
+      if (output.empty() || ws->output == output) {
+        result.emplace_back(forward<decltype(ws)>(ws));
+      }
+    }
+    return result;
+  }
+
+  /**
    * Get currently focused workspace
    */
   shared_ptr<workspace_t> focused_workspace(const connection_t& conn) {
