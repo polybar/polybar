@@ -327,13 +327,19 @@ void bar::bootstrap_tray() {
   auto offset_y = atoi(offset_y_def.c_str());
 
   if (offset_x != 0 && offset_x_def.find('%') != string::npos) {
-    offset_x = math_util::percentage_to_value<int>(offset_x, m_opts.monitor->w);
-    offset_x -= settings.width / 2;
+    if (settings.detached) {
+      offset_x = math_util::percentage_to_value<int>(offset_x, m_opts.monitor->w);
+    } else {
+      offset_x = math_util::percentage_to_value<int>(offset_x, inner_area.width);
+    }
   }
 
   if (offset_y != 0 && offset_y_def.find('%') != string::npos) {
-    offset_y = math_util::percentage_to_value<int>(offset_y, m_opts.monitor->h);
-    offset_y -= settings.width / 2;
+    if (settings.detached) {
+      offset_y = math_util::percentage_to_value<int>(offset_y, m_opts.monitor->h);
+    } else {
+      offset_y = math_util::percentage_to_value<int>(offset_y, inner_area.height);
+    }
   }
 
   settings.orig_x += offset_x;
