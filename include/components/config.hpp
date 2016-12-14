@@ -31,16 +31,14 @@ class config {
 
   explicit config(const logger& logger, const xresource_manager& xrm, string&& path = "", string&& bar = "");
 
-  void load(string file, string barname);
   string filepath() const;
-  string bar_section() const;
-  vector<string> defined_bars() const;
+  string section() const;
+
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
   /**
    * Returns true if a given parameter exists
    */
-  template <typename T>
   bool has(const string& section, const string& key) const {
     auto it = m_sections.find(section);
     return it != m_sections.end() && it->second.find(key) != it->second.end();
@@ -51,7 +49,7 @@ class config {
    */
   template <typename T>
   T get(const string& key) const {
-    return get<T>(bar_section(), key);
+    return get<T>(section(), key);
   }
 
   /**
@@ -100,7 +98,7 @@ class config {
    */
   template <typename T>
   vector<T> get_list(const string& key) const {
-    return get_list<T>(bar_section(), key);
+    return get_list<T>(section(), key);
   }
 
   /**
@@ -152,8 +150,38 @@ class config {
       return vec;
   }
 
+  /**
+   * Attempt to load value using the deprecated key name. If successful show a
+   * warning message. If it fails load the value using the new key and given
+   * fallback value
+   */
+  template <typename T>
+  T deprecated(const string& section, const string& old, const string& newkey, const T& fallback) const {
+    try {
+      T value{get<T>(section, old)};
+      warn_deprecated(section, old, newkey);
+      return value;
+    } catch (const key_error& err) {
+      return get<T>(section, newkey, fallback);
+    }
+  }
+
+  /**
+   * @see deprecated<T>
+   */
+  template <typename T>
+  T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {
+    try {
+      vector<T> value{get_list<T>(section, old)};
+      warn_deprecated(section, old, newkey);
+      return value;
+    } catch (const key_error& err) {
+      return get_list<T>(section, newkey, fallback);
+    }
+  }
+
  protected:
-  void read();
+  void parse_file();
   void copy_inherited();
 
   template <typename T>
@@ -206,8 +234,8 @@ class config {
       m_logger.warn("${BAR.key} is deprecated. Use ${root.key} instead");
     }
 
-    section = string_util::replace(section, "BAR", bar_section(), 0, 3);
-    section = string_util::replace(section, "root", bar_section(), 0, 4);
+    section = string_util::replace(section, "BAR", this->section(), 0, 3);
+    section = string_util::replace(section, "root", this->section(), 0, 4);
     section = string_util::replace(section, "self", current_section, 0, 4);
 
     optional<T> result{opt<T>(section, key)};
@@ -263,7 +291,7 @@ class config {
   const logger& m_logger;
   const xresource_manager& m_xrm;
   string m_file;
-  string m_current_bar;
+  string m_barname;
   sectionmap_t m_sections;
 };
 

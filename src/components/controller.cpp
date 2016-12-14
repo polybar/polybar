@@ -96,6 +96,7 @@ controller::~controller() {
 void controller::setup() {
   string bs{m_conf.bar_section()};
 
+  string bs{m_conf.section()};
   m_log.trace("controller: Setup user-defined modules");
 
   for (int i = 0; i < 3; i++) {

@@ -3,9 +3,7 @@
 #include <string>
 
 #include "components/bar.hpp"
-#include "components/command_line.hpp"
 #include "components/config.hpp"
-#include "components/eventloop.hpp"
 #include "components/parser.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
@@ -60,7 +58,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_log(logger)
     , m_screen(move(screen))
     , m_tray(move(tray_manager)) {
-  string bs{m_conf.bar_section()};
+  string bs{m_conf.section()};
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get<string>(bs, "monitor", "");
@@ -163,10 +161,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
 
   // Load geometry values
-  auto w = m_conf.get<string>(m_conf.bar_section(), "width", "100%");
-  auto h = m_conf.get<string>(m_conf.bar_section(), "height", "24");
-  auto offsetx = m_conf.get<string>(m_conf.bar_section(), "offset-x", "");
-  auto offsety = m_conf.get<string>(m_conf.bar_section(), "offset-y", "");
+  auto w = m_conf.get<string>(m_conf.section(), "width", "100%");
+  auto h = m_conf.get<string>(m_conf.section(), "height", "24");
+  auto offsetx = m_conf.get<string>(m_conf.section(), "offset-x", "");
+  auto offsety = m_conf.get<string>(m_conf.section(), "offset-y", "");
 
   if ((m_opts.size.w = atoi(w.c_str())) && w.find('%') != string::npos) {
     m_opts.size.w = math_util::percentage_to_value<int>(m_opts.size.w, m_opts.monitor->w);
@@ -211,7 +209,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.center.x += m_opts.borders[edge::LEFT].size;
 
   m_log.trace("bar: Create renderer");
-  auto fonts = m_conf.get_list<string>(m_conf.bar_section(), "font", {});
+  auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
   m_renderer = renderer::make(m_opts, move(fonts));
 
   m_log.trace("bar: Attaching sink to registry");
@@ -312,7 +310,7 @@ void bar::restack_window() {
   string wm_restack;
 
   try {
-    wm_restack = m_conf.get<string>(m_conf.bar_section(), "wm-restack");
+    wm_restack = m_conf.get<string>(m_conf.section(), "wm-restack");
   } catch (const key_error& err) {
     return;
   }

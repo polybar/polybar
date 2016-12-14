@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/config.hpp"
 #include "components/screen.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"

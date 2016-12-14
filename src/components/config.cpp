@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <istream>
 #include <utility>
@@ -7,59 +8,45 @@
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 /**
  * Create instance
  */
 config::make_type config::make(string path, string bar) {
   return static_cast<config::make_type>(*factory_util::singleton<std::remove_reference_t<config::make_type>>(
-      *factory_util::singleton<const config>(logger::make(), xresource_manager::make(), move(path), move(bar))));
+      logger::make(), xresource_manager::make(), move(path), move(bar)));
 }
 
 /**
  * Construct config object
  */
 config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
-    : m_logger(logger), m_xrm(xrm) {
-  if (!path.empty() && !bar.empty()) {
-    load(forward<decltype(path)>(path), forward<decltype(bar)>(bar));
-  }
-}
-
-/**
- * Load configuration and validate bar section
- *
- * This is done outside the constructor due to boost::di noexcept
- */
-void config::load(string file, string barname) {
-  m_file = file;
-  m_current_bar = move(barname);
-
-  if (!file_util::exists(file)) {
-    throw application_error("Could not find config file: " + file);
+    : m_logger(logger), m_xrm(xrm), m_file(forward<decltype(path)>(path)), m_barname(forward<decltype(bar)>(bar)) {
+  if (!file_util::exists(m_file)) {
+    throw application_error("Could not find config file: " + m_file);
   }
 
-  // Read values
-  read();
+  parse_file();
 
-  auto bars = defined_bars();
-  if (std::find(bars.begin(), bars.end(), m_current_bar) == bars.end()) {
-    throw application_error("Undefined bar: " + m_current_bar);
+  bool found_bar{false};
+  for (auto&& p : m_sections) {
+    if (p.first == section()) {
+      found_bar = true;
+      break;
+    }
   }
 
-  if (env_util::has("XDG_CONFIG_HOME")) {
-    file = string_util::replace(file, env_util::get("XDG_CONFIG_HOME"), "$XDG_CONFIG_HOME");
-  }
-  if (env_util::has("HOME")) {
-    file = string_util::replace(file, env_util::get("HOME"), "~");
+  if (!found_bar) {
+    throw application_error("Undefined bar: " + m_barname);
   }
 
-  m_logger.trace("config: Loaded %s", file);
-  m_logger.trace("config: Current bar section: [%s]", bar_section());
-
-  copy_inherited();
+  m_logger.trace("config: Loaded %s", m_file);
+  m_logger.trace("config: Current bar section: [%s]", section());
 }
 
 /**
@@ -72,23 +59,8 @@ string config::filepath() const {
 /**
  * Get the section name of the bar in use
  */
-string config::bar_section() const {
-  return "bar/" + m_current_bar;
-}
-
-/**
- * Get a list of defined bar sections in the current config
- */
-vector<string> config::defined_bars() const {
-  vector<string> bars;
-
-  for (auto&& p : m_sections) {
-    if (p.first.compare(0, 4, "bar/") == 0) {
-      bars.emplace_back(p.first.substr(4));
-    }
-  }
-
-  return bars;
+string config::section() const {
+  return "bar/" + m_barname;
 }
 
 /**
@@ -102,13 +74,20 @@ void config::warn_deprecated(const string& section, const string& key, string re
   }
 }
 
-void config::read() {
+/**
+ * Parse key/value pairs from the configuration file
+ */
+void config::parse_file() {
   std::ifstream in(m_file.c_str());
   string line;
   string section;
+  uint32_t lineno{0};
 
   while (std::getline(in, line)) {
-    if (line.empty()) {
+    lineno++;
+
+    // Ignore empty lines and comments
+    if (line.empty() || line[0] == ';' || line[0] == '#') {
       continue;
     }
 
@@ -128,8 +107,15 @@ void config::read() {
     string key{string_util::trim(line.substr(0, equal_pos), ' ')};
     string value{string_util::trim(string_util::trim(line.substr(equal_pos + 1), ' '), '"')};
 
-    m_sections[section][key] = move(value);
+    auto it = m_sections[section].find(key);
+    if (it != m_sections[section].end()) {
+      throw key_error("Duplicate key name \"" + key + "\" defined on line " + to_string(lineno));
+    }
+
+    m_sections[section].emplace_hint(it, move(key), move(value));
   }
+
+  copy_inherited();
 }
 
 /**
@@ -198,27 +184,39 @@ short config::convert(string&& value) const {
 
 template <>
 bool config::convert(string&& value) const {
-  return std::atoi(value.c_str()) != 0;
+  string lower{string_util::lower(forward<string>(value))};
+
+  if (lower.compare(0, 4, "true") == 0) {
+    return true;
+  } else if (lower.compare(0, 3, "yes") == 0) {
+    return true;
+  } else if (lower.compare(0, 2, "on") == 0) {
+    return true;
+  } else if (lower.compare(0, 1, "1") == 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 template <>
 float config::convert(string&& value) const {
-  return std::atof(value.c_str());
+  return std::strtof(value.c_str(), nullptr);
 }
 
 template <>
 double config::convert(string&& value) const {
-  return std::atof(value.c_str());
+  return std::strtod(value.c_str(), nullptr);
 }
 
 template <>
 long config::convert(string&& value) const {
-  return std::atol(value.c_str());
+  return std::strtol(value.c_str(), nullptr, 10);
 }
 
 template <>
 long long config::convert(string&& value) const {
-  return std::atoll(value.c_str());
+  return std::strtoll(value.c_str(), nullptr, 10);
 }
 
 template <>
@@ -265,6 +263,16 @@ unsigned long config::convert(string&& value) const {
 template <>
 unsigned long long config::convert(string&& value) const {
   return std::strtoull(value.c_str(), nullptr, 10);
+}
+
+template <>
+chrono::seconds config::convert(string&& value) const {
+  return chrono::seconds{convert<chrono::seconds::rep>(forward<string>(value))};
+}
+
+template <>
+chrono::milliseconds config::convert(string&& value) const {
+  return chrono::milliseconds{convert<chrono::milliseconds::rep>(forward<string>(value))};
 }
 
 POLYBAR_NS_END

@@ -109,25 +109,24 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      std::cout << conf.get<string>(conf.bar_section(), cli->get("dump")) << std::endl;
+      std::cout << conf.get<string>(conf.section(), cli->get("dump")) << std::endl;
       throw exit_success{};
     }
 
     //==================================================
     // Create controller and run application
     //==================================================
-    unique_ptr<controller> ctrl;
     string path_confwatch;
     bool enable_ipc{false};
 
     if (!cli->has("print-wmname")) {
-      enable_ipc = conf.get<bool>(conf.bar_section(), "enable-ipc", false);
+      enable_ipc = conf.get<bool>(conf.section(), "enable-ipc", false);
     }
     if (!cli->has("print-wmname") && cli->has("reload")) {
       path_confwatch = conf.filepath();
     }
 
-    ctrl = controller::make(move(path_confwatch), enable_ipc, cli->has("stdout"));
+    unique_ptr<controller> ctrl{controller::make(move(path_confwatch), move(enable_ipc), cli->has("stdout"))};
 
     if (cli->has("print-wmname")) {
       std::cout << ctrl->opts().wmname << std::endl;

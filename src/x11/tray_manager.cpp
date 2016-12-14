@@ -62,7 +62,7 @@ tray_manager::~tray_manager() {
 
 void tray_manager::setup(const bar_settings& bar_opts) {
   auto conf = config::make();
-  auto bs = conf.bar_section();
+  auto bs = conf.section();
   auto tray_position = conf.get<string>(bs, "tray-position", "");
 
   if (tray_position == "left") {
