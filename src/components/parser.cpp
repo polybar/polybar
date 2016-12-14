@@ -1,6 +1,5 @@
 #include <cassert>
 
-#include "components/logger.hpp"
 #include "components/parser.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
@@ -15,26 +14,23 @@ using namespace signals::parser;
 /**
  * Construct parser instance
  */
-parser::parser(signal_emitter& emitter, const logger& logger, const bar_settings& bar)
-    : m_sig(emitter), m_log(logger), m_bar(bar) {}
+parser::parser(signal_emitter& emitter, const bar_settings& bar) : m_sig(emitter), m_bar(bar) {}
 
 /**
  * Process input string
  */
 void parser::operator()(string data) {
-  size_t pos;
+  while (!data.empty()) {
+    size_t pos{string::npos};
 
-  m_log.trace_x("parser: %s", data);
-
-  while (data.length()) {
     if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
       codeblock(data.substr(2, pos - 2));
       data.erase(0, pos + 1);
-    } else {
-      if ((pos = data.find("%{")) == string::npos) {
-        pos = data.length();
-      }
+    } else if ((pos = data.find("%{")) != string::npos) {
       data.erase(0, text(data.substr(0, pos)));
+    } else {
+      text(move(data));
+      return;
     }
   }
 
@@ -46,7 +42,7 @@ void parser::operator()(string data) {
 /**
  * Process contents within tag blocks, i.e: %{...}
  */
-void parser::codeblock(string data) {
+void parser::codeblock(string&& data) {
   size_t pos;
 
   while (data.length()) {
@@ -129,10 +125,9 @@ void parser::codeblock(string data) {
 
       case 'A':
         if (isdigit(data[0]) || data[0] == ':') {
-          value = parse_action_cmd(data);
+          value = parse_action_cmd(data.substr(data[0] != ':' ? 1 : 0));
           mousebtn btn = parse_action_btn(data);
           m_actions.push_back(static_cast<int>(btn));
-
           m_sig.emit(action_begin{action{btn, value}});
 
           // make sure we strip the correct length (btn+wrapping colons)
@@ -159,7 +154,7 @@ void parser::codeblock(string data) {
 /**
  * Process text contents
  */
-size_t parser::text(string data) {
+size_t parser::text(string&& data) {
   uint8_t* utf = reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str()));
 
   if (utf[0] < 0x80) {
@@ -199,7 +194,7 @@ size_t parser::text(string data) {
 /**
  * Process color hex string and convert it to the correct value
  */
-uint32_t parser::parse_color(string s, uint32_t fallback) {
+uint32_t parser::parse_color(const string& s, uint32_t fallback) {
   uint32_t color{0};
   if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback) {
     return fallback;
@@ -210,7 +205,7 @@ uint32_t parser::parse_color(string s, uint32_t fallback) {
 /**
  * Process font index and convert it to the correct value
  */
-int8_t parser::parse_fontindex(string s) {
+int8_t parser::parse_fontindex(const string& s) {
   if (s.empty() || s[0] == '-') {
     return -1;
   }
@@ -239,7 +234,7 @@ attribute parser::parse_attr(const char attr) {
 /**
  * Process action button token and convert it to the correct value
  */
-mousebtn parser::parse_action_btn(string data) {
+mousebtn parser::parse_action_btn(const string& data) {
   if (data[0] == ':') {
     return mousebtn::LEFT;
   } else if (isdigit(data[0])) {
@@ -254,22 +249,21 @@ mousebtn parser::parse_action_btn(string data) {
 /**
  * Process action command string
  */
-string parser::parse_action_cmd(const string& data) {
-  size_t start{0};
-  while ((start = data.find(':', start)) != string::npos && data[start - 1] == '\\') {
-    start++;
-  }
-  if (start == string::npos) {
+string parser::parse_action_cmd(string&& data) {
+  if (data[0] != ':') {
     return "";
   }
-  size_t end{start + 1};
+
+  size_t end{1};
   while ((end = data.find(':', end)) != string::npos && data[end - 1] == '\\') {
     end++;
   }
+
   if (end == string::npos) {
     return "";
   }
-  return string_util::trim(data.substr(start, end), ':');
+
+  return data.substr(1, end - 1);
 }
 
 POLYBAR_NS_END

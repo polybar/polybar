@@ -292,7 +292,7 @@ void bar::parse(const string& data, bool force) {
 
   try {
     if (!data.empty()) {
-      parser parser{m_sig, m_log, m_opts};
+      parser parser{m_sig, m_opts};
       parser(data);
     }
   } catch (const parser_error& err) {
