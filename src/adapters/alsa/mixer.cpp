@@ -12,38 +12,31 @@ namespace alsa {
   /**
    * Construct mixer object
    */
-  mixer::mixer(string mixer_control_name) : m_name(move(mixer_control_name)) {
-    if (m_name.empty()) {
-      throw mixer_error("Invalid control name");
-    }
-
-    snd_mixer_selem_id_malloc(&m_mixerid);
-
-    if (m_mixerid == nullptr) {
-      throw mixer_error("Failed to allocate mixer id");
-    }
-
+  mixer::mixer(string&& mixer_selem_name) : m_name(forward<string>(mixer_selem_name)) {
     int err = 0;
-    if ((err = snd_mixer_open(&m_hardwaremixer, 1)) == -1) {
+
+    if ((err = snd_mixer_open(&m_mixer, 1)) == -1) {
       throw_exception<mixer_error>("Failed to open hardware mixer", err);
     }
 
     snd_config_update_free_global();
 
-    if ((err = snd_mixer_attach(m_hardwaremixer, ALSA_SOUNDCARD)) == -1) {
+    if ((err = snd_mixer_attach(m_mixer, ALSA_SOUNDCARD)) == -1) {
       throw_exception<mixer_error>("Failed to attach hardware mixer control", err);
     }
-    if ((err = snd_mixer_selem_register(m_hardwaremixer, nullptr, nullptr)) == -1) {
+    if ((err = snd_mixer_selem_register(m_mixer, nullptr, nullptr)) == -1) {
       throw_exception<mixer_error>("Failed to register simple mixer element", err);
     }
-    if ((err = snd_mixer_load(m_hardwaremixer)) == -1) {
+    if ((err = snd_mixer_load(m_mixer)) == -1) {
       throw_exception<mixer_error>("Failed to load mixer", err);
     }
 
-    snd_mixer_selem_id_set_index(m_mixerid, 0);
-    snd_mixer_selem_id_set_name(m_mixerid, m_name.c_str());
+    snd_mixer_selem_id_t* sid{nullptr};
+    snd_mixer_selem_id_alloca(&sid);
+    snd_mixer_selem_id_set_index(sid, 0);
+    snd_mixer_selem_id_set_name(sid, m_name.c_str());
 
-    if ((m_mixerelement = snd_mixer_find_selem(m_hardwaremixer, m_mixerid)) == nullptr) {
+    if ((m_elem = snd_mixer_find_selem(m_mixer, sid)) == nullptr) {
       throw mixer_error("Cannot find simple element");
     }
   }
@@ -53,22 +46,16 @@ namespace alsa {
    */
   mixer::~mixer() {
     std::lock_guard<std::mutex> guard(m_lock);
-    if (m_mixerid != nullptr) {
-      snd_mixer_selem_id_free(m_mixerid);
-    }
-    if (m_mixerelement != nullptr) {
-      snd_mixer_elem_remove(m_mixerelement);
-    }
-    if (m_hardwaremixer != nullptr) {
-      snd_mixer_detach(m_hardwaremixer, ALSA_SOUNDCARD);
-      snd_mixer_close(m_hardwaremixer);
+
+    if (m_mixer != nullptr) {
+      snd_mixer_close(m_mixer);
     }
   }
 
   /**
    * Get mixer name
    */
-  string mixer::get_name() {
+  const string& mixer::get_name() {
     return m_name;
   }
 
@@ -76,7 +63,7 @@ namespace alsa {
    * Wait for events
    */
   bool mixer::wait(int timeout) {
-    assert(m_hardwaremixer);
+    assert(m_mixer);
 
     if (!m_lock.try_lock()) {
       return false;
@@ -86,7 +73,7 @@ namespace alsa {
 
     int err = 0;
 
-    if ((err = snd_mixer_wait(m_hardwaremixer, timeout)) == -1) {
+    if ((err = snd_mixer_wait(m_mixer, timeout)) == -1) {
       throw_exception<mixer_error>("Failed to wait for events", err);
     }
 
@@ -105,8 +92,8 @@ namespace alsa {
 
     std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
-    int num_events = snd_mixer_handle_events(m_hardwaremixer);
-    if (num_events == -1) {
+    int num_events{0};
+    if ((num_events = snd_mixer_handle_events(m_mixer)) == -1) {
       throw_exception<mixer_error>("Failed to process pending events", num_events);
     }
 
@@ -117,6 +104,8 @@ namespace alsa {
    * Get volume in percentage
    */
   int mixer::get_volume() {
+    assert(m_elem != nullptr);
+
     if (!m_lock.try_lock()) {
       return 0;
     }
@@ -125,11 +114,11 @@ namespace alsa {
 
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
 
-    snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
+    snd_mixer_selem_get_playback_volume_range(m_elem, &vol_min, &vol_max);
 
     for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-      if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
-        snd_mixer_selem_get_playback_volume(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
+      if (snd_mixer_selem_has_playback_channel(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+        snd_mixer_selem_get_playback_volume(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
         vol_total += vol;
         chan_n++;
       }
@@ -142,6 +131,8 @@ namespace alsa {
    * Get normalized volume in percentage
    */
   int mixer::get_normalized_volume() {
+    assert(m_elem != nullptr);
+
     if (!m_lock.try_lock()) {
       return 0;
     }
@@ -151,11 +142,11 @@ namespace alsa {
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
     double normalized, min_norm;
 
-    snd_mixer_selem_get_playback_dB_range(m_mixerelement, &vol_min, &vol_max);
+    snd_mixer_selem_get_playback_dB_range(m_elem, &vol_min, &vol_max);
 
     for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-      if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
-        snd_mixer_selem_get_playback_dB(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
+      if (snd_mixer_selem_has_playback_channel(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+        snd_mixer_selem_get_playback_dB(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i), &vol);
         vol_total += vol;
         chan_n++;
       }
@@ -178,6 +169,8 @@ namespace alsa {
    * Set volume to given percentage
    */
   void mixer::set_volume(float percentage) {
+    assert(m_elem != nullptr);
+
     if (is_muted()) {
       return;
     }
@@ -189,15 +182,16 @@ namespace alsa {
     std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     long vol_min, vol_max;
-    snd_mixer_selem_get_playback_volume_range(m_mixerelement, &vol_min, &vol_max);
-    snd_mixer_selem_set_playback_volume_all(
-        m_mixerelement, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
+    snd_mixer_selem_get_playback_volume_range(m_elem, &vol_min, &vol_max);
+    snd_mixer_selem_set_playback_volume_all(m_elem, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
   }
 
   /**
    * Set normalized volume to given percentage
    */
   void mixer::set_normalized_volume(float percentage) {
+    assert(m_elem != nullptr);
+
     if (is_muted()) {
       return;
     }
@@ -212,10 +206,10 @@ namespace alsa {
     double min_norm;
     percentage = percentage / 100.0f;
 
-    snd_mixer_selem_get_playback_dB_range(m_mixerelement, &vol_min, &vol_max);
+    snd_mixer_selem_get_playback_dB_range(m_elem, &vol_min, &vol_max);
 
     if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100) {
-      snd_mixer_selem_set_playback_dB_all(m_mixerelement, lrint(percentage * (vol_max - vol_min)) + vol_min, 0);
+      snd_mixer_selem_set_playback_dB_all(m_elem, lrint(percentage * (vol_max - vol_min)) + vol_min, 0);
       return;
     }
 
@@ -224,26 +218,30 @@ namespace alsa {
       percentage = percentage * (1 - min_norm) + min_norm;
     }
 
-    snd_mixer_selem_set_playback_dB_all(m_mixerelement, lrint(6000.0 * log10(percentage)) + vol_max, 0);
+    snd_mixer_selem_set_playback_dB_all(m_elem, lrint(6000.0 * log10(percentage)) + vol_max, 0);
   }
 
   /**
    * Set mute state
    */
   void mixer::set_mute(bool mode) {
+    assert(m_elem != nullptr);
+
     if (!m_lock.try_lock()) {
       return;
     }
 
     std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
-    snd_mixer_selem_set_playback_switch_all(m_mixerelement, mode);
+    snd_mixer_selem_set_playback_switch_all(m_elem, mode);
   }
 
   /**
    * Toggle mute state
    */
   void mixer::toggle_mute() {
+    assert(m_elem != nullptr);
+
     if (!m_lock.try_lock()) {
       return;
     }
@@ -252,14 +250,16 @@ namespace alsa {
 
     int state;
 
-    snd_mixer_selem_get_playback_switch(m_mixerelement, SND_MIXER_SCHN_MONO, &state);
-    snd_mixer_selem_set_playback_switch_all(m_mixerelement, !state);
+    snd_mixer_selem_get_playback_switch(m_elem, SND_MIXER_SCHN_MONO, &state);
+    snd_mixer_selem_set_playback_switch_all(m_elem, !state);
   }
 
   /**
    * Get current mute state
    */
   bool mixer::is_muted() {
+    assert(m_elem != nullptr);
+
     if (!m_lock.try_lock()) {
       return false;
     }
@@ -269,9 +269,9 @@ namespace alsa {
     int state = 0;
 
     for (int i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
-      if (snd_mixer_selem_has_playback_channel(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i))) {
+      if (snd_mixer_selem_has_playback_channel(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i))) {
         int state_ = 0;
-        snd_mixer_selem_get_playback_switch(m_mixerelement, static_cast<snd_mixer_selem_channel_id_t>(i), &state_);
+        snd_mixer_selem_get_playback_switch(m_elem, static_cast<snd_mixer_selem_channel_id_t>(i), &state_);
         state = state || state_;
       }
     }

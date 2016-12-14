@@ -43,13 +43,13 @@ namespace modules {
     // Setup mixers
     try {
       if (!master_mixer_name.empty()) {
-        m_mixer[mixer::MASTER].reset(new mixer_t::element_type{master_mixer_name});
+        m_mixer[mixer::MASTER].reset(new mixer_t::element_type{move(master_mixer_name)});
       }
       if (!speaker_mixer_name.empty()) {
-        m_mixer[mixer::SPEAKER].reset(new mixer_t::element_type{speaker_mixer_name});
+        m_mixer[mixer::SPEAKER].reset(new mixer_t::element_type{move(speaker_mixer_name)});
       }
       if (!headphone_mixer_name.empty()) {
-        m_mixer[mixer::HEADPHONE].reset(new mixer_t::element_type{headphone_mixer_name});
+        m_mixer[mixer::HEADPHONE].reset(new mixer_t::element_type{move(headphone_mixer_name)});
       }
       if (m_mixer[mixer::HEADPHONE]) {
         m_ctrl[control::HEADPHONE].reset(new control_t::element_type{m_headphoneid});
@@ -224,13 +224,13 @@ namespace modules {
       bool headphones{m_headphones};
 
       if (m_mixer[mixer::MASTER] && !m_mixer[mixer::MASTER]->get_name().empty()) {
-        mixers.emplace_back(new mixer_t::element_type(m_mixer[mixer::MASTER]->get_name()));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::MASTER]->get_name()}));
       }
       if (m_mixer[mixer::HEADPHONE] && !m_mixer[mixer::HEADPHONE]->get_name().empty() && headphones) {
-        mixers.emplace_back(new mixer_t::element_type(m_mixer[mixer::HEADPHONE]->get_name()));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::HEADPHONE]->get_name()}));
       }
       if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
-        mixers.emplace_back(new mixer_t::element_type(m_mixer[mixer::SPEAKER]->get_name()));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::SPEAKER]->get_name()}));
       }
 
       if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {

@@ -17,10 +17,10 @@ POLYBAR_NS
 namespace alsa {
   class mixer {
    public:
-    explicit mixer(string mixer_control_name);
+    explicit mixer(string&& mixer_selem_name);
     ~mixer();
 
-    string get_name();
+    const string& get_name();
 
     bool wait(int timeout = -1);
     int process_events();
@@ -36,11 +36,10 @@ namespace alsa {
    private:
     std::mutex m_lock;
 
-    string m_name;
+    snd_mixer_t* m_mixer{nullptr};
+    snd_mixer_elem_t* m_elem{nullptr};
 
-    snd_mixer_selem_id_t* m_mixerid{nullptr};
-    snd_mixer_t* m_hardwaremixer{nullptr};
-    snd_mixer_elem_t* m_mixerelement{nullptr};
+    string m_name;
   };
 }
 

@@ -8,28 +8,7 @@ namespace alsa {
    * Construct control object
    */
   control::control(int numid) : m_numid(numid) {
-    snd_ctl_elem_info_malloc(&m_info);
-
-    if (m_info == nullptr) {
-      throw control_error("Failed to allocate alsa_ctl info");
-    }
-
-    snd_ctl_elem_value_malloc(&m_value);
-
-    if (m_value == nullptr) {
-      throw control_error("Failed to allocate alsa_ctl value");
-    }
-
-    snd_ctl_elem_id_malloc(&m_id);
-
-    if (m_id == nullptr) {
-      throw control_error("Failed to allocate alsa_ctl id");
-    }
-
-    snd_ctl_elem_id_set_numid(m_id, m_numid);
-    snd_ctl_elem_info_set_id(m_info, m_id);
-
-    int err = 0;
+    int err{0};
 
     if ((err = snd_ctl_open(&m_ctl, ALSA_SOUNDCARD, SND_CTL_NONBLOCK | SND_CTL_READONLY)) == -1) {
       throw_exception<control_error>("Could not open control '" + string{ALSA_SOUNDCARD} + "'", err);
@@ -37,21 +16,30 @@ namespace alsa {
 
     snd_config_update_free_global();
 
-    if ((err = snd_ctl_elem_info(m_ctl, m_info)) == -1) {
-      throw_exception<control_error>("Could not get control datal", err);
-    }
-
-    snd_ctl_elem_info_get_id(m_info, m_id);
-
-    if ((err = snd_hctl_open(&m_hctl, ALSA_SOUNDCARD, 0)) == -1) {
+    if ((err = snd_hctl_open_ctl(&m_hctl, m_ctl)) == -1) {
+      snd_ctl_close(m_ctl);
       throw_exception<control_error>("Failed to open hctl", err);
     }
 
     snd_config_update_free_global();
 
-    if (m_hctl == nullptr || (err = snd_hctl_load(m_hctl)) == -1) {
+    if ((err = snd_hctl_load(m_hctl)) == -1) {
       throw_exception<control_error>("Failed to load hctl", err);
     }
+
+    snd_ctl_elem_id_t* m_id{nullptr};
+    snd_ctl_elem_id_alloca(&m_id);
+    snd_ctl_elem_id_set_numid(m_id, m_numid);
+
+    snd_ctl_elem_info_t* m_info{nullptr};
+    snd_ctl_elem_info_alloca(&m_info);
+    snd_ctl_elem_info_set_id(m_info, m_id);
+
+    if ((err = snd_ctl_elem_info(m_ctl, m_info)) == -1) {
+      throw_exception<control_error>("Could not get control datal", err);
+    }
+
+    snd_ctl_elem_info_get_id(m_info, m_id);
 
     if ((m_elem = snd_hctl_find_elem(m_hctl, m_id)) == nullptr) {
       throw control_error("Could not find control with id " + to_string(snd_ctl_elem_id_get_numid(m_id)));
@@ -67,21 +55,12 @@ namespace alsa {
    */
   control::~control() {
     std::lock_guard<std::mutex> guard(m_lock);
-    if (m_info != nullptr) {
-      snd_ctl_elem_info_free(m_info);
-    }
-    if (m_value != nullptr) {
-      snd_ctl_elem_value_free(m_value);
-    }
-    if (m_id != nullptr) {
-      snd_ctl_elem_id_free(m_id);
-    }
-    if (m_ctl != nullptr) {
-      snd_ctl_close(m_ctl);
-    }
+
     if (m_hctl != nullptr) {
       snd_hctl_close(m_hctl);
     }
+
+    snd_config_update_free_global();
   }
 
   /**
@@ -103,13 +82,13 @@ namespace alsa {
 
     std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
-    int err = 0;
+    int err{0};
 
     if ((err = snd_ctl_wait(m_ctl, timeout)) == -1) {
       throw_exception<control_error>("Failed to wait for events", err);
     }
 
-    snd_ctl_event_t* event;
+    snd_ctl_event_t* event{nullptr};
     snd_ctl_event_alloca(&event);
 
     if ((err = snd_ctl_read(m_ctl, event)) == -1) {
@@ -128,7 +107,6 @@ namespace alsa {
    */
   bool control::test_device_plugged() {
     assert(m_elem);
-    assert(m_value);
 
     if (!m_lock.try_lock()) {
       return false;
@@ -136,10 +114,15 @@ namespace alsa {
 
     std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
-    int err = 0;
+    snd_ctl_elem_value_t* m_value{nullptr};
+    snd_ctl_elem_value_alloca(&m_value);
+
+    int err{0};
+
     if ((err = snd_hctl_elem_read(m_elem, m_value)) == -1) {
       throw_exception<control_error>("Could not read control value", err);
     }
+
     return snd_ctl_elem_value_get_boolean(m_value, 0);
   }
 
