@@ -507,21 +507,37 @@ void bar::setup_monitor() {
   }
 
   auto name = m_conf.get<string>(m_conf.bar_section(), "monitor", "");
+  auto name_fallback = m_conf.get<string>(m_conf.bar_section(), "monitor-fallback", "");
+  monitor_t fallback;
 
   if (name.empty()) {
     name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", name);
   }
 
+  bool name_found{false}, fallback_found{name_fallback.empty()};
   for (auto&& monitor : monitors) {
-    if (monitor->match(name, strict)) {
+    if (!name_found && monitor->match(name, strict)) {
       m_opts.monitor = move(monitor);
-      break;
+      name_found = true;
     }
+    else if (!fallback_found && monitor->match(name_fallback, strict)) {
+      fallback = move(monitor);
+      fallback_found = true;
+    }
+
+    if (name_found && fallback_found)
+      break;
+
   }
 
   if (!m_opts.monitor) {
-    throw application_error("Monitor \"" + name + "\" not found or disconnected");
+    if (fallback) {
+      m_opts.monitor = move(fallback);
+      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", name, name_fallback);
+    }
+    else
+      throw application_error("Monitor \"" + name + "\" not found or disconnected");
   }
 
   const auto& m = m_opts.monitor;
