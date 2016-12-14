@@ -120,10 +120,8 @@ void eventloop::stop() {
  * Enqueue event
  */
 bool eventloop::enqueue(event&& evt) {
-  uint8_t type{static_cast<uint8_t>(evt.type)};
-
   if (!m_queue.enqueue(move(evt))) {
-    m_log.warn("Failed to enqueue event (%d)", static_cast<uint8_t>(type));
+    m_log.warn("Failed to enqueue event");
     return false;
   }
 

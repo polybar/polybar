@@ -96,7 +96,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void acquire_selection();
   void notify_clients();
-  void notify_clients_delayed(chrono::seconds delay = 1s);
+  void notify_clients_delayed();
 
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
@@ -157,6 +157,10 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   bool m_restacked{false};
 
   std::mutex m_mtx;
+
+  chrono::time_point<chrono::system_clock, chrono::milliseconds> m_drawtime;
+
+  bool m_firstactivation{true};
 };
 
 POLYBAR_NS_END

@@ -26,7 +26,7 @@ config::make_type config::make(string path, string bar) {
  * Construct config object
  */
 config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
-    : m_logger(logger), m_xrm(xrm), m_file(forward<decltype(path)>(path)), m_barname(forward<decltype(bar)>(bar)) {
+    : m_logger(logger), m_xrm(xrm), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
   if (!file_util::exists(m_file)) {
     throw application_error("Could not find config file: " + m_file);
   }
@@ -78,7 +78,7 @@ void config::warn_deprecated(const string& section, const string& key, string re
  * Parse key/value pairs from the configuration file
  */
 void config::parse_file() {
-  std::ifstream in(m_file.c_str());
+  std::ifstream in(m_file);
   string line;
   string section;
   uint32_t lineno{0};
@@ -117,8 +117,7 @@ void config::parse_file() {
       line.erase(0, equal_pos + 1);
     }
 
-    string value{string_util::trim(string_util::trim(move(line), ' '), '"')};
-
+    string value{string_util::trim(forward<string>(string_util::trim(move(line), ' ')), '"')};
     m_sections[section].emplace_hint(it, move(key), move(value));
   }
 

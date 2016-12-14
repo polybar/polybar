@@ -122,30 +122,37 @@ namespace string_util {
   /**
    * Remove needle from the start of the string
    */
-  string ltrim(string&& haystack, const char& needle) {
-    string str(haystack);
-    while (str[0] == needle) {
-      str.erase(0, 1);
+  string ltrim(string&& value, const char& needle) {
+    if (value.empty()) {
+      return "";
     }
-    return str;
+    while (*value.begin() == needle) {
+      value.erase(0, 1);
+    }
+    return forward<string>(value);
   }
 
   /**
    * Remove needle from the end of the string
    */
-  string rtrim(string&& haystack, const char& needle) {
-    string str(haystack);
-    while (str[str.length() - 1] == needle) {
-      str.erase(str.length() - 1, 1);
+  string rtrim(string&& value, const char& needle) {
+    if (value.empty()) {
+      return "";
     }
-    return str;
+    while (*(value.end() - 1) == needle) {
+      value.erase(value.length() - 1, 1);
+    }
+    return forward<string>(value);
   }
 
   /**
    * Remove needle from the start and end of the string
    */
   string trim(string&& value, const char& needle) {
-    return rtrim(ltrim(move(value), needle), needle);
+    if (value.empty()) {
+      return "";
+    }
+    return rtrim(ltrim(forward<string>(value), needle), needle);
   }
 
   /**

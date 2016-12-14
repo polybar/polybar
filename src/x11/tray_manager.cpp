@@ -51,12 +51,15 @@ tray_manager::make_type tray_manager::make() {
 }
 
 tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger)
-    : m_connection(conn), m_sig(emitter), m_log(logger) {}
+    : m_connection(conn), m_sig(emitter), m_log(logger) {
+  m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
+}
 
 tray_manager::~tray_manager() {
   if (m_delaythread.joinable()) {
     m_delaythread.join();
   }
+  m_connection.detach_sink(this, SINK_PRIORITY_TRAY);
   deactivate();
 }
 
@@ -198,7 +201,6 @@ void tray_manager::activate() {
   m_opts.running = true;
 
   m_sig.attach(this);
-  m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 
   try {
     create_window();
@@ -221,13 +223,16 @@ void tray_manager::activate() {
   // notify clients waiting for a manager.
   acquire_selection();
 
-  // Notify pending tray clients
-  notify_clients();
-
   // Send delayed notification
-  if (m_othermanager != XCB_NONE && m_othermanager != m_tray) {
+  if (!m_firstactivation) {
     notify_clients_delayed();
+  } else if (m_othermanager != XCB_NONE && m_othermanager != m_tray) {
+    notify_clients_delayed();
+  } else {
+    notify_clients();
   }
+
+  m_firstactivation = false;
 }
 
 /**
@@ -243,7 +248,6 @@ void tray_manager::deactivate(bool clear_selection) {
   m_opts.running = false;
 
   m_sig.detach(this);
-  m_connection.detach_sink(this, SINK_PRIORITY_TRAY);
 
   if (!m_connection.connection_has_error() && clear_selection && m_acquired_selection) {
     m_log.trace("tray: Unset selection owner");
@@ -506,7 +510,15 @@ void tray_manager::refresh_window() {
  * Redraw window
  */
 void tray_manager::redraw_window(bool realloc_bg) {
-  m_log.info("Redraw tray container (id=%s)", m_connection.id(m_tray));
+  chrono::system_clock::time_point now{chrono::system_clock::now()};
+
+  if (!realloc_bg && now - 24ms < m_drawtime) {
+    return m_log.trace("tray: Ignoring redraw (throttled)");
+  }
+
+  m_drawtime = chrono::time_point_cast<chrono::milliseconds>(now);
+  m_log.info("Redraw tray container (id=%s) %lu", m_connection.id(m_tray),
+      chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch()));
   reconfigure_bg(realloc_bg);
   refresh_window();
 }
@@ -669,23 +681,34 @@ void tray_manager::set_tray_colors() {
  * Acquire the systray selection
  */
 void tray_manager::acquire_selection() {
-  auto reply = m_connection.get_selection_owner_unchecked(m_atom);
-  auto owner = reply.owner<xcb_window_t>();
+  m_othermanager = XCB_NONE;
+  ;
+  xcb_window_t owner;
+
+  try {
+    owner = m_connection.get_selection_owner(m_atom).owner<xcb_window_t>();
+  } catch (const exception& err) {
+    return;
+  }
 
   if (owner == m_tray) {
-    m_log.info("tray: Already managing the systray selection");
-  } else if ((m_othermanager = owner) != XCB_NONE) {
-    m_log.info("Replacing selection manager %s", m_connection.id(owner));
-  } else {
-    m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
-    m_connection.set_selection_owner_checked(m_tray, m_atom, XCB_CURRENT_TIME);
-
-    if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray) {
-      throw application_error("Failed to get control of the systray selection");
-    }
-
-    m_acquired_selection = false;
+    m_log.trace("tray: Already managing the systray selection");
+    m_acquired_selection = true;
+    return;
   }
+
+  if ((m_othermanager = owner) != XCB_NONE) {
+    m_log.info("Replacing selection manager %s", m_connection.id(owner));
+  }
+
+  m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
+  m_connection.set_selection_owner_checked(m_tray, m_atom, XCB_CURRENT_TIME);
+
+  if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray) {
+    throw application_error("Failed to get control of the systray selection");
+  }
+
+  m_acquired_selection = true;
 }
 
 /**
@@ -705,16 +728,14 @@ void tray_manager::notify_clients() {
 /**
  * Send delayed notification to pending clients
  */
-void tray_manager::notify_clients_delayed(chrono::seconds delay) {
-  if (!m_activated) {
-    return;
-  } else if (m_delaythread.joinable()) {
+void tray_manager::notify_clients_delayed() {
+  if (m_delaythread.joinable()) {
     m_delaythread.join();
   }
-  m_delaythread = thread([this](auto&& delay) {
-    this_thread::sleep_for(delay);
+  m_delaythread = thread([this]() {
+    this_thread::sleep_for(1s);
     notify_clients();
-  }, move(delay));
+  });
 }
 
 /**
@@ -722,7 +743,7 @@ void tray_manager::notify_clients_delayed(chrono::seconds delay) {
  * If it gets destroyed or goes away we can reactivate the tray_manager
  */
 void tray_manager::track_selection_owner(xcb_window_t owner) {
-  if (owner) {
+  if (owner != XCB_NONE) {
     m_log.trace("tray: Listen for events on the new selection window");
     const uint32_t mask{XCB_CW_EVENT_MASK};
     const uint32_t values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
@@ -987,11 +1008,11 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 
   try {
     m_log.warn("Lost systray selection, deactivating...");
-    m_othermanager = m_connection.get_selection_owner(m_atom)->owner;
+    m_othermanager = m_connection.get_selection_owner(m_atom).owner<xcb_window_t>();
     track_selection_owner(m_othermanager);
   } catch (const exception& err) {
     m_log.err("Failed to get systray selection owner");
-    m_othermanager = 0;
+    m_othermanager = XCB_NONE;
   }
 
   deactivate(false);
@@ -1053,10 +1074,9 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
 void tray_manager::handle(const evt::destroy_notify& evt) {
   if (m_activated && evt->window == m_tray) {
     deactivate();
-  } else if (!m_activated && evt->window == m_othermanager && evt->window != m_tray) {
-    m_log.trace("tray: Received destroy_notify");
-    // m_log.info("Tray selection available... re-activating");
-    // activate();
+  } else if (!m_activated && evt->window == m_othermanager) {
+    m_log.info("Tray selection available... re-activating");
+    activate();
   } else if (m_activated && is_embedded(evt->window)) {
     m_log.trace("tray: Received destroy_notify for client, remove...");
     remove_client(evt->window);
