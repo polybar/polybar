@@ -27,6 +27,14 @@ namespace drawtypes {
     m_indicator = forward<decltype(indicator)>(indicator);
   }
 
+  void progressbar::set_left(icon_t&& left) {
+    m_left = forward<decltype(left)>(left);
+  }
+
+  void progressbar::set_right(icon_t&& right) {
+    m_right = forward<decltype(right)>(right);
+  }
+
   void progressbar::set_gradient(bool mode) {
     m_gradient = mode;
   }
@@ -49,6 +57,10 @@ namespace drawtypes {
     unsigned int fill_width = math_util::percentage_to_value(perc, m_width);
     unsigned int empty_width = m_width - fill_width;
 
+    // Output left delimiter
+    m_builder->node(m_left);
+    output = string_util::replace_all(output, "%left%", m_builder->flush());
+
     // Output fill icons
     fill(perc, fill_width);
     output = string_util::replace_all(output, "%fill%", m_builder->flush());
@@ -60,6 +72,10 @@ namespace drawtypes {
     // Output empty icons
     m_builder->node_repeat(m_empty, empty_width);
     output = string_util::replace_all(output, "%empty%", m_builder->flush());
+
+    // Output right delimiter
+    m_builder->node(m_right);
+    output = string_util::replace_all(output, "%right%", m_builder->flush());
 
     return output;
   }
@@ -90,7 +106,7 @@ namespace drawtypes {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
 
-    string format = "%fill%%indicator%%empty%";
+    string format = "%left%%fill%%indicator%%empty%%right%";
     unsigned int width;
 
     if ((format = conf.get<decltype(format)>(section, name + "-format", format)).empty()) {
@@ -107,6 +123,8 @@ namespace drawtypes {
     icon_t icon_empty;
     icon_t icon_fill;
     icon_t icon_indicator;
+    icon_t icon_left;
+    icon_t icon_right;
 
     if (format.find("%empty%") != string::npos) {
       icon_empty = load_icon(conf, section, name + "-empty");
@@ -116,6 +134,12 @@ namespace drawtypes {
     }
     if (format.find("%indicator%") != string::npos) {
       icon_indicator = load_icon(conf, section, name + "-indicator");
+    }
+    if (format.find("%left%") != string::npos) {
+      icon_left = load_icon(conf, section, name + "-left");
+    }
+    if (format.find("%right%") != string::npos) {
+      icon_right = load_icon(conf, section, name + "-right");
     }
 
     // If a foreground/background color is defined for the indicator
@@ -133,6 +157,8 @@ namespace drawtypes {
     progressbar->set_empty(move(icon_empty));
     progressbar->set_fill(move(icon_fill));
     progressbar->set_indicator(move(icon_indicator));
+    progressbar->set_left(move(icon_left));
+    progressbar->set_right(move(icon_right));
 
     return progressbar;
   }
