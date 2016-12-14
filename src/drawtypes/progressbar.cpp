@@ -87,7 +87,7 @@ namespace drawtypes {
    */
   progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name) {
     // Remove the start and end tag from the name in case a format tag is passed
-    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     string format = "%fill%%indicator%%empty%";
     unsigned int width;

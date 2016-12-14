@@ -46,7 +46,7 @@ void parser::codeblock(string&& data) {
   size_t pos;
 
   while (data.length()) {
-    data = string_util::ltrim(data, ' ');
+    data = string_util::ltrim(move(data), ' ');
 
     if (data.empty()) {
       break;

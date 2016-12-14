@@ -122,7 +122,7 @@ namespace string_util {
   /**
    * Remove needle from the start of the string
    */
-  string ltrim(const string& haystack, char needle) {
+  string ltrim(string&& haystack, const char& needle) {
     string str(haystack);
     while (str[0] == needle) {
       str.erase(0, 1);
@@ -133,7 +133,7 @@ namespace string_util {
   /**
    * Remove needle from the end of the string
    */
-  string rtrim(const string& haystack, char needle) {
+  string rtrim(string&& haystack, const char& needle) {
     string str(haystack);
     while (str[str.length() - 1] == needle) {
       str.erase(str.length() - 1, 1);
@@ -144,8 +144,8 @@ namespace string_util {
   /**
    * Remove needle from the start and end of the string
    */
-  string trim(const string& haystack, char needle) {
-    return rtrim(ltrim(haystack, needle), needle);
+  string trim(string&& value, const char& needle) {
+    return rtrim(ltrim(move(value), needle), needle);
   }
 
   /**

@@ -23,9 +23,9 @@ namespace string_util {
   string squeeze(const string& haystack, char needle);
   string strip(const string& haystack, char needle);
   string strip_trailing_newline(const string& haystack);
-  string ltrim(const string& haystack, char needle);
-  string rtrim(const string& haystack, char needle);
-  string trim(const string& haystack, char needle);
+  string ltrim(string&& value, const char& needle);
+  string rtrim(string&& value, const char& needle);
+  string trim(string&& value, const char& needle);
   string join(const vector<string>& strs, const string& delim);
   vector<string>& split_into(const string& s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);

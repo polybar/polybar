@@ -45,7 +45,7 @@ namespace drawtypes {
     vector<icon_t> vec;
     vector<string> frames;
 
-    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     auto anim_defaults = load_optional_icon(conf, section, name);
 

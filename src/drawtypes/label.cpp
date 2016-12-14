@@ -124,7 +124,7 @@ namespace drawtypes {
     vector<token> tokens;
     size_t start, end, pos;
 
-    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     string text;
 

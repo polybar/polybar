@@ -27,7 +27,7 @@ namespace drawtypes {
    * from the configuration
    */
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
-    name = string_util::ltrim(string_util::rtrim(name, '>'), '<');
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     auto ramp_defaults = load_optional_icon(conf, section, name);
 

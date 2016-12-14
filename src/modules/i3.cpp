@@ -142,7 +142,7 @@ namespace modules {
         }
 
         // Trim leading and trailing whitespace
-        ws_name = string_util::trim(ws_name, ' ');
+        ws_name = string_util::trim(move(ws_name), ' ');
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON);
         auto label = m_statelabels.find(ws_state)->second->clone();

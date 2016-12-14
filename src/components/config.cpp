@@ -95,6 +95,8 @@ void config::parse_file() {
     if (line[0] == '[' && line[line.length() - 1] == ']') {
       section = line.substr(1, line.length() - 2);
       continue;
+    } else if (section.empty()) {
+      continue;
     }
 
     size_t equal_pos;
@@ -104,13 +106,18 @@ void config::parse_file() {
       continue;
     }
 
-    string key{string_util::trim(line.substr(0, equal_pos), ' ')};
-    string value{string_util::trim(string_util::trim(line.substr(equal_pos + 1), ' '), '"')};
+    string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos)), ' '))};
 
     auto it = m_sections[section].find(key);
     if (it != m_sections[section].end()) {
       throw key_error("Duplicate key name \"" + key + "\" defined on line " + to_string(lineno));
     }
+
+    if (line.size() > equal_pos + 1) {
+      line.erase(0, equal_pos + 1);
+    }
+
+    string value{string_util::trim(string_util::trim(move(line), ' '), '"')};
 
     m_sections[section].emplace_hint(it, move(key), move(value));
   }
