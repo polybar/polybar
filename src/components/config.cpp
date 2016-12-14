@@ -135,7 +135,7 @@ void config::parse_file() {
 void config::copy_inherited() {
   for (auto&& section : m_sections) {
     for (auto&& param : section.second) {
-      if (param.first.compare(KEY_INHERIT) == 0) {
+      if (param.first.compare(0, strlen(KEY_INHERIT), KEY_INHERIT) == 0) {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
@@ -154,10 +154,7 @@ void config::copy_inherited() {
         // that hasn't been defined for the sub-section
         for (auto&& base_param : base_section->second) {
           valuemap_t::const_iterator iter;
-
-          if ((iter = section.second.find(base_param.first)) == section.second.end()) {
-            section.second.emplace_hint(iter, base_param.first, base_param.second);
-          }
+          section.second.insert(make_pair(base_param.first, base_param.second));
         }
       }
     }

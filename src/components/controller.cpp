@@ -270,8 +270,8 @@ bool controller::on(const sig_ev::process_update& evt) {
   string separator{bar.separator};
   string padding_left(bar.padding.left, ' ');
   string padding_right(bar.padding.right, ' ');
-  auto margin_left = bar.module_margin.left;
-  auto margin_right = bar.module_margin.right;
+  string margin_left(bar.module_margin.left, ' ');
+  string margin_right(bar.module_margin.right, ' ');
 
   for (const auto& block : m_eventloop->modules()) {
     string block_contents;
@@ -288,25 +288,25 @@ bool controller::on(const sig_ev::process_update& evt) {
     }
 
     for (const auto& module : block.second) {
-      auto module_contents = module->contents();
+      string module_contents{module->contents()};
 
       if (module_contents.empty()) {
         continue;
       }
 
-      if (!block_contents.empty() && !(is_right && module == block.second.back())) {
-        block_contents += string(margin_right, ' ');
+      if (!block_contents.empty() && !margin_right.empty()) {
+        block_contents += margin_right;
       }
 
       if (!block_contents.empty() && !separator.empty()) {
         block_contents += separator;
       }
 
-      if (!(is_left && module == block.second.front())) {
-        block_contents += string(margin_left, ' ');
+      if (!block_contents.empty() && !margin_left.empty() && !(is_left && module == block.second.front())) {
+        block_contents += margin_left;
       }
 
-      block_contents += module->contents();
+      block_contents += module_contents;
     }
 
     if (block_contents.empty()) {
