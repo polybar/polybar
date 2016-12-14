@@ -33,7 +33,7 @@ namespace modules {
       vector<label_t> modes;
       label_t label;
       string name;
-      bool focused = false;
+      bool focused{false};
     };
 
     using event_module::event_module;
@@ -72,13 +72,13 @@ namespace modules {
     label_t m_monitorlabel;
     iconset_t m_icons;
 
-    bool m_click = true;
-    bool m_scroll = true;
-    bool m_pinworkspaces = true;
-    unsigned long m_hash;
+    bool m_click{true};
+    bool m_scroll{true};
+    bool m_pinworkspaces{true};
+    string_util::hash_type m_hash{0U};
 
     // used while formatting output
-    size_t m_index = 0;
+    size_t m_index{0U};
   };
 }
 

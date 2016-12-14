@@ -19,6 +19,7 @@ namespace socket_util {
     ssize_t send(const void* data, size_t len, int flags = 0);
     ssize_t send(const string& data, int flags = 0);
 
+    string receive(const ssize_t receive_bytes, int flags = 0);
     string receive(const ssize_t receive_bytes, ssize_t* bytes_received, int flags = 0);
 
     bool peek(const size_t peek_bytes);

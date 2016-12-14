@@ -3,8 +3,8 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/bspwm.hpp"
-#include "utils/file.hpp"
 #include "utils/factory.hpp"
+#include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
 #include "modules/meta/event_module.inl"
@@ -152,41 +152,31 @@ namespace modules {
       return false;
     }
 
-    ssize_t bytes{0};
-    string data = m_subscriber->receive(BUFSIZ - 1, &bytes, 0);
-
-    if (bytes == 0) {
-      return false;
-    }
-
-    data = string_util::strip_trailing_newline(data);
-
-    unsigned long pos;
-    while ((pos = data.find('\n')) != string::npos) {
-      data.erase(pos);
-    }
+    string data{string_util::replace_all(m_subscriber->receive(BUFSIZ), "\n", "")};
 
     if (data.empty()) {
       return false;
     }
 
-    const auto prefix = string{BSPWM_STATUS_PREFIX};
+    size_t pos;
 
     // If there were more than 1 row available in the channel
     // we'll strip out the old updates
-    if ((pos = data.find_last_of(prefix)) > 0) {
-      data = data.substr(pos);
+    if ((pos = data.find_last_of(BSPWM_STATUS_PREFIX)) > 0) {
+      data.erase(0, pos);
     }
 
-    if (data.compare(0, prefix.length(), prefix) != 0) {
+    size_t prefix_len{strlen(BSPWM_STATUS_PREFIX)};
+    if (data.compare(0, prefix_len, BSPWM_STATUS_PREFIX) != 0) {
       m_log.err("%s: Unknown status '%s'", name(), data);
       return false;
     }
 
-    unsigned long hash;
+    string_util::hash_type hash;
     if ((hash = string_util::hash(data)) == m_hash) {
       return false;
     }
+
     m_hash = hash;
 
     // Extract the string for the defined monitor
@@ -194,8 +184,8 @@ namespace modules {
       const auto needle_active = ":M" + m_bar.monitor->name + ":";
       const auto needle_inactive = ":m" + m_bar.monitor->name + ":";
 
-      if ((pos = data.find(prefix)) != string::npos) {
-        data = data.replace(pos, prefix.length(), ":");
+      if ((pos = data.find(BSPWM_STATUS_PREFIX)) != string::npos) {
+        data = data.replace(pos, prefix_len, ":");
       }
       if ((pos = data.find(needle_active)) != string::npos) {
         data.erase(0, pos + 1);
@@ -209,15 +199,15 @@ namespace modules {
       if ((pos = data.find(":M", 1)) != string::npos) {
         data.erase(pos);
       }
-    } else if ((pos = data.find(prefix)) != string::npos) {
-      data = data.replace(pos, prefix.length(), ":");
+    } else if ((pos = data.find(BSPWM_STATUS_PREFIX)) != string::npos) {
+      data = data.replace(pos, prefix_len, ":");
     } else {
       return false;
     }
 
-    size_t workspace_n{0U};
-
     m_monitors.clear();
+
+    size_t workspace_n{0U};
 
     for (auto&& tag : string_util::split(data, ':')) {
       if (tag.empty()) {
