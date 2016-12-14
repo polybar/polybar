@@ -71,7 +71,6 @@ namespace modules {
     bool m_indexsort{false};
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
-    size_t m_wsname_maxlen{0};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };

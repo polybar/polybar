@@ -34,7 +34,8 @@ namespace modules {
     GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
     GET_CONFIG_VALUE(name(), m_strip_wsnumbers, "strip-wsnumbers");
-    GET_CONFIG_VALUE(name(), m_wsname_maxlen, "wsname-maxlen");
+
+    m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE});
@@ -141,11 +142,6 @@ namespace modules {
 
         // Trim leading and trailing whitespace
         ws_name = string_util::trim(ws_name, ' ');
-
-        // Cap at configured max length
-        if (m_wsname_maxlen > 0 && ws_name.length() > m_wsname_maxlen) {
-          ws_name.erase(m_wsname_maxlen);
-        }
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON);
         auto label = m_statelabels.find(ws_state)->second->clone();
