@@ -3,8 +3,8 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
-#include "events/signal_emitter.hpp"
 #include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
@@ -137,7 +137,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
     if (!fonts_loaded && !m_fontmanager->load("fixed")) {
       throw application_error("Unable to load fonts");
     }
-    m_fontmanager->allocate_color(m_bar.foreground, true);
+    m_fontmanager->allocate_color(m_bar.foreground);
   }
 }
 
@@ -171,7 +171,7 @@ void renderer::begin() {
   m_attributes = 0;
   m_actions.clear();
 
-  m_fontmanager->create_xftdraw(m_pixmap, m_colormap);
+  m_fontmanager->create_xftdraw(m_pixmap);
 }
 
 /**
@@ -368,8 +368,7 @@ void renderer::draw_character(uint16_t character) {
   auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
   if (font->xft != nullptr) {
-    auto color = m_fontmanager->xftcolor();
-    XftDrawString16(m_fontmanager->xftdraw(), &color, font->xft, x, y, &character, 1);
+    XftDrawString16(m_fontmanager->xftdraw(), m_fontmanager->xftcolor(), font->xft, x, y, &character, 1);
   } else {
     uint16_t ucs = ((character >> 8) | (character << 8));
     draw_util::xcb_poly_text_16_patched(m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
@@ -409,9 +408,8 @@ void renderer::draw_textstring(const char* text, size_t len) {
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
     if (font->xft != nullptr) {
-      auto color = m_fontmanager->xftcolor();
-      const FcChar16* drawchars = static_cast<const FcChar16*>(chars.data());
-      XftDrawString16(m_fontmanager->xftdraw(), &color, font->xft, x, y, drawchars, chars.size());
+      XftDrawString16(m_fontmanager->xftdraw(), m_fontmanager->xftcolor(), font->xft, x, y,
+          static_cast<uint16_t*>(chars.data()), chars.size());
     } else {
       for (unsigned short& i : chars) {
         i = ((i >> 8) | (i << 8));

@@ -13,29 +13,25 @@ POLYBAR_NS
 class connection;
 class logger;
 
-#define XFT_MAXCHARS (1 << 16)
-extern array<char, XFT_MAXCHARS> xft_widths;
-extern array<wchar_t, XFT_MAXCHARS> xft_chars;
-
 struct fonttype {
-  fonttype() {}
-  XftFont* xft;
-  xcb_font_t ptr;
-  int offset_y = 0;
-  int ascent = 0;
-  int descent = 0;
-  int height = 0;
-  int width = 0;
-  uint16_t char_max = 0;
-  uint16_t char_min = 0;
-  vector<xcb_charinfo_t> width_lut;
+  explicit fonttype() = default;
+  XftFont* xft{nullptr};
+  xcb_font_t ptr{XCB_NONE};
+  int offset_y{0};
+  int ascent{0};
+  int descent{0};
+  int height{0};
+  int width{0};
+  uint16_t char_max{0};
+  uint16_t char_min{0};
+  vector<xcb_charinfo_t> width_lut{};
 };
 
 struct fonttype_deleter {
   void operator()(fonttype* f);
 };
 
-using font_t = unique_ptr<fonttype, fonttype_deleter>;
+using fonttype_pointer = unique_ptr<fonttype, fonttype_deleter>;
 
 class font_manager {
  public:
@@ -49,22 +45,23 @@ class font_manager {
 
   void set_preferred_font(int8_t index);
 
-  font_t& match_char(uint16_t chr);
-  uint8_t char_width(font_t& font, uint16_t chr);
+  fonttype_pointer& match_char(uint16_t chr);
+  uint8_t char_width(fonttype_pointer& font, uint16_t chr);
 
-  XftColor xftcolor();
+  XftColor* xftcolor();
   XftDraw* xftdraw();
-  XftDraw* create_xftdraw(xcb_pixmap_t pm, xcb_colormap_t cm);
+
+  void create_xftdraw(xcb_pixmap_t pm);
   void destroy_xftdraw();
 
-  void allocate_color(uint32_t color, bool initial_alloc = false);
-  void allocate_color(XRenderColor color, bool initial_alloc = false);
+  void allocate_color(uint32_t color);
+  void allocate_color(XRenderColor color);
 
   void set_gcontext_font(xcb_gcontext_t gc, xcb_font_t font);
 
  protected:
-  bool open_xcb_font(font_t& fontptr, string fontname);
-  bool has_glyph(font_t& font, uint16_t chr);
+  bool open_xcb_font(fonttype_pointer& fontptr, string fontname);
+  bool has_glyph(fonttype_pointer& font, uint16_t chr);
 
  private:
   connection& m_connection;
@@ -74,10 +71,10 @@ class font_manager {
   Visual* m_visual{nullptr};
   Colormap m_colormap{};
 
-  std::map<uint8_t, font_t> m_fonts;
+  std::map<uint8_t, fonttype_pointer> m_fonts;
   int8_t m_fontindex{DEFAULT_FONT_INDEX};
 
-  XftColor m_xftcolor{};
+  XftColor* m_xftcolor{nullptr};
   XftDraw* m_xftdraw{nullptr};
 };
 
