@@ -204,7 +204,7 @@ class config {
    * Dereference value reference
    */
   template <typename T>
-  T dereference(const string& section, const string& key, const string& var, T fallback) const {
+  T dereference(const string& section, const string& key, const string& var, const T& fallback) const {
     if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
       return fallback;
     }
@@ -254,19 +254,28 @@ class config {
    *  ${env:key:fallback value}
    */
   template <typename T>
-  T dereference_env(string var, T fallback) const {
+  T dereference_env(string var, const T&) const {
     size_t pos;
+    string env_default{""};
 
     if ((pos = var.find(":")) != string::npos) {
-      fallback = convert<T>(var.substr(pos + 1));
+      env_default = var.substr(pos + 1);
       var.erase(pos);
     }
 
     if (env_util::has(var.c_str())) {
-      return convert<T>(env_util::get(var.c_str()));
-    } else {
-      return fallback;
+      string env_value{env_util::get(var.c_str())};
+      m_logger.info("Found matching environment variable ${" + var + "} with the value \"" + env_value + "\"");
+      return convert<T>(move(env_value));
     }
+
+    if (!env_default.empty()) {
+      m_logger.info("The environment variable ${" + var + "} is undefined or empty, using defined fallback value \"" + env_default + "\"");
+    } else {
+      m_logger.info("The environment variable ${" + var + "} is undefined or empty");
+    }
+
+    return convert<T>(move(env_default));
   }
 
   /**
@@ -275,7 +284,7 @@ class config {
    *  ${xrdb:key:fallback value}
    */
   template <typename T>
-  T dereference_xrdb(string var, T fallback) const {
+  T dereference_xrdb(string var, const T& fallback) const {
     size_t pos;
 
     if ((pos = var.find(":")) != string::npos) {

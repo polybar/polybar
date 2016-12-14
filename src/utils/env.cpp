@@ -1,5 +1,6 @@
 #include <thread>
 #include <utility>
+#include <cstring>
 
 #include "utils/env.hpp"
 
@@ -7,7 +8,8 @@ POLYBAR_NS
 
 namespace env_util {
   bool has(const char* var) {
-    return std::getenv(var) != nullptr;
+    const char* env{std::getenv(var)};
+    return env != nullptr && strlen(env) > 0;
   }
 
   string get(const char* var, string fallback) {
