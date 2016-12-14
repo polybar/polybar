@@ -209,10 +209,10 @@ namespace modules {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
           conn.send_command("workspace number " + workspace_num);
         }
-      } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-        scrolldir = m_revscroll ? "next" : "prev";
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
         scrolldir = m_revscroll ? "prev" : "next";
+      } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+        scrolldir = m_revscroll ? "next" : "prev";
       } else {
         return false;
       }

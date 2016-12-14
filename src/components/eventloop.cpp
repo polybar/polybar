@@ -124,7 +124,6 @@ bool eventloop::enqueue(event&& evt) {
     m_log.warn("Failed to enqueue event");
     return false;
   }
-
   return true;
 }
 
@@ -132,7 +131,7 @@ bool eventloop::enqueue(event&& evt) {
  * Enqueue input data
  */
 bool eventloop::enqueue(string&& input_data) {
-  if (m_inputlock.try_lock()) {
+  if (!m_inputlock.try_lock()) {
     return false;
   }
 
@@ -146,7 +145,8 @@ bool eventloop::enqueue(string&& input_data) {
     return false;
   }
 
-  m_inputdata = forward<string>(input_data);
+  m_inputdata = move(input_data);
+
   return enqueue(make_input_evt());
 }
 

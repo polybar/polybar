@@ -122,14 +122,14 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   chrono::milliseconds m_swallow_input{30ms};
 
   /**
+   * @brief Time of last handled input event
+   */
+  chrono::time_point<chrono::system_clock, chrono::milliseconds> m_lastinput;
+
+  /**
    * @brief Mutex used to guard input data
    */
   std::mutex m_inputlock;
-
-  /**
-   * @brief Time of last handled input event
-   */
-  chrono::time_point<chrono::system_clock, decltype(m_swallow_input)> m_lastinput;
 
   /**
    * @brief Input data
