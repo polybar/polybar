@@ -280,12 +280,20 @@ void bar::bootstrap_tray() {
   settings.width *= scale;
   settings.height_fill *= scale;
 
-  if (settings.align == alignment::RIGHT) {
-    settings.orig_x = m_opts.pos.x + m_opts.size.w - m_opts.borders.at(edge::RIGHT).size;
-  } else if (settings.align == alignment::LEFT) {
-    settings.orig_x = m_opts.pos.x + m_opts.borders.at(edge::LEFT).size;
-  } else if (settings.align == alignment::CENTER) {
-    settings.orig_x = m_opts.pos.x + m_opts.center.x - (settings.width / 2);
+  auto inner_area = m_opts.inner_area(true);
+
+  switch (settings.align) {
+    case alignment::NONE:
+      break;
+    case alignment::LEFT:
+      settings.orig_x = inner_area.x;
+      break;
+    case alignment::CENTER:
+      settings.orig_x = inner_area.x + inner_area.width / 2 - settings.width / 2;
+      break;
+    case alignment::RIGHT:
+      settings.orig_x = inner_area.x + inner_area.width;
+      break;
   }
 
   // Set user-defined background color

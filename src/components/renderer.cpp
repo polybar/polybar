@@ -210,27 +210,20 @@ void renderer::flush(bool clear) {
 
   // Calculate the area that was reserved so that we
   // can clear any previous content drawn at the same location
-  xcb_rectangle_t clear_area{0, 0, 0U, 0U};
+  xcb_rectangle_t clear_area{r.x, r.y, r.width, r.height};
 
   if (m_cleararea.size && m_cleararea.side == edge::RIGHT) {
-    clear_area.x = m_bar.size.w - m_cleararea.size - right.width;
-    clear_area.y = 0;
+    clear_area.x += r.width;
+    clear_area.y = top.height;
     clear_area.width = m_cleararea.size;
-    clear_area.height = m_bar.size.h;
   } else if (m_cleararea.size && m_cleararea.side == edge::LEFT) {
     clear_area.x = left.width;
     clear_area.y = top.height;
     clear_area.width = m_cleararea.size;
-    clear_area.height = m_rect.height;
   } else if (m_cleararea.size && m_cleararea.side == edge::TOP) {
-    clear_area.x = m_rect.x;
-    clear_area.y = m_rect.y;
-    clear_area.width = m_rect.width;
     clear_area.height = m_cleararea.size;
-  } else if (m_cleararea.size && m_cleararea.side == edge::TOP) {
-    clear_area.x = m_rect.x;
-    clear_area.y = m_rect.y + m_rect.height - m_cleararea.size;
-    clear_area.width = m_rect.width;
+  } else if (m_cleararea.size && m_cleararea.side == edge::BOTTOM) {
+    clear_area.y += r.height - m_cleararea.size;
     clear_area.height = m_cleararea.size;
   }
 
