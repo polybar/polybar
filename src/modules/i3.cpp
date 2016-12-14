@@ -31,6 +31,7 @@ namespace modules {
     // Load configuration values
     GET_CONFIG_VALUE(name(), m_click, "enable-click");
     GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
+    GET_CONFIG_VALUE(name(), m_revscroll, "reverse-scroll");
     GET_CONFIG_VALUE(name(), m_wrap, "wrapping-scroll");
     GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
@@ -193,37 +194,35 @@ namespace modules {
   }
 
   bool i3_module::handle_event(string cmd) {
+    if (cmd.find(EVENT_PREFIX) != 0) {
+      return false;
+    }
+
     try {
+      string scrolldir;
+      const i3_util::connection_t conn{};
+
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-        const i3_util::connection_t conn{};
         const string workspace_num{cmd.substr(strlen(EVENT_CLICK))};
 
         if (i3_util::focused_workspace(conn)->num != atoi(workspace_num.c_str())) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
           conn.send_command("workspace number " + workspace_num);
-        } else {
-          m_log.warn("%s: Ignoring workspace focus command (reason: workspace already focused)", name());
         }
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-        const i3_util::connection_t conn{};
-
-        if (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).back() != *i3_util::focused_workspace(conn)) {
-          m_log.info("%s: Sending workspace next command to ipc handler", name());
-          conn.send_command("workspace next_on_output");
-        } else {
-          m_log.warn("%s: Ignoring workspace next command (reason: `wrapping-scroll = false`)", name());
-        }
+        scrolldir = m_revscroll ? "next" : "prev";
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
-        const i3_util::connection_t conn{};
-
-        if (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).front() != *i3_util::focused_workspace(conn)) {
-          m_log.info("%s: Sending workspace prev command to ipc handler", name());
-          conn.send_command("workspace prev_on_output");
-        } else {
-          m_log.warn("%s: Ignoring workspace prev command (reason: `wrapping-scroll = false`)", name());
-        }
+        scrolldir = m_revscroll ? "prev" : "next";
       } else {
         return false;
+      }
+
+      if (scrolldir == "next" && (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).back() != *i3_util::focused_workspace(conn))) {
+        m_log.info("%s: Sending workspace next command to ipc handler", name());
+        i3_util::connection_t{}.send_command("workspace next_on_output");
+      } else if (scrolldir == "prev" && (m_wrap || *i3_util::workspaces(conn, m_bar.monitor->name).front() != *i3_util::focused_workspace(conn))) {
+        m_log.info("%s: Sending workspace prev command to ipc handler", name());
+        i3_util::connection_t{}.send_command("workspace prev_on_output");
       }
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());

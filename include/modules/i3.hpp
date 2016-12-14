@@ -67,6 +67,7 @@ namespace modules {
 
     bool m_click{true};
     bool m_scroll{true};
+    bool m_revscroll{true};
     bool m_wrap{true};
     bool m_indexsort{false};
     bool m_pinworkspaces{false};

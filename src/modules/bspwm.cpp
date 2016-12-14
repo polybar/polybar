@@ -53,6 +53,7 @@ namespace modules {
     GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
     GET_CONFIG_VALUE(name(), m_click, "enable-click");
     GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
+    GET_CONFIG_VALUE(name(), m_revscroll, "reverse-scroll");
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
@@ -430,12 +431,6 @@ namespace modules {
       }
     };
 
-    string modifier;
-
-    if (m_pinworkspaces) {
-      modifier = ".local";
-    }
-
     if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
       cmd.erase(0, strlen(EVENT_CLICK));
 
@@ -449,10 +444,27 @@ namespace modules {
       } else {
         m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
       }
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
-      send_command("desktop -f prev" + modifier, "Sending desktop prev command to ipc handler");
+
+      return true;
+    }
+
+    string modifier;
+    string scrolldir;
+
+    if (m_pinworkspaces) {
+      modifier = ".local";
+    }
+
+    if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+      scrolldir = m_revscroll ? "prev" : "next";
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-      send_command("desktop -f next" + modifier, "Sending desktop next command to ipc handler");
+      scrolldir = m_revscroll ? "next" : "prev";
+    }
+
+    if (!scrolldir.empty()) {
+      send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
+    } else {
+      return false;
     }
 
     return true;

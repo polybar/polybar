@@ -74,6 +74,7 @@ namespace modules {
 
     bool m_click{true};
     bool m_scroll{true};
+    bool m_revscroll{true};
     bool m_pinworkspaces{true};
     string_util::hash_type m_hash{0U};
 
