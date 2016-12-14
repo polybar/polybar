@@ -27,17 +27,22 @@ namespace process_util {
    * Execute command
    */
   void exec(char* cmd, char** args) {
-    execvp(cmd, args);
-    throw system_error("execvp() failed");
+    if (cmd != nullptr) {
+      execvp(cmd, args);
+      throw system_error("execvp() failed");
+    }
   }
 
   /**
    * Execute command using shell
    */
   void exec_sh(const char* cmd) {
-    static const char* shell = env_util::get("SHELL", "/bin/sh").c_str();
-    execlp(shell, shell, "-c", cmd, nullptr);
-    throw system_error("execvp() failed");
+    static const string shell{env_util::get("SHELL", "/bin/sh").c_str()};
+
+    if (cmd != nullptr) {
+      execlp(shell.c_str(), shell.c_str(), "-c", cmd, nullptr);
+      throw system_error("execvp() failed");
+    }
   }
 
   /**
