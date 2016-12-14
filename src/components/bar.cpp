@@ -61,26 +61,42 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get<string>(bs, "monitor", "");
+  auto monitor_name_fallback = m_conf.get<string>(bs, "monitor-fallback", "");
   auto monitor_strictmode = m_conf.get<bool>(bs, "monitor-strict", false);
   auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, monitor_strictmode);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
-  } else if (monitor_name.empty()) {
+  }
+
+  if (monitor_name.empty()) {
     monitor_name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", monitor_name);
   }
 
-  // Match against the defined monitor name
+  bool name_found{false};
+  bool fallback_found{monitor_name_fallback.empty()};
+  monitor_t fallback{};
+
   for (auto&& monitor : monitors) {
-    if (monitor->match(monitor_name, monitor_strictmode)) {
+    if (!name_found && (name_found = monitor->match(monitor_name, monitor_strictmode))) {
       m_opts.monitor = move(monitor);
+    } else if (!fallback_found && (fallback_found = monitor->match(monitor_name_fallback, monitor_strictmode))) {
+      fallback = move(monitor);
+    }
+
+    if (name_found && fallback_found) {
       break;
     }
   }
 
   if (!m_opts.monitor) {
-    throw application_error("Monitor \"" + monitor_name + "\" not found or disconnected");
+    if (fallback) {
+      m_opts.monitor = move(fallback);
+      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, monitor_name_fallback);
+    } else {
+      throw application_error("Monitor \"" + monitor_name + "\" not found or disconnected");
+    }
   }
 
   m_log.trace("bar: Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
