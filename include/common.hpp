@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef DEBUG
-#define BOOST_DI_CFG_DIAGNOSTICS_LEVEL 2
-#endif
-
 #include <memory>
 #include <string>
 

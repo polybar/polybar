@@ -67,8 +67,6 @@ void cliparser::usage() const {
 
 /**
  * Process input values
- *
- * This is done outside the constructor due to boost::di noexcept
  */
 void cliparser::process_input(const vector<string>& values) {
   for (size_t i = 0; i < values.size(); i++) {
