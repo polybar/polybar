@@ -705,14 +705,16 @@ void tray_manager::notify_clients() {
 /**
  * Send delayed notification to pending clients
  */
-void tray_manager::notify_clients_delayed(chrono::duration<double, std::milli> delay) {
-  if (m_delaythread.joinable()) {
+void tray_manager::notify_clients_delayed(chrono::seconds delay) {
+  if (!m_activated) {
+    return;
+  } else if (m_delaythread.joinable()) {
     m_delaythread.join();
   }
-  m_delaythread = thread([&] {
+  m_delaythread = thread([this](auto&& delay) {
     this_thread::sleep_for(delay);
     notify_clients();
-  });
+  }, move(delay));
 }
 
 /**

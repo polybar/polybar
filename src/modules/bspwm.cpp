@@ -144,14 +144,16 @@ namespace modules {
       m_subscriber = bspwm_util::make_subscriber();
     }
 
-    ssize_t bytes = 0;
-    m_subscriber->receive(1, bytes, MSG_PEEK);
-    return bytes > 0;
+    return m_subscriber->peek(1);
   }
 
   bool bspwm_module::update() {
-    ssize_t bytes = 0;
-    string data = m_subscriber->receive(BUFSIZ - 1, bytes, 0);
+    if (!m_subscriber) {
+      return false;
+    }
+
+    ssize_t bytes{0};
+    string data = m_subscriber->receive(BUFSIZ - 1, &bytes, 0);
 
     if (bytes == 0) {
       return false;
@@ -213,7 +215,7 @@ namespace modules {
       return false;
     }
 
-    int workspace_n = 0;
+    size_t workspace_n{0U};
 
     m_monitors.clear();
 
@@ -298,7 +300,7 @@ namespace modules {
             break;
           }
 
-          for (int i = 0; i < (int)value.length(); i++) {
+          for (size_t i = 0U; i < value.length(); i++) {
             switch (value[i]) {
               case 0:
                 break;
@@ -365,7 +367,7 @@ namespace modules {
 
   string bspwm_module::get_output() {
     string output;
-    for (m_index = 0; m_index < m_monitors.size(); m_index++) {
+    for (m_index = 0U; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
         m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
@@ -379,7 +381,7 @@ namespace modules {
       builder->node(m_monitors[m_index]->label);
       return true;
     } else if (tag == TAG_LABEL_STATE && !m_monitors[m_index]->workspaces.empty()) {
-      int workspace_n = 0;
+      size_t workspace_n{0U};
 
       if (m_scroll) {
         builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
@@ -447,9 +449,9 @@ namespace modules {
     if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
       cmd.erase(0, strlen(EVENT_CLICK));
 
-      size_t separator = string_util::find_nth(cmd, 0, "+", 1);
-      size_t monitor_n = std::atoi(cmd.substr(0, separator).c_str());
-      string workspace_n = cmd.substr(separator + 1);
+      size_t separator{string_util::find_nth(cmd, 0, "+", 1)};
+      size_t monitor_n{std::strtoul(cmd.substr(0, separator).c_str(), nullptr, 10)};
+      string workspace_n{cmd.substr(separator + 1)};
 
       if (monitor_n < m_monitors.size()) {
         send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
@@ -458,9 +460,9 @@ namespace modules {
         m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
       }
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
-      send_command("desktop -f next" + modifier, "Sending desktop next command to ipc handler");
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
       send_command("desktop -f prev" + modifier, "Sending desktop prev command to ipc handler");
+    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+      send_command("desktop -f next" + modifier, "Sending desktop next command to ipc handler");
     }
 
     return true;

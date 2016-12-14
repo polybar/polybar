@@ -96,7 +96,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void acquire_selection();
   void notify_clients();
-  void notify_clients_delayed(chrono::duration<double, std::milli> delay = 1s);
+  void notify_clients_delayed(chrono::seconds delay = 1s);
 
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
