@@ -17,6 +17,7 @@ using boost::none;
 
 #define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
 #define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
+#define DEPR_CONFIG_VALUE(section, var, old, name) var = m_conf.deprecated<decltype(var)>(section, old, name, var)
 
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);

@@ -119,7 +119,7 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   /**
    * @brief Time to throttle input events
    */
-  chrono::milliseconds m_swallow_input{0};
+  chrono::milliseconds m_swallow_input{30ms};
 
   /**
    * @brief Mutex used to guard input data

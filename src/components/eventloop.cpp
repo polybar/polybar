@@ -26,11 +26,9 @@ eventloop::make_type eventloop::make() {
  */
 eventloop::eventloop(signal_emitter& emitter, const logger& logger, const config& config)
     : m_sig(emitter), m_log(logger), m_conf(config) {
-  m_swallow_limit = m_conf.deprecated<size_t>("settings", "eventloop-swallow", "throttle-output", m_swallow_limit);
-  m_swallow_update = m_conf.deprecated<chrono::milliseconds>(
-      "settings", "eventloop-swallow-time", "throttle-output-for", m_swallow_update);
-  m_swallow_input =
-      m_conf.get<chrono::milliseconds>("settings", "throttle-input-for", m_swallow_update * m_swallow_limit);
+  GET_CONFIG_VALUE("settings", m_swallow_input, "throttle-input-for");
+  DEPR_CONFIG_VALUE("settings", m_swallow_limit, "eventloop-swallow", "throttle-output");
+  DEPR_CONFIG_VALUE("settings", m_swallow_update, "eventloop-swallow-time", "throttle-output-for");
   m_sig.attach(this);
 }
 
