@@ -66,21 +66,21 @@ tray_manager::~tray_manager() {
 void tray_manager::setup(const bar_settings& bar_opts) {
   auto conf = config::make();
   auto bs = conf.section();
-  auto tray_position = conf.get<string>(bs, "tray-position", "");
 
-  if (tray_position == "left") {
-    m_opts.align = alignment::LEFT;
-  } else if (tray_position == "right") {
-    m_opts.align = alignment::RIGHT;
-  } else if (tray_position == "center") {
-    m_opts.align = alignment::CENTER;
-  } else {
-    m_opts.align = alignment::NONE;
+  if (!conf.has(bs, "tray-position")) {
+    return m_log.info("Disabling tray manager (reason: missing `tray-position`)");
   }
 
-  if (m_opts.align == alignment::NONE) {
-    m_log.warn("Disabling tray manager (reason: position not set or invalid)");
-    return;
+  auto position = conf.get<string>(bs, "tray-position");
+
+  if (position == "left") {
+    m_opts.align = alignment::LEFT;
+  } else if (position == "right") {
+    m_opts.align = alignment::RIGHT;
+  } else if (position == "center") {
+    m_opts.align = alignment::CENTER;
+  } else {
+    return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   }
 
   m_opts.detached = conf.get<bool>(bs, "tray-detached", false);
