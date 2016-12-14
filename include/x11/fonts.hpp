@@ -38,7 +38,7 @@ class font_manager {
   using make_type = unique_ptr<font_manager>;
   static make_type make();
 
-  explicit font_manager(connection& conn, const logger& logger);
+  explicit font_manager(connection& conn, const logger& logger, shared_ptr<Display>&& dsp, shared_ptr<Visual>&& vis);
   ~font_manager();
 
   bool load(const string& name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
@@ -67,8 +67,8 @@ class font_manager {
   connection& m_connection;
   const logger& m_logger;
 
-  Display* m_display{nullptr};
-  Visual* m_visual{nullptr};
+  shared_ptr<Display> m_display{nullptr};
+  shared_ptr<Visual> m_visual{nullptr};
   Colormap m_colormap{};
 
   std::map<uint8_t, fonttype_pointer> m_fonts;

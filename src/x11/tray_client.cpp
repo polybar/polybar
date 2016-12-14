@@ -115,8 +115,8 @@ void tray_client::configure_notify(int16_t x, int16_t y) const {
   notify->height = m_height;
   notify->border_width = 0;
 
-  const char* data = reinterpret_cast<const char*>(notify.get());
-  m_connection.send_event_checked(false, m_window, XCB_EVENT_MASK_STRUCTURE_NOTIFY, data);
+  uint32_t mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+  m_connection.send_event_checked(false, m_window, mask, reinterpret_cast<const char*>(notify.get()));
 }
 
 POLYBAR_NS_END

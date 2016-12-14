@@ -13,21 +13,17 @@ POLYBAR_NS
  */
 xresource_manager::make_type xresource_manager::make() {
   return static_cast<xresource_manager::make_type>(
-      *factory_util::singleton<std::remove_reference_t<xresource_manager::make_type>>());
+      *factory_util::singleton<std::remove_reference_t<xresource_manager::make_type>>(xlib::get_display()));
 }
 
 /**
  * Construct manager instance
  */
-xresource_manager::xresource_manager() {
+xresource_manager::xresource_manager(shared_ptr<Display>&& dsp) : m_display(forward<decltype(dsp)>(dsp)) {
   XrmInitialize();
 
-  if ((m_display = xlib::get_display()) == nullptr) {
-    return;
-  } else if ((m_manager = XResourceManagerString(xlib::get_display())) == nullptr) {
-    return;
-  } else if ((m_db = XrmGetStringDatabase(m_manager)) == nullptr) {
-    return;
+  if ((m_manager = XResourceManagerString(m_display.get())) != nullptr) {
+    m_db = XrmGetStringDatabase(m_manager);
   }
 }
 
@@ -35,11 +31,11 @@ xresource_manager::xresource_manager() {
  * Deconstruct instance
  */
 xresource_manager::~xresource_manager() {
-  if (m_db != nullptr) {
-    XrmDestroyDatabase(m_db);
-  }
   if (m_manager != nullptr) {
     XFree(m_manager);
+  }
+  if (m_db != nullptr) {
+    XrmDestroyDatabase(m_db);
   }
 }
 

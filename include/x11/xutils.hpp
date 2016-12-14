@@ -13,7 +13,7 @@ class connection;
 class config;
 
 namespace xutils {
-  xcb_connection_t* get_connection();
+  shared_ptr<xcb_connection_t> get_connection();
   int get_connection_fd();
 
   void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest);

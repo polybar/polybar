@@ -13,7 +13,7 @@ POLYBAR_NS
  */
 connection::make_type connection::make() {
   return static_cast<connection::make_type>(*factory_util::singleton<std::remove_reference_t<connection::make_type>>(
-      xutils::get_connection(), xutils::get_connection_fd()));
+      xutils::get_connection().get(), xutils::get_connection_fd()));
 }
 
 /**

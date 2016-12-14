@@ -41,14 +41,14 @@ int main(int argc, char** argv) {
     // Connect to X server
     //==================================================
     XInitThreads();
-    xcb_connection_t* xcbconn{nullptr};
+    shared_ptr<xcb_connection_t> xcbconn{xutils::get_connection()};
 
-    if ((xcbconn = xutils::get_connection()) == nullptr) {
+    if (!xcbconn) {
       logger.err("A connection to X could not be established... ");
       throw exit_failure{};
     }
 
-    connection conn{xcbconn};
+    connection conn{xcbconn.get()};
     conn.preload_atoms();
     conn.query_extensions();
 

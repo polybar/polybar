@@ -21,12 +21,13 @@ array<wchar_t, XFT_MAXCHARS> g_xft_chars;
  * Create instance
  */
 font_manager::make_type font_manager::make() {
-  return factory_util::unique<font_manager>(connection::make(), logger::make());
+  return factory_util::unique<font_manager>(
+      connection::make(), logger::make(), xlib::get_display(), xlib::get_visual());
 }
 
 void fonttype_deleter::operator()(fonttype* f) {
   if (f->xft != nullptr) {
-    XftFontClose(xlib::get_display(), f->xft);
+    XftFontClose(xlib::get_display().get(), f->xft);
     free(f->xft);
   }
   if (f->ptr != XCB_NONE) {
@@ -35,22 +36,22 @@ void fonttype_deleter::operator()(fonttype* f) {
   delete f;
 }
 
-font_manager::font_manager(connection& conn, const logger& logger) : m_connection(conn), m_logger(logger) {
-  if ((m_display = xlib::get_display()) == nullptr) {
-    throw application_error("Failed to get X display");
-  }
-  m_visual = xlib::get_visual(conn.default_screen());
+font_manager::font_manager(connection& conn, const logger& logger, shared_ptr<Display>&& dsp, shared_ptr<Visual>&& vis)
+    : m_connection(conn)
+    , m_logger(logger)
+    , m_display(forward<decltype(dsp)>(dsp))
+    , m_visual(forward<decltype(vis)>(vis)) {
   m_colormap = xlib::create_colormap(conn.default_screen());
 }
 
 font_manager::~font_manager() {
-  if (m_display != nullptr) {
+  if (m_display) {
     if (m_xftcolor != nullptr) {
-      XftColorFree(m_display, m_visual, m_colormap, m_xftcolor);
+      XftColorFree(m_display.get(), m_visual.get(), m_colormap, m_xftcolor);
       free(m_xftcolor);
     }
     destroy_xftdraw();
-    XFreeColormap(m_display, m_colormap);
+    XFreeColormap(m_display.get(), m_colormap);
   }
 }
 
@@ -75,7 +76,8 @@ bool font_manager::load(const string& name, int8_t fontindex, int8_t offset_y) {
     f->ptr = XCB_NONE;
   }
 
-  if (f->ptr == XCB_NONE && (f->xft = XftFontOpenName(m_display, m_connection.default_screen(), name.c_str())) != nullptr) {
+  if (f->ptr == XCB_NONE &&
+      (f->xft = XftFontOpenName(m_display.get(), m_connection.default_screen(), name.c_str())) != nullptr) {
     f->ascent = f->xft->ascent;
     f->descent = f->xft->descent;
     f->height = f->ascent + f->descent;
@@ -163,10 +165,10 @@ uint8_t font_manager::char_width(fonttype_pointer& font, uint16_t chr) {
 
   if (!g_xft_chars[index]) {
     XGlyphInfo gi;
-    FT_UInt glyph = XftCharIndex(m_display, font->xft, static_cast<FcChar32>(chr));
-    XftFontLoadGlyphs(m_display, font->xft, FcFalse, &glyph, 1);
-    XftGlyphExtents(m_display, font->xft, &glyph, 1, &gi);
-    XftFontUnloadGlyphs(m_display, font->xft, &glyph, 1);
+    FT_UInt glyph = XftCharIndex(m_display.get(), font->xft, static_cast<FcChar32>(chr));
+    XftFontLoadGlyphs(m_display.get(), font->xft, FcFalse, &glyph, 1);
+    XftGlyphExtents(m_display.get(), font->xft, &glyph, 1, &gi);
+    XftFontUnloadGlyphs(m_display.get(), font->xft, &glyph, 1);
     g_xft_chars[index] = chr;
     g_xft_widths[index] = gi.xOff;
     return gi.xOff;
@@ -187,7 +189,7 @@ XftDraw* font_manager::xftdraw() {
 
 void font_manager::create_xftdraw(xcb_pixmap_t pm) {
   destroy_xftdraw();
-  m_xftdraw = XftDrawCreate(m_display, pm, m_visual, m_colormap);
+  m_xftdraw = XftDrawCreate(m_display.get(), pm, m_visual.get(), m_colormap);
 }
 
 void font_manager::destroy_xftdraw() {
@@ -208,13 +210,13 @@ void font_manager::allocate_color(uint32_t color) {
 
 void font_manager::allocate_color(XRenderColor color) {
   if (m_xftcolor != nullptr) {
-    XftColorFree(m_display, m_visual, m_colormap, m_xftcolor);
+    XftColorFree(m_display.get(), m_visual.get(), m_colormap, m_xftcolor);
     free(m_xftcolor);
   }
 
   m_xftcolor = static_cast<XftColor*>(malloc(sizeof(XftColor)));
 
-  if (!XftColorAllocValue(m_display, m_visual, m_colormap, &color, m_xftcolor)) {
+  if (!XftColorAllocValue(m_display.get(), m_visual.get(), m_colormap, &color, m_xftcolor)) {
     m_logger.err("Failed to allocate color");
   }
 }
@@ -258,7 +260,7 @@ bool font_manager::open_xcb_font(fonttype_pointer& fontptr, string fontname) {
 
 bool font_manager::has_glyph(fonttype_pointer& font, uint16_t chr) {
   if (font->xft != nullptr) {
-    return static_cast<bool>(XftCharExists(m_display, font->xft, (FcChar32)chr));
+    return static_cast<bool>(XftCharExists(m_display.get(), font->xft, (FcChar32)chr));
   } else {
     if (chr < font->char_min || chr > font->char_max) {
       return false;

@@ -13,22 +13,22 @@ namespace xutils {
   shared_ptr<int> g_connection_fd;
   shared_ptr<xcb_connection_t> g_connection_ptr;
 
-  xcb_connection_t* get_connection() {
+  shared_ptr<xcb_connection_t> get_connection() {
     if (!g_connection_ptr) {
-      Display* dsp{xlib::get_display()};
+      shared_ptr<Display> dsp{xlib::get_display()};
 
-      if (dsp != nullptr) {
-        XSetEventQueueOwner(dsp, XCBOwnsEventQueue);
-        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp), bind(xcb_disconnect, placeholders::_1));
+      if (dsp) {
+        XSetEventQueueOwner(dsp.get(), XCBOwnsEventQueue);
+        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), bind(xcb_disconnect, placeholders::_1));
       }
     }
 
-    return g_connection_ptr.get();
+    return g_connection_ptr;
   }
 
   int get_connection_fd() {
     if (!g_connection_fd) {
-      auto fd = xcb_get_file_descriptor(get_connection());
+      auto fd = xcb_get_file_descriptor(get_connection().get());
       g_connection_fd = shared_ptr<int>(new int{fd}, factory_util::fd_deleter{});
     }
 

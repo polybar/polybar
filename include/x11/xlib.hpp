@@ -7,34 +7,24 @@
 POLYBAR_NS
 
 namespace xlib {
-  extern Display* g_display;
-  extern XVisualInfo g_visual_info;
+  shared_ptr<Display> get_display();
+  shared_ptr<Visual> get_visual(int screen = 0);
 
-  extern Display* get_display();
-  extern Visual* get_visual(int screen = 0);
-  extern Colormap create_colormap(int screen = 0);
+  Colormap create_colormap(int screen = 0);
 
   /**
    * RAII wrapper for Xlib display locking
    */
-  class xlib_lock {
+  class display_lock {
    public:
-    explicit xlib_lock(Display* display) {
-      XLockDisplay(display);
-      m_display = display;
-    }
-
-    ~xlib_lock() {
-      XUnlockDisplay(m_display);
-    }
+    explicit display_lock(shared_ptr<Display>&& display);
+    ~display_lock();
 
    protected:
-    Display* m_display;
+    shared_ptr<Display> m_display;
   };
 
-  inline auto make_display_lock() {
-    return make_unique<xlib_lock>(get_display());
-  }
+  inline auto make_display_lock();
 }
 
 POLYBAR_NS_END
