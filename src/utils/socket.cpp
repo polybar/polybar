@@ -72,16 +72,25 @@ namespace socket_util {
   /**
    * Receive data
    */
-  string unix_connection::receive(const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags) {
+  string unix_connection::receive(const ssize_t receive_bytes, ssize_t* bytes_received, int flags) {
     char buffer[BUFSIZ];
 
-    bytes_received_addr = ::recv(m_fd, buffer, receive_bytes, flags);
-    if (bytes_received_addr == -1) {
+    if ((*bytes_received = ::recv(m_fd, buffer, receive_bytes, flags)) == -1) {
       throw system_error("Failed to receive data");
+    } else {
+      buffer[*bytes_received] = 0;
     }
 
-    buffer[bytes_received_addr] = 0;
     return string{buffer};
+  }
+
+  /**
+   * Peek at the specified number of bytes
+   */
+  bool unix_connection::peek(const size_t peek_bytes) {
+    ssize_t bytes_seen{0};
+    receive(peek_bytes, &bytes_seen, MSG_PEEK);
+    return bytes_seen > 0;
   }
 
   /**

@@ -19,7 +19,9 @@ namespace socket_util {
     ssize_t send(const void* data, size_t len, int flags = 0);
     ssize_t send(const string& data, int flags = 0);
 
-    string receive(const ssize_t receive_bytes, ssize_t& bytes_received_addr, int flags = 0);
+    string receive(const ssize_t receive_bytes, ssize_t* bytes_received, int flags = 0);
+
+    bool peek(const size_t peek_bytes);
     bool poll(short int events = POLLIN, int timeout_ms = -1);
 
    protected:
