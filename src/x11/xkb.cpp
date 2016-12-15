@@ -99,7 +99,7 @@ namespace xkb_util {
       return results;
     }
 
-    xcb_xkb_get_names_value_list_t values;
+    xcb_xkb_get_names_value_list_t values{};
     void* buffer = xcb_xkb_get_names_value_list(reply);
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
@@ -140,7 +140,7 @@ namespace xkb_util {
       return results;
     }
 
-    xcb_xkb_get_names_value_list_t values;
+    xcb_xkb_get_names_value_list_t values{};
     void* buffer = xcb_xkb_get_names_value_list(reply);
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);

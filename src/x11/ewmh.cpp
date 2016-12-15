@@ -22,7 +22,7 @@ namespace ewmh_util {
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen) {
     bool supports{false};
 
-    xcb_ewmh_get_atoms_reply_t reply;
+    xcb_ewmh_get_atoms_reply_t reply{};
     reply.atoms = nullptr;
 
     if (!xcb_ewmh_get_supported_reply(ewmh, xcb_ewmh_get_supported(ewmh, screen), &reply, nullptr)) {
@@ -44,7 +44,7 @@ namespace ewmh_util {
   }
 
   string get_wm_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
-    xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
+    xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_name_reply(conn, xcb_ewmh_get_wm_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
     }
@@ -52,7 +52,7 @@ namespace ewmh_util {
   }
 
   string get_visible_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
-    xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
+    xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
     }
@@ -60,7 +60,7 @@ namespace ewmh_util {
   }
 
   string get_icon_name(xcb_ewmh_connection_t* conn, xcb_window_t win) {
-    xcb_ewmh_get_utf8_strings_reply_t utf8_reply;
+    xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
     }
@@ -86,7 +86,7 @@ namespace ewmh_util {
 
   vector<position> get_desktop_viewports(xcb_ewmh_connection_t* conn, int screen) {
     vector<position> viewports;
-    xcb_ewmh_get_desktop_viewport_reply_t reply;
+    xcb_ewmh_get_desktop_viewport_reply_t reply{};
 
     if (!xcb_ewmh_get_desktop_viewport_reply(conn, xcb_ewmh_get_desktop_viewport(conn, screen), &reply, nullptr)) {
       return viewports;
@@ -102,7 +102,7 @@ namespace ewmh_util {
 
   vector<string> get_desktop_names(xcb_ewmh_connection_t* conn, int screen) {
     vector<string> names;
-    xcb_ewmh_get_utf8_strings_reply_t reply;
+    xcb_ewmh_get_utf8_strings_reply_t reply{};
 
     if (!xcb_ewmh_get_desktop_names_reply(conn, xcb_ewmh_get_desktop_names(conn, screen), &reply, nullptr)) {
       return names;

@@ -128,7 +128,8 @@ namespace drawtypes {
 
     string text;
 
-    struct side_values padding, margin;
+    struct side_values padding {
+    }, margin{};
 
     if (required) {
       text = conf.get<string>(section, name);

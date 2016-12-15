@@ -246,7 +246,7 @@ namespace string_util {
    * @endcode
    */
   string from_stream(const std::basic_ostream<char>& os) {
-    return static_cast<const stringstream&>(os).str();
+    return dynamic_cast<const stringstream&>(os).str();
   }
 
   /**

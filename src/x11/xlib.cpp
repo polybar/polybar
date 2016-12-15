@@ -17,7 +17,7 @@ namespace xlib {
 
   shared_ptr<Visual> get_visual(int screen) {
     if (!g_visual_ptr) {
-      XVisualInfo info;
+      XVisualInfo info{};
       if (XMatchVisualInfo(get_display().get(), screen, 32, TrueColor, &info)) {
         g_visual_ptr = shared_ptr<Visual>(info.visual, [=](Visual* v) { XFree(v); });
       }

@@ -94,7 +94,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
       uint32_t mask{0};
       uint32_t value_list[32]{0};
 
-      xcb_params_gc_t params;
+      xcb_params_gc_t params{};
       XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i]);
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
       xutils::pack_values(mask, &params, value_list);

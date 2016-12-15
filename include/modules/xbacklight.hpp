@@ -48,7 +48,7 @@ namespace modules {
 
     connection& m_connection;
     monitor_t m_output;
-    xcb_window_t m_proxy;
+    xcb_window_t m_proxy{};
 
     ramp_t m_ramp;
     label_t m_label;

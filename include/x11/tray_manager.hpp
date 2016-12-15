@@ -135,11 +135,11 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   const logger& m_log;
   vector<shared_ptr<tray_client>> m_clients;
 
-  tray_settings m_opts;
+  tray_settings m_opts{};
 
   xcb_gcontext_t m_gc{0};
   xcb_pixmap_t m_pixmap{0};
-  graphics_util::root_pixmap m_rootpixmap;
+  graphics_util::root_pixmap m_rootpixmap{};
   uint16_t m_prevwidth{0};
   uint16_t m_prevheight{0};
 
@@ -156,7 +156,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   bool m_restacked{false};
 
-  std::mutex m_mtx;
+  std::mutex m_mtx{};
 
   chrono::time_point<chrono::system_clock, chrono::milliseconds> m_drawtime;
 

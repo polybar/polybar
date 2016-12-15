@@ -50,7 +50,7 @@ window window::reconfigure_geom(uint16_t w, uint16_t h, int16_t x, int16_t y) {
   uint32_t mask{0};
   uint32_t values[7]{0};
 
-  xcb_params_configure_window_t params;
+  xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, width, w);
   XCB_AUX_ADD_PARAM(&mask, &params, height, h);
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
@@ -69,7 +69,7 @@ window window::reconfigure_pos(int16_t x, int16_t y) {
   uint32_t mask{0};
   uint32_t values[2]{0};
 
-  xcb_params_configure_window_t params;
+  xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
   XCB_AUX_ADD_PARAM(&mask, &params, y, y);
 

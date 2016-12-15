@@ -57,7 +57,7 @@ namespace modules {
   bool fs_module::update() {
     m_mounts.clear();
 
-    struct statvfs buffer;
+    struct statvfs buffer {};
     struct mntent* mnt = nullptr;
 
     for (auto&& mountpoint : m_mountpoints) {

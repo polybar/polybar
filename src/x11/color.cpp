@@ -35,7 +35,7 @@ string color::source() const {
 }
 
 color::operator XRenderColor() const {
-  XRenderColor x;
+  XRenderColor x{};
   x.red = color_util::red_channel<uint16_t>(m_color);
   x.green = color_util::green_channel<uint16_t>(m_color);
   x.blue = color_util::blue_channel<uint16_t>(m_color);

@@ -108,7 +108,7 @@ namespace process_util {
   }
 
   void unblock_signal(int sig) {
-    sigset_t sigmask;
+    sigset_t sigmask{};
     sigemptyset(&sigmask);
     sigaddset(&sigmask, sig);
     if (pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr) == -1) {

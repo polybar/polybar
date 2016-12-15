@@ -60,7 +60,7 @@ namespace graphics_util {
    */
   bool create_gc(connection& conn, xcb_drawable_t drawable, xcb_gcontext_t* gc) {
     try {
-      xcb_params_gc_t params;
+      xcb_params_gc_t params{};
 
       uint32_t mask = 0;
       uint32_t values[32];

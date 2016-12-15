@@ -122,7 +122,7 @@ namespace modules {
     auto names = ewmh_util::get_desktop_names(m_ewmh.get());
     vector<position> viewports;
     size_t num{0};
-    position pos;
+    position pos{};
 
     if (m_monitorsupport) {
       viewports = ewmh_util::get_desktop_viewports(m_ewmh.get());

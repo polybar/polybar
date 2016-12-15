@@ -37,8 +37,8 @@ namespace draw_util {
     };
     struct iovec xcb_parts[7];
     uint8_t xcb_lendelta[2];
-    xcb_void_cookie_t xcb_ret;
-    xcb_poly_text_8_request_t xcb_out;
+    xcb_void_cookie_t xcb_ret{};
+    xcb_poly_text_8_request_t xcb_out{};
     xcb_out.pad0 = 0;
     xcb_out.drawable = d;
     xcb_out.gc = gc;

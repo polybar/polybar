@@ -154,8 +154,8 @@ namespace net {
    * interface is a TUN/TAP device
    */
   void network::check_tuntap() {
-    struct ethtool_drvinfo driver;
-    struct ifreq request;
+    struct ethtool_drvinfo driver {};
+    struct ifreq request {};
 
     driver.cmd = ETHTOOL_GDRVINFO;
 
@@ -219,8 +219,8 @@ namespace net {
       return false;
     }
 
-    struct ifreq request;
-    struct ethtool_cmd data;
+    struct ifreq request {};
+    struct ethtool_cmd data {};
 
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
@@ -244,8 +244,8 @@ namespace net {
       return false;
     }
 
-    struct ethtool_value data;
-    struct ifreq request;
+    struct ethtool_value data {};
+    struct ifreq request {};
 
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
@@ -285,7 +285,7 @@ namespace net {
       return false;
     }
 
-    struct iwreq req;
+    struct iwreq req {};
 
     if (iw_get_ext(socket_fd, m_interface.c_str(), SIOCGIWMODE, &req) == -1) {
       return false;
@@ -341,7 +341,7 @@ namespace net {
   void wireless_network::query_essid(const int& socket_fd) {
     char essid[IW_ESSID_MAX_SIZE + 1];
 
-    struct iwreq req;
+    struct iwreq req {};
     req.u.essid.pointer = &essid;
     req.u.essid.length = sizeof(essid);
     req.u.essid.flags = 0;
@@ -357,8 +357,8 @@ namespace net {
    * Query for device driver quality values
    */
   void wireless_network::query_quality(const int& socket_fd) {
-    iwrange range;
-    iwstats stats;
+    iwrange range{};
+    iwstats stats{};
 
     // Fill range
     if (iw_get_range_info(socket_fd, m_interface.c_str(), &range) == -1) {

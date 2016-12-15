@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
     //==================================================
     // Block all signals by default
     //==================================================
-    sigset_t blockmask;
+    sigset_t blockmask{};
     sigfillset(&blockmask);
 
     if (pthread_sigmask(SIG_BLOCK, &blockmask, nullptr) == -1) {

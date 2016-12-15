@@ -18,7 +18,7 @@ namespace socket_util {
    * Constructor: establishing socket connection
    */
   unix_connection::unix_connection(string&& path) : m_socketpath(path) {
-    struct sockaddr_un socket_addr;
+    struct sockaddr_un socket_addr {};
     socket_addr.sun_family = AF_UNIX;
 
     if ((m_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {

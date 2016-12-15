@@ -59,7 +59,7 @@ void eventloop::start() {
   dispatch_modules();
 
   while (m_running) {
-    event evt, next;
+    event evt{}, next{};
 
     m_queue.wait_dequeue(evt);
 

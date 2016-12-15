@@ -83,7 +83,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   stateflag m_reload{false};
   stateflag m_waiting{false};
 
-  sigset_t m_waitmask;
+  sigset_t m_waitmask{};
   vector<thread> m_threads;
 
   watch_t m_confwatch;

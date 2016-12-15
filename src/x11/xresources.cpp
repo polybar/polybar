@@ -80,7 +80,7 @@ string xresource_manager::load_value(const string& key, const string& res_type, 
     return "";
   }
   char* type = nullptr;
-  XrmValue ret;
+  XrmValue ret{};
   XrmGetResource(m_db, key.c_str(), res_type.c_str(), &type, &ret);
 
   if (ret.addr != nullptr && !std::strncmp(res_type.c_str(), type, n)) {

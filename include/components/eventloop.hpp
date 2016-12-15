@@ -105,7 +105,7 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   /**
    * @brief Flag to indicate current run state
    */
-  stateflag m_running;
+  stateflag m_running{};
 
   /**
    * @brief Time to wait for subsequent events
@@ -130,7 +130,7 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   /**
    * @brief Mutex used to guard input data
    */
-  std::mutex m_inputlock;
+  std::mutex m_inputlock{};
 
   /**
    * @brief Input data

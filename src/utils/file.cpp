@@ -38,7 +38,7 @@ namespace file_util {
    * Checks if the given file exist
    */
   bool exists(const string& filename) {
-    struct stat buffer;
+    struct stat buffer {};
     return stat(filename.c_str(), &buffer) == 0;
   }
 
@@ -83,7 +83,7 @@ namespace file_util {
   bool is_fifo(string filename) {
     auto fileptr = factory_util::unique<file_ptr>(filename);
     int fd = fileno((*fileptr)());
-    struct stat statbuf;
+    struct stat statbuf {};
     fstat(fd, &statbuf);
     return S_ISFIFO(statbuf.st_mode);
   }

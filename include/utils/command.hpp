@@ -66,11 +66,11 @@ namespace command_util {
 
     string m_cmd;
 
-    int m_stdout[2];
-    int m_stdin[2];
+    int m_stdout[2]{};
+    int m_stdin[2]{};
 
-    pid_t m_forkpid;
-    int m_forkstatus;
+    pid_t m_forkpid{};
+    int m_forkstatus{};
 
     concurrency_util::spin_lock m_pipelock;
   };

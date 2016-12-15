@@ -88,7 +88,7 @@ void tray_client::ensure_state() const {
 void tray_client::reconfigure(int16_t x, int16_t y) const {
   uint32_t configure_mask = 0;
   uint32_t configure_values[7];
-  xcb_params_configure_window_t configure_params;
+  xcb_params_configure_window_t configure_params{};
 
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_width);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, height, m_height);

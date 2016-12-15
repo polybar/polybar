@@ -360,7 +360,7 @@ void tray_manager::reconfigure_window() {
 
     uint32_t mask = 0;
     uint32_t values[7];
-    xcb_params_configure_window_t params;
+    xcb_params_configure_window_t params{};
 
     XCB_AUX_ADD_PARAM(&mask, &params, width, width);
     XCB_AUX_ADD_PARAM(&mask, &params, x, x);
@@ -610,7 +610,7 @@ void tray_manager::restack_window() {
 
     uint32_t mask = 0;
     uint32_t values[7];
-    xcb_params_configure_window_t params;
+    xcb_params_configure_window_t params{};
 
     XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.sibling);
     XCB_AUX_ADD_PARAM(&mask, &params, stack_mode, XCB_STACK_MODE_ABOVE);

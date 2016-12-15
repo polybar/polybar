@@ -16,7 +16,7 @@ namespace bspwm_util {
     auto children = conn.query_tree(conn.screen()->root).children();
 
     for (auto it = children.begin(); it != children.end(); it++) {
-      xcb_icccm_get_wm_class_reply_t reply;
+      xcb_icccm_get_wm_class_reply_t reply{};
       reply.class_name = reply.instance_name = nullptr;
 
       if (xcb_icccm_get_wm_class_reply(conn, xcb_icccm_get_wm_class(conn, *it), &reply, nullptr)) {
@@ -76,7 +76,7 @@ namespace bspwm_util {
       return env_path;
     }
 
-    struct sockaddr_un sa;
+    struct sockaddr_un sa {};
     char* host = nullptr;
     int dsp = 0;
     int scr = 0;
