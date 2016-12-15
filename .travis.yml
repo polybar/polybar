@@ -55,15 +55,12 @@ install:
   - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_cmake.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_libcpp.sh
-  - echo ${CXXFLAGS}
 
 before_script:
-  - echo ${CXXFLAGS}
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/configure.sh
 
 script:
-  - echo ${CXXFLAGS}
   - source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
 
