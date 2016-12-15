@@ -281,7 +281,6 @@ void tray_manager::deactivate(bool clear_selection) {
   m_opts.configured_slots = 0;
   m_acquired_selection = false;
   m_mapped = false;
-  m_restacked = false;
 
   m_connection.flush();
 
@@ -601,7 +600,7 @@ void tray_manager::create_bg(bool realloc) {
  * Put tray window above the defined sibling in the window stack
  */
 void tray_manager::restack_window() {
-  if (!m_opts.sibling) {
+  if (m_opts.sibling == XCB_NONE) {
     return;
   }
 
@@ -617,7 +616,6 @@ void tray_manager::restack_window() {
 
     xutils::pack_values(mask, &params, values);
     m_connection.configure_window_checked(m_tray, mask, values);
-    m_restacked = true;
   } catch (const exception& err) {
     auto id = m_connection.id(m_opts.sibling);
     m_log.trace("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
@@ -1128,10 +1126,12 @@ bool tray_manager::on(const visibility_change& evt) {
   bool visible{*evt()};
   size_t clients{mapped_clients()};
 
-  m_log.trace("tray: visibility_change %d", visible);
+  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
+      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
+
   m_hidden = !visible;
 
-  if (!m_activated || m_restacked) {
+  if (!m_activated) {
     return false;
   } else if (!m_hidden && !m_mapped && clients) {
     m_connection.map_window(m_tray);

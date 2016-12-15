@@ -154,8 +154,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   thread m_delaythread;
 
-  bool m_restacked{false};
-
   std::mutex m_mtx{};
 
   chrono::time_point<chrono::system_clock, chrono::milliseconds> m_drawtime;
