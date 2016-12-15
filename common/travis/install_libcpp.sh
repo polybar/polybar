@@ -1,5 +1,5 @@
-#!/bin/sh
-if [ "${CXX}" = "clang++" ]; then
+#!/bin/bash
+if [ "${CXX:0:7}" = "clang++" ]; then
   if [ -z "$(ls -A "${LLVM_ROOT}/install/include" 2>/dev/null)" ]; then
     mkdir -p "${LLVM_ROOT}" "${LLVM_ROOT}/build" "${LLVM_ROOT}/projects/libcxx" "${LLVM_ROOT}/projects/libcxxabi"
 

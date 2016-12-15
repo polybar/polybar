@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 mkdir -p "${TRAVIS_BUILD_DIR}/build"
 cd "${TRAVIS_BUILD_DIR}/build" || false
 cmake \

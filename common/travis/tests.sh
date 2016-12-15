@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ "${BUILD_TESTS:-OFF}" = "ON" ]; then
   for test in tests/unit_test.*; do
     [ -x "$test" ] || continue

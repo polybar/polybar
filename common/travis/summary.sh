@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 echo "${CXX} --version"
 eval "${CXX} --version"
 
