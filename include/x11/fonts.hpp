@@ -55,6 +55,8 @@ class font_manager {
   font_manager(const font_manager& o) = delete;
   font_manager& operator=(const font_manager& o) = delete;
 
+  void set_visual(shared_ptr<Visual>&& v);
+
   void cleanup();
   bool load(const string& name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
   void set_preferred_font(int8_t index);

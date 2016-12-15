@@ -56,6 +56,10 @@ font_manager::~font_manager() {
   }
 }
 
+void font_manager::set_visual(shared_ptr<Visual>&& v) {
+  m_visual = forward<decltype(v)>(v);
+}
+
 void font_manager::cleanup() {
   if (m_xftdraw != nullptr) {
     XftDrawDestroy(m_xftdraw);

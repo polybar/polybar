@@ -50,6 +50,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
 
     if ((m_visual = m_connection.visual_type(m_connection.screen(), 24)) == nullptr) {
       m_log.err("No 24-bit TrueColor visual found, aborting...");
+      throw application_error("No matching TrueColor visual found...");
     }
 
     if (m_visual == nullptr) {
@@ -57,6 +58,8 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
     }
 
     m_depth = 24;
+
+    m_fontmanager->set_visual(xlib::get_visual(m_connection.default_screen(), m_depth));
   }
 
   m_log.trace("renderer: Allocate colormap");

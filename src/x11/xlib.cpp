@@ -15,10 +15,10 @@ namespace xlib {
     return g_display_ptr;
   }
 
-  shared_ptr<Visual> get_visual(int screen) {
+  shared_ptr<Visual> get_visual(int screen, uint8_t depth) {
     if (!g_visual_ptr) {
       XVisualInfo info{};
-      if (XMatchVisualInfo(get_display().get(), screen, 32, TrueColor, &info)) {
+      if (XMatchVisualInfo(get_display().get(), screen, depth, TrueColor, &info)) {
         g_visual_ptr = shared_ptr<Visual>(info.visual, [=](Visual* v) { XFree(v); });
       }
     }

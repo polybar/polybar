@@ -8,7 +8,7 @@ POLYBAR_NS
 
 namespace xlib {
   shared_ptr<Display> get_display();
-  shared_ptr<Visual> get_visual(int screen = 0);
+  shared_ptr<Visual> get_visual(int screen = 0, uint8_t depth = 32);
 
   Colormap create_colormap(int screen = 0);
 
