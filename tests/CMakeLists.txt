@@ -21,8 +21,7 @@ unit_test("utils/math")
 unit_test("utils/memory")
 unit_test("utils/string")
 unit_test("components/command_line")
-unit_test("components/di")
-unit_test("x11/color")
+#unit_test("x11/color")
 
 # XXX: Requires mocked xcb connection
 #unit_test("x11/connection")
