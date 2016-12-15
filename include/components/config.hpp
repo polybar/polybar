@@ -67,8 +67,8 @@ class config {
   template <typename T>
   T get(const string& section, const string& key, const T& default_value) const {
     try {
-      T result{get<T>(section, key)};
       string string_value{get<string>(section, key)};
+      T result{convert<T>(string{string_value})};
       return dereference<T>(move(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
       return default_value;
@@ -93,7 +93,7 @@ class config {
     while (true) {
       try {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
-        T value{get<T>(section, key + "-" + to_string(results.size()))};
+        T value{convert<T>(string{string_value})};
 
         if (!string_value.empty()) {
           results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
@@ -123,7 +123,7 @@ class config {
     while (true) {
       try {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
-        T value{get<T>(section, key + "-" + to_string(results.size()))};
+        T value{convert<T>(string{string_value})};
 
         if (!string_value.empty()) {
           results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
@@ -220,8 +220,9 @@ class config {
     section = string_util::replace(section, "self", current_section, 0, 4);
 
     try {
-      T result{get<T>(section, key)};
-      return dereference<T>(string(section), move(key), get<string>(section, key), move(result));
+      string string_value{get<string>(section, key)};
+      T result{convert<T>(string{string_value})};
+      return dereference<T>(string(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
       throw value_error("Unexisting reference defined [" + section + "." + key + "]");
     }
