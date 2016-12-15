@@ -109,13 +109,12 @@ void config::parse_file() {
     }
 
     string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos)), ' '))};
-    string value{""};
+    string value;
 
     auto it = m_sections[section].find(key);
     if (it != m_sections[section].end()) {
       throw key_error("Duplicate key name \"" + key + "\" defined on line " + to_string(lineno));
     }
-
 
     if (equal_pos + 1 < line.size()) {
       value = string_util::trim(forward<string>(string_util::trim(line.substr(equal_pos + 1), ' ')), '"');

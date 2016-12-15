@@ -9,6 +9,11 @@ POLYBAR_NS
 
 namespace inotify_util {
   /**
+   * Construct instance
+   */
+  inotify_watch::inotify_watch(string path) : m_path(move(path)) {}
+
+  /**
    * Destructor
    */
   inotify_watch::~inotify_watch() noexcept {
@@ -111,7 +116,7 @@ namespace inotify_util {
   }
 
   watch_t make_watch(string path) {
-    return watch_t{new watch_t::element_type{path}};
+    return make_unique<watch_t::element_type>(move(path));
   }
 }
 

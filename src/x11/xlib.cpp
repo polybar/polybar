@@ -19,7 +19,7 @@ namespace xlib {
     if (!g_visual_ptr) {
       XVisualInfo info;
       if (XMatchVisualInfo(get_display().get(), screen, 32, TrueColor, &info)) {
-        g_visual_ptr = shared_ptr<Visual>(info.visual, bind(XFree, placeholders::_1));
+        g_visual_ptr = shared_ptr<Visual>(info.visual, [=](Visual* v) { XFree(v); });
       }
     }
 

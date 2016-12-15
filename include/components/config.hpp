@@ -302,7 +302,7 @@ class config {
   const xresource_manager& m_xrm;
   string m_file;
   string m_barname;
-  sectionmap_t m_sections;
+  sectionmap_t m_sections{};
 };
 
 POLYBAR_NS_END

@@ -20,6 +20,9 @@ namespace alsa {
     explicit mixer(string&& mixer_selem_name);
     ~mixer();
 
+    mixer(const mixer& o) = delete;
+    mixer& operator=(const mixer& o) = delete;
+
     const string& get_name();
 
     bool wait(int timeout = -1);
@@ -34,7 +37,7 @@ namespace alsa {
     bool is_muted();
 
    private:
-    std::mutex m_lock;
+    std::mutex m_lock{};
 
     snd_mixer_t* m_mixer{nullptr};
     snd_mixer_elem_t* m_elem{nullptr};

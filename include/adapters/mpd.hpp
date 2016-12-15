@@ -112,7 +112,7 @@ namespace mpd {
 
    private:
     const logger& m_log;
-    mpd_connection_t m_connection;
+    mpd_connection_t m_connection{};
 
     bool m_listactive = false;
     bool m_idle = false;
@@ -151,21 +151,21 @@ namespace mpd {
     int get_seek_position(int percentage);
 
    private:
-    mpd_status_t m_status;
-    unique_ptr<mpdsong> m_song;
-    mpdstate m_state = mpdstate::UNKNOWN;
-    chrono::system_clock::time_point m_updated_at;
+    mpd_status_t m_status{};
+    unique_ptr<mpdsong> m_song{};
+    mpdstate m_state{mpdstate::UNKNOWN};
+    chrono::system_clock::time_point m_updated_at{};
 
-    bool m_random = false;
-    bool m_repeat = false;
-    bool m_single = false;
+    bool m_random{false};
+    bool m_repeat{false};
+    bool m_single{false};
 
-    int m_songid;
-    int m_queuelen;
+    int m_songid{0};
+    int m_queuelen{0};
 
-    unsigned long m_total_time;
-    unsigned long m_elapsed_time;
-    unsigned long m_elapsed_time_ms;
+    unsigned long m_total_time{0UL};
+    unsigned long m_elapsed_time{0UL};
+    unsigned long m_elapsed_time_ms{0UL};
   };
 
   // }}}

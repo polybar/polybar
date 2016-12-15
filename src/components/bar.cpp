@@ -5,7 +5,6 @@
 #include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/parser.hpp"
-#include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"

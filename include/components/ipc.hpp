@@ -47,8 +47,8 @@ class ipc {
  private:
   signal_emitter& m_sig;
   const logger& m_log;
-  string m_fifo;
-  int m_fd;
+  string m_fifo{};
+  int m_fd{0};
   stateflag m_running{false};
 };
 

@@ -9,7 +9,7 @@ namespace ewmh_util {
   ewmh_connection_t initialize() {
     if (!g_ewmh_connection) {
       g_ewmh_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
-          sizeof(xcb_ewmh_connection_t), bind(xcb_ewmh_connection_wipe, std::placeholders::_1));
+          sizeof(xcb_ewmh_connection_t), [=](xcb_ewmh_connection_t* c) { xcb_ewmh_connection_wipe(c); });
 
       auto* conn = g_ewmh_connection.get();
 

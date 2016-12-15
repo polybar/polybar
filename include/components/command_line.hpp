@@ -58,10 +58,10 @@ namespace command_line {
     void parse(const string& input, const string& input_next = "");
 
    private:
-    string m_synopsis;
+    string m_synopsis{};
     const options m_opts;
-    values m_optvalues;
-    bool m_skipnext = false;
+    values m_optvalues{};
+    bool m_skipnext{false};
   };
 
   // }}}

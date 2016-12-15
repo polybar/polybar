@@ -1,5 +1,5 @@
 ---
-Checks: '-*,performance-*,readability-*,modernize-use-*,-modernize-raw-string-literal,-modernize-use-bool-literals,-readability-implicit-bool-cast,-readability-else-after-return,-readability-named-parameter'
+Checks: '-*,performance-*,readability-*,modernize-use-*,modernize-*,-modernize-raw-string-literal,-modernize-use-bool-literals,-readability-implicit-bool-cast,-readability-else-after-return,-readability-named-parameter'
 CheckOptions:
   - key:             modernize-loop-convert.NamingStyle
     value:           lower_case

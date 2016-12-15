@@ -123,7 +123,6 @@ namespace modules {
       m_output += m_ellipsis ? "..." : "";
     }
 
-
     auto counter_str = to_string(m_counter);
     string output{module::get_output()};
 

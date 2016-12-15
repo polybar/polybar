@@ -30,15 +30,15 @@ namespace drawtypes {
 
   class label : public non_copyable_mixin<label> {
    public:
-    string m_foreground;
-    string m_background;
-    string m_underline;
-    string m_overline;
-    int m_font = 0;
-    struct side_values m_padding = {0,0};
-    struct side_values m_margin = {0,0};
-    size_t m_maxlen = 0;
-    bool m_ellipsis = true;
+    string m_foreground{};
+    string m_background{};
+    string m_underline{};
+    string m_overline{};
+    int m_font{0};
+    side_values m_padding{0,0};
+    side_values m_margin{0,0};
+    size_t m_maxlen{0};
+    bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = "", string background = "", string underline = "",
@@ -67,8 +67,9 @@ namespace drawtypes {
     void copy_undefined(const label_t& label);
 
    private:
-    string m_text, m_tokenized;
-    const vector<token> m_tokens;
+    string m_text{};
+    string m_tokenized{};
+    const vector<token> m_tokens{};
   };
 
   label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = "");

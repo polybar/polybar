@@ -1,5 +1,5 @@
-#include <istream>
 #include <fstream>
+#include <istream>
 
 #include "modules/memory.hpp"
 

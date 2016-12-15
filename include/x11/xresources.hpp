@@ -15,6 +15,9 @@ class xresource_manager {
   explicit xresource_manager(shared_ptr<Display>&&);
   ~xresource_manager();
 
+  xresource_manager(const xresource_manager& o) = delete;
+  xresource_manager& operator=(const xresource_manager& o) = delete;
+
   string get_string(string name, string fallback = "") const;
   float get_float(string name, float fallback = 0.0f) const;
   int get_int(string name, int fallback = 0) const;

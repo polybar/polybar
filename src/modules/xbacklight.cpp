@@ -20,8 +20,7 @@ namespace modules {
    * Construct module
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name)
-      : static_module<xbacklight_module>(bar, move(name))
-      , m_connection(connection::make()) {}
+      : static_module<xbacklight_module>(bar, move(name)), m_connection(connection::make()) {}
 
   /**
    * Bootstrap the module by grabbing all required components

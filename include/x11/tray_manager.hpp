@@ -112,7 +112,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   bool is_embedded(const xcb_window_t& win) const;
   shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
   void remove_client(shared_ptr<tray_client>& client, bool reconfigure = true);
-  void remove_client(xcb_window_t window, bool reconfigure = true);
+  void remove_client(xcb_window_t win, bool reconfigure = true);
   size_t mapped_clients() const;
 
   void handle(const evt::expose& evt);

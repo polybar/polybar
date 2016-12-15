@@ -1,6 +1,7 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -60,7 +61,7 @@ class eventloop : public signal_receiver<SIGN_PRIORITY_EVENTLOOP, process_quit, 
   void stop();
 
   bool enqueue(event&& evt);
-  bool enqueue(string&& evt);
+  bool enqueue(string&& input_data);
 
   void add_module(const alignment pos, module_t&& module);
   const modulemap_t& modules() const;

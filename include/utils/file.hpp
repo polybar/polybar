@@ -16,6 +16,9 @@ namespace file_util {
 
     ~file_ptr();
 
+    file_ptr(const file_ptr& o) = delete;
+    file_ptr& operator=(const file_ptr& o) = delete;
+
     operator bool();
 
     FILE* operator()();

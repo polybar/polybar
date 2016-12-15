@@ -21,7 +21,7 @@ namespace inotify_util {
 
   class inotify_watch {
    public:
-    explicit inotify_watch(string path) : m_path(path) {}
+    explicit inotify_watch(string path);
     ~inotify_watch() noexcept;
 
     void attach(int mask = IN_MODIFY);

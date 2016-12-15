@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
@@ -20,7 +21,6 @@ POLYBAR_NS
 class screen;
 class tray_manager;
 class logger;
-class renderer;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
  public:
@@ -58,9 +58,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   bar_settings m_opts;
 
-  string m_lastinput;
+  string m_lastinput{};
 
-  std::mutex m_mutex;
+  std::mutex m_mutex{};
 
   event_timer m_buttonpress{0L, 5L};
 };

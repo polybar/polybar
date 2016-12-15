@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 
 #include "adapters/alsa/generic.hpp"
 #include "adapters/alsa/mixer.hpp"

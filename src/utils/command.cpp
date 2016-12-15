@@ -11,7 +11,7 @@
 POLYBAR_NS
 
 namespace command_util {
-  command::command(const logger& logger, string cmd) : m_log(logger), m_cmd(cmd) {
+  command::command(const logger& logger, string cmd) : m_log(logger), m_cmd(move(cmd)) {
     if (pipe(m_stdin) != 0) {
       throw command_strerror("Failed to allocate input stream");
     }

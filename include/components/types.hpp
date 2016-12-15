@@ -77,7 +77,7 @@ struct line_settings {
 
 struct action {
   mousebtn button{mousebtn::NONE};
-  string command;
+  string command{};
 };
 
 struct action_block : public action {
@@ -95,9 +95,9 @@ struct bar_settings {
   explicit bar_settings() = default;
   bar_settings(const bar_settings& other) = default;
 
-  xcb_window_t window;
+  xcb_window_t window{XCB_NONE};
 
-  monitor_t monitor;
+  monitor_t monitor{};
   edge origin{edge::TOP};
   struct size size {
     1U, 1U
@@ -113,20 +113,20 @@ struct bar_settings {
   uint32_t background{0xFFFFFFFF};
   uint32_t foreground{0xFF000000};
 
-  line_settings underline;
-  line_settings overline;
+  line_settings underline{};
+  line_settings overline{};
 
-  std::unordered_map<edge, border_settings> borders;
+  std::unordered_map<edge, border_settings> borders{};
 
   uint8_t spacing{1U};
-  string separator;
+  string separator{};
 
-  string wmname;
-  string locale;
+  string wmname{};
+  string locale{};
 
   bool override_redirect{false};
 
-  vector<action> actions;
+  vector<action> actions{};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect{0, 0, size.w, size.h};

@@ -76,9 +76,9 @@ namespace throttle_util {
     }
 
    private:
-    queue m_queue;
-    limit m_limit;
-    timewindow m_timewindow;
+    queue m_queue{};
+    limit m_limit{};
+    timewindow m_timewindow{};
   };
 
   using throttle_t = unique_ptr<event_throttler>;

@@ -20,13 +20,16 @@ namespace alsa {
     explicit control(int numid);
     ~control();
 
+    control(const control& o) = delete;
+    control& operator=(const control& o) = delete;
+
     int get_numid();
     bool wait(int timeout = -1);
     bool test_device_plugged();
     void process_events();
 
    private:
-    std::mutex m_lock;
+    std::mutex m_lock{};
 
     int m_numid{0};
 

@@ -52,13 +52,13 @@ class keyboard {
     enum class type { NONE = 0U, CAPS_LOCK, NUM_LOCK };
     xcb_atom_t atom{};
     uint8_t mask{0};
-    string name;
+    string name{};
     bool enabled{false};
   };
 
   struct layout {
-    string group_name;
-    vector<string> symbols;
+    string group_name{};
+    vector<string> symbols{};
   };
 
   explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_, uint8_t group)

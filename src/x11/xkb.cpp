@@ -101,9 +101,8 @@ namespace xkb_util {
 
     xcb_xkb_get_names_value_list_t values;
     void* buffer = xcb_xkb_get_names_value_list(reply);
-    xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators,
-        reply->virtualMods, reply->groupNames, reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which,
-        &values);
+    xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
+        reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
     vector<reply::get_atom_name> replies;
     for (int i = 0; i < xcb_xkb_get_names_value_list_groups_length(reply, &values); i++) {
@@ -143,9 +142,8 @@ namespace xkb_util {
 
     xcb_xkb_get_names_value_list_t values;
     void* buffer = xcb_xkb_get_names_value_list(reply);
-    xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators,
-        reply->virtualMods, reply->groupNames, reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which,
-        &values);
+    xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
+        reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
     map<xcb_atom_t, reply::get_atom_name> entries;
     for (int i = 0; i < xcb_xkb_get_names_value_list_indicator_names_length(reply, &values); i++) {

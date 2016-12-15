@@ -41,7 +41,8 @@ controller::make_type controller::make(string&& path_confwatch, bool enable_ipc,
  * Construct controller object
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    unique_ptr<eventloop>&& eventloop, unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, watch_t&& confwatch, bool writeback)
+    unique_ptr<eventloop>&& eventloop, unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, watch_t&& confwatch,
+    bool writeback)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)

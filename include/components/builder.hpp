@@ -72,7 +72,7 @@ class builder {
 
  private:
   const bar_settings m_bar;
-  string m_output;
+  string m_output{};
 
   map<syntaxtag, int> m_tags{
       // clang-format off
@@ -97,8 +97,8 @@ class builder {
   uint8_t m_attributes{static_cast<uint8_t>(attribute::NONE)};
   uint8_t m_fontindex{1};
 
-  string m_background;
-  string m_foreground;
+  string m_background{};
+  string m_foreground{};
 };
 
 POLYBAR_NS_END

@@ -5,7 +5,6 @@
 #include <xcb/xcb.h>
 #include <boost/optional.hpp>
 #include <iomanip>
-#include <xpp/xpp.hpp>
 
 #include "common.hpp"
 #include "utils/factory.hpp"
@@ -30,6 +29,7 @@ class connection : public xpp_connection {
   connection& operator=(const connection&) {
     return *this;
   }
+  connection(const connection& o) = delete;
 
   virtual ~connection() {}
 

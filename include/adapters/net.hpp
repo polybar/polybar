@@ -111,8 +111,8 @@ namespace net {
     void query_quality(const int& socket_fd);
 
    private:
-    shared_ptr<wireless_info> m_info;
-    string m_essid;
+    shared_ptr<wireless_info> m_info{};
+    string m_essid{};
     quality_range m_signalstrength{};
     quality_range m_linkquality{};
   };

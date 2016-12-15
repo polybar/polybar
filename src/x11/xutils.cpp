@@ -19,7 +19,8 @@ namespace xutils {
 
       if (dsp) {
         XSetEventQueueOwner(dsp.get(), XCBOwnsEventQueue);
-        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), bind(xcb_disconnect, placeholders::_1));
+        g_connection_ptr =
+            shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), [=](xcb_connection_t* c) { xcb_disconnect(c); });
       }
     }
 
