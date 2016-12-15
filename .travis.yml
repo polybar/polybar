@@ -11,10 +11,28 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.8
+      - sourceline: "ppa:george-edison55/george-edison"
     packages:
       - gcc-5
       - g++-5
       - clang-3.8
+      - cmake
+      - cmake-data
+      - i3-wm
+      - libasound2-dev
+      - libboost-dev
+      - libfreetype6-dev
+      - libiw-dev
+      - libmpdclient-dev
+      - libxcb-ewmh-dev
+      - libxcb-icccm4-dev
+      - libxcb-image0-dev
+      - libxcb-randr0-dev
+      - libxcb-util0-dev
+      - libxcb-xkb-dev
+      - libxcb1-dev
+      - python-xcbgen
+      - xcb-proto
 
 env:
   global:
@@ -35,7 +53,6 @@ cache:
 
 install:
   - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
-  - source ${TRAVIS_BUILD_DIR}/common/travis/install_deps.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_cmake.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_libcpp.sh
 
