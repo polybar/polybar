@@ -96,7 +96,6 @@ struct bar_settings {
   bar_settings(const bar_settings& other) = default;
 
   xcb_window_t window{XCB_NONE};
-
   monitor_t monitor{};
   edge origin{edge::TOP};
   struct size size {

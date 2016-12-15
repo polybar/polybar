@@ -179,7 +179,7 @@ void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
  * Try to get a visual type for the given screen that
  * matches the given depth
  */
-boost::optional<xcb_visualtype_t*> connection::visual_type(xcb_screen_t* screen, int match_depth) {
+xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth) {
   xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
   if (depth_iter.data) {
     for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
@@ -193,7 +193,7 @@ boost::optional<xcb_visualtype_t*> connection::visual_type(xcb_screen_t* screen,
       return visual_type(screen, 0);
     }
   }
-  return {};
+  return nullptr;
 }
 
 /**

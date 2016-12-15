@@ -3,7 +3,6 @@
 #include <X11/X.h>
 #include <X11/Xlib-xcb.h>
 #include <xcb/xcb.h>
-#include <boost/optional.hpp>
 #include <iomanip>
 
 #include "common.hpp"
@@ -74,7 +73,7 @@ class connection : public xpp_connection {
 
   void send_dummy_event(xcb_window_t target, uint32_t event = XCB_EVENT_MASK_STRUCTURE_NOTIFY) const;
 
-  boost::optional<xcb_visualtype_t*> visual_type(xcb_screen_t* screen, int match_depth = 32);
+  xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);
 
   static string error_str(int error_code);
 

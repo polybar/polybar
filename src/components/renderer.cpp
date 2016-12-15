@@ -44,7 +44,17 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
   m_sig.attach(this);
 
   m_log.trace("renderer: Get TrueColor visual");
-  m_visual = m_connection.visual_type(m_connection.screen(), 32).get();
+
+  if ((m_visual = m_connection.visual_type(m_connection.screen(), 32)) == nullptr) {
+    m_log.err("No 32-bit TrueColor visual found...");
+    m_depth = 24;
+  }
+  if ((m_visual = m_connection.visual_type(m_connection.screen(), 24)) == nullptr) {
+    m_log.err("No 24-bit TrueColor visual found, aborting...");
+  }
+  if (m_visual == nullptr) {
+    throw application_error("No matching TrueColor visual found...");
+  }
 
   m_log.trace("renderer: Allocate colormap");
   m_colormap = m_connection.generate_id();

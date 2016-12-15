@@ -105,6 +105,7 @@ class renderer
   xcb_rectangle_t m_cleared{0, 0, 0U, 0U};
   reserve_area m_cleararea{};
 
+  uint8_t m_depth{32};
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
   xcb_visualtype_t* m_visual;

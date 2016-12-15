@@ -1,4 +1,5 @@
 #include <utility>
+#include <algorithm>
 
 #include "components/types.hpp"
 #include "utils/string.hpp"

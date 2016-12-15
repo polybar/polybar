@@ -26,7 +26,7 @@ config::make_type config::make(string path, string bar) {
  * Construct config object
  */
 config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
-    : m_logger(logger), m_xrm(xrm), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
+    : m_log(logger), m_xrm(xrm), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
   if (!file_util::exists(m_file)) {
     throw application_error("Could not find config file: " + m_file);
   }
@@ -45,8 +45,8 @@ config::config(const logger& logger, const xresource_manager& xrm, string&& path
     throw application_error("Undefined bar: " + m_barname);
   }
 
-  m_logger.trace("config: Loaded %s", m_file);
-  m_logger.trace("config: Current bar section: [%s]", section());
+  m_log.trace("config: Loaded %s", m_file);
+  m_log.trace("config: Current bar section: [%s]", section());
 }
 
 /**
@@ -69,7 +69,7 @@ string config::section() const {
 void config::warn_deprecated(const string& section, const string& key, string replacement) const {
   try {
     auto value = get<string>(section, key);
-    m_logger.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, move(replacement));
+    m_log.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, move(replacement));
   } catch (const key_error& err) {
   }
 }
@@ -149,7 +149,7 @@ void config::copy_inherited() {
           throw value_error("[" + section.first + "." + KEY_INHERIT + "] invalid reference \"" + inherit + "\"");
         }
 
-        m_logger.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
+        m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
 
         // Iterate the base and copy the parameters
         // that hasn't been defined for the sub-section
@@ -191,13 +191,13 @@ template <>
 bool config::convert(string&& value) const {
   string lower{string_util::lower(forward<string>(value))};
 
-  if (lower.compare(0, 4, "true") == 0) {
+  if (lower == "true") {
     return true;
-  } else if (lower.compare(0, 3, "yes") == 0) {
+  } else if (lower == "yes") {
     return true;
-  } else if (lower.compare(0, 2, "on") == 0) {
+  } else if (lower == "on") {
     return true;
-  } else if (lower.compare(0, 1, "1") == 0) {
+  } else if (lower == "1") {
     return true;
   } else {
     return false;

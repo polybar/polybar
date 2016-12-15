@@ -1,6 +1,4 @@
 #pragma once
-
-#include <boost/optional.hpp>
 #include <unordered_map>
 
 #include "common.hpp"
@@ -11,9 +9,6 @@
 #include "x11/xresources.hpp"
 
 POLYBAR_NS
-
-using boost::optional;
-using boost::none;
 
 #define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
 #define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
@@ -58,19 +53,11 @@ class config {
    */
   template <typename T>
   T get(const string& section, const string& key) const {
-    optional<T> value{opt<T>(section, key)};
-
-    if (value == none) {
+    auto it = m_sections.find(section);
+    if (it == m_sections.end() || it->second.find(key) == it->second.end()) {
       throw key_error("Missing parameter [" + section + "." + key + "]");
     }
-
-    string string_value{opt<string>(section, key).get()};
-
-    if (!string_value.empty()) {
-      return dereference<T>(section, key, opt<string>(section, key).get(), value.get());
-    }
-
-    return move(value.get());
+    return dereference<T>(section, key, it->second.at(key), convert<T>(string{it->second.at(key)}));
   }
 
   /**
@@ -79,19 +66,13 @@ class config {
    */
   template <typename T>
   T get(const string& section, const string& key, const T& default_value) const {
-    optional<T> value{opt<T>(section, key)};
-
-    if (value == none) {
+    try {
+      T result{get<T>(section, key)};
+      string string_value{get<string>(section, key)};
+      return dereference<T>(move(section), move(key), move(string_value), move(result));
+    } catch (const key_error& err) {
       return default_value;
     }
-
-    string string_value{opt<string>(section, key).get()};
-
-    if (!string_value.empty()) {
-      return dereference<T>(section, key, opt<string>(section, key).get(), value.get());
-    }
-
-    return move(value.get());
   }
 
   /**
@@ -107,23 +88,28 @@ class config {
    */
   template <typename T>
   vector<T> get_list(const string& section, const string& key) const {
-    vector<T> vec;
-    optional<T> value;
+    vector<T> results;
 
-    while ((value = opt<T>(section, key + "-" + to_string(vec.size()))) != none) {
-      string string_value{get<string>(section, key + "-" + to_string(vec.size()))};
+    while (true) {
+      try {
+        string string_value{get<string>(section, key + "-" + to_string(results.size()))};
+        T value{get<T>(section, key + "-" + to_string(results.size()))};
 
-      if (!string_value.empty()) {
-        vec.emplace_back(dereference<T>(section, key, move(string_value), move(value.get())));
-      } else {
-        vec.emplace_back(move(value.get()));
+        if (!string_value.empty()) {
+          results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
+        } else {
+          results.emplace_back(move(value));
+        }
+      } catch (const key_error& err) {
+        break;
       }
     }
 
-    if (vec.empty())
+    if (results.empty()) {
       throw key_error("Missing parameter [" + section + "." + key + "-0]");
+    }
 
-    return vec;
+    return results;
   }
 
   /**
@@ -132,23 +118,29 @@ class config {
    */
   template <typename T>
   vector<T> get_list(const string& section, const string& key, const vector<T>& default_value) const {
-    vector<T> vec;
-    optional<T> value;
+    vector<T> results;
 
-    while ((value = opt<T>(section, key + "-" + to_string(vec.size()))) != none) {
-      string string_value{get<string>(section, key + "-" + to_string(vec.size()))};
+    while (true) {
+      try {
+        string string_value{get<string>(section, key + "-" + to_string(results.size()))};
+        T value{get<T>(section, key + "-" + to_string(results.size()))};
 
-      if (!string_value.empty()) {
-        vec.emplace_back(dereference<T>(section, key, move(string_value), move(value.get())));
-      } else {
-        vec.emplace_back(move(value.get()));
+        if (!string_value.empty()) {
+          results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
+        } else {
+          results.emplace_back(move(value));
+        }
+      } catch (const key_error& err) {
+        break;
       }
     }
 
-    if (vec.empty())
-      return default_value;
-    else
-      return vec;
+    if (!results.empty()) {
+      return results;
+      ;
+    }
+
+    return default_value;
   }
 
   /**
@@ -188,18 +180,6 @@ class config {
   template <typename T>
   T convert(string&& value) const;
 
-  template <typename T>
-  const optional<T> opt(const string& section, const string& key) const {
-    sectionmap_t::const_iterator s;
-    valuemap_t::const_iterator v;
-
-    if ((s = m_sections.find(section)) != m_sections.end() && (v = s->second.find(key)) != s->second.end()) {
-      return {convert<T>(string{v->second})};
-    }
-
-    return none;
-  }
-
   /**
    * Dereference value reference
    */
@@ -232,20 +212,19 @@ class config {
   template <typename T>
   T dereference_local(string section, const string& key, const string& current_section) const {
     if (section == "BAR") {
-      m_logger.warn("${BAR.key} is deprecated. Use ${root.key} instead");
+      m_log.warn("${BAR.key} is deprecated. Use ${root.key} instead");
     }
 
     section = string_util::replace(section, "BAR", this->section(), 0, 3);
     section = string_util::replace(section, "root", this->section(), 0, 4);
     section = string_util::replace(section, "self", current_section, 0, 4);
 
-    optional<T> result{opt<T>(section, key)};
-
-    if (result == none) {
+    try {
+      T result{get<T>(section, key)};
+      return dereference<T>(string(section), move(key), get<string>(section, key), move(result));
+    } catch (const key_error& err) {
       throw value_error("Unexisting reference defined [" + section + "." + key + "]");
     }
-
-    return dereference<T>(section, key, opt<string>(section, key).get(), result.get());
   }
 
   /**
@@ -265,14 +244,13 @@ class config {
 
     if (env_util::has(var.c_str())) {
       string env_value{env_util::get(var.c_str())};
-      m_logger.info("Found matching environment variable ${" + var + "} with the value \"" + env_value + "\"");
+      m_log.info("Found matching environment variable ${" + var + "} with the value \"" + env_value + "\"");
       return convert<T>(move(env_value));
-    }
-
-    if (!env_default.empty()) {
-      m_logger.info("The environment variable ${" + var + "} is undefined or empty, using defined fallback value \"" + env_default + "\"");
+    } else if (!env_default.empty()) {
+      m_log.info("The environment variable ${" + var + "} is undefined or empty, using defined fallback value \"" +
+                 env_default + "\"");
     } else {
-      m_logger.info("The environment variable ${" + var + "} is undefined or empty");
+      m_log.info("The environment variable ${" + var + "} is undefined or empty");
     }
 
     return convert<T>(move(env_default));
@@ -298,7 +276,7 @@ class config {
  private:
   static constexpr const char* KEY_INHERIT{"inherit"};
 
-  const logger& m_logger;
+  const logger& m_log;
   const xresource_manager& m_xrm;
   string m_file;
   string m_barname;
