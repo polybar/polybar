@@ -32,12 +32,16 @@ problems by [creating an issue ticket](https://github.com/jaagr/polybar/issues/n
 ## Introduction
 
 The main purpose of **Polybar** is to help users create awesome status bars.
-It has built-in functionality to generate content for the most commonly used widgets, such as:
+It has built-in functionality to display information about the most commoly used services.
+Some of the batteries included so far:
 
+- Systray icons
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
 - [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
+- Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
+- Keyboard layout and indicator status
 - CPU and memory load indicator
 - Battery display
 - Network connection details
@@ -65,25 +69,21 @@ If you create a package for any other distribution, please consider contributing
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
 - cmake
-- boost
-- xcb-util-wm
-- xcb-util-image
 - libXft
 - python2
+- xcb-proto
+- xcb-util-wm
+- xcb-util-image
 
-Optional dependencies for module support:
-
+Optional dependencies for extended module support:
 - jsoncpp (required by `internal/i3`)
-  - Because some distributions only offer pre-historic releases of jsoncpp,
-    a local copy of the library source (jsoncpp-1.7.7) will be built and linked
-    statically as a fallback if a valid version is not found.
 - wireless_tools (required by `internal/network`)
 - alsa-lib (required by `internal/volume`)
 - libmpdclient (required by `internal/mpd`)
 
 ~~~ sh
 # required
-$ apt-get install cmake cmake-data libboost-dev libfontconfig1-dev libfreetype6-dev libghc-x11-xft-dev libx11-xcb-dev libxcb1-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-randr0-dev libxcb-util0-dev libxcb-xkb-dev pkg-config python-xcbgen xcb-proto
+$ apt-get install cmake cmake-data libfontconfig1-dev libfreetype6-dev libghc-x11-xft-dev libx11-xcb-dev libxcb1-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-randr0-dev libxcb-util0-dev libxcb-xkb-dev pkg-config python-xcbgen xcb-proto
 # optional
 $ apt-get install i3-wm libasound2-dev libmpdclient-dev libiw-dev
 ~~~
