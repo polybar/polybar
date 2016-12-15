@@ -5,6 +5,7 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "utils/math.hpp"
+#include "utils/memory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -29,8 +30,7 @@ void parser::operator()(string data) {
     } else if ((pos = data.find("%{")) != string::npos) {
       data.erase(0, text(data.substr(0, pos)));
     } else {
-      text(move(data));
-      return;
+      data.erase(0, text(data.substr(0)));
     }
   }
 
@@ -155,20 +155,32 @@ void parser::codeblock(string&& data) {
  * Process text contents
  */
 size_t parser::text(string&& data) {
-  uint8_t* utf = reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str()));
+  const uint8_t* utf{reinterpret_cast<const uint8_t*>(&data[0])};
 
   if (utf[0] < 0x80) {
-    // grab all consecutive ascii chars
-    size_t next_tag = data.find("%{");
-    if (next_tag != string::npos) {
-      data.erase(next_tag);
+    size_t pos{0};
+
+    // grab consecutive ascii chars
+    while (utf[pos] && utf[pos] < 0x80) {
+      packet pkt{};
+      size_t limit{memory_util::countof(pkt.data)};
+      size_t len{0};
+
+      while (len + 1 < limit && utf[pos] && utf[pos] < 0x80) {
+        pkt.data[len++] = utf[pos++];
+      }
+
+      if (!len) {
+        break;
+      }
+
+      pkt.length = len;
+      m_sig.emit(write_text_string{move(pkt)});
     }
-    size_t n = 0;
-    while (utf[n] != '\0' && utf[++n] < 0x80) {
-      ;
+
+    if (pos > 0) {
+      return pos;
     }
-    m_sig.emit(write_text_string{data.substr(0, n)});
-    return n;
   } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
     m_sig.emit(write_text_unicode{static_cast<uint16_t>((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f))});
     return 2;
@@ -185,10 +197,13 @@ size_t parser::text(string&& data) {
   } else if ((utf[0] & 0xfe) == 0xfc) {  // 6 byte utf-8 sequence
     m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 6;
-  } else {  // invalid utf-8 sequence
-    m_sig.emit(write_text_ascii{utf[0]});
-    return 1;
   }
+
+  if (utf[0] < 0x80) {
+    m_sig.emit(write_text_ascii{utf[0]});
+  }
+
+  return 1;
 }
 
 /**

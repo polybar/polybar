@@ -32,6 +32,9 @@ class renderer
       unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts);
   ~renderer();
 
+  renderer(const renderer& o) = delete;
+  renderer& operator=(const renderer& o) = delete;
+
   xcb_window_t window() const;
 
   void begin();
@@ -55,8 +58,7 @@ class renderer
   void fill_underline(int16_t x, uint16_t w);
   void fill_shift(const int16_t px);
 
-  void draw_character(const uint16_t character);
-  void draw_textstring(const char* text, const size_t len);
+  void draw_textstring(const uint16_t* text, size_t len);
 
   void begin_action(const mousebtn btn, const string& cmd);
   void end_action(const mousebtn btn);

@@ -47,13 +47,16 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
 
   if ((m_visual = m_connection.visual_type(m_connection.screen(), 32)) == nullptr) {
     m_log.err("No 32-bit TrueColor visual found...");
+
+    if ((m_visual = m_connection.visual_type(m_connection.screen(), 24)) == nullptr) {
+      m_log.err("No 24-bit TrueColor visual found, aborting...");
+    }
+
+    if (m_visual == nullptr) {
+      throw application_error("No matching TrueColor visual found...");
+    }
+
     m_depth = 24;
-  }
-  if ((m_visual = m_connection.visual_type(m_connection.screen(), 24)) == nullptr) {
-    m_log.err("No 24-bit TrueColor visual found, aborting...");
-  }
-  if (m_visual == nullptr) {
-    throw application_error("No matching TrueColor visual found...");
   }
 
   m_log.trace("renderer: Allocate colormap");
@@ -66,7 +69,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
     m_window = winspec(m_connection)
       << cw_size(m_bar.size)
       << cw_pos(m_bar.pos)
-      << cw_depth(32)
+      << cw_depth(m_depth)
       << cw_visual(m_visual->visual_id)
       << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
       << cw_params_back_pixel(0)
@@ -83,7 +86,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
 
   m_log.trace("renderer: Allocate window pixmap");
   m_pixmap = m_connection.generate_id();
-  m_connection.create_pixmap(32, m_pixmap, m_window, m_rect.width, m_rect.height);
+  m_connection.create_pixmap(m_depth, m_pixmap, m_window, m_rect.width, m_rect.height);
 
   m_log.trace("renderer: Allocate graphic contexts");
   {
@@ -180,8 +183,6 @@ void renderer::begin() {
   m_currentx = 0;
   m_attributes = 0;
   m_actions.clear();
-
-  m_fontmanager->create_xftdraw(m_pixmap);
 }
 
 /**
@@ -190,7 +191,7 @@ void renderer::begin() {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  m_fontmanager->destroy_xftdraw();
+  m_fontmanager->cleanup();
 
 #ifdef DEBUG_HINTS
   debug_hints();
@@ -357,77 +358,37 @@ void renderer::fill_shift(const int16_t px) {
 }
 
 /**
- * Draw character glyph
- */
-void renderer::draw_character(uint16_t character) {
-  m_log.trace_x("renderer: draw_character");
-
-  auto& font = m_fontmanager->match_char(character);
-
-  if (!font) {
-    return m_log.warn("No suitable font found (character=%i)", character);
-  }
-
-  if (font->ptr && font->ptr != m_gcfont) {
-    m_gcfont = font->ptr;
-    m_fontmanager->set_gcontext_font(m_gcontexts.at(gc::FG), m_gcfont);
-  }
-
-  auto width = m_fontmanager->char_width(font, character);
-  auto x = shift_content(width);
-  auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
-
-  if (font->xft != nullptr) {
-    XftDrawString16(m_fontmanager->xftdraw(), m_fontmanager->xftcolor(), font->xft, x, y, &character, 1);
-  } else {
-    uint16_t ucs = ((character >> 8) | (character << 8));
-    draw_util::xcb_poly_text_16_patched(m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, 1, &ucs);
-  }
-
-  fill_underline(x, width);
-  fill_overline(x, width);
-}
-
-/**
  * Draw consecutive character glyphs
  */
-void renderer::draw_textstring(const char* text, size_t len) {
+void renderer::draw_textstring(const uint16_t* text, size_t len) {
   m_log.trace_x("renderer: draw_textstring(\"%s\")", text);
 
   for (size_t n = 0; n < len; n++) {
-    vector<uint16_t> chars;
-    chars.emplace_back(text[n]);
-
-    auto& font = m_fontmanager->match_char(chars[0]);
+    vector<uint16_t> chars{text[n]};
+    shared_ptr<font_ref> font{m_fontmanager->match_char(chars[0])};
+    uint8_t width{static_cast<const uint8_t>(m_fontmanager->glyph_width(font, chars[0]) * chars.size())};
 
     if (!font) {
-      return m_log.warn("No suitable font found (character=%i)", chars[0]);
-    }
-
-    if (font->ptr && font->ptr != m_gcfont) {
-      m_gcfont = font->ptr;
-      m_fontmanager->set_gcontext_font(m_gcontexts.at(gc::FG), m_gcfont);
+      m_log.warn("Could not find glyph for %i", chars[0]);
+      continue;
+    } else if (!width) {
+      m_log.warn("Could not determine glyph width for %i", chars[0]);
+      continue;
     }
 
     while (n + 1 < len && text[n + 1] == chars[0]) {
-      chars.emplace_back(text[++n]);
+      chars.emplace_back(text[n++]);
     }
 
-    auto width = m_fontmanager->char_width(font, chars[0]) * chars.size();
+    width *= chars.size();
     auto x = shift_content(width);
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
-    if (font->xft != nullptr) {
-      XftDrawString16(m_fontmanager->xftdraw(), m_fontmanager->xftcolor(), font->xft, x, y,
-          static_cast<uint16_t*>(chars.data()), chars.size());
-    } else {
-      for (unsigned short& i : chars) {
-        i = ((i >> 8) | (i << 8));
-      }
-
-      draw_util::xcb_poly_text_16_patched(
-          m_connection, m_pixmap, m_gcontexts.at(gc::FG), x, y, chars.size(), chars.data());
+    if (font->ptr != XCB_NONE && m_gcfont != font->ptr) {
+      m_fontmanager->set_gcontext_font(font, m_gcontexts.at(gc::FG), &m_gcfont);
     }
+
+    m_fontmanager->drawtext(font, m_pixmap, m_gcontexts.at(gc::FG), x, y, chars.data(), chars.size());
 
     fill_underline(x, width);
     fill_overline(x, width);
@@ -531,7 +492,7 @@ void renderer::debug_hints() {
       << cw_size(action.width() - border_width * 2, m_rect.height - border_width * 2)
       << cw_pos(action.start_x + num * DEBUG_HINTS_OFFSET_X, m_bar.pos.y + m_rect.y + num * DEBUG_HINTS_OFFSET_Y)
       << cw_border(border_width)
-      << cw_depth(32)
+      << cw_depth(m_depth)
       << cw_visual(m_visual->visual_id)
       << cw_params_colormap(m_colormap)
       << cw_params_back_pixel(0)
@@ -713,18 +674,20 @@ bool renderer::on(const action_end& evt) {
 }
 
 bool renderer::on(const write_text_ascii& evt) {
-  draw_character(*evt());
+  const uint16_t data[1]{*evt()};
+  draw_textstring(data, 1);
   return true;
 }
 
 bool renderer::on(const write_text_unicode& evt) {
-  draw_character(*evt());
+  const uint16_t data[1]{*evt()};
+  draw_textstring(data, 1);
   return true;
 }
 
 bool renderer::on(const write_text_string& evt) {
-  string text{*evt()};
-  draw_textstring(text.c_str(), text.size());
+  parser::packet pkt{(*evt())};
+  draw_textstring(pkt.data, pkt.length);
   return true;
 }
 

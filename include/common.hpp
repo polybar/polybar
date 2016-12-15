@@ -27,10 +27,6 @@
 #define STDERR_FILENO 2
 #endif
 
-#ifdef DEBUG
-#include "debug.hpp"
-#endif
-
 POLYBAR_NS
 
 namespace placeholders = std::placeholders;

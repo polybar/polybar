@@ -17,6 +17,11 @@ DEFINE_CHILD_ERROR(unclosed_actionblocks, parser_error);
 
 class parser {
  public:
+  struct packet {
+    uint16_t data[128]{0U};
+    size_t length{0};
+  };
+
   explicit parser(signal_emitter& emitter, const bar_settings& bar);
   void operator()(string data);
 

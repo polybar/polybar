@@ -4,6 +4,7 @@
 
 #include "components/eventloop.hpp"
 #include "components/ipc.hpp"
+#include "components/parser.hpp"
 #include "components/types.hpp"
 #include "utils/functional.hpp"
 
@@ -114,6 +115,8 @@ namespace signals {
   }
 
   namespace parser {
+    using parser_t = polybar::parser;
+
     DEFINE_VALUE_SIGNAL(70, change_background, uint32_t);
     DEFINE_VALUE_SIGNAL(71, change_foreground, uint32_t);
     DEFINE_VALUE_SIGNAL(72, change_underline, uint32_t);
@@ -128,7 +131,7 @@ namespace signals {
     DEFINE_VALUE_SIGNAL(81, action_end, mousebtn);
     DEFINE_VALUE_SIGNAL(82, write_text_ascii, uint16_t);
     DEFINE_VALUE_SIGNAL(83, write_text_unicode, uint16_t);
-    DEFINE_VALUE_SIGNAL(84, write_text_string, string);
+    DEFINE_VALUE_SIGNAL(84, write_text_string, parser_t::packet);
   }
 }
 
