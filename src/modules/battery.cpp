@@ -32,11 +32,6 @@ namespace modules {
     }
     m_valuepath[battery_value::ADAPTER] = path_adapter + "online";
 
-    if (!file_util::exists(path_battery + "capacity")) {
-      throw module_error("The file '" + path_battery + "capacity' does not exist");
-    }
-    m_valuepath[battery_value::CAPACITY_PERC] = path_battery + "capacity";
-
     if (!file_util::exists(path_battery + "voltage_now")) {
       throw module_error("The file '" + path_battery + "voltage_now' does not exist");
     }
@@ -103,7 +98,7 @@ namespace modules {
     }
 
     // Create inotify watches
-    watch(m_valuepath[battery_value::CAPACITY_PERC], IN_ACCESS);
+    watch(m_valuepath[battery_value::CAPACITY], IN_ACCESS);
     watch(m_valuepath[battery_value::ADAPTER], IN_ACCESS);
 
     // Setup time if token is used
@@ -147,7 +142,7 @@ namespace modules {
       if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
-        file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC]);
+        file_util::get_contents(m_valuepath[battery_value::CAPACITY]);
       }
     }
 
@@ -262,14 +257,11 @@ namespace modules {
    * Get the current capacity level
    */
   int battery_module::current_percentage() {
-    auto capacity = file_util::get_contents(m_valuepath[battery_value::CAPACITY_PERC]);
-    auto value = math_util::cap<int>(std::atof(capacity.c_str()), 0, 100);
+    auto capacity_now = std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY]).c_str(), nullptr, 10);
+    auto capacity_max = std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY_MAX]).c_str(), nullptr, 10);
+    auto percentage = math_util::percentage(capacity_now, 0UL, capacity_max);
 
-    if (value >= m_fullat) {
-      return 100;
-    } else {
-      return value;
-    }
+    return percentage < m_fullat ? percentage : 100;
   }
 
   /**

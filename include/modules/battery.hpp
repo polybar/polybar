@@ -19,7 +19,6 @@ namespace modules {
     ADAPTER,
     CAPACITY,
     CAPACITY_MAX,
-    CAPACITY_PERC,
     VOLTAGE,
     RATE,
   };
