@@ -25,6 +25,10 @@ namespace modules {
     void teardown();
     void update();
     bool build(builder* builder, const string& tag) const;
+    bool handle_event(string cmd);
+    bool receive_events() const {
+      return true;
+    }
 
    protected:
     bool query_keyboard();
@@ -38,6 +42,8 @@ namespace modules {
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
     static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
+
+    static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
 
     connection& m_connection;
     event_timer m_xkbnotify{};

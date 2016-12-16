@@ -72,6 +72,7 @@ class keyboard {
   const string group_name(size_t index = 0) const;
   const string layout_name(size_t index = 0) const;
   const string indicator_name(const indicator::type&) const;
+  size_t size() const;
 
  private:
   vector<layout> layouts;
@@ -82,6 +83,7 @@ class keyboard {
 namespace xkb_util {
   static constexpr const char* LAYOUT_SYMBOL_BLACKLIST{";group;inet;pc;"};
 
+  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, uint8_t index);
   uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device);
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device);
   map<keyboard::indicator::type, keyboard::indicator> get_indicators(connection& conn, xcb_xkb_device_spec_t device);

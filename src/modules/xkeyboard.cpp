@@ -99,6 +99,8 @@ namespace modules {
    * Map format tags to content
    */
   bool xkeyboard_module::build(builder* builder, const string& tag) const {
+    builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
+
     if (tag == TAG_LABEL_LAYOUT) {
       builder->node(m_layout);
     } else if (tag == TAG_LABEL_INDICATOR) {
@@ -113,6 +115,31 @@ namespace modules {
     } else {
       return false;
     }
+
+    builder->cmd_close();
+
+    return true;
+  }
+
+  /**
+   * Handle input command
+   */
+  bool xkeyboard_module::handle_event(string cmd) {
+    if (cmd.compare(0, strlen(EVENT_SWITCH), EVENT_SWITCH) != 0) {
+      return false;
+    }
+
+    size_t current_group{m_keyboard->current() + 1UL};
+
+    if (current_group >= m_keyboard->size()) {
+      current_group = 0;
+    }
+
+    printf("%zu\n", current_group);
+
+    xkb_util::switch_layout(m_connection, XCB_XKB_ID_USE_CORE_KBD, current_group);
+    m_keyboard->current(current_group);
+    m_connection.flush();
 
     return true;
   }

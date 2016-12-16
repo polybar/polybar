@@ -262,6 +262,8 @@ void controller::wait_for_eventloop() {
 }
 
 bool controller::on(const sig_ev::process_update& evt) {
+  bool force{evt.data()->flag};
+
   if (!m_bar) {
     return false;
   }

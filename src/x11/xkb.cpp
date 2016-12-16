@@ -7,7 +7,7 @@
 POLYBAR_NS
 
 /**
- * Get indicator name
+ * Get next layout index
  */
 const keyboard::indicator& keyboard::get(const indicator::type& i) const {
   return indicators.at(i);
@@ -70,7 +70,19 @@ const string keyboard::indicator_name(const indicator::type& i) const {
   return indicators.at(i).name;
 }
 
+size_t keyboard::size() const {
+  return layouts.size();
+}
+
 namespace xkb_util {
+  /**
+   * Get current group number
+   */
+  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, uint8_t index) {
+    xcb_xkb_latch_lock_state(conn, device, 0, 0, true, index, 0, 0, 0);
+    xcb_flush(conn);
+  }
+
   /**
    * Get current group number
    */

@@ -478,7 +478,6 @@ void bar::handle(const evt::button_press& evt) {
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   if (m_buttonpress.deny(evt->time)) {
     return m_log.trace_x("bar: Ignoring button press (throttled)...");
   }
