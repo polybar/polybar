@@ -416,6 +416,28 @@ void bar::broadcast_visibility() {
 }
 
 /**
+ * Event handler for XCB_DESTROY_NOTIFY events
+ */
+void bar::handle(const evt::client_message& evt) {
+  if (evt->type != WM_PROTOCOLS || evt->data.data32[0] != WM_DELETE_WINDOW) {
+    return;
+  }
+  if (evt->window == m_opts.window) {
+    m_log.err("Bar window has been destroyed, shutting down...");
+    m_connection.disconnect();
+  }
+}
+
+/**
+ * Event handler for XCB_DESTROY_NOTIFY events
+ */
+void bar::handle(const evt::destroy_notify& evt) {
+  if (evt->window == m_opts.window) {
+    m_connection.disconnect();
+  }
+}
+
+/**
  * Event handler for XCB_ENTER_NOTIFY events
  *
  * Used to brighten the window by setting the

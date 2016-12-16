@@ -59,18 +59,18 @@ namespace modules {
   // class definition : module_format {{{
 
   struct module_format {
-    string value;
-    vector<string> tags;
-    label_t prefix;
-    label_t suffix;
-    string fg;
-    string bg;
-    string ul;
-    string ol;
-    int spacing;
-    int padding;
-    int margin;
-    int offset;
+    string value{};
+    vector<string> tags{};
+    label_t prefix{};
+    label_t suffix{};
+    string fg{};
+    string bg{};
+    string ul{};
+    string ol{};
+    int spacing{};
+    int padding{};
+    int margin{};
+    int offset{};
 
     string decorate(builder* builder, string output);
   };
@@ -151,12 +151,12 @@ namespace modules {
     callback<> m_update_callback;
     callback<> m_stop_callback;
 
-    concurrency_util::spin_lock m_lock;
-
     const bar_settings m_bar;
     const logger& m_log;
     const config& m_conf;
 
+    std::mutex m_buildlock;
+    std::mutex m_updatelock;
     std::mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 

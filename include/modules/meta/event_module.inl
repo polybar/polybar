@@ -26,7 +26,7 @@ namespace modules {
         if (!CONST_MOD(Impl).running())
           break;
 
-        std::lock_guard<concurrency_util::spin_lock> guard(this->m_lock);
+        std::lock_guard<std::mutex> guard(this->m_updatelock);
         {
           if (!CAST_MOD(Impl)->has_event())
             continue;
@@ -34,7 +34,6 @@ namespace modules {
             break;
           if (!CAST_MOD(Impl)->update())
             continue;
-
           CAST_MOD(Impl)->broadcast();
         }
       }

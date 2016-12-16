@@ -336,7 +336,7 @@ bool controller::on(const sig_ev::process_update& evt) {
 
   try {
     if (!m_writeback) {
-      m_bar->parse(move(contents), evt());
+      m_bar->parse(move(contents), force);
     } else {
       std::cout << contents << std::endl;
     }
@@ -349,7 +349,7 @@ bool controller::on(const sig_ev::process_update& evt) {
 
 bool controller::on(const sig_ev::process_input& evt) {
   try {
-    string input{*evt()};
+    string input{*evt.data()};
 
     if (m_command) {
       m_log.warn("Terminating previous shell command");
@@ -378,7 +378,7 @@ bool controller::on(const sig_ui::button_press& evt) {
     return false;
   }
 
-  string input{*evt()};
+  string input{*evt.data()};
 
   if (input.empty()) {
     m_log.err("Cannot enqueue empty input");
@@ -389,7 +389,7 @@ bool controller::on(const sig_ui::button_press& evt) {
 }
 
 bool controller::on(const sig_ipc::process_action& evt) {
-  ipc_action a{*evt()};
+  ipc_action a{*evt.data()};
   string action{a.payload};
   action.erase(0, strlen(ipc_action::prefix));
 
@@ -403,7 +403,7 @@ bool controller::on(const sig_ipc::process_action& evt) {
 }
 
 bool controller::on(const sig_ipc::process_command& evt) {
-  ipc_command c{*evt()};
+  ipc_command c{*evt.data()};
   string command{c.payload};
   command.erase(0, strlen(ipc_command::prefix));
 
@@ -423,7 +423,7 @@ bool controller::on(const sig_ipc::process_command& evt) {
 }
 
 bool controller::on(const sig_ipc::process_hook& evt) {
-  const ipc_hook hook{*evt()};
+  const ipc_hook hook{*evt.data()};
 
   for (const auto& block : m_eventloop->modules()) {
     for (const auto& module : block.second) {

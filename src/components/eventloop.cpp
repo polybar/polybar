@@ -93,11 +93,11 @@ void eventloop::start() {
       if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
         handle_inputdata();
       } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-        m_sig.emit(process_quit{reinterpret_cast<event&&>(evt)});
+        m_sig.emit(process_quit{make_input_evt()});
       } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-        m_sig.emit(process_update{reinterpret_cast<event&&>(evt)});
+        m_sig.emit(process_update{make_update_evt(evt.flag)});
       } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
-        m_sig.emit(process_check{reinterpret_cast<event&&>(evt)});
+        m_sig.emit(process_check{make_check_evt()});
       } else {
         m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
@@ -241,7 +241,6 @@ bool eventloop::on(const process_check&) {
 }
 
 bool eventloop::on(const process_quit& evt) {
-  assert((*evt()).type == static_cast<uint8_t>(event_type::QUIT));
   const event quit{static_cast<const event>(*evt())};
   m_log.info("Processing QUIT event (reload=%i)", quit.flag);
   m_running = false;
@@ -254,7 +253,6 @@ bool eventloop::on(const enqueue_event& evt) {
 }
 
 bool eventloop::on(const enqueue_quit& evt) {
-  assert((*evt()).type == static_cast<uint8_t>(event_type::QUIT));
   if (m_running) {
     const event quit{reinterpret_cast<const event&>(*evt())};
     m_log.info("Enqueuing QUIT event (reload=%i)", quit.flag);
@@ -265,7 +263,6 @@ bool eventloop::on(const enqueue_quit& evt) {
 
 bool eventloop::on(const enqueue_update& evt) {
   event update{reinterpret_cast<const event&>(*evt())};
-  assert(update.type == static_cast<uint8_t>(event_type::UPDATE));
   m_log.trace("eventloop: enqueuing UPDATE event (force=%i)", update.flag);
   return enqueue(move(update));
 }
@@ -277,7 +274,6 @@ bool eventloop::on(const enqueue_input& evt) {
 
 bool eventloop::on(const enqueue_check& evt) {
   event check{reinterpret_cast<const event&>(*evt())};
-  assert(check.type == static_cast<uint8_t>(event_type::CHECK));
   m_log.trace("eventloop: enqueuing CHECK event");
   return enqueue(move(check));
 }

@@ -9,8 +9,7 @@ namespace xlib {
 
   shared_ptr<Display> get_display() {
     if (!g_display_ptr) {
-      // g_display_ptr = shared_ptr<Display>(XOpenDisplay(nullptr), bind(XCloseDisplay, placeholders::_1));
-      g_display_ptr = shared_ptr<Display>(XOpenDisplay(nullptr), factory_util::null_deleter{});
+      g_display_ptr = shared_ptr<Display>(XOpenDisplay(nullptr), [=](Display* ptr) { XCloseDisplay(ptr); });
     }
     return g_display_ptr;
   }

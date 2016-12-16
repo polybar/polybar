@@ -474,10 +474,6 @@ void renderer::debug_hints() {
       // clang-format on
   }};
 
-  for (auto&& hintwin : m_debughints) {
-    m_connection.destroy_window(hintwin);
-  }
-
   m_debughints.clear();
 
   for (auto&& action : m_actions) {

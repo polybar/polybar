@@ -58,7 +58,7 @@ namespace modules {
     }
 
     while (CONST_MOD(Impl).running()) {
-      std::unique_lock<concurrency_util::spin_lock> guard(this->m_lock);
+      std::unique_lock<std::mutex> guard(this->m_updatelock);
       {
         for (auto&& w : watches) {
           this->m_log.trace_x("%s: Poll inotify watch %s", CONST_MOD(Impl).name(), w->path());

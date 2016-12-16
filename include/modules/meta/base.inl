@@ -70,7 +70,8 @@ namespace modules {
 
     wakeup();
 
-    std::lock_guard<concurrency_util::spin_lock> guard(m_lock);
+    std::lock_guard<std::mutex> guard_a(m_buildlock);
+    std::lock_guard<std::mutex> guard_b(m_updatelock);
     {
       CAST_MOD(Impl)->teardown();
 
@@ -154,6 +155,7 @@ namespace modules {
       m_log.trace("%s: Module is disabled", name());
       return "";
     }
+    std::lock_guard<std::mutex> guard(m_buildlock);
 
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);

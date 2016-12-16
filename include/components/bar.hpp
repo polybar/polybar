@@ -22,7 +22,7 @@ class screen;
 class tray_manager;
 class logger;
 
-class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify, evt::leave_notify> {
+class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify, evt::leave_notify, evt::destroy_notify, evt::client_message> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make();
@@ -43,6 +43,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
+  void handle(const evt::client_message& evt);
+  void handle(const evt::destroy_notify& evt);
   void handle(const evt::enter_notify& evt);
   void handle(const evt::leave_notify& evt);
   void handle(const evt::button_press& evt);
