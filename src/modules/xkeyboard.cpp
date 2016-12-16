@@ -99,10 +99,10 @@ namespace modules {
    * Map format tags to content
    */
   bool xkeyboard_module::build(builder* builder, const string& tag) const {
-    builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
-
     if (tag == TAG_LABEL_LAYOUT) {
+      builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
       builder->node(m_layout);
+      builder->cmd_close();
     } else if (tag == TAG_LABEL_INDICATOR) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
@@ -115,8 +115,6 @@ namespace modules {
     } else {
       return false;
     }
-
-    builder->cmd_close();
 
     return true;
   }
