@@ -93,6 +93,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     m_opts.override_redirect = m_conf.get<bool>(bs, "override-redirect", m_opts.override_redirect);
   }
 
+  m_opts.dimvalue = m_conf.get<double>(bs, "dim-value", 1.0);
+  m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
+
   // Build WM_NAME
   m_opts.wmname = m_conf.get<string>(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
@@ -120,6 +123,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   actions.emplace_back(action{mousebtn::RIGHT, m_conf.get<string>(bs, "click-right", "")});
   actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get<string>(bs, "scroll-up", "")});
   actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get<string>(bs, "scroll-down", "")});
+  actions.emplace_back(action{mousebtn::DOUBLE_CLICK, m_conf.get<string>(bs, "click-double", "")});
 
   for (auto&& act : actions) {
     if (!act.command.empty()) {
@@ -216,6 +220,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
   m_opts.window = m_renderer->window();
+
+  // Subscribe to window enter and leave events
+  // if we should dim the window
+  if (m_opts.dimvalue != 1.0) {
+    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
+  }
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
   restack_window();
@@ -406,6 +416,34 @@ void bar::broadcast_visibility() {
 }
 
 /**
+ * Event handler for XCB_ENTER_NOTIFY events
+ *
+ * Used to brighten the window by setting the
+ * _NET_WM_WINDOW_OPACITY atom value
+ */
+void bar::handle(const evt::enter_notify&) {
+  if (m_opts.dimmed) {
+    window win{m_connection, m_opts.window};
+    wm_util::set_wm_window_opacity(m_connection, m_opts.window, 1.0 * 0xFFFFFFFF);
+    m_opts.dimmed = false;
+  }
+}
+
+/**
+ * Event handler for XCB_LEAVE_NOTIFY events
+ *
+ * Used to dim the window by setting the
+ * _NET_WM_WINDOW_OPACITY atom value
+ */
+void bar::handle(const evt::leave_notify&) {
+  if (!m_opts.dimmed) {
+    window win{m_connection, m_opts.window};
+    wm_util::set_wm_window_opacity(m_connection, m_opts.window, m_opts.dimvalue * 0xFFFFFFFF);
+    m_opts.dimmed = true;
+  }
+}
+
+/**
  * Event handler for XCB_BUTTON_PRESS events
  *
  * Used to map mouse clicks to bar actions
@@ -422,8 +460,13 @@ void bar::handle(const evt::button_press& evt) {
   }
 
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
+  mousebtn button{static_cast<mousebtn>(evt->detail)};
 
-  const mousebtn button{static_cast<mousebtn>(evt->detail)};
+  // Using the event_timer so if the event gets denied
+  // we are within the double click time window
+  if (button == mousebtn::LEFT && m_doubleclick.deny(evt->time)) {
+    button = mousebtn::DOUBLE_CLICK;
+  }
 
   for (auto&& action : m_renderer->get_actions()) {
     if (action.active) {

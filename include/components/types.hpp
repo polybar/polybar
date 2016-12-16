@@ -26,7 +26,7 @@ enum class syntaxtag : uint8_t {
   u,  // underline color
 };
 
-enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
+enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_CLICK };
 
 enum class strut : uint16_t {
   LEFT = 0U,
@@ -126,6 +126,9 @@ struct bar_settings {
   bool override_redirect{false};
 
   vector<action> actions{};
+
+  bool dimmed{false};
+  double dimvalue{1.0};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect{0, 0, size.w, size.h};

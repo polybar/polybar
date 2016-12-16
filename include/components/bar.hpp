@@ -22,7 +22,7 @@ class screen;
 class tray_manager;
 class logger;
 
-class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify> {
+class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify, evt::leave_notify> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make();
@@ -43,6 +43,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
+  void handle(const evt::enter_notify& evt);
+  void handle(const evt::leave_notify& evt);
   void handle(const evt::button_press& evt);
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
@@ -63,6 +65,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   std::mutex m_mutex{};
 
   event_timer m_buttonpress{0L, 5L};
+  event_timer m_doubleclick{0L, 250L};
 };
 
 POLYBAR_NS_END

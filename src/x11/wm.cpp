@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <xcb/xcb_icccm.h>
 
+#include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/wm.hpp"
 
@@ -34,6 +35,15 @@ namespace wm_util {
   void set_wm_desktop(xcb_connection_t* conn, xcb_window_t win, uint32_t desktop) {
     const uint32_t value_list[1]{desktop};
     xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, _NET_WM_DESKTOP, XCB_ATOM_CARDINAL, 32, 1, value_list);
+  }
+
+  void set_wm_window_opacity(xcb_connection_t* conn, xcb_window_t win, uint64_t values) {
+    xcb_intern_atom_reply_t* reply{xcb_intern_atom_reply(conn, xcb_intern_atom(conn, false, 22, "_NET_WM_WINDOW_OPACITY"), nullptr)};
+    if (reply) {
+      xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, reply->atom, XCB_ATOM_CARDINAL, 32, 1, &values);
+      xcb_flush(conn);
+      free(reply);
+    }
   }
 }
 
