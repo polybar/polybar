@@ -1146,4 +1146,12 @@ bool tray_manager::on(const visibility_change& evt) {
   return true;
 }
 
+bool tray_manager::on(const dim_window& evt) {
+  if (m_activated) {
+    wm_util::set_wm_window_opacity(m_connection, m_tray, *evt.data() * 0xFFFFFFFF);
+  }
+  // let the event bubble
+  return false;
+}
+
 POLYBAR_NS_END

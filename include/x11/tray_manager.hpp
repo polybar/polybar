@@ -63,7 +63,7 @@ struct tray_settings {
 class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
                          evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
                          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
-                     public signal_receiver<SIGN_PRIORITY_TRAY, visibility_change> {
+                     public signal_receiver<SIGN_PRIORITY_TRAY, visibility_change, dim_window> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make();
@@ -128,6 +128,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void handle(const evt::unmap_notify& evt);
 
   bool on(const visibility_change& evt);
+  bool on(const dim_window& evt);
 
  private:
   connection& m_connection;

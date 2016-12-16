@@ -25,6 +25,7 @@ namespace signals {
   namespace ui {
     struct button_press;
     struct visibility_change;
+    struct dim_window;
   }
   namespace parser {
     struct change_background;

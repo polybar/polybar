@@ -80,6 +80,9 @@ namespace signals {
       const ValueType* operator()() const {
         return reinterpret_cast<const ValueType*>(&m_data);
       }
+      const ValueType* data() const {
+        return reinterpret_cast<const ValueType*>(&m_data);
+      }
 
      private:
       char m_data[sizeof(ValueType)];
@@ -112,6 +115,7 @@ namespace signals {
   namespace ui {
     DEFINE_VALUE_SIGNAL(50, button_press, string);
     DEFINE_VALUE_SIGNAL(51, visibility_change, bool);
+    DEFINE_VALUE_SIGNAL(52, dim_window, double);
   }
 
   namespace parser {

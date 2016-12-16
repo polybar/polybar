@@ -425,6 +425,7 @@ void bar::handle(const evt::enter_notify&) {
   if (m_opts.dimmed) {
     window win{m_connection, m_opts.window};
     wm_util::set_wm_window_opacity(m_connection, m_opts.window, 1.0 * 0xFFFFFFFF);
+    m_sig.emit(dim_window{1.0});
     m_opts.dimmed = false;
   }
 }
@@ -439,6 +440,7 @@ void bar::handle(const evt::leave_notify&) {
   if (!m_opts.dimmed) {
     window win{m_connection, m_opts.window};
     wm_util::set_wm_window_opacity(m_connection, m_opts.window, m_opts.dimvalue * 0xFFFFFFFF);
+    m_sig.emit(dim_window{double{m_opts.dimvalue}});
     m_opts.dimmed = true;
   }
 }
