@@ -18,6 +18,9 @@ endif()
 if(NOT ENABLE_I3)
   list(REMOVE_ITEM SOURCES modules/i3.cpp utils/i3.cpp)
 endif()
+if(NOT ENABLE_CURL)
+  list(REMOVE_ITEM SOURCES utils/http.cpp modules/github.cpp)
+endif()
 
 if(NOT WITH_XCOMPOSITE)
   list(REMOVE_ITEM SOURCES x11/composite.cpp)
@@ -128,6 +131,16 @@ if(ENABLE_I3)
 endif()
 
 # }}}
+# Optional dependency: i3ipcpp {{{
+
+if(ENABLE_CURL)
+  find_package(CURL REQUIRED)
+  set(APP_LIBRARIES ${APP_LIBRARIES} ${CURL_LIBRARY})
+  set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${CURL_INCLUDE_DIR})
+endif()
+
+# }}}
+
 # Create executable target {{{
 
 make_executable(${PROJECT_NAME} SOURCES

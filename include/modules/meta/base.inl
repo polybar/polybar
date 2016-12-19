@@ -25,6 +25,9 @@ namespace modules {
         thread_.join();
       }
     }
+    if (m_mainthread.joinable()) {
+      m_mainthread.join();
+    }
   }
 
   template <typename Impl>
@@ -44,7 +47,7 @@ namespace modules {
 
   template <typename Impl>
   bool module<Impl>::running() const {
-    return m_enabled.load(std::memory_order_relaxed);
+    return static_cast<bool>(m_enabled);
   }
 
   template <typename Impl>
@@ -66,22 +69,18 @@ namespace modules {
     }
 
     m_log.info("%s: Stopping", name());
-    m_enabled.store(false, std::memory_order_relaxed);
+    m_enabled = false;
 
-    wakeup();
-
-    std::lock_guard<std::mutex> guard_a(m_buildlock);
-    std::lock_guard<std::mutex> guard_b(m_updatelock);
+    std::lock(m_buildlock, m_updatelock);
+    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
+    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
     {
+      CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
 
-      if (m_mainthread.joinable()) {
-        m_mainthread.join();
+      if (m_stop_callback) {
+        m_stop_callback();
       }
-    }
-
-    if (m_stop_callback) {
-      m_stop_callback();
     }
   }
 

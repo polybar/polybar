@@ -34,6 +34,14 @@ if(NOT DEFINED ENABLE_I3 AND NOT I3_BINARY)
 endif()
 
 # }}}
+# Default value for: ENABLE_CURL {{{
+
+find_package(CURL QUIET)
+if(NOT DEFINED ENABLE_CURL AND NOT CURL_FOUND)
+  set(ENABLE_CURL OFF CACHE STRING "Module support for libcurl")
+endif()
+
+# }}}
 
 # Define build options {{{
 
@@ -47,6 +55,7 @@ option(DEBUG_HINTS        "Enable hints rendering"     OFF)
 
 option(ENABLE_CCACHE      "Enable ccache support"      OFF)
 option(ENABLE_ALSA        "Enable alsa support"        ON)
+option(ENABLE_CURL        "Enable curl support"        ON)
 option(ENABLE_I3          "Enable i3 support"          ON)
 option(ENABLE_MPD         "Enable mpd support"         ON)
 option(ENABLE_NETWORK     "Enable network support"     ON)

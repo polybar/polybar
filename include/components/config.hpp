@@ -5,6 +5,7 @@
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "utils/env.hpp"
+#include "utils/file.hpp"
 #include "utils/string.hpp"
 #include "x11/xresources.hpp"
 
@@ -196,6 +197,8 @@ class config {
       return dereference_env<T>(path.substr(4), fallback);
     } else if (path.compare(0, 5, "xrdb:") == 0) {
       return dereference_xrdb<T>(path.substr(5), fallback);
+    } else if (path.compare(0, 5, "file:") == 0) {
+      return dereference_file<T>(path.substr(5), fallback);
     } else if ((pos = path.find(".")) != string::npos) {
       return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
@@ -272,6 +275,21 @@ class config {
 
     string str{m_xrm.get_string(var, "")};
     return str.empty() ? fallback : convert<T>(move(str));
+  }
+
+  /**
+   * Dereference file reference by reading its contents
+   *  ${file:/absolute/file/path}
+   */
+  template <typename T>
+  T dereference_file(string var, const T& fallback) const {
+    string filename{move(var)};
+
+    if (file_util::exists(filename)) {
+      return convert<T>(string_util::trim(file_util::get_contents(filename), '\n'));
+    }
+
+    return fallback;
   }
 
  private:

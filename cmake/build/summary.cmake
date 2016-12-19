@@ -51,6 +51,7 @@ colored_option(STATUS " Draw debug hints     ${DEBUG_HINTS}" DEBUG_HINTS "32;1" 
 colored_option(STATUS " Enable ccache        ${ENABLE_CCACHE}" ENABLE_CCACHE "32;1" "37;2")
 message(STATUS "--------------------------")
 colored_option(STATUS " Enable alsa          ${ENABLE_ALSA}" ENABLE_ALSA "32;1" "37;2")
+colored_option(STATUS " Enable curl          ${ENABLE_CURL}" ENABLE_CURL "32;1" "37;2")
 colored_option(STATUS " Enable i3            ${ENABLE_I3}" ENABLE_I3 "32;1" "37;2")
 colored_option(STATUS " Enable mpd           ${ENABLE_MPD}" ENABLE_MPD "32;1" "37;2")
 colored_option(STATUS " Enable network       ${ENABLE_NETWORK}" ENABLE_NETWORK "32;1" "37;2")

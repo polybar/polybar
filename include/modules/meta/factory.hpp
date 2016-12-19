@@ -31,10 +31,13 @@
 #if ENABLE_ALSA
 #include "modules/volume.hpp"
 #endif
+#if ENABLE_CURL
+#include "modules/github.hpp"
+#endif
 #if WITH_XKB
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && WITH_XKB)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && WITH_XKB)
 #include "modules/unsupported.hpp"
 #endif
 
@@ -57,6 +60,8 @@ namespace {
       return new cpu_module(forward<Args>(args)...);
     } else if (name == "internal/date") {
       return new date_module(forward<Args>(args)...);
+    } else if (name == "internal/github") {
+      return new github_module(forward<Args>(args)...);
     } else if (name == "internal/fs") {
       return new fs_module(forward<Args>(args)...);
     } else if (name == "internal/memory") {

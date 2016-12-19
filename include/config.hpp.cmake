@@ -16,6 +16,7 @@
 #cmakedefine01 ENABLE_MPD
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 ENABLE_I3
+#cmakedefine01 ENABLE_CURL
 
 #cmakedefine01 WITH_XRANDR
 #cmakedefine01 WITH_XRENDER
@@ -78,6 +79,7 @@ auto print_build_info = [](bool extended = false) {
             << "\n"
             << "Features: "
             << (ENABLE_ALSA    ? "+" : "-") << "alsa "
+            << (ENABLE_CURL    ? "+" : "-") << "curl "
             << (ENABLE_I3      ? "+" : "-") << "i3 "
             << (ENABLE_MPD     ? "+" : "-") << "mpd "
             << (ENABLE_NETWORK ? "+" : "-") << "network "

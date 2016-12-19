@@ -1,5 +1,5 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && WITH_XKB
+#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && WITH_XKB
 #error "Support has been enabled for all optional modules"
 #endif
 
@@ -9,7 +9,7 @@
 #if not(ENABLE_ALSA && ENABLE_I3 && ENABLE_MPD)
 #include "modules/meta/event_module.inl"
 #endif
-#if not ENABLE_NETWORK
+#if not(ENABLE_NETWORK && ENABLE_CURL)
 #include "modules/meta/timer_module.inl"
 #endif
 #if not WITH_XKB
@@ -61,6 +61,9 @@ namespace modules {
 #endif
 #if not ENABLE_ALSA
   DEFINE_UNSUPPORTED_MODULE(volume_module, "internal/volume");
+#endif
+#if not ENABLE_CURL
+  DEFINE_UNSUPPORTED_MODULE(github_module, "internal/github");
 #endif
 #if not WITH_XKB
   DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
