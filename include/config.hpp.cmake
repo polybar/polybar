@@ -87,6 +87,7 @@ auto print_build_info = [](bool extended = false) {
     return;
   std::cout << "\n"
             << "Build type: @CMAKE_BUILD_TYPE@" << "\n"
+            << "Compiler: @CMAKE_CXX_COMPILER@" << "\n"
             << "Compiler flags: @CMAKE_CXX_FLAGS@" << "\n"
             << "Linker flags: @CMAKE_EXE_LINKER_FLAGS@" << "\n"
             << "\n"
