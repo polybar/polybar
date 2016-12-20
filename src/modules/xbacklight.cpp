@@ -132,14 +132,19 @@ namespace modules {
    */
   string xbacklight_module::get_output() {
     // Get the module output early so that
-    // the format prefix/suffix also gets wrapper
+    // the format prefix/suffix also gets wrapped
     // with the cmd handlers
     string output{module::get_output()};
+    bool scroll_up{m_scroll && m_percentage < 100};
+    bool scroll_down{m_scroll && m_percentage > 0};
 
-    m_builder->cmd(mousebtn::SCROLL_UP, string{EVENT_SCROLLUP}, m_scroll && m_percentage < 100);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_SCROLLDOWN}, m_scroll && m_percentage > 0);
+    m_builder->cmd(mousebtn::SCROLL_UP, string{EVENT_SCROLLUP}, scroll_up);
+    m_builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_SCROLLDOWN}, scroll_down);
 
     m_builder->append(output);
+
+    m_builder->cmd_close(scroll_down);
+    m_builder->cmd_close(scroll_up);
 
     return m_builder->flush();
   }
