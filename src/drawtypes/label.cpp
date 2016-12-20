@@ -11,7 +11,7 @@ namespace drawtypes {
   }
 
   label::operator bool() {
-    return !m_text.empty();
+    return !m_tokenized.empty();
   }
 
   label_t label::clone() {
