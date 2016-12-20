@@ -536,9 +536,9 @@ void bar::handle(const evt::button_press& evt) {
     m_log.warn("No matching input area found (btn=%i)", static_cast<uint8_t>(m_buttonpress_btn));
   };
 
-  const auto check_double = [&](const xcb_timestamp_t& timestamp, string&& id, mousebtn&& btn) {
+  const auto check_double = [&](string&& id, mousebtn&& btn) {
     if (!m_taskqueue->has_deferred(string{id})) {
-      m_doubleclick.event = move(timestamp);
+      m_doubleclick.event = evt->time;
       m_taskqueue->defer_unique(string{id}, chrono::milliseconds{m_doubleclick.offset}, deferred_fn);
     } else if (m_doubleclick.deny(evt->time)) {
       m_doubleclick.event = 0;
@@ -548,11 +548,11 @@ void bar::handle(const evt::button_press& evt) {
   };
 
   if (evt->detail == static_cast<uint8_t>(mousebtn::LEFT)) {
-    check_double(evt->time, "buttonpress-left", mousebtn::LEFT);
+    check_double("buttonpress-left", mousebtn::DOUBLE_LEFT);
   } else if (evt->detail == static_cast<uint8_t>(mousebtn::MIDDLE)) {
-    check_double(evt->time, "buttonpress-middle", mousebtn::MIDDLE);
+    check_double("buttonpress-middle", mousebtn::DOUBLE_MIDDLE);
   } else if (evt->detail == static_cast<uint8_t>(mousebtn::RIGHT)) {
-    check_double(evt->time, "buttonpress-right", mousebtn::RIGHT);
+    check_double("buttonpress-right", mousebtn::DOUBLE_RIGHT);
   } else {
     deferred_fn();
   }
