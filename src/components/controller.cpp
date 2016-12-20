@@ -29,7 +29,9 @@ sig_atomic_t g_terminate{0};
 void interrupt_handler(int signum) {
   g_terminate = 1;
   g_reload = (signum == SIGUSR1);
-  write(g_eventpipe[PIPE_WRITE], &g_terminate, 1);
+  if (write(g_eventpipe[PIPE_WRITE], &g_terminate, 1) == -1) {
+    throw system_error("Failed to write to eventpipe");
+  }
 }
 
 /**
@@ -187,7 +189,9 @@ bool controller::enqueue(event&& evt) {
     m_log.warn("Failed to enqueue event");
     return false;
   }
-  write(g_eventpipe[PIPE_WRITE], " ", 1);
+  if (write(g_eventpipe[PIPE_WRITE], " ", 1) == -1) {
+    m_log.err("Failed to write to eventpipe (reason: %s)", strerror(errno));
+  }
   return true;
 }
 
@@ -251,7 +255,9 @@ void controller::read_events() {
     if (fd_event && FD_ISSET(fd_event, &readfds)) {
       process_eventqueue();
       char buffer[BUFSIZ]{'\0'};
-      read(fd_event, &buffer, BUFSIZ);
+      if (read(fd_event, &buffer, BUFSIZ) == -1) {
+        m_log.err("Failed to read from eventpipe (err: %s)", strerror(errno));
+      }
     }
 
     // Process event on the config inotify watch fd
