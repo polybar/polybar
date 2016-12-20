@@ -32,17 +32,20 @@ function main
   local enable_i3="ON"
   local enable_network="ON"
   local enable_mpd="ON"
+  local enable_curl="ON"
 
   msg "Setting build options"
 
-  read -r -p "$(msg "Enable i3 module ------- [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
-  read -r -p "$(msg "Enable volume module --- [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/volume\" (requires alsalib) ---------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
-  read -r -p "$(msg "Enable network module -- [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
-  read -r -p "$(msg "Enable mpd module ------ [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
+  read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
 
   local cxx="c++"
   local cc="cc"
@@ -65,6 +68,7 @@ function main
     -DENABLE_I3:BOOL="${enable_i3}"           \
     -DENABLE_MPD:BOOL="${enable_mpd}"         \
     -DENABLE_NETWORK:BOOL="${enable_network}" \
+    -DENABLE_CURL:BOOL="${enable_curl}"       \
     .. || msg_err "Failed to generate build... read output to get a hint of what went wrong"
 
   msg "Building project"

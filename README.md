@@ -76,10 +76,11 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-util-image
 
 Optional dependencies for extended module support:
-- jsoncpp (required by `internal/i3`)
-- wireless_tools (required by `internal/network`)
 - alsa-lib (required by `internal/volume`)
+- jsoncpp (required by `internal/i3`)
 - libmpdclient (required by `internal/mpd`)
+- libcurl (required by `internal/github`)
+- wireless_tools (required by `internal/network`)
 
 ~~~ sh
 # required
