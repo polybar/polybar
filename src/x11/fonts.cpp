@@ -67,11 +67,11 @@ void font_manager::cleanup() {
   }
 }
 
-bool font_manager::load(const string& name, int8_t fontindex, int8_t offset_y) {
-  if (fontindex != DEFAULT_FONT_INDEX && m_fonts.find(fontindex) != m_fonts.end()) {
+bool font_manager::load(const string& name, uint8_t fontindex, int8_t offset_y) {
+  if (fontindex > 0 && m_fonts.find(fontindex) != m_fonts.end()) {
     m_logger.warn("A font with index '%i' has already been loaded, skip...", fontindex);
     return false;
-  } else if (fontindex == DEFAULT_FONT_INDEX) {
+  } else if (fontindex == 0) {
     fontindex = m_fonts.size();
     m_logger.trace("font_manager: Assign font '%s' to index '%d'", name.c_str(), fontindex);
   } else {
@@ -126,43 +126,35 @@ bool font_manager::load(const string& name, int8_t fontindex, int8_t offset_y) {
   return true;
 }
 
-void font_manager::set_preferred_font(int8_t index) {
-  if (index <= 0) {
-    m_fontindex = DEFAULT_FONT_INDEX;
-    return;
-  }
-
-  for (auto&& font : m_fonts) {
-    if (font.first == index) {
-      m_fontindex = index;
-      break;
+void font_manager::fontindex(uint8_t index) {
+  if ((m_fontindex = index) > 0) {
+    for (auto&& font : m_fonts) {
+      if (font.first == index) {
+        m_fontindex = index;
+        break;
+      }
     }
   }
 }
 
 shared_ptr<font_ref> font_manager::match_char(const uint16_t chr) {
-  if (m_fonts.empty()) {
-    return {};
-  }
-
-  if (m_fontindex != DEFAULT_FONT_INDEX && static_cast<size_t>(m_fontindex) <= m_fonts.size()) {
-    auto iter = m_fonts.find(m_fontindex);
-    if (iter == m_fonts.end() || !iter->second) {
-      return {};
-    } else if (has_glyph_xft(iter->second, chr)) {
-      return iter->second;
-    } else if (has_glyph_xcb(iter->second, chr)) {
-      return iter->second;
+  if (!m_fonts.empty()) {
+    if (m_fontindex > 0 && static_cast<size_t>(m_fontindex) <= m_fonts.size()) {
+      auto iter = m_fonts.find(m_fontindex);
+      if (iter != m_fonts.end() && iter->second) {
+        if (has_glyph_xft(iter->second, chr)) {
+          return iter->second;
+        } else if (has_glyph_xcb(iter->second, chr)) {
+          return iter->second;
+        }
+      }
     }
-  }
-
-  for (auto&& font : m_fonts) {
-    if (!font.second) {
-      return {};
-    } else if (has_glyph_xft(font.second, chr)) {
-      return font.second;
-    } else if (has_glyph_xcb(font.second, chr)) {
-      return font.second;
+    for (auto&& font : m_fonts) {
+      if (font.second && has_glyph_xft(font.second, chr)) {
+        return font.second;
+      } else if (font.second && has_glyph_xcb(font.second, chr)) {
+        return font.second;
+      }
     }
   }
 

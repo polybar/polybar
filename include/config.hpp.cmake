@@ -61,7 +61,6 @@ static constexpr const char* PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
 static constexpr const char* PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
 static constexpr const char* PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
 
-static const int8_t DEFAULT_FONT_INDEX{-1};
 static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
 
 auto version_details = [](const std::vector<std::string>& args) {

@@ -58,8 +58,8 @@ class font_manager {
   void set_visual(shared_ptr<Visual>&& v);
 
   void cleanup();
-  bool load(const string& name, int8_t fontindex = DEFAULT_FONT_INDEX, int8_t offset_y = 0);
-  void set_preferred_font(int8_t index);
+  bool load(const string& name, uint8_t fontindex = 0, int8_t offset_y = 0);
+  void fontindex(uint8_t index);
   shared_ptr<font_ref> match_char(const uint16_t chr);
   uint8_t glyph_width(const shared_ptr<font_ref>& font, const uint16_t chr);
   void drawtext(const shared_ptr<font_ref>& font, xcb_pixmap_t pm, xcb_gcontext_t gc, int16_t x, int16_t y,
@@ -88,7 +88,7 @@ class font_manager {
   Colormap m_colormap;
 
   map<uint8_t, shared_ptr<font_ref>> m_fonts{};
-  int8_t m_fontindex{DEFAULT_FONT_INDEX};
+  uint8_t m_fontindex{0};
 
   XftDraw* m_xftdraw{nullptr};
   XftColor m_xftcolor{};

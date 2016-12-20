@@ -117,7 +117,7 @@ namespace signals {
     DEFINE_VALUE_SIGNAL(71, change_foreground, uint32_t);
     DEFINE_VALUE_SIGNAL(72, change_underline, uint32_t);
     DEFINE_VALUE_SIGNAL(73, change_overline, uint32_t);
-    DEFINE_VALUE_SIGNAL(74, change_font, int8_t);
+    DEFINE_VALUE_SIGNAL(74, change_font, uint8_t);
     DEFINE_VALUE_SIGNAL(75, change_alignment, alignment);
     DEFINE_VALUE_SIGNAL(76, offset_pixel, int16_t);
     DEFINE_VALUE_SIGNAL(77, attribute_set, attribute);

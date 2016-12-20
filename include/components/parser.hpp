@@ -33,7 +33,7 @@ class parser {
   size_t text(string&& data);
 
   uint32_t parse_color(const string& s, uint32_t fallback = 0);
-  int8_t parse_fontindex(const string& s);
+  uint8_t parse_fontindex(const string& s);
   attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
   string parse_action_cmd(string&& data);

@@ -47,7 +47,7 @@ class renderer
   void set_foreground(const uint32_t color);
   void set_underline(const uint32_t color);
   void set_overline(const uint32_t color);
-  void set_fontindex(const int8_t font);
+  void set_fontindex(const uint8_t font);
   void set_alignment(const alignment align);
   void set_attribute(const attribute attr, const bool state);
   void toggle_attribute(const attribute attr);
@@ -123,7 +123,7 @@ class renderer
   alignment m_alignment{alignment::NONE};
   map<gc, uint32_t> m_colors;
   uint8_t m_attributes{0U};
-  int8_t m_fontindex{DEFAULT_FONT_INDEX};
+  uint8_t m_fontindex{0};
 
   xcb_font_t m_gcfont{XCB_NONE};
 };

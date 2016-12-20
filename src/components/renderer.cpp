@@ -566,13 +566,13 @@ bool renderer::on(const change_overline& evt) {
 }
 
 bool renderer::on(const change_font& evt) {
-  int8_t font{*evt()};
+  uint8_t font{*evt()};
 
   if (m_fontindex == font) {
-    m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<int8_t>(font));
+    m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<uint8_t>(font));
   } else {
-    m_log.trace_x("renderer: set_fontindex(%i)", static_cast<int8_t>(font));
-    m_fontmanager->set_preferred_font(font);
+    m_log.trace_x("renderer: fontindex(%i)", static_cast<uint8_t>(font));
+    m_fontmanager->fontindex(font);
     m_fontindex = font;
   }
 

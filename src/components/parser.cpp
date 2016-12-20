@@ -227,15 +227,15 @@ uint32_t parser::parse_color(const string& s, uint32_t fallback) {
 /**
  * Process font index and convert it to the correct value
  */
-int8_t parser::parse_fontindex(const string& s) {
+uint8_t parser::parse_fontindex(const string& s) {
   if (s.empty() || s[0] == '-') {
-    return -1;
+    return 0;
   }
 
   try {
     return std::stoul(s, nullptr, 10);
   } catch (const std::invalid_argument& err) {
-    return -1;
+    return 0;
   }
 }
 
