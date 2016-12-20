@@ -24,6 +24,7 @@ namespace modules {
     label_t m_label{};
     string m_accesstoken{};
     unique_ptr<http_downloader> m_http{};
+    bool m_empty_notifications{false};
   };
 }
 

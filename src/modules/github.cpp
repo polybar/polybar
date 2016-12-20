@@ -21,7 +21,8 @@ namespace modules {
    */
   void github_module::setup() {
     m_accesstoken = m_conf.get<string>(name(), "token");
-    m_interval = m_conf.get<chrono::seconds>(name(), "interval", 60s);
+    m_interval = m_conf.get(name(), "interval", 60s);
+    m_empty_notifications = m_conf.get(name(), "empty-notifications", m_empty_notifications);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
@@ -57,7 +58,7 @@ namespace modules {
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%notifications%", to_string(notifications));
+      m_label->replace_token("%notifications%", notifications || m_empty_notifications ? to_string(notifications) : "");
     }
 
     return true;
