@@ -1,11 +1,9 @@
 #pragma once
 
 #include <chrono>
-#include <csignal>
 
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
-#include "utils/concurrency.hpp"
 
 POLYBAR_NS
 

@@ -5,6 +5,7 @@
 #include "components/bar.hpp"
 #include "components/config.hpp"
 #include "components/parser.hpp"
+#include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -40,7 +41,8 @@ bar::make_type bar::make() {
         config::make(),
         logger::make(),
         screen::make(),
-        tray_manager::make());
+        tray_manager::make(),
+        parser::make());
   // clang-format on
 }
 
@@ -50,13 +52,14 @@ bar::make_type bar::make() {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
-    unique_ptr<screen> screen, unique_ptr<tray_manager> tray_manager)
+    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
     , m_log(logger)
-    , m_screen(move(screen))
-    , m_tray(move(tray_manager)) {
+    , m_screen(forward<decltype(screen)>(screen))
+    , m_tray(forward<decltype(tray_manager)>(tray_manager))
+    , m_parser(forward<decltype(parser)>(parser)) {
   string bs{m_conf.section()};
 
   // Get available RandR outputs
@@ -67,6 +70,14 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
+  }
+
+  if (monitor_name.empty() && !monitor_strictmode) {
+    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
+    if (!connected_monitors.empty()) {
+      monitor_name = connected_monitors[0]->name;
+      m_log.warn("No monitor specified, using \"%s\"", monitor_name);
+    }
   }
 
   if (monitor_name.empty()) {
@@ -99,7 +110,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
-  m_log.trace("bar: Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
+  m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
   try {
@@ -316,10 +327,7 @@ void bar::parse(const string& data, bool force) {
   m_renderer->fill_background();
 
   try {
-    if (!data.empty()) {
-      parser parser{m_sig, m_opts};
-      parser(data);
-    }
+    m_parser->parse(settings(), data);
   } catch (const parser_error& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }

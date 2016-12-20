@@ -13,6 +13,12 @@ class connection;
 class config;
 
 namespace xutils {
+  struct xcb_connection_deleter {
+    void operator()(xcb_connection_t* c) {
+      xcb_disconnect(c);
+    }
+  };
+
   shared_ptr<xcb_connection_t> get_connection();
   int get_connection_fd();
 

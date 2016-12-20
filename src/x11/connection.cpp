@@ -161,21 +161,6 @@ void connection::send_client_message(const shared_ptr<xcb_client_message_event_t
 }
 
 /**
- * Sends a dummy event to the specified window
- * Used to interrupt blocking wait call
- *
- * @XXX: Find the proper way to interrupt the blocking wait
- * except the obvious event polling
- */
-void connection::send_dummy_event(xcb_window_t target, uint32_t event) const {
-  if (target == XCB_NONE) {
-    target = root();
-  }
-  auto message = make_client_message(XCB_VISIBILITY_NOTIFY, target);
-  send_client_message(message, target, event);
-}
-
-/**
  * Try to get a visual type for the given screen that
  * matches the given depth
  */

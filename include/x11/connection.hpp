@@ -71,8 +71,6 @@ class connection : public xpp_connection {
   void send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
       uint32_t event_mask = 0xFFFFFF, bool propagate = false) const;
 
-  void send_dummy_event(xcb_window_t target, uint32_t event = XCB_EVENT_MASK_STRUCTURE_NOTIFY) const;
-
   xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);
 
   static string error_str(int error_code);

@@ -5,6 +5,7 @@
 #include "events/signal_emitter.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
+#include "utils/file.hpp"
 
 POLYBAR_NS
 
@@ -36,20 +37,18 @@ class ipc {
   using make_type = unique_ptr<ipc>;
   static make_type make();
 
-  explicit ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {}
+  explicit ipc(signal_emitter& emitter, const logger& logger);
   ~ipc();
 
-  void receive_messages();
-
- protected:
-  void parse(const string& payload) const;
+  void receive_message();
+  int get_file_descriptor() const;
 
  private:
   signal_emitter& m_sig;
   const logger& m_log;
-  string m_fifo{};
-  int m_fd{0};
-  stateflag m_running{false};
+
+  string m_path{};
+  shared_ptr<file_descriptor> m_fd{};
 };
 
 POLYBAR_NS_END

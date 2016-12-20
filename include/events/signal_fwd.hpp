@@ -5,17 +5,11 @@
 POLYBAR_NS
 
 namespace signals {
-  namespace eventloop {
+  namespace eventqueue {
     struct process_quit;
     struct process_update;
     struct process_input;
     struct process_check;
-
-    struct enqueue_event;
-    struct enqueue_quit;
-    struct enqueue_update;
-    struct enqueue_input;
-    struct enqueue_check;
   }
   namespace ipc {
     struct process_command;

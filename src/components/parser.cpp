@@ -13,19 +13,26 @@ POLYBAR_NS
 using namespace signals::parser;
 
 /**
+ * Create instance
+ */
+parser::make_type parser::make() {
+  return factory_util::unique<parser>(signal_emitter::make());
+}
+
+/**
  * Construct parser instance
  */
-parser::parser(signal_emitter& emitter, const bar_settings& bar) : m_sig(emitter), m_bar(bar) {}
+parser::parser(signal_emitter& emitter) : m_sig(emitter) {}
 
 /**
  * Process input string
  */
-void parser::operator()(string data) {
+void parser::parse(const bar_settings& bar, string data) {
   while (!data.empty()) {
     size_t pos{string::npos};
 
     if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
-      codeblock(data.substr(2, pos - 2));
+      codeblock(data.substr(2, pos - 2), bar);
       data.erase(0, pos + 1);
     } else if ((pos = data.find("%{")) != string::npos) {
       data.erase(0, text(data.substr(0, pos)));
@@ -42,7 +49,7 @@ void parser::operator()(string data) {
 /**
  * Process contents within tag blocks, i.e: %{...}
  */
-void parser::codeblock(string&& data) {
+void parser::codeblock(string&& data, const bar_settings& bar) {
   size_t pos;
 
   while (data.length()) {
@@ -66,11 +73,11 @@ void parser::codeblock(string&& data) {
 
     switch (tag) {
       case 'B':
-        m_sig.emit(change_background{parse_color(value, m_bar.background)});
+        m_sig.emit(change_background{parse_color(value, bar.background)});
         break;
 
       case 'F':
-        m_sig.emit(change_foreground{parse_color(value, m_bar.foreground)});
+        m_sig.emit(change_foreground{parse_color(value, bar.foreground)});
         break;
 
       case 'T':
@@ -78,21 +85,21 @@ void parser::codeblock(string&& data) {
         break;
 
       case 'U':
-        m_sig.emit(change_underline{parse_color(value, m_bar.underline.color)});
-        m_sig.emit(change_overline{parse_color(value, m_bar.overline.color)});
+        m_sig.emit(change_underline{parse_color(value, bar.underline.color)});
+        m_sig.emit(change_overline{parse_color(value, bar.overline.color)});
         break;
 
       case 'u':
-        m_sig.emit(change_underline{parse_color(value, m_bar.underline.color)});
+        m_sig.emit(change_underline{parse_color(value, bar.underline.color)});
         break;
 
       case 'o':
-        m_sig.emit(change_overline{parse_color(value, m_bar.overline.color)});
+        m_sig.emit(change_overline{parse_color(value, bar.overline.color)});
         break;
 
       case 'R':
-        m_sig.emit(change_background{parse_color(value, m_bar.foreground)});
-        m_sig.emit(change_foreground{parse_color(value, m_bar.background)});
+        m_sig.emit(change_background{parse_color(value, bar.foreground)});
+        m_sig.emit(change_foreground{parse_color(value, bar.background)});
         break;
 
       case 'O':

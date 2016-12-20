@@ -29,8 +29,6 @@ namespace alsa {
     void process_events();
 
    private:
-    std::mutex m_lock{};
-
     int m_numid{0};
 
     snd_ctl_t* m_ctl{nullptr};

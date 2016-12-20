@@ -100,9 +100,10 @@ namespace modules {
    */
   bool xkeyboard_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_LAYOUT) {
-      builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
+      bool precond{m_keyboard && m_keyboard->size() > 1};
+      builder->cmd(mousebtn::LEFT, EVENT_SWITCH, precond);
       builder->node(m_layout);
-      builder->cmd_close();
+      builder->cmd_close(precond);
     } else if (tag == TAG_LABEL_INDICATOR) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
@@ -138,6 +139,8 @@ namespace modules {
     xkb_util::switch_layout(m_connection, XCB_XKB_ID_USE_CORE_KBD, current_group);
     m_keyboard->current(current_group);
     m_connection.flush();
+
+    update();
 
     return true;
   }

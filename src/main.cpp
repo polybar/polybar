@@ -1,20 +1,24 @@
 #include <X11/Xlib-xcb.h>
 
 #include "common.hpp"
+#include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
 #include "components/controller.hpp"
+#include "components/ipc.hpp"
 #include "components/logger.hpp"
+#include "components/parser.hpp"
+#include "components/renderer.hpp"
 #include "config.hpp"
 #include "utils/env.hpp"
+#include "utils/file.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
+#include "x11/connection.hpp"
+#include "x11/tray_manager.hpp"
 #include "x11/xutils.hpp"
 
 using namespace polybar;
-
-struct exit_success {};
-struct exit_failure {};
 
 int main(int argc, char** argv) {
   // clang-format off
@@ -41,26 +45,18 @@ int main(int argc, char** argv) {
     // Connect to X server
     //==================================================
     XInitThreads();
-    shared_ptr<xcb_connection_t> xcbconn{xutils::get_connection()};
+
+    // Store the xcb connection pointer with a disconnect deleter
+    shared_ptr<xcb_connection_t> xcbconn{xutils::get_connection().get(), xutils::xcb_connection_deleter{}};
 
     if (!xcbconn) {
       logger.err("A connection to X could not be established... ");
-      throw exit_failure{};
+      return EXIT_FAILURE;
     }
 
     connection conn{xcbconn.get()};
     conn.preload_atoms();
     conn.query_extensions();
-
-    //==================================================
-    // Block all signals by default
-    //==================================================
-    sigset_t blockmask{};
-    sigfillset(&blockmask);
-
-    if (pthread_sigmask(SIG_BLOCK, &blockmask, nullptr) == -1) {
-      throw system_error("Failed to block signals");
-    }
 
     //==================================================
     // Parse command line arguments
@@ -79,13 +75,13 @@ int main(int argc, char** argv) {
 
     if (cli->has("help")) {
       cli->usage();
-      throw exit_success{};
+      return EXIT_SUCCESS;
     } else if (cli->has("version")) {
       print_build_info(version_details(args));
-      throw exit_success{};
+      return EXIT_SUCCESS;
     } else if (args.empty() || args[0][0] == '-') {
       cli->usage();
-      throw exit_failure{};
+      return EXIT_FAILURE;
     }
 
     //==================================================
@@ -110,62 +106,45 @@ int main(int argc, char** argv) {
     //==================================================
     if (cli->has("dump")) {
       std::cout << conf.get<string>(conf.section(), cli->get("dump")) << std::endl;
-      throw exit_success{};
+      return EXIT_SUCCESS;
+    }
+    if (cli->has("print-wmname")) {
+      std::cout << bar::make()->settings().wmname << std::endl;
+      return EXIT_SUCCESS;
     }
 
     //==================================================
     // Create controller and run application
     //==================================================
-    string path_confwatch;
-    bool enable_ipc{false};
+    unique_ptr<ipc> ipc{};
+    unique_ptr<inotify_watch> config_watch{};
 
-    if (!cli->has("print-wmname")) {
-      enable_ipc = conf.get<bool>(conf.section(), "enable-ipc", false);
+    if (conf.get<bool>(conf.section(), "enable-ipc", false)) {
+      ipc = ipc::make();
     }
-    if (!cli->has("print-wmname") && cli->has("reload")) {
-      path_confwatch = conf.filepath();
-    }
-
-    unique_ptr<controller> ctrl{controller::make(move(path_confwatch), move(enable_ipc), cli->has("stdout"))};
-
-    if (cli->has("print-wmname")) {
-      std::cout << ctrl->opts().wmname << std::endl;
-      throw exit_success{};
+    if (cli->has("reload")) {
+      config_watch = inotify_util::make_watch(conf.filepath());
     }
 
-    ctrl->setup();
+    auto ctrl = controller::make(move(ipc), move(config_watch));
 
-    if (!ctrl->run()) {
+    if (!ctrl->run(cli->has("stdout"))) {
       reload = true;
     }
-
-    //==================================================
-    // Unblock signals
-    //==================================================
-    if (pthread_sigmask(SIG_UNBLOCK, &blockmask, nullptr) == -1) {
-      throw system_error("Failed to unblock signals");
-    }
-  } catch (const exit_success& term) {
-    exit_code = EXIT_SUCCESS;
-  } catch (const exit_failure& term) {
-    exit_code = EXIT_FAILURE;
   } catch (const exception& err) {
     logger.err(err.what());
     exit_code = EXIT_FAILURE;
   }
 
-  if (!reload) {
-    logger.info("Reached end of application...");
-    return exit_code;
-  }
+  logger.info("Waiting for spawned processes to end");
+  while (process_util::notify_childprocess())
+    ;
 
-  try {
-    logger.warn("Re-launching application...");
+  if (reload) {
     logger.info("Re-launching application...");
     process_util::exec(move(argv[0]), move(argv));
-  } catch (const system_error& err) {
-    logger.err("execlp() failed (%s)", strerror(errno));
   }
 
-  return EXIT_FAILURE;
+  logger.info("Reached end of application...");
+  return exit_code;
 }

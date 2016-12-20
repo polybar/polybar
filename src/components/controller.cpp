@@ -1,266 +1,348 @@
-#include "components/controller.hpp"
-#include "common.hpp"
+#include <csignal>
+
 #include "components/bar.hpp"
 #include "components/config.hpp"
-#include "components/eventloop.hpp"
+#include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
+#include "components/renderer.hpp"
+#include "components/types.hpp"
 #include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
+#include "utils/time.hpp"
 #include "x11/connection.hpp"
+#include "x11/tray_manager.hpp"
 #include "x11/xutils.hpp"
 
 POLYBAR_NS
 
-using namespace modules;
+int g_eventpipe[2]{0, 0};
+sig_atomic_t g_reload{0};
+sig_atomic_t g_terminate{0};
 
-/**
- * Create instance
- */
-controller::make_type controller::make(string&& path_confwatch, bool enable_ipc, bool writeback) {
-  // clang-format off
-  return factory_util::unique<controller>(
-      connection::make(),
-      signal_emitter::make(),
-      logger::make(),
-      config::make(),
-      eventloop::make(),
-      bar::make(),
-      enable_ipc ? ipc::make() : ipc::make_type{},
-      !path_confwatch.empty() ? inotify_util::make_watch(forward<decltype(path_confwatch)>(move(path_confwatch))) : watch_t{},
-      writeback);
-  // clang-format on
+void interrupt_handler(int signum) {
+  g_terminate = 1;
+  g_reload = (signum == SIGUSR1);
+  write(g_eventpipe[PIPE_WRITE], &g_terminate, 1);
 }
 
 /**
- * Construct controller object
+ * Build controller instance
+ */
+controller::make_type controller::make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch) {
+  return factory_util::unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
+      bar::make(), forward<decltype(ipc)>(ipc), forward<decltype(config_watch)>(config_watch));
+}
+
+/**
+ * Construct controller
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    unique_ptr<eventloop>&& eventloop, unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, watch_t&& confwatch,
-    bool writeback)
+    unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& confwatch)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
-    , m_eventloop(forward<decltype(eventloop)>(eventloop))
     , m_bar(forward<decltype(bar)>(bar))
     , m_ipc(forward<decltype(ipc)>(ipc))
-    , m_confwatch(forward<decltype(confwatch)>(confwatch))
-    , m_writeback(writeback) {}
+    , m_confwatch(forward<decltype(confwatch)>(confwatch)) {
+  m_swallow_input = m_conf.get("settings", "throttle-input-for", m_swallow_input);
+  m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
+  m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
 
-/**
- * Deconstruct controller object
- */
-controller::~controller() {
-  if (m_command) {
-    m_log.info("Terminating running shell command");
-    m_command.reset();
-  }
-  if (!m_writeback) {
-    m_log.info("Interrupting X event loop");
-    m_connection.send_dummy_event(m_connection.root());
+  if (pipe(g_eventpipe) != 0) {
+    throw system_error("Failed to create event channel pipes");
   }
 
-  m_log.info("Joining active threads");
-  for (auto&& thread_ : m_threads) {
-    if (thread_.joinable()) {
-      thread_.join();
-    }
-  }
+  m_log.trace("controller: Install signal handler");
+  struct sigaction act {};
+  memset(&act, 0, sizeof(act));
+  act.sa_handler = &interrupt_handler;
+  sigaction(SIGINT, &act, nullptr);
+  sigaction(SIGQUIT, &act, nullptr);
+  sigaction(SIGTERM, &act, nullptr);
+  sigaction(SIGUSR1, &act, nullptr);
+  sigaction(SIGALRM, &act, nullptr);
 
-  m_log.info("Waiting for spawned processes");
-  while (process_util::notify_childprocess()) {
-    ;
-  }
-
-  m_connection.flush();
-}
-
-void controller::setup() {
-  if (!m_writeback) {
-    m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_STRUCTURE_NOTIFY);
-  }
-
-  string bs{m_conf.section()};
   m_log.trace("controller: Setup user-defined modules");
+  size_t created_modules{0};
 
   for (int i = 0; i < 3; i++) {
-    alignment align = static_cast<alignment>(i + 1);
-    string confkey;
+    alignment align{static_cast<alignment>(i + 1)};
+    string configured_modules;
 
     if (align == alignment::LEFT) {
-      confkey = "modules-left";
+      configured_modules = m_conf.get<string>(m_conf.section(), "modules-left", "");
     } else if (align == alignment::CENTER) {
-      confkey = "modules-center";
+      configured_modules = m_conf.get<string>(m_conf.section(), "modules-center", "");
     } else if (align == alignment::RIGHT) {
-      confkey = "modules-right";
+      configured_modules = m_conf.get<string>(m_conf.section(), "modules-right", "");
     }
 
-    for (auto& module_name : string_util::split(m_conf.get<string>(bs, confkey, ""), ' ')) {
+    for (auto& module_name : string_util::split(configured_modules, ' ')) {
       if (module_name.empty()) {
         continue;
       }
 
       try {
         auto type = m_conf.get<string>("module/" + module_name, "type");
+
         if (type == "custom/ipc" && !m_ipc) {
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        unique_ptr<module_interface> module{make_module(move(type), m_bar->settings(), module_name)};
+        auto module = make_module(move(type), m_bar->settings(), module_name);
 
-        module->set_update_cb([&] {
-          if (m_eventloop && m_running) {
-            m_sig.emit(enqueue_update{eventloop_t::make_update_evt(false)});
-          }
-        });
-        module->set_stop_cb([&] {
-          if (m_eventloop && m_running) {
-            m_sig.emit(enqueue_check{eventloop::make_check_evt()});
-          }
-        });
+        module->set_update_cb([&] { enqueue(make_update_evt(false)); });
+        module->set_stop_cb([&] { enqueue(make_check_evt()); });
         module->setup();
 
-        m_eventloop->add_module(align, move(module));
-      } catch (const std::runtime_error& err) {
+        m_modules[align].emplace_back(move(module));
+
+        created_modules++;
+      } catch (const runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
       }
     }
   }
 
-  if (!m_eventloop->module_count()) {
+  if (!created_modules) {
     throw application_error("No modules created");
   }
 }
 
-bool controller::run() {
-  assert(!m_connection.connection_has_error());
+/**
+ * Deconstruct controller
+ */
+controller::~controller() {
+  m_log.trace("controller: Uninstall sighandler");
+  signal(SIGINT, SIG_DFL);
+  signal(SIGQUIT, SIG_DFL);
+  signal(SIGTERM, SIG_DFL);
 
-  m_log.info("Starting application");
-  m_running = true;
-
-  m_sig.attach(this);
-
-  if (m_confwatch && !m_writeback) {
-    m_threads.emplace_back(thread(&controller::wait_for_configwatch, this));
-  }
-  if (m_ipc) {
-    m_threads.emplace_back(thread(&ipc::receive_messages, m_ipc.get()));
-  }
-  if (!m_writeback) {
-    m_threads.emplace_back(thread(&controller::wait_for_xevent, this));
-  }
-  if (m_eventloop) {
-    m_threads.emplace_back(thread(&controller::wait_for_eventloop, this));
-  }
-
-  m_log.trace("controller: Wait for signal");
-  m_waiting = true;
-
-  sigemptyset(&m_waitmask);
-  sigaddset(&m_waitmask, SIGINT);
-  sigaddset(&m_waitmask, SIGQUIT);
-  sigaddset(&m_waitmask, SIGTERM);
-  sigaddset(&m_waitmask, SIGUSR1);
-  sigaddset(&m_waitmask, SIGALRM);
-
-  int caught_signal = 0;
-  sigwait(&m_waitmask, &caught_signal);
-
-  m_running = false;
-  m_waiting = false;
-
-  if (caught_signal == SIGUSR1) {
-    m_reload = true;
-  }
-
-  m_log.warn("Termination signal received, shutting down...");
-  m_log.trace("controller: Caught signal %d", caught_signal);
-
+  m_log.trace("controller: Detach signal receiver");
   m_sig.detach(this);
 
-  if (m_eventloop) {
-    // Signal the eventloop, in case it's still running
-    m_eventloop->enqueue(eventloop::make_quit_evt(false));
+  m_log.trace("controller: Stop modules");
+  for (auto&& block : m_modules) {
+    for (auto&& module : block.second) {
+      auto module_name = module->name();
+      auto cleanup_ms = time_util::measure([&module] {
+        module->stop();
+        module.reset();
+      });
+      m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
+    }
+  }
+}
 
-    m_log.trace("controller: Stopping event loop");
-    m_eventloop->stop();
+/**
+ * Run the main loop
+ */
+bool controller::run(bool writeback) {
+  assert(!m_connection.connection_has_error());
+
+  m_writeback = writeback;
+
+  m_log.info("Starting application");
+  m_sig.attach(this);
+
+  size_t started_modules{0};
+  for (const auto& block : m_modules) {
+    for (const auto& module : block.second) {
+      try {
+        m_log.info("Starting %s", module->name());
+        module->start();
+        started_modules++;
+      } catch (const application_error& err) {
+        m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
+      }
+    }
+  }
+
+  if (!started_modules) {
+    throw application_error("No modules started");
+  }
+
+  m_connection.flush();
+
+  read_events();
+
+  m_log.warn("Termination signal received, shutting down...");
+
+  return !g_reload;
+}
+
+/**
+ * Enqueue event
+ */
+bool controller::enqueue(event&& evt) {
+  if (!m_queue.enqueue(move(evt))) {
+    m_log.warn("Failed to enqueue event");
+    return false;
+  }
+  write(g_eventpipe[PIPE_WRITE], " ", 1);
+  return true;
+}
+
+/**
+ * Enqueue input data
+ */
+bool controller::enqueue(string&& input_data) {
+  if (!m_inputdata.empty()) {
+    m_log.trace("controller: Swallowing input event (pending data)");
+  } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
+    m_log.trace("controller: Swallowing input event (throttled)");
+  } else {
+    m_inputdata = move(input_data);
+    return enqueue(make_input_evt());
+  }
+  return false;
+}
+
+/**
+ * Read events from configured file descriptors
+ */
+void controller::read_events() {
+  int fd_confwatch{0};
+  int fd_connection{0};
+  int fd_event{0};
+  int fd_ipc{0};
+
+  vector<int> fds;
+  fds.emplace_back((fd_event = g_eventpipe[PIPE_READ]));
+  fds.emplace_back((fd_connection = m_connection.get_file_descriptor()));
+
+  if (m_confwatch) {
+    m_log.trace("controller: Attach config watch");
+    m_confwatch->attach(IN_MODIFY);
+    fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
   }
 
   if (m_ipc) {
-    m_ipc.reset();
+    fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
   }
 
-  if (!m_writeback && m_confwatch) {
-    m_log.trace("controller: Removing config watch");
-    m_confwatch->remove(true);
-  }
+  while (!g_terminate) {
+    fd_set readfds{};
+    FD_ZERO(&readfds);
 
-  return !m_running && !m_reload;
-}
-
-const bar_settings controller::opts() const {
-  return m_bar->settings();
-}
-
-void controller::wait_for_configwatch() {
-  try {
-    m_log.trace("controller: Attach config watch");
-    m_confwatch->attach(IN_MODIFY);
-
-    m_log.trace("controller: Wait for config file inotify event");
-    if (m_confwatch->await_match() && m_running) {
-      m_log.info("Configuration file changed");
-      kill(getpid(), SIGUSR1);
+    int maxfd{0};
+    for (auto&& fd : fds) {
+      FD_SET(fd, &readfds);
+      maxfd = std::max(maxfd, fd);
     }
-  } catch (const system_error& err) {
-    m_log.err(err.what());
-    m_log.trace("controller: Reset config watch");
-    m_confwatch.reset();
-  }
-}
 
-void controller::wait_for_xevent() {
-  m_log.trace("controller: Listen for X events");
-  m_connection.flush();
+    // Wait until event is ready on one of the configured streams
+    int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
-  while (m_running) {
-    try {
-      auto evt = m_connection.wait_for_event();
-      if (evt && m_running) {
-        m_connection.dispatch_event(evt);
-      }
-    } catch (xpp::connection_error& err) {
-      m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
-    } catch (const exception& err) {
-      m_log.err("Error in X event loop: %s", err.what());
-    }
-    if (m_connection.connection_has_error()) {
+    // Check for errors
+    if (events == -1 || g_terminate || m_connection.connection_has_error()) {
       break;
     }
-  }
 
-  if (m_running) {
-    kill(getpid(), SIGTERM);
+    // Process event on the internal fd
+    if (fd_event && FD_ISSET(fd_event, &readfds)) {
+      process_eventqueue();
+      char buffer[BUFSIZ]{'\0'};
+      read(fd_event, &buffer, BUFSIZ);
+    }
+
+    // Process event on the config inotify watch fd
+    if (fd_confwatch && FD_ISSET(fd_confwatch, &readfds) && m_confwatch->await_match()) {
+      m_log.info("Configuration file changed");
+      g_terminate = 1;
+      g_reload = 1;
+    }
+
+    // Process event on the xcb connection fd
+    if (fd_connection && FD_ISSET(fd_connection, &readfds)) {
+      shared_ptr<xcb_generic_event_t> evt;
+      while ((evt = m_connection.poll_for_event())) {
+        try {
+          m_connection.dispatch_event(evt);
+        } catch (xpp::connection_error& err) {
+          m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
+        } catch (const exception& err) {
+          m_log.err("Error in X event loop: %s", err.what());
+        }
+      }
+    }
+
+    // Process event on the ipc fd
+    if (fd_ipc && FD_ISSET(fd_ipc, &readfds)) {
+      m_ipc->receive_message();
+      fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_ipc](int fd) { return fd == fd_ipc; }));
+      fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
+    }
   }
 }
 
-void controller::wait_for_eventloop() {
-  m_eventloop->start();
+/**
+ * Dequeue items from the eventqueue
+ */
+void controller::process_eventqueue() {
+  event evt{};
 
-  this_thread::sleep_for(std::chrono::milliseconds{250});
+  if (!m_queue.try_dequeue(evt)) {
+    return m_log.err("Failed to dequeue event");
+  }
 
-  if (m_running) {
-    m_log.trace("controller: eventloop ended, raising SIGALRM");
-    kill(getpid(), SIGALRM);
+  if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+    process_inputdata();
+  } else {
+    event next{};
+    size_t swallowed{0};
+    while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_update)) {
+      if (next.type == static_cast<uint8_t>(event_type::QUIT)) {
+        evt = next;
+        break;
+      } else if (next.type == static_cast<uint8_t>(event_type::INPUT)) {
+        evt = next;
+        break;
+      } else if (evt.type != next.type) {
+        m_queue.try_enqueue(move(next));
+        break;
+      } else {
+        m_log.trace_x("controller: Swallowing event within timeframe");
+        evt = next;
+      }
+    }
+
+    if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+      process_inputdata();
+    } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
+      m_sig.emit(sig_ev::process_quit{make_quit_evt(evt.flag)});
+    } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
+      m_sig.emit(sig_ev::process_update{make_update_evt(evt.flag)});
+    } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
+      m_sig.emit(sig_ev::process_check{make_check_evt()});
+    } else {
+      m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
+    }
   }
 }
 
+/**
+ * Process stored input data
+ */
+void controller::process_inputdata() {
+  if (!m_inputdata.empty()) {
+    m_sig.emit(sig_ev::process_input{move(m_inputdata)});
+    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
+    m_inputdata.clear();
+  }
+}
+
+/**
+ * Process eventqueue update event
+ */
 bool controller::on(const sig_ev::process_update& evt) {
   bool force{evt.data()->flag};
 
@@ -276,7 +358,7 @@ bool controller::on(const sig_ev::process_update& evt) {
   string margin_left(bar.module_margin.left, ' ');
   string margin_right(bar.module_margin.right, ' ');
 
-  for (const auto& block : m_eventloop->modules()) {
+  for (const auto& block : m_modules) {
     string block_contents;
     bool is_left = false;
     bool is_center = false;
@@ -349,9 +431,22 @@ bool controller::on(const sig_ev::process_update& evt) {
   return true;
 }
 
+/**
+ * Process eventqueue input event
+ */
 bool controller::on(const sig_ev::process_input& evt) {
   try {
-    string input{*evt.data()};
+    string input{*evt()};
+
+    for (auto&& block : m_modules) {
+      for (auto&& module : block.second) {
+        if (module->receive_events() && module->handle_event(input)) {
+          return true;
+        }
+      }
+    }
+
+    m_log.warn("Input event \"%s\" was rejected by all modules, passing to shell...", input);
 
     if (m_command) {
       m_log.warn("Terminating previous shell command");
@@ -370,16 +465,35 @@ bool controller::on(const sig_ev::process_input& evt) {
   return true;
 }
 
-bool controller::on(const sig_ev::process_quit&) {
-  kill(getpid(), SIGUSR1);
-  return false;
+/**
+ * Process eventqueue quit event
+ */
+bool controller::on(const sig_ev::process_quit& evt) {
+  bool reload{evt.data()->flag};
+  raise(reload ? SIGUSR1 : SIGALRM);
+  return true;
 }
 
-bool controller::on(const sig_ui::button_press& evt) {
-  if (!m_eventloop) {
-    return false;
+/**
+ * Process eventqueue check event
+ */
+bool controller::on(const sig_ev::process_check&) {
+  for (const auto& block : m_modules) {
+    for (const auto& module : block.second) {
+      if (module->running()) {
+        return true;
+      }
+    }
   }
+  m_log.warn("No running modules...");
+  enqueue(make_quit_evt(false));
+  return true;
+}
 
+/**
+ * Process ui button press event
+ */
+bool controller::on(const sig_ui::button_press& evt) {
   string input{*evt.data()};
 
   if (input.empty()) {
@@ -387,9 +501,13 @@ bool controller::on(const sig_ui::button_press& evt) {
     return false;
   }
 
-  return m_sig.emit(enqueue_input{move(input)});
+  enqueue(move(input));
+  return true;
 }
 
+/**
+ * Process ipc action messages
+ */
 bool controller::on(const sig_ipc::process_action& evt) {
   ipc_action a{*evt.data()};
   string action{a.payload};
@@ -401,9 +519,13 @@ bool controller::on(const sig_ipc::process_action& evt) {
   }
 
   m_log.info("Enqueuing ipc action: %s", action);
-  return m_sig.emit(enqueue_input{move(action)});
+  enqueue(move(action));
+  return true;
 }
 
+/**
+ * Process ipc command messages
+ */
 bool controller::on(const sig_ipc::process_command& evt) {
   ipc_command c{*evt.data()};
   string command{c.payload};
@@ -414,9 +536,9 @@ bool controller::on(const sig_ipc::process_command& evt) {
   }
 
   if (command == "quit") {
-    m_eventloop->enqueue(eventloop::make_quit_evt(false));
+    enqueue(make_quit_evt(false));
   } else if (command == "restart") {
-    m_eventloop->enqueue(eventloop::make_quit_evt(true));
+    enqueue(make_quit_evt(true));
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }
@@ -424,10 +546,13 @@ bool controller::on(const sig_ipc::process_command& evt) {
   return true;
 }
 
+/**
+ * Process ipc hook messages
+ */
 bool controller::on(const sig_ipc::process_hook& evt) {
   const ipc_hook hook{*evt.data()};
 
-  for (const auto& block : m_eventloop->modules()) {
+  for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
       auto ipc = dynamic_cast<ipc_module*>(module.get());
       if (ipc != nullptr) {

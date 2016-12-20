@@ -6,9 +6,9 @@
 POLYBAR_NS
 
 class signal_emitter;
-struct bar_settings;
 enum class attribute : uint8_t;
 enum class mousebtn : uint8_t;
+struct bar_settings;
 
 DEFINE_ERROR(parser_error);
 DEFINE_CHILD_ERROR(unrecognized_token, parser_error);
@@ -21,12 +21,15 @@ class parser {
     uint16_t data[128]{0U};
     size_t length{0};
   };
+  using make_type = unique_ptr<parser>;
+  static make_type make();
 
-  explicit parser(signal_emitter& emitter, const bar_settings& bar);
-  void operator()(string data);
+ public:
+  explicit parser(signal_emitter& emitter);
+  void parse(const bar_settings& bar, string data);
 
  protected:
-  void codeblock(string&& data);
+  void codeblock(string&& data, const bar_settings& bar);
   size_t text(string&& data);
 
   uint32_t parse_color(const string& s, uint32_t fallback = 0);
@@ -37,8 +40,8 @@ class parser {
 
  private:
   signal_emitter& m_sig;
-  const bar_settings& m_bar;
   vector<int> m_actions;
+  unique_ptr<parser> m_parser;
 };
 
 POLYBAR_NS_END

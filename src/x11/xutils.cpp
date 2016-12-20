@@ -19,8 +19,7 @@ namespace xutils {
 
       if (dsp) {
         XSetEventQueueOwner(dsp.get(), XCBOwnsEventQueue);
-        g_connection_ptr =
-            shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), [=](xcb_connection_t* c) { xcb_disconnect(c); });
+        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), factory_util::null_deleter);
       }
     }
 
@@ -30,7 +29,7 @@ namespace xutils {
   int get_connection_fd() {
     if (!g_connection_fd) {
       auto fd = xcb_get_file_descriptor(get_connection().get());
-      g_connection_fd = shared_ptr<int>(new int{fd}, factory_util::fd_deleter{});
+      g_connection_fd = shared_ptr<int>(new int{fd}, factory_util::fd_deleter);
     }
 
     return *g_connection_fd.get();

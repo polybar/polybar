@@ -10,30 +10,67 @@
 
 POLYBAR_NS
 
+/**
+ * Deconstruct file wrapper
+ */
+file_ptr::file_ptr(const string& path, const string& mode) : m_path(string(path)), m_mode(string(mode)) {
+  m_ptr = fopen(m_path.c_str(), m_mode.c_str());
+}
+
+/**
+ * Deconstruct file wrapper
+ */
+file_ptr::~file_ptr() {
+  if (m_ptr != nullptr) {
+    fclose(m_ptr);
+  }
+}
+
+/**
+ * Logical operator testing if the file handler was created
+ */
+file_ptr::operator bool() {
+  return m_ptr != nullptr;
+}
+
+/**
+ * Call operator returning a pointer to the file handler
+ */
+FILE* file_ptr::operator()() {
+  return m_ptr;
+}
+
+/**
+ * Construct file descriptor wrapper
+ */
+file_descriptor::file_descriptor(const string& path, int flags) {
+  if ((m_fd = open(path.c_str(), flags)) == -1) {
+    throw system_error("Failed to open file descriptor");
+  }
+}
+
+/**
+ * Construct file descriptor wrapper from an existing handle
+ */
+file_descriptor::file_descriptor(int fd) : m_fd(fd) {}
+
+/**
+ * Deconstruct file descriptor wrapper
+ */
+file_descriptor::~file_descriptor() {
+  if (m_fd > 0) {
+    close(m_fd);
+  }
+}
+
+/**
+ * Conversion operator returning the fd handle
+ */
+file_descriptor::operator int() {
+  return m_fd;
+}
+
 namespace file_util {
-  /**
-   * Destructor: close file handler
-   */
-  file_ptr::~file_ptr() {
-    if (m_ptr != nullptr) {
-      fclose(m_ptr);
-    }
-  }
-
-  /**
-   * Logical operator testing if the file handler was created
-   */
-  file_ptr::operator bool() {
-    return m_ptr != nullptr;
-  }
-
-  /**
-   * Call operator returning a pointer to the file handler
-   */
-  FILE* file_ptr::operator()() {
-    return m_ptr;
-  }
-
   /**
    * Checks if the given file exist
    */

@@ -54,13 +54,9 @@ namespace alsa {
    * Deconstruct control object
    */
   control::~control() {
-    std::lock_guard<std::mutex> guard(m_lock);
-
     if (m_hctl != nullptr) {
       snd_hctl_close(m_hctl);
     }
-
-    snd_config_update_free_global();
   }
 
   /**
@@ -75,12 +71,6 @@ namespace alsa {
    */
   bool control::wait(int timeout) {
     assert(m_ctl);
-
-    if (!m_lock.try_lock()) {
-      return false;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     int err{0};
 
@@ -107,12 +97,6 @@ namespace alsa {
    */
   bool control::test_device_plugged() {
     assert(m_elem);
-
-    if (!m_lock.try_lock()) {
-      return false;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     snd_ctl_elem_value_t* m_value{nullptr};
     snd_ctl_elem_value_alloca(&m_value);

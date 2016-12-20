@@ -2,7 +2,6 @@
 #include <thread>
 
 #include "components/config.hpp"
-#include "components/eventloop.hpp"
 #include "components/logger.hpp"
 #include "components/screen.hpp"
 #include "components/types.hpp"
@@ -14,7 +13,7 @@
 
 POLYBAR_NS
 
-using namespace signals::eventloop;
+using namespace signals::eventqueue;
 
 /**
  * Create instance
@@ -107,7 +106,7 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   }
 
   m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
-  m_sig.emit(process_quit{eventloop::make_quit_evt(true)});
+  m_sig.emit(process_quit{make_quit_evt(true)});
   m_sigraised = true;
 }
 

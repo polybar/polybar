@@ -43,7 +43,7 @@ namespace modules {
 
   template <class Impl>
   void inotify_module<Impl>::poll_events() {
-    vector<inotify_util::watch_t> watches;
+    vector<unique_ptr<inotify_watch>> watches;
 
     try {
       for (auto&& w : m_watchlist) {

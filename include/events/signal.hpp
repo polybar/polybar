@@ -2,10 +2,10 @@
 
 #include "common.hpp"
 
-#include "components/eventloop.hpp"
 #include "components/ipc.hpp"
 #include "components/parser.hpp"
 #include "components/types.hpp"
+#include "events/types.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
@@ -91,19 +91,11 @@ namespace signals {
     // }}}
   }
 
-  namespace eventloop {
-    using eventloop_t = polybar::eventloop;
-
-    DEFINE_VALUE_SIGNAL(1, process_quit, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(2, process_update, eventloop_t::event);
+  namespace eventqueue {
+    DEFINE_VALUE_SIGNAL(1, process_quit, event);
+    DEFINE_VALUE_SIGNAL(2, process_update, event);
     DEFINE_VALUE_SIGNAL(3, process_input, string);
-    DEFINE_VALUE_SIGNAL(4, process_check, eventloop_t::event);
-
-    DEFINE_VALUE_SIGNAL(5, enqueue_event, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(6, enqueue_quit, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(7, enqueue_update, eventloop_t::event);
-    DEFINE_VALUE_SIGNAL(8, enqueue_input, string);
-    DEFINE_VALUE_SIGNAL(9, enqueue_check, eventloop_t::event);
+    DEFINE_VALUE_SIGNAL(4, process_check, event);
   }
 
   namespace ipc {

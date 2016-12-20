@@ -45,8 +45,6 @@ namespace alsa {
    * Deconstruct mixer
    */
   mixer::~mixer() {
-    std::lock_guard<std::mutex> guard(m_lock);
-
     if (m_mixer != nullptr) {
       snd_mixer_close(m_mixer);
     }
@@ -65,19 +63,11 @@ namespace alsa {
   bool mixer::wait(int timeout) {
     assert(m_mixer);
 
-    if (!m_lock.try_lock()) {
-      return false;
-    }
-
-    std::unique_lock<std::mutex> guard(m_lock, std::adopt_lock);
-
     int err = 0;
 
     if ((err = snd_mixer_wait(m_mixer, timeout)) == -1) {
       throw_exception<mixer_error>("Failed to wait for events", err);
     }
-
-    guard.unlock();
 
     return process_events() > 0;
   }
@@ -86,12 +76,6 @@ namespace alsa {
    * Process queued mixer events
    */
   int mixer::process_events() {
-    if (!m_lock.try_lock()) {
-      return false;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
-
     int num_events{0};
     if ((num_events = snd_mixer_handle_events(m_mixer)) == -1) {
       throw_exception<mixer_error>("Failed to process pending events", num_events);
@@ -105,12 +89,6 @@ namespace alsa {
    */
   int mixer::get_volume() {
     assert(m_elem != nullptr);
-
-    if (!m_lock.try_lock()) {
-      return 0;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
 
@@ -132,12 +110,6 @@ namespace alsa {
    */
   int mixer::get_normalized_volume() {
     assert(m_elem != nullptr);
-
-    if (!m_lock.try_lock()) {
-      return 0;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     long chan_n = 0, vol_total = 0, vol, vol_min, vol_max;
     double normalized, min_norm;
@@ -175,12 +147,6 @@ namespace alsa {
       return;
     }
 
-    if (!m_lock.try_lock()) {
-      return;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
-
     long vol_min, vol_max;
     snd_mixer_selem_get_playback_volume_range(m_elem, &vol_min, &vol_max);
     snd_mixer_selem_set_playback_volume_all(m_elem, math_util::percentage_to_value<int>(percentage, vol_min, vol_max));
@@ -195,12 +161,6 @@ namespace alsa {
     if (is_muted()) {
       return;
     }
-
-    if (!m_lock.try_lock()) {
-      return;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     long vol_min, vol_max;
     double min_norm;
@@ -227,12 +187,6 @@ namespace alsa {
   void mixer::set_mute(bool mode) {
     assert(m_elem != nullptr);
 
-    if (!m_lock.try_lock()) {
-      return;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
-
     snd_mixer_selem_set_playback_switch_all(m_elem, mode);
   }
 
@@ -241,12 +195,6 @@ namespace alsa {
    */
   void mixer::toggle_mute() {
     assert(m_elem != nullptr);
-
-    if (!m_lock.try_lock()) {
-      return;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     int state;
 
@@ -259,12 +207,6 @@ namespace alsa {
    */
   bool mixer::is_muted() {
     assert(m_elem != nullptr);
-
-    if (!m_lock.try_lock()) {
-      return false;
-    }
-
-    std::lock_guard<std::mutex> guard(m_lock, std::adopt_lock);
 
     int state = 0;
 

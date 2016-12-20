@@ -29,7 +29,7 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
-using namespace signals::eventloop;
+using namespace signals::eventqueue;
 using namespace signals::ui;
 
 // fwd declarations

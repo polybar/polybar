@@ -85,6 +85,7 @@ namespace modules {
   void volume_module::teardown() {
     m_mixer.clear();
     m_ctrl.clear();
+    snd_config_update_free_global();
   }
 
   bool volume_module::has_event() {

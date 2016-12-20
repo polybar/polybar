@@ -37,8 +37,6 @@ namespace alsa {
     bool is_muted();
 
    private:
-    std::mutex m_lock{};
-
     snd_mixer_t* m_mixer{nullptr};
     snd_mixer_elem_t* m_elem{nullptr};
 

@@ -257,8 +257,10 @@ namespace modules {
    * Get the current capacity level
    */
   int battery_module::current_percentage() {
-    auto capacity_now = std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY]).c_str(), nullptr, 10);
-    auto capacity_max = std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY_MAX]).c_str(), nullptr, 10);
+    auto capacity_now =
+        std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY]).c_str(), nullptr, 10);
+    auto capacity_max =
+        std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY_MAX]).c_str(), nullptr, 10);
     auto percentage = math_util::percentage(capacity_now, 0UL, capacity_max);
 
     return percentage < m_fullat ? percentage : 100;

@@ -7,18 +7,23 @@
 POLYBAR_NS
 
 namespace factory_util {
-  struct null_deleter {
-    template <typename T>
-    void operator()(T*) const {}
-  };
+  namespace detail {
+    struct null_deleter {
+      template <typename T>
+      void operator()(T*) const {}
+    };
 
-  struct fd_deleter {
-    void operator()(int* fd) const {
-      if (fd != nullptr && *fd > 0) {
-        close(*fd);
+    struct fd_deleter {
+      void operator()(int* fd) const {
+        if (fd != nullptr && *fd > 0) {
+          close(*fd);
+        }
       }
-    }
-  };
+    };
+  }
+
+  extern detail::null_deleter null_deleter;
+  extern detail::fd_deleter fd_deleter;
 
   template <typename T, typename... Deps>
   unique_ptr<T> unique(Deps&&... deps) {

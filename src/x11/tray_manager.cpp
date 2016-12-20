@@ -3,7 +3,6 @@
 #include <thread>
 
 #include "components/config.hpp"
-#include "components/eventloop.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
@@ -284,7 +283,7 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_connection.flush();
 
-  m_sig.emit(process_update{eventloop::make_update_evt(true)});
+  m_sig.emit(process_update{make_update_evt(true)});
 }
 
 /**
@@ -323,7 +322,7 @@ void tray_manager::reconfigure() {
 
   m_connection.flush();
 
-  m_sig.emit(process_update{eventloop::make_update_evt(true)});
+  m_sig.emit(process_update{make_update_evt(true)});
 }
 
 /**
@@ -875,7 +874,7 @@ bool tray_manager::is_embedded(const xcb_window_t& win) const {
 shared_ptr<tray_client> tray_manager::find_client(const xcb_window_t& win) const {
   for (auto&& client : m_clients) {
     if (client->match(win)) {
-      return shared_ptr<tray_client>{client.get(), factory_util::null_deleter{}};
+      return shared_ptr<tray_client>{client.get(), factory_util::null_deleter};
     }
   }
   return nullptr;
