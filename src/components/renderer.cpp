@@ -663,8 +663,8 @@ bool renderer::on(const action_end& evt) {
         break;
     }
 
-    action->start_x += m_bar.pos.x + m_rect.x;
-    action->end_x += m_bar.pos.x + m_rect.x;
+    action->start_x += m_rect.x;
+    action->end_x += m_rect.x;
 
     m_log.trace_x("renderer: action_end(%i, %s, %i)", static_cast<uint8_t>(btn), action->command, action->width());
   }
