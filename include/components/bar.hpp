@@ -68,7 +68,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   std::mutex m_mutex{};
 
   event_timer m_buttonpress{0L, 5L};
-  event_timer m_doubleclick{0L, 250L};
 };
 
 POLYBAR_NS_END

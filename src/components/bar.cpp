@@ -150,7 +150,6 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   actions.emplace_back(action{mousebtn::RIGHT, m_conf.get<string>(bs, "click-right", "")});
   actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get<string>(bs, "scroll-up", "")});
   actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get<string>(bs, "scroll-down", "")});
-  actions.emplace_back(action{mousebtn::DOUBLE_CLICK, m_conf.get<string>(bs, "click-double", "")});
 
   for (auto&& act : actions) {
     if (!act.command.empty()) {
@@ -502,6 +501,7 @@ void bar::handle(const evt::button_press& evt) {
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
   if (m_buttonpress.deny(evt->time)) {
     return m_log.trace_x("bar: Ignoring button press (throttled)...");
   }
@@ -509,22 +509,8 @@ void bar::handle(const evt::button_press& evt) {
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
   mousebtn button{static_cast<mousebtn>(evt->detail)};
 
-  // Using the event_timer so if the event gets denied
-  // we are within the double click time window
-  if (button == mousebtn::LEFT && m_doubleclick.deny(evt->time)) {
-    button = mousebtn::DOUBLE_CLICK;
-  }
-
   for (auto&& action : m_renderer->get_actions()) {
-    if (action.active) {
-      continue;
-    } else if (action.button != button) {
-      continue;
-    } else if (action.start_x >= evt->event_x) {
-      continue;
-    } else if (action.end_x < evt->event_x) {
-      continue;
-    } else {
+    if (!action.active && action.button == button && action.test(evt->event_x)) {
       m_log.trace("Found matching input area");
       m_sig.emit(button_press{string{action.command}});
       return;

@@ -33,7 +33,7 @@ enum class syntaxtag : uint8_t {
   u,  // underline color
 };
 
-enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_CLICK };
+enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
 
 enum class strut : uint16_t {
   LEFT = 0U,
@@ -95,6 +95,10 @@ struct action_block : public action {
 
   uint16_t width() const {
     return static_cast<uint16_t>(end_x - start_x + 0.5);
+  }
+
+  bool test(int16_t point) const {
+    return static_cast<int16_t>(start_x) < point && static_cast<int16_t>(end_x) >= point;
   }
 };
 
