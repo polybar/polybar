@@ -54,10 +54,15 @@ namespace modules {
       return false;
     }
 
+    vector<string> percentage_cores;
     for (size_t i = 0; i < cores_n; i++) {
       auto load = get_load(i);
       m_total += load;
       m_load.emplace_back(load);
+
+      if (m_label) {
+        percentage_cores.emplace_back(to_string(static_cast<int>(load + 0.5f)) + "%");
+      }
     }
 
     m_total = m_total / static_cast<float>(cores_n);
@@ -65,6 +70,12 @@ namespace modules {
     if (m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5f)) + "%");
+      m_label->replace_token("%percentage-cores%", string_util::join(percentage_cores, " "));
+
+      size_t i{0};
+      for (auto&& p : percentage_cores) {
+        m_label->replace_token("%percentage-core" + to_string(++i) + "%", p);
+      }
     }
 
     return true;
