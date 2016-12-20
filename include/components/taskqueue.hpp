@@ -17,10 +17,11 @@ using namespace std::chrono_literals;
 class taskqueue : non_copyable_mixin<taskqueue> {
  public:
   struct deferred : non_copyable_mixin<deferred> {
-    using timepoint = chrono::time_point<chrono::high_resolution_clock, chrono::milliseconds>;
+    using duration = chrono::milliseconds;
+    using timepoint = chrono::time_point<chrono::high_resolution_clock, duration>;
     using callback = function<void()>;
 
-    explicit deferred(string&& id, timepoint::time_point&& tp, callback&& fn)
+    explicit deferred(string&& id, timepoint&& tp, callback&& fn)
         : id(forward<decltype(id)>(id)), when(forward<decltype(tp)>(tp)), func(forward<decltype(fn)>(fn)) {}
 
     const string id;
@@ -35,8 +36,8 @@ class taskqueue : non_copyable_mixin<taskqueue> {
   explicit taskqueue();
   ~taskqueue();
 
-  void defer(string&& id, deferred::timepoint::duration&& ms, deferred::callback&& fn);
-  void defer_unique(string&& id, deferred::timepoint::duration&& ms, deferred::callback&& fn);
+  void defer(string&& id, deferred::duration&& ms, deferred::callback&& fn);
+  void defer_unique(string&& id, deferred::duration&& ms, deferred::callback&& fn);
 
   bool has_deferred(string&& id);
 

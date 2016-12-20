@@ -44,22 +44,22 @@ taskqueue::~taskqueue() {
   }
 }
 
-void taskqueue::defer(string&& id, deferred::timepoint::duration&& ms, deferred::callback&& fn) {
+void taskqueue::defer(string&& id, deferred::duration&& ms, deferred::callback&& fn) {
   std::unique_lock<std::mutex> guard(m_lock);
-  auto when = chrono::time_point_cast<deferred::timepoint::duration>(deferred::timepoint::clock::now() + ms);
+  auto when = chrono::time_point_cast<deferred::duration>(deferred::timepoint::clock::now() + ms);
   m_deferred.emplace_back(make_unique<deferred>(forward<decltype(id)>(id), move(when), forward<decltype(fn)>(fn)));
   guard.unlock();
   m_hold.notify_one();
 }
 
-void taskqueue::defer_unique(string&& id, deferred::timepoint::duration&& ms, deferred::callback&& fn) {
+void taskqueue::defer_unique(string&& id, deferred::duration&& ms, deferred::callback&& fn) {
   std::unique_lock<std::mutex> guard(m_lock);
   for (auto it = m_deferred.rbegin(); it != m_deferred.rend(); ++it) {
     if ((*it)->id == id) {
       m_deferred.erase(std::remove(m_deferred.begin(), m_deferred.end(), (*it)), m_deferred.end());
     }
   }
-  auto when = chrono::time_point_cast<deferred::timepoint::duration>(deferred::timepoint::clock::now() + ms);
+  auto when = chrono::time_point_cast<deferred::duration>(deferred::timepoint::clock::now() + ms);
   m_deferred.emplace_back(make_unique<deferred>(forward<decltype(id)>(id), move(when), forward<decltype(fn)>(fn)));
   guard.unlock();
   m_hold.notify_one();
