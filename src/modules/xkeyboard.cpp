@@ -134,8 +134,6 @@ namespace modules {
       current_group = 0;
     }
 
-    printf("%zu\n", current_group);
-
     xkb_util::switch_layout(m_connection, XCB_XKB_ID_USE_CORE_KBD, current_group);
     m_keyboard->current(current_group);
     m_connection.flush();

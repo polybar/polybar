@@ -7,6 +7,7 @@
 #include "components/parser.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
+#include "components/taskqueue.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "utils/bspwm.hpp"
@@ -42,7 +43,8 @@ bar::make_type bar::make() {
         logger::make(),
         screen::make(),
         tray_manager::make(),
-        parser::make());
+        parser::make(),
+        taskqueue::make());
   // clang-format on
 }
 
@@ -52,14 +54,16 @@ bar::make_type bar::make() {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser)
+    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser,
+    unique_ptr<taskqueue>&& taskqueue)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
     , m_log(logger)
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
-    , m_parser(forward<decltype(parser)>(parser)) {
+    , m_parser(forward<decltype(parser)>(parser))
+    , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
   string bs{m_conf.section()};
 
   // Get available RandR outputs
@@ -150,6 +154,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   actions.emplace_back(action{mousebtn::RIGHT, m_conf.get<string>(bs, "click-right", "")});
   actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get<string>(bs, "scroll-up", "")});
   actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get<string>(bs, "scroll-down", "")});
+  actions.emplace_back(action{mousebtn::DOUBLE_LEFT, m_conf.get<string>(bs, "double-click-left", "")});
+  actions.emplace_back(action{mousebtn::DOUBLE_MIDDLE, m_conf.get<string>(bs, "double-click-middle", "")});
+  actions.emplace_back(action{mousebtn::DOUBLE_RIGHT, m_conf.get<string>(bs, "double-click-right", "")});
 
   for (auto&& act : actions) {
     if (!act.command.empty()) {
@@ -507,25 +514,48 @@ void bar::handle(const evt::button_press& evt) {
   }
 
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
-  mousebtn button{static_cast<mousebtn>(evt->detail)};
 
-  for (auto&& action : m_renderer->get_actions()) {
-    if (!action.active && action.button == button && action.test(evt->event_x)) {
-      m_log.trace("Found matching input area");
-      m_sig.emit(button_press{string{action.command}});
-      return;
+  m_buttonpress_btn = static_cast<mousebtn>(evt->detail);
+  m_buttonpress_pos = evt->event_x;
+
+  const auto deferred_fn = [&] {
+    for (auto&& action : m_renderer->get_actions()) {
+      if (action.button == m_buttonpress_btn && !action.active && action.test(m_buttonpress_pos)) {
+        m_log.trace("Found matching input area");
+        m_sig.emit(button_press{string{action.command}});
+        return;
+      }
     }
-  }
-
-  for (auto&& action : m_opts.actions) {
-    if (action.button == button && !action.command.empty()) {
-      m_log.trace("Triggering fallback click handler: %s", action.command);
-      m_sig.emit(button_press{string{action.command}});
-      return;
+    for (auto&& action : m_opts.actions) {
+      if (action.button == m_buttonpress_btn && !action.command.empty()) {
+        m_log.trace("Found matching fallback handler");
+        m_sig.emit(button_press{string{action.command}});
+        return;
+      }
     }
-  }
+    m_log.warn("No matching input area found (btn=%i)", static_cast<uint8_t>(m_buttonpress_btn));
+  };
 
-  m_log.warn("No matching input area found");
+  const auto check_double = [&](const xcb_timestamp_t& timestamp, string&& id, mousebtn&& btn) {
+    if (!m_taskqueue->has_deferred(string{id})) {
+      m_doubleclick.event = move(timestamp);
+      m_taskqueue->defer_unique(string{id}, chrono::milliseconds{m_doubleclick.offset}, deferred_fn);
+    } else if (m_doubleclick.deny(evt->time)) {
+      m_doubleclick.event = 0;
+      m_buttonpress_btn = forward<decltype(btn)>(btn);
+      m_taskqueue->defer_unique(string{id}, 0ms, deferred_fn);
+    }
+  };
+
+  if (evt->detail == static_cast<uint8_t>(mousebtn::LEFT)) {
+    check_double(evt->time, "buttonpress-left", mousebtn::LEFT);
+  } else if (evt->detail == static_cast<uint8_t>(mousebtn::MIDDLE)) {
+    check_double(evt->time, "buttonpress-middle", mousebtn::MIDDLE);
+  } else if (evt->detail == static_cast<uint8_t>(mousebtn::RIGHT)) {
+    check_double(evt->time, "buttonpress-right", mousebtn::RIGHT);
+  } else {
+    deferred_fn();
+  }
 }
 
 /**

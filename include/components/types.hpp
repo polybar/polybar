@@ -33,7 +33,17 @@ enum class syntaxtag : uint8_t {
   u,  // underline color
 };
 
-enum class mousebtn : uint8_t { NONE = 0U, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN };
+enum class mousebtn : uint8_t {
+  NONE = 0U,
+  LEFT,
+  MIDDLE,
+  RIGHT,
+  SCROLL_UP,
+  SCROLL_DOWN,
+  DOUBLE_LEFT,
+  DOUBLE_MIDDLE,
+  DOUBLE_RIGHT
+};
 
 enum class strut : uint16_t {
   LEFT = 0U,
