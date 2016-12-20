@@ -89,8 +89,8 @@ struct action {
 
 struct action_block : public action {
   alignment align{alignment::NONE};
-  volatile double start_x{0.0};
-  volatile double end_x{0.0};
+  double start_x{0.0};
+  double end_x{0.0};
   bool active{true};
 
   uint16_t width() const {
