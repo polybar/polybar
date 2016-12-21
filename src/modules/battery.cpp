@@ -114,7 +114,7 @@ namespace modules {
    * charging animation when the module is started
    */
   void battery_module::start() {
-    inotify_module::start();
+    this->inotify_module::start();
     m_threads.emplace_back(thread(&battery_module::subthread, this));
   }
 
@@ -145,7 +145,7 @@ namespace modules {
       }
     }
 
-    inotify_module::idle();
+    this->inotify_module::idle();
   }
 
   /**

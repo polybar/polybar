@@ -164,6 +164,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 size_t parser::text(string&& data) {
   const uint8_t* utf{reinterpret_cast<const uint8_t*>(&data[0])};
 
+  // clang-format off
   if (utf[0] < 0x80) {
     size_t pos{0};
 
@@ -188,23 +189,27 @@ size_t parser::text(string&& data) {
     if (pos > 0) {
       return pos;
     }
+
   } else if ((utf[0] & 0xe0) == 0xc0) {  // 2 byte utf-8 sequence
-    m_sig.emit(write_text_unicode{static_cast<uint16_t>((utf[0] & 0x1f) << 6 | (utf[1] & 0x3f))});
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>(((utf[0] & 0x1f) << 6) | (utf[1] & 0x3f))});
     return 2;
   } else if ((utf[0] & 0xf0) == 0xe0) {  // 3 byte utf-8 sequence
-    m_sig.emit(
-        write_text_unicode{static_cast<uint16_t>((utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f))});
+    m_sig.emit(write_text_unicode{static_cast<uint16_t>(((utf[0] & 0x0f) << 12) | ((utf[1] & 0x3f) << 6) | (utf[2] & 0x3f))});
     return 3;
   } else if ((utf[0] & 0xf8) == 0xf0) {  // 4 byte utf-8 sequence
+    // m_sig.emit(write_text_unicode{((utf[0] & 0x07) << 18) | ((utf[1] & 0x3f) << 12) | ((utf[2] & 0x3f) << 6) | (utf[3] & 0x3f)});
     m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 4;
   } else if ((utf[0] & 0xfc) == 0xf8) {  // 5 byte utf-8 sequence
+    // m_sig.emit(write_text_unicode{((utf[0] & 0x03) << 24) | ((utf[1] & 0x3f) << 18) | ((utf[2] & 0x3f) << 12) | ((utf[3] & 0x3f) << 6) | (utf[4] & 0x3f)});
     m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 5;
   } else if ((utf[0] & 0xfe) == 0xfc) {  // 6 byte utf-8 sequence
+    // m_sig.emit(write_text_unicode{((utf[0] & 0x01) << 30) | ((utf[1] & 0x3f) << 24) | ((utf[2] & 0x3f) << 18) | ((utf[3] & 0x3f) << 12) | ((utf[4] & 0x3f) << 6) | (utf[5] & 0x3f)});
     m_sig.emit(write_text_unicode{static_cast<uint16_t>(0xfffd)});
     return 6;
   }
+  // clang-format on
 
   if (utf[0] < 0x80) {
     m_sig.emit(write_text_ascii{utf[0]});

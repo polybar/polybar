@@ -20,15 +20,15 @@ namespace modules {
         // Warm up module output and
         // send broadcast before entering
         // the update loop
-        if (CONST_MOD(Impl).running()) {
+        if (this->running()) {
           CAST_MOD(Impl)->update();
           CAST_MOD(Impl)->broadcast();
         }
 
-        while (CONST_MOD(Impl).running()) {
+        while (this->running()) {
           CAST_MOD(Impl)->idle();
 
-          if (!CONST_MOD(Impl).running()) {
+          if (!this->running()) {
             break;
           }
 
@@ -36,7 +36,7 @@ namespace modules {
 
           if (!CAST_MOD(Impl)->has_event()) {
             continue;
-          } else if (!CONST_MOD(Impl).running()) {
+          } else if (!this->running()) {
             break;
           } else if (!CAST_MOD(Impl)->update()) {
             continue;

@@ -1,44 +1,43 @@
+#include <X11/X.h>
+
 #include "x11/xlib.hpp"
 #include "utils/factory.hpp"
 
 POLYBAR_NS
 
 namespace xlib {
-  shared_ptr<Display> g_display_ptr;
-  shared_ptr<Visual> g_visual_ptr;
-
-  shared_ptr<Display> get_display() {
-    if (!g_display_ptr) {
-      g_display_ptr = shared_ptr<Display>(XOpenDisplay(nullptr), factory_util::null_deleter);
+  namespace detail {
+    display_lock::display_lock(Display* display) : m_display(forward<decltype(display)>(display)) {
+      XLockDisplay(m_display);
     }
-    return g_display_ptr;
+
+    display_lock::~display_lock() {
+      XUnlockDisplay(m_display);
+    }
   }
 
-  shared_ptr<Visual> get_visual(int screen, uint8_t depth) {
-    if (!g_visual_ptr) {
+  Display* get_display() {
+    static Display* display{XOpenDisplay(nullptr)};
+    return display;
+  }
+
+  Visual* get_visual(int screen, uint8_t depth) {
+    static shared_ptr<Visual> visual;
+    if (!visual) {
       XVisualInfo info{};
-      if (XMatchVisualInfo(get_display().get(), screen, depth, TrueColor, &info)) {
-        g_visual_ptr = shared_ptr<Visual>(info.visual, [=](Visual* v) { XFree(v); });
+      if (XMatchVisualInfo(get_display(), screen, depth, TrueColor, &info)) {
+        visual = shared_ptr<Visual>(info.visual, [=](Visual* v) { XFree(v); });
       }
     }
-
-    return g_visual_ptr;
+    return &*visual;
   }
 
   Colormap create_colormap(int screen) {
-    return XDefaultColormap(get_display().get(), screen);
-  }
-
-  display_lock::display_lock(shared_ptr<Display>&& display) : m_display(forward<decltype(display)>(display)) {
-    XLockDisplay(m_display.get());
-  }
-
-  display_lock::~display_lock() {
-    XUnlockDisplay(m_display.get());
+    return XDefaultColormap(get_display(), screen);
   }
 
   inline auto make_display_lock() {
-    return make_unique<display_lock>(get_display());
+    return make_unique<detail::display_lock>(get_display());
   }
 }
 

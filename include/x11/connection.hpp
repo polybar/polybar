@@ -17,10 +17,9 @@ using xpp_connection = xpp::connection<XPP_EXTENSION_LIST>;
 class connection : public xpp_connection {
  public:
   using make_type = connection&;
-  static make_type make(xcb_connection_t* conn = nullptr, int conn_fd = 0);
+  static make_type make(xcb_connection_t* conn = nullptr);
 
-  explicit connection(xcb_connection_t* conn) : connection(conn, 0) {}
-
+  explicit connection(xcb_connection_t* conn) : xpp_connection(conn) {}
   explicit connection(xcb_connection_t* conn, int connection_fd)
       : xpp_connection(conn), m_connection_fd(file_util::make_file_descriptor(connection_fd)) {}
 
@@ -49,11 +48,11 @@ class connection : public xpp_connection {
 
   static string error_str(int error_code);
 
-  void dispatch_event(shared_ptr<xcb_generic_event_t>&& evt) const;
+  void dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const;
 
   template <typename Event, uint32_t ResponseType>
-  void wait_for_response(function<bool(const Event&)> check_event) {
-    shared_ptr<xcb_generic_event_t> evt;
+  void wait_for_response(function<bool(const Event*)> check_event) {
+    shared_ptr<xcb_generic_event_t> evt{};
     while (!connection_has_error()) {
       fd_set fds;
       FD_ZERO(&fds);
@@ -61,11 +60,11 @@ class connection : public xpp_connection {
 
       if (!select(*m_connection_fd + 1, &fds, nullptr, nullptr, nullptr)) {
         continue;
-      } else if ((evt = poll_for_event()) == nullptr) {
+      } else if ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(*this), free)) == nullptr) {
         continue;
       } else if (evt->response_type != ResponseType) {
         continue;
-      } else if (check_event(reinterpret_cast<const Event&>(*(evt.get())))) {
+      } else if (check_event(reinterpret_cast<const Event*>(&*evt))) {
         break;
       }
     }

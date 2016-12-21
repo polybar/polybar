@@ -222,13 +222,16 @@ void tray_manager::activate() {
   // notify clients waiting for a manager.
   acquire_selection();
 
+  if (!m_acquired_selection) {
+    deactivate();
+    return;
+  }
+
   // Send delayed notification
   if (!m_firstactivation) {
-    notify_clients_delayed();
-  } else if (m_othermanager != XCB_NONE && m_othermanager != m_tray) {
-    notify_clients_delayed();
-  } else {
     notify_clients();
+  } else {
+    notify_clients_delayed();
   }
 
   m_firstactivation = false;
@@ -679,7 +682,6 @@ void tray_manager::set_tray_colors() {
  */
 void tray_manager::acquire_selection() {
   m_othermanager = XCB_NONE;
-  ;
   xcb_window_t owner;
 
   try {
@@ -691,21 +693,17 @@ void tray_manager::acquire_selection() {
   if (owner == m_tray) {
     m_log.trace("tray: Already managing the systray selection");
     m_acquired_selection = true;
-    return;
+  } else if ((m_othermanager = owner) != XCB_NONE) {
+    m_log.warn("Systray selection already managed (window=%s)", m_connection.id(owner));
+    track_selection_owner(m_othermanager);
+  } else {
+    m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
+    m_connection.set_selection_owner_checked(m_tray, m_atom, XCB_CURRENT_TIME);
+    if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray) {
+      throw application_error("Failed to get control of the systray selection");
+    }
+    m_acquired_selection = true;
   }
-
-  if ((m_othermanager = owner) != XCB_NONE) {
-    m_log.info("Replacing selection manager %s", m_connection.id(owner));
-  }
-
-  m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
-  m_connection.set_selection_owner_checked(m_tray, m_atom, XCB_CURRENT_TIME);
-
-  if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray) {
-    throw application_error("Failed to get control of the systray selection");
-  }
-
-  m_acquired_selection = true;
 }
 
 /**
@@ -1072,7 +1070,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
   if (m_activated && evt->window == m_tray) {
     deactivate();
   } else if (!m_activated && evt->window == m_othermanager) {
-    m_log.info("Tray selection available... re-activating");
+    m_log.info("Systray selection unmanaged... re-activating");
     activate();
   } else if (m_activated && is_embedded(evt->window)) {
     m_log.trace("tray: Received destroy_notify for client, remove...");

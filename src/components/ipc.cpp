@@ -40,6 +40,8 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
  * Deconstruct ipc handler
  */
 ipc::~ipc() {
+  m_fd.reset();
+
   if (!m_path.empty()) {
     m_log.trace("ipc: Removing file handle");
     unlink(m_path.c_str());
@@ -55,7 +57,7 @@ void ipc::receive_message() {
   char buffer[BUFSIZ]{'\0'};
   ssize_t bytes_read{0};
 
-  if ((bytes_read = read(*m_fd.get(), &buffer, BUFSIZ)) == -1) {
+  if ((bytes_read = read(*m_fd, &buffer, BUFSIZ)) == -1) {
     m_log.err("Failed to read from ipc channel (err: %s)", strerror(errno));
   }
 
@@ -88,7 +90,7 @@ void ipc::receive_message() {
  * Get the file descriptor to the ipc channel
  */
 int ipc::get_file_descriptor() const {
-  return *m_fd.get();
+  return *m_fd;
 }
 
 POLYBAR_NS_END

@@ -12,7 +12,7 @@ class xresource_manager {
   using make_type = const xresource_manager&;
   static make_type make();
 
-  explicit xresource_manager(shared_ptr<Display>&&);
+  explicit xresource_manager(Display*);
   ~xresource_manager();
 
   xresource_manager(const xresource_manager& o) = delete;
@@ -26,7 +26,7 @@ class xresource_manager {
   string load_value(const string& key, const string& res_type, size_t n) const;
 
  private:
-  shared_ptr<Display> m_display;
+  Display* m_display{nullptr};
   XrmDatabase m_db;
   char* m_manager{nullptr};
 };

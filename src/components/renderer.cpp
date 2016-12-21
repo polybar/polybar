@@ -404,7 +404,9 @@ void renderer::draw_textstring(const uint16_t* text, size_t len) {
     auto y = m_rect.height / 2 + font->height / 2 - font->descent + font->offset_y;
 
     if (font->ptr != XCB_NONE && m_gcfont != font->ptr) {
-      m_fontmanager->set_gcontext_font(font, m_gcontexts.at(gc::FG), &m_gcfont);
+      const uint32_t v[1]{font->ptr};
+      m_connection.change_gc(m_gcontexts.at(gc::FG), XCB_GC_FONT, v);
+      m_gcfont = font->ptr;
     }
 
     m_fontmanager->drawtext(font, m_pixmap, m_gcontexts.at(gc::FG), x, y, chars.data(), chars.size());

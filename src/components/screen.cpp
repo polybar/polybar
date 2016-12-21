@@ -58,7 +58,7 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
 
   // Wait until the proxy window has been mapped
   using evt = xcb_map_notify_event_t;
-  m_connection.wait_for_response<evt, XCB_MAP_NOTIFY>([&](const evt& evt) -> bool { return evt.window == m_proxy; });
+  m_connection.wait_for_response<evt, XCB_MAP_NOTIFY>([&](const evt* evt) -> bool { return evt->window == m_proxy; });
   m_connection.clear_event_mask(m_root);
 
   // Finally attach the sink the process randr events

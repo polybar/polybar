@@ -10,29 +10,13 @@
 POLYBAR_NS
 
 namespace xutils {
-  shared_ptr<int> g_connection_fd;
-  shared_ptr<xcb_connection_t> g_connection_ptr;
-
-  shared_ptr<xcb_connection_t> get_connection() {
-    if (!g_connection_ptr) {
-      shared_ptr<Display> dsp{xlib::get_display()};
-
-      if (dsp) {
-        XSetEventQueueOwner(dsp.get(), XCBOwnsEventQueue);
-        g_connection_ptr = shared_ptr<xcb_connection_t>(XGetXCBConnection(dsp.get()), factory_util::null_deleter);
-      }
+  xcb_connection_t* get_connection() {
+    static xcb_connection_t* connection;
+    if (!connection) {
+      XSetEventQueueOwner(xlib::get_display(), XCBOwnsEventQueue);
+      connection = XGetXCBConnection(xlib::get_display());
     }
-
-    return g_connection_ptr;
-  }
-
-  int get_connection_fd() {
-    if (!g_connection_fd) {
-      auto fd = xcb_get_file_descriptor(get_connection().get());
-      g_connection_fd = shared_ptr<int>(new int{fd}, factory_util::fd_deleter);
-    }
-
-    return *g_connection_fd.get();
+    return connection;
   }
 
   void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
@@ -56,12 +40,11 @@ namespace xutils {
   }
 
   void visibility_notify(connection& conn, const xcb_window_t& win, xcb_visibility_t state) {
-    auto notify = memory_util::make_malloc_ptr<xcb_visibility_notify_event_t>(32);
+    auto notify = memory_util::make_malloc_ptr<xcb_visibility_notify_event_t, 32_z>();
     notify->response_type = XCB_VISIBILITY_NOTIFY;
     notify->window = win;
     notify->state = state;
-    const char* data = reinterpret_cast<const char*>(notify.get());
-    conn.send_event(true, win, XCB_EVENT_MASK_NO_EVENT, data);
+    conn.send_event(true, win, XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&*notify));
   }
 
   void compton_shadow_exclude(connection& conn, const xcb_window_t& win) {

@@ -13,15 +13,12 @@ POLYBAR_NS
 /**
  * Create instance
  */
-connection::make_type connection::make(xcb_connection_t* conn, int conn_fd) {
+connection::make_type connection::make(xcb_connection_t* conn) {
   if (conn == nullptr) {
-    conn = xutils::get_connection().get();
-  }
-  if (conn_fd == 0) {
-    conn_fd = xutils::get_connection_fd();
+    conn = &*xutils::get_connection();
   }
   return static_cast<connection::make_type>(
-      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn, conn_fd));
+      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn, xcb_get_file_descriptor(conn)));
 }
 
 /**
@@ -109,7 +106,7 @@ void connection::clear_event_mask(xcb_window_t win) {
  * Creates an instance of shared_ptr<xcb_client_message_event_t>
  */
 shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_t type, xcb_window_t target) const {
-  auto client_message = memory_util::make_malloc_ptr<xcb_client_message_event_t>(size_t{32});
+  auto client_message = memory_util::make_malloc_ptr<xcb_client_message_event_t, 32_z>();
 
   client_message->response_type = XCB_CLIENT_MESSAGE;
   client_message->format = 32;
@@ -131,8 +128,7 @@ shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_
  */
 void connection::send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
     uint32_t event_mask, bool propagate) const {
-  const char* data = reinterpret_cast<decltype(data)>(message.get());
-  send_event(propagate, target, event_mask, data);
+  send_event(propagate, target, event_mask, reinterpret_cast<const char*>(&*message));
   flush();
 }
 
@@ -184,8 +180,8 @@ string connection::error_str(int error_code) {
 /**
  * Dispatch event through the registry
  */
-void connection::dispatch_event(shared_ptr<xcb_generic_event_t>&& evt) const {
-  m_registry.dispatch(forward<decltype(evt)>(evt));
+void connection::dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const {
+  m_registry.dispatch(evt);
 }
 
 POLYBAR_NS_END

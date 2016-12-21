@@ -5,18 +5,15 @@
 POLYBAR_NS
 
 namespace ewmh_util {
-  ewmh_connection_t g_ewmh_connection{nullptr};
+  ewmh_connection_t g_connection{nullptr};
   ewmh_connection_t initialize() {
-    if (!g_ewmh_connection) {
-      g_ewmh_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
-          sizeof(xcb_ewmh_connection_t), [=](xcb_ewmh_connection_t* c) { xcb_ewmh_connection_wipe(c); });
-
-      auto* conn = g_ewmh_connection.get();
-
-      xcb_ewmh_init_atoms_replies(conn, xcb_ewmh_init_atoms(xutils::get_connection().get(), conn), nullptr);
+    if (!g_connection) {
+      g_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
+          [=](xcb_ewmh_connection_t* c) { xcb_ewmh_connection_wipe(c); });
+      xcb_ewmh_init_atoms_replies(
+          &*g_connection, xcb_ewmh_init_atoms(xutils::get_connection(), &*g_connection), nullptr);
     }
-
-    return g_ewmh_connection;
+    return g_connection;
   }
 
   bool supports(xcb_ewmh_connection_t* ewmh, xcb_atom_t atom, int screen) {

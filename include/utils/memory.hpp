@@ -6,15 +6,16 @@
 
 POLYBAR_NS
 
+template <typename T>
+using malloc_ptr_t = shared_ptr<T>;
+
 namespace memory_util {
   /**
    * Create a shared pointer using malloc/free
    */
-  template <typename T, typename Deleter = decltype(free)>
-  inline auto make_malloc_ptr(size_t size = sizeof(T), Deleter deleter = free) {
-    shared_ptr<T> ptr{static_cast<T*>(malloc(size)), deleter};
-    memset(ptr.get(), 0, size);
-    return ptr;
+  template <typename T, size_t Size = sizeof(T), typename Deleter = decltype(free)>
+  inline malloc_ptr_t<T> make_malloc_ptr(Deleter deleter = free) {
+    return malloc_ptr_t<T>(static_cast<T*>(calloc(1, Size)), deleter);
   }
 
   /**
@@ -24,9 +25,6 @@ namespace memory_util {
   inline auto countof(T& p) {
     return sizeof(p) / sizeof(p[0]);
   }
-
-  template <typename T>
-  using malloc_ptr_t = shared_ptr<T>;
 }
 
 POLYBAR_NS_END

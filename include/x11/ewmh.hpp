@@ -9,7 +9,7 @@ POLYBAR_NS
 
 struct position;
 
-using ewmh_connection_t = memory_util::malloc_ptr_t<xcb_ewmh_connection_t>;
+using ewmh_connection_t = malloc_ptr_t<xcb_ewmh_connection_t>;
 
 namespace ewmh_util {
   ewmh_connection_t initialize();

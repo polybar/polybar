@@ -48,4 +48,8 @@ using std::array;
 using std::vector;
 using std::to_string;
 
+constexpr size_t operator"" _z(unsigned long long n) {
+  return n;
+}
+
 POLYBAR_NS_END

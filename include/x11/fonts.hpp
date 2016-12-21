@@ -38,9 +38,7 @@ struct font_ref {
   vector<xcb_charinfo_t> width_lut{};
   unordered_map<uint16_t, wchar_t> glyph_widths{};
 
-  static struct _deleter {
-    void operator()(font_ref* font);
-  } deleter;
+  static struct _deleter { void operator()(font_ref* font); } deleter;
 };
 
 class font_manager {
@@ -48,14 +46,13 @@ class font_manager {
   using make_type = unique_ptr<font_manager>;
   static make_type make();
 
-  explicit font_manager(
-      connection& conn, const logger& logger, shared_ptr<Display>&& dsp, shared_ptr<Visual>&& vis, Colormap&& cm);
+  explicit font_manager(connection& conn, const logger& logger, Display* dsp, Visual* vis, Colormap&& cm);
   ~font_manager();
 
   font_manager(const font_manager& o) = delete;
   font_manager& operator=(const font_manager& o) = delete;
 
-  void set_visual(shared_ptr<Visual>&& v);
+  void set_visual(Visual* v);
 
   void cleanup();
   bool load(const string& name, uint8_t fontindex = 0, int8_t offset_y = 0);
@@ -68,8 +65,6 @@ class font_manager {
   void allocate_color(uint32_t color);
   void allocate_color(XRenderColor color);
 
-  void set_gcontext_font(const shared_ptr<font_ref>& font, xcb_gcontext_t, xcb_font_t*);
-
  protected:
   bool open_xcb_font(const shared_ptr<font_ref>& font, string fontname);
 
@@ -79,12 +74,14 @@ class font_manager {
   bool has_glyph_xft(const shared_ptr<font_ref>& font, const uint16_t chr);
   bool has_glyph_xcb(const shared_ptr<font_ref>& font, const uint16_t chr);
 
+  void xcb_poly_text_16(xcb_drawable_t d, xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str);
+
  private:
   connection& m_connection;
   const logger& m_logger;
 
-  shared_ptr<Display> m_display;
-  shared_ptr<Visual> m_visual;
+  Display* m_display{nullptr};
+  Visual* m_visual{nullptr};
   Colormap m_colormap;
 
   map<uint8_t, shared_ptr<font_ref>> m_fonts{};

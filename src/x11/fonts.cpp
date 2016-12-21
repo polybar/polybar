@@ -18,10 +18,10 @@ void font_ref::_deleter::operator()(font_ref* font) {
   font->width_lut.clear();
 
   if (font->xft != nullptr) {
-    XftFontClose(xlib::get_display().get(), font->xft);
+    XftFontClose(&*xlib::get_display(), font->xft);
   }
   if (font->ptr != XCB_NONE) {
-    xcb_close_font(xutils::get_connection().get(), font->ptr);
+    xcb_close_font(&*xutils::get_connection(), font->ptr);
   }
   delete font;
 }
@@ -34,8 +34,7 @@ font_manager::make_type font_manager::make() {
       connection::make(), logger::make(), xlib::get_display(), xlib::get_visual(), xlib::create_colormap());
 }
 
-font_manager::font_manager(
-    connection& conn, const logger& logger, shared_ptr<Display>&& dsp, shared_ptr<Visual>&& vis, Colormap&& cm)
+font_manager::font_manager(connection& conn, const logger& logger, Display* dsp, Visual* vis, Colormap&& cm)
     : m_connection(conn)
     , m_logger(logger)
     , m_display(forward<decltype(dsp)>(dsp))
@@ -50,14 +49,14 @@ font_manager::~font_manager() {
   cleanup();
   if (m_display) {
     if (m_xftcolor_allocated) {
-      XftColorFree(m_display.get(), m_visual.get(), m_colormap, &m_xftcolor);
+      XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
     }
-    XFreeColormap(m_display.get(), m_colormap);
+    XFreeColormap(m_display, m_colormap);
   }
 }
 
-void font_manager::set_visual(shared_ptr<Visual>&& v) {
-  m_visual = forward<decltype(v)>(v);
+void font_manager::set_visual(Visual* v) {
+  m_visual = v;
 }
 
 void font_manager::cleanup() {
@@ -90,7 +89,7 @@ bool font_manager::load(const string& name, uint8_t fontindex, int8_t offset_y) 
   }
 
   if (font->ptr == XCB_NONE &&
-      (font->xft = XftFontOpenName(m_display.get(), m_connection.default_screen(), name.c_str())) != nullptr) {
+      (font->xft = XftFontOpenName(m_display, m_connection.default_screen(), name.c_str())) != nullptr) {
     font->ascent = font->xft->ascent;
     font->descent = font->xft->descent;
     font->height = font->ascent + font->descent;
@@ -174,16 +173,16 @@ uint8_t font_manager::glyph_width(const shared_ptr<font_ref>& font, const uint16
 void font_manager::drawtext(const shared_ptr<font_ref>& font, xcb_pixmap_t pm, xcb_gcontext_t gc, int16_t x, int16_t y,
     const uint16_t* chars, size_t num_chars) {
   if (m_xftdraw == nullptr) {
-    m_xftdraw = XftDrawCreate(m_display.get(), pm, m_visual.get(), m_colormap);
+    m_xftdraw = XftDrawCreate(m_display, pm, m_visual, m_colormap);
   }
   if (font->xft != nullptr) {
     XftDrawString16(m_xftdraw, &m_xftcolor, font->xft, x, y, chars, num_chars);
   } else if (font->ptr != XCB_NONE) {
-    uint16_t* ucs = static_cast<uint16_t*>(calloc(num_chars, sizeof(uint16_t)));
+    vector<uint16_t> ucs(num_chars);
     for (size_t i = 0; i < num_chars; i++) {
-      ucs[i] = ((chars[i] >> 8) | (chars[i] << 8));
+      ucs[i] = (chars[i] >> 8) | (chars[i] << 8);
     }
-    draw_util::xcb_poly_text_16_patched(m_connection, pm, gc, x, y, num_chars, ucs);
+    xcb_poly_text_16(pm, gc, x, y, num_chars, ucs.data());
   }
 }
 
@@ -200,18 +199,12 @@ void font_manager::allocate_color(uint32_t color) {
 
 void font_manager::allocate_color(XRenderColor color) {
   if (m_xftcolor_allocated) {
-    XftColorFree(m_display.get(), m_visual.get(), m_colormap, &m_xftcolor);
+    XftColorFree(m_display, m_visual, m_colormap, &m_xftcolor);
   }
 
-  if (!(m_xftcolor_allocated = XftColorAllocValue(m_display.get(), m_visual.get(), m_colormap, &color, &m_xftcolor))) {
+  if (!(m_xftcolor_allocated = XftColorAllocValue(m_display, m_visual, m_colormap, &color, &m_xftcolor))) {
     m_logger.err("Failed to allocate color");
   }
-}
-
-void font_manager::set_gcontext_font(const shared_ptr<font_ref>& font, xcb_gcontext_t gc, xcb_font_t* xcb_font) {
-  const uint32_t val[1]{*xcb_font};
-  m_connection.change_gc(gc, XCB_GC_FONT, val);
-  *xcb_font = font->ptr;
 }
 
 bool font_manager::open_xcb_font(const shared_ptr<font_ref>& font, string fontname) {
@@ -253,11 +246,11 @@ uint8_t font_manager::glyph_width_xft(const shared_ptr<font_ref>& font, const ui
   }
 
   XGlyphInfo extents{};
-  FT_UInt glyph{XftCharIndex(m_display.get(), font->xft, static_cast<FcChar32>(chr))};
+  FT_UInt glyph{XftCharIndex(m_display, font->xft, static_cast<FcChar32>(chr))};
 
-  XftFontLoadGlyphs(m_display.get(), font->xft, FcFalse, &glyph, 1);
-  XftGlyphExtents(m_display.get(), font->xft, &glyph, 1, &extents);
-  XftFontUnloadGlyphs(m_display.get(), font->xft, &glyph, 1);
+  XftFontLoadGlyphs(m_display, font->xft, FcFalse, &glyph, 1);
+  XftGlyphExtents(m_display, font->xft, &glyph, 1, &extents);
+  XftFontUnloadGlyphs(m_display, font->xft, &glyph, 1);
 
   font->glyph_widths.emplace_hint(it, chr, extents.xOff);  //.emplace_back(chr, extents.xOff);
 
@@ -277,7 +270,7 @@ uint8_t font_manager::glyph_width_xcb(const shared_ptr<font_ref>& font, const ui
 bool font_manager::has_glyph_xft(const shared_ptr<font_ref>& font, const uint16_t chr) {
   if (!font || font->xft == nullptr) {
     return false;
-  } else if (XftCharExists(m_display.get(), font->xft, static_cast<FcChar32>(chr)) == FcFalse) {
+  } else if (XftCharExists(m_display, font->xft, static_cast<FcChar32>(chr)) == FcFalse) {
     return false;
   } else {
     return true;
@@ -296,6 +289,25 @@ bool font_manager::has_glyph_xcb(const shared_ptr<font_ref>& font, const uint16_
   } else {
     return true;
   }
+}
+
+void font_manager::xcb_poly_text_16(
+    xcb_drawable_t d, xcb_gcontext_t gc, int16_t x, int16_t y, uint8_t len, uint16_t* str) {
+  static const xcb_protocol_request_t xcb_req = {5, nullptr, XCB_POLY_TEXT_16, 1};
+  xcb_poly_text_16_request_t req{XCB_POLY_TEXT_16, 0, len, d, gc, x, y};
+  uint8_t xcb_lendelta[2]{len, 0};
+  struct iovec xcb_parts[7]{};
+  xcb_parts[2].iov_base = reinterpret_cast<char*>(&req);
+  xcb_parts[2].iov_len = sizeof(req);
+  xcb_parts[3].iov_base = nullptr;
+  xcb_parts[3].iov_len = -xcb_parts[2].iov_len & 3;
+  xcb_parts[4].iov_base = xcb_lendelta;
+  xcb_parts[4].iov_len = sizeof(xcb_lendelta);
+  xcb_parts[5].iov_base = reinterpret_cast<char*>(str);
+  xcb_parts[5].iov_len = len * sizeof(int16_t);
+  xcb_parts[6].iov_base = nullptr;
+  xcb_parts[6].iov_len = -(xcb_parts[4].iov_len + xcb_parts[5].iov_len) & 3;
+  xcb_send_request(m_connection, 0, xcb_parts + 2, &xcb_req);
 }
 
 POLYBAR_NS_END

@@ -47,14 +47,14 @@ int main(int argc, char** argv) {
     XInitThreads();
 
     // Store the xcb connection pointer with a disconnect deleter
-    shared_ptr<xcb_connection_t> xcbconn{xutils::get_connection().get(), xutils::xcb_connection_deleter{}};
+    shared_ptr<xcb_connection_t> xcbconn{xutils::get_connection(), xutils::xcb_connection_deleter{}};
 
     if (!xcbconn) {
       logger.err("A connection to X could not be established... ");
       return EXIT_FAILURE;
     }
 
-    connection& conn{connection::make(xcbconn.get())};
+    connection& conn{connection::make(&*xcbconn)};
     conn.preload_atoms();
     conn.query_extensions();
 

@@ -19,10 +19,10 @@ xresource_manager::make_type xresource_manager::make() {
 /**
  * Construct manager instance
  */
-xresource_manager::xresource_manager(shared_ptr<Display>&& dsp) : m_display(forward<decltype(dsp)>(dsp)) {
+xresource_manager::xresource_manager(Display* dsp) : m_display(forward<decltype(dsp)>(dsp)) {
   XrmInitialize();
 
-  if ((m_manager = XResourceManagerString(m_display.get())) != nullptr) {
+  if ((m_manager = XResourceManagerString(m_display)) != nullptr) {
     m_db = XrmGetStringDatabase(m_manager);
   }
 }

@@ -62,6 +62,9 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     throw system_error("Failed to create event channel pipes");
   }
 
+  m_fdevent_rd = file_util::make_file_descriptor(g_eventpipe[PIPE_READ]);
+  m_fdevent_wr = file_util::make_file_descriptor(g_eventpipe[PIPE_WRITE]);
+
   m_log.trace("controller: Install signal handler");
   struct sigaction act {};
   memset(&act, 0, sizeof(act));
@@ -99,17 +102,12 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        auto module = make_module(move(type), m_bar->settings(), module_name);
-
-        module->set_update_cb([&] { enqueue(make_update_evt(false)); });
-        module->set_stop_cb([&] { enqueue(make_check_evt()); });
+        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name));
 
         input_handler* module_input_handler{nullptr};
-        if ((module_input_handler = dynamic_cast<input_handler*>(module)) != nullptr) {
+        if ((module_input_handler = dynamic_cast<input_handler*>(&*m_modules[align].back())) != nullptr) {
           m_sig.attach(module_input_handler);
         }
-
-        m_modules[align].emplace_back(move(module));
 
         created_modules++;
       } catch (const runtime_error& err) {
@@ -157,7 +155,6 @@ bool controller::run(bool writeback) {
   m_writeback = writeback;
 
   m_log.info("Starting application");
-  m_sig.attach(this);
 
   size_t started_modules{0};
   for (const auto& block : m_modules) {
@@ -165,6 +162,8 @@ bool controller::run(bool writeback) {
       try {
         m_log.info("Starting %s", module->name());
         module->start();
+        module->set_update_cb([&] { enqueue(make_update_evt(false)); });
+        module->set_stop_cb([&] { enqueue(make_check_evt()); });
         started_modules++;
       } catch (const application_error& err) {
         m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
@@ -177,6 +176,8 @@ bool controller::run(bool writeback) {
   }
 
   m_connection.flush();
+
+  m_sig.attach(this);
 
   read_events();
 
@@ -218,14 +219,13 @@ bool controller::enqueue(string&& input_data) {
  * Read events from configured file descriptors
  */
 void controller::read_events() {
+  int fd_connection{m_connection.get_file_descriptor()};
   int fd_confwatch{0};
-  int fd_connection{0};
-  int fd_event{0};
   int fd_ipc{0};
 
   vector<int> fds;
-  fds.emplace_back((fd_event = g_eventpipe[PIPE_READ]));
-  fds.emplace_back((fd_connection = m_connection.get_file_descriptor()));
+  fds.emplace_back(*m_fdevent_rd);
+  fds.emplace_back(fd_connection);
 
   if (m_confwatch) {
     m_log.trace("controller: Attach config watch");
@@ -236,6 +236,8 @@ void controller::read_events() {
   if (m_ipc) {
     fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
   }
+
+  m_sig.emit(sig_ev::process_update{make_update_evt(true)});
 
   while (!g_terminate) {
     fd_set readfds{};
@@ -256,10 +258,10 @@ void controller::read_events() {
     }
 
     // Process event on the internal fd
-    if (fd_event && FD_ISSET(fd_event, &readfds)) {
+    if (m_fdevent_rd && FD_ISSET(*m_fdevent_rd, &readfds)) {
       process_eventqueue();
       char buffer[BUFSIZ]{'\0'};
-      if (read(fd_event, &buffer, BUFSIZ) == -1) {
+      if (read(*m_fdevent_rd, &buffer, BUFSIZ) == -1) {
         m_log.err("Failed to read from eventpipe (err: %s)", strerror(errno));
       }
     }
@@ -273,12 +275,15 @@ void controller::read_events() {
 
     // Process event on the xcb connection fd
     if (fd_connection && FD_ISSET(fd_connection, &readfds)) {
-      try {
-        m_connection.dispatch_event(m_connection.wait_for_event());
-      } catch (xpp::connection_error& err) {
-        m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
-      } catch (const exception& err) {
-        m_log.err("Error in X event loop: %s", err.what());
+      shared_ptr<xcb_generic_event_t> evt{};
+      while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+        try {
+          m_connection.dispatch_event(evt);
+        } catch (xpp::connection_error& err) {
+          m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
+        } catch (const exception& err) {
+          m_log.err("Error in X event loop: %s", err.what());
+        }
       }
     }
 
