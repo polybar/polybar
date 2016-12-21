@@ -32,11 +32,19 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
 
 # Check compiler
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
-  message_colored(STATUS "Using supported compiler ${CMAKE_CXX_COMPILER_ID}" 32)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.4.0")
+    message_colored(FATAL_ERROR "Compiler not supported (Requires clang-3.4+ or gcc-5.1+)" 31)
+  else()
+    message_colored(STATUS "Using supported compiler ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}" 32)
+  endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
-  message_colored(STATUS "Using supported compiler ${CMAKE_CXX_COMPILER_ID}" 32)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.1.0")
+    message_colored(FATAL_ERROR "Compiler not supported (Requires clang-3.4+ or gcc-5.1+)" 31)
+  else()
+    message_colored(STATUS "Using supported compiler ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}" 32)
+  endif()
 else()
-  message_colored(WARNING "Using unsupported compiler ${CMAKE_CXX_COMPILER_ID} !" 31)
+  message_colored(WARNING "Using unsupported compiler ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION} !" 31)
 endif()
 
 # Set compiler and linker flags for preferred C++ library
