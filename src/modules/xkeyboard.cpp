@@ -6,13 +6,11 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<xkeyboard_module>;
-  template class static_module<xkeyboard_module>;
 
   /**
    * Construct module

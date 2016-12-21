@@ -6,16 +6,6 @@
 #include "modules/meta/base.hpp"
 #include "modules/meta/base.inl"
 
-#if not(ENABLE_ALSA && ENABLE_I3 && ENABLE_MPD)
-#include "modules/meta/event_module.inl"
-#endif
-#if not(ENABLE_NETWORK && ENABLE_CURL)
-#include "modules/meta/timer_module.inl"
-#endif
-#if not WITH_XKB
-#include "modules/meta/static_module.inl"
-#endif
-
 POLYBAR_NS
 
 namespace modules {
@@ -38,12 +28,6 @@ namespace modules {
     void halt(string) {}                                                                \
     string contents() {                                                                 \
       return "";                                                                        \
-    }                                                                                   \
-    bool handle_event(string) {                                                         \
-      return false;                                                                     \
-    }                                                                                   \
-    bool receive_events() const {                                                       \
-      return false;                                                                     \
     }                                                                                   \
     void set_update_cb(callback<>&&) {}                                                 \
     void set_stop_cb(callback<>&&) {}                                                   \

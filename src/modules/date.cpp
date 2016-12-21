@@ -2,13 +2,11 @@
 #include "drawtypes/label.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<date_module>;
-  template class timer_module<date_module>;
 
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {

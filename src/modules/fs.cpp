@@ -11,13 +11,11 @@
 #include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<fs_module>;
-  template class timer_module<fs_module>;
 
   /**
    * Bootstrap the module by reading config values and

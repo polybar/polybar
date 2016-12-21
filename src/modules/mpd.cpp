@@ -6,7 +6,6 @@
 #include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/event_module.inl"
 
 POLYBAR_NS
 
@@ -14,7 +13,6 @@ using namespace mpd;
 
 namespace modules {
   template class module<mpd_module>;
-  template class event_module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
     m_host = m_conf.get<string>(name(), "host", m_host);

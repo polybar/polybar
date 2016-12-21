@@ -9,13 +9,11 @@
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<cpu_module>;
-  template class timer_module<cpu_module>;
 
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));

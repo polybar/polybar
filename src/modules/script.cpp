@@ -2,13 +2,11 @@
 #include "drawtypes/label.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/event_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<script_module>;
-  template class event_module<script_module>;
 
   script_module::script_module(const bar_settings& bar, string name_) : event_module<script_module>(bar, move(name_)) {
     REQ_CONFIG_VALUE(name(), m_exec, "exec");

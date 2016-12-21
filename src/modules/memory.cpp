@@ -7,13 +7,11 @@
 #include "drawtypes/progressbar.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<memory_module>;
-  template class timer_module<memory_module>;
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));

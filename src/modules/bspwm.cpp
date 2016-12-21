@@ -7,7 +7,6 @@
 #include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/event_module.inl"
 
 POLYBAR_NS
 
@@ -37,7 +36,6 @@ namespace {
 
 namespace modules {
   template class module<bspwm_module>;
-  template class event_module<bspwm_module>;
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
     auto socket_path = bspwm_util::get_socket_path();

@@ -5,13 +5,11 @@
 #include "utils/scope.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<menu_module>;
-  template class static_module<menu_module>;
 
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     string default_format{TAG_LABEL_TOGGLE + string{" "} + TAG_MENU};

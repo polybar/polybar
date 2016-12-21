@@ -2,13 +2,11 @@
 #include "drawtypes/label.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/timer_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<github_module>;
-  template class timer_module<github_module>;
 
   /**
    * Construct module

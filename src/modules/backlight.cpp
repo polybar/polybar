@@ -6,13 +6,11 @@
 #include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/inotify_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<backlight_module>;
-  template class inotify_module<backlight_module>;
 
   void backlight_module::brightness_handle::filepath(const string& path) {
     if (!file_util::exists(path)) {

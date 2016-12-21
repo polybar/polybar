@@ -9,13 +9,11 @@
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/inotify_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<battery_module>;
-  template class inotify_module<battery_module>;
 
   /**
    * Bootstrap module by setting up required components

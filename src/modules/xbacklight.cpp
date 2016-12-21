@@ -8,13 +8,11 @@
 #include "x11/xutils.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/static_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<xbacklight_module>;
-  template class static_module<xbacklight_module>;
 
   /**
    * Construct module

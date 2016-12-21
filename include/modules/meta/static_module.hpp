@@ -1,8 +1,5 @@
 #pragma once
 
-// #include "components/builder.hpp"
-// #include "components/types.hpp"
-
 #include "modules/meta/base.hpp"
 
 POLYBAR_NS
@@ -13,8 +10,13 @@ namespace modules {
    public:
     using module<Impl>::module;
 
-    void start();
-    bool build(builder*, string) const;
+    void start() {
+      CAST_MOD(Impl)->broadcast();
+    }
+
+    bool build(builder*, string) const {
+      return true;
+    }
   };
 }
 

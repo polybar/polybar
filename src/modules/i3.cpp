@@ -7,13 +7,11 @@
 #include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/event_module.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<i3_module>;
-  template class event_module<i3_module>;
 
   i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
     auto socket_path = i3ipc::get_socketpath();

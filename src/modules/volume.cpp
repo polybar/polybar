@@ -8,7 +8,6 @@
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
-#include "modules/meta/event_module.inl"
 
 POLYBAR_NS
 
@@ -16,7 +15,6 @@ using namespace alsa;
 
 namespace modules {
   template class module<volume_module>;
-  template class event_module<volume_module>;
 
   volume_module::volume_module(const bar_settings& bar, string name_) : event_module<volume_module>(bar, move(name_)) {
     // Load configuration values
