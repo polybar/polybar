@@ -15,11 +15,7 @@ namespace modules {
   template class module<i3_module>;
   template class event_module<i3_module>;
 
-  i3_module::workspace::operator bool() {
-    return label && *label;
-  }
-
-  void i3_module::setup() {
+  i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
     auto socket_path = i3ipc::get_socketpath();
 
     if (!file_util::exists(socket_path)) {
@@ -81,6 +77,10 @@ namespace modules {
     } catch (const exception& err) {
       throw module_error(err.what());
     }
+  }
+
+  i3_module::workspace::operator bool() {
+    return label && *label;
   }
 
   void i3_module::stop() {

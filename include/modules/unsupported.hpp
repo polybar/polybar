@@ -33,7 +33,6 @@ namespace modules {
     bool running() const {                                                              \
       return false;                                                                     \
     }                                                                                   \
-    void setup() {}                                                                     \
     void start() {}                                                                     \
     void stop() {}                                                                      \
     void halt(string) {}                                                                \

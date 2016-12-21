@@ -10,7 +10,7 @@ namespace modules {
   template class module<script_module>;
   template class event_module<script_module>;
 
-  void script_module::setup() {
+  script_module::script_module(const bar_settings& bar, string name_) : event_module<script_module>(bar, move(name_)) {
     REQ_CONFIG_VALUE(name(), m_exec, "exec");
     GET_CONFIG_VALUE(name(), m_tail, "tail");
     GET_CONFIG_VALUE(name(), m_maxlen, "maxlen");

@@ -14,7 +14,6 @@ namespace modules {
    public:
     explicit github_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     bool build(builder* builder, const string& tag) const;
 

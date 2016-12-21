@@ -64,13 +64,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xwindow_module::xwindow_module(const bar_settings& bar, string name)
-      : static_module<xwindow_module>(bar, name), m_connection(connection::make()) {}
-
-  /**
-   * Bootstrap the module
-   */
-  void xwindow_module::setup() {
+  xwindow_module::xwindow_module(const bar_settings& bar, string name_)
+      : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");

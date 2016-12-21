@@ -14,19 +14,8 @@ namespace modules {
   template class module<backlight_module>;
   template class inotify_module<backlight_module>;
 
-  void brightness_handle::filepath(const string& path) {
-    if (!file_util::exists(path)) {
-      throw module_error("The file '" + path + "' does not exist");
-    }
-    m_path = path;
-  }
-
-  float brightness_handle::read() const {
-    return std::strtof(file_util::get_contents(m_path).c_str(), nullptr);
-  }
-
-  void backlight_module::setup() {
-    // Load configuration values
+  backlight_module::backlight_module(const bar_settings& bar, string name_)
+      : inotify_module<backlight_module>(bar, move(name_)) {
     auto card = m_conf.get<string>(name(), "card");
 
     // Add formats and elements
@@ -48,6 +37,17 @@ namespace modules {
 
     // Add inotify watch
     watch(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+  }
+
+  void brightness_handle::filepath(const string& path) {
+    if (!file_util::exists(path)) {
+      throw module_error("The file '" + path + "' does not exist");
+    }
+    m_path = path;
+  }
+
+  float brightness_handle::read() const {
+    return std::strtof(file_util::get_contents(m_path).c_str(), nullptr);
   }
 
   void backlight_module::idle() {

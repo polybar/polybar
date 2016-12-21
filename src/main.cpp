@@ -137,8 +137,9 @@ int main(int argc, char** argv) {
   }
 
   logger.info("Waiting for spawned processes to end");
-  while (process_util::notify_childprocess())
+  while (process_util::notify_childprocess()) {
     ;
+  }
 
   if (reload) {
     logger.info("Re-launching application...");

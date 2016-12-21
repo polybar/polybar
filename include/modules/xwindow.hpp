@@ -34,7 +34,6 @@ namespace modules {
    public:
     explicit xwindow_module(const bar_settings&, string);
 
-    void setup();
     void teardown();
     void handle(const evt::property_notify& evt);
     void update();

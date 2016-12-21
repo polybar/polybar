@@ -9,7 +9,7 @@ namespace modules {
   template class module<text_module>;
   template class static_module<text_module>;
 
-  void text_module::setup() {
+  text_module::text_module(const bar_settings& bar, string name_) : static_module<text_module>(bar, move(name_)) {
     m_formatter->add("content", "", {});
 
     if (m_formatter->get("content")->value.empty()) {

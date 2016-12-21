@@ -18,7 +18,7 @@ namespace modules {
   template class module<volume_module>;
   template class event_module<volume_module>;
 
-  void volume_module::setup() {
+  volume_module::volume_module(const bar_settings& bar, string name_) : event_module<volume_module>(bar, move(name_)) {
     // Load configuration values
     string master_mixer_name{"Master"};
     string speaker_mixer_name;

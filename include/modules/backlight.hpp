@@ -17,9 +17,8 @@ namespace modules {
 
   class backlight_module : public inotify_module<backlight_module> {
    public:
-    using inotify_module::inotify_module;
+    explicit backlight_module(const bar_settings&, string);
 
-    void setup();
     void idle();
     bool on_event(inotify_event* event);
     bool build(builder* builder, const string& tag) const;

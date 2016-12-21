@@ -25,9 +25,8 @@ namespace modules {
 
   class battery_module : public inotify_module<battery_module> {
    public:
-    using inotify_module::inotify_module;
+    explicit battery_module(const bar_settings&, string);
 
-    void setup();
     void start();
     void teardown();
     void idle();
@@ -66,7 +65,7 @@ namespace modules {
     map<battery_value, string> m_valuepath;
     std::atomic<int> m_percentage{0};
     int m_fullat{100};
-    chrono::duration<double> m_interval;
+    chrono::duration<double> m_interval{};
     chrono::system_clock::time_point m_lastpoll;
     string m_timeformat;
     int m_unchanged{SKIP_N_UNCHANGED};

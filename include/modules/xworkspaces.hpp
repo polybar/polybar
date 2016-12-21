@@ -49,9 +49,8 @@ namespace modules {
    */
   class xworkspaces_module : public static_module<xworkspaces_module>, public xpp::event::sink<evt::property_notify> {
    public:
-    explicit xworkspaces_module(const bar_settings& bar, string name);
+    explicit xworkspaces_module(const bar_settings& bar, string name_);
 
-    void setup();
     void teardown();
     void handle(const evt::property_notify& evt);
     void update();

@@ -15,7 +15,7 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  void ipc_module::setup() {
+  ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
     size_t index = 0;
 
     for (auto&& command : m_conf.get_list<string>(name(), "hook")) {

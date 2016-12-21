@@ -20,13 +20,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name)
-      : static_module<xworkspaces_module>(bar, move(name)), m_connection(connection::make()) {}
-
-  /**
-   * Bootstrap the module
-   */
-  void xworkspaces_module::setup() {
+  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
+      : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
     // Load config values
     m_pinworkspaces = m_conf.get<bool>(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get<bool>(name(), "enable-click", m_click);

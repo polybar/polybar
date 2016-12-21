@@ -52,7 +52,7 @@ class taskqueue : non_copyable_mixin<taskqueue> {
 
  private:
   std::thread m_thread;
-  std::mutex m_lock;
+  std::mutex m_lock{};
   std::condition_variable m_hold;
   std::atomic_bool m_active{true};
 

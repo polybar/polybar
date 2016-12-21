@@ -11,9 +11,8 @@ namespace modules {
 
   class network_module : public timer_module<network_module> {
    public:
-    using timer_module::timer_module;
+    explicit network_module(const bar_settings&, string);
 
-    void setup();
     void teardown();
     bool update();
     string get_format() const;

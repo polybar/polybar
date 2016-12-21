@@ -39,7 +39,7 @@ namespace modules {
   template class module<bspwm_module>;
   template class event_module<bspwm_module>;
 
-  void bspwm_module::setup() {
+  bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
     auto socket_path = bspwm_util::get_socket_path();
 
     if (!file_util::exists(socket_path)) {

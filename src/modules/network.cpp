@@ -14,7 +14,8 @@ namespace modules {
   template class module<network_module>;
   template class timer_module<network_module>;
 
-  void network_module::setup() {
+  network_module::network_module(const bar_settings& bar, string name_)
+      : timer_module<network_module>(bar, move(name_)) {
     // Load configuration values
     REQ_CONFIG_VALUE(name(), m_interface, "interface");
     GET_CONFIG_VALUE(name(), m_ping_nth_update, "ping-interval");

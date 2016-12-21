@@ -10,9 +10,8 @@ namespace modules {
 
   class memory_module : public timer_module<memory_module> {
    public:
-    using timer_module::timer_module;
+    explicit memory_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     bool build(builder* builder, const string& tag) const;
 

@@ -14,9 +14,8 @@ namespace chrono = std::chrono;
 namespace modules {
   class mpd_module : public event_module<mpd_module> {
    public:
-    using event_module::event_module;
+    explicit mpd_module(const bar_settings&, string);
 
-    void setup();
     void teardown();
     inline bool connected() const;
     void idle();

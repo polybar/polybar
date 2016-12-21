@@ -36,9 +36,9 @@ namespace modules {
       bool focused{false};
     };
 
-    using event_module::event_module;
+   public:
+    explicit bspwm_module(const bar_settings&, string);
 
-    void setup();
     void stop();
     bool has_event();
     bool update();

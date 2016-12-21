@@ -16,9 +16,8 @@ namespace chrono = std::chrono;
 namespace modules {
   class script_module : public event_module<script_module> {
    public:
-    using event_module::event_module;
+    explicit script_module(const bar_settings&, string);
 
-    void setup();
     void stop();
     void idle();
     bool has_event();

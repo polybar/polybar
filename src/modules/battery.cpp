@@ -20,7 +20,8 @@ namespace modules {
   /**
    * Bootstrap module by setting up required components
    */
-  void battery_module::setup() {
+  battery_module::battery_module(const bar_settings& bar, string name_)
+      : inotify_module<battery_module>(bar, move(name_)) {
     auto battery = m_conf.get<string>(name(), "battery", "BAT0");
     auto adapter = m_conf.get<string>(name(), "adapter", "ADP1");
 

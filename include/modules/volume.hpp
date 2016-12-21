@@ -20,9 +20,8 @@ namespace modules {
 
   class volume_module : public event_module<volume_module> {
    public:
-    using event_module::event_module;
+    explicit volume_module(const bar_settings&, string);
 
-    void setup();
     void teardown();
     bool has_event();
     bool update();

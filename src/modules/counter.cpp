@@ -9,8 +9,9 @@ namespace modules {
   template class module<counter_module>;
   template class timer_module<counter_module>;
 
-  void counter_module::setup() {
-    m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
+  counter_module::counter_module(const bar_settings& bar, string name_)
+      : timer_module<counter_module>(bar, move(name_)) {
+    m_interval = m_conf.get(name(), "interval", m_interval);
     m_formatter->add(DEFAULT_FORMAT, TAG_COUNTER, {TAG_COUNTER});
   }
 

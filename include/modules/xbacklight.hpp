@@ -25,9 +25,8 @@ namespace modules {
    */
   class xbacklight_module : public static_module<xbacklight_module>, public xpp::event::sink<evt::randr_notify> {
    public:
-    explicit xbacklight_module(const bar_settings& bar, string name);
+    explicit xbacklight_module(const bar_settings& bar, string name_);
 
-    void setup();
     void teardown();
     void handle(const evt::randr_notify& evt);
     void update();

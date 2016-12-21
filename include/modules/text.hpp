@@ -7,9 +7,8 @@ POLYBAR_NS
 namespace modules {
   class text_module : public static_module<text_module> {
    public:
-    using static_module::static_module;
+    explicit text_module(const bar_settings&, string);
 
-    void setup();
     string get_format() const;
     string get_output();
   };

@@ -51,18 +51,6 @@ namespace modules {
   }
 
   template <typename Impl>
-  void module<Impl>::setup() {
-    m_log.trace("%s: Setup", m_name);
-
-    try {
-      CAST_MOD(Impl)->setup();
-    } catch (const std::exception& err) {
-      m_log.err("%s: Setup failed", m_name);
-      halt(err.what());
-    }
-  }
-
-  template <typename Impl>
   void module<Impl>::stop() {
     if (!running()) {
       return;

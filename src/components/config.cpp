@@ -280,4 +280,9 @@ chrono::milliseconds config::convert(string&& value) const {
   return chrono::milliseconds{convert<chrono::milliseconds::rep>(forward<string>(value))};
 }
 
+template <>
+chrono::duration<double> config::convert(string&& value) const {
+  return chrono::duration<double>{convert<double>(forward<string>(value))};
+}
+
 POLYBAR_NS_END

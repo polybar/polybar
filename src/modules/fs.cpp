@@ -23,7 +23,7 @@ namespace modules {
    * Bootstrap the module by reading config values and
    * setting up required components
    */
-  void fs_module::setup() {
+  fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_mountpoints = m_conf.get_list<string>(name(), "mount");
     m_fixed = m_conf.get<bool>(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get<int>(name(), "spacing", m_spacing);

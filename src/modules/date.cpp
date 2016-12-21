@@ -10,7 +10,7 @@ namespace modules {
   template class module<date_module>;
   template class timer_module<date_module>;
 
-  void date_module::setup() {
+  date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
       setlocale(LC_TIME, m_bar.locale.c_str());
     }

@@ -7,9 +7,8 @@ POLYBAR_NS
 namespace modules {
   class date_module : public timer_module<date_module> {
    public:
-    using timer_module::timer_module;
+    explicit date_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);

@@ -5,20 +5,20 @@
 POLYBAR_NS
 
 namespace modules {
-  struct menu_tree_item {
-    string exec;
-    label_t label;
-  };
-
-  struct menu_tree {
-    vector<unique_ptr<menu_tree_item>> items;
-  };
-
   class menu_module : public static_module<menu_module> {
    public:
-    using static_module::static_module;
+    struct menu_tree_item {
+      string exec;
+      label_t label;
+    };
 
-    void setup();
+    struct menu_tree {
+      vector<unique_ptr<menu_tree_item>> items;
+    };
+
+   public:
+    explicit menu_module(const bar_settings&, string);
+
     bool build(builder* builder, const string& tag) const;
     bool handle_event(string cmd);
     bool receive_events() const;

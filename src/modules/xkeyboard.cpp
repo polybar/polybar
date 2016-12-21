@@ -17,13 +17,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name)
-      : static_module<xkeyboard_module>(bar, move(name)), m_connection(connection::make()) {}
-
-  /**
-   * Bootstrap the module
-   */
-  void xkeyboard_module::setup() {
+  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
+      : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
     // Load config values
     m_blacklist = m_conf.get_list<string>(name(), "blacklist", {});
 

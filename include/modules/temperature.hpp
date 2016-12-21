@@ -12,9 +12,8 @@ namespace modules {
 
   class temperature_module : public timer_module<temperature_module> {
    public:
-    using timer_module::timer_module;
+    explicit temperature_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     string get_format() const;
     bool build(builder* builder, const string& tag) const;

@@ -71,7 +71,7 @@ class command {
   pid_t m_forkpid{};
   int m_forkstatus{};
 
-  std::mutex m_pipelock;
+  std::mutex m_pipelock{};
 };
 
 namespace command_util {

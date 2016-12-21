@@ -18,9 +18,8 @@ namespace modules {
 
   class cpu_module : public timer_module<cpu_module> {
    public:
-    using timer_module::timer_module;
+    explicit cpu_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     bool build(builder* builder, const string& tag) const;
 

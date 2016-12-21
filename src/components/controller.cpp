@@ -103,7 +103,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
 
         module->set_update_cb([&] { enqueue(make_update_evt(false)); });
         module->set_stop_cb([&] { enqueue(make_check_evt()); });
-        module->setup();
 
         m_modules[align].emplace_back(move(module));
 

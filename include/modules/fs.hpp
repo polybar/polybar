@@ -37,9 +37,8 @@ namespace modules {
    */
   class fs_module : public timer_module<fs_module> {
    public:
-    using timer_module::timer_module;
+    explicit fs_module(const bar_settings&, string);
 
-    void setup();
     bool update();
     string get_format() const;
     string get_output();

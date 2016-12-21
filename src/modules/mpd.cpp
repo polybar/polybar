@@ -16,7 +16,7 @@ namespace modules {
   template class module<mpd_module>;
   template class event_module<mpd_module>;
 
-  void mpd_module::setup() {
+  mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
     m_host = m_conf.get<string>(name(), "host", m_host);
     m_port = m_conf.get<unsigned int>(name(), "port", m_port);
     m_pass = m_conf.get<string>(name(), "password", m_pass);

@@ -19,13 +19,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xbacklight_module::xbacklight_module(const bar_settings& bar, string name)
-      : static_module<xbacklight_module>(bar, move(name)), m_connection(connection::make()) {}
-
-  /**
-   * Bootstrap the module by grabbing all required components
-   */
-  void xbacklight_module::setup() {
+  xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
+      : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
     auto output = m_conf.get<string>(name(), "output", m_bar.monitor->name);
     auto strict = m_conf.get<bool>(name(), "monitor-strict", false);
 
