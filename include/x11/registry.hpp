@@ -3,7 +3,7 @@
 #include <xcb/xcb.h>
 
 #include "common.hpp"
-#include "x11/extensions_fwd.hpp"
+#include "x11/extensions/all.hpp"
 
 // fwd
 namespace xpp {

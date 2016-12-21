@@ -4,8 +4,6 @@
 #include <xcb/xcb_util.h>
 
 #include "common.hpp"
-#include "utils/memory.hpp"
-#include "x11/randr.hpp"
 
 POLYBAR_NS
 

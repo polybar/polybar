@@ -8,7 +8,7 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "x11/connection.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS

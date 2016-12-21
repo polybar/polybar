@@ -1,9 +1,11 @@
-#include "x11/connection.hpp"
+#include <iomanip>
+
 #include "errors.hpp"
 #include "utils/factory.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
+#include "x11/connection.hpp"
 #include "x11/xutils.hpp"
 
 POLYBAR_NS
@@ -11,21 +13,21 @@ POLYBAR_NS
 /**
  * Create instance
  */
-connection::make_type connection::make() {
-  return static_cast<connection::make_type>(*factory_util::singleton<std::remove_reference_t<connection::make_type>>(
-      xutils::get_connection().get(), xutils::get_connection_fd()));
+connection::make_type connection::make(xcb_connection_t* conn, int conn_fd) {
+  if (conn == nullptr) {
+    conn = xutils::get_connection().get();
+  }
+  if (conn_fd == 0) {
+    conn_fd = xutils::get_connection_fd();
+  }
+  return static_cast<connection::make_type>(
+      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn, conn_fd));
 }
 
 /**
  * Preload required xcb atoms
  */
 void connection::preload_atoms() {
-  static bool s_atoms_loaded{false};
-
-  if (s_atoms_loaded) {
-    return;
-  }
-
   vector<xcb_intern_atom_cookie_t> cookies(memory_util::countof(ATOMS));
   xcb_intern_atom_reply_t* reply{nullptr};
 
@@ -40,56 +42,30 @@ void connection::preload_atoms() {
 
     free(reply);
   }
-
-  s_atoms_loaded = true;
 }
 
 /**
- * Check if required X extensions are available
+ * Query for X extensions
  */
 void connection::query_extensions() {
-  static bool s_extensions_loaded{false};
-
-  if (s_extensions_loaded) {
-    return;
-  }
-
 #if WITH_XDAMAGE
-  damage().query_version(XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
-  if (!extension<xpp::damage::extension>()->present)
-    throw application_error("Missing X extension: Damage");
+  damage_util::query_extension(*this);
 #endif
 #if WITH_XRENDER
-  render().query_version(XCB_RENDER_MAJOR_VERSION, XCB_RENDER_MINOR_VERSION);
-  if (!extension<xpp::render::extension>()->present)
-    throw application_error("Missing X extension: Render");
+  render_util::query_extension(*this);
 #endif
 #if WITH_XRANDR
-  randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
-  if (!extension<xpp::randr::extension>()->present) {
-    throw application_error("Missing X extension: RandR");
-  }
+  randr_util::query_extension(*this);
 #endif
 #if WITH_XSYNC
-  sync().initialize(XCB_SYNC_MAJOR_VERSION, XCB_SYNC_MINOR_VERSION);
-  if (!extension<xpp::sync::extension>()->present) {
-    throw application_error("Missing X extension: Sync");
-  }
+  sync_util::query_extension(*this);
 #endif
 #if WITH_XCOMPOSITE
-  composite().query_version(XCB_COMPOSITE_MAJOR_VERSION, XCB_COMPOSITE_MINOR_VERSION);
-  if (!extension<xpp::composite::extension>()->present) {
-    throw application_error("Missing X extension: Composite");
-  }
+  composite_util::query_extension(*this);
 #endif
 #if WITH_XKB
-  xkb().use_extension(XCB_XKB_MAJOR_VERSION, XCB_XKB_MINOR_VERSION);
-  if (!extension<xpp::xkb::extension>()->present) {
-    throw application_error("Missing X extension: Xkb");
-  }
+  xkb_util::query_extension(*this);
 #endif
-
-  s_extensions_loaded = true;
 }
 
 /**
@@ -208,8 +184,8 @@ string connection::error_str(int error_code) {
 /**
  * Dispatch event through the registry
  */
-void connection::dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const {
-  m_registry.dispatch(evt);
+void connection::dispatch_event(shared_ptr<xcb_generic_event_t>&& evt) const {
+  m_registry.dispatch(forward<decltype(evt)>(evt));
 }
 
 POLYBAR_NS_END

@@ -273,22 +273,19 @@ void controller::read_events() {
 
     // Process event on the xcb connection fd
     if (fd_connection && FD_ISSET(fd_connection, &readfds)) {
-      shared_ptr<xcb_generic_event_t> evt;
-      while ((evt = m_connection.poll_for_event())) {
-        try {
-          m_connection.dispatch_event(evt);
-        } catch (xpp::connection_error& err) {
-          m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
-        } catch (const exception& err) {
-          m_log.err("Error in X event loop: %s", err.what());
-        }
+      try {
+        m_connection.dispatch_event(m_connection.wait_for_event());
+      } catch (xpp::connection_error& err) {
+        m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
+      } catch (const exception& err) {
+        m_log.err("Error in X event loop: %s", err.what());
       }
     }
 
     // Process event on the ipc fd
     if (fd_ipc && FD_ISSET(fd_ipc, &readfds)) {
       m_ipc->receive_message();
-      fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_ipc](int fd) { return fd == fd_ipc; }));
+      fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_ipc](int fd) { return fd == fd_ipc; }), fds.end());
       fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
     }
   }

@@ -18,6 +18,7 @@ namespace chrono = std::chrono;
 using namespace std::chrono_literals;
 
 // fwd
+class config;
 class connection;
 class logger;
 class parser;

@@ -5,7 +5,7 @@
 
 #include "common.hpp"
 #include "x11/connection.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 

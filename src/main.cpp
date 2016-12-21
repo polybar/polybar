@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
 
-    connection conn{xcbconn.get()};
+    connection& conn{connection::make(xcbconn.get())};
     conn.preload_atoms();
     conn.query_extensions();
 

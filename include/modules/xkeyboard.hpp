@@ -7,7 +7,7 @@
 #include "modules/meta/static_module.hpp"
 #include "x11/events.hpp"
 #include "x11/window.hpp"
-#include "x11/xkb.hpp"
+#include "x11/extensions/xkb.hpp"
 
 POLYBAR_NS
 

@@ -7,7 +7,7 @@
 #include "config.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 #include "x11/window.hpp"
 
 POLYBAR_NS

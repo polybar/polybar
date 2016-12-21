@@ -4,7 +4,7 @@
 #include "config.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 

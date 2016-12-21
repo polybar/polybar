@@ -2,7 +2,7 @@
 
 #include "errors.hpp"
 #include "utils/string.hpp"
-#include "x11/xkb.hpp"
+#include "x11/extensions/xkb.hpp"
 
 POLYBAR_NS
 
@@ -75,6 +75,17 @@ size_t keyboard::size() const {
 }
 
 namespace xkb_util {
+  /**
+   * Query for the XKB extension
+   */
+  void query_extension(connection& conn) {
+    conn.xkb().use_extension(XCB_XKB_MAJOR_VERSION, XCB_XKB_MINOR_VERSION);
+
+    if (!conn.extension<xpp::xkb::extension>()->present) {
+      throw application_error("Missing X extension: XKb");
+    }
+  }
+
   /**
    * Get current group number
    */

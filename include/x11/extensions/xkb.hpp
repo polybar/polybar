@@ -83,6 +83,8 @@ class keyboard {
 namespace xkb_util {
   static constexpr const char* LAYOUT_SYMBOL_BLACKLIST{";group;inet;pc;"};
 
+  void query_extension(connection& conn);
+
   void switch_layout(connection& conn, xcb_xkb_device_spec_t device, uint8_t index);
   uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device);
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device);

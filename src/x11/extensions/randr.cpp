@@ -2,10 +2,11 @@
 #include <utility>
 
 #include "components/types.hpp"
+#include "errors.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 
@@ -29,6 +30,16 @@ bool randr_output::match(const position& p) const {
 }
 
 namespace randr_util {
+  /**
+   * Query for the XRandR extension
+   */
+  void query_extension(connection& conn) {
+    conn.randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
+
+    if (!conn.extension<xpp::randr::extension>()->present) {
+      throw application_error("Missing X extension: Randr");
+    }
+  }
 
   /**
    * Define monitor

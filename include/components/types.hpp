@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 #include "x11/color.hpp"
-#include "x11/randr.hpp"
+#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 
