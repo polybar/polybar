@@ -16,17 +16,20 @@ using namespace std::chrono_literals;
 
 class taskqueue : non_copyable_mixin<taskqueue> {
  public:
-  struct deferred : non_copyable_mixin<deferred> {
+  struct deferred {
+    using clock = chrono::high_resolution_clock;
     using duration = chrono::milliseconds;
-    using timepoint = chrono::time_point<chrono::high_resolution_clock, duration>;
-    using callback = function<void()>;
+    using timepoint = chrono::time_point<clock, duration>;
+    using callback = function<void(size_t remaining)>;
 
-    explicit deferred(string&& id, timepoint&& tp, callback&& fn)
-        : id(forward<decltype(id)>(id)), when(forward<decltype(tp)>(tp)), func(forward<decltype(fn)>(fn)) {}
+    explicit deferred(string id, timepoint now, duration wait, callback fn, size_t count)
+        : id(move(id)), func(move(fn)), now(move(now)), wait(move(wait)), count(move(count)) {}
 
     const string id;
-    const timepoint when;
     const callback func;
+    timepoint now;
+    duration wait;
+    size_t count;
   };
 
  public:
@@ -36,10 +39,13 @@ class taskqueue : non_copyable_mixin<taskqueue> {
   explicit taskqueue();
   ~taskqueue();
 
-  void defer(string&& id, deferred::duration&& ms, deferred::callback&& fn);
-  void defer_unique(string&& id, deferred::duration&& ms, deferred::callback&& fn);
+  void defer(
+      string id, deferred::duration ms, deferred::callback fn, deferred::duration offset = 0ms, size_t count = 1);
+  void defer_unique(
+      string id, deferred::duration ms, deferred::callback fn, deferred::duration offset = 0ms, size_t count = 1);
 
-  bool has_deferred(string&& id);
+  bool exist(const string& id);
+  bool purge(const string& id);
 
  protected:
   void tick();

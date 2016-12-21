@@ -17,9 +17,12 @@ namespace signals {
     struct process_action;
   }
   namespace ui {
+    struct tick;
     struct button_press;
     struct visibility_change;
     struct dim_window;
+    struct shade_window;
+    struct unshade_window;
   }
   namespace parser {
     struct change_background;

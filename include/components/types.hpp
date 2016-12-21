@@ -151,6 +151,12 @@ struct bar_settings {
   bool dimmed{false};
   double dimvalue{1.0};
 
+  bool shaded{false};
+  struct size shade_size {
+    1U, 1U
+  };
+  position shade_pos{1U, 1U};
+
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect{0, 0, size.w, size.h};
 

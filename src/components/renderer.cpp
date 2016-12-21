@@ -254,6 +254,22 @@ void renderer::flush(bool clear) {
     m_cleared = clear_area;
   }
 
+#if DEBUG
+  if (m_bar.shaded && m_bar.origin == edge::TOP) {
+    m_log.trace("renderer: copy pixmap (shaded=1, clear=%i, geom=%dx%d+%d+%d)", clear, r.width, r.height, r.x, r.y);
+    auto geom = m_connection.get_geometry(m_window);
+    auto x1 = 0;
+    auto y1 = r.height - m_bar.shade_size.h - r.y - geom->height;
+    auto x2 = r.x;
+    auto y2 = r.y;
+    auto w = r.width;
+    auto h = r.height - m_bar.shade_size.h + geom->height;
+    m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), x1, y1, x2, y2, w, h);
+    m_connection.flush();
+    return;
+  }
+#endif
+
   m_log.trace("renderer: copy pixmap (clear=%i, geom=%dx%d+%d+%d)", clear, r.width, r.height, r.x, r.y);
   m_connection.copy_area(m_pixmap, m_window, m_gcontexts.at(gc::FG), 0, 0, r.x, r.y, r.width, r.height);
 

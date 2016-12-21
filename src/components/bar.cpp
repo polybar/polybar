@@ -283,6 +283,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_tray->setup(static_cast<const bar_settings&>(m_opts));
 
   broadcast_visibility();
+
+  m_sig.attach(this);
 }
 
 /**
@@ -291,6 +293,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 bar::~bar() {
   std::lock_guard<std::mutex> guard(m_mutex);
   m_connection.detach_sink(this, SINK_PRIORITY_BAR);
+  m_sig.detach(this);
 }
 
 /**
@@ -312,6 +315,10 @@ void bar::parse(const string& data, bool force) {
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
+  if (m_opts.shaded) {
+    return m_log.trace("bar: Ignoring update (shaded)");
+  }
 
   if (data == m_lastinput && !force) {
     return;
@@ -449,10 +456,7 @@ void bar::broadcast_visibility() {
  * Event handler for XCB_DESTROY_NOTIFY events
  */
 void bar::handle(const evt::client_message& evt) {
-  if (evt->type != WM_PROTOCOLS || evt->data.data32[0] != WM_DELETE_WINDOW) {
-    return;
-  }
-  if (evt->window == m_opts.window) {
+  if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_opts.window) {
     m_log.err("Bar window has been destroyed, shutting down...");
     m_connection.disconnect();
   }
@@ -474,11 +478,18 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
+#if DEBUG
+  if (m_opts.origin == edge::TOP) {
+    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(sig_ui::unshade_window{}); });
+    return;
+  }
+#endif
+
   if (m_opts.dimmed) {
-    window win{m_connection, m_opts.window};
-    wm_util::set_wm_window_opacity(m_connection, m_opts.window, 1.0 * 0xFFFFFFFF);
-    m_sig.emit(dim_window{1.0});
-    m_opts.dimmed = false;
+    m_taskqueue->defer_unique("window-dim", 25ms, [&](size_t) {
+      m_opts.dimmed = false;
+      m_sig.emit(dim_window{1.0});
+    });
   }
 }
 
@@ -489,11 +500,18 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
+#if DEBUG
+  if (m_opts.origin == edge::TOP) {
+    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(sig_ui::shade_window{}); });
+    return;
+  }
+#endif
+
   if (!m_opts.dimmed) {
-    window win{m_connection, m_opts.window};
-    wm_util::set_wm_window_opacity(m_connection, m_opts.window, m_opts.dimvalue * 0xFFFFFFFF);
-    m_sig.emit(dim_window{double{m_opts.dimvalue}});
-    m_opts.dimmed = true;
+    m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
+      m_opts.dimmed = true;
+      m_sig.emit(dim_window{double{m_opts.dimvalue}});
+    });
   }
 }
 
@@ -518,7 +536,7 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_btn = static_cast<mousebtn>(evt->detail);
   m_buttonpress_pos = evt->event_x;
 
-  const auto deferred_fn = [&] {
+  const auto deferred_fn = [&](size_t) {
     for (auto&& action : m_renderer->get_actions()) {
       if (action.button == m_buttonpress_btn && !action.active && action.test(m_buttonpress_pos)) {
         m_log.trace("Found matching input area");
@@ -537,13 +555,13 @@ void bar::handle(const evt::button_press& evt) {
   };
 
   const auto check_double = [&](string&& id, mousebtn&& btn) {
-    if (!m_taskqueue->has_deferred(string{id})) {
+    if (!m_taskqueue->exist(id)) {
       m_doubleclick.event = evt->time;
-      m_taskqueue->defer_unique(string{id}, chrono::milliseconds{m_doubleclick.offset}, deferred_fn);
+      m_taskqueue->defer(id, taskqueue::deferred::duration{m_doubleclick.offset}, deferred_fn);
     } else if (m_doubleclick.deny(evt->time)) {
       m_doubleclick.event = 0;
-      m_buttonpress_btn = forward<decltype(btn)>(btn);
-      m_taskqueue->defer_unique(string{id}, 0ms, deferred_fn);
+      m_buttonpress_btn = btn;
+      m_taskqueue->defer_unique(id, 0ms, deferred_fn);
     }
   };
 
@@ -554,7 +572,7 @@ void bar::handle(const evt::button_press& evt) {
   } else if (evt->detail == static_cast<uint8_t>(mousebtn::RIGHT)) {
     check_double("buttonpress-right", mousebtn::DOUBLE_RIGHT);
   } else {
-    deferred_fn();
+    deferred_fn(0);
   }
 }
 
@@ -595,6 +613,115 @@ void bar::handle(const evt::property_notify& evt) {
   if (evt->window == m_opts.window && evt->atom == WM_STATE) {
     broadcast_visibility();
   }
+}
+
+bool bar::on(const sig_ui::unshade_window&) {
+  m_opts.shaded = false;
+  m_opts.shade_size.w = m_opts.size.w;
+  m_opts.shade_size.h = m_opts.size.h;
+  m_opts.shade_pos.x = m_opts.pos.x;
+  m_opts.shade_pos.y = m_opts.pos.y;
+
+  double distance{static_cast<double>(m_opts.shade_size.h - m_connection.get_geometry(m_opts.window)->height)};
+  double steptime{25.0 / 10.0};
+  m_anim_step = distance / steptime / 2.0;
+
+  m_taskqueue->defer_unique("window-shade", 25ms,
+      [&](size_t remaining) {
+        if (!m_opts.shaded) {
+          m_sig.emit(sig_ui::tick{});
+        }
+        if (!remaining) {
+          m_renderer->flush(false);
+        }
+        if (m_opts.dimmed) {
+          m_opts.dimmed = false;
+          m_sig.emit(dim_window{1.0});
+        }
+      },
+      taskqueue::deferred::duration{25ms}, 10U);
+
+  return true;
+}
+
+bool bar::on(const sig_ui::shade_window&) {
+  taskqueue::deferred::duration offset{2000ms};
+
+  if (!m_opts.shaded && m_opts.shade_size.h != m_opts.size.h) {
+    offset = taskqueue::deferred::duration{25ms};
+  }
+
+  m_opts.shaded = true;
+  m_opts.shade_size.h = 5;
+  m_opts.shade_size.w = m_opts.size.w;
+  m_opts.shade_pos.x = m_opts.pos.x;
+  m_opts.shade_pos.y = m_opts.pos.y;
+
+  if (m_opts.origin == edge::BOTTOM) {
+    m_opts.shade_pos.y = m_opts.pos.y + m_opts.size.h - m_opts.shade_size.h;
+  }
+
+  double distance{static_cast<double>(m_connection.get_geometry(m_opts.window)->height - m_opts.shade_size.h)};
+  double steptime{25.0 / 10.0};
+  m_anim_step = distance / steptime / 2.0;
+
+  m_taskqueue->defer_unique("window-shade", 25ms,
+      [&](size_t remaining) {
+        if (m_opts.shaded) {
+          m_sig.emit(sig_ui::tick{});
+        }
+        if (!remaining) {
+          m_renderer->flush(false);
+        }
+        if (!m_opts.dimmed) {
+          m_opts.dimmed = true;
+          m_sig.emit(dim_window{double{m_opts.dimvalue}});
+        }
+      },
+      move(offset), 10U);
+
+  return true;
+}
+
+bool bar::on(const sig_ui::tick&) {
+  auto geom = m_connection.get_geometry(m_opts.window);
+  if (geom->y == m_opts.shade_pos.y && geom->height == m_opts.shade_size.h) {
+    return false;
+  }
+
+  uint32_t mask{0};
+  uint32_t values[7]{0};
+  xcb_params_configure_window_t params{};
+
+  if (m_opts.shade_size.h > geom->height) {
+    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<uint16_t>(geom->height + m_anim_step));
+    params.height = std::max(1U, std::min(params.height, static_cast<uint32_t>(m_opts.shade_size.h)));
+  } else if (m_opts.shade_size.h < geom->height) {
+    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<uint16_t>(geom->height - m_anim_step));
+    params.height = std::max(1U, std::max(params.height, static_cast<uint32_t>(m_opts.shade_size.h)));
+  }
+
+  if (m_opts.shade_pos.y > geom->y) {
+    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int16_t>(geom->y + m_anim_step));
+    params.y = std::min(params.y, static_cast<int32_t>(m_opts.shade_pos.y));
+  } else if (m_opts.shade_pos.y < geom->y) {
+    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int16_t>(geom->y - m_anim_step));
+    params.y = std::max(params.y, static_cast<int32_t>(m_opts.shade_pos.y));
+  }
+
+  xutils::pack_values(mask, &params, values);
+
+  m_connection.configure_window(m_opts.window, mask, values);
+  m_connection.flush();
+
+  return false;
+}
+
+bool bar::on(const sig_ui::dim_window& sig) {
+  m_opts.dimmed = *sig.data() != 1.0;
+  wm_util::set_wm_window_opacity(m_connection, m_opts.window, *sig.data() * 0xFFFFFFFF);
+  m_connection.flush();
+  return false;
 }
 
 POLYBAR_NS_END

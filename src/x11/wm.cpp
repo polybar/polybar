@@ -42,7 +42,6 @@ namespace wm_util {
         xcb_intern_atom_reply(conn, xcb_intern_atom(conn, false, 22, "_NET_WM_WINDOW_OPACITY"), nullptr)};
     if (reply) {
       xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, reply->atom, XCB_ATOM_CARDINAL, 32, 1, &values);
-      xcb_flush(conn);
       free(reply);
     }
   }

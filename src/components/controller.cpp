@@ -321,14 +321,14 @@ void controller::process_eventqueue() {
       }
     }
 
-    if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+    if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
+      m_sig.emit(sig_ev::process_update{make_update_evt(evt.flag)});
+    } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
       process_inputdata();
     } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
       m_sig.emit(sig_ev::process_quit{make_quit_evt(evt.flag)});
-    } else if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-      m_sig.emit(sig_ev::process_update{make_update_evt(evt.flag)});
     } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
-      m_sig.emit(sig_ev::process_check{make_check_evt()});
+      m_sig.emit(sig_ev::process_check{});
     } else {
       m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
     }

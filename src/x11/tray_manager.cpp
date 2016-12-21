@@ -1148,6 +1148,7 @@ bool tray_manager::on(const visibility_change& evt) {
 bool tray_manager::on(const dim_window& evt) {
   if (m_activated) {
     wm_util::set_wm_window_opacity(m_connection, m_tray, *evt.data() * 0xFFFFFFFF);
+    m_connection.flush();
   }
   // let the event bubble
   return false;

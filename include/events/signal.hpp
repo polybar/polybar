@@ -95,7 +95,7 @@ namespace signals {
     DEFINE_VALUE_SIGNAL(1, process_quit, event);
     DEFINE_VALUE_SIGNAL(2, process_update, event);
     DEFINE_VALUE_SIGNAL(3, process_input, string);
-    DEFINE_VALUE_SIGNAL(4, process_check, event);
+    DEFINE_SIGNAL(4, process_check);
   }
 
   namespace ipc {
@@ -105,9 +105,12 @@ namespace signals {
   }
 
   namespace ui {
-    DEFINE_VALUE_SIGNAL(50, button_press, string);
-    DEFINE_VALUE_SIGNAL(51, visibility_change, bool);
-    DEFINE_VALUE_SIGNAL(52, dim_window, double);
+    DEFINE_SIGNAL(50, tick);
+    DEFINE_VALUE_SIGNAL(51, button_press, string);
+    DEFINE_VALUE_SIGNAL(52, visibility_change, bool);
+    DEFINE_VALUE_SIGNAL(53, dim_window, double);
+    DEFINE_SIGNAL(54, shade_window);
+    DEFINE_SIGNAL(55, unshade_window);
   }
 
   namespace parser {
