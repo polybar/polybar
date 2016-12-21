@@ -9,10 +9,8 @@ fi
 
 git tag "$@" || exit 1
 
-# shellcheck disable=SC2016
-tag_curr=$(git describe --tags --abbrev=0)
-tag_curr_patch="${tag_curr##*.}"
-tag_prev="${tag_curr%.*}.$((tag_curr_patch-1))"
+tag_curr="$(git tag --sort=version:refname | tail -1)"
+tag_prev="$(git tag --sort=version:refname | tail -2 | head -1)"
 
 ./version.sh "$tag_curr"
 
