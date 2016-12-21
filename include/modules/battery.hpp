@@ -7,23 +7,24 @@
 POLYBAR_NS
 
 namespace modules {
-  enum class battery_state {
-    NONE = 0,
-    CHARGING,
-    DISCHARGING,
-    FULL,
-  };
-
-  enum class battery_value {
-    NONE = 0,
-    ADAPTER,
-    CAPACITY,
-    CAPACITY_MAX,
-    VOLTAGE,
-    RATE,
-  };
-
   class battery_module : public inotify_module<battery_module> {
+   public:
+    enum class state {
+      NONE = 0,
+      CHARGING,
+      DISCHARGING,
+      FULL,
+    };
+
+    enum class value {
+      NONE = 0,
+      ADAPTER,
+      CAPACITY,
+      CAPACITY_MAX,
+      VOLTAGE,
+      RATE,
+    };
+
    public:
     explicit battery_module(const bar_settings&, string);
 
@@ -36,7 +37,7 @@ namespace modules {
 
    protected:
     int current_percentage();
-    battery_state current_state();
+    battery_module::state current_state();
     string current_time();
     void subthread();
 
@@ -61,8 +62,8 @@ namespace modules {
     label_t m_label_discharging;
     label_t m_label_full;
 
-    battery_state m_state{battery_state::DISCHARGING};
-    map<battery_value, string> m_valuepath;
+    battery_module::state m_state{battery_module::state::DISCHARGING};
+    map<value, string> m_valuepath;
     std::atomic<int> m_percentage{0};
     int m_fullat{100};
     chrono::duration<double> m_interval{};

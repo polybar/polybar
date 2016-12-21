@@ -4,6 +4,7 @@
 
 #include "components/config.hpp"
 #include "components/types.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/events.hpp"
 #include "x11/ewmh.hpp"
@@ -47,7 +48,9 @@ namespace modules {
   /**
    * Module used to display EWMH desktops
    */
-  class xworkspaces_module : public static_module<xworkspaces_module>, public xpp::event::sink<evt::property_notify> {
+  class xworkspaces_module : public static_module<xworkspaces_module>,
+                             public xpp::event::sink<evt::property_notify>,
+                             public input_handler {
    public:
     explicit xworkspaces_module(const bar_settings& bar, string name_);
 
@@ -56,14 +59,11 @@ namespace modules {
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const {
-      return true;
-    }
 
    protected:
     void rebuild_desktops();
     void set_current_desktop();
+    bool on(const input_event_t&);
 
    private:
     static constexpr const char* DEFAULT_ICON{"icon-default"};

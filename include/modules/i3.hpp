@@ -5,13 +5,14 @@
 #include "components/config.hpp"
 #include "config.hpp"
 #include "modules/meta/event_module.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class i3_module : public event_module<i3_module> {
+  class i3_module : public event_module<i3_module>, public input_handler {
    public:
     enum class state {
       NONE,
@@ -39,10 +40,9 @@ namespace modules {
     bool has_event();
     bool update();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const {
-      return true;
-    }
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};

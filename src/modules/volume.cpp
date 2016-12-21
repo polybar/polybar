@@ -211,7 +211,9 @@ namespace modules {
     return true;
   }
 
-  bool volume_module::handle_event(string cmd) {
+  bool volume_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
       return false;
     }
@@ -261,10 +263,6 @@ namespace modules {
       m_log.err("%s: Failed to handle command (%s)", name(), err.what());
     }
 
-    return true;
-  }
-
-  bool volume_module::receive_events() const {
     return true;
   }
 }

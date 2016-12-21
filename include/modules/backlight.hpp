@@ -7,15 +7,16 @@
 POLYBAR_NS
 
 namespace modules {
-  struct brightness_handle {
-    void filepath(const string& path);
-    float read() const;
-
-   private:
-    string m_path;
-  };
-
   class backlight_module : public inotify_module<backlight_module> {
+   public:
+    struct brightness_handle {
+      void filepath(const string& path);
+      float read() const;
+
+     private:
+      string m_path;
+    };
+
    public:
     explicit backlight_module(const bar_settings&, string);
 

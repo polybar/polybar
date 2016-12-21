@@ -87,16 +87,6 @@ namespace modules {
     return m_cache;
   }
 
-  template <typename Impl>
-  bool module<Impl>::handle_event(string cmd) {
-    return CAST_MOD(Impl)->handle_event(cmd);
-  }
-
-  template <typename Impl>
-  bool module<Impl>::receive_events() const {
-    return false;
-  }
-
   // }}}
   // module<Impl> protected {{{
 
@@ -111,7 +101,7 @@ namespace modules {
     if (m_update_callback)
       m_update_callback();
     else
-      m_log.warn("%s: No handler, ignoring broadcast...", name());
+      m_log.info("%s: No handler, ignoring broadcast...", name());
   }
 
   template <typename Impl>

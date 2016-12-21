@@ -82,7 +82,9 @@ namespace modules {
     return true;
   }
 
-  bool menu_module::handle_event(string cmd) {
+  bool menu_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd.compare(0, 4, "menu") != 0) {
       return false;
     }
@@ -121,10 +123,6 @@ namespace modules {
       m_level = -1;
     }
 
-    return true;
-  }
-
-  bool menu_module::receive_events() const {
     return true;
   }
 }

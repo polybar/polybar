@@ -86,7 +86,9 @@ namespace modules {
     return true;
   }
 
-  bool date_module::handle_event(string cmd) {
+  bool date_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd != EVENT_TOGGLE) {
       return false;
     }

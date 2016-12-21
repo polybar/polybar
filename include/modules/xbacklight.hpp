@@ -2,6 +2,7 @@
 
 #include "components/config.hpp"
 #include "config.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/randr.hpp"
 
@@ -23,7 +24,9 @@ namespace modules {
    *
    * TODO: Implement backlight configuring using scroll events
    */
-  class xbacklight_module : public static_module<xbacklight_module>, public xpp::event::sink<evt::randr_notify> {
+  class xbacklight_module : public static_module<xbacklight_module>,
+                            public xpp::event::sink<evt::randr_notify>,
+                            public input_handler {
    public:
     explicit xbacklight_module(const bar_settings& bar, string name_);
 
@@ -32,10 +35,9 @@ namespace modules {
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const {
-      return true;
-    }
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

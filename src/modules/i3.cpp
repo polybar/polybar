@@ -193,7 +193,9 @@ namespace modules {
     return true;
   }
 
-  bool i3_module::handle_event(string cmd) {
+  bool i3_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }

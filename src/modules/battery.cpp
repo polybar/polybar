@@ -31,36 +31,36 @@ namespace modules {
     if (!file_util::exists(path_adapter + "online")) {
       throw module_error("The file '" + path_adapter + "online' does not exist");
     }
-    m_valuepath[battery_value::ADAPTER] = path_adapter + "online";
+    m_valuepath[battery_module::value::ADAPTER] = path_adapter + "online";
 
     if (!file_util::exists(path_battery + "voltage_now")) {
       throw module_error("The file '" + path_battery + "voltage_now' does not exist");
     }
-    m_valuepath[battery_value::VOLTAGE] = path_battery + "voltage_now";
+    m_valuepath[battery_module::value::VOLTAGE] = path_battery + "voltage_now";
 
     for (auto&& file : vector<string>{"charge", "energy"}) {
       if (file_util::exists(path_battery + file + "_now")) {
-        m_valuepath[battery_value::CAPACITY] = path_battery + file + "_now";
+        m_valuepath[battery_module::value::CAPACITY] = path_battery + file + "_now";
       }
       if (file_util::exists(path_battery + file + "_full")) {
-        m_valuepath[battery_value::CAPACITY_MAX] = path_battery + file + "_full";
+        m_valuepath[battery_module::value::CAPACITY_MAX] = path_battery + file + "_full";
       }
     }
 
-    if (m_valuepath[battery_value::CAPACITY].empty()) {
+    if (m_valuepath[battery_module::value::CAPACITY].empty()) {
       throw module_error("The file '" + path_battery + "[charge|energy]_now' does not exist");
     }
-    if (m_valuepath[battery_value::CAPACITY_MAX].empty()) {
+    if (m_valuepath[battery_module::value::CAPACITY_MAX].empty()) {
       throw module_error("The file '" + path_battery + "[charge|energy]_full' does not exist");
     }
 
     for (auto&& file : vector<string>{"current", "power"}) {
       if (file_util::exists(path_battery + file + "_now")) {
-        m_valuepath[battery_value::RATE] = path_battery + file + "_now";
+        m_valuepath[battery_module::value::RATE] = path_battery + file + "_now";
       }
     }
 
-    if (m_valuepath[battery_value::RATE].empty()) {
+    if (m_valuepath[battery_module::value::RATE].empty()) {
       throw module_error("The file '" + path_battery + "[current|power]_now' does not exist");
     }
 
@@ -99,8 +99,8 @@ namespace modules {
     }
 
     // Create inotify watches
-    watch(m_valuepath[battery_value::CAPACITY], IN_ACCESS);
-    watch(m_valuepath[battery_value::ADAPTER], IN_ACCESS);
+    watch(m_valuepath[battery_module::value::CAPACITY], IN_ACCESS);
+    watch(m_valuepath[battery_module::value::ADAPTER], IN_ACCESS);
 
     // Setup time if token is used
     if (m_label_charging->has_token("%time%") || m_label_discharging->has_token("%time%")) {
@@ -143,7 +143,7 @@ namespace modules {
       if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
-        file_util::get_contents(m_valuepath[battery_value::CAPACITY]);
+        file_util::get_contents(m_valuepath[battery_module::value::CAPACITY]);
       }
     }
 
@@ -164,7 +164,7 @@ namespace modules {
     auto state = current_state();
     int percentage = m_percentage;
 
-    if (state != battery_state::FULL) {
+    if (state != battery_module::state::FULL) {
       percentage = current_percentage();
     }
 
@@ -178,21 +178,21 @@ namespace modules {
 
     string time_remaining;
 
-    if (m_state == battery_state::CHARGING && m_label_charging) {
+    if (m_state == battery_module::state::CHARGING && m_label_charging) {
       if (!m_timeformat.empty()) {
         time_remaining = current_time();
       }
       m_label_charging->reset_tokens();
       m_label_charging->replace_token("%percentage%", to_string(m_percentage) + "%");
       m_label_charging->replace_token("%time%", time_remaining);
-    } else if (m_state == battery_state::DISCHARGING && m_label_discharging) {
+    } else if (m_state == battery_module::state::DISCHARGING && m_label_discharging) {
       if (!m_timeformat.empty()) {
         time_remaining = current_time();
       }
       m_label_discharging->reset_tokens();
       m_label_discharging->replace_token("%percentage%", to_string(m_percentage) + "%");
       m_label_discharging->replace_token("%time%", time_remaining);
-    } else if (m_state == battery_state::FULL && m_label_full) {
+    } else if (m_state == battery_module::state::FULL && m_label_full) {
       m_label_full->reset_tokens();
       m_label_full->replace_token("%percentage%", to_string(m_percentage) + "%");
     }
@@ -204,9 +204,9 @@ namespace modules {
    * Get the output format based on state
    */
   string battery_module::get_format() const {
-    if (m_state == battery_state::FULL) {
+    if (m_state == battery_module::state::FULL) {
       return FORMAT_FULL;
-    } else if (m_state == battery_state::CHARGING) {
+    } else if (m_state == battery_module::state::CHARGING) {
       return FORMAT_CHARGING;
     } else {
       return FORMAT_DISCHARGING;
@@ -238,19 +238,19 @@ namespace modules {
   /**
    * Get the current battery state
    */
-  battery_state battery_module::current_state() {
-    auto adapter_status = file_util::get_contents(m_valuepath[battery_value::ADAPTER]);
+  battery_module::state battery_module::current_state() {
+    auto adapter_status = file_util::get_contents(m_valuepath[battery_module::value::ADAPTER]);
 
     if (adapter_status.empty()) {
-      return battery_state::DISCHARGING;
+      return battery_module::state::DISCHARGING;
     } else if (adapter_status[0] == '0') {
-      return battery_state::DISCHARGING;
+      return battery_module::state::DISCHARGING;
     } else if (adapter_status[0] != '1') {
-      return battery_state::DISCHARGING;
+      return battery_module::state::DISCHARGING;
     } else if (m_percentage < m_fullat) {
-      return battery_state::CHARGING;
+      return battery_module::state::CHARGING;
     } else {
-      return battery_state::FULL;
+      return battery_module::state::FULL;
     }
   }
 
@@ -259,9 +259,9 @@ namespace modules {
    */
   int battery_module::current_percentage() {
     auto capacity_now =
-        std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY]).c_str(), nullptr, 10);
+        std::strtoul(file_util::get_contents(m_valuepath[battery_module::value::CAPACITY]).c_str(), nullptr, 10);
     auto capacity_max =
-        std::strtoul(file_util::get_contents(m_valuepath[battery_value::CAPACITY_MAX]).c_str(), nullptr, 10);
+        std::strtoul(file_util::get_contents(m_valuepath[battery_module::value::CAPACITY_MAX]).c_str(), nullptr, 10);
     auto percentage = math_util::percentage(capacity_now, 0UL, capacity_max);
 
     return percentage < m_fullat ? percentage : 100;
@@ -271,19 +271,19 @@ namespace modules {
    * Get estimate of remaining time until fully dis-/charged
    */
   string battery_module::current_time() {
-    if (m_state == battery_state::FULL) {
+    if (m_state == battery_module::state::FULL) {
       return "";
     }
 
-    int rate{atoi(file_util::get_contents(m_valuepath[battery_value::RATE]).c_str()) / 1000};
-    int volt{atoi(file_util::get_contents(m_valuepath[battery_value::VOLTAGE]).c_str()) / 1000};
-    int now{atoi(file_util::get_contents(m_valuepath[battery_value::CAPACITY]).c_str()) / 1000};
-    int max{atoi(file_util::get_contents(m_valuepath[battery_value::CAPACITY_MAX]).c_str()) / 1000};
+    int rate{atoi(file_util::get_contents(m_valuepath[battery_module::value::RATE]).c_str()) / 1000};
+    int volt{atoi(file_util::get_contents(m_valuepath[battery_module::value::VOLTAGE]).c_str()) / 1000};
+    int now{atoi(file_util::get_contents(m_valuepath[battery_module::value::CAPACITY]).c_str()) / 1000};
+    int max{atoi(file_util::get_contents(m_valuepath[battery_module::value::CAPACITY_MAX]).c_str()) / 1000};
     int cap{0};
 
-    if (m_state == battery_state::CHARGING) {
+    if (m_state == battery_module::state::CHARGING) {
       cap = max - now;
-    } else if (m_state == battery_state::DISCHARGING) {
+    } else if (m_state == battery_module::state::DISCHARGING) {
       cap = now;
     }
 
@@ -332,7 +332,7 @@ namespace modules {
 
     while (running()) {
       for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_state::CHARGING) {
+        if (m_state == battery_module::state::CHARGING) {
           broadcast();
         }
 

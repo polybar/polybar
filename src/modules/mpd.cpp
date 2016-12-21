@@ -318,7 +318,9 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::handle_event(string cmd) {
+  bool mpd_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd.compare(0, 3, "mpd") != 0) {
       return false;
     }
@@ -367,10 +369,6 @@ namespace modules {
       m_mpd.reset();
     }
 
-    return true;
-  }
-
-  bool mpd_module::receive_events() const {
     return true;
   }
 }

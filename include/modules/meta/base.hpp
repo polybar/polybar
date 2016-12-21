@@ -109,9 +109,6 @@ namespace modules {
     virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
 
-    virtual bool handle_event(string cmd) = 0;
-    virtual bool receive_events() const = 0;
-
     virtual void set_update_cb(callback<>&& cb) = 0;
     virtual void set_stop_cb(callback<>&& cb) = 0;
   };
@@ -134,8 +131,6 @@ namespace modules {
     void halt(string error_message);
     void teardown();
     string contents();
-    bool handle_event(string cmd);
-    bool receive_events() const;
 
    protected:
     void broadcast();

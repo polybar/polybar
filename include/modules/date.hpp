@@ -1,20 +1,20 @@
 #pragma once
 
+#include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class date_module : public timer_module<date_module> {
+  class date_module : public timer_module<date_module>, public input_handler {
    public:
     explicit date_module(const bar_settings&, string);
 
     bool update();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const {
-      return true;
-    }
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

@@ -104,6 +104,11 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
         module->set_update_cb([&] { enqueue(make_update_evt(false)); });
         module->set_stop_cb([&] { enqueue(make_check_evt()); });
 
+        input_handler* module_input_handler{nullptr};
+        if ((module_input_handler = dynamic_cast<input_handler*>(module)) != nullptr) {
+          m_sig.attach(module_input_handler);
+        }
+
         m_modules[align].emplace_back(move(module));
 
         created_modules++;
@@ -440,19 +445,11 @@ bool controller::on(const sig_ev::process_update& evt) {
  * Process eventqueue input event
  */
 bool controller::on(const sig_ev::process_input& evt) {
+  string input{*evt()};
+
+  m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", input);
+
   try {
-    string input{*evt()};
-
-    for (auto&& block : m_modules) {
-      for (auto&& module : block.second) {
-        if (module->receive_events() && module->handle_event(input)) {
-          return true;
-        }
-      }
-    }
-
-    m_log.warn("Input event \"%s\" was rejected by all modules, passing to shell...", input);
-
     if (m_command) {
       m_log.warn("Terminating previous shell command");
       m_command->terminate();

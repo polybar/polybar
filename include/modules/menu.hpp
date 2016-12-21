@@ -1,11 +1,12 @@
 #pragma once
 
+#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class menu_module : public static_module<menu_module> {
+  class menu_module : public static_module<menu_module>, public input_handler {
    public:
     struct menu_tree_item {
       string exec;
@@ -20,8 +21,9 @@ namespace modules {
     explicit menu_module(const bar_settings&, string);
 
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const;
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";

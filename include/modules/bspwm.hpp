@@ -1,12 +1,13 @@
 #pragma once
 
 #include "modules/meta/event_module.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "utils/bspwm.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class bspwm_module : public event_module<bspwm_module> {
+  class bspwm_module : public event_module<bspwm_module>, public input_handler {
    public:
     enum class state {
       NONE = 0U,
@@ -44,10 +45,9 @@ namespace modules {
     bool update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const {
-      return true;
-    }
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr auto DEFAULT_ICON = "ws-icon-default";

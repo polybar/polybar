@@ -118,7 +118,9 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::handle_event(string cmd) {
+  bool xkeyboard_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     if (cmd.compare(0, strlen(EVENT_SWITCH), EVENT_SWITCH) != 0) {
       return false;
     }

@@ -163,7 +163,9 @@ namespace modules {
   /**
    * Process scroll events by changing backlight value
    */
-  bool xbacklight_module::handle_event(string cmd) {
+  bool xbacklight_module::on(const input_event_t& evt) {
+    string cmd{*evt.data()};
+
     int value_mod = 0;
 
     if (cmd == EVENT_SCROLLUP) {

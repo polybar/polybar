@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "modules/meta/event_module.hpp"
+#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
@@ -18,7 +19,7 @@ namespace modules {
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
 
-  class volume_module : public event_module<volume_module> {
+  class volume_module : public event_module<volume_module>, public input_handler {
    public:
     explicit volume_module(const bar_settings&, string);
 
@@ -28,8 +29,9 @@ namespace modules {
     string get_format() const;
     string get_output();
     bool build(builder* builder, const string& tag) const;
-    bool handle_event(string cmd);
-    bool receive_events() const;
+
+   protected:
+    bool on(const input_event_t& evt);
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";
