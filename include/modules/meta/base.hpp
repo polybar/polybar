@@ -3,12 +3,10 @@
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
-#include <mutex>
 #include <map>
+#include <mutex>
 
 #include "common.hpp"
-#include "components/config.hpp"
-#include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
@@ -46,6 +44,9 @@ namespace drawtypes {
 }
 
 class builder;
+class config;
+class logger;
+class signal_emitter;
 
 // }}}
 
@@ -108,9 +109,6 @@ namespace modules {
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
-
-    virtual void set_update_cb(callback<>&& cb) = 0;
-    virtual void set_stop_cb(callback<>&& cb) = 0;
   };
 
   // }}}
@@ -141,9 +139,7 @@ namespace modules {
     string get_output();
 
    protected:
-    callback<> m_update_callback;
-    callback<> m_stop_callback;
-
+    signal_emitter& m_sig;
     const bar_settings m_bar;
     const logger& m_log;
     const config& m_conf;

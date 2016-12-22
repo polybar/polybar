@@ -162,8 +162,6 @@ bool controller::run(bool writeback) {
       try {
         m_log.info("Starting %s", module->name());
         module->start();
-        module->set_update_cb([&] { enqueue(make_update_evt(false)); });
-        module->set_stop_cb([&] { enqueue(make_check_evt()); });
         started_modules++;
       } catch (const application_error& err) {
         m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
@@ -353,14 +351,18 @@ void controller::process_inputdata() {
 }
 
 /**
+ * Process broadcast events
+ */
+bool controller::on(const sig_ev::process_broadcast&) {
+  enqueue(make_update_evt(false));
+  return true;
+}
+
+/**
  * Process eventqueue update event
  */
 bool controller::on(const sig_ev::process_update& evt) {
   bool force{evt.data()->flag};
-
-  if (!m_bar) {
-    return false;
-  }
 
   const bar_settings& bar{m_bar->settings()};
   string contents;

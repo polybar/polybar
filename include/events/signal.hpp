@@ -96,6 +96,7 @@ namespace signals {
     DEFINE_VALUE_SIGNAL(2, process_update, event);
     DEFINE_VALUE_SIGNAL(3, process_input, string);
     DEFINE_SIGNAL(4, process_check);
+    DEFINE_SIGNAL(5, process_broadcast);
   }
 
   namespace ipc {

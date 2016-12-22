@@ -39,9 +39,9 @@ namespace sig_ev = signals::eventqueue;
 namespace sig_ui = signals::ui;
 namespace sig_ipc = signals::ipc;
 
-class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::process_update, sig_ev::process_input,
-                       sig_ev::process_quit, sig_ev::process_check, sig_ipc::process_action, sig_ipc::process_command,
-                       sig_ipc::process_hook, sig_ui::button_press> {
+class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::process_broadcast, sig_ev::process_update,
+                       sig_ev::process_input, sig_ev::process_quit, sig_ev::process_check, sig_ipc::process_action,
+                       sig_ipc::process_command, sig_ipc::process_hook, sig_ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -60,6 +60,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   void process_eventqueue();
   void process_inputdata();
 
+  bool on(const sig_ev::process_broadcast& evt);
   bool on(const sig_ev::process_update& evt);
   bool on(const sig_ev::process_input& evt);
   bool on(const sig_ev::process_quit& evt);

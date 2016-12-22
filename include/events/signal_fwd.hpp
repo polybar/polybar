@@ -10,6 +10,7 @@ namespace signals {
     struct process_update;
     struct process_input;
     struct process_check;
+    struct process_broadcast;
   }
   namespace ipc {
     struct process_command;

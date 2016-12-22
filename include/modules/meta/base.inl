@@ -1,15 +1,20 @@
 #include "components/builder.hpp"
 #include "components/logger.hpp"
 #include "components/config.hpp"
+#include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 
 POLYBAR_NS
+
+namespace sig_ev = signals::eventqueue;
 
 namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
   module<Impl>::module(const bar_settings bar, string name)
-        : m_bar(bar)
+        : m_sig(signal_emitter::make())
+        , m_bar(bar)
         , m_log(logger::make())
         , m_conf(config::make())
         , m_name("module/" + name)
@@ -28,16 +33,6 @@ namespace modules {
     if (m_mainthread.joinable()) {
       m_mainthread.join();
     }
-  }
-
-  template <typename Impl>
-  void module<Impl>::set_update_cb(callback<>&& cb) {
-    m_update_callback = forward<decltype(cb)>(cb);
-  }
-
-  template <typename Impl>
-  void module<Impl>::set_stop_cb(callback<>&& cb) {
-    m_stop_callback = forward<decltype(cb)>(cb);
   }
 
   template <typename Impl>
@@ -66,9 +61,7 @@ namespace modules {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
 
-      if (m_stop_callback) {
-        m_stop_callback();
-      }
+      m_sig.emit(sig_ev::process_check{});
     }
   }
 
@@ -97,11 +90,7 @@ namespace modules {
     }
 
     m_cache = CAST_MOD(Impl)->get_output();
-
-    if (m_update_callback)
-      m_update_callback();
-    else
-      m_log.info("%s: No handler, ignoring broadcast...", name());
+    m_sig.emit(sig_ev::process_broadcast{});
   }
 
   template <typename Impl>
