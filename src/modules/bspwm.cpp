@@ -151,18 +151,15 @@ namespace modules {
       return false;
     }
 
-    string data{string_util::replace_all(m_subscriber->receive(BUFSIZ), "\n", "")};
+    string data{m_subscriber->receive(BUFSIZ)};
+
+    size_t pos;
+    if ((pos = data.find('\n')) != string::npos) {
+      data.erase(pos);
+    }
 
     if (data.empty()) {
       return false;
-    }
-
-    size_t pos;
-
-    // If there were more than 1 row available in the channel
-    // we'll strip out the old updates
-    if ((pos = data.find_last_of(BSPWM_STATUS_PREFIX)) > 0) {
-      data.erase(0, pos);
     }
 
     size_t prefix_len{strlen(BSPWM_STATUS_PREFIX)};
@@ -203,6 +200,8 @@ namespace modules {
     } else {
       return false;
     }
+
+    m_log.info("%s: Parsing socket data: %s", name(), data);
 
     m_monitors.clear();
 
@@ -314,6 +313,12 @@ namespace modules {
 
         default:
           m_log.warn("%s: Undefined tag => '%s'", name(), tag.substr(0, 1));
+          continue;
+      }
+
+      if (!m_monitors.back()) {
+        m_log.warn("%s: No monitor created", name());
+        continue;
       }
 
       if (workspace_mask && m_formatter->has(TAG_LABEL_STATE)) {
@@ -360,7 +365,7 @@ namespace modules {
       if (m_index > 0) {
         m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
-      output += event_module::get_output();
+      output += this->event_module::get_output();
     }
     return output;
   }
