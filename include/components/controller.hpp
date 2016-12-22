@@ -100,6 +100,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   modulemap_t m_modules;
 
   /**
+   * @brief Module input handlers
+   */
+  vector<signal_receiver_interface*> m_inputhandlers;
+
+  /**
    * @brief Maximum number of subsequent events to swallow
    */
   size_t m_swallow_limit{5U};

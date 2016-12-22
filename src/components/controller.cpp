@@ -103,12 +103,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
         }
 
         m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name));
-
-        input_handler* module_input_handler{nullptr};
-        if ((module_input_handler = dynamic_cast<input_handler*>(&*m_modules[align].back())) != nullptr) {
-          m_sig.attach(module_input_handler);
-        }
-
         created_modules++;
       } catch (const runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
@@ -150,15 +144,22 @@ controller::~controller() {
  * Run the main loop
  */
 bool controller::run(bool writeback) {
+  m_log.info("Starting application");
+
   assert(!m_connection.connection_has_error());
 
   m_writeback = writeback;
 
-  m_log.info("Starting application");
+  m_sig.attach(this);
 
   size_t started_modules{0};
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
+      auto handler = dynamic_cast<input_handler*>(&*module);
+      if (handler != nullptr) {
+        m_inputhandlers.emplace_back(handler);
+      }
+
       try {
         m_log.info("Starting %s", module->name());
         module->start();
@@ -174,8 +175,6 @@ bool controller::run(bool writeback) {
   }
 
   m_connection.flush();
-
-  m_sig.attach(this);
 
   read_events();
 
@@ -344,9 +343,17 @@ void controller::process_eventqueue() {
  */
 void controller::process_inputdata() {
   if (!m_inputdata.empty()) {
-    m_sig.emit(sig_ev::process_input{move(m_inputdata)});
+    auto evt = sig_ev::process_input{move(m_inputdata)};
     m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
     m_inputdata.clear();
+
+    for (auto&& handler : m_inputhandlers) {
+      if (handler->on(evt)) {
+        return;
+      }
+    }
+
+    m_sig.emit(evt);
   }
 }
 
