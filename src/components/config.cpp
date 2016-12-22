@@ -226,38 +226,17 @@ long long config::convert(string&& value) const {
 
 template <>
 unsigned char config::convert(string&& value) const {
-  int conv{convert<int>(forward<string>(value))};
-  if (conv < std::numeric_limits<unsigned char>::min()) {
-    return std::numeric_limits<unsigned char>::min();
-  } else if (conv > std::numeric_limits<unsigned char>::max()) {
-    return std::numeric_limits<unsigned char>::max();
-  } else {
-    return static_cast<unsigned char>(conv);
-  }
+  return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
 unsigned short config::convert(string&& value) const {
-  int conv{convert<int>(forward<string>(value))};
-  if (conv < std::numeric_limits<unsigned short>::min()) {
-    return std::numeric_limits<unsigned short>::min();
-  } else if (conv > std::numeric_limits<unsigned short>::max()) {
-    return std::numeric_limits<unsigned short>::max();
-  } else {
-    return static_cast<unsigned short>(conv);
-  }
+  return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
 unsigned int config::convert(string&& value) const {
-  long conv{convert<int>(forward<string>(value))};
-  if (conv < std::numeric_limits<unsigned int>::min()) {
-    return std::numeric_limits<unsigned int>::min();
-  } else if (conv > std::numeric_limits<unsigned int>::max()) {
-    return std::numeric_limits<unsigned int>::max();
-  } else {
-    return static_cast<unsigned int>(conv);
-  }
+  return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
