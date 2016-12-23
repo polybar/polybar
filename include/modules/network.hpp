@@ -40,8 +40,8 @@ namespace modules {
     animation_t m_animation_packetloss;
     map<connection_state, label_t> m_label;
 
-    stateflag m_connected{false};
-    stateflag m_packetloss{false};
+    atomic<bool> m_connected{false};
+    atomic<bool> m_packetloss{false};
 
     int m_signal{0};
     int m_quality{0};

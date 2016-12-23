@@ -297,7 +297,7 @@ void tray_manager::reconfigure() {
     return;
   }
 
-  std::unique_lock<std::mutex> guard(m_mtx, std::adopt_lock);
+  std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
 
   try {
     reconfigure_clients();
@@ -481,7 +481,7 @@ void tray_manager::refresh_window() {
     return;
   }
 
-  std::lock_guard<std::mutex> lock(m_mtx, std::adopt_lock);
+  std::lock_guard<mutex> lock(m_mtx, std::adopt_lock);
 
   m_log.trace("tray: Refreshing window");
 

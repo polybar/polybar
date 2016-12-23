@@ -148,14 +148,14 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   xcb_window_t m_tray{0};
   xcb_window_t m_othermanager{0};
 
-  stateflag m_activated{false};
-  stateflag m_mapped{false};
-  stateflag m_hidden{false};
-  stateflag m_acquired_selection{false};
+  atomic<bool> m_activated{false};
+  atomic<bool> m_mapped{false};
+  atomic<bool> m_hidden{false};
+  atomic<bool> m_acquired_selection{false};
 
   thread m_delaythread;
 
-  std::mutex m_mtx{};
+  mutex m_mtx{};
 
   chrono::time_point<chrono::system_clock, chrono::milliseconds> m_drawtime;
 

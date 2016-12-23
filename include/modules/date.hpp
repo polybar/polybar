@@ -33,7 +33,7 @@ namespace modules {
     string m_date;
     string m_time;
 
-    stateflag m_toggled{false};
+    std::atomic<bool> m_toggled{false};
   };
 }
 

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <map>
 #include <string>
+#include <thread>
 
 #include "common.hpp"
 
@@ -79,11 +80,14 @@ class logger {
   }
 
   /**
-   * Convert string to const char*
+   * Convert string
    */
-  const char* convert(string arg) const {
-    return arg.c_str();
-  }
+  const char* convert(string arg) const;
+
+  /**
+   * Convert thread id
+   */
+  size_t convert(const std::thread::id arg) const;
 
   /**
    * Write the log message to the output channel

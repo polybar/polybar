@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <map>
 #include <mutex>
 #include <thread>
 
@@ -11,8 +12,10 @@ POLYBAR_NS
 
 namespace this_thread = std::this_thread;
 
+using std::atomic;
+using std::map;
+using std::mutex;
 using std::thread;
-using stateflag = std::atomic<bool>;
 
 namespace concurrency_util {
   namespace locking_strategy {
@@ -64,6 +67,8 @@ namespace concurrency_util {
    protected:
     std::atomic_flag m_locked{false};
   };
+
+  size_t thread_id(const thread::id id);
 }
 
 POLYBAR_NS_END

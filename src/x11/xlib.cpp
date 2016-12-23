@@ -1,7 +1,7 @@
 #include <X11/X.h>
 
-#include "x11/xlib.hpp"
 #include "utils/factory.hpp"
+#include "x11/xlib.hpp"
 
 POLYBAR_NS
 

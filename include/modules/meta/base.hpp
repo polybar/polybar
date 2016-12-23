@@ -120,9 +120,6 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
-    void set_update_cb(callback<>&& cb);
-    void set_stop_cb(callback<>&& cb);
-
     string name() const;
     bool running() const;
     void stop();
@@ -144,9 +141,9 @@ namespace modules {
     const logger& m_log;
     const config& m_conf;
 
-    std::mutex m_buildlock;
-    std::mutex m_updatelock;
-    std::mutex m_sleeplock;
+    mutex m_buildlock;
+    mutex m_updatelock;
+    mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 
     string m_name;

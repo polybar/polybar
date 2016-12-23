@@ -2,10 +2,25 @@
 
 #include "components/logger.hpp"
 #include "errors.hpp"
+#include "utils/concurrency.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
+
+/**
+ * Convert string
+ */
+const char* logger::convert(string arg) const {
+  return arg.c_str();
+}
+
+/**
+ * Convert thread id
+ */
+size_t logger::convert(const std::thread::id arg) const {
+  return concurrency_util::thread_id(arg);
+}
 
 /**
  * Create instance

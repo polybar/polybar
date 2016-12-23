@@ -47,7 +47,7 @@ namespace modules {
 
   template <typename Impl>
   void module<Impl>::stop() {
-    if (!running()) {
+    if (!static_cast<bool>(m_enabled)) {
       return;
     }
 
@@ -117,10 +117,6 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::get_output() {
-    if (!running()) {
-      m_log.trace("%s: Module is disabled", name());
-      return "";
-    }
     std::lock_guard<std::mutex> guard(m_buildlock);
 
     auto format_name = CONST_MOD(Impl).get_format();
