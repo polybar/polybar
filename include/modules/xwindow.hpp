@@ -1,8 +1,5 @@
 #pragma once
 
-#include <bitset>
-
-#include "components/config.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/events.hpp"
 #include "x11/ewmh.hpp"
@@ -16,14 +13,15 @@ class connection;
 namespace modules {
   class active_window {
    public:
-    explicit active_window(xcb_window_t win);
+    explicit active_window(xcb_connection_t* conn, xcb_window_t win);
     ~active_window();
+
     bool match(const xcb_window_t win) const;
     string title(xcb_ewmh_connection_t* ewmh) const;
 
    private:
-    connection& m_connection;
-    window m_window{m_connection};
+    xcb_connection_t* m_connection{nullptr};
+    xcb_window_t m_window{XCB_NONE};
   };
 
   /**
@@ -35,9 +33,11 @@ namespace modules {
     explicit xwindow_module(const bar_settings&, string);
 
     void teardown();
-    void handle(const evt::property_notify& evt);
-    void update();
+    void update(bool force = false);
     bool build(builder* builder, const string& tag) const;
+
+   protected:
+    void handle(const evt::property_notify& evt);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

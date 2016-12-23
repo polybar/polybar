@@ -16,10 +16,10 @@ namespace modules {
    * Wrapper used to update the event mask of the
    * currently active to enable title tracking
    */
-  active_window::active_window(xcb_window_t win) : m_connection(connection::make()), m_window(m_connection, win) {
-    try {
-      m_window.change_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
-    } catch (const xpp::x::error::window& err) {
+  active_window::active_window(xcb_connection_t* conn, xcb_window_t win) : m_connection(conn), m_window(win) {
+    if (m_window != XCB_NONE) {
+      const uint32_t mask{XCB_EVENT_MASK_PROPERTY_CHANGE};
+      xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
     }
   }
 
@@ -27,9 +27,9 @@ namespace modules {
    * Deconstruct window object
    */
   active_window::~active_window() {
-    try {
-      m_window.change_event_mask(XCB_EVENT_MASK_NO_EVENT);
-    } catch (const xpp::x::error::window& err) {
+    if (m_window != XCB_NONE) {
+      const uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+      xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
     }
   }
 
@@ -81,14 +81,6 @@ namespace modules {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%title%");
     }
 
-    // No need to setup X components if we can't show the title
-    if (!m_label || !m_label->has_token("%title%")) {
-      return;
-    }
-
-    // Make sure we get notified when root properties change
-    m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
-
     // Connect with the event registry
     m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
 
@@ -108,9 +100,9 @@ namespace modules {
    */
   void xwindow_module::handle(const evt::property_notify& evt) {
     if (evt->atom == _NET_ACTIVE_WINDOW) {
-      update();
+      update(true);
     } else if (evt->atom == _NET_CURRENT_DESKTOP) {
-      update();
+      update(true);
     } else if (evt->atom == _NET_WM_VISIBLE_NAME) {
       update();
     } else if (evt->atom == _NET_WM_NAME) {
@@ -123,25 +115,22 @@ namespace modules {
   /**
    * Update the currently active window and query its title
    */
-  void xwindow_module::update() {
-    xcb_window_t win{ewmh_util::get_active_window(m_ewmh.get())};
-    string title;
+  void xwindow_module::update(bool force) {
+    xcb_window_t win;
 
-    if (m_active && m_active->match(win)) {
-      title = m_active->title(m_ewmh.get());
-    } else if (win != XCB_NONE) {
-      m_active = factory_util::unique<active_window>(win);
-      title = m_active->title(m_ewmh.get());
-    } else {
+    if (force) {
       m_active.reset();
+    }
+
+    if (!m_active && (win = ewmh_util::get_active_window(&*m_ewmh)) != XCB_NONE) {
+      m_active = make_unique<active_window>(m_connection, win);
     }
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%title%", title);
+      m_label->replace_token("%title%", m_active ? m_active->title(&*m_ewmh) : "");
     }
 
-    // Emit notification to trigger redraw
     broadcast();
   }
 
