@@ -77,6 +77,11 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::contents() {
+    if (m_changed) {
+      m_log.info("Rebuilding cache for '%s'...", name());
+      m_cache = CAST_MOD(Impl)->get_output();
+      m_changed = false;
+    }
     return m_cache;
   }
 
@@ -85,11 +90,7 @@ namespace modules {
 
   template <typename Impl>
   void module<Impl>::broadcast() {
-    if (!running()) {
-      return;
-    }
-
-    m_cache = CAST_MOD(Impl)->get_output();
+    m_changed = true;
     m_sig.emit(sig_ev::process_broadcast{});
   }
 

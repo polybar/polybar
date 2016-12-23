@@ -153,7 +153,8 @@ namespace modules {
     thread m_mainthread;
 
    private:
-    stateflag m_enabled{true};
+    atomic<bool> m_enabled{true};
+    atomic<bool> m_changed{true};
     string m_cache;
   };
 
