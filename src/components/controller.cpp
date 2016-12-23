@@ -201,7 +201,7 @@ bool controller::run(bool writeback) {
  * Enqueue event
  */
 bool controller::enqueue(event&& evt) {
-  if (!m_queue.enqueue(move(evt))) {
+  if (!m_queue.enqueue(forward<decltype(evt)>(evt))) {
     m_log.warn("Failed to enqueue event");
     return false;
   }
@@ -220,7 +220,7 @@ bool controller::enqueue(string&& input_data) {
   } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
     m_log.trace("controller: Swallowing input event (throttled)");
   } else {
-    m_inputdata = move(input_data);
+    m_inputdata = input_data;
     return enqueue(make_input_evt());
   }
   return false;
@@ -363,7 +363,7 @@ void controller::process_eventqueue() {
  */
 void controller::process_inputdata() {
   if (!m_inputdata.empty()) {
-    auto evt = sig_ev::process_input{move(m_inputdata)};
+    auto evt = sig_ev::process_input{string{m_inputdata}};
     m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
     m_inputdata.clear();
 
