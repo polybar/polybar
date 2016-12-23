@@ -80,8 +80,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   unique_ptr<inotify_watch> m_confwatch;
   unique_ptr<command> m_command;
 
-  shared_ptr<file_descriptor> m_fdevent_rd;
-  shared_ptr<file_descriptor> m_fdevent_wr;
+  unique_ptr<file_descriptor> m_fdevent_rd;
+  unique_ptr<file_descriptor> m_fdevent_wr;
 
   /**
    * @brief Controls weather the output gets printed to stdout

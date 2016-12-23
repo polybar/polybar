@@ -48,7 +48,7 @@ class ipc {
   const logger& m_log;
 
   string m_path{};
-  shared_ptr<file_descriptor> m_fd{};
+  unique_ptr<file_descriptor> m_fd{};
 };
 
 POLYBAR_NS_END

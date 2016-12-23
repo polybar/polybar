@@ -89,7 +89,7 @@ class connection : public xpp_connection {
  protected:
   registry m_registry{*this};
   xcb_screen_t* m_screen{nullptr};
-  shared_ptr<file_descriptor> m_connection_fd;
+  unique_ptr<file_descriptor> m_connection_fd;
 };
 
 POLYBAR_NS_END

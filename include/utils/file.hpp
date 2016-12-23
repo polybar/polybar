@@ -43,7 +43,7 @@ namespace file_util {
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {
-    return factory_util::shared<file_descriptor>(forward<Args>(args)...);
+    return factory_util::unique<file_descriptor>(forward<Args>(args)...);
   }
 }
 
