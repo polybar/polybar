@@ -1,6 +1,7 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+#include <thread>
 
 #include "common.hpp"
 #include "config.hpp"
@@ -32,6 +33,7 @@ using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
 
+using std::thread;
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
 
@@ -82,6 +84,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
 
   unique_ptr<file_descriptor> m_fdevent_rd;
   unique_ptr<file_descriptor> m_fdevent_wr;
+
+  thread m_event_thread;
 
   /**
    * @brief Controls weather the output gets printed to stdout
