@@ -318,11 +318,11 @@ void controller::process_eventqueue() {
     event evt{};
     m_queue.wait_dequeue(evt);
 
-    if (g_terminate || evt.type == static_cast<uint8_t>(event_type::QUIT)) {
+    if (g_terminate) {
       break;
-    }
-
-    if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+    } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
+      m_sig.emit(sig_ev::process_quit{make_quit_evt(evt.flag)});
+    } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
       process_inputdata();
     } else {
       event next{};
@@ -502,8 +502,7 @@ bool controller::on(const sig_ev::process_input& evt) {
  * Process eventqueue quit event
  */
 bool controller::on(const sig_ev::process_quit& evt) {
-  bool reload{evt.data()->flag};
-  raise(reload ? SIGUSR1 : SIGALRM);
+  raise(evt.data()->flag ? SIGUSR1 : SIGALRM);
   return true;
 }
 
