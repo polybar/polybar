@@ -113,7 +113,7 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   }
 
   m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
-  m_sig.emit(process_quit{make_quit_evt(true)});
+  m_sig.emit(exit_reload{});
   m_sigraised = true;
 }
 

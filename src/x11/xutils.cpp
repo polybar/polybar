@@ -13,8 +13,11 @@ namespace xutils {
   xcb_connection_t* get_connection() {
     static xcb_connection_t* connection;
     if (!connection) {
-      XSetEventQueueOwner(xlib::get_display(), XCBOwnsEventQueue);
-      connection = XGetXCBConnection(xlib::get_display());
+      auto display = xlib::get_display();
+      if (display != nullptr) {
+        XSetEventQueueOwner(display, XCBOwnsEventQueue);
+        connection = XGetXCBConnection(xlib::get_display());
+      }
     }
     return connection;
   }

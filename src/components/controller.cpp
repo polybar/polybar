@@ -188,7 +188,7 @@ bool controller::run(bool writeback) {
   read_events();
 
   if (m_event_thread.joinable()) {
-    m_queue.enqueue(make_quit_evt(static_cast<bool>(g_reload)));
+    enqueue(make_quit_evt(static_cast<bool>(g_reload)));
     m_event_thread.join();
   }
 
@@ -312,7 +312,7 @@ void controller::read_events() {
 void controller::process_eventqueue() {
   m_log.info("Eventqueue worker (thread-id=%lu)", this_thread::get_id());
 
-  m_queue.enqueue(make_update_evt(true));
+  enqueue(make_update_evt(true));
 
   while (!g_terminate) {
     event evt{};
@@ -320,22 +320,26 @@ void controller::process_eventqueue() {
 
     if (g_terminate) {
       break;
-    } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-      m_sig.emit(sig_ev::process_quit{make_quit_evt(evt.flag)});
-    } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+    } else if (evt.type == event_type::QUIT) {
+      if (evt.flag) {
+        on(sig_ev::exit_reload{});
+      } else {
+        on(sig_ev::exit_terminate{});
+      }
+    } else if (evt.type == event_type::INPUT) {
       process_inputdata();
     } else {
       event next{};
       size_t swallowed{0};
       while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_update)) {
-        if (next.type == static_cast<uint8_t>(event_type::QUIT)) {
+        if (next.type == event_type::QUIT) {
           evt = next;
           break;
-        } else if (next.type == static_cast<uint8_t>(event_type::INPUT)) {
+        } else if (next.type == event_type::INPUT) {
           evt = next;
           break;
         } else if (evt.type != next.type) {
-          m_queue.try_enqueue(move(next));
+          enqueue(move(next));
           break;
         } else {
           m_log.trace_x("controller: Swallowing event within timeframe");
@@ -343,14 +347,18 @@ void controller::process_eventqueue() {
         }
       }
 
-      if (evt.type == static_cast<uint8_t>(event_type::UPDATE)) {
-        m_sig.emit(sig_ev::process_update{make_update_evt(evt.flag)});
-      } else if (evt.type == static_cast<uint8_t>(event_type::INPUT)) {
+      if (evt.type == event_type::UPDATE) {
+        on(sig_ev::update{});
+      } else if (evt.type == event_type::INPUT) {
         process_inputdata();
-      } else if (evt.type == static_cast<uint8_t>(event_type::QUIT)) {
-        m_sig.emit(sig_ev::process_quit{make_quit_evt(evt.flag)});
-      } else if (evt.type == static_cast<uint8_t>(event_type::CHECK)) {
-        m_sig.emit(sig_ev::process_check{});
+      } else if (evt.type == event_type::QUIT) {
+        if (evt.flag) {
+          on(sig_ev::exit_reload{});
+        } else {
+          on(sig_ev::exit_terminate{});
+        }
+      } else if (evt.type == event_type::CHECK) {
+        on(sig_ev::check_state{});
       } else {
         m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
@@ -394,7 +402,7 @@ void controller::process_inputdata() {
 /**
  * Process broadcast events
  */
-bool controller::on(const sig_ev::process_broadcast&) {
+bool controller::on(const sig_ev::notify_change&) {
   enqueue(make_update_evt(false));
   return true;
 }
@@ -402,9 +410,7 @@ bool controller::on(const sig_ev::process_broadcast&) {
 /**
  * Process eventqueue update event
  */
-bool controller::on(const sig_ev::process_update& evt) {
-  bool force{evt.data()->flag};
-
+bool controller::on(const sig_ev::update&) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
   string separator{bar.separator};
@@ -475,7 +481,7 @@ bool controller::on(const sig_ev::process_update& evt) {
 
   try {
     if (!m_writeback) {
-      m_bar->parse(move(contents), force);
+      m_bar->parse(move(contents), false);
     } else {
       std::cout << contents << std::endl;
     }
@@ -487,17 +493,25 @@ bool controller::on(const sig_ev::process_update& evt) {
 }
 
 /**
- * Process eventqueue quit event
+ * Process eventqueue terminate event
  */
-bool controller::on(const sig_ev::process_quit& evt) {
-  raise((*evt()).flag ? SIGUSR1 : SIGALRM);
+bool controller::on(const sig_ev::exit_terminate&) {
+  raise(SIGALRM);
+  return true;
+}
+
+/**
+ * Process eventqueue reload event
+ */
+bool controller::on(const sig_ev::exit_reload&) {
+  raise(SIGUSR1);
   return true;
 }
 
 /**
  * Process eventqueue check event
  */
-bool controller::on(const sig_ev::process_check&) {
+bool controller::on(const sig_ev::check_state&) {
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
       if (module->running()) {
@@ -506,7 +520,7 @@ bool controller::on(const sig_ev::process_check&) {
     }
   }
   m_log.warn("No running modules...");
-  enqueue(make_quit_evt(false));
+  on(exit_terminate{});
   return true;
 }
 

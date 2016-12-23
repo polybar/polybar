@@ -92,10 +92,11 @@ namespace signals {
   }
 
   namespace eventqueue {
-    DEFINE_VALUE_SIGNAL(1, process_quit, event);
-    DEFINE_VALUE_SIGNAL(2, process_update, event);
-    DEFINE_SIGNAL(3, process_check);
-    DEFINE_SIGNAL(4, process_broadcast);
+    DEFINE_SIGNAL(1, exit_terminate);
+    DEFINE_SIGNAL(2, exit_reload);
+    DEFINE_SIGNAL(3, notify_change);
+    DEFINE_SIGNAL(4, check_state);
+    DEFINE_SIGNAL(5, update);
   }
 
   namespace ipc {

@@ -6,10 +6,11 @@ POLYBAR_NS
 
 namespace signals {
   namespace eventqueue {
-    struct process_quit;
-    struct process_update;
-    struct process_check;
-    struct process_broadcast;
+    struct exit_terminate;
+    struct exit_reload;
+    struct notify_change;
+    struct check_state;
+    struct update;
   }
   namespace ipc {
     struct process_command;

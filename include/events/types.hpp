@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#include "common.hpp"
+
+POLYBAR_NS
+
 enum class event_type : uint8_t {
   NONE = 0,
   UPDATE,
@@ -16,6 +20,10 @@ struct event {
 };
 
 namespace {
+  inline bool operator==(uint8_t id, event_type type) {
+    return id == static_cast<uint8_t>(type);
+  }
+
   /**
    * Create QUIT event
    */
@@ -44,3 +52,5 @@ namespace {
     return event{static_cast<uint8_t>(event_type::CHECK)};
   }
 }
+
+POLYBAR_NS_END
