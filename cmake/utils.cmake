@@ -69,7 +69,8 @@ function(make_executable target_name)
   install(TARGETS ${target_name}
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          COMPONENT runtime)
 endfunction()
 
 # }}}
@@ -154,7 +155,8 @@ function(make_library target_name)
     install(TARGETS ${LIBRARY_TARGETS}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT library)
   endforeach()
 endfunction()
 

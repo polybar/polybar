@@ -6,7 +6,7 @@ VERSION = $(shell git describe --tags)
 DATE = $(shell date +%Y-%m-%d)
 
 # Sources
-MAN_SOURCES = $(wildcard *.1 *.5)
+MAN_SOURCES = $(wildcard *.1)
 GZ_FILES = $(addsuffix .gz,$(MAN_SOURCES))
 # Targets
 all: $(GZ_FILES)
@@ -17,7 +17,7 @@ update-versions:
 	@sed -i '1 s/"$(PROGRAM_NAME) [^"]*"/"$(PROGRAM_NAME) $(VERSION)"/' $(MAN_SOURCES)
 
 update-dates:
-	@sed -i '1 s/[0-9]{4}\-[0-9]{2}\-[0-9]{2}/$(DATE)/' $(MAN_SOURCES)
+	@sed -r -i '1 s/[0-9]{4}\-[0-9]{2}\-[0-9]{2}/$(DATE)/' $(MAN_SOURCES)
 
 # Documentation targets
 %.1.gz: %.1
@@ -29,9 +29,6 @@ update-dates:
 	@gzip -c $< > $@
 
 polybar: polybar.1
-	mandoc -a $<
-
-polybar_config: polybar_config.5
 	mandoc -a $<
 
 clean:

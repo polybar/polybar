@@ -1,4 +1,4 @@
-.TH polybar 1 2016-10-18 "polybar 2.0.0" "User Manual"
+.TH polybar 1 2016-12-23 "polybar 2.4.2-1-g70bb6f6" "User Manual"
 .SH NAME
 \fBpolybar\fR \- A fast and easy-to-use tool status bar.
 .SH SYNOPSIS
@@ -7,9 +7,9 @@ polybar \fIBAR-NAME\fR [\fB\-c\fR \fICONFIG\fR|\fB\-l\fR \fILOG_LEVEL\fR|\fB\-d\
 .P
 polybar [\fB\-h\fR | \fB\-\-help\fR]
 .SH DESCRIPTION
-\fBPolybar\fR aims to help users build beautiful and highly customizable status bars without messing with named pipes, MacGyver-like scripting or non-blocking loops lobotomizing your CPU.
+\fBPolybar\fR aims to help users build beautiful and highly customizable status bars for their desktop environment, without the need of having a black belt in shell scripting.
 .P
-Please not that the project is still in early development, so please report any anomalies by creating an issue on GitHub (\fIhttps://github.com/jaagr/polybar\fR).
+Please report issues by creating a ticket on GitHub (\fIhttps://github.com/jaagr/polybar\fR).
 .P
 Mandatory arguments to long options are mandatory for short options too.
 .TP
@@ -20,7 +20,7 @@ Show help and program options.
 Print version information.
 .TP
 \fB\-l\fR, \fB\-\-log\fR=\fILEVEL\fR
-Set how verbose \fBpolybar\fR's logging is. \fILEVEL\fR must be one of: `warning` or `info`.
+Set how verbose \fBpolybar\fR's logging is. \fILEVEL\fR must be one of: `error`, `warning` or `info`.
 .TP
 \fB\-q\fR, \fB\-\-quiet\fR
 Be quiet (will override -l).
@@ -39,9 +39,6 @@ Print the generated \fIWM_NAME\fR.
 .TP
 \fB\-s\fR, \fB\-\-stdout\fR
 Dump content to stdout instead of rendering an X window.
-.SH SEE ALSO
-.TP
-\fBpolybar_config\fR(5)
 .RE
 .SH HOMEPAGE
 .sp

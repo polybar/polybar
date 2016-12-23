@@ -476,18 +476,17 @@ bool controller::on(const sig_ev::process_update& evt) {
  * Process eventqueue input event
  */
 bool controller::on(const sig_ev::process_input& evt) {
-  string input{*evt()};
-
-  m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", input);
-
   try {
+    string input{*evt()};
+
+    m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", input);
+
     if (m_command) {
       m_log.warn("Terminating previous shell command");
       m_command->terminate();
     }
 
     m_log.info("Executing shell command: %s", input);
-
     m_command = command_util::make_command(move(input));
     m_command->exec();
     m_command.reset();
@@ -502,7 +501,7 @@ bool controller::on(const sig_ev::process_input& evt) {
  * Process eventqueue quit event
  */
 bool controller::on(const sig_ev::process_quit& evt) {
-  raise(evt.data()->flag ? SIGUSR1 : SIGALRM);
+  raise((*evt()).flag ? SIGUSR1 : SIGALRM);
   return true;
 }
 

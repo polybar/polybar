@@ -74,12 +74,12 @@ endif()
 # Configure and install {{{
 
 configure_file(
-  ${PROJECT_SOURCE_DIR}/examples/config.cmake
-  ${CMAKE_SOURCE_DIR}/examples/config
+  ${PROJECT_SOURCE_DIR}/doc/config.cmake
+  ${CMAKE_SOURCE_DIR}/doc/config
   ESCAPE_QUOTES @ONLY)
 
 install(FILES config
-  DESTINATION share/examples/polybar
+  DESTINATION share/doc/polybar
   COMPONENT config)
 
 # }}}
