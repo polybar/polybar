@@ -113,7 +113,7 @@ label-focused-padding = 2
 label-occupied = %index%
 label-occupied-padding = 2
 
-label-urgent = %index%
+label-urgent = %index%!
 label-urgent-background = ${colors.alert}
 label-urgent-padding = 2
 
@@ -127,7 +127,6 @@ format = <label-state> <label-mode>
 index-sort = true
 wrapping-scroll = false
 
-label-mode = %mode%
 label-mode-padding = 2
 label-mode-foreground = #000
 label-mode-background = ${colors.primary}
@@ -141,12 +140,13 @@ label-unfocused = %index%
 label-unfocused-padding = ${module/bspwm.label-occupied-padding}
 
 label-urgent = %index%!
-label-urgent-background = ${colors.alert}
+label-urgent-background = ${module/bspwm.label-urgent-background}
 label-urgent-padding = ${module/bspwm.label-urgent-padding}
 
 label-visible = %index%
-label-visible-foreground = ${module/bspwm.label-empty-padding}
-label-visible-padding = ${module/bspwm.label-empty-padding}
+label-visible-background = ${self.label-focused-background}
+label-visible-underline = ${self.label-focused-underline}
+label-visible-padding = ${self.label-focused-padding}
 
 [module/mpd]
 type = internal/mpd
