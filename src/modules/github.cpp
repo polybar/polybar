@@ -21,6 +21,7 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "Notifications: %notifications%");
+      m_label->replace_token("%notifications%", m_empty_notifications ? "0" : "");
     }
   }
 
