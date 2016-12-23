@@ -13,6 +13,7 @@
 #include "common.hpp"
 #include "config.hpp"
 #include "errors.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -30,9 +31,10 @@ namespace net {
     int max{0};
 
     int percentage() const {
-      if (max < 0)
-        return 2 * (val + 100);
-      return static_cast<float>(val) / max * 100.0f + 0.5f;
+      if (val < 0) {
+        return std::max(std::min(std::abs(math_util::percentage(val, max, -20)), 100), 0);
+      }
+      return std::max(std::min(math_util::percentage(val, 0, max), 100), 0);
     }
   };
 

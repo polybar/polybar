@@ -392,7 +392,7 @@ namespace net {
       // Check if the values are defined in dBm
       if (stats.qual.level > range.max_qual.level) {
         m_signalstrength.val -= 0x100;
-        m_signalstrength.max -= 0x100;
+        m_signalstrength.max = (stats.qual.level - range.max_qual.level) - 0x100;
       }
     }
   }
