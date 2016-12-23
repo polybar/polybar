@@ -1,3 +1,4 @@
+#include <cstring>
 #include <sstream>
 #include <utility>
 
@@ -45,13 +46,13 @@ namespace string_util {
   /**
    * Replace first occurence of needle in haystack
    */
-  string replace(const string& haystack, const string& needle, const string& reply, size_t start, size_t end) {
+  string replace(const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {
     string str(haystack);
     string::size_type pos;
 
-    if (needle != reply && (pos = str.find(needle, start)) != string::npos) {
+    if (needle != replacement && (pos = str.find(needle, start)) != string::npos) {
       if (end == string::npos || pos < end) {
-        str = str.replace(pos, needle.length(), reply);
+        str = str.replace(pos, needle.length(), replacement);
       }
     }
 
@@ -61,27 +62,16 @@ namespace string_util {
   /**
    * Replace all occurences of needle in haystack
    */
-  string replace_all(const string& haystack, const string& needle, const string& reply, size_t start, size_t end) {
-    string replaced;
-
-    if (end == string::npos) {
-      end = haystack.length();
+  string replace_all(
+      const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {
+    string result{haystack};
+    string::size_type pos;
+    while ((pos = result.find(needle, start)) != string::npos && pos < result.length() &&
+           (end == string::npos || pos + needle.length() <= end)) {
+      result.replace(pos, needle.length(), replacement);
+      start = pos + replacement.length();
     }
-
-    for (size_t i = 0; i < haystack.length(); i++) {
-      if (i < start) {
-        replaced += haystack[i];
-      } else if (i + needle.length() > end) {
-        replaced += haystack[i];
-      } else if (haystack.compare(i, needle.length(), needle) == 0) {
-        replaced += reply;
-        i += needle.length() - 1;
-      } else {
-        replaced += haystack[i];
-      }
-    }
-
-    return replaced;
+    return result;
   }
 
   /**
