@@ -77,14 +77,29 @@ namespace modules {
   }
 
   /**
+   * Build module output and wrap it in a click handler use
+   * to cycle between configured layout groups
+   */
+  string xkeyboard_module::get_output() {
+    string output{module::get_output()};
+
+    if (m_keyboard && m_keyboard->size() > 1) {
+      m_builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
+      m_builder->append(output);
+      m_builder->cmd_close();
+    } else {
+      m_builder->append(output);
+    }
+
+    return m_builder->flush();
+  }
+
+  /**
    * Map format tags to content
    */
   bool xkeyboard_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_LAYOUT) {
-      bool precond{m_keyboard && m_keyboard->size() > 1};
-      builder->cmd(mousebtn::LEFT, EVENT_SWITCH, precond);
       builder->node(m_layout);
-      builder->cmd_close(precond);
     } else if (tag == TAG_LABEL_INDICATOR) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {

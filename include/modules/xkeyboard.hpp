@@ -25,6 +25,7 @@ namespace modules {
    public:
     explicit xkeyboard_module(const bar_settings& bar, string name_);
 
+    string get_output();
     void update();
     bool build(builder* builder, const string& tag) const;
 
