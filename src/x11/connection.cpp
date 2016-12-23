@@ -87,11 +87,8 @@ xcb_screen_t* connection::screen(bool realloc) {
  */
 void connection::ensure_event_mask(xcb_window_t win, uint32_t event) {
   auto attributes = get_window_attributes(win);
-  uint32_t mask{attributes->your_event_mask | event};
-
-  if (!(attributes->your_event_mask & event)) {
-    change_window_attributes(win, XCB_CW_EVENT_MASK, &mask);
-  }
+  attributes->your_event_mask = attributes->your_event_mask | event;
+  change_window_attributes(win, XCB_CW_EVENT_MASK, &attributes->your_event_mask);
 }
 
 /**

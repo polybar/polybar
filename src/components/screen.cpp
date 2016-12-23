@@ -48,9 +48,14 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
     << cw_flush(true);
   // clang-format on
 
+  // Update the root windows event mask
+  auto attributes = m_connection.get_window_attributes(m_root);
+  auto root_mask = attributes->your_event_mask;
+  attributes->your_event_mask = attributes->your_event_mask | XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;
+  m_connection.change_window_attributes(m_root, XCB_CW_EVENT_MASK, &attributes->your_event_mask);
+
   // Receive randr events
   m_connection.randr().select_input(m_proxy, XCB_RANDR_NOTIFY_MASK_SCREEN_CHANGE);
-  m_connection.ensure_event_mask(m_root, XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY);
 
   // Create window used as event proxy
   m_connection.map_window(m_proxy);
@@ -59,7 +64,9 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
   // Wait until the proxy window has been mapped
   using evt = xcb_map_notify_event_t;
   m_connection.wait_for_response<evt, XCB_MAP_NOTIFY>([&](const evt* evt) -> bool { return evt->window == m_proxy; });
-  m_connection.clear_event_mask(m_root);
+
+  // Restore the root windows event mask
+  m_connection.change_window_attributes(m_root, XCB_CW_EVENT_MASK, &root_mask);
 
   // Finally attach the sink the process randr events
   m_connection.attach_sink(this, SINK_PRIORITY_SCREEN);
