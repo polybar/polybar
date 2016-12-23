@@ -117,7 +117,11 @@ void config::parse_file() {
     }
 
     if (equal_pos + 1 < line.size()) {
-      value = string_util::trim(forward<string>(string_util::trim(line.substr(equal_pos + 1), ' ')), '"');
+      value = forward<string>(string_util::trim(line.substr(equal_pos + 1), ' '));
+      size_t len{value.size()};
+      if (len > 2 && value[0] == '"' && value[len - 1] == '"') {
+        value.erase(len - 1, 1).erase(0, 1);
+      }
     }
 
     m_sections[section].emplace_hint(it, move(key), move(value));
