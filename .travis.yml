@@ -37,7 +37,6 @@ addons:
 env:
   global:
     - BUILD_TESTS="ON"
-    - BUILD_TYPE="Release"
     - LLVM_VERSION="3.8.1"
     - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
     - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
