@@ -191,9 +191,7 @@ namespace modules {
     return true;
   }
 
-  bool i3_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool i3_module::input(string&& cmd) {
     if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }
@@ -205,11 +203,10 @@ namespace modules {
       const connection_t conn{};
 
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-        const string workspace_num{cmd.substr(strlen(EVENT_CLICK))};
-
-        if (focused_workspace(conn)->num != atoi(workspace_num.c_str())) {
+        cmd.erase(0, strlen(EVENT_CLICK));
+        if (focused_workspace(conn)->num != atoi(cmd.c_str())) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace number " + workspace_num);
+          conn.send_command("workspace number " + cmd);
         }
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
         scrolldir = m_revscroll ? "prev" : "next";

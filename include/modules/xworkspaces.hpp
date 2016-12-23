@@ -63,7 +63,7 @@ namespace modules {
     void handle(const evt::property_notify& evt);
     void rebuild_desktops();
     void set_current_desktop();
-    bool on(const input_event_t&);
+    bool input(string&& cmd);
 
    private:
     static constexpr const char* DEFAULT_ICON{"icon-default"};

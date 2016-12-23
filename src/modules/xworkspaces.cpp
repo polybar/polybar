@@ -208,13 +208,12 @@ namespace modules {
     return false;
   }
 
-  bool xworkspaces_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-    if (cmd.find(EVENT_PREFIX) != 0) {
+  bool xworkspaces_module::input(string&& cmd) {
+    size_t len{strlen(EVENT_PREFIX)};
+    if (cmd.compare(0, len, EVENT_PREFIX) != 0) {
       return false;
     }
-
-    cmd.erase(0, strlen(EVENT_PREFIX));
+    cmd.erase(0, len);
 
     uint32_t new_desktop{0};
     uint32_t min_desktop{0};
@@ -233,26 +232,22 @@ namespace modules {
       }
     }
 
-    if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-      new_desktop = atoi(cmd.substr(strlen(EVENT_CLICK)).c_str());
-
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+    if ((len = strlen(EVENT_CLICK)) && cmd.compare(0, len, EVENT_CLICK) == 0) {
+      new_desktop = std::strtoul(cmd.substr(len).c_str(), nullptr, 10);
+    } else if ((len = strlen(EVENT_SCROLL_UP)) && cmd.compare(0, len, EVENT_SCROLL_UP) == 0) {
       new_desktop = math_util::min<uint32_t>(max_desktop, current_desktop + 1);
-
       if (new_desktop == current_desktop) {
         new_desktop = min_desktop;
       }
-
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
-      new_desktop = math_util::max<uint32_t>(min_desktop, current_desktop - 1);
-
+    } else if ((len = strlen(EVENT_SCROLL_DOWN)) && cmd.compare(0, len, EVENT_SCROLL_DOWN) == 0) {
+      new_desktop = math_util::max<uint32_t>(min_desktop, std::max(0U, current_desktop - 1));
       if (new_desktop == current_desktop) {
         new_desktop = max_desktop;
       }
     }
 
     if (new_desktop != current_desktop) {
-      m_log.info("%s: Requesting change to desktop #%lu", name(), new_desktop);
+      m_log.info("%s: Requesting change to desktop #%u", name(), new_desktop);
       ewmh_util::change_current_desktop(m_ewmh.get(), new_desktop);
       m_connection.flush();
     } else {

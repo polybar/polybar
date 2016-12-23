@@ -27,7 +27,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    bool on(const input_event_t& evt);
+    bool input(string&& cmd);
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};

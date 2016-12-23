@@ -209,9 +209,7 @@ namespace modules {
     return true;
   }
 
-  bool volume_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool volume_module::input(string&& cmd) {
     if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
       return false;
     }

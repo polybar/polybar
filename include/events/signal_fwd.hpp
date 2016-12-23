@@ -8,7 +8,6 @@ namespace signals {
   namespace eventqueue {
     struct process_quit;
     struct process_update;
-    struct process_input;
     struct process_check;
     struct process_broadcast;
   }

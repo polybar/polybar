@@ -26,6 +26,7 @@ class signal_emitter;
 
 namespace modules {
   struct module_interface;
+  class input_handler;
 }
 
 using module_t = unique_ptr<modules::module_interface>;
@@ -42,7 +43,7 @@ namespace sig_ui = signals::ui;
 namespace sig_ipc = signals::ipc;
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::process_broadcast, sig_ev::process_update,
-                       sig_ev::process_input, sig_ev::process_quit, sig_ev::process_check, sig_ipc::process_action,
+                       sig_ev::process_quit, sig_ev::process_check, sig_ipc::process_action,
                        sig_ipc::process_command, sig_ipc::process_hook, sig_ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
@@ -55,7 +56,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   bool run(bool writeback = false);
 
   bool enqueue(event&& evt);
-  bool enqueue(string&& input_data);
+  bool enqueue(string&& input);
 
  protected:
   void read_events();
@@ -64,7 +65,6 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
 
   bool on(const sig_ev::process_broadcast& evt);
   bool on(const sig_ev::process_update& evt);
-  bool on(const sig_ev::process_input& evt);
   bool on(const sig_ev::process_quit& evt);
   bool on(const sig_ev::process_check& evt);
   bool on(const sig_ui::button_press& evt);
@@ -106,7 +106,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::proc
   /**
    * @brief Module input handlers
    */
-  vector<signal_receiver_interface*> m_inputhandlers;
+  vector<modules::input_handler*> m_inputhandlers;
 
   /**
    * @brief Maximum number of subsequent events to swallow

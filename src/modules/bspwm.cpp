@@ -417,9 +417,7 @@ namespace modules {
     return false;
   }
 
-  bool bspwm_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool bspwm_module::input(string&& cmd) {
     if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }

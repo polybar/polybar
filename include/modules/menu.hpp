@@ -24,7 +24,7 @@ namespace modules {
     void update() {}
 
    protected:
-    bool on(const input_event_t& evt);
+    bool input(string&& cmd);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";

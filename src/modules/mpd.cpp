@@ -316,9 +316,7 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool mpd_module::input(string&& cmd) {
     if (cmd.compare(0, 3, "mpd") != 0) {
       return false;
     }

@@ -80,9 +80,7 @@ namespace modules {
     return true;
   }
 
-  bool menu_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool menu_module::input(string&& cmd) {
     if (cmd.compare(0, 4, "menu") != 0) {
       return false;
     }

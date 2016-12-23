@@ -36,7 +36,7 @@ namespace modules {
     void handle(const evt::xkb_state_notify& evt);
     void handle(const evt::xkb_indicator_state_notify& evt);
 
-    bool on(const input_event_t&);
+    bool input(string&& cmd);
 
    private:
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};

@@ -84,13 +84,10 @@ namespace modules {
     return true;
   }
 
-  bool date_module::on(const input_event_t& evt) {
-    string cmd{*evt.data()};
-
+  bool date_module::input(string&& cmd) {
     if (cmd != EVENT_TOGGLE) {
       return false;
     }
-
     m_toggled = !m_toggled;
     wakeup();
     return true;

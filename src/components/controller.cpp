@@ -363,17 +363,31 @@ void controller::process_eventqueue() {
  */
 void controller::process_inputdata() {
   if (!m_inputdata.empty()) {
-    auto evt = sig_ev::process_input{string{m_inputdata}};
+    string cmd = m_inputdata;
     m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
     m_inputdata.clear();
 
     for (auto&& handler : m_inputhandlers) {
-      if (handler->on(evt)) {
+      if (handler->input(string{cmd})) {
         return;
       }
     }
 
-    m_sig.emit(evt);
+    try {
+      m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", cmd);
+
+      if (m_command) {
+        m_log.warn("Terminating previous shell command");
+        m_command->terminate();
+      }
+
+      m_log.info("Executing shell command: %s", cmd);
+      m_command = command_util::make_command(move(cmd));
+      m_command->exec();
+      m_command.reset();
+    } catch (const application_error& err) {
+      m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
+    }
   }
 }
 
@@ -467,31 +481,6 @@ bool controller::on(const sig_ev::process_update& evt) {
     }
   } catch (const exception& err) {
     m_log.err("Failed to update bar contents (reason: %s)", err.what());
-  }
-
-  return true;
-}
-
-/**
- * Process eventqueue input event
- */
-bool controller::on(const sig_ev::process_input& evt) {
-  try {
-    string input{*evt()};
-
-    m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", input);
-
-    if (m_command) {
-      m_log.warn("Terminating previous shell command");
-      m_command->terminate();
-    }
-
-    m_log.info("Executing shell command: %s", input);
-    m_command = command_util::make_command(move(input));
-    m_command->exec();
-    m_command.reset();
-  } catch (const application_error& err) {
-    m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 
   return true;
