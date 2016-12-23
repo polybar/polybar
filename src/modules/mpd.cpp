@@ -15,10 +15,10 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
-    m_host = m_conf.get<string>(name(), "host", m_host);
-    m_port = m_conf.get<unsigned int>(name(), "port", m_port);
-    m_pass = m_conf.get<string>(name(), "password", m_pass);
-    m_synctime = m_conf.get<float>(name(), "interval", m_synctime);
+    m_host = m_conf.get(name(), "host", m_host);
+    m_port = m_conf.get(name(), "port", m_port);
+    m_pass = m_conf.get(name(), "password", m_pass);
+    m_synctime = m_conf.get(name(), "interval", m_synctime);
 
     // Add formats and elements {{{
 

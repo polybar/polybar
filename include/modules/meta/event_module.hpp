@@ -17,13 +17,9 @@ namespace modules {
    protected:
     void runner() {
       try {
-        // Warm up module output and
-        // send broadcast before entering
-        // the update loop
-        if (this->running()) {
-          CAST_MOD(Impl)->update();
-          CAST_MOD(Impl)->broadcast();
-        }
+        // Warm up the module output before entering the loop
+        CAST_MOD(Impl)->update();
+        CAST_MOD(Impl)->broadcast();
 
         while (this->running()) {
           CAST_MOD(Impl)->idle();

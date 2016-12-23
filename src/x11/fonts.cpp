@@ -72,9 +72,9 @@ bool font_manager::load(const string& name, uint8_t fontindex, int8_t offset_y) 
     return false;
   } else if (fontindex == 0) {
     fontindex = m_fonts.size();
-    m_logger.trace("font_manager: Assign font '%s' to index '%d'", name.c_str(), fontindex);
+    m_logger.trace("font_manager: Assign font '%s' to index '%u'", name, fontindex);
   } else {
-    m_logger.trace("font_manager: Add font '%s' to index '%i'", name, fontindex);
+    m_logger.trace("font_manager: Add font '%s' to index '%u'", name, fontindex);
   }
 
   shared_ptr<font_ref> font{new font_ref{}, font_ref::deleter};

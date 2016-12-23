@@ -82,7 +82,7 @@ class logger {
   /**
    * Convert string
    */
-  const char* convert(string arg) const;
+  const char* convert(string arg) const;  // NOLINT
 
   /**
    * Convert thread id

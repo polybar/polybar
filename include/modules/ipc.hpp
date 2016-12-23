@@ -28,6 +28,7 @@ namespace modules {
    public:
     explicit ipc_module(const bar_settings&, string);
 
+    void update() {}
     string get_output();
     bool build(builder* builder, const string& tag) const;
     void on_message(const ipc_hook& message);

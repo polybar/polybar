@@ -80,9 +80,6 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%title%");
     }
-
-    // Trigger the initial draw event
-    update();
   }
 
   /**

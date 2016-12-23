@@ -68,9 +68,6 @@ namespace modules {
     if (m_formatter->has(TAG_RAMP)) {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
     }
-
-    // Trigger the initial draw event
-    update();
   }
 
   /**

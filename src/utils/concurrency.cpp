@@ -8,8 +8,9 @@ namespace concurrency_util {
     static mutex mtx;
     static map<thread::id, size_t> ids;
     std::lock_guard<mutex> lock(mtx);
-    if (ids.find(id) == ids.end())
+    if (ids.find(id) == ids.end()) {
       ids[id] = idx++;
+    }
     return ids[id];
   }
 }

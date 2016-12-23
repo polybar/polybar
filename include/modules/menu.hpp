@@ -21,6 +21,7 @@ namespace modules {
     explicit menu_module(const bar_settings&, string);
 
     bool build(builder* builder, const string& tag) const;
+    void update() {}
 
    protected:
     bool on(const input_event_t& evt);

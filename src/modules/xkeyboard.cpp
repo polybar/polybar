@@ -39,8 +39,6 @@ namespace modules {
 
     // Create keyboard object
     query_keyboard();
-
-    update();
   }
 
   /**
