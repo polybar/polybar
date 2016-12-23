@@ -30,9 +30,6 @@ namespace modules {
       m_indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%");
     }
 
-    // Connect to the event registry
-    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
-
     // Setup extension
     // clang-format off
     m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
@@ -44,13 +41,6 @@ namespace modules {
     query_keyboard();
 
     update();
-  }
-
-  /**
-   * Disconnect from the event registry
-   */
-  void xkeyboard_module::teardown() {
-    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**

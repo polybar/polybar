@@ -9,6 +9,7 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
@@ -155,9 +156,15 @@ bool controller::run(bool writeback) {
   size_t started_modules{0};
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
-      auto handler = dynamic_cast<input_handler*>(&*module);
-      if (handler != nullptr) {
-        m_inputhandlers.emplace_back(handler);
+      auto inp_handler = dynamic_cast<input_handler*>(&*module);
+      auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
+
+      if (inp_handler != nullptr) {
+        m_inputhandlers.emplace_back(inp_handler);
+      }
+
+      if (evt_handler != nullptr) {
+        evt_handler->connect(m_connection);
       }
 
       try {

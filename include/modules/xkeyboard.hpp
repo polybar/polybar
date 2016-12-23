@@ -3,11 +3,12 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
+#include "modules/meta/event_handler.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/events.hpp"
-#include "x11/window.hpp"
 #include "x11/extensions/xkb.hpp"
+#include "x11/window.hpp"
 
 POLYBAR_NS
 
@@ -19,12 +20,11 @@ namespace modules {
    */
   class xkeyboard_module
       : public static_module<xkeyboard_module>,
-        public xpp::event::sink<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify>,
+        public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify>,
         public input_handler {
    public:
     explicit xkeyboard_module(const bar_settings& bar, string name_);
 
-    void teardown();
     void update();
     bool build(builder* builder, const string& tag) const;
 

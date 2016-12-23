@@ -2,6 +2,7 @@
 
 #include "components/config.hpp"
 #include "config.hpp"
+#include "modules/meta/event_handler.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/extensions/randr.hpp"
@@ -25,18 +26,17 @@ namespace modules {
    * TODO: Implement backlight configuring using scroll events
    */
   class xbacklight_module : public static_module<xbacklight_module>,
-                            public xpp::event::sink<evt::randr_notify>,
+                            public event_handler<evt::randr_notify>,
                             public input_handler {
    public:
     explicit xbacklight_module(const bar_settings& bar, string name_);
 
-    void teardown();
-    void handle(const evt::randr_notify& evt);
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
    protected:
+    void handle(const evt::randr_notify& evt);
     bool on(const input_event_t& evt);
 
    private:

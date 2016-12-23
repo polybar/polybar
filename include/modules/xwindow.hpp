@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/events.hpp"
 #include "x11/ewmh.hpp"
@@ -28,11 +29,10 @@ namespace modules {
    * Module used to display information about the
    * currently active X window.
    */
-  class xwindow_module : public static_module<xwindow_module>, public xpp::event::sink<evt::property_notify> {
+  class xwindow_module : public static_module<xwindow_module>, public event_handler<evt::property_notify> {
    public:
     explicit xwindow_module(const bar_settings&, string);
 
-    void teardown();
     void update(bool force = false);
     bool build(builder* builder, const string& tag) const;
 

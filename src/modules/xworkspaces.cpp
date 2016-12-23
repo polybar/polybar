@@ -79,16 +79,6 @@ namespace modules {
 
     // Make sure we get notified when root properties change
     window{m_connection, m_connection.root()}.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
-
-    // Connect with the event registry
-    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
-  }
-
-  /**
-   * Disconnect from the event registry
-   */
-  void xworkspaces_module::teardown() {
-    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**

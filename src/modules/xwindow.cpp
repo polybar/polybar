@@ -81,18 +81,8 @@ namespace modules {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%title%");
     }
 
-    // Connect with the event registry
-    m_connection.attach_sink(this, SINK_PRIORITY_MODULE);
-
     // Trigger the initial draw event
     update();
-  }
-
-  /**
-   * Disconnect from the event registry
-   */
-  void xwindow_module::teardown() {
-    m_connection.detach_sink(this, SINK_PRIORITY_MODULE);
   }
 
   /**
