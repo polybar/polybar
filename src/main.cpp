@@ -42,24 +42,6 @@ int main(int argc, char** argv) {
 
   try {
     //==================================================
-    // Connect to X server
-    //==================================================
-    XInitThreads();
-
-    // Store the xcb connection pointer with a disconnect deleter
-    unique_ptr<xcb_connection_t, xutils::xcb_connection_deleter> xcbconn{xutils::get_connection()};
-
-    if (!xcbconn) {
-      logger.err("A connection to X could not be established... ");
-      return EXIT_FAILURE;
-    }
-
-    connection& conn{connection::make(&*xcbconn)};
-    conn.preload_atoms();
-    conn.query_extensions();
-    conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
-
-    //==================================================
     // Parse command line arguments
     //==================================================
     string scriptname{argv[0]};
@@ -84,6 +66,25 @@ int main(int argc, char** argv) {
       cli->usage();
       return EXIT_FAILURE;
     }
+
+    //==================================================
+    // Connect to X server
+    //==================================================
+    XInitThreads();
+
+    // Store the xcb connection pointer with a disconnect deleter
+    unique_ptr<xcb_connection_t, xutils::xcb_connection_deleter> xcbconn{xutils::get_connection()};
+
+    if (!xcbconn) {
+      logger.err("A connection to X could not be established... ");
+      return EXIT_FAILURE;
+    }
+
+    connection& conn{connection::make(&*xcbconn)};
+    conn.preload_atoms();
+    conn.query_extensions();
+    conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
+
 
     //==================================================
     // Load user configuration
