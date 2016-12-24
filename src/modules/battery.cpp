@@ -101,7 +101,7 @@ namespace modules {
     watch(m_valuepath[battery_module::value::ADAPTER], IN_ACCESS);
 
     // Setup time if token is used
-    if (m_label_charging->has_token("%time%") || m_label_discharging->has_token("%time%")) {
+    if ((m_label_charging && m_label_charging->has_token("%time%")) || (m_label_discharging && m_label_discharging->has_token("%time%"))) {
       if (!m_bar.locale.empty()) {
         setlocale(LC_TIME, m_bar.locale.c_str());
       }
