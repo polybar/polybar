@@ -21,6 +21,9 @@ namespace io_util {
   bool poll_write(int fd, int timeout_ms = 1);
 
   bool interrupt_read(int write_fd);
+
+  void set_block(int fd);
+  void set_nonblock(int fd);
 }
 
 POLYBAR_NS_END

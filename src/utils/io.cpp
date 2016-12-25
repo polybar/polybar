@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <poll.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
@@ -118,6 +117,22 @@ namespace io_util {
     char end[1] = {'\n'};
     size_t bytes = ::write(write_fd, end, 1);
     return bytes > 0;
+  }
+
+  void set_block(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    flags &= ~O_NONBLOCK;
+    if (fcntl(fd, F_SETFL, flags) == -1) {
+      throw system_error("Failed to unset O_NONBLOCK");
+    }
+  }
+
+  void set_nonblock(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    flags |= O_NONBLOCK;
+    if (fcntl(fd, F_SETFL, flags) == -1) {
+      throw system_error("Failed to set O_NONBLOCK");
+    }
   }
 }
 

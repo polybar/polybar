@@ -1,12 +1,10 @@
 #include <fcntl.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
+#include <cstdio>
 #include <fstream>
 
 #include "errors.hpp"
-#include "utils/factory.hpp"
 #include "utils/file.hpp"
-#include "utils/scope.hpp"
 
 POLYBAR_NS
 
@@ -89,28 +87,6 @@ namespace file_util {
       return contents;
     } catch (std::ios_base::failure& e) {
       return string{""};
-    }
-  }
-
-  /**
-   * Puts the given file descriptor into blocking mode
-   */
-  void set_block(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    flags &= ~O_NONBLOCK;
-    if (fcntl(fd, F_SETFL, flags) == -1) {
-      throw system_error("Failed to unset O_NONBLOCK");
-    }
-  }
-
-  /**
-   * Puts the given file descriptor into non-blocking mode
-   */
-  void set_nonblock(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    flags |= O_NONBLOCK;
-    if (fcntl(fd, F_SETFL, flags) == -1) {
-      throw system_error("Failed to set O_NONBLOCK");
     }
   }
 

@@ -37,8 +37,6 @@ class file_descriptor {
 namespace file_util {
   bool exists(const string& filename);
   string get_contents(const string& filename);
-  void set_block(int fd);
-  void set_nonblock(int fd);
   bool is_fifo(string filename);
 
   template <typename... Args>
