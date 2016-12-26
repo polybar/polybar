@@ -52,7 +52,7 @@ void inotify_watch::remove(bool force) {
  *
  * @brief A wait_ms of -1 blocks until an event is fired
  */
-bool inotify_watch::poll(int wait_ms) {
+bool inotify_watch::poll(int wait_ms) const {
   if (m_fd == -1) {
     return false;
   }
@@ -69,7 +69,7 @@ bool inotify_watch::poll(int wait_ms) {
 /**
  * Get the latest inotify event
  */
-unique_ptr<inotify_event> inotify_watch::get_event() {
+unique_ptr<inotify_event> inotify_watch::get_event() const {
   auto event = factory_util::unique<inotify_event>();
 
   if (m_fd == -1 || m_wd == -1) {
@@ -77,8 +77,8 @@ unique_ptr<inotify_event> inotify_watch::get_event() {
   }
 
   char buffer[1024];
-  size_t bytes = read(m_fd, buffer, 1024);
-  size_t len = 0;
+  auto bytes = read(m_fd, buffer, 1024);
+  auto len = 0;
 
   while (len < bytes) {
     auto* e = reinterpret_cast<::inotify_event*>(&buffer[len]);
@@ -98,7 +98,7 @@ unique_ptr<inotify_event> inotify_watch::get_event() {
 /**
  * Wait for matching event
  */
-bool inotify_watch::await_match() {
+bool inotify_watch::await_match() const {
   return (get_event()->mask & m_mask) == m_mask;
 }
 
@@ -114,10 +114,6 @@ const string inotify_watch::path() const {
  */
 int inotify_watch::get_file_descriptor() const {
   return m_fd;
-}
-
-bool match(const inotify_event* evt, int mask) {
-  return (evt->mask & mask) == mask;
 }
 
 POLYBAR_NS_END

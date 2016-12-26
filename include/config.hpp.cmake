@@ -44,8 +44,12 @@ static const int SINK_PRIORITY_TRAY{3};
 static const int SINK_PRIORITY_MODULE{4};
 
 #ifdef DEBUG_HINTS
-static const int DEBUG_HINTS_OFFSET_X{@DEBUG_HINTS_OFFSET_X@};
-static const int DEBUG_HINTS_OFFSET_Y{@DEBUG_HINTS_OFFSET_Y@};
+static const int DEBUG_HINTS_OFFSET_X {
+  @DEBUG_HINTS_OFFSET_X@
+};
+static const int DEBUG_HINTS_OFFSET_Y {
+  @DEBUG_HINTS_OFFSET_Y@
+};
 #endif
 
 static constexpr const char* ALSA_SOUNDCARD{"@SETTING_ALSA_SOUNDCARD@"};

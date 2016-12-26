@@ -720,7 +720,7 @@ bool bar::on(const sig_ui::tick&) {
 
 bool bar::on(const sig_ui::dim_window& sig) {
   m_opts.dimmed = *sig.data() != 1.0;
-  wm_util::set_wm_window_opacity(m_connection, m_opts.window, *sig.data() * 0xFFFFFFFF);
+  set_wm_window_opacity(m_connection, m_opts.window, *sig.data() * 0xFFFFFFFF);
   m_connection.flush();
   return false;
 }

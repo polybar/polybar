@@ -1,13 +1,30 @@
 #include <utility>
 
 #include "components/builder.hpp"
-
+#include "components/types.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/color.hpp"
 
 POLYBAR_NS
+
+#ifndef BUILDER_SPACE_TOKEN
+#define BUILDER_SPACE_TOKEN "%__"
+#endif
+
+builder::builder(const bar_settings& bar) : m_bar(bar), m_attributes{static_cast<uint8_t>(attribute::NONE)} {
+  m_tags[syntaxtag::A] = 0;
+  m_tags[syntaxtag::B] = 0;
+  m_tags[syntaxtag::F] = 0;
+  m_tags[syntaxtag::T] = 0;
+  m_tags[syntaxtag::u] = 0;
+  m_tags[syntaxtag::o] = 0;
+  m_colors[syntaxtag::B] = "";
+  m_colors[syntaxtag::F] = "";
+  m_colors[syntaxtag::u] = "";
+  m_colors[syntaxtag::o] = "";
+}
 
 /**
  * Flush contents of the builder and return built string

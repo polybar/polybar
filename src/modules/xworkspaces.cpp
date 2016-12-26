@@ -74,9 +74,6 @@ namespace modules {
         m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
     }
-
-    // Make sure we get notified when root properties change
-    window{m_connection, m_connection.root()}.ensure_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE);
   }
 
   /**
