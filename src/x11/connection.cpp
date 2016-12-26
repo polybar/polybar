@@ -6,6 +6,7 @@
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/xlib.hpp"
 #include "x11/xutils.hpp"
 
 POLYBAR_NS
@@ -15,10 +16,12 @@ POLYBAR_NS
  */
 connection::make_type connection::make(xcb_connection_t* conn) {
   if (conn == nullptr) {
-    conn = &*xutils::get_connection();
+    conn = xutils::get_connection();
   }
+  // return static_cast<connection::make_type>(*factory_util::singleton<std::remove_reference_t<connection::make_type>>(
+  //     conn, file_util::make_file_descriptor(xcb_get_file_descriptor(conn))));
   return static_cast<connection::make_type>(
-      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn, xcb_get_file_descriptor(conn)));
+      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn));
 }
 
 /**
@@ -180,5 +183,9 @@ string connection::error_str(int error_code) {
 void connection::dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const {
   m_registry.dispatch(evt);
 }
+
+// connection::operator Display*() const {
+//   return xlib::get_display();
+// }
 
 POLYBAR_NS_END

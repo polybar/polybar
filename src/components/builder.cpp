@@ -5,6 +5,7 @@
 #include "drawtypes/label.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
+#include "utils/color.hpp"
 
 POLYBAR_NS
 

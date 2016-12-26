@@ -8,7 +8,6 @@
 
 #include <xcb/randr.h>
 #include <xpp/proto/randr.hpp>
-#include <xpp/xpp.hpp>
 
 #include "common.hpp"
 

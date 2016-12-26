@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "common.hpp"
-#include "x11/color.hpp"
 #include "x11/extensions/randr.hpp"
 
 POLYBAR_NS

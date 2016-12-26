@@ -17,10 +17,12 @@ class color {
 
   operator XRenderColor() const;
   operator string() const;
+
+  explicit operator uint32_t();
   operator uint32_t() const;
 
-  static color parse(string input, color fallback);
-  static color parse(string input);
+  static const color& parse(string input, const color& fallback);
+  static const color& parse(string input);
 
  protected:
   uint32_t m_value;
@@ -28,7 +30,6 @@ class color {
   string m_source;
 };
 
-extern std::map<string, class color> g_colorstore;
 extern color g_colorempty;
 extern color g_colorblack;
 extern color g_colorwhite;

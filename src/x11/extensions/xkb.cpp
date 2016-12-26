@@ -1,8 +1,9 @@
-#include "x11/connection.hpp"
+#include "x11/extensions/xkb.hpp"
 
 #include "errors.hpp"
 #include "utils/string.hpp"
-#include "x11/extensions/xkb.hpp"
+#include "x11/connection.hpp"
+#include "x11/extensions/all.hpp"
 
 POLYBAR_NS
 
@@ -127,7 +128,8 @@ namespace xkb_util {
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
-    vector<reply::get_atom_name> replies;
+    using get_atom_name_reply = xpp::x::reply::checked::get_atom_name<connection&>;
+    vector<get_atom_name_reply> replies;
     for (int i = 0; i < xcb_xkb_get_names_value_list_groups_length(reply, &values); i++) {
       replies.emplace_back(xpp::x::get_atom_name(conn, values.groups[i]));
     }
@@ -141,7 +143,7 @@ namespace xkb_util {
         }
       }
 
-      results.emplace_back(keyboard::layout{static_cast<reply::get_atom_name>(reply).name(), sym_names});
+      results.emplace_back(keyboard::layout{static_cast<get_atom_name_reply>(reply).name(), sym_names});
     }
 
     free(reply);
@@ -168,13 +170,14 @@ namespace xkb_util {
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
-    map<xcb_atom_t, reply::get_atom_name> entries;
+    using get_atom_name_reply = xpp::x::reply::checked::get_atom_name<connection&>;
+    map<xcb_atom_t, get_atom_name_reply> entries;
     for (int i = 0; i < xcb_xkb_get_names_value_list_indicator_names_length(reply, &values); i++) {
       entries.emplace(values.indicatorNames[i], xpp::x::get_atom_name(conn, values.indicatorNames[i]));
     }
 
     for (const auto& entry : entries) {
-      auto name = static_cast<reply::get_atom_name>(entry.second).name();
+      auto name = static_cast<get_atom_name_reply>(entry.second).name();
       auto type = keyboard::indicator::type::NONE;
 
       if (string_util::compare(name, "caps lock")) {

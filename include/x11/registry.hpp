@@ -1,9 +1,7 @@
 #pragma once
 
-#include <xcb/xcb.h>
-
 #include "common.hpp"
-#include "x11/extensions/all.hpp"
+#include "x11/extensions/fwd.hpp"
 
 // fwd
 namespace xpp {
@@ -15,13 +13,12 @@ namespace xpp {
 
 POLYBAR_NS
 
-// fwd
 class connection;
 
-using xpp_registry = xpp::event::registry<connection&, XPP_EXTENSION_LIST>;
-
-class registry : public xpp_registry {
+class registry : public xpp::event::registry<connection&, XPP_EXTENSION_LIST> {
  public:
+  using priority = unsigned int;
+
   explicit registry(connection& conn);
 };
 

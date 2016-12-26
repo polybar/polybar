@@ -1,8 +1,23 @@
 #pragma once
 
-#include <xpp/xpp.hpp>
-
 #include "common.hpp"
+
+namespace xpp {
+  template <typename Connection, template <typename, typename> class...>
+  class gcontext;
+  template <typename Connection, template <typename, typename> class...>
+  class pixmap;
+  template <typename Connection, template <typename, typename> class...>
+  class drawable;
+  template <typename Connection, template <typename, typename> class...>
+  class colormap;
+  template <typename Connection, template <typename, typename> class...>
+  class atom;
+  template <typename Connection, template <typename, typename> class...>
+  class font;
+  template <typename Connection, template <typename, typename> class...>
+  class cursor;
+}
 
 POLYBAR_NS
 
@@ -16,11 +31,5 @@ using colormap = xpp::colormap<connection&>;
 using atom = xpp::atom<connection&>;
 using font = xpp::font<connection&>;
 using cursor = xpp::cursor<connection&>;
-
-namespace reply_checked = xpp::x::reply::checked;
-namespace reply_unchecked = xpp::x::reply::unchecked;
-namespace reply {
-  using get_atom_name = reply_checked::get_atom_name<connection&>;
-}
 
 POLYBAR_NS_END

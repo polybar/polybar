@@ -3,7 +3,7 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
-#include "events/signal.hpp"
+#include "events/signal_receiver.hpp"
 #include "events/signal_emitter.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"

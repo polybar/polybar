@@ -16,8 +16,8 @@
 #endif
 #define explicit mask_cxx_explicit_keyword
 #include <xcb/xkb.h>
-#include <xpp/proto/xkb.hpp>
 #undef explicit
+#include <xpp/proto/xkb.hpp>
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif

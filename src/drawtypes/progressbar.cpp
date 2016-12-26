@@ -2,6 +2,7 @@
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+#include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
 

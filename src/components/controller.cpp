@@ -18,6 +18,7 @@
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
+#include "x11/extensions/all.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/xutils.hpp"
 

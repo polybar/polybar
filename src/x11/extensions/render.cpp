@@ -1,6 +1,8 @@
 #include "x11/extensions/render.hpp"
+
 #include "errors.hpp"
 #include "x11/connection.hpp"
+#include "x11/extensions/all.hpp"
 
 POLYBAR_NS
 

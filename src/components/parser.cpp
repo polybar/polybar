@@ -4,6 +4,7 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"

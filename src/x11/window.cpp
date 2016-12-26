@@ -1,14 +1,18 @@
 #include <xcb/xcb_icccm.h>
 
-#include "utils/math.hpp"
+#include "components/types.hpp"
 #include "x11/atoms.hpp"
+#include "x11/connection.hpp"
+#include "x11/extensions/randr.hpp"
 #include "x11/window.hpp"
 #include "x11/xutils.hpp"
 
-#include "components/types.hpp"
-#include "x11/color.hpp"
-
 POLYBAR_NS
+
+window& window::operator=(const xcb_window_t win) {
+  *this = window{connection(), win};
+  return *this;
+}
 
 /**
  * Create window and check for errors
