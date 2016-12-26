@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
-#include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "x11/extensions/fwd.hpp"
@@ -15,6 +14,7 @@ POLYBAR_NS
 class connection;
 class font_manager;
 class logger;
+class signal_emitter;
 
 using namespace signals::parser;
 using std::map;

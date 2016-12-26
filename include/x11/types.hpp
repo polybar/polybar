@@ -17,6 +17,10 @@ namespace xpp {
   class font;
   template <typename Connection, template <typename, typename> class...>
   class cursor;
+  namespace event {
+    template <class Event, class... Events>
+    class sink;
+  }
 }
 
 POLYBAR_NS

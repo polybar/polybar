@@ -1,8 +1,6 @@
 #pragma once
 
-#include "config.hpp"
-
-#include <xpp/xpp.hpp>
+#include <xpp/event.hpp>
 
 #include "common.hpp"
 

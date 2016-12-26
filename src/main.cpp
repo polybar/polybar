@@ -85,7 +85,6 @@ int main(int argc, char** argv) {
     conn.query_extensions();
     conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
-
     //==================================================
     // Load user configuration
     //==================================================

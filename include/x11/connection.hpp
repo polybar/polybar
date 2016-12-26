@@ -1,14 +1,16 @@
 #pragma once
 
 #include <xpp/core.hpp>
-#include <xpp/event.hpp>
 #include <xpp/generic/factory.hpp>
 #include <xpp/proto/x.hpp>
 
 #include "common.hpp"
+#include "components/screen.hpp"
 #include "utils/file.hpp"
+#include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/registry.hpp"
+#include "x11/types.hpp"
 
 POLYBAR_NS
 
@@ -71,7 +73,7 @@ namespace detail {
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
         check<xpp::x::extension, Extensions...>(error);
       }
-      throw;  // re-throw any exception caused by wait_for_event
+      throw;  // re-throw exception
     }
 
     shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const {
@@ -80,7 +82,7 @@ namespace detail {
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
         check<xpp::x::extension, Extensions...>(error);
       }
-      throw;  // re-throw any exception caused by wait_for_event
+      throw;  // re-throw exception
     }
 
    private:

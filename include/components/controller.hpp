@@ -4,11 +4,11 @@
 #include <thread>
 
 #include "common.hpp"
-#include "config.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "x11/types.hpp"
+#include "x11/events.hpp"
 
 POLYBAR_NS
 

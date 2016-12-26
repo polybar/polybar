@@ -65,7 +65,7 @@ static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
 
 auto version_details = [](const std::vector<std::string>& args) {
   for (auto&& arg : args) {
-  if (arg.compare(0, 3, "-vv") == 0)
+    if (arg.compare(0, 3, "-vv") == 0)
       return true;
   }
   return false;
