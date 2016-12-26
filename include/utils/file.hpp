@@ -10,14 +10,16 @@ class file_ptr {
   explicit file_ptr(const string& path, const string& mode = "a+");
   ~file_ptr();
 
-  file_ptr(const file_ptr& o) = delete;
-  file_ptr& operator=(const file_ptr& o) = delete;
+  explicit operator bool();
+  operator bool() const;
 
-  operator bool();
+  explicit operator FILE*();
+  operator FILE*() const;
 
-  FILE* operator()();
+  explicit operator int();
+  operator int() const;
 
- protected:
+ private:
   FILE* m_ptr = nullptr;
   string m_path;
   string m_mode;
@@ -28,10 +30,65 @@ class file_descriptor {
   explicit file_descriptor(const string& path, int flags = 0);
   explicit file_descriptor(int fd);
   ~file_descriptor();
-  operator int();
+
+  file_descriptor& operator=(const int);
+
+  explicit operator bool();
+  operator bool() const;
+
+  explicit operator int();
+  operator int() const;
 
  protected:
-  int m_fd{0};
+  void close();
+
+ private:
+  int m_fd{-1};
+};
+
+class fd_streambuf : public std::streambuf {
+ public:
+  using traits_type = std::streambuf::traits_type;
+
+  explicit fd_streambuf(int fd);
+  ~fd_streambuf();
+
+  explicit operator int();
+  operator int() const;
+
+  void open(int fd);
+  void close();
+
+ protected:
+  int sync();
+  int overflow(int c);
+  int underflow();
+
+ private:
+  file_descriptor m_fd;
+  char m_out[BUFSIZ];
+  char m_in[BUFSIZ - 1];
+};
+
+template <typename StreamType = std::ostream>
+class fd_stream : public StreamType {
+ public:
+  using type = fd_stream<StreamType>;
+
+  explicit fd_stream(int fd) : m_buf(fd) {
+    StreamType::rdbuf(&m_buf);
+  }
+
+  explicit operator int() {
+    return static_cast<const type&>(*this);
+  }
+
+  operator int() const {
+    return m_buf;
+  }
+
+ protected:
+  fd_streambuf m_buf;
 };
 
 namespace file_util {
