@@ -43,8 +43,8 @@ namespace sig_ui = signals::ui;
 namespace sig_ipc = signals::ipc;
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit_terminate, sig_ev::exit_reload,
-                       sig_ev::update, sig_ev::notify_change, sig_ev::check_state, sig_ipc::process_action,
-                       sig_ipc::process_command, sig_ipc::process_hook, sig_ui::button_press> {
+                       sig_ev::update, sig_ev::notify_change, sig_ev::check_state, sig_ipc::action, sig_ipc::command,
+                       sig_ipc::hook, sig_ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -69,9 +69,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   bool on(const sig_ev::exit_reload& evt);
   bool on(const sig_ev::check_state& evt);
   bool on(const sig_ui::button_press& evt);
-  bool on(const sig_ipc::process_action& evt);
-  bool on(const sig_ipc::process_command& evt);
-  bool on(const sig_ipc::process_hook& evt);
+  bool on(const sig_ipc::action& evt);
+  bool on(const sig_ipc::command& evt);
+  bool on(const sig_ipc::hook& evt);
 
  private:
   connection& m_connection;

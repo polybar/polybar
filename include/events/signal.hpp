@@ -100,9 +100,9 @@ namespace signals {
   }
 
   namespace ipc {
-    DEFINE_VALUE_SIGNAL(20, process_command, ipc_command);
-    DEFINE_VALUE_SIGNAL(21, process_hook, ipc_hook);
-    DEFINE_VALUE_SIGNAL(22, process_action, ipc_action);
+    DEFINE_VALUE_SIGNAL(20, command, string);
+    DEFINE_VALUE_SIGNAL(21, hook, string);
+    DEFINE_VALUE_SIGNAL(22, action, string);
   }
 
   namespace ui {

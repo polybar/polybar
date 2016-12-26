@@ -80,11 +80,11 @@ namespace modules {
    * configured from the user config and
    * execute its command
    */
-  void ipc_module::on_message(const ipc_hook& message) {
+  void ipc_module::on_message(const string& message) {
     bool match = false;
 
     for (auto&& hook : m_hooks) {
-      if (ipc_hook::prefix + hook->payload != message.payload) {
+      if (hook->payload != message) {
         continue;
       }
 

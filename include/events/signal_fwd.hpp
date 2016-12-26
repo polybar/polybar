@@ -4,6 +4,9 @@
 
 POLYBAR_NS
 
+template <uint8_t Priority, typename Signal, typename... Signals>
+class signal_receiver;
+
 namespace signals {
   namespace eventqueue {
     struct exit_terminate;
@@ -13,9 +16,9 @@ namespace signals {
     struct update;
   }
   namespace ipc {
-    struct process_command;
-    struct process_hook;
-    struct process_action;
+    struct command;
+    struct hook;
+    struct action;
   }
   namespace ui {
     struct tick;

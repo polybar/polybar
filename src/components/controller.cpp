@@ -9,18 +9,19 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "events/signal_receiver.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
-#include "utils/process.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
+#include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/tray_manager.hpp"
-#include "x11/xutils.hpp"
+#include "x11/types.hpp"
 
 POLYBAR_NS
 
@@ -543,9 +544,8 @@ bool controller::on(const sig_ui::button_press& evt) {
 /**
  * Process ipc action messages
  */
-bool controller::on(const sig_ipc::process_action& evt) {
-  string action{(*evt()).payload};
-  action.erase(0, strlen(ipc_action::prefix));
+bool controller::on(const sig_ipc::action& evt) {
+  string action{*evt()};
 
   if (action.empty()) {
     m_log.err("Cannot enqueue empty ipc action");
@@ -560,9 +560,8 @@ bool controller::on(const sig_ipc::process_action& evt) {
 /**
  * Process ipc command messages
  */
-bool controller::on(const sig_ipc::process_command& evt) {
-  string command{(*evt()).payload};
-  command.erase(0, strlen(ipc_command::prefix));
+bool controller::on(const sig_ipc::command& evt) {
+  string command{*evt()};
 
   if (command.empty()) {
     return false;
@@ -582,8 +581,8 @@ bool controller::on(const sig_ipc::process_command& evt) {
 /**
  * Process ipc hook messages
  */
-bool controller::on(const sig_ipc::process_hook& evt) {
-  const ipc_hook hook{*evt()};
+bool controller::on(const sig_ipc::hook& evt) {
+  string hook{*evt()};
 
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {

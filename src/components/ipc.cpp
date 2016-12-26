@@ -13,7 +13,7 @@
 
 POLYBAR_NS
 
-using namespace signals::ipc;
+namespace sig_ipc = signals::ipc;
 
 /**
  * Create instance
@@ -68,17 +68,11 @@ void ipc::receive_message() {
   string payload{string_util::trim(string{buffer}, '\n')};
 
   if (payload.find(ipc_command::prefix) == 0) {
-    ipc_command msg{};
-    memcpy(msg.payload, &payload[0], payload.size());
-    m_sig.emit(process_command{move(msg)});
+    m_sig.emit(sig_ipc::command{payload.substr(strlen(ipc_command::prefix))});
   } else if (payload.find(ipc_hook::prefix) == 0) {
-    ipc_hook msg{};
-    memcpy(msg.payload, &payload[0], payload.size());
-    m_sig.emit(process_hook{move(msg)});
+    m_sig.emit(sig_ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
   } else if (payload.find(ipc_action::prefix) == 0) {
-    ipc_action msg{};
-    memcpy(msg.payload, &payload[0], payload.size());
-    m_sig.emit(process_action{move(msg)});
+    m_sig.emit(sig_ipc::action{payload.substr(strlen(ipc_action::prefix))});
   } else if (!payload.empty()) {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }

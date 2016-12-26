@@ -31,7 +31,7 @@ namespace modules {
     void update() {}
     string get_output();
     bool build(builder* builder, const string& tag) const;
-    void on_message(const ipc_hook& message);
+    void on_message(const string& message);
 
    private:
     static constexpr auto TAG_OUTPUT = "<output>";
