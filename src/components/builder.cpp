@@ -1,29 +1,29 @@
 #include <utility>
 
 #include "components/builder.hpp"
-#include "components/types.hpp"
 #include "drawtypes/label.hpp"
+#include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
-#include "utils/color.hpp"
-
+#include "utils/time.hpp"
 POLYBAR_NS
 
 #ifndef BUILDER_SPACE_TOKEN
 #define BUILDER_SPACE_TOKEN "%__"
 #endif
 
-builder::builder(const bar_settings& bar) : m_bar(bar), m_attributes{static_cast<uint8_t>(attribute::NONE)} {
-  m_tags[syntaxtag::A] = 0;
-  m_tags[syntaxtag::B] = 0;
-  m_tags[syntaxtag::F] = 0;
-  m_tags[syntaxtag::T] = 0;
-  m_tags[syntaxtag::u] = 0;
-  m_tags[syntaxtag::o] = 0;
-  m_colors[syntaxtag::B] = "";
-  m_colors[syntaxtag::F] = "";
-  m_colors[syntaxtag::u] = "";
-  m_colors[syntaxtag::o] = "";
+builder::builder(const bar_settings bar) : m_bar(bar) {
+  m_tags[syntaxtag::A] = 1;
+  m_tags[syntaxtag::B] = 2;
+  m_tags[syntaxtag::F] = 3;
+  m_tags[syntaxtag::T] = 9;
+  m_tags[syntaxtag::o] = 7;
+  m_tags[syntaxtag::u] = 8;
+
+  m_colors[syntaxtag::B] = string();
+  m_colors[syntaxtag::F] = string();
+  m_colors[syntaxtag::o] = string();
+  m_colors[syntaxtag::u] = string();
 }
 
 /**
@@ -72,8 +72,9 @@ string builder::flush() {
 /**
  * Insert raw text string
  */
-void builder::append(const string& text) {
-  m_output += text;
+void builder::append(string text) {
+  m_output.reserve(text.size());
+  m_output += move(text);
 }
 
 /**
@@ -264,6 +265,7 @@ void builder::node(const label_t& label, bool add_space) {
  */
 void builder::node_repeat(const string& str, size_t n, bool add_space) {
   string text;
+  text.reserve(str.size() * n);
   while (n--) {
     text += str;
   }
@@ -275,8 +277,10 @@ void builder::node_repeat(const string& str, size_t n, bool add_space) {
  */
 void builder::node_repeat(const label_t& label, size_t n, bool add_space) {
   string text;
+  string label_text{label->get()};
+  text.reserve(label_text.size() * n);
   while (n--) {
-    text += label->get();
+    text += label_text;
   }
   label_t tmp{new label_t::element_type{text}};
   tmp->replace_defined_values(label);
@@ -296,32 +300,25 @@ void builder::offset(int pixels) {
 /**
  * Insert spaces
  */
-void builder::space(int width) {
-  if (width == DEFAULT_SPACING) {
-    width = m_bar.spacing;
-  }
-  if (width <= 0) {
-    return;
-  }
-  string str(width, ' ');
-  append(str);
+void builder::space(size_t width) {
+  m_output.append(width, ' ');
+}
+void builder::space() {
+  m_output.append(m_bar.spacing, ' ');
 }
 
 /**
  * Remove trailing space
  */
-void builder::remove_trailing_space(int width) {
-  if (width == DEFAULT_SPACING) {
-    width = m_bar.spacing;
-  }
-  if (width <= 0) {
+void builder::remove_trailing_space(size_t len) {
+  if (len == 0_z  || len > m_output.size()) {
     return;
+  } else if (string(m_output.rbegin() + len, m_output.rbegin()) == string(len, ' ')) {
+    m_output.erase(m_output.size() - len);
   }
-  string::size_type spacing = width;
-  string str(spacing, ' ');
-  if (m_output.length() >= spacing && m_output.substr(m_output.length() - spacing) == str) {
-    m_output = m_output.substr(0, m_output.length() - spacing);
-  }
+}
+void builder::remove_trailing_space() {
+  remove_trailing_space(m_bar.spacing);
 }
 
 /**
@@ -364,7 +361,7 @@ void builder::background(string color) {
  * Insert tag to reset the background color
  */
 void builder::background_close() {
-  m_colors[syntaxtag::B] = "";
+  m_colors[syntaxtag::B].clear();
   tag_close(syntaxtag::B);
 }
 
@@ -372,10 +369,12 @@ void builder::background_close() {
  * Insert tag to alter the current foreground color
  */
 void builder::color(string color) {
-  if (color.length() == 2 || (color.find('#') == 0 && color.length() == 3)) {
+  if (color.length() == 2 || (color[0] == '#' && color.length() == 3)) {
     string fg{foreground_hex()};
-    color = "#" + color.substr(color.length() - 2);
-    color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
+    if (!fg.empty()) {
+      color = "#" + color.substr(color.length() - 2);
+      color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
+    }
   } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
     color = color.substr(0, 4);
   }
@@ -389,29 +388,25 @@ void builder::color(string color) {
  * Insert tag to alter the alpha value of the default foreground color
  */
 void builder::color_alpha(string alpha) {
-  string val{foreground_hex()};
-
   if (alpha.find('#') == string::npos) {
     alpha = "#" + alpha;
   }
-
   if (alpha.size() == 4) {
     color(alpha);
-    return;
+  } else {
+    string val{foreground_hex()};
+    if (val.size() < 6 && val.size() > 2) {
+      val.append(val.substr(val.size() - 3));
+    }
+    color((alpha.substr(0, 3) + val.substr(val.size() - 6)).substr(0, 9));
   }
-
-  if (val.size() < 6 && val.size() > 2) {
-    val.append(val.substr(val.size() - 3));
-  }
-
-  color((alpha.substr(0, 3) + val.substr(val.size() - 6)).substr(0, 9));
 }
 
 /**
  * Insert tag to reset the foreground color
  */
 void builder::color_close() {
-  m_colors[syntaxtag::F] = "";
+  m_colors[syntaxtag::F].clear();
   tag_close(syntaxtag::F);
 }
 
@@ -445,7 +440,7 @@ void builder::overline_color(string color) {
  * Close underline color tag
  */
 void builder::overline_color_close() {
-  m_colors[syntaxtag::o] = "";
+  m_colors[syntaxtag::o].clear();
   tag_close(syntaxtag::o);
 }
 
@@ -464,7 +459,7 @@ void builder::underline_color(string color) {
  */
 void builder::underline_color_close() {
   tag_close(syntaxtag::u);
-  m_colors[syntaxtag::u] = "";
+  m_colors[syntaxtag::u].clear();
 }
 
 /**

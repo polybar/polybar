@@ -3,12 +3,11 @@
 #include <map>
 
 #include "common.hpp"
+#include "components/types.hpp"
 
 POLYBAR_NS
 
 using std::map;
-
-#define DEFAULT_SPACING -1
 
 // fwd decl
 namespace drawtypes {
@@ -19,27 +18,22 @@ namespace drawtypes {
 }
 using namespace drawtypes;
 
-enum class alignment : uint8_t;
-enum class attribute : uint8_t;
-enum class edge : uint8_t;
-enum class syntaxtag : uint8_t;
-enum class mousebtn : uint8_t;
-struct bar_settings;
-
 class builder {
  public:
-  explicit builder(const bar_settings& bar);
+  explicit builder(const bar_settings bar);
 
   string flush();
-  void append(const string& text);
+  void append(string text);
   void node(string str, bool add_space = false);
   void node(string str, int font_index, bool add_space = false);
   void node(const label_t& label, bool add_space = false);
   void node_repeat(const string& str, size_t n, bool add_space = false);
   void node_repeat(const label_t& label, size_t n, bool add_space = false);
   void offset(int pixels = 0);
-  void space(int width = DEFAULT_SPACING);
-  void remove_trailing_space(int width = DEFAULT_SPACING);
+  void space(size_t width);
+  void space();
+  void remove_trailing_space(size_t len);
+  void remove_trailing_space();
   void font(int index);
   void font_close();
   void background(string color);
@@ -70,17 +64,17 @@ class builder {
   void tag_close(attribute attr);
 
  private:
-  const bar_settings& m_bar;
+  const bar_settings m_bar;
   string m_output;
 
-  map<syntaxtag, int> m_tags;
-  map<syntaxtag, string> m_colors;
+  map<syntaxtag, int> m_tags{};
+  map<syntaxtag, string> m_colors{};
 
-  uint8_t m_attributes;
-  uint8_t m_fontindex;
+  uint8_t m_attributes{0};
+  uint8_t m_fontindex{0};
 
-  string m_background;
-  string m_foreground;
+  string m_background{};
+  string m_foreground{};
 };
 
 POLYBAR_NS_END
