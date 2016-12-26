@@ -52,7 +52,7 @@ add_custom_target(memcheck)
 add_custom_command(TARGET memcheck COMMAND valgrind
   --leak-check=summary
   --suppressions=${PROJECT_SOURCE_DIR}/.valgrind-suppressions
-  ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME} example --config=${PROJECT_SOURCE_DIR}/examples/config)
+  ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME} example --config=${PROJECT_SOURCE_DIR}/doc/config)
 
 add_custom_target(memcheck-full)
 add_custom_command(TARGET memcheck-full COMMAND valgrind
@@ -60,6 +60,6 @@ add_custom_command(TARGET memcheck-full COMMAND valgrind
   --track-origins=yes
   --track-fds=yes
   --suppressions=${PROJECT_SOURCE_DIR}/.valgrind-suppressions
-  ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME} example --config=${PROJECT_SOURCE_DIR}/examples/config)
+  ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME} example --config=${PROJECT_SOURCE_DIR}/doc/config)
 
 # }}}
