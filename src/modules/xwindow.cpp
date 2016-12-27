@@ -125,13 +125,11 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xwindow_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL) {
+    if (tag == TAG_LABEL && m_label && m_label.get()) {
       builder->node(m_label);
-    } else {
-      return false;
+      return true;
     }
-
-    return true;
+    return false;
   }
 }
 

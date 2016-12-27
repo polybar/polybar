@@ -137,13 +137,13 @@ namespace modules {
         if (tag_built)
           i++;
       } else if (is_blankspace && tag_built) {
-        m_builder->node(" ");
+        m_builder->space(1_z);
       } else if (!is_blankspace) {
         m_builder->node(tag);
       }
     }
 
-    return format->decorate(m_builder.get(), m_builder->flush());
+    return format->decorate(&*m_builder, m_builder->flush());
   }
 
   // }}}

@@ -10,6 +10,11 @@ namespace modules {
   // module_format {{{
 
   string module_format::decorate(builder* builder, string output) {
+    if (output.empty()) {
+      builder->flush();
+      return "";
+    }
+
     if (offset != 0) {
       builder->offset(offset);
     }
@@ -64,17 +69,19 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
+    using namespace std::string_literals;
+
     auto format = make_unique<module_format>();
 
     format->value = m_conf.get<string>(m_modname, name, move(fallback));
-    format->fg = m_conf.get<string>(m_modname, name + "-foreground", "");
-    format->bg = m_conf.get<string>(m_modname, name + "-background", "");
-    format->ul = m_conf.get<string>(m_modname, name + "-underline", "");
-    format->ol = m_conf.get<string>(m_modname, name + "-overline", "");
-    format->spacing = m_conf.get<int>(m_modname, name + "-spacing", DEFAULT_SPACING);
-    format->padding = m_conf.get<int>(m_modname, name + "-padding", 0);
-    format->margin = m_conf.get<int>(m_modname, name + "-margin", 0);
-    format->offset = m_conf.get<int>(m_modname, name + "-offset", 0);
+    format->fg = m_conf.get(m_modname, name + "-foreground", ""s);
+    format->bg = m_conf.get(m_modname, name + "-background", ""s);
+    format->ul = m_conf.get(m_modname, name + "-underline", ""s);
+    format->ol = m_conf.get(m_modname, name + "-overline", ""s);
+    format->spacing = m_conf.get(m_modname, name + "-spacing", 0_z);
+    format->padding = m_conf.get(m_modname, name + "-padding", 0_z);
+    format->margin = m_conf.get(m_modname, name + "-margin", 0_z);
+    format->offset = m_conf.get(m_modname, name + "-offset", 0_z);
     format->tags.swap(tags);
 
     try {
@@ -92,17 +99,16 @@ namespace modules {
     for (auto&& tag : string_util::split(format->value, ' ')) {
       if (tag[0] != '<' || tag[tag.length() - 1] != '>') {
         continue;
-      }
-      if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end()) {
+      } else if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end()) {
         continue;
-      }
-      if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end()) {
+      } else if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end()) {
         continue;
+      } else {
+        throw undefined_format_tag(tag + " is not a valid format tag for \""+ name +"\"");
       }
-      throw undefined_format_tag("[" + m_modname + "] Undefined \"" + name + "\" tag: " + tag);
     }
 
-    m_formats.insert(make_pair(name, move(format)));
+    m_formats.insert(make_pair(move(name), move(format)));
   }
 
   bool module_formatter::has(const string& tag, const string& format_name) {

@@ -13,12 +13,12 @@ POLYBAR_NS
 #endif
 
 builder::builder(const bar_settings bar) : m_bar(bar) {
-  m_tags[syntaxtag::A] = 1;
-  m_tags[syntaxtag::B] = 2;
-  m_tags[syntaxtag::F] = 3;
-  m_tags[syntaxtag::T] = 9;
-  m_tags[syntaxtag::o] = 7;
-  m_tags[syntaxtag::u] = 8;
+  m_tags[syntaxtag::A] = 0;
+  m_tags[syntaxtag::B] = 0;
+  m_tags[syntaxtag::F] = 0;
+  m_tags[syntaxtag::T] = 0;
+  m_tags[syntaxtag::o] = 0;
+  m_tags[syntaxtag::u] = 0;
 
   m_colors[syntaxtag::B] = string();
   m_colors[syntaxtag::F] = string();
@@ -58,7 +58,7 @@ string builder::flush() {
     cmd_close();
   }
 
-  string output = m_output.data();
+  string output{m_output};
 
   // reset values
   m_tags.clear();
@@ -66,7 +66,7 @@ string builder::flush() {
   m_output.clear();
   m_fontindex = 1;
 
-  return string_util::replace_all(output, string{BUILDER_SPACE_TOKEN}, " ");
+  return string_util::replace_all(output, BUILDER_SPACE_TOKEN, " ");
 }
 
 /**
