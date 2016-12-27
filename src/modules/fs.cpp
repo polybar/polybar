@@ -56,12 +56,13 @@ namespace modules {
     m_mounts.clear();
 
     struct statvfs buffer {};
-    struct mntent* mnt = nullptr;
+    struct mntent* mnt{nullptr};
 
     for (auto&& mountpoint : m_mountpoints) {
       m_mounts.emplace_back(new fs_mount{mountpoint, false});
 
       if (statvfs(mountpoint.c_str(), &buffer) == -1) {
+        m_log.err("%s: Failed to query filesystem (statvfs() error: %s)", name(), strerror(errno));
         continue;
       }
 
