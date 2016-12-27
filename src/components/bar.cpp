@@ -35,7 +35,7 @@ using namespace wm_util;
 /**
  * Create instance
  */
-bar::make_type bar::make() {
+bar::make_type bar::make(bool only_initialize_values) {
   // clang-format off
   return factory_util::unique<bar>(
         connection::make(),
@@ -45,7 +45,8 @@ bar::make_type bar::make() {
         screen::make(),
         tray_manager::make(),
         parser::make(),
-        taskqueue::make());
+        taskqueue::make(),
+        only_initialize_values);
   // clang-format on
 }
 
@@ -56,7 +57,7 @@ bar::make_type bar::make() {
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
     unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser,
-    unique_ptr<taskqueue>&& taskqueue)
+    unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
@@ -143,6 +144,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
       m_conf.get<decltype(m_opts.module_margin.right)>(bs, "module-margin-right", m_opts.module_margin.right);
   m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
   m_opts.locale = m_conf.get<string>(bs, "locale", "");
+
+  if (only_initialize_values) {
+    return;
+  }
 
   // Load values used to adjust the struts atom
   m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);

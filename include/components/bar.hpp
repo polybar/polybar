@@ -36,10 +36,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
             public signal_receiver<SIGN_PRIORITY_BAR, sig_ui::tick, sig_ui::shade_window, sig_ui::unshade_window, sig_ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
-  static make_type make();
+  static make_type make(bool only_initialize_values = false);
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, unique_ptr<screen>&&,
-      unique_ptr<tray_manager>&&, unique_ptr<parser>&&, unique_ptr<taskqueue>&&);
+      unique_ptr<tray_manager>&&, unique_ptr<parser>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
   ~bar();
 
   void parse(string&& data) const;

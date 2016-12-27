@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      std::cout << bar::make()->settings().wmname << std::endl;
+      std::cout << bar::make(true)->settings().wmname << std::endl;
       return EXIT_SUCCESS;
     }
 
