@@ -25,7 +25,7 @@
 
 POLYBAR_NS
 
-int g_eventpipe[2]{0, 0};
+array<int, 2> g_eventpipe{{-1, -1}};
 sig_atomic_t g_reload{0};
 sig_atomic_t g_terminate{0};
 
@@ -61,12 +61,12 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
   m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
 
-  if (pipe(g_eventpipe) != 0) {
+  if (pipe(g_eventpipe.data()) == 0) {
+    m_queuefd[PIPE_READ] = make_unique<file_descriptor>(g_eventpipe[PIPE_READ]);
+    m_queuefd[PIPE_WRITE] = make_unique<file_descriptor>(g_eventpipe[PIPE_WRITE]);
+  } else {
     throw system_error("Failed to create event channel pipes");
   }
-
-  m_fdevent_rd = file_util::make_file_descriptor(g_eventpipe[PIPE_READ]);
-  m_fdevent_wr = file_util::make_file_descriptor(g_eventpipe[PIPE_WRITE]);
 
   m_log.trace("controller: Install signal handler");
   struct sigaction act {};
@@ -234,13 +234,13 @@ bool controller::enqueue(string&& input_data) {
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  int fd_connection{m_connection.get_file_descriptor()};
-  int fd_confwatch{0};
-  int fd_ipc{0};
+  int fd_connection{-1};
+  int fd_confwatch{-1};
+  int fd_ipc{-1};
 
   vector<int> fds;
-  fds.emplace_back(*m_fdevent_rd);
-  fds.emplace_back(fd_connection);
+  fds.emplace_back(*m_queuefd[PIPE_READ]);
+  fds.emplace_back(fd_connection = m_connection.get_file_descriptor());
 
   if (m_confwatch) {
     m_log.trace("controller: Attach config watch");
@@ -271,9 +271,9 @@ void controller::read_events() {
     }
 
     // Process event on the internal fd
-    if (m_fdevent_rd && FD_ISSET(*m_fdevent_rd, &readfds)) {
+    if (m_queuefd[PIPE_READ] && FD_ISSET(static_cast<int>(*m_queuefd[PIPE_READ]), &readfds)) {
       char buffer[BUFSIZ]{'\0'};
-      if (read(*m_fdevent_rd, &buffer, BUFSIZ) == -1) {
+      if (read(static_cast<int>(*m_queuefd[PIPE_READ]), &buffer, BUFSIZ) == -1) {
         m_log.err("Failed to read from eventpipe (err: %s)", strerror(errno));
       }
     }
@@ -454,6 +454,7 @@ bool controller::on(const sig_ev::update&) {
         block_contents += margin_left;
       }
 
+      block_contents.reserve(module_contents.size());
       block_contents += module_contents;
     }
 

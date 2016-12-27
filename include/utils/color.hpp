@@ -74,8 +74,8 @@ namespace color_util {
   }
 
   inline string parse_hex(string hex) {
-    if (hex.substr(0, 1) != "#")
-      hex = "#" + hex;
+    if (hex[0] != '#')
+      hex.insert(0, 1, '#');
     if (hex.length() == 4)
       hex = {'#', hex[1], hex[1], hex[2], hex[2], hex[3], hex[3]};
     if (hex.length() == 7)

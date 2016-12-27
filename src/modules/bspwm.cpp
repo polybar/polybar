@@ -142,7 +142,6 @@ namespace modules {
       m_log.warn("%s: Reconnecting to socket...", name());
       m_subscriber = bspwm_util::make_subscriber();
     }
-
     return m_subscriber->peek(1);
   }
 

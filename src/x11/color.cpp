@@ -1,5 +1,4 @@
 #include <iomanip>
-#include <unordered_map>
 #include <utility>
 
 #include "errors.hpp"
@@ -9,11 +8,11 @@
 
 POLYBAR_NS
 
-std::unordered_map<string, color> g_colorstore;
+mutex_wrapper<std::unordered_map<string, color>> g_colorstore;
 
-color g_colorempty{"#00000000"};
-color g_colorblack{"#ff000000"};
-color g_colorwhite{"#ffffffff"};
+const color& g_colorempty{"#00000000"};
+const color& g_colorblack{"#ff000000"};
+const color& g_colorwhite{"#ffffffff"};
 
 color::color(string hex) : m_source(hex) {
   if (hex.empty()) {
@@ -59,16 +58,16 @@ color::operator uint32_t() const {
 const color& color::parse(string input, const color& fallback) {
   if (input.empty()) {
     throw application_error("Cannot parse empty color");
-  }
-  auto it = g_colorstore.find(input);
-  if (it != g_colorstore.end()) {
-    return it->second;
-  } else if ((input = color_util::parse_hex(input)).empty()) {
+  } else if ((input = color_util::parse_hex(move(input))).empty()) {
     return fallback;
   }
 
-  g_colorstore.emplace_hint(it, input, color{input});
-  return g_colorstore.at(input);
+  std::lock_guard<decltype(g_colorstore)> guard(g_colorstore);
+  auto it = g_colorstore.find(input);
+  if (it == g_colorstore.end()) {
+    it = g_colorstore.emplace_hint(it, make_pair(input, color{input}));
+  }
+  return it->second;
 }
 
 const color& color::parse(string input) {

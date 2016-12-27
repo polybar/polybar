@@ -7,6 +7,7 @@
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
+#include "utils/file.hpp"
 #include "x11/types.hpp"
 #include "x11/events.hpp"
 
@@ -83,10 +84,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   unique_ptr<inotify_watch> m_confwatch;
   unique_ptr<command> m_command;
 
-  unique_ptr<file_descriptor> m_fdevent_rd;
-  unique_ptr<file_descriptor> m_fdevent_wr;
-
-  thread m_event_thread;
+  array<unique_ptr<file_descriptor>, 2> m_queuefd{};
 
   /**
    * @brief Controls weather the output gets printed to stdout
@@ -133,6 +131,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
    * @brief Input data
    */
   string m_inputdata;
+
+  /**
+   * @brief Thread for the eventqueue loop
+   */
+  thread m_event_thread;
 };
 
 POLYBAR_NS_END

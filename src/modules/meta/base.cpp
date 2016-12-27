@@ -78,7 +78,7 @@ namespace modules {
     format->bg = m_conf.get(m_modname, name + "-background", ""s);
     format->ul = m_conf.get(m_modname, name + "-underline", ""s);
     format->ol = m_conf.get(m_modname, name + "-overline", ""s);
-    format->spacing = m_conf.get(m_modname, name + "-spacing", 0_z);
+    format->spacing = m_conf.get(m_modname, name + "-spacing", 1_z);
     format->padding = m_conf.get(m_modname, name + "-padding", 0_z);
     format->margin = m_conf.get(m_modname, name + "-margin", 0_z);
     format->offset = m_conf.get(m_modname, name + "-offset", 0_z);

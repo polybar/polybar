@@ -6,7 +6,6 @@
 
 #include "common.hpp"
 #include "components/screen.hpp"
-#include "utils/file.hpp"
 #include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/registry.hpp"

@@ -3,9 +3,11 @@
 #include <map>
 
 #include <X11/Xft/Xft.h>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "utils/color.hpp"
+#include "utils/concurrency.hpp"
 
 POLYBAR_NS
 
@@ -30,8 +32,10 @@ class color {
   string m_source;
 };
 
-extern color g_colorempty;
-extern color g_colorblack;
-extern color g_colorwhite;
+extern mutex_wrapper<std::unordered_map<string, color>> g_colorstore;
+
+extern const color& g_colorempty;
+extern const color& g_colorblack;
+extern const color& g_colorwhite;
 
 POLYBAR_NS_END

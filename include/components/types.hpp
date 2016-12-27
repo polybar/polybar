@@ -1,12 +1,17 @@
 #pragma once
 
+#include <xcb/xcb.h>
+
 #include <string>
 #include <unordered_map>
 
 #include "common.hpp"
-#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
+
+// fwd
+struct randr_output;
+using monitor_t = shared_ptr<randr_output>;
 
 struct enum_hash {
   template <typename T>
