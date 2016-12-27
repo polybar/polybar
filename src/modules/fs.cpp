@@ -80,14 +80,15 @@ namespace modules {
 
         auto b_total = buffer.f_bsize * buffer.f_blocks;
         auto b_free = buffer.f_bsize * buffer.f_bfree;
-        auto b_used = b_total - b_free;
+        auto b_avail = buffer.f_bsize * buffer.f_bavail;
+        auto b_used = b_total - b_avail;
 
         mount->bytes_total = b_total;
         mount->bytes_free = b_free;
         mount->bytes_used = b_used;
 
-        mount->percentage_free = math_util::percentage<unsigned long long, float>(b_free, 0, b_total);
-        mount->percentage_used = math_util::percentage<unsigned long long, float>(b_used, 0, b_total);
+        mount->percentage_free = math_util::percentage<decltype(b_avail)>(b_avail, 0, b_total);
+        mount->percentage_used = math_util::percentage<decltype(b_avail)>(b_used, 0, b_total);
 
         mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
         mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
