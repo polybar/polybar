@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <xpp/core.hpp>
 #include <xpp/generic/factory.hpp>
 #include <xpp/proto/x.hpp>
