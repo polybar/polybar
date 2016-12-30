@@ -279,14 +279,14 @@ void controller::read_events() {
     }
 
     // Process event on the config inotify watch fd
-    if (fd_confwatch && FD_ISSET(fd_confwatch, &readfds) && m_confwatch->await_match()) {
+    if (fd_confwatch > -1 && FD_ISSET(fd_confwatch, &readfds) && m_confwatch->await_match()) {
       m_log.info("Configuration file changed");
       g_terminate = 1;
       g_reload = 1;
     }
 
     // Process event on the xcb connection fd
-    if (fd_connection && FD_ISSET(fd_connection, &readfds)) {
+    if (fd_connection > -1 && FD_ISSET(fd_connection, &readfds)) {
       shared_ptr<xcb_generic_event_t> evt{};
       while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
         try {
@@ -300,7 +300,7 @@ void controller::read_events() {
     }
 
     // Process event on the ipc fd
-    if (fd_ipc && FD_ISSET(fd_ipc, &readfds)) {
+    if (fd_ipc > -1 && FD_ISSET(fd_ipc, &readfds)) {
       m_ipc->receive_message();
       fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_ipc](int fd) { return fd == fd_ipc; }), fds.end());
       fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
