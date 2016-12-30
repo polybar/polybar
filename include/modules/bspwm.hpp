@@ -24,6 +24,7 @@ namespace modules {
       LAYOUT_TILED,
       STATE_FULLSCREEN,
       STATE_FLOATING,
+      STATE_PSEUDOTILED,
       NODE_LOCKED,
       NODE_STICKY,
       NODE_PRIVATE

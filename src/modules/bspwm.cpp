@@ -113,6 +113,7 @@ namespace modules {
       m_modelabels.emplace(mode::LAYOUT_TILED, load_optional_label(m_conf, name(), "label-tiled"));
       m_modelabels.emplace(mode::STATE_FULLSCREEN, load_optional_label(m_conf, name(), "label-fullscreen"));
       m_modelabels.emplace(mode::STATE_FLOATING, load_optional_label(m_conf, name(), "label-floating"));
+      m_modelabels.emplace(mode::STATE_PSEUDOTILED, load_optional_label(m_conf, name(), "label-pseudotiled"));
       m_modelabels.emplace(mode::NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked"));
       m_modelabels.emplace(mode::NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky"));
       m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private"));
@@ -276,6 +277,9 @@ namespace modules {
               break;
             case 'F':
               mode_flag = mode::STATE_FLOATING;
+              break;
+            case 'P':
+              mode_flag = mode::STATE_PSEUDOTILED;
               break;
             default:
               m_log.warn("%s: Undefined T => '%s'", name(), value);
