@@ -61,11 +61,12 @@ namespace modules {
 
     vector<string> m_mountpoints;
     vector<fs_mount_t> m_mounts;
-    bool m_fixed = false;
-    int m_spacing = 2;
+    bool m_fixed{false};
+    bool m_remove_unmounted{false};
+    int m_spacing{2};
 
     // used while formatting output
-    size_t m_index = 0;
+    size_t m_index{0_z};
   };
 }
 

@@ -23,9 +23,10 @@ namespace modules {
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_mountpoints = m_conf.get_list<string>(name(), "mount");
-    m_fixed = m_conf.get<bool>(name(), "fixed-values", m_fixed);
-    m_spacing = m_conf.get<int>(name(), "spacing", m_spacing);
-    m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 30));
+    m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
+    m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
+    m_spacing = m_conf.get(name(), "spacing", m_spacing);
+    m_interval = m_conf.get(name(), "interval", 30s);
 
     // Add formats and elements
     m_formatter->add(
@@ -46,6 +47,12 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_CAPACITY)) {
       m_rampcapacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+    }
+
+    // Warn about "unreachable" format tag
+    if (m_formatter->has(TAG_LABEL_UNMOUNTED) && m_remove_unmounted) {
+      m_log.warn("%s: Defined format tag \"%s\" will never be used (reason: `remove-unmounted = true`)", name(),
+          TAG_LABEL_UNMOUNTED);
     }
   }
 
@@ -88,11 +95,22 @@ namespace modules {
         mount->bytes_free = b_free;
         mount->bytes_used = b_used;
 
-        mount->percentage_free = math_util::percentage<decltype(b_avail)>(b_avail, 0, b_total);
-        mount->percentage_used = math_util::percentage<decltype(b_avail)>(b_used, 0, b_total);
+        mount->percentage_free = math_util::percentage(b_avail, 0UL, b_total);
+        mount->percentage_used = math_util::percentage(b_used, 0UL, b_total);
 
         mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
         mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
+      }
+    }
+
+    if (m_remove_unmounted) {
+      for (auto&& mount : m_mounts) {
+        if (!mount->mounted) {
+          m_log.info("%s: Removing mountpoint \"%s\" (reason: `remove-unmounted = true`)", name(), mount->mountpoint);
+          m_mountpoints.erase(
+              std::remove(m_mountpoints.begin(), m_mountpoints.end(), mount->mountpoint), m_mountpoints.end());
+          m_mounts.erase(std::remove(m_mounts.begin(), m_mounts.end(), mount), m_mounts.end());
+        }
       }
     }
 
@@ -105,7 +123,7 @@ namespace modules {
   string fs_module::get_output() {
     string output;
 
-    for (m_index = 0; m_index < m_mounts.size(); ++m_index) {
+    for (m_index = 0_z; m_index < m_mounts.size(); ++m_index) {
       if (!output.empty()) {
         m_builder->space(m_spacing);
       }
