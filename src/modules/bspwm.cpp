@@ -16,22 +16,13 @@ namespace {
   uint32_t make_mask(bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
     uint32_t mask{0U};
     if (static_cast<uint32_t>(s1)) {
-      mask |= 1 << (static_cast<uint32_t>(s1) - 1);
+      mask |= 1U << (static_cast<uint32_t>(s1) - 1U);
     }
     if (static_cast<uint32_t>(s2)) {
-      mask |= 1 << (static_cast<uint32_t>(s2) - 1);
+      mask |= 1U << (static_cast<uint32_t>(s2) - 1U);
     }
     return mask;
   }
-
-  // uint32_t check_mask(uint32_t base, bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
-  //   uint32_t mask{0U};
-  //   if (static_cast<uint32_t>(s1))
-  //     mask |= 1 << (static_cast<uint32_t>(s1) - 1);
-  //   if (static_cast<uint32_t>(s2))
-  //     mask |= 1 << (static_cast<uint32_t>(s2) - 1);
-  //   return (base & mask) == mask;
-  // }
 }
 
 namespace modules {
@@ -48,10 +39,10 @@ namespace modules {
     m_subscriber = bspwm_util::make_subscriber();
 
     // Load configuration values
-    GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
-    GET_CONFIG_VALUE(name(), m_click, "enable-click");
-    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
-    GET_CONFIG_VALUE(name(), m_revscroll, "reverse-scroll");
+    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
+    m_click = m_conf.get(name(), "enable-click", m_click);
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
@@ -120,7 +111,7 @@ namespace modules {
     }
 
     m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get<string>(name(), DEFAULT_ICON, "")));
+    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');

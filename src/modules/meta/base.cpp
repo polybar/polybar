@@ -73,7 +73,7 @@ namespace modules {
 
     auto format = make_unique<module_format>();
 
-    format->value = m_conf.get<string>(m_modname, name, move(fallback));
+    format->value = m_conf.get(m_modname, name, move(fallback));
     format->fg = m_conf.get(m_modname, name + "-foreground", ""s);
     format->bg = m_conf.get(m_modname, name + "-background", ""s);
     format->ul = m_conf.get(m_modname, name + "-underline", ""s);

@@ -25,7 +25,7 @@ namespace modules {
 
   backlight_module::backlight_module(const bar_settings& bar, string name_)
       : inotify_module<backlight_module>(bar, move(name_)) {
-    auto card = m_conf.get<string>(name(), "card");
+    auto card = m_conf.get(name(), "card");
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});

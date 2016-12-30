@@ -15,7 +15,7 @@ namespace modules {
   template class module<memory_module>;
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
-    m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
+    m_interval = m_conf.get(name(), "interval", 1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE});
 

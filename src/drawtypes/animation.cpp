@@ -50,9 +50,9 @@ namespace drawtypes {
     auto anim_defaults = load_optional_icon(conf, section, name);
 
     if (required) {
-      frames = conf.get_list<string>(section, name);
+      frames = conf.get_list(section, name);
     } else {
-      frames = conf.get_list<string>(section, name, {});
+      frames = conf.get_list(section, name, {});
     }
 
     for (size_t i = 0; i < frames.size(); i++) {
@@ -60,7 +60,7 @@ namespace drawtypes {
       vec.back()->copy_undefined(anim_defaults);
     }
 
-    auto framerate = conf.get<int>(section, name + "-framerate", 1000);
+    auto framerate = conf.get(section, name + "-framerate", 1000);
 
     return factory_util::shared<animation>(move(vec), framerate);
   }

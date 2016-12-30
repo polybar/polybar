@@ -23,13 +23,13 @@ namespace modules {
     m_ipc = factory_util::unique<i3ipc::connection>();
 
     // Load configuration values
-    GET_CONFIG_VALUE(name(), m_click, "enable-click");
-    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
-    GET_CONFIG_VALUE(name(), m_revscroll, "reverse-scroll");
-    GET_CONFIG_VALUE(name(), m_wrap, "wrapping-scroll");
-    GET_CONFIG_VALUE(name(), m_indexsort, "index-sort");
-    GET_CONFIG_VALUE(name(), m_pinworkspaces, "pin-workspaces");
-    GET_CONFIG_VALUE(name(), m_strip_wsnumbers, "strip-wsnumbers");
+    m_click = m_conf.get(name(), "enable-click", m_click);
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
+    m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
+    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
+    m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -52,7 +52,7 @@ namespace modules {
     }
 
     m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get<string>(name(), DEFAULT_WS_ICON, "")));
+    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::split(workspace, ';');

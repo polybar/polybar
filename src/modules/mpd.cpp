@@ -70,8 +70,8 @@ namespace modules {
     }
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
         m_formatter->has(TAG_ICON_REPEAT_ONE)) {
-      m_toggle_on_color = m_conf.get<string>(name(), "toggle-on-foreground", "");
-      m_toggle_off_color = m_conf.get<string>(name(), "toggle-off-foreground", "");
+      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", ""s);
+      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", ""s);
     }
     if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE)) {
       m_label_offline = load_label(m_conf, name(), TAG_LABEL_OFFLINE);

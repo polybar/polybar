@@ -28,11 +28,11 @@ namespace modules {
     // with the cmd handlers
     string output{module::get_output()};
 
-    auto click_left = m_conf.get<string>(name(), "click-left", "");
-    auto click_middle = m_conf.get<string>(name(), "click-middle", "");
-    auto click_right = m_conf.get<string>(name(), "click-right", "");
-    auto scroll_up = m_conf.get<string>(name(), "scroll-up", "");
-    auto scroll_down = m_conf.get<string>(name(), "scroll-down", "");
+    auto click_left = m_conf.get(name(), "click-left", ""s);
+    auto click_middle = m_conf.get(name(), "click-middle", ""s);
+    auto click_right = m_conf.get(name(), "click-right", ""s);
+    auto scroll_up = m_conf.get(name(), "scroll-up", ""s);
+    auto scroll_down = m_conf.get(name(), "scroll-down", ""s);
 
     if (!click_left.empty()) {
       m_builder->cmd(mousebtn::LEFT, click_left);

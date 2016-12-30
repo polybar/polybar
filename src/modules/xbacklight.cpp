@@ -19,8 +19,8 @@ namespace modules {
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
       : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
-    auto output = m_conf.get<string>(name(), "output", m_bar.monitor->name);
-    auto strict = m_conf.get<bool>(name(), "monitor-strict", false);
+    auto output = m_conf.get(name(), "output", m_bar.monitor->name);
+    auto strict = m_conf.get(name(), "monitor-strict", false);
 
     // Grab a list of all outputs and try to find the one defined in the config
     for (auto&& mon : randr_util::get_monitors(m_connection, m_connection.root(), strict)) {
@@ -36,7 +36,7 @@ namespace modules {
     }
 
     // Get flag to check if we should add scroll handlers for changing value
-    GET_CONFIG_VALUE(name(), m_scroll, "enable-scroll");
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
     // Query randr for the backlight max and min value
     try {

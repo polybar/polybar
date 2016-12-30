@@ -9,21 +9,20 @@ namespace modules {
   template class module<script_module>;
 
   script_module::script_module(const bar_settings& bar, string name_) : event_module<script_module>(bar, move(name_)) {
-    REQ_CONFIG_VALUE(name(), m_exec, "exec");
-    GET_CONFIG_VALUE(name(), m_tail, "tail");
-    GET_CONFIG_VALUE(name(), m_maxlen, "maxlen");
-    GET_CONFIG_VALUE(name(), m_ellipsis, "ellipsis");
+    m_exec = m_conf.get(name(), "exec", m_exec);
+    m_tail = m_conf.get(name(), "tail", m_tail);
+    m_maxlen = m_conf.get(name(), "maxlen", m_maxlen);
+    m_ellipsis = m_conf.get(name(), "ellipsis", m_ellipsis);
+    m_interval = m_conf.get(name(), "interval", m_tail ? 0s : 5s);
 
     m_conf.warn_deprecated(
         name(), "maxlen", "\"format = <label>\" and \"label = %output:0:" + to_string(m_maxlen) + "%\"");
 
-    m_actions[mousebtn::LEFT] = m_conf.get<string>(name(), "click-left", "");
-    m_actions[mousebtn::MIDDLE] = m_conf.get<string>(name(), "click-middle", "");
-    m_actions[mousebtn::RIGHT] = m_conf.get<string>(name(), "click-right", "");
-    m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
-    m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
-
-    m_interval = chrono::duration<double>{m_conf.get<double>(name(), "interval", m_tail ? 0.0 : 5.0)};
+    m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
+    m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
+    m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
+    m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
+    m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_OUTPUT, TAG_LABEL});
 

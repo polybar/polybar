@@ -13,7 +13,7 @@ namespace modules {
    */
   github_module::github_module(const bar_settings& bar, string name_)
       : timer_module<github_module>(bar, move(name_)), m_http(http_util::make_downloader()) {
-    m_accesstoken = m_conf.get<string>(name(), "token");
+    m_accesstoken = m_conf.get(name(), "token");
     m_interval = m_conf.get(name(), "interval", 60s);
     m_empty_notifications = m_conf.get(name(), "empty-notifications", m_empty_notifications);
 

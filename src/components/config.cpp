@@ -9,6 +9,7 @@
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
+#include "x11/color.hpp"
 
 POLYBAR_NS
 
@@ -266,6 +267,11 @@ chrono::milliseconds config::convert(string&& value) const {
 template <>
 chrono::duration<double> config::convert(string&& value) const {
   return chrono::duration<double>{convert<double>(forward<string>(value))};
+}
+
+template <>
+color config::convert(string&& value) const {
+  return color{forward<string>(value)};
 }
 
 POLYBAR_NS_END

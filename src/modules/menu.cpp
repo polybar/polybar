@@ -30,7 +30,7 @@ namespace modules {
     while (true) {
       string level_param{"menu-" + to_string(m_levels.size())};
 
-      if (m_conf.get<string>(name(), level_param + "-0", "").empty()) {
+      if (m_conf.get(name(), level_param + "-0", ""s).empty()) {
         break;
       }
 
@@ -40,14 +40,14 @@ namespace modules {
       while (true) {
         string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
 
-        if (m_conf.get<string>(name(), item_param, "").empty()) {
+        if (m_conf.get(name(), item_param, ""s).empty()) {
           break;
         }
 
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
         auto item = factory_util::unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
-        item->exec = m_conf.get<string>(name(), item_param + "-exec", EVENT_MENU_CLOSE);
+        item->exec = m_conf.get(name(), item_param + "-exec", string{EVENT_MENU_CLOSE});
         m_levels.back()->items.emplace_back(move(item));
       }
     }

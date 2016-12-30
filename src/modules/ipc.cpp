@@ -24,11 +24,11 @@ namespace modules {
       throw module_error("No ipc hooks defined");
     }
 
-    m_actions[mousebtn::LEFT] = m_conf.get<string>(name(), "click-left", "");
-    m_actions[mousebtn::MIDDLE] = m_conf.get<string>(name(), "click-middle", "");
-    m_actions[mousebtn::RIGHT] = m_conf.get<string>(name(), "click-right", "");
-    m_actions[mousebtn::SCROLL_UP] = m_conf.get<string>(name(), "scroll-up", "");
-    m_actions[mousebtn::SCROLL_DOWN] = m_conf.get<string>(name(), "scroll-down", "");
+    m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
+    m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
+    m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
+    m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
+    m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
   }

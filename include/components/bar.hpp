@@ -42,10 +42,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       unique_ptr<tray_manager>&&, unique_ptr<parser>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
   ~bar();
 
-  void parse(string&& data) const;
-  void parse(const string& data, bool force = false);
-
   const bar_settings settings() const;
+
+  void parse(string&& data);
 
  protected:
   void restack_window();

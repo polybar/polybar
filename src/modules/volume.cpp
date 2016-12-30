@@ -18,17 +18,14 @@ namespace modules {
 
   volume_module::volume_module(const bar_settings& bar, string name_) : event_module<volume_module>(bar, move(name_)) {
     // Load configuration values
-    string master_mixer_name{"Master"};
-    string speaker_mixer_name;
-    string headphone_mixer_name;
+    m_mapped = m_conf.get(name(), "mapped", m_mapped);
 
-    GET_CONFIG_VALUE(name(), master_mixer_name, "master-mixer");
-    GET_CONFIG_VALUE(name(), speaker_mixer_name, "speaker-mixer");
-    GET_CONFIG_VALUE(name(), headphone_mixer_name, "headphone-mixer");
-    GET_CONFIG_VALUE(name(), m_mapped, "mapped");
+    auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
+    auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
+    auto headphone_mixer_name = m_conf.get(name(), "headphone-mixer", ""s);
 
     if (!headphone_mixer_name.empty()) {
-      REQ_CONFIG_VALUE(name(), m_headphoneid, "headphone-id");
+      m_headphoneid = m_conf.get<decltype(m_headphoneid)>(name(), "headphone-id");
     }
 
     if (string_util::compare(speaker_mixer_name, "master")) {

@@ -132,9 +132,9 @@ namespace drawtypes {
     }, margin{};
 
     if (required) {
-      text = conf.get<string>(section, name);
+      text = conf.get(section, name);
     } else {
-      text = conf.get<string>(section, name, move(def));
+      text = conf.get(section, name, move(def));
     }
 
     size_t len{text.size()};
@@ -144,9 +144,9 @@ namespace drawtypes {
     }
 
     const auto get_left_right = [&](string key) {
-      auto value = conf.get<int>(section, key, 0);
-      auto left = conf.get<int>(section, key + "-left", value);
-      auto right = conf.get<int>(section, key + "-right", value);
+      auto value = conf.get(section, key, 0);
+      auto left = conf.get(section, key + "-left", value);
+      auto right = conf.get(section, key + "-right", value);
       return side_values{static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
     };
 
@@ -207,15 +207,15 @@ namespace drawtypes {
 
     // clang-format off
     return factory_util::shared<label>(text,
-        conf.get<string>(section, name + "-foreground", ""),
-        conf.get<string>(section, name + "-background", ""),
-        conf.get<string>(section, name + "-underline", ""),
-        conf.get<string>(section, name + "-overline", ""),
-        conf.get<int>(section, name + "-font", 0),
+        conf.get(section, name + "-foreground", ""s),
+        conf.get(section, name + "-background", ""s),
+        conf.get(section, name + "-underline", ""s),
+        conf.get(section, name + "-overline", ""s),
+        conf.get(section, name + "-font", 0),
         padding,
         margin,
-        conf.get<size_t>(section, name + "-maxlen", 0),
-        conf.get<bool>(section, name + "-ellipsis", true),
+        conf.get(section, name + "-maxlen", 0_z),
+        conf.get(section, name + "-ellipsis", true),
         move(tokens));
     // clang-format on
   }

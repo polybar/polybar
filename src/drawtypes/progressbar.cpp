@@ -93,7 +93,7 @@ namespace drawtypes {
     string format = "%fill%%indicator%%empty%";
     unsigned int width;
 
-    if ((format = conf.get<decltype(format)>(section, name + "-format", format)).empty()) {
+    if ((format = conf.get(section, name + "-format", format)).empty()) {
       throw application_error("Invalid format defined at [" + section + "." + name + "]");
     }
     if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
@@ -101,8 +101,8 @@ namespace drawtypes {
     }
 
     auto pbar = factory_util::shared<progressbar>(bar, width, format);
-    pbar->set_gradient(conf.get<bool>(section, name + "-gradient", true));
-    pbar->set_colors(conf.get_list<string>(section, name + "-foreground", {}));
+    pbar->set_gradient(conf.get(section, name + "-gradient", true));
+    pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
 
     icon_t icon_empty;
     icon_t icon_fill;

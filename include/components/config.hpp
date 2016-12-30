@@ -11,9 +11,6 @@
 
 POLYBAR_NS
 
-#define GET_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name, var)
-#define REQ_CONFIG_VALUE(section, var, name) var = m_conf.get<decltype(var)>(section, name)
-
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);
 
@@ -43,7 +40,7 @@ class config {
   /**
    * Get parameter for the current bar by name
    */
-  template <typename T>
+  template <typename T = string>
   T get(const string& key) const {
     return get<T>(section(), key);
   }
@@ -51,7 +48,7 @@ class config {
   /**
    * Get value of a variable by section and parameter name
    */
-  template <typename T>
+  template <typename T = string>
   T get(const string& section, const string& key) const {
     auto it = m_sections.find(section);
     if (it == m_sections.end() || it->second.find(key) == it->second.end()) {
@@ -64,7 +61,7 @@ class config {
    * Get value of a variable by section and parameter name
    * with a default value in case the parameter isn't defined
    */
-  template <typename T>
+  template <typename T = string>
   T get(const string& section, const string& key, const T& default_value) const {
     try {
       string string_value{get<string>(section, key)};
@@ -78,7 +75,7 @@ class config {
   /**
    * Get list of values for the current bar by name
    */
-  template <typename T>
+  template <typename T = string>
   vector<T> get_list(const string& key) const {
     return get_list<T>(section(), key);
   }
@@ -86,7 +83,7 @@ class config {
   /**
    * Get list of values by section and parameter name
    */
-  template <typename T>
+  template <typename T = string>
   vector<T> get_list(const string& section, const string& key) const {
     vector<T> results;
 
@@ -116,7 +113,7 @@ class config {
    * Get list of values by section and parameter name
    * with a default list in case the list isn't defined
    */
-  template <typename T>
+  template <typename T = string>
   vector<T> get_list(const string& section, const string& key, const vector<T>& default_value) const {
     vector<T> results;
 
@@ -148,7 +145,7 @@ class config {
    * warning message. If it fails load the value using the new key and given
    * fallback value
    */
-  template <typename T>
+  template <typename T = string>
   T deprecated(const string& section, const string& old, const string& newkey, const T& fallback) const {
     try {
       T value{get<T>(section, old)};
@@ -162,7 +159,7 @@ class config {
   /**
    * @see deprecated<T>
    */
-  template <typename T>
+  template <typename T = string>
   T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {
     try {
       vector<T> value{get_list<T>(section, old)};

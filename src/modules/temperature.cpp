@@ -14,9 +14,9 @@ namespace modules {
 
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {
-    m_zone = m_conf.get<int>(name(), "thermal-zone", 0);
-    m_tempwarn = m_conf.get<int>(name(), "warn-temperature", 80);
-    m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
+    m_zone = m_conf.get(name(), "thermal-zone", 0);
+    m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
+    m_interval = m_conf.get(name(), "interval", 1s);
 
     m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
 

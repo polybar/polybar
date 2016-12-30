@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      std::cout << conf.get<string>(conf.section(), cli->get("dump")) << std::endl;
+      std::cout << conf.get(conf.section(), cli->get("dump")) << std::endl;
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     unique_ptr<ipc> ipc{};
     unique_ptr<inotify_watch> config_watch{};
 
-    if (conf.get<bool>(conf.section(), "enable-ipc", false)) {
+    if (conf.get(conf.section(), "enable-ipc", false)) {
       ipc = ipc::make();
     }
     if (cli->has("reload")) {

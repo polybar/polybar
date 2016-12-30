@@ -18,7 +18,7 @@ namespace modules {
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
     // Load config values
-    m_blacklist = m_conf.get_list<string>(name(), "blacklist", {});
+    m_blacklist = m_conf.get_list(name(), "blacklist", {});
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});

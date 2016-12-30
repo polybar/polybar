@@ -48,6 +48,8 @@ using std::array;
 using std::vector;
 using std::to_string;
 
+using namespace std::string_literals;
+
 constexpr size_t operator"" _z(unsigned long long n) {
   return n;
 }

@@ -65,12 +65,13 @@ tray_manager::~tray_manager() {
 void tray_manager::setup(const bar_settings& bar_opts) {
   auto conf = config::make();
   auto bs = conf.section();
+  string position;
 
-  if (!conf.has(bs, "tray-position")) {
+  try {
+    position = conf.get(bs, "tray-position");
+  } catch (const key_error& err) {
     return m_log.info("Disabling tray manager (reason: missing `tray-position`)");
   }
-
-  auto position = conf.get<string>(bs, "tray-position");
 
   if (position == "left") {
     m_opts.align = alignment::LEFT;
@@ -82,7 +83,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   }
 
-  m_opts.detached = conf.get<bool>(bs, "tray-detached", false);
+  m_opts.detached = conf.get(bs, "tray-detached", false);
   m_opts.height = bar_opts.size.h;
   m_opts.height -= bar_opts.borders.at(edge::BOTTOM).size;
   m_opts.height -= bar_opts.borders.at(edge::TOP).size;
@@ -92,7 +93,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.height--;
   }
 
-  auto maxsize = conf.get<int>(bs, "tray-maxsize", 16);
+  auto maxsize = conf.get(bs, "tray-maxsize", 16);
   if (m_opts.height > maxsize) {
     m_opts.spacing += (m_opts.height - maxsize) / 2;
     m_opts.height = maxsize;
@@ -103,7 +104,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   m_opts.orig_y = bar_opts.pos.y + bar_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
-  auto scale = conf.get<float>(bs, "tray-scale", 1.0);
+  auto scale = conf.get(bs, "tray-scale", 1.0f);
   m_opts.width *= scale;
   m_opts.height_fill *= scale;
 
@@ -124,8 +125,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Set user-defined background color
-  if (!(m_opts.transparent = conf.get<bool>(bs, "tray-transparent", m_opts.transparent))) {
-    auto bg = conf.get<string>(bs, "tray-background", "");
+  if (!(m_opts.transparent = conf.get(bs, "tray-transparent", m_opts.transparent))) {
+    auto bg = conf.get(bs, "tray-background", ""s);
 
     if (bg.length() > 7) {
       m_log.warn("Alpha support for the systray is limited. See the wiki for more details.");
@@ -144,11 +145,11 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Add user-defined padding
-  m_opts.spacing += conf.get<int>(bs, "tray-padding", 0);
+  m_opts.spacing += conf.get(bs, "tray-padding", 0);
 
   // Add user-defiend offset
-  auto offset_x_def = conf.get<string>(bs, "tray-offset-x", "");
-  auto offset_y_def = conf.get<string>(bs, "tray-offset-y", "");
+  auto offset_x_def = conf.get(bs, "tray-offset-x", ""s);
+  auto offset_y_def = conf.get(bs, "tray-offset-y", ""s);
 
   auto offset_x = atoi(offset_x_def.c_str());
   auto offset_y = atoi(offset_y_def.c_str());

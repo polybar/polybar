@@ -22,7 +22,7 @@ namespace modules {
    * setting up required components
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
-    m_mountpoints = m_conf.get_list<string>(name(), "mount");
+    m_mountpoints = m_conf.get_list(name(), "mount");
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);

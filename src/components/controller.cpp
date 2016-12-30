@@ -86,11 +86,11 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     string configured_modules;
 
     if (align == alignment::LEFT) {
-      configured_modules = m_conf.get<string>(m_conf.section(), "modules-left", "");
+      configured_modules = m_conf.get(m_conf.section(), "modules-left", ""s);
     } else if (align == alignment::CENTER) {
-      configured_modules = m_conf.get<string>(m_conf.section(), "modules-center", "");
+      configured_modules = m_conf.get(m_conf.section(), "modules-center", ""s);
     } else if (align == alignment::RIGHT) {
-      configured_modules = m_conf.get<string>(m_conf.section(), "modules-right", "");
+      configured_modules = m_conf.get(m_conf.section(), "modules-right", ""s);
     }
 
     for (auto& module_name : string_util::split(configured_modules, ' ')) {
@@ -99,7 +99,7 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
       }
 
       try {
-        auto type = m_conf.get<string>("module/" + module_name, "type");
+        auto type = m_conf.get("module/" + module_name, "type");
 
         if (type == "custom/ipc" && !m_ipc) {
           throw application_error("Inter-process messaging needs to be enabled");
@@ -240,7 +240,7 @@ void controller::read_events() {
 
   vector<int> fds;
   fds.emplace_back(*m_queuefd[PIPE_READ]);
-  fds.emplace_back(fd_connection = m_connection.get_file_descriptor());
+  fds.emplace_back((fd_connection = m_connection.get_file_descriptor()));
 
   if (m_confwatch) {
     m_log.trace("controller: Attach config watch");
@@ -484,7 +484,7 @@ bool controller::on(const sig_ev::update&) {
 
   try {
     if (!m_writeback) {
-      m_bar->parse(move(contents), false);
+      m_bar->parse(move(contents));
     } else {
       std::cout << contents << std::endl;
     }

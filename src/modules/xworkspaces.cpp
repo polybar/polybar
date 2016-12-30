@@ -21,9 +21,9 @@ namespace modules {
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
     // Load config values
-    m_pinworkspaces = m_conf.get<bool>(name(), "pin-workspaces", m_pinworkspaces);
-    m_click = m_conf.get<bool>(name(), "enable-click", m_click);
-    m_scroll = m_conf.get<bool>(name(), "enable-scroll", m_scroll);
+    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
+    m_click = m_conf.get(name(), "enable-click", m_click);
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -66,7 +66,7 @@ namespace modules {
     }
 
     m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get<string>(name(), DEFAULT_ICON, "")));
+    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
       auto vec = string_util::split(workspace, ';');

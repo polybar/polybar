@@ -1,6 +1,5 @@
 #include <xcb/xcb_icccm.h>
 #include <algorithm>
-#include <string>
 
 #include "components/bar.hpp"
 #include "components/config.hpp"
@@ -69,9 +68,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   string bs{m_conf.section()};
 
   // Get available RandR outputs
-  auto monitor_name = m_conf.get<string>(bs, "monitor", "");
-  auto monitor_name_fallback = m_conf.get<string>(bs, "monitor-fallback", "");
-  auto monitor_strictmode = m_conf.get<bool>(bs, "monitor-strict", false);
+  auto monitor_name = m_conf.get(bs, "monitor", ""s);
+  auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
+  auto monitor_strictmode = m_conf.get(bs, "monitor-strict", false);
   auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, monitor_strictmode);
 
   if (monitors.empty()) {
@@ -123,46 +122,44 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     m_opts.override_redirect = m_conf.get<bool>(bs, "dock");
     m_conf.warn_deprecated(bs, "dock", "override-redirect");
   } catch (const key_error& err) {
-    m_opts.override_redirect = m_conf.get<bool>(bs, "override-redirect", m_opts.override_redirect);
+    m_opts.override_redirect = m_conf.get(bs, "override-redirect", m_opts.override_redirect);
   }
 
-  m_opts.dimvalue = m_conf.get<double>(bs, "dim-value", 1.0);
+  m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
 
   // Build WM_NAME
-  m_opts.wmname = m_conf.get<string>(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
+  m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
   // Load configuration values
-  m_opts.origin = m_conf.get<bool>(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
-  m_opts.spacing = m_conf.get<decltype(m_opts.spacing)>(bs, "spacing", m_opts.spacing);
-  m_opts.padding.left = m_conf.get<decltype(m_opts.padding.left)>(bs, "padding-left", m_opts.padding.left);
-  m_opts.padding.right = m_conf.get<decltype(m_opts.padding.right)>(bs, "padding-right", m_opts.padding.right);
-  m_opts.module_margin.left =
-      m_conf.get<decltype(m_opts.module_margin.left)>(bs, "module-margin-left", m_opts.module_margin.left);
-  m_opts.module_margin.right =
-      m_conf.get<decltype(m_opts.module_margin.right)>(bs, "module-margin-right", m_opts.module_margin.right);
-  m_opts.separator = string_util::trim(m_conf.get<string>(bs, "separator", ""), '"');
-  m_opts.locale = m_conf.get<string>(bs, "locale", "");
+  m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
+  m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
+  m_opts.padding.left = m_conf.get(bs, "padding-left", m_opts.padding.left);
+  m_opts.padding.right = m_conf.get(bs, "padding-right", m_opts.padding.right);
+  m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", m_opts.module_margin.left);
+  m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", m_opts.module_margin.right);
+  m_opts.separator = string_util::trim(m_conf.get(bs, "separator", ""s), '"');
+  m_opts.locale = m_conf.get(bs, "locale", ""s);
 
   if (only_initialize_values) {
     return;
   }
 
   // Load values used to adjust the struts atom
-  m_opts.strut.top = m_conf.get<int>("global/wm", "margin-top", 0);
-  m_opts.strut.bottom = m_conf.get<int>("global/wm", "margin-bottom", 0);
+  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0);
+  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
-  actions.emplace_back(action{mousebtn::LEFT, m_conf.get<string>(bs, "click-left", "")});
-  actions.emplace_back(action{mousebtn::MIDDLE, m_conf.get<string>(bs, "click-middle", "")});
-  actions.emplace_back(action{mousebtn::RIGHT, m_conf.get<string>(bs, "click-right", "")});
-  actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get<string>(bs, "scroll-up", "")});
-  actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get<string>(bs, "scroll-down", "")});
-  actions.emplace_back(action{mousebtn::DOUBLE_LEFT, m_conf.get<string>(bs, "double-click-left", "")});
-  actions.emplace_back(action{mousebtn::DOUBLE_MIDDLE, m_conf.get<string>(bs, "double-click-middle", "")});
-  actions.emplace_back(action{mousebtn::DOUBLE_RIGHT, m_conf.get<string>(bs, "double-click-right", "")});
+  actions.emplace_back(action{mousebtn::LEFT, m_conf.get(bs, "click-left", ""s)});
+  actions.emplace_back(action{mousebtn::MIDDLE, m_conf.get(bs, "click-middle", ""s)});
+  actions.emplace_back(action{mousebtn::RIGHT, m_conf.get(bs, "click-right", ""s)});
+  actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get(bs, "scroll-up", ""s)});
+  actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get(bs, "scroll-down", ""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_LEFT, m_conf.get(bs, "double-click-left", ""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_MIDDLE, m_conf.get(bs, "double-click-middle", ""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_RIGHT, m_conf.get(bs, "double-click-right", ""s)});
 
   for (auto&& act : actions) {
     if (!act.command.empty()) {
@@ -171,42 +168,42 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load foreground/background
-  m_opts.background = color::parse(m_conf.get<string>(bs, "background", color_util::hex<uint16_t>(m_opts.background)));
-  m_opts.foreground = color::parse(m_conf.get<string>(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
+  m_opts.background = color::parse(m_conf.get(bs, "background", color_util::hex<uint16_t>(m_opts.background)));
+  m_opts.foreground = color::parse(m_conf.get(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
 
   // Load over-/underline color and size (warn about deprecated params if used)
   m_conf.warn_deprecated(bs, "linecolor", "{underline,overline}-color");
   m_conf.warn_deprecated(bs, "lineheight", "{underline,overline}-size");
 
-  auto linecolor = color::parse(m_conf.get<string>(bs, "linecolor", "#f00"));
-  auto lineheight = m_conf.get<int>(bs, "lineheight", 0);
-  m_opts.overline.size = m_conf.get<int16_t>(bs, "overline-size", lineheight);
-  m_opts.overline.color = color::parse(m_conf.get<string>(bs, "overline-color", linecolor));
-  m_opts.underline.size = m_conf.get<uint16_t>(bs, "underline-size", lineheight);
-  m_opts.underline.color = color::parse(m_conf.get<string>(bs, "underline-color", linecolor));
+  auto linecolor = color::parse(m_conf.get(bs, "linecolor", "#f00"s));
+  auto lineheight = m_conf.get(bs, "lineheight", 0);
+  m_opts.overline.size = m_conf.get(bs, "overline-size", lineheight);
+  m_opts.overline.color = color::parse(m_conf.get(bs, "overline-color", linecolor));
+  m_opts.underline.size = m_conf.get(bs, "underline-size", lineheight);
+  m_opts.underline.color = color::parse(m_conf.get(bs, "underline-color", linecolor));
 
   // Load border settings
-  auto bsize = m_conf.get<int>(bs, "border-size", 0);
-  auto bcolor = m_conf.get<string>(bs, "border-color", "#00000000");
+  auto bsize = m_conf.get(bs, "border-size", 0);
+  auto bcolor = m_conf.get(bs, "border-color", "#00000000"s);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.get<int>(bs, "border-top", bsize);
-  m_opts.borders[edge::TOP].color = color::parse(m_conf.get<string>(bs, "border-top-color", bcolor));
+  m_opts.borders[edge::TOP].size = m_conf.get(bs, "border-top", bsize);
+  m_opts.borders[edge::TOP].color = color::parse(m_conf.get(bs, "border-top-color", bcolor));
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.get<int>(bs, "border-bottom", bsize);
-  m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get<string>(bs, "border-bottom-color", bcolor));
+  m_opts.borders[edge::BOTTOM].size = m_conf.get(bs, "border-bottom", bsize);
+  m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get(bs, "border-bottom-color", bcolor));
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.get<int>(bs, "border-left", bsize);
-  m_opts.borders[edge::LEFT].color = color::parse(m_conf.get<string>(bs, "border-left-color", bcolor));
+  m_opts.borders[edge::LEFT].size = m_conf.get(bs, "border-left", bsize);
+  m_opts.borders[edge::LEFT].color = color::parse(m_conf.get(bs, "border-left-color", bcolor));
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.get<int>(bs, "border-right", bsize);
-  m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get<string>(bs, "border-right-color", bcolor));
+  m_opts.borders[edge::RIGHT].size = m_conf.get(bs, "border-right", bsize);
+  m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get(bs, "border-right-color", bcolor));
 
   // Load geometry values
-  auto w = m_conf.get<string>(m_conf.section(), "width", "100%");
-  auto h = m_conf.get<string>(m_conf.section(), "height", "24");
-  auto offsetx = m_conf.get<string>(m_conf.section(), "offset-x", "");
-  auto offsety = m_conf.get<string>(m_conf.section(), "offset-y", "");
+  auto w = m_conf.get(m_conf.section(), "width", "100%"s);
+  auto h = m_conf.get(m_conf.section(), "height", "24"s);
+  auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
+  auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
 
   if ((m_opts.size.w = atoi(w.c_str())) && w.find('%') != string::npos) {
     m_opts.size.w = math_util::percentage_to_value<int>(m_opts.size.w, m_opts.monitor->w);
@@ -251,7 +248,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.center.x += m_opts.borders[edge::LEFT].size;
 
   m_log.trace("bar: Create renderer");
-  auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
+  auto fonts = m_conf.get_list(m_conf.section(), "font", {});
   m_renderer = renderer::make(m_opts, move(fonts));
 
   m_log.trace("bar: Attaching sink to registry");
@@ -315,7 +312,7 @@ const bar_settings bar::settings() const {
  * @param data Input string
  * @param force Unless true, do not parse unchanged data
  */
-void bar::parse(const string& data, bool force) {
+void bar::parse(string&& data) {
   if (!m_mutex.try_lock()) {
     return;
   }
@@ -326,7 +323,7 @@ void bar::parse(const string& data, bool force) {
     return m_log.trace("bar: Ignoring update (shaded)");
   }
 
-  if (data == m_lastinput && !force) {
+  if (data == m_lastinput) {
     return;
   }
 
@@ -362,7 +359,7 @@ void bar::restack_window() {
   string wm_restack;
 
   try {
-    wm_restack = m_conf.get<string>(m_conf.section(), "wm-restack");
+    wm_restack = m_conf.get(m_conf.section(), "wm-restack");
   } catch (const key_error& err) {
     return;
   }

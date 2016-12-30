@@ -15,14 +15,13 @@ namespace modules {
   network_module::network_module(const bar_settings& bar, string name_)
       : timer_module<network_module>(bar, move(name_)) {
     // Load configuration values
-    REQ_CONFIG_VALUE(name(), m_interface, "interface");
-    GET_CONFIG_VALUE(name(), m_ping_nth_update, "ping-interval");
-    GET_CONFIG_VALUE(name(), m_udspeed_minwidth, "udspeed-minwidth");
-    GET_CONFIG_VALUE(name(), m_accumulate, "accumulate-stats");
+    m_interface = m_conf.get(name(), "interface", m_interface);
+    m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
+    m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
+    m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
+    m_interval = m_conf.get(name(), "interval", 1s);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
-
-    m_interval = chrono::duration<double>(m_conf.get<float>(name(), "interval", 1));
 
     // Add formats
     m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});

@@ -20,8 +20,8 @@ namespace modules {
    */
   battery_module::battery_module(const bar_settings& bar, string name_)
       : inotify_module<battery_module>(bar, move(name_)) {
-    auto battery = m_conf.get<string>(name(), "battery", "BAT0");
-    auto adapter = m_conf.get<string>(name(), "adapter", "ADP1");
+    auto battery = m_conf.get(name(), "battery", "BAT0"s);
+    auto adapter = m_conf.get(name(), "adapter", "ADP1"s);
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", adapter) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", battery) + "/";
@@ -62,8 +62,8 @@ namespace modules {
       throw module_error("The file '" + path_battery + "[current|power]_now' does not exist");
     }
 
-    m_fullat = m_conf.get<int>(name(), "full-at", 100);
-    m_interval = chrono::duration<double>{m_conf.get<float>(name(), "poll-interval", 5.0f)};
+    m_fullat = m_conf.get(name(), "full-at", 100);
+    m_interval = m_conf.get(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
 
     // Load state and capacity level
@@ -105,7 +105,7 @@ namespace modules {
       if (!m_bar.locale.empty()) {
         setlocale(LC_TIME, m_bar.locale.c_str());
       }
-      m_timeformat = m_conf.get<string>(name(), "time-format", "%H:%M:%S");
+      m_timeformat = m_conf.get(name(), "time-format", "%H:%M:%S"s);
     }
   }
 

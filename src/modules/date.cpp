@@ -13,16 +13,16 @@ namespace modules {
       setlocale(LC_TIME, m_bar.locale.c_str());
     }
 
-    m_dateformat = string_util::trim(m_conf.get<string>(name(), "date", ""), '"');
-    m_dateformat_alt = string_util::trim(m_conf.get<string>(name(), "date-alt", ""), '"');
-    m_timeformat = string_util::trim(m_conf.get<string>(name(), "time", ""), '"');
-    m_timeformat_alt = string_util::trim(m_conf.get<string>(name(), "time-alt", ""), '"');
+    m_dateformat = string_util::trim(m_conf.get(name(), "date", ""s), '"');
+    m_dateformat_alt = string_util::trim(m_conf.get(name(), "date-alt", ""s), '"');
+    m_timeformat = string_util::trim(m_conf.get(name(), "time", ""s), '"');
+    m_timeformat_alt = string_util::trim(m_conf.get(name(), "time-alt", ""s), '"');
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
     }
 
-    m_interval = chrono::duration<double>(m_conf.get<double>(name(), "interval", 1.0));
+    m_interval = m_conf.get(name(), "interval", 1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_DATE});
 
