@@ -313,7 +313,7 @@ void builder::space() {
 void builder::remove_trailing_space(size_t len) {
   if (len == 0_z  || len > m_output.size()) {
     return;
-  } else if (string(m_output.rbegin() + len, m_output.rbegin()) == string(len, ' ')) {
+  } else if (m_output.substr(m_output.size() - len) == string(len, ' ')) {
     m_output.erase(m_output.size() - len);
   }
 }
