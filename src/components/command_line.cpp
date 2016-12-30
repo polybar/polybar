@@ -25,7 +25,7 @@ cliparser::parser(string&& synopsis, const options&& opts)
  * Print application usage message
  */
 void cliparser::usage() const {
-  std::cout << m_synopsis << "\n" << std::endl;
+  std::cout << m_synopsis << "\n\n";
 
   // get the length of the longest string in the flag column
   // which is used to align the description fields
@@ -48,7 +48,7 @@ void cliparser::usage() const {
 
     // output the list with accepted values
     if (!opt.values.empty()) {
-      std::cout << std::setw(pad + opt.desc.length()) << std::setfill(' ') << opt.desc << std::endl;
+      std::cout << std::setw(pad + opt.desc.length()) << std::setfill(' ') << opt.desc << '\n';
 
       pad = pad + opt.flag_long.length() + opt.token.length() + 7;
 
@@ -61,8 +61,10 @@ void cliparser::usage() const {
       std::cout << std::setw(pad + opt.desc.length()) << std::setfill(' ') << opt.desc;
     }
 
-    std::cout << std::endl;
+    std::cout << '\n';
   }
+
+  std::cout << std::endl;
 }
 
 /**
