@@ -12,7 +12,7 @@ POLYBAR_NS
 #define BUILDER_SPACE_TOKEN "%__"
 #endif
 
-builder::builder(const bar_settings bar) : m_bar(bar) {
+builder::builder(const bar_settings& bar) : m_bar(bar) {
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
@@ -311,7 +311,7 @@ void builder::space() {
  * Remove trailing space
  */
 void builder::remove_trailing_space(size_t len) {
-  if (len == 0_z  || len > m_output.size()) {
+  if (len == 0_z || len > m_output.size()) {
     return;
   } else if (m_output.substr(m_output.size() - len) == string(len, ' ')) {
     m_output.erase(m_output.size() - len);

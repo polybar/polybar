@@ -20,7 +20,7 @@ using namespace drawtypes;
 
 class builder {
  public:
-  explicit builder(const bar_settings bar);
+  explicit builder(const bar_settings& bar);
 
   string flush();
   void append(string text);

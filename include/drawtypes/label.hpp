@@ -14,9 +14,9 @@ POLYBAR_NS
 namespace drawtypes {
   struct token {
     string token;
-    size_t min;
-    size_t max;
-    string suffix{""};
+    size_t min{0_z};
+    size_t max{0_z};
+    string suffix{""s};
   };
 
   class label;
@@ -35,15 +35,15 @@ namespace drawtypes {
     string m_underline{};
     string m_overline{};
     int m_font{0};
-    side_values m_padding{0,0};
-    side_values m_margin{0,0};
-    size_t m_maxlen{0};
+    side_values m_padding{0U,0U};
+    side_values m_margin{0U,0U};
+    size_t m_maxlen{0_z};
     bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
-    explicit label(string text, string foreground = "", string background = "", string underline = "",
-        string overline = "", int font = 0, struct side_values padding = {0,0}, struct side_values margin = {0,0},
-        size_t maxlen = 0, bool ellipsis = true, vector<token>&& tokens = {})
+    explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
+        string overline = ""s, int font = 0, struct side_values padding = {0U,0U}, struct side_values margin = {0U,0U},
+        size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
@@ -72,11 +72,11 @@ namespace drawtypes {
     const vector<token> m_tokens{};
   };
 
-  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = "");
-  label_t load_optional_label(const config& conf, string section, string name, string def = "");
+  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
+  label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
 
-  icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = "");
-  icon_t load_optional_icon(const config& conf, string section, string name, string def = "");
+  icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = ""s);
+  icon_t load_optional_icon(const config& conf, string section, string name, string def = ""s);
 }
 
 POLYBAR_NS_END

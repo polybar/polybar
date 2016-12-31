@@ -39,10 +39,10 @@ namespace drawtypes {
 
     for (auto&& tok : m_tokens) {
       if (token == tok.token) {
-        if (tok.max != 0 && replacement.length() > tok.max) {
+        if (tok.max != 0_z && replacement.length() > tok.max) {
           replacement = replacement.erase(tok.max) + tok.suffix;
-        } else if (tok.min != 0 && replacement.length() < tok.min) {
-          replacement.insert(0, tok.min - replacement.length(), ' ');
+        } else if (tok.min != 0_z && replacement.length() < tok.min) {
+          replacement.insert(0_z, tok.min - replacement.length(), ' ');
         }
         m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
       }
@@ -65,19 +65,19 @@ namespace drawtypes {
     if (label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (label->m_padding.left != 0) {
+    if (label->m_padding.left != 0U) {
       m_padding.left = label->m_padding.left;
     }
-    if (label->m_padding.right != 0) {
+    if (label->m_padding.right != 0U) {
       m_padding.right = label->m_padding.right;
     }
-    if (label->m_margin.left != 0) {
+    if (label->m_margin.left != 0U) {
       m_margin.left = label->m_margin.left;
     }
-    if (label->m_margin.right != 0) {
+    if (label->m_margin.right != 0U) {
       m_margin.right = label->m_margin.right;
     }
-    if (label->m_maxlen != 0) {
+    if (label->m_maxlen != 0_z) {
       m_maxlen = label->m_maxlen;
       m_ellipsis = label->m_ellipsis;
     }
@@ -99,19 +99,19 @@ namespace drawtypes {
     if (m_font == 0 && label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (m_padding.left == 0 && label->m_padding.left != 0) {
+    if (m_padding.left == 0U && label->m_padding.left != 0U) {
       m_padding.left = label->m_padding.left;
     }
-    if (m_padding.right == 0 && label->m_padding.right != 0) {
+    if (m_padding.right == 0U && label->m_padding.right != 0U) {
       m_padding.right = label->m_padding.right;
     }
-    if (m_margin.left == 0 && label->m_margin.left != 0) {
+    if (m_margin.left == 0U && label->m_margin.left != 0U) {
       m_margin.left = label->m_margin.left;
     }
-    if (m_margin.right == 0 && label->m_margin.right != 0) {
+    if (m_margin.right == 0U && label->m_margin.right != 0U) {
       m_margin.right = label->m_margin.right;
     }
-    if (m_maxlen == 0 && label->m_maxlen != 0) {
+    if (m_maxlen == 0_z && label->m_maxlen != 0_z) {
       m_maxlen = label->m_maxlen;
       m_ellipsis = label->m_ellipsis;
     }
@@ -144,7 +144,7 @@ namespace drawtypes {
     }
 
     const auto get_left_right = [&](string key) {
-      auto value = conf.get(section, key, 0);
+      auto value = conf.get(section, key, 0U);
       auto left = conf.get(section, key + "-left", value);
       auto right = conf.get(section, key + "-right", value);
       return side_values{static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
@@ -165,7 +165,7 @@ namespace drawtypes {
       }
 
       line.erase(start, end - start + 1);
-      tokens.emplace_back(token{token_str, 0, 0});
+      tokens.emplace_back(token{token_str, 0_z, 0_z});
       auto& token = tokens.back();
 
       // find min delimiter
@@ -196,7 +196,7 @@ namespace drawtypes {
 
       // ignore max lengths less than min
       if (token.max < token.min) {
-        token.max = 0;
+        token.max = 0_z;
       }
 
       // find suffix delimiter

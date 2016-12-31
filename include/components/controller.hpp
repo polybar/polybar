@@ -57,7 +57,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   bool run(bool writeback = false);
 
   bool enqueue(event&& evt);
-  bool enqueue(string&& input);
+  bool enqueue(string&& input_data);
 
  protected:
   void read_events();

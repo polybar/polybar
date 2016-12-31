@@ -104,7 +104,7 @@ namespace modules {
       } else if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end()) {
         continue;
       } else {
-        throw undefined_format_tag(tag + " is not a valid format tag for \""+ name +"\"");
+        throw undefined_format_tag(tag + " is not a valid format tag for \"" + name + "\"");
       }
     }
 

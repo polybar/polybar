@@ -1,6 +1,6 @@
 #include <fstream>
-#include <istream>
 #include <iomanip>
+#include <istream>
 
 #include "modules/memory.hpp"
 

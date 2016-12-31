@@ -66,8 +66,8 @@ class fd_streambuf : public std::streambuf {
 
  private:
   file_descriptor m_fd;
-  char m_out[BUFSIZ];
-  char m_in[BUFSIZ - 1];
+  char m_out[BUFSIZ]{'\0'};
+  char m_in[BUFSIZ - 1]{'\0'};
 };
 
 template <typename StreamType = std::ostream>

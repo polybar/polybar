@@ -11,7 +11,7 @@ POLYBAR_NS
 /**
  * Convert string
  */
-const char* logger::convert(string arg) const {
+const char* logger::convert(string arg) const {  // NOLINT
   return arg.c_str();
 }
 
