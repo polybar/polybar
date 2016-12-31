@@ -22,7 +22,7 @@ namespace modules {
       throw module_error("No date or time format specified");
     }
 
-    m_interval = m_conf.get(name(), "interval", 1s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_DATE});
 

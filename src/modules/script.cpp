@@ -13,7 +13,7 @@ namespace modules {
     m_tail = m_conf.get(name(), "tail", m_tail);
     m_maxlen = m_conf.get(name(), "maxlen", m_maxlen);
     m_ellipsis = m_conf.get(name(), "ellipsis", m_ellipsis);
-    m_interval = m_conf.get(name(), "interval", m_tail ? 0s : 5s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
 
     m_conf.warn_deprecated(
         name(), "maxlen", "\"format = <label>\" and \"label = %output:0:" + to_string(m_maxlen) + "%\"");

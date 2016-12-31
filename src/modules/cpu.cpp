@@ -16,7 +16,7 @@ namespace modules {
   template class module<cpu_module>;
 
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
-    m_interval = m_conf.get(name(), "interval", 1s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 

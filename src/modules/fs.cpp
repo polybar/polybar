@@ -26,7 +26,7 @@ namespace modules {
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
-    m_interval = m_conf.get(name(), "interval", 30s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 30s);
 
     // Add formats and elements
     m_formatter->add(

@@ -19,7 +19,7 @@ namespace modules {
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
-    m_interval = m_conf.get(name(), "interval", 1s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 

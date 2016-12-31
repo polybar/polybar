@@ -37,7 +37,7 @@ namespace modules {
     }
 
    protected:
-    interval_t m_interval{1};
+    interval_t m_interval{1.0};
   };
 }
 
