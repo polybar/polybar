@@ -183,9 +183,9 @@ namespace modules {
     m_percentage = percentage;
 
     const auto label = [this] {
-      if (m_state == state::FULL) {
+      if (m_state == battery_module::state::FULL) {
         return m_label_full;
-      } else if (m_state == state::DISCHARGING) {
+      } else if (m_state == battery_module::state::DISCHARGING) {
         return m_label_discharging;
       } else {
         return m_label_charging;
@@ -195,7 +195,7 @@ namespace modules {
     label->reset_tokens();
     label->replace_token("%percentage%", to_string(m_percentage) + "%");
 
-    if (m_state != state::FULL && !m_timeformat.empty()) {
+    if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
       label->replace_token("%time%", current_time());
     }
 
@@ -206,9 +206,9 @@ namespace modules {
    * Get the output format based on state
    */
   string battery_module::get_format() const {
-    if (m_state == state::CHARGING) {
+    if (m_state == battery_module::state::CHARGING) {
       return FORMAT_CHARGING;
-    } else if (m_state == state::DISCHARGING) {
+    } else if (m_state == battery_module::state::DISCHARGING) {
       return FORMAT_DISCHARGING;
     } else {
       return FORMAT_FULL;
@@ -243,11 +243,11 @@ namespace modules {
    */
   battery_module::state battery_module::current_state() {
     if (!read(*m_state_reader)) {
-      return state::DISCHARGING;
+      return battery_module::state::DISCHARGING;
     } else if (read(*m_capacity_reader) < m_fullat) {
-      return state::CHARGING;
+      return battery_module::state::CHARGING;
     } else {
-      return state::FULL;
+      return battery_module::state::FULL;
     }
   }
 
@@ -256,7 +256,7 @@ namespace modules {
    */
   int battery_module::current_percentage(state state) {
     int percentage{read(*m_capacity_reader)};
-    if (state == state::FULL && percentage >= m_fullat) {
+    if (state == battery_module::state::FULL && percentage >= m_fullat) {
       percentage = 100;
     }
     return percentage;
@@ -299,7 +299,7 @@ namespace modules {
 
     while (running()) {
       for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == state::CHARGING) {
+        if (m_state == battery_module::state::CHARGING) {
           broadcast();
         }
         sleep(dur);
