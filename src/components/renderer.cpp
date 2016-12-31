@@ -525,7 +525,7 @@ void renderer::debug_hints() {
 #endif
 
 bool renderer::on(const change_background& evt) {
-  uint32_t color{*evt()};
+  const uint32_t color{*evt()};
 
   if (m_colors[gc::BG] == color) {
     m_log.trace_x("renderer: ignoring unchanged background color(#%08x)", color);
@@ -540,7 +540,7 @@ bool renderer::on(const change_background& evt) {
 }
 
 bool renderer::on(const change_foreground& evt) {
-  uint32_t color{*evt()};
+  const uint32_t color{*evt()};
 
   if (m_colors[gc::FG] == color) {
     m_log.trace_x("renderer: ignoring unchanged foreground color(#%08x)", color);
@@ -555,7 +555,7 @@ bool renderer::on(const change_foreground& evt) {
 }
 
 bool renderer::on(const change_underline& evt) {
-  uint32_t color{*evt()};
+  const uint32_t color{*evt()};
 
   if (m_colors[gc::UL] == color) {
     m_log.trace_x("renderer: ignoring unchanged underline color(#%08x)", color);
@@ -569,7 +569,7 @@ bool renderer::on(const change_underline& evt) {
 }
 
 bool renderer::on(const change_overline& evt) {
-  uint32_t color{*evt()};
+  const uint32_t color{*evt()};
 
   if (m_colors[gc::OL] == color) {
     m_log.trace_x("renderer: ignoring unchanged overline color(#%08x)", color);
@@ -583,7 +583,7 @@ bool renderer::on(const change_overline& evt) {
 }
 
 bool renderer::on(const change_font& evt) {
-  uint8_t font{*evt()};
+  const uint8_t font{*evt()};
 
   if (m_fontindex == font) {
     m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<uint8_t>(font));
@@ -597,7 +597,7 @@ bool renderer::on(const change_font& evt) {
 }
 
 bool renderer::on(const change_alignment& evt) {
-  alignment align{*evt()};
+  auto align = static_cast<const alignment&>(*evt());
 
   if (align == m_alignment) {
     m_log.trace_x("renderer: ignoring unchanged alignment(%i)", static_cast<uint8_t>(align));
@@ -634,7 +634,7 @@ bool renderer::on(const attribute_toggle& evt) {
 }
 
 bool renderer::on(const action_begin& evt) {
-  action a{*evt()};
+  auto a = static_cast<const action&>(*evt());
   action_block action{};
   action.button = a.button;
   action.align = m_alignment;
@@ -653,7 +653,7 @@ bool renderer::on(const action_begin& evt) {
 }
 
 bool renderer::on(const action_end& evt) {
-  mousebtn btn{*evt()};
+  auto btn = static_cast<const mousebtn&>(*evt());
   int16_t clickable_width{0};
 
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
@@ -702,7 +702,7 @@ bool renderer::on(const write_text_unicode& evt) {
 }
 
 bool renderer::on(const write_text_string& evt) {
-  parser::packet pkt{(*evt())};
+  auto pkt = static_cast<const parser::packet&>(*evt());
   draw_textstring(pkt.data, pkt.length);
   return true;
 }
