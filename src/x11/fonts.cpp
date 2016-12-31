@@ -1,3 +1,4 @@
+#include "x11/fonts.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "utils/color.hpp"
@@ -5,7 +6,6 @@
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
-#include "x11/fonts.hpp"
 
 POLYBAR_NS
 

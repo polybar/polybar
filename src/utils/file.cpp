@@ -52,8 +52,8 @@ file_descriptor::file_descriptor(const string& path, int flags) {
 }
 
 file_descriptor::file_descriptor(int fd) : m_fd(fd) {
-  if (!*this) {
-    throw system_error("Given file descriptor is not valid");
+  if (m_fd != -1 && !*this) {
+    throw system_error("Given file descriptor (" + to_string(m_fd) + ") is not valid");
   }
 }
 
@@ -87,9 +87,7 @@ file_descriptor::operator bool() const {
 }
 
 void file_descriptor::close() {
-  if (m_fd == -1) {
-    return;
-  } else if (::close(m_fd) == -1) {
+  if (m_fd != -1 && ::close(m_fd) == -1) {
     throw system_error("Failed to close file descriptor");
   }
   m_fd = -1;
@@ -98,10 +96,12 @@ void file_descriptor::close() {
 // }}}
 // implementation of file_streambuf {{{
 
-fd_streambuf::fd_streambuf(int fd) : m_fd(fd) {}
+fd_streambuf::fd_streambuf(int fd) : m_fd(-1) {
+  open(fd);
+}
 
 fd_streambuf::~fd_streambuf() {
-  sync();
+  close();
 }
 
 fd_streambuf::operator int() {
@@ -113,7 +113,7 @@ fd_streambuf::operator int() const {
 
 void fd_streambuf::open(int fd) {
   if (m_fd) {
-    sync();
+    close();
   }
   m_fd = fd;
   setg(m_in, m_in, m_in);

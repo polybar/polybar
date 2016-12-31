@@ -272,7 +272,7 @@ void controller::read_events() {
 
     // Process event on the internal fd
     if (m_queuefd[PIPE_READ] && FD_ISSET(static_cast<int>(*m_queuefd[PIPE_READ]), &readfds)) {
-      char buffer[BUFSIZ]{'\0'};
+      char buffer[BUFSIZ];
       if (read(static_cast<int>(*m_queuefd[PIPE_READ]), &buffer, BUFSIZ) == -1) {
         m_log.err("Failed to read from eventpipe (err: %s)", strerror(errno));
       }

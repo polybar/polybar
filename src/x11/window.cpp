@@ -1,11 +1,11 @@
 #include <xcb/xcb_icccm.h>
 
 #include "components/types.hpp"
+#include "utils/memory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/randr.hpp"
 #include "x11/window.hpp"
-#include "utils/memory.hpp"
 
 POLYBAR_NS
 
