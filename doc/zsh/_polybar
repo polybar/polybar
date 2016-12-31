@@ -1,0 +1,30 @@
+#compdef polybar
+#
+# Polybar completion script (https://github.com/jaagr/polybar)
+#   jaagr <c@rlberg.se>
+#
+_polybar() {
+  _arguments -n : \
+    '(-h --help)'{-h,--help}'[Display help text and exit]' \
+    '(-v --version)'{-v,--version}'[Display version information and exit]' \
+    '(-l --log)'{-l,--log=}'[Set the logging verbosity (default: warning)]:verbosity level:(error warning info trace)' \
+    '(-l --log -q --quiet)'{-q,--quiet}'[Be quiet (will override -l)]' \
+    '(-c --config)'{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
+    '(-r --reload)'{-r,--reload}'[Reload when the configuration has been modified]' \
+    '1:bar name:_polybar_list_names'
+}
+
+(( $+functions[_polybar_list_names] )) || _polybar_list_names() {
+  local conf
+  if (( $+opt_args[-c] )); then
+    conf=${(e)opt_args[-c]}
+  elif (( $+opt_args[--config] )); then
+    conf=${(e)opt_args[--config]}
+  else
+    conf=${XDG_CONFIG_HOME:-$HOME/.config}/polybar/config
+  fi
+  local names; names=(${(f)"$(sed -nr 's|\[bar/([^\]+)\]$|\1|p' ${conf} 2>/dev/null)"})
+  _describe -t names 'configuration name' names
+}
+
+_polybar "$@"
