@@ -35,9 +35,9 @@ namespace detail {
    public:
     template <typename... Args>
     explicit connection_base(Args&&... args)
-        : xpp::core::core(forward<Args>(args)...)
+        : xpp::core(forward<Args>(args)...)
         , interfaces<connection_base<Derived, Extensions...>, Extensions...>(*this)
-        , Extensions(static_cast<xcb_connection_t*>(*this))...
+        , Extensions(m_c.get())...
         , Extensions::error_dispatcher(static_cast<Extensions&>(*this).get())... {
       m_root_window = screen_of_display(default_screen())->root;
     }
@@ -46,10 +46,6 @@ namespace detail {
 
     const Derived& operator=(const Derived& o) {
       return o;
-    }
-
-    virtual operator xcb_connection_t*() const {
-      return *static_cast<const core&>(*this);
     }
 
     void operator()(const shared_ptr<xcb_generic_error_t>& error) const {
@@ -110,7 +106,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   static make_type make(xcb_connection_t* conn = nullptr);
 
   template <typename... Args>
-  explicit connection(Args&&... args) : base_type::connection_base(forward<Args>(args)...) {}
+  explicit connection(Args&&... args) : base_type(forward<Args>(args)...) {}
 
   const connection& operator=(const connection& o) {
     return o;
