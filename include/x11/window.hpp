@@ -27,6 +27,8 @@ class window : public xpp::window<connection&> {
   window reconfigure_struts(uint16_t w, uint16_t h, int16_t x, bool bottom = false);
 
   void redraw();
+
+  void visibility_notify(xcb_visibility_t state);
 };
 
 POLYBAR_NS_END

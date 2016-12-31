@@ -5,7 +5,7 @@
 #include "x11/connection.hpp"
 #include "x11/extensions/randr.hpp"
 #include "x11/window.hpp"
-#include "x11/xutils.hpp"
+#include "utils/memory.hpp"
 
 POLYBAR_NS
 
@@ -25,7 +25,7 @@ window window::create_checked(int16_t x, int16_t y, uint16_t w, uint16_t h, uint
   auto root = connection().screen()->root;
   auto copy = XCB_COPY_FROM_PARENT;
   uint32_t values[16]{0};
-  xutils::pack_values(mask, p, values);
+  connection::pack_values(mask, p, values);
   connection().create_window_checked(copy, *this, root, x, y, w, h, 0, copy, copy, mask, values);
 
   return *this;
@@ -60,7 +60,7 @@ window window::reconfigure_geom(uint16_t w, uint16_t h, int16_t x, int16_t y) {
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
   XCB_AUX_ADD_PARAM(&mask, &params, y, y);
 
-  xutils::pack_values(mask, &params, values);
+  connection::pack_values(mask, &params, values);
   configure_checked(mask, values);
 
   return *this;
@@ -77,7 +77,7 @@ window window::reconfigure_pos(int16_t x, int16_t y) {
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
   XCB_AUX_ADD_PARAM(&mask, &params, y, y);
 
-  xutils::pack_values(mask, &params, values);
+  connection::pack_values(mask, &params, values);
   configure_checked(mask, values);
 
   return *this;
@@ -111,9 +111,22 @@ window window::reconfigure_struts(uint16_t w, uint16_t h, int16_t x, bool bottom
  * Trigger redraw by toggling visibility state
  */
 void window::redraw() {
-  xutils::visibility_notify(connection(), *this, XCB_VISIBILITY_FULLY_OBSCURED);
-  xutils::visibility_notify(connection(), *this, XCB_VISIBILITY_UNOBSCURED);
+  visibility_notify(XCB_VISIBILITY_FULLY_OBSCURED);
+  visibility_notify(XCB_VISIBILITY_UNOBSCURED);
   connection().flush();
+}
+
+/**
+ * Send visibility notify event
+ */
+void window::visibility_notify(xcb_visibility_t state) {
+  auto notify = memory_util::make_malloc_ptr<xcb_visibility_notify_event_t, 32_z>();
+  notify->response_type = XCB_VISIBILITY_NOTIFY;
+  notify->window = *this;
+  notify->state = state;
+
+  uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+  connection().send_event(false, *this, mask, reinterpret_cast<const char*>(notify.get()));
 }
 
 POLYBAR_NS_END

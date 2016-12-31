@@ -46,7 +46,7 @@ class font_manager {
   using make_type = unique_ptr<font_manager>;
   static make_type make();
 
-  explicit font_manager(connection& conn, const logger& logger, Display* dsp, Visual* vis, Colormap&& cm);
+  explicit font_manager(connection& conn, const logger& logger);
   ~font_manager();
 
   font_manager(const font_manager& o) = delete;

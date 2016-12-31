@@ -3,7 +3,7 @@
 #include <utility>
 
 #include "utils/factory.hpp"
-#include "x11/xlib.hpp"
+#include "x11/connection.hpp"
 #include "x11/xresources.hpp"
 
 POLYBAR_NS
@@ -13,7 +13,7 @@ POLYBAR_NS
  */
 xresource_manager::make_type xresource_manager::make() {
   return static_cast<xresource_manager::make_type>(
-      *factory_util::singleton<std::remove_reference_t<xresource_manager::make_type>>(xlib::get_display()));
+      *factory_util::singleton<std::remove_reference_t<xresource_manager::make_type>>(connection::make()));
 }
 
 /**

@@ -6,7 +6,6 @@
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -66,7 +65,7 @@ namespace graphics_util {
       uint32_t values[32];
 
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
-      xutils::pack_values(mask, &params, values);
+      connection::pack_values(mask, &params, values);
 
       *gc = conn.generate_id();
       conn.create_gc_checked(*gc, drawable, mask, values);

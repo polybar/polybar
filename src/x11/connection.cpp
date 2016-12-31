@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iomanip>
 
 #include "errors.hpp"
@@ -6,28 +7,22 @@
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/xlib.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
 /**
  * Create instance
  */
-connection::make_type connection::make(xcb_connection_t* conn) {
-  if (conn == nullptr) {
-    conn = xutils::get_connection();
-  }
-  // return static_cast<connection::make_type>(*factory_util::singleton<std::remove_reference_t<connection::make_type>>(
-  //     conn, file_util::make_file_descriptor(xcb_get_file_descriptor(conn))));
+connection::make_type connection::make(Display* display) {
   return static_cast<connection::make_type>(
-      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn));
+      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(display));
 }
 
-/**
- * Preload required xcb atoms
- */
-void connection::preload_atoms() {
+connection::connection(Display* dsp) : base_type(XGetXCBConnection(dsp)), m_display(dsp) {
+  XSetEventQueueOwner(m_display, XCBOwnsEventQueue);
+
+  // Preload required xcb atoms {{{
+
   vector<xcb_intern_atom_cookie_t> cookies(memory_util::countof(ATOMS));
   xcb_intern_atom_reply_t* reply{nullptr};
 
@@ -42,12 +37,9 @@ void connection::preload_atoms() {
 
     free(reply);
   }
-}
 
-/**
- * Query for X extensions
- */
-void connection::query_extensions() {
+// }}}
+// Query for X extensions {{{
 #if WITH_XDAMAGE
   damage_util::query_extension(*this);
 #endif
@@ -66,6 +58,45 @@ void connection::query_extensions() {
 #if WITH_XKB
   xkb_util::query_extension(*this);
 #endif
+  // }}}
+}
+
+connection::~connection() {
+  disconnect();
+  std::for_each(m_visual.begin(), m_visual.end(), [=](pair<uint8_t, Visual*> p) { XFree(p.second); });
+  m_visual.clear();
+}
+
+void connection::pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
+  for (; mask; mask >>= 1, src++) {
+    if (mask & 1) {
+      *dest++ = *src;
+    }
+  }
+}
+void connection::pack_values(uint32_t mask, const xcb_params_cw_t* src, uint32_t* dest) {
+  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+}
+void connection::pack_values(uint32_t mask, const xcb_params_gc_t* src, uint32_t* dest) {
+  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+}
+void connection::pack_values(uint32_t mask, const xcb_params_configure_window_t* src, uint32_t* dest) {
+  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+}
+
+connection::operator Display*() const {
+  return m_display;
+}
+
+Visual* connection::visual(uint8_t depth) {
+  auto visual_it = m_visual.find(depth);
+  if (visual_it == m_visual.end()) {
+    XVisualInfo info{};
+    if (XMatchVisualInfo(*this, default_screen(), depth, TrueColor, &info)) {
+      visual_it = m_visual.emplace_hint(visual_it, depth, info.visual);
+    }
+  }
+  return visual_it->second;
 }
 
 /**
@@ -183,9 +214,5 @@ string connection::error_str(int error_code) {
 void connection::dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const {
   m_registry.dispatch(evt);
 }
-
-// connection::operator Display*() const {
-//   return xlib::get_display();
-// }
 
 POLYBAR_NS_END

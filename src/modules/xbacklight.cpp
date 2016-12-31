@@ -5,7 +5,6 @@
 #include "utils/math.hpp"
 #include "x11/connection.hpp"
 #include "x11/graphics.hpp"
-#include "x11/xutils.hpp"
 
 #include "modules/meta/base.inl"
 

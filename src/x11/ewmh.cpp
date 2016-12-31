@@ -1,6 +1,6 @@
 #include "x11/ewmh.hpp"
 #include "components/types.hpp"
-#include "x11/xutils.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 
@@ -10,8 +10,7 @@ namespace ewmh_util {
     if (!g_connection) {
       g_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
           [=](xcb_ewmh_connection_t* c) { xcb_ewmh_connection_wipe(c); });
-      xcb_ewmh_init_atoms_replies(
-          &*g_connection, xcb_ewmh_init_atoms(xutils::get_connection(), &*g_connection), nullptr);
+      xcb_ewmh_init_atoms_replies(&*g_connection, xcb_ewmh_init_atoms(connection::make(), &*g_connection), nullptr);
     }
     return g_connection;
   }

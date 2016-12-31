@@ -16,7 +16,6 @@
 #include "utils/process.hpp"
 #include "x11/connection.hpp"
 #include "x11/tray_manager.hpp"
-#include "x11/xutils.hpp"
 
 using namespace polybar;
 
@@ -71,18 +70,14 @@ int main(int argc, char** argv) {
     // Connect to X server
     //==================================================
     XInitThreads();
+    Display* xdisplay{XOpenDisplay(nullptr)};
 
-    // Store the xcb connection pointer with a disconnect deleter
-    unique_ptr<xcb_connection_t, xutils::xcb_connection_deleter> xcbconn{xutils::get_connection()};
-
-    if (!xcbconn) {
+    if (xdisplay == nullptr) {
       logger.err("A connection to X could not be established... ");
       return EXIT_FAILURE;
     }
 
-    connection& conn{connection::make(&*xcbconn)};
-    conn.preload_atoms();
-    conn.query_extensions();
+    connection& conn{connection::make(xdisplay)};
     conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     //==================================================

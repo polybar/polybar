@@ -4,7 +4,6 @@
 
 #include "common.hpp"
 #include "utils/string.hpp"
-#include "x11/xlib.hpp"
 
 POLYBAR_NS
 

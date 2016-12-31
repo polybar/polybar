@@ -9,8 +9,6 @@
 #include "x11/extensions/all.hpp"
 #include "x11/generic.hpp"
 #include "x11/winspec.hpp"
-#include "x11/xlib.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -58,7 +56,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
 
     m_depth = 24;
 
-    m_fontmanager->set_visual(xlib::get_visual(m_connection.default_screen(), m_depth));
+    m_fontmanager->set_visual(m_connection.visual(m_depth));
   }
 
   m_log.trace("renderer: Allocate colormap");
@@ -112,7 +110,7 @@ renderer::renderer(connection& conn, signal_emitter& emitter, const logger& logg
       xcb_params_gc_t params{};
       XCB_AUX_ADD_PARAM(&mask, &params, foreground, colors[i]);
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
-      xutils::pack_values(mask, &params, value_list);
+      connection::pack_values(mask, &params, value_list);
 
       m_colors.emplace(gc(i), colors[i]);
       m_gcontexts.emplace(gc(i), m_connection.generate_id());
@@ -524,7 +522,8 @@ void renderer::debug_hints() {
       ;
     // clang-format on
 
-    xutils::compton_shadow_exclude(m_connection, hintwin);
+    const uint32_t shadow{0};
+    m_connection.change_property(XCB_PROP_MODE_REPLACE, hintwin, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
     m_connection.map_window(hintwin);
   }
 }

@@ -20,13 +20,13 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:malloc
-   obj:/usr/lib/libfontconfig.so.1.9.2
-   obj:/usr/lib/libfontconfig.so.1.9.2
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
    fun:FcPatternAddDouble
-   obj:/usr/lib/libXft.so.2.3.2
-   obj:/usr/lib/libXft.so.2.3.2
-   obj:/usr/lib/libXft.so.2.3.2
-   obj:/usr/lib/libXft.so.2.3.2
+   obj:/usr/lib/libXft.so.*
+   obj:/usr/lib/libXft.so.*
+   obj:/usr/lib/libXft.so.*
+   obj:/usr/lib/libXft.so.*
    fun:XftDefaultHasRender
    fun:XftDefaultSubstitute
    fun:XftFontMatch
@@ -54,8 +54,8 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:realloc
-   obj:/usr/lib/libfontconfig.so.1.9.2
-   obj:/usr/lib/libfontconfig.so.1.9.2
+   obj:/usr/lib/libfontconfig.so.*
+   obj:/usr/lib/libfontconfig.so.*
    fun:FcFontRenderPrepare
    fun:FcFontMatch
    fun:XftFontMatch
@@ -71,15 +71,31 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:realloc
-   obj:/usr/lib/libX11.so.6.3.0
-   obj:/usr/lib/libX11.so.6.3.0
-   obj:/usr/lib/libX11.so.6.3.0
+   obj:/usr/lib/libX11.so.*
+   obj:/usr/lib/libX11.so.*
+   obj:/usr/lib/libX11.so.*
    fun:_XlcCreateLC
    fun:_XlcDefaultLoader
    fun:_XOpenLC
    fun:_XrmInitParseInfo
-   obj:/usr/lib/libX11.so.6.3.0
+   obj:/usr/lib/libX11.so.*
    fun:XrmGetStringDatabase
+   ...
+   ...
+}
+{
+   xft conditional jump
+   Memcheck:Cond
+   obj:/usr/lib/libfreetype.so.*
+   obj:/usr/lib/libfreetype.so.*
+   fun:FT_Outline_Decompose
+   obj:/usr/lib/libfreetype.so.*
+   obj:/usr/lib/libfreetype.so.*
+   obj:/usr/lib/libfreetype.so.*
+   obj:/usr/lib/libfreetype.so.*
+   obj:/usr/lib/libfreetype.so.*
+   fun:XftFontLoadGlyphs
+   fun:XftGlyphExtents
    ...
    ...
 }

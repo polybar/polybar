@@ -2,7 +2,6 @@
 
 #include "x11/connection.hpp"
 #include "x11/winspec.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -33,7 +32,7 @@ xcb_window_t winspec::operator<<(const cw_flush& f) {
     m_height = 1;
   }
 
-  xutils::pack_values(m_mask, &m_params, values);
+  connection::pack_values(m_mask, &m_params, values);
 
   if (f.checked) {
     m_connection.create_window_checked(

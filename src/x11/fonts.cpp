@@ -1,5 +1,3 @@
-#include <X11/Xlib-xcb.h>
-
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "utils/color.hpp"
@@ -8,8 +6,6 @@
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/fonts.hpp"
-#include "x11/xlib.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -17,11 +13,14 @@ void font_ref::_deleter::operator()(font_ref* font) {
   font->glyph_widths.clear();
   font->width_lut.clear();
 
-  if (font->xft != nullptr) {
-    XftFontClose(&*xlib::get_display(), font->xft);
-  }
-  if (font->ptr != XCB_NONE) {
-    xcb_close_font(&*xutils::get_connection(), font->ptr);
+  if (font->xft != nullptr || font->ptr != XCB_NONE) {
+    auto& conn = connection::make();
+    if (font->xft != nullptr) {
+      XftFontClose(conn, font->xft);
+    }
+    if (font->ptr != XCB_NONE) {
+      xcb_close_font(conn, font->ptr);
+    }
   }
   delete font;
 }
@@ -30,16 +29,15 @@ void font_ref::_deleter::operator()(font_ref* font) {
  * Create instance
  */
 font_manager::make_type font_manager::make() {
-  return factory_util::unique<font_manager>(
-      connection::make(), logger::make(), xlib::get_display(), xlib::get_visual(), xlib::create_colormap());
+  return factory_util::unique<font_manager>(connection::make(), logger::make());
 }
 
-font_manager::font_manager(connection& conn, const logger& logger, Display* dsp, Visual* vis, Colormap&& cm)
+font_manager::font_manager(connection& conn, const logger& logger)
     : m_connection(conn)
     , m_logger(logger)
-    , m_display(forward<decltype(dsp)>(dsp))
-    , m_visual(forward<decltype(vis)>(vis))
-    , m_colormap(forward<decltype(cm)>(cm)) {
+    , m_display(m_connection)
+    , m_visual(m_connection.visual())
+    , m_colormap(XDefaultColormap(m_display, m_connection.default_screen())) {
   if (!XftInit(nullptr) || !XftInitFtLibrary()) {
     throw application_error("Could not initialize Xft library");
   }

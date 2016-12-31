@@ -1,5 +1,8 @@
 #pragma once
 
+#include <X11/X.h>
+#include <X11/Xlib-xcb.h>
+#include <X11/Xutil.h>
 #include <cstdlib>
 #include <xpp/core.hpp>
 #include <xpp/generic/factory.hpp>
@@ -15,6 +18,19 @@
 POLYBAR_NS
 
 namespace detail {
+  class displaylock {
+   public:
+    explicit displaylock(Display* display) : m_display(forward<decltype(display)>(display)) {
+      XLockDisplay(m_display);
+    }
+    ~displaylock() {
+      XUnlockDisplay(m_display);
+    }
+
+   protected:
+    Display* m_display;
+  };
+
   template <typename Connection, typename... Extensions>
   class interfaces : public xpp::x::extension::interface<interfaces<Connection, Extensions...>, Connection>,
                      public Extensions::template interface<interfaces<Connection, Extensions...>, Connection>... {
@@ -44,10 +60,6 @@ namespace detail {
 
     virtual ~connection_base() {}
 
-    const Derived& operator=(const Derived& o) {
-      return o;
-    }
-
     void operator()(const shared_ptr<xcb_generic_error_t>& error) const {
       check<xpp::x::extension, Extensions...>(error);
     }
@@ -59,7 +71,7 @@ namespace detail {
 
     template <typename WindowType = xcb_window_t>
     WindowType root() const {
-      using make = xpp::generic::factory::make<Derived, xcb_window_t, WindowType>;
+      using make = xpp::generic::factory::make<connection_base, xcb_window_t, WindowType>;
       return make()(*this, m_root_window);
     }
 
@@ -102,32 +114,32 @@ namespace detail {
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
  public:
   using base_type = detail::connection_base<connection&, XPP_EXTENSION_LIST>;
-  using make_type = connection&;
-  static make_type make(xcb_connection_t* conn = nullptr);
 
-  template <typename... Args>
-  explicit connection(Args&&... args) : base_type(forward<Args>(args)...) {}
+  using make_type = connection&;
+  static make_type make(Display* display = nullptr);
+
+  explicit connection(Display* dsp);
+  ~connection();
 
   const connection& operator=(const connection& o) {
     return o;
   }
 
-  // operator Display*() const;
+  static void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest);
+  static void pack_values(uint32_t mask, const xcb_params_cw_t* src, uint32_t* dest);
+  static void pack_values(uint32_t mask, const xcb_params_gc_t* src, uint32_t* dest);
+  static void pack_values(uint32_t mask, const xcb_params_configure_window_t* src, uint32_t* dest);
 
-  void preload_atoms();
-
-  void query_extensions();
+  operator Display*() const;
+  Visual* visual(uint8_t depth = 32U);
+  xcb_screen_t* screen(bool realloc = false);
 
   string id(xcb_window_t w) const;
 
-  xcb_screen_t* screen(bool realloc = false);
-
   void ensure_event_mask(xcb_window_t win, uint32_t event);
-
   void clear_event_mask(xcb_window_t win);
 
   shared_ptr<xcb_client_message_event_t> make_client_message(xcb_atom_t type, xcb_window_t target) const;
-
   void send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
       uint32_t event_mask = 0xFFFFFF, bool propagate = false) const;
 
@@ -169,6 +181,8 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   }
 
  protected:
+  Display* m_display{nullptr};
+  map<uint8_t, Visual*> m_visual;
   registry m_registry{*this};
   xcb_screen_t* m_screen{nullptr};
 };

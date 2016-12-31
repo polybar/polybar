@@ -21,7 +21,6 @@
 #include "x11/winspec.hpp"
 #include "x11/wm.hpp"
 #include "x11/xembed.hpp"
-#include "x11/xutils.hpp"
 
 // ====================================================================================================
 //
@@ -366,7 +365,7 @@ void tray_manager::reconfigure_window() {
 
     XCB_AUX_ADD_PARAM(&mask, &params, width, width);
     XCB_AUX_ADD_PARAM(&mask, &params, x, x);
-    xutils::pack_values(mask, &params, values);
+    connection::pack_values(mask, &params, values);
     m_connection.configure_window_checked(m_tray, mask, values);
   }
 
@@ -561,7 +560,8 @@ void tray_manager::create_window() {
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
 
-  xutils::compton_shadow_exclude(m_connection, m_tray);
+  const uint32_t shadow{0};
+  m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
 }
 
 /**
@@ -617,7 +617,7 @@ void tray_manager::restack_window() {
     XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.sibling);
     XCB_AUX_ADD_PARAM(&mask, &params, stack_mode, XCB_STACK_MODE_ABOVE);
 
-    xutils::pack_values(mask, &params, values);
+    connection::pack_values(mask, &params, values);
     m_connection.configure_window_checked(m_tray, mask, values);
   } catch (const exception& err) {
     auto id = m_connection.id(m_opts.sibling);

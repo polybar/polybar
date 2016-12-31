@@ -5,7 +5,6 @@
 #include "x11/connection.hpp"
 #include "x11/tray_client.hpp"
 #include "x11/xembed.hpp"
-#include "x11/xutils.hpp"
 
 POLYBAR_NS
 
@@ -95,7 +94,7 @@ void tray_client::reconfigure(int16_t x, int16_t y) const {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, x, x);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, y);
 
-  xutils::pack_values(configure_mask, &configure_params, configure_values);
+  connection::pack_values(configure_mask, &configure_params, configure_values);
   m_connection.configure_window_checked(window(), configure_mask, configure_values);
 }
 

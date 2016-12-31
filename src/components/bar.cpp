@@ -20,7 +20,6 @@
 #include "x11/extensions/all.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/wm.hpp"
-#include "x11/xutils.hpp"
 
 #if ENABLE_I3
 #include "utils/i3.hpp"
@@ -712,7 +711,7 @@ bool bar::on(const sig_ui::tick&) {
     params.y = std::max(params.y, static_cast<int32_t>(m_opts.shade_pos.y));
   }
 
-  xutils::pack_values(mask, &params, values);
+  connection::pack_values(mask, &params, values);
 
   m_connection.configure_window(m_opts.window, mask, values);
   m_connection.flush();

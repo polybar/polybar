@@ -20,14 +20,7 @@ color::color(string hex) : m_source(hex) {
   }
 
   m_value = std::strtoul(&hex[1], nullptr, 16);
-
-  // Premultiply alpha
-  auto a = color_util::alpha_channel(m_value);
-  auto r = color_util::red_channel(m_value) * a / 255;
-  auto g = color_util::green_channel(m_value) * a / 255;
-  auto b = color_util::blue_channel(m_value) * a / 255;
-
-  m_color = (a << 24) | (r << 16) | (g << 8) | b;
+  m_color = color_util::premultiply_alpha(m_value);
 }
 
 string color::source() const {
