@@ -14,6 +14,9 @@ namespace chrono = std::chrono;
   m_builder->cmd(BUTTON, string_util::replace_all(m_actions[BUTTON], "%counter%", counter_str))
 
 namespace modules {
+  /**
+   * TODO: Split into timed-/streaming modules
+   */
   class script_module : public event_module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);

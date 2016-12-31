@@ -34,12 +34,13 @@ namespace modules {
   }
 
   void script_module::stop() {
+    m_updatelock.unlock();
+    event_module::stop();
+
     if (m_command && m_command->is_running()) {
       m_log.warn("%s: Stopping shell command", name());
       m_command->terminate();
     }
-    wakeup();
-    event_module::stop();
   }
 
   void script_module::idle() {
@@ -53,26 +54,19 @@ namespace modules {
   bool script_module::has_event() {
     if (!m_tail) {
       return true;
-    }
-
-    try {
-      if (!m_command || !m_command->is_running()) {
-        auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-        m_log.trace("%s: Executing '%s'", name(), exec);
-
-        m_command = command_util::make_command(exec);
+    } else if (!m_command || !m_command->is_running()) {
+      try {
+        string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
+        m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
+        m_command = command_util::make_command(move(exec));
         m_command->exec(false);
+      } catch (const std::exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        throw module_error("Failed to execute tail command, stopping module...");
       }
-    } catch (const std::exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      throw module_error("Failed to execute tail command, stopping module...");
     }
 
-    if (!m_command) {
-      return false;
-    }
-
-    if ((m_output = m_command->readline()) == m_prev) {
+    if (!m_command || (m_output = m_command->readline()) == m_prev) {
       return false;
     }
 

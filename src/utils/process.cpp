@@ -106,15 +106,6 @@ namespace process_util {
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;
   }
-
-  void unblock_signal(int sig) {
-    sigset_t sigmask{};
-    sigemptyset(&sigmask);
-    sigaddset(&sigmask, sig);
-    if (pthread_sigmask(SIG_UNBLOCK, &sigmask, nullptr) == -1) {
-      throw system_error("Failed to change pthread_sigmask");
-    }
-  }
 }
 
 POLYBAR_NS_END

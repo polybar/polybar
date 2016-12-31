@@ -23,7 +23,6 @@ command::~command() {
   if (is_running()) {
     terminate();
   }
-
   if (m_stdin[PIPE_READ] > 0) {
     close(m_stdin[PIPE_READ]);
   }
@@ -71,9 +70,6 @@ int command::exec(bool wait_for_completion) {
       throw command_error("Failed to close fd");
     }
 
-    // Make sure SIGTERM is raised
-    process_util::unblock_signal(SIGTERM);
-
     setpgid(m_forkpid, 0);
     process_util::exec_sh(m_cmd.c_str());
   } else {
@@ -96,16 +92,11 @@ int command::exec(bool wait_for_completion) {
 }
 
 void command::terminate() {
-  try {
-    if (is_running()) {
-      m_log.trace("command: Sending SIGTERM to running child process (%d)", m_forkpid);
-      killpg(m_forkpid, SIGTERM);
-      wait();
-    }
-  } catch (const command_error& err) {
-    m_log.warn("%s", err.what());
+  if (is_running()) {
+    m_log.trace("command: Sending SIGTERM to running child process (%d)", m_forkpid);
+    killpg(m_forkpid, SIGTERM);
+    wait();
   }
-
   m_forkpid = -1;
 }
 
@@ -113,10 +104,7 @@ void command::terminate() {
  * Check if command is running
  */
 bool command::is_running() {
-  if (m_forkpid > 0) {
-    return process_util::wait_for_completion_nohang(m_forkpid, &m_forkstatus) > -1;
-  }
-  return false;
+  return m_forkpid > 0 && process_util::wait_for_completion_nohang(m_forkpid, &m_forkstatus) > -1;
 }
 
 /**
