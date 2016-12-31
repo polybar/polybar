@@ -182,8 +182,7 @@ namespace net {
    * Test if the network interface is in a valid state
    */
   bool network::test_interface() const {
-    auto operstate = file_util::get_contents("/sys/class/net/" + m_interface + "/operstate");
-    return operstate.compare(0, 2, "up") == 0;
+    return file_util::contents("/sys/class/net/" + m_interface + "/operstate").compare(0, 2, "up") == 0;
   }
 
   /**

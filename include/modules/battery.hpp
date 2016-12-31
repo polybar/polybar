@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "config.hpp"
 #include "modules/meta/inotify_module.hpp"
 
 POLYBAR_NS
@@ -25,6 +24,25 @@ namespace modules {
       RATE,
     };
 
+    template <typename ReturnType>
+    struct value_reader {
+      using return_type = ReturnType;
+
+      explicit value_reader() = default;
+      explicit value_reader(function<ReturnType()>&& fn) : m_fn(forward<decltype(fn)>(fn)) {}
+
+      ReturnType read() const {
+        return m_fn();
+      }
+
+     private:
+      const function<ReturnType()> m_fn;
+    };
+
+    using state_reader = mutex_wrapper<value_reader<bool /* is_charging */>>;
+    using capacity_reader = mutex_wrapper<value_reader<int /* percentage */>>;
+    using rate_reader = mutex_wrapper<value_reader<unsigned long /* seconds */>>;
+
    public:
     explicit battery_module(const bar_settings&, string);
 
@@ -36,40 +54,51 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    int current_percentage();
-    battery_module::state current_state();
+    state current_state();
+    int current_percentage(state state);
     string current_time();
     void subthread();
 
    private:
-    static constexpr auto FORMAT_CHARGING = "format-charging";
-    static constexpr auto FORMAT_DISCHARGING = "format-discharging";
-    static constexpr auto FORMAT_FULL = "format-full";
+    static constexpr const char* FORMAT_CHARGING{"format-charging"};
+    static constexpr const char* FORMAT_DISCHARGING{"format-discharging"};
+    static constexpr const char* FORMAT_FULL{"format-full"};
 
-    static constexpr auto TAG_ANIMATION_CHARGING = "<animation-charging>";
-    static constexpr auto TAG_BAR_CAPACITY = "<bar-capacity>";
-    static constexpr auto TAG_RAMP_CAPACITY = "<ramp-capacity>";
-    static constexpr auto TAG_LABEL_CHARGING = "<label-charging>";
-    static constexpr auto TAG_LABEL_DISCHARGING = "<label-discharging>";
-    static constexpr auto TAG_LABEL_FULL = "<label-full>";
+    static constexpr const char* TAG_ANIMATION_CHARGING{"<animation-charging>"};
+    static constexpr const char* TAG_BAR_CAPACITY{"<bar-capacity>"};
+    static constexpr const char* TAG_RAMP_CAPACITY{"<ramp-capacity>"};
+    static constexpr const char* TAG_LABEL_CHARGING{"<label-charging>"};
+    static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
+    static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
 
-    static const int SKIP_N_UNCHANGED{3};
+    static const size_t SKIP_N_UNCHANGED{3_z};
 
-    animation_t m_animation_charging;
-    ramp_t m_ramp_capacity;
-    progressbar_t m_bar_capacity;
+    unique_ptr<state_reader> m_state_reader;
+    unique_ptr<capacity_reader> m_capacity_reader;
+    unique_ptr<rate_reader> m_rate_reader;
+
     label_t m_label_charging;
     label_t m_label_discharging;
     label_t m_label_full;
+    animation_t m_animation_charging;
+    progressbar_t m_bar_capacity;
+    ramp_t m_ramp_capacity;
 
-    battery_module::state m_state{battery_module::state::DISCHARGING};
-    map<value, string> m_valuepath;
-    std::atomic<int> m_percentage{0};
+    string m_fstate;
+    string m_fcapnow;
+    string m_fcapfull;
+    string m_frate;
+    string m_fvoltage;
+
+    state m_state{state::DISCHARGING};
+    int m_percentage{0};
+
     int m_fullat{100};
+    string m_timeformat;
+    size_t m_unchanged{SKIP_N_UNCHANGED};
     chrono::duration<double> m_interval{};
     chrono::system_clock::time_point m_lastpoll;
-    string m_timeformat;
-    int m_unchanged{SKIP_N_UNCHANGED};
+    thread m_subthread;
   };
 }
 

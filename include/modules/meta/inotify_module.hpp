@@ -23,6 +23,7 @@ namespace modules {
         CAST_MOD(Impl)->broadcast();
 
         while (this->running()) {
+          std::lock_guard<std::mutex> guard(this->m_updatelock);
           CAST_MOD(Impl)->poll_events();
         }
       } catch (const module_error& err) {
@@ -57,8 +58,6 @@ namespace modules {
       }
 
       while (this->running()) {
-        std::unique_lock<std::mutex> guard(this->m_updatelock);
-
         for (auto&& w : watches) {
           this->m_log.trace_x("%s: Poll inotify watch %s", this->name(), w->path());
 
@@ -66,11 +65,7 @@ namespace modules {
             auto event = w->get_event();
 
             for (auto&& w : watches) {
-              try {
-                w->remove();
-              } catch (const system_error&) {
-                // ignore
-              }
+              w->remove(true);
             }
 
             if (CAST_MOD(Impl)->on_event(event.get())) {
@@ -83,8 +78,6 @@ namespace modules {
           if (!this->running())
             break;
         }
-
-        guard.unlock();
         CAST_MOD(Impl)->idle();
       }
     }

@@ -20,7 +20,7 @@ namespace modules {
   }
 
   float backlight_module::brightness_handle::read() const {
-    return std::strtof(file_util::get_contents(m_path).c_str(), nullptr);
+    return std::strtof(file_util::contents(m_path).c_str(), nullptr);
   }
 
   backlight_module::backlight_module(const bar_settings& bar, string name_)

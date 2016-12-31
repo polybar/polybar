@@ -39,7 +39,7 @@ namespace modules {
   }
 
   bool temperature_module::update() {
-    m_temp = std::atoi(file_util::get_contents(m_path).c_str()) / 1000.0f + 0.5f;
+    m_temp = std::atoi(file_util::contents(m_path).c_str()) / 1000.0f + 0.5f;
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
     const auto replace_tokens = [&](label_t& label) {

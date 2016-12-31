@@ -282,7 +282,7 @@ class config {
     string filename{move(var)};
 
     if (file_util::exists(filename)) {
-      return convert<T>(string_util::trim(file_util::get_contents(filename), '\n'));
+      return convert<T>(string_util::trim(file_util::contents(filename), '\n'));
     }
 
     return fallback;

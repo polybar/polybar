@@ -170,13 +170,24 @@ namespace file_util {
   }
 
   /**
+   * Picks the first existing file out of given entries
+   */
+  string pick(const vector<string>& filenames) {
+    for (auto&& f : filenames) {
+      if (exists(f)) {
+        return f;
+      }
+    }
+    return "";
+  }
+
+  /**
    * Gets the contents of the given file
    */
-  string get_contents(const string& filename) {
+  string contents(const string& filename) {
     try {
       std::ifstream ifs(filename);
-      string contents((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-      return contents;
+      return string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
     } catch (std::ios_base::failure& e) {
       return "";
     }

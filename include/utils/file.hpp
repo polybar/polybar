@@ -93,7 +93,8 @@ class fd_stream : public StreamType {
 
 namespace file_util {
   bool exists(const string& filename);
-  string get_contents(const string& filename);
+  string pick(const vector<string>& filenames);
+  string contents(const string& filename);
   bool is_fifo(string filename);
 
   template <typename... Args>
