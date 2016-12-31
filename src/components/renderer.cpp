@@ -426,6 +426,12 @@ const vector<action_block> renderer::get_actions() {
  * Shift pixmap content by given value
  */
 int16_t renderer::shift_content(int16_t x, const int16_t shift_x) {
+  if (x > m_rect.width) {
+    return m_rect.width;
+  } else if (x < 0) {
+    return 0;
+  }
+
   m_log.trace_x("renderer: shift_content(%i)", shift_x);
 
   int16_t base_x{0};
