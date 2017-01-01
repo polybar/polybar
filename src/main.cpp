@@ -21,7 +21,6 @@
 using namespace polybar;
 
 int main(int argc, char** argv) {
-  // std::cout << x << std::Endl;
   // clang-format off
   const command_line::options opts{
       command_line::option{"-h", "--help", "Show help options"},

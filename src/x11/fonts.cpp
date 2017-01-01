@@ -37,11 +37,7 @@ font_manager::font_manager(connection& conn, const logger& logger)
     , m_logger(logger)
     , m_display(m_connection)
     , m_visual(m_connection.visual())
-    , m_colormap(XDefaultColormap(m_display, m_connection.default_screen())) {
-  if (!XftInit(nullptr) || !XftInitFtLibrary()) {
-    throw application_error("Could not initialize Xft library");
-  }
-}
+    , m_colormap(XDefaultColormap(m_display, m_connection.default_screen())) {}
 
 font_manager::~font_manager() {
   cleanup();

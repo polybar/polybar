@@ -62,9 +62,13 @@ connection::connection(Display* dsp) : base_type(XGetXCBConnection(dsp)), m_disp
 }
 
 connection::~connection() {
-  disconnect();
-  std::for_each(m_visual.begin(), m_visual.end(), [=](pair<uint8_t, Visual*> p) { XFree(p.second); });
-  m_visual.clear();
+  if (m_display != nullptr) {
+    XCloseDisplay(m_display);
+  } else {
+    disconnect();
+    std::for_each(m_visual.begin(), m_visual.end(), [=](pair<uint8_t, Visual*> p) { XFree(p.second); });
+    m_visual.clear();
+  }
 }
 
 void connection::pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
