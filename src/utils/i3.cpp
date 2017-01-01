@@ -63,7 +63,7 @@ namespace i3_util {
   bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
     for (auto&& root : root_windows(conn, mon->name)) {
       const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-      const uint32_t value_list[2]{root, XCB_STACK_MODE_ABOVE};
+      const uint32_t value_list[2]{root, XCB_STACK_MODE_BELOW};
       conn.configure_window_checked(win, value_mask, value_list);
       return true;
     }
