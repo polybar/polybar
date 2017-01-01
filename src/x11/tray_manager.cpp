@@ -1093,10 +1093,11 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
     find_client(evt->window)->mapped(true);
-
-    if (mapped_clients() > m_opts.configured_slots) {
+    size_t clientcount{mapped_clients()};
+    if (clientcount > m_opts.configured_slots) {
       reconfigure();
     }
+    m_sig.emit(signals::ui_tray::mapped_clients{clientcount});
   }
 }
 
@@ -1111,7 +1112,8 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
   } else if (m_activated && is_embedded(evt->window)) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Set client unmapped");
-    find_client(evt->window)->mapped(true);
+    find_client(evt->window)->mapped(false);
+    m_sig.emit(signals::ui_tray::mapped_clients{mapped_clients()});
   }
 }
 
@@ -1121,7 +1123,7 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
  * toggle the tray window whenever the visibility of the bar window changes.
  */
 bool tray_manager::on(const visibility_change& evt) {
-  bool visible{*evt()};
+  bool visible{evt.cast()};
   size_t clients{mapped_clients()};
 
   m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
@@ -1146,7 +1148,7 @@ bool tray_manager::on(const visibility_change& evt) {
 
 bool tray_manager::on(const dim_window& evt) {
   if (m_activated) {
-    wm_util::set_wm_window_opacity(m_connection, m_tray, *evt.data() * 0xFFFFFFFF);
+    wm_util::set_wm_window_opacity(m_connection, m_tray, evt.cast() * 0xFFFFFFFF);
     m_connection.flush();
   }
   // let the event bubble

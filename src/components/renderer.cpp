@@ -530,7 +530,7 @@ void renderer::debug_hints() {
 #endif
 
 bool renderer::on(const change_background& evt) {
-  const uint32_t color{*evt()};
+  const uint32_t color{evt.cast()};
 
   if (m_colors[gc::BG] == color) {
     m_log.trace_x("renderer: ignoring unchanged background color(#%08x)", color);
@@ -545,7 +545,7 @@ bool renderer::on(const change_background& evt) {
 }
 
 bool renderer::on(const change_foreground& evt) {
-  const uint32_t color{*evt()};
+  const uint32_t color{evt.cast()};
 
   if (m_colors[gc::FG] == color) {
     m_log.trace_x("renderer: ignoring unchanged foreground color(#%08x)", color);
@@ -560,7 +560,7 @@ bool renderer::on(const change_foreground& evt) {
 }
 
 bool renderer::on(const change_underline& evt) {
-  const uint32_t color{*evt()};
+  const uint32_t color{evt.cast()};
 
   if (m_colors[gc::UL] == color) {
     m_log.trace_x("renderer: ignoring unchanged underline color(#%08x)", color);
@@ -574,7 +574,7 @@ bool renderer::on(const change_underline& evt) {
 }
 
 bool renderer::on(const change_overline& evt) {
-  const uint32_t color{*evt()};
+  const uint32_t color{evt.cast()};
 
   if (m_colors[gc::OL] == color) {
     m_log.trace_x("renderer: ignoring unchanged overline color(#%08x)", color);
@@ -588,7 +588,7 @@ bool renderer::on(const change_overline& evt) {
 }
 
 bool renderer::on(const change_font& evt) {
-  const uint8_t font{*evt()};
+  const uint8_t font{evt.cast()};
 
   if (m_fontindex == font) {
     m_log.trace_x("renderer: ignoring unchanged font index(%i)", static_cast<uint8_t>(font));
@@ -602,7 +602,7 @@ bool renderer::on(const change_font& evt) {
 }
 
 bool renderer::on(const change_alignment& evt) {
-  auto align = static_cast<const alignment&>(*evt());
+  auto align = static_cast<const alignment&>(evt.cast());
 
   if (align == m_alignment) {
     m_log.trace_x("renderer: ignoring unchanged alignment(%i)", static_cast<uint8_t>(align));
@@ -616,30 +616,30 @@ bool renderer::on(const change_alignment& evt) {
 }
 
 bool renderer::on(const offset_pixel& evt) {
-  shift_content(*evt());
+  shift_content(evt.cast());
   return true;
 }
 
 bool renderer::on(const attribute_set& evt) {
-  m_log.trace_x("renderer: attribute_set(%i, %i)", static_cast<uint8_t>(*evt()), true);
-  m_attributes |= 1U << static_cast<uint8_t>(*evt());
+  m_log.trace_x("renderer: attribute_set(%i, %i)", static_cast<uint8_t>(evt.cast()), true);
+  m_attributes |= 1U << static_cast<uint8_t>(evt.cast());
   return true;
 }
 
 bool renderer::on(const attribute_unset& evt) {
-  m_log.trace_x("renderer: attribute_unset(%i, %i)", static_cast<uint8_t>(*evt()), true);
-  m_attributes &= ~(1U << static_cast<uint8_t>(*evt()));
+  m_log.trace_x("renderer: attribute_unset(%i, %i)", static_cast<uint8_t>(evt.cast()), true);
+  m_attributes &= ~(1U << static_cast<uint8_t>(evt.cast()));
   return true;
 }
 
 bool renderer::on(const attribute_toggle& evt) {
-  m_log.trace_x("renderer: attribute_toggle(%i)", static_cast<uint8_t>(*evt()));
-  m_attributes ^= 1U << static_cast<uint8_t>(*evt());
+  m_log.trace_x("renderer: attribute_toggle(%i)", static_cast<uint8_t>(evt.cast()));
+  m_attributes ^= 1U << static_cast<uint8_t>(evt.cast());
   return true;
 }
 
 bool renderer::on(const action_begin& evt) {
-  auto a = static_cast<const action&>(*evt());
+  auto a = static_cast<const action&>(evt.cast());
   action_block action{};
   action.button = a.button;
   action.align = m_alignment;
@@ -658,7 +658,7 @@ bool renderer::on(const action_begin& evt) {
 }
 
 bool renderer::on(const action_end& evt) {
-  auto btn = static_cast<const mousebtn&>(*evt());
+  auto btn = static_cast<const mousebtn&>(evt.cast());
   int16_t clickable_width{0};
 
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
@@ -695,19 +695,19 @@ bool renderer::on(const action_end& evt) {
 }
 
 bool renderer::on(const write_text_ascii& evt) {
-  const uint16_t data[1]{*evt()};
+  const uint16_t data[1]{evt.cast()};
   draw_textstring(data, 1);
   return true;
 }
 
 bool renderer::on(const write_text_unicode& evt) {
-  const uint16_t data[1]{*evt()};
+  const uint16_t data[1]{evt.cast()};
   draw_textstring(data, 1);
   return true;
 }
 
 bool renderer::on(const write_text_string& evt) {
-  auto pkt = static_cast<const parser::packet&>(*evt());
+  auto pkt = *static_cast<const parser::packet*>(evt.data());
   draw_textstring(pkt.data, pkt.length);
   return true;
 }

@@ -531,7 +531,7 @@ bool controller::on(const sig_ev::check_state&) {
  * Process ui button press event
  */
 bool controller::on(const sig_ui::button_press& evt) {
-  string input{*evt()};
+  string input{evt.cast()};
 
   if (input.empty()) {
     m_log.err("Cannot enqueue empty input");
@@ -546,7 +546,7 @@ bool controller::on(const sig_ui::button_press& evt) {
  * Process ipc action messages
  */
 bool controller::on(const sig_ipc::action& evt) {
-  string action{*evt()};
+  string action{evt.cast()};
 
   if (action.empty()) {
     m_log.err("Cannot enqueue empty ipc action");
@@ -562,7 +562,7 @@ bool controller::on(const sig_ipc::action& evt) {
  * Process ipc command messages
  */
 bool controller::on(const sig_ipc::command& evt) {
-  string command{*evt()};
+  string command{evt.cast()};
 
   if (command.empty()) {
     return false;
@@ -583,7 +583,7 @@ bool controller::on(const sig_ipc::command& evt) {
  * Process ipc hook messages
  */
 bool controller::on(const sig_ipc::hook& evt) {
-  string hook{*evt()};
+  string hook{evt.cast()};
 
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {

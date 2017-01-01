@@ -2,6 +2,8 @@
 
 #include <map>
 #include <unordered_map>
+#include <typeindex>
+#include <typeinfo>
 
 #include "common.hpp"
 
@@ -45,6 +47,6 @@ class signal_receiver : public signal_receiver_interface,
   }
 };
 
-using signal_receivers_t = std::unordered_map<uint8_t, signal_receiver_interface::prio_map>;
+using signal_receivers_t = std::unordered_map<std::type_index, signal_receiver_interface::prio_map>;
 
 POLYBAR_NS_END

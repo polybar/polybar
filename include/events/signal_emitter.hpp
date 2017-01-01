@@ -2,8 +2,6 @@
 
 #include "common.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/factory.hpp"
-#include "utils/mixins.hpp"
 
 POLYBAR_NS
 
@@ -55,8 +53,8 @@ class signal_emitter {
 
  protected:
   template <typename Signal>
-  uint8_t id() const {
-    return Signal::id();
+  std::type_index id() const {
+    return typeid(Signal);
   }
 
   template <typename Receiver, typename Signal>
@@ -70,7 +68,7 @@ class signal_emitter {
     attach<Receiver, Next, Signals...>(s);
   }
 
-  void attach(signal_receiver_interface* s, uint8_t id) {
+  void attach(signal_receiver_interface* s, std::type_index id) {
     g_signal_receivers[id].emplace(s->priority(), s);
   }
 
@@ -85,7 +83,7 @@ class signal_emitter {
     detach<Receiver, Next, Signals...>(s);
   }
 
-  void detach(signal_receiver_interface* d, uint8_t id) {
+  void detach(signal_receiver_interface* d, std::type_index id) {
     try {
       auto& prio_map = g_signal_receivers.at(id);
       const auto& prio_sink_pair = prio_map.equal_range(d->priority());

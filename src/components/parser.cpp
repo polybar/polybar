@@ -184,7 +184,7 @@ size_t parser::text(string&& data) {
       }
 
       pkt.length = len;
-      m_sig.emit(write_text_string{move(pkt)});
+      m_sig.emit(write_text_string{static_cast<void*>(&pkt)});
     }
 
     if (pos > 0) {

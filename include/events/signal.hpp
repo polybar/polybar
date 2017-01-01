@@ -5,34 +5,18 @@
 #include "components/ipc.hpp"
 #include "components/parser.hpp"
 #include "components/types.hpp"
-#include "events/types.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
 
-// fwd decl {{{
-
+// fwd
 enum class mousebtn : uint8_t;
 enum class syntaxtag : uint8_t;
 enum class alignment : uint8_t;
 enum class attribute : uint8_t;
 
-// }}}
-
-#define DEFINE_SIGNAL(id, name)                        \
-  struct name : public detail::base_signal<name, id> { \
-    using base_type::base_type;                        \
-  }
-
-#define DEFINE_VALUE_SIGNAL(id, name, type)                   \
-  struct name : public detail::value_signal<name, id, type> { \
-    using base_type::base_type;                               \
-  }
-
 namespace signals {
   namespace detail {
-    // definition : signal {{{
-
     class signal {
      public:
       explicit signal() = default;
@@ -40,98 +24,161 @@ namespace signals {
       virtual size_t size() const = 0;
     };
 
-    // }}}
-    // definition : base_signal {{{
-
-    template <typename Derived, uint8_t Id>
+    template <typename Derived>
     class base_signal : public signal {
      public:
-      using base_type = base_signal<Derived, Id>;
+      using base_type = base_signal<Derived>;
 
       explicit base_signal() = default;
-
       virtual ~base_signal() {}
-
-      static uint8_t id() {
-        return Id;
-      }
 
       virtual size_t size() const override {
         return sizeof(Derived);
       };
     };
 
-    // }}}
-    // definition : value_signal {{{
-
-    template <typename Derived, uint8_t Id, typename ValueType>
-    class value_signal : public base_signal<Derived, Id> {
+    template <typename Derived, typename ValueType>
+    class value_signal : public base_signal<Derived> {
      public:
-      using base_type = value_signal<Derived, Id, ValueType>;
+      using base_type = value_signal<Derived, ValueType>;
       using value_type = ValueType;
 
-      explicit value_signal() {}
-      explicit value_signal(ValueType&& data) {
-        memcpy(m_data, &data, sizeof(data));
+      template <size_t Size = sizeof(ValueType)>
+      explicit value_signal(void* data) : m_data(data), m_size(Size) {}
+
+      template <size_t Size = sizeof(ValueType)>
+      explicit value_signal(ValueType data) : m_size(Size) {
+        m_data = new char[Size];
+        m_alloced = true;
+        memcpy(m_data, static_cast<void*>(&data), Size);
       }
 
-      virtual ~value_signal() {}
-
-      const ValueType* operator()() const {
-        return reinterpret_cast<const ValueType*>(&m_data);
+      virtual ~value_signal() {
+        if (m_alloced) {
+          delete[] static_cast<char*>(m_data);
+        }
       }
-      const ValueType* data() const {
-        return reinterpret_cast<const ValueType*>(&m_data);
+
+      void* data() const {
+        return m_data;
+      }
+      size_t size() const {
+        return m_size;
+      }
+      inline ValueType cast() const {
+        return *static_cast<ValueType*>(m_data);
       }
 
      private:
-      char m_data[sizeof(ValueType)];
+      void* m_data;
+      size_t m_size;
+      bool m_alloced{false};
     };
-
-    // }}}
   }
 
   namespace eventqueue {
-    DEFINE_SIGNAL(1, exit_terminate);
-    DEFINE_SIGNAL(2, exit_reload);
-    DEFINE_SIGNAL(3, notify_change);
-    DEFINE_SIGNAL(4, check_state);
-    DEFINE_SIGNAL(5, update);
+    struct exit_terminate : public detail::base_signal<exit_terminate> {
+      using base_type::base_type;
+    };
+    struct exit_reload : public detail::base_signal<exit_reload> {
+      using base_type::base_type;
+    };
+    struct notify_change : public detail::base_signal<notify_change> {
+      using base_type::base_type;
+    };
+    struct check_state : public detail::base_signal<check_state> {
+      using base_type::base_type;
+    };
+    struct update : public detail::base_signal<update> {
+      using base_type::base_type;
+    };
   }
 
   namespace ipc {
-    DEFINE_VALUE_SIGNAL(20, command, string);
-    DEFINE_VALUE_SIGNAL(21, hook, string);
-    DEFINE_VALUE_SIGNAL(22, action, string);
+    struct command : public detail::value_signal<command, string> {
+      using base_type::base_type;
+    };
+    struct hook : public detail::value_signal<hook, string> {
+      using base_type::base_type;
+    };
+    struct action : public detail::value_signal<action, string> {
+      using base_type::base_type;
+    };
   }
 
   namespace ui {
-    DEFINE_SIGNAL(50, tick);
-    DEFINE_VALUE_SIGNAL(51, button_press, string);
-    DEFINE_VALUE_SIGNAL(52, visibility_change, bool);
-    DEFINE_VALUE_SIGNAL(53, dim_window, double);
-    DEFINE_SIGNAL(54, shade_window);
-    DEFINE_SIGNAL(55, unshade_window);
+    struct tick : public detail::base_signal<tick> {
+      using base_type::base_type;
+    };
+    struct button_press : public detail::value_signal<button_press, string> {
+      using base_type::base_type;
+    };
+    struct visibility_change : public detail::value_signal<visibility_change, bool> {
+      using base_type::base_type;
+    };
+    struct dim_window : public detail::value_signal<dim_window, double> {
+      using base_type::base_type;
+    };
+    struct shade_window : public detail::base_signal<shade_window> {
+      using base_type::base_type;
+    };
+    struct unshade_window : public detail::base_signal<unshade_window> {
+      using base_type::base_type;
+    };
+  }
+
+  namespace ui_tray {
+    struct mapped_clients : public detail::value_signal<mapped_clients, size_t> {
+      using base_type::base_type;
+    };
   }
 
   namespace parser {
-    using parser_t = polybar::parser;
-
-    DEFINE_VALUE_SIGNAL(70, change_background, uint32_t);
-    DEFINE_VALUE_SIGNAL(71, change_foreground, uint32_t);
-    DEFINE_VALUE_SIGNAL(72, change_underline, uint32_t);
-    DEFINE_VALUE_SIGNAL(73, change_overline, uint32_t);
-    DEFINE_VALUE_SIGNAL(74, change_font, uint8_t);
-    DEFINE_VALUE_SIGNAL(75, change_alignment, alignment);
-    DEFINE_VALUE_SIGNAL(76, offset_pixel, int16_t);
-    DEFINE_VALUE_SIGNAL(77, attribute_set, attribute);
-    DEFINE_VALUE_SIGNAL(78, attribute_unset, attribute);
-    DEFINE_VALUE_SIGNAL(79, attribute_toggle, attribute);
-    DEFINE_VALUE_SIGNAL(80, action_begin, action);
-    DEFINE_VALUE_SIGNAL(81, action_end, mousebtn);
-    DEFINE_VALUE_SIGNAL(82, write_text_ascii, uint16_t);
-    DEFINE_VALUE_SIGNAL(83, write_text_unicode, uint16_t);
-    DEFINE_VALUE_SIGNAL(84, write_text_string, parser_t::packet);
+    struct change_background : public detail::value_signal<change_background, uint32_t> {
+      using base_type::base_type;
+    };
+    struct change_foreground : public detail::value_signal<change_foreground, uint32_t> {
+      using base_type::base_type;
+    };
+    struct change_underline : public detail::value_signal<change_underline, uint32_t> {
+      using base_type::base_type;
+    };
+    struct change_overline : public detail::value_signal<change_overline, uint32_t> {
+      using base_type::base_type;
+    };
+    struct change_font : public detail::value_signal<change_font, uint8_t> {
+      using base_type::base_type;
+    };
+    struct change_alignment : public detail::value_signal<change_alignment, alignment> {
+      using base_type::base_type;
+    };
+    struct offset_pixel : public detail::value_signal<offset_pixel, int16_t> {
+      using base_type::base_type;
+    };
+    struct attribute_set : public detail::value_signal<attribute_set, attribute> {
+      using base_type::base_type;
+    };
+    struct attribute_unset : public detail::value_signal<attribute_unset, attribute> {
+      using base_type::base_type;
+    };
+    struct attribute_toggle : public detail::value_signal<attribute_toggle, attribute> {
+      using base_type::base_type;
+    };
+    struct action_begin : public detail::value_signal<action_begin, action> {
+      using base_type::base_type;
+    };
+    struct action_end : public detail::value_signal<action_end, mousebtn> {
+      using base_type::base_type;
+    };
+    struct write_text_ascii : public detail::value_signal<write_text_ascii, uint16_t> {
+      using base_type::base_type;
+    };
+    struct write_text_unicode : public detail::value_signal<write_text_unicode, uint16_t> {
+      using base_type::base_type;
+    };
+    struct write_text_string : public detail::value_signal<write_text_string, polybar::parser::packet> {
+      using base_type::base_type;
+    };
   }
 }
 

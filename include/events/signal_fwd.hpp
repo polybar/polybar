@@ -4,10 +4,16 @@
 
 POLYBAR_NS
 
+class signal_emitter;
+class signal_receiver_interface;
 template <uint8_t Priority, typename Signal, typename... Signals>
 class signal_receiver;
 
 namespace signals {
+  namespace detail {
+    class signal;
+  }
+
   namespace eventqueue {
     struct exit_terminate;
     struct exit_reload;
@@ -27,6 +33,9 @@ namespace signals {
     struct dim_window;
     struct shade_window;
     struct unshade_window;
+  }
+  namespace ui_tray {
+    struct mapped_clients;
   }
   namespace parser {
     struct change_background;

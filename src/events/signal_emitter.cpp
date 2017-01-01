@@ -1,4 +1,5 @@
 #include "events/signal_emitter.hpp"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 

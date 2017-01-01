@@ -514,7 +514,7 @@ void bar::handle(const evt::leave_notify&) {
   if (!m_opts.dimmed) {
     m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
       m_opts.dimmed = true;
-      m_sig.emit(dim_window{double{m_opts.dimvalue}});
+      m_sig.emit(dim_window{m_opts.dimvalue});
     });
   }
 }
@@ -722,8 +722,8 @@ bool bar::on(const sig_ui::tick&) {
 }
 
 bool bar::on(const sig_ui::dim_window& sig) {
-  m_opts.dimmed = *sig.data() != 1.0;
-  set_wm_window_opacity(m_connection, m_opts.window, *sig.data() * 0xFFFFFFFF);
+  m_opts.dimmed = sig.cast() != 1.0;
+  set_wm_window_opacity(m_connection, m_opts.window, sig.cast() * 0xFFFFFFFF);
   m_connection.flush();
   return false;
 }
