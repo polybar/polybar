@@ -15,6 +15,9 @@
 #include "modules/menu.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/script.hpp"
+#if DEBUG
+#include "modules/systray.hpp"
+#endif
 #include "modules/tailscript.hpp"
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
@@ -75,6 +78,10 @@ namespace {
       return new volume_module(bar, move(module_name));
     } else if (name == "internal/network") {
       return new network_module(bar, move(module_name));
+#if DEBUG
+    } else if (name == "internal/systray") {
+      return new systray_module(bar, move(module_name));
+#endif
     } else if (name == "internal/temperature") {
       return new temperature_module(bar, move(module_name));
     } else if (name == "internal/xbacklight") {
