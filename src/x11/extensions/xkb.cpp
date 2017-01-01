@@ -100,8 +100,7 @@ namespace xkb_util {
    */
   uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device) {
     uint8_t result{0};
-    xcb_xkb_get_state_cookie_t cookie{xcb_xkb_get_state(conn, device)};
-    xcb_xkb_get_state_reply_t* reply{xcb_xkb_get_state_reply(conn, cookie, nullptr)};
+    auto reply = xcb_xkb_get_state_reply(conn, xcb_xkb_get_state(conn, device), nullptr);
     if (reply != nullptr) {
       result = reply->group;
       free(reply);
@@ -116,8 +115,7 @@ namespace xkb_util {
     vector<keyboard::layout> results;
 
     uint32_t mask{XCB_XKB_NAME_DETAIL_GROUP_NAMES | XCB_XKB_NAME_DETAIL_SYMBOLS};
-    xcb_xkb_get_names_cookie_t cookie{xcb_xkb_get_names(conn, device, mask)};
-    xcb_xkb_get_names_reply_t* reply{xcb_xkb_get_names_reply(conn, cookie, nullptr)};
+    auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
 
     if (reply == nullptr) {
       return results;
@@ -158,8 +156,7 @@ namespace xkb_util {
     map<keyboard::indicator::type, keyboard::indicator> results;
 
     uint32_t mask{XCB_XKB_NAME_DETAIL_INDICATOR_NAMES};
-    xcb_xkb_get_names_cookie_t cookie{xcb_xkb_get_names(conn, device, mask)};
-    xcb_xkb_get_names_reply_t* reply{xcb_xkb_get_names_reply(conn, cookie, nullptr)};
+    auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
 
     if (reply == nullptr) {
       return results;
