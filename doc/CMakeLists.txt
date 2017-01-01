@@ -2,6 +2,8 @@
 # Generate configuration file
 #
 
+add_subdirectory(zsh)
+
 set(MODULES_LEFT "bspwm i3 xwindow")
 set(MODULES_CENTER "")
 set(MODULES_RIGHT "backlight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
