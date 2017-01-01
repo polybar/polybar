@@ -46,19 +46,13 @@ namespace net {
     if (if_nametoindex(m_interface.c_str()) == 0) {
       throw network_error("Invalid network interface \"" + m_interface + "\"");
     }
-    if ((m_socketfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+
+    m_socketfd = file_util::make_file_descriptor(socket(AF_INET, SOCK_DGRAM, 0));
+    if (!*m_socketfd) {
       throw network_error("Failed to open socket");
     }
-    check_tuntap();
-  }
 
-  /**
-   * Destruct network interface
-   */
-  network::~network() {
-    if (m_socketfd != -1) {
-      close(m_socketfd);
-    }
+    check_tuntap();
   }
 
   /**
@@ -66,7 +60,6 @@ namespace net {
    */
   bool network::query(bool accumulate) {
     struct ifaddrs* ifaddr;
-
     if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
       return false;
     }
@@ -164,7 +157,7 @@ namespace net {
 
     request.ifr_data = reinterpret_cast<caddr_t>(&driver);
 
-    if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1) {
+    if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return;
     }
 
@@ -226,7 +219,7 @@ namespace net {
     data.cmd = ETHTOOL_GSET;
     request.ifr_data = reinterpret_cast<caddr_t>(&data);
 
-    if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1) {
+    if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
     }
 
@@ -251,7 +244,7 @@ namespace net {
     data.cmd = ETHTOOL_GLINK;
     request.ifr_data = reinterpret_cast<caddr_t>(&data);
 
-    if (ioctl(m_socketfd, SIOCETHTOOL, &request) == -1) {
+    if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
     }
 
@@ -278,15 +271,14 @@ namespace net {
       return false;
     }
 
-    auto socket_fd = iw_sockets_open();
-
-    if (socket_fd == -1) {
+    auto socket_fd = file_util::make_file_descriptor(iw_sockets_open());
+    if (!*socket_fd) {
       return false;
     }
 
     struct iwreq req {};
 
-    if (iw_get_ext(socket_fd, m_interface.c_str(), SIOCGIWMODE, &req) == -1) {
+    if (iw_get_ext(*socket_fd, m_interface.c_str(), SIOCGIWMODE, &req) == -1) {
       return false;
     }
 
@@ -295,10 +287,8 @@ namespace net {
       return false;
     }
 
-    query_essid(socket_fd);
-    query_quality(socket_fd);
-
-    iw_sockets_close(socket_fd);
+    query_essid(*socket_fd);
+    query_quality(*socket_fd);
 
     return true;
   }

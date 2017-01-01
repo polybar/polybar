@@ -19,6 +19,8 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 
+class file_descriptor;
+
 namespace net {
   DEFINE_ERROR(network_error);
 
@@ -58,7 +60,7 @@ namespace net {
   class network {
    public:
     explicit network(string interface);
-    virtual ~network();
+    virtual ~network() {}
 
     virtual bool query(bool accumulate = false);
     virtual bool connected() const = 0;
@@ -73,7 +75,7 @@ namespace net {
     bool test_interface() const;
     string format_speedrate(float bytes_diff, int minwidth) const;
 
-    int m_socketfd{0};
+    unique_ptr<file_descriptor> m_socketfd;
     link_status m_status{};
     string m_interface;
     bool m_tuntap{false};
