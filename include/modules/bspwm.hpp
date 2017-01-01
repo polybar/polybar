@@ -77,6 +77,7 @@ namespace modules {
     bool m_scroll{true};
     bool m_revscroll{true};
     bool m_pinworkspaces{true};
+    bool m_inlinemode{false};
     string_util::hash_type m_hash{0U};
 
     // used while formatting output

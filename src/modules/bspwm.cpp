@@ -23,6 +23,17 @@ namespace {
     }
     return mask;
   }
+
+  uint32_t check_mask(uint32_t base, bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
+    uint32_t mask{0U};
+    if (static_cast<uint32_t>(s1)) {
+      mask |= 1U << (static_cast<uint32_t>(s1) - 1U);
+    }
+    if (static_cast<uint32_t>(s2)) {
+      mask |= 1U << (static_cast<uint32_t>(s2) - 1U);
+    }
+    return (base & mask) == mask;
+  }
 }
 
 namespace modules {
@@ -43,6 +54,7 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_inlinemode = m_conf.get(name(), "inline-mode", m_inlinemode);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
@@ -378,13 +390,22 @@ namespace modules {
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
         if (ws.second.get()) {
+          workspace_n++;
+
           if (m_click) {
-            builder->cmd(mousebtn::LEFT, EVENT_CLICK + to_string(m_index) + "+" + to_string(++workspace_n));
+            builder->cmd(mousebtn::LEFT, EVENT_CLICK + to_string(m_index) + "+" + to_string(workspace_n));
             builder->node(ws.second);
             builder->cmd_close();
           } else {
-            workspace_n++;
             builder->node(ws.second);
+          }
+
+          if (m_inlinemode && m_monitors[m_index]->focused && check_mask(ws.first, bspwm_state::FOCUSED)) {
+            for (auto&& mode : m_monitors[m_index]->modes) {
+              if (*mode.get()) {
+                builder->node(mode);
+              }
+            }
           }
         }
       }
@@ -395,7 +416,8 @@ namespace modules {
       }
 
       return workspace_n > 0;
-    } else if (tag == TAG_LABEL_MODE && m_monitors[m_index]->focused && !m_monitors[m_index]->modes.empty()) {
+    } else if (tag == TAG_LABEL_MODE && !m_inlinemode && m_monitors[m_index]->focused &&
+               !m_monitors[m_index]->modes.empty()) {
       int modes_n = 0;
 
       for (auto&& mode : m_monitors[m_index]->modes) {
