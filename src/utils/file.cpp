@@ -150,10 +150,10 @@ int fd_streambuf::overflow(int c) {
 
 int fd_streambuf::underflow() {
   if (gptr() == egptr()) {
-    auto pback = std::min(gptr() - eback(), std::ptrdiff_t(m_in));
+    std::streamsize pback(std::min(gptr() - eback(), std::ptrdiff_t(m_in)));
     std::copy(egptr() - pback, egptr(), eback());
-    auto bytes = ::read(m_fd, eback() + pback, BUFSIZ);
-    setg(eback(), eback() + pback, eback() + pback + std::max(0L, bytes));
+    int bytes(::read(m_fd, eback() + pback, BUFSIZ));
+    setg(eback(), eback() + pback, eback() + pback + std::max(0, bytes));
   }
   return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
