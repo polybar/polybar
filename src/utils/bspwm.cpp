@@ -34,12 +34,12 @@ namespace bspwm_util {
   }
 
   /**
-   * Restack given window above the bspwm root window
+   * Restack given window relative to the bspwm root window
    * for the given monitor.
    *
    * Fixes the issue with always-on-top window's
    */
-  bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
+  bool restack_to_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
     for (auto&& root : root_windows(conn)) {
       auto geom = conn.get_geometry(root);
 

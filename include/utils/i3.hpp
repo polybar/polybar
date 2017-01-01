@@ -19,7 +19,7 @@ namespace i3_util {
   shared_ptr<workspace_t> focused_workspace(const connection_t&);
 
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name = "");
-  bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win);
+  bool restack_to_root(connection& conn, const monitor_t& mon, const xcb_window_t win);
 }
 
 namespace {

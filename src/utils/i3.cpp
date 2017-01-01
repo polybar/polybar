@@ -55,12 +55,12 @@ namespace i3_util {
   }
 
   /**
-   * Restack given window above the i3 root window
+   * Restack given window relative to the i3 root window
    * defined for the given monitor
    *
    * Fixes the issue with always-on-top window's
    */
-  bool restack_above_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
+  bool restack_to_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
     for (auto&& root : root_windows(conn, mon->name)) {
       const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
       const uint32_t value_list[2]{root, XCB_STACK_MODE_BELOW};
