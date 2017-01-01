@@ -25,7 +25,7 @@ namespace modules {
   battery_module::battery_module(const bar_settings& bar, string name_)
       : inotify_module<battery_module>(bar, move(name_)) {
     // Load configuration values
-    m_fullat = m_conf.get(name(), "full-at", m_fullat);
+    m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
 
