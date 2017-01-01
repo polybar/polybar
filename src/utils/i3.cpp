@@ -7,6 +7,7 @@
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 
 POLYBAR_NS
@@ -38,20 +39,30 @@ namespace i3_util {
   }
 
   /**
-   * Get all i3 root windows
+   * Get main root window
    */
-  vector<xcb_window_t> root_windows(connection& conn, const string& output_name) {
-    vector<xcb_window_t> roots;
+  xcb_window_t root_window(connection& conn) {
+    auto ewmh = ewmh_util::initialize();
     auto children = conn.query_tree(conn.screen()->root).children();
 
+    const auto wm_name = [&](xcb_ewmh_connection_t* ewmh, xcb_window_t win) -> string {
+      string title;
+      if (!(title = ewmh_util::get_wm_name(ewmh, win)).empty()) {
+        return title;
+      } else if (!(title = icccm_util::get_wm_name(ewmh->connection, win)).empty()) {
+        return title;
+      } else {
+        return "";
+      }
+    };
+
     for (auto it = children.begin(); it != children.end(); it++) {
-      auto wm_name = icccm_util::get_wm_name(conn, *it);
-      if (wm_name.compare("[i3 con] output " + output_name) == 0) {
-        roots.emplace_back(*it);
+      if (wm_name(&*ewmh, *it) == "i3") {
+        return *it;
       }
     }
 
-    return roots;
+    return XCB_NONE;
   }
 
   /**
@@ -60,14 +71,13 @@ namespace i3_util {
    *
    * Fixes the issue with always-on-top window's
    */
-  bool restack_to_root(connection& conn, const monitor_t& mon, const xcb_window_t win) {
-    for (auto&& root : root_windows(conn, mon->name)) {
-      const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-      const uint32_t value_list[2]{root, XCB_STACK_MODE_BELOW};
+  bool restack_to_root(connection& conn, const xcb_window_t win) {
+    const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+    const uint32_t value_list[2]{root_window(conn), XCB_STACK_MODE_ABOVE};
+    if (value_list[0] != XCB_NONE) {
       conn.configure_window_checked(win, value_mask, value_list);
       return true;
     }
-
     return false;
   }
 }
