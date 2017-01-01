@@ -8,12 +8,11 @@ POLYBAR_NS
 namespace modules {
   template class module<script_module>;
 
-  script_module::script_module(const bar_settings& bar, string name_) : event_module<script_module>(bar, move(name_)) {
+  script_module::script_module(const bar_settings& bar, string name_) : module<script_module>(bar, move(name_)) {
     m_exec = m_conf.get(name(), "exec", m_exec);
-    m_tail = m_conf.get(name(), "tail", m_tail);
     m_maxlen = m_conf.get(name(), "maxlen", m_maxlen);
     m_ellipsis = m_conf.get(name(), "ellipsis", m_ellipsis);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
 
     m_conf.warn_deprecated(
         name(), "maxlen", "\"format = <label>\" and \"label = %output:0:" + to_string(m_maxlen) + "%\"");
@@ -33,70 +32,32 @@ namespace modules {
     }
   }
 
-  void script_module::stop() {
-    m_updatelock.unlock();
-    event_module::stop();
+  void script_module::start() {
+    m_mainthread = thread([this] {
+      try {
+        while (running() && !m_stopping) {
+          this->process();
+        }
+      } catch (const exception& err) {
+        halt(err.what());
+      }
+    });
+  }
 
-    if (m_command && m_command->is_running()) {
-      m_log.warn("%s: Stopping shell command", name());
+  void script_module::stop() {
+    std::lock_guard<mutex> guard(m_updatelock, std::adopt_lock);
+
+    m_stopping = true;
+    this->wakeup();
+
+    if (m_command) {
+      if (m_command->is_running()) {
+        m_log.warn("%s: Stopping shell command", name());
+      }
       m_command->terminate();
     }
-  }
 
-  void script_module::idle() {
-    if (!m_tail) {
-      sleep(m_interval);
-    } else if (!m_command || !m_command->is_running()) {
-      sleep(m_interval);
-    }
-  }
-
-  bool script_module::has_event() {
-    if (!m_tail) {
-      return true;
-    } else if (!m_command || !m_command->is_running()) {
-      try {
-        string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
-        m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-        m_command = command_util::make_command(move(exec));
-        m_command->exec(false);
-      } catch (const std::exception& err) {
-        m_log.err("%s: %s", name(), err.what());
-        throw module_error("Failed to execute tail command, stopping module...");
-      }
-    }
-
-    if (!m_command || (m_output = m_command->readline()) == m_prev) {
-      return false;
-    }
-
-    m_prev = m_output;
-
-    return true;
-  }
-
-  bool script_module::update() {
-    if (m_tail) {
-      return true;
-    }
-
-    try {
-      auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-      m_log.info("%s: Executing \"%s\"", name(), exec);
-      m_command = command_util::make_command(exec);
-      m_command->exec();
-      m_command->tail([&](string output) { m_output = output; });
-    } catch (const std::exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      throw module_error("Failed to execute command, stopping module...");
-    }
-
-    if (m_output == m_prev) {
-      return false;
-    }
-
-    m_prev = m_output;
-    return true;
+    this->module::stop();
   }
 
   string script_module::get_output() {
@@ -117,11 +78,23 @@ namespace modules {
     auto counter_str = to_string(m_counter);
     string output{module::get_output()};
 
-    OUTPUT_ACTION(mousebtn::LEFT);
-    OUTPUT_ACTION(mousebtn::MIDDLE);
-    OUTPUT_ACTION(mousebtn::RIGHT);
-    OUTPUT_ACTION(mousebtn::SCROLL_UP);
-    OUTPUT_ACTION(mousebtn::SCROLL_DOWN);
+    if (!m_actions[mousebtn::LEFT].empty()) {
+      m_builder->cmd(mousebtn::LEFT, string_util::replace_all(m_actions[mousebtn::LEFT], "%counter%", counter_str));
+    }
+    if (!m_actions[mousebtn::MIDDLE].empty()) {
+      m_builder->cmd(mousebtn::MIDDLE, string_util::replace_all(m_actions[mousebtn::MIDDLE], "%counter%", counter_str));
+    }
+    if (!m_actions[mousebtn::RIGHT].empty()) {
+      m_builder->cmd(mousebtn::RIGHT, string_util::replace_all(m_actions[mousebtn::RIGHT], "%counter%", counter_str));
+    }
+    if (!m_actions[mousebtn::SCROLL_UP].empty()) {
+      m_builder->cmd(
+          mousebtn::SCROLL_UP, string_util::replace_all(m_actions[mousebtn::SCROLL_UP], "%counter%", counter_str));
+    }
+    if (!m_actions[mousebtn::SCROLL_DOWN].empty()) {
+      m_builder->cmd(
+          mousebtn::SCROLL_DOWN, string_util::replace_all(m_actions[mousebtn::SCROLL_DOWN], "%counter%", counter_str));
+    }
 
     m_builder->append(output);
 

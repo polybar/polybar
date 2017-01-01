@@ -5,12 +5,10 @@
 POLYBAR_NS
 
 namespace io_util {
-  string read(int read_fd, int bytes_to_read, int& bytes_read_loc, int& status_loc);
-  string read(int read_fd, int bytes_to_read = -1);
-  string readline(int read_fd, int& bytes_read);
+  string read(int read_fd, size_t bytes_to_read);
   string readline(int read_fd);
 
-  size_t write(int write_fd, const string& data);
+  size_t write(int write_fd, size_t bytes_to_write, const string& data);
   size_t writeline(int write_fd, const string& data);
 
   void tail(int read_fd, const function<void(string)>& callback);

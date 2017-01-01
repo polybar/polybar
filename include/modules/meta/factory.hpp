@@ -5,6 +5,7 @@
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
+#include "modules/cmdscript.hpp"
 #include "modules/counter.hpp"
 #include "modules/cpu.hpp"
 #include "modules/date.hpp"
@@ -14,6 +15,7 @@
 #include "modules/menu.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/script.hpp"
+#include "modules/tailscript.hpp"
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
@@ -46,52 +48,55 @@ POLYBAR_NS
 using namespace modules;
 
 namespace {
-  template <typename... Args>
-  module_interface* make_module(string&& name, Args&&... args) {
+  module_interface* make_module(string&& name, const bar_settings& bar, string module_name) {
     if (name == "internal/counter") {
-      return new counter_module(forward<Args>(args)...);
+      return new counter_module(bar, move(module_name));
     } else if (name == "internal/backlight") {
-      return new backlight_module(forward<Args>(args)...);
+      return new backlight_module(bar, move(module_name));
     } else if (name == "internal/battery") {
-      return new battery_module(forward<Args>(args)...);
+      return new battery_module(bar, move(module_name));
     } else if (name == "internal/bspwm") {
-      return new bspwm_module(forward<Args>(args)...);
+      return new bspwm_module(bar, move(module_name));
     } else if (name == "internal/cpu") {
-      return new cpu_module(forward<Args>(args)...);
+      return new cpu_module(bar, move(module_name));
     } else if (name == "internal/date") {
-      return new date_module(forward<Args>(args)...);
+      return new date_module(bar, move(module_name));
     } else if (name == "internal/github") {
-      return new github_module(forward<Args>(args)...);
+      return new github_module(bar, move(module_name));
     } else if (name == "internal/fs") {
-      return new fs_module(forward<Args>(args)...);
+      return new fs_module(bar, move(module_name));
     } else if (name == "internal/memory") {
-      return new memory_module(forward<Args>(args)...);
+      return new memory_module(bar, move(module_name));
     } else if (name == "internal/i3") {
-      return new i3_module(forward<Args>(args)...);
+      return new i3_module(bar, move(module_name));
     } else if (name == "internal/mpd") {
-      return new mpd_module(forward<Args>(args)...);
+      return new mpd_module(bar, move(module_name));
     } else if (name == "internal/volume") {
-      return new volume_module(forward<Args>(args)...);
+      return new volume_module(bar, move(module_name));
     } else if (name == "internal/network") {
-      return new network_module(forward<Args>(args)...);
+      return new network_module(bar, move(module_name));
     } else if (name == "internal/temperature") {
-      return new temperature_module(forward<Args>(args)...);
+      return new temperature_module(bar, move(module_name));
     } else if (name == "internal/xbacklight") {
-      return new xbacklight_module(forward<Args>(args)...);
+      return new xbacklight_module(bar, move(module_name));
     } else if (name == "internal/xkeyboard") {
-      return new xkeyboard_module(forward<Args>(args)...);
+      return new xkeyboard_module(bar, move(module_name));
     } else if (name == "internal/xwindow") {
-      return new xwindow_module(forward<Args>(args)...);
+      return new xwindow_module(bar, move(module_name));
     } else if (name == "internal/xworkspaces") {
-      return new xworkspaces_module(forward<Args>(args)...);
+      return new xworkspaces_module(bar, move(module_name));
     } else if (name == "custom/text") {
-      return new text_module(forward<Args>(args)...);
+      return new text_module(bar, move(module_name));
     } else if (name == "custom/script") {
-      return new script_module(forward<Args>(args)...);
+      if (config::make().get<bool>("module/" + module_name, "tail", false)) {
+        return new tailscript_module(bar, move(module_name));
+      } else {
+        return new cmdscript_module(bar, move(module_name));
+      }
     } else if (name == "custom/menu") {
-      return new menu_module(forward<Args>(args)...);
+      return new menu_module(bar, move(module_name));
     } else if (name == "custom/ipc") {
-      return new ipc_module(forward<Args>(args)...);
+      return new ipc_module(bar, move(module_name));
     } else {
       throw application_error("Unknown module: " + name);
     }

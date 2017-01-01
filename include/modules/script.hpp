@@ -1,41 +1,32 @@
 #pragma once
 
-#include <chrono>
-
-#include "modules/meta/event_module.hpp"
+#include "modules/meta/base.hpp"
 #include "utils/command.hpp"
+#include "utils/io.hpp"
 
 POLYBAR_NS
 
-namespace chrono = std::chrono;
-
-#define OUTPUT_ACTION(BUTTON)     \
-  if (!m_actions[BUTTON].empty()) \
-  m_builder->cmd(BUTTON, string_util::replace_all(m_actions[BUTTON], "%counter%", counter_str))
-
 namespace modules {
-  /**
-   * TODO: Split into timed-/streaming modules
-   */
-  class script_module : public event_module<script_module> {
+  class script_module : public module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);
+    virtual ~script_module() {}
 
-    void stop();
-    void idle();
-    bool has_event();
-    bool update();
+    virtual void start();
+    virtual void stop();
+
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
    protected:
+    virtual void process() = 0;
+
     static constexpr const char* TAG_OUTPUT{"<output>"};
     static constexpr const char* TAG_LABEL{"<label>"};
 
     unique_ptr<command> m_command;
 
     string m_exec;
-    bool m_tail{false};
     chrono::duration<double> m_interval{0};
     map<mousebtn, string> m_actions;
 
@@ -48,6 +39,8 @@ namespace modules {
     size_t m_maxlen{0};
     // @deprecated
     bool m_ellipsis{true};
+
+    bool m_stopping{false};
   };
 }
 

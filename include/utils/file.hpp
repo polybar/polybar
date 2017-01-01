@@ -28,7 +28,7 @@ class file_ptr {
 class file_descriptor {
  public:
   explicit file_descriptor(const string& path, int flags = 0);
-  explicit file_descriptor(int fd);
+  explicit file_descriptor(int fd, bool autoclose = true);
   ~file_descriptor();
 
   file_descriptor& operator=(const int);
@@ -44,13 +44,18 @@ class file_descriptor {
 
  private:
   int m_fd{-1};
+  bool m_autoclose{true};
 };
 
 class fd_streambuf : public std::streambuf {
  public:
   using traits_type = std::streambuf::traits_type;
 
-  explicit fd_streambuf(int fd);
+  template <typename... Args>
+  explicit fd_streambuf(Args&&... args) : m_fd(forward<Args>(args)...) {
+    setg(m_in, m_in, m_in);
+    setp(m_out, m_out + sizeof(m_in));
+  }
   ~fd_streambuf();
 
   explicit operator int();
@@ -75,7 +80,8 @@ class fd_stream : public StreamType {
  public:
   using type = fd_stream<StreamType>;
 
-  explicit fd_stream(int fd) : m_buf(fd) {
+  template <typename... Args>
+  explicit fd_stream(Args&&... args) : m_buf(forward<Args>(args)...) {
     StreamType::rdbuf(&m_buf);
   }
 
@@ -95,7 +101,7 @@ namespace file_util {
   bool exists(const string& filename);
   string pick(const vector<string>& filenames);
   string contents(const string& filename);
-  bool is_fifo(string filename);
+  bool is_fifo(const string& filename);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

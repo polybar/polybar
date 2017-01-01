@@ -51,18 +51,22 @@ file_descriptor::file_descriptor(const string& path, int flags) {
   }
 }
 
-file_descriptor::file_descriptor(int fd) : m_fd(fd) {
+file_descriptor::file_descriptor(int fd, bool autoclose) : m_fd(fd), m_autoclose(autoclose) {
   if (m_fd != -1 && !*this) {
     throw system_error("Given file descriptor (" + to_string(m_fd) + ") is not valid");
   }
 }
 
 file_descriptor::~file_descriptor() {
-  close();
+  if (m_autoclose) {
+    close();
+  }
 }
 
 file_descriptor& file_descriptor::operator=(const int fd) {
-  close();
+  if (m_autoclose) {
+    close();
+  }
   m_fd = fd;
   return *this;
 }
@@ -95,10 +99,6 @@ void file_descriptor::close() {
 
 // }}}
 // implementation of file_streambuf {{{
-
-fd_streambuf::fd_streambuf(int fd) : m_fd(-1) {
-  open(fd);
-}
 
 fd_streambuf::~fd_streambuf() {
   close();
@@ -186,9 +186,10 @@ namespace file_util {
    */
   string contents(const string& filename) {
     try {
-      std::ifstream ifs(filename);
-      return string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
-    } catch (std::ios_base::failure& e) {
+      string contents;
+      std::getline(std::ifstream(filename, std::ifstream::in), contents);
+      return contents;
+    } catch (const std::ifstream::failure& e) {
       return "";
     }
   }
@@ -196,12 +197,9 @@ namespace file_util {
   /**
    * Checks if the given file is a named pipe
    */
-  bool is_fifo(string filename) {
-    auto fileptr = factory_util::unique<file_ptr>(filename);
-    int fd = fileno(*fileptr);
-    struct stat statbuf {};
-    fstat(fd, &statbuf);
-    return S_ISFIFO(statbuf.st_mode);
+  bool is_fifo(const string& filename) {
+    struct stat buffer {};
+    return stat(filename.c_str(), &buffer) == 0 && S_ISFIFO(buffer.st_mode);
   }
 }
 

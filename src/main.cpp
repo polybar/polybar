@@ -13,6 +13,7 @@
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/inotify.hpp"
+#include "utils/io.hpp"
 #include "utils/process.hpp"
 #include "x11/connection.hpp"
 #include "x11/tray_manager.hpp"
@@ -20,6 +21,7 @@
 using namespace polybar;
 
 int main(int argc, char** argv) {
+  // std::cout << x << std::Endl;
   // clang-format off
   const command_line::options opts{
       command_line::option{"-h", "--help", "Show help options"},
