@@ -19,15 +19,15 @@ namespace chrono = std::chrono;
  * Create instance
  */
 config::make_type config::make(string path, string bar) {
-  return static_cast<config::make_type>(*factory_util::singleton<std::remove_reference_t<config::make_type>>(
-      logger::make(), xresource_manager::make(), move(path), move(bar)));
+  return static_cast<config::make_type>(
+      *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar)));
 }
 
 /**
  * Construct config object
  */
-config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
-    : m_log(logger), m_xrm(xrm), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
+config::config(const logger& logger, string&& path, string&& bar)
+    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
   if (!file_util::exists(m_file)) {
     throw application_error("Could not find config file: " + m_file);
   }

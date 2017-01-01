@@ -12,17 +12,16 @@ POLYBAR_NS
  * Create instance
  */
 xresource_manager::make_type xresource_manager::make() {
-  return static_cast<xresource_manager::make_type>(
-      *factory_util::singleton<std::remove_reference_t<xresource_manager::make_type>>(connection::make()));
+  return factory_util::unique<xresource_manager>(static_cast<Display*>(connection::make()));
 }
 
 /**
  * Construct manager instance
  */
-xresource_manager::xresource_manager(Display* dsp) : m_display(forward<decltype(dsp)>(dsp)) {
+xresource_manager::xresource_manager(Display* dsp) {
   XrmInitialize();
 
-  if ((m_manager = XResourceManagerString(m_display)) != nullptr) {
+  if ((m_manager = XResourceManagerString(dsp)) != nullptr) {
     m_db = XrmGetStringDatabase(m_manager);
   }
 }
@@ -31,9 +30,6 @@ xresource_manager::xresource_manager(Display* dsp) : m_display(forward<decltype(
  * Deconstruct instance
  */
 xresource_manager::~xresource_manager() {
-  if (m_manager != nullptr) {
-    XFree(m_manager);
-  }
   if (m_db != nullptr) {
     XrmDestroyDatabase(m_db);
   }

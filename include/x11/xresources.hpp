@@ -9,7 +9,7 @@ POLYBAR_NS
 
 class xresource_manager {
  public:
-  using make_type = const xresource_manager&;
+  using make_type = unique_ptr<xresource_manager>;
   static make_type make();
 
   explicit xresource_manager(Display*);
@@ -26,7 +26,6 @@ class xresource_manager {
   string load_value(const string& key, const string& res_type, size_t n) const;
 
  private:
-  Display* m_display{nullptr};
   XrmDatabase m_db;
   char* m_manager{nullptr};
 };
