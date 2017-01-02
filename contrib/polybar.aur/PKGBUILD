@@ -18,6 +18,7 @@ optdepends=("alsa-lib: volume module support"
             "curl: github module support")
 makedepends=("cmake" "python" "python2" "pkg-config")
 conflicts=("polybar-git" "lemonbuddy-git" "lemonbuddy")
+install="${pkgname}.install"
 source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
 

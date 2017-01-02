@@ -25,6 +25,7 @@ pkgbase = polybar
 	conflicts = lemonbuddy-git
 	conflicts = lemonbuddy
 	source = polybar::git+https://github.com/jaagr/polybar.git#tag=2.4.6
+	install = polybar.install
 	md5sums = SKIP
 
 pkgname = polybar
