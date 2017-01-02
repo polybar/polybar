@@ -95,8 +95,8 @@ namespace modules {
         mount->bytes_free = b_free;
         mount->bytes_used = b_used;
 
-        mount->percentage_free = math_util::percentage(b_avail, 0UL, b_total);
-        mount->percentage_used = math_util::percentage(b_used, 0UL, b_total);
+        mount->percentage_free = math_util::percentage<unsigned long, float>(b_avail, 0UL, b_total);
+        mount->percentage_used = math_util::percentage<unsigned long, float>(b_used, 0UL, b_total);
 
         mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
         mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
