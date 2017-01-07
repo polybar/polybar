@@ -34,9 +34,9 @@ namespace modules {
 
     // Make state reader
     if (file_util::exists((m_fstate = path_adapter + "online"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).erase(1) == "1"; });
+      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
     } else if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).erase(8) == "Charging"; });
+      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
     } else {
       throw module_error("No suitable way to get current charge state");
     }
