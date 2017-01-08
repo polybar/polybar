@@ -15,7 +15,7 @@ Heres a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
 Please note that the project still is in early development, so please report any
-problems by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new).
+problems by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new). There's also an irc channel available at freenode, cleverly named `#polybar`.
 
 
 ## Table of Contents
