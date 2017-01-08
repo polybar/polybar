@@ -62,10 +62,10 @@ namespace modules {
   bool fs_module::update() {
     m_mounts.clear();
 
-    struct statvfs buffer {};
-    struct mntent* mnt{nullptr};
-
     for (auto&& mountpoint : m_mountpoints) {
+      struct statvfs buffer {};
+      struct mntent* mnt{nullptr};
+
       m_mounts.emplace_back(new fs_mount{mountpoint, false});
 
       if (statvfs(mountpoint.c_str(), &buffer) == -1) {
@@ -77,7 +77,7 @@ namespace modules {
       auto& mount = m_mounts.back();
 
       while (mtab->next(&mnt)) {
-        if (string{mnt->mnt_dir} != mountpoint) {
+        if (strncmp(mnt->mnt_dir, mountpoint.c_str(), strlen(mnt->mnt_dir)) != 0) {
           continue;
         }
 
@@ -100,6 +100,8 @@ namespace modules {
 
         mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
         mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
+
+        break;
       }
     }
 
