@@ -61,6 +61,9 @@ Some of the batteries included so far:
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release. If you create a package for any other distribution, please consider contributing the template.
 
+If you are using **Void Linux**, there's a [xbps template available](https://github.com/jaagr/void-packages/blob/polybar/srcpkgs/polybar/template) that you could use to build the project.
+A [pull-request has been submitted](https://github.com/voidlinux/void-packages/pull/5192) but it is still not merged into the official repositories so I wouldn't hold my breath.
+
 
 ### Dependencies
 
