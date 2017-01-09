@@ -62,17 +62,22 @@ namespace modules {
     }
 
     m_rate_reader = make_unique<rate_reader>([this] {
-      unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10) / 1000UL};
+      unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
-      unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10) / 1000UL};
-      unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10) / 1000UL};
+      unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
+      unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
       unsigned long cap{read(*m_state_reader) ? max - now : now};
 
       if (rate && volt && cap) {
-        return 3600UL * (cap * 1000UL / volt) / (rate * 1000UL / volt);
-      } else {
-        return 0UL;
+        auto remaining = (cap / volt);
+        auto current_rate = (rate / volt);
+
+        if (remaining && current_rate) {
+          return 3600UL * remaining / current_rate;
+        }
       }
+
+      return 0UL;
     });
 
     // Load state and capacity level
