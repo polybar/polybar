@@ -330,6 +330,8 @@ void controller::process_eventqueue() {
       }
     } else if (evt.type == event_type::INPUT) {
       process_inputdata();
+    } else if (evt.type == event_type::UPDATE && evt.flag) {
+      process_update(true);
     } else {
       event next{};
       size_t swallowed{0};
