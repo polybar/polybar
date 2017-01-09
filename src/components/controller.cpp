@@ -222,7 +222,7 @@ bool controller::enqueue(string&& input_data) {
   } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
     m_log.trace("controller: Swallowing input event (throttled)");
   } else {
-    m_inputdata = input_data;
+    m_inputdata = forward<string>(input_data);
     return enqueue(make_input_evt());
   }
   return false;

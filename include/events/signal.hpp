@@ -41,38 +41,18 @@ namespace signals {
     class value_signal : public base_signal<Derived> {
      public:
       using base_type = value_signal<Derived, ValueType>;
-      using value_type = ValueType;
 
-      template <size_t Size = sizeof(ValueType)>
-      explicit value_signal(void* data) : m_data(data), m_size(Size) {}
+      explicit value_signal(void* data) : m_ptr(data) {}
+      explicit value_signal(ValueType&& data) : m_ptr(&data) {}
 
-      template <size_t Size = sizeof(ValueType)>
-      explicit value_signal(ValueType data) : m_size(Size) {
-        m_data = new char[Size];
-        m_alloced = true;
-        memcpy(m_data, static_cast<void*>(&data), Size);
-      }
+      virtual ~value_signal() {}
 
-      virtual ~value_signal() {
-        if (m_alloced) {
-          delete[] static_cast<char*>(m_data);
-        }
-      }
-
-      void* data() const {
-        return m_data;
-      }
-      size_t size() const {
-        return m_size;
-      }
       inline ValueType cast() const {
-        return *static_cast<ValueType*>(m_data);
+        return *static_cast<ValueType*>(m_ptr);
       }
 
      private:
-      void* m_data;
-      size_t m_size;
-      bool m_alloced{false};
+      void* m_ptr;
     };
   }
 

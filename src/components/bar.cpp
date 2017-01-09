@@ -514,7 +514,7 @@ void bar::handle(const evt::leave_notify&) {
   if (!m_opts.dimmed) {
     m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
       m_opts.dimmed = true;
-      m_sig.emit(dim_window{m_opts.dimvalue});
+      m_sig.emit(dim_window{double(m_opts.dimvalue)});
     });
   }
 }

@@ -1097,7 +1097,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
     if (clientcount > m_opts.configured_slots) {
       reconfigure();
     }
-    m_sig.emit(signals::ui_tray::mapped_clients{clientcount});
+    m_sig.emit(signals::ui_tray::mapped_clients{move(clientcount)});
   }
 }
 

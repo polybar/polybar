@@ -707,7 +707,7 @@ bool renderer::on(const write_text_unicode& evt) {
 }
 
 bool renderer::on(const write_text_string& evt) {
-  auto pkt = *static_cast<const parser::packet*>(evt.data());
+  auto pkt = evt.cast();
   draw_textstring(pkt.data, pkt.length);
   return true;
 }
