@@ -59,22 +59,18 @@ void ipc::receive_message() {
 
   if ((bytes_read = read(*m_fd, &buffer, BUFSIZ)) == -1) {
     m_log.err("Failed to read from ipc channel (err: %s)", strerror(errno));
-  }
+  } else if (bytes_read > 0) {
+    string payload{string_util::trim(string{buffer}, '\n')};
 
-  if (!bytes_read) {
-    return;
-  }
-
-  string payload{string_util::trim(string{buffer}, '\n')};
-
-  if (payload.find(ipc_command::prefix) == 0) {
-    m_sig.emit(sig_ipc::command{payload.substr(strlen(ipc_command::prefix))});
-  } else if (payload.find(ipc_hook::prefix) == 0) {
-    m_sig.emit(sig_ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
-  } else if (payload.find(ipc_action::prefix) == 0) {
-    m_sig.emit(sig_ipc::action{payload.substr(strlen(ipc_action::prefix))});
-  } else if (!payload.empty()) {
-    m_log.warn("Received unknown ipc message: (payload=%s)", payload);
+    if (payload.find(ipc_command::prefix) == 0) {
+      m_sig.emit(sig_ipc::command{payload.substr(strlen(ipc_command::prefix))});
+    } else if (payload.find(ipc_hook::prefix) == 0) {
+      m_sig.emit(sig_ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
+    } else if (payload.find(ipc_action::prefix) == 0) {
+      m_sig.emit(sig_ipc::action{payload.substr(strlen(ipc_action::prefix))});
+    } else if (!payload.empty()) {
+      m_log.warn("Received unknown ipc message: (payload=%s)", payload);
+    }
   }
 
   m_fd = file_util::make_file_descriptor(m_path, O_RDONLY | O_NONBLOCK);
