@@ -201,7 +201,9 @@ namespace drawtypes {
 
       // find suffix delimiter
       if ((pos = token_str.find(':', pos + 1)) != string::npos) {
-        token.suffix = token_str.substr(pos + 1, end - pos - 1);
+        token.suffix = token_str.substr(pos + 1);
+        // remove closing token %
+        token.suffix.erase(token.suffix.size() - 1);
       }
     }
 
