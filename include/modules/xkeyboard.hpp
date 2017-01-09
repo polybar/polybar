@@ -47,7 +47,9 @@ namespace modules {
     static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
 
     connection& m_connection;
-    event_timer m_xkbnotify{};
+    event_timer m_xkb_newkb_notify{};
+    event_timer m_xkb_state_notify{};
+    event_timer m_xkb_indicator_notify{};
     unique_ptr<keyboard> m_keyboard;
 
     label_t m_layout;

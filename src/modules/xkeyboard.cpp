@@ -172,7 +172,7 @@ namespace modules {
    * Handler for XCB_XKB_NEW_KEYBOARD_NOTIFY events
    */
   void xkeyboard_module::handle(const evt::xkb_new_keyboard_notify& evt) {
-    if (evt->changed & XCB_XKB_NKN_DETAIL_KEYCODES && m_xkbnotify.allow(evt->time)) {
+    if (evt->changed & XCB_XKB_NKN_DETAIL_KEYCODES && m_xkb_newkb_notify.allow(evt->time)) {
       query_keyboard();
       update();
     }
@@ -182,7 +182,7 @@ namespace modules {
    * Handler for XCB_XKB_STATE_NOTIFY events
    */
   void xkeyboard_module::handle(const evt::xkb_state_notify& evt) {
-    if (m_keyboard && evt->changed & XCB_XKB_STATE_PART_GROUP_STATE && m_xkbnotify.allow(evt->time)) {
+    if (m_keyboard && evt->changed & XCB_XKB_STATE_PART_GROUP_STATE && m_xkb_state_notify.allow(evt->time)) {
       m_keyboard->current(evt->group);
       update();
     }
@@ -192,7 +192,7 @@ namespace modules {
    * Handler for XCB_XKB_INDICATOR_STATE_NOTIFY events
    */
   void xkeyboard_module::handle(const evt::xkb_indicator_state_notify& evt) {
-    if (m_xkbnotify.allow(evt->time) && m_keyboard) {
+    if (m_keyboard && m_xkb_indicator_notify.allow(evt->time)) {
       m_keyboard->set(m_connection.xkb().get_state(XCB_XKB_ID_USE_CORE_KBD)->lockedMods);
       update();
     }
