@@ -8,8 +8,8 @@
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "utils/file.hpp"
-#include "x11/types.hpp"
 #include "x11/events.hpp"
+#include "x11/types.hpp"
 
 POLYBAR_NS
 
@@ -44,8 +44,8 @@ namespace sig_ui = signals::ui;
 namespace sig_ipc = signals::ipc;
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit_terminate, sig_ev::exit_reload,
-                       sig_ev::update, sig_ev::notify_change, sig_ev::check_state, sig_ipc::action, sig_ipc::command,
-                       sig_ipc::hook, sig_ui::button_press> {
+                       sig_ev::notify_change, sig_ev::notify_forcechange, sig_ev::check_state, sig_ipc::action,
+                       sig_ipc::command, sig_ipc::hook, sig_ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -63,9 +63,10 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   void read_events();
   void process_eventqueue();
   void process_inputdata();
+  bool process_update(bool force);
 
   bool on(const sig_ev::notify_change& evt);
-  bool on(const sig_ev::update& evt);
+  bool on(const sig_ev::notify_forcechange& evt);
   bool on(const sig_ev::exit_terminate& evt);
   bool on(const sig_ev::exit_reload& evt);
   bool on(const sig_ev::check_state& evt);

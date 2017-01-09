@@ -350,7 +350,7 @@ void controller::process_eventqueue() {
       }
 
       if (evt.type == event_type::UPDATE) {
-        on(sig_ev::update{});
+        process_update(evt.flag);
       } else if (evt.type == event_type::INPUT) {
         process_inputdata();
       } else if (evt.type == event_type::QUIT) {
@@ -402,17 +402,9 @@ void controller::process_inputdata() {
 }
 
 /**
- * Process broadcast events
- */
-bool controller::on(const sig_ev::notify_change&) {
-  enqueue(make_update_evt(false));
-  return true;
-}
-
-/**
  * Process eventqueue update event
  */
-bool controller::on(const sig_ev::update&) {
+bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
   string separator{bar.separator};
@@ -484,7 +476,7 @@ bool controller::on(const sig_ev::update&) {
 
   try {
     if (!m_writeback) {
-      m_bar->parse(move(contents));
+      m_bar->parse(move(contents), force);
     } else {
       std::cout << contents << std::endl;
     }
@@ -493,6 +485,20 @@ bool controller::on(const sig_ev::update&) {
   }
 
   return true;
+}
+
+/**
+ * Process broadcast events
+ */
+bool controller::on(const sig_ev::notify_change&) {
+  return enqueue(make_update_evt(false));
+}
+
+/**
+ * Process forced broadcast events
+ */
+bool controller::on(const sig_ev::notify_forcechange&) {
+  return enqueue(make_update_evt(true));
 }
 
 /**

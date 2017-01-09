@@ -86,10 +86,10 @@ namespace signals {
     struct notify_change : public detail::base_signal<notify_change> {
       using base_type::base_type;
     };
-    struct check_state : public detail::base_signal<check_state> {
+    struct notify_forcechange : public detail::base_signal<notify_forcechange> {
       using base_type::base_type;
     };
-    struct update : public detail::base_signal<update> {
+    struct check_state : public detail::base_signal<check_state> {
       using base_type::base_type;
     };
   }

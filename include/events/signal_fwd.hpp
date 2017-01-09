@@ -18,8 +18,8 @@ namespace signals {
     struct exit_terminate;
     struct exit_reload;
     struct notify_change;
+    struct notify_forcechange;
     struct check_state;
-    struct update;
   }
   namespace ipc {
     struct command;

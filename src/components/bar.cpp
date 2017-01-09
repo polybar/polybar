@@ -311,18 +311,18 @@ const bar_settings bar::settings() const {
  * @param data Input string
  * @param force Unless true, do not parse unchanged data
  */
-void bar::parse(string&& data) {
+void bar::parse(string&& data, bool force) {
   if (!m_mutex.try_lock()) {
     return;
   }
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
-  if (m_opts.shaded) {
+  if (force) {
+    m_log.trace("bar: Force update");
+  } else if (m_opts.shaded) {
     return m_log.trace("bar: Ignoring update (shaded)");
-  }
-
-  if (data == m_lastinput) {
+  } else if (data == m_lastinput) {
     return;
   }
 

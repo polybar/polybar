@@ -286,7 +286,7 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_connection.flush();
 
-  m_sig.emit(notify_change{});
+  m_sig.emit(notify_forcechange{});
 }
 
 /**
@@ -325,7 +325,7 @@ void tray_manager::reconfigure() {
 
   m_connection.flush();
 
-  m_sig.emit(notify_change{});
+  m_sig.emit(notify_forcechange{});
 }
 
 /**
