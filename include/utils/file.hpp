@@ -81,7 +81,7 @@ class fd_stream : public StreamType {
   using type = fd_stream<StreamType>;
 
   template <typename... Args>
-  explicit fd_stream(Args&&... args) : m_buf(forward<Args>(args)...) {
+  explicit fd_stream(Args&&... args) : StreamType(nullptr), m_buf(forward<Args>(args)...) {
     StreamType::rdbuf(&m_buf);
   }
 
