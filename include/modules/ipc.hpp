@@ -28,6 +28,7 @@ namespace modules {
    public:
     explicit ipc_module(const bar_settings&, string);
 
+    void start();
     void update() {}
     string get_output();
     bool build(builder* builder, const string& tag) const;
@@ -37,7 +38,7 @@ namespace modules {
     static constexpr auto TAG_OUTPUT = "<output>";
     vector<unique_ptr<hook>> m_hooks;
     string m_output;
-
+    size_t m_initial{0_z};
     map<mousebtn, string> m_actions;
   };
 }

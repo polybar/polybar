@@ -21,7 +21,11 @@ namespace modules {
     }
 
     if (m_hooks.empty()) {
-      throw module_error("No ipc hooks defined");
+      throw module_error("No hooks defined");
+    }
+
+    if ((m_initial = m_conf.get(name(), "initial", m_initial)) && m_initial > m_hooks.size()) {
+      throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
     }
 
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
@@ -31,6 +35,18 @@ namespace modules {
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
+  }
+
+  /**
+   * Start module and run first defined hook if configured to
+   */
+  void ipc_module::start() {
+    if (m_initial > 0_z) {
+      auto command = command_util::make_command(m_hooks.at(m_initial - 1)->command);
+      command->exec(false);
+      command->tail([this](string line) { m_output = line; });
+    }
+    static_module::start();
   }
 
   /**
@@ -69,10 +85,10 @@ namespace modules {
   bool ipc_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_OUTPUT) {
       builder->node(m_output);
+      return true;
     } else {
       return false;
     }
-    return true;
   }
 
   /**
