@@ -53,6 +53,7 @@ else()
 endif()
 
 message(STATUS "--------------------------")
+colored_option(STATUS " Build polybar-msg    ${BUILD_IPC_MSG}" BUILD_IPC_MSG "32;1" "37;2")
 colored_option(STATUS " Build testsuite      ${BUILD_TESTS}" BUILD_TESTS "32;1" "37;2")
 colored_option(STATUS " Debug logging        ${DEBUG_LOGGER}" DEBUG_LOGGER "32;1" "37;2")
 colored_option(STATUS " Verbose tracing      ${VERBOSE_TRACELOG}" VERBOSE_TRACELOG "32;1" "37;2")

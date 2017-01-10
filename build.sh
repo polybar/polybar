@@ -28,6 +28,7 @@ function main
   mkdir ./build || msg_err "Failed to create build dir"
   cd ./build || msg_err "Failed to enter build dir"
 
+  local build_ipc_msg="ON"
   local enable_alsa="ON"
   local enable_i3="ON"
   local enable_network="ON"
@@ -46,6 +47,8 @@ function main
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
   read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
+  read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
 
   local cxx="c++"
   local cc="cc"
@@ -69,6 +72,7 @@ function main
     -DENABLE_MPD:BOOL="${enable_mpd}"         \
     -DENABLE_NETWORK:BOOL="${enable_network}" \
     -DENABLE_CURL:BOOL="${enable_curl}"       \
+    -DBUILD_IPC_MSG:BOOL="${build_ipc_msg}"   \
     .. || msg_err "Failed to generate build... read output to get a hint of what went wrong"
 
   msg "Building project"

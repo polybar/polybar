@@ -48,6 +48,7 @@ endif()
 option(CXXLIB_CLANG       "Link against libc++"        OFF)
 option(CXXLIB_GCC         "Link against stdlibc++"     OFF)
 
+option(BUILD_IPC_MSG      "Build ipc messager"         ON)
 option(BUILD_TESTS        "Build testsuite"            OFF)
 option(DEBUG_LOGGER       "Enable extra debug logging" OFF)
 option(VERBOSE_TRACELOG   "Enable verbose trace logs"  OFF)

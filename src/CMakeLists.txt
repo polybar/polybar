@@ -3,6 +3,7 @@
 #
 
 file(GLOB_RECURSE SOURCES RELATIVE ${PROJECT_SOURCE_DIR}/src *.c[p]*)
+list(REMOVE_ITEM SOURCES ipc.cpp)
 
 # Locate dependencies {{{
 
@@ -142,13 +143,17 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
   ${XCB_DEFINITIONS})
 
 # }}}
-# Export target details {{{
+# Create executable target: ipc messager {{{
+
+if(BUILD_IPC_MSG)
+  make_executable(${PROJECT_NAME}-msg SOURCES ipc.cpp utils/file.cpp)
+endif()
+
+# }}}
 
 set(APP_BINARY ${PROJECT_SOURCE_DIR}/bin/${PROJECT_NAME} PARENT_SCOPE)
 set(APP_LIBRARIES ${APP_LIBRARIES} PARENT_SCOPE)
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} PARENT_SCOPE)
-
-# }}}
 
 execute_process(COMMAND git describe --tags --dirty=-git
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

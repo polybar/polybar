@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <glob.h>
 #include <sys/stat.h>
 #include <cstdio>
 #include <fstream>
@@ -200,6 +201,23 @@ namespace file_util {
   bool is_fifo(const string& filename) {
     struct stat buffer {};
     return stat(filename.c_str(), &buffer) == 0 && S_ISFIFO(buffer.st_mode);
+  }
+
+  /**
+   * Get glob results using given pattern
+   */
+  vector<string> glob(const string& pattern) {
+    glob_t result;
+    vector<string> ret;
+
+    if (glob(pattern.c_str(), GLOB_TILDE, nullptr, &result) == 0) {
+      for (size_t i = 0_z; i < result.gl_pathc; ++i) {
+        ret.emplace_back(result.gl_pathv[i]);
+      }
+      globfree(&result);
+    }
+
+    return ret;
   }
 }
 
