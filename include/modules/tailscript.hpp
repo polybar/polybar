@@ -11,6 +11,7 @@ namespace modules {
 
    protected:
     void process();
+    chrono::duration<double> sleep_duration();
   };
 }
 

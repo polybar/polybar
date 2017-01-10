@@ -11,12 +11,6 @@ namespace modules {
   }
 
   void tailscript_module::process() {
-    if (!m_updatelock.try_lock()) {
-      return;
-    }
-
-    std::unique_lock<mutex> guard(m_updatelock, std::adopt_lock);
-
     if (!m_command || !m_command->is_running()) {
       string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
       m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
@@ -36,13 +30,13 @@ namespace modules {
         broadcast();
       }
     }
+  }
 
-    guard.unlock();
-
+  chrono::duration<double> tailscript_module::sleep_duration() {
     if (m_command && !m_command->is_running()) {
-      sleep(std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval));
+      return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
     } else {
-      sleep(m_interval);
+      return m_interval;
     }
   }
 }

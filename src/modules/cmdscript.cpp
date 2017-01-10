@@ -11,12 +11,7 @@ namespace modules {
   }
 
   void cmdscript_module::process() {
-    if (!m_updatelock.try_lock()) {
-      return;
-    }
-
     try {
-      std::unique_lock<mutex> guard(m_updatelock, std::adopt_lock);
       auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
       m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
       m_command = command_util::make_command(exec);
@@ -30,8 +25,10 @@ namespace modules {
       broadcast();
       m_prev = m_output;
     }
+  }
 
-    sleep(std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval));
+  chrono::duration<double> cmdscript_module::sleep_duration() {
+    return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
   }
 }
 

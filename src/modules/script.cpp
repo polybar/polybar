@@ -10,6 +10,7 @@ namespace modules {
 
   script_module::script_module(const bar_settings& bar, string name_) : module<script_module>(bar, move(name_)) {
     m_exec = m_conf.get(name(), "exec", m_exec);
+    m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
     m_maxlen = m_conf.get(name(), "maxlen", m_maxlen);
     m_ellipsis = m_conf.get(name(), "ellipsis", m_ellipsis);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
@@ -36,7 +37,25 @@ namespace modules {
     m_mainthread = thread([this] {
       try {
         while (running() && !m_stopping) {
-          this->process();
+          std::unique_lock<mutex> guard(m_updatelock);
+
+          // Execute the condition command if specified
+          if (!m_exec_if.empty() && command_util::make_command(m_exec_if)->exec(true) != 0) {
+            if (!m_output.empty()) {
+              broadcast();
+              m_output.clear();
+              m_prev.clear();
+            }
+
+            if (m_interval >= 1s) {
+              sleep(m_interval);
+            } else {
+              sleep(1s);
+            }
+          } else {
+            this->process();
+            this->sleep(this->sleep_duration());
+          }
         }
       } catch (const exception& err) {
         halt(err.what());
@@ -62,7 +81,7 @@ namespace modules {
 
   string script_module::get_output() {
     if (m_output.empty()) {
-      return " ";
+      return "";
     }
 
     if (m_label) {

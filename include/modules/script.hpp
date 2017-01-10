@@ -20,6 +20,7 @@ namespace modules {
 
    protected:
     virtual void process() = 0;
+    virtual chrono::duration<double> sleep_duration() = 0;
 
     static constexpr const char* TAG_OUTPUT{"<output>"};
     static constexpr const char* TAG_LABEL{"<label>"};
@@ -27,6 +28,8 @@ namespace modules {
     unique_ptr<command> m_command;
 
     string m_exec;
+    string m_exec_if;
+
     chrono::duration<double> m_interval{0};
     map<mousebtn, string> m_actions;
 
