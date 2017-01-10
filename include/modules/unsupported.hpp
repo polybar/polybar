@@ -14,7 +14,7 @@ namespace modules {
 #define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
   class MODULE_NAME : public module_interface {                                         \
    public:                                                                              \
-    MODULE_NAME(const bar_settings, string) {             \
+    MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
     string name() const {                                                               \
@@ -29,8 +29,6 @@ namespace modules {
     string contents() {                                                                 \
       return "";                                                                        \
     }                                                                                   \
-    void set_update_cb(callback<>&&) {}                                                 \
-    void set_stop_cb(callback<>&&) {}                                                   \
   }
 
 #if not ENABLE_I3

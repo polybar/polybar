@@ -130,7 +130,7 @@ namespace modules {
    protected:
     void broadcast();
     void idle();
-    void sleep(chrono::duration<double> sleep_duration);
+    void sleep(chrono::duration<double> duration);
     void wakeup();
     string get_format() const;
     string get_output();

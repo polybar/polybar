@@ -5,7 +5,6 @@
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
-#include "modules/cmdscript.hpp"
 #include "modules/counter.hpp"
 #include "modules/cpu.hpp"
 #include "modules/date.hpp"
@@ -18,7 +17,6 @@
 #if DEBUG
 #include "modules/systray.hpp"
 #endif
-#include "modules/tailscript.hpp"
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
 #include "modules/xbacklight.hpp"
@@ -95,11 +93,7 @@ namespace {
     } else if (name == "custom/text") {
       return new text_module(bar, move(module_name));
     } else if (name == "custom/script") {
-      if (config::make().get<bool>("module/" + module_name, "tail", false)) {
-        return new tailscript_module(bar, move(module_name));
-      } else {
-        return new cmdscript_module(bar, move(module_name));
-      }
+      return new script_module(bar, move(module_name));
     } else if (name == "custom/menu") {
       return new menu_module(bar, move(module_name));
     } else if (name == "custom/ipc") {

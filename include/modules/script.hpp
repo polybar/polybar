@@ -10,20 +10,22 @@ namespace modules {
   class script_module : public module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);
-    virtual ~script_module() {}
+    ~script_module() {}
 
-    virtual void start();
-    virtual void stop();
+    void start();
+    void stop();
 
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    virtual void process() = 0;
-    virtual chrono::duration<double> sleep_duration() = 0;
+    chrono::duration<double> process(const mutex_wrapper<function<chrono::duration<double>()>>& handler) const;
+    bool check_condition();
 
-    static constexpr const char* TAG_OUTPUT{"<output>"};
+   private:
     static constexpr const char* TAG_LABEL{"<label>"};
+
+    mutex_wrapper<function<chrono::duration<double>()>> m_handler;
 
     unique_ptr<command> m_command;
 
@@ -37,11 +39,6 @@ namespace modules {
     string m_output;
     string m_prev;
     int m_counter{0};
-
-    // @deprecated
-    size_t m_maxlen{0};
-    // @deprecated
-    bool m_ellipsis{true};
 
     bool m_stopping{false};
   };
