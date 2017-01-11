@@ -86,24 +86,17 @@ namespace modules {
 
   bool menu_module::input(string&& cmd) {
     if (cmd.compare(0, 4, "menu") != 0) {
-      return false;
-    }
-
-    // broadcast update when leaving leaving the function
-    auto exit_handler = scope_util::make_exit_handler<>([this]() {
-      if (!m_threads.empty()) {
-        m_log.trace("%s: Cleaning up previous broadcast threads", name());
-        for (auto&& thread : m_threads) {
-          if (thread.joinable()) {
-            thread.join();
+      if (m_level > -1) {
+        for (auto&& item : m_levels[m_level]->items) {
+          if (item->exec == cmd) {
+            m_level = -1;
+            broadcast();
+            break;
           }
         }
-        m_threads.clear();
       }
-
-      m_log.trace("%s: Dispatching broadcast thread", name());
-      m_threads.emplace_back(thread(&menu_module::broadcast, this));
-    });
+      return false;
+    }
 
     if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
       auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
@@ -121,8 +114,11 @@ namespace modules {
     } else if (cmd == EVENT_MENU_CLOSE) {
       m_log.info("%s: Closing menu tree", name());
       m_level = -1;
+    } else {
+      return false;
     }
 
+    broadcast();
     return true;
   }
 }
