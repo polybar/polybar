@@ -198,11 +198,13 @@ namespace modules {
       }
     }();
 
-    label->reset_tokens();
-    label->replace_token("%percentage%", to_string(m_percentage) + "%");
+    if (label) {
+      label->reset_tokens();
+      label->replace_token("%percentage%", to_string(m_percentage) + "%");
 
-    if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
-      label->replace_token("%time%", current_time());
+      if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
+        label->replace_token("%time%", current_time());
+      }
     }
 
     return true;
