@@ -301,7 +301,11 @@ void builder::offset(int pixels) {
  * Insert spaces
  */
 void builder::space(size_t width) {
-  m_output.append(width, ' ');
+  if (width) {
+    m_output.append(width, ' ');
+  } else {
+    space();
+  }
 }
 void builder::space() {
   m_output.append(m_bar.spacing, ' ');

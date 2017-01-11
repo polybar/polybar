@@ -1,19 +1,15 @@
-#include <algorithm>
-#include <chrono>
+#include <climits>
 #include <fstream>
-#include <istream>
-#include <utility>
 
 #include "components/config.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
+#include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/color.hpp"
 
 POLYBAR_NS
-
-namespace chrono = std::chrono;
 
 /**
  * Create instance
@@ -33,6 +29,7 @@ config::config(const logger& logger, string&& path, string&& bar)
   }
 
   parse_file();
+  copy_inherited();
 
   bool found_bar{false};
   for (auto&& p : m_sections) {
@@ -127,8 +124,6 @@ void config::parse_file() {
 
     m_sections[section].emplace_hint(it, move(key), move(value));
   }
-
-  copy_inherited();
 }
 
 /**
@@ -246,12 +241,14 @@ unsigned int config::convert(string&& value) const {
 
 template <>
 unsigned long config::convert(string&& value) const {
-  return std::strtoul(value.c_str(), nullptr, 10);
+  unsigned long v{std::strtoul(value.c_str(), nullptr, 10)};
+  return v < ULONG_MAX ? v : 0UL;
 }
 
 template <>
 unsigned long long config::convert(string&& value) const {
-  return std::strtoull(value.c_str(), nullptr, 10);
+  unsigned long v{std::strtoull(value.c_str(), nullptr, 10)};
+  return v < ULLONG_MAX ? v : 0ULL;
 }
 
 template <>

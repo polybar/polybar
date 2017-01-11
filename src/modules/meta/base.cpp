@@ -69,19 +69,18 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    using namespace std::string_literals;
-
     auto format = make_unique<module_format>();
-
     format->value = m_conf.get(m_modname, name, move(fallback));
-    format->fg = m_conf.get(m_modname, name + "-foreground", ""s);
-    format->bg = m_conf.get(m_modname, name + "-background", ""s);
-    format->ul = m_conf.get(m_modname, name + "-underline", ""s);
-    format->ol = m_conf.get(m_modname, name + "-overline", ""s);
-    format->spacing = m_conf.get(m_modname, name + "-spacing", 1_z);
-    format->padding = m_conf.get(m_modname, name + "-padding", 0_z);
-    format->margin = m_conf.get(m_modname, name + "-margin", 0_z);
-    format->offset = m_conf.get(m_modname, name + "-offset", 0_z);
+    format->fg = m_conf.get(m_modname, name + "-foreground", format->fg);
+    format->bg = m_conf.get(m_modname, name + "-background", format->bg);
+    format->ul = m_conf.get(m_modname, name + "-underline", format->ul);
+    format->ol = m_conf.get(m_modname, name + "-overline", format->ol);
+    format->ulsize = m_conf.get(m_modname, name + "-underline-size", format->ulsize);
+    format->olsize = m_conf.get(m_modname, name + "-overline-size", format->olsize);
+    format->spacing = m_conf.get(m_modname, name + "-spacing", format->spacing);
+    format->padding = m_conf.get(m_modname, name + "-padding", format->padding);
+    format->margin = m_conf.get(m_modname, name + "-margin", format->margin);
+    format->offset = m_conf.get(m_modname, name + "-offset", format->offset);
     format->tags.swap(tags);
 
     try {
@@ -96,16 +95,24 @@ namespace modules {
       // suffix not defined
     }
 
-    for (auto&& tag : string_util::split(format->value, ' ')) {
-      if (tag[0] != '<' || tag[tag.length() - 1] != '>') {
-        continue;
-      } else if (find(format->tags.begin(), format->tags.end(), tag) != format->tags.end()) {
-        continue;
-      } else if (find(whitelist.begin(), whitelist.end(), tag) != whitelist.end()) {
-        continue;
-      } else {
+    vector<string> tag_collection;
+    tag_collection.reserve(format->tags.size() + whitelist.size());
+    tag_collection.insert(tag_collection.end(), format->tags.begin(), format->tags.end());
+    tag_collection.insert(tag_collection.end(), whitelist.begin(), whitelist.end());
+
+    size_t start, end;
+    string value{format->value};
+    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
+      if (start > 0) {
+        value.erase(0, start);
+        end -= start;
+        start = 0;
+      }
+      string tag{value.substr(start, end + 1)};
+      if (find(tag_collection.begin(), tag_collection.end(), tag) == tag_collection.end()) {
         throw undefined_format_tag(tag + " is not a valid format tag for \"" + name + "\"");
       }
+      value.erase(0, tag.size());
     }
 
     m_formats.insert(make_pair(move(name), move(format)));

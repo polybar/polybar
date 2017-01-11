@@ -12,7 +12,9 @@ namespace modules {
   template class module<menu_module>;
 
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
-    string default_format{TAG_LABEL_TOGGLE + string{" "} + TAG_MENU};
+    string default_format;
+    default_format += TAG_LABEL_TOGGLE;
+    default_format += TAG_MENU;
 
     m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
 
@@ -63,12 +65,14 @@ namespace modules {
       builder->node(m_labelclose);
       builder->cmd_close();
     } else if (tag == TAG_MENU && m_level > -1) {
+      auto spacing = m_formatter->get(get_format())->spacing;
       for (auto&& item : m_levels[m_level]->items) {
-        if (item != m_levels[m_level]->items.front()) {
-          builder->space();
-        }
         if (*m_labelseparator) {
-          builder->node(m_labelseparator, true);
+          if (item != m_levels[m_level]->items[0]) {
+            builder->space(spacing);
+          }
+          builder->node(m_labelseparator);
+          builder->space(spacing);
         }
         builder->cmd(mousebtn::LEFT, item->exec);
         builder->node(item->label);

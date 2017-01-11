@@ -68,10 +68,12 @@ namespace modules {
     string bg{};
     string ul{};
     string ol{};
-    int spacing{};
-    int padding{};
-    int margin{};
-    int offset{};
+    size_t ulsize{0};
+    size_t olsize{0};
+    size_t spacing{0};
+    size_t padding{0};
+    size_t margin{0};
+    int offset{0};
 
     string decorate(builder* builder, string output);
   };

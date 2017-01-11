@@ -39,7 +39,6 @@ underline-color = #00f
 border-bottom = 2
 border-bottom-color = #333
 
-spacing = 1
 padding-left = 0
 padding-right = 2
 module-margin-left = 1
@@ -77,14 +76,10 @@ label = %title:0:30:...%
 [module/xkeyboard]
 type = internal/xkeyboard
 blacklist-0 = num lock
-
-format-underline = ${colors.secondary}
-format-prefix = " "
-format-prefix-foreground = ${colors.foreground-alt}
-
-label-layout = %layout%
-
+label-layout = %{F#55}%{F-} %layout%
+label-layout-underline = ${colors.secondary}
 label-indicator-padding = 2
+label-indicator-margin = 1
 label-indicator-background = ${colors.secondary}
 label-indicator-underline = ${colors.secondary}
 
@@ -330,6 +325,8 @@ ramp-foreground = ${colors.foreground-alt}
 
 [module/powermenu]
 type = custom/menu
+
+format-spacing = 1
 
 label-open =  power
 label-open-foreground = ${colors.secondary}

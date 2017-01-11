@@ -100,7 +100,7 @@ namespace modules {
   bool xkeyboard_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_LAYOUT) {
       builder->node(m_layout);
-    } else if (tag == TAG_LABEL_INDICATOR) {
+    } else if (tag == TAG_LABEL_INDICATOR && !m_indicators.empty()) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
         if (n++) {

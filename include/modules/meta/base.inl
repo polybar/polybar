@@ -1,6 +1,6 @@
 #include "components/builder.hpp"
-#include "components/logger.hpp"
 #include "components/config.hpp"
+#include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 
@@ -13,13 +13,13 @@ namespace modules {
 
   template <typename Impl>
   module<Impl>::module(const bar_settings bar, string name)
-        : m_sig(signal_emitter::make())
-        , m_bar(bar)
-        , m_log(logger::make())
-        , m_conf(config::make())
-        , m_name("module/" + name)
-        , m_builder(make_unique<builder>(bar))
-        , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
+      : m_sig(signal_emitter::make())
+      , m_bar(bar)
+      , m_log(logger::make())
+      , m_conf(config::make())
+      , m_name("module/" + name)
+      , m_builder(make_unique<builder>(bar))
+      , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
@@ -123,24 +123,34 @@ namespace modules {
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
 
-    int i = 0;
-    bool tag_built = true;
+    int i{0};
+    bool prevtag{true};
 
-    for (auto&& tag : string_util::split(format->value, ' ')) {
-      bool is_blankspace = tag.empty();
+    auto mingap = std::max(1UL, format->spacing);
 
-      if (tag[0] == '<' && tag[tag.length() - 1] == '>') {
+    size_t start, end;
+    string value{format->value};
+    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
+      if (start > 0) {
+        m_builder->node(value.substr(0, start));
+        value.erase(0, start);
+        end -= start;
+        start = 0;
+      }
+      string tag{value.substr(start, end + 1)};
+      if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
         if (i > 0)
           m_builder->space(format->spacing);
-        if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && i > 0)
-          m_builder->remove_trailing_space(format->spacing);
-        if (tag_built)
+        if (!(prevtag = CONST_MOD(Impl).build(m_builder.get(), tag)) && i > 0)
+          m_builder->remove_trailing_space(mingap);
+        if (prevtag)
           i++;
-      } else if (is_blankspace && tag_built) {
-        m_builder->space(1_z);
-      } else if (!is_blankspace) {
-        m_builder->node(tag);
       }
+      value.erase(0, tag.size());
+    }
+
+    if (!value.empty()) {
+      m_builder->append(value);
     }
 
     return format->decorate(&*m_builder, m_builder->flush());

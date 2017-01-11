@@ -143,7 +143,7 @@ struct bar_settings {
 
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
-  uint8_t spacing{1U};
+  uint8_t spacing{0};
   string separator{};
 
   string wmname{};
