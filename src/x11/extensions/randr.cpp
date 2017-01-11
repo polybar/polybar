@@ -141,8 +141,8 @@ namespace randr_util {
     }
 
     auto range = reply.valid_values().begin();
-    dst.min = static_cast<uint32_t>(*range++);
-    dst.max = static_cast<uint32_t>(*range);
+    dst.min = static_cast<double>(*range++);
+    dst.max = static_cast<double>(*range);
     dst.atom = atom;
   }
 
@@ -150,16 +150,16 @@ namespace randr_util {
    * Get backlight value for given output
    */
   void get_backlight_value(connection& conn, const monitor_t& mon, backlight_values& dst) {
-    dst.val = 0;
+    dst.val = 0.0;
 
     if (!dst.atom) {
       return;
     }
 
     auto reply = conn.get_output_property(mon->output, dst.atom, XCB_ATOM_NONE, 0, 4, 0, 0);
-
     if (reply->num_items == 1 && reply->format == 32 && reply->type == XCB_ATOM_INTEGER) {
-      dst.val = *xcb_randr_get_output_property_data(reply.get().get());
+      int32_t value = *reinterpret_cast<int32_t*>(xcb_randr_get_output_property_data(reply.get().get()));
+      dst.val = static_cast<double>(value);
     }
   }
 }
