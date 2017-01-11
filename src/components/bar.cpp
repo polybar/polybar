@@ -426,7 +426,7 @@ void bar::reconfigure_wm_hints() {
   xcb_icccm_set_wm_name(m_connection, m_opts.window, XCB_ATOM_STRING, 8, m_opts.wmname.size(), m_opts.wmname.c_str());
   xcb_icccm_set_wm_class(m_connection, m_opts.window, 15, "polybar\0Polybar");
 
-  m_log.trace("bar: Set window _NET_Wm_opts.window_TYPE");
+  m_log.trace("bar: Set window _NET_WM_WINDOW_TYPE");
   set_wm_window_type(m_connection, m_opts.window, {_NET_WM_WINDOW_TYPE_DOCK});
 
   m_log.trace("bar: Set window _NET_WM_STATE");

@@ -38,12 +38,7 @@ namespace wm_util {
   }
 
   void set_wm_window_opacity(xcb_connection_t* conn, xcb_window_t win, uint64_t values) {
-    xcb_intern_atom_reply_t* reply{
-        xcb_intern_atom_reply(conn, xcb_intern_atom(conn, false, 22, "_NET_WM_WINDOW_OPACITY"), nullptr)};
-    if (reply) {
-      xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, reply->atom, XCB_ATOM_CARDINAL, 32, 1, &values);
-      free(reply);
-    }
+    xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, _NET_WM_WINDOW_OPACITY, XCB_ATOM_CARDINAL, 32, 1, &values);
   }
 }
 
