@@ -5,6 +5,6 @@ tags
 *.pyc
 *.tmp
 *.swp
-include/config.hpp
+include/settings.hpp
 .tags
 doc/config
