@@ -67,8 +67,8 @@ int main() {
   };
 
   "round_to_nearest_5"_test = [] {
-    expect(math_util::nearest_5(52) == 55);
-    expect(math_util::nearest_5(9.1) == 5);
+    expect(math_util::nearest_5(52) == 50);
+    expect(math_util::nearest_5(9.1) == 10);
     expect(math_util::nearest_5(95.0) == 95);
     expect(math_util::nearest_5(94.9) == 95);
     expect(math_util::nearest_5(1) == 0);

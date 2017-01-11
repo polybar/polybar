@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 
 #define POLYBAR_NS    \
   namespace polybar { \
@@ -19,22 +20,12 @@
 #define PIPE_WRITE 1
 #endif
 
-#ifndef STDOUT_FILENO
-#define STDOUT_FILENO 1
-#endif
-#ifndef STDERR_FILENO
-#define STDERR_FILENO 2
-#endif
-
 POLYBAR_NS
-
-namespace placeholders = std::placeholders;
 
 using std::string;
 using std::stringstream;
 using std::size_t;
 using std::move;
-using std::bind;
 using std::forward;
 using std::pair;
 using std::function;

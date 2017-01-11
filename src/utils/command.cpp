@@ -1,12 +1,20 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <csignal>
+#include <cstdlib>
 #include <utility>
 
 #include "errors.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
 #include "utils/process.hpp"
+
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
 
 POLYBAR_NS
 

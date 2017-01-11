@@ -7,6 +7,13 @@
 
 #include "common.hpp"
 
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#endif
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
+#endif
+
 POLYBAR_NS
 
 enum class loglevel : uint8_t {

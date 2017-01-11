@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdlib>
 
 #include <arpa/inet.h>
 #include <ifaddrs.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstring>
+#include <cstdlib>
 
 #include "common.hpp"
 
@@ -13,8 +13,8 @@ namespace memory_util {
   /**
    * Create a shared pointer using malloc/free
    */
-  template <typename T, size_t Size = sizeof(T), typename Deleter = decltype(free)>
-  inline malloc_ptr_t<T> make_malloc_ptr(Deleter deleter = free) {
+  template <typename T, size_t Size = sizeof(T), typename Deleter = decltype(std::free)>
+  inline malloc_ptr_t<T> make_malloc_ptr(Deleter deleter = std::free) {
     return malloc_ptr_t<T>(static_cast<T*>(calloc(1, Size)), deleter);
   }
 
