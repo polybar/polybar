@@ -14,60 +14,60 @@ int main() {
   };
 
   "has_short"_test = [&] {
-    auto cli = cliparser::make("cmd", get_opts());
+    auto cli = command_line::parser::make("cmd", get_opts());
     cli->process_input(string_util::split("-f", ' '));
     expect(cli->has("flag"));
     expect(!cli->has("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("-f -o foo", ' '));
     expect(cli->has("flag"));
     expect(cli->has("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("-o baz", ' '));
     expect(!cli->has("flag"));
     expect(cli->has("option"));
   };
 
   "has_long"_test = [&] {
-    auto cli = cliparser::make("cmd", get_opts());;
+    auto cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--flag", ' '));
     expect(cli->has("flag"));
     expect(!cli->has("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--flag --option=foo", ' '));
     expect(cli->has("flag"));
     expect(cli->has("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--option=foo --flag", ' '));
     expect(cli->has("flag"));
     expect(cli->has("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--option=baz", ' '));
     expect(!cli->has("flag"));
     expect(cli->has("option"));
   };
 
   "compare"_test = [&] {
-    auto cli = cliparser::make("cmd", get_opts());;
+    auto cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("-o baz", ' '));
     expect(cli->compare("option", "baz"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--option=foo", ' '));
     expect(cli->compare("option", "foo"));
   };
 
   "get"_test = [&] {
-    auto cli = cliparser::make("cmd", get_opts());;
+    auto cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--option=baz", ' '));
     expect("baz" == cli->get("option"));
 
-    cli = cliparser::make("cmd", get_opts());;
+    cli = command_line::parser::make("cmd", get_opts());;
     cli->process_input(string_util::split("--option=foo", ' '));
     expect("foo" == cli->get("option"));
   };
@@ -79,7 +79,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input1);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -89,7 +89,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input2);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -99,7 +99,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input3);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -114,7 +114,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input1);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -124,7 +124,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input2);
     } catch (const command_line::value_error&) {
       exception_thrown = true;
@@ -139,7 +139,7 @@ int main() {
 
     bool exception_thrown = false;
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input1);
     } catch (const command_line::argument_error&) {
       exception_thrown = true;
@@ -149,7 +149,7 @@ int main() {
 
     exception_thrown = false;  // reset
     try {
-      auto cli = cliparser::make("cmd", get_opts());;
+      auto cli = command_line::parser::make("cmd", get_opts());;
       cli->process_input(input2);
     } catch (const command_line::argument_error&) {
       exception_thrown = true;
