@@ -58,4 +58,20 @@ int main() {
     expect(math_util::percentage_to_value(50, 200, 300) == 250);
     expect(math_util::percentage_to_value(50, 1, 5) == 3);
   };
+
+  "round_to_nearest_10"_test = [] {
+    expect(math_util::nearest_10(52) == 50);
+    expect(math_util::nearest_10(9.1) == 10);
+    expect(math_util::nearest_10(95.0) == 100);
+    expect(math_util::nearest_10(94.9) == 90);
+  };
+
+  "round_to_nearest_5"_test = [] {
+    expect(math_util::nearest_5(52) == 55);
+    expect(math_util::nearest_5(9.1) == 5);
+    expect(math_util::nearest_5(95.0) == 95);
+    expect(math_util::nearest_5(94.9) == 95);
+    expect(math_util::nearest_5(1) == 0);
+    expect(math_util::nearest_5(99.99) == 100);
+  };
 }

@@ -69,6 +69,16 @@ namespace math_util {
     else
       return cap<ReturnType>(percentage * (max_value - min_value) / 100.0f, 0.0f, max_value - min_value) + min_value;
   }
+
+  template <typename ReturnType = int>
+  ReturnType nearest_10(double value) {
+    return static_cast<ReturnType>(static_cast<int>(value / 10.0 + 0.5) * 10.0);
+  }
+
+  template <typename ReturnType = int>
+  ReturnType nearest_5(double value) {
+    return static_cast<ReturnType>(static_cast<int>(value / 5.0 + 0.5) * 5.0);
+  }
 }
 
 POLYBAR_NS_END

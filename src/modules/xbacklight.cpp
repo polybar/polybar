@@ -92,10 +92,16 @@ namespace modules {
    * Query the RandR extension for the new values
    */
   void xbacklight_module::update() {
+    if (!m_updatelock.try_lock()) {
+      return;
+    }
+
+    std::lock_guard<mutex> guard(m_updatelock, std::adopt_lock);
+
     // Query for the new backlight value
     auto& bl = m_output->backlight;
     randr_util::get_backlight_value(m_connection, m_output, bl);
-    m_percentage = math_util::percentage(bl.val, bl.min, bl.max);
+    m_percentage = math_util::nearest_5(math_util::percentage<double>(bl.val, bl.min, bl.max));
 
     // Update label tokens
     if (m_label) {
@@ -116,16 +122,14 @@ namespace modules {
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
     string output{module::get_output()};
-    bool scroll_up{m_scroll && m_percentage < 100};
-    bool scroll_down{m_scroll && m_percentage > 0};
 
-    m_builder->cmd(mousebtn::SCROLL_UP, string{EVENT_SCROLLUP}, scroll_up);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_SCROLLDOWN}, scroll_down);
+    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
+    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
 
     m_builder->append(output);
 
-    m_builder->cmd_close(scroll_down);
-    m_builder->cmd_close(scroll_up);
+    m_builder->cmd_close();
+    m_builder->cmd_close();
 
     return m_builder->flush();
   }
@@ -150,22 +154,21 @@ namespace modules {
    * Process scroll events by changing backlight value
    */
   bool xbacklight_module::input(string&& cmd) {
-    int value_mod = 0;
+    double value_mod{0.0};
 
     if (cmd == EVENT_SCROLLUP) {
-      value_mod = 10;
+      value_mod = 5.0;
       m_log.info("%s: Increasing value by %i%", name(), value_mod);
     } else if (cmd == EVENT_SCROLLDOWN) {
-      value_mod = -10;
+      value_mod = -5.0;
       m_log.info("%s: Decreasing value by %i%", name(), -value_mod);
     } else {
       return false;
     }
 
     try {
-      const int new_perc = math_util::cap(m_percentage + value_mod, 0, 100);
-      const int new_value = math_util::percentage_to_value<int>(new_perc, m_output->backlight.max);
-      const int values[1]{new_value};
+      int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
+      const int values[1]{math_util::percentage_to_value<int>(rounded, m_output->backlight.max)};
 
       m_connection.change_output_property_checked(
           m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);

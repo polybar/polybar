@@ -56,7 +56,7 @@ namespace modules {
     progressbar_t m_progressbar;
 
     bool m_scroll{true};
-    int m_percentage{0};
+    std::atomic<int> m_percentage{0};
   };
 }
 

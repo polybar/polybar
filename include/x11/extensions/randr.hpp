@@ -22,18 +22,18 @@ namespace evt {
 }
 
 struct backlight_values {
-  uint32_t atom = 0;
-  uint32_t min = 0;
-  uint32_t max = 0;
-  uint32_t val = 0;
+  uint32_t atom{0};
+  double min{0.0};
+  double max{0.0};
+  double val{0.0};
 };
 
 struct randr_output {
   string name;
-  uint16_t w = 0;
-  uint16_t h = 0;
-  int16_t x = 0;
-  int16_t y = 0;
+  uint16_t w{0U};
+  uint16_t h{0U};
+  int16_t x{0};
+  int16_t y{0};
   xcb_randr_output_t output;
   backlight_values backlight;
 

@@ -159,7 +159,7 @@ namespace randr_util {
     auto reply = conn.get_output_property(mon->output, dst.atom, XCB_ATOM_NONE, 0, 4, 0, 0);
 
     if (reply->num_items == 1 && reply->format == 32 && reply->type == XCB_ATOM_INTEGER) {
-      dst.val = *reinterpret_cast<uint32_t*>(xcb_randr_get_output_property_data(reply.get().get()));
+      dst.val = *xcb_randr_get_output_property_data(reply.get().get());
     }
   }
 }
