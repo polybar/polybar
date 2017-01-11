@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 
 #if WITH_XDAMAGE
 #include "x11/extensions/damage.hpp"

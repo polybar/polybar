@@ -11,13 +11,11 @@
 #endif
 
 #include "common.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "errors.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
-
-namespace chrono = std::chrono;
 
 class file_descriptor;
 
@@ -45,7 +43,7 @@ namespace net {
   struct link_activity {
     bytes_t transmitted{0};
     bytes_t received{0};
-    chrono::system_clock::time_point time;
+    std::chrono::system_clock::time_point time;
   };
 
   struct link_status {

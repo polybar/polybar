@@ -5,6 +5,8 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "utils/color.hpp"
+#include "utils/factory.hpp"
+#include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"

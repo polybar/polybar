@@ -2,7 +2,7 @@
 
 #include <istream>
 
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 
 #if not WITH_XSYNC
 #error "X Sync extension is disabled..."

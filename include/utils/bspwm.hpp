@@ -4,7 +4,7 @@
 #include <xcb/xcb_icccm.h>
 
 #include "common.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/extensions/randr.hpp"

@@ -5,7 +5,7 @@
 #endif
 
 #include <chrono>
-#include <iostream>
+#include <cstdio>
 
 #include "common.hpp"
 
@@ -23,7 +23,7 @@ namespace debug_util {
 
     explicit scope_timer() : m_start(clock_t::now()) {}
     ~scope_timer() {
-      std::cout << std::chrono::duration_cast<duration_t>(clock_t::now() - m_start).count() << "ms" << std::endl;
+      printf("%lums\n", std::chrono::duration_cast<duration_t>(clock_t::now() - m_start).count());
     }
 
    private:
@@ -39,13 +39,12 @@ namespace debug_util {
     auto start = std::chrono::high_resolution_clock::now();
     expr();
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "execution speed: " << std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count()
-              << "ms" << std::endl;
+    printf("execution speed: %lums\n", std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count());
   }
 
   template <class T>
   void memory_usage(const T& object) noexcept {
-    std::cout << "memory usage: " << sizeof(object) << "b" << std::endl;
+    printf("memory usage: %lub\n", sizeof(object));
   }
 }
 

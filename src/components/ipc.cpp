@@ -1,14 +1,12 @@
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include "components/ipc.hpp"
-#include "config.hpp"
+#include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
-#include "utils/io.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS

@@ -2,7 +2,7 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "utils/i3.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"

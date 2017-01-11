@@ -2,8 +2,7 @@
 
 #include <memory>
 #include <string>
-
-#include "config.hpp"
+#include <vector>
 
 #define POLYBAR_NS    \
   namespace polybar { \

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 
 #if not WITH_XCOMPOSITE
 #error "X Composite extension is disabled..."

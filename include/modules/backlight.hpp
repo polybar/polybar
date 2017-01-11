@@ -1,7 +1,7 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/inotify_module.hpp"
 
 POLYBAR_NS

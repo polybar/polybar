@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 
 #if not WITH_XDAMAGE
 #error "X Damage extension is disabled..."

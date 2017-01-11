@@ -4,7 +4,6 @@
 
 #include "common.hpp"
 #include "errors.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -27,8 +26,12 @@ namespace command_line {
     string token;
     const choices values;
 
-    explicit option(string flag, string flag_long, string desc, string token = "", const choices c = {})
-        : flag(flag), flag_long(flag_long), desc(desc), token(token), values(c) {}
+    explicit option(string&& flag, string&& flag_long, string&& desc, string&& token = "", const choices&& c = {})
+        : flag(forward<string>(flag))
+        , flag_long(forward<string>(flag_long))
+        , desc(forward<string>(desc))
+        , token(forward<string>(token))
+        , values(forward<const choices>(c)) {}
   };
 
   // }}}
@@ -66,9 +69,5 @@ namespace command_line {
 
   // }}}
 }
-
-using cliparser = command_line::parser;
-using clioption = command_line::option;
-using clioptions = command_line::options;
 
 POLYBAR_NS_END

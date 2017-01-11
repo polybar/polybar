@@ -22,7 +22,7 @@
 #endif
 
 #include "common.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "utils/command.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
@@ -67,7 +67,7 @@ namespace net {
     m_status.previous = m_status.current;
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
-    m_status.current.time = chrono::system_clock::now();
+    m_status.current.time = std::chrono::system_clock::now();
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -183,7 +183,7 @@ namespace net {
    */
   string network::format_speedrate(float bytes_diff, int minwidth) const {
     const auto duration = m_status.current.time - m_status.previous.time;
-    float time_diff = chrono::duration_cast<chrono::seconds>(duration).count();
+    float time_diff = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
     float speedrate = bytes_diff / (time_diff ? time_diff : 1);
 
     vector<string> suffixes{"GB", "MB"};

@@ -9,7 +9,7 @@
 #include "components/logger.hpp"
 #include "components/parser.hpp"
 #include "components/renderer.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/inotify.hpp"
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     string scriptname{argv[0]};
     vector<string> args{argv + 1, argv + argc};
 
-    cliparser::make_type cli{cliparser::make(move(scriptname), move(opts))};
+    command_line::parser::make_type cli{command_line::parser::make(move(scriptname), move(opts))};
     cli->process_input(args);
 
     if (cli->has("quiet")) {

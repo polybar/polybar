@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 
 namespace xpp {
 #if WITH_XDAMAGE

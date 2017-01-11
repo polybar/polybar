@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 

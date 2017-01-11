@@ -4,6 +4,8 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
+#include "utils/factory.hpp"
+#include "utils/file.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/extensions/all.hpp"

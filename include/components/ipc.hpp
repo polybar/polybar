@@ -1,13 +1,14 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/logger.hpp"
-#include "events/signal_emitter.hpp"
+#include "settings.hpp"
 #include "utils/concurrency.hpp"
-#include "utils/functional.hpp"
-#include "utils/file.hpp"
 
 POLYBAR_NS
+
+class file_descriptor;
+class logger;
+class signal_emitter;
 
 /**
  * Message types

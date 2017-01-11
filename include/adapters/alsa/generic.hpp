@@ -39,6 +39,7 @@
 #endif
 
 #include "common.hpp"
+#include "settings.hpp"
 #include "errors.hpp"
 
 POLYBAR_NS

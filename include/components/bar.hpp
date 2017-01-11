@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include "common.hpp"
+#include "settings.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"

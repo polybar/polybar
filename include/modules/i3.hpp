@@ -3,7 +3,7 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "components/config.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"

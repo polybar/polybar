@@ -1,10 +1,10 @@
 #include <curl/curl.h>
 #include <curl/curlbuild.h>
 #include <curl/easy.h>
-#include <iostream>
 #include <sstream>
 
 #include "errors.hpp"
+#include "settings.hpp"
 #include "utils/http.hpp"
 
 POLYBAR_NS

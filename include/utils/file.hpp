@@ -1,5 +1,7 @@
 #pragma once
 
+#include <streambuf>
+
 #include "common.hpp"
 #include "utils/factory.hpp"
 
@@ -75,7 +77,7 @@ class fd_streambuf : public std::streambuf {
   char m_in[BUFSIZ - 1]{};
 };
 
-template <typename StreamType = std::ostream>
+template <typename StreamType>
 class fd_stream : public StreamType {
  public:
   using type = fd_stream<StreamType>;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "utils/http.hpp"
 

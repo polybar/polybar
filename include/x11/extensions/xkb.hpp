@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "config.hpp"
+#include "settings.hpp"
 
 #if not WITH_XKB
 #error "X xkb extension is disabled..."

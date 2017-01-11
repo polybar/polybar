@@ -1,7 +1,7 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "config.hpp"
+#include "settings.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"

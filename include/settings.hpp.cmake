@@ -1,6 +1,7 @@
 #pragma once
 
-#include <iostream>
+#include <cstdio>
+#include <string>
 #include <vector>
 
 #include "version.hpp"
@@ -30,7 +31,7 @@
 #cmakedefine VERBOSE_TRACELOG
 #cmakedefine DEBUG_HINTS
 
-static const size_t EVENT_SIZE{64U};
+static const size_t EVENT_SIZE{64UL};
 
 static const int SIGN_PRIORITY_CONTROLLER{1};
 static const int SIGN_PRIORITY_SCREEN{2};
@@ -44,12 +45,8 @@ static const int SINK_PRIORITY_TRAY{3};
 static const int SINK_PRIORITY_MODULE{4};
 
 #ifdef DEBUG_HINTS
-static const int DEBUG_HINTS_OFFSET_X {
-  @DEBUG_HINTS_OFFSET_X@
-};
-static const int DEBUG_HINTS_OFFSET_Y {
-  @DEBUG_HINTS_OFFSET_Y@
-};
+static const int DEBUG_HINTS_OFFSET_X{@DEBUG_HINTS_OFFSET_X@};
+static const int DEBUG_HINTS_OFFSET_Y{@DEBUG_HINTS_OFFSET_Y@};
 #endif
 
 static constexpr const char* ALSA_SOUNDCARD{"@SETTING_ALSA_SOUNDCARD@"};
@@ -67,7 +64,7 @@ static constexpr const char* PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_IN
 
 static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
 
-auto version_details = [](const std::vector<std::string>& args) {
+const auto version_details = [](const std::vector<std::string>& args) {
   for (auto&& arg : args) {
     if (arg.compare(0, 3, "-vv") == 0)
       return true;
@@ -76,36 +73,34 @@ auto version_details = [](const std::vector<std::string>& args) {
 };
 
 // clang-format off
-auto print_build_info = [](bool extended = false) {
-  std::cout << APP_NAME << " " << APP_VERSION << " " << "\n"
-            << "\n"
-            << "Features: "
-            << (ENABLE_ALSA    ? "+" : "-") << "alsa "
-            << (ENABLE_CURL    ? "+" : "-") << "curl "
-            << (ENABLE_I3      ? "+" : "-") << "i3 "
-            << (ENABLE_MPD     ? "+" : "-") << "mpd "
-            << (ENABLE_NETWORK ? "+" : "-") << "network "
-            << "\n";
-  if (!extended)
-    return;
-  std::cout << "\n"
-            << "Build type: @CMAKE_BUILD_TYPE@" << "\n"
-            << "Compiler: @CMAKE_CXX_COMPILER@" << "\n"
-            << "Compiler flags: @CMAKE_CXX_FLAGS@" << "\n"
-            << "Linker flags: @CMAKE_EXE_LINKER_FLAGS@" << "\n"
-            << "\n"
-            << "ALSA_SOUNDCARD              " << ALSA_SOUNDCARD             << "\n"
-            << "BSPWM_SOCKET_PATH           " << BSPWM_SOCKET_PATH          << "\n"
-            << "BSPWM_STATUS_PREFIX         " << BSPWM_STATUS_PREFIX        << "\n"
-            << "BUILDER_SPACE_TOKEN         " << BUILDER_SPACE_TOKEN        << "\n"
-            << "CONNECTION_TEST_IP          " << CONNECTION_TEST_IP         << "\n"
-            << "PATH_ADAPTER                " << PATH_ADAPTER               << "\n"
-            << "PATH_BACKLIGHT_MAX          " << PATH_BACKLIGHT_MAX         << "\n"
-            << "PATH_BACKLIGHT_VAL          " << PATH_BACKLIGHT_VAL         << "\n"
-            << "PATH_BATTERY                " << PATH_BATTERY               << "\n"
-            << "PATH_CPU_INFO               " << PATH_CPU_INFO              << "\n"
-            << "PATH_MEMORY_INFO            " << PATH_MEMORY_INFO           << "\n"
-            << "PATH_TEMPERATURE_INFO       " << PATH_TEMPERATURE_INFO      << "\n";
+const auto print_build_info = [](bool extended = false) {
+  printf("%s %s\n\n", APP_NAME, APP_VERSION);
+  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork\n",
+    (ENABLE_ALSA    ? '+' : '-'),
+    (ENABLE_CURL    ? '+' : '-'),
+    (ENABLE_I3      ? '+' : '-'),
+    (ENABLE_MPD     ? '+' : '-'),
+    (ENABLE_NETWORK ? '+' : '-'));
+  if (extended) {
+    printf("\n");
+    printf("Build type: @CMAKE_BUILD_TYPE@\n");
+    printf("Compiler: @CMAKE_CXX_COMPILER@\n");
+    printf("Compiler flags: @CMAKE_CXX_FLAGS@\n");
+    printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@\n");
+    printf("\n");
+    printf("ALSA_SOUNDCARD              %s\n", ALSA_SOUNDCARD);
+    printf("BSPWM_SOCKET_PATH           %s\n", BSPWM_SOCKET_PATH);
+    printf("BSPWM_STATUS_PREFIX         %s\n", BSPWM_STATUS_PREFIX);
+    printf("BUILDER_SPACE_TOKEN         %s\n", BUILDER_SPACE_TOKEN);
+    printf("CONNECTION_TEST_IP          %s\n", CONNECTION_TEST_IP);
+    printf("PATH_ADAPTER                %s\n", PATH_ADAPTER);
+    printf("PATH_BACKLIGHT_MAX          %s\n", PATH_BACKLIGHT_MAX);
+    printf("PATH_BACKLIGHT_VAL          %s\n", PATH_BACKLIGHT_VAL);
+    printf("PATH_BATTERY                %s\n", PATH_BATTERY);
+    printf("PATH_CPU_INFO               %s\n", PATH_CPU_INFO);
+    printf("PATH_MEMORY_INFO            %s\n", PATH_MEMORY_INFO);
+    printf("PATH_TEMPERATURE_INFO       %s\n", PATH_TEMPERATURE_INFO);
+  }
 };
 // clang-format on
 

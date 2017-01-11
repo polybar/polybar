@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "common.hpp"
+#include "settings.hpp"
 
 // fwd
 struct _snd_ctl;
