@@ -1,6 +1,5 @@
 #include "modules/script.hpp"
 #include "drawtypes/label.hpp"
-
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -31,14 +30,19 @@ namespace modules {
               }
             }
 
-            if (io_util::poll(m_command->get_stdout(PIPE_READ), POLLIN, 0)) {
-              if ((m_output = m_command->readline()) != m_prev) {
+            int fd = m_command->get_stdout(PIPE_READ);
+            while (!m_stopping && fd != -1 && m_command->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+              if (!io_util::poll_read(fd, 25)) {
+                continue;
+              } else if ((m_output = m_command->readline()) != m_prev) {
                 m_prev = m_output;
                 broadcast();
               }
             }
 
-            if (m_command && !m_command->is_running()) {
+            if (m_stopping) {
+              return chrono::duration<double>{0};
+            } else if (m_command && !m_command->is_running()) {
               return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
             } else {
               return m_interval;
@@ -60,9 +64,14 @@ namespace modules {
             throw module_error("Failed to execute command, stopping module...");
           }
 
-          if ((m_output = m_command->readline()) != m_prev) {
+          int fd = m_command->get_stdout(PIPE_READ);
+          if (fd != -1 && io_util::poll_read(fd) && (m_output = m_command->readline()) != m_prev) {
             broadcast();
             m_prev = m_output;
+          } else if (m_command->get_exit_status() != 0) {
+            m_output.clear();
+            m_prev.clear();
+            broadcast();
           }
 
           return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
@@ -114,14 +123,10 @@ namespace modules {
    * Stop the module worker by terminating any running commands
    */
   void script_module::stop() {
-    std::lock_guard<decltype(m_handler)> guard(m_handler);
     m_stopping = true;
     wakeup();
 
-    if (m_command && m_command->is_running()) {
-      m_log.warn("%s: Stopping shell command", name());
-      m_command->terminate();
-    }
+    std::lock_guard<decltype(m_handler)> guard(m_handler);
 
     m_command.reset();
     module::stop();

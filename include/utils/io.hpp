@@ -14,9 +14,9 @@ namespace io_util {
   void tail(int read_fd, const function<void(string)>& callback);
   void tail(int read_fd, int writeback_fd);
 
-  bool poll(int fd, short int events, int timeout_ms = 1);
-  bool poll_read(int fd, int timeout_ms = 1);
-  bool poll_write(int fd, int timeout_ms = 1);
+  bool poll(int fd, short int events, int timeout_ms = 0);
+  bool poll_read(int fd, int timeout_ms = 0);
+  bool poll_write(int fd, int timeout_ms = 0);
 
   bool interrupt_read(int write_fd);
 

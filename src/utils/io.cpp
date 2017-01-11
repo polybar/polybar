@@ -73,7 +73,7 @@ namespace io_util {
   }
 
   bool interrupt_read(int write_fd) {
-    return writeline(write_fd, "") > 0;
+    return write(write_fd, 1, {'\n'}) > 0;
   }
 
   void set_block(int fd) {
