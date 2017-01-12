@@ -3,6 +3,7 @@
 #include <mntent.h>
 
 #include "common.hpp"
+#include "errors.hpp"
 
 POLYBAR_NS
 
