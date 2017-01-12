@@ -132,7 +132,7 @@ struct bar_settings {
   position center{0, 0};
   side_values padding{0U, 0U};
   side_values margin{0U, 0U};
-  side_values module_margin{0U, 2U};
+  side_values module_margin{0U, 0U};
   edge_values strut{0U, 0U, 0U, 0U};
 
   uint32_t background{0xFFFFFFFF};
