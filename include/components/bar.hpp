@@ -15,10 +15,7 @@
 
 POLYBAR_NS
 
-namespace chrono = std::chrono;
-using namespace std::chrono_literals;
-
-// fwd
+// fwd {{{
 class config;
 class connection;
 class logger;
@@ -28,14 +25,12 @@ class screen;
 class signal_emitter;
 class taskqueue;
 class tray_manager;
-
-namespace sig_ui = signals::ui;
-namespace sig_ev = signals::eventqueue;
+// }}}
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::destroy_notify, evt::client_message>,
-            public signal_receiver<SIGN_PRIORITY_BAR, sig_ev::start, sig_ui::tick, sig_ui::shade_window, sig_ui::unshade_window,
-                sig_ui::dim_window> {
+            public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick, signals::ui::shade_window, signals::ui::unshade_window,
+                signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);
@@ -63,11 +58,11 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
 
-  bool on(const sig_ev::start&);
-  bool on(const sig_ui::unshade_window&);
-  bool on(const sig_ui::shade_window&);
-  bool on(const sig_ui::tick&);
-  bool on(const sig_ui::dim_window&);
+  bool on(const signals::eventqueue::start&);
+  bool on(const signals::ui::unshade_window&);
+  bool on(const signals::ui::shade_window&);
+  bool on(const signals::ui::tick&);
+  bool on(const signals::ui::dim_window&);
 
  private:
   connection& m_connection;

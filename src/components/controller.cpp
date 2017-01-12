@@ -326,9 +326,9 @@ void controller::process_eventqueue() {
       break;
     } else if (evt.type == event_type::QUIT) {
       if (evt.flag) {
-        on(sig_ev::exit_reload{});
+        on(signals::eventqueue::exit_reload{});
       } else {
-        on(sig_ev::exit_terminate{});
+        on(signals::eventqueue::exit_terminate{});
       }
     } else if (evt.type == event_type::INPUT) {
       process_inputdata();
@@ -359,12 +359,12 @@ void controller::process_eventqueue() {
         process_inputdata();
       } else if (evt.type == event_type::QUIT) {
         if (evt.flag) {
-          on(sig_ev::exit_reload{});
+          on(signals::eventqueue::exit_reload{});
         } else {
-          on(sig_ev::exit_terminate{});
+          on(signals::eventqueue::exit_terminate{});
         }
       } else if (evt.type == event_type::CHECK) {
-        on(sig_ev::check_state{});
+        on(signals::eventqueue::check_state{});
       } else {
         m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
@@ -497,21 +497,21 @@ bool controller::process_update(bool force) {
 /**
  * Process broadcast events
  */
-bool controller::on(const sig_ev::notify_change&) {
+bool controller::on(const signals::eventqueue::notify_change&) {
   return enqueue(make_update_evt(false));
 }
 
 /**
  * Process forced broadcast events
  */
-bool controller::on(const sig_ev::notify_forcechange&) {
+bool controller::on(const signals::eventqueue::notify_forcechange&) {
   return enqueue(make_update_evt(true));
 }
 
 /**
  * Process eventqueue terminate event
  */
-bool controller::on(const sig_ev::exit_terminate&) {
+bool controller::on(const signals::eventqueue::exit_terminate&) {
   raise(SIGALRM);
   return true;
 }
@@ -519,7 +519,7 @@ bool controller::on(const sig_ev::exit_terminate&) {
 /**
  * Process eventqueue reload event
  */
-bool controller::on(const sig_ev::exit_reload&) {
+bool controller::on(const signals::eventqueue::exit_reload&) {
   raise(SIGUSR1);
   return true;
 }
@@ -527,7 +527,7 @@ bool controller::on(const sig_ev::exit_reload&) {
 /**
  * Process eventqueue check event
  */
-bool controller::on(const sig_ev::check_state&) {
+bool controller::on(const signals::eventqueue::check_state&) {
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
       if (module->running()) {
@@ -536,14 +536,14 @@ bool controller::on(const sig_ev::check_state&) {
     }
   }
   m_log.warn("No running modules...");
-  on(sig_ev::exit_terminate{});
+  on(signals::eventqueue::exit_terminate{});
   return true;
 }
 
 /**
  * Process ui button press event
  */
-bool controller::on(const sig_ui::button_press& evt) {
+bool controller::on(const signals::ui::button_press& evt) {
   string input{evt.cast()};
 
   if (input.empty()) {
@@ -558,7 +558,7 @@ bool controller::on(const sig_ui::button_press& evt) {
 /**
  * Process ipc action messages
  */
-bool controller::on(const sig_ipc::action& evt) {
+bool controller::on(const signals::ipc::action& evt) {
   string action{evt.cast()};
 
   if (action.empty()) {
@@ -574,7 +574,7 @@ bool controller::on(const sig_ipc::action& evt) {
 /**
  * Process ipc command messages
  */
-bool controller::on(const sig_ipc::command& evt) {
+bool controller::on(const signals::ipc::command& evt) {
   string command{evt.cast()};
 
   if (command.empty()) {
@@ -595,7 +595,7 @@ bool controller::on(const sig_ipc::command& evt) {
 /**
  * Process ipc hook messages
  */
-bool controller::on(const sig_ipc::hook& evt) {
+bool controller::on(const signals::ipc::hook& evt) {
   string hook{evt.cast()};
 
   for (const auto& block : m_modules) {

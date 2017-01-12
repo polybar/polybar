@@ -11,8 +11,6 @@
 
 POLYBAR_NS
 
-namespace sig_ipc = signals::ipc;
-
 /**
  * Create instance
  */
@@ -61,11 +59,11 @@ void ipc::receive_message() {
     string payload{string_util::trim(string{buffer}, '\n')};
 
     if (payload.find(ipc_command::prefix) == 0) {
-      m_sig.emit(sig_ipc::command{payload.substr(strlen(ipc_command::prefix))});
+      m_sig.emit(signals::ipc::command{payload.substr(strlen(ipc_command::prefix))});
     } else if (payload.find(ipc_hook::prefix) == 0) {
-      m_sig.emit(sig_ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
+      m_sig.emit(signals::ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
     } else if (payload.find(ipc_action::prefix) == 0) {
-      m_sig.emit(sig_ipc::action{payload.substr(strlen(ipc_action::prefix))});
+      m_sig.emit(signals::ipc::action{payload.substr(strlen(ipc_action::prefix))});
     } else if (!payload.empty()) {
       m_log.warn("Received unknown ipc message: (payload=%s)", payload);
     }

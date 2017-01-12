@@ -6,8 +6,6 @@
 
 POLYBAR_NS
 
-namespace sig_ev = signals::eventqueue;
-
 namespace modules {
   // module<Impl> public {{{
 
@@ -61,7 +59,7 @@ namespace modules {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
 
-      m_sig.emit(sig_ev::check_state{});
+      m_sig.emit(signals::eventqueue::check_state{});
     }
   }
 
@@ -91,7 +89,7 @@ namespace modules {
   template <typename Impl>
   void module<Impl>::broadcast() {
     m_changed = true;
-    m_sig.emit(sig_ev::notify_change{});
+    m_sig.emit(signals::eventqueue::notify_change{});
   }
 
   template <typename Impl>

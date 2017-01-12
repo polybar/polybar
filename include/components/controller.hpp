@@ -25,28 +25,18 @@ class inotify_watch;
 class ipc;
 class logger;
 class signal_emitter;
-
 namespace modules {
   struct module_interface;
   class input_handler;
 }
-
 using module_t = unique_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
 
-using std::thread;
-namespace chrono = std::chrono;
-using namespace std::chrono_literals;
-
-namespace sig_ev = signals::eventqueue;
-namespace sig_ui = signals::ui;
-namespace sig_ipc = signals::ipc;
-
-class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit_terminate, sig_ev::exit_reload,
-                       sig_ev::notify_change, sig_ev::notify_forcechange, sig_ev::check_state, sig_ipc::action,
-                       sig_ipc::command, sig_ipc::hook, sig_ui::button_press> {
+class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate, signals::eventqueue::exit_reload,
+                       signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state, signals::ipc::action,
+                       signals::ipc::command, signals::ipc::hook, signals::ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -66,15 +56,15 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   void process_inputdata();
   bool process_update(bool force);
 
-  bool on(const sig_ev::notify_change& evt);
-  bool on(const sig_ev::notify_forcechange& evt);
-  bool on(const sig_ev::exit_terminate& evt);
-  bool on(const sig_ev::exit_reload& evt);
-  bool on(const sig_ev::check_state& evt);
-  bool on(const sig_ui::button_press& evt);
-  bool on(const sig_ipc::action& evt);
-  bool on(const sig_ipc::command& evt);
-  bool on(const sig_ipc::hook& evt);
+  bool on(const signals::eventqueue::notify_change& evt);
+  bool on(const signals::eventqueue::notify_forcechange& evt);
+  bool on(const signals::eventqueue::exit_terminate& evt);
+  bool on(const signals::eventqueue::exit_reload& evt);
+  bool on(const signals::eventqueue::check_state& evt);
+  bool on(const signals::ui::button_press& evt);
+  bool on(const signals::ipc::action& evt);
+  bool on(const signals::ipc::command& evt);
+  bool on(const signals::ipc::hook& evt);
 
  private:
   connection& m_connection;
@@ -96,8 +86,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   /**
    * @brief Internal event queue
    */
-  using queue_t = moodycamel::BlockingConcurrentQueue<event>;
-  queue_t m_queue;
+  moodycamel::BlockingConcurrentQueue<event> m_queue;
 
   /**
    * @brief Loaded modules
@@ -117,17 +106,17 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   /**
    * @brief Time to wait for subsequent events
    */
-  chrono::milliseconds m_swallow_update{10ms};
+  std::chrono::milliseconds m_swallow_update{10};
 
   /**
    * @brief Time to throttle input events
    */
-  chrono::milliseconds m_swallow_input{30ms};
+  std::chrono::milliseconds m_swallow_input{30};
 
   /**
    * @brief Time of last handled input event
    */
-  chrono::time_point<chrono::system_clock, chrono::milliseconds> m_lastinput;
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> m_lastinput;
 
   /**
    * @brief Input data
@@ -137,7 +126,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, sig_ev::exit
   /**
    * @brief Thread for the eventqueue loop
    */
-  thread m_event_thread;
+  std::thread m_event_thread;
 };
 
 POLYBAR_NS_END

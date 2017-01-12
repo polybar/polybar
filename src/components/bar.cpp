@@ -477,7 +477,7 @@ void bar::handle(const evt::destroy_notify& evt) {
 void bar::handle(const evt::enter_notify&) {
 #if DEBUG
   if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(sig_ui::unshade_window{}); });
+    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::unshade_window{}); });
     return;
   }
 #endif
@@ -501,7 +501,7 @@ void bar::handle(const evt::enter_notify&) {
 void bar::handle(const evt::leave_notify&) {
 #if DEBUG
   if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(sig_ui::shade_window{}); });
+    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::shade_window{}); });
     return;
   }
 #endif
@@ -614,14 +614,14 @@ void bar::handle(const evt::property_notify& evt) {
   }
 }
 
-bool bar::on(const sig_ev::start&) {
+bool bar::on(const signals::eventqueue::start&) {
   m_log.trace("bar: Setup tray manager");
   m_tray->setup(static_cast<const bar_settings&>(m_opts));
   broadcast_visibility();
   return true;
 }
 
-bool bar::on(const sig_ui::unshade_window&) {
+bool bar::on(const signals::ui::unshade_window&) {
   m_opts.shaded = false;
   m_opts.shade_size.w = m_opts.size.w;
   m_opts.shade_size.h = m_opts.size.h;
@@ -635,7 +635,7 @@ bool bar::on(const sig_ui::unshade_window&) {
   m_taskqueue->defer_unique("window-shade", 25ms,
       [&](size_t remaining) {
         if (!m_opts.shaded) {
-          m_sig.emit(sig_ui::tick{});
+          m_sig.emit(signals::ui::tick{});
         }
         if (!remaining) {
           m_renderer->flush(false);
@@ -650,7 +650,7 @@ bool bar::on(const sig_ui::unshade_window&) {
   return true;
 }
 
-bool bar::on(const sig_ui::shade_window&) {
+bool bar::on(const signals::ui::shade_window&) {
   taskqueue::deferred::duration offset{2000ms};
 
   if (!m_opts.shaded && m_opts.shade_size.h != m_opts.size.h) {
@@ -674,7 +674,7 @@ bool bar::on(const sig_ui::shade_window&) {
   m_taskqueue->defer_unique("window-shade", 25ms,
       [&](size_t remaining) {
         if (m_opts.shaded) {
-          m_sig.emit(sig_ui::tick{});
+          m_sig.emit(signals::ui::tick{});
         }
         if (!remaining) {
           m_renderer->flush(false);
@@ -689,7 +689,7 @@ bool bar::on(const sig_ui::shade_window&) {
   return true;
 }
 
-bool bar::on(const sig_ui::tick&) {
+bool bar::on(const signals::ui::tick&) {
   auto geom = m_connection.get_geometry(m_opts.window);
   if (geom->y == m_opts.shade_pos.y && geom->height == m_opts.shade_size.h) {
     return false;
@@ -723,7 +723,7 @@ bool bar::on(const sig_ui::tick&) {
   return false;
 }
 
-bool bar::on(const sig_ui::dim_window& sig) {
+bool bar::on(const signals::ui::dim_window& sig) {
   m_opts.dimmed = sig.cast() != 1.0;
   set_wm_window_opacity(m_connection, m_opts.window, sig.cast() * 0xFFFFFFFF);
   m_connection.flush();
