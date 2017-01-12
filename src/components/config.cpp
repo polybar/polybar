@@ -67,7 +67,7 @@ string config::section() const {
 void config::warn_deprecated(const string& section, const string& key, string replacement) const {
   try {
     auto value = get<string>(section, key);
-    m_log.warn("The config parameter `%s.%s` is deprecated, use `%s` instead.", section, key, move(replacement));
+    m_log.warn("The config parameter `%s.%s` is deprecated, use `%s.%s` instead.", section, key, section, move(replacement));
   } catch (const key_error& err) {
   }
 }

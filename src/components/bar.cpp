@@ -200,16 +200,16 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto bcolor = m_conf.get(bs, "border-color", "#00000000"s);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.get(bs, "border-top", bsize);
+  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", bsize);
   m_opts.borders[edge::TOP].color = color::parse(m_conf.get(bs, "border-top-color", bcolor));
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.get(bs, "border-bottom", bsize);
+  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", bsize);
   m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get(bs, "border-bottom-color", bcolor));
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.get(bs, "border-left", bsize);
+  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", bsize);
   m_opts.borders[edge::LEFT].color = color::parse(m_conf.get(bs, "border-left-color", bcolor));
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.get(bs, "border-right", bsize);
+  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", bsize);
   m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get(bs, "border-right-color", bcolor));
 
   // Load geometry values
