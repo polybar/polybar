@@ -13,6 +13,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
+      CAST_MOD(Impl)->update();
       this->m_mainthread = thread(&timer_module::runner, this);
     }
 

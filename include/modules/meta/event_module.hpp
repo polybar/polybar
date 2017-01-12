@@ -11,16 +11,15 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
+      CAST_MOD(Impl)->update();
+      CAST_MOD(Impl)->broadcast();
+
       this->m_mainthread = thread(&event_module::runner, this);
     }
 
    protected:
     void runner() {
       try {
-        // Warm up the module output before entering the loop
-        CAST_MOD(Impl)->update();
-        CAST_MOD(Impl)->broadcast();
-
         while (this->running()) {
           CAST_MOD(Impl)->idle();
 
