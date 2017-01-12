@@ -281,11 +281,6 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_renderer->fill_background();
   m_renderer->end();
 
-  m_log.trace("bar: Setup tray manager");
-  m_tray->setup(static_cast<const bar_settings&>(m_opts));
-
-  broadcast_visibility();
-
   m_sig.attach(this);
 }
 
@@ -617,6 +612,13 @@ void bar::handle(const evt::property_notify& evt) {
   if (evt->window == m_opts.window && evt->atom == WM_STATE) {
     broadcast_visibility();
   }
+}
+
+bool bar::on(const sig_ev::start&) {
+  m_log.trace("bar: Setup tray manager");
+  m_tray->setup(static_cast<const bar_settings&>(m_opts));
+  broadcast_visibility();
+  return true;
 }
 
 bool bar::on(const sig_ui::unshade_window&) {

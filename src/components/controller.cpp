@@ -183,6 +183,8 @@ bool controller::run(bool writeback) {
     throw application_error("No modules started");
   }
 
+  m_sig.emit(signals::eventqueue::start{});
+
   m_connection.flush();
 
   m_event_thread = thread(&controller::process_eventqueue, this);
@@ -531,7 +533,7 @@ bool controller::on(const sig_ev::check_state&) {
     }
   }
   m_log.warn("No running modules...");
-  on(exit_terminate{});
+  on(sig_ev::exit_terminate{});
   return true;
 }
 

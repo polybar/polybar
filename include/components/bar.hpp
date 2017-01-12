@@ -34,7 +34,7 @@ namespace sig_ev = signals::eventqueue;
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::destroy_notify, evt::client_message>,
-            public signal_receiver<SIGN_PRIORITY_BAR, sig_ui::tick, sig_ui::shade_window, sig_ui::unshade_window,
+            public signal_receiver<SIGN_PRIORITY_BAR, sig_ev::start, sig_ui::tick, sig_ui::shade_window, sig_ui::unshade_window,
                 sig_ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
@@ -63,6 +63,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void handle(const evt::expose& evt);
   void handle(const evt::property_notify& evt);
 
+  bool on(const sig_ev::start&);
   bool on(const sig_ui::unshade_window&);
   bool on(const sig_ui::shade_window&);
   bool on(const sig_ui::tick&);
