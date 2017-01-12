@@ -21,15 +21,16 @@ namespace modules {
     void runner() {
       try {
         while (this->running()) {
+          this->sleep(m_interval);
+
+          if (!this->running()) {
+            break;
+          }
+
           std::unique_lock<std::mutex> guard(this->m_updatelock);
 
           if (CAST_MOD(Impl)->update()) {
             this->broadcast();
-          }
-
-          if (this->running()) {
-            guard.unlock();
-            this->sleep(m_interval);
           }
         }
       } catch (const exception& err) {
