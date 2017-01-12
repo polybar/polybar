@@ -134,12 +134,26 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load configuration values
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
-  m_opts.padding.left = m_conf.get(bs, "padding-left", m_opts.padding.left);
-  m_opts.padding.right = m_conf.get(bs, "padding-right", m_opts.padding.right);
-  m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", m_opts.module_margin.left);
-  m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", m_opts.module_margin.right);
-  m_opts.separator = string_util::trim(m_conf.get(bs, "separator", ""s), '"');
+  m_opts.separator = m_conf.get(bs, "separator", ""s);
   m_opts.locale = m_conf.get(bs, "locale", ""s);
+
+  try {
+    auto padding = m_conf.get<decltype(m_opts.padding.left)>(bs, "module-padding");
+    m_opts.padding.left = padding;
+    m_opts.padding.right = padding;
+  } catch (const key_error& err) {
+    m_opts.padding.left = m_conf.get(bs, "padding-left", m_opts.padding.left);
+    m_opts.padding.right = m_conf.get(bs, "padding-right", m_opts.padding.right);
+  }
+
+  try {
+    auto margin = m_conf.get<decltype(m_opts.padding.left)>(bs, "module-margin");
+    m_opts.module_margin.left = margin;
+    m_opts.module_margin.right = margin;
+  } catch (const key_error& err) {
+    m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", m_opts.module_margin.left);
+    m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", m_opts.module_margin.right);
+  }
 
   if (only_initialize_values) {
     return;
