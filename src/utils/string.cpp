@@ -1,4 +1,5 @@
 #include <cstring>
+#include <iomanip>
 #include <sstream>
 #include <utility>
 
@@ -187,43 +188,41 @@ namespace string_util {
   }
 
   /**
-   * Create a float value string
+   * Create a floating point string
    */
-  string floatval(float value, int decimals, bool fixed, const string& locale) {
+  string floating_point(double value, size_t precision, bool fixed, const string& locale) {
     stringstream ss;
-    ss.precision(decimals);
-    if (!locale.empty()) {
-      ss.imbue(std::locale(locale.c_str()));
-    }
-    if (fixed) {
-      ss << std::fixed;
-    }
-    ss << value;
-    return ss.str();
+    ss.imbue(!locale.empty() ? std::locale(locale.c_str()) : std::locale::classic());
+    ss << std::fixed << std::setprecision(precision) << value;
+    return fixed ? ss.str() : replace(ss.str(), ".00", "");
   }
 
   /**
-   * Format a filesize string
+   * Create a MB filesize string
    */
-  string filesize(unsigned long long bytes, int decimals, bool fixed, const string& locale) {
+  string filesize_mb(unsigned long long kbytes, size_t precision, const string& locale) {
+    return floating_point(kbytes / 1024.0, precision, true, locale) + " MB";
+  }
+
+  /**
+   * Create a GB filesize string
+   */
+  string filesize_gb(unsigned long long kbytes, size_t precision, const string& locale) {
+    return floating_point(kbytes / 1024.0 / 1024.0, precision, true, locale) + " GB";
+  }
+
+  /**
+   * Create a filesize string by converting given bytes to highest unit possible
+   */
+  string filesize(unsigned long long kbytes, size_t precision, bool fixed, const string& locale) {
     vector<string> suffixes{"TB", "GB", "MB"};
     string suffix{"KB"};
-
-    while ((bytes /= 1024) >= 1024) {
+    double value = kbytes;
+    while (!suffixes.empty() && (value /= 1024.0) >= 1024.0) {
       suffix = suffixes.back();
       suffixes.pop_back();
     }
-
-    stringstream ss;
-    ss.precision(decimals);
-    if (!locale.empty()) {
-      ss.imbue(std::locale(locale.c_str()));
-    }
-    if (fixed) {
-      ss << std::fixed;
-    }
-    ss << bytes << " " << suffix;
-    return ss.str();
+    return floating_point(value, precision, fixed, locale) + " GB";
   }
 
   /**

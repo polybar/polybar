@@ -89,4 +89,21 @@ int main() {
     expect(hashA1 != hashB2);
     expect(hashB1 != hashB2);
   };
+
+  "floating_point"_test = [] {
+    expect(string_util::floating_point(1.2599, 2) == "1.26");
+    expect(string_util::floating_point(1.7, 0) == "2");
+    expect(string_util::floating_point(1.777, 10) == "1.7770000000");
+  };
+
+  "filesize"_test = [] {
+    expect(string_util::filesize_mb(3 * 1024, 3) == "3.000 MB");
+    expect(string_util::filesize_mb(3 * 1024 + 200, 3) == "3.195 MB");
+    expect(string_util::filesize_mb(3 * 1024 + 400) == "3 MB");
+    expect(string_util::filesize_mb(3 * 1024 + 800) == "4 MB");
+    expect(string_util::filesize_gb(3 * 1024 * 1024 + 200 * 1024, 3) == "3.195 GB");
+    expect(string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024) == "3 GB");
+    expect(string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024) == "4 GB");
+    expect(string_util::filesize(3 * 1024 * 1024) == "3 GB");
+  };
 }

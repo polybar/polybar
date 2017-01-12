@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -16,14 +16,15 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR_USED = "<bar-used>";
-    static constexpr auto TAG_BAR_FREE = "<bar-free>";
+    static constexpr const char* TAG_LABEL{"<label>"};
+    static constexpr const char* TAG_BAR_USED{"<bar-used>"};
+    static constexpr const char* TAG_BAR_FREE{"<bar-free>"};
 
     label_t m_label;
-    progressbar_t m_bar_free;
-    map<memtype, progressbar_t> m_bars;
-    map<memtype, int> m_perc;
+    progressbar_t m_bar_memused;
+    progressbar_t m_bar_memfree;
+    int m_perc_memused{0};
+    int m_perc_memfree{0};
   };
 }
 

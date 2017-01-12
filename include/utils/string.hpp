@@ -16,22 +16,32 @@ namespace string_util {
   string upper(const string& s);
   string lower(const string& s);
   bool compare(const string& s1, const string& s2);
+
   string replace(const string& haystack, const string& needle, const string& replacement, size_t start = 0,
       size_t end = string::npos);
   string replace_all(const string& haystack, const string& needle, const string& replacement, size_t start = 0,
       size_t end = string::npos);
+
   string squeeze(const string& haystack, char needle);
+
   string strip(const string& haystack, char needle);
   string strip_trailing_newline(const string& haystack);
+
   string ltrim(string&& value, const char& needle);
   string rtrim(string&& value, const char& needle);
   string trim(string&& value, const char& needle);
+
   string join(const vector<string>& strs, const string& delim);
   vector<string>& split_into(const string& s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);
+
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth);
-  string floatval(float value, int decimals = 2, bool fixed = false, const string& locale = "");
-  string filesize(unsigned long long bytes, int decimals = 2, bool fixed = false, const string& locale = "");
+
+  string floating_point(double value, size_t precision, bool fixed = false, const string& locale = "");
+  string filesize_mb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
+  string filesize_gb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
+  string filesize(unsigned long long bytes, size_t precision = 0, bool fixed = false, const string& locale = "");
+
   string from_stream(const std::basic_ostream<char>& os);
   hash_type hash(const string& src);
 }

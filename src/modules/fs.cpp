@@ -87,22 +87,11 @@ namespace modules {
         mount->mountpoint = mnt->mnt_dir;
         mount->type = mnt->mnt_type;
         mount->fsname = mnt->mnt_fsname;
-
-        auto b_total = buffer.f_bsize * buffer.f_blocks;
-        auto b_free = buffer.f_bsize * buffer.f_bfree;
-        auto b_avail = buffer.f_bsize * buffer.f_bavail;
-        auto b_used = b_total - b_avail;
-
-        mount->bytes_total = b_total;
-        mount->bytes_free = b_free;
-        mount->bytes_used = b_used;
-
-        mount->percentage_free = math_util::percentage<unsigned long, float>(b_avail, 0UL, b_total);
-        mount->percentage_used = math_util::percentage<unsigned long, float>(b_used, 0UL, b_total);
-
-        mount->percentage_free_s = string_util::floatval(mount->percentage_free, 2, m_fixed, m_bar.locale);
-        mount->percentage_used_s = string_util::floatval(mount->percentage_used, 2, m_fixed, m_bar.locale);
-
+        mount->bytes_total = buffer.f_bsize * buffer.f_blocks;
+        mount->bytes_free = buffer.f_bsize * buffer.f_bfree;
+        mount->bytes_used = mount->bytes_total - buffer.f_bsize * buffer.f_bavail;
+        mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_total);
+        mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_total);
         break;
       }
     }
@@ -161,11 +150,14 @@ namespace modules {
       m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
       m_labelmounted->replace_token("%type%", mount->type);
       m_labelmounted->replace_token("%fsname%", mount->fsname);
-      m_labelmounted->replace_token("%percentage_free%", mount->percentage_free_s + "%");
-      m_labelmounted->replace_token("%percentage_used%", mount->percentage_used_s + "%");
-      m_labelmounted->replace_token("%total%", string_util::filesize(mount->bytes_total, 1, m_fixed, m_bar.locale));
-      m_labelmounted->replace_token("%free%", string_util::filesize(mount->bytes_free, 2, m_fixed, m_bar.locale));
-      m_labelmounted->replace_token("%used%", string_util::filesize(mount->bytes_used, 2, m_fixed, m_bar.locale));
+      m_labelmounted->replace_token("%percentage_free%", to_string(mount->percentage_free) + "%");
+      m_labelmounted->replace_token("%percentage_used%", to_string(mount->percentage_used) + "%");
+      m_labelmounted->replace_token(
+          "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      m_labelmounted->replace_token(
+          "%free%", string_util::filesize(mount->bytes_free, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      m_labelmounted->replace_token(
+          "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       builder->node(m_labelmounted);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
       m_labelunmounted->reset_tokens();

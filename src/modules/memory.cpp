@@ -2,10 +2,10 @@
 #include <iomanip>
 #include <istream>
 
-#include "modules/memory.hpp"
-
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+#include "modules/memory.hpp"
+#include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -20,10 +20,10 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
-      m_bars[memtype::USED] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
+      m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
-      m_bars[memtype::FREE] = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
+      m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
     }
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
@@ -31,66 +31,45 @@ namespace modules {
   }
 
   bool memory_module::update() {
-    float kb_total;
-    float kb_avail;
-    // long kb_free;
+    unsigned long long kb_total{0ULL};
+    unsigned long long kb_avail{0ULL};
+    unsigned long long kb_free{0ULL};
 
     try {
       std::ifstream in(PATH_MEMORY_INFO);
       std::stringstream buffer;
-      string str, rdbuf;
-      int i = 0;
-
-      in.exceptions(in.failbit);
+      string str;
 
       buffer.imbue(std::locale::classic());
 
-      while (std::getline(in, str) && i++ < 3) {
+      for (int i = 3; i > 0 && std::getline(in, str); i--) {
         size_t off = str.find_first_of("1234567890", str.find(':'));
         if (off != string::npos && str.size() > off) {
-          buffer << std::strtol(&str[off], nullptr, 10) << std::endl;
+          buffer << std::strtoull(&str[off], nullptr, 10) << std::endl;
         }
       }
 
-      buffer >> rdbuf;
-      kb_total = std::atol(rdbuf.c_str());
-      buffer >> rdbuf;  // kb_free = std::atol(rdbuf.c_str());
-      buffer >> rdbuf;
-      kb_avail = std::atol(rdbuf.c_str());
-    } catch (const std::ios_base::failure& e) {
-      kb_total = 0;
-      // kb_free = 0;
-      kb_avail = 0;
-      m_log.err("Failed to read memory values (what: %s)", e.what());
+      buffer >> kb_total;
+      buffer >> kb_free;
+      buffer >> kb_avail;
+    } catch (const std::exception& err) {
+      m_log.err("Failed to read memory values (what: %s)", err.what());
     }
 
-    if (kb_total > 0) {
-      m_perc[memtype::FREE] = (kb_avail / kb_total) * 100.0f + 0.5f;
-    } else {
-      m_perc[memtype::FREE] = 0;
-    }
-
-    m_perc[memtype::USED] = 100 - m_perc[memtype::FREE];
+    m_perc_memfree = math_util::percentage(kb_avail, kb_total);
+    m_perc_memused = 100 - m_perc_memfree;
 
     // replace tokens
     if (m_label) {
       m_label->reset_tokens();
-
-      auto replace_unit = [](label_t& label, string token, float value, string unit) {
-        auto formatted =
-            string_util::from_stream(stringstream() << std::setprecision(2) << std::fixed << value << " " << unit);
-        label->replace_token(token, formatted);
-      };
-
-      replace_unit(m_label, "%gb_used%", (kb_total - kb_avail) / 1024 / 1024, "GB");
-      replace_unit(m_label, "%gb_free%", kb_avail / 1024 / 1024, "GB");
-      replace_unit(m_label, "%gb_total%", kb_total / 1024 / 1024, "GB");
-      replace_unit(m_label, "%mb_used%", (kb_total - kb_avail) / 1024, "MB");
-      replace_unit(m_label, "%mb_free%", kb_avail / 1024, "MB");
-      replace_unit(m_label, "%mb_total%", kb_total / 1024, "MB");
-
-      m_label->replace_token("%percentage_used%", to_string(m_perc[memtype::USED]) + "%");
-      m_label->replace_token("%percentage_free%", to_string(m_perc[memtype::FREE]) + "%");
+      m_label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
+      m_label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
+      m_label->replace_token("%gb_total%", string_util::filesize_gb(kb_total, 2, m_bar.locale));
+      m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 2, m_bar.locale));
+      m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 2, m_bar.locale));
+      m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
+      m_label->replace_token("%percentage_used%", to_string(m_perc_memused) + "%");
+      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree) + "%");
     }
 
     return true;
@@ -98,9 +77,9 @@ namespace modules {
 
   bool memory_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR_USED) {
-      builder->node(m_bars.at(memtype::USED)->output(m_perc.at(memtype::USED)));
+      builder->node(m_bar_memused->output(m_perc_memused));
     } else if (tag == TAG_BAR_FREE) {
-      builder->node(m_bars.at(memtype::FREE)->output(m_perc.at(memtype::FREE)));
+      builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
     } else {

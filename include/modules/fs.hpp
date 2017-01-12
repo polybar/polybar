@@ -17,15 +17,13 @@ namespace modules {
     string type;
     string fsname;
 
-    unsigned long long bytes_free = 0;
-    unsigned long long bytes_used = 0;
-    unsigned long long bytes_total = 0;
+    unsigned long long bytes_free{0ULL};
+    unsigned long long bytes_used{0ULL};
+    unsigned long long bytes_avail{0ULL};
+    unsigned long long bytes_total{0ULL};
 
-    float percentage_free = 0;
-    float percentage_used = 0;
-
-    string percentage_free_s;
-    string percentage_used_s;
+    int percentage_free{0};
+    int percentage_used{0};
 
     explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
   };
