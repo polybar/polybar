@@ -36,7 +36,7 @@ overline-color = #f00
 underline-size = 2
 underline-color = #00f
 
-border-bottom = 2
+border-bottom-size = 2
 border-bottom-color = #333
 
 padding-left = 0
@@ -98,7 +98,6 @@ label-unmounted-foreground = ${colors.foreground-alt}
 
 [module/bspwm]
 type = internal/bspwm
-ws-icon-default = x
 
 label-focused = %index%
 label-focused-background = ${colors.background-alt}

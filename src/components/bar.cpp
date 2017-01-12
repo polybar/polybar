@@ -185,32 +185,30 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.foreground = color::parse(m_conf.get(bs, "foreground", color_util::hex<uint16_t>(m_opts.foreground)));
 
   // Load over-/underline color and size (warn about deprecated params if used)
-  m_conf.warn_deprecated(bs, "linecolor", "{underline,overline}-color");
-  m_conf.warn_deprecated(bs, "lineheight", "{underline,overline}-size");
+  auto line_color = color::parse(m_conf.get(bs, "line-color", "#f00"s));
+  auto line_size = m_conf.get(bs, "line-size", 0);
 
-  auto linecolor = color::parse(m_conf.get(bs, "linecolor", "#f00"s));
-  auto lineheight = m_conf.get(bs, "lineheight", 0);
-  m_opts.overline.size = m_conf.get(bs, "overline-size", lineheight);
-  m_opts.overline.color = color::parse(m_conf.get(bs, "overline-color", linecolor));
-  m_opts.underline.size = m_conf.get(bs, "underline-size", lineheight);
-  m_opts.underline.color = color::parse(m_conf.get(bs, "underline-color", linecolor));
+  m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
+  m_opts.overline.color = color::parse(m_conf.get(bs, "overline-color", line_color));
+  m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
+  m_opts.underline.color = color::parse(m_conf.get(bs, "underline-color", line_color));
 
   // Load border settings
-  auto bsize = m_conf.get(bs, "border-size", 0);
-  auto bcolor = m_conf.get(bs, "border-color", "#00000000"s);
+  auto border_size = m_conf.get(bs, "border-size", 0);
+  auto border_color = m_conf.get(bs, "border-color", "#00000000"s);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", bsize);
-  m_opts.borders[edge::TOP].color = color::parse(m_conf.get(bs, "border-top-color", bcolor));
+  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  m_opts.borders[edge::TOP].color = color::parse(m_conf.get(bs, "border-top-color", border_color));
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", bsize);
-  m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get(bs, "border-bottom-color", bcolor));
+  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  m_opts.borders[edge::BOTTOM].color = color::parse(m_conf.get(bs, "border-bottom-color", border_color));
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", bsize);
-  m_opts.borders[edge::LEFT].color = color::parse(m_conf.get(bs, "border-left-color", bcolor));
+  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  m_opts.borders[edge::LEFT].color = color::parse(m_conf.get(bs, "border-left-color", border_color));
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", bsize);
-  m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get(bs, "border-right-color", bcolor));
+  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
+  m_opts.borders[edge::RIGHT].color = color::parse(m_conf.get(bs, "border-right-color", border_color));
 
   // Load geometry values
   auto w = m_conf.get(m_conf.section(), "width", "100%"s);
