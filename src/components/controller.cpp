@@ -432,8 +432,11 @@ bool controller::process_update(bool force) {
     }
 
     for (const auto& module : block.second) {
-      string module_contents{module->contents()};
+      if (!module->running()) {
+        continue;
+      }
 
+      string module_contents{module->contents()};
       if (module_contents.empty()) {
         continue;
       }
@@ -597,6 +600,9 @@ bool controller::on(const sig_ipc::hook& evt) {
 
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
+      if (!module->running()) {
+        continue;
+      }
       auto ipc = dynamic_cast<ipc_module*>(module.get());
       if (ipc != nullptr) {
         ipc->on_message(hook);
