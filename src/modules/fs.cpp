@@ -1,18 +1,22 @@
 #include <sys/statvfs.h>
-
-#include "modules/fs.hpp"
+#include <fstream>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "modules/fs.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
-#include "utils/mtab.hpp"
 #include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
+
+// Columns in /proc/self/mountinfo
+#define MOUNTINFO_DIR 4
+#define MOUNTINFO_TYPE 7
+#define MOUNTINFO_FSNAME 8
 
 namespace modules {
   template class module<fs_module>;
@@ -57,42 +61,47 @@ namespace modules {
   }
 
   /**
-   * Update values by reading mtab entries
+   * Update mountpoints
    */
   bool fs_module::update() {
     m_mounts.clear();
 
-    for (auto&& mountpoint : m_mountpoints) {
-      struct statvfs buffer {};
-      struct mntent* mnt{nullptr};
+    vector<vector<string>> mountinfo;
+    std::ifstream filestream("/proc/self/mountinfo");
+    string line;
 
-      m_mounts.emplace_back(new fs_mount{mountpoint, false});
-
-      if (statvfs(mountpoint.c_str(), &buffer) == -1) {
-        m_log.err("%s: Failed to query filesystem (statvfs() error: %s)", name(), strerror(errno));
-        continue;
+    // Get details for mounted filesystems
+    while (std::getline(filestream, line)) {
+      auto cols = string_util::split(line, ' ');
+      if (std::find(m_mountpoints.begin(), m_mountpoints.end(), cols[MOUNTINFO_DIR]) != m_mountpoints.end()) {
+        mountinfo.emplace_back(move(cols));
       }
+    }
 
-      auto mtab = factory_util::unique<mtab_util::reader>();
-      auto& mount = m_mounts.back();
+    // Get data for defined mountpoints
+    for (auto&& mountpoint : m_mountpoints) {
+      auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
+          [&](const vector<string>& m) { return m.size() > 4 && m[4] == mountpoint; });
 
-      while (mtab->next(&mnt)) {
-        if (strlen(mnt->mnt_dir) != mountpoint.size()) {
-          continue;
-        } else if (strncmp(mnt->mnt_dir, mountpoint.c_str(), mountpoint.size()) != 0) {
-          continue;
-        }
+      m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end()});
+      struct statvfs buffer {};
 
-        mount->mounted = true;
-        mount->mountpoint = mnt->mnt_dir;
-        mount->type = mnt->mnt_type;
-        mount->fsname = mnt->mnt_fsname;
+      if (!m_mounts.back()->mounted) {
+        m_log.warn("%s: Mountpoint %s is not mounted", name(), mountpoint);
+      } else if (statvfs(mountpoint.c_str(), &buffer) == -1) {
+        m_log.err("%s: Failed to query filesystem (statvfs() error: %s)", name(), strerror(errno));
+      } else {
+        auto& mount = m_mounts.back();
+        mount->mountpoint = details->at(MOUNTINFO_DIR);
+        mount->type = details->at(MOUNTINFO_TYPE);
+        mount->fsname = details->at(MOUNTINFO_FSNAME);
+
         mount->bytes_total = buffer.f_bsize * buffer.f_blocks;
         mount->bytes_free = buffer.f_bsize * buffer.f_bfree;
         mount->bytes_used = mount->bytes_total - buffer.f_bsize * buffer.f_bavail;
+
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_total);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_total);
-        break;
       }
     }
 
