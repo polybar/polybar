@@ -47,7 +47,9 @@ namespace modules {
 
       while (std::getline(in, str) && i++ < 3) {
         size_t off = str.find_first_of("1234567890", str.find(':'));
-        buffer << std::strtol(&str[off], nullptr, 10) << std::endl;
+        if (off != string::npos && str.size() > off) {
+          buffer << std::strtol(&str[off], nullptr, 10) << std::endl;
+        }
       }
 
       buffer >> rdbuf;
