@@ -77,7 +77,9 @@ namespace modules {
       auto& mount = m_mounts.back();
 
       while (mtab->next(&mnt)) {
-        if (strncmp(mnt->mnt_dir, mountpoint.c_str(), strlen(mnt->mnt_dir)) != 0) {
+        if (strlen(mnt->mnt_dir) != mountpoint.size()) {
+          continue;
+        } else if (strncmp(mnt->mnt_dir, mountpoint.c_str(), mountpoint.size()) != 0) {
           continue;
         }
 
