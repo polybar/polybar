@@ -141,6 +141,7 @@ make_executable(${PROJECT_NAME} SOURCES
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 target_compile_options(${PROJECT_NAME} PUBLIC
+  $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>
   ${X11_Xft_DEFINITIONS}
   ${X11_XCB_DEFINITIONS}
   ${XCB_DEFINITIONS})
@@ -150,6 +151,8 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 
 if(BUILD_IPC_MSG)
   make_executable(${PROJECT_NAME}-msg SOURCES ipc.cpp utils/file.cpp)
+  target_compile_options(${PROJECT_NAME}-msg PUBLIC
+    $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 endif()
 
 # }}}
