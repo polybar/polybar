@@ -161,3 +161,45 @@ function(make_library target_name)
 endfunction()
 
 # }}}
+# find_font : Query fontconfig fonts {{{
+
+function(font_query output_variable fontname)
+  set(multi_value_args FIELDS)
+  cmake_parse_arguments(ARG "" "" "${multi_value_args}" ${ARGN})
+
+  find_program(BIN_FCLIST fc-list)
+  if(NOT BIN_FCLIST)
+    message_colored(WARNING "Failed to locate `fc-list`" "33;1")
+    return()
+  endif()
+
+  string(REPLACE ";" " " FIELDS "${ARG_FIELDS}")
+  if(NOT FIELDS)
+    set(FIELDS family)
+  endif()
+
+  execute_process(
+    COMMAND sh -c "${BIN_FCLIST} : ${FIELDS}"
+    RESULT_VARIABLE status
+    OUTPUT_VARIABLE output
+    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+  STRING(REGEX REPLACE ";" "\\\\;" output "${output}")
+  STRING(REGEX REPLACE "\n" ";" output "${output}")
+  STRING(TOLOWER "${output}" output)
+
+  foreach(match LISTS ${output})
+    if(${match} MATCHES ".*${fontname}.*$")
+      list(APPEND FONT_QUERY_MATCHES ${match})
+    endif()
+  endforeach()
+
+  if(FONT_QUERY_MATCHES)
+    list(GET FONT_QUERY_MATCHES 0 output_variable)
+    set(output_variable "${output_variable}" PARENT_SCOPE)
+    message(STATUS "Found font: ${output_variable}")
+  else()
+    message_colored(WARNING "Font not found: ${fontname}" "33;1")
+  endif()
+endfunction()
+
+# }}}

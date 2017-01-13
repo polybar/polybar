@@ -44,9 +44,9 @@ padding-right = 2
 module-margin-left = 1
 module-margin-right = 2
 
-font-0 = fixed:pixelsize=10;0
-font-1 = unifont:size=6:heavy:fontformat=truetype;-2
-font-2 = siji:pixelsize=10;0
+font-0 = @FONT_FIXED@
+font-1 = @FONT_UNIFONT@:size=6:heavy;-2
+font-2 = @FONT_SIJI@
 
 modules-left = @MODULES_LEFT@
 modules-center = @MODULES_CENTER@
