@@ -105,9 +105,22 @@ namespace randr_util {
         } else if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED) {
           continue;
         }
-        auto crtc = conn.get_crtc_info(info->crtc);
+
         auto name_iter = info.name();
         string name{name_iter.begin(), name_iter.end()};
+
+#if ENABLE_XRANDR_MONITORS
+        if (check_monitor_support()) {
+          auto mon = std::find_if(
+              monitors.begin(), monitors.end(), [&name](const monitor_t& mon) { return mon->name == name; });
+          if (mon != monitors.end()) {
+            (*mon)->output = output;
+            continue;
+          }
+        }
+#endif
+
+        auto crtc = conn.get_crtc_info(info->crtc);
         monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
       } catch (const exception&) {
         // silently ignore output
