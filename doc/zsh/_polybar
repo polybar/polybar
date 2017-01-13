@@ -11,8 +11,11 @@ _polybar() {
     '(-l --log -q --quiet)'{-q,--quiet}'[Be quiet (will override -l)]' \
     '(-c --config)'{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
     '(-r --reload)'{-r,--reload}'[Reload when the configuration has been modified]' \
+    '(-d --dump)'{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
     '(-m --list-monitors)'{-m,--list-monitors}'[Print list of available monitors and exit]' \
-    '*:bar name:_polybar_list_names'
+    '(-w --print-wmname)'{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
+    '(-s --stdout)'{-s,--stdout}'[Output data to stdout instead of drawing the X window]' \
+    '::bar name:_polybar_list_names'
 }
 
 (( $+functions[_polybar_list_names] )) || _polybar_list_names() {
