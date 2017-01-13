@@ -117,32 +117,44 @@ namespace modules {
   template <typename Impl>
   string module<Impl>::get_output() {
     std::lock_guard<std::mutex> guard(m_buildlock);
-
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
-
-    int i{0};
-    bool prevtag{true};
-
+    bool no_tag_built{true};
+    bool fake_no_tag_built{false};
+    bool tag_built{false};
     auto mingap = std::max(1_z, format->spacing);
-
     size_t start, end;
     string value{format->value};
     while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
       if (start > 0) {
-        m_builder->node(value.substr(0, start));
+        if (no_tag_built) {
+          // If no module tag has been built we do not want to add
+          // whitespace defined between the format tags, but we do still
+          // want to output other non-tag content
+          auto trimmed = string_util::ltrim(value.substr(0, start), ' ');
+          if (!trimmed.empty()) {
+            fake_no_tag_built = false;
+            m_builder->node(move(trimmed));
+          }
+        } else {
+          m_builder->node(value.substr(0, start));
+        }
         value.erase(0, start);
         end -= start;
         start = 0;
       }
       string tag{value.substr(start, end + 1)};
-      if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
-        if (i > 0)
+      if (tag.empty()) {
+        continue;
+      } else if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
+        if (!no_tag_built)
           m_builder->space(format->spacing);
-        if (!(prevtag = CONST_MOD(Impl).build(m_builder.get(), tag)) && i > 0)
+        else if (fake_no_tag_built)
+          no_tag_built = false;
+        if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && !no_tag_built)
           m_builder->remove_trailing_space(mingap);
-        if (prevtag)
-          i++;
+        if (tag_built)
+          no_tag_built = false;
       }
       value.erase(0, tag.size());
     }
