@@ -1,20 +1,29 @@
 #compdef polybar
 #
-# Polybar completion script (https://github.com/jaagr/polybar)
+# Completion for polybar (https://github.com/jaagr/polybar)
 #   jaagr <c@rlberg.se>
 #
 _polybar() {
+  local L='-l --log'
+  local Q='-q --quiet'
+  local C='-c --config'
+  local R='-r --reload'
+  local D='-d --dump'
+  local M='-m --list-monitors'
+  local W='-w --print-wmname'
+  local S='-s --stdout'
+
   _arguments -n : \
-    '(-h --help)'{-h,--help}'[Display help text and exit]' \
-    '(-v --version)'{-v,--version}'[Display build details and exit]' \
-    '(-l --log)'{-l,--log=}'[Set the logging verbosity (default: warning)]:verbosity level:(error warning info trace)' \
-    '(-l --log -q --quiet)'{-q,--quiet}'[Be quiet (will override -l)]' \
-    '(-c --config)'{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
-    '(-r --reload)'{-r,--reload}'[Reload when the configuration has been modified]' \
-    '(-d --dump)'{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
-    '(-m --list-monitors)'{-m,--list-monitors}'[Print list of available monitors and exit]' \
-    '(-w --print-wmname)'{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
-    '(-s --stdout)'{-s,--stdout}'[Output data to stdout instead of drawing the X window]' \
+    '(-)'{-h,--help}'[Display help text and exit]' \
+    '(-)'{-v,--version}'[Display build details and exit]' \
+    "($L $Q)"{-l,--log=}'[Set the logging verbosity (default: warning)]:verbosity level:(error warning info trace)' \
+    "($L $Q)"{-q,--quiet}'[Be quiet (will override -l)]' \
+    "($C)"{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
+    "($R)"{-r,--reload}'[Reload when the configuration has been modified]' \
+    "($D $R $M $W $S)"{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
+    "($M $D $R $W $S)"{-m,--list-monitors}'[Print list of available monitors and exit]' \
+    "($W $R $D $M $S)"{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
+    "($S)"{-s,--stdout}'[Output data to stdout instead of drawing the X window]' \
     '::bar name:_polybar_list_names'
 }
 
