@@ -27,6 +27,7 @@ namespace modules {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
     }
 
+    // clang-format off
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::MIDDLE, m_conf.get(name(), "click-middle", ""s)));
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::RIGHT, m_conf.get(name(), "click-right", ""s)));
@@ -35,6 +36,21 @@ namespace modules {
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_LEFT, m_conf.get(name(), "double-click-left", ""s)));
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_MIDDLE, m_conf.get(name(), "double-click-middle", ""s)));
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_RIGHT, m_conf.get(name(), "double-click-right", ""s)));
+    // clang-format on
+
+    const auto pid_token = [](string& s) {
+      string::size_type p = s.find("%pid%");
+      if (p != string::npos) {
+        s.replace(p, 5, to_string(getpid()));
+      }
+    };
+
+    for (auto& action : m_actions) {
+      pid_token(action.second);
+    }
+    for (auto& hook : m_hooks) {
+      pid_token(hook->command);
+    }
 
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
   }
