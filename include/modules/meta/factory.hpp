@@ -37,10 +37,10 @@
 #if ENABLE_CURL
 #include "modules/github.hpp"
 #endif
-#if WITH_XKB
+#if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && WITH_XKB)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD)
 #include "modules/unsupported.hpp"
 #endif
 

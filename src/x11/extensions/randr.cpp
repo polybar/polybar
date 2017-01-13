@@ -3,6 +3,7 @@
 
 #include "components/types.hpp"
 #include "errors.hpp"
+#include "settings.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
@@ -31,14 +32,30 @@ bool randr_output::match(const position& p) const {
 
 namespace randr_util {
   /**
+   * XRandR version
+   */
+  static uint32_t g_major_version = 0;
+  static uint32_t g_minor_version = 0;
+
+  /**
    * Query for the XRandR extension
    */
   void query_extension(connection& conn) {
-    conn.randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
+    auto ext = conn.randr().query_version(XCB_RANDR_MAJOR_VERSION, XCB_RANDR_MINOR_VERSION);
+
+    g_major_version = ext->major_version;
+    g_minor_version = ext->minor_version;
 
     if (!conn.extension<xpp::randr::extension>()->present) {
       throw application_error("Missing X extension: Randr");
     }
+  }
+
+  /**
+   * Check for XRandR monitor support
+   */
+  bool check_monitor_support() {
+    return ENABLE_XRANDR_MONITORS && g_major_version >= 1 && g_minor_version >= 5;
   }
 
   /**
@@ -58,24 +75,40 @@ namespace randr_util {
   /**
    * Create a list of all available randr outputs
    */
-  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only) {
-    vector<monitor_t> monitors;
-    auto outputs = conn.get_screen_resources(root).outputs();
+  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only, bool realloc) {
+    static vector<monitor_t> monitors;
 
-    for (auto it = outputs.begin(); it != outputs.end(); it++) {
+    if (realloc) {
+      monitors.clear();
+    } else if (!monitors.empty()) {
+      return monitors;
+    }
+
+    if (check_monitor_support()) {
+      for (auto&& mon : conn.get_monitors(root, true).monitors()) {
+        try {
+          auto name = conn.get_atom_name(mon.name).name();
+          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y));
+        } catch (const exception&) {
+          // silently ignore output
+        }
+      }
+    }
+
+    for (auto&& output : conn.get_screen_resources(root).outputs()) {
       try {
-        auto info = conn.get_output_info(*it);
+        auto info = conn.get_output_info(output);
         if (info->crtc == XCB_NONE) {
           continue;
-        }
-        if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED) {
+        } else if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED) {
           continue;
         }
         auto crtc = conn.get_crtc_info(info->crtc);
-        string name{info.name().begin(), info.name().end()};
-        monitors.emplace_back(make_monitor(*it, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
-      } catch (const xpp::randr::error::bad_crtc&) {
-      } catch (const xpp::randr::error::bad_output&) {
+        auto name_iter = info.name();
+        string name{name_iter.begin(), name_iter.end()};
+        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
+      } catch (const exception&) {
+        // silently ignore output
       }
     }
 
@@ -94,6 +127,8 @@ namespace randr_util {
       // Test if there are any clones in the set
       for (auto& monitor : monitors) {
         if ((*m) == monitor || monitor->w == 0) {
+          continue;
+        } else if (check_monitor_support() && (monitor->output == XCB_NONE || (*m)->output == XCB_NONE)) {
           continue;
         }
 

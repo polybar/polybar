@@ -1,5 +1,5 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && WITH_XKB
+#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD
 #error "Support has been enabled for all optional modules"
 #endif
 
@@ -46,7 +46,7 @@ namespace modules {
 #if not ENABLE_CURL
   DEFINE_UNSUPPORTED_MODULE(github_module, "internal/github");
 #endif
-#if not WITH_XKB
+#if not ENABLE_XKEYBOARD
   DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
 #endif
 }

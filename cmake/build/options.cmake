@@ -68,6 +68,10 @@ option(WITH_XSYNC         "XSYNC support"              OFF)
 option(WITH_XCOMPOSITE    "XCOMPOSITE support"         OFF)
 option(WITH_XKB           "XKB support"                ON)
 
+if(NOT DEFINED ENABLE_XRANDR_MONITORS)
+  set(ENABLE_XRANDR_MONITORS OFF CACHE STRING "Enable XRandR monitor feature (requires version 1.5+)")
+endif()
+
 # }}}
 # Set cache vars {{{
 

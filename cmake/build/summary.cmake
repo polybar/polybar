@@ -67,6 +67,7 @@ colored_option(STATUS " Enable mpd           ${ENABLE_MPD}" ENABLE_MPD "32;1" "3
 colored_option(STATUS " Enable network       ${ENABLE_NETWORK}" ENABLE_NETWORK "32;1" "37;2")
 message(STATUS "--------------------------")
 colored_option(STATUS " XRANDR support       ${WITH_XRANDR}" WITH_XRANDR "32;1" "37;2")
+colored_option(STATUS " + XRandR monitors    ${ENABLE_XRANDR_MONITORS}" ENABLE_XRANDR_MONITORS "32;1" "37;2")
 colored_option(STATUS " XRENDER support      ${WITH_XRENDER}" WITH_XRENDER "32;1" "37;2")
 colored_option(STATUS " XDAMAGE support      ${WITH_XDAMAGE}" WITH_XDAMAGE "32;1" "37;2")
 colored_option(STATUS " XSYNC support        ${WITH_XSYNC}" WITH_XSYNC "32;1" "37;2")

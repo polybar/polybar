@@ -102,8 +102,7 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   if (screen->width_in_pixels != m_size.w || screen->height_in_pixels != m_size.h) {
     changed = true;
   } else {
-    auto monitors = randr_util::get_monitors(m_connection, m_root, true);
-
+    auto monitors = randr_util::get_monitors(m_connection, m_root, true, true);
     for (size_t n = 0; n < monitors.size(); n++) {
       if (n < m_monitors.size() && monitors[n]->output != m_monitors[n]->output) {
         changed = true;

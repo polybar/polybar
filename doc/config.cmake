@@ -164,7 +164,7 @@ icon-repeat = 
 toggle-on-foreground = ${colors.primary}
 toggle-off-foreground = #66
 
-[module/backlight]
+[module/xbacklight]
 type = internal/xbacklight
 
 format = <label> <bar>
@@ -180,6 +180,11 @@ bar-fill-foreground = #9f78e1
 bar-empty = ─
 bar-empty-font = 2
 bar-empty-foreground = ${colors.foreground-alt}
+
+[module/backlight-acpi]
+inherit = module/xbacklight
+type = internal/backlight
+card = intel_backlight
 
 [module/cpu]
 type = internal/cpu

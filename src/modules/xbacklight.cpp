@@ -43,7 +43,8 @@ namespace modules {
       randr_util::get_backlight_range(m_connection, m_output, backlight);
       randr_util::get_backlight_value(m_connection, m_output, backlight);
     } catch (const exception& err) {
-      throw module_error("No backlight data found for \"" + output + "\", stopping module...");
+      m_log.err("%s: Could not get data (err: %s)", name(), err.what());
+      throw module_error("Not supported for \"" + output + "\"");
     }
 
     // Create window that will proxy all RandR notify events

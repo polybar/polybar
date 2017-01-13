@@ -240,9 +240,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   if (m_opts.size.w <= 0 || m_opts.size.w > m_opts.monitor->w) {
-    throw application_error("Resulting bar width is out of bounds");
+    throw application_error("Resulting bar width is out of bounds (" + to_string(m_opts.size.w) + ")");
   } else if (m_opts.size.h <= 0 || m_opts.size.h > m_opts.monitor->h) {
-    throw application_error("Resulting bar height is out of bounds");
+    throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
   m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);

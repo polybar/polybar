@@ -25,6 +25,19 @@
 #cmakedefine01 WITH_XSYNC
 #cmakedefine01 WITH_XCOMPOSITE
 #cmakedefine01 WITH_XKB
+
+#if WITH_XRANDR
+#cmakedefine01 ENABLE_XRANDR_MONITORS
+#else
+#define ENABLE_XRANDR_MONITORS 0
+#endif
+
+#if WITH_XKB
+#define ENABLE_XKEYBOARD 1
+#else
+#define ENABLE_XKEYBOARD 0
+#endif
+
 #cmakedefine XPP_EXTENSION_LIST @XPP_EXTENSION_LIST@
 
 #cmakedefine DEBUG_LOGGER
@@ -82,6 +95,15 @@ const auto print_build_info = [](bool extended = false) {
     (ENABLE_MPD     ? '+' : '-'),
     (ENABLE_NETWORK ? '+' : '-'));
   if (extended) {
+    printf("\n");
+    printf("X extensions: %cxrandr (%cmonitors) %cxrender %cxdamage %cxsync %cxcomposite %cxkb\n",
+      (WITH_XRANDR            ? '+' : '-'),
+      (ENABLE_XRANDR_MONITORS ? '+' : '-'),
+      (WITH_XRENDER           ? '+' : '-'),
+      (WITH_XDAMAGE           ? '+' : '-'),
+      (WITH_XSYNC             ? '+' : '-'),
+      (WITH_XCOMPOSITE        ? '+' : '-'),
+      (WITH_XKB               ? '+' : '-'));
     printf("\n");
     printf("Build type: @CMAKE_BUILD_TYPE@\n");
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");

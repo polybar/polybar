@@ -1,5 +1,3 @@
-#include <X11/Xlib-xcb.h>
-
 #include "common.hpp"
 #include "components/bar.hpp"
 #include "components/command_line.hpp"
@@ -23,14 +21,15 @@ using namespace polybar;
 int main(int argc, char** argv) {
   // clang-format off
   const command_line::options opts{
-      command_line::option{"-h", "--help", "Show help options"},
-      command_line::option{"-v", "--version", "Print version information"},
+      command_line::option{"-h", "--help", "Display this help and exit"},
+      command_line::option{"-v", "--version", "Display build details and exit"},
       command_line::option{"-l", "--log", "Set the logging verbosity (default: WARNING)", "LEVEL", {"error", "warning", "info", "trace"}},
       command_line::option{"-q", "--quiet", "Be quiet (will override -l)"},
       command_line::option{"-c", "--config", "Path to the configuration file", "FILE"},
       command_line::option{"-r", "--reload", "Reload when the configuration has been modified"},
-      command_line::option{"-d", "--dump", "Show value of PARAM in section [bar_name]", "PARAM"},
-      command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME"},
+      command_line::option{"-d", "--dump", "Print value of PARAM in section [bar_name] and exit", "PARAM"},
+      command_line::option{"-m", "--list-monitors", "Print list of available monitors and exit"},
+      command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME and exit"},
       command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing the X window"},
   };
   // clang-format on
@@ -102,11 +101,21 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      std::cout << conf.get(conf.section(), cli->get("dump")) << std::endl;
+      printf("%s\n", conf.get(conf.section(), cli->get("dump")).c_str());
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      std::cout << bar::make(true)->settings().wmname << std::endl;
+      printf("%s\n", bar::make(true)->settings().wmname.c_str());
+      return EXIT_SUCCESS;
+    }
+    if (cli->has("list-monitors")) {
+      for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
+        if (ENABLE_XRANDR_MONITORS && mon->output == XCB_NONE) {
+          printf("%s: %ix%i+%i+%i\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+        } else {
+          printf("%s: %ix%i+%i+%i (XRandR monitor)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+        }
+      }
       return EXIT_SUCCESS;
     }
 
