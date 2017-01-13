@@ -181,8 +181,8 @@ namespace modules {
     string output{module::get_output()};
 
     m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP, !m_muted && m_volume < 100);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN, !m_muted && m_volume > 0);
+    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
+    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
 
     m_builder->append(output);
 
