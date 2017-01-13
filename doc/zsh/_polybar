@@ -12,7 +12,7 @@ _polybar() {
     '(-c --config)'{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
     '(-r --reload)'{-r,--reload}'[Reload when the configuration has been modified]' \
     '(-m --list-monitors)'{-m,--list-monitors}'[Print list of available monitors and exit]' \
-    '1:bar name:_polybar_list_names'
+    '*:bar name:_polybar_list_names'
 }
 
 (( $+functions[_polybar_list_names] )) || _polybar_list_names() {
