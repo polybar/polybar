@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
     } else if (!pid || pid == handle_pid) {
       string payload{ipc_type + ':' + ipc_payload};
       file_descriptor fd(handle, O_WRONLY);
-      if (write(fd, payload.c_str(), payload.size()) == -1) {
+      if (write(fd, payload.c_str(), payload.size()) != -1) {
         log("Successfully wrote \"" + payload + "\" to \"" + handle + "\"");
       } else {
         log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + std::strerror(errno) + ")");

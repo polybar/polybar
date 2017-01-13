@@ -35,11 +35,11 @@ namespace modules {
     void on_message(const string& message);
 
    private:
-    static constexpr auto TAG_OUTPUT = "<output>";
+    static constexpr const char* TAG_OUTPUT{"<output>"};
     vector<unique_ptr<hook>> m_hooks;
-    string m_output;
-    size_t m_initial{0_z};
     map<mousebtn, string> m_actions;
+    string m_output;
+    size_t m_initial;
   };
 }
 
