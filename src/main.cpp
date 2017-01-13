@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     } else if (cli->has("version")) {
       print_build_info(version_details(args));
       return EXIT_SUCCESS;
-    } else if (args.empty() || args[0][0] == '-') {
+    } else if (!cli->has(0)) {
       cli->usage();
       return EXIT_FAILURE;
     }
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config::make_type conf{config::make(move(confpath), args[0])};
+    config::make_type conf{config::make(move(confpath), cli->get(0))};
 
     //==================================================
     // Dump requested data

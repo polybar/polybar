@@ -83,7 +83,14 @@ namespace command_line {
   }
 
   /**
-   * Gets the value defined for given option
+   * Test if a positional argument is defined at given index
+   */
+  bool parser::has(size_t index) const {
+    return m_posargs.size() > index;
+  }
+
+  /**
+   * Get the value defined for given option
    */
   string parser::get(string opt) const {
     if (has(forward<string>(opt))) {
@@ -93,10 +100,24 @@ namespace command_line {
   }
 
   /**
+   * Get the positional argument at given index
+   */
+  string parser::get(size_t index) const {
+    return index < m_posargs.size() ? m_posargs[index] : "";
+  }
+
+  /**
    * Compare option value with given string
    */
   bool parser::compare(string opt, const string& val) const {
     return get(move(opt)) == val;
+  }
+
+  /**
+   * Compare positional argument at given index with given string
+   */
+  bool parser::compare(size_t index, const string& val) const {
+    return get(index) == val;
   }
 
   /**
@@ -166,12 +187,13 @@ namespace command_line {
           m_skipnext = (value == input_next);
           m_optvalues.insert(make_pair(opt.flag_long.substr(2), value));
         }
-
         return;
       }
     }
 
-    if (input.compare(0, 1, "-") == 0) {
+    if (input[0] != '-') {
+      m_posargs.emplace_back(input);
+    } else {
       throw argument_error("Unrecognized option " + input);
     }
   }

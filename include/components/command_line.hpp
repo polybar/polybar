@@ -15,6 +15,7 @@ namespace command_line {
   using choices = vector<string>;
   using options = vector<option>;
   using values = std::map<string, string>;
+  using posargs = vector<string>;
 
   // class definition : option {{{
 
@@ -49,8 +50,11 @@ namespace command_line {
     void process_input(const vector<string>& values);
 
     bool has(const string& option) const;
+    bool has(size_t index) const;
     string get(string opt) const;
+    string get(size_t index) const;
     bool compare(string opt, const string& val) const;
+    bool compare(size_t index, const string& val) const;
 
    protected:
     auto is_short(const string& option, const string& opt_short) const;
@@ -64,6 +68,7 @@ namespace command_line {
     string m_synopsis{};
     const options m_opts;
     values m_optvalues{};
+    posargs m_posargs{};
     bool m_skipnext{false};
   };
 
