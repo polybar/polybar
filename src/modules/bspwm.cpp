@@ -394,7 +394,7 @@ namespace modules {
           workspace_n++;
 
           if (m_click) {
-            builder->cmd(mousebtn::LEFT, stringstream() << EVENT_CLICK << m_index << "+" << workspace_n, ws.second);
+            builder->cmd(mousebtn::LEFT, sstream() << EVENT_CLICK << m_index << "+" << workspace_n, ws.second);
           } else {
             builder->node(ws.second);
           }

@@ -29,17 +29,17 @@ namespace {
   }
 }
 
-class stringstream {
+class sstream {
  public:
-  stringstream() : m_stream() {}
+  sstream() : m_stream() {}
 
   template <typename T>
-  stringstream& operator<<(const T& object) {
+  sstream& operator<<(const T& object) {
     m_stream << object;
     return *this;
   }
 
-  stringstream& operator<<(const char* cz) {
+  sstream& operator<<(const char* cz) {
     m_stream << cz;
     return *this;
   }

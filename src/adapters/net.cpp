@@ -193,8 +193,8 @@ namespace net {
       suffixes.pop_back();
     }
 
-    return stringstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
-                          << " " << suffix << "/s";
+    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
+                     << " " << suffix << "/s";
   }
 
   // }}}
