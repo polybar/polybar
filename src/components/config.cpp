@@ -247,7 +247,7 @@ unsigned long config::convert(string&& value) const {
 
 template <>
 unsigned long long config::convert(string&& value) const {
-  unsigned long v{std::strtoull(value.c_str(), nullptr, 10)};
+  unsigned long long v{std::strtoull(value.c_str(), nullptr, 10)};
   return v < ULLONG_MAX ? v : 0ULL;
 }
 
