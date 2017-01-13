@@ -69,7 +69,11 @@ option(WITH_XCOMPOSITE    "XCOMPOSITE support"         OFF)
 option(WITH_XKB           "XKB support"                ON)
 
 if(NOT DEFINED ENABLE_XRANDR_MONITORS)
-  set(ENABLE_XRANDR_MONITORS ON CACHE STRING "Enable XRandR monitor feature (requires version 1.5+)")
+  pkg_check_modules(XRANDR QUIET xrandr>=1.5.0)
+  if(NOT XRANDR_FOUND)
+    set(XRANDR_FOUND OFF)
+  endif()
+  set(ENABLE_XRANDR_MONITORS ${XRANDR_FOUND} CACHE BOOL "Enable XRandR monitor feature (requires version 1.5+)")
 endif()
 
 # }}}
