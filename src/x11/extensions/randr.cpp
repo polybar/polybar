@@ -84,6 +84,7 @@ namespace randr_util {
       return monitors;
     }
 
+#if ENABLE_XRANDR_MONITORS
     if (check_monitor_support()) {
       for (auto&& mon : conn.get_monitors(root, true).monitors()) {
         try {
@@ -94,6 +95,7 @@ namespace randr_util {
         }
       }
     }
+#endif
 
     for (auto&& output : conn.get_screen_resources(root).outputs()) {
       try {
