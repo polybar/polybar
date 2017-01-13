@@ -107,7 +107,7 @@ Visual* connection::visual(uint8_t depth) {
  * Create X window id string
  */
 string connection::id(xcb_window_t w) const {
-  return string_util::from_stream(std::stringstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w);
+  return stringstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w;
 }
 
 /**

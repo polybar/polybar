@@ -161,7 +161,7 @@ namespace string_util {
    */
   vector<string>& split_into(const string& s, char delim, vector<string>& container) {
     string str;
-    stringstream buffer(s);
+    std::stringstream buffer(s);
     while (getline(buffer, str, delim)) {
       container.emplace_back(str);
     }
@@ -191,7 +191,7 @@ namespace string_util {
    * Create a floating point string
    */
   string floating_point(double value, size_t precision, bool fixed, const string& locale) {
-    stringstream ss;
+    std::stringstream ss;
     ss.imbue(!locale.empty() ? std::locale(locale.c_str()) : std::locale::classic());
     ss << std::fixed << std::setprecision(precision) << value;
     return fixed ? ss.str() : replace(ss.str(), ".00", "");
@@ -223,18 +223,6 @@ namespace string_util {
       suffixes.pop_back();
     }
     return floating_point(value, precision, fixed, locale) + " GB";
-  }
-
-  /**
-   * Get the resulting string from a ostream/
-   *
-   * Example usage:
-   * @code cpp
-   *   string_util::from_stream(stringstream() << ...);
-   * @endcode
-   */
-  string from_stream(const std::basic_ostream<char>& os) {
-    return dynamic_cast<const stringstream&>(os).str();
   }
 
   /**

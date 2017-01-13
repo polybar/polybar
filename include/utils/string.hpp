@@ -1,10 +1,60 @@
 #pragma once
 
 #include <sstream>
+#include <cstring>
 
 #include "common.hpp"
 
 POLYBAR_NS
+
+namespace {
+  /**
+   * Overload that allows sub-string removal at the end of given string
+   */
+  inline string& operator-(string& a, const string& b) {
+    if (a.size() >= b.size() && a.substr(a.size() - b.size()) == b) {
+      return a.erase(a.size() - b.size());
+    } else {
+      return a;
+    }
+  }
+
+  /**
+   * Overload that allows sub-string removal at the end of given string
+   */
+  inline void operator-=(string& a, const string& b) {
+    if (a.size() >= b.size() && a.substr(a.size() - b.size()) == b) {
+      a.erase(a.size() - b.size());
+    }
+  }
+}
+
+class stringstream {
+ public:
+  stringstream() : m_stream() {}
+
+  template <typename T>
+  stringstream& operator<<(const T& object) {
+    m_stream << object;
+    return *this;
+  }
+
+  stringstream& operator<<(const char* cz) {
+    m_stream << cz;
+    return *this;
+  }
+
+  operator string() const {
+    return m_stream.str();
+  }
+
+  const string to_string() const {
+    return m_stream.str();
+  }
+
+ private:
+  std::stringstream m_stream;
+};
 
 namespace string_util {
   /**
@@ -42,7 +92,6 @@ namespace string_util {
   string filesize_gb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
   string filesize(unsigned long long bytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
-  string from_stream(const std::basic_ostream<char>& os);
   hash_type hash(const string& src);
 }
 

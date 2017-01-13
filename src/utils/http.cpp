@@ -24,7 +24,7 @@ http_downloader::~http_downloader() {
 }
 
 string http_downloader::get(const string& url) {
-  stringstream out{};
+  std::stringstream out{};
   curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &out);
 
@@ -44,7 +44,7 @@ long http_downloader::response_code() {
 
 size_t http_downloader::write(void* p, size_t size, size_t bytes, void* stream) {
   string data{static_cast<const char*>(p), size * bytes};
-  *(static_cast<stringstream*>(stream)) << data << '\n';
+  *(static_cast<std::stringstream*>(stream)) << data << '\n';
   return size * bytes;
 }
 

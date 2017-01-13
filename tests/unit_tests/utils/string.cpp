@@ -72,13 +72,6 @@ int main() {
     expect(string_util::find_nth("foobarfoobar", 0, "o", 3) == size_t{7});
   };
 
-  "from_stream"_test = [] {
-    auto result =
-        string_util::from_stream(std::stringstream() << std::setw(6) << std::setfill('z') << "foo"
-                                                     << "bar");
-    expect(result == "zzzfoobar");
-  };
-
   "hash"_test = [] {
     unsigned long hashA1{string_util::hash("foo")};
     unsigned long hashA2{string_util::hash("foo")};
@@ -105,5 +98,21 @@ int main() {
     expect(string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024) == "3 GB");
     expect(string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024) == "4 GB");
     expect(string_util::filesize(3 * 1024 * 1024) == "3 GB");
+  };
+
+  "stringstream"_test = [] {
+    string s;
+    expect((s = (stringstream() << "test")) == "test"s);
+    expect((s = (stringstream() << std::setprecision(2) << std::fixed << 1.25)).erase(0, 2) == "25"s);
+  };
+
+  "operators"_test = [] {
+    string foo = "foobar";
+    expect(foo - "bar" == "foo");
+    string baz = "bazbaz";
+    expect(baz - "ba" == "bazbaz");
+    expect(baz - "bazbz" == "bazbaz");
+    string aaa = "aaa";
+    expect(aaa - "aaaaa" == "aaa");
   };
 }
