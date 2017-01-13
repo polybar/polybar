@@ -40,7 +40,7 @@ class logger {
   void trace(string message, Args... args) const {
     output(loglevel::TRACE, message, args...);
   }
-#ifdef VERBOSE_TRACELOG
+#ifdef DEBUG_LOGGER_TRACE
   template <typename... Args>
   void trace_x(string message, Args... args) const {
     output(loglevel::TRACE, message, args...);

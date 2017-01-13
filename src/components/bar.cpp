@@ -616,7 +616,7 @@ void bar::handle(const evt::expose& evt) {
  * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
-#ifdef VERBOSE_TRACELOG
+#ifdef DEBUG_LOGGER_TRACE
   string atom_name = m_connection.get_atom_name(evt->atom).name();
   m_log.trace_x("bar: property_notify(%s)", atom_name);
 #endif

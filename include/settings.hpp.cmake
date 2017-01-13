@@ -41,8 +41,9 @@
 #cmakedefine XPP_EXTENSION_LIST @XPP_EXTENSION_LIST@
 
 #cmakedefine DEBUG_LOGGER
-#cmakedefine VERBOSE_TRACELOG
+#cmakedefine DEBUG_LOGGER_TRACE
 #cmakedefine DEBUG_HINTS
+#cmakedefine DEBUG_WHITESPACE
 
 static const size_t EVENT_SIZE = 64;
 

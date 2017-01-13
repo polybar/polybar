@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "settings.hpp"
 #include "components/parser.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
@@ -165,6 +166,13 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
  * Process text contents
  */
 size_t parser::text(string&& data) {
+#ifdef DEBUG_WHITESPACE
+  string::size_type p;
+  while ((p = data.find(' ')) != string::npos) {
+    data.replace(p, 1, "-"s);
+  }
+#endif
+
   const uint8_t* utf{reinterpret_cast<const uint8_t*>(&data[0])};
 
   // clang-format off
