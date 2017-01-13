@@ -61,9 +61,6 @@ int main(int argc, char** argv) {
     } else if (cli->has("version")) {
       print_build_info(version_details(args));
       return EXIT_SUCCESS;
-    } else if (!cli->has(0)) {
-      cli->usage();
-      return EXIT_FAILURE;
     }
 
     //==================================================
@@ -81,9 +78,29 @@ int main(int argc, char** argv) {
     conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     //==================================================
+    // List available XRandR entries
+    //==================================================
+    if (cli->has("list-monitors")) {
+      for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
+        if (ENABLE_XRANDR_MONITORS && mon->output == XCB_NONE) {
+          printf("%s: %ix%i+%i+%i (XRandR monitor)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+        } else {
+          printf("%s: %ix%i+%i+%i\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+        }
+      }
+      return EXIT_SUCCESS;
+    }
+
+    //==================================================
     // Load user configuration
     //==================================================
     string confpath;
+
+    // Make sure a bar name is passed in
+    if (!cli->has(0)) {
+      cli->usage();
+      return EXIT_FAILURE;
+    }
 
     if (cli->has("config")) {
       confpath = cli->get("config");
@@ -106,16 +123,6 @@ int main(int argc, char** argv) {
     }
     if (cli->has("print-wmname")) {
       printf("%s\n", bar::make(true)->settings().wmname.c_str());
-      return EXIT_SUCCESS;
-    }
-    if (cli->has("list-monitors")) {
-      for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
-        if (ENABLE_XRANDR_MONITORS && mon->output == XCB_NONE) {
-          printf("%s: %ix%i+%i+%i (XRandR monitor)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
-        } else {
-          printf("%s: %ix%i+%i+%i\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
-        }
-      }
       return EXIT_SUCCESS;
     }
 
