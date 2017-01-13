@@ -257,62 +257,42 @@ namespace modules {
   }
 
   bool mpd_module::build(builder* builder, const string& tag) const {
-    bool is_playing = false;
-    bool is_paused = false;
-    bool is_stopped = true;
-    int elapsed_percentage = 0;
-
-    if (m_status) {
-      elapsed_percentage = m_status->get_elapsed_percentage();
-
-      if (m_status->match_state(mpdstate::PLAYING)) {
-        is_playing = true;
-      }
-      if (m_status->match_state(mpdstate::PAUSED)) {
-        is_paused = true;
-      }
-      if (!(m_status->match_state(mpdstate::STOPPED))) {
-        is_stopped = false;
-      }
-    }
-
-    auto icon_cmd = [&builder](string cmd, icon_t icon) {
-      builder->cmd(mousebtn::LEFT, cmd);
-      builder->node(icon);
-      builder->cmd_close();
-    };
+    bool is_playing = m_status && m_status->match_state(mpdstate::PLAYING);
+    bool is_paused = m_status && m_status->match_state(mpdstate::PAUSED);
+    bool is_stopped = m_status && m_status->match_state(mpdstate::STOPPED);
 
     if (tag == TAG_LABEL_SONG && !is_stopped) {
       builder->node(m_label_song);
     } else if (tag == TAG_LABEL_TIME && !is_stopped) {
       builder->node(m_label_time);
     } else if (tag == TAG_BAR_PROGRESS && !is_stopped) {
-      builder->node(m_bar_progress->output(elapsed_percentage));
+      builder->node(m_bar_progress->output(!m_status ? 0 : m_status->get_elapsed_percentage()));
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
     } else if (tag == TAG_ICON_RANDOM) {
-      icon_cmd(EVENT_RANDOM, m_icons->get("random"));
+      builder->cmd(mousebtn::LEFT, EVENT_RANDOM, m_icons->get("random"));
     } else if (tag == TAG_ICON_REPEAT) {
-      icon_cmd(EVENT_REPEAT, m_icons->get("repeat"));
+      builder->cmd(mousebtn::LEFT, EVENT_REPEAT, m_icons->get("repeat"));
     } else if (tag == TAG_ICON_REPEAT_ONE) {
-      icon_cmd(EVENT_REPEAT_ONE, m_icons->get("repeat_one"));
+      builder->cmd(mousebtn::LEFT, EVENT_REPEAT_ONE, m_icons->get("repeat_one"));
     } else if (tag == TAG_ICON_PREV) {
-      icon_cmd(EVENT_PREV, m_icons->get("prev"));
+      builder->cmd(mousebtn::LEFT, EVENT_PREV, m_icons->get("prev"));
     } else if ((tag == TAG_ICON_STOP || tag == TAG_TOGGLE_STOP) && (is_playing || is_paused)) {
-      icon_cmd(EVENT_STOP, m_icons->get("stop"));
+      builder->cmd(mousebtn::LEFT, EVENT_STOP, m_icons->get("stop"));
     } else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing) {
-      icon_cmd(EVENT_PAUSE, m_icons->get("pause"));
+      builder->cmd(mousebtn::LEFT, EVENT_PAUSE, m_icons->get("pause"));
     } else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE || tag == TAG_TOGGLE_STOP) && !is_playing) {
-      icon_cmd(EVENT_PLAY, m_icons->get("play"));
+      builder->cmd(mousebtn::LEFT, EVENT_PLAY, m_icons->get("play"));
     } else if (tag == TAG_ICON_NEXT) {
-      icon_cmd(EVENT_NEXT, m_icons->get("next"));
+      builder->cmd(mousebtn::LEFT, EVENT_NEXT, m_icons->get("next"));
     } else if (tag == TAG_ICON_SEEKB) {
-      icon_cmd(string(EVENT_SEEK).append("-5"), m_icons->get("seekb"));
+      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "-5"s, m_icons->get("seekb"));
     } else if (tag == TAG_ICON_SEEKF) {
-      icon_cmd(string(EVENT_SEEK).append("+5"), m_icons->get("seekf"));
+      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "+5"s, m_icons->get("seekf"));
     } else {
       return false;
     }
+
     return true;
   }
 

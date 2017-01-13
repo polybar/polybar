@@ -52,6 +52,7 @@ class builder {
   void underline(const string& color = "");
   void underline_close();
   void cmd(mousebtn index, string action, bool condition = true);
+  void cmd(mousebtn index, string action, const label_t& label);
   void cmd_close(bool condition = true);
 
  protected:

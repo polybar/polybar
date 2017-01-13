@@ -5,6 +5,7 @@
 #include "modules/bspwm.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
+#include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -393,18 +394,14 @@ namespace modules {
           workspace_n++;
 
           if (m_click) {
-            builder->cmd(mousebtn::LEFT, EVENT_CLICK + to_string(m_index) + "+" + to_string(workspace_n));
-            builder->node(ws.second);
-            builder->cmd_close();
+            builder->cmd(mousebtn::LEFT, stringstream() << EVENT_CLICK << m_index << "+" << workspace_n, ws.second);
           } else {
             builder->node(ws.second);
           }
 
           if (m_inlinemode && m_monitors[m_index]->focused && check_mask(ws.first, bspwm_state::FOCUSED)) {
             for (auto&& mode : m_monitors[m_index]->modes) {
-              if (*mode.get()) {
-                builder->node(mode);
-              }
+              builder->node(mode);
             }
           }
         }
@@ -421,7 +418,7 @@ namespace modules {
       int modes_n = 0;
 
       for (auto&& mode : m_monitors[m_index]->modes) {
-        if (*mode.get()) {
+        if (mode && *mode) {
           builder->node(mode);
           modes_n++;
         }

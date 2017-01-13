@@ -83,6 +83,10 @@ void builder::append(string text) {
  * This will also parse raw syntax tags
  */
 void builder::node(string str, bool add_space) {
+  if (str.empty()) {
+    return;
+  }
+
   string::size_type n, m;
   string s(move(str));
 
@@ -506,15 +510,22 @@ void builder::underline_close() {
  * Open command tag
  */
 void builder::cmd(mousebtn index, string action, bool condition) {
-  int button = static_cast<int>(index);
-
-  if (!condition || action.empty()) {
-    return;
+  if (condition && !action.empty()) {
+    action = string_util::replace_all(action, ":", "\\:");
+    tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
+}
 
-  action = string_util::replace_all(action, ":", "\\:");
-
-  tag_open(syntaxtag::A, to_string(button) + ":" + action + ":");
+/**
+ * Wrap label in command block
+ */
+void builder::cmd(mousebtn index, string action, const label_t& label) {
+  if (!action.empty() && label && *label) {
+    action = string_util::replace_all(action, ":", "\\:");
+    tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
+    node(label);
+    tag_close(syntaxtag::A);
+  }
 }
 
 /**
