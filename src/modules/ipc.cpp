@@ -1,5 +1,4 @@
 #include "modules/ipc.hpp"
-
 #include "components/ipc.hpp"
 
 #include "modules/meta/base.inl"
@@ -33,6 +32,9 @@ namespace modules {
     m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
+    m_actions[mousebtn::DOUBLE_LEFT] = m_conf.get(name(), "double-click-left", ""s);
+    m_actions[mousebtn::DOUBLE_MIDDLE] = m_conf.get(name(), "double-click-middle", ""s);
+    m_actions[mousebtn::DOUBLE_RIGHT] = m_conf.get(name(), "double-click-right", ""s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
   }
@@ -41,7 +43,7 @@ namespace modules {
    * Start module and run first defined hook if configured to
    */
   void ipc_module::start() {
-    if (m_initial > 0_z) {
+    if (m_initial) {
       auto command = command_util::make_command(m_hooks.at(m_initial - 1)->command);
       command->exec(false);
       command->tail([this](string line) { m_output = line; });
@@ -58,24 +60,13 @@ namespace modules {
     // with the cmd handlers
     string output{module::get_output()};
 
-    if (!m_actions[mousebtn::LEFT].empty()) {
-      m_builder->cmd(mousebtn::LEFT, m_actions[mousebtn::LEFT]);
-    }
-    if (!m_actions[mousebtn::MIDDLE].empty()) {
-      m_builder->cmd(mousebtn::MIDDLE, m_actions[mousebtn::MIDDLE]);
-    }
-    if (!m_actions[mousebtn::RIGHT].empty()) {
-      m_builder->cmd(mousebtn::RIGHT, m_actions[mousebtn::RIGHT]);
-    }
-    if (!m_actions[mousebtn::SCROLL_UP].empty()) {
-      m_builder->cmd(mousebtn::SCROLL_UP, m_actions[mousebtn::SCROLL_UP]);
-    }
-    if (!m_actions[mousebtn::SCROLL_DOWN].empty()) {
-      m_builder->cmd(mousebtn::SCROLL_DOWN, m_actions[mousebtn::SCROLL_DOWN]);
+    for (auto&& action : m_actions) {
+      if (!action.second.empty()) {
+        m_builder->cmd(action.first, action.second);
+      }
     }
 
     m_builder->append(output);
-
     return m_builder->flush();
   }
 
@@ -97,14 +88,10 @@ namespace modules {
    * execute its command
    */
   void ipc_module::on_message(const string& message) {
-    bool match = false;
-
     for (auto&& hook : m_hooks) {
       if (hook->payload != message) {
         continue;
       }
-
-      match = true;
 
       m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
 
@@ -116,9 +103,7 @@ namespace modules {
         m_log.err("%s: Failed to execute hook command (err: %s)", err.what());
         m_output.clear();
       }
-    }
 
-    if (match) {
       broadcast();
     }
   }
