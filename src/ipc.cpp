@@ -1,7 +1,6 @@
 #include <fcntl.h>
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <vector>
 
 #include "common.hpp"
@@ -9,17 +8,21 @@
 
 using namespace polybar;
 
+#ifndef IPC_CHANNEL_PREFIX
+#define IPC_CHANNEL_PREFIX "/tmp/polybar_mqueue."
+#endif
+
 void log(const string& msg) {
-  std::cerr << "polybar-msg: " << msg << std::endl;
+  fprintf(stderr, "polybar-msg: %s\n", msg.c_str());
 }
 
 void log(int exit_code, const string& msg) {
-  std::cerr << "polybar-msg: " << msg << std::endl;
+  fprintf(stderr, "polybar-msg: %s\n", msg.c_str());
   exit(exit_code);
 }
 
 void usage(const string& parameters) {
-  std::cerr << "Usage: polybar-msg [-p pid] " << parameters << std::endl;
+  fprintf(stderr, "Usage: polybar-msg [-p pid] %s\n", parameters.c_str());
   exit(127);
 }
 
@@ -52,7 +55,7 @@ int main(int argc, char** argv) {
   if (args.size() >= 2 && args[0].compare(0, 2, "-p") == 0) {
     if (!file_util::exists("/proc/" + args[1])) {
       log(E_INVALID_PID, "No process with pid " + args[1]);
-    } else if (!file_util::is_fifo("/tmp/polybar_mqueue." + args[1])) {
+    } else if (!file_util::is_fifo(IPC_CHANNEL_PREFIX + args[1])) {
       log(E_INVALID_CHANNEL, "No channel available for pid " + args[1]);
     }
 
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
   }
 
   // Get availble channel pipes
-  auto channels = file_util::glob("/tmp/polybar_mqueue.*");
+  auto channels = file_util::glob(IPC_CHANNEL_PREFIX + "*"s);
   if (channels.empty()) {
     log(E_NO_CHANNELS, "There are no active ipc channels");
   }
@@ -105,19 +108,17 @@ int main(int argc, char** argv) {
 
     if (!file_util::exists("/proc/" + to_string(handle_pid))) {
       if (unlink(handle.c_str()) == -1) {
-        log(E_GENERIC, "Could not remove stale ipc channel: " + string{std::strerror(errno)});
+        log(E_GENERIC, "Could not remove stale ipc channel: "s + std::strerror(errno));
       } else {
         log("Removed stale ipc channel: " + handle);
       }
     } else if (!pid || pid == handle_pid) {
-      string payload{ipc_type + ":" + ipc_payload};
-
-      try {
-        fd_stream<std::ostream> out(handle, O_WRONLY);
-        out << payload << '\n';
+      string payload{ipc_type + ':' + ipc_payload};
+      file_descriptor fd(handle, O_WRONLY);
+      if (write(fd, payload.c_str(), payload.size()) == -1) {
         log("Successfully wrote \"" + payload + "\" to \"" + handle + "\"");
-      } catch (const std::exception& err) {
-        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + err.what() + ")");
+      } else {
+        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + std::strerror(errno) + ")");
       }
     }
   }
