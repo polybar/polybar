@@ -85,14 +85,11 @@ namespace modules {
   }
 
   bool menu_module::input(string&& cmd) {
-    if (cmd.compare(0, 4, "menu") != 0) {
-      if (m_level > -1) {
-        for (auto&& item : m_levels[m_level]->items) {
-          if (item->exec == cmd) {
-            m_level = -1;
-            broadcast();
-            break;
-          }
+    if (cmd.compare(0, 4, "menu") != 0 && m_level > -1) {
+      for (auto&& item : m_levels[m_level]->items) {
+        if (item->exec == cmd) {
+          m_level = -1;
+          break;
         }
       }
       return false;
