@@ -137,7 +137,7 @@ make_executable(${PROJECT_NAME} SOURCES
 
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC
+target_compile_options(${PROJECT_NAME} PUBLIC
   ${X11_Xft_DEFINITIONS}
   ${X11_XCB_DEFINITIONS}
   ${XCB_DEFINITIONS})
