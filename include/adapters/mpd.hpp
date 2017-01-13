@@ -3,6 +3,7 @@
 #include <mpd/client.h>
 #include <stdlib.h>
 #include <chrono>
+#include <csignal>
 
 #include "common.hpp"
 #include "errors.hpp"
@@ -15,6 +16,8 @@ class logger;
 namespace chrono = std::chrono;
 
 namespace mpd {
+  extern sig_atomic_t g_connection_closed;
+
   DEFINE_ERROR(mpd_exception);
   DEFINE_CHILD_ERROR(client_error, mpd_exception);
   DEFINE_CHILD_ERROR(server_error, mpd_exception);
@@ -78,6 +81,7 @@ namespace mpd {
    public:
     explicit mpdconnection(
         const logger& logger, string host, unsigned int port = 6600, string password = "", unsigned int timeout = 15);
+    ~mpdconnection();
 
     void connect();
     void disconnect();
@@ -113,6 +117,8 @@ namespace mpd {
    private:
     const logger& m_log;
     mpd_connection_t m_connection{};
+
+    struct sigaction m_signal_action {};
 
     bool m_listactive = false;
     bool m_idle = false;

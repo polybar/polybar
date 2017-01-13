@@ -1,15 +1,14 @@
-#include "modules/mpd.hpp"
+#include <csignal>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+#include "modules/mpd.hpp"
 #include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
-
-using namespace mpd;
 
 namespace modules {
   template class module<mpd_module>;
@@ -104,9 +103,10 @@ namespace modules {
 
   void mpd_module::idle() {
     if (connected()) {
+      m_quick_attempts = 0;
       sleep(80ms);
     } else {
-      sleep(2s);
+      sleep(m_quick_attempts++ < 5 ? 0.5s : 2s);
     }
   }
 
@@ -144,7 +144,6 @@ namespace modules {
       m_mpd->idle();
 
       int idle_flags = 0;
-
       if ((idle_flags = m_mpd->noidle()) != 0) {
         m_status->update(idle_flags, m_mpd.get());
         return true;
@@ -154,7 +153,7 @@ namespace modules {
         m_status->update_timer();
       }
     } catch (const mpd_exception& err) {
-      m_log.err(err.what());
+      m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
       return def;
     }
@@ -211,7 +210,7 @@ namespace modules {
         }
       }
     } catch (const mpd_exception& err) {
-      m_log.err(err.what());
+      m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
     }
 
@@ -328,8 +327,7 @@ namespace modules {
         int percentage = 0;
         if (s.empty()) {
           return false;
-        }
-        if (s[0] == '+') {
+        } else if (s[0] == '+') {
           percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
         } else if (s[0] == '-') {
           percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());

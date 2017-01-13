@@ -10,8 +10,6 @@ POLYBAR_NS
 
 using namespace mpd;
 
-namespace chrono = std::chrono;
-
 namespace modules {
   class mpd_module : public event_module<mpd_module>, public input_handler {
    public:
@@ -70,9 +68,11 @@ namespace modules {
     chrono::system_clock::time_point m_lastsync{};
     float m_synctime{1.0f};
 
+    int m_quick_attempts{0};
+
     // This flag is used to let thru a broadcast once every time
     // the connection state changes
-    mpd::connection_state m_statebroadcasted{mpd::connection_state::NONE};
+    connection_state m_statebroadcasted{connection_state::NONE};
 
     progressbar_t m_bar_progress;
     iconset_t m_icons;

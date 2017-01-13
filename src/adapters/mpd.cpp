@@ -1,35 +1,43 @@
 #include <cassert>
+#include <csignal>
 #include <thread>
 #include <utility>
 
 #include "adapters/mpd.hpp"
 #include "components/logger.hpp"
 #include "utils/math.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
 
 namespace mpd {
+  sig_atomic_t g_connection_closed = 0;
+  void g_mpd_signal_handler(int signum) {
+    if (signum == SIGPIPE) {
+      g_connection_closed = 1;
+    }
+  }
+
   void check_connection(mpd_connection* conn) {
-    if (conn == nullptr) {
-      throw client_error("Not connected to MPD server", MPD_ERROR_STATE);
+    if (g_connection_closed) {
+      g_connection_closed = 0;
+      throw server_error("Connection closed (broken pipe)");
+    } else if (conn == nullptr) {
+      throw client_error("Not connected to server", MPD_ERROR_STATE);
     }
   }
 
   void check_errors(mpd_connection* conn) {
-    mpd_error code = mpd_connection_get_error(conn);
-
-    if (code == MPD_ERROR_SUCCESS) {
-      return;
-    }
-
-    auto msg = mpd_connection_get_error_message(conn);
-
-    if (code == MPD_ERROR_SERVER) {
-      mpd_connection_clear_error(conn);
-      throw server_error(msg, mpd_connection_get_server_error(conn));
-    } else {
-      mpd_connection_clear_error(conn);
-      throw client_error(msg, code);
+    check_connection(conn);
+    switch (mpd_connection_get_error(conn)) {
+      case MPD_ERROR_SUCCESS:
+        return;
+      case MPD_ERROR_SERVER:
+        mpd_connection_clear_error(conn);
+        throw server_error(mpd_connection_get_error_message(conn), mpd_connection_get_server_error(conn));
+      default:
+        mpd_connection_clear_error(conn);
+        throw client_error(mpd_connection_get_error_message(conn), mpd_connection_get_error(conn));
     }
   }
 
@@ -70,28 +78,19 @@ namespace mpd {
   string mpdsong::get_album() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ALBUM, 0);
-    if (tag == nullptr) {
-      return "";
-    }
-    return string{tag};
+    return string{tag != nullptr ? tag : ""};
   }
 
   string mpdsong::get_date() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_DATE, 0);
-    if (tag == nullptr) {
-      return "";
-    }
-    return string{tag};
+    return string{tag != nullptr ? tag : ""};
   }
 
   string mpdsong::get_title() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_TITLE, 0);
-    if (tag == nullptr) {
-      return "";
-    }
-    return string{tag};
+    return string{tag != nullptr ? tag : ""};
   }
 
   unsigned mpdsong::get_duration() {
@@ -104,7 +103,18 @@ namespace mpd {
 
   mpdconnection::mpdconnection(
       const logger& logger, string host, unsigned int port, string password, unsigned int timeout)
-      : m_log(logger), m_host(move(host)), m_port(port), m_password(move(password)), m_timeout(timeout) {}
+      : m_log(logger), m_host(move(host)), m_port(port), m_password(move(password)), m_timeout(timeout) {
+    memset(&m_signal_action, 0, sizeof(m_signal_action));
+    m_signal_action.sa_handler = &g_mpd_signal_handler;
+    if (sigaction(SIGPIPE, &m_signal_action, nullptr) == -1) {
+      throw mpd_exception("Could not setup signal handler: "s + std::strerror(errno));
+    }
+  }
+
+  mpdconnection::~mpdconnection() {
+    m_signal_action.sa_handler = SIG_DFL;
+    sigaction(SIGPIPE, &m_signal_action, nullptr);
+  }
 
   void mpdconnection::connect() {
     try {
@@ -134,10 +144,7 @@ namespace mpd {
   }
 
   bool mpdconnection::connected() {
-    if (!m_connection) {
-      return false;
-    }
-    return m_connection != nullptr;
+    return m_connection && m_connection != nullptr;
   }
 
   bool mpdconnection::retry_connection(int interval) {
@@ -150,9 +157,8 @@ namespace mpd {
         connect();
         return true;
       } catch (const mpd_exception& e) {
+        std::this_thread::sleep_for(chrono::duration<double>(interval));
       }
-
-      std::this_thread::sleep_for(chrono::duration<double>(interval));
     }
 
     return false;
@@ -164,12 +170,11 @@ namespace mpd {
 
   void mpdconnection::idle() {
     check_connection(m_connection.get());
-    if (m_idle) {
-      return;
+    if (!m_idle) {
+      mpd_send_idle(m_connection.get());
+      check_errors(m_connection.get());
+      m_idle = true;
     }
-    mpd_send_idle(m_connection.get());
-    check_errors(m_connection.get());
-    m_idle = true;
   }
 
   int mpdconnection::noidle() {
@@ -188,8 +193,6 @@ namespace mpd {
     check_prerequisites();
     auto status = make_unique<mpdstatus>(this);
     check_errors(m_connection.get());
-    // if (update)
-    //   status->update(-1, this);
     return status;
   }
 
@@ -440,7 +443,7 @@ namespace mpd {
       return 0;
     }
     math_util::cap<int>(0, 100, percentage);
-    return float(m_total_time) * percentage / 100.0f + 0.5f;
+    return math_util::percentage_to_value<double>(percentage, m_total_time);
   }
 
   // }}}
