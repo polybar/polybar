@@ -124,7 +124,7 @@ namespace modules {
       return false;
     }
 
-    size_t current_group{m_keyboard->current() + 1UL};
+    size_t current_group = m_keyboard->current() + 1;
 
     if (current_group >= m_keyboard->size()) {
       current_group = 0;

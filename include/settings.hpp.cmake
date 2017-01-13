@@ -31,7 +31,7 @@
 #cmakedefine VERBOSE_TRACELOG
 #cmakedefine DEBUG_HINTS
 
-static const size_t EVENT_SIZE{64UL};
+static const size_t EVENT_SIZE = 64;
 
 static const int SIGN_PRIORITY_CONTROLLER{1};
 static const int SIGN_PRIORITY_SCREEN{2};

@@ -124,7 +124,7 @@ namespace modules {
     int i{0};
     bool prevtag{true};
 
-    auto mingap = std::max(1UL, format->spacing);
+    auto mingap = std::max(1_z, format->spacing);
 
     size_t start, end;
     string value{format->value};
