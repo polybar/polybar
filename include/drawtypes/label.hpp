@@ -60,6 +60,7 @@ namespace drawtypes {
     string get() const;
     operator bool();
     label_t clone();
+    void clear();
     void reset_tokens();
     bool has_token(const string& token);
     void replace_token(const string& token, string replacement);

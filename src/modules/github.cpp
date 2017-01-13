@@ -1,5 +1,7 @@
-#include "modules/github.hpp"
+#include <cassert>
+
 #include "drawtypes/label.hpp"
+#include "modules/github.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -23,6 +25,8 @@ namespace modules {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "Notifications: %notifications%");
       m_label->replace_token("%notifications%", m_empty_notifications ? "0" : "");
     }
+
+    assert(static_cast<bool>(m_label));
   }
 
   /**
@@ -50,9 +54,11 @@ namespace modules {
       notifications++;
     }
 
-    if (m_label) {
+    if (notifications || m_empty_notifications) {
       m_label->reset_tokens();
-      m_label->replace_token("%notifications%", notifications || m_empty_notifications ? to_string(notifications) : "");
+      m_label->replace_token("%notifications%", to_string(notifications));
+    } else {
+      m_label->clear();
     }
 
     return true;

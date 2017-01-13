@@ -24,6 +24,10 @@ namespace drawtypes {
         m_margin, m_maxlen, m_ellipsis, move(tokens));
   }
 
+  void label::clear() {
+    m_tokenized.clear();
+  }
+
   void label::reset_tokens() {
     m_tokenized = m_text;
   }
