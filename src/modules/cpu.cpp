@@ -20,6 +20,10 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
+    // warmup cpu times
+    read_values();
+    read_values();
+
     if (m_formatter->has(TAG_BAR_LOAD)) {
       m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
     }
@@ -30,12 +34,18 @@ namespace modules {
       m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
     }
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
-    }
+      // Update the label parameter and replace the %percentag-cores% token with the individual core tokens
+      string key{&TAG_LABEL[1], strlen(TAG_LABEL) - 2};
+      auto label = m_conf.get<string>(name(), key, "%percentage%%");
+      vector<string> cores;
+      for (size_t i = 1; i <= m_cputimes.size(); i++) {
+        cores.emplace_back("%percentage-core" + to_string(i) + "%%");
+      }
+      label = string_util::replace_all(label, "%percentage-cores%", string_util::join(cores, " "));
+      const_cast<config&>(m_conf).set(name(), key, move(label));
 
-    // warmup
-    read_values();
-    read_values();
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+    }
   }
 
   bool cpu_module::update() {
@@ -47,7 +57,6 @@ namespace modules {
     m_load.clear();
 
     auto cores_n = m_cputimes.size();
-
     if (!cores_n) {
       return false;
     }
@@ -59,7 +68,7 @@ namespace modules {
       m_load.emplace_back(load);
 
       if (m_label) {
-        percentage_cores.emplace_back(to_string(static_cast<int>(load + 0.5f)) + "%");
+        percentage_cores.emplace_back(to_string(static_cast<int>(load + 0.5)));
       }
     }
 
@@ -67,12 +76,10 @@ namespace modules {
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5f)) + "%");
-      m_label->replace_token("%percentage-cores%", string_util::join(percentage_cores, " "));
+      m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
 
-      size_t i{0};
-      for (auto&& p : percentage_cores) {
-        m_label->replace_token("%percentage-core" + to_string(++i) + "%", p);
+      for (size_t i = 0; i < percentage_cores.size(); i++) {
+        m_label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
       }
     }
 

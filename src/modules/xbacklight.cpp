@@ -60,7 +60,7 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%");
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
     }
     if (m_formatter->has(TAG_BAR)) {
       m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
@@ -107,7 +107,7 @@ namespace modules {
     // Update label tokens
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%percentage%", to_string(m_percentage) + "%");
+      m_label->replace_token("%percentage%", to_string(m_percentage));
     }
 
     // Emit a broadcast notification so that

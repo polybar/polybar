@@ -26,7 +26,7 @@ namespace modules {
       m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
     }
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%");
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
     }
   }
 
@@ -68,8 +68,8 @@ namespace modules {
       m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 2, m_bar.locale));
       m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 2, m_bar.locale));
       m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
-      m_label->replace_token("%percentage_used%", to_string(m_perc_memused) + "%");
-      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree) + "%");
+      m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
+      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
     }
 
     return true;

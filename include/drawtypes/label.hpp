@@ -62,7 +62,8 @@ namespace drawtypes {
     label_t clone();
     void clear();
     void reset_tokens();
-    bool has_token(const string& token);
+    void reset_tokens(const string& tokenized);
+    bool has_token(const string& token) const;
     void replace_token(const string& token, string replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);

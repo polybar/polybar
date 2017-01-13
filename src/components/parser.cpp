@@ -1,10 +1,10 @@
 #include <cassert>
 
-#include "settings.hpp"
 #include "components/parser.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "settings.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"

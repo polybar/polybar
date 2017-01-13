@@ -91,7 +91,7 @@ mount-0 = /
 mount-1 = /home
 mount-2 = /invalid/mountpoint
 
-label-mounted = %mountpoint%: %percentage_free%
+label-mounted = %mountpoint%: %percentage_free%%
 
 label-unmounted = %mountpoint%: not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
@@ -192,7 +192,7 @@ interval = 2
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #f90000
-label = %percentage%
+label = %percentage%%
 
 [module/memory]
 type = internal/memory
@@ -200,7 +200,7 @@ interval = 2
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #4bffdc
-label = %percentage_used%
+label = %percentage_used%%
 
 [module/wlan]
 type = internal/network

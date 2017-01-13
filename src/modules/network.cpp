@@ -120,8 +120,8 @@ namespace modules {
         label->replace_token("%linkspeed%", m_wired->linkspeed());
       } else if (m_wireless) {
         label->replace_token("%essid%", m_wireless->essid());
-        label->replace_token("%signal%", to_string(m_signal) + "%");
-        label->replace_token("%quality%", to_string(m_quality) + "%");
+        label->replace_token("%signal%", to_string(m_signal));
+        label->replace_token("%quality%", to_string(m_quality));
       }
     };
 

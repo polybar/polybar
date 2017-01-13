@@ -38,7 +38,7 @@ namespace modules {
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
-      m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%");
+      m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
       m_labelunmounted = load_optional_label(m_conf, name(), TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
@@ -159,8 +159,8 @@ namespace modules {
       m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
       m_labelmounted->replace_token("%type%", mount->type);
       m_labelmounted->replace_token("%fsname%", mount->fsname);
-      m_labelmounted->replace_token("%percentage_free%", to_string(mount->percentage_free) + "%");
-      m_labelmounted->replace_token("%percentage_used%", to_string(mount->percentage_used) + "%");
+      m_labelmounted->replace_token("%percentage_free%", to_string(mount->percentage_free));
+      m_labelmounted->replace_token("%percentage_used%", to_string(mount->percentage_used));
       m_labelmounted->replace_token(
           "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       m_labelmounted->replace_token(

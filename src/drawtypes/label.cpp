@@ -2,6 +2,7 @@
 
 #include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -32,8 +33,12 @@ namespace drawtypes {
     m_tokenized = m_text;
   }
 
-  bool label::has_token(const string& token) {
-    return m_text.find(token) != string::npos;
+  void label::reset_tokens(const string& tokenized) {
+    m_tokenized = tokenized;
+  }
+
+  bool label::has_token(const string& token) const {
+    return m_tokenized.find(token) != string::npos;
   }
 
   void label::replace_token(const string& token, string replacement) {
@@ -48,6 +53,7 @@ namespace drawtypes {
         } else if (tok.min != 0_z && replacement.length() < tok.min) {
           replacement.insert(0_z, tok.min - replacement.length(), ' ');
         }
+        m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
         m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
       }
     }
@@ -162,9 +168,11 @@ namespace drawtypes {
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
       auto token_str = line.substr(start, end - start + 1);
 
-      // ignore false positives (lemonbar-style declarations)
-      if (token_str[1] == '{') {
-        line.erase(0, start + 1);
+      // ignore false positives
+      //   lemonbar tags %{...}
+      //   trailing percentage signs %token%%
+      if (token_str[1] == '{' || token_str[1] == ' ') {
+        line.erase(0, end);
         continue;
       }
 
@@ -205,9 +213,7 @@ namespace drawtypes {
 
       // find suffix delimiter
       if ((pos = token_str.find(':', pos + 1)) != string::npos) {
-        token.suffix = token_str.substr(pos + 1);
-        // remove closing token %
-        token.suffix.erase(token.suffix.size() - 1);
+        token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
 

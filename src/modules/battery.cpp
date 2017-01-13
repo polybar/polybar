@@ -102,13 +102,13 @@ namespace modules {
       m_ramp_capacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
     }
     if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
-      m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%");
+      m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
-      m_label_discharging = load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%");
+      m_label_discharging = load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
-      m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%");
+      m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
     }
 
     // Create inotify watches
@@ -200,7 +200,7 @@ namespace modules {
 
     if (label) {
       label->reset_tokens();
-      label->replace_token("%percentage%", to_string(m_percentage) + "%");
+      label->replace_token("%percentage%", to_string(m_percentage));
 
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
         label->replace_token("%time%", current_time());

@@ -75,10 +75,10 @@ namespace modules {
       m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
-      m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%");
+      m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
-      m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%");
+      m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%%");
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
@@ -168,12 +168,12 @@ namespace modules {
     // Replace label tokens
     if (m_label_volume) {
       m_label_volume->reset_tokens();
-      m_label_volume->replace_token("%percentage%", to_string(m_volume) + "%");
+      m_label_volume->replace_token("%percentage%", to_string(m_volume));
     }
 
     if (m_label_muted) {
       m_label_muted->reset_tokens();
-      m_label_muted->replace_token("%percentage%", to_string(m_volume) + "%");
+      m_label_muted->replace_token("%percentage%", to_string(m_volume));
     }
 
     return true;
