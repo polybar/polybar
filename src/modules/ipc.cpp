@@ -107,11 +107,15 @@ namespace modules {
       match = true;
 
       m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
-      m_output.clear();
 
-      auto command = command_util::make_command(hook->command);
-      command->exec(false);
-      command->tail([this](string line) { m_output = line; });
+      try {
+        auto command = command_util::make_command(hook->command);
+        command->exec(false);
+        command->tail([this](string line) { m_output = line; });
+      } catch (const exception& err) {
+        m_log.err("%s: Failed to execute hook command (err: %s)", err.what());
+        m_output.clear();
+      }
     }
 
     if (match) {
