@@ -388,7 +388,7 @@ void controller::process_inputdata() {
     }
 
     try {
-      m_log.warn("Uncaught input event, forwarding to shell... (input: %s)", cmd);
+      m_log.info("Uncaught input event, forwarding to shell... (input: %s)", cmd);
 
       if (m_command) {
         m_log.warn("Terminating previous shell command");
