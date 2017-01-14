@@ -18,13 +18,14 @@ POLYBAR_NS
 namespace alsa {
   class mixer {
    public:
-    explicit mixer(string&& mixer_selem_name);
+    explicit mixer(string&& mixer_selem_name, string&& sound_card_name);
     ~mixer();
 
     mixer(const mixer& o) = delete;
     mixer& operator=(const mixer& o) = delete;
 
     const string& get_name();
+    const string& get_sound_card();
 
     bool wait(int timeout = -1);
     int process_events();
@@ -42,6 +43,7 @@ namespace alsa {
     snd_mixer_elem_t* m_elem{nullptr};
 
     string m_name;
+    string s_name;
   };
 }
 

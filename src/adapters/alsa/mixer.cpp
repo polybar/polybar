@@ -12,7 +12,7 @@ namespace alsa {
   /**
    * Construct mixer object
    */
-  mixer::mixer(string&& mixer_selem_name) : m_name(forward<string>(mixer_selem_name)) {
+  mixer::mixer(string&& mixer_selem_name, string&& soundcard_name) : m_name(forward<string>(mixer_selem_name)), s_name(soundcard_name) {
     int err = 0;
 
     if ((err = snd_mixer_open(&m_mixer, 1)) == -1) {
@@ -21,7 +21,7 @@ namespace alsa {
 
     snd_config_update_free_global();
 
-    if ((err = snd_mixer_attach(m_mixer, ALSA_SOUNDCARD)) == -1) {
+    if ((err = snd_mixer_attach(m_mixer, s_name.c_str())) == -1) {
       throw_exception<mixer_error>("Failed to attach hardware mixer control", err);
     }
     if ((err = snd_mixer_selem_register(m_mixer, nullptr, nullptr)) == -1) {
@@ -55,6 +55,13 @@ namespace alsa {
    */
   const string& mixer::get_name() {
     return m_name;
+  }
+
+  /**
+   * Get the name of the soundcard that is associated with the mixer
+   */
+  const string& mixer::get_sound_card() { 
+    return s_name;
   }
 
   /**
