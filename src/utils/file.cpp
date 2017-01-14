@@ -2,6 +2,7 @@
 #include <glob.h>
 #include <sys/stat.h>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <streambuf>
 
@@ -118,7 +119,7 @@ void fd_streambuf::open(int fd) {
   }
   m_fd = fd;
   setg(m_in, m_in, m_in);
-  setp(m_out, m_out + sizeof(m_in));
+  setp(m_out, m_out + bufsize - 1);
 }
 
 void fd_streambuf::close() {
@@ -131,7 +132,7 @@ void fd_streambuf::close() {
 int fd_streambuf::sync() {
   if (pbase() != pptr()) {
     auto size = pptr() - pbase();
-    auto bytes = ::write(m_fd, m_out, size);
+    auto bytes = write(m_fd, m_out, size);
     if (bytes > 0) {
       std::copy(pbase() + bytes, pptr(), pbase());
       setp(pbase(), epptr());
@@ -151,9 +152,9 @@ int fd_streambuf::overflow(int c) {
 
 int fd_streambuf::underflow() {
   if (gptr() == egptr()) {
-    std::streamsize pback(std::min(gptr() - eback(), std::ptrdiff_t(m_in)));
+    std::streamsize pback(std::min(gptr() - eback(), std::ptrdiff_t(16 - sizeof(int))));
     std::copy(egptr() - pback, egptr(), eback());
-    int bytes(::read(m_fd, eback() + pback, BUFSIZ));
+    int bytes(read(m_fd, eback() + pback, bufsize));
     setg(eback(), eback() + pback, eback() + pback + std::max(0, bytes));
   }
   return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());

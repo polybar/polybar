@@ -56,7 +56,7 @@ class fd_streambuf : public std::streambuf {
   template <typename... Args>
   explicit fd_streambuf(Args&&... args) : m_fd(forward<Args>(args)...) {
     setg(m_in, m_in, m_in);
-    setp(m_out, m_out + sizeof(m_in));
+    setp(m_out, m_out + bufsize - 1);
   }
   ~fd_streambuf();
 
@@ -73,8 +73,9 @@ class fd_streambuf : public std::streambuf {
 
  private:
   file_descriptor m_fd;
-  char m_out[BUFSIZ]{};
-  char m_in[BUFSIZ - 1]{};
+  enum { bufsize = 1024 };
+  char m_out[bufsize];
+  char m_in[bufsize - 1];
 };
 
 template <typename StreamType>
