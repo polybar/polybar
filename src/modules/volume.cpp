@@ -9,6 +9,8 @@
 
 #include "modules/meta/base.inl"
 
+#include "settings.hpp"
+
 POLYBAR_NS
 
 using namespace alsa;
@@ -24,6 +26,13 @@ namespace modules {
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
     auto headphone_mixer_name = m_conf.get(name(), "headphone-mixer", ""s);
 
+    // m_soundcard_name: Master Soundcard Name
+    // s_soundcard_name: Speaker Soundcard Name
+    // h_soundcard_name: Headphone Soundcard Name
+    auto m_soundcard_name = m_conf.get(name(), "master-soundcard", "default"s);
+    auto s_soundcard_name = m_conf.get(name(), "speaker-soundcard", "default"s);
+    auto h_soundcard_name = m_conf.get(name(), "headphone-soundcard", "default"s);
+
     if (!headphone_mixer_name.empty()) {
       m_headphoneid = m_conf.get<decltype(m_headphoneid)>(name(), "headphone-id");
     }
@@ -38,13 +47,13 @@ namespace modules {
     // Setup mixers
     try {
       if (!master_mixer_name.empty()) {
-        m_mixer[mixer::MASTER].reset(new mixer_t::element_type{move(master_mixer_name)});
+        m_mixer[mixer::MASTER].reset(new mixer_t::element_type{move(master_mixer_name), move(m_soundcard_name)});
       }
       if (!speaker_mixer_name.empty()) {
-        m_mixer[mixer::SPEAKER].reset(new mixer_t::element_type{move(speaker_mixer_name)});
+        m_mixer[mixer::SPEAKER].reset(new mixer_t::element_type{move(speaker_mixer_name), move(s_soundcard_name)});
       }
       if (!headphone_mixer_name.empty()) {
-        m_mixer[mixer::HEADPHONE].reset(new mixer_t::element_type{move(headphone_mixer_name)});
+        m_mixer[mixer::HEADPHONE].reset(new mixer_t::element_type{move(headphone_mixer_name), move(h_soundcard_name)});
       }
       if (m_mixer[mixer::HEADPHONE]) {
         m_ctrl[control::HEADPHONE].reset(new control_t::element_type{m_headphoneid});
@@ -220,13 +229,13 @@ namespace modules {
       bool headphones{m_headphones};
 
       if (m_mixer[mixer::MASTER] && !m_mixer[mixer::MASTER]->get_name().empty()) {
-        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::MASTER]->get_name()}));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::MASTER]->get_name()}, string{m_mixer[mixer::MASTER]->get_sound_card()}));
       }
       if (m_mixer[mixer::HEADPHONE] && !m_mixer[mixer::HEADPHONE]->get_name().empty() && headphones) {
-        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::HEADPHONE]->get_name()}));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::HEADPHONE]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
       }
       if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
-        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::SPEAKER]->get_name()}));
+        mixers.emplace_back(new mixer_t::element_type(string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
       }
 
       if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
