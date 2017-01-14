@@ -1,12 +1,14 @@
 #include <fcntl.h>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <vector>
 
 #include "common.hpp"
 #include "utils/file.hpp"
 
 using namespace polybar;
+using namespace std;
 
 #ifndef IPC_CHANNEL_PREFIX
 #define IPC_CHANNEL_PREFIX "/tmp/polybar_mqueue."
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
       log(E_INVALID_CHANNEL, "No channel available for pid " + args[1]);
     }
 
-    pid = std::atoi(args[1].c_str());
+    pid = atoi(args[1].c_str());
     args.erase(args.begin());
     args.erase(args.begin());
   }
@@ -103,12 +105,12 @@ int main(int argc, char** argv) {
     int handle_pid{0};
 
     if ((p = handle.rfind('.')) != string::npos) {
-      handle_pid = std::atoi(handle.substr(p + 1).c_str());
+      handle_pid = atoi(handle.substr(p + 1).c_str());
     }
 
     if (!file_util::exists("/proc/" + to_string(handle_pid))) {
       if (unlink(handle.c_str()) == -1) {
-        log(E_GENERIC, "Could not remove stale ipc channel: "s + std::strerror(errno));
+        log(E_GENERIC, "Could not remove stale ipc channel: "s + strerror(errno));
       } else {
         log("Removed stale ipc channel: " + handle);
       }
@@ -118,7 +120,7 @@ int main(int argc, char** argv) {
       if (write(fd, payload.c_str(), payload.size()) != -1) {
         log("Successfully wrote \"" + payload + "\" to \"" + handle + "\"");
       } else {
-        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + std::strerror(errno) + ")");
+        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + strerror(errno) + ")");
       }
     }
   }
