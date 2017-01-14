@@ -100,10 +100,10 @@ int main() {
     expect(string_util::filesize(3 * 1024 * 1024) == "3 GB");
   };
 
-  "stringstream"_test = [] {
+  "sstream"_test = [] {
     string s;
-    expect((s = (stringstream() << "test")) == "test"s);
-    expect((s = (stringstream() << std::setprecision(2) << std::fixed << 1.25)).erase(0, 2) == "25"s);
+    expect((s = (sstream() << "test")) == "test"s);
+    expect((s = (sstream() << std::setprecision(2) << std::fixed << 1.25)).erase(0, 2) == "25"s);
   };
 
   "operators"_test = [] {
