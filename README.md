@@ -14,8 +14,8 @@ Heres a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
-Please note that the project still is in early development, so please report any
-problems by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new). There's also an irc channel available at freenode, cleverly named `#polybar`.
+Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new) here on GitHub.
+Make sure you include steps on how to reproduce it. There's also an irc channel available at freenode, cleverly named `#polybar`.
 
 
 ## Table of Contents
@@ -82,12 +82,7 @@ Optional dependencies for extended module support:
 - libcurl (required by `internal/github`)
 - wireless_tools (required by `internal/network`)
 
-~~~ sh
-# required
-$ apt-get install cmake cmake-data libfontconfig1-dev libfreetype6-dev libghc-x11-xft-dev libx11-xcb-dev libxcb1-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-randr0-dev libxcb-util0-dev libxcb-xkb-dev pkg-config python-xcbgen xcb-proto
-# optional
-$ apt-get install i3-wm libasound2-dev libmpdclient-dev libiw-dev
-~~~
+Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
 
 
 ### Building from source
@@ -98,7 +93,7 @@ Please [report any problems](https://github.com/jaagr/polybar/issues/new) you ru
   $ git clone --branch 2.5.1 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
-  $ cmake -DCMAKE_BUILD_TYPE=Release ..
+  $ cmake ..
   $ sudo make install
   ~~~
 
@@ -113,10 +108,13 @@ There's also a helper script available in the root folder:
 
 Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/polybar/wiki/Configuration).
 
+#### Install the example configuration
   ~~~ sh
-  # Install the example configuration
   $ make userconfig
-  # Launch the example bar
+  ~~~
+
+#### Launch the example bar
+  ~~~ sh
   $ polybar example
   ~~~
 
