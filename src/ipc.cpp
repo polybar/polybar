@@ -1,11 +1,12 @@
 #include <fcntl.h>
 #include <algorithm>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "common.hpp"
 #include "utils/file.hpp"
+#include "utils/io.hpp"
 
 using namespace polybar;
 using namespace std;
@@ -28,6 +29,14 @@ void usage(const string& parameters) {
   exit(127);
 }
 
+void remove_pipe(const string& handle) {
+  if (unlink(handle.c_str()) == -1) {
+    log(1, "Could not remove stale ipc channel: "s + strerror(errno));
+  } else {
+    log("Removed stale ipc channel: " + handle);
+  }
+}
+
 bool validate_type(const string& type) {
   if (type == "action") {
     return true;
@@ -41,7 +50,6 @@ bool validate_type(const string& type) {
 }
 
 int main(int argc, char** argv) {
-  const int E_GENERIC{1};
   const int E_NO_CHANNELS{2};
   const int E_MESSAGE_TYPE{3};
   const int E_INVALID_PID{4};
@@ -57,7 +65,7 @@ int main(int argc, char** argv) {
   if (args.size() >= 2 && args[0].compare(0, 2, "-p") == 0) {
     if (!file_util::exists("/proc/" + args[1])) {
       log(E_INVALID_PID, "No process with pid " + args[1]);
-    } else if (!file_util::is_fifo(IPC_CHANNEL_PREFIX + args[1])) {
+    } else if (!file_util::exists(IPC_CHANNEL_PREFIX + args[1])) {
       log(E_INVALID_CHANNEL, "No channel available for pid " + args[1]);
     }
 
@@ -67,7 +75,8 @@ int main(int argc, char** argv) {
   }
 
   // Validate args
-  if (args.size() < 2) {
+  auto help = find_if(args.begin(), args.end(), [](string a) { return a == "-h" || a == "--help"; }) != args.end();
+  if (help || args.size() < 2) {
     usage("<command=(action|cmd|hook)> <payload> [...]");
   } else if (!validate_type(args[0])) {
     log(E_MESSAGE_TYPE, "\"" + args[0] + "\" is not a valid type.");
@@ -92,38 +101,42 @@ int main(int argc, char** argv) {
   }
 
   // Get availble channel pipes
-  auto channels = file_util::glob(IPC_CHANNEL_PREFIX + "*"s);
-  if (channels.empty()) {
-    log(E_NO_CHANNELS, "There are no active ipc channels");
+  auto pipes = file_util::glob(IPC_CHANNEL_PREFIX + "*"s);
+
+  // Remove stale channel files without a running parent process
+  for (auto it = pipes.rbegin(); it != pipes.rend(); it++) {
+    if ((p = it->rfind('.')) == string::npos) {
+      continue;
+    } else if (!file_util::exists("/proc/" + it->substr(p + 1))) {
+      remove_pipe(*it);
+      pipes.erase(remove(pipes.begin(), pipes.end(), *it), pipes.end());
+    } else if (pid && to_string(pid) != it->substr(p + 1)) {
+      pipes.erase(remove(pipes.begin(), pipes.end(), *it), pipes.end());
+    }
   }
 
-  // Write the message to each channel in the list and remove stale
-  // channel pipes that may be left lingering if the owning process got
-  // SIGKILLED or crashed
-  for (auto&& channel : channels) {
-    string handle{channel};
-    int handle_pid{0};
+  if (pipes.empty()) {
+    log(E_NO_CHANNELS, "No active ipc channels");
+  }
 
-    if ((p = handle.rfind('.')) != string::npos) {
-      handle_pid = atoi(handle.substr(p + 1).c_str());
-    }
+  int exit_status = 127;
 
-    if (!file_util::exists("/proc/" + to_string(handle_pid))) {
-      if (unlink(handle.c_str()) == -1) {
-        log(E_GENERIC, "Could not remove stale ipc channel: "s + strerror(errno));
-      } else {
-        log("Removed stale ipc channel: " + handle);
-      }
-    } else if (!pid || pid == handle_pid) {
+  // Write message to each available channel or match
+  // against pid if one was defined
+  for (auto&& channel : pipes) {
+    try {
+      file_descriptor fd(channel, O_WRONLY | O_NONBLOCK);
       string payload{ipc_type + ':' + ipc_payload};
-      file_descriptor fd(handle, O_WRONLY);
       if (write(fd, payload.c_str(), payload.size()) != -1) {
-        log("Successfully wrote \"" + payload + "\" to \"" + handle + "\"");
+        log("Successfully wrote \"" + payload + "\" to \"" + channel + "\"");
+        exit_status = 0;
       } else {
-        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + handle + "\" (err: " + strerror(errno) + ")");
+        log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + channel + "\" (err: " + strerror(errno) + ")");
       }
+    } catch (const exception& err) {
+      remove_pipe(channel);
     }
   }
 
-  return 0;
+  return exit_status;
 }
