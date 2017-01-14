@@ -12,7 +12,8 @@ EOF
 }
 
 post_upgrade() {
-  (( ${2//[^0-9]/} <= 2511 )) && cat << EOF
+  [ "$(vercmp "$2" "2.5.1-1")" = "-1" ] || exit 0
+  cat << EOF
 
   The % suffix has been removed from percentage tokens.
   The suffix is instead added by the user, for example:
