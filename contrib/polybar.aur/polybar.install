@@ -10,3 +10,16 @@ post_install() {
 
 EOF
 }
+
+post_upgrade() {
+  (( ${2//./} <= 251 )) && cat << EOF
+
+  The % suffix has been removed from percentage tokens.
+  The suffix is instead added by the user, for example:
+
+  format-charging = Capacity %percentage%%
+
+                                              -- jaagr
+
+EOF
+}
