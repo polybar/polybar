@@ -355,6 +355,21 @@ void bar::parse(string&& data, bool force) {
   }
 
   m_renderer->end();
+
+  const auto check_dblclicks = [&]() -> bool {
+    for (auto&& action : m_renderer->get_actions()) {
+      if (static_cast<uint8_t>(action.button) >= static_cast<uint8_t>(mousebtn::DOUBLE_LEFT)) {
+        return true;
+      }
+    }
+    for (auto&& action : m_opts.actions) {
+      if (static_cast<uint8_t>(action.button) >= static_cast<uint8_t>(mousebtn::DOUBLE_LEFT)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  m_dblclicks = check_dblclicks();
 }
 
 /**
@@ -576,7 +591,11 @@ void bar::handle(const evt::button_press& evt) {
     }
   };
 
-  if (evt->detail == static_cast<uint8_t>(mousebtn::LEFT)) {
+  // If there are no double click handlers defined we can
+  // just by-pass the click timer handling
+  if (!m_dblclicks) {
+    deferred_fn(0);
+  } else if (evt->detail == static_cast<uint8_t>(mousebtn::LEFT)) {
     check_double("buttonpress-left", mousebtn::DOUBLE_LEFT);
   } else if (evt->detail == static_cast<uint8_t>(mousebtn::MIDDLE)) {
     check_double("buttonpress-middle", mousebtn::DOUBLE_MIDDLE);
