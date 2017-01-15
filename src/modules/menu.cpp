@@ -92,6 +92,7 @@ namespace modules {
           break;
         }
       }
+      broadcast();
       return false;
     }
 
