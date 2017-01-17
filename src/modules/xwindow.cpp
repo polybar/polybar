@@ -42,15 +42,15 @@ namespace modules {
 
   /**
    * Get the title by returning the first non-empty value of:
-   *  _NET_WM_VISIBLE_NAME
    *  _NET_WM_NAME
+   *  _NET_WM_VISIBLE_NAME
    */
   string active_window::title(xcb_ewmh_connection_t* ewmh) const {
     string title;
 
-    if (!(title = ewmh_util::get_visible_name(ewmh, m_window)).empty()) {
+    if (!(title = ewmh_util::get_wm_name(ewmh, m_window)).empty()) {
       return title;
-    } else if (!(title = ewmh_util::get_wm_name(ewmh, m_window)).empty()) {
+    } else if (!(title = ewmh_util::get_visible_name(ewmh, m_window)).empty()) {
       return title;
     } else if (!(title = icccm_util::get_wm_name(m_connection, m_window)).empty()) {
       return title;
