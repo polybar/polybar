@@ -99,6 +99,7 @@ namespace modules {
         mount->bytes_total = buffer.f_bsize * buffer.f_blocks;
         mount->bytes_free = buffer.f_bsize * buffer.f_bfree;
         mount->bytes_used = mount->bytes_total - buffer.f_bsize * buffer.f_bavail;
+        mount->bytes_avail = buffer.f_bsize * buffer.f_bavail;
 
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_total);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_total);
