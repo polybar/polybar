@@ -171,7 +171,7 @@ namespace drawtypes {
       // ignore false positives
       //   lemonbar tags %{...}
       //   trailing percentage signs %token%%
-      if (token_str[1] == '{' || token_str[1] == ' ') {
+      if (token_str.find_first_of("abdefghijklmnopqrstuvwxyz") != 1) {
         line.erase(0, end);
         continue;
       }
