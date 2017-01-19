@@ -1,94 +1,71 @@
 #pragma once
 
+#include <cairo/cairo.h>
+#include <bitset>
+
+#include "cairo/fwd.hpp"
 #include "common.hpp"
 #include "components/types.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "x11/extensions/fwd.hpp"
-#include "x11/fonts.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
 
-// fwd
+// fwd {{{
 class connection;
-class font_manager;
+class config;
 class logger;
-class signal_emitter;
+// }}}
 
-using namespace signals::parser;
 using std::map;
 
 class renderer
-    : public signal_receiver<SIGN_PRIORITY_RENDERER, change_background, change_foreground, change_underline,
-          change_overline, change_font, change_alignment, offset_pixel, attribute_set, attribute_unset,
-          attribute_toggle, action_begin, action_end, write_text_ascii, write_text_unicode, write_text_string> {
+    : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::parser::change_background,
+          signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
+          signals::parser::change_font, signals::parser::change_alignment, signals::parser::offset_pixel,
+          signals::parser::attribute_set, signals::parser::attribute_unset, signals::parser::attribute_toggle,
+          signals::parser::action_begin, signals::parser::action_end, signals::parser::text> {
  public:
-  enum class gc : uint8_t { BG, FG, OL, UL, BT, BB, BL, BR };
-
   using make_type = unique_ptr<renderer>;
-  static make_type make(const bar_settings& bar, vector<string>&& fonts);
+  static make_type make(const bar_settings& bar);
 
-  explicit renderer(connection& conn, signal_emitter& emitter, const logger& logger,
-      unique_ptr<font_manager> font_manager, const bar_settings& bar, const vector<string>& fonts);
+  explicit renderer(
+      connection& conn, signal_emitter& emitter, const config&, const logger& logger, const bar_settings& bar);
   ~renderer();
 
-  renderer(const renderer& o) = delete;
-  renderer& operator=(const renderer& o) = delete;
-
   xcb_window_t window() const;
+  const vector<action_block> actions() const;
 
   void begin();
   void end();
-  void flush(bool clear);
+  void flush();
 
   void reserve_space(edge side, uint16_t w);
-
-  void set_background(const uint32_t color);
-  void set_foreground(const uint32_t color);
-  void set_underline(const uint32_t color);
-  void set_overline(const uint32_t color);
-  void set_fontindex(const uint8_t font);
-  void set_alignment(const alignment align);
-  void set_attribute(const attribute attr, const bool state);
-  void toggle_attribute(const attribute attr);
-  bool check_attribute(const attribute attr);
-
   void fill_background();
-  void fill_overline(int16_t x, uint16_t w);
-  void fill_underline(int16_t x, uint16_t w);
-  void fill_shift(const int16_t px);
-
-  void draw_textstring(const uint16_t* text, size_t len);
-
-  void begin_action(const mousebtn btn, const string& cmd);
-  void end_action(const mousebtn btn);
-  const vector<action_block> get_actions();
+  void fill_overline(double x, double w);
+  void fill_underline(double x, double w);
+  void fill_borders();
+  void draw_text(const string& contents);
 
  protected:
-  int16_t shift_content(int16_t x, const int16_t shift_x);
-  int16_t shift_content(const int16_t shift_x);
+  void adjust_clickable_areas(double width);
+  void highlight_clickable_areas();
 
-  bool on(const change_background& evt);
-  bool on(const change_foreground& evt);
-  bool on(const change_underline& evt);
-  bool on(const change_overline& evt);
-  bool on(const change_font& evt);
-  bool on(const change_alignment& evt);
-  bool on(const offset_pixel& evt);
-  bool on(const attribute_set& evt);
-  bool on(const attribute_unset& evt);
-  bool on(const attribute_toggle& evt);
-  bool on(const action_begin& evt);
-  bool on(const action_end& evt);
-  bool on(const write_text_ascii& evt);
-  bool on(const write_text_unicode& evt);
-  bool on(const write_text_string& evt);
-
-#ifdef DEBUG_HINTS
-  vector<xcb_window_t> m_debughints;
-  void debug_hints();
-#endif
+  bool on(const signals::parser::change_background& evt);
+  bool on(const signals::parser::change_foreground& evt);
+  bool on(const signals::parser::change_underline& evt);
+  bool on(const signals::parser::change_overline& evt);
+  bool on(const signals::parser::change_font& evt);
+  bool on(const signals::parser::change_alignment& evt);
+  bool on(const signals::parser::offset_pixel& evt);
+  bool on(const signals::parser::attribute_set& evt);
+  bool on(const signals::parser::attribute_unset& evt);
+  bool on(const signals::parser::attribute_toggle& evt);
+  bool on(const signals::parser::action_begin& evt);
+  bool on(const signals::parser::action_end& evt);
+  bool on(const signals::parser::text& evt);
 
  protected:
   struct reserve_area {
@@ -99,34 +76,45 @@ class renderer
  private:
   connection& m_connection;
   signal_emitter& m_sig;
+  const config& m_conf;
   const logger& m_log;
-  unique_ptr<font_manager> m_fontmanager;
-
   const bar_settings& m_bar;
 
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
-  xcb_rectangle_t m_cleared{0, 0, 0U, 0U};
   reserve_area m_cleararea{};
 
   uint8_t m_depth{32};
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
   xcb_visualtype_t* m_visual;
-  // xcb_gcontext_t m_gcontext;
+  xcb_gcontext_t m_gcontext;
   xcb_pixmap_t m_pixmap;
 
-  map<gc, xcb_gcontext_t> m_gcontexts;
-  map<alignment, xcb_pixmap_t> m_pixmaps;
   vector<action_block> m_actions;
 
   // bool m_autosize{false};
-  uint16_t m_currentx{0U};
-  alignment m_alignment{alignment::NONE};
-  map<gc, uint32_t> m_colors;
-  uint8_t m_attributes{0U};
-  uint8_t m_fontindex{0};
 
-  xcb_font_t m_gcfont{XCB_NONE};
+  unique_ptr<cairo::context> m_context;
+  unique_ptr<cairo::surface> m_surface;
+
+  cairo_operator_t m_compositing_background;
+  cairo_operator_t m_compositing_foreground;
+  cairo_operator_t m_compositing_overline;
+  cairo_operator_t m_compositing_underline;
+  cairo_operator_t m_compositing_borders;
+
+  alignment m_alignment{alignment::NONE};
+  std::bitset<2> m_attributes;
+
+  uint8_t m_fontindex;
+
+  uint32_t m_color_background;
+  uint32_t m_color_foreground;
+  uint32_t m_color_overline;
+  uint32_t m_color_underline;
+
+  double m_x{0.0};
+  double m_y{0.0};
 };
 
 POLYBAR_NS_END

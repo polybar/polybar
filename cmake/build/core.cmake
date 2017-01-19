@@ -56,8 +56,6 @@ if(CXXLIB_CLANG)
 elseif(CXXLIB_GCC)
   message_colored(STATUS "Linking against libstdc++" 32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
-else()
-  message_colored(STATUS "No preferred c++lib specified... linking against system default" 33)
 endif()
 
 if(ENABLE_CCACHE)

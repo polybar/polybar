@@ -23,6 +23,9 @@ namespace {
   inline bool operator==(uint8_t id, event_type type) {
     return id == static_cast<uint8_t>(type);
   }
+  inline bool operator!=(uint8_t id, event_type type) {
+    return !(id == static_cast<uint8_t>(type));
+  }
 
   /**
    * Create QUIT event

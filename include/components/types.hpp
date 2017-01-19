@@ -9,9 +9,10 @@
 
 POLYBAR_NS
 
-// fwd
+// fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+// }}}
 
 struct enum_hash {
   template <typename T>
@@ -135,8 +136,9 @@ struct bar_settings {
   side_values module_margin{0U, 0U};
   edge_values strut{0U, 0U, 0U, 0U};
 
-  uint32_t background{0xFFFFFFFF};
-  uint32_t foreground{0xFF000000};
+  uint32_t background{0xFF000000};
+  uint32_t foreground{0xFFFFFFFF};
+  vector<uint32_t> background_steps;
 
   line_settings underline{};
   line_settings overline{};

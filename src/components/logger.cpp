@@ -2,6 +2,7 @@
 
 #include "components/logger.hpp"
 #include "errors.hpp"
+#include "settings.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
@@ -60,9 +61,9 @@ logger::logger(loglevel level) : m_level(level) {
  * Set output verbosity
  */
 void logger::verbosity(loglevel&& level) {
-#ifndef DEBUG
+#ifndef DEBUG_LOGGER
   if (level == loglevel::TRACE) {
-    throw application_error("Trace logging is only enabled for debug builds...");
+    throw application_error("Trace logging is not enabled...");
   }
 #endif
   m_level = forward<decltype(level)>(level);

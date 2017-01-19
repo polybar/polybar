@@ -17,10 +17,6 @@ DEFINE_CHILD_ERROR(unclosed_actionblocks, parser_error);
 
 class parser {
  public:
-  struct packet {
-    uint16_t data[128]{0U};
-    size_t length{0};
-  };
   using make_type = unique_ptr<parser>;
   static make_type make();
 

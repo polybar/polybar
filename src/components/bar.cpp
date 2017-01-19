@@ -182,18 +182,32 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   const auto parse_or_throw = [&](string key, string def) {
     try {
-      return color::parse(m_conf.get(bs, key, def));
+      return color_util::parse(m_conf.get(bs, key, def));
     } catch (const exception& err) {
       throw application_error(sstream() << "Failed to set " << key << " (reason: " << err.what() << ")");
     }
   };
 
-  // Load foreground/background
-  m_opts.background = parse_or_throw("background", color_util::hex<uint16_t>(m_opts.background));
+  // Load background
+  for (auto&& step : m_conf.get_list<rgba>(bs, "background", {})) {
+    m_opts.background_steps.emplace_back(step);
+  }
+
+  if (!m_opts.background_steps.empty()) {
+    m_opts.background = m_opts.background_steps[0];
+
+    if (m_conf.has(bs, "background")) {
+      m_log.warn("Ignoring `%s.background` (overridden by gradient background)", bs);
+    }
+  } else {
+    m_opts.background = parse_or_throw("background", color_util::hex<uint16_t>(m_opts.background));
+  }
+
+  // Load foreground
   m_opts.foreground = parse_or_throw("foreground", color_util::hex<uint16_t>(m_opts.foreground));
 
-  // Load over-/underline color and size (warn about deprecated params if used)
-  auto line_color = parse_or_throw("line-color", "#f00"s);
+  // Load over-/underline
+  auto line_color = m_conf.get(bs, "line-color", "#f00"s);
   auto line_size = m_conf.get(bs, "line-size", 0);
 
   m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
@@ -202,8 +216,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.underline.color = parse_or_throw("underline-color", line_color);
 
   // Load border settings
+  auto border_color = m_conf.get(bs, "border-color", ""s);
   auto border_size = m_conf.get(bs, "border-size", 0);
-  auto border_color = m_conf.get(bs, "border-color", "#00000000"s);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
   m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
@@ -253,8 +267,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
-  m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
-  m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
+  // m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
+  // m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
 
   m_opts.center.y = m_opts.size.h;
   m_opts.center.y -= m_opts.borders[edge::BOTTOM].size;
@@ -266,41 +280,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.center.x /= 2;
   m_opts.center.x += m_opts.borders[edge::LEFT].size;
 
-  m_log.trace("bar: Create renderer");
-  auto fonts = m_conf.get_list(m_conf.section(), "font", {});
-  m_renderer = renderer::make(m_opts, move(fonts));
+  m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 
-  m_log.trace("bar: Attaching sink to registry");
+  m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);
 
-  m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
-  m_opts.window = m_renderer->window();
-
-  // Subscribe to window enter and leave events
-  // if we should dim the window
-  if (m_opts.dimvalue != 1.0) {
-    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
-  }
-
-  m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  restack_window();
-
-  m_log.trace("bar: Reconfigure window");
-  reconfigure_struts();
-  reconfigure_wm_hints();
-
-  m_log.trace("bar: Map window");
-  m_connection.map_window_checked(m_opts.window);
-
-  // Reconfigure window position after mapping (required by Openbox)
-  // Required by Openbox
-  reconfigure_pos();
-
-  m_log.trace("bar: Drawing empty bar");
-  m_renderer->begin();
-  m_renderer->fill_background();
-  m_renderer->end();
-
+  m_log.trace("bar: Attach signal receiver");
   m_sig.attach(this);
 }
 
@@ -354,8 +339,6 @@ void bar::parse(string&& data, bool force) {
     }
   }
 
-  m_renderer->fill_background();
-
   try {
     m_parser->parse(settings(), data);
   } catch (const parser_error& err) {
@@ -365,7 +348,7 @@ void bar::parse(string&& data, bool force) {
   m_renderer->end();
 
   const auto check_dblclicks = [&]() -> bool {
-    for (auto&& action : m_renderer->get_actions()) {
+    for (auto&& action : m_renderer->actions()) {
       if (static_cast<uint8_t>(action.button) >= static_cast<uint8_t>(mousebtn::DOUBLE_LEFT)) {
         return true;
       }
@@ -510,7 +493,7 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
-#if DEBUG
+#ifdef DEBUG_SHADED
   if (m_opts.origin == edge::TOP) {
     m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::unshade_window{}); });
     return;
@@ -534,7 +517,7 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
-#if DEBUG
+#ifdef DEBUG_SHADED
   if (m_opts.origin == edge::TOP) {
     m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::shade_window{}); });
     return;
@@ -571,7 +554,7 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_pos = evt->event_x;
 
   const auto deferred_fn = [&](size_t) {
-    for (auto&& action : m_renderer->get_actions()) {
+    for (auto&& action : m_renderer->actions()) {
       if (action.button == m_buttonpress_btn && !action.active && action.test(m_buttonpress_pos)) {
         m_log.trace("Found matching input area");
         m_sig.emit(button_press{string{action.command}});
@@ -626,7 +609,7 @@ void bar::handle(const evt::expose& evt) {
     }
 
     m_log.trace("bar: Received expose event");
-    m_renderer->flush(false);
+    m_renderer->flush();
   }
 }
 
@@ -643,7 +626,7 @@ void bar::handle(const evt::expose& evt) {
  * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
-#ifdef DEBUG_LOGGER_TRACE
+#ifdef DEBUG_LOGGER_VERBOSE
   string atom_name = m_connection.get_atom_name(evt->atom).name();
   m_log.trace_x("bar: property_notify(%s)", atom_name);
 #endif
@@ -654,9 +637,42 @@ void bar::handle(const evt::property_notify& evt) {
 }
 
 bool bar::on(const signals::eventqueue::start&) {
+  m_log.trace("bar: Create renderer");
+  m_renderer = renderer::make(m_opts);
+  m_opts.window = m_renderer->window();
+
+  // Subscribe to window enter and leave events
+  // if we should dim the window
+  if (m_opts.dimvalue != 1.0) {
+    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
+  }
+
+  m_log.info("Bar window: %s", m_connection.id(m_opts.window));
+  restack_window();
+
+  m_log.trace("bar: Reconfigure window");
+  reconfigure_struts();
+  reconfigure_wm_hints();
+
+  m_log.trace("bar: Map window");
+  m_connection.map_window_checked(m_opts.window);
+
+  // Reconfigure window position after mapping (required by Openbox)
+  // Required by Openbox
+  reconfigure_pos();
+
+  m_log.trace("bar: Draw empty bar");
+  m_renderer->begin();
+  m_renderer->end();
+
+  m_sig.emit(signals::ui::ready{});
+
+  // TODO: tray manager could run this internally on ready event
   m_log.trace("bar: Setup tray manager");
   m_tray->setup(static_cast<const bar_settings&>(m_opts));
+
   broadcast_visibility();
+
   return true;
 }
 
@@ -677,7 +693,7 @@ bool bar::on(const signals::ui::unshade_window&) {
           m_sig.emit(signals::ui::tick{});
         }
         if (!remaining) {
-          m_renderer->flush(false);
+          m_renderer->flush();
         }
         if (m_opts.dimmed) {
           m_opts.dimmed = false;
@@ -716,7 +732,7 @@ bool bar::on(const signals::ui::shade_window&) {
           m_sig.emit(signals::ui::tick{});
         }
         if (!remaining) {
-          m_renderer->flush(false);
+          m_renderer->flush();
         }
         if (!m_opts.dimmed) {
           m_opts.dimmed = true;

@@ -12,7 +12,7 @@ namespace math_util {
    */
   template <typename ValueType>
   ValueType min(ValueType one, ValueType two) {
-     return one < two ? one : two;
+    return one < two ? one : two;
   }
 
   /**
@@ -20,7 +20,7 @@ namespace math_util {
    */
   template <typename ValueType>
   ValueType max(ValueType one, ValueType two) {
-     return one > two ? one : two;
+    return one > two ? one : two;
   }
 
   /**
@@ -86,6 +86,10 @@ namespace math_util {
   template <typename ReturnType = int>
   ReturnType nearest_5(double value) {
     return static_cast<ReturnType>(static_cast<int>(value / 5.0 + 0.5) * 5.0);
+  }
+
+  inline int ceil(double value, int step = 1) {
+    return static_cast<int>((value * 10 + step * 10 - 1) / (step * 10)) * step;
   }
 }
 

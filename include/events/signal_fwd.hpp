@@ -28,6 +28,7 @@ namespace signals {
     struct action;
   }
   namespace ui {
+    struct ready;
     struct tick;
     struct button_press;
     struct visibility_change;
@@ -51,9 +52,7 @@ namespace signals {
     struct attribute_toggle;
     struct action_begin;
     struct action_end;
-    struct write_text_ascii;
-    struct write_text_unicode;
-    struct write_text_string;
+    struct text;
   }
 }
 

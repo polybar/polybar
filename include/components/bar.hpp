@@ -4,11 +4,11 @@
 #include <mutex>
 
 #include "common.hpp"
-#include "settings.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
+#include "settings.hpp"
 #include "x11/events.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
@@ -22,15 +22,14 @@ class logger;
 class parser;
 class renderer;
 class screen;
-class signal_emitter;
 class taskqueue;
 class tray_manager;
 // }}}
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::destroy_notify, evt::client_message>,
-            public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick, signals::ui::shade_window, signals::ui::unshade_window,
-                signals::ui::dim_window> {
+            public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick,
+                signals::ui::shade_window, signals::ui::unshade_window, signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);

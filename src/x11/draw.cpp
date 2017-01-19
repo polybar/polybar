@@ -1,5 +1,5 @@
 #include "x11/draw.hpp"
-#include "x11/connection.hpp"
+#include "utils/color.hpp"
 
 POLYBAR_NS
 

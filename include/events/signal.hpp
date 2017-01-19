@@ -90,6 +90,9 @@ namespace signals {
   }
 
   namespace ui {
+    struct ready : public detail::base_signal<ready> {
+      using base_type::base_type;
+    };
     struct tick : public detail::base_signal<tick> {
       using base_type::base_type;
     };
@@ -153,13 +156,7 @@ namespace signals {
     struct action_end : public detail::value_signal<action_end, mousebtn> {
       using base_type::base_type;
     };
-    struct write_text_ascii : public detail::value_signal<write_text_ascii, uint16_t> {
-      using base_type::base_type;
-    };
-    struct write_text_unicode : public detail::value_signal<write_text_unicode, uint16_t> {
-      using base_type::base_type;
-    };
-    struct write_text_string : public detail::value_signal<write_text_string, polybar::parser::packet> {
+    struct text : public detail::value_signal<text, string> {
       using base_type::base_type;
     };
   }

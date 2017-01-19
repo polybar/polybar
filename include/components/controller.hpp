@@ -36,7 +36,7 @@ using modulemap_t = std::map<alignment, vector<module_t>>;
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate, signals::eventqueue::exit_reload,
                        signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state, signals::ipc::action,
-                       signals::ipc::command, signals::ipc::hook, signals::ui::button_press> {
+                       signals::ipc::command, signals::ipc::hook, signals::ui::ready, signals::ui::button_press> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -61,6 +61,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   bool on(const signals::eventqueue::exit_terminate& evt);
   bool on(const signals::eventqueue::exit_reload& evt);
   bool on(const signals::eventqueue::check_state& evt);
+  bool on(const signals::ui::ready& evt);
   bool on(const signals::ui::button_press& evt);
   bool on(const signals::ipc::action& evt);
   bool on(const signals::ipc::command& evt);
@@ -77,6 +78,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   unique_ptr<command> m_command;
 
   array<unique_ptr<file_descriptor>, 2> m_queuefd{};
+
+  /**
+   * @brief State flag
+   */
+  std::atomic<bool> m_process_events{false};
 
   /**
    * @brief Controls weather the output gets printed to stdout

@@ -1,11 +1,14 @@
 #pragma once
 
-#include <iomanip>
-
 #include "common.hpp"
-#include "utils/string.hpp"
+#include "utils/cache.hpp"
 
 POLYBAR_NS
+
+static cache<string, uint32_t> g_cache_hex;
+static cache<uint32_t, string> g_cache_colors;
+
+struct rgba;
 
 namespace color_util {
   template <typename T = uint8_t>
@@ -55,21 +58,27 @@ namespace color_util {
 
   template <typename T>
   string hex(uint32_t color) {
-    char s[12];
-    size_t len = 0;
+    string hex;
 
-    uint8_t a = alpha_channel<T>(color);
-    uint8_t r = red_channel<T>(color);
-    uint8_t g = green_channel<T>(color);
-    uint8_t b = blue_channel<T>(color);
+    if (!g_cache_hex.check(color)) {
+      char s[12];
+      size_t len = 0;
 
-    if (std::is_same<T, uint16_t>::value) {
-      len = snprintf(s, sizeof(s), "#%02x%02x%02x%02x", a, r, g, b);
-    } else if (std::is_same<T, uint8_t>::value) {
-      len = snprintf(s, sizeof(s), "#%02x%02x%02x", r, g, b);
+      uint8_t a = alpha_channel<T>(color);
+      uint8_t r = red_channel<T>(color);
+      uint8_t g = green_channel<T>(color);
+      uint8_t b = blue_channel<T>(color);
+
+      if (std::is_same<T, uint16_t>::value) {
+        len = snprintf(s, sizeof(s), "#%02x%02x%02x%02x", a, r, g, b);
+      } else if (std::is_same<T, uint8_t>::value) {
+        len = snprintf(s, sizeof(s), "#%02x%02x%02x", r, g, b);
+      }
+
+      hex = string(s, len);
     }
 
-    return string{s, 0, len};
+    return *g_cache_hex.object(color, hex);
   }
 
   inline string parse_hex(string hex) {
@@ -106,5 +115,44 @@ namespace color_util {
     return hex;
   }
 }
+
+struct rgb {
+  double r;
+  double g;
+  double b;
+
+  // clang-format off
+  explicit rgb(double r, double g, double b) : r(r), g(g), b(b) {}
+  explicit rgb(uint32_t color) : rgb(
+      color_util::red_channel<uint8_t>(color_util::premultiply_alpha(color)   / 255.0),
+      color_util::green_channel<uint8_t>(color_util::premultiply_alpha(color) / 255.0),
+      color_util::blue_channel<uint8_t>(color_util::premultiply_alpha(color)  / 255.0)) {}
+  // clang-format on
+};
+
+struct rgba {
+  double r;
+  double g;
+  double b;
+  double a;
+
+  // clang-format off
+  explicit rgba(double r, double g, double b, double a) : r(r), g(g), b(b), a(a) {}
+  explicit rgba(uint32_t color) : rgba(
+      color_util::red_channel<uint8_t>(color)   / 255.0,
+      color_util::green_channel<uint8_t>(color) / 255.0,
+      color_util::blue_channel<uint8_t>(color)  / 255.0,
+      color_util::alpha_channel<uint8_t>(color) / 255.0) {}
+  // clang-format on
+
+  operator uint32_t() {
+    // clang-format off
+    return static_cast<int>(a * 255) << 24
+         | static_cast<int>(r * 255) << 16
+         | static_cast<int>(g * 255) << 8
+         | static_cast<int>(b * 255);
+    // clang-format on
+  }
+};
 
 POLYBAR_NS_END

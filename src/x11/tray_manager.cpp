@@ -12,7 +12,6 @@
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
 #include "x11/atoms.hpp"
-#include "x11/color.hpp"
 #include "x11/connection.hpp"
 #include "x11/draw.hpp"
 #include "x11/graphics.hpp"
@@ -133,7 +132,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     }
 
     if (!bg.empty()) {
-      m_opts.background = color::parse(bg, g_colorempty);
+      m_opts.background = color_util::parse(bg);
     } else {
       m_opts.background = bar_opts.background;
     }

@@ -148,11 +148,8 @@ controller::~controller() {
  */
 bool controller::run(bool writeback) {
   m_log.info("Starting application");
-
   assert(!m_connection.connection_has_error());
-
   m_writeback = writeback;
-
   m_sig.attach(this);
 
   size_t started_modules{0};
@@ -183,10 +180,7 @@ bool controller::run(bool writeback) {
     throw application_error("No modules started");
   }
 
-  m_sig.emit(signals::eventqueue::start{});
-
   m_connection.flush();
-
   m_event_thread = thread(&controller::process_eventqueue, this);
 
   read_events();
@@ -205,6 +199,9 @@ bool controller::run(bool writeback) {
  * Enqueue event
  */
 bool controller::enqueue(event&& evt) {
+  if (!m_process_events && evt.type != event_type::QUIT) {
+    return false;
+  }
   if (!m_queue.enqueue(forward<decltype(evt)>(evt))) {
     m_log.warn("Failed to enqueue event");
     return false;
@@ -330,8 +327,7 @@ void controller::read_events() {
  */
 void controller::process_eventqueue() {
   m_log.info("Eventqueue worker (thread-id=%lu)", this_thread::get_id());
-
-  enqueue(make_update_evt(true));
+  m_sig.emit(signals::eventqueue::start{});
 
   while (!g_terminate) {
     event evt{};
@@ -554,6 +550,16 @@ bool controller::on(const signals::eventqueue::check_state&) {
   m_log.warn("No running modules...");
   on(signals::eventqueue::exit_terminate{});
   return true;
+}
+
+/**
+ * Process ui ready event
+ */
+bool controller::on(const signals::ui::ready&) {
+  m_process_events = true;
+  enqueue(make_update_evt(true));
+  // let the event bubble
+  return false;
 }
 
 /**

@@ -13,6 +13,11 @@ class cache {
   using map_type = std::unordered_map<KeyType, std::weak_ptr<ValueType>>;
   using safe_map_type = mutex_wrapper<map_type>;
 
+  bool check(const KeyType& key) {
+    std::lock_guard<safe_map_type> guard(m_cache);
+    return m_cache.find(key) == m_cache.end();
+  }
+
   template <typename... MakeArgs>
   shared_ptr<ValueType> object(const KeyType& key, MakeArgs&&... make_args) {
     std::lock_guard<safe_map_type> guard(m_cache);
@@ -26,7 +31,5 @@ class cache {
  private:
   safe_map_type m_cache;
 };
-
-namespace cache_util {}
 
 POLYBAR_NS_END

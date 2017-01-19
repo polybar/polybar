@@ -2,13 +2,12 @@
 #include <fstream>
 
 #include "components/config.hpp"
+#include "utils/color.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
-#include "x11/color.hpp"
-#include "x11/xresources.hpp"
 
 POLYBAR_NS
 
@@ -276,8 +275,15 @@ chrono::duration<double> config::convert(string&& value) const {
 }
 
 template <>
-color config::convert(string&& value) const {
-  return color{forward<string>(value)};
+rgba config::convert(string&& value) const {
+  auto color = color_util::parse(value, 0);
+  // clang-format off
+  return rgba{
+      color_util::red_channel<uint8_t>(color) / 255.0,
+      color_util::green_channel<uint8_t>(color) / 255.0,
+      color_util::blue_channel<uint8_t>(color) / 255.0,
+      color_util::alpha_channel<uint8_t>(color) / 255.0};
+  // clang-format on
 }
 
 POLYBAR_NS_END
