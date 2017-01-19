@@ -72,17 +72,16 @@ int xresource_manager::get_int(string name, int fallback) const {
  * Query the database for given key
  */
 string xresource_manager::load_value(const string& key, const string& res_type, size_t n) const {
-  if (m_manager == nullptr) {
-    return "";
-  }
-  char* type = nullptr;
-  XrmValue ret{};
-  XrmGetResource(m_db, key.c_str(), res_type.c_str(), &type, &ret);
+  if (m_manager != nullptr && m_db != nullptr) {
+    char* type = nullptr;
+    XrmValue ret{};
 
-  if (ret.addr != nullptr && !std::strncmp(res_type.c_str(), type, n)) {
-    return {ret.addr};
+    if (XrmGetResource(m_db, key.c_str(), res_type.c_str(), &type, &ret)) {
+      if (ret.addr != nullptr && !std::strncmp(res_type.c_str(), type, n)) {
+        return {ret.addr};
+      }
+    }
   }
-
   return "";
 }
 
