@@ -27,10 +27,11 @@ int main(int argc, char** argv) {
       command_line::option{"-q", "--quiet", "Be quiet (will override -l)"},
       command_line::option{"-c", "--config", "Path to the configuration file", "FILE"},
       command_line::option{"-r", "--reload", "Reload when the configuration has been modified"},
-      command_line::option{"-d", "--dump", "Print value of PARAM in section [bar_name] and exit", "PARAM"},
+      command_line::option{"-d", "--dump", "Print value of PARAM in bar section and exit", "PARAM"},
       command_line::option{"-m", "--list-monitors", "Print list of available monitors and exit"},
       command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME and exit"},
-      command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing the X window"},
+      command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing it to the X window"},
+      command_line::option{"-p", "--png", "Save png snapshot to FILE after running for 3 seconds", "FILE"},
   };
   // clang-format on
 

@@ -11,7 +11,7 @@ namespace command_line {
    */
   parser::make_type parser::make(string&& scriptname, const options&& opts) {
     return factory_util::unique<parser>(
-        "Usage: " + scriptname + " bar_name [OPTION...]", forward<decltype(opts)>(opts));
+        "Usage: " + scriptname + " [OPTION]... BAR", forward<decltype(opts)>(opts));
   }
 
   /**
