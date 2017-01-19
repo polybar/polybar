@@ -50,8 +50,8 @@ namespace bspwm_util {
         continue;
       }
 
-      const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-      const uint32_t value_list[2]{root, XCB_STACK_MODE_ABOVE};
+      const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+      const unsigned int value_list[2]{root, XCB_STACK_MODE_ABOVE};
 
       conn.configure_window_checked(win, value_mask, value_list);
       conn.flush();

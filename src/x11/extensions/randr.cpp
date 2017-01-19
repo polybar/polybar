@@ -34,8 +34,8 @@ namespace randr_util {
   /**
    * XRandR version
    */
-  static uint32_t g_major_version = 0;
-  static uint32_t g_minor_version = 0;
+  static unsigned int g_major_version = 0;
+  static unsigned int g_minor_version = 0;
 
   /**
    * Query for the XRandR extension
@@ -61,7 +61,7 @@ namespace randr_util {
   /**
    * Define monitor
    */
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, uint16_t w, uint16_t h, int16_t x, int16_t y) {
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = move(name);
@@ -208,7 +208,7 @@ namespace randr_util {
 
     auto reply = conn.get_output_property(mon->output, dst.atom, XCB_ATOM_NONE, 0, 4, 0, 0);
     if (reply->num_items == 1 && reply->format == 32 && reply->type == XCB_ATOM_INTEGER) {
-      int32_t value = *reinterpret_cast<int32_t*>(xcb_randr_get_output_property_data(reply.get().get()));
+      int value = *reinterpret_cast<int*>(xcb_randr_get_output_property_data(reply.get().get()));
       dst.val = static_cast<double>(value);
     }
   }

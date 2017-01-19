@@ -71,8 +71,8 @@ class builder {
   map<syntaxtag, int> m_tags{};
   map<syntaxtag, string> m_colors{};
 
-  uint8_t m_attributes{0};
-  uint8_t m_fontindex{0};
+  int m_attributes{0};
+  int m_fontindex{0};
 
   string m_background{};
   string m_foreground{};

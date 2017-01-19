@@ -157,7 +157,7 @@ namespace drawtypes {
       auto value = conf.get(section, key, 0U);
       auto left = conf.get(section, key + "-left", value);
       auto right = conf.get(section, key + "-right", value);
-      return side_values{static_cast<uint16_t>(left), static_cast<uint16_t>(right)};
+      return side_values{static_cast<unsigned short int>(left), static_cast<unsigned short int>(right)};
     };
 
     padding = get_left_right(name + "-padding");

@@ -21,14 +21,14 @@ struct enum_hash {
   }
 };
 
-enum class edge : uint8_t { NONE = 0U, TOP, BOTTOM, LEFT, RIGHT, ALL };
+enum class edge { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 
-enum class alignment : uint8_t { NONE = 0U, LEFT, CENTER, RIGHT };
+enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
 
-enum class attribute : uint8_t { NONE = 0U, UNDERLINE, OVERLINE };
+enum class attribute { NONE = 0, UNDERLINE, OVERLINE };
 
-enum class syntaxtag : uint8_t {
-  NONE = 0U,
+enum class syntaxtag {
+  NONE = 0,
   A,  // mouse action
   B,  // background color
   F,  // foreground color
@@ -39,8 +39,8 @@ enum class syntaxtag : uint8_t {
   u,  // underline color
 };
 
-enum class mousebtn : uint8_t {
-  NONE = 0U,
+enum class mousebtn {
+  NONE = 0,
   LEFT,
   MIDDLE,
   RIGHT,
@@ -51,8 +51,8 @@ enum class mousebtn : uint8_t {
   DOUBLE_RIGHT
 };
 
-enum class strut : uint16_t {
-  LEFT = 0U,
+enum class strut {
+  LEFT = 0,
   RIGHT,
   TOP,
   BOTTOM,
@@ -67,35 +67,35 @@ enum class strut : uint16_t {
 };
 
 struct position {
-  int16_t x{0};
-  int16_t y{0};
+  int x{0};
+  int y{0};
 };
 
 struct size {
-  uint16_t w{1U};
-  uint16_t h{1U};
+  unsigned int w{1U};
+  unsigned int h{1U};
 };
 
 struct side_values {
-  uint16_t left{0U};
-  uint16_t right{0U};
+  unsigned int left{0U};
+  unsigned int right{0U};
 };
 
 struct edge_values {
-  uint16_t left{0U};
-  uint16_t right{0U};
-  uint16_t top{0U};
-  uint16_t bottom{0U};
+  unsigned int left{0U};
+  unsigned int right{0U};
+  unsigned int top{0U};
+  unsigned int bottom{0U};
 };
 
 struct border_settings {
-  uint32_t color{0xFF000000};
-  uint16_t size{0U};
+  unsigned int color{0xFF000000};
+  unsigned int size{0U};
 };
 
 struct line_settings {
-  uint32_t color{0xFF000000};
-  uint16_t size{0U};
+  unsigned int color{0xFF000000};
+  unsigned int size{0U};
 };
 
 struct action {
@@ -109,12 +109,12 @@ struct action_block : public action {
   double end_x{0.0};
   bool active{true};
 
-  uint16_t width() const {
-    return static_cast<uint16_t>(end_x - start_x + 0.5);
+  unsigned int width() const {
+    return static_cast<unsigned int>(end_x - start_x + 0.5);
   }
 
-  bool test(int16_t point) const {
-    return static_cast<int16_t>(start_x) < point && static_cast<int16_t>(end_x) >= point;
+  bool test(int point) const {
+    return static_cast<int>(start_x) < point && static_cast<int>(end_x) >= point;
   }
 };
 
@@ -136,16 +136,16 @@ struct bar_settings {
   side_values module_margin{0U, 0U};
   edge_values strut{0U, 0U, 0U, 0U};
 
-  uint32_t background{0xFF000000};
-  uint32_t foreground{0xFFFFFFFF};
-  vector<uint32_t> background_steps;
+  unsigned int background{0xFF000000};
+  unsigned int foreground{0xFFFFFFFF};
+  vector<unsigned int> background_steps;
 
   line_settings underline{};
   line_settings overline{};
 
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
-  uint8_t spacing{0};
+  int spacing{0};
   string separator{};
 
   string wmname{};
@@ -165,7 +165,9 @@ struct bar_settings {
   position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
-    xcb_rectangle_t rect{0, 0, size.w, size.h};
+    xcb_rectangle_t rect{0, 0, 0, 0};
+    rect.width += size.w;
+    rect.height += size.h;
 
     if (abspos) {
       rect.x = pos.x;

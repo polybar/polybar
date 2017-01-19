@@ -16,7 +16,7 @@ winspec::operator xcb_rectangle_t() const {
 }
 
 xcb_window_t winspec::operator<<(const cw_flush& f) {
-  uint32_t values[16]{0};
+  unsigned int values[16]{0};
 
   if (m_window == XCB_NONE) {
     m_window = m_connection.generate_id();

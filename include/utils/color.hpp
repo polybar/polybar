@@ -5,50 +5,50 @@
 
 POLYBAR_NS
 
-static cache<string, uint32_t> g_cache_hex;
-static cache<uint32_t, string> g_cache_colors;
+static cache<string, unsigned int> g_cache_hex;
+static cache<unsigned int, string> g_cache_colors;
 
 struct rgba;
 
 namespace color_util {
-  template <typename T = uint8_t>
-  T alpha_channel(const uint32_t value) {
-    uint8_t a = value >> 24;
-    if (std::is_same<T, uint8_t>::value)
+  template <typename T = unsigned char>
+  T alpha_channel(const unsigned int value) {
+    unsigned char a = value >> 24;
+    if (std::is_same<T, unsigned char>::value)
       return a << 8 / 0xff;
-    else if (std::is_same<T, uint16_t>::value)
+    else if (std::is_same<T, unsigned short int>::value)
       return a << 8 | a << 8 / 0xff;
   }
 
-  template <typename T = uint8_t>
-  T red_channel(const uint32_t value) {
-    uint8_t r = value >> 16;
-    if (std::is_same<T, uint8_t>::value)
+  template <typename T = unsigned char>
+  T red_channel(const unsigned int value) {
+    unsigned char r = value >> 16;
+    if (std::is_same<T, unsigned char>::value)
       return r << 8 / 0xff;
-    else if (std::is_same<T, uint16_t>::value)
+    else if (std::is_same<T, unsigned short int>::value)
       return r << 8 | r << 8 / 0xff;
   }
 
-  template <typename T = uint8_t>
-  T green_channel(const uint32_t value) {
-    uint8_t g = value >> 8;
-    if (std::is_same<T, uint8_t>::value)
+  template <typename T = unsigned char>
+  T green_channel(const unsigned int value) {
+    unsigned char g = value >> 8;
+    if (std::is_same<T, unsigned char>::value)
       return g << 8 / 0xff;
-    else if (std::is_same<T, uint16_t>::value)
+    else if (std::is_same<T, unsigned short int>::value)
       return g << 8 | g << 8 / 0xff;
   }
 
-  template <typename T = uint8_t>
-  T blue_channel(const uint32_t value) {
-    uint8_t b = value;
-    if (std::is_same<T, uint8_t>::value)
+  template <typename T = unsigned char>
+  T blue_channel(const unsigned int value) {
+    unsigned char b = value;
+    if (std::is_same<T, unsigned char>::value)
       return b << 8 / 0xff;
-    else if (std::is_same<T, uint16_t>::value)
+    else if (std::is_same<T, unsigned short int>::value)
       return b << 8 | b << 8 / 0xff;
   }
 
-  template <typename T = uint32_t>
-  uint32_t premultiply_alpha(const T value) {
+  template <typename T = unsigned int>
+  unsigned int premultiply_alpha(const T value) {
     auto a = color_util::alpha_channel(value);
     auto r = color_util::red_channel(value) * a / 255;
     auto g = color_util::green_channel(value) * a / 255;
@@ -57,21 +57,21 @@ namespace color_util {
   }
 
   template <typename T>
-  string hex(uint32_t color) {
+  string hex(unsigned int color) {
     string hex;
 
     if (!g_cache_hex.check(color)) {
       char s[12];
       size_t len = 0;
 
-      uint8_t a = alpha_channel<T>(color);
-      uint8_t r = red_channel<T>(color);
-      uint8_t g = green_channel<T>(color);
-      uint8_t b = blue_channel<T>(color);
+      unsigned char a = alpha_channel<T>(color);
+      unsigned char r = red_channel<T>(color);
+      unsigned char g = green_channel<T>(color);
+      unsigned char b = blue_channel<T>(color);
 
-      if (std::is_same<T, uint16_t>::value) {
+      if (std::is_same<T, unsigned short int>::value) {
         len = snprintf(s, sizeof(s), "#%02x%02x%02x%02x", a, r, g, b);
-      } else if (std::is_same<T, uint8_t>::value) {
+      } else if (std::is_same<T, unsigned char>::value) {
         len = snprintf(s, sizeof(s), "#%02x%02x%02x", r, g, b);
       }
 
@@ -93,7 +93,7 @@ namespace color_util {
     return hex;
   }
 
-  inline uint32_t parse(string hex, uint32_t fallback = 0) {
+  inline unsigned int parse(string hex, unsigned int fallback = 0) {
     if ((hex = parse_hex(hex)).empty())
       return fallback;
     return strtoul(&hex[1], nullptr, 16);
@@ -123,10 +123,10 @@ struct rgb {
 
   // clang-format off
   explicit rgb(double r, double g, double b) : r(r), g(g), b(b) {}
-  explicit rgb(uint32_t color) : rgb(
-      color_util::red_channel<uint8_t>(color_util::premultiply_alpha(color)   / 255.0),
-      color_util::green_channel<uint8_t>(color_util::premultiply_alpha(color) / 255.0),
-      color_util::blue_channel<uint8_t>(color_util::premultiply_alpha(color)  / 255.0)) {}
+  explicit rgb(unsigned int color) : rgb(
+      color_util::red_channel<unsigned char>(color_util::premultiply_alpha(color)   / 255.0),
+      color_util::green_channel<unsigned char>(color_util::premultiply_alpha(color) / 255.0),
+      color_util::blue_channel<unsigned char>(color_util::premultiply_alpha(color)  / 255.0)) {}
   // clang-format on
 };
 
@@ -138,14 +138,14 @@ struct rgba {
 
   // clang-format off
   explicit rgba(double r, double g, double b, double a) : r(r), g(g), b(b), a(a) {}
-  explicit rgba(uint32_t color) : rgba(
-      color_util::red_channel<uint8_t>(color)   / 255.0,
-      color_util::green_channel<uint8_t>(color) / 255.0,
-      color_util::blue_channel<uint8_t>(color)  / 255.0,
-      color_util::alpha_channel<uint8_t>(color) / 255.0) {}
+  explicit rgba(unsigned int color) : rgba(
+      color_util::red_channel<unsigned char>(color)   / 255.0,
+      color_util::green_channel<unsigned char>(color) / 255.0,
+      color_util::blue_channel<unsigned char>(color)  / 255.0,
+      color_util::alpha_channel<unsigned char>(color) / 255.0) {}
   // clang-format on
 
-  operator uint32_t() {
+  operator unsigned int() {
     // clang-format off
     return static_cast<int>(a * 255) << 24
          | static_cast<int>(r * 255) << 16

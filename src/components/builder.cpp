@@ -47,10 +47,10 @@ string builder::flush() {
   if (m_tags[syntaxtag::u]) {
     underline_color_close();
   }
-  if ((m_attributes >> static_cast<uint8_t>(attribute::UNDERLINE)) & 1U) {
+  if ((m_attributes >> static_cast<int>(attribute::UNDERLINE)) & 1U) {
     underline_close();
   }
-  if ((m_attributes >> static_cast<uint8_t>(attribute::OVERLINE)) & 1U) {
+  if ((m_attributes >> static_cast<int>(attribute::OVERLINE)) & 1U) {
     overline_close();
   }
 
@@ -542,7 +542,7 @@ void builder::cmd_close(bool condition) {
  */
 string builder::background_hex() {
   if (m_background.empty()) {
-    m_background = color_util::hex<uint16_t>(m_bar.background);
+    m_background = color_util::hex<unsigned short int>(m_bar.background);
   }
   return m_background;
 }
@@ -552,7 +552,7 @@ string builder::background_hex() {
  */
 string builder::foreground_hex() {
   if (m_foreground.empty()) {
-    m_foreground = color_util::hex<uint16_t>(m_bar.foreground);
+    m_foreground = color_util::hex<unsigned short int>(m_bar.foreground);
   }
   return m_foreground;
 }
@@ -601,11 +601,11 @@ void builder::tag_open(syntaxtag tag, const string& value) {
  * Insert directive to use given attribute unless already set
  */
 void builder::tag_open(attribute attr) {
-  if ((m_attributes >> static_cast<uint8_t>(attr)) & 1U) {
+  if ((m_attributes >> static_cast<int>(attr)) & 1) {
     return;
   }
 
-  m_attributes |= 1U << static_cast<uint8_t>(attr);
+  m_attributes |= 1 << static_cast<int>(attr);
 
   switch (attr) {
     case attribute::NONE:
@@ -661,11 +661,11 @@ void builder::tag_close(syntaxtag tag) {
  * Insert directive to remove given attribute if set
  */
 void builder::tag_close(attribute attr) {
-  if (!((m_attributes >> static_cast<uint8_t>(attr)) & 1U)) {
+  if (!((m_attributes >> static_cast<int>(attr)) & 1)) {
     return;
   }
 
-  m_attributes &= ~(1U << static_cast<uint8_t>(attr));
+  m_attributes &= ~(1 << static_cast<int>(attr));
 
   switch (attr) {
     case attribute::NONE:

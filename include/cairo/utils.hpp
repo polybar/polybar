@@ -98,7 +98,7 @@ namespace cairo {
     /**
      * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
      */
-    size_t ucs4_to_utf8(char* utf8, uint32_t ucs) {
+    size_t ucs4_to_utf8(char* utf8, unsigned int ucs) {
       if (ucs <= 0x7f) {
         *utf8 = ucs;
         return 1;

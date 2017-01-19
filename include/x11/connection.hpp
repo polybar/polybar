@@ -125,23 +125,23 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
     return o;
   }
 
-  static void pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest);
-  static void pack_values(uint32_t mask, const xcb_params_cw_t* src, uint32_t* dest);
-  static void pack_values(uint32_t mask, const xcb_params_gc_t* src, uint32_t* dest);
-  static void pack_values(uint32_t mask, const xcb_params_configure_window_t* src, uint32_t* dest);
+  static void pack_values(unsigned int mask, const unsigned int* src, unsigned int* dest);
+  static void pack_values(unsigned int mask, const xcb_params_cw_t* src, unsigned int* dest);
+  static void pack_values(unsigned int mask, const xcb_params_gc_t* src, unsigned int* dest);
+  static void pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest);
 
   operator Display*() const;
-  Visual* visual(uint8_t depth = 32U);
+  Visual* visual(unsigned char depth = 32U);
   xcb_screen_t* screen(bool realloc = false);
 
   string id(xcb_window_t w) const;
 
-  void ensure_event_mask(xcb_window_t win, uint32_t event);
+  void ensure_event_mask(xcb_window_t win, unsigned int event);
   void clear_event_mask(xcb_window_t win);
 
   shared_ptr<xcb_client_message_event_t> make_client_message(xcb_atom_t type, xcb_window_t target) const;
   void send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
-      uint32_t event_mask = 0xFFFFFF, bool propagate = false) const;
+      unsigned int event_mask = 0xFFFFFF, bool propagate = false) const;
 
   xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);
 
@@ -149,7 +149,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
 
   void dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const;
 
-  template <typename Event, uint32_t ResponseType>
+  template <typename Event, unsigned int ResponseType>
   void wait_for_response(function<bool(const Event*)> check_event) {
     int fd = get_file_descriptor();
     shared_ptr<xcb_generic_event_t> evt{};
@@ -182,7 +182,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
 
  protected:
   Display* m_display{nullptr};
-  map<uint8_t, Visual*> m_visual;
+  map<unsigned char, Visual*> m_visual;
   registry m_registry{*this};
   xcb_screen_t* m_screen{nullptr};
 };

@@ -43,21 +43,21 @@ struct tray_settings {
   tray_settings& operator=(const tray_settings& o) = default;
 
   alignment align{alignment::NONE};
-  int16_t running{false};
-  int16_t orig_x{0};
-  int16_t orig_y{0};
-  int16_t configured_x{0};
-  int16_t configured_y{0};
-  uint16_t configured_w{0};
-  uint16_t configured_h{0};
-  uint16_t configured_slots{0};
-  uint16_t width{0};
-  uint16_t width_max{0};
-  uint16_t height{0};
-  uint16_t height_fill{0};
-  uint16_t spacing{0};
-  uint32_t sibling{0};
-  uint32_t background{0};
+  bool running{false};
+  int orig_x{0};
+  int orig_y{0};
+  int configured_x{0};
+  int configured_y{0};
+  unsigned int configured_w{0};
+  unsigned int configured_h{0};
+  unsigned int configured_slots{0};
+  unsigned int width{0};
+  unsigned int width_max{0};
+  unsigned int height{0};
+  unsigned int height_fill{0};
+  unsigned int spacing{0};
+  unsigned int sibling{0};
+  unsigned int background{0};
   bool transparent{false};
   bool detached{false};
 };
@@ -103,13 +103,13 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
 
-  int16_t calculate_x(uint16_t width) const;
-  int16_t calculate_y() const;
-  uint16_t calculate_w() const;
-  uint16_t calculate_h() const;
+  int calculate_x(unsigned width) const;
+  int calculate_y() const;
+  unsigned int calculate_w() const;
+  unsigned int calculate_h() const;
 
-  int16_t calculate_client_x(const xcb_window_t& win);
-  int16_t calculate_client_y();
+  int calculate_client_x(const xcb_window_t& win);
+  int calculate_client_y();
 
   bool is_embedded(const xcb_window_t& win) const;
   shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
@@ -143,8 +143,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   xcb_gcontext_t m_gc{0};
   xcb_pixmap_t m_pixmap{0};
   graphics_util::root_pixmap m_rootpixmap{};
-  uint16_t m_prevwidth{0};
-  uint16_t m_prevheight{0};
+  unsigned int m_prevwidth{0};
+  unsigned int m_prevheight{0};
 
   xcb_atom_t m_atom{0};
   xcb_window_t m_tray{0};

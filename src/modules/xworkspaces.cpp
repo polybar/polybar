@@ -122,8 +122,8 @@ namespace modules {
         for (auto&& monitor : m_monitors) {
           if (monitor->match(viewports[n])) {
             m_viewports.back()->name = monitor->name;
-            m_viewports.back()->pos.x = static_cast<int16_t>(monitor->x);
-            m_viewports.back()->pos.y = static_cast<int16_t>(monitor->y);
+            m_viewports.back()->pos.x = static_cast<short int>(monitor->x);
+            m_viewports.back()->pos.y = static_cast<short int>(monitor->y);
             m_viewports.back()->state = viewport_state::FOCUSED;
             m_viewports.back()->label = m_monitorlabel->clone();
             m_viewports.back()->label->replace_token("%name%", monitor->name);
@@ -212,19 +212,19 @@ namespace modules {
     }
     cmd.erase(0, len);
 
-    uint32_t new_desktop{0};
-    uint32_t min_desktop{0};
-    uint32_t max_desktop{0};
-    uint32_t current_desktop{ewmh_util::get_current_desktop(m_ewmh.get())};
+    unsigned int new_desktop{0};
+    unsigned int min_desktop{0};
+    unsigned int max_desktop{0};
+    unsigned int current_desktop{ewmh_util::get_current_desktop(m_ewmh.get())};
 
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
         if (min_desktop == 0) {
           min_desktop = desktop->index;
-          max_desktop = math_util::max<uint16_t>(max_desktop, desktop->index);
+          max_desktop = math_util::max<unsigned short int>(max_desktop, desktop->index);
         } else {
-          min_desktop = math_util::min<uint16_t>(min_desktop, desktop->index);
-          max_desktop = math_util::max<uint16_t>(max_desktop, desktop->index);
+          min_desktop = math_util::min<unsigned short int>(min_desktop, desktop->index);
+          max_desktop = math_util::max<unsigned short int>(max_desktop, desktop->index);
         }
       }
     }
@@ -232,12 +232,12 @@ namespace modules {
     if ((len = strlen(EVENT_CLICK)) && cmd.compare(0, len, EVENT_CLICK) == 0) {
       new_desktop = std::strtoul(cmd.substr(len).c_str(), nullptr, 10);
     } else if ((len = strlen(EVENT_SCROLL_UP)) && cmd.compare(0, len, EVENT_SCROLL_UP) == 0) {
-      new_desktop = math_util::min<uint32_t>(max_desktop, current_desktop + 1);
+      new_desktop = math_util::min<unsigned int>(max_desktop, current_desktop + 1);
       if (new_desktop == current_desktop) {
         new_desktop = min_desktop;
       }
     } else if ((len = strlen(EVENT_SCROLL_DOWN)) && cmd.compare(0, len, EVENT_SCROLL_DOWN) == 0) {
-      new_desktop = math_util::max<uint32_t>(min_desktop, std::max(0U, current_desktop - 1));
+      new_desktop = math_util::max<unsigned int>(min_desktop, std::max(0U, current_desktop - 1));
       if (new_desktop == current_desktop) {
         new_desktop = max_desktop;
       }

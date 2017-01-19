@@ -9,104 +9,104 @@
 POLYBAR_NS
 
 struct cw_size {
-  explicit cw_size(uint16_t w, uint16_t h) : w(w), h(h) {}
+  explicit cw_size(unsigned short int w, unsigned short int h) : w(w), h(h) {}
   explicit cw_size(struct size size) : w(size.w), h(size.h) {}
-  uint16_t w{1};
-  uint16_t h{1};
+  unsigned short int w{1};
+  unsigned short int h{1};
 };
 struct cw_pos {
-  explicit cw_pos(int16_t x, int16_t y) : x(x), y(y) {}
+  explicit cw_pos(short int x, short int y) : x(x), y(y) {}
   explicit cw_pos(struct position pos) : x(pos.x), y(pos.y) {}
-  int16_t x{0};
-  int16_t y{0};
+  short int x{0};
+  short int y{0};
 };
 struct cw_border {
-  explicit cw_border(uint16_t border_width) : border_width(border_width) {}
-  uint16_t border_width{0};
+  explicit cw_border(unsigned short int border_width) : border_width(border_width) {}
+  unsigned short int border_width{0};
 };
 struct cw_class {
-  explicit cw_class(uint16_t class_) : class_(class_) {}
-  uint16_t class_{XCB_COPY_FROM_PARENT};
+  explicit cw_class(unsigned short int class_) : class_(class_) {}
+  unsigned short int class_{XCB_COPY_FROM_PARENT};
 };
 struct cw_parent {
   explicit cw_parent(xcb_window_t parent) : parent(parent) {}
   xcb_window_t parent{XCB_NONE};
 };
 struct cw_depth {
-  explicit cw_depth(uint8_t depth) : depth(depth) {}
-  uint8_t depth{XCB_COPY_FROM_PARENT};
+  explicit cw_depth(unsigned char depth) : depth(depth) {}
+  unsigned char depth{XCB_COPY_FROM_PARENT};
 };
 struct cw_visual {
   explicit cw_visual(xcb_visualid_t visualid) : visualid(visualid) {}
   xcb_visualid_t visualid{XCB_COPY_FROM_PARENT};
 };
 struct cw_mask {
-  explicit cw_mask(uint32_t mask) : mask(mask) {}
-  const uint32_t mask{0};
+  explicit cw_mask(unsigned int mask) : mask(mask) {}
+  const unsigned int mask{0};
 };
 struct cw_params {
   explicit cw_params(const xcb_params_cw_t* params) : params(params) {}
   const xcb_params_cw_t* params{nullptr};
 };
 struct cw_params_back_pixel {
-  explicit cw_params_back_pixel(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_back_pixel(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_back_pixmap {
-  explicit cw_params_back_pixmap(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_back_pixmap(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_backing_pixel {
-  explicit cw_params_backing_pixel(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_backing_pixel(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_backing_planes {
-  explicit cw_params_backing_planes(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_backing_planes(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_backing_store {
-  explicit cw_params_backing_store(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_backing_store(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_bit_gravity {
-  explicit cw_params_bit_gravity(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_bit_gravity(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_border_pixel {
-  explicit cw_params_border_pixel(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_border_pixel(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_border_pixmap {
-  explicit cw_params_border_pixmap(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_border_pixmap(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_colormap {
-  explicit cw_params_colormap(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_colormap(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_cursor {
-  explicit cw_params_cursor(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_cursor(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_dont_propagate {
-  explicit cw_params_dont_propagate(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_dont_propagate(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_event_mask {
-  explicit cw_params_event_mask(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_event_mask(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_override_redirect {
-  explicit cw_params_override_redirect(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_override_redirect(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_save_under {
-  explicit cw_params_save_under(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_save_under(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_params_win_gravity {
-  explicit cw_params_win_gravity(uint32_t value) : value(value) {}
-  uint32_t value{0};
+  explicit cw_params_win_gravity(unsigned int value) : value(value) {}
+  unsigned int value{0};
 };
 struct cw_flush {
   explicit cw_flush(bool checked = false) : checked(checked) {}
@@ -164,16 +164,16 @@ class winspec {
   connection& m_connection;
 
   xcb_window_t m_window{XCB_NONE};
-  uint32_t m_parent{XCB_NONE};
-  uint8_t m_depth{XCB_COPY_FROM_PARENT};
-  uint16_t m_class{XCB_COPY_FROM_PARENT};
+  unsigned int m_parent{XCB_NONE};
+  unsigned char m_depth{XCB_COPY_FROM_PARENT};
+  unsigned short int m_class{XCB_COPY_FROM_PARENT};
   xcb_visualid_t m_visual{XCB_COPY_FROM_PARENT};
-  int16_t m_x{0};
-  int16_t m_y{0};
-  uint16_t m_width{1U};
-  uint16_t m_height{1U};
-  uint16_t m_border{0};
-  uint32_t m_mask{0};
+  short int m_x{0};
+  short int m_y{0};
+  unsigned short int m_width{1U};
+  unsigned short int m_height{1U};
+  unsigned short int m_border{0};
+  unsigned int m_mask{0};
   xcb_params_cw_t m_params{};
 };
 

@@ -41,12 +41,12 @@ class signal_emitter {
     return emit<Signal>(sig) || emit<Next, Signals...>(sig);
   }
 
-  template <uint8_t Priority, typename Signal, typename... Signals>
+  template <int Priority, typename Signal, typename... Signals>
   void attach(signal_receiver<Priority, Signal, Signals...>* s) {
     attach<signal_receiver<Priority, Signal, Signals...>, Signal, Signals...>(s);
   }
 
-  template <uint8_t Priority, typename Signal, typename... Signals>
+  template <int Priority, typename Signal, typename... Signals>
   void detach(signal_receiver<Priority, Signal, Signals...>* s) {
     detach<signal_receiver<Priority, Signal, Signals...>, Signal, Signals...>(s);
   }

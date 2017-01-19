@@ -34,12 +34,12 @@ namespace cairo {
     double y0;
     double x1;
     double y1;
-    vector<uint32_t> steps;
+    vector<unsigned int> steps;
   };
 
   struct textblock {
     string contents;
-    uint8_t fontindex;
+    unsigned char fontindex;
   };
 }
 

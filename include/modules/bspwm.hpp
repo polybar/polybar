@@ -31,7 +31,7 @@ namespace modules {
     };
 
     struct bspwm_monitor {
-      vector<pair<uint32_t, label_t>> workspaces;
+      vector<pair<unsigned int, label_t>> workspaces;
       vector<label_t> modes;
       label_t label;
       string name;
@@ -69,7 +69,7 @@ namespace modules {
     vector<unique_ptr<bspwm_monitor>> m_monitors;
 
     map<mode, label_t> m_modelabels;
-    map<uint32_t, label_t> m_statelabels;
+    map<unsigned int, label_t> m_statelabels;
     label_t m_monitorlabel;
     iconset_t m_icons;
 

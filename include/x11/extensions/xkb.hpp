@@ -51,7 +51,7 @@ class keyboard {
   struct indicator {
     enum class type { NONE = 0U, CAPS_LOCK, NUM_LOCK };
     xcb_atom_t atom{};
-    uint8_t mask{0};
+    unsigned char mask{0};
     string name{};
     bool enabled{false};
   };
@@ -61,14 +61,14 @@ class keyboard {
     vector<string> symbols{};
   };
 
-  explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_, uint8_t group)
+  explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_, unsigned char group)
       : layouts(forward<decltype(layouts)>(layouts_)), indicators(forward<decltype(indicators)>(indicators_)), current_group(group) {}
 
   const indicator& get(const indicator::type& i) const;
-  void set(uint32_t state);
+  void set(unsigned int state);
   bool on(const indicator::type&) const;
-  void current(uint8_t  group);
-  uint8_t current() const;
+  void current(unsigned char  group);
+  unsigned char current() const;
   const string group_name(size_t index = 0) const;
   const string layout_name(size_t index = 0) const;
   const string indicator_name(const indicator::type&) const;
@@ -77,7 +77,7 @@ class keyboard {
  private:
   vector<layout> layouts;
   map<indicator::type, indicator> indicators;
-  uint8_t current_group{0};
+  unsigned char current_group{0};
 };
 
 namespace xkb_util {
@@ -85,8 +85,8 @@ namespace xkb_util {
 
   void query_extension(connection& conn);
 
-  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, uint8_t index);
-  uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device);
+  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, unsigned char index);
+  unsigned char get_current_group(connection& conn, xcb_xkb_device_spec_t device);
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device);
   map<keyboard::indicator::type, keyboard::indicator> get_indicators(connection& conn, xcb_xkb_device_spec_t device);
   string parse_layout_symbol(string&& name);

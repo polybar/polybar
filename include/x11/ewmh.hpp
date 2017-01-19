@@ -23,10 +23,10 @@ namespace ewmh_util {
 
   vector<position> get_desktop_viewports(xcb_ewmh_connection_t* conn, int screen = 0);
   vector<string> get_desktop_names(xcb_ewmh_connection_t* conn, int screen = 0);
-  uint32_t get_current_desktop(xcb_ewmh_connection_t* conn, int screen = 0);
+  unsigned int get_current_desktop(xcb_ewmh_connection_t* conn, int screen = 0);
   xcb_window_t get_active_window(xcb_ewmh_connection_t* conn, int screen = 0);
 
-  void change_current_desktop(xcb_ewmh_connection_t* conn, uint32_t desktop);
+  void change_current_desktop(xcb_ewmh_connection_t* conn, unsigned int desktop);
 }
 
 POLYBAR_NS_END

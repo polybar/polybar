@@ -123,10 +123,10 @@ namespace drawtypes {
     // avoid color bleed
     if (icon_empty && icon_indicator) {
       if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty()) {
-        icon_empty->m_background = color_util::hex<uint16_t>(bar.background);
+        icon_empty->m_background = color_util::hex<unsigned short int>(bar.background);
       }
       if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty()) {
-        icon_empty->m_foreground = color_util::hex<uint16_t>(bar.foreground);
+        icon_empty->m_foreground = color_util::hex<unsigned short int>(bar.foreground);
       }
     }
 

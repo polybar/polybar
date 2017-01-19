@@ -17,7 +17,7 @@ const keyboard::indicator& keyboard::get(const indicator::type& i) const {
 /**
  * Update indicator states
  */
-void keyboard::set(uint32_t state) {
+void keyboard::set(unsigned int state) {
   for (auto& i : indicators) {
     i.second.enabled = state & i.second.mask;
   }
@@ -33,14 +33,14 @@ bool keyboard::on(const indicator::type& i) const {
 /**
  * Set current group number
  */
-void keyboard::current(uint8_t group) {
+void keyboard::current(unsigned char group) {
   current_group = group;
 }
 
 /**
  * Get current group number
  */
-uint8_t keyboard::current() const {
+unsigned char keyboard::current() const {
   return current_group;
 }
 
@@ -90,7 +90,7 @@ namespace xkb_util {
   /**
    * Get current group number
    */
-  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, uint8_t index) {
+  void switch_layout(connection& conn, xcb_xkb_device_spec_t device, unsigned char index) {
     xcb_xkb_latch_lock_state(conn, device, 0, 0, true, index, 0, 0, 0);
     xcb_flush(conn);
   }
@@ -98,8 +98,8 @@ namespace xkb_util {
   /**
    * Get current group number
    */
-  uint8_t get_current_group(connection& conn, xcb_xkb_device_spec_t device) {
-    uint8_t result{0};
+  unsigned char get_current_group(connection& conn, xcb_xkb_device_spec_t device) {
+    unsigned char result{0};
     auto reply = xcb_xkb_get_state_reply(conn, xcb_xkb_get_state(conn, device), nullptr);
     if (reply != nullptr) {
       result = reply->group;
@@ -114,7 +114,7 @@ namespace xkb_util {
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device) {
     vector<keyboard::layout> results;
 
-    uint32_t mask{XCB_XKB_NAME_DETAIL_GROUP_NAMES | XCB_XKB_NAME_DETAIL_SYMBOLS};
+    unsigned int mask{XCB_XKB_NAME_DETAIL_GROUP_NAMES | XCB_XKB_NAME_DETAIL_SYMBOLS};
     auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
 
     if (reply == nullptr) {
@@ -155,7 +155,7 @@ namespace xkb_util {
   map<keyboard::indicator::type, keyboard::indicator> get_indicators(connection& conn, xcb_xkb_device_spec_t device) {
     map<keyboard::indicator::type, keyboard::indicator> results;
 
-    uint32_t mask{XCB_XKB_NAME_DETAIL_INDICATOR_NAMES};
+    unsigned int mask{XCB_XKB_NAME_DETAIL_INDICATOR_NAMES};
     auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
 
     if (reply == nullptr) {

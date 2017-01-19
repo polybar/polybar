@@ -72,8 +72,8 @@ namespace i3_util {
    * Fixes the issue with always-on-top window's
    */
   bool restack_to_root(connection& conn, const xcb_window_t win) {
-    const uint32_t value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-    const uint32_t value_list[2]{root_window(conn), XCB_STACK_MODE_ABOVE};
+    const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+    const unsigned int value_list[2]{root_window(conn), XCB_STACK_MODE_ABOVE};
     if (value_list[0] != XCB_NONE) {
       conn.configure_window_checked(win, value_mask, value_list);
       return true;

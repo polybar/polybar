@@ -14,24 +14,24 @@ POLYBAR_NS
 namespace {
   using bspwm_state = modules::bspwm_module::state;
 
-  uint32_t make_mask(bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
-    uint32_t mask{0U};
-    if (static_cast<uint32_t>(s1)) {
-      mask |= 1U << (static_cast<uint32_t>(s1) - 1U);
+  unsigned int make_mask(bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
+    unsigned int mask{0U};
+    if (static_cast<unsigned int>(s1)) {
+      mask |= 1U << (static_cast<unsigned int>(s1) - 1U);
     }
-    if (static_cast<uint32_t>(s2)) {
-      mask |= 1U << (static_cast<uint32_t>(s2) - 1U);
+    if (static_cast<unsigned int>(s2)) {
+      mask |= 1U << (static_cast<unsigned int>(s2) - 1U);
     }
     return mask;
   }
 
-  uint32_t check_mask(uint32_t base, bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
-    uint32_t mask{0U};
-    if (static_cast<uint32_t>(s1)) {
-      mask |= 1U << (static_cast<uint32_t>(s1) - 1U);
+  unsigned int check_mask(unsigned int base, bspwm_state s1, bspwm_state s2 = bspwm_state::NONE) {
+    unsigned int mask{0U};
+    if (static_cast<unsigned int>(s1)) {
+      mask |= 1U << (static_cast<unsigned int>(s1) - 1U);
     }
-    if (static_cast<uint32_t>(s2)) {
-      mask |= 1U << (static_cast<uint32_t>(s2) - 1U);
+    if (static_cast<unsigned int>(s2)) {
+      mask |= 1U << (static_cast<unsigned int>(s2) - 1U);
     }
     return (base & mask) == mask;
   }
@@ -92,7 +92,7 @@ namespace modules {
         {state::EMPTY, "label-focused-empty"}};
 
       for (auto&& os : focused_overrides) {
-        uint32_t mask{make_mask(state::FOCUSED, os.first)};
+        unsigned int mask{make_mask(state::FOCUSED, os.first)};
         try {
           m_statelabels.emplace(mask, load_label(m_conf, name(), os.second));
         } catch (const key_error& err) {
@@ -219,7 +219,7 @@ namespace modules {
 
       auto value = !tag.empty() ? tag.substr(1) : "";
       auto mode_flag = mode::NONE;
-      uint32_t workspace_mask{0U};
+      unsigned int workspace_mask{0U};
 
       if (tag[0] == 'm' || tag[0] == 'M') {
         m_monitors.emplace_back(factory_util::unique<bspwm_monitor>());

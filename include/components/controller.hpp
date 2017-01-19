@@ -16,7 +16,7 @@ POLYBAR_NS
 
 // fwd decl {{{
 
-enum class alignment : uint8_t;
+enum class alignment;
 class bar;
 class command;
 class config;

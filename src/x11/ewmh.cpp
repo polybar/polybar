@@ -72,8 +72,8 @@ namespace ewmh_util {
     return str;
   }
 
-  uint32_t get_current_desktop(xcb_ewmh_connection_t* conn, int screen) {
-    uint32_t desktop{0};
+  unsigned int get_current_desktop(xcb_ewmh_connection_t* conn, int screen) {
+    unsigned int desktop{0};
     if (xcb_ewmh_get_current_desktop_reply(conn, xcb_ewmh_get_current_desktop(conn, screen), &desktop, nullptr)) {
       return desktop;
     }
@@ -90,7 +90,7 @@ namespace ewmh_util {
 
     for (size_t n = 0; n < reply.desktop_viewport_len; n++) {
       viewports.emplace_back(position{
-          static_cast<int16_t>(reply.desktop_viewport[n].x), static_cast<int16_t>(reply.desktop_viewport[n].y)});
+          static_cast<short int>(reply.desktop_viewport[n].x), static_cast<short int>(reply.desktop_viewport[n].y)});
     }
 
     return viewports;
@@ -131,7 +131,7 @@ namespace ewmh_util {
     return win;
   }
 
-  void change_current_desktop(xcb_ewmh_connection_t* conn, uint32_t desktop) {
+  void change_current_desktop(xcb_ewmh_connection_t* conn, unsigned int desktop) {
     xcb_ewmh_request_change_current_desktop(conn, 0, desktop, XCB_CURRENT_TIME);
   }
 }

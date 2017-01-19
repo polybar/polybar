@@ -79,7 +79,7 @@ void config::parse_file() {
   std::ifstream in(m_file);
   string line;
   string section;
-  uint32_t lineno{0};
+  unsigned int lineno{0};
 
   while (std::getline(in, line)) {
     lineno++;
@@ -279,10 +279,10 @@ rgba config::convert(string&& value) const {
   auto color = color_util::parse(value, 0);
   // clang-format off
   return rgba{
-      color_util::red_channel<uint8_t>(color) / 255.0,
-      color_util::green_channel<uint8_t>(color) / 255.0,
-      color_util::blue_channel<uint8_t>(color) / 255.0,
-      color_util::alpha_channel<uint8_t>(color) / 255.0};
+      color_util::red_channel<unsigned char>(color) / 255.0,
+      color_util::green_channel<unsigned char>(color) / 255.0,
+      color_util::blue_channel<unsigned char>(color) / 255.0,
+      color_util::alpha_channel<unsigned char>(color) / 255.0};
   // clang-format on
 }
 

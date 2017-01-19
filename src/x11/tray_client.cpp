@@ -8,7 +8,7 @@
 
 POLYBAR_NS
 
-tray_client::tray_client(connection& conn, xcb_window_t win, uint16_t w, uint16_t h)
+tray_client::tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h)
     : m_connection(conn), m_window(win), m_width(w), m_height(h) {
   m_xembed = memory_util::make_malloc_ptr<xembed_data>();
   m_xembed->version = XEMBED_VERSION;
@@ -19,11 +19,11 @@ tray_client::~tray_client() {
   xembed::unembed(m_connection, window(), m_connection.root());
 }
 
-uint16_t tray_client::width() const {
+unsigned int tray_client::width() const {
   return m_width;
 }
 
-uint16_t tray_client::height() const {
+unsigned int tray_client::height() const {
   return m_height;
 }
 
@@ -84,9 +84,9 @@ void tray_client::ensure_state() const {
 /**
  * Configure window size
  */
-void tray_client::reconfigure(int16_t x, int16_t y) const {
-  uint32_t configure_mask = 0;
-  uint32_t configure_values[7];
+void tray_client::reconfigure(int x, int y) const {
+  unsigned int configure_mask = 0;
+  unsigned int configure_values[7];
   xcb_params_configure_window_t configure_params{};
 
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_width);
@@ -101,7 +101,7 @@ void tray_client::reconfigure(int16_t x, int16_t y) const {
 /**
  * Respond to client resize requests
  */
-void tray_client::configure_notify(int16_t x, int16_t y) const {
+void tray_client::configure_notify(short int x, short int y) const {
   auto notify = memory_util::make_malloc_ptr<xcb_configure_notify_event_t, 32_z>();
   notify->response_type = XCB_CONFIGURE_NOTIFY;
   notify->event = m_window;
@@ -114,7 +114,7 @@ void tray_client::configure_notify(int16_t x, int16_t y) const {
   notify->height = m_height;
   notify->border_width = 0;
 
-  uint32_t mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+  unsigned int mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
   m_connection.send_event_checked(false, m_window, mask, reinterpret_cast<const char*>(notify.get()));
 }
 

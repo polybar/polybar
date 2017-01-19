@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   };
   // clang-format on
 
-  uint8_t exit_code{EXIT_SUCCESS};
+  unsigned char exit_code{EXIT_SUCCESS};
   bool reload{false};
 
   logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::WARNING))};

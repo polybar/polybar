@@ -10,10 +10,10 @@
 POLYBAR_NS
 
 // fwd
-enum class mousebtn : uint8_t;
-enum class syntaxtag : uint8_t;
-enum class alignment : uint8_t;
-enum class attribute : uint8_t;
+enum class mousebtn;
+enum class syntaxtag;
+enum class alignment;
+enum class attribute;
 
 namespace signals {
   namespace detail {
@@ -120,25 +120,25 @@ namespace signals {
   }
 
   namespace parser {
-    struct change_background : public detail::value_signal<change_background, uint32_t> {
+    struct change_background : public detail::value_signal<change_background, unsigned int> {
       using base_type::base_type;
     };
-    struct change_foreground : public detail::value_signal<change_foreground, uint32_t> {
+    struct change_foreground : public detail::value_signal<change_foreground, unsigned int> {
       using base_type::base_type;
     };
-    struct change_underline : public detail::value_signal<change_underline, uint32_t> {
+    struct change_underline : public detail::value_signal<change_underline, unsigned int> {
       using base_type::base_type;
     };
-    struct change_overline : public detail::value_signal<change_overline, uint32_t> {
+    struct change_overline : public detail::value_signal<change_overline, unsigned int> {
       using base_type::base_type;
     };
-    struct change_font : public detail::value_signal<change_font, uint8_t> {
+    struct change_font : public detail::value_signal<change_font, int> {
       using base_type::base_type;
     };
     struct change_alignment : public detail::value_signal<change_alignment, alignment> {
       using base_type::base_type;
     };
-    struct offset_pixel : public detail::value_signal<offset_pixel, int16_t> {
+    struct offset_pixel : public detail::value_signal<offset_pixel, int> {
       using base_type::base_type;
     };
     struct attribute_set : public detail::value_signal<attribute_set, attribute> {

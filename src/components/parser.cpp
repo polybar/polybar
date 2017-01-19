@@ -107,7 +107,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'O':
-        m_sig.emit(offset_pixel{static_cast<int16_t>(std::atoi(value.c_str()))});
+        m_sig.emit(offset_pixel{static_cast<int>(std::atoi(value.c_str()))});
         break;
 
       case 'l':
@@ -180,8 +180,8 @@ size_t parser::text(string&& data) {
 /**
  * Process color hex string and convert it to the correct value
  */
-uint32_t parser::parse_color(const string& s, uint32_t fallback) {
-  uint32_t color{0};
+unsigned int parser::parse_color(const string& s, unsigned int fallback) {
+  unsigned int color{0};
   if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback) {
     return fallback;
   }
@@ -191,7 +191,7 @@ uint32_t parser::parse_color(const string& s, uint32_t fallback) {
 /**
  * Process font index and convert it to the correct value
  */
-uint8_t parser::parse_fontindex(const string& s) {
+int parser::parse_fontindex(const string& s) {
   if (s.empty() || s[0] == '-') {
     return 0;
   }

@@ -11,7 +11,7 @@ POLYBAR_NS
 
 class signal_receiver_interface {
  public:
-  using prio = unsigned int;
+  using prio = int;
   using prio_map = std::multimap<prio, signal_receiver_interface*>;
   virtual ~signal_receiver_interface() {}
   virtual prio priority() const = 0;
@@ -37,7 +37,7 @@ bool signal_receiver_interface::on(const Signal& s) {
   }
 }
 
-template <uint8_t Priority, typename Signal, typename... Signals>
+template <int Priority, typename Signal, typename... Signals>
 class signal_receiver : public signal_receiver_interface,
                         public signal_receiver_impl<Signal>,
                         public signal_receiver_impl<Signals>... {

@@ -15,7 +15,7 @@ namespace xembed {
       throw application_error("Invalid _XEMBED_INFO for window " + conn.id(win));
     }
 
-    std::vector<uint32_t> xembed_data{info.value<uint32_t>().begin(), info.value<uint32_t>().end()};
+    std::vector<unsigned int> xembed_data{info.value<unsigned int>().begin(), info.value<unsigned int>().end()};
 
     data->xembed = _XEMBED;
     data->xembed_info = _XEMBED_INFO;

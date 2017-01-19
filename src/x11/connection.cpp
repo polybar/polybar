@@ -66,33 +66,33 @@ connection::~connection() {
     XCloseDisplay(m_display);
   } else {
     disconnect();
-    std::for_each(m_visual.begin(), m_visual.end(), [=](pair<uint8_t, Visual*> p) { XFree(p.second); });
+    std::for_each(m_visual.begin(), m_visual.end(), [=](pair<unsigned char, Visual*> p) { XFree(p.second); });
     m_visual.clear();
   }
 }
 
-void connection::pack_values(uint32_t mask, const uint32_t* src, uint32_t* dest) {
+void connection::pack_values(unsigned int mask, const unsigned int* src, unsigned int* dest) {
   for (; mask; mask >>= 1, src++) {
     if (mask & 1) {
       *dest++ = *src;
     }
   }
 }
-void connection::pack_values(uint32_t mask, const xcb_params_cw_t* src, uint32_t* dest) {
-  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+void connection::pack_values(unsigned int mask, const xcb_params_cw_t* src, unsigned int* dest) {
+  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
 }
-void connection::pack_values(uint32_t mask, const xcb_params_gc_t* src, uint32_t* dest) {
-  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+void connection::pack_values(unsigned int mask, const xcb_params_gc_t* src, unsigned int* dest) {
+  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
 }
-void connection::pack_values(uint32_t mask, const xcb_params_configure_window_t* src, uint32_t* dest) {
-  pack_values(mask, reinterpret_cast<const uint32_t*>(src), dest);
+void connection::pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest) {
+  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
 }
 
 connection::operator Display*() const {
   return m_display;
 }
 
-Visual* connection::visual(uint8_t depth) {
+Visual* connection::visual(unsigned char depth) {
   auto visual_it = m_visual.find(depth);
   if (visual_it == m_visual.end()) {
     XVisualInfo info{};
@@ -123,7 +123,7 @@ xcb_screen_t* connection::screen(bool realloc) {
 /**
  * Add given event to the event mask unless already added
  */
-void connection::ensure_event_mask(xcb_window_t win, uint32_t event) {
+void connection::ensure_event_mask(xcb_window_t win, unsigned int event) {
   auto attributes = get_window_attributes(win);
   attributes->your_event_mask = attributes->your_event_mask | event;
   change_window_attributes(win, XCB_CW_EVENT_MASK, &attributes->your_event_mask);
@@ -133,7 +133,7 @@ void connection::ensure_event_mask(xcb_window_t win, uint32_t event) {
  * Clear event mask for the given window
  */
 void connection::clear_event_mask(xcb_window_t win) {
-  uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+  unsigned int mask{XCB_EVENT_MASK_NO_EVENT};
   change_window_attributes(win, XCB_CW_EVENT_MASK, &mask);
 }
 
@@ -162,7 +162,7 @@ shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_
  * Send client message event
  */
 void connection::send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
-    uint32_t event_mask, bool propagate) const {
+    unsigned int event_mask, bool propagate) const {
   send_event(propagate, target, event_mask, reinterpret_cast<const char*>(&*message));
   flush();
 }

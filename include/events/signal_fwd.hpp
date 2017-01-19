@@ -6,7 +6,7 @@ POLYBAR_NS
 
 class signal_emitter;
 class signal_receiver_interface;
-template <uint8_t Priority, typename Signal, typename... Signals>
+template <int Priority, typename Signal, typename... Signals>
 class signal_receiver;
 
 namespace signals {

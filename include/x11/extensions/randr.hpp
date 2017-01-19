@@ -22,7 +22,7 @@ namespace evt {
 }
 
 struct backlight_values {
-  uint32_t atom{0};
+  unsigned int atom{0};
   double min{0.0};
   double max{0.0};
   double val{0.0};
@@ -30,10 +30,10 @@ struct backlight_values {
 
 struct randr_output {
   string name;
-  uint16_t w{0U};
-  uint16_t h{0U};
-  int16_t x{0};
-  int16_t y{0};
+  unsigned short int w{0U};
+  unsigned short int h{0U};
+  short int x{0};
+  short int y{0};
   xcb_randr_output_t output;
   backlight_values backlight;
 
@@ -48,7 +48,7 @@ namespace randr_util {
 
   bool check_monitor_support();
 
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, uint16_t w, uint16_t h, int16_t x, int16_t y);
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y);
   vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false, bool realloc = false);
 
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst);

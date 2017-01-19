@@ -6,8 +6,8 @@
 POLYBAR_NS
 
 class signal_emitter;
-enum class attribute : uint8_t;
-enum class mousebtn : uint8_t;
+enum class attribute;
+enum class mousebtn;
 struct bar_settings;
 
 DEFINE_ERROR(parser_error);
@@ -28,8 +28,8 @@ class parser {
   void codeblock(string&& data, const bar_settings& bar);
   size_t text(string&& data);
 
-  uint32_t parse_color(const string& s, uint32_t fallback = 0);
-  uint8_t parse_fontindex(const string& s);
+  unsigned int parse_color(const string& s, unsigned int fallback = 0);
+  int parse_fontindex(const string& s);
   attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
   string parse_action_cmd(string&& data);

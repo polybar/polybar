@@ -100,8 +100,8 @@ renderer::renderer(
 
   m_log.trace("renderer: Allocate graphic context");
   {
-    uint32_t mask{0};
-    uint32_t value_list[32]{0};
+    unsigned int mask{0};
+    unsigned int value_list[32]{0};
     xcb_params_gc_t params{};
     XCB_AUX_ADD_PARAM(&mask, &params, foreground, m_bar.foreground);
     XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
@@ -256,8 +256,8 @@ void renderer::flush() {
 /**
  * Reserve space at given edge
  */
-void renderer::reserve_space(edge side, uint16_t w) {
-  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<uint8_t>(side), w);
+void renderer::reserve_space(edge side, unsigned short int w) {
+  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<unsigned char>(side), w);
 
   m_cleararea.side = side;
   m_cleararea.size = w;
@@ -311,7 +311,7 @@ void renderer::fill_background() {
  * Fill overline color
  */
 void renderer::fill_overline(double x, double w) {
-  if (m_bar.overline.size && m_attributes.test(static_cast<uint8_t>(attribute::OVERLINE))) {
+  if (m_bar.overline.size && m_attributes.test(static_cast<unsigned char>(attribute::OVERLINE))) {
     m_log.trace_x("renderer: overline(x=%i, w=%i)", x, w);
     m_context->save();
     *m_context << m_compositing_overline;
@@ -326,7 +326,7 @@ void renderer::fill_overline(double x, double w) {
  * Fill underline color
  */
 void renderer::fill_underline(double x, double w) {
-  if (m_bar.underline.size && m_attributes.test(static_cast<uint8_t>(attribute::UNDERLINE))) {
+  if (m_bar.underline.size && m_attributes.test(static_cast<unsigned char>(attribute::UNDERLINE))) {
     m_log.trace_x("renderer: underline(x=%i, w=%i)", x, w);
     m_context->save();
     *m_context << m_compositing_underline;
@@ -450,7 +450,7 @@ void renderer::highlight_clickable_areas() {
   map<alignment, int> hint_num{};
   for (auto&& action : m_actions) {
     if (!action.active) {
-      uint8_t n = hint_num.find(action.align)->second++;
+      unsigned char n = hint_num.find(action.align)->second++;
       double x = action.start_x + n * DEBUG_HINTS_OFFSET_X;
       double y = m_bar.pos.y + m_rect.y + n * DEBUG_HINTS_OFFSET_Y;
       double w = action.width();
@@ -467,7 +467,7 @@ void renderer::highlight_clickable_areas() {
 }
 
 bool renderer::on(const signals::parser::change_background& evt) {
-  const uint32_t color{evt.cast()};
+  const unsigned int color{evt.cast()};
   if (color != m_color_background) {
     m_color_background = color;
   }
@@ -475,7 +475,7 @@ bool renderer::on(const signals::parser::change_background& evt) {
 }
 
 bool renderer::on(const signals::parser::change_foreground& evt) {
-  const uint32_t color{evt.cast()};
+  const unsigned int color{evt.cast()};
   if (color != m_color_foreground) {
     m_color_foreground = color;
   }
@@ -483,7 +483,7 @@ bool renderer::on(const signals::parser::change_foreground& evt) {
 }
 
 bool renderer::on(const signals::parser::change_underline& evt) {
-  const uint32_t color{evt.cast()};
+  const unsigned int color{evt.cast()};
   if (color != m_color_underline) {
     m_color_underline = color;
   }
@@ -491,7 +491,7 @@ bool renderer::on(const signals::parser::change_underline& evt) {
 }
 
 bool renderer::on(const signals::parser::change_overline& evt) {
-  const uint32_t color{evt.cast()};
+  const unsigned int color{evt.cast()};
   if (color != m_color_overline) {
     m_color_overline = color;
   }
@@ -518,17 +518,17 @@ bool renderer::on(const signals::parser::offset_pixel& evt) {
 }
 
 bool renderer::on(const signals::parser::attribute_set& evt) {
-  m_attributes.set(static_cast<uint8_t>(evt.cast()), true);
+  m_attributes.set(static_cast<unsigned char>(evt.cast()), true);
   return true;
 }
 
 bool renderer::on(const signals::parser::attribute_unset& evt) {
-  m_attributes.set(static_cast<uint8_t>(evt.cast()), false);
+  m_attributes.set(static_cast<unsigned char>(evt.cast()), false);
   return true;
 }
 
 bool renderer::on(const signals::parser::attribute_toggle& evt) {
-  m_attributes.flip(static_cast<uint8_t>(evt.cast()));
+  m_attributes.flip(static_cast<unsigned char>(evt.cast()));
   return true;
 }
 
@@ -548,7 +548,7 @@ bool renderer::on(const signals::parser::action_begin& evt) {
 bool renderer::on(const signals::parser::action_end& evt) {
   (void) evt;
   // auto btn = evt.cast();
-  // int16_t clickable_width = 0;
+  // short int clickable_width = 0;
   // for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
   //   if (action->active && action->align == m_alignment && action->button == btn) {
   //     switch (action->align) {

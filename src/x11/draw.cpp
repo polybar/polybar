@@ -14,7 +14,7 @@ namespace draw_util {
   /**
    * Fill region of drawable with color defined by gcontext
    */
-  void fill(xcb_connection_t* c, xcb_drawable_t d, xcb_gcontext_t g, int16_t x, int16_t y, uint16_t w, uint16_t h) {
+  void fill(xcb_connection_t* c, xcb_drawable_t d, xcb_gcontext_t g, short int x, short int y, unsigned short int w, unsigned short int h) {
     fill(c, d, g, {x, y, w, h});
   }
 }

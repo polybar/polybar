@@ -51,13 +51,13 @@ namespace cairo {
       return *this;
     }
 
-    context& operator<<(const uint32_t& c) {
+    context& operator<<(const unsigned int& c) {
       // clang-format off
       cairo_set_source_rgba(m_c,
-        color_util::red_channel<uint8_t>(c) / 255.0,
-        color_util::green_channel<uint8_t>(c) / 255.0,
-        color_util::blue_channel<uint8_t>(c) / 255.0,
-        color_util::alpha_channel<uint8_t>(c) / 255.0);
+        color_util::red_channel<unsigned char>(c) / 255.0,
+        color_util::green_channel<unsigned char>(c) / 255.0,
+        color_util::blue_channel<unsigned char>(c) / 255.0,
+        color_util::alpha_channel<unsigned char>(c) / 255.0);
       // clang-format on
       return *this;
     }
@@ -105,10 +105,10 @@ namespace cairo {
         for (auto&& color : l.steps) {
           // clang-format off
           cairo_pattern_add_color_stop_rgba(pattern, offset,
-            color_util::red_channel<uint8_t>(color) / 255.0,
-            color_util::green_channel<uint8_t>(color) / 255.0,
-            color_util::blue_channel<uint8_t>(color) / 255.0,
-            color_util::alpha_channel<uint8_t>(color) / 255.0);
+            color_util::red_channel<unsigned char>(color) / 255.0,
+            color_util::green_channel<unsigned char>(color) / 255.0,
+            color_util::blue_channel<unsigned char>(color) / 255.0,
+            color_util::alpha_channel<unsigned char>(color) / 255.0);
           // clang-format on
           offset += step;
         }
@@ -130,7 +130,7 @@ namespace cairo {
 
       string utf8 = string(t.contents);
       unicode_charlist chars;
-      utils::utf8_to_ucs4((const uint8_t*)utf8.c_str(), chars);
+      utils::utf8_to_ucs4((const unsigned char*)utf8.c_str(), chars);
 
       while (!chars.empty()) {
         auto remaining = chars.size();

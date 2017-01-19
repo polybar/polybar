@@ -17,14 +17,14 @@ window& window::operator=(const xcb_window_t win) {
 /**
  * Create window and check for errors
  */
-window window::create_checked(int16_t x, int16_t y, uint16_t w, uint16_t h, uint32_t mask, const xcb_params_cw_t* p) {
+window window::create_checked(short int x, short int y, unsigned short int w, unsigned short int h, unsigned int mask, const xcb_params_cw_t* p) {
   if (*this == XCB_NONE) {
     *this = connection().generate_id();
   }
 
   auto root = connection().screen()->root;
   auto copy = XCB_COPY_FROM_PARENT;
-  uint32_t values[16]{0};
+  unsigned int values[16]{0};
   connection::pack_values(mask, p, values);
   connection().create_window_checked(copy, *this, root, x, y, w, h, 0, copy, copy, mask, values);
 
@@ -34,7 +34,7 @@ window window::create_checked(int16_t x, int16_t y, uint16_t w, uint16_t h, uint
 /**
  * Change the window event mask
  */
-window window::change_event_mask(uint32_t mask) {
+window window::change_event_mask(unsigned int mask) {
   change_attributes_checked(XCB_CW_EVENT_MASK, &mask);
   return *this;
 }
@@ -42,7 +42,7 @@ window window::change_event_mask(uint32_t mask) {
 /**
  * Add given event to the event mask unless already added
  */
-window window::ensure_event_mask(uint32_t event) {
+window window::ensure_event_mask(unsigned int event) {
   connection().ensure_event_mask(*this, event);
   return *this;
 }
@@ -50,9 +50,9 @@ window window::ensure_event_mask(uint32_t event) {
 /**
  * Reconfigure the window geometry
  */
-window window::reconfigure_geom(uint16_t w, uint16_t h, int16_t x, int16_t y) {
-  uint32_t mask{0};
-  uint32_t values[7]{0};
+window window::reconfigure_geom(unsigned short int w, unsigned short int h, short int x, short int y) {
+  unsigned int mask{0};
+  unsigned int values[7]{0};
 
   xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, width, w);
@@ -69,9 +69,9 @@ window window::reconfigure_geom(uint16_t w, uint16_t h, int16_t x, int16_t y) {
 /**
  * Reconfigure the window position
  */
-window window::reconfigure_pos(int16_t x, int16_t y) {
-  uint32_t mask{0};
-  uint32_t values[2]{0};
+window window::reconfigure_pos(short int x, short int y) {
+  unsigned int mask{0};
+  unsigned int values[2]{0};
 
   xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
@@ -86,9 +86,9 @@ window window::reconfigure_pos(int16_t x, int16_t y) {
 /**
  * Reconfigure the windows ewmh strut
  */
-window window::reconfigure_struts(uint16_t w, uint16_t h, int16_t x, bool bottom) {
-  uint32_t none{0};
-  uint32_t values[12]{none};
+window window::reconfigure_struts(unsigned short int w, unsigned short int h, short int x, bool bottom) {
+  unsigned int none{0};
+  unsigned int values[12]{none};
 
   if (bottom) {
     values[static_cast<int>(strut::BOTTOM)] = h;
@@ -125,7 +125,7 @@ void window::visibility_notify(xcb_visibility_t state) {
   notify->window = *this;
   notify->state = state;
 
-  uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+  unsigned int mask{XCB_EVENT_MASK_NO_EVENT};
   connection().send_event(false, *this, mask, reinterpret_cast<const char*>(notify.get()));
 }
 

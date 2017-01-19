@@ -42,7 +42,7 @@ class renderer
   void end();
   void flush();
 
-  void reserve_space(edge side, uint16_t w);
+  void reserve_space(edge side, unsigned int w);
   void fill_background();
   void fill_overline(double x, double w);
   void fill_underline(double x, double w);
@@ -70,7 +70,7 @@ class renderer
  protected:
   struct reserve_area {
     edge side{edge::NONE};
-    uint16_t size{0U};
+    unsigned int size{0U};
   };
 
  private:
@@ -83,7 +83,7 @@ class renderer
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
   reserve_area m_cleararea{};
 
-  uint8_t m_depth{32};
+  int m_depth{32};
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
   xcb_visualtype_t* m_visual;
@@ -106,12 +106,12 @@ class renderer
   alignment m_alignment{alignment::NONE};
   std::bitset<2> m_attributes;
 
-  uint8_t m_fontindex;
+  int m_fontindex;
 
-  uint32_t m_color_background;
-  uint32_t m_color_foreground;
-  uint32_t m_color_overline;
-  uint32_t m_color_underline;
+  unsigned int m_color_background;
+  unsigned int m_color_foreground;
+  unsigned int m_color_overline;
+  unsigned int m_color_underline;
 
   double m_x{0.0};
   double m_y{0.0};

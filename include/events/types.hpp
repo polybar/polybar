@@ -6,7 +6,7 @@
 
 POLYBAR_NS
 
-enum class event_type : uint8_t {
+enum class event_type {
   NONE = 0,
   UPDATE,
   CHECK,
@@ -15,44 +15,44 @@ enum class event_type : uint8_t {
 };
 
 struct event {
-  uint8_t type{0};
+  int type{0};
   bool flag{false};
 };
 
 namespace {
-  inline bool operator==(uint8_t id, event_type type) {
-    return id == static_cast<uint8_t>(type);
+  inline bool operator==(int id, event_type type) {
+    return id == static_cast<int>(type);
   }
-  inline bool operator!=(uint8_t id, event_type type) {
-    return !(id == static_cast<uint8_t>(type));
+  inline bool operator!=(int id, event_type type) {
+    return !(id == static_cast<int>(type));
   }
 
   /**
    * Create QUIT event
    */
   inline event make_quit_evt(bool reload = false) {
-    return event{static_cast<uint8_t>(event_type::QUIT), reload};
+    return event{static_cast<int>(event_type::QUIT), reload};
   }
 
   /**
    * Create UPDATE event
    */
   inline event make_update_evt(bool force = false) {
-    return event{static_cast<uint8_t>(event_type::UPDATE), force};
+    return event{static_cast<int>(event_type::UPDATE), force};
   }
 
   /**
    * Create INPUT event
    */
   inline event make_input_evt() {
-    return event{static_cast<uint8_t>(event_type::INPUT)};
+    return event{static_cast<int>(event_type::INPUT)};
   }
 
   /**
    * Create CHECK event
    */
   inline event make_check_evt() {
-    return event{static_cast<uint8_t>(event_type::CHECK)};
+    return event{static_cast<int>(event_type::CHECK)};
   }
 }
 

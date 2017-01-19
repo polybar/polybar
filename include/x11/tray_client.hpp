@@ -13,14 +13,14 @@ struct xembed_data;
 
 class tray_client {
  public:
-  explicit tray_client(connection& conn, xcb_window_t win, uint16_t w, uint16_t h);
+  explicit tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h);
   tray_client(const tray_client& c) = default;
   tray_client& operator=(tray_client& c) = default;
 
   ~tray_client();
 
-  uint16_t width() const;
-  uint16_t height() const;
+  unsigned int width() const;
+  unsigned int height() const;
   void clear_window() const;
 
   bool match(const xcb_window_t& win) const;
@@ -31,8 +31,8 @@ class tray_client {
   xembed_data* xembed() const;
 
   void ensure_state() const;
-  void reconfigure(int16_t x, int16_t y) const;
-  void configure_notify(int16_t x, int16_t y) const;
+  void reconfigure(int x, int y) const;
+  void configure_notify(int x, int y) const;
 
  protected:
   connection& m_connection;
@@ -41,8 +41,8 @@ class tray_client {
   shared_ptr<xembed_data> m_xembed;
   bool m_mapped{false};
 
-  uint16_t m_width;
-  uint16_t m_height;
+  unsigned int m_width;
+  unsigned int m_height;
 };
 
 POLYBAR_NS_END

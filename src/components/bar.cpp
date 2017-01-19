@@ -349,12 +349,12 @@ void bar::parse(string&& data, bool force) {
 
   const auto check_dblclicks = [&]() -> bool {
     for (auto&& action : m_renderer->actions()) {
-      if (static_cast<uint8_t>(action.button) >= static_cast<uint8_t>(mousebtn::DOUBLE_LEFT)) {
+      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
         return true;
       }
     }
     for (auto&& action : m_opts.actions) {
-      if (static_cast<uint8_t>(action.button) >= static_cast<uint8_t>(mousebtn::DOUBLE_LEFT)) {
+      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
         return true;
       }
     }
@@ -568,7 +568,7 @@ void bar::handle(const evt::button_press& evt) {
         return;
       }
     }
-    m_log.warn("No matching input area found (btn=%i)", static_cast<uint8_t>(m_buttonpress_btn));
+    m_log.warn("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
   };
 
   const auto check_double = [&](string&& id, mousebtn&& btn) {
@@ -586,11 +586,11 @@ void bar::handle(const evt::button_press& evt) {
   // just by-pass the click timer handling
   if (!m_dblclicks) {
     deferred_fn(0);
-  } else if (evt->detail == static_cast<uint8_t>(mousebtn::LEFT)) {
+  } else if (evt->detail == static_cast<int>(mousebtn::LEFT)) {
     check_double("buttonpress-left", mousebtn::DOUBLE_LEFT);
-  } else if (evt->detail == static_cast<uint8_t>(mousebtn::MIDDLE)) {
+  } else if (evt->detail == static_cast<int>(mousebtn::MIDDLE)) {
     check_double("buttonpress-middle", mousebtn::DOUBLE_MIDDLE);
-  } else if (evt->detail == static_cast<uint8_t>(mousebtn::RIGHT)) {
+  } else if (evt->detail == static_cast<int>(mousebtn::RIGHT)) {
     check_double("buttonpress-right", mousebtn::DOUBLE_RIGHT);
   } else {
     deferred_fn(0);
@@ -750,24 +750,24 @@ bool bar::on(const signals::ui::tick&) {
     return false;
   }
 
-  uint32_t mask{0};
-  uint32_t values[7]{0};
+  unsigned int mask{0};
+  unsigned int values[7]{0};
   xcb_params_configure_window_t params{};
 
   if (m_opts.shade_size.h > geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<uint16_t>(geom->height + m_anim_step));
-    params.height = std::max(1U, std::min(params.height, static_cast<uint32_t>(m_opts.shade_size.h)));
+    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height + m_anim_step));
+    params.height = std::max(1U, std::min(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
   } else if (m_opts.shade_size.h < geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<uint16_t>(geom->height - m_anim_step));
-    params.height = std::max(1U, std::max(params.height, static_cast<uint32_t>(m_opts.shade_size.h)));
+    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height - m_anim_step));
+    params.height = std::max(1U, std::max(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
   }
 
   if (m_opts.shade_pos.y > geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int16_t>(geom->y + m_anim_step));
-    params.y = std::min(params.y, static_cast<int32_t>(m_opts.shade_pos.y));
+    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y + m_anim_step));
+    params.y = std::min(params.y, static_cast<int>(m_opts.shade_pos.y));
   } else if (m_opts.shade_pos.y < geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int16_t>(geom->y - m_anim_step));
-    params.y = std::max(params.y, static_cast<int32_t>(m_opts.shade_pos.y));
+    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y - m_anim_step));
+    params.y = std::max(params.y, static_cast<int>(m_opts.shade_pos.y));
   }
 
   connection::pack_values(mask, &params, values);

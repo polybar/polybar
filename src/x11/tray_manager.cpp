@@ -92,7 +92,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.height--;
   }
 
-  auto maxsize = conf.get(bs, "tray-maxsize", 16);
+  auto maxsize = conf.get<unsigned int>(bs, "tray-maxsize", 16);
   if (m_opts.height > maxsize) {
     m_opts.spacing += (m_opts.height - maxsize) / 2;
     m_opts.height = maxsize;
@@ -103,7 +103,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   m_opts.orig_y = bar_opts.pos.y + bar_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
-  auto scale = conf.get(bs, "tray-scale", 1.0f);
+  auto scale = conf.get(bs, "tray-scale", 1.0);
   m_opts.width *= scale;
   m_opts.height_fill *= scale;
 
@@ -144,7 +144,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Add user-defined padding
-  m_opts.spacing += conf.get(bs, "tray-padding", 0);
+  m_opts.spacing += conf.get<unsigned int>(bs, "tray-padding", 0);
 
   // Add user-defiend offset
   auto offset_x_def = conf.get(bs, "tray-offset-x", ""s);
@@ -359,8 +359,8 @@ void tray_manager::reconfigure_window() {
   if (width > 0) {
     m_log.trace("tray: New window values, width=%d, x=%d", width, x);
 
-    uint32_t mask = 0;
-    uint32_t values[7];
+    unsigned int mask = 0;
+    unsigned int values[7];
     xcb_params_configure_window_t params{};
 
     XCB_AUX_ADD_PARAM(&mask, &params, width, width);
@@ -379,7 +379,7 @@ void tray_manager::reconfigure_window() {
 void tray_manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
 
-  uint32_t x = m_opts.spacing;
+  int x = m_opts.spacing;
 
   for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
     auto client = *it;
@@ -447,8 +447,8 @@ void tray_manager::reconfigure_bg(bool realloc) {
   }
 
   if (realloc) {
-    vector<uint8_t> image_data;
-    uint8_t image_depth;
+    vector<unsigned char> image_data;
+    unsigned char image_depth;
 
     try {
       auto image_reply =
@@ -560,7 +560,7 @@ void tray_manager::create_window() {
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
 
-  const uint32_t shadow{0};
+  const unsigned int shadow{0};
   m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
 }
 
@@ -610,8 +610,8 @@ void tray_manager::restack_window() {
   try {
     m_log.trace("tray: Restacking tray window");
 
-    uint32_t mask = 0;
-    uint32_t values[7];
+    unsigned int mask = 0;
+    unsigned int values[7];
     xcb_params_configure_window_t params{};
 
     XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.sibling);
@@ -629,8 +629,8 @@ void tray_manager::restack_window() {
  * Set window WM hints
  */
 void tray_manager::set_wm_hints() {
-  const uint32_t visual{m_connection.screen()->root_visual};
-  const uint32_t orientation{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
+  const unsigned int visual{m_connection.screen()->root_visual};
+  const unsigned int orientation{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
 
   m_log.trace("tray: Set window WM_NAME / WM_CLASS", m_connection.id(m_tray));
   xcb_icccm_set_wm_name(m_connection, m_tray, XCB_ATOM_STRING, 8, 19, TRAY_WM_NAME);
@@ -667,7 +667,7 @@ void tray_manager::set_tray_colors() {
   auto g = color_util::green_channel(m_opts.background);
   auto b = color_util::blue_channel(m_opts.background);
 
-  const uint32_t colors[12] = {
+  const unsigned int colors[12] = {
       r, g, b,  // normal
       r, g, b,  // error
       r, g, b,  // warning
@@ -741,8 +741,8 @@ void tray_manager::notify_clients_delayed() {
 void tray_manager::track_selection_owner(xcb_window_t owner) {
   if (owner != XCB_NONE) {
     m_log.trace("tray: Listen for events on the new selection window");
-    const uint32_t mask{XCB_CW_EVENT_MASK};
-    const uint32_t values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    const unsigned int mask{XCB_CW_EVENT_MASK};
+    const unsigned int values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
     m_connection.change_window_attributes(owner, mask, values);
   }
 }
@@ -768,8 +768,8 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   }
 
   try {
-    const uint32_t mask{XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK};
-    const uint32_t values[]{
+    const unsigned int mask{XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK};
+    const unsigned int values[]{
         XCB_BACK_PIXMAP_PARENT_RELATIVE, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
     m_log.trace("tray: Update client window");
@@ -801,7 +801,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int16_t tray_manager::calculate_x(uint16_t width) const {
+int tray_manager::calculate_x(unsigned int width) const {
   auto x = m_opts.orig_x;
   if (m_opts.align == alignment::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
@@ -814,15 +814,15 @@ int16_t tray_manager::calculate_x(uint16_t width) const {
 /**
  * Calculate y position of tray window
  */
-int16_t tray_manager::calculate_y() const {
+int tray_manager::calculate_y() const {
   return m_opts.orig_y;
 }
 
 /**
  * Calculate width of tray window
  */
-uint16_t tray_manager::calculate_w() const {
-  uint16_t width = m_opts.spacing;
+unsigned int tray_manager::calculate_w() const {
+  unsigned int width = m_opts.spacing;
   size_t count{0};
   for (auto&& client : m_clients) {
     if (client->mapped()) {
@@ -836,14 +836,14 @@ uint16_t tray_manager::calculate_w() const {
 /**
  * Calculate height of tray window
  */
-uint16_t tray_manager::calculate_h() const {
+unsigned int tray_manager::calculate_h() const {
   return m_opts.height_fill;
 }
 
 /**
  * Calculate x position of client window
  */
-int16_t tray_manager::calculate_client_x(const xcb_window_t& win) {
+int tray_manager::calculate_client_x(const xcb_window_t& win) {
   for (size_t i = 0; i < m_clients.size(); i++) {
     if (m_clients[i]->match(win)) {
       return m_opts.spacing + m_opts.width * i;
@@ -855,7 +855,7 @@ int16_t tray_manager::calculate_client_x(const xcb_window_t& win) {
 /**
  * Calculate y position of client window
  */
-int16_t tray_manager::calculate_client_y() {
+int tray_manager::calculate_client_y() {
   return (m_opts.height_fill - m_opts.height) / 2;
 }
 

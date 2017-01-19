@@ -18,7 +18,7 @@ namespace modules {
    */
   active_window::active_window(xcb_connection_t* conn, xcb_window_t win) : m_connection(conn), m_window(win) {
     if (m_window != XCB_NONE) {
-      const uint32_t mask{XCB_EVENT_MASK_PROPERTY_CHANGE};
+      const unsigned int mask{XCB_EVENT_MASK_PROPERTY_CHANGE};
       xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
     }
   }
@@ -28,7 +28,7 @@ namespace modules {
    */
   active_window::~active_window() {
     if (m_window != XCB_NONE) {
-      const uint32_t mask{XCB_EVENT_MASK_NO_EVENT};
+      const unsigned int mask{XCB_EVENT_MASK_NO_EVENT};
       xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
     }
   }

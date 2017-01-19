@@ -17,7 +17,7 @@
 
 POLYBAR_NS
 
-enum class loglevel : uint8_t {
+enum class loglevel {
   NONE = 0,
   ERROR,
   WARNING,
