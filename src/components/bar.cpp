@@ -136,6 +136,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = m_conf.get(bs, "separator", ""s);
   m_opts.locale = m_conf.get(bs, "locale", ""s);
+  m_opts.radius = m_conf.get(bs, "radius", m_opts.radius);
 
   try {
     auto padding = m_conf.get<decltype(m_opts.padding.left)>(bs, "module-padding");

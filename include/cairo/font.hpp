@@ -63,24 +63,22 @@ namespace cairo {
   class font {
    public:
     explicit font(cairo_t* cairo, double offset) : m_cairo(cairo), m_offset(offset) {}
-    virtual ~font() {};
+    virtual ~font(){};
 
     virtual string name() const = 0;
     virtual string file() const = 0;
     virtual double offset() const = 0;
     virtual double size() const = 0;
 
-    virtual void use(cairo_t* c) {
-      cairo_set_font_face(c, cairo_font_face_reference(m_font_face));
+    virtual cairo_font_extents_t extents() = 0;
+
+    virtual void use() {
+      cairo_set_font_face(m_cairo, cairo_font_face_reference(m_font_face));
     }
 
     virtual size_t match(unicode_charlist& charlist) = 0;
-    virtual size_t render(const string& text) = 0;
+    virtual size_t render(const string& text, double x = 0.0, double y = 0.0, bool reverse = false) = 0;
     virtual void textwidth(const string& text, cairo_text_extents_t* extents) = 0;
-
-    cairo_font_extents_t extents() const {
-      return m_extents;
-    }
 
    protected:
     cairo_t* m_cairo;
@@ -111,7 +109,7 @@ namespace cairo {
         throw application_error(sstream() << "cairo_scaled_font_create(): " << cairo_status_to_string(status));
       }
 
-      auto lock = make_unique<details::ft_face_lock>(cairo_scaled_font_reference(m_scaled));
+      auto lock = make_unique<details::ft_face_lock>(m_scaled);
       auto face = static_cast<FT_Face>(*lock);
 
       if (FT_Select_Charmap(face, FT_ENCODING_UNICODE) == FT_Err_Ok) {
@@ -121,6 +119,8 @@ namespace cairo {
       } else if (FT_Select_Charmap(face, FT_ENCODING_SJIS) == FT_Err_Ok) {
         return;
       }
+
+      lock.reset();
     }
 
     ~font_fc() override {
@@ -130,6 +130,11 @@ namespace cairo {
       if (m_pattern != nullptr) {
         FcPatternDestroy(m_pattern);
       }
+    }
+
+    cairo_font_extents_t extents() override {
+      cairo_scaled_font_extents(m_scaled, &m_extents);
+      return m_extents;
     }
 
     string name() const override {
@@ -157,12 +162,12 @@ namespace cairo {
       return px;
     }
 
-    void use(cairo_t* c) override {
-      cairo_set_scaled_font(c, cairo_scaled_font_reference(m_scaled));
+    void use() override {
+      cairo_set_scaled_font(m_cairo, m_scaled);
     }
 
     size_t match(unicode_charlist& charlist) override {
-      auto lock = make_unique<details::ft_face_lock>(cairo_scaled_font_reference(m_scaled));
+      auto lock = make_unique<details::ft_face_lock>(m_scaled);
       auto face = static_cast<FT_Face>(*lock);
       size_t available_chars = 0;
       for (auto&& c : charlist) {
@@ -176,20 +181,22 @@ namespace cairo {
       return available_chars;
     }
 
-    size_t render(const string& text) override {
-      double x, y;
-      cairo_get_current_point(m_cairo, &x, &y);
-
+    size_t render(const string& text, double x = 0.0, double y = 0.0, bool reverse = false) override {
       cairo_glyph_t* glyphs{nullptr};
       cairo_text_cluster_t* clusters{nullptr};
       cairo_text_cluster_flags_t cf{};
       int nglyphs = 0, nclusters = 0;
+
+      if (reverse) {
+        cf = CAIRO_TEXT_CLUSTER_FLAG_BACKWARD;
+      }
+
       string utf8 = string(text);
-      auto status = cairo_scaled_font_text_to_glyphs(cairo_scaled_font_reference(m_scaled), x, y, utf8.c_str(),
-          utf8.size(), &glyphs, &nglyphs, &clusters, &nclusters, &cf);
+      auto status = cairo_scaled_font_text_to_glyphs(
+          m_scaled, x, y, utf8.c_str(), utf8.size(), &glyphs, &nglyphs, &clusters, &nclusters, &cf);
 
       if (status != CAIRO_STATUS_SUCCESS) {
-        throw application_error(sstream() << "cairo_scaled_font_status()" << cairo_status_to_string(status));
+        throw application_error(sstream() << "cairo_scaled_font_text_to_glyphs()" << cairo_status_to_string(status));
       }
 
       size_t bytes = 0;
@@ -201,18 +208,36 @@ namespace cairo {
         }
       }
 
-      if (bytes) {
+      if (bytes && bytes < text.size()) {
+        cairo_glyph_free(glyphs);
+        cairo_text_cluster_free(clusters);
+
         utf8 = text.substr(0, bytes);
-        cairo_scaled_font_text_to_glyphs(
+        auto status = cairo_scaled_font_text_to_glyphs(
             m_scaled, x, y, utf8.c_str(), utf8.size(), &glyphs, &nglyphs, &clusters, &nclusters, &cf);
-        cairo_show_text_glyphs(m_cairo, utf8.c_str(), utf8.size(), glyphs, nglyphs, clusters, nclusters, cf);
+
+        if (status != CAIRO_STATUS_SUCCESS) {
+          throw application_error(sstream() << "cairo_scaled_font_text_to_glyphs()" << cairo_status_to_string(status));
+        }
       }
+
+      if (bytes) {
+        cairo_text_extents_t extents{};
+        cairo_scaled_font_glyph_extents(m_scaled, glyphs, nglyphs, &extents);
+        cairo_show_text_glyphs(m_cairo, utf8.c_str(), utf8.size(), glyphs, nglyphs, clusters, nclusters, cf);
+        cairo_rel_move_to(m_cairo, extents.x_advance, 0.0);
+        // cairo_glyph_path(m_cairo, glyphs, nglyphs);
+        cairo_fill_preserve(m_cairo);
+      }
+
+      cairo_glyph_free(glyphs);
+      cairo_text_cluster_free(clusters);
 
       return bytes;
     }
 
     void textwidth(const string& text, cairo_text_extents_t* extents) override {
-      cairo_scaled_font_text_extents(cairo_scaled_font_reference(m_scaled), text.c_str(), extents);
+      cairo_scaled_font_text_extents(m_scaled, text.c_str(), extents);
     }
 
    protected:

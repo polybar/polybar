@@ -256,8 +256,8 @@ void renderer::flush() {
 /**
  * Reserve space at given edge
  */
-void renderer::reserve_space(edge side, unsigned short int w) {
-  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<unsigned char>(side), w);
+void renderer::reserve_space(edge side, unsigned int w) {
+  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<int>(side), w);
 
   m_cleararea.side = side;
   m_cleararea.size = w;
@@ -295,6 +295,16 @@ void renderer::fill_background() {
   m_context->save();
   *m_context << m_compositing_background;
 
+  if (m_bar.radius != 0.0) {
+    // clang-format off
+    *m_context << cairo::rounded_corners{
+        static_cast<double>(m_rect.x),
+        static_cast<double>(m_rect.y),
+        static_cast<double>(m_rect.width),
+        static_cast<double>(m_rect.height), m_bar.radius};
+    // clang-format on
+  }
+
   if (!m_bar.background_steps.empty()) {
     m_log.trace_x("renderer: gradient background (steps=%lu)", m_bar.background_steps.size());
     *m_context << cairo::linear_gradient{0.0, 0.0 + m_rect.y, 0.0, 0.0 + m_rect.height, m_bar.background_steps};
@@ -303,7 +313,12 @@ void renderer::fill_background() {
     *m_context << m_bar.background;
   }
 
-  m_context->paint();
+  if (m_bar.radius != 0.0) {
+    m_context->fill();
+  } else {
+    m_context->paint();
+  }
+
   m_context->restore();
 }
 
@@ -311,8 +326,8 @@ void renderer::fill_background() {
  * Fill overline color
  */
 void renderer::fill_overline(double x, double w) {
-  if (m_bar.overline.size && m_attributes.test(static_cast<unsigned char>(attribute::OVERLINE))) {
-    m_log.trace_x("renderer: overline(x=%i, w=%i)", x, w);
+  if (m_bar.overline.size && m_attributes.test(static_cast<int>(attribute::OVERLINE))) {
+    m_log.trace_x("renderer: overline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_compositing_overline;
     *m_context << m_color_overline;
@@ -326,8 +341,8 @@ void renderer::fill_overline(double x, double w) {
  * Fill underline color
  */
 void renderer::fill_underline(double x, double w) {
-  if (m_bar.underline.size && m_attributes.test(static_cast<unsigned char>(attribute::UNDERLINE))) {
-    m_log.trace_x("renderer: underline(x=%i, w=%i)", x, w);
+  if (m_bar.underline.size && m_attributes.test(static_cast<int>(attribute::UNDERLINE))) {
+    m_log.trace_x("renderer: underline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_compositing_underline;
     *m_context << m_color_underline;
@@ -382,21 +397,15 @@ void renderer::fill_borders() {
 void renderer::draw_text(const string& contents) {
   m_log.trace_x("renderer: text(%s)", contents.c_str());
 
-  cairo_text_extents_t extents;
-  cairo_text_extents(*m_context, contents.c_str(), &extents);
-
-  if (!extents.width) {
-    return;
-  }
-
   cairo::abspos origin{static_cast<double>(m_rect.x), static_cast<double>(m_rect.y)};
+  origin.y += m_rect.height / 2.0;
 
   if (m_alignment == alignment::CENTER) {
-    origin.x += m_rect.width / 2.0 - extents.width / 2.0;
-    adjust_clickable_areas(extents.width / 2.0);
+    origin.x += m_rect.width / 2.0;
+    // adjust_clickable_areas(extents.width / 2.0);
   } else if (m_alignment == alignment::RIGHT) {
-    origin.x += m_rect.width - extents.width;
-    adjust_clickable_areas(extents.width);
+    origin.x += m_rect.width;
+    // adjust_clickable_areas(extents.width);
   } else {
     origin.x += m_x;
   }
@@ -410,24 +419,16 @@ void renderer::draw_text(const string& contents) {
   //   m_context->restore();
   // }
 
-  origin.y += m_rect.height / 2.0;
-
   m_context->save();
   *m_context << origin;
   *m_context << m_compositing_foreground;
   *m_context << m_color_foreground;
-  *m_context << cairo::textblock{contents, m_fontindex};
+  *m_context << cairo::textblock{m_alignment, contents, m_fontindex};
   m_context->position(&m_x, &m_y);
   m_context->restore();
 
-  // if (m_alignment == alignment::CENTER) {
-  //   m_x += extents.width / 2.0;
-  // } else {
-  //   m_x += extents.width;
-  // }
-
-  // fill_underline(origin.x, m_x - origin.x);
-  // fill_overline(origin.x, m_x - origin.x);
+  fill_underline(origin.x, m_x - origin.x);
+  fill_overline(origin.x, m_x - origin.x);
 }
 
 /**
@@ -450,7 +451,7 @@ void renderer::highlight_clickable_areas() {
   map<alignment, int> hint_num{};
   for (auto&& action : m_actions) {
     if (!action.active) {
-      unsigned char n = hint_num.find(action.align)->second++;
+      int n = hint_num.find(action.align)->second++;
       double x = action.start_x + n * DEBUG_HINTS_OFFSET_X;
       double y = m_bar.pos.y + m_rect.y + n * DEBUG_HINTS_OFFSET_Y;
       double w = action.width();
@@ -513,27 +514,28 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
 }
 
 bool renderer::on(const signals::parser::offset_pixel& evt) {
-  m_x += evt.cast();
+  (void)evt;
+  // m_x += evt.cast();
   return true;
 }
 
 bool renderer::on(const signals::parser::attribute_set& evt) {
-  m_attributes.set(static_cast<unsigned char>(evt.cast()), true);
+  m_attributes.set(static_cast<int>(evt.cast()), true);
   return true;
 }
 
 bool renderer::on(const signals::parser::attribute_unset& evt) {
-  m_attributes.set(static_cast<unsigned char>(evt.cast()), false);
+  m_attributes.set(static_cast<int>(evt.cast()), false);
   return true;
 }
 
 bool renderer::on(const signals::parser::attribute_toggle& evt) {
-  m_attributes.flip(static_cast<unsigned char>(evt.cast()));
+  m_attributes.flip(static_cast<int>(evt.cast()));
   return true;
 }
 
 bool renderer::on(const signals::parser::action_begin& evt) {
-  (void) evt;
+  (void)evt;
   // auto a = evt.cast();
   // action_block action{};
   // action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
@@ -546,9 +548,9 @@ bool renderer::on(const signals::parser::action_begin& evt) {
 }
 
 bool renderer::on(const signals::parser::action_end& evt) {
-  (void) evt;
+  (void)evt;
   // auto btn = evt.cast();
-  // short int clickable_width = 0;
+  // int clickable_width = 0;
   // for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
   //   if (action->active && action->align == m_alignment && action->button == btn) {
   //     switch (action->align) {

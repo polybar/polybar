@@ -11,6 +11,7 @@
 #include "cairo/utils.hpp"
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/color.hpp"
 #include "utils/string.hpp"
@@ -63,6 +64,9 @@ namespace cairo {
     }
 
     context& operator<<(const abspos& p) {
+      if (p.clear) {
+        cairo_new_path(m_c);
+      }
       cairo_move_to(m_c, p.x, p.y);
       return *this;
     }
@@ -117,8 +121,24 @@ namespace cairo {
       return *this;
     }
 
+    context& operator<<(const rounded_corners& c) {
+      double radius = c.radius / 1.0;
+      double d = M_PI / 180.0;
+      cairo_new_sub_path(m_c);
+      cairo_arc(m_c, c.x + c.w - radius, c.y + radius, radius, -90 * d, 0 * d);
+      cairo_arc(m_c, c.x + c.w - radius, c.y + c.h - radius, radius, 0 * d, 90 * d);
+      cairo_arc(m_c, c.x + radius, c.y + c.h - radius, radius, 90 * d, 180 * d);
+      cairo_arc(m_c, c.x + radius, c.y + radius, radius, 180 * d, 270 * d);
+      cairo_close_path(m_c);
+      return *this;
+    }
+
     context& operator<<(const textblock& t) {
-      // Sort the fontlist so that the preferred font is tested first
+      double x, y;
+      position(&x, &y);
+
+      // Sort the fontlist so that the
+      // preferred font gets prioritized
       auto& fns = m_fonts;
       std::sort(fns.begin(), fns.end(), [&](const unique_ptr<font>& a, const unique_ptr<font>&) {
         if (t.fontindex > 0 && std::distance(fns.begin(), std::find(fns.begin(), fns.end(), a)) == t.fontindex - 1) {
@@ -147,17 +167,55 @@ namespace cairo {
             end++;
           }
 
-          f->use(m_c);
+          // encapsulate the vert. centering
+          save();
+          {
+            *this << abspos{x, y};
 
-          cairo_text_extents_t extents;
-          f->textwidth(utf8, &extents);
+            f->use();
 
-          save(); // encapsulate the y pos update
-          *this << relpos{0.0, extents.height / 2.0 - f->extents().descent + f->offset()};
-          f->render(subset);
+            cairo_text_extents_t extents;
+            f->textwidth(utf8, &extents);
+            double dx{0.0}, dy{0.0};
+
+            if (t.align == alignment::CENTER) {
+              dx -= extents.x_advance / 2.0;
+
+              save();
+              {
+                cairo_rectangle(m_c, x, y, extents.x_advance / 2.0, extents.height);
+                auto pattern = cairo_pattern_create_rgba(1.0, 0.0, 0.0, 0.0);
+                cairo_set_source(m_c, pattern);
+                cairo_translate(m_c, dx, 0.0);
+                cairo_set_operator(m_c, CAIRO_OPERATOR_DEST);
+                cairo_fill(m_c);
+                cairo_pattern_destroy(pattern);
+              }
+              restore();
+            } else if (t.align == alignment::RIGHT) {
+              dx -= extents.x_advance;
+
+              save();
+              {
+                cairo_rectangle(m_c, x, y, extents.x_advance, extents.height);
+                auto pattern = cairo_pattern_create_rgba(0.0, 0.0, 0.0, 0.0);
+                cairo_set_source(m_c, pattern);
+                cairo_set_operator(m_c, CAIRO_OPERATOR_DEST);
+                cairo_translate(m_c, dx, 0.0);
+                cairo_fill(m_c);
+                cairo_pattern_destroy(pattern);
+              }
+              restore();
+            }
+
+            auto fontextents = f->extents();
+            f->render(subset, x + dx,
+                y + dy - (extents.height / 2.0 + extents.y_bearing + fontextents.descent) + f->offset());
+            position(&x, nullptr);
+            x += dx;
+            y += dy;
+          }
           restore();
-
-          *this << relpos{extents.width, 0.0};
 
           chars.erase(chars.begin(), end);
           break;
@@ -179,6 +237,8 @@ namespace cairo {
         chars.erase(chars.begin(), ++chars.begin());
       }
 
+      *this << abspos{x, y};
+
       return *this;
     }
 
@@ -197,11 +257,11 @@ namespace cairo {
     }
 
     context& restore(bool restore_point = true) {
+      cairo_restore(m_c);
       if (restore_point) {
         *this << abspos{m_points.front().first, m_points.front().first};
         m_points.pop_front();
       }
-      cairo_restore(m_c);
       return *this;
     }
 
@@ -215,8 +275,12 @@ namespace cairo {
       return *this;
     }
 
-    context& fill() {
-      cairo_fill(m_c);
+    context& fill(bool preserve = false) {
+      if (preserve) {
+        cairo_fill_preserve(m_c);
+      } else {
+        cairo_fill(m_c);
+      }
       return *this;
     }
 
@@ -231,10 +295,11 @@ namespace cairo {
       return *this;
     }
 
-    context& position(double* x, double* y) {
-      *x = 0.0;
-      *y = 0.0;
+    context& position(double* x, double* y = nullptr) {
       if (cairo_has_current_point(m_c)) {
+        double x_, y_;
+        x = x != nullptr ? x : &x_;
+        y = y != nullptr ? y : &y_;
         cairo_get_current_point(m_c, x, y);
       }
       return *this;

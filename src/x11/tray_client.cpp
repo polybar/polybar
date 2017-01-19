@@ -101,7 +101,7 @@ void tray_client::reconfigure(int x, int y) const {
 /**
  * Respond to client resize requests
  */
-void tray_client::configure_notify(short int x, short int y) const {
+void tray_client::configure_notify(int x, int y) const {
   auto notify = memory_util::make_malloc_ptr<xcb_configure_notify_event_t, 32_z>();
   notify->response_type = XCB_CONFIGURE_NOTIFY;
   notify->event = m_window;

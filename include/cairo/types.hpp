@@ -4,10 +4,13 @@
 
 POLYBAR_NS
 
+enum class alignment;
+
 namespace cairo {
   struct abspos {
     double x;
     double y;
+    bool clear{true};
   };
   struct relpos {
     double x;
@@ -37,9 +40,18 @@ namespace cairo {
     vector<unsigned int> steps;
   };
 
+  struct rounded_corners {
+    double x;
+    double y;
+    double w;
+    double h;
+    double radius;
+  };
+
   struct textblock {
+    alignment align;
     string contents;
-    unsigned char fontindex;
+    int fontindex;
   };
 }
 

@@ -145,6 +145,7 @@ struct bar_settings {
 
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
+  double radius{0.0};
   int spacing{0};
   string separator{};
 
