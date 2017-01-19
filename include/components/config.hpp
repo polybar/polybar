@@ -23,7 +23,7 @@ class config {
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, string&& path = "", string&& bar = "");
+  explicit config(const logger& logger, unique_ptr<xresource_manager>&& xrm, string&& path = "", string&& bar = "");
 
   string filepath() const;
   string section() const;
@@ -282,14 +282,13 @@ class config {
    */
   template <typename T>
   T dereference_xrdb(string var, const T& fallback) const {
-    const auto& xrm = xresource_manager::make();
     size_t pos;
 
     if ((pos = var.find(":")) != string::npos) {
-      return convert<T>(xrm->get_string(var.substr(0, pos), var.substr(pos + 1)));
+      return convert<T>(m_xrm->get_string(var.substr(0, pos), var.substr(pos + 1)));
     }
 
-    string str{xrm->get_string(var, "")};
+    string str{m_xrm->get_string(var, "")};
     return str.empty() ? fallback : convert<T>(move(str));
   }
 
@@ -310,8 +309,8 @@ class config {
 
  private:
   static constexpr const char* KEY_INHERIT{"inherit"};
-
   const logger& m_log;
+  unique_ptr<xresource_manager> m_xrm;
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};

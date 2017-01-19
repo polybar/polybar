@@ -21,6 +21,7 @@
 #include "x11/winspec.hpp"
 #include "x11/wm.hpp"
 #include "x11/xembed.hpp"
+#include "x11/xresources.hpp"
 
 // ====================================================================================================
 //
@@ -62,7 +63,7 @@ tray_manager::~tray_manager() {
 }
 
 void tray_manager::setup(const bar_settings& bar_opts) {
-  auto conf = config::make();
+  auto& conf = config::make();
   auto bs = conf.section();
   string position;
 
