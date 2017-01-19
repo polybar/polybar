@@ -22,7 +22,7 @@ config::make_type config::make(string path, string bar) {
 /**
  * Construct config object
  */
-config::config(const logger& logger, unique_ptr<xresource_manager>&& xrm, string&& path, string&& bar)
+config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
     : m_log(logger)
     , m_xrm(forward<decltype(xrm)>(xrm))
     , m_file(forward<string>(path))

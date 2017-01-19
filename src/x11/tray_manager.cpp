@@ -63,7 +63,7 @@ tray_manager::~tray_manager() {
 }
 
 void tray_manager::setup(const bar_settings& bar_opts) {
-  auto& conf = config::make();
+  const config& conf = config::make();
   auto bs = conf.section();
   string position;
 
