@@ -23,6 +23,8 @@ xresource_manager::xresource_manager(Display* dsp) {
 
   if ((m_manager = XResourceManagerString(dsp)) != nullptr) {
     m_db = XrmGetStringDatabase(m_manager);
+  } else {
+    m_db = nullptr;
   }
 }
 
