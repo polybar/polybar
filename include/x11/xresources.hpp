@@ -9,7 +9,7 @@ POLYBAR_NS
 
 class xresource_manager {
  public:
-  using make_type = unique_ptr<xresource_manager>;
+  using make_type = const xresource_manager&;
   static make_type make();
 
   explicit xresource_manager(Display*);

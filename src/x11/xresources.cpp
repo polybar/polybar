@@ -12,7 +12,7 @@ POLYBAR_NS
  * Create instance
  */
 xresource_manager::make_type xresource_manager::make() {
-  return factory_util::unique<xresource_manager>(static_cast<Display*>(connection::make()));
+  return *factory_util::singleton<xresource_manager>(static_cast<Display*>(connection::make()));
 }
 
 /**
@@ -30,7 +30,7 @@ xresource_manager::xresource_manager(Display* dsp) {
  * Deconstruct instance
  */
 xresource_manager::~xresource_manager() {
-  if (m_db != nullptr) {
+  if (m_manager != nullptr) {
     XrmDestroyDatabase(m_db);
   }
 }
@@ -72,7 +72,7 @@ int xresource_manager::get_int(string name, int fallback) const {
  * Query the database for given key
  */
 string xresource_manager::load_value(const string& key, const string& res_type, size_t n) const {
-  if (m_manager != nullptr && m_db != nullptr) {
+  if (m_manager != nullptr) {
     char* type = nullptr;
     XrmValue ret{};
 
