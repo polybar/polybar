@@ -7,7 +7,7 @@ A fast and easy-to-use tool for creating status bars.
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
-Heres a few screenshots showing you what it can look like:
+Here are a few screenshots showing you what it can look like:
 
 [![sample screenshot](http://i.imgur.com/xvlw9iHt.png)](http://i.imgur.com/xvlw9iH.png)
 [![sample screenshot](http://i.imgur.com/cYQOuRrt.png)](http://i.imgur.com/cYQOuRr.png)
@@ -32,7 +32,7 @@ Make sure you include steps on how to reproduce it. There's also an irc channel 
 ## Introduction
 
 The main purpose of **Polybar** is to help users create awesome status bars.
-It has built-in functionality to display information about the most commoly used services.
+It has built-in functionality to display information about the most commonly used services.
 Some of the batteries included so far:
 
 - Systray icons
