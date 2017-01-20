@@ -72,6 +72,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - libXft
 - python2
 - xcb-proto
+- xcb-util-image
 - xcb-util-wm
 - xcb-util-xrm
 

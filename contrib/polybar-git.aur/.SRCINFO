@@ -11,6 +11,7 @@ pkgbase = polybar-git
 	makedepends = python2
 	makedepends = pkg-config
 	depends = libxft
+	depends = xcb-util-image
 	depends = xcb-util-wm
 	depends = xcb-util-xrm
 	optdepends = alsa-lib: volume module support

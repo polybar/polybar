@@ -26,6 +26,7 @@ addons:
       - libmpdclient-dev
       - libxcb-ewmh-dev
       - libxcb-icccm4-dev
+      - libxcb-image0-dev
       - libxcb-randr0-dev
       - libxcb-util0-dev
       - libxcb-xkb-dev
