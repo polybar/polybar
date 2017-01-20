@@ -43,7 +43,7 @@ config::config(const logger& logger, string&& path, string&& bar)
     throw application_error("Undefined bar: " + m_barname);
   }
 
-  m_log.trace("config: Loaded %s", m_file);
+  m_log.info("Loaded %s", m_file);
   m_log.trace("config: Current bar section: [%s]", section());
 }
 

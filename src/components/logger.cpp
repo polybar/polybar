@@ -26,7 +26,7 @@ size_t logger::convert(const std::thread::id arg) const {
  * Create instance
  */
 logger::make_type logger::make(loglevel level) {
-  return static_cast<logger::make_type>(*factory_util::singleton<std::remove_reference_t<logger::make_type>>(level));
+  return *factory_util::singleton<std::remove_reference_t<logger::make_type>>(level);
 }
 
 /**

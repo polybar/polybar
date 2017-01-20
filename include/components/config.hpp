@@ -245,7 +245,7 @@ class config {
       T result{convert<T>(string{string_value})};
       return dereference<T>(string(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
-      throw value_error("Unexisting reference defined [" + section + "." + key + "]");
+      throw value_error("Unexisting reference defined at [" + section + "." + key + "]");
     }
   }
 
@@ -266,16 +266,14 @@ class config {
 
     if (env_util::has(var.c_str())) {
       string env_value{env_util::get(var.c_str())};
-      m_log.info("Found matching environment variable ${" + var + "} with the value \"" + env_value + "\"");
+      m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
       return convert<T>(move(env_value));
     } else if (!env_default.empty()) {
-      m_log.info("The environment variable ${" + var + "} is undefined or empty, using defined fallback value \"" +
-                 env_default + "\"");
+      m_log.info("Environment var ${%s} is undefined, using defined fallback value \"%s\"", var, env_default);
+      return convert<T>(move(env_default));
     } else {
-      m_log.info("The environment variable ${" + var + "} is undefined or empty");
+      throw value_error(sstream() << "Environment var ${" << var << "} does not exist (no fallback set)");
     }
-
-    return convert<T>(move(env_default));
   }
 
   /**
@@ -320,6 +318,7 @@ class config {
   /**
    * Dereference file reference by reading its contents
    *  ${file:/absolute/file/path}
+   *  ${file:/absolute/file/path:fallback value}
    */
   template <typename T>
   T dereference_file(string var) const {
@@ -330,7 +329,15 @@ class config {
       var.erase(pos);
     }
 
-    return fallback;
+    if (file_util::exists(var)) {
+      m_log.info("File reference \"%s\" found", var);
+      return convert<T>(string_util::trim(file_util::contents(var), '\n'));
+    } else if (!fallback.empty()) {
+      m_log.warn("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
+      return convert<T>(move(fallback));
+    } else {
+      throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");
+    }
   }
 
  private:
