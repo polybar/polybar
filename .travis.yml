@@ -34,6 +34,7 @@ addons:
       - libxcb1-dev
       - python-xcbgen
       - xcb-proto
+      - xutils-dev
 
 env:
   global:
@@ -50,9 +51,11 @@ cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/cmake
     - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
+    - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
 
 install:
   - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
+  - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_cmake.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_libcpp.sh
 
