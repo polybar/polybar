@@ -64,6 +64,11 @@ if(WITH_XKB)
 else()
   list(REMOVE_ITEM SOURCES x11/extensions/xkb.cpp modules/xkeyboard.cpp)
 endif()
+if(WITH_XRM)
+  pkg_check_modules(XCB_UTIL_XRM REQUIRED xcb-xrm)
+  set(APP_LIBRARIES ${APP_LIBRARIES} ${XCB_UTIL_XRM_LIBRARIES})
+  set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${XCB_UTIL_XRM_INCLUDE_DIRS})
+endif()
 
 string(REPLACE ";" ", " XPP_EXTENSION_LIST "${XPP_EXTENSION_LIST}")
 

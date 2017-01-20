@@ -75,3 +75,5 @@ colored_option(STATUS " XSYNC support        ${WITH_XSYNC}" WITH_XSYNC "32;1" "3
 colored_option(STATUS " XCOMPOSITE support   ${WITH_XCOMPOSITE}" WITH_XCOMPOSITE "32;1" "37;2")
 colored_option(STATUS " XKB support          ${WITH_XKB}" WITH_XKB "32;1" "37;2")
 message(STATUS "--------------------------")
+colored_option(STATUS " xcb-util-xrm         ${WITH_XCB_UTIL_XRM}" WITH_XCB_UTIL_XRM "32;1" "37;2")
+message(STATUS "--------------------------")

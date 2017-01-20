@@ -5,10 +5,13 @@
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
+#include "settings.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
+#ifdef WITH_XRM
 #include "x11/xresources.hpp"
+#endif
 
 POLYBAR_NS
 
@@ -23,7 +26,7 @@ class config {
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, const xresource_manager& xrm, string&& path = "", string&& bar = "");
+  explicit config(const logger& logger, string&& path = "", string&& bar = "");
 
   string filepath() const;
   string section() const;
@@ -209,11 +212,11 @@ class config {
     size_t pos;
 
     if (path.compare(0, 4, "env:") == 0) {
-      return dereference_env<T>(path.substr(4), fallback);
+      return dereference_env<T>(path.substr(4));
     } else if (path.compare(0, 5, "xrdb:") == 0) {
-      return dereference_xrdb<T>(path.substr(5), fallback);
+      return dereference_xrdb<T>(path.substr(5));
     } else if (path.compare(0, 5, "file:") == 0) {
-      return dereference_file<T>(path.substr(5), fallback);
+      return dereference_file<T>(path.substr(5));
     } else if ((pos = path.find(".")) != string::npos) {
       return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
@@ -252,9 +255,9 @@ class config {
    *  ${env:key:fallback value}
    */
   template <typename T>
-  T dereference_env(string var, const T&) const {
+  T dereference_env(string var) const {
     size_t pos;
-    string env_default{""};
+    string env_default;
 
     if ((pos = var.find(":")) != string::npos) {
       env_default = var.substr(pos + 1);
@@ -281,15 +284,37 @@ class config {
    *  ${xrdb:key:fallback value}
    */
   template <typename T>
-  T dereference_xrdb(string var, const T& fallback) const {
+  T dereference_xrdb(string var) const {
     size_t pos;
-
+#ifndef WITH_XRM
+    m_log.warn("No built-in support for xrdb (requires xcb-util-xrm). Using default value for `%s`", var);
     if ((pos = var.find(":")) != string::npos) {
-      return convert<T>(m_xrm.get_string(var.substr(0, pos), var.substr(pos + 1)));
+      return var.substr(pos + 1);
+    }
+    return fallback;
+#else
+    if (!m_xrm) {
+      throw application_error("xrm is not initialized");
     }
 
-    string str{m_xrm.get_string(var, "")};
-    return str.empty() ? fallback : convert<T>(move(str));
+    string fallback;
+    if ((pos = var.find(":")) != string::npos) {
+      fallback = var.substr(pos + 1);
+      var.erase(pos);
+    }
+
+    try {
+      auto value = m_xrm->require<string>(var.c_str());
+      m_log.info("Found matching X resource \"%s\" (value=%s)", var, value);
+      return convert<T>(move(value));
+    } catch (const xresource_error& err) {
+      if (!fallback.empty()) {
+        m_log.warn("%s, using defined fallback value \"%s\"", err.what(), fallback);
+        return convert<T>(move(fallback));
+      }
+      throw value_error(sstream() << err.what() << " (no fallback set)");
+    }
+#endif
   }
 
   /**
@@ -297,11 +322,12 @@ class config {
    *  ${file:/absolute/file/path}
    */
   template <typename T>
-  T dereference_file(string var, const T& fallback) const {
-    string filename{move(var)};
-
-    if (file_util::exists(filename)) {
-      return convert<T>(string_util::trim(file_util::contents(filename), '\n'));
+  T dereference_file(string var) const {
+    size_t pos;
+    string fallback;
+    if ((pos = var.find(":")) != string::npos) {
+      fallback = var.substr(pos + 1);
+      var.erase(pos);
     }
 
     return fallback;
@@ -310,10 +336,12 @@ class config {
  private:
   static constexpr const char* KEY_INHERIT{"inherit"};
   const logger& m_log;
-  const xresource_manager& m_xrm;
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
+#ifdef WITH_XRM
+  unique_ptr<xresource_manager> m_xrm;
+#endif
 };
 
 POLYBAR_NS_END

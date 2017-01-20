@@ -25,6 +25,7 @@
 #cmakedefine01 WITH_XSYNC
 #cmakedefine01 WITH_XCOMPOSITE
 #cmakedefine01 WITH_XKB
+#cmakedefine01 WITH_XRM
 
 #if WITH_XRANDR
 #cmakedefine01 ENABLE_XRANDR_MONITORS
@@ -97,14 +98,15 @@ const auto print_build_info = [](bool extended = false) {
     (ENABLE_NETWORK ? '+' : '-'));
   if (extended) {
     printf("\n");
-    printf("X extensions: %cxrandr (%cmonitors) %cxrender %cxdamage %cxsync %cxcomposite %cxkb\n",
+    printf("X extensions: %cxrandr (%cmonitors) %cxrender %cxdamage %cxsync %cxcomposite %cxkb %cxcb-util-xrm\n",
       (WITH_XRANDR            ? '+' : '-'),
       (ENABLE_XRANDR_MONITORS ? '+' : '-'),
       (WITH_XRENDER           ? '+' : '-'),
       (WITH_XDAMAGE           ? '+' : '-'),
       (WITH_XSYNC             ? '+' : '-'),
       (WITH_XCOMPOSITE        ? '+' : '-'),
-      (WITH_XKB               ? '+' : '-'));
+      (WITH_XKB               ? '+' : '-'),
+      (WITH_XRM      ? '+' : '-'));
     printf("\n");
     printf("Build type: @CMAKE_BUILD_TYPE@\n");
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");

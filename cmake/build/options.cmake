@@ -72,6 +72,12 @@ option(WITH_XDAMAGE       "XDAMAGE support"            OFF)
 option(WITH_XSYNC         "XSYNC support"              OFF)
 option(WITH_XCOMPOSITE    "XCOMPOSITE support"         OFF)
 option(WITH_XKB           "XKB support"                ON)
+option(WITH_XRM           "xcb-xrm support"            ON)
+
+if(NOT DEFINED WITH_XRM)
+  pkg_check_modules(XRM QUIET xcb-xrm)
+  set(WITH_XRM ${XRM_FOUND} CACHE BOOL "Enable xcb-xrm support")
+endif()
 
 if(NOT DEFINED ENABLE_XRANDR_MONITORS)
   pkg_check_modules(XRANDR QUIET xrandr>=1.5.0)

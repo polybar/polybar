@@ -8,6 +8,7 @@
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/color.hpp"
+#include "x11/xresources.hpp"
 
 POLYBAR_NS
 
@@ -15,18 +16,14 @@ POLYBAR_NS
  * Create instance
  */
 config::make_type config::make(string path, string bar) {
-  return static_cast<config::make_type>(*factory_util::singleton<std::remove_reference_t<config::make_type>>(
-      logger::make(), xresource_manager::make(), move(path), move(bar)));
+  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar));
 }
 
 /**
  * Construct config object
  */
-config::config(const logger& logger, const xresource_manager& xrm, string&& path, string&& bar)
-    : m_log(logger)
-    , m_xrm(forward<decltype(xrm)>(xrm))
-    , m_file(forward<string>(path))
-    , m_barname(forward<string>(bar)) {
+config::config(const logger& logger, string&& path, string&& bar)
+    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
   if (!file_util::exists(m_file)) {
     throw application_error("Could not find config file: " + m_file);
   }
@@ -125,6 +122,14 @@ void config::parse_file() {
         value.erase(len - 1, 1).erase(0, 1);
       }
     }
+
+#ifdef WITH_XRM
+    // Initialize the xresource manage if there are any xrdb refs
+    // present in the configuration
+    if (!m_xrm && value.find("${xrdb") != string::npos) {
+      m_xrm.reset(new xresource_manager{connection::make()});
+    }
+#endif
 
     m_sections[section].emplace_hint(it, move(key), move(value));
   }
