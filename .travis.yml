@@ -30,7 +30,6 @@ addons:
       - libxcb-randr0-dev
       - libxcb-util0-dev
       - libxcb-xkb-dev
-      - libxcb-xrm-dev
       - libxcb1-dev
       - python-xcbgen
       - xcb-proto
