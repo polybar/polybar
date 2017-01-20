@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     string confpath;
 
     // Make sure a bar name is passed in
-    if (!cli->has(0)) {
+    if (!cli->has(1)) {
       cli->usage();
       return EXIT_FAILURE;
     }

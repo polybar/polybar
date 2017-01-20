@@ -86,7 +86,7 @@ namespace command_line {
    * Test if a positional argument is defined at given index
    */
   bool parser::has(size_t index) const {
-    return m_posargs.size() > index;
+    return m_posargs.size() >= std::max(1_z, index);
   }
 
   /**
@@ -103,7 +103,7 @@ namespace command_line {
    * Get the positional argument at given index
    */
   string parser::get(size_t index) const {
-    return index < m_posargs.size() ? m_posargs[index] : "";
+    return has(index)  ? m_posargs[std::max(1_z, index) - 1] : "";
   }
 
   /**
@@ -150,9 +150,9 @@ namespace command_line {
     string value;
 
     if (input_next.empty() && opt.compare(0, 2, "--") != 0) {
-      throw value_error("Undefined argument for option " + opt);
+      throw value_error("Missing argument for option " + opt);
     } else if ((pos = opt.find('=')) == string::npos && opt.compare(0, 2, "--") == 0) {
-      throw value_error("Undefined argument for option " + opt);
+      throw value_error("Missing argument for option " + opt);
     } else if (pos == string::npos && !input_next.empty()) {
       value = input_next;
     } else {
@@ -171,6 +171,7 @@ namespace command_line {
    * Parse and validate passed arguments and flags
    */
   void parser::parse(const string& input, const string& input_next) {
+    auto skipped = m_skipnext;
     if (m_skipnext) {
       m_skipnext = false;
       if (!input_next.empty()) {
@@ -191,7 +192,9 @@ namespace command_line {
       }
     }
 
-    if (input[0] != '-') {
+    if (skipped) {
+      return;
+    } else if (input[0] != '-') {
       m_posargs.emplace_back(input);
     } else {
       throw argument_error("Unrecognized option " + input);
