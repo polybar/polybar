@@ -73,7 +73,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - python2
 - xcb-proto
 - xcb-util-wm
-- xcb-util-image
+- xcb-util-xrm
 
 Optional dependencies for extended module support:
 - alsa-lib (required by `internal/volume`)
