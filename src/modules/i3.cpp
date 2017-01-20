@@ -30,6 +30,7 @@ namespace modules {
     m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
+    m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -143,7 +144,7 @@ namespace modules {
         // Trim leading and trailing whitespace
         ws_name = string_util::trim(move(ws_name), ' ');
 
-        auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON);
+        auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
         auto label = m_statelabels.find(ws_state)->second->clone();
 
         label->reset_tokens();

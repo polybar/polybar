@@ -13,7 +13,7 @@ namespace drawtypes {
    public:
     void add(string id, icon_t&& icon);
     bool has(const string& id);
-    icon_t get(const string& id, const string& fallback_id = "");
+    icon_t get(const string& id, const string& fallback_id = "", bool fuzzy_match = false);
     operator bool();
 
    protected:
