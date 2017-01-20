@@ -79,6 +79,7 @@ namespace modules {
     bool m_pinworkspaces{true};
     bool m_inlinemode{false};
     string_util::hash_type m_hash{0U};
+    bool m_fuzzy_match{false};
 
     // used while formatting output
     size_t m_index{0U};
