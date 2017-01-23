@@ -125,7 +125,7 @@ int command::wait() {
     process_util::wait_for_completion(m_forkpid, &m_forkstatus, WCONTINUED | WUNTRACED);
 
     if (WIFEXITED(m_forkstatus) && m_forkstatus > 0) {
-      m_log.warn("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
+      m_log.trace("command: Exited with failed status %d", WEXITSTATUS(m_forkstatus));
     } else if (WIFEXITED(m_forkstatus)) {
       m_log.trace("command: Exited with status %d", WEXITSTATUS(m_forkstatus));
     } else if (WIFSIGNALED(m_forkstatus)) {
