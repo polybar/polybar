@@ -36,7 +36,7 @@ class xresource_manager {
   template <typename T>
   T require(const char* name) const {
     char* result{nullptr};
-    if (xcb_xrm_resource_get_string(m_xrm, string_util::replace(name, "*", ".").c_str(), "String", &result) == -1) {
+    if (xcb_xrm_resource_get_string(m_xrm, string_util::replace(name, "*", ".").c_str(), nullptr, &result) == -1) {
       throw xresource_error(sstream() << "X resource \"" << name << "\" not found");
     } else if (result == nullptr) {
       throw xresource_error(sstream() << "X resource \"" << name << "\" not found");
