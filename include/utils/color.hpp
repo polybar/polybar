@@ -58,9 +58,7 @@ namespace color_util {
 
   template <typename T>
   string hex(unsigned int color) {
-    string hex;
-
-    if (!g_cache_hex.check(color)) {
+    return *g_cache_hex.object(color, [&] {
       char s[12];
       size_t len = 0;
 
@@ -75,10 +73,8 @@ namespace color_util {
         len = snprintf(s, sizeof(s), "#%02x%02x%02x", r, g, b);
       }
 
-      hex = string(s, len);
-    }
-
-    return *g_cache_hex.object(color, hex);
+      return string(s, len);
+    }());
   }
 
   inline string parse_hex(string hex) {
