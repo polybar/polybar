@@ -98,7 +98,11 @@ int main(int argc, char** argv) {
     string confpath;
 
     // Make sure a bar name is passed in
-    if (!cli->has(1)) {
+    if (!cli->has(0)) {
+      cli->usage();
+      return EXIT_FAILURE;
+    } else if (cli->has(1)) {
+      fprintf(stderr, "Unrecognized argument \"%s\"\n", cli->get(1).c_str());
       cli->usage();
       return EXIT_FAILURE;
     }

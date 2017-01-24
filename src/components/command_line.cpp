@@ -86,7 +86,7 @@ namespace command_line {
    * Test if a positional argument is defined at given index
    */
   bool parser::has(size_t index) const {
-    return m_posargs.size() >= std::max(1_z, index);
+    return m_posargs.size() > index;
   }
 
   /**
@@ -103,7 +103,7 @@ namespace command_line {
    * Get the positional argument at given index
    */
   string parser::get(size_t index) const {
-    return has(index)  ? m_posargs[std::max(1_z, index) - 1] : "";
+    return has(index) ? m_posargs[index] : "";
   }
 
   /**
