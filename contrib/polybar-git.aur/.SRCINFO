@@ -1,6 +1,6 @@
 pkgbase = polybar-git
 	pkgdesc = A fast and easy-to-use status bar
-	pkgver = 3.0.0-alpha
+	pkgver = 3.0.0.alpha
 	pkgrel = 1
 	url = https://github.com/jaagr/polybar
 	arch = i686
