@@ -98,8 +98,9 @@ unique_ptr<inotify_event> inotify_watch::get_event() const {
 /**
  * Wait for matching event
  */
-bool inotify_watch::await_match() const {
-  return (get_event()->mask & m_mask) == m_mask;
+unique_ptr<inotify_event> inotify_watch::await_match() const {
+  auto event = get_event();
+  return event->mask & m_mask ? std::move(event) : nullptr;
 }
 
 /**

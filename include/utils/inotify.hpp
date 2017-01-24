@@ -26,7 +26,7 @@ class inotify_watch {
   void remove(bool force = false);
   bool poll(int wait_ms = 1000) const;
   unique_ptr<inotify_event> get_event() const;
-  bool await_match() const;
+  unique_ptr<inotify_event> await_match() const;
   const string path() const;
   int get_file_descriptor() const;
 
