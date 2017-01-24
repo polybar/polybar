@@ -190,7 +190,8 @@ namespace cairo {
           {
             *this << t.bg;
             cairo_set_operator(m_c, static_cast<cairo_operator_t>(t.bg_operator));
-            cairo_rectangle(m_c, t.bg_rect.x, t.bg_rect.y, t.bg_rect.w + extents.x_advance, t.bg_rect.h);
+            cairo_rectangle(m_c, t.bg_rect.x + *t.x_advance, t.bg_rect.y + *t.y_advance,
+                t.bg_rect.w + extents.x_advance, t.bg_rect.h);
             cairo_fill(m_c);
           }
           restore(true);

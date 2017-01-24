@@ -499,7 +499,6 @@ void renderer::draw_text(const string& contents) {
   if (m_bg && m_bg != m_bar.background) {
     block.bg = m_bg;
     block.bg_operator = static_cast<cairo_operator_t>(m_comp_bg);
-    block.bg_rect.x = m_rect.x + m_blocks[m_align].x;
     block.bg_rect.y = m_rect.y;
     block.bg_rect.h = m_rect.height;
   }
