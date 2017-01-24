@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cairo/cairo.h>
 #include <bitset>
 
 #include "cairo/fwd.hpp"
@@ -38,7 +37,7 @@ class renderer
   static make_type make(const bar_settings& bar);
 
   explicit renderer(
-      connection& conn, signal_emitter& emitter, const config&, const logger& logger, const bar_settings& bar);
+      connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar);
   ~renderer();
 
   xcb_window_t window() const;
@@ -106,19 +105,19 @@ class renderer
   unique_ptr<cairo::xcb_surface> m_surface;
   map<alignment, alignment_block> m_blocks;
 
-  cairo_operator_t m_comp_bg;
-  cairo_operator_t m_comp_fg;
-  cairo_operator_t m_comp_ol;
-  cairo_operator_t m_comp_ul;
-  cairo_operator_t m_comp_border;
+  int m_comp_bg{0};
+  int m_comp_fg{0};
+  int m_comp_ol{0};
+  int m_comp_ul{0};
+  int m_comp_border{0};
 
   alignment m_align;
   std::bitset<3> m_attr;
-  int m_font;
-  unsigned int m_bg;
-  unsigned int m_fg;
-  unsigned int m_ol;
-  unsigned int m_ul;
+  int m_font{0};
+  unsigned int m_bg{0U};
+  unsigned int m_fg{0U};
+  unsigned int m_ol{0U};
+  unsigned int m_ul{0U};
   vector<action_block> m_actions;
 
   bool m_fixedcenter;

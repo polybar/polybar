@@ -18,7 +18,7 @@ POLYBAR_NS
 namespace alsa {
   class mixer {
    public:
-    explicit mixer(string&& mixer_selem_name, string&& sound_card_name);
+    explicit mixer(string&& mixer_selem_name, string&& soundcard_name);
     ~mixer();
 
     mixer(const mixer& o) = delete;

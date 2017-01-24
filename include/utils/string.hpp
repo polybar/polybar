@@ -90,7 +90,7 @@ namespace string_util {
   string floating_point(double value, size_t precision, bool fixed = false, const string& locale = "");
   string filesize_mb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
   string filesize_gb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
-  string filesize(unsigned long long bytes, size_t precision = 0, bool fixed = false, const string& locale = "");
+  string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);
 }

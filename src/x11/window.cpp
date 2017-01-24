@@ -17,7 +17,8 @@ window& window::operator=(const xcb_window_t win) {
 /**
  * Create window and check for errors
  */
-window window::create_checked(short int x, short int y, unsigned short int w, unsigned short int h, unsigned int mask, const xcb_params_cw_t* p) {
+window window::create_checked(
+    short int x, short int y, unsigned short int w, unsigned short int h, unsigned int mask, const xcb_params_cw_t* p) {
   if (*this == XCB_NONE) {
     *this = connection().generate_id();
   }

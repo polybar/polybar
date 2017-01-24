@@ -13,8 +13,8 @@ namespace graphics_util {
   /**
    * Create a basic window
    */
-  bool create_window(
-      connection& conn, xcb_window_t* win, short int x, short int y, unsigned short int w, unsigned short int h, xcb_window_t root) {
+  bool create_window(connection& conn, xcb_window_t* win, short int x, short int y, unsigned short int w,
+      unsigned short int h, xcb_window_t root) {
     if (!root) {
       root = conn.screen()->root;
     }
@@ -35,14 +35,16 @@ namespace graphics_util {
    * Create a basic pixmap with the same depth as the
    * root depth of the default screen
    */
-  bool create_pixmap(connection& conn, xcb_drawable_t dst, unsigned short int w, unsigned short int h, xcb_pixmap_t* pixmap) {
+  bool create_pixmap(
+      connection& conn, xcb_drawable_t dst, unsigned short int w, unsigned short int h, xcb_pixmap_t* pixmap) {
     return graphics_util::create_pixmap(conn, dst, w, h, conn.screen()->root_depth, pixmap);
   }
 
   /**
    * Create a basic pixmap with specific depth
    */
-  bool create_pixmap(connection& conn, xcb_drawable_t dst, unsigned short int w, unsigned short int h, unsigned char d, xcb_pixmap_t* pixmap) {
+  bool create_pixmap(connection& conn, xcb_drawable_t dst, unsigned short int w, unsigned short int h, unsigned char d,
+      xcb_pixmap_t* pixmap) {
     try {
       *pixmap = conn.generate_id();
       conn.create_pixmap_checked(d, *pixmap, dst, w, h);

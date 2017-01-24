@@ -208,7 +208,7 @@ namespace file_util {
    * Get glob results using given pattern
    */
   vector<string> glob(const string& pattern) {
-    glob_t result;
+    glob_t result{};
     vector<string> ret;
 
     if (glob(pattern.c_str(), GLOB_TILDE, nullptr, &result) == 0) {

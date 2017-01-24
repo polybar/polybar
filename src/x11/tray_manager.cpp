@@ -13,7 +13,6 @@
 #include "utils/process.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/draw.hpp"
 #include "x11/graphics.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/window.hpp"
@@ -489,7 +488,8 @@ void tray_manager::refresh_window() {
   auto height = calculate_h();
 
   if (m_opts.transparent && !m_rootpixmap.pixmap) {
-    draw_util::fill(m_connection, m_pixmap, m_gc, 0, 0, width, height);
+    xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height)};
+    m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
   }
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);

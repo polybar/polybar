@@ -61,7 +61,8 @@ namespace randr_util {
   /**
    * Define monitor
    */
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y) {
+  monitor_t make_monitor(
+      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = move(name);

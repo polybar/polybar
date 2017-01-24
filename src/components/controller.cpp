@@ -23,7 +23,7 @@
 #include "x11/tray_manager.hpp"
 #include "x11/types.hpp"
 
-#include <signal.h>
+#include <csignal>
 
 POLYBAR_NS
 
@@ -586,7 +586,7 @@ bool controller::on(const signals::ui::ready&) {
   enqueue(make_update_evt(true));
 
   if (!m_snapshot_dst.empty()) {
-    m_threads.emplace_back(thread([&]{
+    m_threads.emplace_back(thread([&] {
       this_thread::sleep_for(3s);
       m_sig.emit(signals::ui::request_snapshot{move(m_snapshot_dst)});
       enqueue(make_update_evt(true));

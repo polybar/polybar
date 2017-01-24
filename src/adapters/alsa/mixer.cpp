@@ -12,7 +12,8 @@ namespace alsa {
   /**
    * Construct mixer object
    */
-  mixer::mixer(string&& mixer_selem_name, string&& soundcard_name) : m_name(forward<string>(mixer_selem_name)), s_name(soundcard_name) {
+  mixer::mixer(string&& mixer_selem_name, string&& soundcard_name)
+      : m_name(forward<string>(mixer_selem_name)), s_name(soundcard_name) {
     int err = 0;
 
     if ((err = snd_mixer_open(&m_mixer, 1)) == -1) {
@@ -60,7 +61,7 @@ namespace alsa {
   /**
    * Get the name of the soundcard that is associated with the mixer
    */
-  const string& mixer::get_sound_card() { 
+  const string& mixer::get_sound_card() {
     return s_name;
   }
 

@@ -1,22 +1,13 @@
 #include "components/renderer.hpp"
 #include "cairo/context.hpp"
-#include "cairo/font.hpp"
-#include "cairo/surface.hpp"
-#include "cairo/types.hpp"
-#include "cairo/utils.hpp"
 #include "components/config.hpp"
-#include "components/logger.hpp"
-#include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
-#include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/draw.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/generic.hpp"
 #include "x11/winspec.hpp"
@@ -388,7 +379,7 @@ void renderer::reserve_space(edge side, unsigned int w) {
  */
 void renderer::fill_background() {
   m_context->save();
-  *m_context << m_comp_bg;
+  *m_context << static_cast<cairo_operator_t>(m_comp_bg);
 
   if (m_bar.radius != 0.0) {
     // clang-format off
@@ -424,7 +415,7 @@ void renderer::fill_overline(double x, double w) {
   if (m_bar.overline.size && m_attr.test(static_cast<int>(attribute::OVERLINE))) {
     m_log.trace_x("renderer: overline(x=%f, w=%f)", x, w);
     m_context->save();
-    *m_context << m_comp_ol;
+    *m_context << static_cast<cairo_operator_t>(m_comp_ol);
     *m_context << m_ol;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y), w, static_cast<double>(m_bar.overline.size)};
     m_context->fill();
@@ -439,7 +430,7 @@ void renderer::fill_underline(double x, double w) {
   if (m_bar.underline.size && m_attr.test(static_cast<int>(attribute::UNDERLINE))) {
     m_log.trace_x("renderer: underline(x=%f, w=%f)", x, w);
     m_context->save();
-    *m_context << m_comp_ul;
+    *m_context << static_cast<cairo_operator_t>(m_comp_ul);
     *m_context << m_ul;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y + m_rect.height - m_bar.underline.size), w,
         static_cast<double>(m_bar.underline.size)};
@@ -453,7 +444,7 @@ void renderer::fill_underline(double x, double w) {
  */
 void renderer::fill_borders() {
   m_context->save();
-  *m_context << m_comp_border;
+  *m_context << static_cast<cairo_operator_t>(m_comp_border);
 
   cairo::rect top{0.0, 0.0, 0.0, 0.0};
   top.x += m_bar.borders.at(edge::LEFT).size;
@@ -508,7 +499,7 @@ void renderer::draw_text(const string& contents) {
 
   if (m_bg && m_bg != m_bar.background) {
     block.bg = m_bg;
-    block.bg_operator = m_comp_bg;
+    block.bg_operator = static_cast<cairo_operator_t>(m_comp_bg);
     block.bg_rect.x = m_rect.x + m_blocks[m_align].x;
     block.bg_rect.y = m_rect.y;
     block.bg_rect.h = m_rect.height;
@@ -516,7 +507,7 @@ void renderer::draw_text(const string& contents) {
 
   m_context->save();
   *m_context << origin;
-  *m_context << m_comp_fg;
+  *m_context << static_cast<cairo_operator_t>(m_comp_fg);
   *m_context << m_fg;
   *m_context << block;
   m_context->restore();
