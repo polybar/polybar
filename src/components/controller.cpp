@@ -246,7 +246,7 @@ void controller::read_events() {
 
   if (m_confwatch) {
     m_log.trace("controller: Attach config watch");
-    m_confwatch->attach(IN_MODIFY);
+    m_confwatch->attach(IN_MODIFY | IN_IGNORED);
     fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
   }
 
@@ -281,7 +281,22 @@ void controller::read_events() {
     }
 
     // Process event on the config inotify watch fd
-    if (fd_confwatch > -1 && FD_ISSET(fd_confwatch, &readfds) && m_confwatch->await_match()) {
+    unique_ptr<inotify_event> confevent;
+    if (fd_confwatch > -1 && FD_ISSET(fd_confwatch, &readfds) && (confevent = m_confwatch->await_match())) {
+      if (confevent->mask & IN_IGNORED) {
+        // IN_IGNORED: file was deleted or filesystem was unmounted
+        //
+        // This happens in some configurations of vim when a file is saved,
+        // since it is not actually issuing calls to write() but rather
+        // moves a file into the original's place after moving the original
+        // file to a different location (and subsequently deleting it).
+        //
+        // We need to re-attach the watch to the new file in this case.
+        fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
+        m_confwatch = inotify_util::make_watch(m_confwatch->path());
+        m_confwatch->attach(IN_MODIFY | IN_IGNORED);
+        fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
+      }
       m_log.info("Configuration file changed");
       g_terminate = 1;
       g_reload = 1;
