@@ -46,7 +46,7 @@ module-margin-left = 1
 module-margin-right = 2
 
 font-0 = @FONT_FIXED@;1
-font-1 = @FONT_UNIFONT@:size=11:heavy;0
+font-1 = @FONT_UNIFONT@:size=6:heavy:antialias=false;0
 font-2 = @FONT_SIJI@;1
 
 modules-left = @MODULES_LEFT@
