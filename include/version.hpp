@@ -1,3 +1,3 @@
 #pragma once
 
-#define GIT_TAG "2.5.2"
+#define GIT_TAG "3.0.0-alpha"
