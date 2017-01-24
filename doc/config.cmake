@@ -169,14 +169,14 @@ format = <label> <bar>
 label = BL
 
 bar-width = 10
-bar-indicator = 
+bar-indicator = |
 bar-indicator-foreground = #ff
 bar-indicator-font = 2
 bar-fill = ─
-bar-fill-font = 3
+bar-fill-font = 2
 bar-fill-foreground = #9f78e1
 bar-empty = ─
-bar-empty-font = 3
+bar-empty-font = 2
 bar-empty-foreground = ${colors.foreground-alt}
 
 [module/backlight-acpi]
@@ -229,7 +229,7 @@ interval = 3.0
 
 format-connected-underline = #55aa55
 format-connected-prefix = " "
-format-connected-foreground-foreground = ${colors.foreground-alt}
+format-connected-prefix-foreground = ${colors.foreground-alt}
 label-connected = %local_ip%
 
 format-disconnected =
@@ -274,12 +274,12 @@ bar-volume-foreground-4 = #55aa55
 bar-volume-foreground-5 = #f5a70a
 bar-volume-foreground-6 = #ff5555
 bar-volume-gradient = false
-bar-volume-indicator = 
-bar-volume-indicator-font = 3
+bar-volume-indicator = |
+bar-volume-indicator-font = 2
 bar-volume-fill = ─
-bar-volume-fill-font = 3
+bar-volume-fill-font = 2
 bar-volume-empty = ─
-bar-volume-empty-font = 3
+bar-volume-empty-font = 2
 bar-volume-empty-foreground = ${colors.foreground-alt}
 
 [module/battery]
