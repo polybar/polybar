@@ -68,8 +68,8 @@ A [pull-request has been submitted](https://github.com/voidlinux/void-packages/p
 ### Dependencies
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
-- cmake
-- libXft
+- cairo
+- libxcb
 - python2
 - xcb-proto
 - xcb-util-image
@@ -77,11 +77,11 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-util-xrm
 
 Optional dependencies for extended module support:
-- alsa-lib (required by `internal/volume`)
-- jsoncpp (required by `internal/i3`)
-- libmpdclient (required by `internal/mpd`)
-- libcurl (required by `internal/github`)
-- wireless_tools (required by `internal/network`)
+- alsa-lib *required by `internal/volume`*
+- jsoncpp *required by `internal/i3`*
+- libmpdclient *required by `internal/mpd`*
+- libcurl *required by `internal/github`*
+- wireless_tools *required by `internal/network`*
 
 Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
 
@@ -118,10 +118,6 @@ Details on how to setup and configure the bar and each module have been moved to
   ~~~ sh
   $ polybar example
   ~~~
-
-**NOTE:** If the bar output looks odd, it's probably because you're
-missing the fonts defined in the config. Update the config or install the
-missing fonts.
 
 
 ### Running

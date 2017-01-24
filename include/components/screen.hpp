@@ -4,7 +4,6 @@
 #include "components/types.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
-#include "x11/events.hpp"
 #include "x11/extensions/randr.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"

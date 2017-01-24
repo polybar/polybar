@@ -10,18 +10,14 @@ list(REMOVE_ITEM SOURCES ipc.cpp)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(PkgConfig)
 find_package(Threads REQUIRED)
-find_package(X11_XCB REQUIRED)
 pkg_check_modules(CAIRO REQUIRED cairo-fc)
-# pkg_check_modules(PANGOCAIRO REQUIRED pangocairo)
 
 set(APP_LIBRARIES ${APP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-# set(APP_LIBRARIES ${APP_LIBRARIES} ${PANGOCAIRO_LIBRARIES})
 set(APP_LIBRARIES ${APP_LIBRARIES} ${CAIRO_LIBRARIES})
 
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/lib/concurrentqueue/include)
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
-# set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${PANGOCAIRO_INCLUDE_DIRS})
 set(APP_INCLUDE_DIRS ${APP_INCLUDE_DIRS} ${CAIRO_INCLUDE_DIRS})
 
 # xpp library
@@ -147,9 +143,7 @@ make_executable(${PROJECT_NAME} SOURCES
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
 
 target_compile_options(${PROJECT_NAME} PUBLIC
-  $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>
-  ${X11_XCB_DEFINITIONS}
-  ${XCB_DEFINITIONS})
+  $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 
 # }}}
 # Create executable target: ipc messager {{{

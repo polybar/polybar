@@ -31,12 +31,12 @@ namespace modules {
     }
 
     // Check if the WM supports _NET_CURRENT_DESKTOP
-    if (!ewmh_util::supports(m_ewmh.get(), m_ewmh->_NET_CURRENT_DESKTOP)) {
+    if (!ewmh_util::supports(m_ewmh->_NET_CURRENT_DESKTOP)) {
       throw module_error("The WM does not support _NET_CURRENT_DESKTOP, aborting...");
     }
 
     // Check if the WM supports _NET_DESKTOP_VIEWPORT
-    if (!ewmh_util::supports(m_ewmh.get(), m_ewmh->_NET_DESKTOP_VIEWPORT) && m_pinworkspaces) {
+    if (!ewmh_util::supports(m_ewmh->_NET_DESKTOP_VIEWPORT) && m_pinworkspaces) {
       throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
     } else if (!m_pinworkspaces) {
       m_monitorsupport = false;
@@ -96,14 +96,14 @@ namespace modules {
    * Fetch and parse data
    */
   void xworkspaces_module::update() {
-    auto current = ewmh_util::get_current_desktop(m_ewmh.get());
-    auto names = ewmh_util::get_desktop_names(m_ewmh.get());
+    auto current = ewmh_util::get_current_desktop();
+    auto names = ewmh_util::get_desktop_names();
     vector<position> viewports;
     size_t num{0};
     position pos{};
 
     if (m_monitorsupport) {
-      viewports = ewmh_util::get_desktop_viewports(m_ewmh.get());
+      viewports = ewmh_util::get_desktop_viewports();
       num = math_util::min(names.size(), viewports.size());
     } else {
       num = names.size();
@@ -215,7 +215,7 @@ namespace modules {
     unsigned int new_desktop{0};
     unsigned int min_desktop{0};
     unsigned int max_desktop{0};
-    unsigned int current_desktop{ewmh_util::get_current_desktop(m_ewmh.get())};
+    unsigned int current_desktop{ewmh_util::get_current_desktop()};
 
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
@@ -245,7 +245,7 @@ namespace modules {
 
     if (new_desktop != current_desktop) {
       m_log.info("%s: Requesting change to desktop #%u", name(), new_desktop);
-      ewmh_util::change_current_desktop(m_ewmh.get(), new_desktop);
+      ewmh_util::change_current_desktop(new_desktop);
       m_connection.flush();
     } else {
       m_log.info("%s: Ignoring change to current desktop", name());

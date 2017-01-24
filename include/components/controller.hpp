@@ -9,7 +9,6 @@
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "utils/file.hpp"
-#include "x11/events.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS

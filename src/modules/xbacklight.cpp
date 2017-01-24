@@ -4,7 +4,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/math.hpp"
 #include "x11/connection.hpp"
-#include "x11/graphics.hpp"
+#include "x11/winspec.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -48,9 +48,12 @@ namespace modules {
     }
 
     // Create window that will proxy all RandR notify events
-    if (!graphics_util::create_window(m_connection, &m_proxy, -1, -1, 1, 1)) {
-      throw module_error("Failed to create event proxy");
-    }
+    // clang-format off
+    m_proxy = winspec(m_connection)
+      << cw_size(1, 1)
+      << cw_pos(-1, -1)
+      << cw_flush(true);
+    // clang-format on
 
     // Connect with the event registry and make sure we get
     // notified when a RandR output property gets modified

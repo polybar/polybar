@@ -42,14 +42,12 @@ namespace i3_util {
    * Get main root window
    */
   xcb_window_t root_window(connection& conn) {
-    auto ewmh = ewmh_util::initialize();
     auto children = conn.query_tree(conn.screen()->root).children();
-
-    const auto wm_name = [&](xcb_ewmh_connection_t* ewmh, xcb_window_t win) -> string {
+    const auto wm_name = [&](xcb_connection_t* conn, xcb_window_t win) -> string {
       string title;
-      if (!(title = ewmh_util::get_wm_name(ewmh, win)).empty()) {
+      if (!(title = ewmh_util::get_wm_name(win)).empty()) {
         return title;
-      } else if (!(title = icccm_util::get_wm_name(ewmh->connection, win)).empty()) {
+      } else if (!(title = icccm_util::get_wm_name(conn, win)).empty()) {
         return title;
       } else {
         return "";
@@ -57,7 +55,7 @@ namespace i3_util {
     };
 
     for (auto it = children.begin(); it != children.end(); it++) {
-      if (wm_name(&*ewmh, *it) == "i3") {
+      if (wm_name(conn, *it) == "i3") {
         return *it;
       }
     }

@@ -1,9 +1,7 @@
-#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
 #include <thread>
 
 #include "components/config.hpp"
-#include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "utils/color.hpp"
@@ -13,11 +11,11 @@
 #include "utils/process.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/graphics.hpp"
+#include "x11/ewmh.hpp"
+#include "x11/icccm.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/window.hpp"
 #include "x11/winspec.hpp"
-#include "x11/wm.hpp"
 #include "x11/xembed.hpp"
 #include "x11/xresources.hpp"
 
@@ -37,8 +35,6 @@
 // ====================================================================================================
 
 POLYBAR_NS
-
-using namespace wm_util;
 
 /**
  * Create instance
@@ -272,7 +268,7 @@ void tray_manager::deactivate(bool clear_selection) {
   m_tray = 0;
   m_pixmap = 0;
   m_gc = 0;
-  m_rootpixmap.pixmap = 0;
+  m_rootpixmap = 0;
   m_prevwidth = 0;
   m_prevheight = 0;
   m_opts.configured_x = 0;
@@ -400,7 +396,7 @@ void tray_manager::reconfigure_clients() {
 void tray_manager::reconfigure_bg(bool realloc) {
   if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
     return;
-  } else if (!m_rootpixmap.pixmap) {
+  } else if (!m_rootpixmap) {
     realloc = true;
   }
 
@@ -413,16 +409,16 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
   m_log.trace("tray: Reconfigure bg (realloc=%i)", realloc);
 
-  if (realloc && !get_root_pixmap(m_connection, &m_rootpixmap)) {
+  if (realloc && !m_connection.root_pixmap(&m_rootpixmap, &m_rootpixmap_depth, &m_rootpixmap_geom)) {
     return m_log.err("Failed to get root pixmap for tray background (realloc=%i)", realloc);
   } else if (realloc) {
     // clang-format off
     m_log.info("Tray root pixmap (rootpmap=%s, geom=%dx%d+%d+%d, tray=%s, pmap=%s, gc=%s)",
-        m_connection.id(m_rootpixmap.pixmap),
-        m_rootpixmap.width,
-        m_rootpixmap.height,
-        m_rootpixmap.x,
-        m_rootpixmap.y,
+        m_connection.id(m_rootpixmap),
+        m_rootpixmap_geom.width,
+        m_rootpixmap_geom.height,
+        m_rootpixmap_geom.x,
+        m_rootpixmap_geom.y,
         m_connection.id(m_tray),
         m_connection.id(m_pixmap),
         m_connection.id(m_gc));
@@ -434,15 +430,15 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
   auto x = calculate_x(w);
   auto y = calculate_y();
-  auto px = math_util::max(0, m_rootpixmap.x + x);
-  auto py = math_util::max(0, m_rootpixmap.y + y);
+  auto px = math_util::max(0, m_rootpixmap_geom.x + x);
+  auto py = math_util::max(0, m_rootpixmap_geom.y + y);
 
   // Make sure we don't try to copy void content
-  if (px + w > m_rootpixmap.width) {
-    w -= px + w - m_rootpixmap.width;
+  if (px + w > m_rootpixmap_geom.width) {
+    w -= px + w - m_rootpixmap_geom.width;
   }
-  if (py + h > m_rootpixmap.height) {
-    h -= py + h - m_rootpixmap.height;
+  if (py + h > m_rootpixmap_geom.height) {
+    h -= py + h - m_rootpixmap_geom.height;
   }
 
   if (realloc) {
@@ -450,8 +446,7 @@ void tray_manager::reconfigure_bg(bool realloc) {
     unsigned char image_depth;
 
     try {
-      auto image_reply =
-          m_connection.get_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_rootpixmap.pixmap, px, py, w, h, XCB_COPY_PLANE);
+      auto image_reply = m_connection.get_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_rootpixmap, px, py, w, h, XCB_COPY_PLANE);
       image_depth = image_reply->depth;
       std::back_insert_iterator<decltype(image_data)> back_it(image_data);
       std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
@@ -469,7 +464,7 @@ void tray_manager::reconfigure_bg(bool realloc) {
     }
   }
 
-  m_connection.copy_area_checked(m_rootpixmap.pixmap, m_pixmap, m_gc, px, py, 0, 0, w, h);
+  m_connection.copy_area_checked(m_rootpixmap, m_pixmap, m_gc, px, py, 0, 0, w, h);
 }
 
 /**
@@ -487,7 +482,7 @@ void tray_manager::refresh_window() {
   auto width = calculate_w();
   auto height = calculate_h();
 
-  if (m_opts.transparent && !m_rootpixmap.pixmap) {
+  if (m_opts.transparent && !m_rootpixmap) {
     xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height)};
     m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
   }
@@ -571,7 +566,7 @@ void tray_manager::create_bg(bool realloc) {
   if (!m_opts.transparent) {
     return;
   }
-  if (!realloc && m_pixmap && m_gc && m_rootpixmap.pixmap) {
+  if (!realloc && m_pixmap && m_gc && m_rootpixmap) {
     return;
   }
   if (realloc && m_pixmap) {
@@ -586,10 +581,27 @@ void tray_manager::create_bg(bool realloc) {
   auto w = m_opts.width_max;
   auto h = calculate_h();
 
-  if (!m_pixmap && !graphics_util::create_pixmap(m_connection, m_tray, w, h, &m_pixmap)) {
-    return m_log.err("Failed to create pixmap for tray background");
-  } else if (!m_gc && !graphics_util::create_gc(m_connection, m_pixmap, &m_gc)) {
-    return m_log.err("Failed to create gcontext for tray background");
+  if (!m_pixmap) {
+    try {
+      m_pixmap = m_connection.generate_id();
+      m_connection.create_pixmap_checked(m_connection.screen()->root_depth, m_pixmap, m_tray, w, h);
+    } catch (const exception& err) {
+      return m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
+    }
+  }
+
+  if (!m_gc) {
+    try {
+      xcb_params_gc_t params{};
+      unsigned int mask = 0;
+      unsigned int values[32];
+      XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
+      connection::pack_values(mask, &params, values);
+      m_gc = m_connection.generate_id();
+      m_connection.create_gc_checked(m_gc, m_pixmap, mask, values);
+    } catch (const exception& err) {
+      return m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
+    }
   }
 
   try {
@@ -632,21 +644,20 @@ void tray_manager::set_wm_hints() {
   const unsigned int visual{m_connection.screen()->root_visual};
   const unsigned int orientation{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
 
-  m_log.trace("tray: Set window WM_NAME / WM_CLASS", m_connection.id(m_tray));
-  xcb_icccm_set_wm_name(m_connection, m_tray, XCB_ATOM_STRING, 8, 19, TRAY_WM_NAME);
-  xcb_icccm_set_wm_class(m_connection, m_tray, 12, TRAY_WM_CLASS);
+  m_log.trace("bar: Set window WM_NAME / WM_CLASS");
+  icccm_util::set_wm_name(m_connection, m_tray, TRAY_WM_NAME, 19_z, TRAY_WM_CLASS, 12_z);
 
   m_log.trace("tray: Set window WM_PROTOCOLS");
-  set_wm_protocols(m_connection, m_tray, {WM_DELETE_WINDOW, WM_TAKE_FOCUS});
+  icccm_util::set_wm_protocols(m_connection, m_tray, {WM_DELETE_WINDOW, WM_TAKE_FOCUS});
 
   m_log.trace("tray: Set window _NET_WM_WINDOW_TYPE");
-  set_wm_window_type(m_connection, m_tray, {_NET_WM_WINDOW_TYPE_DOCK, _NET_WM_WINDOW_TYPE_NORMAL});
+  ewmh_util::set_wm_window_type(m_tray, {_NET_WM_WINDOW_TYPE_DOCK, _NET_WM_WINDOW_TYPE_NORMAL});
 
   m_log.trace("tray: Set window _NET_WM_STATE");
-  set_wm_state(m_connection, m_tray, {_NET_WM_STATE_SKIP_TASKBAR});
+  ewmh_util::set_wm_state(m_tray, {_NET_WM_STATE_SKIP_TASKBAR});
 
   m_log.trace("tray: Set window _NET_WM_PID");
-  set_wm_pid(m_connection, m_tray, getpid());
+  ewmh_util::set_wm_pid(m_tray);
 
   m_log.trace("tray: Set window _NET_SYSTEM_TRAY_VISUAL");
   xcb_change_property(
@@ -1148,8 +1159,7 @@ bool tray_manager::on(const visibility_change& evt) {
 
 bool tray_manager::on(const dim_window& evt) {
   if (m_activated) {
-    wm_util::set_wm_window_opacity(m_connection, m_tray, evt.cast() * 0xFFFFFFFF);
-    m_connection.flush();
+    ewmh_util::set_wm_window_opacity(m_tray, evt.cast() * 0xFFFFFFFF);
   }
   // let the event bubble
   return false;

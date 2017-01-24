@@ -13,14 +13,12 @@ POLYBAR_NS
 /**
  * Create instance
  */
-connection::make_type connection::make(Display* display) {
+connection::make_type connection::make(xcb_connection_t* conn, int default_screen) {
   return static_cast<connection::make_type>(
-      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(display));
+      *factory_util::singleton<std::remove_reference_t<connection::make_type>>(conn, default_screen));
 }
 
-connection::connection(Display* dsp) : base_type(XGetXCBConnection(dsp)), m_display(dsp) {
-  XSetEventQueueOwner(m_display, XCBOwnsEventQueue);
-
+connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, default_screen) {
   // Preload required xcb atoms {{{
 
   vector<xcb_intern_atom_cookie_t> cookies(memory_util::countof(ATOMS));
@@ -62,13 +60,7 @@ connection::connection(Display* dsp) : base_type(XGetXCBConnection(dsp)), m_disp
 }
 
 connection::~connection() {
-  if (m_display != nullptr) {
-    XCloseDisplay(m_display);
-  } else {
-    disconnect();
-    std::for_each(m_visual.begin(), m_visual.end(), [=](pair<unsigned char, Visual*> p) { XFree(p.second); });
-    m_visual.clear();
-  }
+  disconnect();
 }
 
 void connection::pack_values(unsigned int mask, const unsigned int* src, unsigned int* dest) {
@@ -86,21 +78,6 @@ void connection::pack_values(unsigned int mask, const xcb_params_gc_t* src, unsi
 }
 void connection::pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest) {
   pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
-}
-
-connection::operator Display*() const {
-  return m_display;
-}
-
-Visual* connection::visual(unsigned char depth) {
-  auto visual_it = m_visual.find(depth);
-  if (visual_it == m_visual.end()) {
-    XVisualInfo info{};
-    if (XMatchVisualInfo(*this, default_screen(), depth, TrueColor, &info)) {
-      visual_it = m_visual.emplace_hint(visual_it, depth, info.visual);
-    }
-  }
-  return visual_it->second;
 }
 
 /**
@@ -186,6 +163,38 @@ xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth)
     }
   }
   return nullptr;
+}
+
+/**
+ * Query root window pixmap
+ */
+bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* rect) {
+  const xcb_atom_t pixmap_properties[3]{ESETROOT_PMAP_ID, _XROOTMAP_ID, _XSETROOT_ID};
+  for (auto&& property : pixmap_properties) {
+    try {
+      auto prop = get_property(false, screen()->root, property, XCB_ATOM_PIXMAP, 0L, 1L);
+      if (prop->format == 32 && prop->value_len == 1) {
+        *pixmap = *prop.value<xcb_pixmap_t>().begin();
+      }
+    } catch (const exception& err) {
+      continue;
+    }
+  }
+  if (*pixmap) {
+    try {
+      auto geom = get_geometry(*pixmap);
+      *depth = geom->depth;
+      rect->width = geom->width;
+      rect->height = geom->height;
+      rect->x = geom->x;
+      rect->y = geom->y;
+      return true;
+    } catch (const exception& err) {
+      *pixmap = XCB_NONE;
+      *rect = xcb_rectangle_t{0, 0, 0U, 0U};
+    }
+  }
+  return false;
 }
 
 /**

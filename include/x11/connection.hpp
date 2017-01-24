@@ -1,16 +1,12 @@
 #pragma once
 
-#include <X11/X.h>
-#include <X11/Xlib-xcb.h>
-#include <X11/Xutil.h>
-#include <cstdlib>
+#include <xcb/xcb.h>
 #include <xpp/core.hpp>
 #include <xpp/generic/factory.hpp>
 #include <xpp/proto/x.hpp>
 
 #include "common.hpp"
 #include "components/screen.hpp"
-#include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/registry.hpp"
 #include "x11/types.hpp"
@@ -18,19 +14,6 @@
 POLYBAR_NS
 
 namespace detail {
-  class displaylock {
-   public:
-    explicit displaylock(Display* display) : m_display(forward<decltype(display)>(display)) {
-      XLockDisplay(m_display);
-    }
-    ~displaylock() {
-      XUnlockDisplay(m_display);
-    }
-
-   protected:
-    Display* m_display;
-  };
-
   template <typename Connection, typename... Extensions>
   class interfaces : public xpp::x::extension::interface<interfaces<Connection, Extensions...>, Connection>,
                      public Extensions::template interface<interfaces<Connection, Extensions...>, Connection>... {
@@ -49,12 +32,12 @@ namespace detail {
                           private Extensions...,
                           private Extensions::error_dispatcher... {
    public:
-    template <typename... Args>
-    explicit connection_base(Args&&... args)
-        : xpp::core(forward<Args>(args)...)
+    explicit connection_base(xcb_connection_t* c, int s)
+        : xpp::core(c)
         , interfaces<connection_base<Derived, Extensions...>, Extensions...>(*this)
         , Extensions(m_c.get())...
         , Extensions::error_dispatcher(static_cast<Extensions&>(*this).get())... {
+      core::m_screen = s;
       m_root_window = screen_of_display(default_screen())->root;
     }
 
@@ -116,9 +99,9 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   using base_type = detail::connection_base<connection&, XPP_EXTENSION_LIST>;
 
   using make_type = connection&;
-  static make_type make(Display* display = nullptr);
+  static make_type make(xcb_connection_t* conn = nullptr, int default_screen = 0);
 
-  explicit connection(Display* dsp);
+  explicit connection(xcb_connection_t* c, int default_screen);
   ~connection();
 
   const connection& operator=(const connection& o) {
@@ -130,8 +113,6 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   static void pack_values(unsigned int mask, const xcb_params_gc_t* src, unsigned int* dest);
   static void pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest);
 
-  operator Display*() const;
-  Visual* visual(unsigned char depth = 32U);
   xcb_screen_t* screen(bool realloc = false);
 
   string id(xcb_window_t w) const;
@@ -144,6 +125,8 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
       unsigned int event_mask = 0xFFFFFF, bool propagate = false) const;
 
   xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);
+
+  bool root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* rect);
 
   static string error_str(int error_code);
 
@@ -181,8 +164,6 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   }
 
  protected:
-  Display* m_display{nullptr};
-  map<unsigned char, Visual*> m_visual;
   registry m_registry{*this};
   xcb_screen_t* m_screen{nullptr};
 };

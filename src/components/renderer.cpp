@@ -9,7 +9,6 @@
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/all.hpp"
-#include "x11/generic.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS

@@ -1,5 +1,3 @@
-#include <xcb/xcb_icccm.h>
-
 #include "components/types.hpp"
 #include "utils/memory.hpp"
 #include "x11/atoms.hpp"
@@ -10,41 +8,7 @@
 POLYBAR_NS
 
 window& window::operator=(const xcb_window_t win) {
-  *this = window{connection(), win};
-  return *this;
-}
-
-/**
- * Create window and check for errors
- */
-window window::create_checked(
-    short int x, short int y, unsigned short int w, unsigned short int h, unsigned int mask, const xcb_params_cw_t* p) {
-  if (*this == XCB_NONE) {
-    *this = connection().generate_id();
-  }
-
-  auto root = connection().screen()->root;
-  auto copy = XCB_COPY_FROM_PARENT;
-  unsigned int values[16]{0};
-  connection::pack_values(mask, p, values);
-  connection().create_window_checked(copy, *this, root, x, y, w, h, 0, copy, copy, mask, values);
-
-  return *this;
-}
-
-/**
- * Change the window event mask
- */
-window window::change_event_mask(unsigned int mask) {
-  change_attributes_checked(XCB_CW_EVENT_MASK, &mask);
-  return *this;
-}
-
-/**
- * Add given event to the event mask unless already added
- */
-window window::ensure_event_mask(unsigned int event) {
-  connection().ensure_event_mask(*this, event);
+  resource(connection(), win);
   return *this;
 }
 
@@ -106,28 +70,6 @@ window window::reconfigure_struts(unsigned short int w, unsigned short int h, sh
       XCB_PROP_MODE_REPLACE, *this, _NET_WM_STRUT_PARTIAL, XCB_ATOM_CARDINAL, 32, 12, values);
 
   return *this;
-}
-
-/**
- * Trigger redraw by toggling visibility state
- */
-void window::redraw() {
-  visibility_notify(XCB_VISIBILITY_FULLY_OBSCURED);
-  visibility_notify(XCB_VISIBILITY_UNOBSCURED);
-  connection().flush();
-}
-
-/**
- * Send visibility notify event
- */
-void window::visibility_notify(xcb_visibility_t state) {
-  auto notify = memory_util::make_malloc_ptr<xcb_visibility_notify_event_t, 32_z>();
-  notify->response_type = XCB_VISIBILITY_NOTIFY;
-  notify->window = *this;
-  notify->state = state;
-
-  unsigned int mask{XCB_EVENT_MASK_NO_EVENT};
-  connection().send_event(false, *this, mask, reinterpret_cast<const char*>(notify.get()));
 }
 
 POLYBAR_NS_END

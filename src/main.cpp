@@ -67,15 +67,17 @@ int main(int argc, char** argv) {
     //==================================================
     // Connect to X server
     //==================================================
-    XInitThreads();
-    Display* xdisplay{XOpenDisplay(nullptr)};
+    auto xcb_error = 0;
+    auto xcb_screen = 0;
+    auto xcb_connection = xcb_connect(nullptr, &xcb_screen);
 
-    if (xdisplay == nullptr) {
-      logger.err("A connection to X could not be established... ");
-      return EXIT_FAILURE;
+    if (xcb_connection == nullptr) {
+      throw application_error("A connection to X could not be established...");
+    } else if ((xcb_error = xcb_connection_has_error(xcb_connection))) {
+      throw application_error("X connection error... (what: " + connection::error_str(xcb_error) + ")");
     }
 
-    connection& conn{connection::make(xdisplay)};
+    connection& conn{connection::make(xcb_connection, xcb_screen)};
     conn.ensure_event_mask(conn.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
 
     //==================================================

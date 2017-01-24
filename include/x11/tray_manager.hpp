@@ -1,18 +1,15 @@
 #pragma once
 
-#include <xcb/xcb.h>
 #include <chrono>
 
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
-#include "events/signal_emitter.hpp"
 #include "events/signal_fwd.hpp"
+#include "events/signal_receiver.hpp"
 #include "utils/concurrency.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/events.hpp"
-#include "x11/graphics.hpp"
 #include "x11/tray_client.hpp"
 
 #define _NET_SYSTEM_TRAY_ORIENTATION_HORZ 0
@@ -142,7 +139,11 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   xcb_gcontext_t m_gc{0};
   xcb_pixmap_t m_pixmap{0};
-  graphics_util::root_pixmap m_rootpixmap{};
+
+  xcb_pixmap_t m_rootpixmap{0};
+  int m_rootpixmap_depth{0};
+  xcb_rectangle_t m_rootpixmap_geom{0, 0, 0U, 0U};
+
   unsigned int m_prevwidth{0};
   unsigned int m_prevheight{0};
 

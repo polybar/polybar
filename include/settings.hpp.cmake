@@ -102,7 +102,7 @@ const auto print_build_info = [](bool extended = false) {
     (ENABLE_NETWORK ? '+' : '-'));
   if (extended) {
     printf("\n");
-    printf("X extensions: %cxrandr (%cmonitors) %cxrender %cxdamage %cxsync %cxcomposite %cxkb %cxcb-util-xrm\n",
+    printf("X extensions: %crandr (%cmonitors) %crender %cdamage %csync %ccomposite %cxkb %cxrm\n",
       (WITH_XRANDR            ? '+' : '-'),
       (ENABLE_XRANDR_MONITORS ? '+' : '-'),
       (WITH_XRENDER           ? '+' : '-'),

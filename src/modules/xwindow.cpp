@@ -3,7 +3,6 @@
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/graphics.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -45,12 +44,12 @@ namespace modules {
    *  _NET_WM_NAME
    *  _NET_WM_VISIBLE_NAME
    */
-  string active_window::title(xcb_ewmh_connection_t* ewmh) const {
+  string active_window::title() const {
     string title;
 
-    if (!(title = ewmh_util::get_wm_name(ewmh, m_window)).empty()) {
+    if (!(title = ewmh_util::get_wm_name(m_window)).empty()) {
       return title;
-    } else if (!(title = ewmh_util::get_visible_name(ewmh, m_window)).empty()) {
+    } else if (!(title = ewmh_util::get_visible_name(m_window)).empty()) {
       return title;
     } else if (!(title = icccm_util::get_wm_name(m_connection, m_window)).empty()) {
       return title;
@@ -65,12 +64,12 @@ namespace modules {
   xwindow_module::xwindow_module(const bar_settings& bar, string name_)
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
     // Initialize ewmh atoms
-    if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
+    if ((ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
     }
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
-    if (!ewmh_util::supports(m_ewmh.get(), _NET_ACTIVE_WINDOW)) {
+    if (!ewmh_util::supports(_NET_ACTIVE_WINDOW)) {
       throw module_error("The WM does not list _NET_ACTIVE_WINDOW as a supported hint");
     }
 
@@ -109,13 +108,13 @@ namespace modules {
       m_active.reset();
     }
 
-    if (!m_active && (win = ewmh_util::get_active_window(&*m_ewmh)) != XCB_NONE) {
+    if (!m_active && (win = ewmh_util::get_active_window()) != XCB_NONE) {
       m_active = make_unique<active_window>(m_connection, win);
     }
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%title%", m_active ? m_active->title(&*m_ewmh) : "");
+      m_label->replace_token("%title%", m_active ? m_active->title() : "");
     }
 
     broadcast();

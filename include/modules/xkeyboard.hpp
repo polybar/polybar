@@ -6,7 +6,6 @@
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
-#include "x11/events.hpp"
 #include "x11/extensions/xkb.hpp"
 #include "x11/window.hpp"
 

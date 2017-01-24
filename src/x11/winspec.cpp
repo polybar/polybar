@@ -1,5 +1,3 @@
-#include <xcb/xcb.h>
-
 #include "x11/connection.hpp"
 #include "x11/winspec.hpp"
 

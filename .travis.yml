@@ -13,15 +13,14 @@ addons:
       - llvm-toolchain-precise-3.8
       - sourceline: "ppa:george-edison55/george-edison"
     packages:
-      - gcc-5
-      - g++-5
       - clang-3.8
       - cmake
       - cmake-data
+      - g++-5
+      - gcc-5
       - i3-wm
       - libasound2-dev
-      - libboost-dev
-      - libfreetype6-dev
+      - libcairo2-dev
       - libiw-dev
       - libmpdclient-dev
       - libxcb-ewmh-dev

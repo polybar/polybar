@@ -8,7 +8,6 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "x11/connection.hpp"
-#include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/registry.hpp"
 #include "x11/types.hpp"

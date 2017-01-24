@@ -1,4 +1,3 @@
-#include <xcb/xcb_icccm.h>
 #include <algorithm>
 
 #include "components/bar.hpp"
@@ -17,9 +16,10 @@
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/extensions/all.hpp"
+#include "x11/icccm.hpp"
 #include "x11/tray_manager.hpp"
-#include "x11/wm.hpp"
 
 #if ENABLE_I3
 #include "utils/i3.hpp"
@@ -28,7 +28,6 @@
 POLYBAR_NS
 
 using namespace signals::ui;
-using namespace wm_util;
 
 /**
  * Create instance
@@ -436,21 +435,22 @@ void bar::reconfigure_struts() {
  * Reconfigure window wm hint values
  */
 void bar::reconfigure_wm_hints() {
+  const auto& win = m_opts.window;
+
   m_log.trace("bar: Set window WM_NAME");
-  xcb_icccm_set_wm_name(m_connection, m_opts.window, XCB_ATOM_STRING, 8, m_opts.wmname.size(), m_opts.wmname.c_str());
-  xcb_icccm_set_wm_class(m_connection, m_opts.window, 15, "polybar\0Polybar");
+  icccm_util::set_wm_name(m_connection, win, m_opts.wmname.c_str(), m_opts.wmname.size(), "polybar\0Polybar", 15_z);
 
   m_log.trace("bar: Set window _NET_WM_WINDOW_TYPE");
-  set_wm_window_type(m_connection, m_opts.window, {_NET_WM_WINDOW_TYPE_DOCK});
+  ewmh_util::set_wm_window_type(win, {_NET_WM_WINDOW_TYPE_DOCK});
 
   m_log.trace("bar: Set window _NET_WM_STATE");
-  set_wm_state(m_connection, m_opts.window, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
+  ewmh_util::set_wm_state(win, {_NET_WM_STATE_STICKY, _NET_WM_STATE_ABOVE});
 
   m_log.trace("bar: Set window _NET_WM_DESKTOP");
-  set_wm_desktop(m_connection, m_opts.window, 0xFFFFFFFF);
+  ewmh_util::set_wm_desktop(win, 0xFFFFFFFF);
 
   m_log.trace("bar: Set window _NET_WM_PID");
-  set_wm_pid(m_connection, m_opts.window, getpid());
+  ewmh_util::set_wm_pid(win);
 }
 
 /**
@@ -785,8 +785,7 @@ bool bar::on(const signals::ui::tick&) {
 
 bool bar::on(const signals::ui::dim_window& sig) {
   m_opts.dimmed = sig.cast() != 1.0;
-  set_wm_window_opacity(m_connection, m_opts.window, sig.cast() * 0xFFFFFFFF);
-  m_connection.flush();
+  ewmh_util::set_wm_window_opacity(m_opts.window, sig.cast() * 0xFFFFFFFF);
   return false;
 }
 

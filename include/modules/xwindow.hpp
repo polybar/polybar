@@ -2,7 +2,6 @@
 
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
-#include "x11/events.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 #include "x11/window.hpp"
@@ -18,7 +17,7 @@ namespace modules {
     ~active_window();
 
     bool match(const xcb_window_t win) const;
-    string title(xcb_ewmh_connection_t* ewmh) const;
+    string title() const;
 
    private:
     xcb_connection_t* m_connection{nullptr};
@@ -43,7 +42,6 @@ namespace modules {
     static constexpr const char* TAG_LABEL{"<label>"};
 
     connection& m_connection;
-    ewmh_connection_t m_ewmh;
     unique_ptr<active_window> m_active;
     label_t m_label;
   };

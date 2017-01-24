@@ -9,7 +9,6 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
-#include "events/signal_receiver.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/command.hpp"
@@ -18,12 +17,9 @@
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
-#include "x11/events.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/types.hpp"
-
-#include <csignal>
 
 POLYBAR_NS
 

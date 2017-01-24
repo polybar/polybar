@@ -1,7 +1,5 @@
 #pragma once
 
-#include <xcb/xcb.h>
-
 #include "common.hpp"
 #include "x11/connection.hpp"
 
