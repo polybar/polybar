@@ -111,6 +111,9 @@ namespace signals {
     struct unshade_window : public detail::base_signal<unshade_window> {
       using base_type::base_type;
     };
+    struct request_snapshot : public detail::value_signal<request_snapshot, string> {
+      using base_type::base_type;
+    };
   }
 
   namespace ui_tray {

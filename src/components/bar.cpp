@@ -208,7 +208,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.foreground = parse_or_throw("foreground", color_util::hex<uint16_t>(m_opts.foreground));
 
   // Load over-/underline
-  auto line_color = m_conf.get(bs, "line-color", "#f00"s);
+  auto line_color = m_conf.get(bs, "line-color", "#ffff0000"s);
   auto line_size = m_conf.get(bs, "line-size", 0);
 
   m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
@@ -217,7 +217,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.underline.color = parse_or_throw("underline-color", line_color);
 
   // Load border settings
-  auto border_color = m_conf.get(bs, "border-color", ""s);
+  auto border_color = m_conf.get(bs, "border-color", "#00000000"s);
   auto border_size = m_conf.get(bs, "border-size", 0);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
@@ -494,11 +494,13 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
+#if 0
 #ifdef DEBUG_SHADED
   if (m_opts.origin == edge::TOP) {
     m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::unshade_window{}); });
     return;
   }
+#endif
 #endif
 
   if (m_opts.dimmed) {
@@ -518,11 +520,13 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
+#if 0
 #ifdef DEBUG_SHADED
   if (m_opts.origin == edge::TOP) {
     m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::shade_window{}); });
     return;
   }
+#endif
 #endif
 
   if (!m_opts.dimmed) {

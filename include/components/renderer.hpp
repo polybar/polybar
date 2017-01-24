@@ -21,8 +21,14 @@ class logger;
 
 using std::map;
 
+struct alignment_block {
+  xcb_pixmap_t pixmap;
+  double x;
+  double y;
+};
+
 class renderer
-    : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::parser::change_background,
+    : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_background,
           signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
           signals::parser::change_font, signals::parser::change_alignment, signals::parser::offset_pixel,
           signals::parser::attribute_set, signals::parser::attribute_unset, signals::parser::attribute_toggle,
@@ -50,9 +56,13 @@ class renderer
   void draw_text(const string& contents);
 
  protected:
-  void adjust_clickable_areas(double width);
+  double block_x(alignment a) const;
+  double block_y(alignment a) const;
+  double block_w(alignment a) const;
+
   void highlight_clickable_areas();
 
+  bool on(const signals::ui::request_snapshot& evt);
   bool on(const signals::parser::change_background& evt);
   bool on(const signals::parser::change_foreground& evt);
   bool on(const signals::parser::change_underline& evt);
@@ -80,9 +90,6 @@ class renderer
   const logger& m_log;
   const bar_settings& m_bar;
 
-  xcb_rectangle_t m_rect{0, 0, 0U, 0U};
-  reserve_area m_cleararea{};
-
   int m_depth{32};
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
@@ -90,31 +97,32 @@ class renderer
   xcb_gcontext_t m_gcontext;
   xcb_pixmap_t m_pixmap;
 
-  vector<action_block> m_actions;
+  xcb_rectangle_t m_rect{0, 0, 0U, 0U};
+  reserve_area m_cleararea{};
 
   // bool m_autosize{false};
 
   unique_ptr<cairo::context> m_context;
-  unique_ptr<cairo::surface> m_surface;
+  unique_ptr<cairo::xcb_surface> m_surface;
+  map<alignment, alignment_block> m_blocks;
 
-  cairo_operator_t m_compositing_background;
-  cairo_operator_t m_compositing_foreground;
-  cairo_operator_t m_compositing_overline;
-  cairo_operator_t m_compositing_underline;
-  cairo_operator_t m_compositing_borders;
+  cairo_operator_t m_comp_bg;
+  cairo_operator_t m_comp_fg;
+  cairo_operator_t m_comp_ol;
+  cairo_operator_t m_comp_ul;
+  cairo_operator_t m_comp_border;
 
-  alignment m_alignment{alignment::NONE};
-  std::bitset<2> m_attributes;
+  alignment m_align;
+  std::bitset<3> m_attr;
+  int m_font;
+  unsigned int m_bg;
+  unsigned int m_fg;
+  unsigned int m_ol;
+  unsigned int m_ul;
+  vector<action_block> m_actions;
 
-  int m_fontindex;
-
-  unsigned int m_color_background;
-  unsigned int m_color_foreground;
-  unsigned int m_color_overline;
-  unsigned int m_color_underline;
-
-  double m_x{0.0};
-  double m_y{0.0};
+  bool m_fixedcenter;
+  string m_snapshot_dst;
 };
 
 POLYBAR_NS_END

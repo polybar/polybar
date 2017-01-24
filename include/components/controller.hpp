@@ -45,7 +45,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
       unique_ptr<inotify_watch>&&);
   ~controller();
 
-  bool run(bool writeback = false);
+  bool run(bool writeback, string snapshot_dst);
 
   bool enqueue(event&& evt);
   bool enqueue(string&& input_data);
@@ -83,6 +83,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * @brief State flag
    */
   std::atomic<bool> m_process_events{false};
+
+  /**
+   * @brief Destination path of generated snapshot
+   */
+  string m_snapshot_dst;
 
   /**
    * @brief Controls weather the output gets printed to stdout
@@ -133,6 +138,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * @brief Thread for the eventqueue loop
    */
   std::thread m_event_thread;
+
+  /**
+   * @brief Misc threads
+   */
+  vector<std::thread> m_threads;
 };
 
 POLYBAR_NS_END

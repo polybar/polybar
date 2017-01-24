@@ -47,10 +47,10 @@ string builder::flush() {
   if (m_tags[syntaxtag::u]) {
     underline_color_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::UNDERLINE)) & 1U) {
+  if ((m_attributes >> static_cast<int>(attribute::UNDERLINE)) & 1) {
     underline_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::OVERLINE)) & 1U) {
+  if ((m_attributes >> static_cast<int>(attribute::OVERLINE)) & 1) {
     overline_close();
   }
 

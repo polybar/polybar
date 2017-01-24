@@ -23,6 +23,8 @@
 #include "x11/tray_manager.hpp"
 #include "x11/types.hpp"
 
+#include <signal.h>
+
 POLYBAR_NS
 
 array<int, 2> g_eventpipe{{-1, -1}};
@@ -35,6 +37,10 @@ void interrupt_handler(int signum) {
   if (write(g_eventpipe[PIPE_WRITE], &g_terminate, 1) == -1) {
     throw system_error("Failed to write to eventpipe");
   }
+}
+
+void handler(int signum) {
+  printf("atestin %i\n", signum);
 }
 
 /**
@@ -141,15 +147,25 @@ controller::~controller() {
       m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
     }
   }
+
+  m_log.trace("controller: Joining threads");
+  for (auto&& t : m_threads) {
+    if (t.joinable()) {
+      t.join();
+    }
+  }
 }
 
 /**
  * Run the main loop
  */
-bool controller::run(bool writeback) {
+bool controller::run(bool writeback, string snapshot_dst) {
   m_log.info("Starting application");
   assert(!m_connection.connection_has_error());
+
   m_writeback = writeback;
+  m_snapshot_dst = move(snapshot_dst);
+
   m_sig.attach(this);
 
   size_t started_modules{0};
@@ -434,6 +450,7 @@ bool controller::process_update(bool force) {
     bool is_left = false;
     bool is_center = false;
     bool is_right = false;
+    bool is_first = true;
 
     if (block.first == alignment::LEFT) {
       is_left = true;
@@ -448,7 +465,14 @@ bool controller::process_update(bool force) {
         continue;
       }
 
-      string module_contents{module->contents()};
+      string module_contents;
+
+      try {
+        module_contents = module->contents();
+      } catch (const exception& err) {
+        m_log.err("Failed to get contents for \"%s\" (err: %s)", module->name(), err.what());
+      }
+
       if (module_contents.empty()) {
         continue;
       }
@@ -461,12 +485,14 @@ bool controller::process_update(bool force) {
         block_contents += separator;
       }
 
-      if (!block_contents.empty() && !margin_left.empty() && !(is_left && module == block.second.front())) {
+      if (!block_contents.empty() && !margin_left.empty() && !(is_left && is_first)) {
         block_contents += margin_left;
       }
 
       block_contents.reserve(module_contents.size());
       block_contents += module_contents;
+
+      is_first = false;
     }
 
     if (block_contents.empty()) {
@@ -558,6 +584,15 @@ bool controller::on(const signals::eventqueue::check_state&) {
 bool controller::on(const signals::ui::ready&) {
   m_process_events = true;
   enqueue(make_update_evt(true));
+
+  if (!m_snapshot_dst.empty()) {
+    m_threads.emplace_back(thread([&]{
+      this_thread::sleep_for(3s);
+      m_sig.emit(signals::ui::request_snapshot{move(m_snapshot_dst)});
+      enqueue(make_update_evt(true));
+    }));
+  }
+
   // let the event bubble
   return false;
 }

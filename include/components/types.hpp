@@ -39,17 +39,7 @@ enum class syntaxtag {
   u,  // underline color
 };
 
-enum class mousebtn {
-  NONE = 0,
-  LEFT,
-  MIDDLE,
-  RIGHT,
-  SCROLL_UP,
-  SCROLL_DOWN,
-  DOUBLE_LEFT,
-  DOUBLE_MIDDLE,
-  DOUBLE_RIGHT
-};
+enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
 
 enum class strut {
   LEFT = 0,

@@ -35,6 +35,7 @@ namespace signals {
     struct dim_window;
     struct shade_window;
     struct unshade_window;
+    struct request_snapshot;
   }
   namespace ui_tray {
     struct mapped_clients;

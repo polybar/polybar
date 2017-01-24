@@ -1,10 +1,9 @@
 #pragma once
 
 #include <cairo/cairo-ft.h>
-#include <list>
-#include <set>
-#include <string>
 
+#include "cairo/types.hpp"
+#include "cairo/utils.hpp"
 #include "common.hpp"
 #include "errors.hpp"
 #include "settings.hpp"
@@ -15,47 +14,10 @@
 POLYBAR_NS
 
 namespace cairo {
-  namespace details {
-    /**
-     * @brief Global pointer to the Freetype library handler
-     */
-    static FT_Library g_ftlib;
-
-    /**
-     * @brief RAII wrapper used to access the underlying
-     * FT_Face of a scaled font face
-     */
-    class ft_face_lock {
-     public:
-      explicit ft_face_lock(cairo_scaled_font_t* font) : m_font(font) {
-        m_face = cairo_ft_scaled_font_lock_face(m_font);
-      }
-      ~ft_face_lock() {
-        cairo_ft_scaled_font_unlock_face(m_font);
-      }
-
-      operator FT_Face() const {
-        return m_face;
-      }
-
-     private:
-      cairo_scaled_font_t* m_font;
-      FT_Face m_face;
-    };
-  }
-
   /**
-   * @brief Unicode character containing converted codepoint
-   * and details on where its position in the source string
+   * @brief Global pointer to the Freetype library handler
    */
-  struct unicode_character {
-    explicit unicode_character() : codepoint(0), offset(0), length(0) {}
-
-    unsigned long codepoint;
-    int offset;
-    int length;
-  };
-  using unicode_charlist = std::list<unicode_character>;
+  static FT_Library g_ftlib;
 
   /**
    * @brief Abstract font face
@@ -76,8 +38,8 @@ namespace cairo {
       cairo_set_font_face(m_cairo, cairo_font_face_reference(m_font_face));
     }
 
-    virtual size_t match(unicode_charlist& charlist) = 0;
-    virtual size_t render(const string& text, double x = 0.0, double y = 0.0, bool reverse = false) = 0;
+    virtual size_t match(utils::unicode_charlist& charlist) = 0;
+    virtual size_t render(const string& text, double x = 0.0, double y = 0.0) = 0;
     virtual void textwidth(const string& text, cairo_text_extents_t* extents) = 0;
 
    protected:
@@ -109,7 +71,7 @@ namespace cairo {
         throw application_error(sstream() << "cairo_scaled_font_create(): " << cairo_status_to_string(status));
       }
 
-      auto lock = make_unique<details::ft_face_lock>(m_scaled);
+      auto lock = make_unique<utils::ft_face_lock>(m_scaled);
       auto face = static_cast<FT_Face>(*lock);
 
       if (FT_Select_Charmap(face, FT_ENCODING_UNICODE) == FT_Err_Ok) {
@@ -166,8 +128,8 @@ namespace cairo {
       cairo_set_scaled_font(m_cairo, m_scaled);
     }
 
-    size_t match(unicode_charlist& charlist) override {
-      auto lock = make_unique<details::ft_face_lock>(m_scaled);
+    size_t match(utils::unicode_charlist& charlist) override {
+      auto lock = make_unique<utils::ft_face_lock>(m_scaled);
       auto face = static_cast<FT_Face>(*lock);
       size_t available_chars = 0;
       for (auto&& c : charlist) {
@@ -181,15 +143,11 @@ namespace cairo {
       return available_chars;
     }
 
-    size_t render(const string& text, double x = 0.0, double y = 0.0, bool reverse = false) override {
+    size_t render(const string& text, double x = 0.0, double y = 0.0) override {
       cairo_glyph_t* glyphs{nullptr};
       cairo_text_cluster_t* clusters{nullptr};
       cairo_text_cluster_flags_t cf{};
       int nglyphs = 0, nclusters = 0;
-
-      if (reverse) {
-        cf = CAIRO_TEXT_CLUSTER_FLAG_BACKWARD;
-      }
 
       string utf8 = string(text);
       auto status = cairo_scaled_font_text_to_glyphs(
@@ -222,12 +180,16 @@ namespace cairo {
       }
 
       if (bytes) {
+        // auto lock = make_unique<utils::device_lock>(cairo_surface_get_device(cairo_get_target(m_cairo)));
+        // if (lock.get()) {
+        //   cairo_glyph_path(m_cairo, glyphs, nglyphs);
+        // }
+
         cairo_text_extents_t extents{};
         cairo_scaled_font_glyph_extents(m_scaled, glyphs, nglyphs, &extents);
         cairo_show_text_glyphs(m_cairo, utf8.c_str(), utf8.size(), glyphs, nglyphs, clusters, nclusters, cf);
-        cairo_rel_move_to(m_cairo, extents.x_advance, 0.0);
-        // cairo_glyph_path(m_cairo, glyphs, nglyphs);
-        cairo_fill_preserve(m_cairo);
+        cairo_fill(m_cairo);
+        cairo_move_to(m_cairo, x + extents.x_advance, 0.0);
       }
 
       cairo_glyph_free(glyphs);
@@ -276,12 +238,12 @@ namespace cairo {
     static bool fc_init{false};
     if (!fc_init && !(fc_init = FcInit())) {
       throw application_error("Could not load fontconfig");
-    } else if (FT_Init_FreeType(&details::g_ftlib) != FT_Err_Ok) {
+    } else if (FT_Init_FreeType(&g_ftlib) != FT_Err_Ok) {
       throw application_error("Could not load FreeType");
     }
 
     static auto fc_cleanup = scope_util::make_exit_handler([] {
-      FT_Done_FreeType(details::g_ftlib);
+      FT_Done_FreeType(g_ftlib);
       FcFini();
     });
 

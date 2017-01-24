@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cairo/cairo.h>
-#include <map>
+#include <list>
+#include <set>
 
-#include "cairo/font.hpp"
 #include "common.hpp"
 #include "utils/string.hpp"
 
@@ -11,6 +11,66 @@ POLYBAR_NS
 
 namespace cairo {
   namespace utils {
+    /**
+     * @brief RAII wrapper used acquire cairo_device_t
+     */
+    class device_lock {
+     public:
+      explicit device_lock(cairo_device_t* device) {
+        auto status = cairo_device_acquire(device);
+        if (status == CAIRO_STATUS_SUCCESS) {
+          m_device = device;
+        }
+      }
+      ~device_lock() {
+        cairo_device_release(m_device);
+      }
+      operator bool() const {
+        return m_device != nullptr;
+      }
+      operator cairo_device_t*() const {
+        return m_device;
+      }
+
+     private:
+      cairo_device_t* m_device{nullptr};
+    };
+
+    /**
+     * @brief RAII wrapper used to access the underlying
+     * FT_Face of a scaled font face
+     */
+    class ft_face_lock {
+     public:
+      explicit ft_face_lock(cairo_scaled_font_t* font) : m_font(font) {
+        m_face = cairo_ft_scaled_font_lock_face(m_font);
+      }
+      ~ft_face_lock() {
+        cairo_ft_scaled_font_unlock_face(m_font);
+      }
+
+      operator FT_Face() const {
+        return m_face;
+      }
+
+     private:
+      cairo_scaled_font_t* m_font;
+      FT_Face m_face;
+    };
+
+    /**
+     * @brief Unicode character containing converted codepoint
+     * and details on where its position in the source string
+     */
+    struct unicode_character {
+      explicit unicode_character() : codepoint(0), offset(0), length(0) {}
+
+      unsigned long codepoint;
+      int offset;
+      int length;
+    };
+    using unicode_charlist = std::list<unicode_character>;
+
     /**
      * @see <cairo/cairo.h>
      */

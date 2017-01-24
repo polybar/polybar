@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
 
     auto ctrl = controller::make(move(ipc), move(config_watch));
 
-    if (!ctrl->run(cli->has("stdout"))) {
+    if (!ctrl->run(cli->has("stdout"), cli->get("png"))) {
       reload = true;
     }
   } catch (const exception& err) {

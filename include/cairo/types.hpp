@@ -7,6 +7,10 @@ POLYBAR_NS
 enum class alignment;
 
 namespace cairo {
+  struct point {
+    double x;
+    double y;
+  };
   struct abspos {
     double x;
     double y;
@@ -16,14 +20,12 @@ namespace cairo {
     double x;
     double y;
   };
-
   struct rect {
     double x;
     double y;
     double w;
     double h;
   };
-
   struct line {
     double x1;
     double y1;
@@ -31,15 +33,21 @@ namespace cairo {
     double y2;
     double w;
   };
-
+  struct displace {
+    double x;
+    double y;
+    double w;
+    double h;
+    double dx;
+    double dy;
+  };
   struct linear_gradient {
-    double x0;
-    double y0;
     double x1;
     double y1;
+    double x2;
+    double y2;
     vector<unsigned int> steps;
   };
-
   struct rounded_corners {
     double x;
     double y;
@@ -47,11 +55,15 @@ namespace cairo {
     double h;
     double radius;
   };
-
   struct textblock {
     alignment align;
     string contents;
     int fontindex;
+    unsigned int bg;
+    int bg_operator;
+    rect bg_rect;
+    double *x_advance;
+    double *y_advance;
   };
 }
 
