@@ -8,10 +8,12 @@
 ;=====================================================
 
 [colors]
+;background = ${xrdb:color0:#222}
 background = #222
 background-alt = #444
+;foreground = ${xrdb:color7:#222}
 foreground = #dfdfdf
-foreground-alt = #55
+foreground-alt = #555
 primary = #ffb52a
 secondary = #e60053
 alert = #bd2c40
@@ -27,7 +29,6 @@ height = 27
 offset-x = 0
 offset-y = 0
 
-;background = ${xrdb:color9}
 background = ${colors.background}
 foreground = ${colors.foreground}
 
@@ -44,9 +45,9 @@ padding-right = 2
 module-margin-left = 1
 module-margin-right = 2
 
-font-0 = @FONT_FIXED@
-font-1 = @FONT_UNIFONT@:size=6:heavy;-2
-font-2 = @FONT_SIJI@
+font-0 = @FONT_FIXED@;1
+font-1 = @FONT_UNIFONT@:size=11:heavy;0
+font-2 = @FONT_SIJI@;1
 
 modules-left = @MODULES_LEFT@
 modules-center = @MODULES_CENTER@
@@ -76,8 +77,14 @@ label = %title:0:30:...%
 [module/xkeyboard]
 type = internal/xkeyboard
 blacklist-0 = num lock
-label-layout = %{F#55}%{F-} %layout%
+
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-alt}
+format-prefix-underline = ${colors.secondary}
+
+label-layout = %layout%
 label-layout-underline = ${colors.secondary}
+
 label-indicator-padding = 2
 label-indicator-margin = 1
 label-indicator-background = ${colors.secondary}
@@ -144,25 +151,16 @@ label-visible-padding = ${self.label-focused-padding}
 
 [module/mpd]
 type = internal/mpd
-
-format-online = <label-song>  <icon-prev> <icon-seekb> <icon-stop> <toggle> <icon-seekf> <icon-next>  <icon-repeat> <icon-random>
-
-label-song-maxlen = 25
-label-song-ellipsis = true
+format-online = <label-song>  <icon-prev> <icon-stop> <toggle> <icon-next>
 
 icon-prev = 
-icon-seekb = 
 icon-stop = 
 icon-play = 
 icon-pause = 
 icon-next = 
-icon-seekf = 
 
-icon-random = 
-icon-repeat = 
-
-toggle-on-foreground = ${colors.primary}
-toggle-off-foreground = #66
+label-song-maxlen = 25
+label-song-ellipsis = true
 
 [module/xbacklight]
 type = internal/xbacklight
@@ -171,14 +169,14 @@ format = <label> <bar>
 label = BL
 
 bar-width = 10
-bar-indicator = │
+bar-indicator = 
 bar-indicator-foreground = #ff
 bar-indicator-font = 2
 bar-fill = ─
-bar-fill-font = 2
+bar-fill-font = 3
 bar-fill-foreground = #9f78e1
 bar-empty = ─
-bar-empty-font = 2
+bar-empty-font = 3
 bar-empty-foreground = ${colors.foreground-alt}
 
 [module/backlight-acpi]
@@ -209,11 +207,13 @@ interval = 3.0
 
 format-connected = <ramp-signal> <label-connected>
 format-connected-underline = #9f78e1
-format-disconnected-underline = ${self.format-connected-underline}
-
 label-connected = %essid%
-label-disconnected = %ifname% disconnected
-label-disconnected-foreground = ${colors.foreground-alt}
+
+format-disconnected =
+;format-disconnected = <label-disconnected>
+;format-disconnected-underline = ${self.format-connected-underline}
+;label-disconnected = %ifname% disconnected
+;label-disconnected-foreground = ${colors.foreground-alt}
 
 ramp-signal-0 = 
 ramp-signal-1 = 
@@ -232,9 +232,11 @@ format-connected-prefix = " "
 format-connected-foreground-foreground = ${colors.foreground-alt}
 label-connected = %local_ip%
 
-format-disconnected-underline = ${self.format-connected-underline}
-label-disconnected = %ifname% disconnected
-label-disconnected-foreground = ${colors.foreground-alt}
+format-disconnected =
+;format-disconnected = <label-disconnected>
+;format-disconnected-underline = ${self.format-connected-underline}
+;label-disconnected = %ifname% disconnected
+;label-disconnected-foreground = ${colors.foreground-alt}
 
 [module/date]
 type = internal/date
@@ -272,13 +274,12 @@ bar-volume-foreground-4 = #55aa55
 bar-volume-foreground-5 = #f5a70a
 bar-volume-foreground-6 = #ff5555
 bar-volume-gradient = false
-bar-volume-indicator = │
-bar-volume-indicator-font = 2
-bar-volume-indicator-foreground = #ff
+bar-volume-indicator = 
+bar-volume-indicator-font = 3
 bar-volume-fill = ─
-bar-volume-fill-font = 2
+bar-volume-fill-font = 3
 bar-volume-empty = ─
-bar-volume-empty-font = 2
+bar-volume-empty-font = 3
 bar-volume-empty-foreground = ${colors.foreground-alt}
 
 [module/battery]
@@ -332,7 +333,7 @@ type = custom/menu
 
 format-spacing = 1
 
-label-open =  power
+label-open = 
 label-open-foreground = ${colors.secondary}
 label-close =  cancel
 label-close-foreground = ${colors.secondary}

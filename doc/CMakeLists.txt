@@ -4,8 +4,8 @@
 
 add_subdirectory(zsh)
 
-set(MODULES_LEFT "bspwm i3 xwindow")
-set(MODULES_CENTER "")
+set(MODULES_LEFT "bspwm i3")
+set(MODULES_CENTER "mpd")
 set(MODULES_RIGHT "xbacklight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
 
 set(FONT_FIXED "fixed:pixelsize=10")
@@ -23,6 +23,9 @@ if(NOT ENABLE_ALSA)
 endif()
 if(NOT ENABLE_I3)
   string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
+endif()
+if(NOT ENABLE_MPD)
+  string(REPLACE "mpd" "" MODULES_CENTER ${MODULES_CENTER})
 endif()
 if(NOT ENABLE_NETWORK)
   string(REPLACE " wlan eth" "" MODULES_RIGHT ${MODULES_RIGHT})
