@@ -1,7 +1,8 @@
 #!/bin/bash
 if [ -z "$(ls -A "${DEPS_DIR}/xcb-util-xrm" 2>/dev/null)" ]; then
+  cd "${DEPS_DIR}" || exit 1
   git clone --recursive https://github.com/Airblader/xcb-util-xrm
-  cd xcb-util-xrm
+  cd xcb-util-xrm || exit 1
   ./autogen.sh --prefix=/usr --libdir=/usr/lib
   make
   sudo make install
