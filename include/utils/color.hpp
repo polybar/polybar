@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "common.hpp"
 #include "utils/cache.hpp"
 
@@ -92,7 +94,7 @@ namespace color_util {
   inline unsigned int parse(string hex, unsigned int fallback = 0) {
     if ((hex = parse_hex(hex)).empty())
       return fallback;
-    return strtoul(&hex[1], nullptr, 16);
+    return std::strtoul(&hex[1], nullptr, 16);
   }
 
   inline string simplify_hex(string hex) {
