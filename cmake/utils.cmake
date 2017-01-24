@@ -198,7 +198,7 @@ function(font_query output_variable fontname)
     set(output_variable "${output_variable}" PARENT_SCOPE)
     message(STATUS "Found font: ${output_variable}")
   else()
-    message_colored(WARNING "Font not found: ${fontname}" "33;1")
+    message_colored(STATUS "Font not found: ${fontname}" "33;1")
   endif()
 endfunction()
 
