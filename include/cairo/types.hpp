@@ -58,7 +58,7 @@ namespace cairo {
   struct textblock {
     alignment align;
     string contents;
-    int fontindex;
+    int font;
     unsigned int bg;
     int bg_operator;
     rect bg_rect;

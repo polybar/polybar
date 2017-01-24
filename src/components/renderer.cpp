@@ -489,7 +489,7 @@ void renderer::draw_text(const string& contents) {
   cairo::textblock block{};
   block.align = m_align;
   block.contents = contents;
-  block.fontindex = m_font;
+  block.font = m_font;
   block.bg = 0;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
   block.bg_operator = 0;

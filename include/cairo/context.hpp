@@ -151,9 +151,9 @@ namespace cairo {
 
       // Sort the fontlist so that the
       // preferred font gets prioritized
-      auto& fns = m_fonts;
-      std::sort(fns.begin(), fns.end(), [&](const unique_ptr<font>& a, const unique_ptr<font>&) {
-        if (t.fontindex > 0 && std::distance(fns.begin(), std::find(fns.begin(), fns.end(), a)) == t.fontindex - 1) {
+      vector<shared_ptr<font>> fns(m_fonts.begin(), m_fonts.end());
+      std::sort(fns.begin(), fns.end(), [&](const shared_ptr<font>& a, const shared_ptr<font>&) {
+        if (t.font > 0 && std::distance(fns.begin(), std::find(fns.begin(), fns.end(), a)) == t.font - 1) {
           return -1;
         } else {
           return 0;
@@ -232,7 +232,7 @@ namespace cairo {
       return *this;
     }
 
-    context& operator<<(unique_ptr<font>&& f) {
+    context& operator<<(shared_ptr<font>&& f) {
       m_fonts.emplace_back(forward<decltype(f)>(f));
       return *this;
     }
@@ -315,7 +315,7 @@ namespace cairo {
    protected:
     cairo_t* m_c;
     const logger& m_log;
-    vector<unique_ptr<font>> m_fonts;
+    vector<shared_ptr<font>> m_fonts;
     std::deque<pair<double, double>> m_points;
   };
 }

@@ -263,7 +263,7 @@ namespace cairo {
     FcPatternPrint(match);
 #endif
 
-    return make_unique<font_fc>(cairo, match, offset);
+    return make_shared<font_fc>(cairo, match, offset);
   }
 }
 
