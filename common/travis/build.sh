@@ -1,2 +1,3 @@
 #!/bin/bash
-cd "${TRAVIS_BUILD_DIR}/build" && make -j"${JOBS}"
+cd "${TRAVIS_BUILD_DIR}/build" || false
+make -j"${JOBS}" || exit $?
