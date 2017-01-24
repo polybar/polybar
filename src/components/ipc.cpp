@@ -24,6 +24,9 @@ ipc::make_type ipc::make() {
 ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {
   m_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
+  if (file_util::exists(m_path) && unlink(m_path.c_str()) == -1) {
+    throw system_error("Failed to remove ipc channel");
+  }
   if (mkfifo(m_path.c_str(), 0666) == -1) {
     throw system_error("Failed to create ipc channel");
   }
