@@ -141,11 +141,11 @@ renderer::renderer(
     }
   }
 
-  m_comp_bg = cairo::utils::str2operator(m_conf.get("settings", "compositing-background", ""s), CAIRO_OPERATOR_SOURCE);
+  m_comp_bg = cairo::utils::str2operator(m_conf.get("settings", "compositing-background", ""s), CAIRO_OPERATOR_OVER);
   m_comp_fg = cairo::utils::str2operator(m_conf.get("settings", "compositing-foreground", ""s), CAIRO_OPERATOR_OVER);
   m_comp_ol = cairo::utils::str2operator(m_conf.get("settings", "compositing-overline", ""s), CAIRO_OPERATOR_OVER);
   m_comp_ul = cairo::utils::str2operator(m_conf.get("settings", "compositing-underline", ""s), CAIRO_OPERATOR_OVER);
-  m_comp_border = cairo::utils::str2operator(m_conf.get("settings", "compositing-border", ""s), CAIRO_OPERATOR_SOURCE);
+  m_comp_border = cairo::utils::str2operator(m_conf.get("settings", "compositing-border", ""s), CAIRO_OPERATOR_OVER);
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
