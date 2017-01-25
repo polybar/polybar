@@ -121,6 +121,20 @@ renderer::renderer(
 
   m_log.trace("renderer: Load fonts");
   {
+    double dpi_x = 96, dpi_y = 96;
+    if (m_conf.has(m_conf.section(), "dpi")) {
+      try {
+        // dpi specified directly as a value
+        dpi_x = dpi_y = m_conf.get<double>("dpi");
+      } catch (const value_error&) {
+        // dpi to be comptued
+        auto screen = m_connection.screen();
+        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
+        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
+      }
+    }
+    m_log.trace("renderer: DPI is %.1fx%.1f", dpi_x, dpi_y);
+
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
@@ -130,7 +144,7 @@ renderer::renderer(
     auto fonts_loaded = false;
     for (const auto& f : fonts) {
       vector<string> fd{string_util::split(f, ';')};
-      auto font = cairo::make_font(*m_context, string(fd[0]), fd.size() > 1 ? std::atoi(fd[1].c_str()) : 0);
+      auto font = cairo::make_font(*m_context, string(fd[0]), fd.size() > 1 ? std::atoi(fd[1].c_str()) : 0, dpi_x, dpi_y);
       m_log.info("Loaded font \"%s\" (name=%s, file=%s)", fd[0], font->name(), font->file());
       *m_context << move(font);
       fonts_loaded = true;

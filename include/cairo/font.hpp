@@ -30,7 +30,7 @@ namespace cairo {
     virtual string name() const = 0;
     virtual string file() const = 0;
     virtual double offset() const = 0;
-    virtual double size() const = 0;
+    virtual double size(double dpi) const = 0;
 
     virtual cairo_font_extents_t extents() = 0;
 
@@ -54,10 +54,10 @@ namespace cairo {
    */
   class font_fc : public font {
    public:
-    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset) : font(cairo, offset), m_pattern(pattern) {
+    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset, double dpi_x, double dpi_y) : font(cairo, offset), m_pattern(pattern) {
       cairo_matrix_t fm;
       cairo_matrix_t ctm;
-      cairo_matrix_init_scale(&fm, size(), size());
+      cairo_matrix_init_scale(&fm, size(dpi_x), size(dpi_y));
       cairo_get_matrix(m_cairo, &ctm);
 
       auto fontface = cairo_ft_font_face_create_for_pattern(m_pattern);
@@ -111,12 +111,14 @@ namespace cairo {
       return m_offset;
     }
 
-    double size() const override {
+    double size(double dpi) const override {
       bool scalable;
       double px;
       property(FC_SCALABLE, &scalable);
       if (scalable) {
+        // convert from pt to px using the provided dpi
         property(FC_SIZE, &px);
+        px = static_cast<int>(px * dpi / 72.0 + 0.5);
       } else {
         property(FC_PIXEL_SIZE, &px);
         px = static_cast<int>(px + 0.5);
@@ -234,7 +236,7 @@ namespace cairo {
   /**
    * Match and create font from given fontconfig pattern
    */
-  decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset) {
+  decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset, double dpi_x, double dpi_y) {
     static bool fc_init{false};
     if (!fc_init && !(fc_init = FcInit())) {
       throw application_error("Could not load fontconfig");
@@ -263,7 +265,7 @@ namespace cairo {
     FcPatternPrint(match);
 #endif
 
-    return make_shared<font_fc>(cairo, match, offset);
+    return make_shared<font_fc>(cairo, match, offset, dpi_x, dpi_y);
   }
 }
 
