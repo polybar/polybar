@@ -5,8 +5,8 @@
 POLYBAR_NS
 
 namespace env_util {
-  bool has(const char* var);
-  string get(const char* var, string fallback = "");
+  bool has(const string& var);
+  string get(const string& var, string fallback = "");
 }
 
 POLYBAR_NS_END

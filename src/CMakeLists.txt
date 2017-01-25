@@ -149,7 +149,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC
 # Create executable target: ipc messager {{{
 
 if(BUILD_IPC_MSG)
-  make_executable(${PROJECT_NAME}-msg SOURCES ipc.cpp utils/file.cpp)
+  make_executable(${PROJECT_NAME}-msg SOURCES ipc.cpp utils/env.cpp utils/file.cpp)
   target_compile_options(${PROJECT_NAME}-msg PUBLIC
     $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 endif()

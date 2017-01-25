@@ -7,6 +7,7 @@
 #include <streambuf>
 
 #include "errors.hpp"
+#include "utils/env.hpp"
 #include "utils/file.hpp"
 
 POLYBAR_NS
@@ -207,11 +208,17 @@ namespace file_util {
   /**
    * Get glob results using given pattern
    */
-  vector<string> glob(const string& pattern) {
+  vector<string> glob(string pattern) {
     glob_t result{};
     vector<string> ret;
 
-    if (glob(pattern.c_str(), GLOB_TILDE, nullptr, &result) == 0) {
+    // Manually expand tilde to fix builds using versions of libc
+    // that doesn't provide the GLOB_TILDE flag (musl for example)
+    if (pattern[0] == '~') {
+      pattern.replace(0, 1, env_util::get("HOME"));
+    }
+
+    if (::glob(pattern.c_str(), 0, nullptr, &result) == 0) {
       for (size_t i = 0_z; i < result.gl_pathc; ++i) {
         ret.emplace_back(result.gl_pathv[i]);
       }
