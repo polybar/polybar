@@ -1,6 +1,7 @@
 #include <climits>
 #include <fstream>
 
+#include "cairo/utils.hpp"
 #include "components/config.hpp"
 #include "utils/color.hpp"
 #include "utils/env.hpp"
@@ -284,6 +285,11 @@ rgba config::convert(string&& value) const {
       color_util::blue_channel<unsigned char>(color) / 255.0,
       color_util::alpha_channel<unsigned char>(color) / 255.0};
   // clang-format on
+}
+
+template <>
+cairo_operator_t config::convert(string&& value) const {
+  return cairo::utils::str2operator(forward<string>(value), CAIRO_OPERATOR_OVER);
 }
 
 POLYBAR_NS_END

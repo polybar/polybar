@@ -320,16 +320,21 @@ void bar::parse(string&& data, bool force) {
 
   m_lastinput = data;
 
-  m_log.info("Redrawing bar window");
-  m_renderer->begin();
+  auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
-    if (m_tray->settings().align == alignment::LEFT) {
-      m_renderer->reserve_space(edge::LEFT, m_tray->settings().configured_w);
-    } else if (m_tray->settings().align == alignment::RIGHT) {
-      m_renderer->reserve_space(edge::RIGHT, m_tray->settings().configured_w);
+  if (m_tray && m_tray->settings().configured_slots) {
+    auto trayalign = m_tray->settings().align;
+    auto traywidth = m_tray->settings().configured_w;
+    if (trayalign == alignment::LEFT) {
+      rect.x += traywidth;
+      rect.width -= traywidth;
+    } else if (trayalign == alignment::RIGHT) {
+      rect.width -= traywidth;
     }
   }
+
+  m_log.info("Redrawing bar window");
+  m_renderer->begin(rect);
 
   try {
     m_parser->parse(settings(), data);
@@ -659,7 +664,7 @@ bool bar::on(const signals::eventqueue::start&) {
   reconfigure_pos();
 
   m_log.trace("bar: Draw empty bar");
-  m_renderer->begin();
+  m_renderer->begin(m_opts.inner_area());
   m_renderer->end();
 
   m_sig.emit(signals::ui::ready{});
@@ -681,7 +686,7 @@ bool bar::on(const signals::ui::unshade_window&) {
   m_opts.shade_pos.y = m_opts.pos.y;
 
   double distance{static_cast<double>(m_opts.shade_size.h - m_connection.get_geometry(m_opts.window)->height)};
-  double steptime{25.0 / 10.0};
+  double steptime{25.0 / 2.0};
   m_anim_step = distance / steptime / 2.0;
 
   m_taskqueue->defer_unique("window-shade", 25ms,
@@ -720,7 +725,7 @@ bool bar::on(const signals::ui::shade_window&) {
   }
 
   double distance{static_cast<double>(m_connection.get_geometry(m_opts.window)->height - m_opts.shade_size.h)};
-  double steptime{25.0 / 10.0};
+  double steptime{25.0 / 2.0};
   m_anim_step = distance / steptime / 2.0;
 
   m_taskqueue->defer_unique("window-shade", 25ms,

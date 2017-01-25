@@ -85,7 +85,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   event_timer m_buttonpress{0L, 5L};
   event_timer m_doubleclick{0L, 150L};
 
-  double m_anim_step{0};
+  double m_anim_step{0.0};
 };
 
 POLYBAR_NS_END

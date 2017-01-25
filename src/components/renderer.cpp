@@ -140,7 +140,7 @@ renderer::renderer(
       }
     }
 
-    m_log.info("renderer: DPI is %.1fx%.1f", dpi_x, dpi_y);
+    m_log.info("Using DPI = %gx%g", dpi_x, dpi_y);
 
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
@@ -163,11 +163,11 @@ renderer::renderer(
     }
   }
 
-  m_comp_bg = cairo::utils::str2operator(m_conf.get("settings", "compositing-background", ""s), CAIRO_OPERATOR_OVER);
-  m_comp_fg = cairo::utils::str2operator(m_conf.get("settings", "compositing-foreground", ""s), CAIRO_OPERATOR_OVER);
-  m_comp_ol = cairo::utils::str2operator(m_conf.get("settings", "compositing-overline", ""s), CAIRO_OPERATOR_OVER);
-  m_comp_ul = cairo::utils::str2operator(m_conf.get("settings", "compositing-underline", ""s), CAIRO_OPERATOR_OVER);
-  m_comp_border = cairo::utils::str2operator(m_conf.get("settings", "compositing-border", ""s), CAIRO_OPERATOR_OVER);
+  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
+  m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
+  m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
+  m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
+  m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
@@ -196,14 +196,14 @@ const vector<action_block> renderer::actions() const {
 /**
  * Begin render routine
  */
-void renderer::begin() {
-  m_log.trace_x("renderer: begin");
+void renderer::begin(xcb_rectangle_t rect) {
+  m_log.trace_x("renderer: begin (geom=%ix%i+%i+%i)", rect.width, rect.height, rect.x, rect.y);
 
   // Reset state
+  m_rect = rect;
   m_actions.clear();
   m_attr.reset();
   m_align = alignment::NONE;
-  m_rect = m_bar.inner_area();
 
   // Reset colors
   m_bg = 0;
@@ -261,7 +261,7 @@ void renderer::end() {
     m_context->pop(&m_blocks[m_align].pattern);
 
     for (auto&& b : m_blocks) {
-      if (block_w(b.first) != 0.0) {
+      if (block_w(b.first) && b.second.pattern != nullptr) {
         flush(b.first);
       }
     }
@@ -271,19 +271,21 @@ void renderer::end() {
   m_surface->flush();
 
   flush();
+
+  m_sig.emit(signals::ui::changed{});
 }
 
 /**
  * Flush contents of given alignment block
  */
 void renderer::flush(alignment a) {
-  m_log.trace_x("renderer: flush(%i)", static_cast<int>(a));
-
   double x = static_cast<int>(block_x(a) + 0.5);
   double y = static_cast<int>(block_y(a) + 0.5);
   double w = static_cast<int>(block_w(a) + 0.5);
   double h = static_cast<int>(block_h(a) + 0.5);
   double xw = x + w;
+
+  m_log.trace_x("renderer: flush(%i geom=%gx%g+%g+%g)", static_cast<int>(a), w, h, x, y);
 
   m_surface->flush();
   m_context->save();
@@ -317,10 +319,9 @@ void renderer::flush(alignment a) {
       m_context->paint();
     }
 
-    m_surface->flush();
+    m_context->destroy(&m_blocks[a].pattern);
   }
   m_context->restore();
-  m_context->destroy(&m_blocks[a].pattern);
 }
 
 /**
@@ -404,9 +405,7 @@ double renderer::block_h(alignment) const {
   return m_rect.height;
 }
 
-/**
- * Reserve space at given edge
- */
+#if 0
 void renderer::reserve_space(edge side, unsigned int w) {
   m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<int>(side), w);
 
@@ -438,13 +437,14 @@ void renderer::reserve_space(edge side, unsigned int w) {
       break;
   }
 }
+#endif
 
 /**
  * Fill background color
  */
 void renderer::fill_background() {
   m_context->save();
-  *m_context << static_cast<cairo_operator_t>(m_comp_bg);
+  *m_context << m_comp_bg;
 
   if (!m_bar.background_steps.empty()) {
     m_log.trace_x("renderer: gradient background (steps=%lu)", m_bar.background_steps.size());
@@ -470,7 +470,7 @@ void renderer::fill_overline(double x, double w) {
   if (m_bar.overline.size && m_attr.test(static_cast<int>(attribute::OVERLINE))) {
     m_log.trace_x("renderer: overline(x=%f, w=%f)", x, w);
     m_context->save();
-    *m_context << static_cast<cairo_operator_t>(m_comp_ol);
+    *m_context << m_comp_ol;
     *m_context << m_ol;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y), w, static_cast<double>(m_bar.overline.size)};
     m_context->fill();
@@ -485,7 +485,7 @@ void renderer::fill_underline(double x, double w) {
   if (m_bar.underline.size && m_attr.test(static_cast<int>(attribute::UNDERLINE))) {
     m_log.trace_x("renderer: underline(x=%f, w=%f)", x, w);
     m_context->save();
-    *m_context << static_cast<cairo_operator_t>(m_comp_ul);
+    *m_context << m_comp_ul;
     *m_context << m_ul;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y + m_rect.height - m_bar.underline.size), w,
         static_cast<double>(m_bar.underline.size)};
@@ -499,35 +499,43 @@ void renderer::fill_underline(double x, double w) {
  */
 void renderer::fill_borders() {
   m_context->save();
-  *m_context << static_cast<cairo_operator_t>(m_comp_border);
+  *m_context << m_comp_border;
 
-  cairo::rect top{0.0, 0.0, 0.0, 0.0};
-  top.x += m_bar.borders.at(edge::LEFT).size;
-  top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::TOP).size;
-  top.h += m_bar.borders.at(edge::TOP).size;
-  m_log.trace_x("renderer: border T(%.0f, #%08x)", top.h, m_bar.borders.at(edge::TOP).color);
-  (*m_context << top << m_bar.borders.at(edge::TOP).color).fill();
+  if (m_bar.borders.at(edge::TOP).size) {
+    cairo::rect top{0.0, 0.0, 0.0, 0.0};
+    top.x += m_bar.borders.at(edge::LEFT).size;
+    top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::TOP).size;
+    top.h += m_bar.borders.at(edge::TOP).size;
+    m_log.trace_x("renderer: border T(%.0f, #%08x)", top.h, m_bar.borders.at(edge::TOP).color);
+    (*m_context << top << m_bar.borders.at(edge::TOP).color).fill();
+  }
 
-  cairo::rect bottom{0.0, 0.0, 0.0, 0.0};
-  bottom.x += m_bar.borders.at(edge::LEFT).size;
-  bottom.y += m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size;
-  bottom.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
-  bottom.h += m_bar.borders.at(edge::BOTTOM).size;
-  m_log.trace_x("renderer: border B(%.0f, #%08x)", bottom.h, m_bar.borders.at(edge::BOTTOM).color);
-  (*m_context << bottom << m_bar.borders.at(edge::BOTTOM).color).fill();
+  if (m_bar.borders.at(edge::BOTTOM).size) {
+    cairo::rect bottom{0.0, 0.0, 0.0, 0.0};
+    bottom.x += m_bar.borders.at(edge::LEFT).size;
+    bottom.y += m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size;
+    bottom.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
+    bottom.h += m_bar.borders.at(edge::BOTTOM).size;
+    m_log.trace_x("renderer: border B(%.0f, #%08x)", bottom.h, m_bar.borders.at(edge::BOTTOM).color);
+    (*m_context << bottom << m_bar.borders.at(edge::BOTTOM).color).fill();
+  }
 
-  cairo::rect left{0.0, 0.0, 0.0, 0.0};
-  left.w += m_bar.borders.at(edge::LEFT).size;
-  left.h += m_bar.size.h;
-  m_log.trace_x("renderer: border L(%.0f, #%08x)", left.w, m_bar.borders.at(edge::LEFT).color);
-  (*m_context << left << m_bar.borders.at(edge::LEFT).color).fill();
+  if (m_bar.borders.at(edge::LEFT).size) {
+    cairo::rect left{0.0, 0.0, 0.0, 0.0};
+    left.w += m_bar.borders.at(edge::LEFT).size;
+    left.h += m_bar.size.h;
+    m_log.trace_x("renderer: border L(%.0f, #%08x)", left.w, m_bar.borders.at(edge::LEFT).color);
+    (*m_context << left << m_bar.borders.at(edge::LEFT).color).fill();
+  }
 
-  cairo::rect right{0.0, 0.0, 0.0, 0.0};
-  right.x += m_bar.size.w - m_bar.borders.at(edge::RIGHT).size;
-  right.w += m_bar.borders.at(edge::RIGHT).size;
-  right.h += m_bar.size.h;
-  m_log.trace_x("renderer: border R(%.0f, #%08x)", right.w, m_bar.borders.at(edge::RIGHT).color);
-  (*m_context << right << m_bar.borders.at(edge::RIGHT).color).fill();
+  if (m_bar.borders.at(edge::RIGHT).size) {
+    cairo::rect right{0.0, 0.0, 0.0, 0.0};
+    right.x += m_bar.size.w - m_bar.borders.at(edge::RIGHT).size;
+    right.w += m_bar.borders.at(edge::RIGHT).size;
+    right.h += m_bar.size.h;
+    m_log.trace_x("renderer: border R(%.0f, #%08x)", right.w, m_bar.borders.at(edge::RIGHT).color);
+    (*m_context << right << m_bar.borders.at(edge::RIGHT).color).fill();
+  }
 
   m_context->restore();
 }
@@ -548,20 +556,21 @@ void renderer::draw_text(const string& contents) {
   block.font = m_font;
   block.bg = 0;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
-  block.bg_operator = 0;
+  block.bg_operator = m_comp_bg;
   block.x_advance = &m_blocks[m_align].x;
   block.y_advance = &m_blocks[m_align].y;
 
   if (m_bg && m_bg != m_bar.background) {
     block.bg = m_bg;
-    block.bg_operator = static_cast<cairo_operator_t>(m_comp_bg);
+    block.bg_operator = m_comp_bg;
+    block.bg_rect.x = m_rect.x;
     block.bg_rect.y = m_rect.y;
     block.bg_rect.h = m_rect.height;
   }
 
   m_context->save();
   *m_context << origin;
-  *m_context << static_cast<cairo_operator_t>(m_comp_fg);
+  *m_context << m_comp_fg;
   *m_context << m_fg;
   *m_context << block;
   m_context->restore();

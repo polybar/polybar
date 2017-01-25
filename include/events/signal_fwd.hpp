@@ -29,6 +29,7 @@ namespace signals {
   }
   namespace ui {
     struct ready;
+    struct changed;
     struct tick;
     struct button_press;
     struct visibility_change;

@@ -93,6 +93,9 @@ namespace signals {
     struct ready : public detail::base_signal<ready> {
       using base_type::base_type;
     };
+    struct changed : public detail::base_signal<changed> {
+      using base_type::base_type;
+    };
     struct tick : public detail::base_signal<tick> {
       using base_type::base_type;
     };
@@ -117,7 +120,7 @@ namespace signals {
   }
 
   namespace ui_tray {
-    struct mapped_clients : public detail::value_signal<mapped_clients, size_t> {
+    struct mapped_clients : public detail::value_signal<mapped_clients, unsigned int> {
       using base_type::base_type;
     };
   }

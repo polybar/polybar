@@ -44,11 +44,13 @@ class renderer
   xcb_window_t window() const;
   const vector<action_block> actions() const;
 
-  void begin();
+  void begin(xcb_rectangle_t rect);
   void end();
   void flush();
 
+#if 0
   void reserve_space(edge side, unsigned int w);
+#endif
   void fill_background();
   void fill_overline(double x, double w);
   void fill_underline(double x, double w);
@@ -108,11 +110,11 @@ class renderer
   unique_ptr<cairo::xcb_surface> m_surface;
   map<alignment, alignment_block> m_blocks;
 
-  int m_comp_bg{0};
-  int m_comp_fg{0};
-  int m_comp_ol{0};
-  int m_comp_ul{0};
-  int m_comp_border{0};
+  cairo_operator_t m_comp_bg{CAIRO_OPERATOR_OVER};
+  cairo_operator_t m_comp_fg{CAIRO_OPERATOR_OVER};
+  cairo_operator_t m_comp_ol{CAIRO_OPERATOR_OVER};
+  cairo_operator_t m_comp_ul{CAIRO_OPERATOR_OVER};
+  cairo_operator_t m_comp_border{CAIRO_OPERATOR_OVER};
 
   alignment m_align;
   std::bitset<3> m_attr;
