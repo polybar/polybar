@@ -19,6 +19,7 @@ include(build/summary)
 add_subdirectory(${PROJECT_SOURCE_DIR}/man)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/bin)
 add_subdirectory(${PROJECT_SOURCE_DIR}/doc ${PROJECT_BINARY_DIR}/doc)
+add_subdirectory(${PROJECT_SOURCE_DIR}/doc/zsh ${PROJECT_BINARY_DIR}/doc/zsh)
 
 if(BUILD_TESTS)
   add_subdirectory(${PROJECT_SOURCE_DIR}/tests ${PROJECT_BINARY_DIR}/tests)

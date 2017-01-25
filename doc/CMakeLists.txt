@@ -2,8 +2,6 @@
 # Generate configuration file
 #
 
-add_subdirectory(zsh)
-
 set(MODULES_LEFT "bspwm i3")
 set(MODULES_CENTER "mpd")
 set(MODULES_RIGHT "xbacklight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
@@ -42,16 +40,13 @@ endif()
 
 string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY})
 string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER})
-
 file(GLOB BAT_LIST RELATIVE ${PATH_BAT} ${PATH_ADP}/B*)
 file(GLOB ADP_LIST RELATIVE ${PATH_ADP} ${PATH_ADP}/A*)
-
 if(BAT_LIST)
   list(GET BAT_LIST 0 BATTERY)
 else()
   set(BATTERY BAT0)
 endif()
-
 if(ADP_LIST)
   list(GET ADP_LIST 0 ADAPTER)
 else()
@@ -63,7 +58,6 @@ endif()
 
 if(ENABLE_NETWORK)
   file(GLOB IFLIST RELATIVE /sys/class/net /sys/class/net/*)
-
   foreach(INTERFACE ${IFLIST})
     if(NOT ${INTERFACE} STREQUAL "lo")
       file(GLOB IS_WIRELESS /sys/class/net/${INTERFACE}/wireless)
@@ -74,7 +68,6 @@ if(ENABLE_NETWORK)
       endif()
     endif()
   endforeach()
-
   if(NOT INTERFACE_ETH)
     set(INTERFACE_ETH net0)
   endif()
