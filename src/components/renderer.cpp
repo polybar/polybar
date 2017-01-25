@@ -279,10 +279,10 @@ void renderer::end() {
 void renderer::flush(alignment a) {
   m_log.trace_x("renderer: flush(%i)", static_cast<int>(a));
 
-  double x = block_x(a);
-  double y = block_y(a);
-  double w = block_w(a);
-  double h = block_h(a);
+  double x = static_cast<int>(block_x(a) + 0.5);
+  double y = static_cast<int>(block_y(a) + 0.5);
+  double w = static_cast<int>(block_w(a) + 0.5);
+  double h = static_cast<int>(block_h(a) + 0.5);
   double xw = x + w;
 
   m_surface->flush();
@@ -658,7 +658,6 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
       m_context->pop(&m_blocks[m_align].pattern);
     }
 
-    // flush(m_align);
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
