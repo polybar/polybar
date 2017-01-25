@@ -102,15 +102,6 @@ namespace cairo {
       return *this;
     }
 
-    context& operator<<(const displace& d) {
-      cairo_set_operator(m_c, CAIRO_OPERATOR_SOURCE);
-      cairo_set_source_surface(m_c, cairo_get_target(m_c), d.x - d.w, d.y);
-      cairo_rectangle(m_c, d.x - d.w, d.y, d.x + d.dx, d.y + d.dy);
-      cairo_fill(m_c);
-      cairo_surface_flush(cairo_get_target(m_c));
-      return *this;
-    }
-
     context& operator<<(const translate& d) {
       cairo_translate(m_c, d.x, d.y);
       return *this;
@@ -200,8 +191,8 @@ namespace cairo {
 
           save();
           {
+            cairo_set_operator(m_c, t.bg_operator);
             *this << t.bg;
-            cairo_set_operator(m_c, static_cast<cairo_operator_t>(t.bg_operator));
             cairo_rectangle(m_c, t.bg_rect.x + *t.x_advance, t.bg_rect.y + *t.y_advance,
                 t.bg_rect.w + extents.x_advance, t.bg_rect.h);
             cairo_fill(m_c);
@@ -238,8 +229,6 @@ namespace cairo {
         }
         chars.erase(chars.begin(), ++chars.begin());
       }
-
-      // *this << abspos{x, y};
 
       return *this;
     }
@@ -345,8 +334,8 @@ namespace cairo {
 
     context& snap(double* x, double* y) {
       cairo_user_to_device(m_c, x, y);
-      *x = ((int)*x + 0.5);
-      *y = ((int)*y + 0.5);
+      *x = static_cast<int>(*x + 0.5);
+      *y = static_cast<int>(*y + 0.5);
       return *this;
     }
 

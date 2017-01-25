@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cairo/cairo.h>
+
 #include "common.hpp"
 
 POLYBAR_NS
@@ -33,14 +35,6 @@ namespace cairo {
     double y2;
     double w;
   };
-  struct displace {
-    double x;
-    double y;
-    double w;
-    double h;
-    double dx;
-    double dy;
-  };
   struct translate {
     double x;
     double y;
@@ -64,7 +58,7 @@ namespace cairo {
     string contents;
     int font;
     unsigned int bg;
-    int bg_operator;
+    cairo_operator_t bg_operator;
     rect bg_rect;
     double *x_advance;
     double *y_advance;
