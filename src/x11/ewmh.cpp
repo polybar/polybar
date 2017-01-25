@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include "components/types.hpp"
+#include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/ewmh.hpp"
@@ -20,22 +21,17 @@ namespace ewmh_util {
 
   bool supports(xcb_atom_t atom, int screen) {
     auto conn = initialize().get();
-    bool supports{false};
     xcb_ewmh_get_atoms_reply_t reply{};
-    reply.atoms = nullptr;
     if (xcb_ewmh_get_supported_reply(conn, xcb_ewmh_get_supported(conn, screen), &reply, nullptr)) {
-      for (size_t n = 0; n < reply.atoms_len; ++n) {
+      for (size_t n = 0; n < reply.atoms_len; n++) {
         if (reply.atoms[n] == atom) {
-          supports = true;
-          break;
+          xcb_ewmh_get_atoms_reply_wipe(&reply);
+          return true;
         }
       }
-      if (reply.atoms != nullptr) {
-        xcb_ewmh_get_atoms_reply_wipe(&reply);
-      }
+      xcb_ewmh_get_atoms_reply_wipe(&reply);
     }
-
-    return supports;
+    return false;
   }
 
   string get_wm_name(xcb_window_t win) {
@@ -96,24 +92,11 @@ namespace ewmh_util {
 
   vector<string> get_desktop_names(int screen) {
     auto conn = initialize().get();
-    vector<string> names;
     xcb_ewmh_get_utf8_strings_reply_t reply{};
     if (xcb_ewmh_get_desktop_names_reply(conn, xcb_ewmh_get_desktop_names(conn, screen), &reply, nullptr)) {
-      char buffer[BUFSIZ];
-      size_t len{0};
-      for (size_t n = 0; n < reply.strings_len; n++) {
-        if (reply.strings[n] == '\0') {
-          names.emplace_back(buffer, len);
-          len = 0;
-        } else {
-          buffer[len++] = reply.strings[n];
-        }
-      }
-      if (len) {
-        names.emplace_back(buffer, len);
-      }
+      return string_util::split(string(reply.strings, reply.strings_len), '\0');
     }
-    return names;
+    return {};
   }
 
   xcb_window_t get_active_window(int screen) {
@@ -141,6 +124,15 @@ namespace ewmh_util {
     xcb_flush(conn->connection);
   }
 
+  vector<xcb_atom_t> get_wm_state(xcb_window_t win) {
+    auto conn = initialize().get();
+    xcb_ewmh_get_atoms_reply_t reply;
+    if (xcb_ewmh_get_wm_state_reply(conn, xcb_ewmh_get_wm_state(conn, win), &reply, nullptr)) {
+      return {reply.atoms, reply.atoms + reply.atoms_len};
+    }
+    return {};
+  }
+
   void set_wm_pid(xcb_window_t win) {
     auto conn = initialize().get();
     xcb_ewmh_set_wm_pid(conn, win, getpid());
@@ -161,8 +153,18 @@ namespace ewmh_util {
 
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values) {
     auto conn = initialize().get();
-    xcb_change_property(conn->connection, XCB_PROP_MODE_REPLACE, win, _NET_WM_WINDOW_OPACITY, XCB_ATOM_CARDINAL, 32, 1, &values);
+    xcb_change_property(
+        conn->connection, XCB_PROP_MODE_REPLACE, win, _NET_WM_WINDOW_OPACITY, XCB_ATOM_CARDINAL, 32, 1, &values);
     xcb_flush(conn->connection);
+  }
+
+  vector<xcb_window_t> get_client_list(int screen) {
+    auto conn = initialize().get();
+    xcb_ewmh_get_windows_reply_t reply;
+    if (xcb_ewmh_get_client_list_reply(conn, xcb_ewmh_get_client_list(conn, screen), &reply, nullptr)) {
+      return {reply.windows, reply.windows + reply.windows_len};
+    }
+    return {};
   }
 }
 

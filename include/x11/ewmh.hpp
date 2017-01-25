@@ -29,11 +29,17 @@ namespace ewmh_util {
   void change_current_desktop(unsigned int desktop);
 
   void set_wm_window_type(xcb_window_t win, vector<xcb_atom_t> types);
+
   void set_wm_state(xcb_window_t win, vector<xcb_atom_t> states);
+  vector<xcb_atom_t> get_wm_state(xcb_window_t win);
+
   void set_wm_pid(xcb_window_t win);
   void set_wm_pid(xcb_window_t win, unsigned int pid);
+
   void set_wm_desktop(xcb_window_t win, unsigned int desktop = -1u);
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values);
+
+  vector<xcb_window_t> get_client_list(int screen = 0);
 }
 
 POLYBAR_NS_END

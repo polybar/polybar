@@ -31,8 +31,10 @@ namespace modules {
   };
 
   struct desktop {
-    explicit desktop(size_t index, desktop_state state, label_t&& label) : index(index), state(state), label(label) {}
-    size_t index;
+    explicit desktop(unsigned int index, unsigned int offset, desktop_state state, label_t&& label)
+        : index(index), offset(offset), state(state), label(label) {}
+    unsigned int index;
+    unsigned int offset;
     desktop_state state;
     label_t label;
   };
@@ -60,8 +62,11 @@ namespace modules {
 
    protected:
     void handle(const evt::property_notify& evt);
+
+    void rebuild_clientlist();
     void rebuild_desktops();
-    void set_current_desktop();
+    void rebuild_desktop_states();
+
     bool input(string&& cmd);
 
    private:
@@ -79,9 +84,14 @@ namespace modules {
 
     connection& m_connection;
     ewmh_connection_t m_ewmh;
+
     vector<monitor_t> m_monitors;
     bool m_monitorsupport{true};
 
+    vector<string> m_desktop_names;
+    unsigned int m_current_desktop;
+
+    vector<xcb_window_t> m_clientlist;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;
@@ -90,6 +100,8 @@ namespace modules {
     bool m_click{true};
     bool m_scroll{true};
     size_t m_index{0};
+
+    event_timer m_timer{0L, 25L};
   };
 }
 
