@@ -186,7 +186,7 @@ namespace cairo {
           cairo_text_extents_t extents;
           f->textwidth(subset, &extents);
 
-          save(true);
+          save();
           {
             *this << t.bg;
             cairo_set_operator(m_c, static_cast<cairo_operator_t>(t.bg_operator));
@@ -194,11 +194,11 @@ namespace cairo {
                 t.bg_rect.w + extents.x_advance, t.bg_rect.h);
             cairo_fill(m_c);
           }
-          restore(true);
+          restore();
 
           // Render subset
           auto fontextents = f->extents();
-          f->render(subset, x, y - (extents.height / 2.0 + extents.y_bearing + fontextents.descent) + f->offset());
+          f->render(subset, x, y - (fontextents.descent / 2 - fontextents.height / 4) + f->offset());
 
           // Get updated position
           position(&x, nullptr);
