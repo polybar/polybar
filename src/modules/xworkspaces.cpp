@@ -17,9 +17,6 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-  inline bool operator!=(const position& a, const position& b) {
-    return !(a == b);
-  }
 }
 
 namespace modules {
