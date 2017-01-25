@@ -52,6 +52,8 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
 
 install:
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
   - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_cmake.sh
