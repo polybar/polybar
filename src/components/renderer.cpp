@@ -123,17 +123,28 @@ renderer::renderer(
   {
     double dpi_x = 96, dpi_y = 96;
     if (m_conf.has(m_conf.section(), "dpi")) {
-      try {
-        // dpi specified directly as a value
-        dpi_x = dpi_y = m_conf.get<double>("dpi");
-      } catch (const value_error&) {
-        // dpi to be comptued
-        auto screen = m_connection.screen();
+      dpi_x = dpi_y = m_conf.get<double>("dpi");
+    } else {
+      if (m_conf.has(m_conf.section(), "dpi-x")) {
+        dpi_x = m_conf.get<double>("dpi-x");
+      }
+      if (m_conf.has(m_conf.section(), "dpi-y")) {
+        dpi_y = m_conf.get<double>("dpi-y");
+      }
+    }
+
+    // dpi to be comptued
+    if (dpi_x <= 0 || dpi_y <= 0) {
+      auto screen = m_connection.screen();
+      if (dpi_x <= 0) {
         dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
+      }
+      if (dpi_y <= 0) {
         dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
       }
     }
-    m_log.trace("renderer: DPI is %.1fx%.1f", dpi_x, dpi_y);
+
+    m_log.info("renderer: DPI is %.1fx%.1f", dpi_x, dpi_y);
 
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
