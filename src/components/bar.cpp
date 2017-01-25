@@ -138,7 +138,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius = m_conf.get(bs, "radius", m_opts.radius);
 
   try {
-    auto padding = m_conf.get<decltype(m_opts.padding.left)>(bs, "module-padding");
+    auto padding = m_conf.get<decltype(m_opts.padding.left)>(bs, "padding");
     m_opts.padding.left = padding;
     m_opts.padding.right = padding;
   } catch (const key_error& err) {
