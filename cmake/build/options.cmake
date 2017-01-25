@@ -80,7 +80,7 @@ if(NOT DEFINED WITH_XRM)
 endif()
 
 if(NOT DEFINED ENABLE_XRANDR_MONITORS)
-  pkg_check_modules(XRANDR QUIET xrandr>=1.5.0)
+  pkg_check_modules(XRANDR QUIET xrandr>=1.5.0 randrproto>=1.5.0)
   if(NOT XRANDR_FOUND)
     set(XRANDR_FOUND OFF)
   endif()
