@@ -13,6 +13,8 @@
 
 POLYBAR_NS
 
+static constexpr double BLOCK_GAP{20.0};
+
 /**
  * Create instance
  */
@@ -210,11 +212,11 @@ void renderer::begin() {
   m_ol = m_bar.overline.color;
 
   // Clear canvas
-  m_context->clear();
   m_context->save();
+  m_context->clear();
 
   // Create corner mask
-  if (m_bar.radius != 0.0) {
+  if (m_bar.radius != 0.0 && m_cornermask == nullptr) {
     m_context->save();
     m_context->push();
     // clang-format off
@@ -249,28 +251,21 @@ void renderer::begin() {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  for (auto&& b : m_blocks) {
-    if (block_x(b.first) + block_w(b.first) > (m_rect.width)) {
-      double x = m_rect.x + block_x(b.first) + block_w(b.first);
-      if ((x -= x - m_rect.x - m_rect.width + block_x(b.first)) > 0.0) {
-        // clang-format off
-        rgba bg1{m_bar.background}; bg1.a = 0.0;
-        rgba bg2{m_bar.background}; bg2.a = 1.0;
-        // clang-format on
-        m_context->save();
-        *m_context << cairo::linear_gradient{x - 40.0, 0.0, x, 0.0, {bg1, bg2}};
-        m_context->paint();
-        m_context->restore();
-      }
-    }
-  }
-
   for (auto&& a : m_actions) {
     a.start_x += block_x(a.align) + m_rect.x;
     a.end_x += block_x(a.align) + m_rect.x;
   }
 
-  flush(m_align);
+  if (m_align != alignment::NONE) {
+    m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
+    m_context->pop(&m_blocks[m_align].pattern);
+
+    for (auto&& b : m_blocks) {
+      if (block_w(b.first) != 0.0) {
+        flush(b.first);
+      }
+    }
+  }
 
   m_context->restore();
   m_surface->flush();
@@ -282,27 +277,50 @@ void renderer::end() {
  * Flush contents of given alignment block
  */
 void renderer::flush(alignment a) {
-  if (a != alignment::NONE) {
-    double x = block_x(a);
-    double y = block_y(a);
-    double w = block_w(a);
-    double h = block_h(a);
+  m_log.trace_x("renderer: flush(%i)", static_cast<int>(a));
 
-    m_surface->flush();
-    m_context->pop(&m_blocks[m_align].pattern);
+  double x = block_x(a);
+  double y = block_y(a);
+  double w = block_w(a);
+  double h = block_h(a);
+  double xw = x + w;
 
-    m_context->save();
-    {
-      *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
-      *m_context << cairo::translate{x, 0.0};
-      *m_context << m_blocks[a].pattern;
+  m_surface->flush();
+  m_context->save();
+  {
+    *m_context << cairo::abspos{0.0, 0.0};
+    *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
+    *m_context << cairo::translate{x, 0.0};
+    *m_context << m_blocks[a].pattern;
+
+    if (xw <= m_rect.width) {
       m_context->paint();
-      m_surface->flush();
+    } else {
+      double sx = w - (xw - m_rect.width);
+      vector<unsigned int> falloff{0xFFFFFFFF, 0x00FFFFFF};
+      cairo_pattern_t* pattern{};
+
+      m_context->push();
+      *m_context << cairo::linear_gradient{sx - 40.0, 0.0, sx, 0.0, falloff};
+      *m_context << CAIRO_OPERATOR_SOURCE;
+      m_context->paint();
+      m_context->pop(&pattern);
+      m_context->mask(pattern);
+      m_context->destroy(&pattern);
+
+      // clang-format off
+      rgba bg1{m_bar.background}; bg1.a = 0.0;
+      rgba bg2{m_bar.background}; bg2.a = 0.4;
+      // clang-format on
+      *m_context << cairo::linear_gradient{sx - 40.0, 0.0, sx, 0.0, {bg1, bg2}};
+      *m_context << CAIRO_OPERATOR_OVER;
+      m_context->paint();
     }
-    m_context->restore();
+
     m_surface->flush();
-    m_context->destroy(&m_blocks[a].pattern);
   }
+  m_context->restore();
+  m_context->destroy(&m_blocks[a].pattern);
 }
 
 /**
@@ -354,12 +372,12 @@ double renderer::block_x(alignment a) const {
     case alignment::CENTER:
       if (!m_fixedcenter || m_rect.width / 2.0 + block_w(a) / 2.0 > m_rect.width - block_w(alignment::RIGHT)) {
         return std::max((m_rect.width - block_w(alignment::RIGHT) + block_w(alignment::LEFT)) / 2.0 - block_w(a) / 2.0,
-            block_w(alignment::LEFT));
+            block_w(alignment::LEFT) + BLOCK_GAP);
       } else {
         return std::max(m_rect.width / 2.0 - block_w(a) / 2.0, block_w(alignment::LEFT));
       }
     case alignment::RIGHT:
-      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + block_w(alignment::CENTER));
+      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + BLOCK_GAP + block_w(alignment::CENTER));
     default:
       return 0.0;
   }
@@ -634,11 +652,18 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
   auto align = static_cast<const alignment&>(evt.cast());
   if (align != m_align) {
     m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
-    flush(m_align);
-    m_context->push();
+
+    if (m_align != alignment::NONE) {
+      m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
+      m_context->pop(&m_blocks[m_align].pattern);
+    }
+
+    // flush(m_align);
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
+    m_context->push();
+    m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
   }
   return true;
 }
