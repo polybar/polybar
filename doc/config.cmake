@@ -28,6 +28,7 @@ width = 100%
 height = 27
 offset-x = 0
 offset-y = 0
+fixed-center = false
 
 background = ${colors.background}
 foreground = ${colors.foreground}
@@ -46,7 +47,7 @@ module-margin-left = 1
 module-margin-right = 2
 
 font-0 = @FONT_FIXED@;1
-font-1 = @FONT_UNIFONT@:size=6:heavy:antialias=false;0
+font-1 = @FONT_UNIFONT@:size=8:antialias=false;0
 font-2 = @FONT_SIJI@;1
 
 modules-left = @MODULES_LEFT@
