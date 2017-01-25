@@ -41,6 +41,10 @@ namespace cairo {
     double dx;
     double dy;
   };
+  struct translate {
+    double x;
+    double y;
+  };
   struct linear_gradient {
     double x1;
     double y1;

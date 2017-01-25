@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <cairo/cairo.h>
 
 #include "cairo/fwd.hpp"
 #include "common.hpp"
@@ -21,7 +22,7 @@ class logger;
 using std::map;
 
 struct alignment_block {
-  xcb_pixmap_t pixmap;
+  cairo_pattern_t* pattern;
   double x;
   double y;
 };
@@ -58,7 +59,9 @@ class renderer
   double block_x(alignment a) const;
   double block_y(alignment a) const;
   double block_w(alignment a) const;
+  double block_h(alignment a) const;
 
+  void flush(alignment a);
   void highlight_clickable_areas();
 
   bool on(const signals::ui::request_snapshot& evt);
@@ -122,6 +125,8 @@ class renderer
 
   bool m_fixedcenter;
   string m_snapshot_dst;
+
+  cairo_pattern_t* m_cornermask{};
 };
 
 POLYBAR_NS_END

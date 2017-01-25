@@ -102,15 +102,9 @@ renderer::renderer(
 
   m_log.trace("renderer: Allocate alignment blocks");
   {
-    const auto create_block = [&](alignment a) {
-      auto pid = m_connection.generate_id();
-      m_connection.create_pixmap_checked(m_depth, pid, m_pixmap, m_bar.size.w, m_bar.size.h);
-      m_blocks.emplace(a, alignment_block{pid, 0.0, 0.0});
-    };
-
-    create_block(alignment::LEFT);
-    create_block(alignment::CENTER);
-    create_block(alignment::RIGHT);
+    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0});
   }
 
   m_log.trace("renderer: Allocate cairo components");
@@ -155,7 +149,8 @@ renderer::renderer(
     auto fonts_loaded = false;
     for (const auto& f : fonts) {
       vector<string> fd{string_util::split(f, ';')};
-      auto font = cairo::make_font(*m_context, string(fd[0]), fd.size() > 1 ? std::atoi(fd[1].c_str()) : 0, dpi_x, dpi_y);
+      auto font =
+          cairo::make_font(*m_context, string(fd[0]), fd.size() > 1 ? std::atoi(fd[1].c_str()) : 0, dpi_x, dpi_y);
       m_log.info("Loaded font \"%s\" (name=%s, file=%s)", fd[0], font->name(), font->file());
       *m_context << move(font);
       fonts_loaded = true;
@@ -214,20 +209,35 @@ void renderer::begin() {
   m_ul = m_bar.underline.color;
   m_ol = m_bar.overline.color;
 
+  // Clear canvas
+  m_context->clear();
   m_context->save();
 
-  // Clear canvas
-  m_surface->set_drawable(m_pixmap, m_bar.size.w, m_bar.size.h);
-  m_context->clear();
+  // Create corner mask
+  if (m_bar.radius != 0.0) {
+    m_context->save();
+    m_context->push();
+    // clang-format off
+    *m_context << cairo::rounded_corners{
+        static_cast<double>(m_rect.x),
+        static_cast<double>(m_rect.y),
+        static_cast<double>(m_rect.width),
+        static_cast<double>(m_rect.height), m_bar.radius};
+    // clang-format on
+    *m_context << rgba{1.0, 1.0, 1.0, 1.0};
+    m_context->fill();
+    m_context->pop(&m_cornermask);
+    m_context->restore();
+  }
 
   fill_borders();
 
   // clang-format off
   m_context->clip(cairo::rect{
-    static_cast<double>(m_rect.x),
-    static_cast<double>(m_rect.y),
-    static_cast<double>(m_rect.width),
-    static_cast<double>(m_rect.height)});
+      static_cast<double>(m_rect.x),
+      static_cast<double>(m_rect.y),
+      static_cast<double>(m_rect.width),
+      static_cast<double>(m_rect.height)});
   // clang-format on
 
   fill_background();
@@ -247,8 +257,6 @@ void renderer::end() {
         rgba bg1{m_bar.background}; bg1.a = 0.0;
         rgba bg2{m_bar.background}; bg2.a = 1.0;
         // clang-format on
-
-        m_surface->set_drawable(b.second.pixmap, m_bar.size.w, m_bar.size.h);
         m_context->save();
         *m_context << cairo::linear_gradient{x - 40.0, 0.0, x, 0.0, {bg1, bg2}};
         m_context->paint();
@@ -262,9 +270,39 @@ void renderer::end() {
     a.end_x += block_x(a.align) + m_rect.x;
   }
 
+  flush(m_align);
+
   m_context->restore();
+  m_surface->flush();
 
   flush();
+}
+
+/**
+ * Flush contents of given alignment block
+ */
+void renderer::flush(alignment a) {
+  if (a != alignment::NONE) {
+    double x = block_x(a);
+    double y = block_y(a);
+    double w = block_w(a);
+    double h = block_h(a);
+
+    m_surface->flush();
+    m_context->pop(&m_blocks[m_align].pattern);
+
+    m_context->save();
+    {
+      *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
+      *m_context << cairo::translate{x, 0.0};
+      *m_context << m_blocks[a].pattern;
+      m_context->paint();
+      m_surface->flush();
+    }
+    m_context->restore();
+    m_surface->flush();
+    m_context->destroy(&m_blocks[a].pattern);
+  }
 }
 
 /**
@@ -272,28 +310,6 @@ void renderer::end() {
  */
 void renderer::flush() {
   m_log.trace_x("renderer: flush");
-
-  m_surface->set_drawable(m_pixmap, m_bar.size.w, m_bar.size.h);
-  m_surface->flush();
-
-  for (auto&& b : m_blocks) {
-    double x = m_rect.x + block_x(b.first);
-    double y = m_rect.y + block_y(b.first);
-    double w = m_rect.x + m_rect.width - x;
-    double h = m_rect.y + m_rect.height - y;
-
-    if (w > 0.0) {
-      m_log.trace_x("renderer: copy alignment block (x=%.0f y=%.0f w=%.0f h=%.0f)", x, y, w, h);
-      m_connection.copy_area(b.second.pixmap, m_pixmap, m_gcontext, m_rect.x, m_rect.y, x, y, w, h);
-      m_connection.flush();
-    } else {
-      m_log.trace_x("renderer: ignoring empty alignment block");
-      continue;
-    }
-  }
-
-  m_surface->dirty();
-  m_surface->flush();
 
   highlight_clickable_areas();
 
@@ -364,6 +380,13 @@ double renderer::block_w(alignment a) const {
 }
 
 /**
+ * Get block height for given alignment
+ */
+double renderer::block_h(alignment) const {
+  return m_rect.height;
+}
+
+/**
  * Reserve space at given edge
  */
 void renderer::reserve_space(edge side, unsigned int w) {
@@ -405,16 +428,6 @@ void renderer::fill_background() {
   m_context->save();
   *m_context << static_cast<cairo_operator_t>(m_comp_bg);
 
-  if (m_bar.radius != 0.0) {
-    // clang-format off
-    *m_context << cairo::rounded_corners{
-        static_cast<double>(m_rect.x),
-        static_cast<double>(m_rect.y),
-        static_cast<double>(m_rect.width),
-        static_cast<double>(m_rect.height), m_bar.radius};
-    // clang-format on
-  }
-
   if (!m_bar.background_steps.empty()) {
     m_log.trace_x("renderer: gradient background (steps=%lu)", m_bar.background_steps.size());
     *m_context << cairo::linear_gradient{0.0, 0.0 + m_rect.y, 0.0, 0.0 + m_rect.height, m_bar.background_steps};
@@ -423,8 +436,8 @@ void renderer::fill_background() {
     *m_context << m_bar.background;
   }
 
-  if (m_bar.radius != 0.0) {
-    m_context->fill();
+  if (m_cornermask != nullptr) {
+    m_context->mask(m_cornermask);
   } else {
     m_context->paint();
   }
@@ -621,12 +634,11 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
   auto align = static_cast<const alignment&>(evt.cast());
   if (align != m_align) {
     m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
+    flush(m_align);
+    m_context->push();
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
-    m_surface->set_drawable(m_blocks.at(m_align).pixmap, m_bar.size.w, m_bar.size.h);
-    m_context->clear();
-    fill_background();
   }
   return true;
 }

@@ -111,6 +111,11 @@ namespace cairo {
       return *this;
     }
 
+    context& operator<<(const translate& d) {
+      cairo_translate(m_c, d.x, d.y);
+      return *this;
+    }
+
     context& operator<<(const linear_gradient& l) {
       if (l.steps.size() >= 2) {
         auto pattern = cairo_pattern_create_linear(l.x1, l.y1, l.x2, l.y2);
@@ -274,10 +279,30 @@ namespace cairo {
       return *this;
     }
 
+    context& mask(cairo_pattern_t* pattern) {
+      cairo_mask(m_c, pattern);
+      return *this;
+    }
+
+    context& pop(cairo_pattern_t** pattern) {
+      *pattern = cairo_pop_group(m_c);
+      return *this;
+    }
+
+    context& push() {
+      cairo_push_group(m_c);
+      return *this;
+    }
+
+    context& destroy(cairo_pattern_t** pattern) {
+      cairo_pattern_destroy(*pattern);
+      *pattern = nullptr;
+      return *this;
+    }
+
     context& clear() {
       cairo_save(m_c);
-      cairo_set_operator(m_c, CAIRO_OPERATOR_SOURCE);
-      cairo_set_source_rgba(m_c, 0.0, 0.0, 0.0, 0.0);
+      cairo_set_operator(m_c, CAIRO_OPERATOR_CLEAR);
       cairo_paint(m_c);
       cairo_restore(m_c);
       return *this;
