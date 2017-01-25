@@ -281,46 +281,41 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_connection.flush();
 
-  m_sig.emit(notify_forcechange{});
+  m_sig.emit(signals::eventqueue::notify_forcechange{});
 }
 
 /**
  * Reconfigure tray
  */
 void tray_manager::reconfigure() {
-  if (!m_tray || !m_mtx.try_lock()) {
+  if (!m_tray) {
     return;
+  } else if (m_mtx.try_lock()) {
+    std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
+
+    try {
+      reconfigure_clients();
+    } catch (const exception& err) {
+      m_log.err("Failed to reconfigure tray clients (%s)", err.what());
+    }
+    try {
+      reconfigure_window();
+    } catch (const exception& err) {
+      m_log.err("Failed to reconfigure tray window (%s)", err.what());
+    }
+    try {
+      reconfigure_bg();
+    } catch (const exception& err) {
+      m_log.err("Failed to reconfigure tray background (%s)", err.what());
+    }
+
+    m_opts.configured_slots = mapped_clients();
+    guard.unlock();
+    refresh_window();
+    m_connection.flush();
   }
 
-  std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
-
-  try {
-    reconfigure_clients();
-  } catch (const exception& err) {
-    m_log.err("Failed to reconfigure tray clients (%s)", err.what());
-  }
-
-  try {
-    reconfigure_window();
-  } catch (const exception& err) {
-    m_log.err("Failed to reconfigure tray window (%s)", err.what());
-  }
-
-  try {
-    reconfigure_bg();
-  } catch (const exception& err) {
-    m_log.err("Failed to reconfigure tray background (%s)", err.what());
-  }
-
-  m_opts.configured_slots = mapped_clients();
-
-  guard.unlock();
-
-  refresh_window();
-
-  m_connection.flush();
-
-  m_sig.emit(notify_forcechange{});
+  m_sig.emit(signals::eventqueue::notify_forcechange{});
 }
 
 /**
@@ -334,7 +329,6 @@ void tray_manager::reconfigure_window() {
   }
 
   auto clients = mapped_clients();
-
   if (!clients && m_mapped) {
     m_log.trace("tray: Reconfigure window / unmap");
     m_connection.unmap_window_checked(m_tray);
@@ -345,11 +339,6 @@ void tray_manager::reconfigure_window() {
 
   auto width = calculate_w();
   auto x = calculate_x(width);
-
-  if (m_opts.configured_w == width && m_opts.configured_x == x) {
-    m_log.trace("tray: Reconfigure window / ignoring unchanged values w=%d x=%d", width, x);
-    return;
-  }
 
   if (width > 0) {
     m_log.trace("tray: New window values, width=%d, x=%d", width, x);
@@ -506,15 +495,7 @@ void tray_manager::refresh_window() {
  * Redraw window
  */
 void tray_manager::redraw_window(bool realloc_bg) {
-  chrono::system_clock::time_point now{chrono::system_clock::now()};
-
-  if (!realloc_bg && now - 24ms < m_drawtime) {
-    return m_log.trace("tray: Ignoring redraw (throttled)");
-  }
-
-  m_drawtime = chrono::time_point_cast<chrono::milliseconds>(now);
-  m_log.info("Redraw tray container (id=%s) %lu", m_connection.id(m_tray),
-      chrono::duration_cast<chrono::microseconds>(chrono::system_clock::now().time_since_epoch()));
+  m_log.info("Redraw tray container (id=%s)", m_connection.id(m_tray));
   reconfigure_bg(realloc_bg);
   refresh_window();
 }
@@ -834,7 +815,7 @@ int tray_manager::calculate_y() const {
  */
 unsigned int tray_manager::calculate_w() const {
   unsigned int width = m_opts.spacing;
-  size_t count{0};
+  unsigned int count{0};
   for (auto&& client : m_clients) {
     if (client->mapped()) {
       count++;
@@ -855,7 +836,7 @@ unsigned int tray_manager::calculate_h() const {
  * Calculate x position of client window
  */
 int tray_manager::calculate_client_x(const xcb_window_t& win) {
-  for (size_t i = 0; i < m_clients.size(); i++) {
+  for (unsigned int i = 0; i < m_clients.size(); i++) {
     if (m_clients[i]->match(win)) {
       return m_opts.spacing + m_opts.width * i;
     }
@@ -912,8 +893,8 @@ void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
 /**
  * Get number of mapped clients
  */
-size_t tray_manager::mapped_clients() const {
-  size_t mapped_clients = 0;
+unsigned int tray_manager::mapped_clients() const {
+  unsigned int mapped_clients = 0;
 
   for (auto&& client : m_clients) {
     if (client->mapped()) {
@@ -1104,7 +1085,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
     find_client(evt->window)->mapped(true);
-    size_t clientcount{mapped_clients()};
+    unsigned int clientcount{mapped_clients()};
     if (clientcount > m_opts.configured_slots) {
       reconfigure();
     }
@@ -1133,9 +1114,9 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
  * This is used as a fallback in case the window restacking fails. It will
  * toggle the tray window whenever the visibility of the bar window changes.
  */
-bool tray_manager::on(const visibility_change& evt) {
+bool tray_manager::on(const signals::ui::visibility_change& evt) {
   bool visible{evt.cast()};
-  size_t clients{mapped_clients()};
+  unsigned int clients{mapped_clients()};
 
   m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
       static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
@@ -1157,7 +1138,7 @@ bool tray_manager::on(const visibility_change& evt) {
   return true;
 }
 
-bool tray_manager::on(const dim_window& evt) {
+bool tray_manager::on(const signals::ui::dim_window& evt) {
   if (m_activated) {
     ewmh_util::set_wm_window_opacity(m_tray, evt.cast() * 0xFFFFFFFF);
   }

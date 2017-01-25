@@ -28,8 +28,6 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
-using namespace signals::eventqueue;
-using namespace signals::ui;
 
 // fwd declarations
 class connection;
@@ -45,24 +43,25 @@ struct tray_settings {
   int orig_y{0};
   int configured_x{0};
   int configured_y{0};
-  unsigned int configured_w{0};
-  unsigned int configured_h{0};
-  unsigned int configured_slots{0};
-  unsigned int width{0};
-  unsigned int width_max{0};
-  unsigned int height{0};
-  unsigned int height_fill{0};
-  unsigned int spacing{0};
-  unsigned int sibling{0};
-  unsigned int background{0};
+  unsigned int configured_w{0U};
+  unsigned int configured_h{0U};
+  unsigned int configured_slots{0U};
+  unsigned int width{0U};
+  unsigned int width_max{0U};
+  unsigned int height{0U};
+  unsigned int height_fill{0U};
+  unsigned int spacing{0U};
+  unsigned int sibling{0U};
+  unsigned int background{0U};
   bool transparent{false};
   bool detached{false};
 };
 
-class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
-                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
-                     public signal_receiver<SIGN_PRIORITY_TRAY, visibility_change, dim_window> {
+class tray_manager
+    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
+          evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
+          evt::map_notify, evt::unmap_notify>,
+      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make();
@@ -112,7 +111,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
   void remove_client(shared_ptr<tray_client>& client, bool reconfigure = true);
   void remove_client(xcb_window_t win, bool reconfigure = true);
-  size_t mapped_clients() const;
+  unsigned int mapped_clients() const;
 
   void handle(const evt::expose& evt);
   void handle(const evt::visibility_notify& evt);
@@ -126,8 +125,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void handle(const evt::map_notify& evt);
   void handle(const evt::unmap_notify& evt);
 
-  bool on(const visibility_change& evt);
-  bool on(const dim_window& evt);
+  bool on(const signals::ui::visibility_change& evt);
+  bool on(const signals::ui::dim_window& evt);
 
  private:
   connection& m_connection;
@@ -144,8 +143,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   int m_rootpixmap_depth{0};
   xcb_rectangle_t m_rootpixmap_geom{0, 0, 0U, 0U};
 
-  unsigned int m_prevwidth{0};
-  unsigned int m_prevheight{0};
+  unsigned int m_prevwidth{0U};
+  unsigned int m_prevheight{0U};
 
   xcb_atom_t m_atom{0};
   xcb_window_t m_tray{0};
@@ -159,8 +158,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   thread m_delaythread;
 
   mutex m_mtx{};
-
-  chrono::time_point<chrono::system_clock, chrono::milliseconds> m_drawtime;
 
   bool m_firstactivation{true};
 };
