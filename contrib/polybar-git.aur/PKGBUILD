@@ -17,7 +17,7 @@ optdepends=("alsa-lib: volume module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "curl: github module support")
-makedepends=("cmake" "python" "python2" "pkg-config")
+makedepends=("cmake" "git" "python" "python2" "pkg-config")
 provides=("polybar")
 conflicts=("polybar" "lemonbuddy-git" "lemonbuddy")
 install="${_pkgname}.install"
