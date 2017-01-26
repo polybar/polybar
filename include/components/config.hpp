@@ -295,7 +295,7 @@ class config {
   T dereference_xrdb(string var) const {
     size_t pos;
 #if not WITH_XRM
-    m_log.warn("No built-in support for xrdb (requires xcb-util-xrm). Using default value for `%s`", var);
+    m_log.warn("No built-in support to dereference ${xrdb:%s} references (requires `xcb-util-xrm`)", var);
     if ((pos = var.find(':')) != string::npos) {
       return convert<T>(var.substr(pos + 1));
     }
