@@ -322,7 +322,7 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && m_tray->settings().configured_slots) {
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
     auto trayalign = m_tray->settings().align;
     auto traywidth = m_tray->settings().configured_w;
     if (trayalign == alignment::LEFT) {
