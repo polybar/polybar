@@ -74,7 +74,7 @@ class config {
   T get(const string& section, const string& key) const {
     auto it = m_sections.find(section);
     if (it == m_sections.end() || it->second.find(key) == it->second.end()) {
-      throw key_error("Missing parameter [" + section + "." + key + "]");
+      throw key_error("Missing parameter \"" + section + "." + key + "\"");
     }
     return dereference<T>(section, key, it->second.at(key), convert<T>(string{it->second.at(key)}));
   }
@@ -125,7 +125,7 @@ class config {
     }
 
     if (results.empty()) {
-      throw key_error("Missing parameter [" + section + "." + key + "-0]");
+      throw key_error("Missing parameter \"" + section + "." + key + "-0\"");
     }
 
     return results;
@@ -220,7 +220,7 @@ class config {
     } else if ((pos = path.find(".")) != string::npos) {
       return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
-      throw value_error("Invalid reference defined at [" + section + "." + key + "]");
+      throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
     }
   }
 
@@ -251,7 +251,8 @@ class config {
       size_t pos;
       if ((pos = key.find(':')) != string::npos) {
         string fallback = key.substr(pos + 1);
-        m_log.info("The reference ${%s.%s} does not exist, using defined fallback value \"%s\"", section, key.substr(0, pos), fallback);
+        m_log.info("The reference ${%s.%s} does not exist, using defined fallback value \"%s\"", section,
+            key.substr(0, pos), fallback);
         return convert<T>(move(fallback));
       }
       throw value_error("The reference ${" + section + "." + key + "} does not exist (no fallback set)");

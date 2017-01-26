@@ -190,7 +190,11 @@ namespace file_util {
   string contents(const string& filename) {
     try {
       string contents;
-      std::getline(std::ifstream(filename, std::ifstream::in), contents);
+      string line;
+      std::ifstream in(filename, std::ifstream::in);
+      while (std::getline(in, line)) {
+        contents += line + '\n';
+      }
       return contents;
     } catch (const std::ifstream::failure& e) {
       return "";

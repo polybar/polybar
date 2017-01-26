@@ -77,20 +77,57 @@ void config::warn_deprecated(const string& section, const string& key, string re
  * Parse key/value pairs from the configuration file
  */
 void config::parse_file() {
-  std::ifstream in(m_file);
-  string line;
-  string section;
-  unsigned int lineno{0};
+  vector<pair<int, string>> lines;
+  vector<string> files{m_file};
 
-  while (std::getline(in, line)) {
-    lineno++;
-
-    line = string_util::replace_all(line, "\t", "");
-
+  std::function<void(int, string&&)> pushline = [&](int lineno, string&& line) {
     // Ignore empty lines and comments
     if (line.empty() || line[0] == ';' || line[0] == '#') {
-      continue;
+      return;
     }
+
+    string key, value;
+    string::size_type pos;
+
+    // Filter lines by:
+    // - key/value pairs
+    // - section headers
+    if ((pos = line.find('=')) != string::npos) {
+      key = forward<string>(string_util::trim(forward<string>(line.substr(0, pos))));
+      value = forward<string>(string_util::trim(line.substr(pos + 1)));
+    } else if (line[0] != '[' || line[line.length() - 1] != ']') {
+      return;
+    }
+
+    if (key == "include-file") {
+      if (value.empty() || !file_util::exists(value)) {
+        throw value_error("Invalid include file \"" + value + "\" defined on line " + to_string(lineno));
+      }
+      if (std::find(files.begin(), files.end(), value) != files.end()) {
+        throw value_error("Recursive include file \"" + value + "\"");
+      }
+      files.push_back(value);
+      m_log.trace("config: Including file \"%s\"", value);
+      for (auto&& l : string_util::split(file_util::contents(value), '\n')) {
+        pushline(lineno, forward<string>(l));
+      }
+      files.pop_back();
+    } else {
+      lines.emplace_back(make_pair(lineno, line));
+    }
+  };
+
+  int lineno{0};
+  string line;
+  std::ifstream in(m_file);
+  while (std::getline(in, line)) {
+    pushline(++lineno, string_util::replace_all(line, "\t", ""));
+  }
+
+  string section;
+  for (auto&& l : lines) {
+    auto& lineno = l.first;
+    auto& line = l.second;
 
     // New section
     if (line[0] == '[' && line[line.length() - 1] == ']') {
@@ -107,7 +144,7 @@ void config::parse_file() {
       continue;
     }
 
-    string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos)), ' '))};
+    string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos))))};
     string value;
 
     auto it = m_sections[section].find(key);
@@ -116,7 +153,7 @@ void config::parse_file() {
     }
 
     if (equal_pos + 1 < line.size()) {
-      value = forward<string>(string_util::trim(line.substr(equal_pos + 1), ' '));
+      value = forward<string>(string_util::trim(line.substr(equal_pos + 1)));
       size_t len{value.size()};
       if (len > 2 && value[0] == '"' && value[len - 1] == '"') {
         value.erase(len - 1, 1).erase(0, 1);
@@ -149,13 +186,14 @@ void config::copy_inherited() {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
-          throw value_error("[" + section.first + "." + KEY_INHERIT + "] requires a value");
+          throw value_error("Invalid section \"\" defined for \"" + section.first + "." + KEY_INHERIT + "\"");
         }
 
         // Find and validate base section
         auto base_section = m_sections.find(inherit);
         if (base_section == m_sections.end()) {
-          throw value_error("[" + section.first + "." + KEY_INHERIT + "] invalid reference \"" + inherit + "\"");
+          throw value_error(
+              "Invalid section \"" + inherit + "\" defined for \"" + section.first + "." + KEY_INHERIT + "\"");
         }
 
         m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);

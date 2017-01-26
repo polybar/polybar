@@ -43,6 +43,7 @@ int main() {
   };
 
   "trim"_test = [] {
+    expect(string_util::trim("  x x ") == "x x");
     expect(string_util::ltrim("xxtestxx", 'x') == "testxx");
     expect(string_util::rtrim("xxtestxx", 'x') == "xxtest");
     expect(string_util::trim("xxtestxx", 'x') == "test");
