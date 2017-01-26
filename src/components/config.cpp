@@ -123,7 +123,7 @@ void config::parse_file() {
       }
     }
 
-#ifdef WITH_XRM
+#if WITH_XRM
     // Initialize the xresource manage if there are any xrdb refs
     // present in the configuration
     if (!m_xrm && value.find("${xrdb") != string::npos) {

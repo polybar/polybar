@@ -4,15 +4,15 @@
 
 set(MODULES_LEFT "bspwm i3")
 set(MODULES_CENTER "mpd")
-set(MODULES_RIGHT "xbacklight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
+set(MODULES_RIGHT "filesystem xbacklight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
 
 set(FONT_FIXED "fixed:pixelsize=10")
 set(FONT_UNIFONT "unifont:fontformat=truetype")
 set(FONT_SIJI "siji:pixelsize=10")
 
-font_query(FONT_FIXED "${FONT_FIXED}" FIELDS family pixelsize)
-font_query(FONT_UNIFONT "${FONT_UNIFONT}" FIELDS family fontformat)
-font_query(FONT_SIJI "${FONT_SIJI}" FIELDS family pixelsize)
+queryfont(FONT_FIXED ${FONT_FIXED} FIELDS family pixelsize)
+queryfont(FONT_UNIFONT ${FONT_UNIFONT} FIELDS family fontformat)
+queryfont(FONT_SIJI ${FONT_SIJI} FIELDS family pixelsize)
 
 # Strip disabled modules {{{
 

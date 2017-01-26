@@ -2,7 +2,7 @@
 # Collection of cmake utility functions
 #
 
-# message_colored : Outputs a colorized message {{{
+# message_colored {{{
 
 function(message_colored message_level text color)
   string(ASCII 27 esc)
@@ -10,17 +10,19 @@ function(message_colored message_level text color)
 endfunction()
 
 # }}}
-# require_binary : Locates binary by name and exports its path to BINPATH_${name} {{{
+# colored_option {{{
 
-function(require_binary binary_name)
-  find_program(BINPATH_${binary_name} ${binary_name})
-  if(NOT BINPATH_${binary_name})
-    message_colored(FATAL_ERROR "Failed to locate ${binary_name} binary" 31)
+function(colored_option text flag)
+  if(${flag})
+    message_colored(STATUS "${text}" "32;1")
+  else()
+    message_colored(STATUS "${text}" "37;2")
   endif()
 endfunction()
 
 # }}}
-# make_executable : Builds an executable target {{{
+
+# make_executable {{{
 
 function(make_executable target_name)
   set(zero_value_args)
@@ -45,8 +47,7 @@ function(make_executable target_name)
   add_executable(${target_name} ${BIN_SOURCES})
 
   # set the output file basename the same for static and shared
-  set_target_properties(${target_name}
-                        PROPERTIES OUTPUT_NAME ${target_name})
+  set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${target_name})
 
   # link libraries from pkg-config imports
   foreach(DEP ${BIN_PKG_DEPENDS})
@@ -57,24 +58,27 @@ function(make_executable target_name)
   # link libraries from cmake imports
   foreach(DEP ${BIN_CMAKE_DEPENDS})
     string(TOUPPER ${DEP} DEP)
-    target_link_libraries(${target_name} ${${DEP}_LIB}
-                                             ${${DEP}_LIBRARY}
-                                             ${${DEP}_LIBRARIES})
+    target_link_libraries(${target_name}
+      ${${DEP}_LIB}
+      ${${DEP}_LIBRARY}
+      ${${DEP}_LIBRARIES})
   endforeach()
 
   # link libraries that are build as part of this project
-  target_link_libraries(${target_name} ${BIN_TARGET_DEPENDS} ${BIN_RAW_DEPENDS})
+  target_link_libraries(${target_name}
+    ${BIN_TARGET_DEPENDS}
+    ${BIN_RAW_DEPENDS})
 
   # install targets
   install(TARGETS ${target_name}
-          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          COMPONENT runtime)
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT runtime)
 endfunction()
 
 # }}}
-# make_library : Builds a library target {{{
+# make_library {{{
 
 function(make_library target_name)
   set(zero_value_args SHARED STATIC)
@@ -112,7 +116,9 @@ function(make_library target_name)
 
   foreach(library_target_name ${library_targets})
     message(STATUS "${library_target_name}")
-    add_library(${library_target_name} ${LIB_HEADERS_ABS} ${LIB_SOURCES})
+    add_library(${library_target_name}
+      ${LIB_HEADERS_ABS}
+      ${LIB_SOURCES})
 
     # link libraries from pkg-config imports
     foreach(DEP ${LIB_PKG_DEPENDS})
@@ -123,9 +129,10 @@ function(make_library target_name)
     # link libraries from cmake imports
     foreach(DEP ${LIB_CMAKE_DEPENDS})
       string(TOUPPER ${DEP} DEP)
-      target_link_libraries(${library_target_name} ${${DEP}_LIB}
-                                                   ${${DEP}_LIBRARY}
-                                                   ${${DEP}_LIBRARIES})
+      target_link_libraries(${library_target_name}
+        ${${DEP}_LIB}
+        ${${DEP}_LIBRARY}
+        ${${DEP}_LIBRARIES})
     endforeach()
 
     # link libraries that are build as part of this project
@@ -153,17 +160,18 @@ function(make_library target_name)
 
     # install targets
     install(TARGETS ${LIBRARY_TARGETS}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT library)
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT library)
   endforeach()
 endfunction()
 
 # }}}
-# find_font : Query fontconfig fonts {{{
 
-function(font_query output_variable fontname)
+# queryfont {{{
+
+function(queryfont output_variable fontname)
   set(multi_value_args FIELDS)
   cmake_parse_arguments(ARG "" "" "${multi_value_args}" ${ARGN})
 
@@ -189,16 +197,70 @@ function(font_query output_variable fontname)
 
   foreach(match LISTS ${output})
     if(${match} MATCHES ".*${fontname}.*$")
-      list(APPEND FONT_QUERY_MATCHES ${match})
+      list(APPEND matches ${match})
     endif()
   endforeach()
 
-  if(FONT_QUERY_MATCHES)
-    list(GET FONT_QUERY_MATCHES 0 output_variable)
+  if(matches)
+    list(GET matches 0 output_variable)
     set(output_variable "${output_variable}" PARENT_SCOPE)
     message(STATUS "Found font: ${output_variable}")
   else()
     message_colored(STATUS "Font not found: ${fontname}" "33;1")
+  endif()
+endfunction()
+
+# }}}
+# querybin {{{
+
+function(querybin binary_name)
+  find_program(BIN_${binary_name} ${binary_name})
+  if(NOT BIN_${binary_name})
+    message_colored(FATAL_ERROR "Failed to locate ${binary_name} binary" 31)
+  endif()
+endfunction()
+
+# }}}
+# querylib {{{
+
+function(querylib flag type pkg out_library out_include_dirs)
+  if(${flag})
+    if(${type} STREQUAL "cmake")
+      find_package(${pkg} REQUIRED)
+      string(TOUPPER ${pkg} pkg_upper)
+      list(APPEND ${out_library} ${${pkg_upper}_LIBRARY})
+      list(APPEND ${out_include_dirs} ${${pkg_upper}_INCLUDE_DIR})
+    elseif(${type} STREQUAL "pkg-config")
+      find_package(PkgConfig REQUIRED)
+      pkg_check_modules(PKG_${flag} REQUIRED ${pkg})
+      list(APPEND ${out_library} ${PKG_${flag}_LIBRARIES})
+      list(APPEND ${out_include_dirs} ${PKG_${flag}_INCLUDE_DIRS})
+    else()
+      message(FATAL_ERROR "Invalid lookup type '${type}'")
+    endif()
+    set(${out_library} ${${out_library}} PARENT_SCOPE)
+    set(${out_include_dirs} ${${out_include_dirs}} PARENT_SCOPE)
+  endif()
+endfunction()
+
+# }}}
+# checklib {{{
+
+function(checklib flag type pkg)
+  if(NOT DEFINED ${flag})
+    if(${type} STREQUAL "cmake")
+      find_package(${pkg} QUIET)
+      set(${flag} ${${pkg}_FOUND} CACHE BOOL "")
+    elseif(${type} STREQUAL "pkg-config")
+      find_package(PkgConfig REQUIRED)
+      pkg_check_modules(PKG_${flag} QUIET ${pkg})
+      set(${flag} ${PKG_${flag}_FOUND} CACHE BOOL "")
+    elseif(${type} STREQUAL "binary")
+      find_program(BIN_${flag} ${pkg})
+      set(${flag} ${BIN_${flag}} CACHE BOOL "")
+    else()
+      message(FATAL_ERROR "Invalid lookup type '${type}'")
+    endif()
   endif()
 endfunction()
 

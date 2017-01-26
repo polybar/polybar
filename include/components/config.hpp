@@ -9,7 +9,7 @@
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
-#ifdef WITH_XRM
+#if WITH_XRM
 #include "x11/xresources.hpp"
 #endif
 
@@ -284,12 +284,12 @@ class config {
   template <typename T>
   T dereference_xrdb(string var) const {
     size_t pos;
-#ifndef WITH_XRM
+#if not WITH_XRM
     m_log.warn("No built-in support for xrdb (requires xcb-util-xrm). Using default value for `%s`", var);
     if ((pos = var.find(":")) != string::npos) {
-      return var.substr(pos + 1);
+      return convert<T>(var.substr(pos + 1));
     }
-    return fallback;
+    return convert<T>("");
 #else
     if (!m_xrm) {
       throw application_error("xrm is not initialized");
@@ -346,7 +346,7 @@ class config {
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
-#ifdef WITH_XRM
+#if WITH_XRM
   unique_ptr<xresource_manager> m_xrm;
 #endif
 };

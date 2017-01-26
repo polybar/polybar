@@ -9,15 +9,12 @@
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
-#include "x11/atoms.hpp"
-#include "x11/connection.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 #include "x11/tray_manager.hpp"
 #include "x11/window.hpp"
 #include "x11/winspec.hpp"
 #include "x11/xembed.hpp"
-#include "x11/xresources.hpp"
 
 // ====================================================================================================
 //

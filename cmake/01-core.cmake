@@ -1,9 +1,12 @@
 #
 # Core setup
 #
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Export compile commands used for custom targets
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -59,7 +62,7 @@ elseif(CXXLIB_GCC)
 endif()
 
 if(ENABLE_CCACHE)
-  require_binary(ccache)
+  querybin(ccache)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${BINPATH_ccache})
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${BINPATH_ccache})
 endif()

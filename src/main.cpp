@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     //==================================================
     if (cli->has("list-monitors")) {
       for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
-        if (ENABLE_XRANDR_MONITORS && mon->output == XCB_NONE) {
+        if (WITH_XRANDR_MONITORS && mon->output == XCB_NONE) {
           printf("%s: %ix%i+%i+%i (XRandR monitor)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
         } else {
           printf("%s: %ix%i+%i+%i\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);

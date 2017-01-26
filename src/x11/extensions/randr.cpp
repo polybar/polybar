@@ -55,7 +55,7 @@ namespace randr_util {
    * Check for XRandR monitor support
    */
   bool check_monitor_support() {
-    return ENABLE_XRANDR_MONITORS && g_major_version >= 1 && g_minor_version >= 5;
+    return WITH_XRANDR_MONITORS && g_major_version >= 1 && g_minor_version >= 5;
   }
 
   /**
@@ -85,7 +85,7 @@ namespace randr_util {
       return monitors;
     }
 
-#if ENABLE_XRANDR_MONITORS
+#if WITH_XRANDR_MONITORS
     if (check_monitor_support()) {
       for (auto&& mon : conn.get_monitors(root, true).monitors()) {
         try {
@@ -110,7 +110,7 @@ namespace randr_util {
         auto name_iter = info.name();
         string name{name_iter.begin(), name_iter.end()};
 
-#if ENABLE_XRANDR_MONITORS
+#if WITH_XRANDR_MONITORS
         if (check_monitor_support()) {
           auto mon = std::find_if(
               monitors.begin(), monitors.end(), [&name](const monitor_t& mon) { return mon->name == name; });
