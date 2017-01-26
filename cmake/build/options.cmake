@@ -43,6 +43,15 @@ endif()
 
 # }}}
 
+# Default value for: WITH_XRM {{{
+
+if(NOT DEFINED WITH_XRM)
+  pkg_check_modules(XRM QUIET xcb-xrm)
+  set(WITH_XRM ${XRM_FOUND} CACHE BOOL "Enable xcb-xrm support")
+endif()
+
+# }}}
+
 # Define build options {{{
 
 option(CXXLIB_CLANG       "Link against libc++"        OFF)
@@ -73,11 +82,6 @@ option(WITH_XSYNC         "xcb-sync support"           OFF)
 option(WITH_XCOMPOSITE    "xcb-composite support"      OFF)
 option(WITH_XKB           "xcb-xkb support"            ON)
 option(WITH_XRM           "xcb-xrm support"            ON)
-
-if(NOT DEFINED WITH_XRM)
-  pkg_check_modules(XRM QUIET xcb-xrm)
-  set(WITH_XRM ${XRM_FOUND} CACHE BOOL "Enable xcb-xrm support")
-endif()
 
 if(NOT DEFINED ENABLE_XRANDR_MONITORS)
   pkg_check_modules(XRANDR QUIET xrandr>=1.5.0 randrproto>=1.5.0 xcb-proto>=1.12)
