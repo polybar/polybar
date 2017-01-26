@@ -8,7 +8,7 @@ checklib(ENABLE_I3 "binary" i3)
 checklib(ENABLE_MPD "pkg-config" libmpdclient)
 checklib(ENABLE_NETWORK "cmake" Libiw)
 checklib(WITH_XRM "pkg-config" xcb-xrm)
-checklib(WITH_XRANDR_MONITORS "pkg-config" "xrandr>=1.5.0;randrproto>=1.5.0;xcb-proto>=1.12")
+checklib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12")
 
 option(CXXLIB_CLANG "Link against libc++" OFF)
 option(CXXLIB_GCC "Link against stdlibc++" OFF)
