@@ -312,9 +312,7 @@ namespace cairo {
 
     context& clip(const rect& r) {
       *this << r;
-      cairo_clip(m_c);
-      cairo_new_path(m_c);
-      return *this;
+      return clip();
     }
 
     context& reset_clip() {

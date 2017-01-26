@@ -665,6 +665,7 @@ bool bar::on(const signals::eventqueue::start&) {
 
   m_log.trace("bar: Draw empty bar");
   m_renderer->begin(m_opts.inner_area());
+  m_renderer->fill_background();
   m_renderer->end();
 
   m_sig.emit(signals::ui::ready{});

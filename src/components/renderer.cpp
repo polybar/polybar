@@ -241,8 +241,6 @@ void renderer::begin(xcb_rectangle_t rect) {
       static_cast<double>(m_rect.width),
       static_cast<double>(m_rect.height)});
   // clang-format on
-
-  fill_background();
 }
 
 /**
@@ -260,10 +258,27 @@ void renderer::end() {
     m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
     m_context->pop(&m_blocks[m_align].pattern);
 
+    // Capture the concatenated block contents
+    // so that it can be masked with the corner pattern
+    if (m_cornermask != nullptr) {
+      m_context->push();
+    }
+
     for (auto&& b : m_blocks) {
       if (block_w(b.first) && b.second.pattern != nullptr) {
         flush(b.first);
       }
+    }
+
+    if (m_cornermask != nullptr) {
+      cairo_pattern_t* pattern{nullptr};
+      m_context->pop(&pattern);
+      m_context->save();
+      {
+        *m_context << pattern;
+        m_context->mask(m_cornermask);
+      }
+      m_context->restore();
     }
   }
 
@@ -292,6 +307,13 @@ void renderer::flush(alignment a) {
   {
     *m_context << cairo::abspos{0.0, 0.0};
     *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
+
+    m_context->clip();
+    *m_context << CAIRO_OPERATOR_CLEAR;
+    m_context->paint();
+    m_context->reset_clip();
+    *m_context << CAIRO_OPERATOR_OVER;
+
     *m_context << cairo::translate{x, 0.0};
     *m_context << m_blocks[a].pattern;
 
@@ -454,12 +476,7 @@ void renderer::fill_background() {
     *m_context << m_bar.background;
   }
 
-  if (m_cornermask != nullptr) {
-    m_context->mask(m_cornermask);
-  } else {
-    m_context->paint();
-  }
-
+  m_context->paint();
   m_context->restore();
 }
 
@@ -672,6 +689,8 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
     m_blocks[m_align].y = 0.0;
     m_context->push();
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
+
+    fill_background();
   }
   return true;
 }
