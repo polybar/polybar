@@ -18,31 +18,27 @@ primary = #ffb52a
 secondary = #e60053
 alert = #bd2c40
 
-[global/wm]
-margin-top = 5
-margin-bottom = 5
-
 [bar/example]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
 height = 27
-offset-x = 0
-offset-y = 0
+;offset-x = 1%
+;offset-y = 1%
+radius = 6.0
 fixed-center = false
 
 background = ${colors.background}
 foreground = ${colors.foreground}
 
-overline-size = 2
-overline-color = #f00
-underline-size = 2
-underline-color = #00f
+line-size = 3
+line-color = #f00
 
-border-bottom-size = 2
-border-bottom-color = #333
+border-size = 4
+border-color = #00000000
 
 padding-left = 0
 padding-right = 2
+
 module-margin-left = 1
 module-margin-right = 2
 
@@ -69,7 +65,6 @@ tray-padding = 2
 
 ;scroll-up = i3wm-wsnext
 ;scroll-down = i3wm-wsprev
-
 
 [module/xwindow]
 type = internal/xwindow
@@ -355,5 +350,16 @@ menu-2-0 = power off
 menu-2-0-exec = sudo poweroff
 menu-2-1 = cancel
 menu-2-1-exec = menu-open-0
+
+[settings]
+screenchange-reload = true
+;compositing-background = xor
+;compositing-background = screen
+;compositing-foreground = source
+;compositing-border = over
+
+[global/wm]
+margin-top = 5
+margin-bottom = 5
 
 ; vim:ft=dosini
