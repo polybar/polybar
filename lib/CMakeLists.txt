@@ -9,6 +9,8 @@ list(APPEND dirs ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
 # }}}
 # Library: xpp {{{
 
+set(XCB_PROTOS xproto)
+
 if(WITH_XRANDR)
   list(APPEND XCB_PROTOS randr)
 endif()
