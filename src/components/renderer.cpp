@@ -140,7 +140,7 @@ renderer::renderer(
       }
     }
 
-    m_log.info("Using DPI = %gx%g", dpi_x, dpi_y);
+    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
 
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
@@ -148,18 +148,17 @@ renderer::renderer(
       fonts.emplace_back("fixed");
     }
 
-    auto fonts_loaded = false;
     for (const auto& f : fonts) {
-      vector<string> fd{string_util::split(f, ';')};
-      auto font =
-          cairo::make_font(*m_context, string(fd[0]), fd.size() > 1 ? std::atoi(fd[1].c_str()) : 0, dpi_x, dpi_y);
-      m_log.info("Loaded font \"%s\" (name=%s, file=%s)", fd[0], font->name(), font->file());
+      int offset{0};
+      string pattern{f};
+      size_t pos = pattern.rfind(';');
+      if (pos != string::npos) {
+        offset = std::atoi(pattern.substr(pos + 1).c_str());
+        pattern.erase(pos);
+      }
+      auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
+      m_log.info("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
-      fonts_loaded = true;
-    }
-
-    if (!fonts_loaded) {
-      throw application_error("Unable to load fonts");
     }
   }
 
