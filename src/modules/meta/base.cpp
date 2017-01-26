@@ -69,18 +69,21 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
+    const auto formatdef = [&](
+        const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
+
     auto format = make_unique<module_format>();
     format->value = m_conf.get(m_modname, name, move(fallback));
-    format->fg = m_conf.get(m_modname, name + "-foreground", format->fg);
-    format->bg = m_conf.get(m_modname, name + "-background", format->bg);
-    format->ul = m_conf.get(m_modname, name + "-underline", format->ul);
-    format->ol = m_conf.get(m_modname, name + "-overline", format->ol);
-    format->ulsize = m_conf.get(m_modname, name + "-underline-size", format->ulsize);
-    format->olsize = m_conf.get(m_modname, name + "-overline-size", format->olsize);
-    format->spacing = m_conf.get(m_modname, name + "-spacing", format->spacing);
-    format->padding = m_conf.get(m_modname, name + "-padding", format->padding);
-    format->margin = m_conf.get(m_modname, name + "-margin", format->margin);
-    format->offset = m_conf.get(m_modname, name + "-offset", format->offset);
+    format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
+    format->bg = m_conf.get(m_modname, name + "-background", formatdef("background", format->bg));
+    format->ul = m_conf.get(m_modname, name + "-underline", formatdef("underline", format->ul));
+    format->ol = m_conf.get(m_modname, name + "-overline", formatdef("overline", format->ol));
+    format->ulsize = m_conf.get(m_modname, name + "-underline-size", formatdef("underline-size", format->ulsize));
+    format->olsize = m_conf.get(m_modname, name + "-overline-size", formatdef("overline-size", format->olsize));
+    format->spacing = m_conf.get(m_modname, name + "-spacing", formatdef("spacing", format->spacing));
+    format->padding = m_conf.get(m_modname, name + "-padding", formatdef("padding", format->padding));
+    format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
+    format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
     format->tags.swap(tags);
 
     try {
