@@ -80,8 +80,8 @@ endif()
 # Configure and install {{{
 
 configure_file(
-  ${PROJECT_SOURCE_DIR}/doc/config.cmake
-  ${CMAKE_SOURCE_DIR}/doc/config
+  ${CMAKE_CURRENT_LIST_DIR}/doc/config.cmake
+  ${CMAKE_CURRENT_LIST_DIR}/doc/config
   ESCAPE_QUOTES @ONLY)
 
 install(FILES config

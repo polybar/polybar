@@ -30,8 +30,8 @@ execute_process(COMMAND git describe --tags --dirty=-git
   OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 
 configure_file(
-  settings.hpp.cmake
-  settings.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/settings.hpp.cmake
+  ${CMAKE_CURRENT_LIST_DIR}/settings.hpp
   ESCAPE_QUOTES @ONLY)
 
 set(libs ${libs} PARENT_SCOPE)
