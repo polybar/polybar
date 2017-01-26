@@ -1,7 +1,7 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
-pkgver=3.0.1
+pkgver=3.0.2
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
