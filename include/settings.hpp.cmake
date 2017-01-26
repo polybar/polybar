@@ -116,19 +116,6 @@ const auto print_build_info = [](bool extended = false) {
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");
     printf("Compiler flags: @CMAKE_CXX_FLAGS@\n");
     printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@\n");
-    printf("\n");
-    printf("ALSA_SOUNDCARD              %s\n", ALSA_SOUNDCARD);
-    printf("BSPWM_SOCKET_PATH           %s\n", BSPWM_SOCKET_PATH);
-    printf("BSPWM_STATUS_PREFIX         %s\n", BSPWM_STATUS_PREFIX);
-    printf("BUILDER_SPACE_TOKEN         %s\n", BUILDER_SPACE_TOKEN);
-    printf("CONNECTION_TEST_IP          %s\n", CONNECTION_TEST_IP);
-    printf("PATH_ADAPTER                %s\n", PATH_ADAPTER);
-    printf("PATH_BACKLIGHT_MAX          %s\n", PATH_BACKLIGHT_MAX);
-    printf("PATH_BACKLIGHT_VAL          %s\n", PATH_BACKLIGHT_VAL);
-    printf("PATH_BATTERY                %s\n", PATH_BATTERY);
-    printf("PATH_CPU_INFO               %s\n", PATH_CPU_INFO);
-    printf("PATH_MEMORY_INFO            %s\n", PATH_MEMORY_INFO);
-    printf("PATH_TEMPERATURE_INFO       %s\n", PATH_TEMPERATURE_INFO);
   }
 };
 // clang-format on
