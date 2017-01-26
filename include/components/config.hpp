@@ -227,8 +227,11 @@ class config {
   /**
    * Dereference local value reference defined using:
    *  ${root.key}
+   *  ${root.key:fallback}
    *  ${self.key}
+   *  ${self.key:fallback}
    *  ${section.key}
+   *  ${section.key:fallback}
    */
   template <typename T>
   T dereference_local(string section, const string& key, const string& current_section) const {
@@ -245,7 +248,13 @@ class config {
       T result{convert<T>(string{string_value})};
       return dereference<T>(string(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
-      throw value_error("Unexisting reference defined at [" + section + "." + key + "]");
+      size_t pos;
+      if ((pos = key.find(':')) != string::npos) {
+        string fallback = key.substr(pos + 1);
+        m_log.info("The reference ${%s.%s} does not exist, using defined fallback value \"%s\"", section, key.substr(0, pos), fallback);
+        return convert<T>(move(fallback));
+      }
+      throw value_error("The reference ${" + section + "." + key + "} does not exist (no fallback set)");
     }
   }
 
@@ -259,7 +268,7 @@ class config {
     size_t pos;
     string env_default;
 
-    if ((pos = var.find(":")) != string::npos) {
+    if ((pos = var.find(':')) != string::npos) {
       env_default = var.substr(pos + 1);
       var.erase(pos);
     }
@@ -286,7 +295,7 @@ class config {
     size_t pos;
 #if not WITH_XRM
     m_log.warn("No built-in support for xrdb (requires xcb-util-xrm). Using default value for `%s`", var);
-    if ((pos = var.find(":")) != string::npos) {
+    if ((pos = var.find(':')) != string::npos) {
       return convert<T>(var.substr(pos + 1));
     }
     return convert<T>("");
@@ -296,7 +305,7 @@ class config {
     }
 
     string fallback;
-    if ((pos = var.find(":")) != string::npos) {
+    if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
       var.erase(pos);
     }
@@ -324,7 +333,7 @@ class config {
   T dereference_file(string var) const {
     size_t pos;
     string fallback;
-    if ((pos = var.find(":")) != string::npos) {
+    if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
       var.erase(pos);
     }
