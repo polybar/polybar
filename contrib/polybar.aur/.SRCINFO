@@ -1,6 +1,6 @@
 pkgbase = polybar
 	pkgdesc = A fast and easy-to-use status bar
-	pkgver = 3.0.0
+	pkgver = 3.0.1
 	pkgrel = 1
 	url = https://github.com/jaagr/polybar
 	arch = i686
@@ -25,7 +25,7 @@ pkgbase = polybar
 	conflicts = polybar-git
 	conflicts = lemonbuddy-git
 	conflicts = lemonbuddy
-	source = polybar::git+https://github.com/jaagr/polybar.git#tag=3.0.0
+	source = polybar::git+https://github.com/jaagr/polybar.git#tag=3.0.1
 	install = polybar.install
 	md5sums = SKIP
 
