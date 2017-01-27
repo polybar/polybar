@@ -128,10 +128,10 @@ namespace modules {
           ws_state = state::FOCUSED;
         } else if (ws->urgent) {
           ws_state = state::URGENT;
-        } else if (!ws->visible || (ws->visible && ws->output != m_bar.monitor->name)) {
-          ws_state = state::UNFOCUSED;
-        } else {
+        } else if (ws->visible) {
           ws_state = state::VISIBLE;
+        } else {
+          ws_state = state::UNFOCUSED;
         }
 
         string ws_name{ws->name};
