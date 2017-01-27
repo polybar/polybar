@@ -2,10 +2,9 @@
 
 main() {
   if [ $# -lt 1 ]; then
-    echo "$0 DIR..." 1>&2
+    printf "%s DIR...\n" "$0" 1>&2
     exit 1
   fi
-
   search="${*:-.}"
 
   [ -d "$search" ] || search="$(dirname "$search")"

@@ -1,10 +1,11 @@
-/build*/
-!cmake/build/
-tags
+/build*
+/doc/config
+/include/settings.hpp
+/polybar
+/polybar-msg
+/tags
 *.bak
 *.pyc
-*.tmp
 *.swp
-include/settings.hpp
+*.tmp
 .tags
-doc/config
