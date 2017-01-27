@@ -16,27 +16,24 @@ optdepends=("alsa-lib: volume module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "curl: github module support")
-makedepends=("cmake" "python" "python2" "pkg-config")
-conflicts=("polybar-git" "lemonbuddy-git" "lemonbuddy")
+makedepends=("cmake" "git" "python" "python2" "pkg-config")
+conflicts=("polybar-git")
 install="${pkgname}.install"
 source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
 
 prepare() {
-  cd "$pkgname" || exit
-  git submodule update --init --recursive
-  mkdir build
+  git -C "${pkgname}" submodule update --init --recursive
+  mkdir -p "${pkgname}/build"
 }
 
 build() {
-  cd "${pkgname}/build" || exit
+  cd "${pkgname}/build" || exit 1
   cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-  make
+  cmake --build .
 }
 
 package() {
-  cd "${pkgname}/build" || exit
-  make DESTDIR="${pkgdir}/" install
-  cd .. || exit
-  install -D -m644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  cmake --build "${pkgname}/build" --target install -- DESTDIR="${pkgdir}"
+  install -Dm644 "${pkgname}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

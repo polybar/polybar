@@ -7,6 +7,7 @@ pkgbase = polybar
 	arch = x86_64
 	license = MIT
 	makedepends = cmake
+	makedepends = git
 	makedepends = python
 	makedepends = python2
 	makedepends = pkg-config
@@ -23,8 +24,6 @@ pkgbase = polybar
 	optdepends = ttf-unifont: Font used in example config
 	optdepends = siji-git: Font used in example config
 	conflicts = polybar-git
-	conflicts = lemonbuddy-git
-	conflicts = lemonbuddy
 	source = polybar::git+https://github.com/jaagr/polybar.git#tag=3.0.2
 	install = polybar.install
 	md5sums = SKIP
