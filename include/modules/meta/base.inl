@@ -94,13 +94,17 @@ namespace modules {
 
   template <typename Impl>
   void module<Impl>::idle() {
-    CAST_MOD(Impl)->sleep(25ms);
+    if (running()) {
+      CAST_MOD(Impl)->sleep(25ms);
+    }
   }
 
   template <typename Impl>
   void module<Impl>::sleep(chrono::duration<double> sleep_duration) {
-    std::unique_lock<std::mutex> lck(m_sleeplock);
-    m_sleephandler.wait_for(lck, sleep_duration);
+    if (running()) {
+      std::unique_lock<std::mutex> lck(m_sleeplock);
+      m_sleephandler.wait_for(lck, sleep_duration);
+    }
   }
 
   template <typename Impl>

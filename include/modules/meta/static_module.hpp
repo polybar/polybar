@@ -11,8 +11,12 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->update();
-      CAST_MOD(Impl)->broadcast();
+      this->m_mainthread = thread([&] {
+        this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+        std::unique_lock<std::mutex> guard(this->m_updatelock);
+        CAST_MOD(Impl)->update();
+        CAST_MOD(Impl)->broadcast();
+      });
     }
 
     bool build(builder*, string) const {

@@ -96,13 +96,6 @@ namespace modules {
    * Query the RandR extension for the new values
    */
   void xbacklight_module::update() {
-    if (!m_updatelock.try_lock()) {
-      return;
-    }
-
-    std::lock_guard<mutex> guard(m_updatelock, std::adopt_lock);
-
-    // Query for the new backlight value
     auto& bl = m_output->backlight;
     randr_util::get_backlight_value(m_connection, m_output, bl);
     m_percentage = math_util::nearest_5(math_util::percentage<double>(bl.val, bl.min, bl.max));

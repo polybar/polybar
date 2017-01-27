@@ -13,28 +13,31 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      CAST_MOD(Impl)->update();
       this->m_mainthread = thread(&timer_module::runner, this);
     }
 
    protected:
     void runner() {
+      this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+
+      const auto check = [&]() -> bool {
+        std::unique_lock<std::mutex> guard(this->m_updatelock);
+        return CAST_MOD(Impl)->update();
+      };
+
+      // warm up module output before entering the loop
+      check();
+      CAST_MOD(Impl)->broadcast();
+
       try {
         while (this->running()) {
-          this->sleep(m_interval);
-
-          if (!this->running()) {
-            break;
+          if (check()) {
+            CAST_MOD(Impl)->broadcast();
           }
-
-          std::unique_lock<std::mutex> guard(this->m_updatelock);
-
-          if (CAST_MOD(Impl)->update()) {
-            this->broadcast();
-          }
+          CAST_MOD(Impl)->sleep(m_interval);
         }
       } catch (const exception& err) {
-        this->halt(err.what());
+        CAST_MOD(Impl)->halt(err.what());
       }
     }
 

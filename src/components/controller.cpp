@@ -157,6 +157,8 @@ controller::~controller() {
  */
 bool controller::run(bool writeback, string snapshot_dst) {
   m_log.info("Starting application");
+  m_log.trace("controller: Main thread id = %i", concurrency_util::thread_id(this_thread::get_id()));
+
   assert(!m_connection.connection_has_error());
 
   m_writeback = writeback;

@@ -17,10 +17,13 @@ namespace modules {
 
    protected:
     void runner() {
+      this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
       try {
         // Warm up module output before entering the loop
+        std::unique_lock<std::mutex> guard(this->m_updatelock);
         CAST_MOD(Impl)->on_event(nullptr);
         CAST_MOD(Impl)->broadcast();
+        guard.unlock();
 
         while (this->running()) {
           std::lock_guard<std::mutex> guard(this->m_updatelock);
