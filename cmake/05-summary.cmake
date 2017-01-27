@@ -2,8 +2,6 @@
 # Output build summary
 #
 
-string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_UPPER)
-
 message(STATUS " Build:")
 message_colored(STATUS "   Type: ${CMAKE_BUILD_TYPE}" "37;2")
 message_colored(STATUS "   CC: ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
@@ -31,7 +29,7 @@ colored_option("   xcb-composite" WITH_XCOMPOSITE)
 colored_option("   xcb-xkb" WITH_XKB)
 colored_option("   xcb-xrm" WITH_XRM)
 
-if(DEBUG)
+if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
   message(STATUS " Debug options:")
   colored_option("   Trace logging" DEBUG_LOGGER)
   colored_option("   Trace logging (verbose)" DEBUG_LOGGER_VERBOSE)

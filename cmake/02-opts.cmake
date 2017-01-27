@@ -10,13 +10,17 @@ checklib(ENABLE_NETWORK "cmake" Libiw)
 checklib(WITH_XRM "pkg-config" xcb-xrm)
 checklib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12")
 
+if(NOT DEFINED ENABLE_CCACHE AND CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
+  set(ENABLE_CCACHE ON)
+endif()
+
 option(CXXLIB_CLANG "Link against libc++" OFF)
 option(CXXLIB_GCC "Link against stdlibc++" OFF)
 
 option(BUILD_IPC_MSG "Build ipc messager" ON)
 option(BUILD_TESTS "Build testsuite" OFF)
 
-option(ENABLE_CCACHE "Enable ccache support" ${DEBUG})
+option(ENABLE_CCACHE "Enable ccache support" OFF)
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
 option(ENABLE_I3 "Enable i3 support" ON)
@@ -33,11 +37,13 @@ option(WITH_XCOMPOSITE "xcb-composite support" OFF)
 option(WITH_XKB "xcb-xkb support" ON)
 option(WITH_XRM "xcb-xrm support" ON)
 
-option(DEBUG_LOGGER "Debug logging" ${DEBUG})
-option(DEBUG_LOGGER_VERBOSE "Debug logging (verbose)" OFF)
-option(DEBUG_HINTS "Debug clickable areas" OFF)
-option(DEBUG_WHITESPACE "Debug whitespace" OFF)
-option(DEBUG_FONTCONFIG "Debug fontconfig" OFF)
+if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
+  option(DEBUG_LOGGER "Debug logging" ON)
+  option(DEBUG_LOGGER_VERBOSE "Debug logging (verbose)" OFF)
+  option(DEBUG_HINTS "Debug clickable areas" OFF)
+  option(DEBUG_WHITESPACE "Debug whitespace" OFF)
+  option(DEBUG_FONTCONFIG "Debug fontconfig" OFF)
+endif()
 
 set(SETTING_ALSA_SOUNDCARD "default"
   CACHE STRING "Name of the ALSA soundcard driver")
@@ -64,7 +70,7 @@ set(SETTING_PATH_MESSAGING_FIFO "/tmp/polybar_mqueue.%pid%"
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
 
-if(DEBUG)
+if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
   set(DEBUG_HINTS_OFFSET_X 0 CACHE INTEGER "Debug hint offset x")
   set(DEBUG_HINTS_OFFSET_Y 0 CACHE INTEGER "Debug hint offset y")
 endif()
