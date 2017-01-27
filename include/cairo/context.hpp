@@ -189,15 +189,16 @@ namespace cairo {
           cairo_text_extents_t extents;
           f->textwidth(subset, &extents);
 
-          save();
-          {
+          // Draw the background
+          if (t.bg_rect.h != 0.0) {
+            save();
             cairo_set_operator(m_c, t.bg_operator);
             *this << t.bg;
             cairo_rectangle(m_c, t.bg_rect.x + *t.x_advance, t.bg_rect.y + *t.y_advance,
                 t.bg_rect.w + extents.x_advance, t.bg_rect.h);
             cairo_fill(m_c);
+            restore();
           }
-          restore();
 
           // Render subset
           auto fontextents = f->extents();
@@ -243,11 +244,16 @@ namespace cairo {
         m_points.emplace_front(make_pair<double, double>(0.0, 0.0));
         position(&m_points.front().first, &m_points.front().second);
       }
+      m_activegroups++;
       cairo_save(m_c);
       return *this;
     }
 
     context& restore(bool restore_point = false) {
+      if (!m_activegroups) {
+        throw application_error("Unmatched calls to save/restore");
+      }
+      m_activegroups--;
       cairo_restore(m_c);
       if (restore_point && !m_points.empty()) {
         *this << abspos{m_points.front().first, m_points.front().first};
@@ -296,17 +302,25 @@ namespace cairo {
       return *this;
     }
 
-    context& clear() {
+    context& clear(bool paint = true) {
       cairo_save(m_c);
       cairo_set_operator(m_c, CAIRO_OPERATOR_CLEAR);
-      cairo_paint(m_c);
+      if (paint) {
+        cairo_paint(m_c);
+      } else {
+        cairo_fill_preserve(m_c);
+      }
       cairo_restore(m_c);
       return *this;
     }
 
-    context& clip() {
-      cairo_clip(m_c);
-      cairo_new_path(m_c);
+    context& clip(bool preserve = false) {
+      if (preserve) {
+        cairo_clip_preserve(m_c);
+      } else {
+        cairo_clip(m_c);
+        cairo_new_path(m_c);
+      }
       return *this;
     }
 
@@ -342,6 +356,7 @@ namespace cairo {
     const logger& m_log;
     vector<shared_ptr<font>> m_fonts;
     std::deque<pair<double, double>> m_points;
+    int m_activegroups{0};
   };
 }
 

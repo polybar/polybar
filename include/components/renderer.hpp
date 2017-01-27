@@ -109,8 +109,9 @@ class renderer
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
   map<alignment, alignment_block> m_blocks;
+  cairo_pattern_t* m_cornermask{};
 
-  cairo_operator_t m_comp_bg{CAIRO_OPERATOR_OVER};
+  cairo_operator_t m_comp_bg{CAIRO_OPERATOR_SOURCE};
   cairo_operator_t m_comp_fg{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_ol{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_ul{CAIRO_OPERATOR_OVER};
@@ -127,8 +128,6 @@ class renderer
 
   bool m_fixedcenter;
   string m_snapshot_dst;
-
-  cairo_pattern_t* m_cornermask{};
 };
 
 POLYBAR_NS_END

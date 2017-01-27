@@ -259,26 +259,30 @@ void renderer::end() {
 
     // Capture the concatenated block contents
     // so that it can be masked with the corner pattern
-    if (m_cornermask != nullptr) {
-      m_context->push();
-    }
+    m_context->push();
+
+    // Draw the background on the new layer to make up for
+    // the areas not covered by the alignment blocks
+    fill_background();
 
     for (auto&& b : m_blocks) {
-      if (block_w(b.first) && b.second.pattern != nullptr) {
-        flush(b.first);
-      }
+      flush(b.first);
     }
 
+    cairo_pattern_t* blockcontents{};
+    m_context->pop(&blockcontents);
+
     if (m_cornermask != nullptr) {
-      cairo_pattern_t* pattern{nullptr};
-      m_context->pop(&pattern);
-      m_context->save();
-      {
-        *m_context << pattern;
-        m_context->mask(m_cornermask);
-      }
-      m_context->restore();
+      *m_context << blockcontents;
+      m_context->mask(m_cornermask);
+    } else {
+      *m_context << blockcontents;
+      m_context->paint();
     }
+
+    m_context->destroy(&blockcontents);
+  } else {
+    fill_background();
   }
 
   m_context->restore();
@@ -293,55 +297,47 @@ void renderer::end() {
  * Flush contents of given alignment block
  */
 void renderer::flush(alignment a) {
+  if (m_blocks[a].pattern == nullptr) {
+    return;
+  }
+
+  m_context->save();
+
   double x = static_cast<int>(block_x(a) + 0.5);
   double y = static_cast<int>(block_y(a) + 0.5);
   double w = static_cast<int>(block_w(a) + 0.5);
   double h = static_cast<int>(block_h(a) + 0.5);
   double xw = x + w;
+  bool fits{xw <= m_rect.x + m_rect.width};
 
-  m_log.trace_x("renderer: flush(%i geom=%gx%g+%g+%g)", static_cast<int>(a), w, h, x, y);
+  m_log.trace("renderer: flush(%i geom=%gx%g+%g+%g, falloff=%i)", static_cast<int>(a), w, h, x, y, !fits);
 
-  m_surface->flush();
-  m_context->save();
-  {
-    *m_context << cairo::abspos{0.0, 0.0};
-    *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
+  // Set block shape
+  *m_context << cairo::abspos{0.0, 0.0};
+  *m_context << cairo::rect{m_rect.x + x, m_rect.y + y, w, h};
 
-    m_context->clip();
-    *m_context << CAIRO_OPERATOR_CLEAR;
-    m_context->paint();
-    m_context->reset_clip();
-    *m_context << CAIRO_OPERATOR_OVER;
+  // Restrict drawing to the block rectangle
+  m_context->clip(true);
 
-    *m_context << cairo::translate{x, 0.0};
-    *m_context << m_blocks[a].pattern;
+  // Clear the area covered by the block
+  m_context->clear();
 
-    if (xw <= m_rect.width) {
-      m_context->paint();
-    } else {
-      double sx = w - (xw - m_rect.width);
-      vector<unsigned int> falloff{0xFFFFFFFF, 0x00FFFFFF};
-      cairo_pattern_t* pattern{};
+  *m_context << cairo::translate{x, 0.0};
+  *m_context << m_blocks[a].pattern;
+  m_context->paint();
 
-      m_context->push();
-      *m_context << cairo::linear_gradient{sx - 40.0, 0.0, sx, 0.0, falloff};
-      *m_context << CAIRO_OPERATOR_SOURCE;
-      m_context->paint();
-      m_context->pop(&pattern);
-      m_context->mask(pattern);
-      m_context->destroy(&pattern);
-
-      // clang-format off
-      rgba bg1{m_bar.background}; bg1.a = 0.0;
-      rgba bg2{m_bar.background}; bg2.a = 0.4;
-      // clang-format on
-      *m_context << cairo::linear_gradient{sx - 40.0, 0.0, sx, 0.0, {bg1, bg2}};
-      *m_context << CAIRO_OPERATOR_OVER;
-      m_context->paint();
-    }
-
-    m_context->destroy(&m_blocks[a].pattern);
+  if (!fits) {
+    // Paint falloff gradient at the end of the visible block
+    // to indicate that the content expands past the canvas
+    double fx = w - (xw - m_rect.width);
+    double fsize = std::max(5.0, std::min(std::abs(fx), 30.0));
+    m_log.trace("renderer: Drawing falloff (pos=%g, size=%g)", fx, fsize);
+    *m_context << cairo::linear_gradient{fx - fsize, 0.0, fx, 0.0, {0x00000000, 0xFF000000}};
+    m_context->paint(0.25);
   }
+
+  *m_context << cairo::abspos{0.0, 0.0};
+  m_context->destroy(&m_blocks[a].pattern);
   m_context->restore();
 }
 
@@ -372,6 +368,7 @@ void renderer::flush() {
 #endif
 #endif
 
+  m_surface->flush();
   m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();
 
@@ -391,15 +388,26 @@ void renderer::flush() {
  */
 double renderer::block_x(alignment a) const {
   switch (a) {
-    case alignment::CENTER:
+    case alignment::CENTER: {
+      double base_pos{0.0};
+      double min_pos{0.0};
       if (!m_fixedcenter || m_rect.width / 2.0 + block_w(a) / 2.0 > m_rect.width - block_w(alignment::RIGHT)) {
-        return std::max((m_rect.width - block_w(alignment::RIGHT) + block_w(alignment::LEFT)) / 2.0 - block_w(a) / 2.0,
-            block_w(alignment::LEFT) + BLOCK_GAP);
+        base_pos = (m_rect.width - block_w(alignment::RIGHT) + block_w(alignment::LEFT)) / 2.0;
       } else {
-        return std::max(m_rect.width / 2.0 - block_w(a) / 2.0, block_w(alignment::LEFT));
+        base_pos = m_rect.width / 2.0;
       }
-    case alignment::RIGHT:
-      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + BLOCK_GAP + block_w(alignment::CENTER));
+      if ((min_pos = block_w(alignment::LEFT))) {
+        min_pos += BLOCK_GAP;
+      }
+      return std::max(base_pos - block_w(a) / 2.0, min_pos);
+    }
+    case alignment::RIGHT: {
+      double gap{0.0};
+      if (block_w(alignment::LEFT) || block_w(alignment::CENTER)) {
+        gap = BLOCK_GAP;
+      }
+      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + gap + block_w(alignment::CENTER));
+    }
     default:
       return 0.0;
   }
@@ -570,13 +578,11 @@ void renderer::draw_text(const string& contents) {
   block.align = m_align;
   block.contents = contents;
   block.font = m_font;
-  block.bg = 0;
-  block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
-  block.bg_operator = m_comp_bg;
   block.x_advance = &m_blocks[m_align].x;
   block.y_advance = &m_blocks[m_align].y;
+  block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
-  if (m_bg && m_bg != m_bar.background) {
+  if (m_bg) {
     block.bg = m_bg;
     block.bg_operator = m_comp_bg;
     block.bg_rect.x = m_rect.x;
