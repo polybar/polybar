@@ -315,14 +315,7 @@ chrono::duration<double> config::convert(string&& value) const {
 
 template <>
 rgba config::convert(string&& value) const {
-  auto color = color_util::parse(value, 0);
-  // clang-format off
-  return rgba{
-      color_util::red_channel<unsigned char>(color) / 255.0,
-      color_util::green_channel<unsigned char>(color) / 255.0,
-      color_util::blue_channel<unsigned char>(color) / 255.0,
-      color_util::alpha_channel<unsigned char>(color) / 255.0};
-  // clang-format on
+  return rgba{color_util::parse(value, 0)};
 }
 
 template <>

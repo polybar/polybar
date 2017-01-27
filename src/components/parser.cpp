@@ -77,7 +77,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 
     switch (tag) {
       case 'B':
-        m_sig.emit(change_background{parse_color(value, bar.background)});
+        m_sig.emit(change_background{parse_color(value, 0)});
         break;
 
       case 'F':
@@ -181,11 +181,10 @@ size_t parser::text(string&& data) {
  * Process color hex string and convert it to the correct value
  */
 unsigned int parser::parse_color(const string& s, unsigned int fallback) {
-  unsigned int color{0};
-  if (s.empty() || s[0] == '-' || (color = color_util::parse(s, fallback)) == fallback) {
-    return fallback;
+  if (!s.empty() && s[0] != '-') {
+    return color_util::parse(s, fallback);
   }
-  return color_util::premultiply_alpha(color);
+  return fallback;
 }
 
 /**

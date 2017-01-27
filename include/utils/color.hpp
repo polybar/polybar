@@ -99,7 +99,7 @@ namespace color_util {
 
   inline string simplify_hex(string hex) {
     // convert #ffrrggbb to #rrggbb
-    if (hex.length() == 9 && hex[1] == 'f' && hex[2] == 'f') {
+    if (hex.length() == 9 && std::toupper(hex[1]) == 'F' && std::toupper(hex[2]) == 'F') {
       hex.erase(1, 2);
     }
 
@@ -122,10 +122,19 @@ struct rgb {
   // clang-format off
   explicit rgb(double r, double g, double b) : r(r), g(g), b(b) {}
   explicit rgb(unsigned int color) : rgb(
-      color_util::red_channel<unsigned char>(color_util::premultiply_alpha(color)   / 255.0),
-      color_util::green_channel<unsigned char>(color_util::premultiply_alpha(color) / 255.0),
-      color_util::blue_channel<unsigned char>(color_util::premultiply_alpha(color)  / 255.0)) {}
+      color_util::red_channel<unsigned char>(color_util::premultiply_alpha(color))   / 255.0,
+      color_util::green_channel<unsigned char>(color_util::premultiply_alpha(color)) / 255.0,
+      color_util::blue_channel<unsigned char>(color_util::premultiply_alpha(color))  / 255.0) {}
   // clang-format on
+
+  operator unsigned int() {
+    // clang-format off
+    return 0xFF << 24
+         | static_cast<int>(r * 255) << 16
+         | static_cast<int>(g * 255) << 8
+         | static_cast<int>(b * 255);
+    // clang-format on
+  }
 };
 
 struct rgba {
