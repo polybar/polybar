@@ -3,7 +3,6 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
@@ -16,9 +15,21 @@ namespace modules {
    public:
     enum class state {
       NONE,
+      /**
+       * @brief Active workspace on focused monitor
+       */
       FOCUSED,
+      /**
+       * @brief Inactive workspace on any monitor
+       */
       UNFOCUSED,
+      /**
+       * @brief Active workspace on unfocused monitor
+       */
       VISIBLE,
+      /**
+       * @brief Workspace with urgency hint set
+       */
       URGENT,
     };
 
