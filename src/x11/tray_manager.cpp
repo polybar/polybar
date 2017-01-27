@@ -70,8 +70,10 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.align = alignment::RIGHT;
   } else if (position == "center") {
     m_opts.align = alignment::CENTER;
-  } else {
+  } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
+  } else {
+    return;
   }
 
   m_opts.detached = conf.get(bs, "tray-detached", false);
