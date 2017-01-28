@@ -145,16 +145,12 @@ namespace cairo {
       double x, y;
       position(&x, &y);
 
-      // Sort the fontlist so that the
-      // preferred font gets prioritized
+      // Prioritize the preferred font
       vector<shared_ptr<font>> fns(m_fonts.begin(), m_fonts.end());
-      std::sort(fns.begin(), fns.end(), [&](const shared_ptr<font>& a, const shared_ptr<font>&) {
-        if (t.font > 0 && std::distance(fns.begin(), std::find(fns.begin(), fns.end(), a)) == t.font - 1) {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
+
+      if (t.font > 0 && t.font <= std::distance(fns.begin(), fns.end())) {
+        std::iter_swap(fns.begin(), fns.begin() + t.font - 1);
+      }
 
       string utf8 = string(t.contents);
       utils::unicode_charlist chars;
