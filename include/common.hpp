@@ -5,13 +5,14 @@
 #include <vector>
 #include <functional>
 
+#include "settings.hpp"
+
 #define POLYBAR_NS    \
   namespace polybar { \
-    inline namespace v2_0_0 {
+    inline namespace APP_VERSION_NAMESPACE {
 #define POLYBAR_NS_END \
   }                    \
   }
-#define POLYBAR_NS_PATH "polybar::v2_0_0"
 
 #ifndef PIPE_READ
 #define PIPE_READ 0
