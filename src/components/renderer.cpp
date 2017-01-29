@@ -528,7 +528,7 @@ void renderer::fill_borders() {
   if (m_bar.borders.at(edge::TOP).size) {
     cairo::rect top{0.0, 0.0, 0.0, 0.0};
     top.x += m_bar.borders.at(edge::LEFT).size;
-    top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::TOP).size;
+    top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
     top.h += m_bar.borders.at(edge::TOP).size;
     m_log.trace_x("renderer: border T(%.0f, #%08x)", top.h, m_bar.borders.at(edge::TOP).color);
     (*m_context << top << m_bar.borders.at(edge::TOP).color).fill();
