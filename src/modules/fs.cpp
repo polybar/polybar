@@ -165,7 +165,7 @@ namespace modules {
       m_labelmounted->replace_token(
           "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       m_labelmounted->replace_token(
-          "%free%", string_util::filesize(mount->bytes_free, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+          "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       m_labelmounted->replace_token(
           "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       builder->node(m_labelmounted);
