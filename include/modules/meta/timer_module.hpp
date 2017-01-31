@@ -25,11 +25,11 @@ namespace modules {
         return CAST_MOD(Impl)->update();
       };
 
-      // warm up module output before entering the loop
-      check();
-      CAST_MOD(Impl)->broadcast();
-
       try {
+        // warm up module output before entering the loop
+        check();
+        CAST_MOD(Impl)->broadcast();
+
         while (this->running()) {
           if (check()) {
             CAST_MOD(Impl)->broadcast();
