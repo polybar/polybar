@@ -33,25 +33,34 @@ namespace modules {
   bool memory_module::update() {
     unsigned long long kb_total{0ULL};
     unsigned long long kb_avail{0ULL};
-    unsigned long long kb_free{0ULL};
 
     try {
-      std::ifstream in(PATH_MEMORY_INFO);
-      std::stringstream buffer;
-      string str;
+      std::ifstream meminfo(PATH_MEMORY_INFO);
+      std::map<std::string, unsigned long long int> parsed;
 
-      buffer.imbue(std::locale::classic());
+      std::string line;
+      while (std::getline(meminfo, line)) {
+        size_t sep_off = line.find(':');
+        size_t value_off = line.find_first_of("123456789", sep_off);
 
-      for (int i = 3; i > 0 && std::getline(in, str); i--) {
-        size_t off = str.find_first_of("1234567890", str.find(':'));
-        if (off != string::npos && str.size() > off) {
-          buffer << std::strtoull(&str[off], nullptr, 10) << std::endl;
-        }
+        if (sep_off == std::string::npos || value_off == std::string::npos) continue;
+
+        std::string id = line.substr(0, sep_off);
+        unsigned long long int value = std::strtoull(&line[value_off], nullptr, 10);
+        parsed[id] = value;
       }
 
-      buffer >> kb_total;
-      buffer >> kb_free;
-      buffer >> kb_avail;
+      kb_total = parsed["MemTotal"];
+
+      // newer kernels (3.4+) have an accurate available memory field,
+      // see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
+      // for details
+      if (parsed.count("MemAvailable")) {
+        kb_avail = parsed["MemAvailable"];
+      } else {
+        // old kernel; give a best-effort approximation of available memory
+        kb_avail = parsed["MemFree"] + parsed["Buffers"] + parsed["Cached"] + parsed["SReclaimable"] - parsed["Shmem"];
+      }
     } catch (const std::exception& err) {
       m_log.err("Failed to read memory values (what: %s)", err.what());
     }
