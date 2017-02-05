@@ -91,7 +91,7 @@ Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/
 Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 3.0.3 --recursive https://github.com/jaagr/polybar
+  $ git clone --branch 3.0.4 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
   $ cmake ..
