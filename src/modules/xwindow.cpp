@@ -96,12 +96,18 @@ namespace modules {
     } else {
       return;
     }
+
+    broadcast();
   }
 
   /**
    * Update the currently active window and query its title
    */
   void xwindow_module::update(bool force) {
+    std::lock(m_buildlock, m_updatelock);
+    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
+    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
+
     xcb_window_t win;
 
     if (force) {
@@ -116,8 +122,6 @@ namespace modules {
       m_label->reset_tokens();
       m_label->replace_token("%title%", m_active ? m_active->title() : "");
     }
-
-    broadcast();
   }
 
   /**
