@@ -182,18 +182,17 @@ void config::parse_file() {
 void config::copy_inherited() {
   for (auto&& section : m_sections) {
     for (auto&& param : section.second) {
-      if (param.first.compare(0, strlen(KEY_INHERIT), KEY_INHERIT) == 0) {
+      if (param.first.find("inherit") == 0) {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
-          throw value_error("Invalid section \"\" defined for \"" + section.first + "." + KEY_INHERIT + "\"");
+          throw value_error("Invalid section \"\" defined for \"" + section.first + ".inherit\"");
         }
 
         // Find and validate base section
         auto base_section = m_sections.find(inherit);
         if (base_section == m_sections.end()) {
-          throw value_error(
-              "Invalid section \"" + inherit + "\" defined for \"" + section.first + "." + KEY_INHERIT + "\"");
+          throw value_error("Invalid section \"" + inherit + "\" defined for \"" + section.first + ".inherit\"");
         }
 
         m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
@@ -201,7 +200,6 @@ void config::copy_inherited() {
         // Iterate the base and copy the parameters
         // that hasn't been defined for the sub-section
         for (auto&& base_param : base_section->second) {
-          valuemap_t::const_iterator iter;
           section.second.insert(make_pair(base_param.first, base_param.second));
         }
       }

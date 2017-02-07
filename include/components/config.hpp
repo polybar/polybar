@@ -21,7 +21,7 @@ DEFINE_ERROR(key_error);
 class config {
  public:
   using valuemap_t = std::unordered_map<string, string>;
-  using sectionmap_t = std::unordered_map<string, valuemap_t>;
+  using sectionmap_t = std::map<string, valuemap_t>;
 
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
@@ -351,7 +351,6 @@ class config {
   }
 
  private:
-  static constexpr const char* KEY_INHERIT{"inherit"};
   const logger& m_log;
   string m_file;
   string m_barname;
