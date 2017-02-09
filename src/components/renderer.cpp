@@ -1,3 +1,4 @@
+#include <s.hpp>
 #include "components/renderer.hpp"
 #include "cairo/context.hpp"
 #include "components/config.hpp"
@@ -567,12 +568,19 @@ void renderer::fill_borders() {
 
 void renderer::draw_icon(const string& icon_location) {
 
-  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 16, 16);
+  auto icon_size = 16.0;
+
+  std::cout << icon_location << std::endl;
+  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int) icon_size, (int) icon_size);
   cairo_t *cr = cairo_create(surface);
-  auto image = cairo_image_surface_create_from_png(icon_location.data());
+  Singleton::getInstance().mtx.lock();
+  auto image = cairo_image_surface_create_from_png("/tmp/pic.png");
+  Singleton::getInstance().mtx.unlock();
+  if (image == nullptr) {
+    return;
+  }
   auto w = cairo_image_surface_get_width(image);
   auto h = cairo_image_surface_get_height(image);
-  auto icon_size = 16.0;
 
   cairo_scale(cr, icon_size / w, icon_size / h);
 
@@ -603,7 +611,7 @@ void renderer::draw_text(const string& contents) {
   m_log.trace_x("renderer: text(%s)", contents.c_str());
 
   if ("pl" == contents) {
-    draw_icon("/home/andrzej/downloads.png");
+//    draw_icon("/home/andrzej/downloads.png");
     draw_icon("/home/andrzej/downloads.png");
   }
 
