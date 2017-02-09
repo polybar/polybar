@@ -619,11 +619,48 @@ void renderer::fill_borders() {
   m_context->restore();
 }
 
+
+void renderer::draw_icon(const string& icon_location) {
+
+  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 16, 16);
+  cairo_t *cr = cairo_create(surface);
+  auto image = cairo_image_surface_create_from_png(icon_location.data());
+  auto w = cairo_image_surface_get_width(image);
+  auto h = cairo_image_surface_get_height(image);
+  auto icon_size = 16.0;
+
+  cairo_scale(cr, icon_size / w, icon_size / h);
+
+  cairo_set_source_surface(cr, image, 0, 0);
+  cairo_paint(cr);
+
+  cairo_surface_destroy(image);
+
+  cairo::abspos origin{};
+  origin.x = m_rect.x + m_blocks[m_align].x;
+  origin.y = m_rect.y + m_rect.height / 2.0;
+
+  m_context->save();
+  *m_context << origin;
+  *m_context << cairo::surface(surface);
+  m_context->restore();
+
+  fill_underline(origin.x, icon_size);
+  fill_overline(origin.x, icon_size);
+
+  m_blocks[m_align].x += icon_size;
+}
+
 /**
  * Draw text contents
  */
 void renderer::draw_text(const string& contents) {
   m_log.trace_x("renderer: text(%s)", contents.c_str());
+
+  if ("pl" == contents) {
+    draw_icon("/home/andrzej/downloads.png");
+    draw_icon("/home/andrzej/downloads.png");
+  }
 
   cairo::abspos origin{};
   origin.x = m_rect.x + m_blocks[m_align].x;

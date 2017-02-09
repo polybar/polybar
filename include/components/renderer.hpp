@@ -60,6 +60,7 @@ class renderer
   void fill_underline(double x, double w);
   void fill_borders();
   void draw_text(const string& contents);
+  void draw_icon(const string& icon_location);
 
  protected:
   double block_x(alignment a) const;
