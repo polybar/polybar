@@ -1,4 +1,7 @@
 #include <unistd.h>
+#include <xcb/xcb_ewmh.h>
+#include <cairo.h>
+#include <s.hpp>
 
 #include "components/types.hpp"
 #include "utils/string.hpp"
@@ -50,6 +53,36 @@ namespace ewmh_util {
       return get_reply_string(&utf8_reply);
     }
     return "";
+  }
+
+  void get_wm_icon(xcb_window_t win) {
+    auto conn = initialize().get();
+    auto cookie = xcb_ewmh_get_wm_icon(conn, win);
+    xcb_ewmh_get_wm_icon_reply_t reply{};
+    if (xcb_ewmh_get_wm_icon_reply(conn, cookie, &reply, nullptr)) {
+      xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&reply);
+      auto width = iter.width;
+      auto height = iter.height;
+      auto data = iter.data;
+      auto uc_data = (unsigned char*) data;
+      auto stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, width);
+
+//      for (uint32_t i = 0; i < width*height; i++) {
+//        auto multiplier = uc_data[4*i]/255.0;
+//        uc_data[4*i+1] *= multiplier;
+//        uc_data[4*i+2] *= multiplier;
+//        uc_data[4*i+3] *= multiplier;
+//      }
+
+      auto surface = cairo_image_surface_create_for_data(uc_data, CAIRO_FORMAT_ARGB32, width, height, stride);
+
+      Singleton::getInstance().mtx.lock();
+      cairo_surface_write_to_png(surface, "/tmp/pic.png");
+      Singleton::getInstance().mtx.unlock();
+
+//      std::cout << stride << std::endl;
+
+    }
   }
 
   string get_icon_name(xcb_window_t win) {

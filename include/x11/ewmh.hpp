@@ -18,6 +18,7 @@ namespace ewmh_util {
 
   string get_wm_name(xcb_window_t win);
   string get_visible_name(xcb_window_t win);
+  void get_wm_icon(xcb_window_t win);
   string get_icon_name(xcb_window_t win);
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply);
 
