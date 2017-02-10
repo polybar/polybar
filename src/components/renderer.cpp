@@ -620,13 +620,13 @@ void renderer::fill_borders() {
   m_context->restore();
 }
 
-
 void renderer::draw_icon(const string& icon_location) {
 
   auto icon_size = 16.0;
 
   std::cout << icon_location << std::endl;
   cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int) icon_size, (int) icon_size);
+
   cairo_t *cr = cairo_create(surface);
   Singleton::getInstance().mtx.lock();
   auto image = cairo_image_surface_create_from_png("/tmp/pic.png");
@@ -667,7 +667,7 @@ void renderer::draw_text(const string& contents) {
 
   if ("pl" == contents) {
 //    draw_icon("/home/andrzej/downloads.png");
-    draw_icon("/home/andrzej/downloads.png");
+//    draw_icon("/home/andrzej/downloads.png");
   }
 
   cairo::abspos origin{};
@@ -869,6 +869,12 @@ bool renderer::on(const signals::parser::action_end& evt) {
 bool renderer::on(const signals::parser::text& evt) {
   auto text = evt.cast();
   draw_text(text);
+  return true;
+}
+
+bool renderer::on(const signals::parser::icon& evt) {
+  auto icon = evt.cast();
+  draw_icon(icon);
   return true;
 }
 

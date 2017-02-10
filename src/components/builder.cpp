@@ -195,6 +195,60 @@ void builder::node(string str, int font_index, bool add_space) {
 }
 
 /**
+ * Inserts tags for icon
+ */
+void builder::node(const real_icon_t& icon) {
+
+  if (icon->m_margin.left > 0) {
+    space(icon->m_margin.left);
+  }
+
+  if (!icon->m_overline.empty()) {
+    overline(icon->m_overline);
+  }
+  if (!icon->m_underline.empty()) {
+    underline(icon->m_underline);
+  }
+
+  if (!icon->m_background.empty()) {
+    background(icon->m_background);
+  }
+
+  if (!icon->m_foreground.empty()) {
+    color(icon->m_foreground);
+  }
+
+  if (icon->m_padding.left > 0) {
+    space(icon->m_padding.left);
+  }
+
+  m_output.append("%{z" + icon->m_location + "}");
+
+  if (icon->m_padding.right > 0) {
+    space(icon->m_padding.right);
+  }
+
+  if (!icon->m_background.empty()) {
+    background_close();
+  }
+  if (!icon->m_foreground.empty()) {
+    color_close();
+  }
+
+  if (!icon->m_underline.empty() || (icon->m_margin.right > 0 && m_tags[syntaxtag::u] > 0)) {
+    underline_close();
+  }
+  if (!icon->m_overline.empty() || (icon->m_margin.right > 0 && m_tags[syntaxtag::o] > 0)) {
+    overline_close();
+  }
+
+  if (icon->m_margin.right > 0) {
+    space(icon->m_margin.right);
+  }
+
+}
+
+/**
  * Insert tags for given label
  */
 void builder::node(const label_t& label, bool add_space) {
