@@ -565,12 +565,39 @@ void renderer::fill_borders() {
   m_context->restore();
 }
 
+cairo_surface_t* resize_surface(cairo_surface_t* old_surface, int new_width, double new_height) {
+
+  cairo_surface_t *new_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, new_width, new_height);
+  cairo_t *cr = cairo_create (new_surface);
+
+  auto old_width = cairo_image_surface_get_width(old_surface);
+  auto old_height = cairo_image_surface_get_height(old_surface);
+
+  cairo_scale (cr, (double)new_width / old_width, (double)new_height / old_height);
+  cairo_set_source_surface (cr, old_surface, 0, 0);
+
+  cairo_paint(cr);
+  cairo_destroy(cr);
+
+  return new_surface;
+}
+
 void renderer::draw_icon(const string& icon_location) {
+
+  auto height = m_rect.height;
 
   auto icon_size = 16.0;
 
+  vector<unsigned int> vec((unsigned long) ((int) (icon_size)*height));
+
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    vec[i] = m_bg;
+  }
+
   std::cout << icon_location << std::endl;
-  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int) icon_size, (int) icon_size);
+//  cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int) icon_size, (int) icon_size);
+  cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *) vec.data(), CAIRO_FORMAT_ARGB32,
+                                                                 (int) icon_size, height, (int) (icon_size*4));
 
   cairo_t *cr = cairo_create(surface);
   Singleton::getInstance().mtx.lock();
@@ -579,12 +606,15 @@ void renderer::draw_icon(const string& icon_location) {
   if (image == nullptr) {
     return;
   }
-  auto w = cairo_image_surface_get_width(image);
-  auto h = cairo_image_surface_get_height(image);
 
-  cairo_scale(cr, icon_size / w, icon_size / h);
+  image = resize_surface(image, (int) icon_size, icon_size);
 
-  cairo_set_source_surface(cr, image, 0, 0);
+//  auto w = cairo_image_surface_get_width(image);
+//  auto h = cairo_image_surface_get_height(image);
+//
+//  cairo_scale(cr, icon_size / w, icon_size / h);
+
+  cairo_set_source_surface(cr, image, 0, icon_size/2);
   cairo_paint(cr);
 
   cairo_surface_destroy(image);
@@ -609,11 +639,6 @@ void renderer::draw_icon(const string& icon_location) {
  */
 void renderer::draw_text(const string& contents) {
   m_log.trace_x("renderer: text(%s)", contents.c_str());
-
-  if ("pl" == contents) {
-//    draw_icon("/home/andrzej/downloads.png");
-//    draw_icon("/home/andrzej/downloads.png");
-  }
 
   cairo::abspos origin{};
   origin.x = m_rect.x + m_blocks[m_align].x;
