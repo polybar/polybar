@@ -174,7 +174,16 @@ namespace modules {
       for (auto&& ws : m_workspaces) {
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+          auto icon = factory_util::shared<real_icon>("");
+          icon->m_background = ws->label->m_background;
+          icon->m_foreground = ws->label->m_foreground;
+          icon->m_underline = ws->label->m_underline;
+          icon->m_overline = ws->label->m_overline;
+          icon->m_margin = ws->label->m_margin;
+          icon->m_padding = ws->label->m_padding;
+          builder->node(icon);
           builder->node(ws->label);
+//          builder->node(factory_util::shared<real_icon>(""));
           builder->cmd_close();
         } else {
           builder->node(ws->label);
