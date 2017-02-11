@@ -185,8 +185,6 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
         // Trim leading and trailing whitespace
         ws_name = string_util::trim(move(ws_name), ' ');
 
-        m_log.err("Workspace %s output %s", ws_name, ws->output);
-
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
         auto label = m_statelabels.find(ws_state)->second->clone();
 

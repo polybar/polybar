@@ -595,7 +595,6 @@ void renderer::draw_icon(const string& icon_location) {
   vector<unsigned int> vec((unsigned long) (dest_icon_size*height));
   std::fill(vec.begin(), vec.end(), m_bg);
 
-  std::cout << icon_location << std::endl;
   cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *) vec.data(), CAIRO_FORMAT_ARGB32,
                                                                  dest_icon_size, height, dest_icon_size*4);
 
