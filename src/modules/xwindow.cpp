@@ -50,7 +50,7 @@ namespace modules {
 
     Singleton::getInstance().data = "asd";
 
-    ewmh_util::get_wm_icon(m_window);
+//    ewmh_util::get_wm_icon(m_window);
 
     if (!(title = ewmh_util::get_wm_name(m_window)).empty()) {
       return title;

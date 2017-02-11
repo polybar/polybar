@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 
+#include "utils/base64.h"
 #include "settings.hpp"
 
 #define POLYBAR_NS    \
