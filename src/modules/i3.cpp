@@ -104,9 +104,42 @@ namespace modules {
     }
   }
 
+std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_t> tree) {
+
+  std::vector<std::string> windows;
+
+  if (tree->xwindow_id != 0) {
+    windows.push_back(tree->name);
+  }
+
+  for (auto sub_tree : tree->nodes) {
+    auto newVec = getApplicationForTree(sub_tree);
+    windows.insert(windows.end(), newVec.begin(), newVec.end());
+  }
+
+  return windows;
+
+}
+
   bool i3_module::update() {
     m_workspaces.clear();
     i3_util::connection_t ipc;
+
+    auto list = ipc.get_tree()->nodes;
+    std::vector<std::shared_ptr<i3ipc::container_t>> mons(std::begin(list), std::end(list));
+
+    std::map<std::string, std::vector<std::string>> map;
+
+    for (auto monitor : mons) {
+      for (auto cont : monitor->nodes) {
+        if (cont->type == "con" && cont->name == "content") {
+          for (auto workspace : cont->nodes) {
+            auto applications = getApplicationForTree(workspace);
+            map.insert(std::make_pair(workspace->name, applications));
+          }
+        }
+      }
+    }
 
     try {
       vector<shared_ptr<i3_util::workspace_t>> workspaces;
@@ -143,6 +176,8 @@ namespace modules {
 
         // Trim leading and trailing whitespace
         ws_name = string_util::trim(move(ws_name), ' ');
+
+        m_log.err("Workspace %s output %s", ws_name, ws->output);
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
         auto label = m_statelabels.find(ws_state)->second->clone();
