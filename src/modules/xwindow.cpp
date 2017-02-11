@@ -3,7 +3,6 @@
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "s.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -47,10 +46,6 @@ namespace modules {
    */
   string active_window::title() const {
     string title;
-
-    Singleton::getInstance().data = "asd";
-
-//    ewmh_util::get_wm_icon(m_window);
 
     if (!(title = ewmh_util::get_wm_name(m_window)).empty()) {
       return title;
