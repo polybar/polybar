@@ -65,30 +65,7 @@ namespace ewmh_util {
       auto height = iter.height;
       auto data = iter.data;
       auto uc_data = (unsigned char*) data;
-//      auto stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, width);
-
-//      return pair<unsigned char*, uint32_t>(uc_data, width*height*4);
       return make_pair(uc_data, width*height*4);
-
-//      return std::shared_ptr<std::pair<unsigned char*, uint32_t>>(pair);
-
-//      return factory_util::shared<pair<unsigned char*, uint32_t>>(pair);
-
-//      for (uint32_t i = 0; i < width*height; i++) {
-//        auto multiplier = uc_data[4*i]/255.0;
-//        uc_data[4*i+1] *= multiplier;
-//        uc_data[4*i+2] *= multiplier;
-//        uc_data[4*i+3] *= multiplier;
-//      }
-
-//      auto surface = cairo_image_surface_create_for_data(uc_data, CAIRO_FORMAT_ARGB32, width, height, stride);
-//
-//      Singleton::getInstance().mtx.lock();
-//      cairo_surface_write_to_png(surface, ((std::string{"/tmp/"}) + icon_name + std::string(".png")).data());
-//      Singleton::getInstance().mtx.unlock();
-
-//      std::cout << stride << std::endl;
-
     }
 
     return make_pair(nullptr, 0);

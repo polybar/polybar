@@ -41,8 +41,8 @@ namespace cairo {
     }
 
     context& operator<<(const surface& s) {
-      double x, y;
-      position(&x, &y);
+      double x;
+      position(&x, nullptr);
       cairo_set_source_surface(m_c, s, x, 0);
       cairo_paint(m_c);
       return *this;
