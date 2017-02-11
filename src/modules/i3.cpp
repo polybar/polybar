@@ -1,4 +1,5 @@
 #include <sys/socket.h>
+#include <x11/ewmh.hpp>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
@@ -72,7 +73,7 @@ namespace modules {
           }
         };
       }
-      m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_MODE);
+      m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_MODE | i3ipc::ET_WINDOW);
     } catch (const exception& err) {
       throw module_error(err.what());
     }
@@ -107,9 +108,16 @@ namespace modules {
 std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_t> tree) {
 
   std::vector<std::string> windows;
+  auto t = *tree;
 
   if (tree->xwindow_id != 0) {
-    windows.push_back(tree->name);
+    auto xwindow_id = tree->xwindow_id;
+    auto icon = ewmh_util::get_wm_icon((xcb_window_t) xwindow_id);
+
+    if (icon.first != nullptr) {
+      auto b64 = base64_encode(icon.first, icon.second);
+      windows.push_back(b64);
+    }
   }
 
   for (auto sub_tree : tree->nodes) {
@@ -187,7 +195,7 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->num, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->num, ws_state, move(label), map[ws->name]));
       }
 
       return true;
@@ -209,15 +217,21 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
       for (auto&& ws : m_workspaces) {
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
-          auto icon = factory_util::shared<real_icon>("");
-          icon->m_background = ws->label->m_background;
-          icon->m_foreground = ws->label->m_foreground;
-          icon->m_underline = ws->label->m_underline;
-          icon->m_overline = ws->label->m_overline;
-          icon->m_padding = side_values{1,1};
+
+          for (auto ic : ws->icons) {
+            auto icon = factory_util::shared<real_icon>("");
+            icon->m_background = ws->label->m_background;
+            icon->m_foreground = ws->label->m_foreground;
+            icon->m_underline = ws->label->m_underline;
+            icon->m_overline = ws->label->m_overline;
+            icon->m_padding = side_values{1,1};
+            icon->m_location = ic;
+            builder->node(icon);
+          }
+
 //          icon->m_padding = ws->label->m_padding
-          builder->node(icon);
-          builder->node(icon);
+//          builder->node(icon);
+//          builder->node(icon);
           builder->node(ws->label);
 //          builder->node(factory_util::shared<real_icon>(""));
           builder->cmd_close();
