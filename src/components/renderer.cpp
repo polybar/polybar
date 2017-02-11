@@ -1,4 +1,3 @@
-#include <s.hpp>
 #include "components/renderer.hpp"
 #include "cairo/context.hpp"
 #include "components/config.hpp"
@@ -586,40 +585,28 @@ void renderer::draw_icon(const string& icon_location) {
 
   auto s = base64_decode(icon_location);
 
-  auto dest_icon_size = 16.0;
+  auto dest_icon_size = 16;
 
-//  auto icon_data = s.data();
-  auto icon_size_2 = (int) sqrt(s.length()/4);
-
-  std::cout << "Icon size: " << icon_size_2 << std::endl;
+  auto icon_data = s.data();
+  auto icon_size = (int) sqrt(s.length()/4);
 
   auto height = m_rect.height;
 
-  vector<unsigned int> vec((unsigned long) ((int) (dest_icon_size)*height));
-
-  for (unsigned int i = 0; i < vec.size(); i++) {
-    vec[i] = m_bg;
-  }
+  vector<unsigned int> vec((unsigned long) (dest_icon_size*height));
+  std::fill(vec.begin(), vec.end(), m_bg);
 
   std::cout << icon_location << std::endl;
   cairo_surface_t *surface = cairo_image_surface_create_for_data((unsigned char *) vec.data(), CAIRO_FORMAT_ARGB32,
-                                                                 (int) dest_icon_size, height, (int) (dest_icon_size*4));
+                                                                 dest_icon_size, height, dest_icon_size*4);
 
   cairo_t *cr = cairo_create(surface);
-  Singleton::getInstance().mtx.lock();
-//  auto image = cairo_image_surface_create_from_png("/tmp/pic.png");
-  auto image = cairo_image_surface_create_for_data((unsigned char *) s.data(), CAIRO_FORMAT_ARGB32, icon_size_2, icon_size_2, icon_size_2*4);
-  Singleton::getInstance().mtx.unlock();
+  auto image = cairo_image_surface_create_for_data((unsigned char *) icon_data, CAIRO_FORMAT_ARGB32, icon_size, icon_size, icon_size*4);
   if (image == nullptr) {
+    m_log.err("Cannot create icon");
     return;
   }
 
-  image = resize_surface(image, (int) dest_icon_size, dest_icon_size);
-
-//  auto w = cairo_image_surface_get_width(image);
-//  auto h = cairo_image_surface_get_height(image);
-//
-//  cairo_scale(cr, icon_size / w, icon_size / h);
+  image = resize_surface(image, dest_icon_size, dest_icon_size);
 
   cairo_set_source_surface(cr, image, 0, dest_icon_size/2);
   cairo_paint(cr);

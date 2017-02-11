@@ -8,8 +8,6 @@
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 #include "x11/ewmh.hpp"
-#include "x11/icccm.hpp"
-#include "x11/window.hpp"
 
 POLYBAR_NS
 

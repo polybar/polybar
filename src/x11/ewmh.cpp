@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <xcb/xcb_ewmh.h>
 #include <cairo.h>
-#include <s.hpp>
 
 #include <utils/factory.hpp>
 #include "components/types.hpp"
