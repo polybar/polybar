@@ -69,7 +69,6 @@ namespace ewmh_util {
     }
 
     return make_pair(nullptr, 0);
-
   }
 
   string get_icon_name(xcb_window_t win) {

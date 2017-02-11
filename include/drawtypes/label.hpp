@@ -93,7 +93,6 @@ namespace drawtypes {
   class real_icon : public non_copyable_mixin<real_icon> {
    public:
     string m_location{};
-    string m_foreground{};
     string m_background{};
     string m_underline{};
     side_values m_padding{0U,0U};

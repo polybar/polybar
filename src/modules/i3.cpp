@@ -248,7 +248,6 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
           for (auto ic : ws->icons) {
             auto icon = factory_util::shared<real_icon>("");
             icon->m_background = ws->label->m_background;
-            icon->m_foreground = ws->label->m_foreground;
             icon->m_underline = ws->label->m_underline;
             icon->m_overline = ws->label->m_overline;
             icon->m_padding = side_values{1,1};

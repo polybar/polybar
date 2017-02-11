@@ -214,15 +214,11 @@ void builder::node(const real_icon_t& icon) {
     background(icon->m_background);
   }
 
-  if (!icon->m_foreground.empty()) {
-    color(icon->m_foreground);
-  }
-
   if (icon->m_padding.left > 0) {
     space(icon->m_padding.left);
   }
 
-  m_output.append("%{z" + icon->m_location + "}");
+  m_output.append("%{i" + icon->m_location + "}");
 
   if (icon->m_padding.right > 0) {
     space(icon->m_padding.right);
@@ -230,9 +226,6 @@ void builder::node(const real_icon_t& icon) {
 
   if (!icon->m_background.empty()) {
     background_close();
-  }
-  if (!icon->m_foreground.empty()) {
-    color_close();
   }
 
   if (!icon->m_underline.empty() || (icon->m_margin.right > 0 && m_tags[syntaxtag::u] > 0)) {
