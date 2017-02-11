@@ -243,6 +243,7 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
 
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+          builder->node(ws->label);
 
           for (auto ic : ws->icons) {
             auto icon = factory_util::shared<real_icon>("");
@@ -255,11 +256,6 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
             builder->node(icon);
           }
 
-//          icon->m_padding = ws->label->m_padding
-//          builder->node(icon);
-//          builder->node(icon);
-          builder->node(ws->label);
-//          builder->node(factory_util::shared<real_icon>(""));
           builder->cmd_close();
         } else {
           builder->node(ws->label);
