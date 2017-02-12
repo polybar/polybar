@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <adapters/mpris.hpp>
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/i3.hpp"

@@ -33,6 +33,7 @@ function main
   local enable_i3="ON"
   local enable_network="ON"
   local enable_mpd="ON"
+  local enable_mpris="ON"
   local enable_curl="ON"
 
   msg "Setting build options"
@@ -72,7 +73,7 @@ function main
     -DENABLE_ALSA:BOOL="${enable_alsa}"       \
     -DENABLE_I3:BOOL="${enable_i3}"           \
     -DENABLE_MPD:BOOL="${enable_mpd}"         \
-    -DENABLE_MPRIS:BOOL="${enable_mpris}"         \
+    -DENABLE_MPRIS:BOOL="${enable_mpris}"     \
     -DENABLE_NETWORK:BOOL="${enable_network}" \
     -DENABLE_CURL:BOOL="${enable_curl}"       \
     -DBUILD_IPC_MSG:BOOL="${build_ipc_msg}"   \
