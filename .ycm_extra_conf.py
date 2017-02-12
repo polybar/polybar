@@ -54,6 +54,8 @@ flags.append('-I'+ DirectoryOfThisScript() +'/lib/xpp/include')
 flags.append('-I'+ DirectoryOfThisScript() +'/tests')
 flags.append('-I/usr/include')
 flags.append('-I/usr/include/freetype2')
+flags.append("-I/usr/include/dbus-1.0/")
+flags.append("-I/usr/lib/dbus-1.0/")
 
 def MakeRelativePathsInFlagsAbsolute( flags, working_directory ):
   if not working_directory:
