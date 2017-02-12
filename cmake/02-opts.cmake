@@ -25,6 +25,7 @@ option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
 option(ENABLE_I3 "Enable i3 support" ON)
 option(ENABLE_MPD "Enable mpd support" ON)
+option(ENABLE_MPRIS "Enable mpris player support (Spotify, clementine)" ON)
 option(ENABLE_NETWORK "Enable network support" ON)
 option(ENABLE_XKEYBOARD "Enable xkeyboard support" ON)
 

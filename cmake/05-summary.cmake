@@ -17,6 +17,7 @@ colored_option("   alsa" ENABLE_ALSA)
 colored_option("   curl" ENABLE_CURL)
 colored_option("   i3" ENABLE_I3)
 colored_option("   mpd" ENABLE_MPD)
+colored_option("   mpris" ENABLE_MPRIS)
 colored_option("   network" ENABLE_NETWORK)
 
 message(STATUS " X extensions:")

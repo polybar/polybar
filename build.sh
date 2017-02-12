@@ -45,6 +45,8 @@ function main
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
   read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
+  read -r -p "$(msg "Include support for \"internal/mpris\" (requires dbus) -------- [Y/n]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_mpris="OFF"
   read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
   read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [Y/n]: ")" -n 1 p && echo
@@ -70,6 +72,7 @@ function main
     -DENABLE_ALSA:BOOL="${enable_alsa}"       \
     -DENABLE_I3:BOOL="${enable_i3}"           \
     -DENABLE_MPD:BOOL="${enable_mpd}"         \
+    -DENABLE_MPRIS:BOOL="${enable_mpris}"         \
     -DENABLE_NETWORK:BOOL="${enable_network}" \
     -DENABLE_CURL:BOOL="${enable_curl}"       \
     -DBUILD_IPC_MSG:BOOL="${build_ipc_msg}"   \
