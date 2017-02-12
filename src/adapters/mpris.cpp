@@ -1,22 +1,21 @@
 #include <adapters/mpris.hpp>
 #include <dbus/dbus.h>
+#include <common.hpp>
 
 POLYBAR_NS
 
 namespace mpris {
 
-mprissong mprisconnection::get_current_song() {
+  mprissong mprisconnection::get_current_song() {
 
   DBusError err;
   DBusConnection* conn;
-  int ret;
   // initialise the errors
   dbus_error_init(&err);
   DBusMessage* msg;
-  DBusMessageIter args;
-  uint32_t serial = 0;
+  DBusPendingCall* pending;
 
-  dbus_bus_get(DBUS_BUS_SESSION, &err);
+  conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
   msg = dbus_message_new_method_call("org.mpris.MediaPlayer2.spotify",
                                "/org/mpris/MediaPlayer2",
@@ -25,9 +24,23 @@ mprissong mprisconnection::get_current_song() {
 
   if (NULL == msg)
   {
-    fprintf(stderr, "Message Null\n");
-    exit(1);
+    m_log.err("Message is null");
+    return mprissong();
   }
+
+   // send message and get a handle for a reply
+   if (!dbus_connection_send_with_reply (conn, msg, &pending, -1)) { // -1 is default timeout
+       m_log.err("Out of memory");
+       return mprissong();
+   }
+   if (NULL == pending) {
+       m_log.err("Pending Call Null");
+       return mprissong();
+   }
+   dbus_connection_flush(conn);
+
+   return mprissong();
+
 
 /*  // append arguments onto signal
   dbus_message_iter_init_append(msg, &args);

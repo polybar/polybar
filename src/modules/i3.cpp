@@ -172,6 +172,8 @@ namespace modules {
         builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
       }
 
+      mpris::mprisconnection(m_log).get_current_song();
+
       for (auto&& ws : m_workspaces) {
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
