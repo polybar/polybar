@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
@@ -143,6 +144,48 @@ namespace string_util {
       return "";
     }
     return rtrim(ltrim(forward<string>(value), needle), needle);
+  }
+
+  /**
+   * Counts the number of codepoints in a utf8 encoded string.
+   */
+  size_t char_len(const string& value) {
+    // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
+    // simply count the number of bytes not of this form.
+    //
+    // 0xc0 = 11000000
+    // 0x80 = 10000000
+    return std::count_if(value.begin(), value.end(), [](char c) { return (c & 0xc0) != 0x80; });
+  }
+
+  /**
+   * Truncates a utf8 string at len number of codepoints. This isn't 100%
+   * matching the user-perceived character count, but it should be close
+   * enough and avoids having to pull in something like ICU to count actual
+   * grapheme clusters.
+   */
+  string utf8_truncate(string&& value, size_t len) {
+    if (value.empty()) {
+      return "";
+    }
+
+    // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
+    // simply jump forward to bytes not of that form and truncate starting
+    // at that byte if we've counted too many codepoints
+    //
+    // 0xc0 = 11000000
+    // 0x80 = 10000000
+    auto it = value.begin();
+    auto end = value.end();
+    for (size_t i = 0; i < len; ++i) {
+      if (it == end)
+        break;
+      ++it;
+      it = std::find_if(it, end, [](char c) { return (c & 0xc0) != 0x80; });
+    }
+    value.erase(it, end);
+
+    return forward<string>(value);
   }
 
   /**
