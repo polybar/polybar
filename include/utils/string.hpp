@@ -81,6 +81,9 @@ namespace string_util {
   string rtrim(string&& value, const char& needle = ' ');
   string trim(string&& value, const char& needle = ' ');
 
+  size_t char_len(const string& value);
+  string utf8_truncate(string&& value, size_t len);
+
   string join(const vector<string>& strs, const string& delim);
   vector<string>& split_into(const string& s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);
