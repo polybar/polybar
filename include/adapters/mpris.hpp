@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mpris-generated.h>
 #include <common.hpp>
 #include <components/logger.hpp>
 
@@ -28,6 +29,7 @@ namespace mpris {
    private:
     std::string player;
     std::string get(std::string property);
+    PolybarOrgMprisMediaPlayer2Player* get_object();
     const logger& m_log;
   };
 }
