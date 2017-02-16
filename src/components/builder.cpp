@@ -208,8 +208,8 @@ void builder::node(const label_t& label, bool add_space) {
 
   string text{label->get()};
 
-  if (label->m_maxlen > 0 && text.length() > label->m_maxlen) {
-    text = text.substr(0, label->m_maxlen) + "...";
+  if (label->m_maxlen > 0 && string_util::char_len(text) > label->m_maxlen) {
+    text = string_util::utf8_truncate(std::move(text), label->m_maxlen) + "...";
   }
 
   // if ((label->m_overline.empty() && m_tags[syntaxtag::o] > 0) || (m_tags[syntaxtag::o] > 0 && label->m_margin > 0))
