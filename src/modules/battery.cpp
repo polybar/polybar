@@ -30,7 +30,7 @@ namespace modules {
     m_lastpoll = chrono::system_clock::now();
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
-    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
+    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";	
 
     // Make state reader
     if (file_util::exists((m_fstate = path_adapter + "online"))) {
@@ -41,7 +41,7 @@ namespace modules {
     } else {
       throw module_error("No suitable way to get current charge state");
     }
-
+	
     // Make capacity reader
     if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
       throw module_error("No suitable way to get current capacity value");
@@ -54,14 +54,14 @@ namespace modules {
       auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
       return math_util::percentage(cap_now, 0UL, cap_max);
     });
-
+	
     // Make rate reader
     if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
       throw module_error("No suitable way to get current voltage value");
     } else if ((m_frate = file_util::pick({path_battery + "current_now", path_battery + "power_now"})).empty()) {
       throw module_error("No suitable way to get current charge rate value");
     }
-
+	
     m_rate_reader = make_unique<rate_reader>([this] {
       unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
@@ -79,6 +79,21 @@ namespace modules {
       }
 
       return 0UL;
+    });
+
+    // Make consumption reader
+    m_consumption_reader = make_unique<consumption_reader>([this] {
+      unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+      unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
+	  
+      float consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
+	
+      // convert to string with 2 decimmal places
+      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
+      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption); 
+      rtn.resize(written);
+
+      return rtn;
     });
 
     // Load state and capacity level
@@ -201,7 +216,8 @@ namespace modules {
     if (label) {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(m_percentage));
-
+      label->replace_token("%consumption%", current_consumption());
+	  
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
         label->replace_token("%time%", current_time());
       }
@@ -268,6 +284,13 @@ namespace modules {
       percentage = 100;
     }
     return percentage;
+  }
+
+  /**
+  * Get the current power consumption
+  */
+  string battery_module::current_consumption() {
+	return read(*m_consumption_reader);	
   }
 
   /**
