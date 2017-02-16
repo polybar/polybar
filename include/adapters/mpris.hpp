@@ -1,6 +1,5 @@
 #pragma once
 
-#include <dbus/dbus.h>
 #include <common.hpp>
 #include <components/logger.hpp>
 
@@ -24,9 +23,11 @@ namespace mpris {
     void seek(int change);
     void set_random(bool mode);
     std::string get_playback_status();
+    std::map<std::string, std::string> get_metadata();
 
    private:
     std::string player;
+    std::string get(std::string property);
     const logger& m_log;
   };
 }

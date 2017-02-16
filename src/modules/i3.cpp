@@ -172,8 +172,9 @@ namespace modules {
         builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
       }
 
-      auto s = mpris::mprisconnection(m_log, "spotify"s).get_playback_status();
-      m_log.err("Playback status: %s", s);
+    mpris::mprisconnection(m_log, "spotify"s).pause_play();
+    //  auto s = mpris::mprisconnection(m_log, "spotify"s).get_playback_status();
+    //  m_log.err("Playback status: %s", s);
 
 
       for (auto&& ws : m_workspaces) {

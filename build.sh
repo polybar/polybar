@@ -46,7 +46,7 @@ function main
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
   read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
-  read -r -p "$(msg "Include support for \"internal/mpris\" (requires dbus) -------- [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/mpris\" (requires GLib) -------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpris="OFF"
   read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_curl="OFF"

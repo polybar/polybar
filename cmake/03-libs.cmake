@@ -10,6 +10,7 @@ querylib(TRUE "pkg-config" cairo-fc libs dirs)
 querylib(ENABLE_ALSA "pkg-config" alsa libs dirs)
 querylib(ENABLE_CURL "pkg-config" libcurl libs dirs)
 querylib(ENABLE_MPD "pkg-config" libmpdclient libs dirs)
+querylib(ENABLE_MPRIS "pkg-config" gio-unix-2.0 libs dirs)
 querylib(ENABLE_MPRIS "pkg-config" dbus-1 libs dirs)
 querylib(ENABLE_NETWORK "cmake" Libiw libs dirs)
 

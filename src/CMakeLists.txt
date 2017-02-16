@@ -60,6 +60,7 @@ endif()
 
 make_executable(polybar
   SOURCES
+  mpris-generated.c
     ${files}
   INCLUDE_DIRS
     ${dirs}
