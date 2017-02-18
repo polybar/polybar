@@ -9,11 +9,15 @@ POLYBAR_NS
 namespace mpris {
 
   class mprissong {
-    string get_artist();
-    string get_album();
-    string get_title();
-    string get_date();
-    unsigned get_duration();
+   public:
+       mprissong(): mprissong("", "", "", -1) {}
+       mprissong(string title, string album, string artist, unsigned duration)
+           : title(title), album(album), artist(artist), duration(duration) {}
+
+    const string title;
+    const string album;
+    const string artist;
+    const unsigned duration;
   };
 
   class mprisconnection {
@@ -25,6 +29,7 @@ namespace mpris {
     void set_random(bool mode);
     std::string get_playback_status();
     std::map<std::string, std::string> get_metadata();
+    mprissong get_song();
 
    private:
     std::string player;

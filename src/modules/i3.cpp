@@ -172,7 +172,11 @@ namespace modules {
         builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
       }
 
-    mpris::mprisconnection(m_log, "spotify"s).pause_play();
+      auto song = mpris::mprisconnection(m_log, "spotify"s).get_song();
+
+      m_log.err("Song name: %s", song.title);
+
+//    mpris::mprisconnection(m_log, "spotify"s).pause_play();
     //  auto s = mpris::mprisconnection(m_log, "spotify"s).get_playback_status();
     //  m_log.err("Playback status: %s", s);
 
