@@ -19,12 +19,15 @@ namespace mpris {
         G_DBUS_PROXY_FLAGS_NONE, player_object.data(), "/org/mpris/MediaPlayer2", NULL, &error);
 
     if (error != nullptr) {
-      m_log.err("Empty session bus");
-      m_log.err(std::string(error->message));
+      m_log.err("Empty object. Error: %s", error->message);
       return nullptr;
     }
 
     return object;
+  }
+
+  bool mprisconnection::connected() {
+      return get_object() != nullptr;
   }
 
   void mprisconnection::pause_play() {
@@ -44,6 +47,46 @@ namespace mpris {
     }
   }
 
+  void mprisconnection::stop() {
+    GError* error = nullptr;
+
+    auto object = get_object();
+
+    if (object == nullptr) {
+      return;
+    }
+
+    polybar_org_mpris_media_player2_player_call_stop_sync(object, NULL, &error);
+
+
+    if (error != nullptr) {
+      m_log.err("Empty session bus");
+      m_log.err(std::string(error->message));
+    }
+  }
+
+  string mprisconnection::get_loop_status() {
+
+    auto object = get_object();
+
+    if (object == nullptr) {
+      return "";
+    }
+
+    return polybar_org_mpris_media_player2_player_get_loop_status(object);
+  }
+
+  string mprisconnection::get_playback_status() {
+
+    auto object = get_object();
+
+    if (object == nullptr) {
+      return "";
+    }
+
+    return polybar_org_mpris_media_player2_player_get_playback_status(object);
+  }
+
   mprissong mprisconnection::get_song() {
     auto object = get_object();
 
@@ -58,7 +101,6 @@ namespace mpris {
     string title;
     string album;
     string artist;
-    unsigned duration = -1;
 
     auto variant = polybar_org_mpris_media_player2_player_get_metadata(object);
 
@@ -80,7 +122,7 @@ namespace mpris {
       }
     }
 
-    return mprissong(title, album, artist, duration);
+    return mprissong(title, album, artist);
   }
 }
 
