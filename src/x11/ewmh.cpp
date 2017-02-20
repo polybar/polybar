@@ -112,6 +112,13 @@ namespace ewmh_util {
     xcb_flush(conn->connection);
   }
 
+  unsigned int get_desktop_from_window(xcb_window_t window) {
+    auto conn = initialize().get();
+    unsigned int desktop = XCB_NONE;
+    xcb_ewmh_get_wm_desktop_reply(conn, xcb_ewmh_get_wm_desktop(conn, window), &desktop, nullptr);
+    return desktop;
+  }
+
   void set_wm_window_type(xcb_window_t win, vector<xcb_atom_t> types) {
     auto conn = initialize().get();
     xcb_ewmh_set_wm_window_type(conn, win, types.size(), types.data());
