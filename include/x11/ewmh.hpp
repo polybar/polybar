@@ -27,6 +27,7 @@ namespace ewmh_util {
   xcb_window_t get_active_window(int screen = 0);
 
   void change_current_desktop(unsigned int desktop);
+  unsigned int get_desktop_from_window(xcb_window_t window);
 
   void set_wm_window_type(xcb_window_t win, vector<xcb_atom_t> types);
 

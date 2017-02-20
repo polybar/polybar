@@ -29,6 +29,15 @@ namespace icccm_util {
   void set_wm_protocols(xcb_connection_t* c, xcb_window_t w, vector<xcb_atom_t> flags) {
     xcb_icccm_set_wm_protocols(c, w, WM_PROTOCOLS, flags.size(), flags.data());
   }
+
+  bool get_wm_urgency(xcb_connection_t* c, xcb_window_t w) {
+    xcb_icccm_wm_hints_t hints;
+    if (xcb_icccm_get_wm_hints_reply(c, xcb_icccm_get_wm_hints(c, w), &hints, NULL)) {
+      if(xcb_icccm_wm_hints_get_urgency(&hints) == XCB_ICCCM_WM_HINT_X_URGENCY)
+        return true;
+    }
+    return false;
+  }
 }
 
 POLYBAR_NS_END
