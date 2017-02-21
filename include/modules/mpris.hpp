@@ -15,13 +15,13 @@ namespace modules {
    public:
     explicit mpris_module(const bar_settings&, string);
 
-    void teardown();
+//    void teardown();
     inline bool connected() const;
-    void idle();
+ //   void idle();
     bool has_event();
     bool update();
     string get_format() const;
-    string get_output();
+//    string get_output();
     bool build(builder* builder, const string& tag) const;
 
    protected:
@@ -61,15 +61,13 @@ namespace modules {
     unique_ptr<mprisconnection> m_connection;
 
     mprissong m_song;
-    unique_ptr<mprisstatus> m_status;
+    unique_ptr<mprisstatus> m_status = unique_ptr<mprisstatus>(new mprisstatus());
     //unique_ptr<mprissong> m_song;
 
     string m_player;
 
     chrono::system_clock::time_point m_lastsync{};
     float m_synctime{1.0f};
-
-    int m_quick_attempts{0};
 
     progressbar_t m_bar_progress;
     iconset_t m_icons;

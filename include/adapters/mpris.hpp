@@ -12,22 +12,38 @@ namespace mpris {
    public:
     mprissong() : mprissong("", "", "") {}
     mprissong(string title, string album, string artist) : title(title), album(album), artist(artist) {}
+    mprissong& operator=(mprissong other) {
+        title = other.get_title();
+        album = other.get_album();
+        artist = other.get_artist();
+        return *this;
+    }
+
+    bool operator==(mprissong other) {
+        return title == other.get_title()
+            && album == other.get_album()
+            && artist == other.get_artist();
+    }
+
+    bool operator!=(mprissong other) {
+        return !(*this == other);
+    }
 
     //TODO: Macro ???
-    auto get_title() {
-      return title;
+    string get_title() {
+        return title;
     }
-    auto get_album() {
-      return album;
+    string get_album() {
+        return album;
     }
-    auto get_artist() {
-      return artist;
+    string get_artist() {
+        return artist;
     }
 
    private:
-    const string title;
-    const string album;
-    const string artist;
+    string title;
+    string album;
+    string artist;
   };
 
   class mprisstatus {
@@ -38,9 +54,9 @@ namespace mpris {
     string playback_status = "";
     string get_formatted_elapsed();
     string get_formatted_total();
-    bool random();
-    bool repeat();
-    bool single();
+    bool random() {return true;}
+    bool repeat() {return true;}
+    bool single() {return true;}
   };
 
   class mprisconnection {
@@ -51,13 +67,16 @@ namespace mpris {
     void seek(int change);
     void set_random(bool mode);
     std::map<std::string, std::string> get_metadata();
+    void play();
+    void pause();
     void stop();
+    void prev();
+    void next();
     bool connected();
     bool has_event();
     string get_loop_status();
     mprissong get_song();
-    mprisstatus get_status();
-    const mprisstatus* status = new mprisstatus();
+    std::unique_ptr<mprisstatus> get_status();
 
    private:
     std::string player;

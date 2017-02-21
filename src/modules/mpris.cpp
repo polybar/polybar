@@ -85,17 +85,28 @@ namespace modules {
     return m_connection->connected();
   }
 
-  void mpris_module::idle() {
-    if (connected()) {
-      m_quick_attempts = 0;
-      sleep(80ms);
-    } else {
-      sleep(m_quick_attempts++ < 5 ? 0.5s : 2s);
-    }
-  }
-
   bool mpris_module::has_event() {
-    if (m_connection->has_event()) {
+    if (!connected() && m_status == nullptr) {
+      return false;
+    } else if (!connected()) {
+      return true;
+    } else if (m_status == nullptr) {
+      m_status = m_connection->get_status();
+      return true;
+    }
+
+    auto new_status = m_connection->get_status();
+    auto new_song = m_connection->get_song();
+
+    if (m_song != new_song) {
+      m_song = new_song;
+      m_status = std::move(new_status);
+      return true;
+    }
+
+    if (new_status == nullptr || m_status->playback_status != new_status->playback_status) {
+      m_song = new_song;
+      m_status = std::move(new_status);
       return true;
     }
 
@@ -113,8 +124,8 @@ namespace modules {
   }
 
   bool mpris_module::update() {
-    // We are not connected and we wasn't in recent "tick"
     if (!m_connection->connected() && m_status == nullptr) {
+//      return true;
       return false;
     } else if (!m_connection->connected()) {
       m_status = nullptr;
@@ -133,19 +144,18 @@ namespace modules {
         total_str = m_status->get_formatted_total();
 */
 
-    auto song = m_connection->get_song();
-    auto status = m_connection->get_status();
+    m_song = m_connection->get_song();
+    //auto status = m_connection->get_status();
 
-    title = song.get_title();
-    artist = song.get_artist();
-    album = song.get_album();
+    title = m_song.get_title();
+    artist = m_song.get_artist();
+    album = m_song.get_album();
 
     if (m_label_song) {
       m_label_song->reset_tokens();
       m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
-      //      m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
     }
 
     if (m_label_time) {
@@ -182,7 +192,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_TIME && !is_stopped) {
       builder->node(m_label_time);
     } else if (tag == TAG_BAR_PROGRESS && !is_stopped) {
-//      builder->node(m_bar_progress->output(!m_status ? 0 : m_status->get_elapsed_percentage()));
+      //      builder->node(m_bar_progress->output(!m_status ? 0 : m_status->get_elapsed_percentage()));
       builder->node(m_bar_progress->output(!m_status ? 0 : 20));
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
@@ -214,53 +224,44 @@ namespace modules {
   }
 
   bool mpris_module::input(string&& cmd) {
-    if (cmd.compare(0, 3, "mpris") != 0) {
+    if (cmd.compare(0, 5, "mpris") != 0) {
       return false;
     }
-/*
-    try {
-      auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
-      mpd->connect();
 
-      auto status = mpd->get_status();
-
-      if (cmd == EVENT_PLAY) {
-        mpd->play();
-      } else if (cmd == EVENT_PAUSE) {
-        mpd->pause(!(status->match_state(mpdstate::PAUSED)));
-      } else if (cmd == EVENT_STOP) {
-        mpd->stop();
-      } else if (cmd == EVENT_PREV) {
-        mpd->prev();
-      } else if (cmd == EVENT_NEXT) {
-        mpd->next();
-      } else if (cmd == EVENT_REPEAT_ONE) {
-        mpd->set_single(!status->single());
-      } else if (cmd == EVENT_REPEAT) {
-        mpd->set_repeat(!status->repeat());
-      } else if (cmd == EVENT_RANDOM) {
-        mpd->set_random(!status->random());
-      } else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
-        auto s = cmd.substr(strlen(EVENT_SEEK));
-        int percentage = 0;
-        if (s.empty()) {
-          return false;
-        } else if (s[0] == '+') {
-          percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
-        } else if (s[0] == '-') {
-          percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());
-        } else {
-          percentage = std::atoi(s.c_str());
-        }
-        mpd->seek(status->get_songid(), status->get_seek_position(percentage));
-      } else {
+    if (cmd == EVENT_PLAY) {
+      m_connection->play();
+    } else if (cmd == EVENT_PAUSE) {
+      m_connection->pause();
+    } else if (cmd == EVENT_STOP) {
+      m_connection->stop();
+    } else if (cmd == EVENT_PREV) {
+      m_connection->prev();
+    } else if (cmd == EVENT_NEXT) {
+      m_connection->next();
+    } else if (cmd == EVENT_REPEAT_ONE) {
+      // mpd->set_single(!status->single());
+    } else if (cmd == EVENT_REPEAT) {
+      // mpd->set_repeat(!status->repeat());
+    } else if (cmd == EVENT_RANDOM) {
+      // mpd->set_random(!status->random());
+        /*
+    } else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
+      auto s = cmd.substr(strlen(EVENT_SEEK));
+      int percentage = 0;
+      if (s.empty()) {
         return false;
+      } else if (s[0] == '+') {
+        //    percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
+      } else if (s[0] == '-') {
+        //    percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());
+      } else {
+        percentage = std::atoi(s.c_str());
       }
-    } catch (const mpd_exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      m_mpd.reset();
+      //    mpd->seek(status->get_songid(), status->get_seek_position(percentage));
+      //    */
+    } else {
+      return false;
     }
-    */
 
     return true;
   }
