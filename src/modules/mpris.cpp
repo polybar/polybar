@@ -78,7 +78,7 @@ namespace modules {
     // }}}
 
     m_lastsync = chrono::system_clock::now();
-    m_connection = factory_util::unique<mprisconnection>(m_player);
+    m_connection = factory_util::unique<mprisconnection>(m_log, m_player);
   }
 
   inline bool mpris_module::connected() const {
@@ -113,13 +113,12 @@ namespace modules {
   }
 
   bool mpris_module::update() {
-
-      //We are not connected and we wasn't in recent "tick"
+    // We are not connected and we wasn't in recent "tick"
     if (!m_connection->connected() && m_status == nullptr) {
       return false;
     } else if (!m_connection->connected()) {
-        m_status = nullptr;
-        return true;
+      m_status = nullptr;
+      return true;
     }
 
     string artist;
@@ -146,7 +145,7 @@ namespace modules {
       m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
-//      m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
+      //      m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
     }
 
     if (m_label_time) {
@@ -173,26 +172,18 @@ namespace modules {
     return connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
   }
 
-  string mpris_module::get_output() {
-    if (m_status && m_status->get_queuelen() == 0) {
-      m_log.info("%s: Hiding module since queue is empty", name());
-      return "";
-    } else {
-      return event_module::get_output();
-    }
-  }
-
   bool mpris_module::build(builder* builder, const string& tag) const {
-    bool is_playing = m_status && m_status->match_state(mpdstate::PLAYING);
-    bool is_paused = m_status && m_status->match_state(mpdstate::PAUSED);
-    bool is_stopped = m_status && m_status->match_state(mpdstate::STOPPED);
+    bool is_playing = m_status && m_status->playback_status == "Playing";
+    bool is_paused = m_status && m_status->playback_status == "Paused";
+    bool is_stopped = m_status && m_status->playback_status == "Stopped";
 
     if (tag == TAG_LABEL_SONG && !is_stopped) {
       builder->node(m_label_song);
     } else if (tag == TAG_LABEL_TIME && !is_stopped) {
       builder->node(m_label_time);
     } else if (tag == TAG_BAR_PROGRESS && !is_stopped) {
-      builder->node(m_bar_progress->output(!m_status ? 0 : m_status->get_elapsed_percentage()));
+//      builder->node(m_bar_progress->output(!m_status ? 0 : m_status->get_elapsed_percentage()));
+      builder->node(m_bar_progress->output(!m_status ? 0 : 20));
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
     } else if (tag == TAG_ICON_RANDOM) {
@@ -223,10 +214,10 @@ namespace modules {
   }
 
   bool mpris_module::input(string&& cmd) {
-    if (cmd.compare(0, 3, "mpd") != 0) {
+    if (cmd.compare(0, 3, "mpris") != 0) {
       return false;
     }
-
+/*
     try {
       auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       mpd->connect();
@@ -269,6 +260,7 @@ namespace modules {
       m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
     }
+    */
 
     return true;
   }

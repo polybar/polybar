@@ -28,6 +28,9 @@
 #if ENABLE_MPD
 #include "modules/mpd.hpp"
 #endif
+#if ENABLE_MPRIS
+#include "modules/mpris.hpp"
+#endif
 #if ENABLE_NETWORK
 #include "modules/network.hpp"
 #endif
@@ -40,7 +43,7 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD && ENABLE_MPRIS)
 #include "modules/unsupported.hpp"
 #endif
 
@@ -72,6 +75,8 @@ namespace {
       return new i3_module(bar, move(module_name));
     } else if (name == "internal/mpd") {
       return new mpd_module(bar, move(module_name));
+    } else if (name == "internal/mpris") {
+      return new mpris_module(bar, move(module_name));
     } else if (name == "internal/volume") {
       return new volume_module(bar, move(module_name));
     } else if (name == "internal/network") {

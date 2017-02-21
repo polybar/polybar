@@ -37,6 +37,9 @@ namespace modules {
 #if not ENABLE_MPD
   DEFINE_UNSUPPORTED_MODULE(mpd_module, "internal/mpd");
 #endif
+#if not ENABLE_MPRIS
+  DEFINE_UNSUPPORTED_MODULE(mpris_module, "internal/mpris");
+#endif
 #if not ENABLE_NETWORK
   DEFINE_UNSUPPORTED_MODULE(network_module, "internal/network");
 #endif

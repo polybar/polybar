@@ -19,6 +19,7 @@
 
 #cmakedefine01 ENABLE_ALSA
 #cmakedefine01 ENABLE_MPD
+#cmakedefine01 ENABLE_MPRIS
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 ENABLE_I3
 #cmakedefine01 ENABLE_CURL
@@ -98,11 +99,12 @@ const auto version_details = [](const std::vector<std::string>& args) {
 // clang-format off
 const auto print_build_info = [](bool extended = false) {
   printf("%s %s\n\n", APP_NAME, APP_VERSION);
-  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork\n",
+  printf("Features: %calsa %ccurl %ci3 %cmpd %cmpris %cnetwork\n",
     (ENABLE_ALSA    ? '+' : '-'),
     (ENABLE_CURL    ? '+' : '-'),
     (ENABLE_I3      ? '+' : '-'),
     (ENABLE_MPD     ? '+' : '-'),
+    (ENABLE_MPRIS     ? '+' : '-'),
     (ENABLE_NETWORK ? '+' : '-'));
   if (extended) {
     printf("\n");
