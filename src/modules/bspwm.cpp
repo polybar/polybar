@@ -157,12 +157,18 @@ namespace modules {
     }
 
     string data{m_subscriber->receive(BUFSIZ)};
+    bool result = false;
 
-    size_t pos;
-    if ((pos = data.find('\n')) != string::npos) {
-      data.erase(pos);
+    for (auto&& status_line : string_util::split(data, '\n')) {
+      // Need to return true if ANY of the handle_status calls
+      // return true
+      result = this->handle_status(status_line) || result;
     }
 
+    return result;
+  }
+
+  bool bspwm_module::handle_status(string& data) {
     if (data.empty()) {
       return false;
     }
@@ -179,6 +185,8 @@ namespace modules {
     }
 
     m_hash = hash;
+
+    size_t pos;
 
     // Extract the string for the defined monitor
     if (m_pinworkspaces) {
