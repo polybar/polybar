@@ -2,7 +2,7 @@
 # Polybar development tasks
 #
 BUILDDIR  ?= build
-GENERATOR ?= $(shell command -vp ninja make | xargs basename | sed "s/ninja/Ninja/;s/make/Unix Makefiles/")
+GENERATOR ?= $(shell for c in ninja make; do command -vp $$c; done | xargs basename | sed "s/ninja/Ninja/;s/make/Unix Makefiles/")
 
 all: configure build link
 
