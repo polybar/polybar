@@ -104,6 +104,10 @@ namespace modules {
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
       rebuild_desktop_states();
+    } else if (evt->atom == WM_HINTS) {
+      if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
+        set_desktop_urgent(evt->window);
+      }
     } else {
       return;
     }
@@ -133,6 +137,8 @@ namespace modules {
       std::set_difference(
           clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
       for (auto&& win : diff) {
+        // listen for wm_hint (urgency) changes
+        m_connection.ensure_event_mask(win, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         m_clientlist.emplace_back(win);
       }
@@ -213,6 +219,31 @@ namespace modules {
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
+  }
+
+  /**
+   * Find window and set corresponding desktop to urgent
+   */
+  void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
+    auto desk = ewmh_util::get_desktop_from_window(window);
+    if(desk == m_current_desktop)
+      // ignore if current desktop is urgent
+      return;
+    for (auto&& v : m_viewports) {
+      for (auto&& d : v->desktops) {
+        if (d->index == desk && d->state != desktop_state::URGENT) {
+          d->state = desktop_state::URGENT;
+
+          d->label = m_labels.at(d->state)->clone();
+          d->label->reset_tokens();
+          d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
+          d->label->replace_token("%name%", m_desktop_names[d->index]);
+          d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
+          return;
+        }
+      }
+    }
+
   }
 
   /**

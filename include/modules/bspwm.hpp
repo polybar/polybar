@@ -51,6 +51,8 @@ namespace modules {
     bool input(string&& cmd);
 
    private:
+    bool handle_status(string& data);
+
     static constexpr auto DEFAULT_ICON = "ws-icon-default";
     static constexpr auto DEFAULT_LABEL = "%icon% %name%";
     static constexpr auto DEFAULT_MONITOR_LABEL = "%name%";
