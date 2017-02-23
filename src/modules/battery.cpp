@@ -30,7 +30,7 @@ namespace modules {
     m_lastpoll = chrono::system_clock::now();
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
-    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";	
+    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
     // Make state reader
     if (file_util::exists((m_fstate = path_adapter + "online"))) {
@@ -41,7 +41,7 @@ namespace modules {
     } else {
       throw module_error("No suitable way to get current charge state");
     }
-	
+
     // Make capacity reader
     if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
       throw module_error("No suitable way to get current capacity value");
@@ -54,14 +54,14 @@ namespace modules {
       auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
       return math_util::percentage(cap_now, 0UL, cap_max);
     });
-	
+
     // Make rate reader
     if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
       throw module_error("No suitable way to get current voltage value");
     } else if ((m_frate = file_util::pick({path_battery + "current_now", path_battery + "power_now"})).empty()) {
       throw module_error("No suitable way to get current charge rate value");
     }
-	
+
     m_rate_reader = make_unique<rate_reader>([this] {
       unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
@@ -290,7 +290,7 @@ namespace modules {
   * Get the current power consumption
   */
   string battery_module::current_consumption() {
-	return read(*m_consumption_reader);	
+    return read(*m_consumption_reader);	
   }
 
   /**
