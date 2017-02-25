@@ -91,22 +91,22 @@ namespace modules {
     } else if (!connected()) {
       return true;
     } else if (m_status == nullptr) {
-      m_status = m_connection->get_status();
+      return true;
+    }
+
+    auto new_song = m_connection->get_song();
+
+    if (m_song != new_song) {
+//      m_song = new_song;
+//      m_status = std::move(new_status);
       return true;
     }
 
     auto new_status = m_connection->get_status();
-    auto new_song = m_connection->get_song();
-
-    if (m_song != new_song) {
-      m_song = new_song;
-      m_status = std::move(new_status);
-      return true;
-    }
 
     if (new_status == nullptr || m_status->playback_status != new_status->playback_status) {
-      m_song = new_song;
-      m_status = std::move(new_status);
+//      m_song = new_song;
+//      m_status = std::move(new_status);
       return true;
     }
 
@@ -145,6 +145,8 @@ namespace modules {
 */
 
     m_song = m_connection->get_song();
+    m_status = m_connection->get_status();
+
     //auto status = m_connection->get_status();
 
     title = m_song.get_title();
