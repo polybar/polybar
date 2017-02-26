@@ -42,6 +42,7 @@ namespace modules {
     using state_reader = mutex_wrapper<value_reader<bool /* is_charging */>>;
     using capacity_reader = mutex_wrapper<value_reader<int /* percentage */>>;
     using rate_reader = mutex_wrapper<value_reader<unsigned long /* seconds */>>;
+    using consumption_reader = mutex_wrapper<value_reader<string /* watts */>>;
 
    public:
     explicit battery_module(const bar_settings&, string);
@@ -57,6 +58,7 @@ namespace modules {
     state current_state();
     int current_percentage(state state);
     string current_time();
+    string current_consumption();
     void subthread();
 
    private:
@@ -76,6 +78,7 @@ namespace modules {
     unique_ptr<state_reader> m_state_reader;
     unique_ptr<capacity_reader> m_capacity_reader;
     unique_ptr<rate_reader> m_rate_reader;
+    unique_ptr<consumption_reader> m_consumption_reader;
 
     label_t m_label_charging;
     label_t m_label_discharging;
