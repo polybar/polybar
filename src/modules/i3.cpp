@@ -32,6 +32,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_show_icons = m_conf.get(name(), "show-icons", m_show_icons);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -114,29 +115,27 @@ namespace modules {
     }
   }
 
-std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_t> tree) {
+  std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_t> tree) {
+    std::vector<std::string> windows;
+    auto t = *tree;
 
-  std::vector<std::string> windows;
-  auto t = *tree;
+    if (tree->xwindow_id != 0) {
+      auto xwindow_id = tree->xwindow_id;
+      auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
 
-  if (tree->xwindow_id != 0) {
-    auto xwindow_id = tree->xwindow_id;
-    auto icon = ewmh_util::get_wm_icon((xcb_window_t) xwindow_id);
-
-    if (!icon.empty()) {
-      auto b64 = base64_encode(icon.data(), icon.size());
-      windows.push_back(b64);
+      if (!icon.empty()) {
+        auto b64 = base64_encode(icon.data(), icon.size());
+        windows.push_back(b64);
+      }
     }
+
+    for (auto sub_tree : tree->nodes) {
+      auto newVec = getApplicationForTree(sub_tree);
+      windows.insert(windows.end(), newVec.begin(), newVec.end());
+    }
+
+    return windows;
   }
-
-  for (auto sub_tree : tree->nodes) {
-    auto newVec = getApplicationForTree(sub_tree);
-    windows.insert(windows.end(), newVec.begin(), newVec.end());
-  }
-
-  return windows;
-
-}
 
   bool i3_module::update() {
     /*
@@ -154,12 +153,14 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
 
     std::map<std::string, std::vector<std::string>> map;
 
-    for (auto monitor : mons) {
-      for (auto cont : monitor->nodes) {
-        if (cont->type == "con" && cont->name == "content") {
-          for (auto workspace : cont->nodes) {
-            auto applications = getApplicationForTree(workspace);
-            map.insert(std::make_pair(workspace->name, applications));
+    if (m_show_icons) {
+      for (auto monitor : mons) {
+        for (auto cont : monitor->nodes) {
+          if (cont->type == "con" && cont->name == "content") {
+            for (auto workspace : cont->nodes) {
+              auto applications = getApplicationForTree(workspace);
+              map.insert(std::make_pair(workspace->name, applications));
+            }
           }
         }
       }
@@ -250,7 +251,7 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
             icon->m_background = ws->label->m_background;
             icon->m_underline = ws->label->m_underline;
             icon->m_overline = ws->label->m_overline;
-            icon->m_padding = side_values{1,1};
+            icon->m_padding = side_values{1, 1};
             icon->m_location = ic;
             builder->node(icon);
           }
