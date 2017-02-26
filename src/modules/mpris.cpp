@@ -81,6 +81,10 @@ namespace modules {
     m_connection = factory_util::unique<mprisconnection>(m_log, m_player);
   }
 
+  void mpris_module::idle() {
+    sleep(100ms);
+  }
+
   inline bool mpris_module::connected() const {
     return m_connection->connected();
   }

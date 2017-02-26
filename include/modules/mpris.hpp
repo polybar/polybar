@@ -23,6 +23,7 @@ namespace modules {
     string get_format() const;
 //    string get_output();
     bool build(builder* builder, const string& tag) const;
+    void idle();
 
    protected:
     bool input(string&& cmd);
