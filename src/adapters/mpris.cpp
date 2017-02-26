@@ -248,6 +248,7 @@ namespace mpris {
         auto var = g_variant_iter_next_value(&iter1);
         if (var != nullptr) {
           artist = g_variant_get_string(var, nullptr);
+          g_variant_unref(var);
         }
       }
     }
