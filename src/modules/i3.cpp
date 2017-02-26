@@ -123,8 +123,8 @@ std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_
     auto xwindow_id = tree->xwindow_id;
     auto icon = ewmh_util::get_wm_icon((xcb_window_t) xwindow_id);
 
-    if (icon.first != nullptr) {
-      auto b64 = base64_encode(icon.first, icon.second);
+    if (!icon.empty()) {
+      auto b64 = base64_encode(icon.data(), icon.size());
       windows.push_back(b64);
     }
   }

@@ -632,6 +632,7 @@ cairo_surface_t* resize_surface(cairo_surface_t* old_surface, int new_width, dou
 
   cairo_paint(cr);
   cairo_destroy(cr);
+  cairo_surface_destroy(old_surface);
 
   return new_surface;
 }
@@ -664,6 +665,7 @@ void renderer::draw_icon(const string& icon_location) {
 
   cairo_set_source_surface(cr, image, 0, dest_icon_size/2);
   cairo_paint(cr);
+  cairo_destroy(cr);
 
   cairo_surface_destroy(image);
 
