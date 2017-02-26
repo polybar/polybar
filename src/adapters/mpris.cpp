@@ -10,39 +10,64 @@ namespace mpris {
 
   // https://developer.gnome.org/glib/stable/glib-GVariant.html#g-variant-iter-loop
 
-  deleted_unique_ptr<PolybarOrgMprisMediaPlayer2Player> mprisconnection::get_object() {
+  shared_ptr<PolybarOrgMprisMediaPlayer2Player> mprisconnection::get_object() {
+    if (++mpris_proxy_count > 10) {
+      mpris_proxy_count = 0;
+      player_proxy = create_player_proxy();
+    }
+    return player_proxy;
+  }
+
+  shared_ptr<PolybarOrgMprisMediaPlayer2> mprisconnection::get_mpris_proxy() {
+    if (++player_proxy_count > 10) {
+      player_proxy_count = 0;
+      mpris_proxy = create_mpris_proxy();
+    }
+    return mpris_proxy;
+  }
+
+  shared_ptr<PolybarOrgMprisMediaPlayer2Player> mprisconnection::create_player_proxy() {
     GError* error = nullptr;
 
     auto destructor = [&](PolybarOrgMprisMediaPlayer2Player* proxy) { g_object_unref(proxy); };
 
     auto player_object = "org.mpris.MediaPlayer2." + player;
 
-    auto object = polybar_org_mpris_media_player2_player_proxy_new_for_bus_sync(
+    auto proxy = polybar_org_mpris_media_player2_player_proxy_new_for_bus_sync(
         G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_NONE, player_object.data(), "/org/mpris/MediaPlayer2", NULL, &error);
 
     if (error != nullptr) {
       m_log.err("Empty object. Error: %s", error->message);
+      g_error_free(error);
       return nullptr;
     }
 
-    return deleted_unique_ptr<PolybarOrgMprisMediaPlayer2Player>(object, destructor);
+    return shared_ptr<PolybarOrgMprisMediaPlayer2Player>(proxy, destructor);
   }
 
-  bool mprisconnection::connected() {
+  shared_ptr<PolybarOrgMprisMediaPlayer2> mprisconnection::create_mpris_proxy() {
     GError* error = nullptr;
 
     auto player_object = "org.mpris.MediaPlayer2." + player;
 
-    auto object = polybar_org_mpris_media_player2_proxy_new_for_bus_sync(
+    auto destructor = [&](auto* proxy) { g_object_unref(proxy); };
+
+    auto proxy_raw = polybar_org_mpris_media_player2_proxy_new_for_bus_sync(
         G_BUS_TYPE_SESSION, G_DBUS_PROXY_FLAGS_NONE, player_object.data(), "/org/mpris/MediaPlayer2", NULL, &error);
+
+    auto proxy = shared_ptr<PolybarOrgMprisMediaPlayer2>(proxy_raw, destructor);
 
     if (error != nullptr) {
       m_log.err("Empty object. Error: %s", error->message);
-      return false;
+      g_error_free(error);
+      return nullptr;
     }
 
-    auto entry = polybar_org_mpris_media_player2_get_desktop_entry(object);
-    g_object_unref(object);
+    return proxy;
+  }
+
+  bool mprisconnection::connected() {
+    auto entry = polybar_org_mpris_media_player2_get_desktop_entry(get_mpris_proxy().get());
     return entry != nullptr;
   }
 
@@ -60,6 +85,7 @@ namespace mpris {
     if (error != nullptr) {
       m_log.err("Empty session bus");
       m_log.err(std::string(error->message));
+      g_error_free(error);
     }
   }
 
@@ -94,6 +120,7 @@ namespace mpris {
     if (error != nullptr) {
       m_log.err("Empty session bus");
       m_log.err(std::string(error->message));
+      g_error_free(error);
     }
   }
 
@@ -111,6 +138,7 @@ namespace mpris {
     if (error != nullptr) {
       m_log.err("Empty session bus");
       m_log.err(std::string(error->message));
+      g_error_free(error);
     }
   }
 
@@ -128,6 +156,7 @@ namespace mpris {
     if (error != nullptr) {
       m_log.err("Empty session bus");
       m_log.err(std::string(error->message));
+      g_error_free(error);
     }
   }
 
@@ -145,6 +174,7 @@ namespace mpris {
     if (error != nullptr) {
       m_log.err("Empty session bus");
       m_log.err(std::string(error->message));
+      g_error_free(error);
     }
   }
 

@@ -120,7 +120,7 @@ namespace modules {
   }
 
   bool mpris_module::update() {
-    if (!m_connection->connected() && m_status == nullptr) {
+    if (!connected() && m_status == nullptr) {
       return false;
     } else if (!m_connection->connected()) {
       m_status = nullptr;

@@ -15,12 +15,6 @@ namespace mpris {
    public:
     mprissong() : mprissong("", "", "") {}
     mprissong(string title, string album, string artist) : title(title), album(album), artist(artist) {}
-    mprissong& operator=(mprissong other) {
-      title = other.get_title();
-      album = other.get_album();
-      artist = other.get_artist();
-      return *this;
-    }
 
     bool operator==(mprissong other) {
       return title == other.get_title() && album == other.get_album() && artist == other.get_artist();
@@ -68,7 +62,10 @@ namespace mpris {
 
   class mprisconnection {
    public:
-    mprisconnection(const logger& m_log, string player) : player(player), m_log(m_log){};
+       mprisconnection(const logger& m_log, string player) : player(player), m_log(m_log){
+           player_proxy = create_player_proxy();
+           mpris_proxy = create_mpris_proxy();
+       };
     mprissong get_current_song();
     void pause_play();
     void seek(int change);
@@ -89,8 +86,15 @@ namespace mpris {
     std::string player;
     std::string get(std::string property);
     string get_playback_status();
-    deleted_unique_ptr<PolybarOrgMprisMediaPlayer2Player> get_object();
+    shared_ptr<PolybarOrgMprisMediaPlayer2Player> get_object();
+    shared_ptr<PolybarOrgMprisMediaPlayer2> get_mpris_proxy();
     const logger& m_log;
+    shared_ptr<PolybarOrgMprisMediaPlayer2Player> player_proxy;
+    shared_ptr<PolybarOrgMprisMediaPlayer2> mpris_proxy;
+    shared_ptr<PolybarOrgMprisMediaPlayer2Player> create_player_proxy();
+    shared_ptr<PolybarOrgMprisMediaPlayer2> create_mpris_proxy();
+    int player_proxy_count = 0;
+    int mpris_proxy_count = 0;
   };
 }
 
