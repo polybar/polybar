@@ -97,16 +97,12 @@ namespace modules {
     auto new_song = m_connection->get_song();
 
     if (m_song != new_song) {
-//      m_song = new_song;
-//      m_status = std::move(new_status);
       return true;
     }
 
     auto new_status = m_connection->get_status();
 
     if (new_status == nullptr || m_status->playback_status != new_status->playback_status) {
-//      m_song = new_song;
-//      m_status = std::move(new_status);
       return true;
     }
 
@@ -125,7 +121,6 @@ namespace modules {
 
   bool mpris_module::update() {
     if (!m_connection->connected() && m_status == nullptr) {
-//      return true;
       return false;
     } else if (!m_connection->connected()) {
       m_status = nullptr;
