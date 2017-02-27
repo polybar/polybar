@@ -12,7 +12,7 @@ message(STATUS " Targets:")
 colored_option("   polybar-msg" BUILD_IPC_MSG)
 colored_option("   testsuite" BUILD_TESTS)
 
-message(STATUS " Module supprt:")
+message(STATUS " Module support:")
 colored_option("   alsa" ENABLE_ALSA)
 colored_option("   curl" ENABLE_CURL)
 colored_option("   i3" ENABLE_I3)
