@@ -245,36 +245,37 @@ namespace modules {
 
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+        }
 
-          if (m_icons_side == "left") {
-            for (auto ic : ws->icons) {
-              auto icon = factory_util::shared<real_icon>("");
-              icon->m_background = ws->label->m_background;
-              icon->m_underline = ws->label->m_underline;
-              icon->m_overline = ws->label->m_overline;
-              icon->m_padding = side_values{1, 1};
-              icon->m_location = ic;
-              builder->node(icon);
-            }
+
+        if (m_icons_side == "left") {
+          for (auto ic : ws->icons) {
+            auto icon = factory_util::shared<real_icon>("");
+            icon->m_background = ws->label->m_background;
+            icon->m_underline = ws->label->m_underline;
+            icon->m_overline = ws->label->m_overline;
+            icon->m_padding = side_values{1, 1};
+            icon->m_location = ic;
+            builder->node(icon);
           }
+        }
 
-          builder->node(ws->label);
+        builder->node(ws->label);
 
-          if (m_icons_side == "right") {
-            for (auto ic : ws->icons) {
-              auto icon = factory_util::shared<real_icon>("");
-              icon->m_background = ws->label->m_background;
-              icon->m_underline = ws->label->m_underline;
-              icon->m_overline = ws->label->m_overline;
-              icon->m_padding = side_values{1, 1};
-              icon->m_location = ic;
-              builder->node(icon);
-            }
+        if (m_icons_side == "right") {
+          for (auto ic : ws->icons) {
+            auto icon = factory_util::shared<real_icon>("");
+            icon->m_background = ws->label->m_background;
+            icon->m_underline = ws->label->m_underline;
+            icon->m_overline = ws->label->m_overline;
+            icon->m_padding = side_values{1, 1};
+            icon->m_location = ic;
+            builder->node(icon);
           }
+        }
 
+        if (m_click) {
           builder->cmd_close();
-        } else {
-          builder->node(ws->label);
         }
       }
 
