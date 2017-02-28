@@ -33,6 +33,7 @@ namespace modules {
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
     m_show_icons = m_conf.get(name(), "show-icons", m_show_icons);
+    m_icons_side = m_conf.get(name(), "icons-side", m_icons_side);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -244,16 +245,31 @@ namespace modules {
 
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+
+          if (m_icons_side == "left") {
+            for (auto ic : ws->icons) {
+              auto icon = factory_util::shared<real_icon>("");
+              icon->m_background = ws->label->m_background;
+              icon->m_underline = ws->label->m_underline;
+              icon->m_overline = ws->label->m_overline;
+              icon->m_padding = side_values{1, 1};
+              icon->m_location = ic;
+              builder->node(icon);
+            }
+          }
+
           builder->node(ws->label);
 
-          for (auto ic : ws->icons) {
-            auto icon = factory_util::shared<real_icon>("");
-            icon->m_background = ws->label->m_background;
-            icon->m_underline = ws->label->m_underline;
-            icon->m_overline = ws->label->m_overline;
-            icon->m_padding = side_values{1, 1};
-            icon->m_location = ic;
-            builder->node(icon);
+          if (m_icons_side == "right") {
+            for (auto ic : ws->icons) {
+              auto icon = factory_util::shared<real_icon>("");
+              icon->m_background = ws->label->m_background;
+              icon->m_underline = ws->label->m_underline;
+              icon->m_overline = ws->label->m_overline;
+              icon->m_padding = side_values{1, 1};
+              icon->m_location = ic;
+              builder->node(icon);
+            }
           }
 
           builder->cmd_close();
