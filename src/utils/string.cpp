@@ -257,15 +257,16 @@ namespace string_util {
   /**
    * Create a filesize string by converting given bytes to highest unit possible
    */
-  string filesize(unsigned long long kbytes, size_t precision, bool fixed, const string& locale) {
-    vector<string> suffixes{"TB", "GB", "MB"};
-    string suffix{"KB"};
-    double value = kbytes;
-    while (!suffixes.empty() && (value /= 1024.0) >= 1024.0) {
+  string filesize(unsigned long long bytes, size_t precision, bool fixed, const string& locale) {
+    vector<string> suffixes{"TB", "GB", "MB", "KB"};
+    string suffix{"B"};
+    double value = bytes;
+    while (!suffixes.empty() && value >= 1024.0) {
       suffix = suffixes.back();
       suffixes.pop_back();
+      value /= 1024.0;
     }
-    return floating_point(value, precision, fixed, locale) + " GB";
+    return floating_point(value, precision, fixed, locale) + " " + suffix;
   }
 
   /**
