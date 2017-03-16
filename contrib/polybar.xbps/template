@@ -1,27 +1,24 @@
 # Template file for 'polybar'
 pkgname=polybar
-version=2.3.0
+version=3.0.4
 revision=1
-wrksrc="${pkgname}-${version}"
-_i3ipcpp_version=0.5.1
-_xpp_version=1.3.1
+_i3ipcpp_version=0.6.2
+_xpp_version=1.3.6
 build_style=cmake
-replaces="lemonbuddy>=0"
-configure_args="-DCMAKE_CXX_COMPILER=clang++
- -DCMAKE_CXX_FLAGS=-fPIE
- -DCMAKE_EXE_LINKER_FLAGS=-pie
+configure_args="
  -DENABLE_ALSA=$(vopt_if alsa ON OFF)
+ -DENABLE_CURL=$(vopt_if curl ON OFF)
  -DENABLE_I3=$(vopt_if i3 ON OFF)
  -DENABLE_MPD=$(vopt_if mpd ON OFF)
  -DENABLE_NETWORK=$(vopt_if network ON OFF)"
-depends="libXft xcb-util-wm xcb-util-image"
-hostmakedepends="clang pkg-config xcb-proto"
-makedepends="libxcb-devel libXft-devel xcb-util-image-devel xcb-util-wm-devel boost-devel
- $(vopt_if alsa alsa-lib-devel)
- $(vopt_if i3 i3-devel)
- $(vopt_if i3 jsoncpp-devel)
- $(vopt_if mpd libmpdclient-devel)
- $(vopt_if network wireless_tools-devel)"
+depends="cairo xcb-util-wm xcb-util-image xcb-util-xrm"
+hostmakedepends="pkg-config xcb-proto"
+makedepends="cairo-devel xcb-util-image-devel xcb-util-wm-devel xcb-util-xrm-devel zlib-devel
+ $(vopt_if alsa "alsa-lib-devel")
+ $(vopt_if curl "libcurl-devel")
+ $(vopt_if i3 "i3-devel jsoncpp-devel")
+ $(vopt_if mpd "libmpdclient-devel")
+ $(vopt_if network "wireless_tools-devel")"
 short_desc="A fast and easy-to-use status bar"
 maintainer="Michael Carlberg <c@rlberg.se>"
 license="MIT"
@@ -31,24 +28,28 @@ distfiles="
  https://github.com/jaagr/xpp/archive/${_xpp_version}.tar.gz
  $(vopt_if i3 https://github.com/jaagr/i3ipcpp/archive/v${_i3ipcpp_version}.tar.gz)"
 checksum="
- 962252d5e5ac44f630c2598b63ecd5ed269f64899008114fbccf05455b93e742
- de92b258a136aa782a876d3058009a31238cc92f16038aa243ea6d55057e2ed1
- $(vopt_if i3 2c5243e1d3be787f8e64ce5b1a3c087999e2ccaeea1db317f6ab2df3556fa952)"
+ a6a25a5305b7357b11769de6c0f5bf3175d7c65f1c80615779e75cb22aa6892c
+ b81993893190bf7ba19529e0da6e8b069e13e833f6a62874830b46785bee3349
+ $(vopt_if i3 7ad9c0c1e1cb9dfd07ecc2a7769eae9ac962c22db2e07be08b2186b7fd85189d)"
 
-build_options="alsa i3 mpd network"
+build_options="alsa curl i3 mpd network"
 build_options_default="$build_options"
 
-case "$XBPS_TARGET_MACHINE" in
-	arm*) broken="cross-compiler with c++14 support";;
-	aarch64*) broken="cross-compiler with c++14 support";;
-	aarch64-musl) CXXFLAGS="-D_LINUX_IF_ETHER_H";;
-esac
+if [ "$build_option_network" -a "$XBPS_TARGET_MACHINE" = "aarch64-musl" ]; then
+	CXXFLAGS+=" -D_LINUX_IF_ETHER_H"
+fi
+
+if [ "$CROSS_BUILD" ]; then
+	configure_args+=" -DTHREADS_PTHREAD_ARG=OFF"
+fi
 
 post_extract() {
-	[ -d ../i3ipcpp-${_i3ipcpp_version} ] && \
-		mv ../i3ipcpp-${_i3ipcpp_version}/* lib/i3ipcpp/ || true
-	[ -d ../xpp-${_xpp_version} ] &&  \
-		mv ../xpp-${_xpp_version}/* lib/xpp/ || true
+	if [ -d ../i3ipcpp-${_i3ipcpp_version} ]; then
+		mv -f -T ../i3ipcpp-${_i3ipcpp_version} lib/i3ipcpp
+	fi
+	if [ -d ../xpp-${_xpp_version} ]; then
+		mv -f -T ../xpp-${_xpp_version} lib/xpp
+	fi
 }
 
 post_install() {
