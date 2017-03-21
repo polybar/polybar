@@ -215,7 +215,7 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_context->clear();
 
   // Create corner mask
-  if (m_bar.radius != 0.0 && m_cornermask == nullptr) {
+  if (m_bar.radius && m_cornermask == nullptr) {
     m_context->save();
     m_context->push();
     // clang-format off

@@ -3,6 +3,7 @@
 #include <cairo/cairo.h>
 
 #include "common.hpp"
+#include "components/types.hpp"
 
 POLYBAR_NS
 
@@ -51,7 +52,7 @@ namespace cairo {
     double y;
     double w;
     double h;
-    double radius;
+    struct radius radius;
   };
   struct textblock {
     alignment align;

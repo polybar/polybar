@@ -130,13 +130,12 @@ namespace cairo {
     }
 
     context& operator<<(const rounded_corners& c) {
-      double radius = c.radius / 1.0;
       double d = M_PI / 180.0;
       cairo_new_sub_path(m_c);
-      cairo_arc(m_c, c.x + c.w - radius, c.y + radius, radius, -90 * d, 0 * d);
-      cairo_arc(m_c, c.x + c.w - radius, c.y + c.h - radius, radius, 0 * d, 90 * d);
-      cairo_arc(m_c, c.x + radius, c.y + c.h - radius, radius, 90 * d, 180 * d);
-      cairo_arc(m_c, c.x + radius, c.y + radius, radius, 180 * d, 270 * d);
+      cairo_arc(m_c, c.x + c.w - c.radius.top, c.y + c.radius.top, c.radius.top, -90 * d, 0 * d);
+      cairo_arc(m_c, c.x + c.w - c.radius.bottom, c.y + c.h - c.radius.bottom, c.radius.bottom, 0 * d, 90 * d);
+      cairo_arc(m_c, c.x + c.radius.bottom, c.y + c.h - c.radius.bottom, c.radius.bottom, 90 * d, 180 * d);
+      cairo_arc(m_c, c.x + c.radius.top, c.y + c.radius.top, c.radius.top, 180 * d, 270 * d);
       cairo_close_path(m_c);
       return *this;
     }
