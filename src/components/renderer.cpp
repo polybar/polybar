@@ -731,7 +731,7 @@ bool renderer::on(const signals::parser::action_begin& evt) {
   action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
   action.align = m_align;
   action.start_x = m_blocks.at(m_align).x;
-  action.command = string_util::replace_all(a.command, ":", "\\:");
+  action.command = string_util::replace_all(a.command, "\\:", ":");
   action.active = true;
   m_actions.emplace_back(action);
   return true;

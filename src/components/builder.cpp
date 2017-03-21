@@ -511,7 +511,11 @@ void builder::underline_close() {
  */
 void builder::cmd(mousebtn index, string action, bool condition) {
   if (condition && !action.empty()) {
-    action = string_util::replace_all(action, ":", "\\:");
+    size_t p{0};
+    while ((p = action.find(':', p)) != string::npos && action[p - 1] != '\\') {
+      action.insert(p, 1, '\\');
+      p++;
+    }
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
 }
@@ -520,9 +524,8 @@ void builder::cmd(mousebtn index, string action, bool condition) {
  * Wrap label in command block
  */
 void builder::cmd(mousebtn index, string action, const label_t& label) {
-  if (!action.empty() && label && *label) {
-    action = string_util::replace_all(action, ":", "\\:");
-    tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
+  if (label && *label) {
+    cmd(index, action, true);
     node(label);
     tag_close(syntaxtag::A);
   }
