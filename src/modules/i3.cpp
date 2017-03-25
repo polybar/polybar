@@ -116,7 +116,7 @@ namespace modules {
     }
   }
 
-  std::vector<std::string> getApplicationForTree(std::shared_ptr<i3ipc::container_t> tree) {
+  std::vector<std::string> getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree) {
     std::vector<std::string> windows;
     auto t = *tree;
 
@@ -131,7 +131,7 @@ namespace modules {
     }
 
     for (auto sub_tree : tree->nodes) {
-      auto newVec = getApplicationForTree(sub_tree);
+      auto newVec = getApplicationsForTree(sub_tree);
       windows.insert(windows.end(), newVec.begin(), newVec.end());
     }
 
@@ -159,7 +159,7 @@ namespace modules {
         for (auto cont : monitor->nodes) {
           if (cont->type == "con" && cont->name == "content") {
             for (auto workspace : cont->nodes) {
-              auto applications = getApplicationForTree(workspace);
+              auto applications = getApplicationsForTree(workspace);
               map.insert(std::make_pair(workspace->name, applications));
             }
           }
