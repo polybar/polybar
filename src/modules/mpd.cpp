@@ -306,15 +306,19 @@ namespace modules {
 
       auto status = mpd->get_status();
 
-      if (cmd == EVENT_PLAY) {
+      bool is_playing = status->match_state(mpdstate::PLAYING);
+      bool is_paused = status->match_state(mpdstate::PAUSED);
+      bool is_stopped = status->match_state(mpdstate::STOPPED);
+
+      if (cmd == EVENT_PLAY && !is_playing) {
         mpd->play();
-      } else if (cmd == EVENT_PAUSE) {
-        mpd->pause(!(status->match_state(mpdstate::PAUSED)));
-      } else if (cmd == EVENT_STOP) {
+      } else if (cmd == EVENT_PAUSE && !is_paused) {
+        mpd->pause(true);
+      } else if (cmd == EVENT_STOP && !is_stopped) {
         mpd->stop();
-      } else if (cmd == EVENT_PREV) {
+      } else if (cmd == EVENT_PREV && !is_stopped) {
         mpd->prev();
-      } else if (cmd == EVENT_NEXT) {
+      } else if (cmd == EVENT_NEXT && !is_stopped) {
         mpd->next();
       } else if (cmd == EVENT_REPEAT_ONE) {
         mpd->set_single(!status->single());
