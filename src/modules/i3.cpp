@@ -220,27 +220,23 @@ namespace modules {
       }
 
       auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
-      auto current_ws_iter = find_if(workspaces.begin(), workspaces.end(),
-                                     [](auto ws) { return ws->focused || ws->visible; });
-      auto target_ws_iter = current_ws_iter;
+      auto current_ws = *find_if(workspaces.begin(), workspaces.end(), 
+                                 [](auto ws) { return ws->visible; });
 
-      if (scrolldir == "next") {
-        if (*current_ws_iter == workspaces.back() && m_wrap) {
-          target_ws_iter = workspaces.begin();
-        } else if (*current_ws_iter != workspaces.back()) {
-          target_ws_iter = std::next(current_ws_iter);
+      if (scrolldir == "next" && (m_wrap || workspaces.back() != current_ws)) {
+        if (!current_ws->focused) {
+          m_log.info("%s: Sending workspace focus command to ipc handler", name());
+          conn.send_command("workspace " + current_ws->name);
         }
-      } else if (scrolldir == "prev") {
-        if (*current_ws_iter == workspaces.front() && m_wrap) {
-          target_ws_iter = std::prev(workspaces.end());
-        } else if (*current_ws_iter != workspaces.front()) {
-          target_ws_iter = std::prev(current_ws_iter);
+        m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
+        conn.send_command("workspace next_on_output");
+      } else if (scrolldir == "prev" && (m_wrap || workspaces.front() != current_ws)) {
+        if (!current_ws->focused) {
+          m_log.info("%s: Sending workspace focus command to ipc handler", name());
+          conn.send_command("workspace " + current_ws->name);
         }
-      }
-
-      if (current_ws_iter != target_ws_iter) {
-        m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        conn.send_command("workspace " + (*target_ws_iter)->name);
+        m_log.info("%s: Sending workspace prev_on_output command to ipc handler", name());
+        conn.send_command("workspace prev_on_output");
       }
 
     } catch (const exception& err) {
