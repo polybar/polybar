@@ -17,7 +17,8 @@ namespace modules {
       , m_conf(config::make())
       , m_name("module/" + name)
       , m_builder(make_unique<builder>(bar))
-      , m_formatter(make_unique<module_formatter>(m_conf, m_name)) {}
+      , m_formatter(make_unique<module_formatter>(m_conf, m_name))
+      , m_handle_events(m_conf.get(m_name, "handle-events", true)) {}
 
   template <typename Impl>
   module<Impl>::~module() noexcept {

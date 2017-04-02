@@ -189,9 +189,11 @@ namespace modules {
     // with the cmd handlers
     string output{module::get_output()};
 
-    m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+    if (m_handle_events) {
+      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
+      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
+      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+    }
 
     m_builder->append(output);
 
@@ -216,11 +218,11 @@ namespace modules {
   }
 
   bool volume_module::input(string&& cmd) {
-    if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
+    if (!m_handle_events) {
       return false;
-    }
-
-    if (!m_mixer[mixer::MASTER]) {
+    } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
+      return false;
+    } else if (!m_mixer[mixer::MASTER]) {
       return false;
     }
 
