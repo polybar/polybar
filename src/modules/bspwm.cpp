@@ -473,24 +473,30 @@ namespace modules {
       return true;
     }
 
-    string modifier;
     string scrolldir;
-
-    if (m_pinworkspaces) {
-      modifier = ".local";
-    }
 
     if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
       scrolldir = m_revscroll ? "prev" : "next";
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
       scrolldir = m_revscroll ? "next" : "prev";
-    }
-
-    if (!scrolldir.empty()) {
-      send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
     } else {
       return false;
     }
+
+    string modifier;
+
+    if (m_pinworkspaces) {
+      modifier = ".local";
+    }
+
+    for (const auto& mon : m_monitors) {
+      if (m_bar.monitor->match(mon->name, false) && !mon->focused) {
+        send_command("monitor -f " + mon->name, "Sending monitor focus command to ipc handler");
+        break;
+      }
+    }
+
+    send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
 
     return true;
   }
