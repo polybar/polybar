@@ -35,10 +35,6 @@ void interrupt_handler(int signum) {
   }
 }
 
-void handler(int signum) {
-  printf("atestin %i\n", signum);
-}
-
 /**
  * Build controller instance
  */
