@@ -152,7 +152,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->num, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
       }
 
       return true;
@@ -173,7 +173,7 @@ namespace modules {
 
       for (auto&& ws : m_workspaces) {
         if (m_click) {
-          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
           builder->node(ws->label);
           builder->cmd_close();
         } else {
@@ -202,9 +202,9 @@ namespace modules {
 
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         cmd.erase(0, strlen(EVENT_CLICK));
-        if (i3_util::focused_workspace(conn)->num != atoi(cmd.c_str())) {
+        if (i3_util::focused_workspace(conn)->name != cmd) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace number " + cmd);
+          conn.send_command("workspace " + cmd);
         }
         return true;
       }
