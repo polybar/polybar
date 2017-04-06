@@ -753,7 +753,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   } catch (const application_error& err) {
     m_log.err(err.what());
   } catch (const xpp::x::error::window& err) {
-    m_log.err("Failed to query for _XEMBED_INFO, removing client... (%s)", err.what());
+    m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
     remove_client(win, false);
     return;
   }
@@ -1036,7 +1036,17 @@ void tray_manager::handle(const evt::property_notify& evt) {
     m_log.trace("tray: _XEMBED_INFO value has changed");
   }
 
-  xembed::query(m_connection, win, xd);
+  try {
+    m_log.trace("tray: Get client _XEMBED_INFO");
+    xembed::query(m_connection, win, xd);
+  } catch (const application_error& err) {
+    m_log.err(err.what());
+    return;
+  } catch (const xpp::x::error::window& err) {
+    m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
+    remove_client(win, false);
+    return;
+  }
 
   m_log.trace("tray: _XEMBED_INFO[0]=%u _XEMBED_INFO[1]=%u", xd->version, xd->flags);
 

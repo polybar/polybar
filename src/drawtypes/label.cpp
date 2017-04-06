@@ -48,8 +48,8 @@ namespace drawtypes {
 
     for (auto&& tok : m_tokens) {
       if (token == tok.token) {
-        if (tok.max != 0_z && replacement.length() > tok.max) {
-          replacement = replacement.erase(tok.max) + tok.suffix;
+        if (tok.max != 0_z && string_util::char_len(replacement) > tok.max) {
+          replacement = string_util::utf8_truncate(std::move(replacement), tok.max) + tok.suffix;
         } else if (tok.min != 0_z && replacement.length() < tok.min) {
           replacement.insert(0_z, tok.min - replacement.length(), ' ');
         }

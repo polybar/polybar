@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
@@ -146,6 +147,48 @@ namespace string_util {
   }
 
   /**
+   * Counts the number of codepoints in a utf8 encoded string.
+   */
+  size_t char_len(const string& value) {
+    // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
+    // simply count the number of bytes not of this form.
+    //
+    // 0xc0 = 11000000
+    // 0x80 = 10000000
+    return std::count_if(value.begin(), value.end(), [](char c) { return (c & 0xc0) != 0x80; });
+  }
+
+  /**
+   * Truncates a utf8 string at len number of codepoints. This isn't 100%
+   * matching the user-perceived character count, but it should be close
+   * enough and avoids having to pull in something like ICU to count actual
+   * grapheme clusters.
+   */
+  string utf8_truncate(string&& value, size_t len) {
+    if (value.empty()) {
+      return "";
+    }
+
+    // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
+    // simply jump forward to bytes not of that form and truncate starting
+    // at that byte if we've counted too many codepoints
+    //
+    // 0xc0 = 11000000
+    // 0x80 = 10000000
+    auto it = value.begin();
+    auto end = value.end();
+    for (size_t i = 0; i < len; ++i) {
+      if (it == end)
+        break;
+      ++it;
+      it = std::find_if(it, end, [](char c) { return (c & 0xc0) != 0x80; });
+    }
+    value.erase(it, end);
+
+    return forward<string>(value);
+  }
+
+  /**
    * Join all strings in vector into a single string separated by delim
    */
   string join(const vector<string>& strs, const string& delim) {
@@ -214,15 +257,16 @@ namespace string_util {
   /**
    * Create a filesize string by converting given bytes to highest unit possible
    */
-  string filesize(unsigned long long kbytes, size_t precision, bool fixed, const string& locale) {
-    vector<string> suffixes{"TB", "GB", "MB"};
-    string suffix{"KB"};
-    double value = kbytes;
-    while (!suffixes.empty() && (value /= 1024.0) >= 1024.0) {
+  string filesize(unsigned long long bytes, size_t precision, bool fixed, const string& locale) {
+    vector<string> suffixes{"TB", "GB", "MB", "KB"};
+    string suffix{"B"};
+    double value = bytes;
+    while (!suffixes.empty() && value >= 1024.0) {
       suffix = suffixes.back();
       suffixes.pop_back();
+      value /= 1024.0;
     }
-    return floating_point(value, precision, fixed, locale) + " GB";
+    return floating_point(value, precision, fixed, locale) + " " + suffix;
   }
 
   /**

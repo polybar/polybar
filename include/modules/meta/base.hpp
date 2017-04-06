@@ -154,6 +154,8 @@ namespace modules {
     vector<thread> m_threads;
     thread m_mainthread;
 
+    bool m_handle_events{true};
+
    private:
     atomic<bool> m_enabled{true};
     atomic<bool> m_changed{true};

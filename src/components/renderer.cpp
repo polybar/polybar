@@ -215,7 +215,7 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_context->clear();
 
   // Create corner mask
-  if (m_bar.radius != 0.0 && m_cornermask == nullptr) {
+  if (m_bar.radius && m_cornermask == nullptr) {
     m_context->save();
     m_context->push();
     // clang-format off
@@ -795,7 +795,7 @@ bool renderer::on(const signals::parser::action_begin& evt) {
   action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
   action.align = m_align;
   action.start_x = m_blocks.at(m_align).x;
-  action.command = string_util::replace_all(a.command, ":", "\\:");
+  action.command = string_util::replace_all(a.command, "\\:", ":");
   action.active = true;
   m_actions.emplace_back(action);
   return true;

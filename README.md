@@ -64,6 +64,8 @@ If you are using **Arch Linux**, you can install the AUR package [polybar-git](h
 If you are using **Void Linux**, there's a [xbps template available](https://github.com/jaagr/void-packages/blob/polybar/srcpkgs/polybar/template) that you could use to build the project.
 A [pull-request has been submitted](https://github.com/voidlinux/void-packages/pull/5192) but it is still not merged into the official repositories so I wouldn't hold my breath.
 
+If you are using **NixOS**, **Polybar** is available in the unstable channel and can be installed with the command `nix-env -iA nixos.polybar`.
+
 
 ### Dependencies
 
@@ -91,7 +93,7 @@ Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/
 Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 3.0.4 --recursive https://github.com/jaagr/polybar
+  $ git clone --branch 3.0.5 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
   $ cmake ..

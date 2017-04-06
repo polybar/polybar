@@ -35,12 +35,12 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(int index, enum state state_, label_t&& label, std::vector<std::string> icons)
-          : index(index), state(state_), label(forward<label_t>(label)), icons(icons) {}
+      explicit workspace(string name, enum state state_, label_t&& label, std::vector<std::string> icons)
+          : name(name), state(state_), label(forward<label_t>(label)), icons(icons) {}
 
       operator bool();
 
-      int index;
+      string name;
       enum state state;
       label_t label;
       std::vector<std::string> icons;

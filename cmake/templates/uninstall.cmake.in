@@ -1,9 +1,9 @@
-set(INSTALL_MANIFEST "@CMAKE_CURRENT_BINARY_DIR@/install_manifest")
+set(INSTALL_MANIFEST "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 if(NOT EXISTS ${INSTALL_MANIFEST})
   message(FATAL_ERROR "Cannot find install manifest: ${INSTALL_MANIFEST}")
 endif()
 
-file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest" files)
+file(READ ${INSTALL_MANIFEST} files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 list(REVERSE files)
 

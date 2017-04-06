@@ -157,12 +157,18 @@ namespace modules {
     }
 
     string data{m_subscriber->receive(BUFSIZ)};
+    bool result = false;
 
-    size_t pos;
-    if ((pos = data.find('\n')) != string::npos) {
-      data.erase(pos);
+    for (auto&& status_line : string_util::split(data, '\n')) {
+      // Need to return true if ANY of the handle_status calls
+      // return true
+      result = this->handle_status(status_line) || result;
     }
 
+    return result;
+  }
+
+  bool bspwm_module::handle_status(string& data) {
     if (data.empty()) {
       return false;
     }
@@ -179,6 +185,8 @@ namespace modules {
     }
 
     m_hash = hash;
+
+    size_t pos;
 
     // Extract the string for the defined monitor
     if (m_pinworkspaces) {
@@ -465,24 +473,30 @@ namespace modules {
       return true;
     }
 
-    string modifier;
     string scrolldir;
-
-    if (m_pinworkspaces) {
-      modifier = ".local";
-    }
 
     if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
       scrolldir = m_revscroll ? "prev" : "next";
     } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
       scrolldir = m_revscroll ? "next" : "prev";
-    }
-
-    if (!scrolldir.empty()) {
-      send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
     } else {
       return false;
     }
+
+    string modifier;
+
+    if (m_pinworkspaces) {
+      modifier = ".local";
+    }
+
+    for (const auto& mon : m_monitors) {
+      if (m_bar.monitor->match(mon->name, false) && !mon->focused) {
+        send_command("monitor -f " + mon->name, "Sending monitor focus command to ipc handler");
+        break;
+      }
+    }
+
+    send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
 
     return true;
   }

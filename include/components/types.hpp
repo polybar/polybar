@@ -78,6 +78,15 @@ struct edge_values {
   unsigned int bottom{0U};
 };
 
+struct radius {
+  double top{0.0};
+  double bottom{0.0};
+
+  operator bool() const {
+    return top != 0.0 || bottom != 0.0;
+  }
+};
+
 struct border_settings {
   unsigned int color{0xFF000000};
   unsigned int size{0U};
@@ -135,7 +144,7 @@ struct bar_settings {
 
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
-  double radius{0.0};
+  struct radius radius {};
   int spacing{0};
   string separator{};
 

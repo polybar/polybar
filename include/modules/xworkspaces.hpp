@@ -66,6 +66,7 @@ namespace modules {
     void rebuild_clientlist();
     void rebuild_desktops();
     void rebuild_desktop_states();
+    void set_desktop_urgent(xcb_window_t window);
 
     bool input(string&& cmd);
 

@@ -195,7 +195,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->num, ws_state, move(label), map[ws->name]));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label), map[ws->name]));
       }
 
       return true;
@@ -216,7 +216,7 @@ namespace modules {
 
       for (auto&& ws : m_workspaces) {
         if (m_click) {
-          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
         }
 
 
@@ -268,18 +268,20 @@ namespace modules {
     }
 
     try {
-      using namespace i3_util;
-
-      string scrolldir;
-      const connection_t conn{};
+      const i3_util::connection_t conn{};
 
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         cmd.erase(0, strlen(EVENT_CLICK));
-        if (focused_workspace(conn)->num != atoi(cmd.c_str())) {
+        if (i3_util::focused_workspace(conn)->name != cmd) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace number " + cmd);
+          conn.send_command("workspace " + cmd);
         }
-      } else if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+        return true;
+      }
+
+      string scrolldir;
+
+      if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
         scrolldir = m_revscroll ? "prev" : "next";
       } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
         scrolldir = m_revscroll ? "next" : "prev";
@@ -287,15 +289,26 @@ namespace modules {
         return false;
       }
 
-      const string& mon_name{m_bar.monitor->name};
+      auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
+      auto current_ws = *find_if(workspaces.begin(), workspaces.end(), 
+                                 [](auto ws) { return ws->visible; });
 
-      if (scrolldir == "next" && (m_wrap || *workspaces(conn, mon_name).back() != *focused_workspace(conn))) {
-        m_log.info("%s: Sending workspace next command to ipc handler", name());
+      if (scrolldir == "next" && (m_wrap || workspaces.back() != current_ws)) {
+        if (!current_ws->focused) {
+          m_log.info("%s: Sending workspace focus command to ipc handler", name());
+          conn.send_command("workspace " + current_ws->name);
+        }
+        m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
         conn.send_command("workspace next_on_output");
-      } else if (scrolldir == "prev" && (m_wrap || *workspaces(conn, mon_name).front() != *focused_workspace(conn))) {
-        m_log.info("%s: Sending workspace prev command to ipc handler", name());
+      } else if (scrolldir == "prev" && (m_wrap || workspaces.front() != current_ws)) {
+        if (!current_ws->focused) {
+          m_log.info("%s: Sending workspace focus command to ipc handler", name());
+          conn.send_command("workspace " + current_ws->name);
+        }
+        m_log.info("%s: Sending workspace prev_on_output command to ipc handler", name());
         conn.send_command("workspace prev_on_output");
       }
+
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());
     }
