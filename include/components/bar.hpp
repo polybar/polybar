@@ -41,6 +41,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   void parse(string&& data, bool force = false);
 
+  void hide();
+  void show();
+  void toggle();
+
  protected:
   void restack_window();
   void reconfigure_pos();
@@ -86,6 +90,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   event_timer m_doubleclick{0L, 150L};
 
   double m_anim_step{0.0};
+
+  bool m_visible{true};
 };
 
 POLYBAR_NS_END

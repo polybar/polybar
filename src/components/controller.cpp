@@ -636,6 +636,12 @@ bool controller::on(const signals::ipc::command& evt) {
     enqueue(make_quit_evt(false));
   } else if (command == "restart") {
     enqueue(make_quit_evt(true));
+  } else if (command == "hide") {
+    m_bar->hide();
+  } else if (command == "show") {
+    m_bar->show();
+  } else if (command == "toggle") {
+    m_bar->toggle();
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }
