@@ -100,7 +100,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'o':
-        m_sig.emit(change_underline{color(m_ul, value, bar.overline.color)});
+        m_sig.emit(change_overline{color(m_ol, value, bar.overline.color)});
         break;
 
       case 'R':
