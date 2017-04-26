@@ -82,12 +82,12 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 
     switch (tag) {
       case 'B': {
-        m_sig.emit(change_background{color(m_bg, value, 0UL)});
+        m_sig.emit(change_background{parse_color(m_bg, value, 0UL)});
         break;
       }
 
       case 'F': {
-        m_sig.emit(change_foreground{color(m_fg, value, bar.foreground)});
+        m_sig.emit(change_foreground{parse_color(m_fg, value, bar.foreground)});
         break;
       }
 
@@ -96,21 +96,21 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'U':
-        m_sig.emit(change_underline{color(m_ul, value, bar.underline.color)});
-        m_sig.emit(change_overline{color(m_ol, value, bar.overline.color)});
+        m_sig.emit(change_underline{parse_color(m_ul, value, bar.underline.color)});
+        m_sig.emit(change_overline{parse_color(m_ol, value, bar.overline.color)});
         break;
 
       case 'u':
-        m_sig.emit(change_underline{color(m_ul, value, bar.underline.color)});
+        m_sig.emit(change_underline{parse_color(m_ul, value, bar.underline.color)});
         break;
 
       case 'o':
-        m_sig.emit(change_overline{color(m_ol, value, bar.overline.color)});
+        m_sig.emit(change_overline{parse_color(m_ol, value, bar.overline.color)});
         break;
 
       case 'R':
-        m_sig.emit(change_background{parse_color(value, bar.foreground)});
-        m_sig.emit(change_foreground{parse_color(value, bar.background)});
+        m_sig.emit(change_background{parse_color_string(value, bar.foreground)});
+        m_sig.emit(change_foreground{parse_color_string(value, bar.background)});
         break;
 
       case 'O':
@@ -187,11 +187,11 @@ size_t parser::text(string&& data) {
 /**
  * Determine color using passed stack and input value
  */
-unsigned int parser::color(std::stack<unsigned int>& color_stack, string& value, unsigned int fallback) {
+unsigned int parser::parse_color(std::stack<unsigned int>& color_stack, string& value, unsigned int fallback) {
   if (!color_stack.empty() && !value.empty() && value[0] == '-') {
     color_stack.pop();
   }
-  auto parsed_value = parse_color(value, !color_stack.empty() ? color_stack.top() : fallback);
+  auto parsed_value = parse_color_string(value, !color_stack.empty() ? color_stack.top() : fallback);
   if (!value.empty() && value[0] != '-') {
     color_stack.push(parsed_value);
   }
@@ -201,7 +201,7 @@ unsigned int parser::color(std::stack<unsigned int>& color_stack, string& value,
 /**
  * Process color hex string and convert it to the correct value
  */
-unsigned int parser::parse_color(const string& s, unsigned int fallback) {
+unsigned int parser::parse_color_string(const string& s, unsigned int fallback) {
   if (!s.empty() && s[0] != '-') {
     return color_util::parse(s, fallback);
   }
