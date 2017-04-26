@@ -49,6 +49,7 @@ void parser::parse(const bar_settings& bar, string data) {
   m_bg = std::stack<unsigned int>();
   m_ul = std::stack<unsigned int>();
   m_ol = std::stack<unsigned int>();
+  m_fonts = std::stack<int>();
 
   if (!m_actions.empty()) {
     throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
@@ -211,15 +212,26 @@ unsigned int parser::parse_color_string(const string& s, unsigned int fallback) 
 /**
  * Process font index and convert it to the correct value
  */
-int parser::parse_fontindex(const string& s) {
-  if (s.empty() || s[0] == '-') {
-    return 0;
+int parser::parse_fontindex(const string& value) {
+  auto font_index = 0;
+  auto reset = value.empty() || value[0] == '-';
+
+  if (reset && !m_fonts.empty()) {
+    m_fonts.pop();
+  } else if (!reset) {
+    try {
+      font_index = std::stoul(value, nullptr, 10);
+      m_fonts.push(font_index);
+      return font_index;
+    } catch (const std::invalid_argument& err) {
+      return font_index;
+    }
   }
 
-  try {
-    return std::stoul(s, nullptr, 10);
-  } catch (const std::invalid_argument& err) {
-    return 0;
+  if (!m_fonts.empty()) {
+    return m_fonts.top();
+  } else {
+    return font_index;
   }
 }
 

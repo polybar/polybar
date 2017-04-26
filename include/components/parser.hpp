@@ -46,6 +46,7 @@ class parser {
   std::stack<unsigned int> m_bg;
   std::stack<unsigned int> m_ul;
   std::stack<unsigned int> m_ol;
+  std::stack<int> m_fonts;
 };
 
 POLYBAR_NS_END
