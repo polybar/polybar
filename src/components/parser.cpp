@@ -45,6 +45,11 @@ void parser::parse(const bar_settings& bar, string data) {
     }
   }
 
+  m_fg = std::stack<unsigned int>();
+  m_bg = std::stack<unsigned int>();
+  m_ul = std::stack<unsigned int>();
+  m_ol = std::stack<unsigned int>();
+
   if (!m_actions.empty()) {
     throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
   }
