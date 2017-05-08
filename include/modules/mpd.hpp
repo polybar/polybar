@@ -29,6 +29,9 @@ namespace modules {
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};
+    static constexpr const char* FORMAT_PLAYING{"format-playing"};
+    static constexpr const char* FORMAT_PAUSED{"format-paused"};
+    static constexpr const char* FORMAT_STOPPED{"format-stopped"};
     static constexpr const char* TAG_BAR_PROGRESS{"<bar-progress>"};
     static constexpr const char* TAG_TOGGLE{"<toggle>"};
     static constexpr const char* TAG_TOGGLE_STOP{"<toggle-stop>"};

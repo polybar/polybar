@@ -20,11 +20,13 @@ namespace modules {
     m_synctime = m_conf.get(name(), "interval", m_synctime);
 
     // Add formats and elements {{{
-
-    m_formatter->add(FORMAT_ONLINE, TAG_LABEL_SONG,
-        {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
-            TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
-            TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF});
+    auto format_online = m_conf.get<string>(name(), FORMAT_ONLINE, TAG_LABEL_SONG);
+    for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
+      m_formatter->add(format, format_online,
+          {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
+              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
+              TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF});
+    }
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
 
@@ -243,7 +245,15 @@ namespace modules {
   }
 
   string mpd_module::get_format() const {
-    return connected() ? FORMAT_ONLINE : FORMAT_OFFLINE;
+    if (!connected()) {
+      return FORMAT_OFFLINE;
+    } else if (m_status->match_state(mpdstate::PLAYING)) {
+      return FORMAT_PLAYING;
+    } else if (m_status->match_state(mpdstate::PAUSED)) {
+      return FORMAT_PAUSED;
+    } else {
+      return FORMAT_STOPPED;
+    }
   }
 
   string mpd_module::get_output() {
