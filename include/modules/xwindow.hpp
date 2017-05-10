@@ -18,6 +18,7 @@ namespace modules {
 
     bool match(const xcb_window_t win) const;
     string title() const;
+    xcb_window_t get_window() const;
 
    private:
     xcb_connection_t* m_connection{nullptr};
@@ -40,10 +41,13 @@ namespace modules {
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
+    bool active_window_on_monitor(xcb_window_t window, monitor_t monitor) const;
 
     connection& m_connection;
     unique_ptr<active_window> m_active;
     label_t m_label;
+
+    bool m_pinoutput{false};
   };
 }
 

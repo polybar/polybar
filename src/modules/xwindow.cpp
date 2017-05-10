@@ -58,11 +58,41 @@ namespace modules {
     }
   }
 
+  xcb_window_t active_window::get_window() const {
+    return m_window;
+  }
+
+  bool xwindow_module::active_window_on_monitor(xcb_window_t window, monitor_t mon) const {
+    xcb_get_geometry_cookie_t cookie = xcb_get_geometry(m_connection, window);
+    xcb_get_geometry_reply_t *reply = xcb_get_geometry_reply(m_connection, cookie, nullptr);
+
+    if (reply) {
+      xcb_translate_coordinates_reply_t  *t = xcb_translate_coordinates_reply(m_connection,
+        xcb_translate_coordinates(m_connection, window, m_connection.root(), reply->x, reply->y), nullptr);
+
+      int win_x = t->dst_x; // top right
+      int win_y = t->dst_y; // top right
+
+      // if x pos is within monitor width range and y is within height range
+      bool in_x = win_x <= mon->x + mon->h && win_x >= mon->x;
+      bool in_y = win_y <= mon->y + mon->w && win_y >= mon->y;
+
+      return in_x && in_y;
+    }
+
+    // unable to get geometry for window. assume window is on active monitor
+    return true;
+  }
+
   /**
    * Construct module
    */
   xwindow_module::xwindow_module(const bar_settings& bar, string name_)
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
+
+    // read config values
+    m_pinoutput = m_conf.get(name(), "pin-output", m_pinoutput);
+
     // Initialize ewmh atoms
     if ((ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
@@ -120,7 +150,17 @@ namespace modules {
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%title%", m_active ? m_active->title() : "");
+
+      if (m_pinoutput) {
+        if (active_window_on_monitor(m_active->get_window(), m_bar.monitor)) {
+          m_label->replace_token("%title%", m_active ? m_active->title() : "");
+          return;
+        } else {
+          m_label->replace_token("%title%", "");
+        }
+      } else {
+        m_label->replace_token("%title%", m_active ? m_active->title() : "");
+      }
     }
   }
 
