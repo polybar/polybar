@@ -151,15 +151,20 @@ namespace modules {
     if (m_label) {
       m_label->reset_tokens();
 
+      if (!m_active) {
+        m_label->replace_token("%title%", "");
+        return;
+      }
+
       if (m_pinoutput) {
         if (active_window_on_monitor(m_active->get_window(), m_bar.monitor)) {
-          m_label->replace_token("%title%", m_active ? m_active->title() : "");
+          m_label->replace_token("%title%", m_active->title());
           return;
         } else {
           m_label->replace_token("%title%", "");
         }
       } else {
-        m_label->replace_token("%title%", m_active ? m_active->title() : "");
+        m_label->replace_token("%title%", m_active->title());
       }
     }
   }
