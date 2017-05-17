@@ -48,6 +48,7 @@ namespace signals {
     struct change_overline;
     struct change_font;
     struct change_alignment;
+    struct reverse_colors;
     struct offset_pixel;
     struct attribute_set;
     struct attribute_unset;

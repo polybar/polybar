@@ -205,7 +205,7 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_align = alignment::NONE;
 
   // Reset colors
-  m_bg = 0;
+  m_bg = m_bar.background;
   m_fg = m_bar.foreground;
   m_ul = m_bar.underline.color;
   m_ol = m_bar.overline.color;
@@ -697,6 +697,14 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
 
     fill_background();
   }
+  return true;
+}
+
+bool renderer::on(const signals::parser::reverse_colors&) {
+  m_log.trace_x("renderer: reverse_colors");
+  m_fg = m_fg + m_bg;
+  m_bg = m_fg - m_bg;
+  m_fg = m_fg - m_bg;
   return true;
 }
 
