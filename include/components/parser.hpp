@@ -47,7 +47,6 @@ class parser {
   std::stack<unsigned int> m_ul;
   std::stack<unsigned int> m_ol;
   std::stack<int> m_fonts;
-  unsigned int m_reversed{0u};
 };
 
 POLYBAR_NS_END
