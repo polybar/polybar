@@ -192,7 +192,7 @@ unsigned int parser::parse_color(std::stack<unsigned int>& color_stack, string& 
     color_stack.pop();
   }
   auto parsed_value = parse_color_string(value, !color_stack.empty() ? color_stack.top() : fallback);
-  if (!value.empty() && value[0] != '-') {
+  if (!value.empty() && value[0] != '-' && (color_stack.empty() || (parsed_value != color_stack.top()))) {
     color_stack.push(parsed_value);
   }
   return parsed_value;
