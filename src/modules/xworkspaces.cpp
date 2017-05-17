@@ -204,13 +204,11 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        if (d->index == m_current_desktop && d->state != desktop_state::ACTIVE) {
+        if (d->index == m_current_desktop) {
           d->state = desktop_state::ACTIVE;
-        } else if (d->state == desktop_state::ACTIVE) {
+        } else {
           d->state = desktop_state::EMPTY;
-        } else if (d->label) {
-          continue;
-        }
+        } 
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
