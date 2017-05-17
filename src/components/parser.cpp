@@ -50,6 +50,7 @@ void parser::parse(const bar_settings& bar, string data) {
   m_ul = std::stack<unsigned int>();
   m_ol = std::stack<unsigned int>();
   m_fonts = std::stack<int>();
+  m_reversed = 0u;
 
   if (!m_actions.empty()) {
     throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
@@ -83,7 +84,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 
     switch (tag) {
       case 'B': {
-        m_sig.emit(change_background{parse_color(m_bg, value, 0UL)});
+        m_sig.emit(change_background{parse_color(m_bg, value, bar.background)});
         break;
       }
 
@@ -110,8 +111,13 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'R':
-        m_sig.emit(change_background{parse_color_string(value, bar.foreground)});
-        m_sig.emit(change_foreground{parse_color_string(value, bar.background)});
+        if (++m_reversed % 2) {
+          m_sig.emit(change_background{parse_color(m_fg, value, bar.foreground)});
+          m_sig.emit(change_foreground{parse_color(m_bg, value, bar.background)});
+        } else {
+          m_sig.emit(change_foreground{parse_color(m_fg, value, bar.foreground)});
+          m_sig.emit(change_background{parse_color(m_bg, value, bar.background)});
+        }
         break;
 
       case 'O':
