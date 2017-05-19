@@ -399,6 +399,11 @@ double renderer::block_x(alignment a) const {
       if ((min_pos = block_w(alignment::LEFT))) {
         min_pos += BLOCK_GAP;
       }
+      if (m_rect.x > 0) {
+        base_pos -= (m_bar.size.w - m_rect.width) / 2.0;
+      } else {
+        base_pos += (m_bar.size.w - m_rect.width) / 2.0;
+      }
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
