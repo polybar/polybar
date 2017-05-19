@@ -19,6 +19,7 @@ include(04-targets)
 include(05-summary)
 
 add_subdirectory(doc)
+add_subdirectory(doc/bash)
 add_subdirectory(doc/zsh)
 add_subdirectory(include)
 add_subdirectory(lib)
