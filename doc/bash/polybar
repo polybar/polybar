@@ -1,0 +1,93 @@
+_polybar_config_file() {
+	local config_path=${XDG_CONFIG_HOME:-$HOME/.config}/polybar/config
+
+	for ((i = 0; i < COMP_CWORD; i++)); do
+		case ${COMP_WORDS[i]} in
+		--config)
+			config_path=${COMP_WORDS[i + 2]}
+			break
+			;;
+		-c)
+			config_path=${COMP_WORDS[i + 1]}
+			break
+			;;
+		esac
+	done
+
+	# Use eval + cd for to get bash's parameter/tilde expansion etc
+	(eval cd $(dirname "$config_path"); echo $PWD/$(basename "$config_path"))
+}
+
+_polybar_bars() {
+	local config_file=$(_polybar_config_file)
+
+	if [ -r "$config_file" ]; then
+		grep -Po '\[bar/\K(.*)(?=\])' "$config_file"
+	fi
+}
+
+_polybar() {
+	local options='-h --help
+	               -v --version
+	               -l --log=
+	               -q --quiet
+	               -c --config=
+	               -r --reload
+	               -d --dump=
+	               -m --list-monitors
+	               -w --print-wmname
+	               -s --stdout
+	               -p --png='
+
+	local log_levels='error
+	                  warning
+	                  info
+	                  trace'
+
+	COMPREPLY=()
+
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	case "$cur" in
+	-*)
+		COMPREPLY=( $(compgen -W "$options" -- "$cur") )
+		;;
+	*)
+		local prev=${COMP_WORDS[COMP_CWORD - 1]}
+		if [ "$prev" = "=" ]; then
+			prev=${COMP_WORDS[COMP_CWORD - 2]}
+		fi
+
+		case "$prev" in
+		-l|--log)
+			COMPREPLY=( $(compgen -W "$log_levels" -- "$cur") )
+			return 0
+			;;
+		-c|--config)
+			COMPREPLY=( $(compgen -f "$cur") )
+			return 0
+			;;
+		-p|--png)
+			COMPREPLY=( $(compgen -f -X "!*.png" "$cur") )
+			return 0
+			;;
+		# TODO: read properties of the selected bar from config
+		-d|--dump)
+			return 0
+			;;
+		*)
+			COMPREPLY=( $(compgen -W "$options $(_polybar_bars)" -- "$cur") )
+			;;
+		esac
+	esac
+
+	for ((i = 0; i < ${#COMPREPLY[@]}; i++)); do
+		case ${COMPREPLY[i]} in
+		--*=) ;;
+		-*) COMPREPLY[i]+=" "
+		esac
+	done
+
+	return 0
+}
+
+complete -o filenames -o noquote -o nospace -F _polybar polybar
