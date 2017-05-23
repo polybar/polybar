@@ -165,6 +165,19 @@ xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth)
   return nullptr;
 }
 
+
+xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visualid_t visual_id) {
+  xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
+  if (depth_iter.data) {
+    for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
+      for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
+        if(it.data->visual_id == visual_id) return it.data;
+      }
+    }
+  }
+  return nullptr;
+}
+
 /**
  * Query root window pixmap
  */
