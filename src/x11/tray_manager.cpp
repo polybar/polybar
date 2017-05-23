@@ -1,6 +1,8 @@
 #include <xcb/xcb_image.h>
 #include <thread>
 
+#include "cairo/context.hpp"
+#include "cairo/surface.hpp"
 #include "components/config.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
@@ -9,6 +11,7 @@
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
+#include "x11/background_manager.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 #include "x11/tray_manager.hpp"
@@ -37,11 +40,11 @@ POLYBAR_NS
  * Create instance
  */
 tray_manager::make_type tray_manager::make() {
-  return factory_util::unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make());
+  return factory_util::unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
 }
 
-tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger)
-    : m_connection(conn), m_sig(emitter), m_log(logger) {
+tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back)
+  : m_connection(conn), m_sig(emitter), m_log(logger), m_background(back) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -131,9 +134,9 @@ void tray_manager::setup(const bar_settings& bar_opts) {
       m_opts.background = bar_opts.background;
     }
 
-    if (color_util::alpha_channel(m_opts.background) == 0) {
+    if (color_util::alpha_channel(m_opts.background) != 1) {
       m_opts.transparent = true;
-      m_opts.background = 0;
+      //m_opts.background = 0;
     }
   }
 
@@ -257,6 +260,8 @@ void tray_manager::deactivate(bool clear_selection) {
     m_log.trace("tray: Destroy window");
     m_connection.destroy_window(m_tray);
   }
+  m_context.release();
+  m_surface.release();
   if (m_pixmap) {
     m_connection.free_pixmap(m_pixmap);
   }
@@ -267,7 +272,6 @@ void tray_manager::deactivate(bool clear_selection) {
   m_tray = 0;
   m_pixmap = 0;
   m_gc = 0;
-  m_rootpixmap = 0;
   m_prevwidth = 0;
   m_prevheight = 0;
   m_opts.configured_x = 0;
@@ -384,75 +388,30 @@ void tray_manager::reconfigure_clients() {
 void tray_manager::reconfigure_bg(bool realloc) {
   if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
     return;
-  } else if (!m_rootpixmap) {
-    realloc = true;
-  }
-
-  auto w = calculate_w();
-  auto h = calculate_h();
-
-  if ((!w || (w == m_prevwidth && h == m_prevheight)) && !realloc) {
-    return;
-  }
+  };
 
   m_log.trace("tray: Reconfigure bg (realloc=%i)", realloc);
 
-  if (realloc && !m_connection.root_pixmap(&m_rootpixmap, &m_rootpixmap_depth, &m_rootpixmap_geom)) {
-    return m_log.err("Failed to get root pixmap for tray background (realloc=%i)", realloc);
-  } else if (realloc) {
-    // clang-format off
-    m_log.info("Tray root pixmap (rootpmap=%s, geom=%dx%d+%d+%d, tray=%s, pmap=%s, gc=%s)",
-        m_connection.id(m_rootpixmap),
-        m_rootpixmap_geom.width,
-        m_rootpixmap_geom.height,
-        m_rootpixmap_geom.x,
-        m_rootpixmap_geom.y,
-        m_connection.id(m_tray),
-        m_connection.id(m_pixmap),
-        m_connection.id(m_gc));
-    // clang-format on
-  }
 
-  m_prevwidth = w;
-  m_prevheight = h;
-
+  auto w = calculate_w();
   auto x = calculate_x(w);
   auto y = calculate_y();
-  auto px = math_util::max(0, m_rootpixmap_geom.x + x);
-  auto py = math_util::max(0, m_rootpixmap_geom.y + y);
 
-  // Make sure we don't try to copy void content
-  if (px + w > m_rootpixmap_geom.width) {
-    w -= px + w - m_rootpixmap_geom.width;
-  }
-  if (py + h > m_rootpixmap_geom.height) {
-    h -= py + h - m_rootpixmap_geom.height;
+  if(!m_context) {
+    return m_log.err("tray: no context for drawing the background");
   }
 
-  if (realloc) {
-    vector<unsigned char> image_data;
-    unsigned char image_depth;
-
-    try {
-      auto image_reply = m_connection.get_image(XCB_IMAGE_FORMAT_Z_PIXMAP, m_rootpixmap, px, py, w, h, XCB_COPY_PLANE);
-      image_depth = image_reply->depth;
-      std::back_insert_iterator<decltype(image_data)> back_it(image_data);
-      std::copy(image_reply.data().begin(), image_reply.data().end(), back_it);
-    } catch (const exception& err) {
-      m_log.err("Failed to get slice of root pixmap (%s)", err.what());
-      return;
-    }
-
-    try {
-      m_connection.put_image_checked(
-          XCB_IMAGE_FORMAT_Z_PIXMAP, m_pixmap, m_gc, w, h, 0, 0, 0, image_depth, image_data.size(), image_data.data());
-    } catch (const exception& err) {
-      m_log.err("Failed to store slice of root pixmap (%s)", err.what());
-      return;
-    }
+  cairo::surface* surface = m_background.get_surface();
+  if(!surface) {
+    return m_log.err("tray: no root surface");
   }
 
-  m_connection.copy_area_checked(m_rootpixmap, m_pixmap, m_gc, px, py, 0, 0, w, h);
+  m_context->clear();
+  *m_context << CAIRO_OPERATOR_SOURCE << *m_surface;
+  cairo_set_source_surface(*m_context, *surface, -x, -y);
+  m_context->paint();
+  *m_context << CAIRO_OPERATOR_OVER << m_opts.background;
+  m_context->paint();
 }
 
 /**
@@ -470,10 +429,12 @@ void tray_manager::refresh_window() {
   auto width = calculate_w();
   auto height = calculate_h();
 
-  if (m_opts.transparent && !m_rootpixmap) {
+  if (m_opts.transparent && !m_context) {
     xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height)};
     m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
   }
+
+  if(m_surface) m_surface->flush();
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
@@ -546,7 +507,7 @@ void tray_manager::create_bg(bool realloc) {
   if (!m_opts.transparent) {
     return;
   }
-  if (!realloc && m_pixmap && m_gc && m_rootpixmap) {
+  if (!realloc && m_pixmap && m_gc && m_surface && m_context) {
     return;
   }
   if (realloc && m_pixmap) {
@@ -556,6 +517,13 @@ void tray_manager::create_bg(bool realloc) {
   if (realloc && m_gc) {
     m_connection.free_gc(m_gc);
     m_gc = 0;
+  }
+
+  if(realloc && m_surface) {
+    m_surface.release();
+  }
+  if(realloc && m_context) {
+    m_context.release();
   }
 
   auto w = m_opts.width_max;
@@ -582,6 +550,21 @@ void tray_manager::create_bg(bool realloc) {
     } catch (const exception& err) {
       return m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
     }
+  }
+
+  if(!m_surface) {
+    xcb_visualtype_t* visual = m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
+    if(!visual) {
+      return m_log.err("Failed to get root visual for tray background");
+    }
+    m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, w, h);
+  }
+
+  if(!m_context) {
+    m_context = make_unique<cairo::context>(*m_surface, m_log);
+    m_context->clear();
+    *m_context << CAIRO_OPERATOR_SOURCE << m_opts.background;
+    m_context->paint();
   }
 
   try {
@@ -1152,6 +1135,12 @@ bool tray_manager::on(const signals::ui::dim_window& evt) {
     ewmh_util::set_wm_window_opacity(m_tray, evt.cast() * 0xFFFFFFFF);
   }
   // let the event bubble
+  return false;
+}
+
+bool tray_manager::on(const signals::ui::update_background&) {
+  redraw_window(true);
+
   return false;
 }
 

@@ -681,4 +681,10 @@ bool controller::on(const signals::ipc::hook& evt) {
   return true;
 }
 
+bool controller::on(const signals::ui::update_background&) {
+  enqueue(make_update_evt(true));
+
+  return false;
+}
+
 POLYBAR_NS_END
