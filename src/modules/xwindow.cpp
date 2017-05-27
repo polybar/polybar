@@ -70,12 +70,16 @@ namespace modules {
       xcb_translate_coordinates_reply_t  *t = xcb_translate_coordinates_reply(m_connection,
         xcb_translate_coordinates(m_connection, window, m_connection.root(), reply->x, reply->y), nullptr);
 
+      free(reply);
+
       int win_x = t->dst_x; // top right
       int win_y = t->dst_y; // top right
 
+      free(t);
+
       // if x pos is within monitor width range and y is within height range
-      bool in_x = win_x <= mon->x + mon->h && win_x >= mon->x;
-      bool in_y = win_y <= mon->y + mon->w && win_y >= mon->y;
+      bool in_x = win_x <= mon->x + mon->w && win_x >= mon->x;
+      bool in_y = win_y <= mon->y + mon->h && win_y >= mon->y;
 
       return in_x && in_y;
     }
