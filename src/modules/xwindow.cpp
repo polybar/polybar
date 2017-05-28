@@ -94,8 +94,9 @@ namespace modules {
     free(geom); free(trans);
 
     // if x pos is within monitor width range and y is within height range
-    bool in_x = win_x <= mon->x + mon->w && win_x >= mon->x;
-    bool in_y = win_y <= mon->y + mon->h && win_y >= mon->y;
+    bool in_x = win_x <= mon->x + mon->w - 1 && win_x >= mon->x;
+    bool in_y = win_y <= mon->y + mon->h - 1 && win_y >= mon->y;
+
 
     return in_x && in_y;
   }
