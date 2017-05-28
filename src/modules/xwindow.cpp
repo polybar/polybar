@@ -1,6 +1,7 @@
 #include "modules/xwindow.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
+#include "utils/bspwm.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 
@@ -62,30 +63,41 @@ namespace modules {
     return m_window;
   }
 
+  // if any xcb request fails, assume true
   bool xwindow_module::active_window_on_monitor(xcb_window_t window, monitor_t mon) const {
-    xcb_get_geometry_cookie_t cookie = xcb_get_geometry(m_connection, window);
-    xcb_get_geometry_reply_t *reply = xcb_get_geometry_reply(m_connection, cookie, nullptr);
-
-    if (reply) {
-      xcb_translate_coordinates_reply_t  *t = xcb_translate_coordinates_reply(m_connection,
-        xcb_translate_coordinates(m_connection, window, m_connection.root(), reply->x, reply->y), nullptr);
-
-      free(reply);
-
-      int win_x = t->dst_x; // top right
-      int win_y = t->dst_y; // top right
-
-      free(t);
-
-      // if x pos is within monitor width range and y is within height range
-      bool in_x = win_x <= mon->x + mon->w && win_x >= mon->x;
-      bool in_y = win_y <= mon->y + mon->h && win_y >= mon->y;
-
-      return in_x && in_y;
+    xcb_get_geometry_reply_t* geom = xcb_get_geometry_reply(m_connection,
+      xcb_get_geometry(m_connection, window), nullptr);
+    if (!geom) {
+      return true;
     }
 
-    // unable to get geometry for window. assume window is on active monitor
-    return true;
+    xcb_translate_coordinates_reply_t *trans = xcb_translate_coordinates_reply(m_connection,
+      xcb_translate_coordinates(m_connection, window, m_connection.root(), geom->x, geom->y), nullptr);
+
+    if (!trans) {
+      return true;
+    }
+
+    int win_x = 0; // top right
+    int win_y = 0; // bottom left
+
+    win_x = trans->dst_x;
+    win_y = trans->dst_y;
+
+    // bspwm workaround - translated coordinates are way off (about x2),
+    // coordinates relative to parent window in geom are correct, no translation needed
+    if (file_util::exists(bspwm_util::get_socket_path())) {
+      win_x = geom->x;
+      win_y = geom->y;
+    }
+
+    free(geom); free(trans);
+
+    // if x pos is within monitor width range and y is within height range
+    bool in_x = win_x <= mon->x + mon->w && win_x >= mon->x;
+    bool in_y = win_y <= mon->y + mon->h && win_y >= mon->y;
+
+    return in_x && in_y;
   }
 
   /**
