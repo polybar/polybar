@@ -205,7 +205,7 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_align = alignment::NONE;
 
   // Reset colors
-  m_bg = 0;
+  m_bg = m_bar.background;
   m_fg = m_bar.foreground;
   m_ul = m_bar.underline.color;
   m_ol = m_bar.overline.color;
@@ -398,6 +398,11 @@ double renderer::block_x(alignment a) const {
       }
       if ((min_pos = block_w(alignment::LEFT))) {
         min_pos += BLOCK_GAP;
+      }
+      if (m_rect.x > 0) {
+        base_pos -= (m_bar.size.w - m_rect.width) / 2.0;
+      } else {
+        base_pos += (m_bar.size.w - m_rect.width) / 2.0;
       }
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
@@ -697,6 +702,14 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
 
     fill_background();
   }
+  return true;
+}
+
+bool renderer::on(const signals::parser::reverse_colors&) {
+  m_log.trace_x("renderer: reverse_colors");
+  m_fg = m_fg + m_bg;
+  m_bg = m_fg - m_bg;
+  m_fg = m_fg - m_bg;
   return true;
 }
 

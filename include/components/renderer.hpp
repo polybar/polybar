@@ -30,9 +30,10 @@ struct alignment_block {
 class renderer
     : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_background,
           signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
-          signals::parser::change_font, signals::parser::change_alignment, signals::parser::offset_pixel,
-          signals::parser::attribute_set, signals::parser::attribute_unset, signals::parser::attribute_toggle,
-          signals::parser::action_begin, signals::parser::action_end, signals::parser::text> {
+          signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
+          signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
+          signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
+          signals::parser::text> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -73,6 +74,7 @@ class renderer
   bool on(const signals::parser::change_overline& evt);
   bool on(const signals::parser::change_font& evt);
   bool on(const signals::parser::change_alignment& evt);
+  bool on(const signals::parser::reverse_colors&);
   bool on(const signals::parser::offset_pixel& evt);
   bool on(const signals::parser::attribute_set& evt);
   bool on(const signals::parser::attribute_unset& evt);

@@ -33,7 +33,7 @@ Make sure you include steps on how to reproduce it. There's also an irc channel 
 
 The main purpose of **Polybar** is to help users create awesome status bars.
 It has built-in functionality to display information about the most commonly used services.
-Some of the batteries included so far:
+Some of the services included so far:
 
 - Systray icons
 - Window title

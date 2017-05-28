@@ -144,6 +144,9 @@ namespace signals {
     struct change_alignment : public detail::value_signal<change_alignment, alignment> {
       using base_type::base_type;
     };
+    struct reverse_colors : public detail::base_signal<reverse_colors> {
+      using base_type::base_type;
+    };
     struct offset_pixel : public detail::value_signal<offset_pixel, int> {
       using base_type::base_type;
     };

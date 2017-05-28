@@ -83,7 +83,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 
     switch (tag) {
       case 'B': {
-        m_sig.emit(change_background{parse_color(m_bg, value, 0UL)});
+        m_sig.emit(change_background{parse_color(m_bg, value, bar.background)});
         break;
       }
 
@@ -110,8 +110,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'R':
-        m_sig.emit(change_background{parse_color_string(value, bar.foreground)});
-        m_sig.emit(change_foreground{parse_color_string(value, bar.background)});
+        m_sig.emit(reverse_colors{});
         break;
 
       case 'O':
@@ -193,7 +192,7 @@ unsigned int parser::parse_color(std::stack<unsigned int>& color_stack, string& 
     color_stack.pop();
   }
   auto parsed_value = parse_color_string(value, !color_stack.empty() ? color_stack.top() : fallback);
-  if (!value.empty() && value[0] != '-') {
+  if (!value.empty() && value[0] != '-' && (color_stack.empty() || (parsed_value != color_stack.top()))) {
     color_stack.push(parsed_value);
   }
   return parsed_value;

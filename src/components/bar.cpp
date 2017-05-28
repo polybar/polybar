@@ -313,9 +313,12 @@ void bar::parse(string&& data, bool force) {
 
   if (force) {
     m_log.trace("bar: Force update");
+  } else if (!m_visible) {
+    return m_log.trace("bar: Ignoring update (invisible)");
   } else if (m_opts.shaded) {
     return m_log.trace("bar: Ignoring update (shaded)");
   } else if (data == m_lastinput) {
+    return m_log.trace("bar: Ignoring update (unchanged)");
     return;
   }
 
@@ -359,6 +362,57 @@ void bar::parse(string&& data, bool force) {
     return false;
   };
   m_dblclicks = check_dblclicks();
+}
+
+/**
+ * Hide the bar by unmapping its X window
+ */
+void bar::hide() {
+  if (!m_visible) {
+    return;
+  }
+
+  try {
+    m_log.info("Hiding bar window");
+    m_sig.emit(visibility_change{false});
+    m_connection.unmap_window_checked(m_opts.window);
+    m_connection.flush();
+    m_visible = false;
+  } catch (const exception& err) {
+    m_log.err("Failed to unmap bar window (err=%s", err.what());
+  }
+}
+
+/**
+ * Show the bar by mapping its X window and
+ * trigger a redraw of previous content
+ */
+void bar::show() {
+  if (m_visible) {
+    return;
+  }
+
+  try {
+    m_log.info("Showing bar window");
+    m_sig.emit(visibility_change{true});
+    m_connection.map_window_checked(m_opts.window);
+    m_connection.flush();
+    m_visible = true;
+    parse(string{m_lastinput}, true);
+  } catch (const exception& err) {
+    m_log.err("Failed to map bar window (err=%s", err.what());
+  }
+}
+
+/**
+ * Toggle the bar's visibility state
+ */
+void bar::toggle() {
+  if (m_visible) {
+    hide();
+  } else {
+    show();
+  }
 }
 
 /**
@@ -458,11 +512,11 @@ void bar::broadcast_visibility() {
   auto attr = m_connection.get_window_attributes(m_opts.window);
 
   if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE) {
-    m_sig.emit(visibility_change{move(false)});
+    m_sig.emit(visibility_change{false});
   } else if (attr->map_state == XCB_MAP_STATE_UNMAPPED) {
-    m_sig.emit(visibility_change{move(false)});
+    m_sig.emit(visibility_change{false});
   } else {
-    m_sig.emit(visibility_change{move(true)});
+    m_sig.emit(visibility_change{true});
   }
 }
 
