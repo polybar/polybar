@@ -258,7 +258,7 @@ namespace string_util {
    * Create a filesize string by converting given bytes to highest unit possible
    */
   string filesize(unsigned long long bytes, size_t precision, bool fixed, const string& locale) {
-    vector<string> suffixes{"TB", "GB", "MB", "KB"};
+    vector<string> suffixes{"TiB", "GiB", "MiB", "KiB"};
     string suffix{"B"};
     double value = bytes;
     while (!suffixes.empty() && value >= 1024.0) {

@@ -99,10 +99,10 @@ int main() {
     expect(string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024) == "3 GB");
     expect(string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024) == "4 GB");
     expect(string_util::filesize(3) == "3 B");
-    expect(string_util::filesize(3 * 1024) == "3 KB");
-    expect(string_util::filesize(3 * 1024 * 1024) == "3 MB");
-    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024) == "3 GB");
-    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024) == "3 TB");
+    expect(string_util::filesize(3 * 1024) == "3 KiB");
+    expect(string_util::filesize(3 * 1024 * 1024) == "3 MiB");
+    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024) == "3 GiB");
+    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024) == "3 TiB");
   };
 
   "sstream"_test = [] {
