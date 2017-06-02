@@ -65,6 +65,7 @@ If you are using **Void Linux**, you can install [polybar](https://github.com/vo
 
 If you are using **NixOS**, polybar is available in the unstable channel and can be installed with the command `nix-env -iA nixos.polybar`.
 
+If you are using **Fedora** or similar (e.g. Korora), a gist is available to install all required dependencies, clone the latest release and build **PolyBar** with the command `wget -O - https://gist.githubusercontent.com/nathanchere/22491daf4f917b100a35e5c284a5fec5/raw/install-polybar.sh | bash`. 
 
 ### Dependencies
 
