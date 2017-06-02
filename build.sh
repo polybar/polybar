@@ -63,6 +63,29 @@ function main
     cc="gcc"
   fi
 
+ if which apt >/dev/null; then
+  msg "Installing dependencies"
+  sudo apt-get install      \
+    libxcb1-dev             \
+    libxcb-util0-dev        \
+    libxcb-randr0-dev       \
+    libxcb-ewmh-dev         \
+    libxcb-icccm4-dev       \
+    xcb-proto               \
+    python-xcbgen           \
+    libfreetype6-dev        \
+    pkg-config              \
+    libcairo2-dev           \
+    libxcb-xkb-dev          \
+    libalsa-ocaml           \
+    libalsa-ocaml-dev       \
+    libcurl4-openssl-dev    \
+    libmpdclient-dev        \
+    libiw-dev               \
+    libxcb-*                \
+    python-xcbgen -y
+  fi
+
   msg "Executing cmake command"
   cmake                                       \
     -DCMAKE_C_COMPILER="${cc}"                \
