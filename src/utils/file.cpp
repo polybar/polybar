@@ -231,6 +231,17 @@ namespace file_util {
 
     return ret;
   }
+
+  /**
+   * Path expansion
+   */
+  const string expand(const string& path) {
+    string p{path};
+    if (p[0] == '~') {
+      p.replace(0, 1, env_util::get("HOME"));
+    }
+    return p;
+  }
 }
 
 POLYBAR_NS_END

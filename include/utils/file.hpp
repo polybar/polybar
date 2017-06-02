@@ -106,6 +106,7 @@ namespace file_util {
   string contents(const string& filename);
   bool is_fifo(const string& filename);
   vector<string> glob(string pattern);
+  const string expand(const string& path);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

@@ -18,6 +18,7 @@ unit_test(utils/color)
 unit_test(utils/math)
 unit_test(utils/memory)
 unit_test(utils/string)
+unit_test(utils/file)
 unit_test(components/command_line)
 
 # XXX: Requires mocked xcb connection
