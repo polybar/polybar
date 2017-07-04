@@ -58,12 +58,20 @@ Some of the services included so far:
 
 ## Getting started
 
+<a href="https://repology.org/metapackage/polybar">
+    <img src="https://repology.org/badge/vertical-allrepos/polybar.svg" alt="Packaging status" align="right">
+</a>
+
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release. If you create a package for any other distribution, please consider contributing the template.
 
 If you are using **Void Linux**, you can install [polybar](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
 
-If you are using **NixOS**, polybar is available in the unstable channel and can be installed with the command `nix-env -iA nixos.polybar`.
+If you are using **NixOS**, polybar is available in both the stable and unstable channels and can be installed with the command `nix-env -iA nixos.polybar`.
+
+If you are using **Debian**, polybar is available from the [GetDeb](http://www.getdeb.net/app/Polybar) repository.
+
+If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
 
 ### Dependencies
