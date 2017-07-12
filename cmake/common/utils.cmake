@@ -14,9 +14,9 @@ endfunction()
 
 function(colored_option text flag)
   if(${flag})
-    message_colored(STATUS "${text}" "32;1")
+    message_colored(STATUS "[X]${text}" "32;1")
   else()
-    message_colored(STATUS "${text}" "37;2")
+    message_colored(STATUS "[ ]${text}" "37;2")
   endif()
 endfunction()
 
