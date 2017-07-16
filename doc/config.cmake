@@ -331,6 +331,8 @@ ramp-foreground = ${colors.foreground-alt}
 [module/powermenu]
 type = custom/menu
 
+expand-right = true
+
 format-spacing = 1
 
 label-open = 
