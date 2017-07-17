@@ -113,7 +113,7 @@ struct action_block : public action {
   }
 
   bool test(int point) const {
-    return static_cast<int>(start_x) < point && static_cast<int>(end_x) >= point;
+    return static_cast<int>(start_x) <= point && static_cast<int>(end_x) > point;
   }
 };
 
