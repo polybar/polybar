@@ -15,10 +15,13 @@ namespace modules {
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
+    m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
+    if (m_path.empty()) {
+      m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
+    }
 
     if (!file_util::exists(m_path)) {
       throw module_error("The file '" + m_path + "' does not exist");
