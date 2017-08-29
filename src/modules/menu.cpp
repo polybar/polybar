@@ -12,9 +12,17 @@ namespace modules {
   template class module<menu_module>;
 
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
+    m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
+
     string default_format;
-    default_format += TAG_LABEL_TOGGLE;
-    default_format += TAG_MENU;
+    if(m_expand_right) {
+      default_format += TAG_LABEL_TOGGLE;
+      default_format += TAG_MENU;
+    } else {
+      default_format += TAG_MENU;
+      default_format += TAG_LABEL_TOGGLE;
+    }
+
 
     m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
 
@@ -67,6 +75,20 @@ namespace modules {
     } else if (tag == TAG_MENU && m_level > -1) {
       auto spacing = m_formatter->get(get_format())->spacing;
       for (auto&& item : m_levels[m_level]->items) {
+        /*
+         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be 
+         * drawn before or after the spacings and the separator
+         *
+         * If the menu expands to the left, the separator should be drawn on the right side because otherwise the menu
+         * would look like this:
+         * | x | y <label-toggle>
+         */
+        if(!m_expand_right) {
+          builder->cmd(mousebtn::LEFT, item->exec);
+          builder->node(item->label);
+          builder->cmd_close();
+        }
+
         if (*m_labelseparator) {
           if (item != m_levels[m_level]->items[0]) {
             builder->space(spacing);
@@ -74,9 +96,17 @@ namespace modules {
           builder->node(m_labelseparator);
           builder->space(spacing);
         }
-        builder->cmd(mousebtn::LEFT, item->exec);
-        builder->node(item->label);
-        builder->cmd_close();
+
+        /*
+         * If the menu expands to the right, the separator should be drawn on the left side because otherwise the menu
+         * would look like this:
+         * <label-toggle> x | y |
+         */
+        if(m_expand_right) {
+          builder->cmd(mousebtn::LEFT, item->exec);
+          builder->node(item->label);
+          builder->cmd_close();
+        }
       }
     } else {
       return false;

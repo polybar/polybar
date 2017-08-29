@@ -33,6 +33,8 @@ namespace modules {
     static constexpr auto EVENT_MENU_OPEN = "menu-open-";
     static constexpr auto EVENT_MENU_CLOSE = "menu-close";
 
+    bool m_expand_right{true};
+
     label_t m_labelopen;
     label_t m_labelclose;
     label_t m_labelseparator;
