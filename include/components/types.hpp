@@ -169,14 +169,8 @@ struct bar_settings {
   position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
-    xcb_rectangle_t rect{0, 0, 0, 0};
-    rect.width += size.w;
-    rect.height += size.h;
+    xcb_rectangle_t rect = this->outer_area(abspos);
 
-    if (abspos) {
-      rect.x = pos.x;
-      rect.y = pos.y;
-    }
     if (borders.find(edge::TOP) != borders.end()) {
       rect.y += borders.at(edge::TOP).size;
       rect.height -= borders.at(edge::TOP).size;
@@ -191,6 +185,19 @@ struct bar_settings {
     if (borders.find(edge::RIGHT) != borders.end()) {
       rect.width -= borders.at(edge::RIGHT).size;
     }
+    return rect;
+  }
+
+  const xcb_rectangle_t outer_area(bool abspos = false) const {
+    xcb_rectangle_t rect{0, 0, 0, 0};
+    rect.width += size.w;
+    rect.height += size.h;
+
+    if (abspos) {
+      rect.x = pos.x;
+      rect.y = pos.y;
+    }
+
     return rect;
   }
 };
