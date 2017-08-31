@@ -166,7 +166,7 @@ renderer::renderer(
     }
 
     m_log.trace("Activate root background manager");
-    m_background.activate(m_window, m_bar.outer_area(true));
+    m_background.activate(m_window, m_bar.outer_area(false));
   }
 
   m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
