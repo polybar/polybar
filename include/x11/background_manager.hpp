@@ -2,6 +2,8 @@
 
 #include "common.hpp"
 #include "events/signal_fwd.hpp"
+#include "events/signal_receiver.hpp"
+#include "events/types.hpp"
 #include "x11/extensions/fwd.hpp"
 #include "x11/types.hpp"
 
@@ -14,7 +16,9 @@ namespace cairo {
   class xcb_surface;
 }
 
-class background_manager : public xpp::event::sink<evt::property_notify> {
+class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals::ui::update_geometry>,
+                           public xpp::event::sink<evt::property_notify>
+{
  public:
   using make_type = background_manager&;
   static make_type make();
@@ -28,6 +32,7 @@ class background_manager : public xpp::event::sink<evt::property_notify> {
   cairo::surface* get_surface() const;
 
   void handle(const evt::property_notify& evt);
+  bool on(const signals::ui::update_geometry&);
  private:
   connection& m_connection;
   signal_emitter& m_sig;

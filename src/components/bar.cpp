@@ -761,9 +761,6 @@ void bar::handle(const evt::expose& evt) {
  * state of the tray container even though the tray
  * window restacking failed.  Used as a fallback for
  * tedious WM's, like i3.
- *
- * - Track the root pixmap atom to update the
- * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
 #ifdef DEBUG_LOGGER_VERBOSE
@@ -774,6 +771,13 @@ void bar::handle(const evt::property_notify& evt) {
   if (evt->window == m_opts.window && evt->atom == WM_STATE) {
     broadcast_visibility();
   }
+}
+
+void bar::handle(const evt::configure_notify&) {
+  // The absolute position of the window in the root may be different after configuration is done
+  // (for example, because the parent is not positioned at 0/0 in the root window).
+  // Notify components that the geometry may have changed (used by the background manager for example).
+  m_sig.emit(signals::ui::update_geometry{});
 }
 
 bool bar::on(const signals::eventqueue::start&) {
@@ -789,6 +793,7 @@ bool bar::on(const signals::eventqueue::start&) {
   if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() ) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
+  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
   restack_window();
@@ -799,6 +804,10 @@ bool bar::on(const signals::eventqueue::start&) {
 
   m_log.trace("bar: Map window");
   m_connection.map_window_checked(m_opts.window);
+
+  // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
+  // Notify all components that depend on the absolute bar position (such as the background manager).
+  m_sig.emit(signals::ui::update_geometry{});
 
   // Reconfigure window position after mapping (required by Openbox)
   // Required by Openbox

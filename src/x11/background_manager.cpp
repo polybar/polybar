@@ -18,9 +18,11 @@ background_manager::background_manager(
   : m_connection(conn)
   , m_sig(sig)
   , m_log(log) {
+  m_sig.attach(this);
 }
 
 background_manager::~background_manager() {
+  m_sig.detach(this);
   free_resources();
 }
 
@@ -110,24 +112,26 @@ void background_manager::fetch_root_pixmap() {
   xcb_pixmap_t pixmap;
   xcb_rectangle_t pixmap_geom;
 
-  if (!m_connection.root_pixmap(&pixmap, &pixmap_depth, &pixmap_geom)) {
-    free_resources();
-    return m_log.err("background_manager: Failed to get root pixmap for background (realloc=%i)", realloc);
-  };
-
-  auto src_x = math_util::cap(m_rect.x, pixmap_geom.x, int16_t(pixmap_geom.x + pixmap_geom.width));
-  auto src_y = math_util::cap(m_rect.y, pixmap_geom.y, int16_t(pixmap_geom.y + pixmap_geom.height));
-  auto h = math_util::min(m_rect.height, pixmap_geom.height);
-  auto w = math_util::min(m_rect.width, pixmap_geom.width);
-
-  m_log.trace("background_manager: Copying from root pixmap (%d) %dx%d+%dx%d", pixmap, w, h, src_x, src_y);
   try {
+    auto translated = m_connection.translate_coordinates(m_window, m_connection.screen()->root, m_rect.x, m_rect.y);
+    if (!m_connection.root_pixmap(&pixmap, &pixmap_depth, &pixmap_geom)) {
+      free_resources();
+      return m_log.err("background_manager: Failed to get root pixmap for background (realloc=%i)", realloc);
+    };
+
+    auto src_x = math_util::cap(translated->dst_x, pixmap_geom.x, int16_t(pixmap_geom.x + pixmap_geom.width));
+    auto src_y = math_util::cap(translated->dst_y, pixmap_geom.y, int16_t(pixmap_geom.y + pixmap_geom.height));
+    auto h = math_util::min(m_rect.height, pixmap_geom.height);
+    auto w = math_util::min(m_rect.width, pixmap_geom.width);
+
+    m_log.trace("background_manager: Copying from root pixmap (%d) %dx%d+%dx%d", pixmap, w, h, src_x, src_y);
     m_connection.copy_area_checked(pixmap, m_pixmap, m_gcontext, src_x, src_y, 0, 0, w, h);
-  } catch (const exception& err) {
+  } catch(const exception& err) {
     m_log.err("background_manager: Failed to copy slice of root pixmap (%s)", err.what());
     free_resources();
-    return;
+    throw;
   }
+
 }
 
 void background_manager::handle(const evt::property_notify& evt) {
@@ -138,6 +142,12 @@ void background_manager::handle(const evt::property_notify& evt) {
     fetch_root_pixmap();
     m_sig.emit(signals::ui::update_background());
   }
+}
+
+bool background_manager::on(const signals::ui::update_geometry&) {
+  fetch_root_pixmap();
+  m_sig.emit(signals::ui::update_background());
+  return false;
 }
 
 POLYBAR_NS_END
