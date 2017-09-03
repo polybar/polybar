@@ -102,6 +102,9 @@ namespace signals {
     struct button_press : public detail::value_signal<button_press, string> {
       using base_type::base_type;
     };
+    struct cursor_change : public detail::value_signal<cursor_change, string> {
+      using base_type::base_type;
+    };
     struct visibility_change : public detail::value_signal<visibility_change, bool> {
       using base_type::base_type;
     };
