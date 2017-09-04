@@ -9,6 +9,7 @@
 #include "errors.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -236,11 +237,22 @@ namespace file_util {
    * Path expansion
    */
   const string expand(const string& path) {
-    string p{path};
-    if (p[0] == '~') {
-      p.replace(0, 1, env_util::get("HOME"));
+    string ret;
+    vector<string> p_exploded = string_util::split(path, '/');
+    for (auto& section : p_exploded) {
+      switch(section[0]) {
+        case '$':
+          section = env_util::get(section.substr(1));
+          break;
+        case '~':
+          section = env_util::get("HOME");
+          break;
+      }
     }
-    return p;
+    ret = string_util::join(p_exploded, "/");
+    if (ret[0] != '/')
+      ret.insert(0, 1, '/');
+    return ret;
   }
 }
 
