@@ -73,7 +73,8 @@ if(BUILD_IPC_MSG)
     SOURCES
       ipc.cpp
       utils/env.cpp
-      utils/file.cpp)
+      utils/file.cpp
+      utils/string.cpp)
   target_compile_options(polybar-msg PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 endif()
 

@@ -338,6 +338,7 @@ class config {
       fallback = var.substr(pos + 1);
       var.erase(pos);
     }
+    var = file_util::expand(var);
 
     if (file_util::exists(var)) {
       m_log.info("File reference \"%s\" found", var);
