@@ -399,11 +399,26 @@ double renderer::block_x(alignment a) const {
       if ((min_pos = block_w(alignment::LEFT))) {
         min_pos += BLOCK_GAP;
       }
-      if (m_rect.x > 0) {
-        base_pos -= (m_bar.size.w - m_rect.width) / 2.0;
-      } else {
-        base_pos += (m_bar.size.w - m_rect.width) / 2.0;
+
+      base_pos += (m_bar.size.w - m_rect.width) / 2.0;
+
+      int border_left = m_bar.borders.at(edge::LEFT).size;
+
+      /*
+       * If m_rect.x is greater than the left border, then the systray is rendered on the left and we need to adjust for
+       * that.
+       * Since we cannot access any tray objects from here we need to calculate the tray size through m_rect.x
+       * m_rect.x is the x-position of the bar (without the tray or any borders), so if the tray is on the left,
+       * m_rect.x effectively is border_left + tray_width.
+       * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
+       * placed on the left
+       */
+      if(m_rect.x > border_left) {
+        base_pos -= m_rect.x - border_left;
       }
+
+      base_pos -= border_left;
+
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
