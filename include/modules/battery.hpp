@@ -13,6 +13,7 @@ namespace modules {
       CHARGING,
       DISCHARGING,
       FULL,
+      UNKNOWN,
     };
 
     enum class value {
@@ -65,6 +66,7 @@ namespace modules {
     static constexpr const char* FORMAT_CHARGING{"format-charging"};
     static constexpr const char* FORMAT_DISCHARGING{"format-discharging"};
     static constexpr const char* FORMAT_FULL{"format-full"};
+    static constexpr const char* FORMAT_UNKNOWN{"format-unknown"};
 
     static constexpr const char* TAG_ANIMATION_CHARGING{"<animation-charging>"};
     static constexpr const char* TAG_BAR_CAPACITY{"<bar-capacity>"};
@@ -72,6 +74,7 @@ namespace modules {
     static constexpr const char* TAG_LABEL_CHARGING{"<label-charging>"};
     static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
     static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
+    static constexpr const char* TAG_LABEL_UNKNOWN{"<label-unknown>"};
 
     static const size_t SKIP_N_UNCHANGED{3_z};
 
@@ -83,6 +86,7 @@ namespace modules {
     label_t m_label_charging;
     label_t m_label_discharging;
     label_t m_label_full;
+    label_t m_label_unknown;
     animation_t m_animation_charging;
     progressbar_t m_bar_capacity;
     ramp_t m_ramp_capacity;

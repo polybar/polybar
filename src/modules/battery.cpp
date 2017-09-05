@@ -85,12 +85,12 @@ namespace modules {
     m_consumption_reader = make_unique<consumption_reader>([this] {
       unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
       unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
-	  
-      float consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
-	
+
+      float consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+
       // convert to string with 2 decimmal places
-      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
-      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption); 
+      string rtn(16, '\0');  // 16 should be plenty big. Cant see it needing more than 6/7..
+      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
       rtn.resize(written);
 
       return rtn;
@@ -106,6 +106,7 @@ namespace modules {
     m_formatter->add(
         FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_DISCHARGING});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
+    m_formatter->add(FORMAT_UNKNOWN, TAG_LABEL_UNKNOWN, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_UNKNOWN});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
@@ -124,6 +125,9 @@ namespace modules {
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
+    }
+    if (m_formatter->has(TAG_LABEL_UNKNOWN, FORMAT_UNKNOWN)) {
+      m_label_unknown = load_optional_label(m_conf, name(), TAG_LABEL_UNKNOWN, "%percentage%%");
     }
 
     // Create inotify watches
@@ -208,6 +212,8 @@ namespace modules {
         return m_label_full;
       } else if (m_state == battery_module::state::DISCHARGING) {
         return m_label_discharging;
+      } else if (m_state == battery_module::state::UNKNOWN) {
+        return m_label_unknown;
       } else {
         return m_label_charging;
       }
@@ -217,7 +223,7 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(m_percentage));
       label->replace_token("%consumption%", current_consumption());
-	  
+
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
         label->replace_token("%time%", current_time());
       }
@@ -255,6 +261,8 @@ namespace modules {
       builder->node(m_label_discharging);
     } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
+    } else if (tag == TAG_LABEL_UNKNOWN) {
+      builder->node(m_label_unknown);
     } else {
       return false;
     }
@@ -266,6 +274,7 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
+    // TODO: How do we read "unknown" as a state?
     if (!read(*m_state_reader)) {
       return battery_module::state::DISCHARGING;
     } else if (read(*m_capacity_reader) < m_fullat) {
@@ -290,7 +299,7 @@ namespace modules {
   * Get the current power consumption
   */
   string battery_module::current_consumption() {
-    return read(*m_consumption_reader);	
+    return read(*m_consumption_reader);
   }
 
   /**
