@@ -49,6 +49,9 @@ endif()
 if(NOT WITH_XRM)
   list(REMOVE_ITEM files x11/xresources.cpp)
 endif()
+if(NOT WITH_XCURSOR)
+  list(REMOVE_ITEM files x11/cursor.cpp)
+endif()
 
 # }}}
 

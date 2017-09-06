@@ -1,8 +1,10 @@
 #pragma once
 
-//#if not WITH_CURSOR
-//#error "Not built with support for xcb-cursor..."
-//#endif
+#include "settings.hpp"
+
+#if not WITH_XCURSOR
+#error "Not built with support for xcb-cursor..."
+#endif
 
 #include <xcb/xcb_cursor.h>
 

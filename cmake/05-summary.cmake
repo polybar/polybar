@@ -28,7 +28,7 @@ colored_option("   xcb-sync" WITH_XSYNC)
 colored_option("   xcb-composite" WITH_XCOMPOSITE)
 colored_option("   xcb-xkb" WITH_XKB)
 colored_option("   xcb-xrm" WITH_XRM)
-colored_option("   xcb-cursor" WITH_CURSOR)
+colored_option("   xcb-cursor" WITH_XCURSOR)
 
 if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
   message(STATUS " Debug options:")

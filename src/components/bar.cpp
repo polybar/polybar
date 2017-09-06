@@ -16,11 +16,14 @@
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/cursor.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/icccm.hpp"
 #include "x11/tray_manager.hpp"
+
+#if WITH_XCURSOR
+#include "x11/cursor.hpp"
+#endif
 
 #if ENABLE_I3
 #include "utils/i3.hpp"
@@ -597,7 +600,7 @@ void bar::handle(const evt::leave_notify&) {
  */
 void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
-
+#if WITH_XCURSOR
   m_motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
   bool found_scroll = false;
@@ -651,7 +654,7 @@ void bar::handle(const evt::motion_notify& evt) {
     m_sig.emit(cursor_change{string{m_opts.cursor}});
     return;
   }
-
+#endif
 }
 
 /**
@@ -909,6 +912,7 @@ bool bar::on(const signals::ui::dim_window& sig) {
   return false;
 }
 
+#if WITH_XCURSOR
 bool bar::on(const signals::ui::cursor_change& sig) {
   if(!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
     m_log.warn("Failed to create cursor context");
@@ -916,5 +920,6 @@ bool bar::on(const signals::ui::cursor_change& sig) {
   m_connection.flush();
   return false;
 }
+#endif
 
 POLYBAR_NS_END

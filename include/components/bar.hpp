@@ -28,7 +28,11 @@ class tray_manager;
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message>,
             public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick,
-                signals::ui::shade_window, signals::ui::unshade_window, signals::ui::dim_window, signals::ui::cursor_change> {
+                signals::ui::shade_window, signals::ui::unshade_window, signals::ui::dim_window
+#if WITH_XCURSOR
+                , signals::ui::cursor_change
+#endif
+		> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);
@@ -66,7 +70,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   bool on(const signals::ui::shade_window&);
   bool on(const signals::ui::tick&);
   bool on(const signals::ui::dim_window&);
+#if WITH_XCURSOR
   bool on(const signals::ui::cursor_change&);
+#endif
 
  private:
   connection& m_connection;
@@ -87,7 +93,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   mousebtn m_buttonpress_btn{mousebtn::NONE};
   int m_buttonpress_pos{0};
+#if WITH_XCURSOR
   int m_motion_pos{0};
+#endif
 
   event_timer m_buttonpress{0L, 5L};
   event_timer m_doubleclick{0L, 150L};
