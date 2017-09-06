@@ -604,7 +604,7 @@ void bar::handle(const evt::motion_notify& evt) {
   m_motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
   bool found_scroll = false;
-  const auto find_click_area = [&](action action) {
+  const auto find_click_area = [&](const action& action) {
     if (!m_opts.cursor_click.empty() &&
         (action.button == mousebtn::LEFT || action.button == mousebtn::MIDDLE || action.button == mousebtn::RIGHT)) {
       if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
