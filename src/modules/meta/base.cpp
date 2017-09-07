@@ -14,6 +14,7 @@ namespace modules {
       builder->flush();
       return "";
     }
+    builder->node(prefix);
 
     if (offset != 0) {
       builder->offset(offset);
@@ -38,9 +39,7 @@ namespace modules {
     }
 
     if (!output.empty()) {
-      builder->node(prefix);
       builder->append(move(output));
-      builder->node(suffix);
     }
 
     if (padding > 0) {
@@ -61,6 +60,7 @@ namespace modules {
     if (margin > 0) {
       builder->space(margin);
     }
+    builder->node(suffix);
 
     return builder->flush();
   }
