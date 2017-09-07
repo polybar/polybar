@@ -38,9 +38,7 @@ namespace modules {
       builder->space(padding);
     }
 
-    if (!output.empty()) {
-      builder->append(move(output));
-    }
+    builder->append(move(output));
 
     if (padding > 0) {
       builder->space(padding);
