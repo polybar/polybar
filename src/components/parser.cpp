@@ -45,12 +45,6 @@ void parser::parse(const bar_settings& bar, string data) {
     }
   }
 
-  m_fg = std::stack<unsigned int>();
-  m_bg = std::stack<unsigned int>();
-  m_ul = std::stack<unsigned int>();
-  m_ol = std::stack<unsigned int>();
-  m_fonts = std::stack<int>();
-
   if (!m_actions.empty()) {
     throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
   }
@@ -82,31 +76,29 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
     }
 
     switch (tag) {
-      case 'B': {
-        m_sig.emit(change_background{parse_color(m_bg, value, bar.background)});
+      case 'B':
+        m_sig.emit(change_background{parse_color(value, bar.background)});
         break;
-      }
 
-      case 'F': {
-        m_sig.emit(change_foreground{parse_color(m_fg, value, bar.foreground)});
+      case 'F':
+        m_sig.emit(change_foreground{parse_color(value, bar.foreground)});
         break;
-      }
 
       case 'T':
         m_sig.emit(change_font{parse_fontindex(value)});
         break;
 
       case 'U':
-        m_sig.emit(change_underline{parse_color(m_ul, value, bar.underline.color)});
-        m_sig.emit(change_overline{parse_color(m_ol, value, bar.overline.color)});
+        m_sig.emit(change_underline{parse_color(value, bar.underline.color)});
+        m_sig.emit(change_overline{parse_color(value, bar.overline.color)});
         break;
 
       case 'u':
-        m_sig.emit(change_underline{parse_color(m_ul, value, bar.underline.color)});
+        m_sig.emit(change_underline{parse_color(value, bar.underline.color)});
         break;
 
       case 'o':
-        m_sig.emit(change_overline{parse_color(m_ol, value, bar.overline.color)});
+        m_sig.emit(change_overline{parse_color(value, bar.overline.color)});
         break;
 
       case 'R':
@@ -185,23 +177,9 @@ size_t parser::text(string&& data) {
 }
 
 /**
- * Determine color using passed stack and input value
- */
-unsigned int parser::parse_color(std::stack<unsigned int>& color_stack, string& value, unsigned int fallback) {
-  if (!color_stack.empty() && !value.empty() && value[0] == '-') {
-    color_stack.pop();
-  }
-  auto parsed_value = parse_color_string(value, !color_stack.empty() ? color_stack.top() : fallback);
-  if (!value.empty() && value[0] != '-' && (color_stack.empty() || (parsed_value != color_stack.top()))) {
-    color_stack.push(parsed_value);
-  }
-  return parsed_value;
-}
-
-/**
  * Process color hex string and convert it to the correct value
  */
-unsigned int parser::parse_color_string(const string& s, unsigned int fallback) {
+unsigned int parser::parse_color(const string& s, unsigned int fallback) {
   if (!s.empty() && s[0] != '-') {
     return color_util::parse(s, fallback);
   }
@@ -211,26 +189,15 @@ unsigned int parser::parse_color_string(const string& s, unsigned int fallback) 
 /**
  * Process font index and convert it to the correct value
  */
-int parser::parse_fontindex(const string& value) {
-  auto font_index = 0;
-  auto reset = value.empty() || value[0] == '-';
-
-  if (reset && !m_fonts.empty()) {
-    m_fonts.pop();
-  } else if (!reset) {
-    try {
-      font_index = std::stoul(value, nullptr, 10);
-      m_fonts.push(font_index);
-      return font_index;
-    } catch (const std::invalid_argument& err) {
-      return font_index;
-    }
+int parser::parse_fontindex(const string& s) {
+  if (s.empty() || s[0] == '-') {
+    return 0;
   }
 
-  if (!m_fonts.empty()) {
-    return m_fonts.top();
-  } else {
-    return font_index;
+  try {
+    return std::stoul(s, nullptr, 10);
+  } catch (const std::invalid_argument& err) {
+    return 0;
   }
 }
 
