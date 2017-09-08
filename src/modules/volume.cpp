@@ -2,6 +2,7 @@
 #include "adapters/alsa/control.hpp"
 #include "adapters/alsa/generic.hpp"
 #include "adapters/alsa/mixer.hpp"
+#include "adapters/pulseaudio.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -20,6 +21,7 @@ namespace modules {
 
   volume_module::volume_module(const bar_settings& bar, string name_) : event_module<volume_module>(bar, move(name_)) {
     // Load configuration values
+    /*
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
@@ -66,6 +68,10 @@ namespace modules {
     } catch (const control_error& err) {
       throw module_error(err.what());
     }
+    */
+    auto sink_name = m_conf.get(name(), "sink", ""s);
+    //m_pulseaudio = new pulseaudio_t::element_type{move(sink_name)};
+    m_pulseaudio = factory_util::unique<pulseaudio>(move(sink_name));
 
     // Add formats and elements
     m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
@@ -87,13 +93,18 @@ namespace modules {
   }
 
   void volume_module::teardown() {
+    /*
     m_mixer.clear();
     m_ctrl.clear();
+    */
+    //m_pulseaudio.clear();
+    m_pulseaudio.reset();
     snd_config_update_free_global();
   }
 
   bool volume_module::has_event() {
     // Poll for mixer and control events
+    /*
     try {
       if (m_mixer[mixer::MASTER] && m_mixer[mixer::MASTER]->wait(25)) {
         return true;
@@ -110,12 +121,19 @@ namespace modules {
     } catch (const alsa_exception& e) {
       m_log.err("%s: %s", name(), e.what());
     }
-
+    */
+    try {
+      if (m_pulseaudio->wait(25))
+        return true;
+    } catch (const pulseaudio_error& e) {
+      m_log.err("%s: %s", name(), e.what());
+    }
     return false;
   }
 
   bool volume_module::update() {
     // Consume pending events
+    /*
     if (m_mixer[mixer::MASTER]) {
       m_mixer[mixer::MASTER]->process_events();
     }
@@ -128,12 +146,15 @@ namespace modules {
     if (m_ctrl[control::HEADPHONE]) {
       m_ctrl[control::HEADPHONE]->process_events();
     }
+    */
+    m_pulseaudio->process_events();
 
     // Get volume, mute and headphone state
     m_volume = 100;
     m_muted = false;
     m_headphones = false;
 
+    /*
     try {
       if (m_mixer[mixer::MASTER]) {
         m_volume = m_volume * (m_mapped ? m_mixer[mixer::MASTER]->get_normalized_volume() / 100.0f
@@ -163,6 +184,15 @@ namespace modules {
       }
     } catch (const alsa_exception& err) {
       m_log.err("%s: Failed to query speaker mixer (%s)", name(), err.what());
+    }
+    */
+    try {
+      if (m_pulseaudio) {
+        m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
+        m_muted = m_muted || m_pulseaudio->is_muted();
+      }
+    } catch (const pulseaudio_error& err) {
+      m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
     }
 
     // Replace label tokens
@@ -222,11 +252,12 @@ namespace modules {
       return false;
     } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
       return false;
-    } else if (!m_mixer[mixer::MASTER]) {
-      return false;
+    //} else if (!m_mixer[mixer::MASTER]) {
+    //  return false;
     }
 
     try {
+      /*
       vector<mixer_t> mixers;
       bool headphones{m_headphones};
 
@@ -264,6 +295,23 @@ namespace modules {
       for (auto&& mixer : mixers) {
         if (mixer->wait(0)) {
           mixer->process_events();
+        }
+      }
+      */
+      if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
+        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+          printf("toggling mute\n");
+          m_pulseaudio->toggle_mute();
+        } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+          // cap above 100 (~150)?
+          m_pulseaudio->set_volume(math_util::cap<float>(m_pulseaudio->get_volume() + 5, 0, 100));
+        } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+          m_pulseaudio->set_volume(math_util::cap<float>(m_pulseaudio->get_volume() - 5, 0, 100));
+        } else {
+          return false;
+        }
+	if (m_pulseaudio->wait(0)) {
+          m_pulseaudio->process_events();
         }
       }
     } catch (const exception& err) {

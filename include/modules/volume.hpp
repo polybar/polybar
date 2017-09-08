@@ -1,6 +1,7 @@
 #pragma once
 
 #include "settings.hpp"
+#include "adapters/pulseaudio.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 
@@ -11,6 +12,7 @@ namespace alsa {
   class mixer;
   class control;
 }
+//class pulseaudio;
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
@@ -18,6 +20,7 @@ namespace modules {
 
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
+  using pulseaudio_t = shared_ptr<pulseaudio>;
 
   class volume_module : public event_module<volume_module>, public input_handler {
    public:
@@ -56,8 +59,10 @@ namespace modules {
 
     map<mixer, mixer_t> m_mixer;
     map<control, control_t> m_ctrl;
-    int m_headphoneid{0};
-    bool m_mapped{false};
+    pulseaudio_t m_pulseaudio;
+
+    //int m_headphoneid{0};
+    //bool m_mapped{false};
     atomic<bool> m_muted{false};
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};

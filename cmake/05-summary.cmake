@@ -18,6 +18,7 @@ colored_option("   curl" ENABLE_CURL)
 colored_option("   i3" ENABLE_I3)
 colored_option("   mpd" ENABLE_MPD)
 colored_option("   network" ENABLE_NETWORK)
+colored_option("   pulseaudio" ENABLE_PULSEAUDIO)
 
 message(STATUS " X extensions:")
 colored_option("   xcb-randr" WITH_XRANDR)
