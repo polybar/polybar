@@ -132,6 +132,17 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
   m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
+#if WITH_XCURSOR
+  if (!m_opts.cursor_click.empty() && !cursor_util::valid(m_opts.cursor_click)) {
+    m_log.warn("Ignoring unsupported cursor-click option '%s'", m_opts.cursor_click);
+    m_opts.cursor_click.clear();
+  }
+  if (!m_opts.cursor_scroll.empty() && !cursor_util::valid(m_opts.cursor_scroll)) {
+    m_log.warn("Ignoring unsupported cursor-scroll option '%s'", m_opts.cursor_scroll);
+    m_opts.cursor_scroll.clear();
+  }
+#endif
+
   // Build WM_NAME
   m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
