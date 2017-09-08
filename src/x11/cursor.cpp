@@ -16,8 +16,8 @@ namespace cursor_util {
       name_list = &pointer_names;
     } else if (string_util::compare("ns-resize", name)) {
       name_list = &ns_resize_names;
-    } else { //default
-      name_list = &arrow_names;
+    } else {
+      name_list = &default_names;
     }
 
     for (auto&& cursor_name : *name_list) {
