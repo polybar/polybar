@@ -3,12 +3,12 @@
 _pkgname=polybar
 pkgname="${_pkgname}-git"
 pkgver=3.0.5
-pkgrel=3
+pkgrel=4
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
 license=("MIT")
-depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm")
+depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor")
 optdepends=("alsa-lib: volume module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
