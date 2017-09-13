@@ -2,7 +2,7 @@
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
 pkgver=3.0.5
-pkgrel=3
+pkgrel=4
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
