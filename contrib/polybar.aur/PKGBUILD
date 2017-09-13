@@ -24,7 +24,7 @@ md5sums=("SKIP")
 
 prepare() {
   git -C "${pkgname}" submodule update --init --recursive
-  git -C "${pkgname}" cherry-pick d35abc7620c8f06618b4708d9a969dfa2f309e96
+  git -C "${pkgname}" cherry-pick -n d35abc7620c8f06618b4708d9a969dfa2f309e96
   mkdir -p "${pkgname}/build"
 }
 

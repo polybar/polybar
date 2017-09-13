@@ -3,9 +3,11 @@ pkgbase = polybar
 	pkgver = 3.0.5
 	pkgrel = 3
 	url = https://github.com/jaagr/polybar
+	install = polybar.install
 	arch = i686
 	arch = x86_64
 	license = MIT
+	makedepends = clang
 	makedepends = cmake
 	makedepends = git
 	makedepends = python
@@ -20,12 +22,11 @@ pkgbase = polybar
 	optdepends = wireless_tools: network module support
 	optdepends = jsoncpp: i3 module support
 	optdepends = i3ipc-glib-git: i3 module support
-	optdepends = curl: github module support
 	optdepends = ttf-unifont: Font used in example config
 	optdepends = siji-git: Font used in example config
+	optdepends = curl: github module support
 	conflicts = polybar-git
 	source = polybar::git+https://github.com/jaagr/polybar.git#tag=3.0.5
-	install = polybar.install
 	md5sums = SKIP
 
 pkgname = polybar
