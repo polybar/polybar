@@ -3,6 +3,10 @@
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+
 POLYBAR_NS
 
 namespace modules {
@@ -34,6 +38,8 @@ namespace modules {
     string m_time;
 
     std::atomic<bool> m_toggled{false};
+
+    void set_stream_locale(std::stringstream &stream);
   };
 }
 

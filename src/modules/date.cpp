@@ -38,26 +38,36 @@ namespace modules {
     }
   }
 
+  void date_module::set_stream_locale(std::stringstream &stream) {
+    if(!m_bar.locale.empty()) {
+      stream.imbue(std::locale(m_bar.locale.c_str()));
+    }
+  }
+
   bool date_module::update() {
     auto time = std::time(nullptr);
 
     auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
-    char date_buffer[64]{'\0'};
-    strftime(date_buffer, sizeof(date_buffer), date_format.c_str(), localtime(&time));
+    std::stringstream date_stream; 
+    set_stream_locale(date_stream);
+    date_stream << std::put_time(localtime(&time), date_format.c_str());
+    auto date_string = date_stream.str();
 
     auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
-    char time_buffer[64]{'\0'};
-    strftime(time_buffer, sizeof(time_buffer), time_format.c_str(), localtime(&time));
+    std::stringstream time_stream; 
+    set_stream_locale(time_stream);
+    time_stream << std::put_time(localtime(&time), time_format.c_str());
+    auto time_string = time_stream.str();
 
-    bool date_changed{strncmp(date_buffer, m_date.c_str(), sizeof(date_buffer)) != 0};
-    bool time_changed{strncmp(time_buffer, m_time.c_str(), sizeof(time_buffer)) != 0};
+    bool date_changed{strncmp(date_string.c_str(), m_date.c_str(), sizeof(date_string)) != 0};
+    bool time_changed{strncmp(time_string.c_str(), m_time.c_str(), sizeof(time_string)) != 0};
 
     if (!date_changed && !time_changed) {
       return false;
     }
 
-    m_date = string{date_buffer};
-    m_time = string{time_buffer};
+    m_date = date_string;
+    m_time = time_string;
 
     if (m_label) {
       m_label->reset_tokens();
