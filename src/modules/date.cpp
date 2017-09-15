@@ -53,10 +53,7 @@ namespace modules {
     datetime_stream << std::put_time(localtime(&time), time_format.c_str());
     auto time_string = datetime_stream.str();
 
-    bool date_changed{strncmp(date_string.c_str(), m_date.c_str(), sizeof(date_string)) != 0};
-    bool time_changed{strncmp(time_string.c_str(), m_time.c_str(), sizeof(time_string)) != 0};
-
-    if (!date_changed && !time_changed) {
+    if (m_date == date_string && m_time == time_string) {
       return false;
     }
 
