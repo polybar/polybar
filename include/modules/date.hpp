@@ -37,9 +37,10 @@ namespace modules {
     string m_date;
     string m_time;
 
-    std::atomic<bool> m_toggled{false};
+    // Single stringstream to be used to gather the results of std::put_time
+    std::stringstream datetime_stream;
 
-    void set_stream_locale(std::stringstream &stream);
+    std::atomic<bool> m_toggled{false};
   };
 }
 

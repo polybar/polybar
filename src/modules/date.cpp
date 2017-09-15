@@ -11,6 +11,7 @@ namespace modules {
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
       setlocale(LC_TIME, m_bar.locale.c_str());
+      datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
     m_dateformat = string_util::trim(m_conf.get(name(), "date", ""s), '"');
@@ -38,26 +39,20 @@ namespace modules {
     }
   }
 
-  void date_module::set_stream_locale(std::stringstream &stream) {
-    if(!m_bar.locale.empty()) {
-      stream.imbue(std::locale(m_bar.locale.c_str()));
-    }
-  }
-
   bool date_module::update() {
     auto time = std::time(nullptr);
 
     auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
-    std::stringstream date_stream; 
-    set_stream_locale(date_stream);
-    date_stream << std::put_time(localtime(&time), date_format.c_str());
-    auto date_string = date_stream.str();
+    // Clear stream contents
+    datetime_stream.str("");
+    datetime_stream << std::put_time(localtime(&time), date_format.c_str());
+    auto date_string = datetime_stream.str();
 
     auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
-    std::stringstream time_stream; 
-    set_stream_locale(time_stream);
-    time_stream << std::put_time(localtime(&time), time_format.c_str());
-    auto time_string = time_stream.str();
+    // Clear stream contents
+    datetime_stream.str("");
+    datetime_stream << std::put_time(localtime(&time), time_format.c_str());
+    auto time_string = datetime_stream.str();
 
     bool date_changed{strncmp(date_string.c_str(), m_date.c_str(), sizeof(date_string)) != 0};
     bool time_changed{strncmp(time_string.c_str(), m_time.c_str(), sizeof(time_string)) != 0};
