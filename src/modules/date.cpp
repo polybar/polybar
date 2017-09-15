@@ -10,7 +10,6 @@ namespace modules {
 
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
-      setlocale(LC_TIME, m_bar.locale.c_str());
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
