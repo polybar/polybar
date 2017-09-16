@@ -48,7 +48,11 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
 
   pa_threaded_mainloop_wait(m_mainloop);
   if (pa_context_get_state(m_context) != PA_CONTEXT_READY) {
-    //goto error;
+    pa_threaded_mainloop_unlock(m_mainloop);
+    pa_threaded_mainloop_stop(m_mainloop);
+    pa_context_disconnect(m_context);
+    pa_context_unref(m_context);
+    pa_threaded_mainloop_free(m_mainloop);
     throw pulseaudio_error("Could not connect to pulseaudio server.");
   }
 
@@ -68,8 +72,7 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     wait_loop(op, m_mainloop);
   }
 
-  op = pa_context_subscribe(m_context, static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER), 
-      simple_callback, this);
+  op = pa_context_subscribe(m_context, PA_SUBSCRIPTION_MASK_SINK, simple_callback, this);
   wait_loop(op, m_mainloop);
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
@@ -149,20 +152,35 @@ int pulseaudio::get_volume() {
   wait_loop(op, m_mainloop);
   pa_threaded_mainloop_unlock(m_mainloop);
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
-  //return math_util::percentage(pa_cvolume_avg(&cv), PA_VOLUME_MUTED, PA_VOLUME_NORM);
   return math_util::percentage(pa_cvolume_max(&cv), PA_VOLUME_MUTED, PA_VOLUME_NORM);
 }
 
 /**
  * Set volume to given percentage
  */
-//void pulseaudio::set_volume(int delta_perc) {
 void pulseaudio::set_volume(float percentage) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), get_sink_volume_callback, this);
   wait_loop(op, m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
+  op = pa_context_set_sink_volume_by_name(m_context, s_name.c_str(), &cv, simple_callback, this);
+  wait_loop(op, m_mainloop);
+  pa_threaded_mainloop_unlock(m_mainloop);
+}
+
+/**
+ * Increment or decrement volume by given percentage (prevents accumulation of rounding errors from get_volume)
+ */
+void pulseaudio::inc_volume(int delta_perc) {
+  pa_threaded_mainloop_lock(m_mainloop);
+  pa_operation *op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), get_sink_volume_callback, this);
+  wait_loop(op, m_mainloop);
+  pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_MUTED, PA_VOLUME_NORM);
+  if (delta_perc > 0)
+    pa_cvolume_inc(&cv, vol);
+  else
+    pa_cvolume_dec(&cv, vol);
   op = pa_context_set_sink_volume_by_name(m_context, s_name.c_str(), &cv, simple_callback, this);
   wait_loop(op, m_mainloop);
   pa_threaded_mainloop_unlock(m_mainloop);
@@ -258,15 +276,6 @@ void pulseaudio::subscribe_callback(pa_context* context, pa_subscription_event_t
           break;
       }
       break;
-    /*
-    case PA_SUBSCRIPTION_EVENT_SERVER:
-      switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
-        case PA_SUBSCRIPTION_EVENT_CHANGE:
-          // default sink changed but no one cares
-	  break;
-      }
-      break;
-    */
   }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
