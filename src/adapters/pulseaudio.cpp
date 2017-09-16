@@ -1,7 +1,6 @@
 #include "adapters/pulseaudio.hpp"
 
 // TODO possibly move all the callback functions to lambda functions
-// also maybe use pa_operation_unref(op)
 // create base volume backend class (mixer/control, pulseaudio inherits from base class)
 // use index instead of name internally?
 POLYBAR_NS
@@ -56,6 +55,7 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
   pa_operation* op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   if (exists)
     s_name = sink_name;
   else {
@@ -65,15 +65,20 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     }
     while (pa_operation_get_state(op) != PA_OPERATION_DONE)
       pa_threaded_mainloop_wait(m_mainloop);
+    pa_operation_unref(op);
     s_name = def_s_name;
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), sink_info_callback, this);
+    while (pa_operation_get_state(op) != PA_OPERATION_DONE)
+      pa_threaded_mainloop_wait(m_mainloop);
+    pa_operation_unref(op);
   }
 
   op = pa_context_subscribe(m_context, static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER), 
       simple_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
   pa_threaded_mainloop_unlock(m_mainloop);
@@ -84,7 +89,6 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
  * Deconstruct pulseaudio
  */
 pulseaudio::~pulseaudio() {
-  pa_threaded_mainloop_unlock(m_mainloop);
   pa_threaded_mainloop_stop(m_mainloop);
   pa_context_disconnect(m_context);
   pa_context_unref(m_context);
@@ -123,6 +127,7 @@ int pulseaudio::process_events() {
         o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
 	while (pa_operation_get_state(o) != PA_OPERATION_DONE)
           pa_threaded_mainloop_wait(m_mainloop);
+        pa_operation_unref(o);
         if (exists)
           s_name = spec_s_name;
         break;
@@ -131,15 +136,18 @@ int pulseaudio::process_events() {
         o = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), get_sink_volume_callback, this);
 	while (pa_operation_get_state(o) != PA_OPERATION_DONE)
           pa_threaded_mainloop_wait(m_mainloop);
+        pa_operation_unref(o);
         break;
       // get default sink 
       case evtype::REMOVE:
         o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
         while (pa_operation_get_state(o) != PA_OPERATION_DONE)
           pa_threaded_mainloop_wait(m_mainloop);
+        pa_operation_unref(o);
         o = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), sink_info_callback, this);
 	while (pa_operation_get_state(o) != PA_OPERATION_DONE)
           pa_threaded_mainloop_wait(m_mainloop);
+        pa_operation_unref(o);
         break;
     }
     m_events.pop();
@@ -154,9 +162,9 @@ int pulseaudio::process_events() {
 int pulseaudio::get_volume() {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), get_sink_volume_callback, this);
-  while (pa_operation_get_state(op) != PA_OPERATION_DONE) {
+  while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
-  }
+  pa_operation_unref(op);
   pa_threaded_mainloop_unlock(m_mainloop);
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
   //return math_util::percentage(pa_cvolume_avg(&cv), PA_VOLUME_MUTED, PA_VOLUME_NORM);
@@ -172,11 +180,13 @@ void pulseaudio::set_volume(float percentage) {
   pa_operation *op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), get_sink_volume_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
   op = pa_context_set_sink_volume_by_name(m_context, s_name.c_str(), &cv, simple_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   pa_threaded_mainloop_unlock(m_mainloop);
 }
 
@@ -188,6 +198,7 @@ void pulseaudio::set_mute(bool mode) {
   pa_operation *op = pa_context_set_sink_mute_by_name(m_context, s_name.c_str(), mode, simple_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
     pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   pa_threaded_mainloop_unlock(m_mainloop);
 }
 
@@ -206,6 +217,7 @@ bool pulseaudio::is_muted() {
   pa_operation *op = pa_context_get_sink_info_by_name(m_context, s_name.c_str(), check_mute_callback, this);
   while (pa_operation_get_state(op) != PA_OPERATION_DONE)
           pa_threaded_mainloop_wait(m_mainloop);
+  pa_operation_unref(op);
   pa_threaded_mainloop_unlock(m_mainloop);
   return muted;
 }

@@ -1,26 +1,31 @@
 #pragma once
 
 #include "settings.hpp"
-#include "adapters/pulseaudio.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
 // fwd
+#if ENABLE_ALSA
 namespace alsa {
   class mixer;
   class control;
 }
-//class pulseaudio;
+#elif ENABLE_PULSEAUDIO
+class pulseaudio;
+#endif
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
   enum class control { NONE = 0, HEADPHONE };
 
+#if ENABLE_ALSA
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
+#elif ENABLE_PULSEAUDIO
   using pulseaudio_t = shared_ptr<pulseaudio>;
+#endif
 
   class volume_module : public event_module<volume_module>, public input_handler {
    public:
@@ -57,12 +62,15 @@ namespace modules {
     label_t m_label_volume;
     label_t m_label_muted;
 
+#if ENABLE_PULSEAUDIO
+    pulseaudio_t m_pulseaudio;
+#elif ENABLE_ALSA
     map<mixer, mixer_t> m_mixer;
     map<control, control_t> m_ctrl;
-    pulseaudio_t m_pulseaudio;
 
-    //int m_headphoneid{0};
-    //bool m_mapped{false};
+    int m_headphoneid{0};
+    bool m_mapped{false};
+#endif
     atomic<bool> m_muted{false};
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};

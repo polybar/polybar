@@ -31,7 +31,7 @@
 #if ENABLE_NETWORK
 #include "modules/network.hpp"
 #endif
-#if ENABLE_ALSA
+#if ENABLE_ALSA || ENABLE_PULSEAUDIO
 #include "modules/volume.hpp"
 #endif
 #if ENABLE_CURL
@@ -40,7 +40,7 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && (ENABLE_ALSA || ENABLE_PULSEAUDIO) && ENABLE_CURL && ENABLE_XKEYBOARD)
 #include "modules/unsupported.hpp"
 #endif
 
