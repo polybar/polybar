@@ -51,6 +51,8 @@ class pulseaudio {
     static void sink_info_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
     static void context_state_callback(pa_context *context, void *userdata);
 
+    inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
+
     // used for temporary callback results
     pa_cvolume cv;
     bool muted;
