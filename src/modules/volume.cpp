@@ -314,9 +314,9 @@ namespace modules {
           m_pulseaudio->toggle_mute();
         } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
           // cap above 100 (~150)?
-          m_pulseaudio->set_volume(math_util::cap<float>(m_pulseaudio->get_volume() + 5, 0, 100));
+          m_pulseaudio->inc_volume(5);
         } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
-          m_pulseaudio->set_volume(math_util::cap<float>(m_pulseaudio->get_volume() - 5, 0, 100));
+          m_pulseaudio->inc_volume(-5);
         } else {
           return false;
         }
