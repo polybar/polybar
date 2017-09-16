@@ -16,7 +16,7 @@ queryfont(FONT_SIJI ${FONT_SIJI} FIELDS family pixelsize)
 
 # Strip disabled modules {{{
 
-if(NOT ENABLE_ALSA)
+if(NOT (ENABLE_ALSA OR ENABLE_PULSEAUDIO))
   string(REPLACE " volume" "" MODULES_RIGHT ${MODULES_RIGHT})
 endif()
 if(NOT ENABLE_I3)

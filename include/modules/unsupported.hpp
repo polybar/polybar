@@ -1,5 +1,5 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_CURL && ENABLE_XKEYBOARD
+#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && (ENABLE_ALSA || ENABLE_PULSEAUDIO) && ENABLE_CURL && ENABLE_XKEYBOARD
 #error "Support has been enabled for all optional modules"
 #endif
 
@@ -40,7 +40,7 @@ namespace modules {
 #if not ENABLE_NETWORK
   DEFINE_UNSUPPORTED_MODULE(network_module, "internal/network");
 #endif
-#if not ENABLE_ALSA
+#if not (ENABLE_ALSA || ENABLE_PULSEAUDIO)
   DEFINE_UNSUPPORTED_MODULE(volume_module, "internal/volume");
 #endif
 #if not ENABLE_CURL

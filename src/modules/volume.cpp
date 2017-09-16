@@ -1,8 +1,11 @@
 #include "modules/volume.hpp"
+#if ENABLE_ALSA
 #include "adapters/alsa/control.hpp"
 #include "adapters/alsa/generic.hpp"
 #include "adapters/alsa/mixer.hpp"
+#elif ENABLE_PULSEAUDIO
 #include "adapters/pulseaudio.hpp"
+#endif
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -14,14 +17,16 @@
 
 POLYBAR_NS
 
+#if ENABLE_ALSA
 using namespace alsa;
+#endif
 
 namespace modules {
   template class module<volume_module>;
 
   volume_module::volume_module(const bar_settings& bar, string name_) : event_module<volume_module>(bar, move(name_)) {
     // Load configuration values
-    /*
+#if ENABLE_ALSA
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
@@ -68,10 +73,10 @@ namespace modules {
     } catch (const control_error& err) {
       throw module_error(err.what());
     }
-    */
+#elif ENABLE_PULSEAUDIO
     auto sink_name = m_conf.get(name(), "sink", ""s);
-    //m_pulseaudio = new pulseaudio_t::element_type{move(sink_name)};
     m_pulseaudio = factory_util::unique<pulseaudio>(move(sink_name));
+#endif
 
     // Add formats and elements
     m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
@@ -93,18 +98,18 @@ namespace modules {
   }
 
   void volume_module::teardown() {
-    /*
+#if ENABLE_ALSA
     m_mixer.clear();
     m_ctrl.clear();
-    */
-    //m_pulseaudio.clear();
-    m_pulseaudio.reset();
     snd_config_update_free_global();
+#elif ENABLE_PULSEAUDIO
+    m_pulseaudio.reset();
+#endif
   }
 
   bool volume_module::has_event() {
     // Poll for mixer and control events
-    /*
+#if ENABLE_ALSA
     try {
       if (m_mixer[mixer::MASTER] && m_mixer[mixer::MASTER]->wait(25)) {
         return true;
@@ -121,19 +126,20 @@ namespace modules {
     } catch (const alsa_exception& e) {
       m_log.err("%s: %s", name(), e.what());
     }
-    */
+#elif ENABLE_PULSEAUDIO
     try {
       if (m_pulseaudio->wait(25))
         return true;
     } catch (const pulseaudio_error& e) {
       m_log.err("%s: %s", name(), e.what());
     }
+#endif
     return false;
   }
 
   bool volume_module::update() {
     // Consume pending events
-    /*
+#if ENABLE_ALSA
     if (m_mixer[mixer::MASTER]) {
       m_mixer[mixer::MASTER]->process_events();
     }
@@ -146,15 +152,16 @@ namespace modules {
     if (m_ctrl[control::HEADPHONE]) {
       m_ctrl[control::HEADPHONE]->process_events();
     }
-    */
+#elif ENABLE_PULSEAUDIO
     m_pulseaudio->process_events();
+#endif
 
     // Get volume, mute and headphone state
     m_volume = 100;
     m_muted = false;
     m_headphones = false;
 
-    /*
+#if ENABLE_ALSA
     try {
       if (m_mixer[mixer::MASTER]) {
         m_volume = m_volume * (m_mapped ? m_mixer[mixer::MASTER]->get_normalized_volume() / 100.0f
@@ -185,7 +192,7 @@ namespace modules {
     } catch (const alsa_exception& err) {
       m_log.err("%s: Failed to query speaker mixer (%s)", name(), err.what());
     }
-    */
+#elif ENABLE_PULSEAUDIO
     try {
       if (m_pulseaudio) {
         m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
@@ -194,6 +201,7 @@ namespace modules {
     } catch (const pulseaudio_error& err) {
       m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
     }
+#endif
 
     // Replace label tokens
     if (m_label_volume) {
@@ -252,12 +260,14 @@ namespace modules {
       return false;
     } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
       return false;
-    //} else if (!m_mixer[mixer::MASTER]) {
-    //  return false;
+#if ENABLE_ALSA
+    } else if (!m_mixer[mixer::MASTER]) {
+      return false;
+#endif
     }
 
     try {
-      /*
+#if ENABLE_ALSA
       vector<mixer_t> mixers;
       bool headphones{m_headphones};
 
@@ -297,7 +307,7 @@ namespace modules {
           mixer->process_events();
         }
       }
-      */
+#elif ENABLE_PULSEAUDIO
       if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
         if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
           printf("toggling mute\n");
@@ -314,6 +324,7 @@ namespace modules {
           m_pulseaudio->process_events();
         }
       }
+#endif
     } catch (const exception& err) {
       m_log.err("%s: Failed to handle command (%s)", name(), err.what());
     }
