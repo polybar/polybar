@@ -66,11 +66,9 @@ class pulseaudio {
 
     // specified sink name
     string spec_s_name;
-    // sink currently in use
-    string s_name;
     // default sink name
     string def_s_name;
-    uint32_t s_index{0};
+    uint32_t m_index{0};
 };
 
 POLYBAR_NS_END
