@@ -616,8 +616,7 @@ void bar::handle(const evt::motion_notify& evt) {
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
   bool found_scroll = false;
   const auto find_click_area = [&](const action& action) {
-    if (!m_opts.cursor_click.empty() &&
-        (action.button == mousebtn::LEFT || action.button == mousebtn::MIDDLE || action.button == mousebtn::RIGHT)) {
+    if (!m_opts.cursor_click.empty() && !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN || action.button == mousebtn::NONE)) {
       if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
         m_opts.cursor = m_opts.cursor_click;
         m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -625,11 +624,7 @@ void bar::handle(const evt::motion_notify& evt) {
       return true;
     } else if (!m_opts.cursor_scroll.empty() && (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
       if (!found_scroll) {
-        if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
           found_scroll = true;
-        } else {
-          return true;
-        }
       }
     }
     return false;
@@ -643,8 +638,10 @@ void bar::handle(const evt::motion_notify& evt) {
     }
   }
   if(found_scroll) {
-    m_opts.cursor = m_opts.cursor_scroll;
-    m_sig.emit(cursor_change{string{m_opts.cursor}});
+    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
+      m_opts.cursor = m_opts.cursor_scroll;
+      m_sig.emit(cursor_change{string{m_opts.cursor}});
+    }
     return;
   }
   for (auto&& action : m_opts.actions) {
@@ -655,8 +652,10 @@ void bar::handle(const evt::motion_notify& evt) {
     }
   }
   if(found_scroll) {
-    m_opts.cursor = m_opts.cursor_scroll;
-    m_sig.emit(cursor_change{string{m_opts.cursor}});
+    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
+      m_opts.cursor = m_opts.cursor_scroll;
+      m_sig.emit(cursor_change{string{m_opts.cursor}});
+    }
     return;
   }
   if (!string_util::compare(m_opts.cursor, "default")) {
