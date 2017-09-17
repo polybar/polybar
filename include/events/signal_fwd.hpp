@@ -32,6 +32,7 @@ namespace signals {
     struct changed;
     struct tick;
     struct button_press;
+    struct cursor_change;
     struct visibility_change;
     struct dim_window;
     struct shade_window;

@@ -153,6 +153,10 @@ struct bar_settings {
 
   bool override_redirect{false};
 
+  string cursor{};
+  string cursor_click{};
+  string cursor_scroll{};
+
   vector<action> actions{};
 
   bool dimmed{false};
