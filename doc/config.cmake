@@ -66,6 +66,9 @@ tray-padding = 2
 ;scroll-up = i3wm-wsnext
 ;scroll-down = i3wm-wsprev
 
+cursor-click = pointer
+cursor-scroll = ns-resize
+
 [module/xwindow]
 type = internal/xwindow
 label = %title:0:30:...%
