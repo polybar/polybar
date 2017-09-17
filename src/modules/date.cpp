@@ -10,7 +10,7 @@ namespace modules {
 
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
-      setlocale(LC_TIME, m_bar.locale.c_str());
+      datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
     m_dateformat = string_util::trim(m_conf.get(name(), "date", ""s), '"');
@@ -42,22 +42,23 @@ namespace modules {
     auto time = std::time(nullptr);
 
     auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
-    char date_buffer[64]{'\0'};
-    strftime(date_buffer, sizeof(date_buffer), date_format.c_str(), localtime(&time));
+    // Clear stream contents
+    datetime_stream.str("");
+    datetime_stream << std::put_time(localtime(&time), date_format.c_str());
+    auto date_string = datetime_stream.str();
 
     auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
-    char time_buffer[64]{'\0'};
-    strftime(time_buffer, sizeof(time_buffer), time_format.c_str(), localtime(&time));
+    // Clear stream contents
+    datetime_stream.str("");
+    datetime_stream << std::put_time(localtime(&time), time_format.c_str());
+    auto time_string = datetime_stream.str();
 
-    bool date_changed{strncmp(date_buffer, m_date.c_str(), sizeof(date_buffer)) != 0};
-    bool time_changed{strncmp(time_buffer, m_time.c_str(), sizeof(time_buffer)) != 0};
-
-    if (!date_changed && !time_changed) {
+    if (m_date == date_string && m_time == time_string) {
       return false;
     }
 
-    m_date = string{date_buffer};
-    m_time = string{time_buffer};
+    m_date = date_string;
+    m_time = time_string;
 
     if (m_label) {
       m_label->reset_tokens();
