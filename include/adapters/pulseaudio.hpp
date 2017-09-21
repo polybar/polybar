@@ -55,6 +55,7 @@ class pulseaudio {
     inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
 
     // used for temporary callback results
+    int success;
     pa_cvolume cv;
     bool muted;
     bool exists;
