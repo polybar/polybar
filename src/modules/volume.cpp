@@ -75,7 +75,12 @@ namespace modules {
     }
 #elif ENABLE_PULSEAUDIO
     auto sink_name = m_conf.get(name(), "sink", ""s);
-    m_pulseaudio = factory_util::unique<pulseaudio>(move(sink_name));
+    try {
+      m_pulseaudio = factory_util::unique<pulseaudio>(move(sink_name));
+    //} catch (const pulseaudio_error& err) {
+    } catch (const pulseaudio_error& err) {
+      throw module_error(err.what());
+    }
 #endif
 
     // Add formats and elements
@@ -310,7 +315,6 @@ namespace modules {
 #elif ENABLE_PULSEAUDIO
       if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
         if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
-          printf("toggling mute\n");
           m_pulseaudio->toggle_mute();
         } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
           // cap above 100 (~150)?
