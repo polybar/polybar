@@ -14,8 +14,6 @@ namespace modules {
       builder->flush();
       return "";
     }
-    builder->node(prefix);
-
     if (offset != 0) {
       builder->offset(offset);
     }
@@ -38,7 +36,23 @@ namespace modules {
       builder->space(padding);
     }
 
+    builder->node(prefix);
+
+    if (!bg.empty()) {
+      builder->background(bg);
+    }
+    if (!fg.empty()) {
+      builder->color(fg);
+    }
+    if (!ul.empty()) {
+      builder->underline(ul);
+    }
+    if (!ol.empty()) {
+      builder->overline(ol);
+    }
+
     builder->append(move(output));
+    builder->node(suffix);
 
     if (padding > 0) {
       builder->space(padding);
@@ -58,7 +72,6 @@ namespace modules {
     if (margin > 0) {
       builder->space(margin);
     }
-    builder->node(suffix);
 
     return builder->flush();
   }
