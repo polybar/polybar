@@ -689,13 +689,20 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_pos = evt->event_x;
 
   const auto deferred_fn = [&](size_t) {
-    for (auto&& action : m_renderer->actions()) {
-      if (action.button == m_buttonpress_btn && !action.active && action.test(m_buttonpress_pos)) {
+    /*
+     * Iterate over all defined actions in reverse order until matching action is found
+     * To properly handle nested actions we iterate in reverse because nested actions are added later than their 
+     * surrounding action block
+     */
+    auto actions = m_renderer->actions();
+    for (auto action = actions.rbegin(); action != actions.rend(); action++) {
+      if (action->button == m_buttonpress_btn && !action->active && action->test(m_buttonpress_pos)) {
         m_log.trace("Found matching input area");
-        m_sig.emit(button_press{string{action.command}});
+        m_sig.emit(button_press{string{action->command}});
         return;
       }
     }
+
     for (auto&& action : m_opts.actions) {
       if (action.button == m_buttonpress_btn && !action.command.empty()) {
         m_log.trace("Found matching fallback handler");
