@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stack>
-
 #include "common.hpp"
 #include "errors.hpp"
 
@@ -30,9 +28,8 @@ class parser {
   void codeblock(string&& data, const bar_settings& bar);
   size_t text(string&& data);
 
-  unsigned int parse_color(std::stack<unsigned int>& color_stack, string& value, unsigned int fallback);
-  unsigned int parse_color_string(const string& s, unsigned int fallback = 0);
-  int parse_fontindex(const string& value);
+  unsigned int parse_color(const string& s, unsigned int fallback = 0);
+  int parse_fontindex(const string& s);
   attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
   string parse_action_cmd(string&& data);
@@ -41,12 +38,6 @@ class parser {
   signal_emitter& m_sig;
   vector<int> m_actions;
   unique_ptr<parser> m_parser;
-
-  std::stack<unsigned int> m_fg;
-  std::stack<unsigned int> m_bg;
-  std::stack<unsigned int> m_ul;
-  std::stack<unsigned int> m_ol;
-  std::stack<int> m_fonts;
 };
 
 POLYBAR_NS_END
