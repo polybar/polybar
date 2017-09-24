@@ -767,11 +767,16 @@ bool renderer::on(const signals::parser::action_begin& evt) {
 
 bool renderer::on(const signals::parser::action_end& evt) {
   auto btn = evt.cast();
+
+  /*
+   * Iterate actions in reverse and find the FIRST active action that matches
+   */
   m_log.trace_x("renderer: action_end(btn=%i)", static_cast<int>(btn));
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
     if (action->active && action->align == m_align && action->button == btn) {
       action->end_x = m_blocks.at(action->align).x;
       action->active = false;
+      break;
     }
   }
   return true;
