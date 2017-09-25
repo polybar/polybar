@@ -55,10 +55,12 @@ class pulseaudio {
     inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
 
     // used for temporary callback results
-    int success;
+    int success{0};
     pa_cvolume cv;
-    bool muted;
-    bool exists;
+    bool muted{false};
+    bool exists{false};
+    // default sink name
+    string def_s_name;
 
     pa_context* m_context{nullptr};
     pa_threaded_mainloop* m_mainloop{nullptr};
@@ -67,8 +69,7 @@ class pulseaudio {
 
     // specified sink name
     string spec_s_name;
-    // default sink name
-    string def_s_name;
+    string s_name;
     uint32_t m_index{0};
 };
 
