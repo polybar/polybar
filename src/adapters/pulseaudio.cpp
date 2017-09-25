@@ -47,8 +47,11 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     throw pulseaudio_error("Could not connect to pulseaudio server.");
   }
 
-  pa_operation* op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
-  wait_loop(op, m_mainloop);
+  pa_operation *op{nullptr};
+  if (!sink_name.empty()) {
+    op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
+    wait_loop(op, m_mainloop);
+  }
   if (!exists) {
     op = pa_context_get_server_info(m_context, get_default_sink_callback, this);
     if (!op) {
@@ -87,7 +90,7 @@ pulseaudio::~pulseaudio() {
  * Get sink name
  */
 const string& pulseaudio::get_name() {
-  return spec_s_name;
+  return s_name;
 }
 
 /**
@@ -112,8 +115,10 @@ int pulseaudio::process_events() {
       // try to get specified sink
       case evtype::NEW:
         // redundant if already using specified sink
-        o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
-        wait_loop(o, m_mainloop);
+        if (!spec_s_name.empty()) {
+          o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
+          wait_loop(o, m_mainloop);
+        }
         break;
       // get volume
       case evtype::CHANGE:
@@ -145,8 +150,6 @@ int pulseaudio::get_volume() {
   pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
   wait_loop(op, m_mainloop);
   pa_threaded_mainloop_unlock(m_mainloop);
-  //if (!pa_cvolume_valid(&cv))
-  //  throw pulseaudio_error("Failed to get volume.");
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
   return static_cast<int>(pa_cvolume_max(&cv) * 100.0f / PA_VOLUME_NORM + 0.5f);
 }
@@ -158,8 +161,6 @@ void pulseaudio::set_volume(float percentage) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
   wait_loop(op, m_mainloop);
-  //if (!pa_cvolume_valid(&cv))
-  //  throw pulseaudio_error("Failed to get volume.");
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
   op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
@@ -177,8 +178,6 @@ void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
   wait_loop(op, m_mainloop);
-  //if (!pa_cvolume_valid(&cv))
-  //  throw pulseaudio_error("Failed to get volume.");
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0)
     pa_cvolume_inc(&cv, vol);
@@ -282,9 +281,10 @@ void pulseaudio::simple_callback(pa_context *, int success, void *userdata) {
  */
 void pulseaudio::get_default_sink_callback(pa_context *, const pa_server_info *info, void *userdata) {
   pulseaudio *This = static_cast<pulseaudio *>(userdata);
-  if (info->default_sink_name)
+  if (info->default_sink_name) {
     This->def_s_name = info->default_sink_name; 
-  else
+    This->s_name = info->default_sink_name;
+  } else
     This->def_s_name = ""s;
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
@@ -299,6 +299,7 @@ void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int 
   else {
     This->exists = true;
     This->m_index = info->index;
+    This->s_name = info->name;
   }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
