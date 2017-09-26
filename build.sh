@@ -53,11 +53,6 @@ function main
   read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
 
-  # pulseaudio overrides alsa
-  if [[ "${enable_alsa}" == "ON" ]] && [[ "${enable_pulseaudio}" == "ON" ]]; then
-    enable_alsa="OFF"
-  fi
-
   local cxx="c++"
   local cc="cc"
 
