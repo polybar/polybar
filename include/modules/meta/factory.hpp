@@ -31,8 +31,11 @@
 #if ENABLE_NETWORK
 #include "modules/network.hpp"
 #endif
-#if ENABLE_ALSA || ENABLE_PULSEAUDIO
+#if ENABLE_ALSA
 #include "modules/volume.hpp"
+#endif
+#if ENABLE_PULSEAUDIO
+#include "modules/pulseaudio.hpp"
 #endif
 #if ENABLE_CURL
 #include "modules/github.hpp"
@@ -40,7 +43,7 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && (ENABLE_ALSA || ENABLE_PULSEAUDIO) && ENABLE_CURL && ENABLE_XKEYBOARD)
+#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD)
 #include "modules/unsupported.hpp"
 #endif
 
@@ -74,6 +77,8 @@ namespace {
       return new mpd_module(bar, move(module_name));
     } else if (name == "internal/volume") {
       return new volume_module(bar, move(module_name));
+    } else if (name == "internal/pulseaudio") {
+      return new pulseaudio_module(bar, move(module_name));
     } else if (name == "internal/network") {
       return new network_module(bar, move(module_name));
 #if DEBUG
