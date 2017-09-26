@@ -42,7 +42,7 @@ function main
   [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
   read -r -p "$(msg "Include support for \"internal/volume\" (requires alsalib) ---------- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
-  read -r -p "$(msg "Include support for \"internal/volume\" (requires libpulse) --------- [Y/n]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) ----- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_pulseaudio="OFF"
   read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [Y/n]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
