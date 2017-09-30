@@ -218,7 +218,14 @@ class config {
     } else if (path.compare(0, 5, "file:") == 0) {
       return dereference_file<T>(path.substr(5));
     } else if ((pos = path.find(".")) != string::npos) {
-      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
+      string var_section = path.substr(0, pos);
+      string var_key = path.substr(pos + 1);
+
+      if(section == var_section && key == var_key) {
+        throw value_error("Self referencing variable defined at \"" + section + "." + key + "\"");
+      }
+
+      return dereference_local<T>(var_section, var_key, section);
     } else {
       throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
     }
