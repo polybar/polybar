@@ -218,14 +218,7 @@ class config {
     } else if (path.compare(0, 5, "file:") == 0) {
       return dereference_file<T>(path.substr(5));
     } else if ((pos = path.find(".")) != string::npos) {
-      string var_section = path.substr(0, pos);
-      string var_key = path.substr(pos + 1);
-
-      if((var_section == section || var_section == "self") && var_key == key) {
-        throw value_error("Self referencing variable defined at \"" + section + "." + key + "\"");
-      }
-
-      return dereference_local<T>(var_section, var_key, section);
+      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section, key);
     } else {
       throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
     }
@@ -241,7 +234,7 @@ class config {
    *  ${section.key:fallback}
    */
   template <typename T>
-  T dereference_local(string section, const string& key, const string& current_section) const {
+  T dereference_local(string section, const string& key, const string& current_section, const string& current_key) const {
     if (section == "BAR") {
       m_log.warn("${BAR.key} is deprecated. Use ${root.key} instead");
     }
@@ -249,6 +242,10 @@ class config {
     section = string_util::replace(section, "BAR", this->section(), 0, 3);
     section = string_util::replace(section, "root", this->section(), 0, 4);
     section = string_util::replace(section, "self", current_section, 0, 4);
+
+    if(current_section == section && current_key == key) {
+      throw value_error("Self referencing variable defined at \"" + section + "." + key + "\"");
+    }
 
     try {
       string string_value{get<string>(section, key)};
