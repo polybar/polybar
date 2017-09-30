@@ -193,7 +193,7 @@ interval = 2
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #f90000
-label = %percentage%%
+label = %percentage:2%%
 
 [module/memory]
 type = internal/memory
