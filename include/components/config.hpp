@@ -221,7 +221,7 @@ class config {
       string var_section = path.substr(0, pos);
       string var_key = path.substr(pos + 1);
 
-      if(section == var_section && key == var_key) {
+      if((var_section == section || var_section == "self") && var_key == key) {
         throw value_error("Self referencing variable defined at \"" + section + "." + key + "\"");
       }
 
