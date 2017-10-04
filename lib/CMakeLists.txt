@@ -7,6 +7,13 @@
 list(APPEND dirs ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
 
 # }}}
+# Library: cctz {{{
+
+add_subdirectory(cctz)
+list(APPEND libs ${CCTZ_LIBRARIES})
+list(APPEND dirs ${CCTZ_INCLUDE_DIRS})
+
+# }}}
 # Library: xpp {{{
 
 set(XCB_PROTOS xproto)

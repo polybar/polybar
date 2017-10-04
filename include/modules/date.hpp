@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <iomanip>
-#include <ctime>
 
 POLYBAR_NS
 
@@ -33,6 +32,8 @@ namespace modules {
     string m_dateformat_alt;
     string m_timeformat;
     string m_timeformat_alt;
+
+    string m_timezone;
 
     string m_date;
     string m_time;
