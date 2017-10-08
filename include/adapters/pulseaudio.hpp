@@ -33,7 +33,7 @@ class pulseaudio {
 
     const string& get_name();
 
-    bool wait(int timeout = -1);
+    bool wait();
     int process_events();
 
     int get_volume();
