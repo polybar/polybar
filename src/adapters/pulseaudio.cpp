@@ -18,7 +18,7 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     pa_threaded_mainloop_free(m_mainloop);
     throw pulseaudio_error("Could not create pulseaudio context.");
   }
-  
+
   pa_context_set_state_callback(m_context, context_state_callback, this);
 
   if (pa_context_connect(m_context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
@@ -94,11 +94,9 @@ const string& pulseaudio::get_name() {
 }
 
 /**
- * Wait for events (timeout in ms)
+ * Wait for events
  */
-bool pulseaudio::wait(int timeout) {
-  // TODO wait for specified timeout
-  (void) timeout;
+bool pulseaudio::wait() {
   return m_events.size() > 0;
 }
 
@@ -122,11 +120,11 @@ int pulseaudio::process_events() {
         break;
       // get volume
       case evtype::CHANGE:
-	// doesn't do anything
+        // doesn't do anything
         o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
         wait_loop(o, m_mainloop);
         break;
-      // get default sink 
+      // get default sink
       case evtype::REMOVE:
         o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
         wait_loop(o, m_mainloop);
@@ -252,7 +250,7 @@ void pulseaudio::subscribe_callback(pa_context *, pa_subscription_event_type_t t
       switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
         case PA_SUBSCRIPTION_EVENT_NEW:
             This->m_events.emplace(evtype::NEW);
-	  break;
+          break;
         case PA_SUBSCRIPTION_EVENT_CHANGE:
           if (idx == This->m_index)
             This->m_events.emplace(evtype::CHANGE);
@@ -282,7 +280,7 @@ void pulseaudio::simple_callback(pa_context *, int success, void *userdata) {
 void pulseaudio::get_default_sink_callback(pa_context *, const pa_server_info *info, void *userdata) {
   pulseaudio *This = static_cast<pulseaudio *>(userdata);
   if (info->default_sink_name) {
-    This->def_s_name = info->default_sink_name; 
+    This->def_s_name = info->default_sink_name;
     This->s_name = info->default_sink_name;
   } else
     This->def_s_name = ""s;
