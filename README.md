@@ -73,6 +73,7 @@ If you are using **Debian**, polybar is available from the [GetDeb](http://www.g
 
 If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
+If you are using **Fedora**, or similar (e.g. Korora, Chapeau), [a gist is available](https://gist.github.com/nathanchere/22491daf4f917b100a35e5c284a5fec5) to install all required dependencies, clone the latest release and build **PolyBar** with the command `wget -O - https://gist.github.com/nathanchere/22491daf4f917b100a35e5c284a5fec5 | bash`. 
 
 ### Dependencies
 
