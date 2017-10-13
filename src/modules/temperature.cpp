@@ -4,6 +4,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include <cmath>
 
 #include "modules/meta/base.inl"
 
@@ -18,6 +19,7 @@ namespace modules {
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    m_temperature_fahrenheit = m_conf.get(name(), "temperature-fahrenheit", m_temperature_fahrenheit);
 
     if (m_path.empty()) {
       m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
@@ -44,10 +46,15 @@ namespace modules {
   bool temperature_module::update() {
     m_temp = std::atoi(file_util::contents(m_path).c_str()) / 1000.0f + 0.5f;
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
+    int temp_f = floor((((9.0/5.0) * m_temp) + 32) + 0.5);
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
-      label->replace_token("%temperature%", to_string(m_temp) + "°C");
+      if (m_temperature_fahrenheit) {
+          label->replace_token("%temperature%", to_string(temp_f) + "°F");
+      } else {
+          label->replace_token("%temperature%", to_string(m_temp) + "°C");
+      }
     };
 
     if (m_label[temp_state::NORMAL]) {

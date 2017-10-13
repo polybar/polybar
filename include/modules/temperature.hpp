@@ -32,6 +32,7 @@ namespace modules {
     int m_tempwarn = 0;
     int m_temp = 0;
     int m_perc = 0;
+    bool m_temperature_fahrenheit{false};
   };
 }
 
