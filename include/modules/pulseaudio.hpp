@@ -31,7 +31,6 @@ namespace modules {
     static constexpr auto FORMAT_MUTED = "format-muted";
 
     static constexpr auto TAG_RAMP_VOLUME = "<ramp-volume>";
-    static constexpr auto TAG_RAMP_HEADPHONES = "<ramp-headphones>";
     static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
@@ -43,14 +42,12 @@ namespace modules {
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
-    ramp_t m_ramp_headphones;
     label_t m_label_volume;
     label_t m_label_muted;
 
     pulseaudio_t m_pulseaudio;
 
     atomic<bool> m_muted{false};
-    atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
   };
 }

@@ -38,7 +38,6 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
-      m_ramp_headphones = load_ramp(m_conf, name(), TAG_RAMP_HEADPHONES, false);
     }
   }
 
@@ -61,10 +60,9 @@ namespace modules {
     // Consume pending events
     m_pulseaudio->process_events();
 
-    // Get volume, mute and headphone state
+    // Get volume and mute state
     m_volume = 100;
     m_muted = false;
-    m_headphones = false;
 
     try {
       if (m_pulseaudio) {
@@ -113,10 +111,8 @@ namespace modules {
   bool pulseaudio_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR_VOLUME) {
       builder->node(m_bar_volume->output(m_volume));
-    } else if (tag == TAG_RAMP_VOLUME && (!m_headphones || !*m_ramp_headphones)) {
+    } else if (tag == TAG_RAMP_VOLUME) {
       builder->node(m_ramp_volume->get_by_percentage(m_volume));
-    } else if (tag == TAG_RAMP_VOLUME && m_headphones && *m_ramp_headphones) {
-      builder->node(m_ramp_headphones->get_by_percentage(m_volume));
     } else if (tag == TAG_LABEL_VOLUME) {
       builder->node(m_label_volume);
     } else if (tag == TAG_LABEL_MUTED) {
