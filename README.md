@@ -14,6 +14,8 @@ Here are a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
+If you need help, check out the [Support](SUPPORT.md) page.
+
 Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new) here on GitHub.
 Make sure you include steps on how to reproduce it. There's also an irc channel available at freenode, cleverly named `#polybar`.
 
