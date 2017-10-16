@@ -172,14 +172,15 @@ void pulseaudio::set_volume(float percentage) {
  * Increment or decrement volume by given percentage (prevents accumulation of rounding errors from get_volume)
  */
 void pulseaudio::inc_volume(int delta_perc) {
-  // set max value?
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
   wait_loop(op, m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
-  if (delta_perc > 0)
-    pa_cvolume_inc(&cv, vol);
-  else
+  if (delta_perc > 0) {
+    if (pa_cvolume_max(&cv) + vol <= PA_VOLUME_UI_MAX) {
+      pa_cvolume_inc(&cv, vol);
+    }
+  } else
     pa_cvolume_dec(&cv, vol);
   op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
   wait_loop(op, m_mainloop);
