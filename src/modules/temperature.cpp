@@ -4,6 +4,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include <cmath>
 
 #include "modules/meta/base.inl"
 
@@ -43,10 +44,13 @@ namespace modules {
 
   bool temperature_module::update() {
     m_temp = std::atoi(file_util::contents(m_path).c_str()) / 1000.0f + 0.5f;
+    int m_temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
+      label->replace_token("%temperature-f%", to_string(m_temp_f) + "°F");
+      label->replace_token("%temperature-c%", to_string(m_temp) + "°C");
       label->replace_token("%temperature%", to_string(m_temp) + "°C");
     };
 
