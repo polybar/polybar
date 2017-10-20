@@ -59,7 +59,13 @@ namespace modules {
   }
 
   int github_module::get_number_of_notification() {
-    string content = request();
+    string content;
+    try {
+      content = request();
+    } catch (application_error& e) {
+      m_log.warn("%s: cannot complete the request to github: %s", name(), e.what());
+      return -1;
+    }
 
     size_t pos{0};
     size_t notifications{0};
@@ -72,7 +78,7 @@ namespace modules {
   }
 
   void github_module::update_label(const int notifications) {
-    if (notifications || m_empty_notifications) {
+    if (0 != notifications || m_empty_notifications) {
       m_label->reset_tokens();
       m_label->replace_token("%notifications%", to_string(notifications));
     } else {
