@@ -18,7 +18,7 @@ namespace modules {
     // Load configuration values
     auto sink_name = m_conf.get(name(), "sink", ""s);
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio>(move(sink_name));
+      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name));
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }
