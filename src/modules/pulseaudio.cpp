@@ -142,9 +142,6 @@ namespace modules {
         } else {
           return false;
         }
-        if (m_pulseaudio->wait()) {
-          m_pulseaudio->process_events();
-        }
       }
     } catch (const exception& err) {
       m_log.err("%s: Failed to handle command (%s)", name(), err.what());

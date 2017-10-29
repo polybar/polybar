@@ -78,6 +78,8 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name) : m_log(logger)
     throw pulseaudio_error("Failed to subscribe to server.");
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
+  update_volume(op);
+
   pa_threaded_mainloop_unlock(m_mainloop);
 
 }
@@ -125,12 +127,6 @@ int pulseaudio::process_events() {
           wait_loop(o, m_mainloop);
         }
         break;
-      // get volume
-      case evtype::CHANGE:
-        // doesn't do anything
-        o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
-        wait_loop(o, m_mainloop);
-        break;
       // get default sink
       case evtype::REMOVE:
         o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
@@ -141,7 +137,10 @@ int pulseaudio::process_events() {
         wait_loop(o, m_mainloop);
         m_log.warn("pulseaudio: using default sink %s", s_name);
         break;
+      default:
+	break;
     }
+    update_volume(o);
     m_events.pop();
   }
   pa_threaded_mainloop_unlock(m_mainloop);
@@ -152,10 +151,6 @@ int pulseaudio::process_events() {
  * Get volume in percentage
  */
 int pulseaudio::get_volume() {
-  pa_threaded_mainloop_lock(m_mainloop);
-  pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
-  wait_loop(op, m_mainloop);
-  pa_threaded_mainloop_unlock(m_mainloop);
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
   return static_cast<int>(pa_cvolume_max(&cv) * 100.0f / PA_VOLUME_NORM + 0.5f);
 }
@@ -165,11 +160,9 @@ int pulseaudio::get_volume() {
  */
 void pulseaudio::set_volume(float percentage) {
   pa_threaded_mainloop_lock(m_mainloop);
-  pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
-  wait_loop(op, m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
-  op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -181,8 +174,6 @@ void pulseaudio::set_volume(float percentage) {
  */
 void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
-  pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
-  wait_loop(op, m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0) {
     if (pa_cvolume_max(&cv) + vol <= PA_VOLUME_UI_MAX) {
@@ -192,7 +183,7 @@ void pulseaudio::inc_volume(int delta_perc) {
     }
   } else
     pa_cvolume_dec(&cv, vol);
-  op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -222,21 +213,15 @@ void pulseaudio::toggle_mute() {
  * Get current mute state
  */
 bool pulseaudio::is_muted() {
-  pa_threaded_mainloop_lock(m_mainloop);
-  pa_operation *op = pa_context_get_sink_info_by_index(m_context, m_index, check_mute_callback, this);
-  wait_loop(op, m_mainloop);
-  pa_threaded_mainloop_unlock(m_mainloop);
   return muted;
 }
 
 /**
- * Callback when getting current mute state
+ * Update local volume cache
  */
-void pulseaudio::check_mute_callback(pa_context *, const pa_sink_info *info, int, void *userdata) {
-  pulseaudio* This = static_cast<pulseaudio *>(userdata);
-  if (info)
-    This->muted = info->mute;
-  pa_threaded_mainloop_signal(This->m_mainloop, 0);
+void pulseaudio::update_volume(pa_operation *o) {
+  o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
+  wait_loop(o, m_mainloop);
 }
 
 /**
@@ -244,8 +229,10 @@ void pulseaudio::check_mute_callback(pa_context *, const pa_sink_info *info, int
  */
 void pulseaudio::get_sink_volume_callback(pa_context *, const pa_sink_info *info, int, void *userdata) {
   pulseaudio* This = static_cast<pulseaudio *>(userdata);
-  if (info)
+  if (info) {
     This->cv = info->volume;
+    This->muted = info->mute;
+  }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
 
