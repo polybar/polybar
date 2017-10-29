@@ -16,6 +16,7 @@ typedef struct pa_context pa_context;
 typedef struct pa_threaded_mainloop pa_threaded_mainloop;
 
 POLYBAR_NS
+class logger;
 
 DEFINE_ERROR(pulseaudio_error);
 
@@ -25,7 +26,7 @@ class pulseaudio {
   using queue = std::queue<evtype>;
 
   public:
-    explicit pulseaudio(string&& sink_name);
+    explicit pulseaudio(const logger& logger, string&& sink_name);
     ~pulseaudio();
 
     pulseaudio(const pulseaudio& o) = delete;
@@ -54,11 +55,12 @@ class pulseaudio {
 
     inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
 
+    const logger& m_log;
+
     // used for temporary callback results
     int success{0};
     pa_cvolume cv;
     bool muted{false};
-    bool exists{false};
     // default sink name
     string def_s_name;
 

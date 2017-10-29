@@ -1,11 +1,12 @@
 #include "adapters/pulseaudio.hpp"
+#include "components/logger.hpp"
 
 POLYBAR_NS
 
 /**
  * Construct pulseaudio object
  */
-pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
+pulseaudio::pulseaudio(const logger& logger, string&& sink_name) : m_log(logger), spec_s_name(sink_name) {
   m_mainloop = pa_threaded_mainloop_new();
   if (!m_mainloop) {
     throw pulseaudio_error("Could not create pulseaudio threaded mainloop.");
@@ -37,6 +38,8 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     throw pulseaudio_error("Could not start pulseaudio mainloop.");
   }
 
+  m_log.trace("pulseaudio: started mainloop");
+
   pa_threaded_mainloop_wait(m_mainloop);
   if (pa_context_get_state(m_context) != PA_CONTEXT_READY) {
     pa_threaded_mainloop_unlock(m_mainloop);
@@ -52,7 +55,8 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
     wait_loop(op, m_mainloop);
   }
-  if (!exists) {
+  if (s_name.empty()) {
+    printf("not found\n");
     op = pa_context_get_server_info(m_context, get_default_sink_callback, this);
     if (!op) {
       throw pulseaudio_error("Failed to get pulseaudio server info.");
@@ -63,6 +67,9 @@ pulseaudio::pulseaudio(string&& sink_name) : spec_s_name(sink_name) {
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, def_s_name.c_str(), sink_info_callback, this);
     wait_loop(op, m_mainloop);
+    m_log.warn("pulseaudio: using default sink %s", s_name);
+  } else {
+    m_log.trace("pulseaudio: using sink %s", s_name);
   }
 
   op = pa_context_subscribe(m_context, PA_SUBSCRIPTION_MASK_SINK, simple_callback, this);
@@ -132,6 +139,7 @@ int pulseaudio::process_events() {
           throw pulseaudio_error("Failed to get default sink.");
         o = pa_context_get_sink_info_by_name(m_context, def_s_name.c_str(), sink_info_callback, this);
         wait_loop(o, m_mainloop);
+        m_log.warn("pulseaudio: using default sink %s", s_name);
         break;
     }
     m_events.pop();
@@ -179,6 +187,8 @@ void pulseaudio::inc_volume(int delta_perc) {
   if (delta_perc > 0) {
     if (pa_cvolume_max(&cv) + vol <= PA_VOLUME_UI_MAX) {
       pa_cvolume_inc(&cv, vol);
+    } else {
+      m_log.warn("pulseaudio: maximum volume reached");
     }
   } else
     pa_cvolume_dec(&cv, vol);
@@ -293,10 +303,7 @@ void pulseaudio::get_default_sink_callback(pa_context *, const pa_server_info *i
  */
 void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int eol, void *userdata) {
   pulseaudio *This = static_cast<pulseaudio *>(userdata);
-  if (eol || !info)
-    This->exists = false;
-  else {
-    This->exists = true;
+  if (!eol && info) {
     This->m_index = info->index;
     This->s_name = info->name;
   }
