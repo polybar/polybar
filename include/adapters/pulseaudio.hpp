@@ -45,6 +45,7 @@ class pulseaudio {
     bool is_muted();
 
   private:
+    void update_volume(pa_operation *o);
     static void check_mute_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
     static void get_sink_volume_callback(pa_context *context, const pa_sink_info *info, int is_last, void *userdata);
     static void subscribe_callback(pa_context* context, pa_subscription_event_type_t t, uint32_t idx, void* userdata);
