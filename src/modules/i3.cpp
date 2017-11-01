@@ -224,6 +224,7 @@ namespace modules {
                                 [](auto ws) { return ws->visible; });
 
       if (current_ws == workspaces.end()) {
+        m_log.warn("%s: Current workspace not found", name());
         return false;
       }
 
