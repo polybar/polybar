@@ -220,20 +220,25 @@ namespace modules {
       }
 
       auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
-      auto current_ws = *find_if(workspaces.begin(), workspaces.end(), 
-                                 [](auto ws) { return ws->visible; });
+      auto current_ws = find_if(workspaces.begin(), workspaces.end(),
+                                [](auto ws) { return ws->visible; });
 
-      if (scrolldir == "next" && (m_wrap || workspaces.back() != current_ws)) {
-        if (!current_ws->focused) {
+      if (current_ws == workspaces.end()) {
+        m_log.warn("%s: Current workspace not found", name());
+        return false;
+      }
+
+      if (scrolldir == "next" && (m_wrap || next(current_ws) != workspaces.end())) {
+        if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + current_ws->name);
+          conn.send_command("workspace " + (*current_ws)->name);
         }
         m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
         conn.send_command("workspace next_on_output");
-      } else if (scrolldir == "prev" && (m_wrap || workspaces.front() != current_ws)) {
-        if (!current_ws->focused) {
+      } else if (scrolldir == "prev" && (m_wrap || current_ws != workspaces.begin())) {
+        if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + current_ws->name);
+          conn.send_command("workspace " + (*current_ws)->name);
         }
         m_log.info("%s: Sending workspace prev_on_output command to ipc handler", name());
         conn.send_command("workspace prev_on_output");
