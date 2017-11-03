@@ -20,6 +20,7 @@ namespace modules {
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 
@@ -62,8 +63,10 @@ namespace modules {
     // Get an intstance of the network interface
     if (net::is_wireless_interface(m_interface)) {
       m_wireless = factory_util::unique<net::wireless_network>(m_interface);
+      m_wireless->set_unknown_up(m_unknown_up);
     } else {
       m_wired = factory_util::unique<net::wired_network>(m_interface);
+      m_wired->set_unknown_up(m_unknown_up);
     };
 
     // We only need to start the subthread if the packetloss animation is used
