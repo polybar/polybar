@@ -51,6 +51,7 @@ namespace modules {
     int m_ping_nth_update{0};
     int m_udspeed_minwidth{0};
     bool m_accumulate{false};
+    bool m_unknown_up{false};
   };
 }
 

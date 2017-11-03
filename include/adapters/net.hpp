@@ -68,6 +68,7 @@ namespace net {
     string ip() const;
     string downspeed(int minwidth = 3) const;
     string upspeed(int minwidth = 3) const;
+    void set_unknown_up(bool unknown = true);
 
    protected:
     void check_tuntap();
@@ -78,6 +79,7 @@ namespace net {
     link_status m_status{};
     string m_interface;
     bool m_tuntap{false};
+    bool m_unknown_up{false};
   };
 
   // }}}

@@ -142,6 +142,13 @@ namespace net {
   }
 
   /**
+   * Set if unknown counts as up
+   */
+  void network::set_unknown_up(bool unknown) {
+    m_unknown_up = unknown;
+  }
+
+  /**
    * Query driver info to check if the
    * interface is a TUN/TAP device
    */
@@ -174,7 +181,9 @@ namespace net {
    * Test if the network interface is in a valid state
    */
   bool network::test_interface() const {
-    return file_util::contents("/sys/class/net/" + m_interface + "/operstate").compare(0, 2, "up") == 0;
+    auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
+    bool up = operstate.compare(0, 2, "up") == 0;
+    return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
   }
 
   /**
