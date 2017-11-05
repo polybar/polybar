@@ -602,7 +602,11 @@ void renderer::draw_text(const string& contents) {
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
-  if (m_bg) {
+  // Only draw text background if the color differs from
+  // the background color of the bar itself
+  // Note: this means that if the user explicitly set text
+  // background color equal to background-0 it will be ignored
+  if (m_bg != m_bar.background) {
     block.bg = m_bg;
     block.bg_operator = m_comp_bg;
     block.bg_rect.x = m_rect.x;
