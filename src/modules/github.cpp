@@ -25,11 +25,7 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "Notifications: %notifications%");
 
-      if (m_empty_notifications) {
-        m_label->replace_token("%notifications%", "0");
-      } else {
-        m_label->clear();
-      }
+      update_label(0);
     }
   }
 
@@ -37,9 +33,17 @@ namespace modules {
    * Update module contents
    */
   bool github_module::update() {
-    string content{m_http->get("https://api.github.com/notifications?access_token=" + m_accesstoken)};
-    long response_code{m_http->response_code()};
+    auto notification = get_number_of_notification();
 
+    update_label(notification);
+
+    return true;
+  }
+
+  string github_module::request() {
+    string content{m_http->get("https://api.github.com/notifications?access_token=" + m_accesstoken)};
+
+    long response_code{m_http->response_code()};
     switch (response_code) {
       case 200:
         break;
@@ -51,6 +55,18 @@ namespace modules {
         throw module_error("Unspecified error (" + to_string(response_code) + ")");
     }
 
+    return content;
+  }
+
+  int github_module::get_number_of_notification() {
+    string content;
+    try {
+      content = request();
+    } catch (application_error& e) {
+      m_log.warn("%s: cannot complete the request to github: %s", name(), e.what());
+      return -1;
+    }
+
     size_t pos{0};
     size_t notifications{0};
 
@@ -58,25 +74,26 @@ namespace modules {
       notifications++;
     }
 
-    if (notifications || m_empty_notifications) {
+    return notifications;
+  }
+
+  void github_module::update_label(const int notifications) {
+    if (0 != notifications || m_empty_notifications) {
       m_label->reset_tokens();
       m_label->replace_token("%notifications%", to_string(notifications));
     } else {
       m_label->clear();
     }
-
-    return true;
   }
 
   /**
    * Build module content
    */
   bool github_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL) {
-      builder->node(m_label);
-    } else {
+    if (tag != TAG_LABEL)
       return false;
-    }
+
+    builder->node(m_label);
     return true;
   }
 }
