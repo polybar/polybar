@@ -87,7 +87,15 @@ namespace mpd {
   string mpdsong::get_title() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_TITLE, 0);
-    return string{tag != nullptr ? tag : ""};
+    if (tag == nullptr) {
+      tag = mpd_song_get_tag(m_song.get(), MPD_TAG_NAME, 0);
+      if (tag == nullptr) {
+        auto uri = mpd_song_get_uri(m_song.get());
+        auto name = strrchr(uri, '/');
+        tag = name ? name + 1 : uri;
+      }
+    }
+    return string{tag};
   }
 
   unsigned mpdsong::get_duration() {
