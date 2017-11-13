@@ -1,7 +1,7 @@
 
   Get started with the example configuration:
 
-    $ install -Dm644 /usr/share/examples/polybar/config $HOME/.config/polybar/config
+    $ install -Dm644 /usr/share/doc/polybar/config $HOME/.config/polybar/config
     $ polybar example
 
 
