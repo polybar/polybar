@@ -2,8 +2,8 @@
 # Contributor: Michael Carlberg <c@rlberg.se>
 _pkgname=polybar
 pkgname="${_pkgname}-git"
-pkgver=3.0.5
-pkgrel=4
+pkgver=3.1.0
+pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
