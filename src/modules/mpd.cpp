@@ -26,6 +26,18 @@ namespace modules {
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
               TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
               TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF});
+      auto mod_format = m_formatter->get(format);
+      mod_format->fg = m_conf.get(name(), FORMAT_ONLINE + "-foreground"s, mod_format->fg);
+      mod_format->bg = m_conf.get(name(), FORMAT_ONLINE + "-background"s, mod_format->bg);
+      mod_format->ul = m_conf.get(name(), FORMAT_ONLINE + "-underline"s, mod_format->ul);
+      mod_format->ol = m_conf.get(name(), FORMAT_ONLINE + "-overline"s, mod_format->ol);
+      mod_format->ulsize = m_conf.get(name(), FORMAT_ONLINE + "-underline-size"s, mod_format->ulsize);
+      mod_format->olsize = m_conf.get(name(), FORMAT_ONLINE + "-overline-size"s, mod_format->olsize);
+      mod_format->spacing = m_conf.get(name(), FORMAT_ONLINE + "-spacing"s, mod_format->spacing);
+      mod_format->padding = m_conf.get(name(), FORMAT_ONLINE + "-padding"s, mod_format->padding);
+      mod_format->margin = m_conf.get(name(), FORMAT_ONLINE + "-margin"s, mod_format->margin);
+      mod_format->offset = m_conf.get(name(), FORMAT_ONLINE + "-offset"s, mod_format->offset);
+
     }
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
