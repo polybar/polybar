@@ -66,10 +66,8 @@ namespace modules {
       if (m_modelabel) {
         m_ipc->on_mode_event = [this](const i3ipc::mode_t& mode) {
           m_modeactive = (mode.change != DEFAULT_MODE);
-          if (m_modeactive) {
-            m_modelabel->reset_tokens();
-            m_modelabel->replace_token("%mode%", mode.change);
-          }
+          m_modelabel->reset_tokens();
+          m_modelabel->replace_token("%mode%", m_modeactive ? mode.change : "");
         };
       }
       m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_MODE);
@@ -163,7 +161,7 @@ namespace modules {
   }
 
   bool i3_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL_MODE && m_modeactive) {
+    if (tag == TAG_LABEL_MODE) {
       builder->node(m_modelabel);
     } else if (tag == TAG_LABEL_STATE && !m_workspaces.empty()) {
       if (m_scroll) {
