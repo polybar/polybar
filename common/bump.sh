@@ -17,12 +17,12 @@ main() {
 
   sed -r "s/${tag_prev}/${tag_curr}/g" -i \
     README.md CMakeLists.txt \
-    contrib/polybar.aur/PKGBUILD contrib/polybar.aur/.SRCINFO \
-    contrib/polybar-git.aur/PKGBUILD contrib/polybar-git.aur/.SRCINFO
+    contrib/polybar.aur/PKGBUILD \
+    contrib/polybar-git.aur/PKGBUILD
 
   git add -u README.md CMakeLists.txt \
-    contrib/polybar.aur/PKGBUILD contrib/polybar.aur/.SRCINFO \
-    contrib/polybar-git.aur/PKGBUILD contrib/polybar-git.aur/.SRCINFO \
+    contrib/polybar.aur/PKGBUILD \
+    contrib/polybar-git.aur/PKGBUILD \
     include/version.hpp
 
   git commit -m "build: Bump version to ${tag_curr}"
