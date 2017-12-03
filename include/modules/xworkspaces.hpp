@@ -67,7 +67,6 @@ namespace modules {
     void rebuild_desktops();
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
-    void set_desktop_occupied(xcb_window_t window);
 
     bool input(string&& cmd);
 
@@ -92,6 +91,7 @@ namespace modules {
 
     vector<string> m_desktop_names;
     unsigned int m_current_desktop;
+    vector<int> m_occupied_desktops;
 
     vector<xcb_window_t> m_clientlist;
     vector<unique_ptr<viewport>> m_viewports;
