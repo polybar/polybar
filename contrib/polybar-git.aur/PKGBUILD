@@ -35,9 +35,6 @@ prepare() {
 
 build() {
   cd "${_pkgname}/build" || exit 1
-  if [ -x ../common/version.sh ]; then
-    ../common/version.sh
-  fi
   cmake -DCMAKE_INSTALL_PREFIX=/usr ..
   cmake --build .
 }
