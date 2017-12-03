@@ -67,6 +67,7 @@ namespace modules {
     void rebuild_desktops();
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
+    void set_desktop_occupied(xcb_window_t window);
 
     bool input(string&& cmd);
     vector<string> get_desktop_names();

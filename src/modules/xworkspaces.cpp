@@ -110,6 +110,8 @@ namespace modules {
       if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
         set_desktop_urgent(evt->window);
       }
+    } else if (evt->atom == m_ewmh->_NET_WM_DESKTOP) {
+      set_desktop_occupied(evt->window);
     } else {
       return;
     }
@@ -264,7 +266,27 @@ namespace modules {
         }
       }
     }
+  }
 
+  /**
+   * Find window and set corresponding desktop to occupied
+   */
+  void xworkspaces_module::set_desktop_occupied(xcb_window_t window) {
+    auto desk = ewmh_util::get_desktop_from_window(window);
+    for (auto&& v : m_viewports) {
+      for (auto&& d : v->desktops) {
+        if (d->index == desk && d->state != desktop_state::OCCUPIED) {
+          d->state = desktop_state::OCCUPIED;
+
+          d->label = m_labels.at(d->state)->clone();
+          d->label->reset_tokens();
+          d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
+          d->label->replace_token("%name%", m_desktop_names[d->index]);
+          d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
+          return;
+        }
+      }
+    }
   }
 
   /**
