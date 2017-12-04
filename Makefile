@@ -6,6 +6,10 @@ GENERATOR ?= $(shell for c in ninja make; do command -vp $$c; done | xargs basen
 
 all: configure build link
 
+help:
+	@echo "Available targets:"
+	@awk -F':' '/^\w*:/ {print "  "$$1;}' Makefile
+
 configure:
 	@echo "\033[32;1m**\033[0m Configuring..."
 	@mkdir -p $(BUILDDIR)
@@ -30,6 +34,6 @@ clean:
 	@if [ -L polybar ]; then rm -v polybar; fi
 	@if [ -L polybar-msg ]; then rm -v polybar-msg; fi
 
-.PHONY: configure build link clean
+.PHONY: configure build link clean help
 
 # vim:ts=2 sw=2 noet nolist
