@@ -107,6 +107,7 @@ namespace mpd {
     void set_repeat(bool mode);
     void set_random(bool mode);
     void set_single(bool mode);
+    void set_consume(bool mode);
 
     operator mpd_connection_t::element_type*();
 
@@ -144,6 +145,7 @@ namespace mpd {
     bool random() const;
     bool repeat() const;
     bool single() const;
+    bool consume() const;
 
     bool match_state(mpdstate state) const;
 
@@ -165,6 +167,7 @@ namespace mpd {
     bool m_random{false};
     bool m_repeat{false};
     bool m_single{false};
+    bool m_consume{false};
 
     int m_songid{0};
     int m_queuelen{0};
