@@ -133,6 +133,7 @@ namespace modules {
       for (auto&& win : diff) {
         // untrack window
         m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win), m_clientlist.end());
+        m_occupied_desktops.erase(std::remove(m_occupied_desktops.begin(), m_occupied_desktops.end(), ewmh_util::get_desktop_from_window(win)), m_occupied_desktops.end());
       }
     } else {
       std::set_difference(
@@ -143,7 +144,6 @@ namespace modules {
         // track window
         m_clientlist.emplace_back(win);
         m_occupied_desktops.emplace_back(ewmh_util::get_desktop_from_window(win));
-
       }
     }
   }
