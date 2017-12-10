@@ -51,6 +51,8 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%temperature-f%", to_string(m_temp_f) + "°F");
       label->replace_token("%temperature-c%", to_string(m_temp) + "°C");
+      label->replace_token("%temperature-f-n%", to_string(m_temp_f));
+      label->replace_token("%temperature-c-n%", to_string(m_temp));
       label->replace_token("%temperature%", to_string(m_temp) + "°C");
     };
 
