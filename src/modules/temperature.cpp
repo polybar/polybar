@@ -32,13 +32,19 @@ namespace modules {
     m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_RAMP});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label[temp_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%temperature%");
+      m_label[temp_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%temperature-c%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_label[temp_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%temperature%");
+      m_label[temp_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%temperature-c%");
     }
     if (m_formatter->has(TAG_RAMP)) {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+    }
+
+    // Deprecation warning for the %temperature% token
+    if((m_label[temp_state::NORMAL] && m_label[temp_state::NORMAL]->has_token("%temperature%")) ||
+        ((m_label[temp_state::WARN] && m_label[temp_state::WARN]->has_token("%temperature%")))) {
+      m_log.warn("%s: The token `%%temperature%%` is deprecated, use `%%temperature-c%%` instead.", name());
     }
   }
 
@@ -53,6 +59,8 @@ namespace modules {
       label->replace_token("%temperature-c%", to_string(m_temp) + "°C");
       label->replace_token("%temperature-f-n%", to_string(m_temp_f));
       label->replace_token("%temperature-c-n%", to_string(m_temp));
+
+      // DEPRECATED: Will be removed in later release
       label->replace_token("%temperature%", to_string(m_temp) + "°C");
     };
 
