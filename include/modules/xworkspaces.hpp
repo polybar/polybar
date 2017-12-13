@@ -93,7 +93,7 @@ namespace modules {
     vector<string> m_desktop_names;
     unsigned int m_current_desktop;
     string m_current_desktop_name;
-    vector<int> m_occupied_desktops;
+    vector<unsigned int> m_occupied_desktops;
 
     vector<pair<xcb_window_t, unsigned int>> m_clientlist;
     vector<unique_ptr<viewport>> m_viewports;
