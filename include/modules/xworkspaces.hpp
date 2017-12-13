@@ -93,7 +93,7 @@ namespace modules {
     unsigned int m_current_desktop;
     vector<int> m_occupied_desktops;
 
-    vector<xcb_window_t> m_clientlist;
+    vector<pair<xcb_window_t, unsigned int>> m_clientlist;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;
