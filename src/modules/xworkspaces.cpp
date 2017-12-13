@@ -125,13 +125,20 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
+    m_occupied_desktops.erase(m_occupied_desktops.begin(), m_occupied_desktops.end());
+
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
       clients.emplace_back(win_desktop);
+
+      m_occupied_desktops.emplace_back(win_desktop.second);
     }
 
     std::sort(clients.begin(), clients.end());
     std::sort(m_clientlist.begin(), m_clientlist.end());
+    std::sort(m_occupied_desktops.begin(), m_occupied_desktops.end());
+    m_occupied_desktops.erase(
+        std::unique(m_occupied_desktops.begin(), m_occupied_desktops.end()), m_occupied_desktops.end());
 
     if (m_clientlist.size() > clients.size()) {
       std::set_difference(
@@ -139,8 +146,6 @@ namespace modules {
       for (auto&& win_desktop : diff) {
         // untrack window
         m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
-        m_occupied_desktops.erase(
-            std::remove(m_occupied_desktops.begin(), m_occupied_desktops.end(), win_desktop.second), m_occupied_desktops.end());
       }
     } else {
       std::set_difference(
@@ -150,7 +155,6 @@ namespace modules {
         m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         m_clientlist.emplace_back(win_desktop);
-        m_occupied_desktops.emplace_back(win_desktop.second);
       }
     }
   }
