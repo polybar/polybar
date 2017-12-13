@@ -126,28 +126,35 @@ namespace modules {
    * Rebuild the list of managed clients
    */
   void xworkspaces_module::rebuild_clientlist() {
-    vector<xcb_window_t> clients = ewmh_util::get_client_list();
-    vector<xcb_window_t> diff;
+    vector<pair<xcb_window_t, unsigned int>> clients;
+    vector<pair<xcb_window_t, unsigned int>> diff;
+
+    for(xcb_window_t win : ewmh_util::get_client_list()) {
+      pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
+      clients.emplace_back(win_desktop);
+    }
+
     std::sort(clients.begin(), clients.end());
     std::sort(m_clientlist.begin(), m_clientlist.end());
 
     if (m_clientlist.size() > clients.size()) {
       std::set_difference(
           m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
-      for (auto&& win : diff) {
+      for (auto&& win_desktop : diff) {
         // untrack window
-        m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win), m_clientlist.end());
-        m_occupied_desktops.erase(std::remove(m_occupied_desktops.begin(), m_occupied_desktops.end(), ewmh_util::get_desktop_from_window(win)), m_occupied_desktops.end());
+        m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
+        m_occupied_desktops.erase(
+            std::remove(m_occupied_desktops.begin(), m_occupied_desktops.end(), win_desktop.second), m_occupied_desktops.end());
       }
     } else {
       std::set_difference(
           clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
-      for (auto&& win : diff) {
+      for (auto&& win_desktop : diff) {
         // listen for wm_hint (urgency) changes
-        m_connection.ensure_event_mask(win, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
-        m_clientlist.emplace_back(win);
-        m_occupied_desktops.emplace_back(ewmh_util::get_desktop_from_window(win));
+        m_clientlist.emplace_back(win_desktop);
+        m_occupied_desktops.emplace_back(win_desktop.second);
       }
     }
   }
