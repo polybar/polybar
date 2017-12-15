@@ -129,7 +129,7 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
-    m_occupied_desktops.erase(m_occupied_desktops.begin(), m_occupied_desktops.end());
+    m_occupied_desktops.clear();
 
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
