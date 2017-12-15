@@ -66,6 +66,7 @@ namespace modules {
     void rebuild_clientlist();
     void rebuild_desktops();
     void rebuild_desktop_states();
+    void rebuild_desktop_names();
     void set_desktop_urgent(xcb_window_t window);
 
     bool input(string&& cmd);
@@ -88,6 +89,7 @@ namespace modules {
 
     vector<monitor_t> m_monitors;
     bool m_monitorsupport{true};
+    bool m_desktop_names_support{true};
 
     vector<string> m_desktop_names;
     unsigned int m_current_desktop;

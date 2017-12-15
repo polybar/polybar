@@ -99,6 +99,13 @@ namespace ewmh_util {
     return {};
   }
 
+  unsigned int get_number_of_desktops(int screen) {
+    auto conn = initialize().get();
+    unsigned int reply = 0;
+    xcb_ewmh_get_number_of_desktops_reply(conn, xcb_ewmh_get_number_of_desktops(conn, screen), &reply, nullptr);
+    return reply;
+  }
+
   xcb_window_t get_active_window(int screen) {
     auto conn = initialize().get();
     unsigned int win = XCB_NONE;

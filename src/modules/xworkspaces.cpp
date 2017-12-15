@@ -47,6 +47,12 @@ namespace modules {
       throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
     }
 
+    // Check if the WM supports _NET_DESKTOP_NAMES or _NET_NUMBER_OF_DESKTOPS
+    if (!(m_desktop_names_support = ewmh_util::supports(m_ewmh->_NET_DESKTOP_NAMES)) &&
+      !ewmh_util::supports(m_ewmh->_NET_NUMBER_OF_DESKTOPS)) {
+      throw module_error("The WM supports neither _NET_DESKTOP_NAMES or _NET_NUMBER_OF_DESKTOPS, aborting...");
+    }
+
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
 
@@ -80,8 +86,7 @@ namespace modules {
     // Get list of monitors
     m_monitors = randr_util::get_monitors(m_connection, m_connection.root(), false);
 
-    // Get desktop details
-    m_desktop_names = ewmh_util::get_desktop_names();
+    rebuild_desktop_names();
     m_current_desktop = ewmh_util::get_current_desktop();
 
     rebuild_desktops();
@@ -97,8 +102,9 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
-    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
-      m_desktop_names = ewmh_util::get_desktop_names();
+    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES ||
+      evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
+      rebuild_desktop_names();
       rebuild_desktops();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
@@ -114,6 +120,25 @@ namespace modules {
 
     if (m_timer.allow(evt->time)) {
       broadcast();
+    }
+  }
+
+  /**
+   * Rebuild the names of desktops
+   */
+  void xworkspaces_module::rebuild_desktop_names() {
+    // Get desktop details
+    if (m_desktop_names_support) {
+      m_desktop_names = ewmh_util::get_desktop_names();
+    } else {
+      m_desktop_names.clear();
+      unsigned n = ewmh_util::get_number_of_desktops();
+      m_desktop_names.reserve(n);;
+      std::generate_n(std::back_inserter(m_desktop_names), n,
+        [i=0] () mutable {
+          i++;
+          return std::to_string(i);
+        });
     }
   }
 
