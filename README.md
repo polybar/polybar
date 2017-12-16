@@ -14,6 +14,8 @@ Here are a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
+If you need help, check out the [Support](SUPPORT.md) page.
+
 Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new) here on GitHub.
 Make sure you include steps on how to reproduce it. There's also an irc channel available at freenode, cleverly named `#polybar`.
 
@@ -33,7 +35,7 @@ Make sure you include steps on how to reproduce it. There's also an irc channel 
 
 The main purpose of **Polybar** is to help users create awesome status bars.
 It has built-in functionality to display information about the most commonly used services.
-Some of the batteries included so far:
+Some of the services included so far:
 
 - Systray icons
 - Window title
@@ -58,13 +60,20 @@ Some of the batteries included so far:
 
 ## Getting started
 
+<a href="https://repology.org/metapackage/polybar">
+    <img src="https://repology.org/badge/vertical-allrepos/polybar.svg" alt="Packaging status" align="right">
+</a>
+
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release. If you create a package for any other distribution, please consider contributing the template.
 
-If you are using **Void Linux**, there's a [xbps template available](https://github.com/jaagr/void-packages/blob/polybar/srcpkgs/polybar/template) that you could use to build the project.
-A [pull-request has been submitted](https://github.com/voidlinux/void-packages/pull/5192) but it is still not merged into the official repositories so I wouldn't hold my breath.
+If you are using **Void Linux**, you can install [polybar](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
 
-If you are using **NixOS**, **Polybar** is available in the unstable channel and can be installed with the command `nix-env -iA nixos.polybar`.
+If you are using **NixOS**, polybar is available in both the stable and unstable channels and can be installed with the command `nix-env -iA nixos.polybar`.
+
+If you are using **Debian**, polybar is available from the [GetDeb](http://www.getdeb.net/app/Polybar) repository.
+
+If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
 
 ### Dependencies
@@ -93,7 +102,7 @@ Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/
 Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
 
   ~~~ sh
-  $ git clone --branch 3.0.5 --recursive https://github.com/jaagr/polybar
+  $ git clone --branch 3.1.0 --recursive https://github.com/jaagr/polybar
   $ mkdir polybar/build
   $ cd polybar/build
   $ cmake ..

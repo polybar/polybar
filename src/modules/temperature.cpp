@@ -4,6 +4,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include <cmath>
 
 #include "modules/meta/base.inl"
 
@@ -15,10 +16,13 @@ namespace modules {
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
+    m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
+    if (m_path.empty()) {
+      m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
+    }
 
     if (!file_util::exists(m_path)) {
       throw module_error("The file '" + m_path + "' does not exist");
@@ -40,10 +44,13 @@ namespace modules {
 
   bool temperature_module::update() {
     m_temp = std::atoi(file_util::contents(m_path).c_str()) / 1000.0f + 0.5f;
+    int m_temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
+      label->replace_token("%temperature-f%", to_string(m_temp_f) + "°F");
+      label->replace_token("%temperature-c%", to_string(m_temp) + "°C");
       label->replace_token("%temperature%", to_string(m_temp) + "°C");
     };
 

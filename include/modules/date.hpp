@@ -3,6 +3,10 @@
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+
 POLYBAR_NS
 
 namespace modules {
@@ -32,6 +36,9 @@ namespace modules {
 
     string m_date;
     string m_time;
+
+    // Single stringstream to be used to gather the results of std::put_time
+    std::stringstream datetime_stream;
 
     std::atomic<bool> m_toggled{false};
   };

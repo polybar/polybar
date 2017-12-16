@@ -66,6 +66,9 @@ tray-padding = 2
 ;scroll-up = i3wm-wsnext
 ;scroll-down = i3wm-wsprev
 
+cursor-click = pointer
+cursor-scroll = ns-resize
+
 [module/xwindow]
 type = internal/xwindow
 label = %title:0:30:...%
@@ -190,7 +193,7 @@ interval = 2
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #f90000
-label = %percentage%%
+label = %percentage:2%%
 
 [module/memory]
 type = internal/memory
@@ -330,6 +333,8 @@ ramp-foreground = ${colors.foreground-alt}
 
 [module/powermenu]
 type = custom/menu
+
+expand-right = true
 
 format-spacing = 1
 

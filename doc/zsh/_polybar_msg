@@ -16,7 +16,7 @@ _polybar_msg() {
       case $words[1] in
         hook) _arguments ':module name:' ':hook index:'; ret=0 ;;
         action) _arguments ':action payload:'; ret=0 ;;
-        cmd) _arguments ':command payload:'; ret=0 ;;
+        cmd) _arguments ':command payload:(show hide toggle restart quit)'; ret=0 ;;
       esac
       ;;
   esac

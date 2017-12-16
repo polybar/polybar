@@ -60,7 +60,7 @@ namespace modules {
 
       if (!blacklisted(caps_str) && m_keyboard->on(caps)) {
         m_indicators[caps] = m_indicator->clone();
-        m_indicators[caps]->replace_token("%name%", m_keyboard->indicator_name(caps));
+        m_indicators[caps]->replace_token("%name%", caps_str);
       }
 
       const auto& num = keyboard::indicator::type::NUM_LOCK;

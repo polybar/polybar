@@ -69,10 +69,7 @@ namespace mpd {
   string mpdsong::get_artist() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ARTIST, 0);
-    if (tag == nullptr) {
-      return "";
-    }
-    return string{tag};
+    return string{tag != nullptr ? tag : ""};
   }
 
   string mpdsong::get_album() {
@@ -90,7 +87,15 @@ namespace mpd {
   string mpdsong::get_title() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_TITLE, 0);
-    return string{tag != nullptr ? tag : ""};
+    if (tag == nullptr) {
+      tag = mpd_song_get_tag(m_song.get(), MPD_TAG_NAME, 0);
+      if (tag == nullptr) {
+        auto uri = mpd_song_get_uri(m_song.get());
+        auto name = strrchr(uri, '/');
+        tag = name ? name + 1 : uri;
+      }
+    }
+    return string{tag};
   }
 
   unsigned mpdsong::get_duration() {
@@ -316,6 +321,16 @@ namespace mpd {
     }
   }
 
+  void mpdconnection::set_consume(bool mode) {
+    try {
+      check_prerequisites_commands_list();
+      mpd_run_consume(m_connection.get(), mode);
+      check_errors(m_connection.get());
+    } catch (const mpd_exception& e) {
+      m_log.err("mpdconnection.set_consume: %s", e.what());
+    }
+  }
+
   mpdconnection::operator mpd_connection_t::element_type*() {
     return m_connection.get();
   }
@@ -349,6 +364,7 @@ namespace mpd {
     m_random = mpd_status_get_random(m_status.get());
     m_repeat = mpd_status_get_repeat(m_status.get());
     m_single = mpd_status_get_single(m_status.get());
+    m_consume = mpd_status_get_consume(m_status.get());
     m_elapsed_time = mpd_status_get_elapsed_time(m_status.get());
     m_total_time = mpd_status_get_total_time(m_status.get());
   }
@@ -397,6 +413,10 @@ namespace mpd {
 
   bool mpdstatus::single() const {
     return m_single;
+  }
+
+  bool mpdstatus::consume() const {
+    return m_consume;
   }
 
   bool mpdstatus::match_state(mpdstate state) const {

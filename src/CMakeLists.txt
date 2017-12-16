@@ -49,6 +49,9 @@ endif()
 if(NOT WITH_XRM)
   list(REMOVE_ITEM files x11/xresources.cpp)
 endif()
+if(NOT WITH_XCURSOR)
+  list(REMOVE_ITEM files x11/cursor.cpp)
+endif()
 
 # }}}
 
@@ -73,7 +76,8 @@ if(BUILD_IPC_MSG)
     SOURCES
       ipc.cpp
       utils/env.cpp
-      utils/file.cpp)
+      utils/file.cpp
+      utils/string.cpp)
   target_compile_options(polybar-msg PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 endif()
 

@@ -77,7 +77,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
 
     switch (tag) {
       case 'B':
-        m_sig.emit(change_background{parse_color(value, 0)});
+        m_sig.emit(change_background{parse_color(value, bar.background)});
         break;
 
       case 'F':
@@ -102,8 +102,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'R':
-        m_sig.emit(change_background{parse_color(value, bar.foreground)});
-        m_sig.emit(change_foreground{parse_color(value, bar.background)});
+        m_sig.emit(reverse_colors{});
         break;
 
       case 'O':

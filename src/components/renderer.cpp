@@ -205,7 +205,7 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_align = alignment::NONE;
 
   // Reset colors
-  m_bg = 0;
+  m_bg = m_bar.background;
   m_fg = m_bar.foreground;
   m_ul = m_bar.underline.color;
   m_ol = m_bar.overline.color;
@@ -399,6 +399,26 @@ double renderer::block_x(alignment a) const {
       if ((min_pos = block_w(alignment::LEFT))) {
         min_pos += BLOCK_GAP;
       }
+
+      base_pos += (m_bar.size.w - m_rect.width) / 2.0;
+
+      int border_left = m_bar.borders.at(edge::LEFT).size;
+
+      /*
+       * If m_rect.x is greater than the left border, then the systray is rendered on the left and we need to adjust for
+       * that.
+       * Since we cannot access any tray objects from here we need to calculate the tray size through m_rect.x
+       * m_rect.x is the x-position of the bar (without the tray or any borders), so if the tray is on the left,
+       * m_rect.x effectively is border_left + tray_width.
+       * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
+       * placed on the left
+       */
+      if(m_rect.x > border_left) {
+        base_pos -= m_rect.x - border_left;
+      }
+
+      base_pos -= border_left;
+
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
@@ -646,7 +666,11 @@ void renderer::draw_text(const string& contents) {
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
-  if (m_bg) {
+  // Only draw text background if the color differs from
+  // the background color of the bar itself
+  // Note: this means that if the user explicitly set text
+  // background color equal to background-0 it will be ignored
+  if (m_bg != m_bar.background) {
     block.bg = m_bg;
     block.bg_operator = m_comp_bg;
     block.bg_rect.x = m_rect.x;
@@ -764,6 +788,14 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
   return true;
 }
 
+bool renderer::on(const signals::parser::reverse_colors&) {
+  m_log.trace_x("renderer: reverse_colors");
+  m_fg = m_fg + m_bg;
+  m_bg = m_fg - m_bg;
+  m_fg = m_fg - m_bg;
+  return true;
+}
+
 bool renderer::on(const signals::parser::offset_pixel& evt) {
   m_log.trace_x("renderer: offset_pixel(%f)", evt.cast());
   m_blocks[m_align].x += evt.cast();
@@ -803,11 +835,16 @@ bool renderer::on(const signals::parser::action_begin& evt) {
 
 bool renderer::on(const signals::parser::action_end& evt) {
   auto btn = evt.cast();
+
+  /*
+   * Iterate actions in reverse and find the FIRST active action that matches
+   */
   m_log.trace_x("renderer: action_end(btn=%i)", static_cast<int>(btn));
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
     if (action->active && action->align == m_align && action->button == btn) {
       action->end_x = m_blocks.at(action->align).x;
       action->active = false;
+      break;
     }
   }
   return true;

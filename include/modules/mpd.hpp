@@ -29,6 +29,9 @@ namespace modules {
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};
+    static constexpr const char* FORMAT_PLAYING{"format-playing"};
+    static constexpr const char* FORMAT_PAUSED{"format-paused"};
+    static constexpr const char* FORMAT_STOPPED{"format-stopped"};
     static constexpr const char* TAG_BAR_PROGRESS{"<bar-progress>"};
     static constexpr const char* TAG_TOGGLE{"<toggle>"};
     static constexpr const char* TAG_TOGGLE_STOP{"<toggle-stop>"};
@@ -37,6 +40,7 @@ namespace modules {
     static constexpr const char* TAG_ICON_RANDOM{"<icon-random>"};
     static constexpr const char* TAG_ICON_REPEAT{"<icon-repeat>"};
     static constexpr const char* TAG_ICON_REPEAT_ONE{"<icon-repeatone>"};
+    static constexpr const char* TAG_ICON_CONSUME{"<icon-consume>"};
     static constexpr const char* TAG_ICON_PREV{"<icon-prev>"};
     static constexpr const char* TAG_ICON_STOP{"<icon-stop>"};
     static constexpr const char* TAG_ICON_PLAY{"<icon-play>"};
@@ -56,6 +60,7 @@ namespace modules {
     static constexpr const char* EVENT_REPEAT{"mpdrepeat"};
     static constexpr const char* EVENT_REPEAT_ONE{"mpdrepeatone"};
     static constexpr const char* EVENT_RANDOM{"mpdrandom"};
+    static constexpr const char* EVENT_CONSUME{"mpdconsume"};
     static constexpr const char* EVENT_SEEK{"mpdseek"};
 
     unique_ptr<mpdconnection> m_mpd;

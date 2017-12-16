@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 #include "utils/http.hpp"
 
 POLYBAR_NS
@@ -18,6 +18,9 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    private:
+    void update_label(const int);
+    int get_number_of_notification();
+    string request();
     static constexpr auto TAG_LABEL = "<label>";
 
     label_t m_label{};
