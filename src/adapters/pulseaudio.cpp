@@ -56,7 +56,6 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name) : m_log(logger)
     wait_loop(op, m_mainloop);
   }
   if (s_name.empty()) {
-    printf("not found\n");
     op = pa_context_get_server_info(m_context, get_default_sink_callback, this);
     if (!op) {
       throw pulseaudio_error("Failed to get pulseaudio server info.");
@@ -135,7 +134,8 @@ int pulseaudio::process_events() {
           throw pulseaudio_error("Failed to get default sink.");
         o = pa_context_get_sink_info_by_name(m_context, def_s_name.c_str(), sink_info_callback, this);
         wait_loop(o, m_mainloop);
-        m_log.warn("pulseaudio: using default sink %s", s_name);
+        if (spec_s_name != s_name)
+          m_log.warn("pulseaudio: using default sink %s", s_name);
         break;
       default:
 	break;
