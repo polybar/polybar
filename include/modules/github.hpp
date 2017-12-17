@@ -16,17 +16,22 @@ namespace modules {
 
     bool update();
     bool build(builder* builder, const string& tag) const;
+    string get_format() const;
 
    private:
     void update_label(const int);
     int get_number_of_notification();
     string request();
     static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_LABEL_OFFLINE = "<label-offline>";
+    static constexpr auto FORMAT_OFFLINE = "format-offline";
 
     label_t m_label{};
+    label_t m_label_offline{};
     string m_accesstoken{};
     unique_ptr<http_downloader> m_http{};
     bool m_empty_notifications{false};
+    bool m_offline{false};
   };
 }
 
