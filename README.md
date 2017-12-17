@@ -87,7 +87,10 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-util-wm
 - xcb-util-xrm
 
-Optional dependencies for extended module support:
+**Optional dependencies:**
+- xcb-util-cursor *required for the `cursor-click` and `cursor-scroll` settings*
+
+**Optional dependencies for extended module support:**
 - alsa-lib *required by `internal/volume`*
 - jsoncpp *required by `internal/i3`*
 - libmpdclient *required by `internal/mpd`*
