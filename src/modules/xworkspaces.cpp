@@ -129,20 +129,22 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
-    m_occupied_desktops.clear();
+    m_desktop_client_count.clear();
 
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
       clients.emplace_back(win_desktop);
 
-      m_occupied_desktops.emplace_back(win_desktop.second);
+      m_desktop_client_count.emplace_back(win_desktop.second);
     }
 
     std::sort(clients.begin(), clients.end());
     std::sort(m_clientlist.begin(), m_clientlist.end());
-    std::sort(m_occupied_desktops.begin(), m_occupied_desktops.end());
-    m_occupied_desktops.erase(
-        std::unique(m_occupied_desktops.begin(), m_occupied_desktops.end()), m_occupied_desktops.end());
+
+    // m_desktop_client_count.uniq!
+    std::sort(m_desktop_client_count.begin(), m_desktop_client_count.end());
+    m_desktop_client_count.erase(
+        std::unique(m_desktop_client_count.begin(), m_desktop_client_count.end()), m_desktop_client_count.end());
 
     if (m_clientlist.size() > clients.size()) {
       std::set_difference(
@@ -227,11 +229,11 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        auto desktop_occupied = std::find(std::begin(m_occupied_desktops), std::end(m_occupied_desktops), d->index);
+        auto desktop_occupied = std::find(std::begin(m_desktop_client_count), std::end(m_desktop_client_count), d->index);
 
         if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
-        } else if (desktop_occupied != std::end(m_occupied_desktops)) {
+        } else if (desktop_occupied != std::end(m_desktop_client_count)) {
           d->state = desktop_state::OCCUPIED;
         } else {
           d->state = desktop_state::EMPTY;
