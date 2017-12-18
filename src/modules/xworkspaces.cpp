@@ -85,6 +85,7 @@ namespace modules {
     m_current_desktop = ewmh_util::get_current_desktop();
 
     rebuild_desktops();
+    recount_clients_on_desktops();
     rebuild_desktop_states();
 
     // Get _NET_CLIENT_LIST
@@ -101,6 +102,7 @@ namespace modules {
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
       m_desktop_names = ewmh_util::get_desktop_names();
       rebuild_desktops();
+      recount_clients_on_desktops();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
@@ -125,29 +127,21 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
-    m_desktop_client_count.clear();
+    recount_clients_on_desktops();
 
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
       clients.emplace_back(win_desktop);
-
-      m_desktop_client_count.emplace_back(win_desktop.second);
     }
 
-    std::sort(clients.begin(), clients.end());
-    std::sort(m_clientlist.begin(), m_clientlist.end());
-
-    // m_desktop_client_count.uniq!
-    std::sort(m_desktop_client_count.begin(), m_desktop_client_count.end());
-    m_desktop_client_count.erase(
-        std::unique(m_desktop_client_count.begin(), m_desktop_client_count.end()), m_desktop_client_count.end());
-
+    // TODO: diff once and update our client_list accordingly
     if (m_clientlist.size() > clients.size()) {
       std::set_difference(
           m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
       for (auto&& win_desktop : diff) {
         // untrack window
         m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
+        /* m_log.info("%s: Untracking win %u from desk %u", name(), win_desktop.first, win_desktop.second); */
       }
     } else {
       std::set_difference(
@@ -157,7 +151,25 @@ namespace modules {
         m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         m_clientlist.emplace_back(win_desktop);
+        /* m_log.info("%s: Tracking win %u from desk %u", name(), win_desktop.first, win_desktop.second); */
       }
+    }
+  }
+
+  /**
+   * Rebuild count of clients on each desktop
+   */
+  void xworkspaces_module::recount_clients_on_desktops() {
+    /* if (m_desktop_client_count.size() != m_desktop_names.size()) { */
+      m_desktop_client_count.clear();
+      m_desktop_client_count.resize(m_desktop_names.size(), 0);
+    /* } */
+
+    for(xcb_window_t win : ewmh_util::get_client_list()) {
+      auto desk = ewmh_util::get_desktop_from_window(win);
+      /* m_log.info("%s: Windows found on desktop %u", name(), (desk + 1)); */
+      m_desktop_client_count[desk] = (m_desktop_client_count[desk] + 1);
+      /* m_log.info("%s: Counted %u windows on desktop %u", name(), m_desktop_client_count[desk], (desk + 1)); */
     }
   }
 
@@ -220,11 +232,10 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        auto desktop_occupied = std::find(std::begin(m_desktop_client_count), std::end(m_desktop_client_count), d->index);
 
         if (d->index == m_current_desktop) {
           d->state = desktop_state::ACTIVE;
-        } else if (desktop_occupied != std::end(m_desktop_client_count)) {
+        } else if (m_desktop_client_count[d->index] > 0) {
           d->state = desktop_state::OCCUPIED;
         } else {
           d->state = desktop_state::EMPTY;
