@@ -64,6 +64,7 @@ namespace modules {
     void handle(const evt::property_notify& evt);
 
     void rebuild_clientlist();
+    void recount_clients_on_desktops();
     void rebuild_desktops();
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
