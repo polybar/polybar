@@ -136,7 +136,6 @@ namespace modules {
       clients.emplace_back(win_desktop);
     }
 
-    // TODO: diff once and update our client_list accordingly
     if (m_clientlist.size() > clients.size()) {
       std::set_difference(
           m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
