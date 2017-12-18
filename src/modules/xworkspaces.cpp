@@ -127,8 +127,6 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
-    recount_clients_on_desktops();
-
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
       clients.emplace_back(win_desktop);
@@ -141,7 +139,7 @@ namespace modules {
       for (auto&& win_desktop : diff) {
         // untrack window
         m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
-        /* m_log.info("%s: Untracking win %u from desk %u", name(), win_desktop.first, win_desktop.second); */
+        m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] + 1);
       }
     } else {
       std::set_difference(
@@ -151,7 +149,7 @@ namespace modules {
         m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         m_clientlist.emplace_back(win_desktop);
-        /* m_log.info("%s: Tracking win %u from desk %u", name(), win_desktop.first, win_desktop.second); */
+        m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] - 1);
       }
     }
   }
@@ -160,16 +158,15 @@ namespace modules {
    * Rebuild count of clients on each desktop
    */
   void xworkspaces_module::recount_clients_on_desktops() {
-    /* if (m_desktop_client_count.size() != m_desktop_names.size()) { */
-      m_desktop_client_count.clear();
+    if (m_desktop_client_count.size() != m_desktop_names.size()) {
       m_desktop_client_count.resize(m_desktop_names.size(), 0);
-    /* } */
 
-    for(xcb_window_t win : ewmh_util::get_client_list()) {
-      auto desk = ewmh_util::get_desktop_from_window(win);
-      /* m_log.info("%s: Windows found on desktop %u", name(), (desk + 1)); */
-      m_desktop_client_count[desk] = (m_desktop_client_count[desk] + 1);
-      /* m_log.info("%s: Counted %u windows on desktop %u", name(), m_desktop_client_count[desk], (desk + 1)); */
+      m_desktop_client_count.clear();
+
+      for(xcb_window_t win : ewmh_util::get_client_list()) {
+        auto desk = ewmh_util::get_desktop_from_window(win);
+        m_desktop_client_count[desk] = (m_desktop_client_count[desk] + 1);
+      }
     }
   }
 
