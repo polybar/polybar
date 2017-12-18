@@ -158,7 +158,9 @@ namespace modules {
    * Rebuild count of clients on each desktop
    */
   void xworkspaces_module::recount_clients_on_desktops() {
+    m_log.info("%s: Tally has %u Desktops, EWMH has %u", name(), m_desktop_client_count.size(), m_desktop_names.size());
     if (m_desktop_client_count.size() != m_desktop_names.size()) {
+      m_log.info("%s: Resizing and Recounting Tally", name());
       m_desktop_client_count.resize(m_desktop_names.size(), 0);
 
       m_desktop_client_count.clear();
@@ -166,6 +168,7 @@ namespace modules {
       for(xcb_window_t win : ewmh_util::get_client_list()) {
         auto desk = ewmh_util::get_desktop_from_window(win);
         m_desktop_client_count[desk] = (m_desktop_client_count[desk] + 1);
+        m_log.info("%s: Desktop %u has now %u windows", name(), (desk + 1), m_desktop_client_count[desk]);
       }
     }
   }
@@ -237,6 +240,8 @@ namespace modules {
         } else {
           d->state = desktop_state::EMPTY;
         } 
+
+        m_log.info("%s: Desktop %u has %u windows assigned", name(), (d->index + 1), m_desktop_client_count[d->index]);
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
