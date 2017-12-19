@@ -136,24 +136,22 @@ namespace modules {
       clients.emplace_back(win_desktop);
     }
 
-    if (m_clientlist.size() > clients.size()) {
-      std::set_difference(
-          m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
-      for (auto&& win_desktop : diff) {
-        // untrack window
-        m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
-        m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] + 1);
-      }
-    } else {
-      std::set_difference(
-          clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
-      for (auto&& win_desktop : diff) {
-        // listen for wm_hint (urgency) changes
-        m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
-        // track window
-        m_clientlist.emplace_back(win_desktop);
-        m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] - 1);
-      }
+    std::set_difference(
+        m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
+    for (auto&& win_desktop : diff) {
+      // untrack window
+      m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
+      m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] + 1);
+    }
+
+    std::set_difference(
+        clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
+    for (auto&& win_desktop : diff) {
+      // listen for wm_hint (urgency) changes
+      m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
+      // track window
+      m_clientlist.emplace_back(win_desktop);
+      m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] - 1);
     }
   }
 
