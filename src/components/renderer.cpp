@@ -221,8 +221,8 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_context->save();
   m_context->clear();
 
-  // Draw the background on the new layer to make up for
-  // the areas not covered by the alignment blocks
+  // Draw the background as base layer so that everything
+  // else is drawn on top of it
   fill_background();
 
 
