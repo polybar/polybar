@@ -41,12 +41,12 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
 
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
 
-  xcb_visualtype_t* m_visual = nullptr;
-  xcb_gcontext_t m_gcontext = XCB_NONE;
-  xcb_pixmap_t m_pixmap = XCB_NONE;
+  xcb_visualtype_t* m_visual{nullptr};
+  xcb_gcontext_t m_gcontext{XCB_NONE};
+  xcb_pixmap_t m_pixmap{XCB_NONE};
   unique_ptr<cairo::xcb_surface> m_surface;
 
-  bool m_attached = false;
+  bool m_attached{false};
 
   void allocate_resources();
   void free_resources();
