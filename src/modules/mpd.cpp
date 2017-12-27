@@ -162,12 +162,9 @@ namespace modules {
 
       int idle_flags = 0;
       if ((idle_flags = m_mpd->noidle()) != 0) {
+        // Update status on every event
         m_status->update(idle_flags, m_mpd.get());
         return true;
-      }
-
-      if (m_status->match_state(mpdstate::PLAYING)) {
-        m_status->update_timer();
       }
     } catch (const mpd_exception& err) {
       m_log.err("%s: %s", name(), err.what());
@@ -201,6 +198,11 @@ namespace modules {
       if (connected() && (m_status = m_mpd->get_status_safe())) {
         return false;
       }
+    }
+
+    if (m_status->match_state(mpdstate::PLAYING)) {
+      // Always update the status while playing
+      m_status->update(-1, m_mpd.get());
     }
 
     string artist;

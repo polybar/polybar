@@ -140,7 +140,6 @@ namespace mpd {
 
     void fetch_data(mpdconnection* conn);
     void update(int event, mpdconnection* connection);
-    void update_timer();
 
     bool random() const;
     bool repeat() const;

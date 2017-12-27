@@ -370,6 +370,10 @@ namespace mpd {
   }
 
   void mpdstatus::update(int event, mpdconnection* connection) {
+    /*
+     * Only update if either the player state (play, stop, pause, seek, ...), the options (random, repeat, ...),
+     * or the playlist has been changed
+     */
     if (connection == nullptr || !static_cast<bool>(event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_PLAYLIST))) {
       return;
     }
@@ -393,14 +397,6 @@ namespace mpd {
       default:
         m_state = mpdstate::UNKNOWN;
     }
-  }
-
-  void mpdstatus::update_timer() {
-    auto diff = chrono::system_clock::now() - m_updated_at;
-    auto dur = chrono::duration_cast<chrono::milliseconds>(diff);
-    m_elapsed_time_ms += dur.count();
-    m_elapsed_time = m_elapsed_time_ms / 1000 + 0.5f;
-    m_updated_at = chrono::system_clock::now();
   }
 
   bool mpdstatus::random() const {
