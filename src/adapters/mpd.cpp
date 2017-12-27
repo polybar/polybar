@@ -374,7 +374,7 @@ namespace mpd {
      * Only update if either the player state (play, stop, pause, seek, ...), the options (random, repeat, ...),
      * or the playlist has been changed
      */
-    if (connection == nullptr || !static_cast<bool>(event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_PLAYLIST))) {
+    if (connection == nullptr || !static_cast<bool>(event & (MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS | MPD_IDLE_QUEUE))) {
       return;
     }
 
