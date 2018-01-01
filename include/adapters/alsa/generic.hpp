@@ -4,7 +4,11 @@
 #include <alsa/asoundlib.h>
 #else
 #include <assert.h>
+
+#ifndef __FreeBSD__
 #include <endian.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
