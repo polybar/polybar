@@ -174,39 +174,20 @@ namespace modules {
     string cnt{to_string(m_counter)};
     string output{module::get_output()};
 
-    if (!m_actions[mousebtn::LEFT].empty()) {
-      m_builder->cmd(mousebtn::LEFT, string_util::replace_all(m_actions[mousebtn::LEFT], "%counter%", cnt));
+    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
 
-      if(m_tail && m_command && m_command->is_running()) {
-        m_builder->cmd(mousebtn::LEFT, string_util::replace_all(m_actions[mousebtn::LEFT], "%pid%", std::to_string(m_command->get_pid())));
-      }
-    }
-    if (!m_actions[mousebtn::MIDDLE].empty()) {
-      m_builder->cmd(mousebtn::MIDDLE, string_util::replace_all(m_actions[mousebtn::MIDDLE], "%counter%", cnt));
+      auto action = m_actions[btn];
 
-      if(m_tail && m_command && m_command->is_running()) {
-        m_builder->cmd(mousebtn::MIDDLE, string_util::replace_all(m_actions[mousebtn::MIDDLE], "%pid%", std::to_string(m_command->get_pid())));
-      }
-    }
-    if (!m_actions[mousebtn::RIGHT].empty()) {
-      m_builder->cmd(mousebtn::RIGHT, string_util::replace_all(m_actions[mousebtn::RIGHT], "%counter%", cnt));
+      if (!action.empty()) {
+        m_builder->cmd(btn, string_util::replace_all(action, "%counter%", cnt));
 
-      if(m_tail && m_command && m_command->is_running()) {
-        m_builder->cmd(mousebtn::RIGHT, string_util::replace_all(m_actions[mousebtn::RIGHT], "%pid%", std::to_string(m_command->get_pid())));
-      }
-    }
-    if (!m_actions[mousebtn::SCROLL_UP].empty()) {
-      m_builder->cmd(mousebtn::SCROLL_UP, string_util::replace_all(m_actions[mousebtn::SCROLL_UP], "%counter%", cnt));
-
-      if(m_tail && m_command && m_command->is_running()) {
-        m_builder->cmd(mousebtn::SCROLL_UP, string_util::replace_all(m_actions[mousebtn::SCROLL_UP], "%pid%", std::to_string(m_command->get_pid())));
-      }
-    }
-    if (!m_actions[mousebtn::SCROLL_DOWN].empty()) {
-      m_builder->cmd( mousebtn::SCROLL_DOWN, string_util::replace_all(m_actions[mousebtn::SCROLL_DOWN], "%counter%", cnt));
-
-      if(m_tail && m_command && m_command->is_running()) {
-        m_builder->cmd(mousebtn::SCROLL_DOWN, string_util::replace_all(m_actions[mousebtn::SCROLL_DOWN], "%pid%", std::to_string(m_command->get_pid())));
+        /*
+         * The pid token is only for tailed commands.
+         * If the command is not specified or running, replacement is unnecessary as well
+         */
+        if(m_tail && m_command && m_command->is_running()) {
+          m_builder->cmd(btn, string_util::replace_all(action, "%pid%", to_string(m_command->get_pid())));
+        }
       }
     }
 
