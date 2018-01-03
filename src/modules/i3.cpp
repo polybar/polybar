@@ -52,6 +52,8 @@ namespace modules {
       m_modelabel = load_optional_label(m_conf, name(), "label-mode", "%mode%");
     }
 
+    m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
 
@@ -171,7 +173,19 @@ namespace modules {
         builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
       }
 
+      bool first = true;
       for (auto&& ws : m_workspaces) {
+        /*
+         * The separator should only be inserted in between the workspaces, so
+         * we insert it in front of all workspaces except the first one.
+         */
+        if(first) {
+          first = false;
+        }
+        else if (*m_labelseparator) {
+          builder->node(m_labelseparator);
+        }
+
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
           builder->node(ws->label);
