@@ -75,6 +75,11 @@ namespace modules {
     label_t m_monitorlabel;
     iconset_t m_icons;
 
+    /**
+     * Separator that is inserted in between workspaces
+     */
+    label_t m_labelseparator;
+
     bool m_click{true};
     bool m_scroll{true};
     bool m_revscroll{true};
