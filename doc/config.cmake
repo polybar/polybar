@@ -118,6 +118,9 @@ label-empty = %index%
 label-empty-foreground = ${colors.foreground-alt}
 label-empty-padding = 2
 
+; Separator in between workspaces
+; label-separator = |
+
 [module/i3]
 type = internal/i3
 format = <label-state> <label-mode>

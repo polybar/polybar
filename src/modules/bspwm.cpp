@@ -124,6 +124,8 @@ namespace modules {
       m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private"));
     }
 
+    m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
@@ -400,6 +402,10 @@ namespace modules {
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
         if (ws.second.get()) {
+          if(workspace_n != 0 && *m_labelseparator) {
+            builder->node(m_labelseparator);
+          }
+
           workspace_n++;
 
           if (m_click) {
