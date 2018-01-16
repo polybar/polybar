@@ -82,15 +82,23 @@ namespace modules {
     });
 
     // Make consumption reader
-    m_consumption_reader = make_unique<consumption_reader>([this] {
-      unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
-      unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
-	  
-      float consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
-	
+    m_consumption_reader = make_unique<consumption_reader>([this,&path_battery] {
+      float consumption;
+
+      if (m_frate == path_battery + "current_now") {
+        unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+        unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
+
+        consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
+      } else {
+        unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+
+        consumption = power / 1e6;
+      }
+
       // convert to string with 2 decimmal places
       string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
-      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption); 
+      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
       rtn.resize(written);
 
       return rtn;
@@ -217,7 +225,7 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(m_percentage));
       label->replace_token("%consumption%", current_consumption());
-	  
+
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
         label->replace_token("%time%", current_time());
       }
@@ -290,7 +298,7 @@ namespace modules {
   * Get the current power consumption
   */
   string battery_module::current_consumption() {
-    return read(*m_consumption_reader);	
+    return read(*m_consumption_reader);
   }
 
   /**
