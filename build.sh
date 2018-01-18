@@ -38,17 +38,17 @@ function main
   msg "Setting build options"
 
   read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
+  [[ "${p^^}" = "N" ]] && enable_i3="OFF"
   read -r -p "$(msg "Include support for \"internal/volume\" (requires alsalib) ---------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
+  [[ "${p^^}" = "N" ]] && enable_alsa="OFF"
   read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && enable_network="OFF"
+  [[ "${p^^}" = "N" ]] && enable_network="OFF"
   read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
+  [[ "${p^^}" = "N" ]] && enable_mpd="OFF"
   read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
+  [[ "${p^^}" = "N" ]] && enable_curl="OFF"
   read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
+  [[ "${p^^}" = "N" ]] && build_ipc_msg="OFF"
 
   local cxx="c++"
   local cc="cc"
