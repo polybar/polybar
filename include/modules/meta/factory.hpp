@@ -32,7 +32,7 @@
 #include "modules/network.hpp"
 #endif
 #if ENABLE_ALSA
-#include "modules/volume.hpp"
+#include "modules/alsa.hpp"
 #endif
 #if ENABLE_PULSEAUDIO
 #include "modules/pulseaudio.hpp"
@@ -78,7 +78,7 @@ namespace {
     } else if (name == "internal/volume") {
       throw application_error("internal/volume is deprecated, use internal/alsa instead");
     } else if (name == "internal/alsa") {
-      return new volume_module(bar, move(module_name));
+      return new alsa_module(bar, move(module_name));
     } else if (name == "internal/pulseaudio") {
       return new pulseaudio_module(bar, move(module_name));
     } else if (name == "internal/network") {

@@ -41,7 +41,7 @@ namespace modules {
   DEFINE_UNSUPPORTED_MODULE(network_module, "internal/network");
 #endif
 #if not ENABLE_ALSA
-  DEFINE_UNSUPPORTED_MODULE(volume_module, "internal/volume");
+  DEFINE_UNSUPPORTED_MODULE(alsa_module, "internal/alsa");
 #endif
 #if not ENABLE_PULSEAUDIO
   DEFINE_UNSUPPORTED_MODULE(pulseaudio_module, "internal/pulseaudio");

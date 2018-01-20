@@ -19,9 +19,9 @@ namespace modules {
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
 
-  class volume_module : public event_module<volume_module>, public input_handler {
+  class alsa_module : public event_module<alsa_module>, public input_handler {
    public:
-    explicit volume_module(const bar_settings&, string);
+    explicit alsa_module(const bar_settings&, string);
 
     void teardown();
     bool has_event();
