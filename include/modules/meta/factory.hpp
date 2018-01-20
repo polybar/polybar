@@ -76,6 +76,8 @@ namespace {
     } else if (name == "internal/mpd") {
       return new mpd_module(bar, move(module_name));
     } else if (name == "internal/volume") {
+      throw application_error("internal/volume is deprecated, use internal/alsa instead");
+    } else if (name == "internal/alsa") {
       return new volume_module(bar, move(module_name));
     } else if (name == "internal/pulseaudio") {
       return new pulseaudio_module(bar, move(module_name));
