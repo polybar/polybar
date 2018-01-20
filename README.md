@@ -91,7 +91,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-util-cursor *required for the `cursor-click` and `cursor-scroll` settings*
 
 **Optional dependencies for extended module support:**
-- alsa-lib *required by `internal/volume`*
+- alsa-lib *required by `internal/alsa`*
 - libpulse *required by `internal/pulseaudio`*
 - jsoncpp *required by `internal/i3`*
 - libmpdclient *required by `internal/mpd`*
