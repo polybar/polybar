@@ -10,6 +10,7 @@ url="https://github.com/jaagr/polybar"
 license=("MIT")
 depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor")
 optdepends=("alsa-lib: volume module support"
+            "libpulse: pulseaudio module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "jsoncpp: i3 module support"

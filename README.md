@@ -92,6 +92,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 
 **Optional dependencies for extended module support:**
 - alsa-lib *required by `internal/volume`*
+- libpulse *required by `internal/pulseaudio`*
 - jsoncpp *required by `internal/i3`*
 - libmpdclient *required by `internal/mpd`*
 - libcurl *required by `internal/github`*
