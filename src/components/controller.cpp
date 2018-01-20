@@ -103,7 +103,7 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name));
+        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name, m_log));
         created_modules++;
       } catch (const runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
