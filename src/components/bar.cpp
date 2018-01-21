@@ -248,17 +248,24 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
   auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
 
-  if ((m_opts.size.w = atoi(w.c_str())) && w.find('%') != string::npos) {
-    m_opts.size.w = math_util::percentage_to_value<int>(m_opts.size.w, m_opts.monitor->w);
+  m_opts.size.w = atoi(w.c_str());
+  m_opts.size.h = atoi(h.c_str());
+  m_opts.offset.x = atoi(offsetx.c_str());
+  m_opts.offset.y = atoi(offsety.c_str());
+
+  // Evaluate percentages
+  double tmp;
+  if ((tmp = atof(w.c_str())) && w.find('%') != string::npos) {
+    m_opts.size.w = math_util::percentage_to_value<double>(tmp, m_opts.monitor->w);
   }
-  if ((m_opts.size.h = atoi(h.c_str())) && h.find('%') != string::npos) {
-    m_opts.size.h = math_util::percentage_to_value<int>(m_opts.size.h, m_opts.monitor->h);
+  if ((tmp = atof(h.c_str())) && h.find('%') != string::npos) {
+    m_opts.size.h = math_util::percentage_to_value<double>(tmp, m_opts.monitor->h);
   }
-  if ((m_opts.offset.x = atoi(offsetx.c_str())) != 0 && offsetx.find('%') != string::npos) {
-    m_opts.offset.x = math_util::percentage_to_value<int>(m_opts.offset.x, m_opts.monitor->w);
+  if ((tmp = atof(offsetx.c_str())) != 0 && offsetx.find('%') != string::npos) {
+    m_opts.offset.x = math_util::percentage_to_value<double>(tmp, m_opts.monitor->w);
   }
-  if ((m_opts.offset.y = atoi(offsety.c_str())) != 0 && offsety.find('%') != string::npos) {
-    m_opts.offset.y = math_util::percentage_to_value<int>(m_opts.offset.y, m_opts.monitor->h);
+  if ((tmp = atof(offsety.c_str())) != 0 && offsety.find('%') != string::npos) {
+    m_opts.offset.y = math_util::percentage_to_value<double>(tmp, m_opts.monitor->h);
   }
 
   // Apply offsets
