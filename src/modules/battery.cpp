@@ -85,11 +85,13 @@ namespace modules {
     m_consumption_reader = make_unique<consumption_reader>([this,&path_battery] {
       float consumption;
 
+      // if the rate we found was the current, calculate power (P = I*V)
       if (m_frate == path_battery + "current_now") {
         unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
         unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
 
         consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
+      // if it was power, just use as is
       } else {
         unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
 
