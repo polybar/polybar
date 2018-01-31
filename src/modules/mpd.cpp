@@ -200,7 +200,7 @@ namespace modules {
       }
     }
 
-    if (m_status->match_state(mpdstate::PLAYING)) {
+    if (m_status && m_status->match_state(mpdstate::PLAYING)) {
       // Always update the status while playing
       m_status->update(-1, m_mpd.get());
     }
