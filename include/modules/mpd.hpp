@@ -64,6 +64,12 @@ namespace modules {
     static constexpr const char* EVENT_SEEK{"mpdseek"};
 
     unique_ptr<mpdconnection> m_mpd;
+
+    /*
+     * Stores the mpdstatus instance for the current connection
+     * m_status is not initialized if mpd is not connect, you always have to
+     * make sure that m_status is not NULL before dereferencing it
+     */
     unique_ptr<mpdstatus> m_status;
 
     string m_host{"127.0.0.1"};
