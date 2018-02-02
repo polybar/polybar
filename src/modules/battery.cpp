@@ -5,6 +5,7 @@
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -82,11 +83,11 @@ namespace modules {
     });
 
     // Make consumption reader
-    m_consumption_reader = make_unique<consumption_reader>([this,path_battery] {
+    m_consumption_reader = make_unique<consumption_reader>([this] {
       float consumption;
 
       // if the rate we found was the current, calculate power (P = I*V)
-      if (m_frate == path_battery + "current_now") {
+      if (string_util::contains(m_frate, "current_now")) {
         unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
         unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
 
