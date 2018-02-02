@@ -75,6 +75,7 @@ If you are using **Debian**, polybar is available from the [GetDeb](http://www.g
 
 If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
+If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
 ### Dependencies
 
