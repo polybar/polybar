@@ -82,7 +82,7 @@ namespace modules {
     });
 
     // Make consumption reader
-    m_consumption_reader = make_unique<consumption_reader>([this,&path_battery] {
+    m_consumption_reader = make_unique<consumption_reader>([this,path_battery] {
       float consumption;
 
       // if the rate we found was the current, calculate power (P = I*V)
