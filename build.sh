@@ -30,6 +30,7 @@ function main
 
   local build_ipc_msg="ON"
   local enable_alsa="ON"
+  local enable_pulseaudio="ON"
   local enable_i3="ON"
   local enable_network="ON"
   local enable_mpd="ON"
@@ -37,18 +38,20 @@ function main
 
   msg "Setting build options"
 
-  read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && enable_i3="OFF"
-  read -r -p "$(msg "Include support for \"internal/volume\" (requires alsalib) ---------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && enable_alsa="OFF"
-  read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && enable_network="OFF"
-  read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && enable_mpd="OFF"
-  read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && enable_curl="OFF"
-  read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [Y/n]: ")" -n 1 p && echo
-  [[ "${p^^}" = "N" ]] && build_ipc_msg="OFF"
+ read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
+  read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) ---------- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
+  read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) ----- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_pulseaudio="OFF"
+  read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_network="OFF"
+  read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
+  read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
+  read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [y/N]: ")" -n 1 p && echo
+[[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
 
   local cxx="c++"
   local cc="cc"
@@ -68,6 +71,7 @@ function main
     -DCMAKE_C_COMPILER="${cc}"                \
     -DCMAKE_CXX_COMPILER="${cxx}"             \
     -DENABLE_ALSA:BOOL="${enable_alsa}"       \
+    -DENABLE_PULSEAUDIO:BOOL="${enable_pulseaudio}"\
     -DENABLE_I3:BOOL="${enable_i3}"           \
     -DENABLE_MPD:BOOL="${enable_mpd}"         \
     -DENABLE_NETWORK:BOOL="${enable_network}" \

@@ -20,6 +20,7 @@ addons:
       - gcc-5
       - i3-wm
       - libasound2-dev
+      - libpulse-dev
       - libcairo2-dev
       - libiw-dev
       - libmpdclient-dev

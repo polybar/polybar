@@ -11,6 +11,7 @@ querylib(ENABLE_ALSA "pkg-config" alsa libs dirs)
 querylib(ENABLE_CURL "pkg-config" libcurl libs dirs)
 querylib(ENABLE_MPD "pkg-config" libmpdclient libs dirs)
 querylib(ENABLE_NETWORK "cmake" Libiw libs dirs)
+querylib(ENABLE_PULSEAUDIO "pkg-config" libpulse libs dirs)
 
 querylib(WITH_XCOMPOSITE "pkg-config" xcb-composite libs dirs)
 querylib(WITH_XDAMAGE "pkg-config" xcb-damage libs dirs)

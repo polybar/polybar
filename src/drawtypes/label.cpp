@@ -47,14 +47,18 @@ namespace drawtypes {
     }
 
     for (auto&& tok : m_tokens) {
+      string repl{replacement};
       if (token == tok.token) {
-        if (tok.max != 0_z && string_util::char_len(replacement) > tok.max) {
-          replacement = string_util::utf8_truncate(std::move(replacement), tok.max) + tok.suffix;
-        } else if (tok.min != 0_z && replacement.length() < tok.min) {
-          replacement.insert(0_z, tok.min - replacement.length(), ' ');
+        if (tok.max != 0_z && string_util::char_len(repl) > tok.max) {
+          repl = string_util::utf8_truncate(std::move(repl), tok.max) + tok.suffix;
+        } else if (tok.min != 0_z && repl.length() < tok.min) {
+          repl.insert(0_z, tok.min - repl.length(), ' ');
         }
-        m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
-        m_tokenized = string_util::replace_all(m_tokenized, token, move(replacement));
+
+        /*
+         * Only replace first occurence, so that the proper token objects can be used
+         */
+        m_tokenized = string_util::replace(m_tokenized, token, move(repl));
       }
     }
   }

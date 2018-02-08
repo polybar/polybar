@@ -29,6 +29,8 @@ namespace modules {
 
     unique_ptr<command> m_command;
 
+    bool m_tail;
+
     string m_exec;
     string m_exec_if;
 

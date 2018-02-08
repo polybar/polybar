@@ -75,6 +75,7 @@ If you are using **Debian**, polybar is available from the [GetDeb](http://www.g
 
 If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
+If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
 ### Dependencies
 
@@ -91,7 +92,8 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-util-cursor *required for the `cursor-click` and `cursor-scroll` settings*
 
 **Optional dependencies for extended module support:**
-- alsa-lib *required by `internal/volume`*
+- alsa-lib *required by `internal/alsa`*
+- libpulse *required by `internal/pulseaudio`*
 - jsoncpp *required by `internal/i3`*
 - libmpdclient *required by `internal/mpd`*
 - libcurl *required by `internal/github`*
