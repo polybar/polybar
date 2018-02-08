@@ -38,7 +38,7 @@ function main
 
   msg "Setting build options"
 
- read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
   read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) ---------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
