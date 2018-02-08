@@ -51,7 +51,7 @@ function main
   read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
   read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [y/N]: ")" -n 1 p && echo
-[[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
+  [[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
 
   local cxx="c++"
   local cc="cc"
