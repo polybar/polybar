@@ -8,7 +8,7 @@ file(GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.c[p]*)
 list(REMOVE_ITEM files ipc.cpp)
 
 if(NOT ENABLE_ALSA)
-  list(REMOVE_ITEM files modules/volume.cpp)
+  list(REMOVE_ITEM files modules/alsa.cpp)
   list(REMOVE_ITEM files adapters/alsa/control.cpp)
   list(REMOVE_ITEM files adapters/alsa/mixer.cpp)
 endif()
