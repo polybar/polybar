@@ -120,8 +120,10 @@ namespace modules {
     // with the cmd handlers
     string output{module::get_output()};
 
-    m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-    m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+    if (m_scroll) {
+      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
+      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+    }
 
     m_builder->append(output);
 
