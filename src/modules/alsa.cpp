@@ -240,7 +240,7 @@ namespace modules {
       }
       if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
         mixers.emplace_back(new mixer_t::element_type(
-            string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
+            string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
       }
 
       if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
