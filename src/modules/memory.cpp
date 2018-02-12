@@ -40,6 +40,8 @@ namespace modules {
   bool memory_module::update() {
     unsigned long long kb_total{0ULL};
     unsigned long long kb_avail{0ULL};
+    unsigned long long kb_swap_total{0ULL};
+    unsigned long long kb_swap_free{0ULL};
 
     try {
       std::ifstream meminfo(PATH_MEMORY_INFO);
