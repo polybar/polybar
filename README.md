@@ -71,7 +71,7 @@ If you are using **Void Linux**, you can install [polybar](https://github.com/vo
 
 If you are using **NixOS**, polybar is available in both the stable and unstable channels and can be installed with the command `nix-env -iA nixos.polybar`.
 
-If you are using **Debian**, polybar is available from the [GetDeb](http://www.getdeb.net/app/Polybar) repository.
+If you are using **Ubuntu**, polybar is available from the [GetDeb](http://www.getdeb.net/app/Polybar) repository.
 
 If you are using **Slackware**, polybar is available from the [SlackBuilds](https://slackbuilds.org/repository/14.2/desktop/polybar/) repository.
 
