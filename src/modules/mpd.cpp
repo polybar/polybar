@@ -144,7 +144,7 @@ namespace modules {
         m_mpd->connect();
       }
     } catch (const mpd_exception& err) {
-      m_log.trace("%s: %s", name(), err.what());
+      m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
       return def;
     }
