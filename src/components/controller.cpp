@@ -290,7 +290,20 @@ void controller::read_events() {
     }
 
     // Check for errors
-    if (events == -1 || g_terminate || m_connection.connection_has_error()) {
+    if (events == -1)  {
+
+      /*
+       * The Interrupt errno is generated when polybar is stopped, so it
+       * shouldn't generate an error message
+       */
+      if (errno != EINTR) {
+        m_log.err("select failed in event loop: %s", strerror(errno));
+      }
+
+      break;
+    }
+
+    if (g_terminate || m_connection.connection_has_error()) {
       break;
     }
 
