@@ -29,15 +29,26 @@ namespace mpd {
 
   void check_errors(mpd_connection* conn) {
     check_connection(conn);
+
+    string err_msg;
+
     switch (mpd_connection_get_error(conn)) {
       case MPD_ERROR_SUCCESS:
         return;
       case MPD_ERROR_SERVER:
-        mpd_connection_clear_error(conn);
-        throw server_error(mpd_connection_get_error_message(conn), mpd_connection_get_server_error(conn));
+        {
+          err_msg = mpd_connection_get_error_message(conn);
+          enum mpd_server_error server_err = mpd_connection_get_server_error(conn);
+          mpd_connection_clear_error(conn);
+          throw server_error(err_msg, server_err);
+        }
       default:
-        mpd_connection_clear_error(conn);
-        throw client_error(mpd_connection_get_error_message(conn), mpd_connection_get_error(conn));
+        {
+          err_msg = mpd_connection_get_error_message(conn);
+          enum mpd_error err = mpd_connection_get_error(conn);
+          mpd_connection_clear_error(conn);
+          throw client_error(err_msg, err);
+        }
     }
   }
 
