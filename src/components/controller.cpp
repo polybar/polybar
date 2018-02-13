@@ -261,6 +261,9 @@ void controller::read_events() {
     fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
   }
 
+  // Timeout struct for the select call
+  struct timeval select_timeout;
+
   while (!g_terminate) {
     fd_set readfds{};
     FD_ZERO(&readfds);
@@ -271,8 +274,20 @@ void controller::read_events() {
       maxfd = std::max(maxfd, fd);
     }
 
-    // Wait until event is ready on one of the configured streams
-    int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
+    // Abort the select call after 5 seconds
+    select_timeout = {5, 0};
+
+    // Wait until event is ready on one of the configured streams or until
+    // timeout is reached
+    int events = select(maxfd + 1, &readfds, nullptr, nullptr, &select_timeout);
+
+    /*
+     * Select returns the number of bits set in the bit masks, which is zero if
+     * timeout was reached
+     */
+    if (events == 0) {
+      m_log.err("Event loop timed out waiting for events");
+    }
 
     // Check for errors
     if (events == -1 || g_terminate || m_connection.connection_has_error()) {
