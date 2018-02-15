@@ -4,7 +4,7 @@
 
 set(MODULES_LEFT "bspwm i3")
 set(MODULES_CENTER "mpd")
-set(MODULES_RIGHT "filesystem xbacklight volume xkeyboard memory cpu wlan eth battery temperature date powermenu")
+set(MODULES_RIGHT "filesystem xbacklight alsa xkeyboard memory cpu wlan eth battery temperature date powermenu")
 
 set(FONT_FIXED "fixed:pixelsize=10")
 set(FONT_UNIFONT "unifont:fontformat=truetype")
@@ -17,7 +17,7 @@ queryfont(FONT_SIJI ${FONT_SIJI} FIELDS family pixelsize)
 # Strip disabled modules {{{
 
 if(NOT ENABLE_ALSA)
-  string(REPLACE " volume" "" MODULES_RIGHT ${MODULES_RIGHT})
+  string(REPLACE " alsa" "" MODULES_RIGHT ${MODULES_RIGHT})
 endif()
 if(NOT ENABLE_I3)
   string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
