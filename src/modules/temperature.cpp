@@ -19,6 +19,7 @@ namespace modules {
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    m_units = m_conf.get(name(), "units", m_units);
 
     if (m_path.empty()) {
       m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
@@ -53,15 +54,22 @@ namespace modules {
     int m_temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
+    string temp_c_string = to_string(m_temp);
+    string temp_f_string = to_string(m_temp_f);
+
+    // Add units if `units = true` in config
+    if(m_units) {
+      temp_c_string += "°C";
+      temp_f_string += "°F";
+    }
+
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
-      label->replace_token("%temperature-f%", to_string(m_temp_f) + "°F");
-      label->replace_token("%temperature-c%", to_string(m_temp) + "°C");
-      label->replace_token("%temperature-f-n%", to_string(m_temp_f));
-      label->replace_token("%temperature-c-n%", to_string(m_temp));
+      label->replace_token("%temperature-f%", temp_f_string);
+      label->replace_token("%temperature-c%", temp_c_string);
 
       // DEPRECATED: Will be removed in later release
-      label->replace_token("%temperature%", to_string(m_temp) + "°C");
+      label->replace_token("%temperature%", temp_c_string);
     };
 
     if (m_label[temp_state::NORMAL]) {
