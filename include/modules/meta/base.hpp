@@ -88,6 +88,7 @@ namespace modules {
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
     bool has(const string& tag, const string& format_name);
     bool has(const string& tag);
+    bool has_non_tag(const string& format_name);
     shared_ptr<module_format> get(const string& format_name);
 
    protected:

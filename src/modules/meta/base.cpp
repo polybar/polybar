@@ -149,6 +149,26 @@ namespace modules {
     return false;
   }
 
+  bool module_formatter::has_non_tag(const string& format_name) {
+    auto format = m_formats.find(format_name);
+    if (format == m_formats.end()) {
+      throw undefined_format(format_name);
+    }
+    string value{format->second->value};
+    size_t start, end;
+    while ((start = value.find('<')) != string::npos &&
+           (end = value.find('>', start)) != string::npos) {
+      if (start > 0) {
+          auto trimmed = string_util::ltrim(value.substr(0, start), ' ');
+          if (!trimmed.empty()) {
+            return true;
+          }
+      }
+      value.erase(0, end + 1);
+    }
+    return !value.empty();
+  }
+
   shared_ptr<module_format> module_formatter::get(const string& format_name) {
     auto format = m_formats.find(format_name);
     if (format == m_formats.end()) {

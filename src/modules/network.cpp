@@ -27,6 +27,11 @@ namespace modules {
     m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
     m_formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, {TAG_LABEL_DISCONNECTED});
 
+    const auto state_is_toggleable = [&](const connection_state& state) {
+      return m_label[state] && *m_label[state] &&
+        m_label_alt[state] && *m_label_alt[state];
+    };
+
     // Create elements for format-connected
     if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED)) {
       m_ramp_signal = load_ramp(m_conf, name(), TAG_RAMP_SIGNAL);
@@ -37,7 +42,13 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
       m_label[connection_state::CONNECTED] =
           load_optional_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
+      m_label_alt[connection_state::CONNECTED] =
+          load_optional_label(m_conf, name(), TAG_LABEL_ALT_CONNECTED, "");
     }
+    m_toggleable = state_is_toggleable(connection_state::CONNECTED) ||
+                   (m_ramp_signal && *m_ramp_signal) ||
+                   (m_ramp_quality && *m_ramp_quality) ||
+                   m_formatter->has_non_tag(FORMAT_CONNECTED);
 
     // Create elements for format-disconnected
     if (m_formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
@@ -53,10 +64,15 @@ namespace modules {
 
       if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
         m_label[connection_state::PACKETLOSS] = load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
+        m_label_alt[connection_state::PACKETLOSS] = load_optional_label(m_conf, name(), TAG_LABEL_ALT_PACKETLOSS, "");
       }
       if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS)) {
         m_animation_packetloss = load_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
       }
+      m_toggleable = m_toggleable &&
+                     (state_is_toggleable(connection_state::PACKETLOSS) ||
+                     (m_animation_packetloss && *m_animation_packetloss) ||
+                     m_formatter->has_non_tag(FORMAT_PACKETLOSS));
     }
 
     // Get an intstance of the network interface
@@ -128,8 +144,14 @@ namespace modules {
     if (m_label[connection_state::CONNECTED]) {
       replace_tokens(m_label[connection_state::CONNECTED]);
     }
+    if (m_label_alt[connection_state::CONNECTED]) {
+      replace_tokens(m_label_alt[connection_state::CONNECTED]);
+    }
     if (m_label[connection_state::PACKETLOSS]) {
       replace_tokens(m_label[connection_state::PACKETLOSS]);
+    }
+    if (m_label_alt[connection_state::PACKETLOSS]) {
+      replace_tokens(m_label_alt[connection_state::PACKETLOSS]);
     }
 
     return true;
@@ -147,11 +169,13 @@ namespace modules {
 
   bool network_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_CONNECTED) {
-      builder->node(m_label.at(connection_state::CONNECTED));
+      builder->node(m_toggled ? m_label_alt.at(connection_state::CONNECTED)
+                              : m_label.at(connection_state::CONNECTED));
     } else if (tag == TAG_LABEL_DISCONNECTED) {
       builder->node(m_label.at(connection_state::DISCONNECTED));
     } else if (tag == TAG_LABEL_PACKETLOSS) {
-      builder->node(m_label.at(connection_state::PACKETLOSS));
+      builder->node(m_toggled ? m_label_alt.at(connection_state::PACKETLOSS)
+                              : m_label.at(connection_state::PACKETLOSS));
     } else if (tag == TAG_ANIMATION_PACKETLOSS) {
       builder->node(m_animation_packetloss->get());
     } else if (tag == TAG_RAMP_SIGNAL) {
@@ -162,6 +186,20 @@ namespace modules {
       return false;
     }
     return true;
+  }
+
+  string network_module::get_output() {
+    string output{module::get_output()};
+
+    if (m_toggleable) {
+      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+      m_builder->append(output);
+      m_builder->cmd_close();
+    } else {
+      m_builder->append(output);
+    }
+
+    return m_builder->flush();
   }
 
   void network_module::subthread_routine() {
@@ -176,6 +214,15 @@ namespace modules {
     }
 
     m_log.trace("%s: Reached end of network subthread", name());
+  }
+
+  bool network_module::input(string&& cmd) {
+    if (cmd != EVENT_TOGGLE) {
+      return false;
+    }
+    m_toggled = !m_toggled;
+    broadcast();
+    return true;
   }
 }
 
