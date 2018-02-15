@@ -122,6 +122,11 @@ void config::parse_file() {
   int lineno{0};
   string line;
   std::ifstream in(m_file);
+
+  if (in.fail()) {
+    throw application_error(sstream() << "Couldn't open config file: " << strerror(errno));
+  }
+
   while (std::getline(in, line)) {
     pushline(++lineno, string_util::replace_all(line, "\t", ""));
   }
