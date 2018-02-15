@@ -28,6 +28,8 @@ config::config(const logger& logger, string&& path, string&& bar)
     throw application_error("Could not find config file: " + m_file);
   }
 
+  m_log.info("Loading config: %s", m_file);
+
   parse_file();
   copy_inherited();
 
@@ -43,7 +45,6 @@ config::config(const logger& logger, string&& path, string&& bar)
     throw application_error("Undefined bar: " + m_barname);
   }
 
-  m_log.info("Loaded %s", m_file);
   m_log.trace("config: Current bar section: [%s]", section());
 }
 
