@@ -32,6 +32,9 @@ namespace modules {
     int m_tempwarn = 0;
     int m_temp = 0;
     int m_perc = 0;
+
+    // Whether or not to show units with the %temperature-X% tokens
+    bool m_units{true};
   };
 }
 
