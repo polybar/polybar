@@ -13,6 +13,8 @@
 
 POLYBAR_NS
 
+DEFINE_ERROR(file_read_error);
+
 // implementation of file_ptr {{{
 
 file_ptr::file_ptr(const string& path, const string& mode) : m_path(string(path)), m_mode(string(mode)) {
@@ -187,12 +189,21 @@ namespace file_util {
 
   /**
    * Gets the contents of the given file
+   *
+   * Throws application_error, containing only the filename and the errno
+   * error message, if the file cannot be properly read
    */
   string contents(const string& filename) {
     try {
       string contents;
       string line;
       std::ifstream in(filename, std::ifstream::in);
+
+      // There was a problem opening the file
+      if (in.fail()) {
+        throw file_read_error(sstream() << filename << ": " << strerror(errno));
+      }
+
       while (std::getline(in, line)) {
         contents += line + '\n';
       }
