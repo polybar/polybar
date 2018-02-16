@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "utils/env.hpp"
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
@@ -72,7 +73,7 @@ namespace modules {
      */
     unique_ptr<mpdstatus> m_status;
 
-    string m_host{"127.0.0.1"};
+    string m_host{env_util::get("MPD_HOST", "127.0.0.1")};
     string m_pass;
     unsigned int m_port{6600U};
 
