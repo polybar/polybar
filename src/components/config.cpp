@@ -110,8 +110,13 @@ void config::parse_file() {
       }
       files.push_back(file_util::expand(file_path));
       m_log.trace("config: Including file \"%s\"", file_path);
-      for (auto&& l : string_util::split(file_util::contents(file_path), '\n')) {
-        pushline(lineno, forward<string>(l));
+
+      try {
+        for (auto&& l : string_util::split(file_util::contents(file_path), '\n')) {
+          pushline(lineno, forward<string>(l));
+        }
+      } catch(const application_error& err) {
+        throw application_error("Could not read include file defined on line " + to_string(lineno) + ": " + err.what());
       }
       files.pop_back();
     } else {
