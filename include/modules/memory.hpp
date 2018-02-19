@@ -19,12 +19,16 @@ namespace modules {
     static constexpr const char* TAG_LABEL{"<label>"};
     static constexpr const char* TAG_BAR_USED{"<bar-used>"};
     static constexpr const char* TAG_BAR_FREE{"<bar-free>"};
+    static constexpr const char* TAG_RAMP_USED{"<ramp-used>"};
+    static constexpr const char* TAG_RAMP_FREE{"<ramp-free>"};
 
     label_t m_label;
     progressbar_t m_bar_memused;
     progressbar_t m_bar_memfree;
     int m_perc_memused{0};
     int m_perc_memfree{0};
+    ramp_t m_ramp_memused;
+    ramp_t m_ramp_memfree;
   };
 }
 

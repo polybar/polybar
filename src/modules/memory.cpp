@@ -4,6 +4,7 @@
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
+#include "drawtypes/ramp.hpp"
 #include "modules/memory.hpp"
 #include "utils/math.hpp"
 
@@ -17,13 +18,19 @@ namespace modules {
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
       m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
+    }
+    if(m_formatter->has(TAG_RAMP_USED)) {
+      m_ramp_memused = load_ramp(m_conf, name(), TAG_RAMP_USED);
+    }
+    if(m_formatter->has(TAG_RAMP_FREE)) {
+      m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
@@ -91,6 +98,10 @@ namespace modules {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == TAG_RAMP_FREE) {
+      builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
+    } else if (tag == TAG_RAMP_USED) {
+      builder->node(m_ramp_memused->get_by_percentage(m_perc_memused));
     } else {
       return false;
     }
