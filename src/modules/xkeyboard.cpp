@@ -6,7 +6,6 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
-#include "cairo/utils.hpp"
 
 POLYBAR_NS
 
