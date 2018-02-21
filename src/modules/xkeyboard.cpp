@@ -6,6 +6,7 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
+#include "cairo/utils.hpp"
 
 POLYBAR_NS
 
@@ -22,6 +23,8 @@ namespace modules {
     
     // load layout icons
     m_layout_icons = factory_util::shared<iconset>();
+    m_layout_icons->add(DEFAULT_LAYOUT_ICON, factory_util::shared<label>(
+          m_conf.get(name(), DEFAULT_LAYOUT_ICON, ""s)));
 
     for(const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
       auto vec = string_util::split(it, ';');
@@ -59,12 +62,10 @@ namespace modules {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
       
-      auto current_layout = m_keyboard->layout_name(m_keyboard->current());
- 
-      if(m_layout_icons->has(current_layout)) {
-        current_layout = m_layout_icons->get(current_layout)->get();
-      } 
+      auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
+      auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
 
+      m_layout->replace_token("%icon%", icon->get());
       m_layout->replace_token("%layout%", current_layout);
       m_layout->replace_token("%number%", to_string(m_keyboard->current()));
     }
