@@ -42,9 +42,11 @@ namespace modules {
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
     static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
-
+    static constexpr const char* DEFAULT_LAYOUT_ICON{"layout-icon-default"};
+    
     static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
-
+    
+    
     connection& m_connection;
     event_timer m_xkb_newkb_notify{};
     event_timer m_xkb_state_notify{};
