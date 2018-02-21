@@ -6,6 +6,7 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
+#include "cairo/utils.hpp"
 
 POLYBAR_NS
 
@@ -19,6 +20,16 @@ namespace modules {
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
     // Load config values
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
+    
+    // load layout icons
+    m_layout_icons = factory_util::shared<iconset>();
+
+    for(const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+      auto vec = string_util::split(it, ';');
+      if(vec.size() == 2) {
+        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));  
+      }
+    }
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
@@ -48,7 +59,14 @@ namespace modules {
     if (m_layout) {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
-      m_layout->replace_token("%layout%", m_keyboard->layout_name(m_keyboard->current()));
+      
+      auto current_layout = m_keyboard->layout_name(m_keyboard->current());
+ 
+      if(m_layout_icons->has(current_layout)) {
+        current_layout = m_layout_icons->get(current_layout)->get();
+      } 
+
+      m_layout->replace_token("%layout%", current_layout);
       m_layout->replace_token("%number%", to_string(m_keyboard->current()));
     }
 

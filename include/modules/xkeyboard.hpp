@@ -56,6 +56,7 @@ namespace modules {
     map<keyboard::indicator::type, label_t> m_indicators;
 
     vector<string> m_blacklist;
+    iconset_t m_layout_icons;
   };
 }
 
