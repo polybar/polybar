@@ -73,9 +73,9 @@ namespace modules {
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
         auto icon_triple = string_util::split(it, ';');
         if (icon_triple.size() == 3) {
-          auto const indicator_str = string_util::lower(vec[0]);
-          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(vec[1]));
-          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(vec[2]));
+          auto const indicator_str = string_util::lower(icon_triple[0]);
+          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(icon_triple[1]));
+          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(icon_triple[2]));
         }
       }
     }
