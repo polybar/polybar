@@ -43,30 +43,39 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
       m_indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
       
+      // load an empty label if 'label-indicator-off' is not explicitly specified so
+      // no existing user configs are broken (who expect nothing to be shown when indicator is off)
       m_indicatorstates.emplace(indicator_state::OFF, load_optional_label(m_conf, name(),
             "label-indicator-off"s, ""s));
-      
-      m_indicatorstates.emplace(indicator_state::ON, load_optional_label(m_conf, name(),
+     
+      if (m_conf.has(name(), "label-indicator-on"s)) {
+        m_indicatorstates.emplace(indicator_state::ON, load_optional_label(m_conf, name(),
             "label-indicator-on"s, "%name%"s));
-      m_indicatorstates[indicator_state::ON]->copy_undefined(m_indicator); 
+      } else {
+        // if 'label-indicator-on' is not explicitly specified, use 'label-indicator'
+        // as to not break existing user configs
+        m_indicatorstates.emplace(indicator_state::ON, m_indicator->clone());
+      }
 
       // load indicator icons
       m_indicator_icons_off = factory_util::shared<iconset>();
       m_indicator_icons_on = factory_util::shared<iconset>();
       
-      if (m_conf.has(name(), DEFAULT_INDICATOR_ICON)) {
-        auto vec = string_util::split(m_conf.get(name(), DEFAULT_INDICATOR_ICON), ';');
-        if(vec.size() == 2) {
-          m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(vec[0]));
-          m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(vec[1]));
-        }
+      auto icon_pair = string_util::split(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
+      if(icon_pair.size() == 2) {
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
+      } else {
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
       }
-      
+ 
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
-        auto vec = string_util::split(it, ';');
-        if (vec.size() == 3) {
-          m_indicator_icons_off->add(vec[0], factory_util::shared<label>(vec[1]));
-          m_indicator_icons_on->add(vec[0], factory_util::shared<label>(vec[2]));
+        auto icon_triple = string_util::split(it, ';');
+        if (icon_triple.size() == 3) {
+          auto const indicator_str = string_util::lower(vec[0]);
+          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(vec[1]));
+          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(vec[2]));
         }
       }
     }
