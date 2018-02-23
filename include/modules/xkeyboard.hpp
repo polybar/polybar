@@ -21,6 +21,19 @@ namespace modules {
       : public static_module<xkeyboard_module>,
         public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify>,
         public input_handler {
+   
+   enum class indicator_state {
+     NONE,
+     /**
+      * @brief Indicator is off
+      */
+     OFF,
+     /**
+      * @brief Indicator is on
+      */
+     ON
+   };
+
    public:
     explicit xkeyboard_module(const bar_settings& bar, string name_);
 
@@ -43,10 +56,10 @@ namespace modules {
     static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
     static constexpr const char* DEFAULT_LAYOUT_ICON{"layout-icon-default"};
+    static constexpr const char* DEFAULT_INDICATOR_ICON{"indicator-icon-default"};
     
     static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
-    
-    
+
     connection& m_connection;
     event_timer m_xkb_newkb_notify{};
     event_timer m_xkb_state_notify{};
@@ -55,10 +68,13 @@ namespace modules {
 
     label_t m_layout;
     label_t m_indicator;
+    map<indicator_state, label_t> m_indicatorstates;
     map<keyboard::indicator::type, label_t> m_indicators;
 
     vector<string> m_blacklist;
     iconset_t m_layout_icons;
+    iconset_t m_indicator_icons_on;
+    iconset_t m_indicator_icons_off;
   };
 }
 

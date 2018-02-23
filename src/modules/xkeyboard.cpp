@@ -25,9 +25,9 @@ namespace modules {
     m_layout_icons->add(DEFAULT_LAYOUT_ICON, factory_util::shared<label>(
           m_conf.get(name(), DEFAULT_LAYOUT_ICON, ""s)));
 
-    for(const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
       auto vec = string_util::split(it, ';');
-      if(vec.size() == 2) {
+      if (vec.size() == 2) {
         m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));  
       }
     }
@@ -38,8 +38,37 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
       m_layout = load_optional_label(m_conf, name(), TAG_LABEL_LAYOUT, "%layout%");
     }
+    
+    
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
-      m_indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%");
+      m_indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
+      
+      m_indicatorstates.emplace(indicator_state::OFF, load_optional_label(m_conf, name(),
+            "label-indicator-off"s, ""s));
+      
+      m_indicatorstates.emplace(indicator_state::ON, load_optional_label(m_conf, name(),
+            "label-indicator-on"s, "%name%"s));
+      m_indicatorstates[indicator_state::ON]->copy_undefined(m_indicator); 
+
+      // load indicator icons
+      m_indicator_icons_off = factory_util::shared<iconset>();
+      m_indicator_icons_on = factory_util::shared<iconset>();
+      
+      if (m_conf.has(name(), DEFAULT_INDICATOR_ICON)) {
+        auto vec = string_util::split(m_conf.get(name(), DEFAULT_INDICATOR_ICON), ';');
+        if(vec.size() == 2) {
+          m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(vec[0]));
+          m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(vec[1]));
+        }
+      }
+      
+      for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
+        auto vec = string_util::split(it, ';');
+        if (vec.size() == 3) {
+          m_indicator_icons_off->add(vec[0], factory_util::shared<label>(vec[1]));
+          m_indicator_icons_on->add(vec[0], factory_util::shared<label>(vec[2]));
+        }
+      }
     }
 
     // Setup extension
@@ -71,21 +100,37 @@ namespace modules {
 
     if (m_indicator) {
       m_indicators.clear();
+      
+      // clang-format off
+      const keyboard::indicator::type indicator_types[] {
+        keyboard::indicator::type::CAPS_LOCK,
+        keyboard::indicator::type::NUM_LOCK,
+        keyboard::indicator::type::SCROLL_LOCK
+      };
+      // clang-format on
+ 
+      for (auto it : indicator_types) {
+        const auto& indicator_str = m_keyboard->indicator_name(it);
 
-      const auto& caps = keyboard::indicator::type::CAPS_LOCK;
-      const auto& caps_str = m_keyboard->indicator_name(caps);
+        if (blacklisted(indicator_str)) {
+          continue;
+        }
 
-      if (!blacklisted(caps_str) && m_keyboard->on(caps)) {
-        m_indicators[caps] = m_indicator->clone();
-        m_indicators[caps]->replace_token("%name%", caps_str);
-      }
+        if (m_keyboard->on(it)) {
+          auto indicator = m_indicatorstates[indicator_state::ON]->clone();
+          auto icon = m_indicator_icons_on->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
+          
+          indicator->replace_token("%name%", indicator_str);
+          indicator->replace_token("%icon%", icon->get());
+          m_indicators.emplace(it, move(indicator));
+        } else {
+          auto indicator = m_indicatorstates[indicator_state::OFF]->clone();
+          auto icon = m_indicator_icons_off->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
 
-      const auto& num = keyboard::indicator::type::NUM_LOCK;
-      const auto& num_str = m_keyboard->indicator_name(num);
-
-      if (!blacklisted(num_str) && m_keyboard->on(num)) {
-        m_indicators[num] = m_indicator->clone();
-        m_indicators[num]->replace_token("%name%", num_str);
+          indicator->replace_token("%name%", indicator_str);
+          indicator->replace_token("%icon%", icon->get());
+          m_indicators.emplace(it, move(indicator));
+        }
       }
     }
 
