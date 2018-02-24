@@ -2,11 +2,13 @@
 
 #include "common.hpp"
 #include "modules/meta/inotify_module.hpp"
+#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class battery_module : public inotify_module<battery_module> {
+  class battery_module : public inotify_module<battery_module>,
+                         public input_handler {
    public:
     enum class state {
       NONE = 0,
@@ -53,6 +55,7 @@ namespace modules {
     bool on_event(inotify_event* event);
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
+    string get_output();
 
    protected:
     state current_state();
@@ -60,6 +63,7 @@ namespace modules {
     string current_time();
     string current_consumption();
     void subthread();
+    bool input(string&& cmd);
 
    private:
     static constexpr const char* FORMAT_CHARGING{"format-charging"};
@@ -70,8 +74,12 @@ namespace modules {
     static constexpr const char* TAG_BAR_CAPACITY{"<bar-capacity>"};
     static constexpr const char* TAG_RAMP_CAPACITY{"<ramp-capacity>"};
     static constexpr const char* TAG_LABEL_CHARGING{"<label-charging>"};
+    static constexpr const char* TAG_LABEL_ALT_CHARGING{"<label-alt-charging>"};
     static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
+    static constexpr const char* TAG_LABEL_ALT_DISCHARGING{"<label-alt-discharging>"};
     static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
+    static constexpr const char* TAG_LABEL_ALT_FULL{"<label-alt-full>"};
+    static constexpr auto EVENT_TOGGLE = "batterytoggle";
 
     static const size_t SKIP_N_UNCHANGED{3_z};
 
@@ -81,8 +89,11 @@ namespace modules {
     unique_ptr<consumption_reader> m_consumption_reader;
 
     label_t m_label_charging;
+    label_t m_label_alt_charging;
     label_t m_label_discharging;
+    label_t m_label_alt_discharging;
     label_t m_label_full;
+    label_t m_label_alt_full;
     animation_t m_animation_charging;
     progressbar_t m_bar_capacity;
     ramp_t m_ramp_capacity;
@@ -102,6 +113,9 @@ namespace modules {
     chrono::duration<double> m_interval{};
     chrono::system_clock::time_point m_lastpoll;
     thread m_subthread;
+
+    atomic<bool> m_toggleable{false};
+    atomic<bool> m_toggled{false};
   };
 }
 

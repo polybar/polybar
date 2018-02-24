@@ -129,12 +129,15 @@ namespace modules {
     }
     if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
       m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%%");
+      m_label_alt_charging = load_optional_label(m_conf, name(), TAG_LABEL_ALT_CHARGING, "");
     }
     if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
       m_label_discharging = load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%%");
+      m_label_alt_discharging = load_optional_label(m_conf, name(), TAG_LABEL_ALT_DISCHARGING, "");
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
+      m_label_alt_full = load_optional_label(m_conf, name(), TAG_LABEL_ALT_FULL, "");
     }
 
     // Create inotify watches
@@ -143,12 +146,31 @@ namespace modules {
 
     // Setup time if token is used
     if ((m_label_charging && m_label_charging->has_token("%time%")) ||
-        (m_label_discharging && m_label_discharging->has_token("%time%"))) {
+        (m_label_alt_charging && m_label_alt_charging->has_token("%time%")) ||
+        (m_label_discharging && m_label_discharging->has_token("%time%")) ||
+        (m_label_alt_discharging && m_label_alt_discharging->has_token("%time%"))) {
       if (!m_bar.locale.empty()) {
         setlocale(LC_TIME, m_bar.locale.c_str());
       }
       m_timeformat = m_conf.get(name(), "time-format", "%H:%M:%S"s);
     }
+
+    // Check that formats can be toggled
+    const auto format_is_toggleable = [&](const string& format) {
+      return m_formatter->has(TAG_BAR_CAPACITY, format) ||
+             (m_formatter->has(TAG_RAMP_CAPACITY, format) && m_ramp_capacity && *m_ramp_capacity) ||
+             m_formatter->has_non_tag(format);
+    };
+
+    m_toggleable = (m_label_charging && *m_label_charging && m_label_alt_charging && *m_label_alt_charging) ||
+                   (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING) && m_animation_charging && *m_animation_charging) ||
+                   format_is_toggleable(FORMAT_CHARGING);
+    m_toggleable = m_toggleable &&
+                   ((m_label_discharging && *m_label_discharging && m_label_alt_discharging && *m_label_alt_discharging) ||
+                   format_is_toggleable(FORMAT_DISCHARGING));
+    m_toggleable = m_toggleable &&
+                   ((m_label_full && *m_label_full && m_label_alt_full && *m_label_alt_full) ||
+                   format_is_toggleable(FORMAT_FULL));
   }
 
   /**
@@ -214,24 +236,35 @@ namespace modules {
     m_state = state;
     m_percentage = percentage;
 
-    const auto label = [this] {
-      if (m_state == battery_module::state::FULL) {
-        return m_label_full;
-      } else if (m_state == battery_module::state::DISCHARGING) {
-        return m_label_discharging;
-      } else {
-        return m_label_charging;
-      }
-    }();
+    const auto replace_tokens = [&](label_t label) {
+      if (label) {
+        label->reset_tokens();
+        label->replace_token("%percentage%", to_string(m_percentage));
+        label->replace_token("%consumption%", current_consumption());
 
-    if (label) {
-      label->reset_tokens();
-      label->replace_token("%percentage%", to_string(m_percentage));
-      label->replace_token("%consumption%", current_consumption());
-
-      if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
-        label->replace_token("%time%", current_time());
+        if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
+          label->replace_token("%time%", current_time());
+        }
       }
+    };
+
+    switch (m_state) {
+      case state::FULL:
+        replace_tokens(m_label_full);
+        replace_tokens(m_label_alt_full);
+        break;
+      case state::DISCHARGING:
+        replace_tokens(m_label_discharging);
+        replace_tokens(m_label_alt_discharging);
+        break;
+      case state::CHARGING:
+        replace_tokens(m_label_charging);
+        replace_tokens(m_label_alt_charging);
+        break;
+      case state::NONE:
+        // fall-through
+      default:
+        m_log.warn("Unsupported battery state: %d", m_state);
     }
 
     return true;
@@ -261,16 +294,34 @@ namespace modules {
     } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_ramp_capacity->get_by_percentage(m_percentage));
     } else if (tag == TAG_LABEL_CHARGING) {
-      builder->node(m_label_charging);
+      builder->node(m_toggled ? m_label_alt_charging : m_label_charging);
     } else if (tag == TAG_LABEL_DISCHARGING) {
-      builder->node(m_label_discharging);
+      builder->node(m_toggled ? m_label_alt_discharging : m_label_discharging);
     } else if (tag == TAG_LABEL_FULL) {
-      builder->node(m_label_full);
+      builder->node(m_toggled ? m_label_alt_full : m_label_full);
     } else {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * Build module output and wrap it in a click handler use
+   * to alter labels output
+   */
+  string battery_module::get_output() {
+    string output{module::get_output()};
+
+    if (m_toggleable) {
+      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+      m_builder->append(output);
+      m_builder->cmd_close();
+    } else {
+      m_builder->append(output);
+    }
+
+    return m_builder->flush();
   }
 
   /**
@@ -350,6 +401,19 @@ namespace modules {
 
     m_log.trace("%s: End of subthread", name());
   }
+
+  /**
+   * Handle input command
+   */
+  bool battery_module::input(string&& cmd) {
+    if (cmd != EVENT_TOGGLE) {
+      return false;
+    }
+    m_toggled = !m_toggled;
+    broadcast();
+    return true;
+  }
+
 }
 
 POLYBAR_NS_END
