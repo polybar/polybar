@@ -29,6 +29,8 @@ namespace modules {
     int m_perc_memfree{0};
     ramp_t m_ramp_memused;
     ramp_t m_ramp_memfree;
+    int m_perc_swap_used{0};
+    int m_perc_swap_free{0};
   };
 }
 

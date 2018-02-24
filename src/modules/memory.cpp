@@ -78,6 +78,8 @@ namespace modules {
 
     m_perc_memfree = math_util::percentage(kb_avail, kb_total);
     m_perc_memused = 100 - m_perc_memfree;
+    m_perc_swap_free = math_util::percentage(kb_swap_free, kb_swap_total);
+    m_perc_swap_used = 100 - m_perc_swap_free;
 
     // replace tokens
     if (m_label) {
@@ -90,6 +92,8 @@ namespace modules {
       m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
       m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
       m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+      m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
+      m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
       m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 2, m_bar.locale));
       m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 2, m_bar.locale));
       m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
