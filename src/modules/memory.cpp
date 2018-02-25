@@ -40,6 +40,8 @@ namespace modules {
   bool memory_module::update() {
     unsigned long long kb_total{0ULL};
     unsigned long long kb_avail{0ULL};
+    unsigned long long kb_swap_total{0ULL};
+    unsigned long long kb_swap_free{0ULL};
 
     try {
       std::ifstream meminfo(PATH_MEMORY_INFO);
@@ -58,6 +60,8 @@ namespace modules {
       }
 
       kb_total = parsed["MemTotal"];
+      kb_swap_total = parsed["SwapTotal"];
+      kb_swap_free = parsed["SwapFree"];
 
       // newer kernels (3.4+) have an accurate available memory field,
       // see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
@@ -74,6 +78,8 @@ namespace modules {
 
     m_perc_memfree = math_util::percentage(kb_avail, kb_total);
     m_perc_memused = 100 - m_perc_memfree;
+    m_perc_swap_free = math_util::percentage(kb_swap_free, kb_swap_total);
+    m_perc_swap_used = 100 - m_perc_swap_free;
 
     // replace tokens
     if (m_label) {
@@ -86,6 +92,14 @@ namespace modules {
       m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
       m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
       m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+      m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
+      m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
+      m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 2, m_bar.locale));
+      m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 2, m_bar.locale));
+      m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+      m_label->replace_token("%gb_swap_total%", string_util::filesize_gb(kb_swap_total, 2, m_bar.locale));
+      m_label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
+      m_label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
     }
 
     return true;
