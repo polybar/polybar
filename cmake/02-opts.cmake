@@ -42,9 +42,10 @@ option(WITH_XKB "xcb-xkb support" ON)
 option(WITH_XRM "xcb-xrm support" ON)
 option(WITH_XCURSOR "xcb-cursor support" ON)
 
+option(DEBUG_LOGGER "Trace logging" ON)
+
 if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
-  option(DEBUG_LOGGER "Debug logging" ON)
-  option(DEBUG_LOGGER_VERBOSE "Debug logging (verbose)" OFF)
+  option(DEBUG_LOGGER_VERBOSE "Trace logging (verbose)" OFF)
   option(DEBUG_HINTS "Debug clickable areas" OFF)
   option(DEBUG_WHITESPACE "Debug whitespace" OFF)
   option(DEBUG_FONTCONFIG "Debug fontconfig" OFF)
