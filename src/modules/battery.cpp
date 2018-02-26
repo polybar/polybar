@@ -249,19 +249,19 @@ namespace modules {
     };
 
     switch (m_state) {
-      case state::FULL:
+      case battery_module::state::FULL:
         replace_tokens(m_label_full);
         replace_tokens(m_label_alt_full);
         break;
-      case state::DISCHARGING:
+      case battery_module::state::DISCHARGING:
         replace_tokens(m_label_discharging);
         replace_tokens(m_label_alt_discharging);
         break;
-      case state::CHARGING:
+      case battery_module::state::CHARGING:
         replace_tokens(m_label_charging);
         replace_tokens(m_label_alt_charging);
         break;
-      case state::NONE:
+      case battery_module::state::NONE:
         // fall-through
       default:
         m_log.warn("Unsupported battery state: %d", m_state);
