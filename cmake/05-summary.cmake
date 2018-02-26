@@ -31,9 +31,11 @@ colored_option("   xcb-xkb" WITH_XKB)
 colored_option("   xcb-xrm" WITH_XRM)
 colored_option("   xcb-cursor" WITH_XCURSOR)
 
+message(STATUS " Log options:")
+colored_option("   Trace logging" DEBUG_LOGGER)
+
 if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
   message(STATUS " Debug options:")
-  colored_option("   Trace logging" DEBUG_LOGGER)
   colored_option("   Trace logging (verbose)" DEBUG_LOGGER_VERBOSE)
   colored_option("   Draw clickable areas" DEBUG_HINTS)
   colored_option("   Print fc-match details" DEBUG_FONTCONFIG)
