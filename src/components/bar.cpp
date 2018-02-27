@@ -710,7 +710,7 @@ void bar::handle(const evt::button_press& evt) {
         return;
       }
     }
-    m_log.warn("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
+    m_log.info("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
   };
 
   const auto check_double = [&](string&& id, mousebtn&& btn) {
