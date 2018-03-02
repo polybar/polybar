@@ -22,7 +22,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_maxlen, m_ellipsis, move(tokens), m_ignore_syntax_tags);
   }
 
   void label::clear() {
@@ -232,7 +232,8 @@ namespace drawtypes {
         margin,
         conf.get(section, name + "-maxlen", 0_z),
         conf.get(section, name + "-ellipsis", true),
-        move(tokens));
+        move(tokens),
+        conf.get(section, name + "-notags", false)); // tagfix:
     // clang-format on
   }
 

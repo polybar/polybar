@@ -35,7 +35,20 @@ void parser::parse(const bar_settings& bar, string data) {
   while (!data.empty()) {
     size_t pos{string::npos};
 
-    if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
+    if (data.compare(0, 3, "%{X") == 0 && (pos = data.find('}')) != string::npos) {
+      // tagfix: if %{X<skip_count>} tag is found, parse next 'skip_count' characters after the
+      // closing brace as text instead of a clodeblock
+      size_t skip_count = 0;
+
+      try {
+        skip_count = std::stoi(data.substr(3, pos - 3));
+      } catch(...) {
+      }
+
+      data.erase(0, pos + 1);
+      data.erase(0, text(data.substr(0, skip_count)));
+
+    } else if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
       codeblock(data.substr(2, pos - 2), bar);
       data.erase(0, pos + 1);
     } else if ((pos = data.find("%{")) != string::npos) {

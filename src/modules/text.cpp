@@ -52,7 +52,10 @@ namespace modules {
 
     m_builder->append(output);
 
-    return m_builder->flush();
+    // tagfix: this module seems to use builder directly (circumventing builder::node() construction)
+    // so we have to replace BUILDER_SPACE_TOKEN back to " " manually because that was removed from
+    // builder::flush() to play nice with the new %{X<skip_count>} tag
+    return string_util::replace_all(m_builder->flush(), BUILDER_SPACE_TOKEN, " ");
   }
 }
 

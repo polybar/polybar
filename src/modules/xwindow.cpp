@@ -78,6 +78,8 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%title%");
+      // tagfix: force this label to ignore syntax tags
+      m_label->m_ignore_syntax_tags = true;
     }
   }
 

@@ -37,6 +37,7 @@ enum class syntaxtag {
   R,  // flip colors
   o,  // overline color
   u,  // underline color
+  X   // tagfix: ignore syntax tags
 };
 
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };

@@ -218,7 +218,10 @@ namespace modules {
         cmd.erase(0, strlen(EVENT_CLICK));
         if (i3_util::focused_workspace(conn)->name != cmd) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + cmd);
+
+          // tagfix: ignore everything after semicolon to prevent injection of additional commands
+          size_t pos = cmd.find(';');
+          conn.send_command("workspace " + cmd.substr(0, pos));
         }
         return true;
       }

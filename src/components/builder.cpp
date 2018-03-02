@@ -19,6 +19,7 @@ builder::builder(const bar_settings& bar) : m_bar(bar) {
   m_tags[syntaxtag::T] = 0;
   m_tags[syntaxtag::o] = 0;
   m_tags[syntaxtag::u] = 0;
+  m_tags[syntaxtag::X] = 0;
 
   m_colors[syntaxtag::B] = string();
   m_colors[syntaxtag::F] = string();
@@ -58,6 +59,10 @@ string builder::flush() {
     cmd_close();
   }
 
+  if(m_tags[syntaxtag::X]) {
+    tag_close(syntaxtag::X);
+  }
+
   string output{m_output};
 
   // reset values
@@ -66,7 +71,9 @@ string builder::flush() {
   m_output.clear();
   m_fontindex = 1;
 
-  return string_util::replace_all(output, BUILDER_SPACE_TOKEN, " ");
+  // tagfix: do this at the end of builder::node(..) instead
+  // return string_util::replace_all(output, BUILDER_SPACE_TOKEN, " ");
+  return output;
 }
 
 /**
@@ -87,8 +94,14 @@ void builder::node(string str, bool add_space) {
     return;
   }
 
-  string::size_type n, m;
   string s(move(str));
+
+  if (m_ignore_syntax_tags) {
+    append(s);
+    return;
+  }
+
+  string::size_type n, m;
 
   if ((n = s.size()) > 2 && s[0] == '"' && s[n - 1] == '"') {
     s = s.substr(1, n - 2);
@@ -180,7 +193,7 @@ void builder::node(string str, bool add_space) {
   }
 
   if (!s.empty()) {
-    append(s);
+    append(string_util::replace_all(s, BUILDER_SPACE_TOKEN, " "));
   }
   if (add_space) {
     space();
@@ -239,7 +252,18 @@ void builder::node(const label_t& label, bool add_space) {
     space(label->m_padding.left);
   }
 
+  // tagfix: this will insert %{X<skip_count>} tag and set m_ignore_syntax_tags to true
+  // (see builder::tag_open())
+  if (label->m_ignore_syntax_tags) {
+    tag_open(syntaxtag::X, std::to_string(text.size()));
+  }
+
   node(text, label->m_font, add_space);
+
+  // tagfix: this will reset m_ignore_syntax_tags back to false
+  if (label->m_ignore_syntax_tags) {
+    tag_close(syntaxtag::X);
+  }
 
   if (label->m_padding.right > 0) {
     space(label->m_padding.right);
@@ -597,6 +621,10 @@ void builder::tag_open(syntaxtag tag, const string& value) {
     case syntaxtag::O:
       append("%{O" + value + "}");
       break;
+    case syntaxtag::X:
+      append("%{X" + value + "}");
+      m_ignore_syntax_tags = true;
+      break;
   }
 }
 
@@ -656,6 +684,9 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::R:
       break;
     case syntaxtag::O:
+      break;
+    case syntaxtag::X:
+      m_ignore_syntax_tags = false;
       break;
   }
 }

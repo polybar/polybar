@@ -76,6 +76,8 @@ class builder {
 
   string m_background{};
   string m_foreground{};
+
+  bool m_ignore_syntax_tags{false}; // tagfix:
 };
 
 POLYBAR_NS_END
