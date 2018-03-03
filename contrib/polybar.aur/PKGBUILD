@@ -12,7 +12,6 @@ optdepends=("alsa-lib: alsa module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "jsoncpp: i3 module support"
-            "i3ipc-glib-git: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "curl: github module support")
