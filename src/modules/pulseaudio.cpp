@@ -25,6 +25,10 @@ namespace modules {
       throw module_error(err.what());
     }
 
+    m_headphone_icon = m_conf.get(name(), "headphone-icon", ""s);
+    m_speaker_icon = m_conf.get(name(), "speaker-icon", ""s);
+    m_hdmi_icon = m_conf.get(name(), "hdmi-icon", ""s);
+
     // Add formats and elements
     m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
     m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
@@ -75,15 +79,29 @@ namespace modules {
       m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
     }
 
+    auto port_icon = [this]() {
+      auto port = m_pulseaudio->get_port_name();
+      if (string_util::contains(port, "headphones")) {
+        return m_headphone_icon;
+      } else if (string_util::contains(port, "speaker")) {
+        return m_speaker_icon;
+      } else if (string_util::contains(port, "hdmi")) {
+        return m_hdmi_icon;
+      }
+      return ""s;
+    };
+
     // Replace label tokens
     if (m_label_volume) {
       m_label_volume->reset_tokens();
       m_label_volume->replace_token("%percentage%", to_string(m_volume));
+      m_label_volume->replace_token("%port-icon%", port_icon());
     }
 
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
+      m_label_volume->replace_token("%port-icon%", port_icon());
     }
 
     return true;
