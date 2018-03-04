@@ -101,7 +101,7 @@ namespace modules {
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
-      m_label_volume->replace_token("%port-icon%", port_icon());
+      m_label_muted->replace_token("%port-icon%", port_icon());
     }
 
     return true;
