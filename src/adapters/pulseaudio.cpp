@@ -292,8 +292,9 @@ void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int 
   if (!eol && info) {
     This->m_index = info->index;
     This->s_name = info->name;
-    if (info->active_port)
+    if (info->active_port) {
       This->p_name = info->active_port->name;
+    }
   }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
