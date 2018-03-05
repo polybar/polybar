@@ -34,6 +34,10 @@ namespace modules {
     static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
+    static constexpr auto TAG_ICON_PORT = "<icon-port>";
+    static constexpr auto TAG_ICON_HEADPHONES = "<icon-headphones>";
+    static constexpr auto TAG_ICON_SPEAKER = "<icon-speaker>";
+    static constexpr auto TAG_ICON_HDMI = "<icon-hdmi>";
 
     static constexpr auto EVENT_PREFIX = "pa_vol";
     static constexpr auto EVENT_VOLUME_UP = "pa_volup";
@@ -42,6 +46,7 @@ namespace modules {
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
+    iconset_t m_port_icons;
     label_t m_label_volume;
     label_t m_label_muted;
 
@@ -49,9 +54,6 @@ namespace modules {
 
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
-    string m_headphone_icon{};
-    string m_speaker_icon{};
-    string m_hdmi_icon{};
   };
 }
 
