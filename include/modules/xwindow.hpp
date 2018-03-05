@@ -45,6 +45,6 @@ namespace modules {
     unique_ptr<active_window> m_active;
     label_t m_label;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

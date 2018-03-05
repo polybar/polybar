@@ -9,7 +9,7 @@ namespace xpp {
     template <typename Connection, typename... Extensions>
     class registry;
   }
-}
+}  // namespace xpp
 
 POLYBAR_NS
 

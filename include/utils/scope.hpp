@@ -39,6 +39,6 @@ namespace scope_util {
   decltype(auto) make_exit_handler(Fn&& fn, Args&&... args) {
     return factory_util::unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
   }
-}
+}  // namespace scope_util
 
 POLYBAR_NS_END

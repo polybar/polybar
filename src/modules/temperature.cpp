@@ -1,10 +1,10 @@
 #include "modules/temperature.hpp"
 
+#include <cmath>
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
-#include <cmath>
 
 #include "modules/meta/base.inl"
 
@@ -43,7 +43,7 @@ namespace modules {
     }
 
     // Deprecation warning for the %temperature% token
-    if((m_label[temp_state::NORMAL] && m_label[temp_state::NORMAL]->has_token("%temperature%")) ||
+    if ((m_label[temp_state::NORMAL] && m_label[temp_state::NORMAL]->has_token("%temperature%")) ||
         ((m_label[temp_state::WARN] && m_label[temp_state::WARN]->has_token("%temperature%")))) {
       m_log.warn("%s: The token `%%temperature%%` is deprecated, use `%%temperature-c%%` instead.", name());
     }
@@ -58,7 +58,7 @@ namespace modules {
     string temp_f_string = to_string(m_temp_f);
 
     // Add units if `units = true` in config
-    if(m_units) {
+    if (m_units) {
       temp_c_string += "°C";
       temp_f_string += "°F";
     }
@@ -102,6 +102,6 @@ namespace modules {
     }
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

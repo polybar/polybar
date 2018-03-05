@@ -15,6 +15,6 @@ namespace damage_util {
       throw application_error("Missing X extension: Damage");
     }
   }
-}
+}  // namespace damage_util
 
 POLYBAR_NS_END

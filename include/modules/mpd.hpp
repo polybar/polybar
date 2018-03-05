@@ -2,10 +2,10 @@
 
 #include <chrono>
 
-#include "utils/env.hpp"
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
@@ -95,6 +95,6 @@ namespace modules {
     string m_toggle_on_color;
     string m_toggle_off_color;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -31,13 +31,14 @@ namespace icccm_util {
   }
 
   bool get_wm_urgency(xcb_connection_t* c, xcb_window_t w) {
-    xcb_icccm_wm_hints_t hints;
-    if (xcb_icccm_get_wm_hints_reply(c, xcb_icccm_get_wm_hints(c, w), &hints, NULL)) {
-      if(xcb_icccm_wm_hints_get_urgency(&hints) == XCB_ICCCM_WM_HINT_X_URGENCY)
+    xcb_icccm_wm_hints_t hints{};
+    if (xcb_icccm_get_wm_hints_reply(c, xcb_icccm_get_wm_hints(c, w), &hints, nullptr)) {
+      if (xcb_icccm_wm_hints_get_urgency(&hints) == XCB_ICCCM_WM_HINT_X_URGENCY) {
         return true;
+      }
     }
     return false;
   }
-}
+}  // namespace icccm_util
 
 POLYBAR_NS_END

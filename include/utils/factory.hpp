@@ -20,7 +20,7 @@ namespace factory_util {
         }
       }
     };
-  }
+  }  // namespace detail
 
   extern detail::null_deleter null_deleter;
   extern detail::fd_deleter fd_deleter;
@@ -40,6 +40,6 @@ namespace factory_util {
     static shared_ptr<T> instance{make_shared<T>(forward<Deps>(deps)...)};
     return instance;
   }
-}
+}  // namespace factory_util
 
 POLYBAR_NS_END

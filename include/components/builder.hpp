@@ -15,7 +15,7 @@ namespace drawtypes {
   using label_t = shared_ptr<label>;
   using icon = label;
   using icon_t = label_t;
-}
+}  // namespace drawtypes
 using namespace drawtypes;
 
 class builder {

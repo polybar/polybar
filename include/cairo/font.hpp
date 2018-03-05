@@ -55,7 +55,8 @@ namespace cairo {
    */
   class font_fc : public font {
    public:
-    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset, double dpi_x, double dpi_y) : font(cairo, offset), m_pattern(pattern) {
+    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset, double dpi_x, double dpi_y)
+        : font(cairo, offset), m_pattern(pattern) {
       cairo_matrix_t fm;
       cairo_matrix_t ctm;
       cairo_matrix_init_scale(&fm, size(dpi_x), size(dpi_y));
@@ -274,6 +275,6 @@ namespace cairo {
 
     return make_shared<font_fc>(cairo, match, offset, dpi_x, dpi_y);
   }
-}
+}  // namespace cairo
 
 POLYBAR_NS_END

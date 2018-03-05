@@ -1,7 +1,7 @@
 #pragma once
 
-#include <bitset>
 #include <cairo/cairo.h>
+#include <bitset>
 
 #include "cairo/fwd.hpp"
 #include "common.hpp"
@@ -119,7 +119,7 @@ class renderer
   cairo_operator_t m_comp_ul{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_border{CAIRO_OPERATOR_OVER};
 
-  alignment m_align;
+  alignment m_align{};
   std::bitset<3> m_attr;
   int m_font{0};
   unsigned int m_bg{0U};

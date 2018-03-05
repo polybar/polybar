@@ -11,7 +11,7 @@
 
 POLYBAR_NS
 
-namespace chrono =std::chrono;
+namespace chrono = std::chrono;
 using namespace std::chrono_literals;
 namespace this_thread = std::this_thread;
 

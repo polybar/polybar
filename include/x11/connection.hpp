@@ -93,7 +93,7 @@ namespace detail {
       dispatcher(error);
     }
   };
-}
+}  // namespace detail
 
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
  public:

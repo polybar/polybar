@@ -7,11 +7,11 @@
 #include <endian.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <poll.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -19,6 +19,7 @@
 #define __inline__ inline
 #endif
 
+// clang-format off
 #include <alsa/asoundef.h>
 #include <alsa/version.h>
 #include <alsa/global.h>
@@ -37,6 +38,7 @@
 #include <alsa/seqmid.h>
 #include <alsa/seq_midi_event.h>
 #endif
+// clang-format on
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -56,6 +58,6 @@ namespace alsa {
       message += ": " + string{snd_error};
     throw T(message.c_str());
   }
-}
+}  // namespace alsa
 
 POLYBAR_NS_END

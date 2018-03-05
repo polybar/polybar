@@ -90,12 +90,13 @@ namespace modules {
    * Build module content
    */
   bool github_module::build(builder* builder, const string& tag) const {
-    if (tag != TAG_LABEL)
+    if (tag != TAG_LABEL) {
       return false;
+    }
 
     builder->node(m_label);
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
+#include "settings.hpp"
 #include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
@@ -58,6 +58,6 @@ namespace modules {
     bool m_scroll{true};
     std::atomic<int> m_percentage{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

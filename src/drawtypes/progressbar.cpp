@@ -136,6 +136,6 @@ namespace drawtypes {
 
     return pbar;
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

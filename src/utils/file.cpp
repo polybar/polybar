@@ -240,7 +240,7 @@ namespace file_util {
     string ret;
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
-      switch(section[0]) {
+      switch (section[0]) {
         case '$':
           section = env_util::get(section.substr(1));
           break;
@@ -250,10 +250,11 @@ namespace file_util {
       }
     }
     ret = string_util::join(p_exploded, "/");
-    if (ret[0] != '/')
+    if (ret[0] != '/') {
       ret.insert(0, 1, '/');
+    }
     return ret;
   }
-}
+}  // namespace file_util
 
 POLYBAR_NS_END

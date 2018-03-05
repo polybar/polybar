@@ -613,18 +613,22 @@ void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
   m_motion_pos = evt->event_x;
-  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
+  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
+  // action
   bool found_scroll = false;
   const auto find_click_area = [&](const action& action) {
-    if (!m_opts.cursor_click.empty() && !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN || action.button == mousebtn::NONE)) {
+    if (!m_opts.cursor_click.empty() &&
+        !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
+            action.button == mousebtn::NONE)) {
       if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
         m_opts.cursor = m_opts.cursor_click;
         m_sig.emit(cursor_change{string{m_opts.cursor}});
       }
       return true;
-    } else if (!m_opts.cursor_scroll.empty() && (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
+    } else if (!m_opts.cursor_scroll.empty() &&
+               (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
       if (!found_scroll) {
-          found_scroll = true;
+        found_scroll = true;
       }
     }
     return false;
@@ -633,11 +637,12 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_renderer->actions()) {
     if (action.test(m_motion_pos)) {
       m_log.trace("Found matching input area");
-      if(find_click_area(action))
+      if (find_click_area(action)) {
         return;
+      }
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -647,11 +652,12 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if(find_click_area(action))
+      if (find_click_area(action)) {
         return;
+      }
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -691,7 +697,7 @@ void bar::handle(const evt::button_press& evt) {
   const auto deferred_fn = [&](size_t) {
     /*
      * Iterate over all defined actions in reverse order until matching action is found
-     * To properly handle nested actions we iterate in reverse because nested actions are added later than their 
+     * To properly handle nested actions we iterate in reverse because nested actions are added later than their
      * surrounding action block
      */
     auto actions = m_renderer->actions();
@@ -788,7 +794,7 @@ bool bar::on(const signals::eventqueue::start&) {
   if (m_opts.dimvalue != 1.0) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() ) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
 
@@ -931,7 +937,7 @@ bool bar::on(const signals::ui::dim_window& sig) {
 
 #if WITH_XCURSOR
 bool bar::on(const signals::ui::cursor_change& sig) {
-  if(!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
     m_log.warn("Failed to create cursor context");
   }
   m_connection.flush();

@@ -1,9 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
-#include <functional>
 
 #include "settings.hpp"
 
@@ -23,20 +23,20 @@
 
 POLYBAR_NS
 
-using std::string;
-using std::size_t;
-using std::move;
-using std::forward;
-using std::pair;
-using std::function;
-using std::shared_ptr;
-using std::unique_ptr;
-using std::make_unique;
-using std::make_shared;
-using std::make_pair;
 using std::array;
-using std::vector;
+using std::forward;
+using std::function;
+using std::make_pair;
+using std::make_shared;
+using std::make_unique;
+using std::move;
+using std::pair;
+using std::shared_ptr;
+using std::size_t;
+using std::string;
 using std::to_string;
+using std::unique_ptr;
+using std::vector;
 
 using namespace std::string_literals;
 

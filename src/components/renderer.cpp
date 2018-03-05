@@ -413,7 +413,7 @@ double renderer::block_x(alignment a) const {
        * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
        * placed on the left
        */
-      if(m_rect.x > border_left) {
+      if (m_rect.x > border_left) {
         base_pos -= m_rect.x - border_left;
       }
 

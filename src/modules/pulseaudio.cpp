@@ -14,7 +14,8 @@ POLYBAR_NS
 namespace modules {
   template class module<pulseaudio_module>;
 
-  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
+  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
+      : event_module<pulseaudio_module>(bar, move(name_)) {
     // Load configuration values
     auto sink_name = m_conf.get(name(), "sink", ""s);
     try {
@@ -149,6 +150,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

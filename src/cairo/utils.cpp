@@ -170,7 +170,7 @@ namespace cairo {
         return 0;
       }
     }
-  }
-}
+  }  // namespace utils
+}  // namespace cairo
 
 POLYBAR_NS_END

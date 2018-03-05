@@ -79,6 +79,6 @@ namespace modules {
     }
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

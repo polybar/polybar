@@ -41,7 +41,7 @@ namespace drawtypes {
   using icon_t = label_t;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 class builder;
 class config;
@@ -163,6 +163,6 @@ namespace modules {
   };
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -66,6 +66,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0_z};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -41,6 +41,6 @@ namespace modules {
     string m_output;
     size_t m_initial;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -91,6 +91,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0U};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

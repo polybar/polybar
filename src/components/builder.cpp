@@ -525,7 +525,7 @@ void builder::cmd(mousebtn index, string action, bool condition) {
  */
 void builder::cmd(mousebtn index, string action, const label_t& label) {
   if (label && *label) {
-    cmd(index, action, true);
+    cmd(index, move(action), true);
     node(label);
     tag_close(syntaxtag::A);
   }

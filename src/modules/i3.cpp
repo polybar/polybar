@@ -179,10 +179,9 @@ namespace modules {
          * The separator should only be inserted in between the workspaces, so
          * we insert it in front of all workspaces except the first one.
          */
-        if(first) {
+        if (first) {
           first = false;
-        }
-        else if (*m_labelseparator) {
+        } else if (*m_labelseparator) {
           builder->node(m_labelseparator);
         }
 
@@ -234,8 +233,7 @@ namespace modules {
       }
 
       auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
-      auto current_ws = find_if(workspaces.begin(), workspaces.end(),
-                                [](auto ws) { return ws->visible; });
+      auto current_ws = find_if(workspaces.begin(), workspaces.end(), [](auto ws) { return ws->visible; });
 
       if (current_ws == workspaces.end()) {
         m_log.warn("%s: Current workspace not found", name());
@@ -264,6 +262,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

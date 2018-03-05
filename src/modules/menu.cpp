@@ -15,14 +15,13 @@ namespace modules {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
 
     string default_format;
-    if(m_expand_right) {
+    if (m_expand_right) {
       default_format += TAG_LABEL_TOGGLE;
       default_format += TAG_MENU;
     } else {
       default_format += TAG_MENU;
       default_format += TAG_LABEL_TOGGLE;
     }
-
 
     m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
 
@@ -76,14 +75,14 @@ namespace modules {
       auto spacing = m_formatter->get(get_format())->spacing;
       for (auto&& item : m_levels[m_level]->items) {
         /*
-         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be 
+         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be
          * drawn before or after the spacings and the separator
          *
          * If the menu expands to the left, the separator should be drawn on the right side because otherwise the menu
          * would look like this:
          * | x | y <label-toggle>
          */
-        if(!m_expand_right) {
+        if (!m_expand_right) {
           builder->cmd(mousebtn::LEFT, item->exec);
           builder->node(item->label);
           builder->cmd_close();
@@ -102,7 +101,7 @@ namespace modules {
          * would look like this:
          * <label-toggle> x | y |
          */
-        if(m_expand_right) {
+        if (m_expand_right) {
           builder->cmd(mousebtn::LEFT, item->exec);
           builder->node(item->label);
           builder->cmd_close();
@@ -149,6 +148,6 @@ namespace modules {
     broadcast();
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

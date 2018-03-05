@@ -25,6 +25,6 @@ namespace drawtypes {
   using ramp_t = shared_ptr<ramp>;
 
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required = true);
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

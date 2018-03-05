@@ -43,6 +43,6 @@ namespace modules {
 
     std::atomic<int> m_level{-1};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

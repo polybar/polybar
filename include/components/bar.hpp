@@ -30,9 +30,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
             public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick,
                 signals::ui::shade_window, signals::ui::unshade_window, signals::ui::dim_window
 #if WITH_XCURSOR
-                , signals::ui::cursor_change
+                ,
+                signals::ui::cursor_change
 #endif
-		> {
+                > {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);

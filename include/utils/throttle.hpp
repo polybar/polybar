@@ -25,7 +25,7 @@ namespace throttle_util {
     struct wait_patiently_by_the_door {
       bool operator()(queue& q, limit l, timewindow);
     };
-  }
+  }  // namespace strategy
 
   /**
    * Throttle events within a set window of time
@@ -87,6 +87,6 @@ namespace throttle_util {
   throttle_t make_throttler(Args&&... args) {
     return factory_util::unique<event_throttler>(forward<Args>(args)...);
   }
-}
+}  // namespace throttle_util
 
 POLYBAR_NS_END

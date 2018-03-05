@@ -91,6 +91,6 @@ namespace io_util {
       throw system_error("Failed to set O_NONBLOCK");
     }
   }
-}
+}  // namespace io_util
 
 POLYBAR_NS_END

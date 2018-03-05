@@ -133,7 +133,7 @@ namespace ewmh_util {
 
   vector<xcb_atom_t> get_wm_state(xcb_window_t win) {
     auto conn = initialize().get();
-    xcb_ewmh_get_atoms_reply_t reply;
+    xcb_ewmh_get_atoms_reply_t reply{};
     if (xcb_ewmh_get_wm_state_reply(conn, xcb_ewmh_get_wm_state(conn, win), &reply, nullptr)) {
       return {reply.atoms, reply.atoms + reply.atoms_len};
     }
@@ -167,12 +167,12 @@ namespace ewmh_util {
 
   vector<xcb_window_t> get_client_list(int screen) {
     auto conn = initialize().get();
-    xcb_ewmh_get_windows_reply_t reply;
+    xcb_ewmh_get_windows_reply_t reply{};
     if (xcb_ewmh_get_client_list_reply(conn, xcb_ewmh_get_client_list(conn, screen), &reply, nullptr)) {
       return {reply.windows, reply.windows + reply.windows_len};
     }
     return {};
   }
-}
+}  // namespace ewmh_util
 
 POLYBAR_NS_END

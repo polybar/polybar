@@ -102,8 +102,10 @@ namespace modules {
         mount->bytes_used = mount->bytes_total - mount->bytes_free;
         mount->bytes_avail = buffer.f_frsize * buffer.f_bavail;
 
-        mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
-        mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_free =
+            math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_used =
+            math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
       }
     }
 
@@ -180,6 +182,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

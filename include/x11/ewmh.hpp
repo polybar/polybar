@@ -41,6 +41,6 @@ namespace ewmh_util {
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values);
 
   vector<xcb_window_t> get_client_list(int screen = 0);
-}
+}  // namespace ewmh_util
 
 POLYBAR_NS_END

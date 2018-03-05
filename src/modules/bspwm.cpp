@@ -35,7 +35,7 @@ namespace {
     }
     return (base & mask) == mask;
   }
-}
+}  // namespace
 
 namespace modules {
   template class module<bspwm_module>;
@@ -401,8 +401,8 @@ namespace modules {
       }
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
-        if (ws.second.get()) {
-          if(workspace_n != 0 && *m_labelseparator) {
+        if (ws.second) {
+          if (workspace_n != 0 && *m_labelseparator) {
             builder->node(m_labelseparator);
           }
 
@@ -506,6 +506,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

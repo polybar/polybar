@@ -112,6 +112,6 @@ namespace file_util {
   decltype(auto) make_file_descriptor(Args&&... args) {
     return factory_util::unique<file_descriptor>(forward<Args>(args)...);
   }
-}
+}  // namespace file_util
 
 POLYBAR_NS_END

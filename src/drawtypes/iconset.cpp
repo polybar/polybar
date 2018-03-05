@@ -32,6 +32,6 @@ namespace drawtypes {
   iconset::operator bool() {
     return !m_icons.empty();
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

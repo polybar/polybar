@@ -10,6 +10,6 @@ namespace modules {
     virtual ~input_handler() {}
     virtual bool input(string&& cmd) = 0;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

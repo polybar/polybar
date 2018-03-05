@@ -39,6 +39,6 @@ namespace xembed {
   void notify_focused(connection& conn, xcb_window_t win, long focus_type);
   void notify_unfocused(connection& conn, xcb_window_t win);
   void unembed(connection& conn, xcb_window_t win, xcb_window_t root);
-}
+}  // namespace xembed
 
 POLYBAR_NS_END

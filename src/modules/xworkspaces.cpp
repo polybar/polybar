@@ -17,7 +17,7 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-}
+}  // namespace
 
 namespace modules {
   template class module<xworkspaces_module>;
@@ -165,11 +165,11 @@ namespace modules {
 
     unsigned int step = m_desktop_names.size() / bounds.size();
     unsigned int offset = 0;
-    for (unsigned int i = 0; i < bounds.size(); i++) {
-      if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
+    for (auto bound : bounds) {
+      if (!m_pinworkspaces || m_bar.monitor->match(bound)) {
         auto viewport = make_unique<struct viewport>();
         viewport->state = viewport_state::UNFOCUSED;
-        viewport->pos = bounds[i];
+        viewport->pos = bound;
 
         for (auto&& m : m_monitors) {
           if (m->match(viewport->pos)) {
@@ -208,7 +208,7 @@ namespace modules {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
@@ -224,9 +224,10 @@ namespace modules {
    */
   void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
     auto desk = ewmh_util::get_desktop_from_window(window);
-    if(desk == m_current_desktop)
+    if (desk == m_current_desktop) {
       // ignore if current desktop is urgent
       return;
+    }
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
         if (d->index == desk && d->state != desktop_state::URGENT) {
@@ -241,7 +242,6 @@ namespace modules {
         }
       }
     }
-
   }
 
   /**
@@ -291,7 +291,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_STATE) {
       unsigned int added_states = 0;
       for (auto&& desktop : m_viewports[m_index]->desktops) {
-        if (desktop->label.get()) {
+        if (desktop->label) {
           if (m_click && desktop->state != desktop_state::ACTIVE) {
             builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
             builder->node(desktop->label);
@@ -349,6 +349,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

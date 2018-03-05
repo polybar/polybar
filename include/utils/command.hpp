@@ -79,6 +79,6 @@ namespace command_util {
   unique_ptr<command> make_command(Args&&... args) {
     return factory_util::unique<command>(logger::make(), forward<Args>(args)...);
   }
-}
+}  // namespace command_util
 
 POLYBAR_NS_END

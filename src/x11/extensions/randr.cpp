@@ -213,6 +213,6 @@ namespace randr_util {
       dst.val = static_cast<double>(value);
     }
   }
-}
+}  // namespace randr_util
 
 POLYBAR_NS_END

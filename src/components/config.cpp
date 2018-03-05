@@ -166,7 +166,7 @@ void config::parse_file() {
     // Initialize the xresource manage if there are any xrdb refs
     // present in the configuration
     if (!m_xrm && value.find("${xrdb") != string::npos) {
-      m_xrm.reset(new xresource_manager{connection::make()});
+      m_xrm = make_unique<xresource_manager>(connection::make());
     }
 #endif
 

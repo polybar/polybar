@@ -115,6 +115,6 @@ namespace socket_util {
 
     return fds[0].revents & events;
   }
-}
+}  // namespace socket_util
 
 POLYBAR_NS_END

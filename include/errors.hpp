@@ -7,9 +7,9 @@
 
 POLYBAR_NS
 
-using std::strerror;
 using std::exception;
 using std::runtime_error;
+using std::strerror;
 
 class application_error : public runtime_error {
  public:

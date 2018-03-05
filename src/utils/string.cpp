@@ -178,8 +178,9 @@ namespace string_util {
     auto it = value.begin();
     auto end = value.end();
     for (size_t i = 0; i < len; ++i) {
-      if (it == end)
+      if (it == end) {
         break;
+      }
       ++it;
       it = std::find_if(it, end, [](char c) { return (c & 0xc0) != 0x80; });
     }
@@ -275,6 +276,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}
+}  // namespace string_util
 
 POLYBAR_NS_END

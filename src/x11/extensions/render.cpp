@@ -15,6 +15,6 @@ namespace render_util {
       throw application_error("Missing X extension: Render");
     }
   }
-}
+}  // namespace render_util
 
 POLYBAR_NS_END

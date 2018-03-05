@@ -1,8 +1,8 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -50,6 +50,6 @@ namespace modules {
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

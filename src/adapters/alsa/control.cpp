@@ -116,6 +116,6 @@ namespace alsa {
   void control::process_events() {
     wait(0);
   }
-}
+}  // namespace alsa
 
 POLYBAR_NS_END

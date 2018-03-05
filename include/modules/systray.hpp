@@ -1,8 +1,8 @@
 #if DEBUG
 #pragma once
 
-#include "modules/meta/static_module.hpp"
 #include "modules/meta/input_handler.hpp"
+#include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
 
@@ -34,7 +34,7 @@ namespace modules {
 
     bool m_hidden{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END
 #endif

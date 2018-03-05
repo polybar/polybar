@@ -78,6 +78,6 @@ namespace i3_util {
     }
     return false;
   }
-}
+}  // namespace i3_util
 
 POLYBAR_NS_END

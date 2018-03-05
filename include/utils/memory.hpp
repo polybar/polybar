@@ -25,6 +25,6 @@ namespace memory_util {
   inline auto countof(T& p) {
     return sizeof(p) / sizeof(p[0]);
   }
-}
+}  // namespace memory_util
 
 POLYBAR_NS_END

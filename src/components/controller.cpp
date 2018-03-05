@@ -275,8 +275,7 @@ void controller::read_events() {
     int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
     // Check for errors
-    if (events == -1)  {
-
+    if (events == -1) {
       /*
        * The Interrupt errno is generated when polybar is stopped, so it
        * shouldn't generate an error message
@@ -312,7 +311,8 @@ void controller::read_events() {
         // file to a different location (and subsequently deleting it).
         //
         // We need to re-attach the watch to the new file in this case.
-        fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
+        fds.erase(
+            std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
         m_confwatch = inotify_util::make_watch(m_confwatch->path());
         m_confwatch->attach(IN_MODIFY | IN_IGNORED);
         fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));

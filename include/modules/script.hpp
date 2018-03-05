@@ -44,6 +44,6 @@ namespace modules {
 
     bool m_stopping{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END
