@@ -639,7 +639,7 @@ cairo_surface_t* resize_surface(cairo_surface_t* old_surface, double new_width, 
 void renderer::draw_icon(const string& icon_location) {
   auto s = base64_decode(icon_location);
 
-  auto dest_icon_size = 16;
+  auto dest_icon_size = m_rect.height >= 16 ? 16 : pow(2, floor(log2(m_rect.height)));
 
   auto icon_data = s.data();
   auto icon_size = (int)sqrt(s.length() / 4);
