@@ -244,7 +244,7 @@ namespace modules {
         }
 
         if (m_click) {
-          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + to_string(ws->index));
+          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
         }
 
 
