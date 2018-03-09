@@ -134,6 +134,8 @@ type = internal/i3
 format = <label-state> <label-mode>
 index-sort = true
 wrapping-scroll = false
+show-icons = false
+icons-side = right
 
 ; Only show workspaces on the same output as the bar
 ;pin-workspaces = true
