@@ -38,6 +38,14 @@ namespace modules {
     static constexpr auto TAG_ICON_HEADPHONES = "<icon-headphones>";
     static constexpr auto TAG_ICON_SPEAKER = "<icon-speaker>";
     static constexpr auto TAG_ICON_HDMI = "<icon-hdmi>";
+    static constexpr auto TAG_ICON_BT_HEADSET = "<icon-bluetooth-headset>";
+    static constexpr auto TAG_ICON_BT_HANDSFREE = "<icon-bluetooth-handsfree>";
+    static constexpr auto TAG_ICON_BT_SPEAKER = "<icon-bluetooth-speaker>";
+    static constexpr auto TAG_ICON_BT_HEADPHONES = "<icon-bluetooth-headphones>";
+    static constexpr auto TAG_ICON_BT_PORTABLE = "<icon-bluetooth-portable>";
+    static constexpr auto TAG_ICON_BT_CAR = "<icon-bluetooth-car>";
+    static constexpr auto TAG_ICON_BT_HIFI = "<icon-bluetooth-hifi>";
+    static constexpr auto TAG_ICON_BT_PHONE = "<icon-bluetooth-phone>";
 
     static constexpr auto EVENT_PREFIX = "pa_vol";
     static constexpr auto EVENT_VOLUME_UP = "pa_volup";

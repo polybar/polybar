@@ -48,6 +48,14 @@ namespace modules {
       m_port_icons->add("headphones", load_optional_icon(m_conf, name(), TAG_ICON_HEADPHONES));
       m_port_icons->add("speaker", load_optional_icon(m_conf, name(), TAG_ICON_SPEAKER));
       m_port_icons->add("hdmi", load_optional_icon(m_conf, name(), TAG_ICON_HDMI));
+      m_port_icons->add("bt-headset", load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADSET));
+      m_port_icons->add("bt-handsfree", load_optional_icon(m_conf, name(), TAG_ICON_BT_HANDSFREE));
+      m_port_icons->add("bt-speaker", load_optional_icon(m_conf, name(), TAG_ICON_BT_SPEAKER));
+      m_port_icons->add("bt-headphones", load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADPHONES));
+      m_port_icons->add("bt-portable", load_optional_icon(m_conf, name(), TAG_ICON_BT_PORTABLE));
+      m_port_icons->add("bt-car", load_optional_icon(m_conf, name(), TAG_ICON_BT_CAR));
+      m_port_icons->add("bt-hifi", load_optional_icon(m_conf, name(), TAG_ICON_BT_HIFI));
+      m_port_icons->add("bt-phone", load_optional_icon(m_conf, name(), TAG_ICON_BT_PHONE));
     }
   }
 
@@ -129,12 +137,31 @@ namespace modules {
       builder->node(m_label_muted);
     } else if (tag == TAG_ICON_PORT) {
       auto port = m_pulseaudio->get_port_name();
+      auto sink = m_pulseaudio->get_name();
       if (string_util::contains(port, "headphones")) {
         builder->node(m_port_icons->get("headphones"));
       } else if (string_util::contains(port, "speaker")) {
         builder->node(m_port_icons->get("speaker"));
       } else if (string_util::contains(port, "hdmi")) {
         builder->node(m_port_icons->get("hdmi"));
+      } else if (string_util::contains(sink, "a2dp_sink")) {
+        if (string_util::contains(port, "headset")) {
+          builder->node(m_port_icons->get("bt-headset"));
+        } else if (string_util::contains(port, "handsfree")) {
+          builder->node(m_port_icons->get("bt-handsfree"));
+        } else if (string_util::contains(port, "speaker")) {
+          builder->node(m_port_icons->get("bt-speaker"));
+        } else if (string_util::contains(port, "headphone")) {
+          builder->node(m_port_icons->get("bt-headphones"));
+        } else if (string_util::contains(port, "portable")) {
+          builder->node(m_port_icons->get("bt-portable"));
+        } else if (string_util::contains(port, "car")) {
+          builder->node(m_port_icons->get("bt-car"));
+        } else if (string_util::contains(port, "hifi")) {
+          builder->node(m_port_icons->get("bt-hifi"));
+        } else if (string_util::contains(port, "phone")) {
+          builder->node(m_port_icons->get("bt-phone"));
+        }
       }
     } else {
       return false;
