@@ -2,7 +2,7 @@
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
 pkgver=3.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
@@ -23,6 +23,7 @@ md5sums=("SKIP")
 
 prepare() {
   git -C "${pkgname}" submodule update --init --recursive
+  git -C "${pkgname}/lib/xpp" checkout 00165e1a6d5dd61bc153e1352b21ec07fc81245d
   mkdir -p "${pkgname}/build"
 }
 
