@@ -131,6 +131,8 @@ namespace modules {
     vector<pair<xcb_window_t, unsigned int>> clients;
     vector<pair<xcb_window_t, unsigned int>> diff;
 
+    m_log.info("%s: Tally has %u Desktops at start of rebuild_clientlist", name(), m_desktop_client_count.size());
+
     for(xcb_window_t win : ewmh_util::get_client_list()) {
       pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
       clients.emplace_back(win_desktop);
@@ -153,7 +155,10 @@ namespace modules {
       m_clientlist.emplace_back(win_desktop);
       m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] - 1);
     }
+
+    m_log.info("%s: Tally has %u Desktops at the end of rebuild_clientlist", name(), m_desktop_client_count.size());
   }
+
 
   /**
    * Rebuild count of clients on each desktop
