@@ -394,6 +394,14 @@ menu-2-0-exec = sudo poweroff
 menu-2-1 = cancel
 menu-2-1-exec = menu-open-0
 
+[module/disk_io]
+type = internal/disk_io
+interval = 2
+format-prefix = " "
+format-prefix-foreground = ${colors.foreground-alt}
+format-underline = #4bffdc
+label = R: %speed_read% Mb/s W: %speed_write% Mb/s
+
 [settings]
 screenchange-reload = true
 ;compositing-background = xor
