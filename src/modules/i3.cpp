@@ -102,6 +102,13 @@ namespace modules {
       m_ipc->handle_event();
       return true;
     } catch (const exception& err) {
+      try {
+        m_log.warn("%s: Attempting to reconnect socket (reason: %s)", name(), err.what());
+        m_ipc->connect_event_socket(true);
+        m_log.info("%s: Reconnecting socket succeeded", name());
+      } catch (const exception& err) {
+        m_log.err("%s: Failed to reconnect socket (reason: %s)", name(), err.what());
+      }
       return false;
     }
   }
