@@ -26,9 +26,6 @@ namespace modules {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%speed_read% Mb/s %speed_write% Mb/s");
     }
     m_disk_names = _get_disk_names();
-    for (auto name : m_disk_names) {
-      std::cout << "name: " << name << std::endl;
-    }
 }
 
 std::vector<std::string> disk_io_module::_get_disk_names(void) {
@@ -38,7 +35,7 @@ std::vector<std::string> disk_io_module::_get_disk_names(void) {
 
   if (!(dp = opendir("/sys/block/")))
   {
-    std::cout << "Can't open /sys/block!!" << std::endl;
+    m_log.err("Can't open /sys/block!!");
     return names;
   }
   while ((dirp = readdir(dp))) {
