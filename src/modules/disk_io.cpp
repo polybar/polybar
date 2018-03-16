@@ -61,17 +61,13 @@ std::pair<unsigned long long, unsigned long long> disk_io_module::get_disk_read_
     std::string line;
     std::getline(disk_io_info, line);
 
-    static const std::regex re{"\\s+"};
-    std::vector<std::string> items{
-      std::sregex_token_iterator(line.begin(), line.end(), re, -1),
-        std::sregex_token_iterator()
-    };
-
+    std::vector<std::string> items = string_util::split(line, ' ');
     std::vector<std::string> filtered_items;
 
     for (const auto &item : items) {
-      if (item.length() > 0)
+      if (item.length() > 0) {
         filtered_items.push_back(item);
+      }
     }
 
     sec_read_total_new = std::strtoull(filtered_items[READ_SECTORS_OFFSET].c_str(), nullptr, 10);
