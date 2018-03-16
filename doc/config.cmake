@@ -397,6 +397,8 @@ menu-2-1-exec = menu-open-0
 [module/disk_io]
 type = internal/disk_io
 interval = 2
+;monitored-disks-0 = sda
+;monitored-disks-1 = nvme0n1
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #4bffdc

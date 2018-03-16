@@ -19,13 +19,18 @@ namespace modules {
   template class module<disk_io_module>;
 
   disk_io_module::disk_io_module(const bar_settings& bar, string name_) : timer_module<disk_io_module>(bar, move(name_)) {
+    std::vector<std::string> default_disk_name;
+
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    m_disk_names = m_conf.get_list(name(), "monitored-disks", default_disk_name); 
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL}/*, TAG_BAR_READ, TAG_BAR_WRITE}*/);
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%speed_read% Mb/s %speed_write% Mb/s");
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "R: %speed_read% W: %speed_write%");
     }
-    m_disk_names = get_disk_names();
+    if (m_disk_names.size() == 0) {
+      m_disk_names = get_disk_names();
+    }
 }
 
 std::vector<std::string> disk_io_module::get_disk_names(void) {
