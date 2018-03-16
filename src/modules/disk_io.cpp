@@ -99,7 +99,7 @@ void disk_io_module::_calculate_disk_io_speeds(std::string disk_name)
     return ;
 
   /*
-   * /sys/block/name/stat third and seventh fields display total compleated
+   * /sys/block/name/stat third and seventh fields display total completed
    * reads / writes in standard UNIX blocks (512b) so we need to divide delta
    * by 2048 to get value in Mb
    */
