@@ -104,9 +104,9 @@ void disk_io_module::calculate_disk_io_speeds(std::string disk_name)
    * by 2048 to get value in Mb
    */
   m_read_speeds[disk_name] = static_cast<float>(read_total_new - m_read_total[disk_name])
-    / (2.0f * 1024.0f * m_time_delta);
+    / (2.0f * m_time_delta);
   m_write_speeds[disk_name] = static_cast<float>(write_total_new - m_write_total[disk_name])
-    / (2.0f * 1024.0f * m_time_delta);
+    / (2.0f * m_time_delta);
 
   // replace old values
   m_read_total[disk_name] = read_total_new;
@@ -127,14 +127,9 @@ bool disk_io_module::update() {
 
   // replace tokens
   if (m_label) {
-    std::ostringstream ss;
     m_label->reset_tokens();
-    ss << std::fixed << std::setprecision(2) << (sum_read);
-    m_label->replace_token("%speed_read%", ss.str() + " Mb/s");
-    ss.str("");
-    ss << std::setprecision(2) << (sum_write);
-    m_label->replace_token("%speed_write%", ss.str() + " Mb/s");
-    ss.str("");
+    m_label->replace_token("%speed_read%", string_util::filesize_mb(sum_read, 1, m_bar.locale) + " Mb/s");
+    m_label->replace_token("%speed_write%", string_util::filesize_mb(sum_write, 1, m_bar.locale) + " Mb/s");
   }
 
   return true;
