@@ -400,7 +400,7 @@ interval = 2
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #4bffdc
-label = R: %speed_read% Mb/s W: %speed_write% Mb/s
+label = R: %speed_read% W: %speed_write%
 
 [settings]
 screenchange-reload = true

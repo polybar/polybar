@@ -130,10 +130,10 @@ bool disk_io_module::update() {
     std::ostringstream ss;
     m_label->reset_tokens();
     ss << std::fixed << std::setprecision(2) << (sum_read);
-    m_label->replace_token("%speed_read%", ss.str());
+    m_label->replace_token("%speed_read%", ss.str() + " Mb/s");
     ss.str("");
     ss << std::setprecision(2) << (sum_write);
-    m_label->replace_token("%speed_write%", ss.str());
+    m_label->replace_token("%speed_write%", ss.str() + " Mb/s");
     ss.str("");
   }
 
