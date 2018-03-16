@@ -17,10 +17,10 @@ namespace modules {
       bool build(builder* builder, const string& tag) const;
 
     private:
-      std::vector<std::string> _get_disk_names(void);
-      std::pair<unsigned long long, unsigned long long> _get_disk_read_write(std::string);
-      void _calculate_disk_io_speeds(std::string);
-      float _get_time_delta(void);
+      std::vector<std::string> get_disk_names(void);
+      std::pair<unsigned long long, unsigned long long> get_disk_read_write(std::string);
+      void calculate_disk_io_speeds(std::string);
+      float get_time_delta(void);
 
       const static unsigned READ_SECTORS_OFFSET = 3 - 1;
       const static unsigned WRITE_SECTORS_OFFSET = 7 - 1;

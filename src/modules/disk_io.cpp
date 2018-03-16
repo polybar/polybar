@@ -25,10 +25,10 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%speed_read% Mb/s %speed_write% Mb/s");
     }
-    m_disk_names = _get_disk_names();
+    m_disk_names = get_disk_names();
 }
 
-std::vector<std::string> disk_io_module::_get_disk_names(void) {
+std::vector<std::string> disk_io_module::get_disk_names(void) {
   DIR *dp;
   struct dirent *dirp;
   std::vector<std::string> names;
@@ -47,7 +47,7 @@ std::vector<std::string> disk_io_module::_get_disk_names(void) {
   return names;
 }
 
-std::pair<unsigned long long, unsigned long long> disk_io_module::_get_disk_read_write(std::string disk_name) {
+std::pair<unsigned long long, unsigned long long> disk_io_module::get_disk_read_write(std::string disk_name) {
   unsigned long long sec_read_total_new{0ULL};
   unsigned long long sec_write_total_new{0ULL};
   try {
@@ -72,12 +72,12 @@ std::pair<unsigned long long, unsigned long long> disk_io_module::_get_disk_read
     sec_read_total_new = std::strtoull(filtered_items[READ_SECTORS_OFFSET].c_str(), nullptr, 10);
     sec_write_total_new = std::strtoull(filtered_items[WRITE_SECTORS_OFFSET].c_str(), nullptr, 10);
   } catch (const std::exception& err) {
-    m_log.err("Failed to read memory values (what: %s)", err.what());
+    m_log.err("Failed to read diskstat values (what: %s)", err.what());
   }
   return (std::make_pair(sec_read_total_new, sec_write_total_new));
 }
 
-float disk_io_module::_get_time_delta(void) {
+float disk_io_module::get_time_delta(void) {
   std::chrono::milliseconds now = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch());
 
@@ -87,12 +87,12 @@ float disk_io_module::_get_time_delta(void) {
   return time_delta;
 }
 
-void disk_io_module::_calculate_disk_io_speeds(std::string disk_name)
+void disk_io_module::calculate_disk_io_speeds(std::string disk_name)
 {
   unsigned long long read_total_new{0ULL};
   unsigned long long write_total_new{0ULL};
 
-  auto read_write_pair = _get_disk_read_write(disk_name);
+  auto read_write_pair = get_disk_read_write(disk_name);
   read_total_new = read_write_pair.first;
   write_total_new = read_write_pair.second;
   if (read_total_new == 0ULL || write_total_new == 0ULL)
@@ -114,13 +114,13 @@ void disk_io_module::_calculate_disk_io_speeds(std::string disk_name)
 }
 
 bool disk_io_module::update() {
-  m_time_delta = _get_time_delta();
+  m_time_delta = get_time_delta();
 
   float sum_read{0.0f};
   float sum_write{0.0f};
 
   for (auto disk_name : m_disk_names) {
-    _calculate_disk_io_speeds(disk_name);
+    calculate_disk_io_speeds(disk_name);
     sum_read += m_read_speeds[disk_name];
     sum_write += m_write_speeds[disk_name];
   }
