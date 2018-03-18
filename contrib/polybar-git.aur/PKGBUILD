@@ -3,7 +3,7 @@
 _pkgname=polybar
 pkgname="${_pkgname}-git"
 pkgver=3.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
@@ -14,6 +14,7 @@ optdepends=("alsa-lib: alsa module support"
             "libmpdclient: mpd module support"
             "wireless_tools: network module support"
             "jsoncpp: i3 module support"
+            "i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "curl: github module support")
