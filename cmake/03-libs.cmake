@@ -22,3 +22,8 @@ querylib(WITH_XRENDER "pkg-config" xcb-render libs dirs)
 querylib(WITH_XRM "pkg-config" xcb-xrm libs dirs)
 querylib(WITH_XSYNC "pkg-config" xcb-sync libs dirs)
 querylib(WITH_XCURSOR "pkg-config" xcb-cursor libs dirs)
+
+# FreeBSD Support
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+  querylib(TRUE "pkg-config" libinotify libs dirs)
+endif()
