@@ -124,8 +124,8 @@ int pulseaudio::process_events() {
         if (!spec_s_name.empty()) {
           o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
           wait_loop(o, m_mainloop);
+          break;
         }
-        break;
       // get default sink
       case evtype::REMOVE:
         o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
@@ -138,7 +138,7 @@ int pulseaudio::process_events() {
           m_log.warn("pulseaudio: using default sink %s", s_name);
         break;
       default:
-	break;
+        break;
     }
     update_volume(o);
     m_events.pop();
