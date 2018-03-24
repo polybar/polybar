@@ -2,6 +2,7 @@
 
 #include <pulse/pulseaudio.h>
 #include <queue>
+#include <mutex>
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -17,6 +18,8 @@ typedef struct pa_threaded_mainloop pa_threaded_mainloop;
 
 POLYBAR_NS
 class logger;
+
+using mutex = std::mutex;
 
 DEFINE_ERROR(pulseaudio_error);
 
@@ -69,6 +72,8 @@ class pulseaudio {
     pa_threaded_mainloop* m_mainloop{nullptr};
 
     queue m_events;
+    mutable mutex m_mutex;
+
 
     // specified sink name
     string spec_s_name;

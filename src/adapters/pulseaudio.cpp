@@ -112,6 +112,8 @@ bool pulseaudio::wait() {
  * Process queued pulseaudio events
  */
 int pulseaudio::process_events() {
+  std::lock_guard<mutex> lock(m_mutex);
+
   int ret = m_events.size();
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *o{nullptr};
@@ -245,6 +247,7 @@ void pulseaudio::subscribe_callback(pa_context *, pa_subscription_event_type_t t
     return;
   switch(t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
     case PA_SUBSCRIPTION_EVENT_SINK:
+      std::lock_guard<mutex> lock(This->m_mutex);
       switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
         case PA_SUBSCRIPTION_EVENT_NEW:
             This->m_events.emplace(evtype::NEW);
