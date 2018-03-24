@@ -610,6 +610,12 @@ void bar::handle(const evt::leave_notify&) {
  * Used to change the cursor depending on the module
  */
 void bar::handle(const evt::motion_notify& evt) {
+  if (!m_mutex.try_lock()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
   m_motion_pos = evt->event_x;
@@ -691,7 +697,7 @@ void bar::handle(const evt::button_press& evt) {
   const auto deferred_fn = [&](size_t) {
     /*
      * Iterate over all defined actions in reverse order until matching action is found
-     * To properly handle nested actions we iterate in reverse because nested actions are added later than their 
+     * To properly handle nested actions we iterate in reverse because nested actions are added later than their
      * surrounding action block
      */
     auto actions = m_renderer->actions();
