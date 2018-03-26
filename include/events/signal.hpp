@@ -171,6 +171,9 @@ namespace signals {
     struct text : public detail::value_signal<text, string> {
       using base_type::base_type;
     };
+    struct icon : public detail::value_signal<icon, string> {
+      using base_type::base_type;
+    };
   }
 }
 

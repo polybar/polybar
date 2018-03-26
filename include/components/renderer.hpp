@@ -33,7 +33,7 @@ class renderer
           signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
           signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
           signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
-          signals::parser::text> {
+          signals::parser::text, signals::parser::icon> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -57,6 +57,7 @@ class renderer
   void fill_underline(double x, double w);
   void fill_borders();
   void draw_text(const string& contents);
+  void draw_icon(const string& icon_location);
 
  protected:
   double block_x(alignment a) const;
@@ -82,6 +83,7 @@ class renderer
   bool on(const signals::parser::action_begin& evt);
   bool on(const signals::parser::action_end& evt);
   bool on(const signals::parser::text& evt);
+  bool on(const signals::parser::icon& evt);
 
  protected:
   struct reserve_area {

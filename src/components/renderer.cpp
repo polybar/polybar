@@ -584,6 +584,70 @@ void renderer::fill_borders() {
   m_context->restore();
 }
 
+cairo_surface_t* resize_surface(cairo_surface_t* old_surface, double new_width, double new_height) {
+  cairo_surface_t* new_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, new_width, new_height);
+  cairo_t* cr = cairo_create(new_surface);
+
+  auto old_width = cairo_image_surface_get_width(old_surface);
+  auto old_height = cairo_image_surface_get_height(old_surface);
+
+  cairo_scale(cr, new_width / old_width, new_height / old_height);
+  cairo_set_source_surface(cr, old_surface, 0, 0);
+
+  cairo_paint(cr);
+  cairo_destroy(cr);
+  cairo_surface_destroy(old_surface);
+
+  return new_surface;
+}
+
+void renderer::draw_icon(const string& icon_location) {
+  auto s = base64_decode(icon_location);
+
+  auto dest_icon_size = 16;
+
+  auto icon_data = s.data();
+  auto icon_size = (int)sqrt(s.length() / 4);
+
+  auto height = m_rect.height;
+
+  vector<unsigned int> vec(dest_icon_size * height);
+  std::fill(vec.begin(), vec.end(), m_bg);
+
+  cairo_surface_t* surface = cairo_image_surface_create_for_data(
+      (unsigned char*)vec.data(), CAIRO_FORMAT_ARGB32, dest_icon_size, height, dest_icon_size * 4);
+
+  cairo_t* cr = cairo_create(surface);
+  auto image = cairo_image_surface_create_for_data(
+      (unsigned char*)icon_data, CAIRO_FORMAT_ARGB32, icon_size, icon_size, icon_size * 4);
+  if (image == nullptr) {
+    m_log.err("Cannot create icon");
+    return;
+  }
+
+  image = resize_surface(image, dest_icon_size, dest_icon_size);
+
+  cairo_set_source_surface(cr, image, 0, dest_icon_size / 2);
+  cairo_paint(cr);
+  cairo_destroy(cr);
+
+  cairo_surface_destroy(image);
+
+  cairo::abspos origin{};
+  origin.x = m_rect.x + m_blocks[m_align].x;
+  origin.y = m_rect.y + m_rect.height / 2.0;
+
+  m_context->save();
+  *m_context << origin;
+  *m_context << cairo::surface(surface);
+  m_context->restore();
+
+  fill_underline(origin.x, dest_icon_size);
+  fill_overline(origin.x, dest_icon_size);
+
+  m_blocks[m_align].x += dest_icon_size;
+}
+
 /**
  * Draw text contents
  */
@@ -789,6 +853,12 @@ bool renderer::on(const signals::parser::action_end& evt) {
 bool renderer::on(const signals::parser::text& evt) {
   auto text = evt.cast();
   draw_text(text);
+  return true;
+}
+
+bool renderer::on(const signals::parser::icon& evt) {
+  auto icon = evt.cast();
+  draw_icon(icon);
   return true;
 }
 

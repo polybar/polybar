@@ -1,5 +1,8 @@
+#include <cairo.h>
 #include <unistd.h>
+#include <xcb/xcb_ewmh.h>
 
+#include <utils/factory.hpp>
 #include "components/types.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
@@ -50,6 +53,24 @@ namespace ewmh_util {
       return get_reply_string(&utf8_reply);
     }
     return "";
+  }
+
+  std::vector<unsigned char> get_wm_icon(xcb_window_t win) {
+    auto conn = initialize().get();
+    auto cookie = xcb_ewmh_get_wm_icon(conn, win);
+    xcb_ewmh_get_wm_icon_reply_t reply{};
+    if (xcb_ewmh_get_wm_icon_reply(conn, cookie, &reply, nullptr)) {
+      xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&reply);
+      auto width = iter.width;
+      auto height = iter.height;
+      auto data = iter.data;
+      auto uc_data = (unsigned char*)data;
+      std::vector<unsigned char> icon(uc_data, uc_data + width * height * 4);
+      xcb_ewmh_get_wm_icon_reply_wipe(&reply);
+      return icon;
+    }
+
+    return std::vector<unsigned char>();
   }
 
   string get_icon_name(xcb_window_t win) {

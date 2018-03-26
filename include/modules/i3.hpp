@@ -7,6 +7,7 @@
 #include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
+#include "x11/ewmh.hpp"
 
 POLYBAR_NS
 
@@ -34,14 +35,15 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(string name, enum state state_, label_t&& label)
-          : name(name), state(state_), label(forward<label_t>(label)) {}
+      explicit workspace(string name, enum state state_, label_t&& label, std::vector<std::string> icons)
+          : name(name), state(state_), label(forward<label_t>(label)), icons(icons) {}
 
       operator bool();
 
       string name;
       enum state state;
       label_t label;
+      std::vector<std::string> icons;
     };
 
    public:
@@ -89,6 +91,8 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
+    bool m_show_icons{false};
+    string m_icons_side{"right"};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };

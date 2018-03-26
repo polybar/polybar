@@ -57,6 +57,7 @@ namespace signals {
     struct action_begin;
     struct action_end;
     struct text;
+    struct icon;
   }
 }
 
