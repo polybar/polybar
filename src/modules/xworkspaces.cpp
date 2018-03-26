@@ -13,12 +13,6 @@
 
 POLYBAR_NS
 
-namespace {
-  inline bool operator==(const position& a, const position& b) {
-    return a.x + a.y == b.x + b.y;
-  }
-}
-
 namespace modules {
   template class module<xworkspaces_module>;
 
@@ -208,7 +202,7 @@ namespace modules {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
