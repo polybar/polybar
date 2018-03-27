@@ -35,10 +35,10 @@ namespace modules {
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
 
-    static constexpr auto EVENT_PREFIX = "vol";
-    static constexpr auto EVENT_VOLUME_UP = "volup";
-    static constexpr auto EVENT_VOLUME_DOWN = "voldown";
-    static constexpr auto EVENT_TOGGLE_MUTE = "volmute";
+    static constexpr auto EVENT_PREFIX = "pa_vol";
+    static constexpr auto EVENT_VOLUME_UP = "pa_volup";
+    static constexpr auto EVENT_VOLUME_DOWN = "pa_voldown";
+    static constexpr auto EVENT_TOGGLE_MUTE = "pa_volmute";
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
