@@ -126,7 +126,7 @@ namespace modules {
   bool pulseaudio_module::input(string&& cmd) {
     if (!m_handle_events) {
       return false;
-    } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
+    } else if (cmd.compare(0, strlen(EVENT_PREFIX), EVENT_PREFIX) != 0) {
       return false;
     }
 
