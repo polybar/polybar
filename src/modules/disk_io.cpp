@@ -5,6 +5,7 @@
 #include <regex>
 #include <sys/types.h>
 #include <dirent.h>
+#include <algorithm>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
@@ -24,9 +25,15 @@ namespace modules {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
     m_disk_names = m_conf.get_list(name(), "monitored-disks", default_disk_name); 
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL}/*, TAG_BAR_READ, TAG_BAR_WRITE}*/);
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_READ, TAG_BAR_WRITE});
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "R: %speed_read% W: %speed_write%");
+    }
+    if (m_formatter->has(TAG_BAR_READ)) {
+      m_bar_read = load_progressbar(m_bar, m_conf, name(), TAG_BAR_READ);
+    }
+    if (m_formatter->has(TAG_BAR_WRITE)) {
+      m_bar_write = load_progressbar(m_bar, m_conf, name(), TAG_BAR_WRITE);
     }
     if (m_disk_names.size() == 0) {
       m_disk_names = get_disk_names();
@@ -126,11 +133,19 @@ bool disk_io_module::update() {
     sum_write += m_write_speeds[disk_name];
   }
 
+  m_max_read_speed = std::max(m_max_read_speed, sum_read);
+  m_max_write_speed = std::max(m_max_write_speed, sum_write);
+
+  m_perc_read = math_util::percentage(sum_read, m_max_read_speed);
+  m_perc_write = math_util::percentage(sum_write, m_max_write_speed);
+
   // replace tokens
   if (m_label) {
     m_label->reset_tokens();
     m_label->replace_token("%speed_read%", string_util::filesize_mb(sum_read, 1, m_bar.locale) + " Mb/s");
     m_label->replace_token("%speed_write%", string_util::filesize_mb(sum_write, 1, m_bar.locale) + " Mb/s");
+    m_label->replace_token("%percentage_read%", to_string(m_perc_read));
+    m_label->replace_token("%percentage_write%", to_string(m_perc_write));
   }
 
   return true;
@@ -139,6 +154,10 @@ bool disk_io_module::update() {
 bool disk_io_module::build(builder* builder, const string& tag) const {
   if (tag == TAG_LABEL) {
     builder->node(m_label);
+  } else if (tag == TAG_BAR_READ) {
+    builder->node(m_bar_read->output(m_perc_read));
+  } else if (tag == TAG_BAR_WRITE) {
+    builder->node(m_bar_write->output(m_perc_write));
   } else {
     return false;
   }
