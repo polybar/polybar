@@ -1,9 +1,9 @@
+#include "x11/window.hpp"
 #include "components/types.hpp"
 #include "utils/memory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/randr.hpp"
-#include "x11/window.hpp"
 
 POLYBAR_NS
 

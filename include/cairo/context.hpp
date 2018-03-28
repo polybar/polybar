@@ -353,6 +353,6 @@ namespace cairo {
     std::deque<pair<double, double>> m_points;
     int m_activegroups{0};
   };
-}
+}  // namespace cairo
 
 POLYBAR_NS_END

@@ -91,8 +91,8 @@ namespace modules {
         unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
         unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
 
-        consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
-      // if it was power, just use as is
+        consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+        // if it was power, just use as is
       } else {
         unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
 
@@ -100,7 +100,7 @@ namespace modules {
       }
 
       // convert to string with 2 decimmal places
-      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
+      string rtn(16, '\0');  // 16 should be plenty big. Cant see it needing more than 6/7..
       auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
       rtn.resize(written);
 
@@ -298,8 +298,8 @@ namespace modules {
   }
 
   /**
-  * Get the current power consumption
-  */
+   * Get the current power consumption
+   */
   string battery_module::current_consumption() {
     return read(*m_consumption_reader);
   }
@@ -350,6 +350,6 @@ namespace modules {
 
     m_log.trace("%s: End of subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

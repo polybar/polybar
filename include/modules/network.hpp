@@ -53,6 +53,6 @@ namespace modules {
     bool m_accumulate{false};
     bool m_unknown_up{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

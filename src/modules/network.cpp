@@ -180,6 +180,6 @@ namespace modules {
 
     m_log.trace("%s: Reached end of network subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

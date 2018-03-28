@@ -112,7 +112,7 @@ namespace color_util {
 
     return hex;
   }
-}
+}  // namespace color_util
 
 struct rgb {
   double r;

@@ -57,6 +57,6 @@ namespace modules {
 
     vector<string> m_blacklist;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

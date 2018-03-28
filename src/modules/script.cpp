@@ -175,7 +175,6 @@ namespace modules {
     string output{module::get_output()};
 
     for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
-
       auto action = m_actions[btn];
 
       if (!action.empty()) {
@@ -185,7 +184,7 @@ namespace modules {
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
-        if(m_tail && m_command && m_command->is_running()) {
+        if (m_tail && m_command && m_command->is_running()) {
           m_builder->cmd(btn, string_util::replace_all(action, "%pid%", to_string(m_command->get_pid())));
         }
       }
@@ -208,6 +207,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

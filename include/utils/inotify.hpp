@@ -42,6 +42,6 @@ namespace inotify_util {
   decltype(auto) make_watch(Args&&... args) {
     return factory_util::unique<inotify_watch>(forward<Args>(args)...);
   }
-}
+}  // namespace inotify_util
 
 POLYBAR_NS_END

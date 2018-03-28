@@ -22,6 +22,6 @@ namespace io_util {
 
   void set_block(int fd);
   void set_nonblock(int fd);
-}
+}  // namespace io_util
 
 POLYBAR_NS_END

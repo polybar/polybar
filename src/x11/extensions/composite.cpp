@@ -17,6 +17,6 @@ namespace composite_util {
     }
 #endif
   }
-}
+}  // namespace composite_util
 
 POLYBAR_NS_END

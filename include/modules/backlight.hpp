@@ -1,8 +1,8 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/inotify_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -38,6 +38,6 @@ namespace modules {
 
     int m_percentage = 0;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

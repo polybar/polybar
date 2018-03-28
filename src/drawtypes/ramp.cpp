@@ -48,6 +48,6 @@ namespace drawtypes {
 
     return factory_util::shared<drawtypes::ramp>(move(vec));
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

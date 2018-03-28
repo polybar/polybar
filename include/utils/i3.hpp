@@ -20,7 +20,7 @@ namespace i3_util {
 
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name = "");
   bool restack_to_root(connection& conn, const xcb_window_t win);
-}
+}  // namespace i3_util
 
 namespace {
   inline bool operator==(i3_util::workspace_t& a, i3_util::workspace_t& b) {
@@ -29,6 +29,6 @@ namespace {
   inline bool operator!=(i3_util::workspace_t& a, i3_util::workspace_t& b) {
     return !(a == b);
   }
-}
+}  // namespace
 
 POLYBAR_NS_END

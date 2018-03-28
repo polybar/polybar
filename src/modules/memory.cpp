@@ -26,10 +26,10 @@ namespace modules {
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
     }
-    if(m_formatter->has(TAG_RAMP_USED)) {
+    if (m_formatter->has(TAG_RAMP_USED)) {
       m_ramp_memused = load_ramp(m_conf, name(), TAG_RAMP_USED);
     }
-    if(m_formatter->has(TAG_RAMP_FREE)) {
+    if (m_formatter->has(TAG_RAMP_FREE)) {
       m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
     if (m_formatter->has(TAG_LABEL)) {
@@ -52,7 +52,9 @@ namespace modules {
         size_t sep_off = line.find(':');
         size_t value_off = line.find_first_of("123456789", sep_off);
 
-        if (sep_off == std::string::npos || value_off == std::string::npos) continue;
+        if (sep_off == std::string::npos || value_off == std::string::npos) {
+          continue;
+        }
 
         std::string id = line.substr(0, sep_off);
         unsigned long long int value = std::strtoull(&line[value_off], nullptr, 10);
@@ -64,7 +66,8 @@ namespace modules {
       kb_swap_free = parsed["SwapFree"];
 
       // newer kernels (3.4+) have an accurate available memory field,
-      // see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
+      // see
+      // https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
       // for details
       if (parsed.count("MemAvailable")) {
         kb_avail = parsed["MemAvailable"];
@@ -121,6 +124,6 @@ namespace modules {
     }
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -25,6 +25,6 @@ namespace http_util {
   decltype(auto) make_downloader(Args&&... args) {
     return factory_util::unique<http_downloader>(forward<Args>(args)...);
   }
-}
+}  // namespace http_util
 
 POLYBAR_NS_END

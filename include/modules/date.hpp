@@ -3,9 +3,9 @@
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
-#include <iostream>
-#include <iomanip>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
 
 POLYBAR_NS
 
@@ -42,6 +42,6 @@ namespace modules {
 
     std::atomic<bool> m_toggled{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

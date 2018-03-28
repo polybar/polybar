@@ -64,6 +64,6 @@ namespace drawtypes {
 
     return factory_util::shared<animation>(move(vec), framerate);
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

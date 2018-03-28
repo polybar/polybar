@@ -32,6 +32,6 @@ namespace bspwm_util {
   payload_t make_payload(const string& cmd);
   connection_t make_connection();
   connection_t make_subscriber();
-}
+}  // namespace bspwm_util
 
 POLYBAR_NS_END

@@ -35,15 +35,15 @@ namespace drawtypes {
     string m_underline{};
     string m_overline{};
     int m_font{0};
-    side_values m_padding{0U,0U};
-    side_values m_margin{0U,0U};
+    side_values m_padding{0U, 0U};
+    side_values m_margin{0U, 0U};
     size_t m_maxlen{0_z};
     bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
-        string overline = ""s, int font = 0, struct side_values padding = {0U,0U}, struct side_values margin = {0U,0U},
-        size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
+        string overline = ""s, int font = 0, struct side_values padding = {0U, 0U},
+        struct side_values margin = {0U, 0U}, size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
@@ -64,7 +64,7 @@ namespace drawtypes {
     void reset_tokens();
     void reset_tokens(const string& tokenized);
     bool has_token(const string& token) const;
-    void replace_token(const string& token, string replacement);
+    void replace_token(const string& token, const string& replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 
@@ -79,6 +79,6 @@ namespace drawtypes {
 
   icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = ""s);
   icon_t load_optional_icon(const config& conf, string section, string name, string def = ""s);
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

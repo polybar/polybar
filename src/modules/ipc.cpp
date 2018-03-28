@@ -123,6 +123,6 @@ namespace modules {
       broadcast();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

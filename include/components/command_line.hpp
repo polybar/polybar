@@ -73,6 +73,6 @@ namespace command_line {
   };
 
   // }}}
-}
+}  // namespace command_line
 
 POLYBAR_NS_END

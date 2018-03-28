@@ -96,6 +96,6 @@ namespace xembed {
       // invalid window
     }
   }
-}
+}  // namespace xembed
 
 POLYBAR_NS_END

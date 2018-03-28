@@ -41,7 +41,7 @@ namespace drawtypes {
     return m_tokenized.find(token) != string::npos;
   }
 
-  void label::replace_token(const string& token, string replacement) {
+  void label::replace_token(const string& token, const string& replacement) {
     if (!has_token(token)) {
       return;
     }
@@ -256,6 +256,6 @@ namespace drawtypes {
   icon_t load_optional_icon(const config& conf, string section, string name, string def) {
     return load_icon(conf, move(section), move(name), false, move(def));
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

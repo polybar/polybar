@@ -197,6 +197,6 @@ namespace modules {
       update();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

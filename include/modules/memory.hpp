@@ -32,6 +32,6 @@ namespace modules {
     int m_perc_swap_used{0};
     int m_perc_swap_free{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

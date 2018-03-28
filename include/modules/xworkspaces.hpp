@@ -104,6 +104,6 @@ namespace modules {
 
     event_timer m_timer{0L, 25L};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

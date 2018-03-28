@@ -43,7 +43,8 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD)
+#if not( \
+    ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD)
 #include "modules/unsupported.hpp"
 #endif
 
@@ -110,6 +111,6 @@ namespace {
       throw application_error("Unknown module: " + name);
     }
   }
-}
+}  // namespace
 
 POLYBAR_NS_END

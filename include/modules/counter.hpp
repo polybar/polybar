@@ -17,6 +17,6 @@ namespace modules {
 
     int m_counter{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

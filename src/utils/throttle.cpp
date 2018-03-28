@@ -30,7 +30,7 @@ namespace throttle_util {
       }
       return true;
     }
-  }
-}
+  }  // namespace strategy
+}  // namespace throttle_util
 
 POLYBAR_NS_END

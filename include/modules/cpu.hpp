@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -44,6 +44,6 @@ namespace modules {
     float m_total = 0;
     vector<float> m_load;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

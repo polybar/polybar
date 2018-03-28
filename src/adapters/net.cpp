@@ -395,6 +395,6 @@ namespace net {
   }
 
   // }}}
-}
+}  // namespace net
 
 POLYBAR_NS_END

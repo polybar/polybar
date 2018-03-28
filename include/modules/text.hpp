@@ -13,6 +13,6 @@ namespace modules {
     string get_format() const;
     string get_output();
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

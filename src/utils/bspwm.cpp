@@ -146,6 +146,6 @@ namespace bspwm_util {
     }
     return conn;
   }
-}
+}  // namespace bspwm_util
 
 POLYBAR_NS_END

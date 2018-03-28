@@ -17,6 +17,6 @@ namespace sync_util {
       throw application_error("Missing X extension: Sync");
     }
   }
-}
+}  // namespace sync_util
 
 POLYBAR_NS_END

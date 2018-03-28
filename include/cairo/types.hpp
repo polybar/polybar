@@ -61,9 +61,9 @@ namespace cairo {
     unsigned int bg;
     cairo_operator_t bg_operator;
     rect bg_rect;
-    double *x_advance;
-    double *y_advance;
+    double* x_advance;
+    double* y_advance;
   };
-}
+}  // namespace cairo
 
 POLYBAR_NS_END

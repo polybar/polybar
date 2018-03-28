@@ -28,6 +28,6 @@ namespace modules {
     unique_ptr<http_downloader> m_http{};
     bool m_empty_notifications{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

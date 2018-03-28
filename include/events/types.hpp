@@ -54,6 +54,6 @@ namespace {
   inline event make_check_evt() {
     return event{static_cast<int>(event_type::CHECK)};
   }
-}
+}  // namespace
 
 POLYBAR_NS_END

@@ -52,6 +52,6 @@ namespace modules {
 #if not ENABLE_XKEYBOARD
   DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
 #endif
-}
+}  // namespace modules
 
 POLYBAR_NS_END
