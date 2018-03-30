@@ -128,6 +128,7 @@ int pulseaudio::process_events() {
           wait_loop(o, m_mainloop);
           break;
         }
+        // FALLTHRU
       // get default sink
       case evtype::REMOVE:
         o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
