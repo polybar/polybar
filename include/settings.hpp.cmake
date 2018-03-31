@@ -47,8 +47,9 @@
 
 #cmakedefine XPP_EXTENSION_LIST @XPP_EXTENSION_LIST@
 
-#if DEBUG
 #cmakedefine DEBUG_LOGGER
+
+#if DEBUG
 #cmakedefine DEBUG_LOGGER_VERBOSE
 #cmakedefine DEBUG_HINTS
 #cmakedefine DEBUG_WHITESPACE
