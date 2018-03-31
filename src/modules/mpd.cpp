@@ -332,6 +332,8 @@ namespace modules {
       return false;
     }
 
+    m_log.info("%s: event: %s", name(), cmd);
+
     try {
       auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       mpd->connect();
