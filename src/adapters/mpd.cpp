@@ -10,6 +10,8 @@
 
 POLYBAR_NS
 
+#define TRACE_BOOL(mode) m_log.trace("mpdconnection.%s: %s", __FUNCTION__, mode ? "true" : "false");
+
 namespace mpd {
   sig_atomic_t g_connection_closed = 0;
   void g_mpd_signal_handler(int signum) {
@@ -244,6 +246,7 @@ namespace mpd {
 
   void mpdconnection::pause(bool state) {
     try {
+      TRACE_BOOL(state);
       check_prerequisites_commands_list();
       mpd_run_pause(m_connection.get(), state);
       check_errors(m_connection.get());
@@ -304,6 +307,7 @@ namespace mpd {
 
   void mpdconnection::set_repeat(bool mode) {
     try {
+      TRACE_BOOL(mode);
       check_prerequisites_commands_list();
       mpd_run_repeat(m_connection.get(), mode);
       check_errors(m_connection.get());
@@ -314,6 +318,7 @@ namespace mpd {
 
   void mpdconnection::set_random(bool mode) {
     try {
+      TRACE_BOOL(mode);
       check_prerequisites_commands_list();
       mpd_run_random(m_connection.get(), mode);
       check_errors(m_connection.get());
@@ -324,6 +329,7 @@ namespace mpd {
 
   void mpdconnection::set_single(bool mode) {
     try {
+      TRACE_BOOL(mode);
       check_prerequisites_commands_list();
       mpd_run_single(m_connection.get(), mode);
       check_errors(m_connection.get());
@@ -334,6 +340,7 @@ namespace mpd {
 
   void mpdconnection::set_consume(bool mode) {
     try {
+      TRACE_BOOL(mode);
       check_prerequisites_commands_list();
       mpd_run_consume(m_connection.get(), mode);
       check_errors(m_connection.get());
@@ -475,5 +482,7 @@ namespace mpd {
 
   // }}}
 }
+
+#undef LOG_BOOL
 
 POLYBAR_NS_END
