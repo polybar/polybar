@@ -10,7 +10,7 @@
 
 POLYBAR_NS
 
-#define TRACE_BOOL(mode) m_log.trace("mpdconnection.%s: %s", __FUNCTION__, mode ? "true" : "false");
+#define TRACE_BOOL(mode) m_log.trace("mpdconnection.%s: %s", __func__, mode ? "true" : "false");
 
 namespace mpd {
   sig_atomic_t g_connection_closed = 0;
