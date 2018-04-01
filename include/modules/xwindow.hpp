@@ -30,6 +30,11 @@ namespace modules {
    */
   class xwindow_module : public static_module<xwindow_module>, public event_handler<evt::property_notify> {
    public:
+    enum class state {
+      NONE,
+      ACTIVE,
+      EMPTY
+    };
     explicit xwindow_module(const bar_settings&, string);
 
     void update(bool force = false);
@@ -43,6 +48,7 @@ namespace modules {
 
     connection& m_connection;
     unique_ptr<active_window> m_active;
+    map<state, label_t> m_statelabels;
     label_t m_label;
   };
 }
