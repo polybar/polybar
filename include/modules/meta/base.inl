@@ -1,3 +1,4 @@
+#include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
