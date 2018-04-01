@@ -77,10 +77,8 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_statelabels.insert(
-          make_pair(state::ACTIVE, load_optional_label(m_conf, name(), "label", "%title%")));
-      m_statelabels.insert(
-          make_pair(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", "")));
+      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label", "%title%"));
+      m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", ""));
     }
   }
 
@@ -122,11 +120,11 @@ namespace modules {
     }
 
     if (m_active) {
-      m_label = m_statelabels.find(state::ACTIVE)->second->clone();
+      m_label = m_statelabels.at(state::ACTIVE)->clone();
       m_label->reset_tokens();
       m_label->replace_token("%title%", m_active->title());
     } else {
-      m_label = m_statelabels.find(state::EMPTY)->second->clone();
+      m_label = m_statelabels.at(state::EMPTY)->clone();
     }
   }
 
