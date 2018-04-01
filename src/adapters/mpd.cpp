@@ -483,6 +483,6 @@ namespace mpd {
   // }}}
 }
 
-#undef LOG_BOOL
+#undef TRACE_BOOL
 
 POLYBAR_NS_END
