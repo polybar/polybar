@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <mutex>
 
 #include "components/config.hpp"
 #include "components/types.hpp"
@@ -108,6 +109,7 @@ namespace modules {
     size_t m_index{0};
 
     event_timer m_timer{0L, 25L};
+    std::mutex m_mutex;
   };
 }
 

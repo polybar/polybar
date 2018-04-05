@@ -97,6 +97,8 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
+    std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
       rebuild_desktop_states();
