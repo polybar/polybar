@@ -1,3 +1,4 @@
+#include "common/test.hpp"
 #include "utils/scope.hpp"
 
 int main() {

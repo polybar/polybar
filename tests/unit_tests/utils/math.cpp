@@ -1,3 +1,4 @@
+#include "common/test.hpp"
 #include "utils/math.hpp"
 
 int main() {

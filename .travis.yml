@@ -35,6 +35,8 @@ addons:
       - python-xcbgen
       - xcb-proto
       - xutils-dev
+      - libgtest0
+      - libgtest-dev
 
 env:
   global:
