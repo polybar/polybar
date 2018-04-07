@@ -1,160 +1,113 @@
-#include "components/command_line.cpp"
-#include "utils/string.cpp"
+#include "common/test.hpp"
+#include "components/command_line.hpp"
+#include "utils/string.hpp"
 
-int main() {
-  using namespace polybar;
+using namespace polybar;
 
-  const auto get_opts = []() -> const command_line::options {
-    // clang-format off
-    return command_line::options{
-      command_line::option{"-f", "--flag", "Flag description"},
-      command_line::option{"-o", "--option", "Option description", "OPTION", {"foo", "bar", "baz"}},
+class CommandLine : public ::testing::Test {
+  protected:
+    virtual void SetUp() {
+      set_cli();
+    }
+
+    virtual void set_cli() {
+      cli = command_line::parser::make("cmd", get_opts());
+    }
+
+    command_line::options get_opts()  {
+      // clang-format off
+      return command_line::options {
+        command_line::option{"-f", "--flag", "Flag description"},
+        command_line::option{"-o", "--option", "Option description", "OPTION", {"foo", "bar", "baz"}},
+      };
+      // clang-format on
     };
-    // clang-format on
-  };
 
-  "has_short"_test = [&] {
-    auto cli = command_line::parser::make("cmd", get_opts());
-    cli->process_input(string_util::split("-f", ' '));
-    expect(cli->has("flag"));
-    expect(!cli->has("option"));
+    command_line::parser::make_type cli;
+};
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("-f -o foo", ' '));
-    expect(cli->has("flag"));
-    expect(cli->has("option"));
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("-o baz", ' '));
-    expect(!cli->has("flag"));
-    expect(cli->has("option"));
-  };
+TEST_F(CommandLine, hasShort) {
+  cli->process_input(string_util::split("-f", ' '));
+  EXPECT_TRUE(cli->has("flag"));
+  EXPECT_FALSE(cli->has("option"));
 
-  "has_long"_test = [&] {
-    auto cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--flag", ' '));
-    expect(cli->has("flag"));
-    expect(!cli->has("option"));
+  set_cli();
+  cli->process_input(string_util::split("-f -o foo", ' '));
+  EXPECT_TRUE(cli->has("flag"));
+  EXPECT_TRUE(cli->has("option"));
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--flag --option=foo", ' '));
-    expect(cli->has("flag"));
-    expect(cli->has("option"));
+  set_cli();
+  cli->process_input(string_util::split("-o baz", ' '));
+  EXPECT_FALSE(cli->has("flag"));
+  EXPECT_TRUE(cli->has("option"));
+}
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--option=foo --flag", ' '));
-    expect(cli->has("flag"));
-    expect(cli->has("option"));
+TEST_F(CommandLine, hasLong) {
+  cli->process_input(string_util::split("--flag", ' '));
+  EXPECT_TRUE(cli->has("flag"));
+  EXPECT_FALSE(cli->has("option"));
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--option=baz", ' '));
-    expect(!cli->has("flag"));
-    expect(cli->has("option"));
-  };
+  set_cli();
+  cli->process_input(string_util::split("--flag --option=foo", ' '));
+  EXPECT_TRUE(cli->has("flag"));
+  EXPECT_TRUE(cli->has("option"));
 
-  "compare"_test = [&] {
-    auto cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("-o baz", ' '));
-    expect(cli->compare("option", "baz"));
+  set_cli();
+  cli->process_input(string_util::split("--option=foo --flag", ' '));
+  EXPECT_TRUE(cli->has("flag"));
+  EXPECT_TRUE(cli->has("option"));
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--option=foo", ' '));
-    expect(cli->compare("option", "foo"));
-  };
+  set_cli();
+  cli->process_input(string_util::split("--option=baz", ' '));
+  EXPECT_FALSE(cli->has("flag"));
+  EXPECT_TRUE(cli->has("option"));
+}
 
-  "get"_test = [&] {
-    auto cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--option=baz", ' '));
-    expect("baz" == cli->get("option"));
+TEST_F(CommandLine, compare) {
+  cli->process_input(string_util::split("-o baz", ' '));
+  EXPECT_TRUE(cli->compare("option", "baz"));
 
-    cli = command_line::parser::make("cmd", get_opts());;
-    cli->process_input(string_util::split("--option=foo", ' '));
-    expect("foo" == cli->get("option"));
-  };
+  set_cli();
+  cli->process_input(string_util::split("--option=foo", ' '));
+  EXPECT_TRUE(cli->compare("option", "foo"));
+}
 
-  "missing_value"_test = [&] {
-    auto input1 = string_util::split("--option", ' ');
-    auto input2 = string_util::split("-o", ' ');
-    auto input3 = string_util::split("--option baz", ' ');
+TEST_F(CommandLine, get) {
+  cli->process_input(string_util::split("--option=baz", ' '));
+  EXPECT_EQ("baz", cli->get("option"));
 
-    bool exception_thrown = false;
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input1);
-    } catch (const command_line::value_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
+  set_cli();
+  cli->process_input(string_util::split("--option=foo", ' '));
+  EXPECT_EQ("foo", cli->get("option"));
+}
 
-    exception_thrown = false;  // reset
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input2);
-    } catch (const command_line::value_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
+TEST_F(CommandLine, missingValue) {
+  auto input1 = string_util::split("--option", ' ');
+  auto input2 = string_util::split("-o", ' ');
+  auto input3 = string_util::split("--option baz", ' ');
 
-    exception_thrown = false;  // reset
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input3);
-    } catch (const command_line::value_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
-  };
+  EXPECT_THROW(cli->process_input(input1), command_line::value_error);
+  set_cli();
+  EXPECT_THROW(cli->process_input(input2), command_line::value_error);
+  set_cli();
+  EXPECT_THROW(cli->process_input(input3), command_line::value_error);
+}
 
-  "invalid_value"_test = [&] {
-    auto input1 = string_util::split("--option=invalid", ' ');
-    auto input2 = string_util::split("-o invalid_value", ' ');
+TEST_F(CommandLine, invalidValue) {
+  auto input1 = string_util::split("--option=invalid", ' ');
+  auto input2 = string_util::split("-o invalid_value", ' ');
 
-    bool exception_thrown = false;
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input1);
-    } catch (const command_line::value_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
+  EXPECT_THROW(cli->process_input(input1), command_line::value_error);
+  set_cli();
+  EXPECT_THROW(cli->process_input(input2), command_line::value_error);
+}
 
-    exception_thrown = false;  // reset
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input2);
-    } catch (const command_line::value_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
-  };
+TEST_F(CommandLine, unrecognized) {
+  auto input1 = string_util::split("-x", ' ');
+  auto input2 = string_util::split("--unrecognized", ' ');
 
-  "unrecognized"_test = [&] {
-    auto input1 = string_util::split("-x", ' ');
-    auto input2 = string_util::split("--unrecognized", ' ');
-
-    bool exception_thrown = false;
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input1);
-    } catch (const command_line::argument_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
-
-    exception_thrown = false;  // reset
-    try {
-      auto cli = command_line::parser::make("cmd", get_opts());;
-      cli->process_input(input2);
-    } catch (const command_line::argument_error&) {
-      exception_thrown = true;
-    } catch (...) {
-    }
-    expect(exception_thrown);
-  };
+  EXPECT_THROW(cli->process_input(input1), command_line::argument_error);
+  set_cli();
+  EXPECT_THROW(cli->process_input(input2), command_line::argument_error);
 }
