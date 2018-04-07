@@ -2,9 +2,36 @@ sudo: required
 dist: trusty
 language: cpp
 
-compiler:
-  - clang
-  - gcc
+env:
+  global:
+    - LLVM_VERSION="3.8.1"
+    - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+    - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+    - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+    - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+    - PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
+    - JOBS=4
+    - POLYBAR_BUILD_TYPE="compile"
+
+script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
+
+matrix:
+  include:
+    - compiler: clang
+      env: BUILD_TYPE=Release
+
+    - compiler: clang
+      env: BUILD_TYPE=Debug
+
+    - compiler: gcc
+      env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests
+      script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
+
+    - compiler: gcc
+      env: BUILD_TYPE=Release
+
+    - compiler: gcc
+      env: BUILD_TYPE=Debug
 
 addons:
   apt:
@@ -37,17 +64,6 @@ addons:
       - xutils-dev
       - libgtest-dev
 
-env:
-  global:
-    - BUILD_TESTS="ON"
-    - LLVM_VERSION="3.8.1"
-    - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-    - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-    - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
-    - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
-    - PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
-    - JOBS=4
-
 cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/cmake
@@ -65,10 +81,6 @@ install:
 before_script:
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/configure.sh
-
-script:
-  - source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
-  - source ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
 
 notifications:
   email: false
