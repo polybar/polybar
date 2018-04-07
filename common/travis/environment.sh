@@ -7,7 +7,4 @@ if [ "${CXX:0:7}" = "clang++" ]; then
 elif [ "${CXX:0:3}" = "g++" ]; then
   export CXX="g++-5"
   export CC="gcc-5"
-elif [ "${CXX:0:3}" = "gcc" ]; then
-  export CXX="g++-5"
-  export CC="gcc-5"
 fi
