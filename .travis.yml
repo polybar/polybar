@@ -9,7 +9,6 @@ env:
     - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
     - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
     - CMAKE_URL="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
-    - PYTHONPATH="/usr/lib/python2.7/dist-packages:${PYTHONPATH}"
     - JOBS=4
     - POLYBAR_BUILD_TYPE="compile"
 
@@ -25,7 +24,11 @@ matrix:
 
     - compiler: gcc
       env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests
+      before_install:
+        - pip install --user cpp-coveralls
       script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
+      after_success:
+        - coveralls --root .. -E ".*CMakeFiles.*" -e tests -e lib -e build/googletest-src --gcov-options '\-p'
 
     - compiler: gcc
       env: BUILD_TYPE=Release
