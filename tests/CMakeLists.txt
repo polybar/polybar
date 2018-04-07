@@ -7,8 +7,36 @@ include_directories(${dirs})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTEST REQUIRED gtest)
+message(STATUS "BIN ${CMAKE_BINARY_DIR}")
+
+# Download and unpack googletest at configure time {{{
+configure_file(
+  CMakeLists.txt.in
+  ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt
+  )
+execute_process( COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download)
+
+if(result)
+  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+endif()
+
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+
+if(result)
+  message(FATAL_ERROR "Build step for googletest failed: ${result}")
+endif()
+
+# Add googletest directly to our build. This defines
+# the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+                 ${CMAKE_BINARY_DIR}/googletest-build
+                 EXCLUDE_FROM_ALL)
+
+# }}}
 
 function(unit_test file tests)
   set(multi_value_args SOURCES)
@@ -27,8 +55,7 @@ function(unit_test file tests)
   add_executable(${name} unit_tests/${file}.cpp ${sources})
 
   # Link against googletest
-  target_link_libraries(${name} ${GTEST_LDFLAGS})
-  target_compile_options(${name} PUBLIC ${GTEST_CFLAGS})
+  target_link_libraries(${name} gtest_main)
 
   add_test(NAME ${name} COMMAND ${name})
 
