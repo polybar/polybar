@@ -4,7 +4,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-cove
 
 link_libraries(${libs})
 include_directories(${dirs})
-include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 # Download and unpack googletest at configure time {{{
