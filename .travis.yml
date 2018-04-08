@@ -72,6 +72,10 @@ before_script:
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/configure.sh
 
+# Only fetch the newest 5 commits instead of 50
+git:
+  depth: 5
+
 notifications:
   email: false
   irc:
