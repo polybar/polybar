@@ -65,7 +65,6 @@ addons:
       - python-xcbgen
       - xcb-proto
       - xutils-dev
-      - libgtest-dev
 
 cache:
   directories:
