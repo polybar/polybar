@@ -5,6 +5,7 @@ language: cpp
 env:
   global:
     - JOBS=4
+    - MAKEFLAGS="-j ${JOBS}"
     - POLYBAR_BUILD_TYPE="compile"
 
 script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
