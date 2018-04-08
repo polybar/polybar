@@ -57,6 +57,8 @@ addons:
       - xutils-dev
 
 cache:
+  ccache: true
+  apt: true
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
 
