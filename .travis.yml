@@ -23,7 +23,7 @@ matrix:
       env: BUILD_TYPE=Debug
 
     - compiler: gcc
-      env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests
+      env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests BUILD_TESTS=ON
       before_install:
         - pip install --user cpp-coveralls
       script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
