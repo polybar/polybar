@@ -28,7 +28,7 @@ if(result)
 endif()
 
 # Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
+# the gtest, gtest_main, gmock and gmock_main targets.
 add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
                  ${CMAKE_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
@@ -51,8 +51,8 @@ function(unit_test file tests)
   set(name "unit_test.${testname}")
   add_executable(${name} unit_tests/${file}.cpp ${sources})
 
-  # Link against googletest
-  target_link_libraries(${name} gtest_main)
+  # Link against gmock (this automatically links against gtest)
+  target_link_libraries(${name} gmock_main)
 
   add_test(NAME ${name} COMMAND ${name})
 
