@@ -7,8 +7,6 @@ include_directories(${dirs})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-message(STATUS "BIN ${CMAKE_BINARY_DIR}")
-
 # Download and unpack googletest at configure time {{{
 configure_file(
   CMakeLists.txt.in
