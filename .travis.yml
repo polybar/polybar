@@ -4,10 +4,6 @@ language: cpp
 
 env:
   global:
-    - LLVM_VERSION="3.8.1"
-    - LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-    - LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-    - LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
     - JOBS=4
     - POLYBAR_BUILD_TYPE="compile"
 
@@ -39,9 +35,7 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.8
     packages:
-      - clang-3.8
       - g++-5
       - gcc-5
       - i3-wm
@@ -64,7 +58,6 @@ addons:
 
 cache:
   directories:
-    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.1/install
     - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
 
 install:
@@ -72,7 +65,6 @@ install:
   - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
   - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
-  - source ${TRAVIS_BUILD_DIR}/common/travis/install_libcpp.sh
 
 before_script:
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
