@@ -26,7 +26,7 @@ class pulseaudio {
   using queue = std::queue<evtype>;
 
   public:
-    explicit pulseaudio(const logger& logger, string&& sink_name);
+    explicit pulseaudio(const logger& logger, string&& sink_name, bool m_max_volume);
     ~pulseaudio();
 
     pulseaudio(const pulseaudio& o) = delete;
@@ -74,6 +74,8 @@ class pulseaudio {
     string spec_s_name;
     string s_name;
     uint32_t m_index{0};
+
+    pa_volume_t max_volume{PA_VOLUME_UI_MAX};
 };
 
 POLYBAR_NS_END
