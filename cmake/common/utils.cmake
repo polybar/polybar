@@ -13,6 +13,13 @@ endfunction()
 # colored_option {{{
 
 function(colored_option text flag)
+  # Append version of option, if ${flag}_VERSION is set
+  set(version ${${flag}_VERSION})
+
+  if(NOT "${version}" STREQUAL "")
+    set(text "${text} (${version})")
+  endif()
+
   if(${flag})
     message_colored(STATUS "[X]${text}" "32;1")
   else()
@@ -233,6 +240,9 @@ function(querylib flag type pkg out_library out_include_dirs)
     elseif(${type} STREQUAL "pkg-config")
       find_package(PkgConfig REQUIRED)
       pkg_check_modules(PKG_${flag} REQUIRED ${pkg})
+
+      # Set packet version so that it can be used in the summary
+      set(${flag}_VERSION ${PKG_${flag}_VERSION} PARENT_SCOPE)
       list(APPEND ${out_library} ${PKG_${flag}_LIBRARIES})
       list(APPEND ${out_include_dirs} ${PKG_${flag}_INCLUDE_DIRS})
     else()
