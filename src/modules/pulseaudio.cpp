@@ -138,13 +138,7 @@ namespace modules {
     } else if (tag == TAG_ICON_PORT) {
       auto port = m_pulseaudio->get_port_name();
       auto sink = m_pulseaudio->get_name();
-      if (string_util::contains(port, "headphones")) {
-        builder->node(m_port_icons->get("headphones"));
-      } else if (string_util::contains(port, "speaker")) {
-        builder->node(m_port_icons->get("speaker"));
-      } else if (string_util::contains(port, "hdmi")) {
-        builder->node(m_port_icons->get("hdmi"));
-      } else if (string_util::contains(sink, "a2dp_sink")) {
+      if (string_util::contains(sink, "a2dp_sink")) {
         if (string_util::contains(port, "headset")) {
           builder->node(m_port_icons->get("bt-headset"));
         } else if (string_util::contains(port, "handsfree")) {
@@ -162,6 +156,12 @@ namespace modules {
         } else if (string_util::contains(port, "phone")) {
           builder->node(m_port_icons->get("bt-phone"));
         }
+      } else if (string_util::contains(port, "headphones")) {
+        builder->node(m_port_icons->get("headphones"));
+      } else if (string_util::contains(port, "speaker")) {
+        builder->node(m_port_icons->get("speaker"));
+      } else if (string_util::contains(port, "hdmi")) {
+        builder->node(m_port_icons->get("hdmi"));
       }
     } else {
       return false;
