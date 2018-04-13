@@ -20,11 +20,13 @@ matrix:
 
     - compiler: gcc
       env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests BUILD_TESTS=ON
-      before_install:
-        - pip install --user cpp-coveralls
       script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
       after_success:
-        - coveralls --root .. -E ".*CMakeFiles.*" -e tests -e lib -e build/googletest-src --gcov-options '\-p'
+        - cd ${TRAVIS_BUILD_DIR}
+        - lcov --directory . --capture --output-file coverage.info
+        - lcov --remove coverage.info '/usr/*' --output-file coverage.info # filter out system
+        - lcov --list coverage.info
+        - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
     - compiler: gcc
       env: BUILD_TYPE=Release
@@ -56,6 +58,7 @@ addons:
       - python-xcbgen
       - xcb-proto
       - xutils-dev
+      - lcov
 
 cache:
   ccache: true
