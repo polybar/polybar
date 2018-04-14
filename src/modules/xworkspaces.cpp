@@ -32,6 +32,12 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
+    if(m_pinworkspaces) {
+      m_log.warn("%s: The config parameter `pin-workspaces = true` is deprecated, "
+          "as defining a workspace on an output only is not a general WM concept. "
+          "Please stop using `pin-workspaces`, you may experience weird behaviour", name());
+    }
+
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
