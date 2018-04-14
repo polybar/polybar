@@ -116,7 +116,7 @@ def FlagsForFile(filename, **kwargs):
     # Bear in mind that compilation_info.compiler_flags_ does NOT return a
     # python list, but a "list-like" StringVec object
     final_flags = MakeRelativePathsInFlagsAbsolute(
-        compilation_info.compiler_flags_,
+        [x for x in compilation_info.compiler_flags_ if x != "-Werror"],
         compilation_info.compiler_working_dir_)
   else:
     # We use default flags if GetCompilationInfoForFile can't find any flags
