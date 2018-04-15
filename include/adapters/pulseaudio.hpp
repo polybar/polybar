@@ -22,7 +22,7 @@ DEFINE_ERROR(pulseaudio_error);
 
 class pulseaudio {
   // events to add to our queue
-  enum class evtype { NEW = 0, CHANGE, REMOVE };
+  enum class evtype { NEW = 0, CHANGE, REMOVE, SERVER };
   using queue = std::queue<evtype>;
 
   public:
@@ -50,7 +50,6 @@ class pulseaudio {
     static void get_sink_volume_callback(pa_context *context, const pa_sink_info *info, int is_last, void *userdata);
     static void subscribe_callback(pa_context* context, pa_subscription_event_type_t t, uint32_t idx, void* userdata);
     static void simple_callback(pa_context *context, int success, void *userdata);
-    static void get_default_sink_callback(pa_context *context, const pa_server_info *info, void *userdata);
     static void sink_info_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
     static void context_state_callback(pa_context *context, void *userdata);
 
@@ -63,7 +62,7 @@ class pulseaudio {
     pa_cvolume cv;
     bool muted{false};
     // default sink name
-    string def_s_name;
+    static constexpr auto DEFAULT_SINK{"@DEFAULT_SINK@"};
 
     pa_context* m_context{nullptr};
     pa_threaded_mainloop* m_mainloop{nullptr};
