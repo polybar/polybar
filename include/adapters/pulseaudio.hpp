@@ -74,7 +74,7 @@ class pulseaudio {
     string s_name;
     uint32_t m_index{0};
 
-    pa_volume_t max_volume{PA_VOLUME_UI_MAX};
+    pa_volume_t m_max_volume{PA_VOLUME_UI_MAX};
 };
 
 POLYBAR_NS_END
