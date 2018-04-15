@@ -6,7 +6,7 @@ POLYBAR_NS
 /**
  * Construct pulseaudio object
  */
-pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool m_max_volume) : m_log(logger), spec_s_name(sink_name) {
+pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume) : m_log(logger), spec_s_name(sink_name) {
   m_mainloop = pa_threaded_mainloop_new();
   if (!m_mainloop) {
     throw pulseaudio_error("Could not create pulseaudio threaded mainloop.");
@@ -64,7 +64,7 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool m_max_volu
     m_log.trace("pulseaudio: using sink %s", s_name);
   }
 
-  max_volume = m_max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
+  m_max_volume = max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
 
   auto event_types = static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER);
   op = pa_context_subscribe(m_context, event_types, simple_callback, this);
@@ -175,7 +175,7 @@ void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0) {
-    if (pa_cvolume_max(&cv) + vol <= max_volume) {
+    if (pa_cvolume_max(&cv) + vol <= m_max_volume) {
       pa_cvolume_inc(&cv, vol);
     } else {
       m_log.warn("pulseaudio: maximum volume reached");
