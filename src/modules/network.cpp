@@ -86,6 +86,7 @@ namespace modules {
 
     if (!network->query(m_accumulate)) {
       m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
+      m_connected = false;
       return false;
     }
 
