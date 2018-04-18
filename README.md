@@ -79,6 +79,9 @@ If you are using **Slackware**, polybar is available from the [SlackBuilds](http
 If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
 If you are using **openSUSE**, polybar is available from [OBS](https://build.opensuse.org/package/show/home:sysek/polybar) repository. For now package is only for Tumbleweed.
+
+If you are using **FreeBSD**, polybar can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
+
 ### Dependencies
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
