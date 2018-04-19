@@ -1,3 +1,7 @@
+#include <chrono>
+#include <cctz/civil_time.h>
+#include <cctz/time_zone.h>
+
 #include "modules/date.hpp"
 #include "drawtypes/label.hpp"
 
@@ -17,6 +21,8 @@ namespace modules {
     m_dateformat_alt = string_util::trim(m_conf.get(name(), "date-alt", ""s), '"');
     m_timeformat = string_util::trim(m_conf.get(name(), "time", ""s), '"');
     m_timeformat_alt = string_util::trim(m_conf.get(name(), "time-alt", ""s), '"');
+
+    m_timezone = string_util::trim(m_conf.get(name(), "timezone", ""s), '"');
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
@@ -39,18 +45,21 @@ namespace modules {
   }
 
   bool date_module::update() {
-    auto time = std::time(nullptr);
+    cctz::time_zone tz;
+    load_time_zone(m_timezone, &tz);
+    
+    auto time = std::chrono::system_clock::now();
 
     auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
     // Clear stream contents
     datetime_stream.str("");
-    datetime_stream << std::put_time(localtime(&time), date_format.c_str());
+    datetime_stream << cctz::format(date_format, time, tz);
     auto date_string = datetime_stream.str();
 
     auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
     // Clear stream contents
     datetime_stream.str("");
-    datetime_stream << std::put_time(localtime(&time), time_format.c_str());
+    datetime_stream << cctz::format(time_format, time, tz);
     auto time_string = datetime_stream.str();
 
     if (m_date == date_string && m_time == time_string) {
