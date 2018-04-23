@@ -114,12 +114,15 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(FORMAT_CHARGING, TAG_LABEL_CHARGING,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_CHARGING, TAG_LABEL_CHARGING});
-    m_formatter->add(
-        FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_DISCHARGING});
+    m_formatter->add(FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING,
+        {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
+    }
+    if (m_formatter->has(TAG_ANIMATION_DISCHARGING, FORMAT_DISCHARGING)) {
+      m_animation_discharging = load_animation(m_conf, name(), TAG_ANIMATION_DISCHARGING);
     }
     if (m_formatter->has(TAG_BAR_CAPACITY)) {
       m_bar_capacity = load_progressbar(m_bar, m_conf, name(), TAG_BAR_CAPACITY);
@@ -256,6 +259,8 @@ namespace modules {
   bool battery_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_ANIMATION_CHARGING) {
       builder->node(m_animation_charging->get());
+    } else if (tag == TAG_ANIMATION_DISCHARGING) {
+      builder->node(m_animation_discharging->get());
     } else if (tag == TAG_BAR_CAPACITY) {
       builder->node(m_bar_capacity->output(m_percentage));
     } else if (tag == TAG_RAMP_CAPACITY) {
@@ -327,21 +332,26 @@ namespace modules {
   }
 
   /**
-   * Subthread runner that emit update events
-   * to refresh <animation-charging> in case it is used.
+   * Subthread runner that emit update events to refresh <animation-charging>
+   * or <animation-discharging> in case they are used. Note, that it is ok to
+   * use a single thread, because the two animations are never shown at the
+   * same time.
    */
   void battery_module::subthread() {
     chrono::duration<double> dur{0.0};
 
     if (m_animation_charging) {
       dur += chrono::milliseconds{m_animation_charging->framerate()};
+    } else if (m_animation_discharging) {
+      dur += chrono::milliseconds{m_animation_discharging->framerate()};
     } else {
       dur += 1s;
     }
 
     while (running()) {
       for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING) {
+        if (m_state == battery_module::state::CHARGING ||
+            m_state == battery_module::state::DISCHARGING) {
           broadcast();
         }
         sleep(dur);
