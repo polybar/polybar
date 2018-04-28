@@ -1,7 +1,7 @@
 #!/bin/bash
 r=0
 
-make all_unit_tests
+make all_unit_tests || exit $?
 
 for test in tests/unit_test.*; do
   [ -x "$test" ] || continue
