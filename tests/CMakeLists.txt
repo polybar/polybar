@@ -44,7 +44,10 @@ function(unit_test file tests)
   # unit_test function become cleaner
   SET(sources "")
   FOREACH(f ${BIN_SOURCES})
-    LIST(APPEND sources "../src/${f}")
+    # Do not add main.cpp, because it will override the main function
+    if(NOT "${f}" STREQUAL "main.cpp")
+      LIST(APPEND sources "../src/${f}")
+    endif()
   ENDFOREACH(f)
 
   string(REPLACE "/" "_" testname ${file})
@@ -81,6 +84,10 @@ unit_test(components/command_line unit_tests
   SOURCES
   components/command_line.cpp
   utils/string.cpp)
+
+unit_test(components/builder unit_tests
+  SOURCES
+  ${files})
 
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})

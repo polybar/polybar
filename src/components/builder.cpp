@@ -206,11 +206,7 @@ void builder::node(const label_t& label, bool add_space) {
     return;
   }
 
-  string text{label->get()};
-
-  if (label->m_maxlen > 0 && string_util::char_len(text) > label->m_maxlen) {
-    text = string_util::utf8_truncate(std::move(text), label->m_maxlen) + "...";
-  }
+  auto text = get_label_text(label);
 
   // if ((label->m_overline.empty() && m_tags[syntaxtag::o] > 0) || (m_tags[syntaxtag::o] > 0 && label->m_margin > 0))
   //   overline_close();
@@ -558,6 +554,16 @@ string builder::foreground_hex() {
     m_foreground = color_util::hex<unsigned short int>(m_bar.foreground);
   }
   return m_foreground;
+}
+
+string builder::get_label_text(const label_t& label) {
+  string text{label->get()};
+
+  if (label->m_maxlen > 0 && string_util::char_len(text) > label->m_maxlen) {
+    text = string_util::utf8_truncate(std::move(text), label->m_maxlen) + "...";
+  }
+
+  return text;
 }
 
 /**
