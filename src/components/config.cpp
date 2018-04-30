@@ -226,12 +226,12 @@ char config::convert(string&& value) const {
 
 template <>
 int config::convert(string&& value) const {
-  return std::atoi(value.c_str());
+  return std::strtol(value.c_str(), nullptr, 10);
 }
 
 template <>
 short config::convert(string&& value) const {
-  return static_cast<short>(std::atoi(value.c_str()));
+  return static_cast<short>(std::strtol(value.c_str(), nullptr, 10));
 }
 
 template <>

@@ -76,7 +76,7 @@ namespace modules {
       auto spacing = m_formatter->get(get_format())->spacing;
       for (auto&& item : m_levels[m_level]->items) {
         /*
-         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be 
+         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be
          * drawn before or after the spacings and the separator
          *
          * If the menu expands to the left, the separator should be drawn on the right side because otherwise the menu
@@ -132,7 +132,7 @@ namespace modules {
       if (level.empty()) {
         level = "0";
       }
-      m_level = std::atoi(level.c_str());
+      m_level = std::strtol(level.c_str(), nullptr, 10);
       m_log.info("%s: Opening menu level '%i'", name(), static_cast<int>(m_level));
 
       if (static_cast<size_t>(m_level) >= m_levels.size()) {

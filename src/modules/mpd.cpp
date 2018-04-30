@@ -368,11 +368,11 @@ namespace modules {
         if (s.empty()) {
           return false;
         } else if (s[0] == '+') {
-          percentage = status->get_elapsed_percentage() + std::atoi(s.substr(1).c_str());
+          percentage = status->get_elapsed_percentage() + std::strtol(s.substr(1).c_str(), nullptr, 10);
         } else if (s[0] == '-') {
-          percentage = status->get_elapsed_percentage() - std::atoi(s.substr(1).c_str());
+          percentage = status->get_elapsed_percentage() - std::strtol(s.substr(1).c_str(), nullptr, 10);
         } else {
-          percentage = std::atoi(s.c_str());
+          percentage = std::strtol(s.c_str(), nullptr, 10);
         }
         mpd->seek(status->get_songid(), status->get_seek_position(percentage));
       } else {
