@@ -144,8 +144,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   auto offset_x_def = conf.get(bs, "tray-offset-x", ""s);
   auto offset_y_def = conf.get(bs, "tray-offset-y", ""s);
 
-  auto offset_x = atoi(offset_x_def.c_str());
-  auto offset_y = atoi(offset_y_def.c_str());
+  auto offset_x = strtol(offset_x_def.c_str(), nullptr, 10);
+  auto offset_y = strtol(offset_y_def.c_str(), nullptr, 10);
 
   if (offset_x != 0 && offset_x_def.find('%') != string::npos) {
     if (m_opts.detached) {

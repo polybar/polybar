@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
       log(E_INVALID_CHANNEL, "No channel available for pid " + args[1]);
     }
 
-    pid = atoi(args[1].c_str());
+    pid = strtol(args[1].c_str(), nullptr, 10);
     args.erase(args.begin());
     args.erase(args.begin());
   }

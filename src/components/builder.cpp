@@ -123,7 +123,7 @@ void builder::node(string str, bool add_space) {
       s.erase(0, 5);
 
     } else if ((n = s.find("%{T")) == 0 && (m = s.find('}')) != string::npos) {
-      font(atoi(s.substr(n + 3, m - 3).c_str()));
+      font(strtol(s.substr(n + 3, m - 3).c_str(), nullptr, 10));
       s.erase(n, m + 1);
 
     } else if ((n = s.find("%{U-}")) == 0) {

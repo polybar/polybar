@@ -106,7 +106,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'O':
-        m_sig.emit(offset_pixel{static_cast<int>(std::atoi(value.c_str()))});
+        m_sig.emit(offset_pixel{static_cast<int>(std::strtol(value.c_str(), nullptr, 10))});
         break;
 
       case 'l':

@@ -153,7 +153,7 @@ renderer::renderer(
       string pattern{f};
       size_t pos = pattern.rfind(';');
       if (pos != string::npos) {
-        offset = std::atoi(pattern.substr(pos + 1).c_str());
+        offset = std::strtol(pattern.substr(pos + 1).c_str(), nullptr, 10);
         pattern.erase(pos);
       }
       auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
