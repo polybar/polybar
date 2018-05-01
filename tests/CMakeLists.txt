@@ -64,6 +64,7 @@ endfunction()
 unit_test(utils/color unit_tests)
 unit_test(utils/math unit_tests)
 unit_test(utils/memory unit_tests)
+unit_test(utils/scope unit_tests)
 unit_test(utils/string unit_tests
   SOURCES
   utils/string.cpp)
