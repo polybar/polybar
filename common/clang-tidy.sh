@@ -2,7 +2,7 @@
 
 main() {
   if [ $# -lt 2 ]; then
-    echo "$0 [build_path] [-fix] DIR..." 1>&2
+    echo "$0 build_path [-fix] DIR..." 1>&2
     exit 1
   fi
 
@@ -12,12 +12,15 @@ main() {
     args="${args} -fix"; shift
   fi
 
+  # Search paths
+  search="${*:-.}"
+
+  echo "$0 in $search"
+
   # shellcheck disable=2086
-  find "${@:-.}" -regex ".*.[c|h]pp"                         \
-    -exec printf "\033[32;1m** \033[0mProcessing %s\n" {} \; \
-    -exec clang-tidy $args {} \;                  \
-    -exec printf "\033[32;1m** \033[0mFormatting %s\n" {} \; \
-    -exec clang-format -style=file -i {} \;
+  find $search -iname "*.cpp"                                          \
+    -exec printf "\\033[32;1m** \\033[0mProcessing %s\\n" {} \; \
+    -exec clang-tidy $args {} \;
 }
 
 main "$@"
