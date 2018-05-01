@@ -613,7 +613,7 @@ void tray_manager::restack_window() {
     m_connection.configure_window_checked(m_tray, mask, values);
   } catch (const exception& err) {
     auto id = m_connection.id(m_opts.sibling);
-    m_log.trace("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
+    m_log.err("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
   }
 }
 
