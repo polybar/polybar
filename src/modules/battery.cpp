@@ -332,7 +332,7 @@ namespace modules {
   }
 
   /**
-   * Subthread runner that emit update events to refresh <animation-charging>
+   * Subthread runner that emits update events to refresh <animation-charging>
    * or <animation-discharging> in case they are used. Note, that it is ok to
    * use a single thread, because the two animations are never shown at the
    * same time.
@@ -340,9 +340,9 @@ namespace modules {
   void battery_module::subthread() {
     chrono::duration<double> dur{0.0};
 
-    if (m_animation_charging) {
+    if (battery_module::state::CHARGING == m_state && m_animation_charging) {
       dur += chrono::milliseconds{m_animation_charging->framerate()};
-    } else if (m_animation_discharging) {
+    } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
       dur += chrono::milliseconds{m_animation_discharging->framerate()};
     } else {
       dur += 1s;
