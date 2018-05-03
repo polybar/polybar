@@ -248,25 +248,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
   auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
 
-  m_opts.size.w = std::strtol(w.c_str(), nullptr, 10);
-  m_opts.size.h = std::strtol(h.c_str(), nullptr, 10);
-  m_opts.offset.x = std::strtol(offsetx.c_str(), nullptr, 10);
-  m_opts.offset.y = std::strtol(offsety.c_str(), nullptr, 10);
-
-  // Evaluate percentages
-  double tmp;
-  if ((tmp = strtof(w.c_str(), nullptr)) && w.find('%') != string::npos) {
-    m_opts.size.w = math_util::percentage_to_value<double>(tmp, m_opts.monitor->w);
-  }
-  if ((tmp = strtof(h.c_str(), nullptr)) && h.find('%') != string::npos) {
-    m_opts.size.h = math_util::percentage_to_value<double>(tmp, m_opts.monitor->h);
-  }
-  if ((tmp = strtof(offsetx.c_str(), nullptr)) != 0 && offsetx.find('%') != string::npos) {
-    m_opts.offset.x = math_util::percentage_to_value<double>(tmp, m_opts.monitor->w);
-  }
-  if ((tmp = strtof(offsety.c_str(), nullptr)) != 0 && offsety.find('%') != string::npos) {
-    m_opts.offset.y = math_util::percentage_to_value<double>(tmp, m_opts.monitor->h);
-  }
+  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w);
+  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h);;
+  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w);
+  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;
