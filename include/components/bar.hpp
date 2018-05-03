@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <atomic>
 #include <mutex>
 
@@ -8,6 +9,7 @@
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
+#include "utils/math.hpp"
 #include "settings.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
@@ -24,6 +26,21 @@ class screen;
 class taskqueue;
 class tray_manager;
 // }}}
+
+inline double geom_format_to_pixels(std::string str, double max) {
+  size_t i;
+  if ((i = str.find(':')) != std::string::npos) {
+    std::string a = str.substr(0, i - 1);
+    std::string b = str.substr(i + 1);
+    return math_util::percentage_to_value<double>(strtof(a.c_str(), nullptr), max) + strtof(b.c_str(), nullptr);
+  } else {
+    if (str.find('%') != std::string::npos) {
+      return math_util::percentage_to_value<double>(strtof(str.c_str(), nullptr), max);
+    } else {
+      return strtof(str.c_str(), nullptr);
+    }
+  }
+}
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message>,
