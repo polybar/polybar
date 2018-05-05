@@ -338,24 +338,18 @@ namespace modules {
    * same time.
    */
   void battery_module::subthread() {
-    chrono::duration<double> dur{0.0};
-
-    if (battery_module::state::CHARGING == m_state && m_animation_charging) {
-      dur += chrono::milliseconds{m_animation_charging->framerate()};
-    } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
-      dur += chrono::milliseconds{m_animation_discharging->framerate()};
-    } else {
-      dur += 1s;
-    }
+    m_log.trace("%s: Start of subthread", name());
 
     while (running()) {
-      for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING ||
-            m_state == battery_module::state::DISCHARGING) {
-          broadcast();
-        }
-        sleep(dur);
+      int framerate = 1000; // milliseconds
+      if (m_state == battery_module::state::CHARGING) {
+        broadcast();
+        framerate = m_animation_charging->framerate();
+      } else if (m_state == battery_module::state::DISCHARGING) {
+        broadcast();
+        framerate = m_animation_discharging->framerate();
       }
+      this_thread::sleep_for(std::chrono::milliseconds(framerate));
     }
 
     m_log.trace("%s: End of subthread", name());
