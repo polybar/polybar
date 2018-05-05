@@ -82,6 +82,8 @@ If you are using **openSUSE**, polybar is available from [OBS](https://build.ope
 
 If you are using **FreeBSD**, polybar can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
 
+If you are using **Gentoo**, both release and git-master versions are available in the main repository.
+
 ### Dependencies
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
