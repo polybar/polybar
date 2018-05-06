@@ -1,5 +1,6 @@
 ignore:
   - "tests/*"
+  - "lib/*"
 
 comment:
   require_changes: true
