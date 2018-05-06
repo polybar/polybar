@@ -5,7 +5,6 @@
 #include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
-#include "components/renderer.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -18,7 +17,6 @@
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/all.hpp"
-#include "x11/tray_manager.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS

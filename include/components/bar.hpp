@@ -97,9 +97,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   const config& m_conf;
   const logger& m_log;
   unique_ptr<screen> m_screen;
-  unique_ptr<tray_manager> m_tray{};
-  unique_ptr<renderer> m_renderer{};
-  unique_ptr<parser> m_parser{};
+  unique_ptr<tray_manager> m_tray;
+  unique_ptr<renderer> m_renderer;
+  unique_ptr<parser> m_parser;
   unique_ptr<taskqueue> m_taskqueue;
 
   bar_settings m_opts{};
