@@ -3,12 +3,9 @@
 #include "components/config.hpp"
 #include "components/controller.hpp"
 #include "components/ipc.hpp"
-#include "components/parser.hpp"
-#include "components/renderer.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
-#include "x11/tray_manager.hpp"
 
 using namespace polybar;
 
