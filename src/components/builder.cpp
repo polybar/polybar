@@ -356,8 +356,6 @@ void builder::background(string color) {
     string bg{background_hex()};
     color = "#" + color.substr(color.length() - 2);
     color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
-  } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
-    color = color.substr(0, 4);
   }
 
   color = color_util::simplify_hex(color);
@@ -383,8 +381,6 @@ void builder::color(string color) {
       color = "#" + color.substr(color.length() - 2);
       color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
     }
-  } else if (color.length() >= 7 && color == "#" + string(color.length() - 1, color[1])) {
-    color = color.substr(0, 4);
   }
 
   color = color_util::simplify_hex(color);
