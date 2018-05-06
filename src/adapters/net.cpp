@@ -159,7 +159,12 @@ namespace net {
     driver.cmd = ETHTOOL_GDRVINFO;
 
     memset(&request, 0, sizeof(request));
-    strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 0);
+    
+    /*
+     * Only copy array size minus one bytes over to ensure there is a 
+     * terminating NUL byte (which is guaranteed by memset)
+     */
+    strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
 
     request.ifr_data = reinterpret_cast<caddr_t>(&driver);
 
