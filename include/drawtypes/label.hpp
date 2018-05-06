@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
@@ -37,6 +39,14 @@ namespace drawtypes {
     int m_font{0};
     side_values m_padding{0U,0U};
     side_values m_margin{0U,0U};
+
+    /*
+     * If m_ellipsis is true, m_maxlen MUST be larger or equal to the length of
+     * the ellipsis (3), everything else is a programming error
+     *
+     * load_label should take care of this, but be aware, if you are creating
+     * labels in a different way.
+     */
     size_t m_maxlen{0_z};
     bool m_ellipsis{true};
 
@@ -55,7 +65,9 @@ namespace drawtypes {
         , m_ellipsis(ellipsis)
         , m_text(text)
         , m_tokenized(m_text)
-        , m_tokens(forward<vector<token>>(tokens)) {}
+        , m_tokens(forward<vector<token>>(tokens)) {
+          assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
+        }
 
     string get() const;
     operator bool();

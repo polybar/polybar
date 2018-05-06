@@ -561,14 +561,8 @@ string builder::get_label_text(const label_t& label) {
 
   size_t maxlen = label->m_maxlen;
 
-  if (maxlen > 0 && string_util::char_len(text) > maxlen ) {
-    if(label->m_ellipsis) {
-      if(maxlen < 3) {
-        throw application_error(sstream()
-            << "Label has maxlen (" << maxlen
-            << ") that is smaller than size of ellipsis(3)");
-      }
-
+  if (maxlen > 0 && string_util::char_len(text) > maxlen) {
+    if (label->m_ellipsis) {
       text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
     }
     else {
