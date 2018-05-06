@@ -559,8 +559,21 @@ string builder::foreground_hex() {
 string builder::get_label_text(const label_t& label) {
   string text{label->get()};
 
-  if (label->m_maxlen > 0 && string_util::char_len(text) > label->m_maxlen) {
-    text = string_util::utf8_truncate(std::move(text), label->m_maxlen) + "...";
+  size_t maxlen = label->m_maxlen;
+
+  if (maxlen > 0 && string_util::char_len(text) > maxlen ) {
+    if(label->m_ellipsis) {
+      if(maxlen < 3) {
+        throw application_error(sstream()
+            << "Label has maxlen (" << maxlen
+            << ") that is smaller than size of ellipsis(3)");
+      }
+
+      text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
+    }
+    else {
+      text = string_util::utf8_truncate(std::move(text), maxlen);
+    }
   }
 
   return text;
