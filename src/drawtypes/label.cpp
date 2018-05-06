@@ -221,6 +221,17 @@ namespace drawtypes {
       }
     }
 
+    size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
+    bool ellipsis = conf.get(section, name + "-ellipsis", true);
+
+    if(ellipsis && maxlen > 0 && maxlen < 3) {
+      logger::make().err(sstream() << "Label " << section << "." << name
+          << " has maxlen " << maxlen
+          << ", which is smaller than length of ellipsis (3), disabling ellipsis...");
+
+      ellipsis = false;
+    }
+
     // clang-format off
     return factory_util::shared<label>(text,
         conf.get(section, name + "-foreground", ""s),
@@ -230,8 +241,8 @@ namespace drawtypes {
         conf.get(section, name + "-font", 0),
         padding,
         margin,
-        conf.get(section, name + "-maxlen", 0_z),
-        conf.get(section, name + "-ellipsis", true),
+        maxlen,
+        ellipsis,
         move(tokens));
     // clang-format on
   }

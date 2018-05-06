@@ -65,16 +65,4 @@ TEST_P(GetLabelTextTest, correctness) {
   EXPECT_LE(text.length(), m_label->m_maxlen) << "Returned text is longer than maxlen";
 }
 
-/**
- * \brief Tests, if get_label_text throws an exception, when ellipsis is
- *        turned on and m_maxlen is lower than 3 (length of the ellipsis)
- */
-TEST_F(GetLabelTextTest, throwsException) {
-  label_t m_label = factory_util::shared<label>("abcdef");
-  m_label->m_ellipsis = true;
-  m_label->m_maxlen = 2;
-
-  EXPECT_ANY_THROW(m_builder.get_label_text(m_label));
-}
-
 // }}}
