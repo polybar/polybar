@@ -44,6 +44,7 @@ class GetLabelTextTest :
 
 vector<pair<string, tuple<string, bool, int>>> get_label_text_list = {
   {"...", make_tuple("abcd", true, 3)},
+  {"abc", make_tuple("abc", true, 3)},
   {"abc", make_tuple("abcdefgh", false, 3)},
   {"a...", make_tuple("abcdefgh", true, 4)},
   {"abcd...", make_tuple("abcdefgh", true, 7)},
