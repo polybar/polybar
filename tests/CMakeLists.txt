@@ -82,6 +82,7 @@ unit_test(components/command_line unit_tests
   SOURCES
   components/command_line.cpp
   utils/string.cpp)
+unit_test(components/bar unit_tests)
 
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})
