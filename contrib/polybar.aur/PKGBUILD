@@ -23,6 +23,7 @@ source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
 
 prepare() {
+  git -C "${pkgname}" cherry-pick -n 8173a6473e50a3bb0ff15e56644fa45268be84a4
   git -C "${pkgname}" submodule update --init --recursive
   git -C "${pkgname}/lib/xpp" checkout 00165e1a6d5dd61bc153e1352b21ec07fc81245d
   mkdir -p "${pkgname}/build"
