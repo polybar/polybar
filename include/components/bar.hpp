@@ -32,12 +32,12 @@ inline double geom_format_to_pixels(std::string str, double max) {
   if ((i = str.find(':')) != std::string::npos) {
     std::string a = str.substr(0, i - 1);
     std::string b = str.substr(i + 1);
-    return math_util::percentage_to_value<double>(strtof(a.c_str(), nullptr), max) + strtof(b.c_str(), nullptr);
+    return math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr);
   } else {
     if (str.find('%') != std::string::npos) {
-      return math_util::percentage_to_value<double>(strtof(str.c_str(), nullptr), max);
+      return math_util::percentage_to_value<double>(strtod(str.c_str(), nullptr), max);
     } else {
-      return strtof(str.c_str(), nullptr);
+      return strtod(str.c_str(), nullptr);
     }
   }
 }
