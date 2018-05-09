@@ -27,6 +27,14 @@ class taskqueue;
 class tray_manager;
 // }}}
 
+/**
+ * Allows a new format for width, height, offset-x and offset-y in the bar section
+ *
+ * The new format is X%:Z, where X is in [0, 100], and Z is any real value
+ * describing a pixel offset. The actual value is calculated by X% * max + Z
+ * The max is the monitor width for width and offset-x and monitor height for
+ * the other two
+ */
 inline double geom_format_to_pixels(std::string str, double max) {
   size_t i;
   if ((i = str.find(':')) != std::string::npos) {
