@@ -3,6 +3,23 @@
 #
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
+# Enable ccache by default and as early as possible because project() performs
+# checks on the compiler
+option(ENABLE_CCACHE "Enable ccache support" ON)
+if(ENABLE_CCACHE)
+  message(STATUS "Trying to enable ccache")
+  find_program(BIN_CCACHE ccache)
+
+  string(ASCII 27 esc)
+  if(NOT BIN_CCACHE)
+    message(STATUS "${esc}[33mCouldn't locate ccache, disabling ccache...${esc}[0m")
+  else()
+    # Enable only if the binary is found
+    message(STATUS "${esc}[32mUsing compiler cache ${BIN_CCACHE}${esc}[0m")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${BIN_CCACHE})
+  endif()
+endif()
+
 project(polybar C CXX)
 
 set(CMAKE_MODULE_PATH

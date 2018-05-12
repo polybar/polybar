@@ -37,7 +37,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   # libinotify uses c99 extension, so suppress this error
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c99-extensions")
   # Ensures that libraries from dependencies in LOCALBASE are used
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib") 
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
@@ -79,12 +79,6 @@ if(CXXLIB_CLANG)
 elseif(CXXLIB_GCC)
   message_colored(STATUS "Linking against libstdc++" 32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
-endif()
-
-if(ENABLE_CCACHE)
-  querybin(ccache)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${BINPATH_ccache})
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${BINPATH_ccache})
 endif()
 
 # Install paths

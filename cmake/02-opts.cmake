@@ -23,7 +23,6 @@ option(CXXLIB_GCC "Link against stdlibc++" OFF)
 option(BUILD_IPC_MSG "Build ipc messager" ON)
 option(BUILD_TESTS "Build testsuite" OFF)
 
-option(ENABLE_CCACHE "Enable ccache support" OFF)
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
 option(ENABLE_I3 "Enable i3 support" ON)
