@@ -6,6 +6,7 @@
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
+#include "x11/connection.hpp"
 
 using namespace polybar;
 
