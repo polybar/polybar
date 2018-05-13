@@ -94,10 +94,10 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - xcb-proto
 - xcb-util-image
 - xcb-util-wm
-- xcb-util-xrm
 
 **Optional dependencies:**
 - xcb-util-cursor *required for the `cursor-click` and `cursor-scroll` settings*
+- xcb-util-xrm *required for accessing X resources with `${xrdb:...}`*
 
 **Optional dependencies for extended module support:**
 - alsa-lib *required by `internal/alsa`*
