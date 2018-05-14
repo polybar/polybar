@@ -49,6 +49,7 @@ namespace net {
 
   struct link_status {
     string ip;
+    string ip6;
     link_activity previous{};
     link_activity current{};
   };
@@ -66,6 +67,7 @@ namespace net {
     virtual bool ping() const;
 
     string ip() const;
+    string ip6() const;
     string downspeed(int minwidth = 3) const;
     string upspeed(int minwidth = 3) const;
     void set_unknown_up(bool unknown = true);
@@ -74,6 +76,7 @@ namespace net {
     void check_tuntap();
     bool test_interface() const;
     string format_speedrate(float bytes_diff, int minwidth) const;
+    void query_ip6();
 
     unique_ptr<file_descriptor> m_socketfd;
     link_status m_status{};

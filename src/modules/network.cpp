@@ -117,6 +117,7 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%ifname%", m_interface);
       label->replace_token("%local_ip%", network->ip());
+      label->replace_token("%local_ip6%", network->ip6());
       label->replace_token("%upspeed%", upspeed);
       label->replace_token("%downspeed%", downspeed);
 

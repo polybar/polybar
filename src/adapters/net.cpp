@@ -7,6 +7,7 @@
 #include <sstream>
 #include <utility>
 
+#include <arpa/inet.h>
 #include <linux/ethtool.h>
 #include <linux/if_link.h>
 #include <linux/sockios.h>
@@ -102,7 +103,60 @@ namespace net {
 
     freeifaddrs(ifaddr);
 
+    this->query_ip6();
+
     return true;
+  }
+
+  /**
+   * Query the operating system to set m_status.ip6
+   *
+   * I think you can end up with multiple (non link-local) IPv6 address on an
+   * interface for different reasons. If you connect() with a with a DGRAM it
+   * doesn't send any packets but apparently it gets a source address. Sort of
+   * like `ip r get to 2001:7fd::1` with iproute2 maybe?
+   *
+   * i3status has an approach that uses a socket.
+   * https://github.com/i3/i3status/blob/2.12/src/print_ipv6_addr.c
+   */
+  void network::query_ip6() {
+    char ip6_buffer[NI_MAXHOST];
+    int fd;
+    struct sockaddr_in6 a;
+    socklen_t l = sizeof (struct sockaddr_in6);
+
+    memset(&a, 0, l);
+    a.sin6_family = AF_INET6;
+    a.sin6_port = htons(0);
+    if (inet_pton(AF_INET6, "2001:7fd::1", &a.sin6_addr) == -1) {
+      perror("inet_pton()");
+      return;
+    }
+
+    if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
+      perror("socket()");
+      return;
+    }
+
+    if (connect(fd, (const sockaddr*)&a, l) == -1) {
+      perror("connect()");
+      close(fd);
+      return;
+    }
+
+    if (getsockname(fd, (struct sockaddr*)&a, &l) == -1) {
+      perror("getsockname()");
+      close(fd);
+      return;
+    }
+
+    close(fd);
+    if (inet_ntop(AF_INET6, &a.sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
+      perror("inet_ntop()");
+      return;
+    }
+
+    m_status.ip6 = string(ip6_buffer);
   }
 
   /**
@@ -119,10 +173,17 @@ namespace net {
   }
 
   /**
-   * Get interface ip address
+   * Get interface ipv4 address
    */
   string network::ip() const {
     return m_status.ip;
+  }
+
+  /**
+   * Get interface ipv6 address
+   */
+  string network::ip6() const {
+    return m_status.ip6;
   }
 
   /**
