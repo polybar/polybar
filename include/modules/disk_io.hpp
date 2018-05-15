@@ -24,8 +24,8 @@ namespace modules {
       const static unsigned WRITE_SECTORS_OFFSET = 7 - 1;
 
       static constexpr const char* TAG_LABEL{"<label>"};
-      static constexpr const char* TAG_BAR_READ{"<bar-read>"};
-      static constexpr const char* TAG_BAR_WRITE{"<bar-write>"};
+      static constexpr const char* TAG_ICON_READ{"<indicator-read>"};
+      static constexpr const char* TAG_ICON_WRITE{"<indicator-write>"};
 
       label_t m_label;
       std::chrono::milliseconds m_ms{0};
@@ -37,12 +37,13 @@ namespace modules {
       std::map<std::string, float> m_write_speeds;
       std::map<std::string, unsigned long long> m_write_total;
 
-      progressbar_t m_bar_read;
-      progressbar_t m_bar_write;
-      int m_perc_write{0};
-      int m_perc_read{0};
       float m_max_write_speed{0};
       float m_max_read_speed{0};
+
+      iconset_t m_icons;
+
+      std::string m_toggle_on_color;
+      std::string m_toggle_off_color;
   };
 }
 

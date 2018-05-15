@@ -396,34 +396,24 @@ menu-2-1-exec = menu-open-0
 
 [module/disk_io]
 type = internal/disk_io
-interval = 2
+interval = 1
+; If you want to see I/O only of specific devices, you should provide names
+; of thouse devices, otherwise the sum of all disks' I/O speeds will be
+; displayed.
 ;monitored-disks-0 = sda
 ;monitored-disks-1 = nvme0n1
-format = <label> <bar-read> <bar-write>
-format-prefix = " "
+format = <label> <indicator-read> <indicator-write>
+;format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #4bffdc
 label = R: %speed_read% W: %speed_write%
-bar-read-width = 10
-bar-read-indicator = |
-bar-read-indicator-foreground = #ff
-bar-read-indicator-font = 2
-bar-read-fill = ─
-bar-read-fill-font = 2
-bar-read-fill-foreground = #9f78e1
-bar-read-empty = ─
-bar-read-empty-font = 2
-bar-read-empty-foreground = ${colors.foreground-alt}
-bar-write-width = 10
-bar-write-indicator = |
-bar-write-indicator-foreground = #ff
-bar-write-indicator-font = 2
-bar-write-fill = ─
-bar-write-fill-font = 2
-bar-write-fill-foreground = #9f78e1
-bar-write-empty = ─
-bar-write-empty-font = 2
-bar-write-empty-foreground = ${colors.foreground-alt}
+; You can enbale indicators for read and write to disk with following:
+; Icons for read/write.
+;indicator-read = R
+;indicator-write = W
+; Colors for displaying if read/write is performed at the moment.
+;toggle-on-foreground = ${colors.foreground}
+;toggle-off-foreground = ${colors.foreground-alt}
 
 [settings]
 screenchange-reload = true

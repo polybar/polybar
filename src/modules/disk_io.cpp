@@ -8,12 +8,13 @@
 #include <algorithm>
 
 #include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
+#include "drawtypes/iconset.hpp"
 #include "modules/disk_io.hpp"
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
 
+#include <iostream>
 POLYBAR_NS
 
 namespace modules {
@@ -25,15 +26,22 @@ namespace modules {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
     m_disk_names = m_conf.get_list(name(), "monitored-disks", default_disk_name); 
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_READ, TAG_BAR_WRITE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_ICON_READ, TAG_ICON_WRITE});
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "R: %speed_read% W: %speed_write%");
     }
-    if (m_formatter->has(TAG_BAR_READ)) {
-      m_bar_read = load_progressbar(m_bar, m_conf, name(), TAG_BAR_READ);
+
+    m_icons = factory_util::shared<iconset>();
+
+    if (m_formatter->has(TAG_ICON_READ)) {
+      m_icons->add("read", load_icon(m_conf, name(), TAG_ICON_READ));
     }
-    if (m_formatter->has(TAG_BAR_WRITE)) {
-      m_bar_write = load_progressbar(m_bar, m_conf, name(), TAG_BAR_WRITE);
+    if (m_formatter->has(TAG_ICON_WRITE)) {
+      m_icons->add("write", load_icon(m_conf, name(), TAG_ICON_WRITE));
+    }
+    if (m_formatter->has(TAG_ICON_READ) || m_formatter->has(TAG_ICON_WRITE)) {
+      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", ""s);
+      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", ""s);
     }
     if (m_disk_names.size() == 0) {
       m_disk_names = get_disk_names();
@@ -136,16 +144,17 @@ bool disk_io_module::update() {
   m_max_read_speed = std::max(m_max_read_speed, sum_read);
   m_max_write_speed = std::max(m_max_write_speed, sum_write);
 
-  m_perc_read = math_util::percentage(sum_read, m_max_read_speed);
-  m_perc_write = math_util::percentage(sum_write, m_max_write_speed);
-
   // replace tokens
   if (m_label) {
     m_label->reset_tokens();
-    m_label->replace_token("%speed_read%", string_util::filesize_mb(sum_read, 1, m_bar.locale) + " Mb/s");
-    m_label->replace_token("%speed_write%", string_util::filesize_mb(sum_write, 1, m_bar.locale) + " Mb/s");
-    m_label->replace_token("%percentage_read%", to_string(m_perc_read));
-    m_label->replace_token("%percentage_write%", to_string(m_perc_write));
+    m_label->replace_token("%speed_read%", string_util::filesize_mb(sum_read, 1, m_bar.locale) + "/s");
+    m_label->replace_token("%speed_write%", string_util::filesize_mb(sum_write, 1, m_bar.locale) + "/s");
+    if (m_icons->has("read")) {
+      m_icons->get("read")->m_foreground = sum_read == 0 ? m_toggle_on_color : m_toggle_off_color;
+    }
+    if (m_icons->has("write")) {
+      m_icons->get("write")->m_foreground = sum_write == 0 ? m_toggle_on_color : m_toggle_off_color;
+    }
   }
 
   return true;
@@ -154,10 +163,10 @@ bool disk_io_module::update() {
 bool disk_io_module::build(builder* builder, const string& tag) const {
   if (tag == TAG_LABEL) {
     builder->node(m_label);
-  } else if (tag == TAG_BAR_READ) {
-    builder->node(m_bar_read->output(m_perc_read));
-  } else if (tag == TAG_BAR_WRITE) {
-    builder->node(m_bar_write->output(m_perc_write));
+  } else if (tag == TAG_ICON_READ) {
+    builder->node(m_icons->get("read"));
+  } else if (tag == TAG_ICON_WRITE) {
+    builder->node(m_icons->get("write"));
   } else {
     return false;
   }
