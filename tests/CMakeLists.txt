@@ -94,5 +94,14 @@ unit_test(components/command_line unit_tests
 
 unit_test(components/bar unit_tests)
 
+unit_test(components/config_parser unit_tests
+  SOURCES
+  components/config_parser.cpp
+  utils/string.cpp
+  utils/file.cpp
+  utils/env.cpp
+  utils/concurrency.cpp
+  components/logger.cpp)
+
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})
