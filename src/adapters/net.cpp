@@ -37,12 +37,14 @@ namespace net {
     return file_util::exists("/sys/class/net/" + ifname + "/wireless");
   }
 
+  static const string NO_IP6 = string("N/A");
+
   // class : network {{{
 
   /**
    * Construct network interface
    */
-  network::network(string interface) : m_interface(move(interface)) {
+  network::network(string interface) : m_log(logger::make()), m_interface(move(interface)) {
     if (if_nametoindex(m_interface.c_str()) == 0) {
       throw network_error("Invalid network interface \"" + m_interface + "\"");
     }
@@ -103,7 +105,14 @@ namespace net {
 
     freeifaddrs(ifaddr);
 
-    this->query_ip6();
+    try {
+      this->query_ip6();
+    } catch (const network_error& err) {
+      if (m_ip6_last_error != err.what()) {
+        m_ip6_last_error = err.what();
+        m_log.warn("net/query_ip6: %s", err.what());
+      }
+    }
 
     return true;
   }
@@ -125,35 +134,31 @@ namespace net {
     struct sockaddr_in6 a;
     socklen_t l = sizeof (struct sockaddr_in6);
 
+    m_status.ip6 = NO_IP6;
+
     memset(&a, 0, l);
     a.sin6_family = AF_INET6;
     a.sin6_port = htons(0);
     if (inet_pton(AF_INET6, "2001:7fd::1", &a.sin6_addr) == -1) {
-      perror("inet_pton()");
-      return;
+      throw network_error("inet_pton() " + string(strerror(errno)));
     }
 
     if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-      perror("socket()");
-      return;
+      throw network_error("socket() " + string(strerror(errno)));
     }
 
     if (connect(fd, (const sockaddr*)&a, l) == -1) {
-      perror("connect()");
-      close(fd);
-      return;
+      throw network_error("connect() " + string(strerror(errno)));
     }
 
     if (getsockname(fd, (struct sockaddr*)&a, &l) == -1) {
-      perror("getsockname()");
-      close(fd);
-      return;
+      throw network_error("getsockname() " + string(strerror(errno)));
     }
 
     close(fd);
+
     if (inet_ntop(AF_INET6, &a.sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
-      perror("inet_ntop()");
-      return;
+      throw network_error("inet_ntop() " + string(strerror(errno)));
     }
 
     m_status.ip6 = string(ip6_buffer);

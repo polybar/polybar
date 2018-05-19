@@ -14,6 +14,7 @@
 #include "common.hpp"
 #include "settings.hpp"
 #include "errors.hpp"
+#include "components/logger.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -78,9 +79,11 @@ namespace net {
     string format_speedrate(float bytes_diff, int minwidth) const;
     void query_ip6();
 
+    const logger& m_log;
     unique_ptr<file_descriptor> m_socketfd;
     link_status m_status{};
     string m_interface;
+    string m_ip6_last_error{};
     bool m_tuntap{false};
     bool m_unknown_up{false};
   };
