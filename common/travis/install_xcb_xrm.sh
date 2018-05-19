@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Don't install xrm on minimal builds because it is an optional dependency
+if [ "$POLYBAR_BUILD_TYPE" == "minimal" ]; then
+  echo "Not installing xcb-xrm on minimal build"
+  return 0
+fi
+
 # Fail on error
 set -e
 
