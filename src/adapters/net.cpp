@@ -148,10 +148,12 @@ namespace net {
     }
 
     if (connect(fd, (const sockaddr*)&a, l) == -1) {
+      close(fd);
       throw network_error("connect() " + string(strerror(errno)));
     }
 
     if (getsockname(fd, (struct sockaddr*)&a, &l) == -1) {
+      close(fd);
       throw network_error("getsockname() " + string(strerror(errno)));
     }
 
