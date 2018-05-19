@@ -8,18 +8,54 @@ env:
     - MAKEFLAGS="-j ${JOBS}"
     - POLYBAR_BUILD_TYPE="compile"
 
+# Build configurations can either not specify anything for 'addon' and use this
+# default list of packages. Or they can pick and choose which package groups to
+# install
+addons:
+  apt:
+    sources: &sources
+      - ubuntu-toolchain-r-test
+    packages:
+      - &gcc
+        - g++-5
+        - gcc-5
+      - &clang
+        - libstdc++-5-dev
+      - &base_deps
+        - libxcb-ewmh-dev
+        - libxcb-icccm4-dev
+        - libxcb-image0-dev
+        - libxcb-randr0-dev
+        - libxcb-util0-dev
+        - python-xcbgen
+        - xcb-proto
+      - &optional_deps
+        - libxcb-xkb-dev
+        - libxcb-cursor-dev
+        - libxcb1-dev
+        - xutils-dev
+        - i3-wm
+        - libasound2-dev
+        - libpulse-dev
+        - libcairo2-dev
+        - libiw-dev
+        - libmpdclient-dev
+
 script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
 
 matrix:
   include:
     - compiler: clang
       env: BUILD_TYPE=Release
+      addons: {apt: {sources: *sources, packages: [*clang, *base_deps, *optional_deps]}}
 
     - compiler: clang
       env: BUILD_TYPE=Debug
+      addons: {apt: {sources: *sources, packages: [*clang, *base_deps, *optional_deps]}}
 
     - compiler: gcc
       env: BUILD_TYPE=Debug POLYBAR_BUILD_TYPE=tests BUILD_TESTS=ON
+      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
       script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
       after_success:
         - cd ${TRAVIS_BUILD_DIR}
@@ -27,34 +63,12 @@ matrix:
 
     - compiler: gcc
       env: BUILD_TYPE=Release
+      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
 
     - compiler: gcc
       env: BUILD_TYPE=Debug
+      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-5
-      - gcc-5
-      - i3-wm
-      - libasound2-dev
-      - libpulse-dev
-      - libcairo2-dev
-      - libiw-dev
-      - libmpdclient-dev
-      - libxcb-ewmh-dev
-      - libxcb-icccm4-dev
-      - libxcb-image0-dev
-      - libxcb-randr0-dev
-      - libxcb-util0-dev
-      - libxcb-xkb-dev
-      - libxcb-cursor-dev
-      - libxcb1-dev
-      - python-xcbgen
-      - xcb-proto
-      - xutils-dev
 
 cache:
   ccache: true
