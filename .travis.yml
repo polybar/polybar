@@ -69,6 +69,12 @@ matrix:
       env: BUILD_TYPE=Debug
       addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
 
+      # Minimal build, contains no optional dependencies. This makes sure that
+      # we properly remove files from compilation that depend on libraries that
+      # are not installed
+    - compiler: gcc
+      env: BUILD_TYPE=Release POLYBAR_BUILD_TYPE=minimal
+      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps]}}
 
 cache:
   ccache: true
