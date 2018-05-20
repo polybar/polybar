@@ -38,9 +38,11 @@ function main
 
   msg "Setting build options"
 
+  read -r -p "$(msg "Use GCC even if Clang is installed -------------------------------- [y/N]: ")" -n 1 p && echo
+  [[ "${p^^}" != "Y" ]] && try_to_use_clang="ON"
   read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
-  read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) ---------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) ------------ [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
   read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) ----- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_pulseaudio="OFF"
@@ -56,14 +58,19 @@ function main
   local cxx="c++"
   local cc="cc"
 
-  if command -v clang++ >/dev/null; then
-    msg "Using compiler: clang++/clang"
-    cxx="clang++"
-    cc="clang"
-  elif command -v g++ >/dev/null; then
-    msg "Using compiler: g++/gcc"
-    cxx="g++"
-    cc="gcc"
+  if [[ "${try_to_use_clang}" == "ON" ]]; then
+    if command -v clang++ >/dev/null; then
+      msg "Using compiler: clang++/clang"
+      cxx="clang++"
+      cc="clang"
+    elif command -v g++ >/dev/null; then
+      msg "Using compiler: g++/gcc"
+      cxx="g++"
+      cc="gcc"
+    fi
+  else
+      cxx="g++"
+      cc="gcc"
   fi
 
   msg "Executing cmake command"
