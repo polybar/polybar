@@ -25,7 +25,26 @@ line_t config_parser::parse_line(int file_index, int line_no, string line) {
 }
 
 line_type config_parser::get_line_type(string line) {
-  return line_type::UNKNOWN;
+  if(line.empty()) {
+    return line_type::EMPTY;
+  }
+
+  switch (line[0]) {
+    case '[':
+      return line_type::HEADER;
+
+    case ';':
+    case '#':
+      return line_type::COMMENT;
+
+    default:
+      if(string_util::contains(line, "=")) {
+        return line_type::KEY;
+      }
+      else {
+        return line_type::UNKNOWN;
+      }
+  }
 }
 
 string config_parser::parse_header(string line) {

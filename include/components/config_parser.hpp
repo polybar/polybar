@@ -192,6 +192,7 @@ class config_parser {
     /**
      * \brief Deterimes the type of a line read from a config file
      *
+     * Expects that line is trimmed
      * This only looks at the first character and doesn't check if the line is
      * actually syntactically correct.
      * HEADER ('['), COMMENT (';' or '#') and EMPTY (None) are uniquely
