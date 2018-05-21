@@ -107,6 +107,7 @@ namespace net {
 
     try {
       this->query_ip6();
+      m_ip6_last_error.clear();
     } catch (const network_error& err) {
       if (m_ip6_last_error != err.what()) {
         m_ip6_last_error = err.what();
