@@ -62,6 +62,11 @@ namespace string_util {
    */
   using hash_type = unsigned long;
 
+  /**
+   * Predicate that determines if a given character is not a space
+   */
+  auto isnospace_pred = [](int ch) { return !isspace(ch); };
+
   bool contains(const string& haystack, const string& needle);
   string upper(const string& s);
   string lower(const string& s);
@@ -76,6 +81,10 @@ namespace string_util {
 
   string strip(const string& haystack, char needle);
   string strip_trailing_newline(const string& haystack);
+
+  string ltrim(string value, function<bool(char)> pred);
+  string rtrim(string value, function<bool(char)> pred);
+  string trim(string value, function<bool(char)> pred);
 
   string ltrim(string&& value, const char& needle = ' ');
   string rtrim(string&& value, const char& needle = ' ');
