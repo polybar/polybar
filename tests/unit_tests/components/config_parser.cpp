@@ -60,9 +60,9 @@ vector<pair<line_type, string>> line_type_transform(vector<string> in, line_type
  * \brief Parameter values for GetLineTypeTest
  */
 auto line_type_key = line_type_transform({"a = b", "  a =b", " a\t =\t \t b", "a = "}, line_type::KEY);
-auto line_type_header = line_type_transform({"[section]", " [section]", "[section/sub]"}, line_type::HEADER);
-auto line_type_comment = line_type_transform({";abc", "#abc", "\t;abc", " #abc", "\t \t;abc"}, line_type::COMMENT);
-auto line_type_empty = line_type_transform({"", " ", "\t" "   \t  \t"}, line_type::EMPTY);
+auto line_type_header = line_type_transform({"[section]", "[section]", "[section/sub]"}, line_type::HEADER);
+auto line_type_comment = line_type_transform({";abc", "#abc", ";", "#"}, line_type::COMMENT);
+auto line_type_empty = line_type_transform({""}, line_type::EMPTY);
 auto line_type_unknown = line_type_transform({"|a", " |a", "a"}, line_type::UNKNOWN);
 
 /**
