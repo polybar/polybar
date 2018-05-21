@@ -42,6 +42,18 @@ class syntax_error : public parser_error {
 };
 
 /**
+ * \brief syntax_error subclass for invalid names
+ */
+class invalid_name_error : public syntax_error {
+  public:
+    /**
+     * type is the type of name (Header, Key)
+     */
+    invalid_name_error(string type, string name)
+      : syntax_error(type + " '" + name + "' is an invalid name") {}
+};
+
+/**
  * \enum line_type
  * \brief All different types a line in a config can be
  */
