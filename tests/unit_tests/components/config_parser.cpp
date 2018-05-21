@@ -106,6 +106,7 @@ vector<pair<pair<string, string>, string>> parse_key_list = {
   {{"key", "= value"}, "key == value"},
   {{"key", ""}, "key ="},
   {{"key", ""}, "key =\"\""},
+  {{"key", "\"\""}, "key =\"\"\"\""},
 };
 
 INSTANTIATE_TEST_CASE_P(Inst, ParseKeyTest,

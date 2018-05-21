@@ -55,14 +55,31 @@ string config_parser::parse_header(string line) {
   string header = line.substr(1, line.size() - 2);
 
   if(!is_valid_name(header)) {
-    throw syntax_error("Header '" + header + "' contains forbidden characters");
+    throw invalid_name_error("Header", header);
   }
 
   return header;
 }
 
 std::pair<string, string> config_parser::parse_key(string line) {
-  return {"", ""};
+  size_t pos = line.find_first_of('=');
+
+  string key = trim(line.substr(0, pos), string_util::isnospace_pred);
+  string value = trim(line.substr(pos + 1), string_util::isnospace_pred);
+
+  if(!is_valid_name(key)) {
+    throw invalid_name_error("Key", key);
+  }
+
+  /*
+   * Remove double quotes around value, only if it starts end ends with
+   * double quotes
+   */
+  if(value.size() >= 2 && value.front() == '"' && value.back() == '"') {
+    value = value.substr(1, value.size() - 2);
+  }
+
+  return {key, value};
 }
 
 bool config_parser::is_valid_name(string name) {
