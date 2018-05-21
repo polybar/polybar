@@ -256,7 +256,7 @@ class config_parser {
     /*
      * \brief None of these characters can be used in the key and section names
      */
-    static constexpr auto forbidden_chars = "\"'=;#[](){}:.$\\%";
+    string forbidden_chars{"\"'=;#[](){}:.$\\%"};
 };
 
 POLYBAR_NS_END

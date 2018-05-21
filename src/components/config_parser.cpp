@@ -29,7 +29,17 @@ line_type config_parser::get_line_type(string line) {
 }
 
 string config_parser::parse_header(string line) {
-  return "";
+  if(line.back() != ']') {
+    throw syntax_error("Missing ']' in header '" + line + "'");
+  }
+
+  string header = line.substr(1, line.size() - 2);
+
+  if(!is_valid_name(header)) {
+    throw syntax_error("Header '" + header + "' contains forbidden characters");
+  }
+
+  return header;
 }
 
 std::pair<string, string> config_parser::parse_key(string line) {
@@ -37,7 +47,19 @@ std::pair<string, string> config_parser::parse_key(string line) {
 }
 
 bool config_parser::is_valid_name(string name) {
-  return false;
+  if(name.empty()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < name.size(); i++) {
+    char c = name[i];
+    // Names with forbidden chars or spaces are not valid
+    if(isspace(c) || forbidden_chars.find_first_of(c) != string::npos) {
+        return false;
+      }
+  }
+
+  return true;
 }
 
 POLYBAR_NS_END
