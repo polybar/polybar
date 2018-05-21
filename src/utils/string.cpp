@@ -111,6 +111,29 @@ namespace string_util {
   }
 
   /**
+   * Trims all characters that match pred from the left
+   */
+  string ltrim(string value, function<bool(char)> pred) {
+    value.erase(value.begin(), find_if(value.begin(), value.end(), pred));
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from the right
+   */
+  string rtrim(string value, function<bool(char)> pred) {
+    value.erase(find_if(value.rbegin(), value.rend(), pred).base(), value.end());
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from both sides
+   */
+  string trim(string value, function<bool(char)> pred) {
+    return ltrim(rtrim(value, pred), pred);
+  }
+
+  /**
    * Remove needle from the start of the string
    */
   string ltrim(string&& value, const char& needle) {

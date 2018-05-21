@@ -1,4 +1,5 @@
 #include <iomanip>
+#include <functional>
 
 #include "common/test.hpp"
 #include "utils/string.hpp"
@@ -55,6 +56,11 @@ TEST(String, trim) {
   EXPECT_EQ("testxx", string_util::ltrim("xxtestxx", 'x'));
   EXPECT_EQ("xxtest", string_util::rtrim("xxtestxx", 'x'));
   EXPECT_EQ("test", string_util::trim("xxtestxx", 'x'));
+}
+
+TEST(String, trimPredicate) {
+  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", string_util::isnospace_pred));
+  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", string_util::isnospace_pred));
 }
 
 TEST(String, join) {
