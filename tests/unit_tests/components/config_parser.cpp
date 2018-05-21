@@ -122,6 +122,7 @@ TEST_P(ParseKeyTest, correctness) {
  * Tests if exception is thrown for invalid key line
  */
 TEST_F(ParseKeyTest, throwsSyntaxError) {
+  EXPECT_THROW(parser->parse_key("= empty name"), syntax_error);
   EXPECT_THROW(parser->parse_key("forbidden char = value"), syntax_error);
   EXPECT_THROW(parser->parse_key("forbidden\tchar = value"), syntax_error);
 }
@@ -159,6 +160,7 @@ TEST_P(ParseHeaderTest, correctness) {
  * Tests if exception is thrown for invalid header line
  */
 TEST_F(ParseHeaderTest, throwsSyntaxError) {
+  EXPECT_THROW(parser->parse_header("[]"), syntax_error);
   EXPECT_THROW(parser->parse_header("[no_end"), syntax_error);
   EXPECT_THROW(parser->parse_header("[forbidden char]"), syntax_error);
   EXPECT_THROW(parser->parse_header("[forbidden\tchar]"), syntax_error);
