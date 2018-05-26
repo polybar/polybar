@@ -1,4 +1,4 @@
-![readme](https://user-images.githubusercontent.com/36028424/40209666-2d634734-5a73-11e8-8827-1537e8d414b5.png)
+![banner](banner.png)
 
 [![Build Status](https://travis-ci.org/jaagr/polybar.svg?branch=master)](https://travis-ci.org/jaagr/polybar)
 [![Coverage Status](https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg)](https://codecov.io/gh/jaagr/polybar/branch/master)
