@@ -29,6 +29,7 @@ Make sure you include steps on how to reproduce it. There's also an irc channel 
   * [Building from source](#building-from-source)
   * [Configuration](#configuration)
   * [Running](#running)
+* [Contributors](#contributors)
 * [License](#license)
 
 
@@ -148,6 +149,21 @@ Details on how to setup and configure the bar and each module have been moved to
 
 [See the wiki for details on how to run polybar](https://github.com/jaagr/polybar/wiki).
 
+## Contributors
+
+### Owner
+* Michael Carlberg: [**@jaagr**](http://github.com/jaagr/)
+
+### Maintainers
+* [**@NBonaparte**](https://github.com/NBonaparte)
+* Chase Geigle [**@skystrife**](https://github.com/skystrife)
+* Patrick Ziegler [**@patrick96**](https://github.com/patrick96)
+
+### Logo Design by
+* [**@Tobaloidee**](https://github.com/Tobaloidee)
+
+
+### [All Contributors](https://github.com/jaagr/polybar/graphs/contributors)
 
 ## License
 
