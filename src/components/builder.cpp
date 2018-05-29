@@ -559,15 +559,24 @@ string builder::foreground_hex() {
 string builder::get_label_text(const label_t& label) {
   string text{label->get()};
 
+  size_t len = string_util::char_len(text);
   size_t maxlen = label->m_maxlen;
+  size_t minlen = label->m_minlen;
 
-  if (maxlen > 0 && string_util::char_len(text) > maxlen) {
+  // Truncate if too long
+  if (maxlen > 0 && len > maxlen) {
     if (label->m_ellipsis) {
       text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
     }
     else {
       text = string_util::utf8_truncate(std::move(text), maxlen);
     }
+  }
+
+  // Pad right if too short
+  if (len < minlen) {
+    std::string s = "123";
+    text.insert(text.end(), minlen - len, ' ');
   }
 
   return text;

@@ -22,7 +22,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_maxlen, m_ellipsis, m_minlen, move(tokens));
   }
 
   void label::clear() {
@@ -95,6 +95,9 @@ namespace drawtypes {
       m_maxlen = label->m_maxlen;
       m_ellipsis = label->m_ellipsis;
     }
+    if (label->m_minlen != 0_z) {
+      m_minlen = label->m_minlen;
+    }
   }
 
   void label::copy_undefined(const label_t& label) {
@@ -128,6 +131,9 @@ namespace drawtypes {
     if (m_maxlen == 0_z && label->m_maxlen != 0_z) {
       m_maxlen = label->m_maxlen;
       m_ellipsis = label->m_ellipsis;
+    }
+    if (m_minlen == 0_z && label->m_minlen != 0_z) {
+      m_minlen = label->m_minlen;
     }
   }
 
@@ -223,6 +229,7 @@ namespace drawtypes {
 
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
+    size_t minlen = conf.get(section, name + "-minlen", 0_z);
 
     if(ellipsis && maxlen > 0 && maxlen < 3) {
       logger::make().err(sstream() << "Label " << section << "." << name
@@ -230,6 +237,15 @@ namespace drawtypes {
           << ", which is smaller than length of ellipsis (3), disabling ellipsis...");
 
       ellipsis = false;
+    }
+
+    if (ellipsis && minlen > maxlen) {
+      logger::make().err(sstream() << "Label " << section << "." << name
+          << " has minlen " << minlen
+          << ", which is greater than its maxlen " << maxlen
+          << ", disabling minlen...");
+
+      minlen = 0_z;
     }
 
     // clang-format off
@@ -243,6 +259,7 @@ namespace drawtypes {
         margin,
         maxlen,
         ellipsis,
+        minlen,
         move(tokens));
     // clang-format on
   }
