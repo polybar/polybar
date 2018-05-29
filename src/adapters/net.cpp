@@ -70,6 +70,7 @@ namespace net {
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
+    m_status.ip6 = NO_IP6;
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -82,11 +83,33 @@ namespace net {
         }
       }
 
+      struct sockaddr_in6* sa6;
+
       switch (ifa->ifa_addr->sa_family) {
         case AF_INET:
           char ip_buffer[NI_MAXHOST];
           getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in), ip_buffer, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
           m_status.ip = string{ip_buffer};
+          break;
+
+        case AF_INET6:
+          char ip6_buffer[INET_ADDRSTRLEN];
+          sa6 = reinterpret_cast<decltype(sa6)>(ifa->ifa_addr);
+          if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
+              continue;
+          }
+          if (IN6_IS_ADDR_SITELOCAL(&sa6->sin6_addr)) {
+              continue;
+          }
+          if ((((unsigned char*)sa6->sin6_addr.s6_addr)[0] & 0xFE) == 0xFC) {
+              /* Skip Unique Local Addresses (fc00::/7) */
+              continue;
+          }
+          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
+              m_log.warn("inet_ntop() " + string(strerror(errno)));
+              continue;
+          }
+          m_status.ip6 = string{ip6_buffer};
           break;
 
         case AF_PACKET:
@@ -105,66 +128,7 @@ namespace net {
 
     freeifaddrs(ifaddr);
 
-    try {
-      this->query_ip6();
-      m_ip6_last_error.clear();
-    } catch (const network_error& err) {
-      if (m_ip6_last_error != err.what()) {
-        m_ip6_last_error = err.what();
-        m_log.warn("net/query_ip6: %s", err.what());
-      }
-    }
-
     return true;
-  }
-
-  /**
-   * Query the operating system to set m_status.ip6
-   *
-   * I think you can end up with multiple (non link-local) IPv6 address on an
-   * interface for different reasons. If you connect() with a with a DGRAM it
-   * doesn't send any packets but apparently it gets a source address. Sort of
-   * like `ip r get to 2001:7fd::1` with iproute2 maybe?
-   *
-   * i3status has an approach that uses a socket.
-   * https://github.com/i3/i3status/blob/2.12/src/print_ipv6_addr.c
-   */
-  void network::query_ip6() {
-    char ip6_buffer[NI_MAXHOST];
-    int fd;
-    struct sockaddr_in6 a;
-    socklen_t l = sizeof (struct sockaddr_in6);
-
-    m_status.ip6 = NO_IP6;
-
-    memset(&a, 0, l);
-    a.sin6_family = AF_INET6;
-    a.sin6_port = htons(0);
-    if (inet_pton(AF_INET6, "2001:7fd::1", &a.sin6_addr) == -1) {
-      throw network_error("inet_pton() " + string(strerror(errno)));
-    }
-
-    if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-      throw network_error("socket() " + string(strerror(errno)));
-    }
-
-    if (connect(fd, (const sockaddr*)&a, l) == -1) {
-      close(fd);
-      throw network_error("connect() " + string(strerror(errno)));
-    }
-
-    if (getsockname(fd, (struct sockaddr*)&a, &l) == -1) {
-      close(fd);
-      throw network_error("getsockname() " + string(strerror(errno)));
-    }
-
-    close(fd);
-
-    if (inet_ntop(AF_INET6, &a.sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
-      throw network_error("inet_ntop() " + string(strerror(errno)));
-    }
-
-    m_status.ip6 = string(ip6_buffer);
   }
 
   /**

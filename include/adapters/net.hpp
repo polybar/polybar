@@ -83,7 +83,6 @@ namespace net {
     unique_ptr<file_descriptor> m_socketfd;
     link_status m_status{};
     string m_interface;
-    string m_ip6_last_error{};
     bool m_tuntap{false};
     bool m_unknown_up{false};
   };
