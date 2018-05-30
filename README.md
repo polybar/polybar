@@ -152,7 +152,7 @@ Details on how to setup and configure the bar and each module have been moved to
 ## Contributors
 
 ### Owner
-* Michael Carlberg: [**@jaagr**](http://github.com/jaagr/)
+* Michael Carlberg [**@jaagr**](http://github.com/jaagr/)
 
 ### Maintainers
 * [**@NBonaparte**](https://github.com/NBonaparte)
