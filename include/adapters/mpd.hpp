@@ -64,6 +64,7 @@ namespace mpd {
     operator bool();
 
     string get_artist();
+    string get_album_artist();
     string get_album();
     string get_title();
     string get_date();

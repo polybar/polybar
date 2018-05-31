@@ -206,6 +206,7 @@ namespace modules {
     }
 
     string artist;
+    string album_artist;
     string album;
     string title;
     string date;
@@ -223,6 +224,7 @@ namespace modules {
 
         if (song && song.get()) {
           artist = song->get_artist();
+          album_artist = song->get_album_artist();
           album = song->get_album();
           title = song->get_title();
           date = song->get_date();
@@ -236,6 +238,7 @@ namespace modules {
     if (m_label_song) {
       m_label_song->reset_tokens();
       m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
+      m_label_song->replace_token("%album-artist%", !album_artist.empty() ? album_artist : "untitled album artist");
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");
       m_label_song->replace_token("%date%", !date.empty() ? date : "unknown date");
