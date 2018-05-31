@@ -85,7 +85,7 @@ namespace mpd {
     return string{tag != nullptr ? tag : ""};
   }
 
-  string mpdsong::get_albumartist() {
+  string mpdsong::get_album_artist() {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ALBUM_ARTIST, 0);
     return string{tag != nullptr ? tag : ""};
