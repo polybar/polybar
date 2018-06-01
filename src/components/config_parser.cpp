@@ -21,28 +21,59 @@ void config_parser::parse_file(string file, file_list path) {
 }
 
 line_t config_parser::parse_line(int file_index, int line_no, string line) {
-  return {};
+  line = string_util::trim(line, string_util::isnospace_pred);
+  line_type type = get_line_type(line);
+
+  line_t result = {};
+
+  result.file_index = file_index;
+  result.line_no = line_no;
+
+  if(type == EMPTY || type == COMMENT) {
+    result.is_valid = false;
+    return result;
+  }
+
+  if(type == UNKNOWN) {
+    // TODO handle syntax error
+  }
+
+  result.is_valid = true;
+
+  if(type == HEADER) {
+    result.is_header = true;
+    result.header = parse_header(line);
+  }
+
+  if(type == KEY) {
+    result.is_header = false;
+    auto key_value = parse_key(line);
+    result.key_value[0] = key_value.first;
+    result.key_value[1] = key_value.second;
+  }
+
+  return result;
 }
 
 line_type config_parser::get_line_type(string line) {
   if(line.empty()) {
-    return line_type::EMPTY;
+    return EMPTY;
   }
 
   switch (line[0]) {
     case '[':
-      return line_type::HEADER;
+      return HEADER;
 
     case ';':
     case '#':
-      return line_type::COMMENT;
+      return COMMENT;
 
     default:
       if(string_util::contains(line, "=")) {
-        return line_type::KEY;
+        return KEY;
       }
       else {
-        return line_type::UNKNOWN;
+        return UNKNOWN;
       }
   }
 }

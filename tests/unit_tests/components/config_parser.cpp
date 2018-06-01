@@ -15,6 +15,7 @@ class TestableConfigParser : public config_parser {
   public: using config_parser::get_line_type;
   public: using config_parser::parse_key;
   public: using config_parser::parse_header;
+  public: using config_parser::parse_line;
 };
 
 /**
@@ -26,7 +27,87 @@ class ConfigParser : public ::testing::Test {
 };
 
 // ParseLineTest {{{
+#define LINE_NO 1
+#define FILE_INDEX 2
 
+class ParseLineInValidTest :
+  public ConfigParser,
+  public ::testing::WithParamInterface<string> {
+  };
+
+class ParseLineHeaderTest :
+  public ConfigParser,
+  public ::testing::WithParamInterface<pair<string, string>> {
+  };
+
+class ParseLineKeyTest :
+  public ConfigParser,
+  public ::testing::WithParamInterface<pair<pair<string, string>, string>> {
+  };
+
+vector<string> parse_line_invalid_list = {
+  " # comment",
+  "; comment",
+  "\t#",
+  "",
+  " ",
+  "\t ",
+};
+
+vector<pair<string, string>> parse_line_header_list = {
+  {"section", "\t[section]"},
+  {"section", "\t[section]  "},
+  {"bar/name", "\t[bar/name]  "},
+};
+
+vector<pair<pair<string, string>, string>> parse_line_key_list = {
+  {{"key", "value"}, " key = value"},
+  {{"key", ""}, " key\t = \"\""},
+  {{"key", "\""}, " key\t = \"\"\""},
+};
+
+INSTANTIATE_TEST_CASE_P(Inst, ParseLineInValidTest,
+    ::testing::ValuesIn(parse_line_invalid_list),);
+
+TEST_P(ParseLineInValidTest, correctness) {
+  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam());
+
+  EXPECT_EQ(FILE_INDEX, line.file_index);
+  EXPECT_EQ(LINE_NO, line.line_no);
+
+  EXPECT_FALSE(line.is_valid);
+}
+
+INSTANTIATE_TEST_CASE_P(Inst, ParseLineHeaderTest,
+    ::testing::ValuesIn(parse_line_header_list),);
+
+TEST_P(ParseLineHeaderTest, correctness) {
+  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam().second);
+
+  EXPECT_EQ(FILE_INDEX, line.file_index);
+  EXPECT_EQ(LINE_NO, line.line_no);
+
+  EXPECT_TRUE(line.is_valid);
+
+  EXPECT_TRUE(line.is_header);
+  EXPECT_EQ(GetParam().first, line.header);
+}
+
+INSTANTIATE_TEST_CASE_P(Inst, ParseLineKeyTest,
+    ::testing::ValuesIn(parse_line_key_list),);
+
+TEST_P(ParseLineKeyTest, correctness) {
+  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam().second);
+
+  EXPECT_EQ(FILE_INDEX, line.file_index);
+  EXPECT_EQ(LINE_NO, line.line_no);
+
+  EXPECT_TRUE(line.is_valid);
+
+  EXPECT_FALSE(line.is_header);
+  EXPECT_EQ(GetParam().first.first, line.key_value[0]);
+  EXPECT_EQ(GetParam().first.second, line.key_value[1]);
+}
 // }}}
 
 // GetLineTypeTest {{{
