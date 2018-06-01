@@ -67,9 +67,6 @@ enum line_type {KEY, HEADER, COMMENT, EMPTY, UNKNOWN};
  * about line type and structure
  */
 struct line_t {
-  string header;
-  string key_value[2];
-
   /**
    * Whether or not this struct contains a valid line
    * If false all other fields are not set
@@ -89,6 +86,9 @@ struct line_t {
    * We access header, if is_header == true otherwise we access key_value
    */
   bool is_header;
+
+  string header;
+  string key_value[2];
 };
 
 using valuemap_t = std::unordered_map<string, string>;
