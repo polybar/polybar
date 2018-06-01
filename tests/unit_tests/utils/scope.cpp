@@ -1,21 +1,19 @@
 #include "common/test.hpp"
 #include "utils/scope.hpp"
 
-int main() {
-  using namespace polybar;
+using namespace polybar;
 
-  "on_exit"_test = [] {
-    auto flag = false;
+TEST(Scope, onExit) {
+  auto flag = false;
+  {
+    EXPECT_FALSE(flag);
+    auto handler = scope_util::make_exit_handler<>([&] { flag = true; });
+    EXPECT_FALSE(flag);
     {
-      expect(!flag);
       auto handler = scope_util::make_exit_handler<>([&] { flag = true; });
-      expect(!flag);
-      {
-        auto handler = scope_util::make_exit_handler<>([&] { flag = true; });
-      }
-      expect(flag);
-      flag = false;
     }
-    expect(flag);
-  };
+    EXPECT_TRUE(flag);
+    flag = false;
+  }
+  EXPECT_TRUE(flag);
 }
