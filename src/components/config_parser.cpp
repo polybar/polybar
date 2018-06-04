@@ -35,21 +35,29 @@ line_t config_parser::parse_line(int file_index, int line_no, string line) {
   }
 
   if(type == UNKNOWN) {
-    // TODO handle syntax error
+    throw syntax_error("Unknown line type " + line, files[file_index], line_no);
   }
 
   result.is_valid = true;
 
-  if(type == HEADER) {
-    result.is_header = true;
-    result.header = parse_header(line);
-  }
+  try {
+    if(type == HEADER) {
+      result.is_header = true;
+      result.header = parse_header(line);
+    }
 
-  if(type == KEY) {
-    result.is_header = false;
-    auto key_value = parse_key(line);
-    result.key_value[0] = key_value.first;
-    result.key_value[1] = key_value.second;
+    if(type == KEY) {
+      result.is_header = false;
+      auto key_value = parse_key(line);
+      result.key_value[0] = key_value.first;
+      result.key_value[1] = key_value.second;
+    }
+  } catch(syntax_error err) {
+    /*
+     * Exceptions thrown by the other parse functions don't have the line
+     * numbers and files set, so we have to add them here
+     */
+    throw syntax_error(err.get_msg(), files[file_index], line_no);
   }
 
   return result;
