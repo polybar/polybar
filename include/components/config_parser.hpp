@@ -35,6 +35,8 @@ class syntax_error : public parser_error {
       return ("Syntax error at " + file + ":" + to_string(line_no) + " " + msg).c_str();
     }
 
+    string get_msg() { return msg; };
+
   private:
     string file;
     int line_no;
@@ -234,6 +236,15 @@ class config_parser {
      */
     std::pair<string, string> parse_key(string line);
 
+    /**
+     * \brief Name of all the files the config includes values from
+     *
+     * The line_t struct uses indices to this vector to map lines to their
+     * original files. This allows us to point the user to the exact location
+     * of errors
+     */
+    file_list files;
+
   private:
 
     /**
@@ -248,15 +259,6 @@ class config_parser {
      * \brief Full path to the main config file
      */
     string m_file;
-
-    /**
-     * \brief Name of all the files the config includes values from
-     *
-     * The line_t struct uses indices to this vector to map lines to their
-     * original files. This allows us to point the user to the exact location
-     * of errors
-     */
-    file_list files;
 
     /*
      * \brief List of all the lines in the config (with included files)

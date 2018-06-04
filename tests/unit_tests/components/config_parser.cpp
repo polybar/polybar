@@ -16,6 +16,7 @@ class TestableConfigParser : public config_parser {
   public: using config_parser::parse_key;
   public: using config_parser::parse_header;
   public: using config_parser::parse_line;
+  public: using config_parser::files;
 };
 
 /**
@@ -24,6 +25,10 @@ class TestableConfigParser : public config_parser {
 class ConfigParser : public ::testing::Test {
   protected:
     unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(logger(loglevel::NONE), "/dev/zero");
+
+    virtual void SetUp() {
+      parser->files = {"file1", "file2", "file3"};
+    }
 };
 
 // ParseLineTest {{{
@@ -107,6 +112,10 @@ TEST_P(ParseLineKeyTest, correctness) {
   EXPECT_FALSE(line.is_header);
   EXPECT_EQ(GetParam().first.first, line.key_value[0]);
   EXPECT_EQ(GetParam().first.second, line.key_value[1]);
+}
+
+TEST_F(ParseLineInValidTest, throwsSyntaxError) {
+  EXPECT_THROW(parser->parse_line(FILE_INDEX, LINE_NO, "unknown"), syntax_error);
 }
 // }}}
 
