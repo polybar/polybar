@@ -25,16 +25,9 @@ class TestableConfigParser : public config_parser {
 class ConfigParser : public ::testing::Test {
   protected:
     unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(logger(loglevel::NONE), "/dev/zero");
-
-    virtual void SetUp() {
-      parser->files = {"file1", "file2", "file3"};
-    }
 };
 
 // ParseLineTest {{{
-#define LINE_NO 1
-#define FILE_INDEX 2
-
 class ParseLineInValidTest :
   public ConfigParser,
   public ::testing::WithParamInterface<string> {
@@ -75,10 +68,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineInValidTest,
     ::testing::ValuesIn(parse_line_invalid_list),);
 
 TEST_P(ParseLineInValidTest, correctness) {
-  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam());
-
-  EXPECT_EQ(FILE_INDEX, line.file_index);
-  EXPECT_EQ(LINE_NO, line.line_no);
+  line_t line = parser->parse_line(GetParam());
 
   EXPECT_FALSE(line.is_valid);
 }
@@ -87,10 +77,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineHeaderTest,
     ::testing::ValuesIn(parse_line_header_list),);
 
 TEST_P(ParseLineHeaderTest, correctness) {
-  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam().second);
-
-  EXPECT_EQ(FILE_INDEX, line.file_index);
-  EXPECT_EQ(LINE_NO, line.line_no);
+  line_t line = parser->parse_line(GetParam().second);
 
   EXPECT_TRUE(line.is_valid);
 
@@ -102,10 +89,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineKeyTest,
     ::testing::ValuesIn(parse_line_key_list),);
 
 TEST_P(ParseLineKeyTest, correctness) {
-  line_t line = parser->parse_line(FILE_INDEX, LINE_NO, GetParam().second);
-
-  EXPECT_EQ(FILE_INDEX, line.file_index);
-  EXPECT_EQ(LINE_NO, line.line_no);
+  line_t line = parser->parse_line(GetParam().second);
 
   EXPECT_TRUE(line.is_valid);
 
@@ -115,7 +99,7 @@ TEST_P(ParseLineKeyTest, correctness) {
 }
 
 TEST_F(ParseLineInValidTest, throwsSyntaxError) {
-  EXPECT_THROW(parser->parse_line(FILE_INDEX, LINE_NO, "unknown"), syntax_error);
+  EXPECT_THROW(parser->parse_line("unknown"), syntax_error);
 }
 // }}}
 

@@ -20,14 +20,11 @@ config_file parse() {
 void config_parser::parse_file(string file, file_list path) {
 }
 
-line_t config_parser::parse_line(int file_index, int line_no, string line) {
+line_t config_parser::parse_line(string line) {
   line = string_util::trim(line, string_util::isnospace_pred);
   line_type type = get_line_type(line);
 
   line_t result = {};
-
-  result.file_index = file_index;
-  result.line_no = line_no;
 
   if(type == EMPTY || type == COMMENT) {
     result.is_valid = false;
@@ -35,29 +32,21 @@ line_t config_parser::parse_line(int file_index, int line_no, string line) {
   }
 
   if(type == UNKNOWN) {
-    throw syntax_error("Unknown line type " + line, files[file_index], line_no);
+    throw syntax_error("Unknown line type " + line);
   }
 
   result.is_valid = true;
 
-  try {
-    if(type == HEADER) {
-      result.is_header = true;
-      result.header = parse_header(line);
-    }
+  if(type == HEADER) {
+    result.is_header = true;
+    result.header = parse_header(line);
+  }
 
-    if(type == KEY) {
-      result.is_header = false;
-      auto key_value = parse_key(line);
-      result.key_value[0] = key_value.first;
-      result.key_value[1] = key_value.second;
-    }
-  } catch(syntax_error err) {
-    /*
-     * Exceptions thrown by the other parse functions don't have the line
-     * numbers and files set, so we have to add them here
-     */
-    throw syntax_error(err.get_msg(), files[file_index], line_no);
+  if(type == KEY) {
+    result.is_header = false;
+    auto key_value = parse_key(line);
+    result.key_value[0] = key_value.first;
+    result.key_value[1] = key_value.second;
   }
 
   return result;
