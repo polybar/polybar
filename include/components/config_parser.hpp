@@ -164,14 +164,11 @@ class config_parser {
      *
      * This method directly resolves `include-file` directives and checks for
      * cyclic dependencies
-     *
-     * It is assumed the file exists
      */
     void parse_file(string file, file_list path);
 
     /**
-     * \brief Parses the given line string which occurs in files[file_index] on line
-     *        line_no and creates a line_t struct
+     * \brief Parses the given line string creates a line_t struct
      *
      * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file);
      * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
@@ -199,9 +196,12 @@ class config_parser {
      *
      * sections are defined as [section], everything inside the square brackets is part of the name
      *
-     * \throws syntax_error if the line isn't well formed
+     * \throws syntax_error if the line isn't well formed. The syntax error
+     *         does not contain the filename or line numbers because parse_line
+     *         doesn't know about those. Whoever calls parse_line needs to
+     *         catch those exceptions and set the file path and line number
      */
-    line_t parse_line(int file_index, int line_no, string line);
+    line_t parse_line(string line);
 
     /**
      * \brief Deterimes the type of a line read from a config file
