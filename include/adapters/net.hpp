@@ -5,7 +5,6 @@
 
 #include <arpa/inet.h>
 #include <ifaddrs.h>
-#include <iwlib.h>
 
 #ifdef inline
 #undef inline
@@ -16,6 +15,15 @@
 #include "errors.hpp"
 #include "components/logger.hpp"
 #include "utils/math.hpp"
+
+#if WITH_LIBNL
+#include <net/if.h>
+
+struct nl_msg;
+struct nlattr;
+#else
+#include <iwlib.h>
+#endif
 
 POLYBAR_NS
 
@@ -103,6 +111,39 @@ namespace net {
   };
 
   // }}}
+
+#if WITH_LIBNL
+  // class : wireless_network {{{
+
+  class wireless_network : public network {
+   public:
+    wireless_network(string interface) : network(interface), m_ifid(if_nametoindex(interface.c_str())){};
+
+    bool query(bool accumulate = false) override;
+    bool connected() const override;
+    string essid() const;
+    int signal() const;
+    int quality() const;
+
+   protected:
+    static int scan_cb(struct nl_msg* msg, void* instance);
+
+    bool associated_or_joined(struct nlattr** bss);
+    void parse_essid(struct nlattr** bss);
+    void parse_frequency(struct nlattr** bss);
+    void parse_quality(struct nlattr** bss);
+    void parse_signal(struct nlattr** bss);
+
+   private:
+    unsigned int m_ifid{};
+    string m_essid{};
+    int m_frequency{};
+    quality_range m_signalstrength{};
+    quality_range m_linkquality{};
+  };
+
+  // }}}
+#else
   // class : wireless_network {{{
 
   class wireless_network : public network {
@@ -128,9 +169,10 @@ namespace net {
   };
 
   // }}}
+#endif
 
   using wireless_t = unique_ptr<wireless_network>;
   using wired_t = unique_ptr<wired_network>;
-}
+}  // namespace net
 
 POLYBAR_NS_END

@@ -7,7 +7,9 @@
 #include <linux/if_link.h>
 #include <linux/sockios.h>
 #include <net/if.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 
 #ifdef inline

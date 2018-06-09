@@ -46,7 +46,7 @@ function main
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
   read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) ----- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_pulseaudio="OFF"
-  read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/network\" (requires libnl/libiw) -- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
   read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
