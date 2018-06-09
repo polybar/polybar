@@ -1,11 +1,6 @@
 #include "adapters/net.hpp"
 
-#include <cerrno>
-#include <cstdio>
-#include <fstream>
 #include <iomanip>
-#include <sstream>
-#include <utility>
 
 #include <arpa/inet.h>
 #include <linux/ethtool.h>
@@ -14,8 +9,6 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <climits>
-#include <csignal>
 
 #ifdef inline
 #undef inline
