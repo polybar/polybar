@@ -192,9 +192,9 @@ namespace net {
     driver.cmd = ETHTOOL_GDRVINFO;
 
     memset(&request, 0, sizeof(request));
-    
+
     /*
-     * Only copy array size minus one bytes over to ensure there is a 
+     * Only copy array size minus one bytes over to ensure there is a
      * terminating NUL byte (which is guaranteed by memset)
      */
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
