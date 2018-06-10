@@ -7,6 +7,7 @@
 #include <sstream>
 #include <utility>
 
+#include <arpa/inet.h>
 #include <linux/ethtool.h>
 #include <linux/if_link.h>
 #include <linux/sockios.h>
@@ -36,12 +37,14 @@ namespace net {
     return file_util::exists("/sys/class/net/" + ifname + "/wireless");
   }
 
+  static const string NO_IP6 = string("N/A");
+
   // class : network {{{
 
   /**
    * Construct network interface
    */
-  network::network(string interface) : m_interface(move(interface)) {
+  network::network(string interface) : m_log(logger::make()), m_interface(move(interface)) {
     if (if_nametoindex(m_interface.c_str()) == 0) {
       throw network_error("Invalid network interface \"" + m_interface + "\"");
     }
@@ -67,6 +70,7 @@ namespace net {
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
+    m_status.ip6 = NO_IP6;
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -79,11 +83,33 @@ namespace net {
         }
       }
 
+      struct sockaddr_in6* sa6;
+
       switch (ifa->ifa_addr->sa_family) {
         case AF_INET:
           char ip_buffer[NI_MAXHOST];
           getnameinfo(ifa->ifa_addr, sizeof(sockaddr_in), ip_buffer, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
           m_status.ip = string{ip_buffer};
+          break;
+
+        case AF_INET6:
+          char ip6_buffer[INET_ADDRSTRLEN];
+          sa6 = reinterpret_cast<decltype(sa6)>(ifa->ifa_addr);
+          if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
+              continue;
+          }
+          if (IN6_IS_ADDR_SITELOCAL(&sa6->sin6_addr)) {
+              continue;
+          }
+          if ((((unsigned char*)sa6->sin6_addr.s6_addr)[0] & 0xFE) == 0xFC) {
+              /* Skip Unique Local Addresses (fc00::/7) */
+              continue;
+          }
+          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
+              m_log.warn("inet_ntop() " + string(strerror(errno)));
+              continue;
+          }
+          m_status.ip6 = string{ip6_buffer};
           break;
 
         case AF_PACKET:
@@ -119,10 +145,17 @@ namespace net {
   }
 
   /**
-   * Get interface ip address
+   * Get interface ipv4 address
    */
   string network::ip() const {
     return m_status.ip;
+  }
+
+  /**
+   * Get interface ipv6 address
+   */
+  string network::ip6() const {
+    return m_status.ip6;
   }
 
   /**
