@@ -59,8 +59,8 @@ TEST(String, trim) {
 }
 
 TEST(String, trimPredicate) {
-  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", string_util::isnospace_pred));
-  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", string_util::isnospace_pred));
+  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", string_util::isspace_pred));
+  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", string_util::isspace_pred));
 }
 
 TEST(String, join) {

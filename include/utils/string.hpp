@@ -65,7 +65,7 @@ namespace string_util {
   /**
    * Predicate that determines if a given character is not a space
    */
-  auto isnospace_pred = [](int ch) { return !isspace(ch); };
+  auto isspace_pred = [](int ch) { return isspace(ch); };
 
   bool contains(const string& haystack, const string& needle);
   string upper(const string& s);
