@@ -21,7 +21,7 @@ void config_parser::parse_file(string file, file_list path) {
 }
 
 line_t config_parser::parse_line(string line) {
-  line = string_util::trim(line, string_util::isnospace_pred);
+  line = string_util::trim(line, string_util::isspace_pred);
   line_type type = get_line_type(line);
 
   line_t result = {};
@@ -92,8 +92,8 @@ string config_parser::parse_header(string line) {
 std::pair<string, string> config_parser::parse_key(string line) {
   size_t pos = line.find_first_of('=');
 
-  string key = trim(line.substr(0, pos), string_util::isnospace_pred);
-  string value = trim(line.substr(pos + 1), string_util::isnospace_pred);
+  string key = trim(line.substr(0, pos), string_util::isspace_pred);
+  string value = trim(line.substr(pos + 1), string_util::isspace_pred);
 
   if(!is_valid_name(key)) {
     throw invalid_name_error("Key", key);
