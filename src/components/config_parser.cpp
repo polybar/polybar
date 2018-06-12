@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "components/config_parser.hpp"
 
 POLYBAR_NS
@@ -18,6 +20,54 @@ config_file parse() {
 }
 
 void config_parser::parse_file(string file, file_list path) {
+  if(std::find(path.begin(), path.end(), file) != path.end()) {
+    // We have already parsed this file in this path, so there are cyclic dependencies
+    // TODO print dependency cycle
+    throw application_error("Cyclic dependency detected while parsing " + file);
+  }
+
+  int file_index = files.size();
+  files.push_back(file);
+  path.push_back(file);
+
+  int line_no = 0;
+
+  string line_str;
+
+  // TODO error handling
+  std::ifstream in(file);
+  while (std::getline(in, line_str)) {
+    line_no++;
+    line_t line;
+    try {
+      line = parse_line(line_str);
+
+      // parse_line doesn't set these
+      line.file_index = file_index;
+      line.line_no = line_no;
+    } catch(syntax_error& err) {
+      /*
+       * Exceptions thrown by parse_line doesn't have the line
+       * numbers and files set, so we have to add them here
+       */
+      throw syntax_error(err.get_msg(), files[file_index], line_no);
+    }
+
+    // Not valid means 'not important to us' and never implies a syntax error
+    if(!line.is_valid) {
+      continue;
+    }
+
+    if(!line.is_header && line.key_value[0] == "include-file") {
+      file_list cloned_path(path);
+
+      parse_file(line.key_value[1], cloned_path);
+    }
+    else {
+      lines.push_back(line);
+    }
+
+  }
 }
 
 line_t config_parser::parse_line(string line) {
