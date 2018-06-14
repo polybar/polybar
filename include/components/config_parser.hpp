@@ -237,6 +237,13 @@ class config_parser {
      */
     bool is_valid_name(string name);
 
+    /**
+     * \brief Whether or not an xresource manager should be used
+     *
+     * Is set to true if any ${xrdb...} references are found
+     */
+    bool use_xrm{false};
+
     const logger& m_log;
 
     /**

@@ -30,7 +30,7 @@ config::make_type config_parser::parse() {
    * second element onwards for the included list
    */
   file_list included(files.begin() + 1, files.end());
-  return config::make(m_file, m_barname, sections, included);
+  return config::make(m_file, m_barname, sections, included, use_xrm);
 }
 
 config_parser::sectionmap_t config_parser::create_sectionmap() {
