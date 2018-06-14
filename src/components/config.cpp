@@ -51,6 +51,16 @@ void config::set_included(file_list included) {
   m_included = included;
 }
 
+void config::dump_config() const {
+  for(auto&& section : m_sections) {
+    printf("[%s]\n", section.first.c_str());
+
+    for(auto&& key_value : section.second) {
+      printf("%s = \"%s\"\n", key_value.first.c_str(), key_value.second.c_str());
+    }
+  }
+}
+
 /**
  * Print a deprecation warning if the given parameter is set
  */

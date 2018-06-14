@@ -40,6 +40,16 @@ class config {
 
   void set_included(file_list included);
 
+  /**
+   * Print the processed config to stdout
+   *
+   * This will include lines from included files and inherit directives will
+   * already be resolved
+   * Empty or comment lines will not be printed
+   * key-value pairs will be printed as: key = "value"
+   */
+  void dump_config() const;
+
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
   /**

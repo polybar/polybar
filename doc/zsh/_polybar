@@ -12,6 +12,7 @@ _polybar() {
   local M='-m --list-monitors'
   local W='-w --print-wmname'
   local S='-s --stdout'
+  local U='-u --dump-config'
 
   _arguments -n : \
     '(-)'{-h,--help}'[Display help text and exit]' \
@@ -20,10 +21,11 @@ _polybar() {
     "($L $Q)"{-q,--quiet}'[Be quiet (will override -l)]' \
     "($C)"{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
     "($R)"{-r,--reload}'[Reload when the configuration has been modified]' \
-    "($D $R $M $W $S)"{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
-    "($M $D $R $W $S)"{-m,--list-monitors}'[Print list of available monitors and exit]' \
-    "($W $R $D $M $S)"{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
+    "($D $R $M $W $S $U)"{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
+    "($M $D $R $W $S $U)"{-m,--list-monitors}'[Print list of available monitors and exit]' \
+    "($W $R $D $M $S $U)"{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
     "($S)"{-s,--stdout}'[Output data to stdout instead of drawing the X window]' \
+    "($U $W $R $D $M $S)"{-u,--dump-config}'[Print parsed configuration file after its been processed and exit]' \
     '::bar name:_polybar_list_names'
 }
 

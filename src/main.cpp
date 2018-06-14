@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
       command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME and exit"},
       command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing it to the X window"},
       command_line::option{"-p", "--png", "Save png snapshot to FILE after running for 3 seconds", "FILE"},
+      command_line::option{"-u", "--dump-config", "Print parsed configuration file after its been processed and exit"},
   };
   // clang-format on
 
@@ -123,6 +124,10 @@ int main(int argc, char** argv) {
     }
     if (cli->has("print-wmname")) {
       printf("%s\n", bar::make(true)->settings().wmname.c_str());
+      return EXIT_SUCCESS;
+    }
+    if (cli->has("dump-config")) {
+      conf.dump_config();
       return EXIT_SUCCESS;
     }
 
