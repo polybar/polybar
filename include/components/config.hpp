@@ -20,13 +20,19 @@ DEFINE_ERROR(key_error);
 
 class config {
  public:
-  using valuemap_t = std::unordered_map<string, string>;
+  using valuemap_t = std::map<string, string>;
   using sectionmap_t = std::map<string, valuemap_t>;
+  using file_list = vector<string>;
 
   using make_type = const config&;
-  static make_type make(string path = "", string bar = "");
+  static make_type make(string path = "", string bar = "", sectionmap_t sections = {}, file_list included = {});
 
-  explicit config(const logger& logger, string&& path = "", string&& bar = "");
+  config(const logger& logger, string&& path = "", string&& bar = "", sectionmap_t sections = {}, file_list included = {})
+    : m_log(logger),
+    m_file(forward<string>(path)),
+    m_barname(forward<string>(bar)),
+    m_sections(sections),
+    m_included(included) {};
 
   string filepath() const;
   string section() const;
@@ -356,6 +362,11 @@ class config {
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
+
+  /**
+   * All files parsed while parsing this config (actual config file excluded)
+   */
+  file_list m_included;
 #if WITH_XRM
   unique_ptr<xresource_manager> m_xrm;
 #endif

@@ -1,6 +1,7 @@
 #include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
+#include "components/config_parser.hpp"
 #include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "utils/env.hpp"
@@ -110,7 +111,8 @@ int main(int argc, char** argv) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config::make_type conf{config::make(move(confpath), cli->get(0))};
+    config_parser parser{logger, move(confpath), cli->get(0)};
+    config::make_type conf = parser.parse();
 
     //==================================================
     // Dump requested data

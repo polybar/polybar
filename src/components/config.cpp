@@ -15,37 +15,8 @@ POLYBAR_NS
 /**
  * Create instance
  */
-config::make_type config::make(string path, string bar) {
-  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar));
-}
-
-/**
- * Construct config object
- */
-config::config(const logger& logger, string&& path, string&& bar)
-    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
-  if (!file_util::exists(m_file)) {
-    throw application_error("Could not find config file: " + m_file);
-  }
-
-  m_log.info("Loading config: %s", m_file);
-
-  parse_file();
-  copy_inherited();
-
-  bool found_bar{false};
-  for (auto&& p : m_sections) {
-    if (p.first == section()) {
-      found_bar = true;
-      break;
-    }
-  }
-
-  if (!found_bar) {
-    throw application_error("Undefined bar: " + m_barname);
-  }
-
-  m_log.trace("config: Current bar section: [%s]", section());
+config::make_type config::make(string path, string bar, sectionmap_t sections, file_list included) {
+  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar), sections, included);
 }
 
 /**
