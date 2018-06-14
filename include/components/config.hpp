@@ -25,14 +25,31 @@ class config {
   using file_list = vector<string>;
 
   using make_type = const config&;
-  static make_type make(string path = "", string bar = "", sectionmap_t sections = {}, file_list included = {});
+  static make_type make(string path = "",
+      string bar = "",
+      sectionmap_t sections = {},
+      file_list included = {},
+      bool use_xrm = false);
 
-  config(const logger& logger, string&& path = "", string&& bar = "", sectionmap_t sections = {}, file_list included = {})
+  config(const logger& logger,
+      string&& path = "",
+      string&& bar = "",
+      sectionmap_t sections = {},
+      file_list included = {},
+      bool use_xrm = false)
     : m_log(logger),
     m_file(forward<string>(path)),
     m_barname(forward<string>(bar)),
     m_sections(sections),
-    m_included(included) {};
+    m_included(included) {
+#if WITH_XRM
+  // Initialize the xresource manage if there are any xrdb refs
+  // present in the configuration
+  if (use_xrm) {
+    m_xrm.reset(new xresource_manager{connection::make()});
+  }
+#endif
+    };
 
   string filepath() const;
   string section() const;
@@ -199,7 +216,6 @@ class config {
   }
 
  protected:
-  void parse_file();
   void copy_inherited();
 
   template <typename T>
