@@ -130,7 +130,7 @@ void config_parser::parse_file(string file, file_list path) {
     if(!line.is_header && line.key_value[0] == "include-file") {
       file_list cloned_path(path);
 
-      parse_file(line.key_value[1], cloned_path);
+      parse_file(file_util::expand(line.key_value[1]), cloned_path);
     }
     else {
       lines.push_back(line);
