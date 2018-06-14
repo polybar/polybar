@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"

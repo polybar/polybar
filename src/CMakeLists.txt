@@ -87,5 +87,7 @@ endif()
 
 # }}}
 
+# Export source file list so that it can be used for test compilation
+set(files ${files} PARENT_SCOPE)
 set(libs ${libs} PARENT_SCOPE)
 set(dirs ${dirs} PARENT_SCOPE)
