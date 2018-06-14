@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "errors.hpp"
 #include "components/logger.hpp"
+#include "components/config.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -93,35 +94,14 @@ struct line_t {
   string key_value[2];
 };
 
-using valuemap_t = std::unordered_map<string, string>;
-using sectionmap_t = std::map<string, valuemap_t>;
-using file_list = vector<string>;
-
-/**
- * \brief Represents the whole configuration the user has given
- */
-struct config_file {
-  /**
-   * Maps sections to a list of its key-value pairs
-   */
-  sectionmap_t sections;
-
-  /**
-   * Full path to the config file
-   */
-  string filename;
-
-  /**
-   * All files included by the config (not including itself)
-   *
-   */
-  file_list included;
-};
-
 class config_parser {
   public:
 
-    config_parser(const logger& logger, string&& file);
+  using valuemap_t = std::map<string, string>;
+  using sectionmap_t = std::map<string, valuemap_t>;
+  using file_list = vector<string>;
+
+    config_parser(const logger& logger, string&& file, string&& bar);
 
     /**
      * \brief Performs the parsing of the main config file
@@ -146,17 +126,21 @@ class config_parser {
      *   Here, there shouldn't be any inherit keys left.
      * - Finally the data is put into a sectionmap_t
      *
-     * \returns config_file struct containing a
-     *          section <-> list of key-value pair mapping for the caller to
-     *          be used. All references in the value strings will already have
-     *          been resolved and can be used without further processing.
+     * \returns config class instance populated with the parsed config
      *
      * \throws syntax_error If there was any kind of syntax error
      * \throws parser_error If aynthing else went wrong
      */
-    config_file parse();
+    config::make_type parse();
 
   protected:
+
+    /**
+     * \brief Converts lines vector to a proper sectionmap
+     *
+     * Also searches for references in the values
+     */
+    sectionmap_t create_sectionmap();
 
     /**
      * \brief Parses the given file and extracts key-value pairs and section
@@ -259,6 +243,11 @@ class config_parser {
      * \brief Full path to the main config file
      */
     string m_file;
+
+    /**
+     * Is used to resolve ${root...} references
+     */
+    string m_barname;
 
     /*
      * \brief List of all the lines in the config (with included files)

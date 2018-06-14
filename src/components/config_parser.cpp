@@ -4,19 +4,77 @@
 
 POLYBAR_NS
 
-config_parser::config_parser(const logger& logger, string&& file)
-  : m_log(logger), m_file(forward<string>(file)) {
+config_parser::config_parser(const logger& logger, string&& file, string&& bar)
+  : m_log(logger),
+  m_file(forward<string>(file)),
+  m_barname(forward<string>(bar)) {
+  if (!file_util::exists(m_file)) {
+    throw application_error("Could not find config file: " + m_file);
+  }
+}
 
-    if (!file_util::exists(m_file)) {
-      throw application_error("Could not find config file: " + m_file);
-    }
+config::make_type config_parser::parse() {
+  m_log.trace("Parsing config file: %s", m_file);
 
-    m_log.trace("Parsing config file: %s", m_file);
+  parse_file(m_file, {});
 
+  sectionmap_t sections = create_sectionmap();
+
+  if(sections.find("bar/" + m_barname) == sections.end()) {
+    throw application_error("Undefined bar: " + m_barname);
   }
 
-config_file parse() {
-  return {};
+  /*
+   * The first element in the files vector is always the main config file and
+   * because it has unique filenames, we can use all the elements from the
+   * second element onwards for the included list
+   */
+  file_list included(files.begin() + 1, files.end());
+  return config::make(m_file, m_barname, sections, included);
+}
+
+config_parser::sectionmap_t config_parser::create_sectionmap() {
+  sectionmap_t sections{};
+
+  string current_section = "";
+
+  for(line_t line : lines) {
+    if(!line.is_valid) {
+      continue;
+    }
+
+    if(line.is_header) {
+      current_section = line.header;
+    }
+    else {
+      /*
+       * The first valid line in the config is not a section definition
+       */
+      if(current_section == "") {
+        throw syntax_error("First valid line in config must be section header",
+            files[line.file_index], line.line_no);
+      }
+
+      string key = line.key_value[0];
+      string value = line.key_value[1];
+
+      // TODO check value for references
+
+      valuemap_t& valuemap = sections[current_section];
+
+      if(valuemap.find(key) == valuemap.end()) {
+        valuemap.emplace(key, value);
+      }
+      else {
+        // Key already exists in this section
+        throw syntax_error("Duplicate key name \"" + key
+            + "\" defined in section \"" + current_section + "\"",
+            files[line.file_index], line.line_no);
+      }
+    }
+  }
+
+  return sections;
 }
 
 void config_parser::parse_file(string file, file_list path) {
