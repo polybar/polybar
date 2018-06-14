@@ -15,8 +15,8 @@ POLYBAR_NS
 /**
  * Create instance
  */
-config::make_type config::make(string path, string bar, sectionmap_t sections, file_list included, bool use_xrm) {
-  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar), sections, included, use_xrm);
+config::make_type config::make(string path, string bar) {
+  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar));
 }
 
 /**
@@ -31,6 +31,24 @@ string config::filepath() const {
  */
 string config::section() const {
   return "bar/" + m_barname;
+}
+
+void config::use_xrm() {
+#if WITH_XRM
+  // Initialize the xresource manager if there are any xrdb refs
+  // present in the configuration
+  if (!m_xrm) {
+    m_xrm.reset(new xresource_manager{connection::make()});
+  }
+#endif
+}
+
+void config::set_sections(sectionmap_t sections) {
+  m_sections = sections;
+}
+
+void config::set_included(file_list included) {
+  m_included = included;
 }
 
 /**
