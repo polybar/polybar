@@ -134,6 +134,7 @@ There's also a helper script available in the root folder:
   $ ./build.sh
   ~~~
 
+For more info, have a look at the [Compiling wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
 
 ### Configuration
 
