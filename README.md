@@ -87,7 +87,7 @@ If you are using **Gentoo**, both release and git-master versions are available 
 
 ### Dependencies
 
-A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)).
+A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
 - cairo
 - libxcb
 - python2
