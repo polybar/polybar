@@ -141,9 +141,10 @@ For more info, have a look at the [Compiling wiki page](https://github.com/jaagr
 Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/polybar/wiki/Configuration).
 
 #### Install the example configuration
-  ~~~ sh
-  $ make userconfig
-  ~~~
+Run the following inside the build directory:
+~~~ sh
+$ make userconfig
+~~~
 
 #### Launch the example bar
   ~~~ sh
