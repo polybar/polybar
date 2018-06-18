@@ -69,7 +69,7 @@ Some of the services included so far:
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release. If you create a package for any other distribution, please consider contributing the template.
 
-If you are using **Void Linux**, you can install [polybar](https://github.com/voidlinux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
+If you are using **Void Linux**, you can install [polybar](https://github.com/void-linux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
 
 If you are using **NixOS**, polybar is available in both the stable and unstable channels and can be installed with the command `nix-env -iA nixos.polybar`.
 
@@ -81,9 +81,9 @@ If you are using **Source Mage GNU/Linux**, polybar spell is available in test g
 
 If you are using **openSUSE**, polybar is available from [OBS](https://build.opensuse.org/package/show/home:sysek/polybar) repository. For now package is only for Tumbleweed.
 
-If you are using **FreeBSD**, polybar can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
+If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x11/polybar/) can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
 
-If you are using **Gentoo**, both release and git-master versions are available in the main repository.
+If you are using **Gentoo**, both release and git-master versions are available in the [main](https://packages.gentoo.org/packages/x11-misc/polybar) repository.
 
 ### Dependencies
 
