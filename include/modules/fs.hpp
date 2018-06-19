@@ -16,6 +16,7 @@ namespace modules {
 
     string type;
     string fsname;
+    string label;
 
     unsigned long long bytes_free{0ULL};
     unsigned long long bytes_used{0ULL};
@@ -25,7 +26,7 @@ namespace modules {
     int percentage_free{0};
     int percentage_used{0};
 
-    explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
+    explicit fs_mount(const string& mountpoint, bool mounted = false, const string& label = "") : mountpoint(mountpoint), mounted(mounted), label(label) {}
   };
 
   using fs_mount_t = unique_ptr<fs_mount>;
@@ -58,6 +59,7 @@ namespace modules {
     ramp_t m_rampcapacity;
 
     vector<string> m_mountpoints;
+    vector<string> m_labels;
     vector<fs_mount_t> m_mounts;
     bool m_fixed{false};
     bool m_remove_unmounted{false};

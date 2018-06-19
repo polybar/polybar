@@ -27,6 +27,7 @@ namespace modules {
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_mountpoints = m_conf.get_list(name(), "mount");
+    m_labels = m_conf.get_list(name(), "label");
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
@@ -78,12 +79,17 @@ namespace modules {
       }
     }
 
+    auto labelsit = m_labels.begin();
+
     // Get data for defined mountpoints
     for (auto&& mountpoint : m_mountpoints) {
       auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
           [&](const vector<string>& m) { return m.size() > 4 && m[4] == mountpoint; });
 
-      m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end()});
+      m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end(),
+                            (labelsit < m_labels.end())?*labelsit:""});
+      labelsit++;
+
       struct statvfs buffer {};
 
       if (!m_mounts.back()->mounted) {
@@ -161,6 +167,7 @@ namespace modules {
       m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
       m_labelmounted->replace_token("%type%", mount->type);
       m_labelmounted->replace_token("%fsname%", mount->fsname);
+      m_labelmounted->replace_token("%label%", mount->label);
       m_labelmounted->replace_token("%percentage_free%", to_string(mount->percentage_free));
       m_labelmounted->replace_token("%percentage_used%", to_string(mount->percentage_used));
       m_labelmounted->replace_token(
