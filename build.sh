@@ -38,21 +38,21 @@ function main
 
   msg "Setting build options"
 
-  read -r -p "$(msg "Use GCC even if Clang is installed -------------------------------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Use GCC even if Clang is installed ----------------------------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && try_to_use_clang="ON"
-  read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ------------------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ---------------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_i3="OFF"
-  read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) ------------ [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) --------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_alsa="OFF"
-  read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) ----- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/pulseaudio\" (requires libpulse) -- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_pulseaudio="OFF"
-  read -r -p "$(msg "Include support for \"internal/network\" (requires wireless_tools) -- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/network\" (requires libnl/libiw) -- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_network="OFF"
-  read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) -------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/mpd\" (requires libmpdclient) ----- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_mpd="OFF"
-  read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ---------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Include support for \"internal/github\" (requires libcurl) ------- [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && enable_curl="OFF"
-  read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages --------------------- [y/N]: ")" -n 1 p && echo
+  read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages ------------------ [y/N]: ")" -n 1 p && echo
   [[ "${p^^}" != "Y" ]] && build_ipc_msg="OFF"
 
   local cxx="c++"

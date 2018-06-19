@@ -106,7 +106,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - jsoncpp *required by `internal/i3`*
 - libmpdclient *required by `internal/mpd`*
 - libcurl *required by `internal/github`*
-- wireless_tools *required by `internal/network`*
+- libnl-genl or wireless_tools *required by `internal/network`*
 
 Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
 
