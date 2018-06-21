@@ -24,7 +24,7 @@ namespace modules {
     for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
       m_formatter->add(format, format_online,
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
-              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
+              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
               TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
       auto mod_format = m_formatter->get(format);
       mod_format->fg = m_conf.get(name(), FORMAT_ONLINE + "-foreground"s, mod_format->fg);
@@ -71,9 +71,17 @@ namespace modules {
     if (m_formatter->has(TAG_ICON_REPEAT)) {
       m_icons->add("repeat", load_icon(m_conf, name(), TAG_ICON_REPEAT));
     }
-    if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
-      m_icons->add("repeat_one", load_icon(m_conf, name(), TAG_ICON_REPEAT_ONE));
+
+    if (m_formatter->has(TAG_ICON_SINGLE)) {
+      m_icons->add("single", load_icon(m_conf, name(), TAG_ICON_SINGLE));
     }
+    else if(m_formatter->has(TAG_ICON_REPEAT_ONE)){
+
+      m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
+
+      m_icons->add("single", load_icon(m_conf, name(), TAG_ICON_REPEAT_ONE));
+    }
+
     if (m_formatter->has(TAG_ICON_CONSUME)) {
       m_icons->add("consume", load_icon(m_conf, name(), TAG_ICON_CONSUME));
     }
@@ -85,7 +93,8 @@ namespace modules {
       m_label_time = load_optional_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
     }
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
-        m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_CONSUME)) {
+        m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_SINGLE) ||
+        m_formatter->has(TAG_ICON_CONSUME)) {
       m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", ""s);
       m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", ""s);
     }
@@ -256,8 +265,8 @@ namespace modules {
     if (m_icons->has("repeat")) {
       m_icons->get("repeat")->m_foreground = m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
     }
-    if (m_icons->has("repeat_one")) {
-      m_icons->get("repeat_one")->m_foreground =
+    if (m_icons->has("single")) {
+      m_icons->get("single")->m_foreground =
           m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
     }
     if (m_icons->has("consume")) {
@@ -305,8 +314,8 @@ namespace modules {
       builder->cmd(mousebtn::LEFT, EVENT_RANDOM, m_icons->get("random"));
     } else if (tag == TAG_ICON_REPEAT) {
       builder->cmd(mousebtn::LEFT, EVENT_REPEAT, m_icons->get("repeat"));
-    } else if (tag == TAG_ICON_REPEAT_ONE) {
-      builder->cmd(mousebtn::LEFT, EVENT_REPEAT_ONE, m_icons->get("repeat_one"));
+    } else if (tag == TAG_ICON_REPEAT_ONE || tag == TAG_ICON_SINGLE) {
+      builder->cmd(mousebtn::LEFT, EVENT_SINGLE, m_icons->get("single"));
     } else if (tag == TAG_ICON_CONSUME) {
       builder->cmd(mousebtn::LEFT, EVENT_CONSUME, m_icons->get("consume"));
     } else if (tag == TAG_ICON_PREV) {
@@ -357,7 +366,7 @@ namespace modules {
         mpd->prev();
       } else if (cmd == EVENT_NEXT && !is_stopped) {
         mpd->next();
-      } else if (cmd == EVENT_REPEAT_ONE) {
+      } else if (cmd == EVENT_SINGLE) {
         mpd->set_single(!status->single());
       } else if (cmd == EVENT_REPEAT) {
         mpd->set_repeat(!status->repeat());
