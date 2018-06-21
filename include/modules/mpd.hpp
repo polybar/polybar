@@ -40,7 +40,16 @@ namespace modules {
     static constexpr const char* TAG_LABEL_TIME{"<label-time>"};
     static constexpr const char* TAG_ICON_RANDOM{"<icon-random>"};
     static constexpr const char* TAG_ICON_REPEAT{"<icon-repeat>"};
+    /*
+     * Deprecated
+     */
     static constexpr const char* TAG_ICON_REPEAT_ONE{"<icon-repeatone>"};
+    /*
+     * Replaces icon-repeatone
+     *
+     * repeatone is misleading, since it doesn't actually affect the repeating behaviour
+     */
+    static constexpr const char* TAG_ICON_SINGLE{"<icon-single>"};
     static constexpr const char* TAG_ICON_CONSUME{"<icon-consume>"};
     static constexpr const char* TAG_ICON_PREV{"<icon-prev>"};
     static constexpr const char* TAG_ICON_STOP{"<icon-stop>"};
@@ -59,7 +68,7 @@ namespace modules {
     static constexpr const char* EVENT_PREV{"mpdprev"};
     static constexpr const char* EVENT_NEXT{"mpdnext"};
     static constexpr const char* EVENT_REPEAT{"mpdrepeat"};
-    static constexpr const char* EVENT_REPEAT_ONE{"mpdrepeatone"};
+    static constexpr const char* EVENT_SINGLE{"mpdsingle"};
     static constexpr const char* EVENT_RANDOM{"mpdrandom"};
     static constexpr const char* EVENT_CONSUME{"mpdconsume"};
     static constexpr const char* EVENT_SEEK{"mpdseek"};
