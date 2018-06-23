@@ -225,11 +225,10 @@ namespace drawtypes {
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
     if(ellipsis && maxlen > 0 && maxlen < 3) {
-      logger::make().err(sstream() << "Label " << section << "." << name
+      throw application_error(sstream()
+          << "Label " << section << "." << name
           << " has maxlen " << maxlen
-          << ", which is smaller than length of ellipsis (3), disabling ellipsis...");
-
-      ellipsis = false;
+          << ", which is smaller than length of ellipsis (3)");
     }
 
     // clang-format off
