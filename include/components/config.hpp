@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
@@ -20,16 +18,37 @@ DEFINE_ERROR(key_error);
 
 class config {
  public:
-  using valuemap_t = std::unordered_map<string, string>;
+  using valuemap_t = std::map<string, string>;
   using sectionmap_t = std::map<string, valuemap_t>;
+  using file_list = vector<string>;
 
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, string&& path = "", string&& bar = "");
+  config(const logger& logger, string&& path = "", string&& bar = "")
+    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {};
 
   string filepath() const;
   string section() const;
+
+  /**
+   * \brief Instruct the config to connect to the xresource manager
+   */
+  void use_xrm();
+
+  void set_sections(sectionmap_t sections);
+
+  void set_included(file_list included);
+
+  /**
+   * Print the processed config to stdout
+   *
+   * This will include lines from included files and inherit directives will
+   * already be resolved
+   * Empty or comment lines will not be printed
+   * key-value pairs will be printed as: key = "value"
+   */
+  void dump_config() const;
 
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
@@ -193,7 +212,6 @@ class config {
   }
 
  protected:
-  void parse_file();
   void copy_inherited();
 
   template <typename T>
@@ -356,6 +374,11 @@ class config {
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
+
+  /**
+   * All files parsed while parsing this config (actual config file excluded)
+   */
+  file_list m_included;
 #if WITH_XRM
   unique_ptr<xresource_manager> m_xrm;
 #endif

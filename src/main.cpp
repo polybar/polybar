@@ -1,6 +1,7 @@
 #include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
+#include "components/config_parser.hpp"
 #include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "utils/env.hpp"
@@ -24,6 +25,7 @@ int main(int argc, char** argv) {
       command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME and exit"},
       command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing it to the X window"},
       command_line::option{"-p", "--png", "Save png snapshot to FILE after running for 3 seconds", "FILE"},
+      command_line::option{"-u", "--dump-config", "Print parsed configuration file after its been processed and exit"},
   };
   // clang-format on
 
@@ -111,7 +113,8 @@ int main(int argc, char** argv) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config::make_type conf{config::make(move(confpath), cli->get(0))};
+    config_parser parser{logger, move(confpath), cli->get(0)};
+    config::make_type conf = parser.parse();
 
     //==================================================
     // Dump requested data
@@ -122,6 +125,10 @@ int main(int argc, char** argv) {
     }
     if (cli->has("print-wmname")) {
       printf("%s\n", bar::make(true)->settings().wmname.c_str());
+      return EXIT_SUCCESS;
+    }
+    if (cli->has("dump-config")) {
+      conf.dump_config();
       return EXIT_SUCCESS;
     }
 

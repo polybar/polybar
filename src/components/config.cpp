@@ -20,35 +20,6 @@ config::make_type config::make(string path, string bar) {
 }
 
 /**
- * Construct config object
- */
-config::config(const logger& logger, string&& path, string&& bar)
-    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
-  if (!file_util::exists(m_file)) {
-    throw application_error("Could not find config file: " + m_file);
-  }
-
-  m_log.info("Loading config: %s", m_file);
-
-  parse_file();
-  copy_inherited();
-
-  bool found_bar{false};
-  for (auto&& p : m_sections) {
-    if (p.first == section()) {
-      found_bar = true;
-      break;
-    }
-  }
-
-  if (!found_bar) {
-    throw application_error("Undefined bar: " + m_barname);
-  }
-
-  m_log.trace("config: Current bar section: [%s]", section());
-}
-
-/**
  * Get path of loaded file
  */
 string config::filepath() const {
@@ -62,6 +33,34 @@ string config::section() const {
   return "bar/" + m_barname;
 }
 
+void config::use_xrm() {
+#if WITH_XRM
+  // Initialize the xresource manager if there are any xrdb refs
+  // present in the configuration
+  if (!m_xrm) {
+    m_xrm.reset(new xresource_manager{connection::make()});
+  }
+#endif
+}
+
+void config::set_sections(sectionmap_t sections) {
+  m_sections = sections;
+}
+
+void config::set_included(file_list included) {
+  m_included = included;
+}
+
+void config::dump_config() const {
+  for(auto&& section : m_sections) {
+    printf("[%s]\n", section.first.c_str());
+
+    for(auto&& key_value : section.second) {
+      printf("%s = \"%s\"\n", key_value.first.c_str(), key_value.second.c_str());
+    }
+  }
+}
+
 /**
  * Print a deprecation warning if the given parameter is set
  */
@@ -71,106 +70,6 @@ void config::warn_deprecated(const string& section, const string& key, string re
     m_log.warn(
         "The config parameter `%s.%s` is deprecated, use `%s.%s` instead.", section, key, section, move(replacement));
   } catch (const key_error& err) {
-  }
-}
-
-/**
- * Parse key/value pairs from the configuration file
- */
-void config::parse_file() {
-  vector<pair<int, string>> lines;
-  vector<string> files{m_file};
-
-  std::function<void(int, string&&)> pushline = [&](int lineno, string&& line) {
-    // Ignore empty lines and comments
-    if (line.empty() || line[0] == ';' || line[0] == '#') {
-      return;
-    }
-
-    string key, value;
-    string::size_type pos;
-
-    // Filter lines by:
-    // - key/value pairs
-    // - section headers
-    if ((pos = line.find('=')) != string::npos) {
-      key = forward<string>(string_util::trim(forward<string>(line.substr(0, pos))));
-      value = forward<string>(string_util::trim(line.substr(pos + 1)));
-    } else if (line[0] != '[' || line[line.length() - 1] != ']') {
-      return;
-    }
-
-    if (key == "include-file") {
-      auto file_path = file_util::expand(value);
-      if (file_path.empty() || !file_util::exists(file_path)) {
-        throw value_error("Invalid include file \"" + file_path + "\" defined on line " + to_string(lineno));
-      }
-      if (std::find(files.begin(), files.end(), file_path) != files.end()) {
-        throw value_error("Recursive include file \"" + file_path + "\"");
-      }
-      files.push_back(file_util::expand(file_path));
-      m_log.trace("config: Including file \"%s\"", file_path);
-      for (auto&& l : string_util::split(file_util::contents(file_path), '\n')) {
-        pushline(lineno, forward<string>(l));
-      }
-      files.pop_back();
-    } else {
-      lines.emplace_back(make_pair(lineno, line));
-    }
-  };
-
-  int lineno{0};
-  string line;
-  std::ifstream in(m_file);
-  while (std::getline(in, line)) {
-    pushline(++lineno, string_util::replace_all(line, "\t", ""));
-  }
-
-  string section;
-  for (auto&& l : lines) {
-    auto& lineno = l.first;
-    auto& line = l.second;
-
-    // New section
-    if (line[0] == '[' && line[line.length() - 1] == ']') {
-      section = line.substr(1, line.length() - 2);
-      continue;
-    } else if (section.empty()) {
-      continue;
-    }
-
-    size_t equal_pos;
-
-    // Check for key-value pair equal sign
-    if ((equal_pos = line.find('=')) == string::npos) {
-      continue;
-    }
-
-    string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos))))};
-    string value;
-
-    auto it = m_sections[section].find(key);
-    if (it != m_sections[section].end()) {
-      throw key_error("Duplicate key name \"" + key + "\" defined on line " + to_string(lineno));
-    }
-
-    if (equal_pos + 1 < line.size()) {
-      value = forward<string>(string_util::trim(line.substr(equal_pos + 1)));
-      size_t len{value.size()};
-      if (len > 2 && value[0] == '"' && value[len - 1] == '"') {
-        value.erase(len - 1, 1).erase(0, 1);
-      }
-    }
-
-#if WITH_XRM
-    // Initialize the xresource manage if there are any xrdb refs
-    // present in the configuration
-    if (!m_xrm && value.find("${xrdb") != string::npos) {
-      m_xrm.reset(new xresource_manager{connection::make()});
-    }
-#endif
-
-    m_sections[section].emplace_hint(it, move(key), move(value));
   }
 }
 

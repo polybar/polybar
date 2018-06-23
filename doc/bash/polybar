@@ -37,7 +37,8 @@ _polybar() {
 	               -m --list-monitors
 	               -w --print-wmname
 	               -s --stdout
-	               -p --png='
+	               -p --png=
+                 -u --dump-config'
 
 	local log_levels='error
 	                  warning
@@ -91,3 +92,5 @@ _polybar() {
 }
 
 complete -o filenames -o noquote -o nospace -F _polybar polybar
+
+# vim:set ft=sh:

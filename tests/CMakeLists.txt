@@ -35,6 +35,10 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 
 # }}}
 
+# Disable errors for warnings so that we can run tests even with some warnings
+string(REGEX REPLACE "-Werror[^ ]*" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+string(REPLACE "-pedantic-errors" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+
 function(unit_test file tests)
   set(multi_value_args SOURCES)
 
@@ -61,13 +65,27 @@ function(unit_test file tests)
   set(${tests} ${${tests}} PARENT_SCOPE)
 endfunction()
 
+# List with the cpp files for all enabled x11 extensions
+# If a test depends on any file that includes x11/extensions/all.hpp we need to
+# also compile all x11 extensions but because some extensions might be disabled
+# we only want to compile the enabled ones. Because src/CMakeLists.txt already
+# removed disabled extensions we filter all the compiled files for x11
+# extensions
+set(x11_extensions ${files})
+list(FILTER x11_extensions INCLUDE REGEX "^x11\/extensions\/.*\.cpp")
+
 unit_test(utils/color unit_tests)
+
 unit_test(utils/math unit_tests)
+
 unit_test(utils/memory unit_tests)
+
 unit_test(utils/scope unit_tests)
+
 unit_test(utils/string unit_tests
   SOURCES
   utils/string.cpp)
+
 unit_test(utils/file unit_tests
   SOURCES
   utils/command.cpp
@@ -82,7 +100,24 @@ unit_test(components/command_line unit_tests
   SOURCES
   components/command_line.cpp
   utils/string.cpp)
+
 unit_test(components/bar unit_tests)
+
+unit_test(components/config_parser unit_tests
+  SOURCES
+  components/config_parser.cpp
+  components/config.cpp
+  cairo/utils.cpp
+  x11/xresources.cpp
+  x11/connection.cpp
+  x11/registry.cpp
+  x11/atoms.cpp
+  ${x11_extensions}
+  utils/string.cpp
+  utils/file.cpp
+  utils/env.cpp
+  utils/concurrency.cpp
+  components/logger.cpp)
 
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})
