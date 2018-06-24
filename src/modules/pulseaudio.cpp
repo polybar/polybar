@@ -47,15 +47,25 @@ namespace modules {
     if (m_formatter->has(TAG_ICON_PORT)) {
       m_port_icons->add("headphones", load_optional_icon(m_conf, name(), TAG_ICON_HEADPHONES));
       m_port_icons->add("speaker", load_optional_icon(m_conf, name(), TAG_ICON_SPEAKER));
-      m_port_icons->add("hdmi", load_optional_icon(m_conf, name(), TAG_ICON_HDMI));
-      m_port_icons->add("bt-headset", load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADSET));
-      m_port_icons->add("bt-handsfree", load_optional_icon(m_conf, name(), TAG_ICON_BT_HANDSFREE));
-      m_port_icons->add("bt-speaker", load_optional_icon(m_conf, name(), TAG_ICON_BT_SPEAKER));
-      m_port_icons->add("bt-headphones", load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADPHONES));
-      m_port_icons->add("bt-portable", load_optional_icon(m_conf, name(), TAG_ICON_BT_PORTABLE));
-      m_port_icons->add("bt-car", load_optional_icon(m_conf, name(), TAG_ICON_BT_CAR));
-      m_port_icons->add("bt-hifi", load_optional_icon(m_conf, name(), TAG_ICON_BT_HIFI));
-      m_port_icons->add("bt-phone", load_optional_icon(m_conf, name(), TAG_ICON_BT_PHONE));
+      m_port_icons->add("other", load_optional_icon(m_conf, name(), TAG_ICON_OTHER));
+      m_port_icons->add("hdmi",
+          load_optional_icon(m_conf, name(), TAG_ICON_HDMI, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-headset",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADSET, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-handsfree",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HANDSFREE, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-speaker",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_SPEAKER, m_port_icons->get("speaker")->get()));
+      m_port_icons->add("bt-headphones",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADPHONES, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-portable",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_PORTABLE, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-car",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_CAR, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-hifi",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HIFI, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-phone",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_PHONE, m_port_icons->get("other")->get()));
     }
   }
 

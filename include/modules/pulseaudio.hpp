@@ -38,6 +38,7 @@ namespace modules {
     static constexpr auto TAG_ICON_HEADPHONES = "<icon-headphones>";
     static constexpr auto TAG_ICON_SPEAKER = "<icon-speaker>";
     static constexpr auto TAG_ICON_HDMI = "<icon-hdmi>";
+    static constexpr auto TAG_ICON_OTHER = "<icon-other>";
     static constexpr auto TAG_ICON_BT_HEADSET = "<icon-bluetooth-headset>";
     static constexpr auto TAG_ICON_BT_HANDSFREE = "<icon-bluetooth-handsfree>";
     static constexpr auto TAG_ICON_BT_SPEAKER = "<icon-bluetooth-speaker>";
