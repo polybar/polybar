@@ -121,23 +121,16 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Set user-defined background color
-  if (!(m_opts.transparent = conf.get(bs, "tray-transparent", m_opts.transparent))) {
-    auto bg = conf.get(bs, "tray-background", ""s);
+  auto bg = conf.get(bs, "tray-background", ""s);
 
-    if (bg.length() > 7) {
-      m_log.warn("Alpha support for the systray is limited. See the wiki for more details.");
-    }
+  if (!bg.empty()) {
+    m_opts.background = color_util::parse(bg);
+  } else {
+    m_opts.background = bar_opts.background;
+  }
 
-    if (!bg.empty()) {
-      m_opts.background = color_util::parse(bg);
-    } else {
-      m_opts.background = bar_opts.background;
-    }
-
-    if (color_util::alpha_channel(m_opts.background) != 1) {
-      m_opts.transparent = true;
-      //m_opts.background = 0;
-    }
+  if (color_util::alpha_channel(m_opts.background) != 1) {
+    m_opts.transparent = true;
   }
 
   // Add user-defined padding
@@ -210,10 +203,6 @@ void tray_manager::activate() {
     m_activated = false;
     return;
   }
-
-  // Make sure we receive notificatins when the root pixmap changes
-  m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
-  m_connection.flush();
 
   // Attempt to get control of the systray selection then
   // notify clients waiting for a manager.
