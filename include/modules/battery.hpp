@@ -1,12 +1,12 @@
 #pragma once
 
 #include "common.hpp"
-#include "modules/meta/inotify_module.hpp"
+#include "meta/base.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class battery_module : public inotify_module<battery_module> {
+  class battery_module : public module<battery_module> {
    public:
     enum class state {
       NONE = 0,
@@ -88,12 +88,15 @@ namespace modules {
     animation_t m_animation_discharging;
     progressbar_t m_bar_capacity;
     ramp_t m_ramp_capacity;
+    map<string, int> m_watchlist;
 
     string m_fstate;
     string m_fcapnow;
     string m_fcapfull;
     string m_frate;
     string m_fvoltage;
+    string path_battery;
+    string path_adapter;
 
     state m_state{state::DISCHARGING};
     int m_percentage{0};
@@ -104,7 +107,11 @@ namespace modules {
     chrono::duration<double> m_interval{};
     chrono::system_clock::time_point m_lastpoll;
     thread m_subthread;
+
+    void runner();
+    void poll_events();
+    void recreate_watches();
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

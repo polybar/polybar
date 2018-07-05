@@ -1,11 +1,8 @@
 #include "modules/battery.hpp"
 #include "drawtypes/animation.hpp"
-#include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/file.hpp"
 #include "utils/math.hpp"
-#include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -23,38 +20,17 @@ namespace modules {
   /**
    * Bootstrap module by setting up required components
    */
-  battery_module::battery_module(const bar_settings& bar, string name_)
-      : inotify_module<battery_module>(bar, move(name_)) {
+  battery_module::battery_module(const bar_settings& bar, string name_) : module<battery_module>(bar, move(name_)) {
     // Load configuration values
     m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
 
-    auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
-    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
+    path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
+    path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
     // Make state reader
-    if (file_util::exists((m_fstate = path_adapter + "online"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
-    } else if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
-    } else {
-      throw module_error("No suitable way to get current charge state");
-    }
-
-    // Make capacity reader
-    if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
-      throw module_error("No suitable way to get current capacity value");
-    } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
-      throw module_error("No suitable way to get max capacity value");
-    }
-
-    m_capacity_reader = make_unique<capacity_reader>([=] {
-      auto cap_now = std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10);
-      auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
-      return math_util::percentage(cap_now, 0UL, cap_max);
-    });
+    recreate_watches();
 
     // Make rate reader
     if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
@@ -91,8 +67,8 @@ namespace modules {
         unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
         unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
 
-        consumption = ((voltage / 1000.0) * (current /  1000.0)) / 1e6;
-      // if it was power, just use as is
+        consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+        // if it was power, just use as is
       } else {
         unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
 
@@ -100,7 +76,7 @@ namespace modules {
       }
 
       // convert to string with 2 decimmal places
-      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
+      string rtn(16, '\0');  // 16 should be plenty big. Cant see it needing more than 6/7..
       auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
       rtn.resize(written);
 
@@ -140,10 +116,6 @@ namespace modules {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
     }
 
-    // Create inotify watches
-    watch(m_fcapnow, IN_ACCESS);
-    watch(m_fstate, IN_ACCESS);
-
     // Setup time if token is used
     if ((m_label_charging && m_label_charging->has_token("%time%")) ||
         (m_label_discharging && m_label_discharging->has_token("%time%"))) {
@@ -159,7 +131,7 @@ namespace modules {
    * charging animation when the module is started
    */
   void battery_module::start() {
-    this->inotify_module::start();
+    m_mainthread = thread(&battery_module::runner, this);
     m_subthread = thread(&battery_module::subthread, this);
   }
 
@@ -191,7 +163,7 @@ namespace modules {
       }
     }
 
-    this->inotify_module::idle();
+    this->sleep(200ms);
   }
 
   /**
@@ -303,8 +275,8 @@ namespace modules {
   }
 
   /**
-  * Get the current power consumption
-  */
+   * Get the current power consumption
+   */
   string battery_module::current_consumption() {
     return read(*m_consumption_reader);
   }
@@ -350,8 +322,7 @@ namespace modules {
 
     while (running()) {
       for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING ||
-            m_state == battery_module::state::DISCHARGING) {
+        if (m_state == battery_module::state::CHARGING || m_state == battery_module::state::DISCHARGING) {
           broadcast();
         }
         sleep(dur);
@@ -360,6 +331,100 @@ namespace modules {
 
     m_log.trace("%s: End of subthread", name());
   }
-}
+
+  void battery_module::recreate_watches() {
+    this->m_log.trace("recreating watches for battery state");
+
+
+    if (file_util::exists((m_fstate = path_adapter + "online"))) {
+      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
+    } else if (file_util::exists((m_fstate = path_battery + "status"))) {
+      m_state_reader =
+          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
+    } else {
+      throw module_error("No suitable way to get current charge state");
+    }
+
+    // Make capacity reader
+    if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
+      throw module_error("No suitable way to get current capacity value");
+    } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
+      throw module_error("No suitable way to get max capacity value");
+    }
+
+    m_capacity_reader = make_unique<capacity_reader>([=] {
+      auto cap_now = std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10);
+      auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
+      return math_util::percentage(cap_now, 0UL, cap_max);
+    });
+
+    // Create inotify watches
+
+    m_watchlist.clear();
+    this->m_log.trace("%s: Attach inotify at %s and %s", this->name(), m_fcapnow, m_fstate);
+    m_watchlist.insert(make_pair(m_fcapnow, IN_ACCESS));
+    m_watchlist.insert(make_pair(m_fstate, IN_ACCESS));
+  }
+
+  void battery_module::poll_events() {
+    vector<unique_ptr<inotify_watch>> watches;
+
+    try {
+      for (auto&& w : m_watchlist) {
+        watches.emplace_back(inotify_util::make_watch(w.first));
+        watches.back()->attach(w.second);
+      }
+    } catch (const system_error& e) {
+      watches.clear();
+      this->m_log.err("%s: Error while creating inotify watch (what: %s)", this->name(), e.what());
+      recreate_watches();
+      sleep(0.1s);
+      return;
+    }
+
+    while (this->running()) {
+      for (auto&& w : watches) {
+        this->m_log.trace_x("%s: Poll inotify watch %s", this->name(), w->path());
+
+        if (w->poll(1000 / watches.size())) {
+          auto event = w->get_event();
+
+          for (auto&& w : watches) {
+            w->remove(true);
+          }
+
+          if (on_event(event.get())) {
+            broadcast();
+          }
+          idle();
+          return;
+        }
+
+        if (!this->running())
+          break;
+      }
+      idle();
+    }
+  }
+  void battery_module::runner() {
+    this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+    try {
+      // Warm up module output before entering the loop
+      std::unique_lock<std::mutex> guard(this->m_updatelock);
+      on_event(nullptr);
+      broadcast();
+      guard.unlock();
+
+      while (this->running()) {
+        std::lock_guard<std::mutex> guard(this->m_updatelock);
+        poll_events();
+      }
+    } catch (const module_error& err) {
+      halt(err.what());
+    } catch (const std::exception& err) {
+      halt(err.what());
+    }
+  }
+}  // namespace modules
 
 POLYBAR_NS_END
