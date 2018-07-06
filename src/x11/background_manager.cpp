@@ -21,7 +21,6 @@ background_manager::background_manager(
   , m_sig(sig)
   , m_log(log) {
   m_sig.attach(this);
-  m_pseudo_transparency = config::make().get("settings", "pseudo-transparency", false);
 }
 
 background_manager::~background_manager() {
@@ -43,7 +42,7 @@ void background_manager::activate(xcb_window_t window, xcb_rectangle_t rect) {
   free_resources();
 
   // make sure that we receive a notification when the background changes
-  if(!m_attached && m_pseudo_transparency) {
+  if(!m_attached) {
     m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
     m_connection.flush();
     m_connection.attach_sink(this, SINK_PRIORITY_SCREEN);
@@ -51,11 +50,7 @@ void background_manager::activate(xcb_window_t window, xcb_rectangle_t rect) {
 
   m_window = window;
   m_rect = rect;
-  if(m_pseudo_transparency) {
-    fetch_root_pixmap();
-  } else {
-    make_transparent_pixmap();
-  }
+  fetch_root_pixmap();
 }
 
 void background_manager::deactivate() {
@@ -63,7 +58,7 @@ void background_manager::deactivate() {
 }
 
 
-void background_manager::allocate_resources(bool use_root_depth) {
+void background_manager::allocate_resources() {
   if(!m_visual) {
     m_log.trace("background_manager: Finding root visual");
     m_visual = m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
@@ -73,8 +68,7 @@ void background_manager::allocate_resources(bool use_root_depth) {
   if(m_pixmap == XCB_NONE) {
     m_log.trace("background_manager: Allocating pixmap");
     m_pixmap = m_connection.generate_id();
-    auto depth = use_root_depth ? m_connection.screen()->root_depth : 32;
-    m_connection.create_pixmap(depth, m_pixmap, m_window, m_rect.width, m_rect.height);
+    m_connection.create_pixmap(m_connection.screen()->root_depth, m_pixmap, m_window, m_rect.width, m_rect.height);
   }
 
   if(m_gcontext == XCB_NONE) {
@@ -112,16 +106,8 @@ void background_manager::free_resources() {
   }
 }
 
-void background_manager::make_transparent_pixmap() {
-  allocate_resources(false);
-
-  m_log.trace("background_manager: Using transparent background pixmap");
-  auto context = cairo::context(*m_surface, m_log);
-  context << (unsigned int)0;
-}
-
 void background_manager::fetch_root_pixmap() {
-  allocate_resources(true);
+  allocate_resources();
 
   m_log.trace("background_manager: Fetching pixmap");
 
@@ -152,8 +138,6 @@ void background_manager::fetch_root_pixmap() {
 }
 
 void background_manager::handle(const evt::property_notify& evt) {
-  if(!m_pseudo_transparency) return;
-
   // if region that we should observe is empty, don't do anything
   if(m_rect.width == 0 || m_rect.height == 0) return;
 
@@ -164,8 +148,6 @@ void background_manager::handle(const evt::property_notify& evt) {
 }
 
 bool background_manager::on(const signals::ui::update_geometry&) {
-  if(!m_pseudo_transparency) return false;
-
   fetch_root_pixmap();
   m_sig.emit(signals::ui::update_background());
   return false;
