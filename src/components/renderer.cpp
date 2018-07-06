@@ -175,6 +175,8 @@ renderer::renderer(
   m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
 
+  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
 
@@ -503,13 +505,20 @@ void renderer::fill_background() {
   m_context->save();
   *m_context << m_comp_bg;
 
-  auto root_bg = m_background.get_surface();
-  if(root_bg != nullptr) {
-    m_log.trace_x("renderer: root background");
-    *m_context << *root_bg;
-    m_context->paint();
-    *m_context << CAIRO_OPERATOR_OVER;
+  // if using pseudo-transparency, fill the background with the root window's contents
+  // otherwise, we simply use a fully transparent base layer
+  if(m_pseudo_transparency) {
+    auto root_bg = m_background.get_surface();
+    if(root_bg != nullptr) {
+      m_log.trace_x("renderer: root background");
+      *m_context << *root_bg;
+    }
+  } else {
+    *m_context << (unsigned int)0;
   }
+
+  m_context->paint();
+  *m_context << CAIRO_OPERATOR_OVER;
 
   if (!m_bar.background_steps.empty()) {
     m_log.trace_x("renderer: gradient background (steps=%lu)", m_bar.background_steps.size());

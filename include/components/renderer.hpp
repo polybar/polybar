@@ -120,6 +120,7 @@ class renderer
   cairo_operator_t m_comp_ol{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_ul{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_border{CAIRO_OPERATOR_OVER};
+  bool m_pseudo_transparency{false};
 
   alignment m_align;
   std::bitset<3> m_attr;

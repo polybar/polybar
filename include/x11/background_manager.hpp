@@ -47,11 +47,9 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
   unique_ptr<cairo::xcb_surface> m_surface;
 
   bool m_attached{false};
-  bool m_pseudo_transparency{false};
 
-  void allocate_resources(bool use_root_depth);
+  void allocate_resources();
   void free_resources();
-  void make_transparent_pixmap();
   void fetch_root_pixmap();
 
 };
