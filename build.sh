@@ -25,7 +25,7 @@ usage() {
           Include support for internal/i3 (requires i3); disabled by default.
       ${COLORS[GREEN]}-a, --alsa${COLORS[OFF]}
           Include support for internal/alsa (requires alsalib); disabled by default.
-      ${COLORS[GREEN]}-p, --pulse-audio${COLORS[OFF]}
+      ${COLORS[GREEN]}-p, --pulseaudio${COLORS[OFF]}
           Include support for internal/pulseaudio (requires libpulse); disabled by default.
       ${COLORS[GREEN]}-n, --network${COLORS[OFF]}
           Include support for internal/network (requires libnl/libiw); disabled by default.
@@ -218,7 +218,7 @@ while [[ "$1" == -* ]]; do
       ENABLE_I3=ON; shift ;;
     -a|--alsa)
       ENABLE_ALSA=ON; shift ;;
-    -p|--pulse-audio)
+    -p|--pulseaudio)
       ENABLE_PULSEAUDIO=ON; shift ;;
     -n|--network)
       ENABLE_NETWORK=ON; shift ;;
