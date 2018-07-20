@@ -107,7 +107,12 @@ namespace modules {
 
   bool memory_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR_USED) {
-      builder->node(m_bar_memused->output(m_perc_memused));
+      string m_type = m_conf.get<decltype(m_type)>(name(), "bar-used-type", "RAM");
+      if (m_type == "RAM") {
+          builder->node(m_bar_memused->output(m_perc_memused));
+      } else {
+          builder->node(m_bar_memused->output(m_perc_swap_used));
+      }
     } else if (tag == TAG_BAR_FREE) {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
