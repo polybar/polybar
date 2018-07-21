@@ -20,6 +20,7 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE});
 
+    m_type = m_conf.get<decltype(m_type)>(name(), "mem-type", "RAM");
     if (m_formatter->has(TAG_BAR_USED)) {
       m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
     }
@@ -106,21 +107,21 @@ namespace modules {
   }
 
   bool memory_module::build(builder* builder, const string& tag) const {
+    int output;
     if (tag == TAG_BAR_USED) {
-      string m_type = m_conf.get<decltype(m_type)>(name(), "bar-used-type", "RAM");
-      if (m_type == "RAM") {
-          builder->node(m_bar_memused->output(m_perc_memused));
-      } else {
-          builder->node(m_bar_memused->output(m_perc_swap_used));
-      }
+      output = (m_type == "RAM") ?  m_perc_memused : m_perc_swap_used;
+      builder->node(m_bar_memused->output(output));
     } else if (tag == TAG_BAR_FREE) {
-      builder->node(m_bar_memfree->output(m_perc_memfree));
+      output = (m_type == "RAM") ?  m_perc_memfree : m_perc_swap_free;
+      builder->node(m_bar_memfree->output(output));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
     } else if (tag == TAG_RAMP_FREE) {
-      builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
+      output = (m_type == "RAM") ?  m_perc_memfree : m_perc_swap_free;
+      builder->node(m_ramp_memfree->get_by_percentage(m_perc_swap_free));
     } else if (tag == TAG_RAMP_USED) {
-      builder->node(m_ramp_memused->get_by_percentage(m_perc_memused));
+      output = (m_type == "RAM") ?  m_perc_memused : m_perc_swap_used;
+      builder->node(m_ramp_memused->get_by_percentage(m_perc_swap_used));
     } else {
       return false;
     }

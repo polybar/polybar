@@ -25,6 +25,7 @@ namespace modules {
     label_t m_label;
     progressbar_t m_bar_memused;
     progressbar_t m_bar_memfree;
+    string m_type;
     int m_perc_memused{0};
     int m_perc_memfree{0};
     ramp_t m_ramp_memused;
