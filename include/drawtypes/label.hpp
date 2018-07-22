@@ -17,6 +17,7 @@ namespace drawtypes {
     size_t min{0_z};
     size_t max{0_z};
     string suffix{""s};
+    bool zpad{false};
   };
 
   class label;
