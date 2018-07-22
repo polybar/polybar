@@ -1,16 +1,18 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
-pkgver=3.1.0
-pkgrel=4
+pkgver=3.2.0
+pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
 license=("MIT")
 depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor")
 optdepends=("alsa-lib: alsa module support"
+            "pulseaudio: pulseaudio module support"
             "libmpdclient: mpd module support"
-            "wireless_tools: network module support"
+            "libnl: network module support"
+            "wireless_tools: network module support (legacy)"
             "jsoncpp: i3 module support"
             "i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
@@ -23,9 +25,7 @@ source=("${pkgname}::git+${url}.git#tag=${pkgver}")
 md5sums=("SKIP")
 
 prepare() {
-  git -C "${pkgname}" cherry-pick -n 8173a6473e50a3bb0ff15e56644fa45268be84a4
   git -C "${pkgname}" submodule update --init --recursive
-  git -C "${pkgname}/lib/xpp" checkout 00165e1a6d5dd61bc153e1352b21ec07fc81245d
   mkdir -p "${pkgname}/build"
 }
 
