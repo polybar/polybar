@@ -1,4 +1,5 @@
 #include "modules/text.hpp"
+#include "drawtypes/label.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -8,18 +9,10 @@ namespace modules {
   template class module<text_module>;
 
   text_module::text_module(const bar_settings& bar, string name_) : static_module<text_module>(bar, move(name_)) {
-    m_formatter->add("content", "", {});
-
-    if (m_formatter->get("content")->value.empty()) {
-      throw module_error(name() + ".content is empty or undefined");
+    m_formatter->add(DEFAULT_FORMAT, TAG_CONTENT, {TAG_CONTENT});
+    if (m_formatter->has(TAG_CONTENT, DEFAULT_FORMAT)) {
+      m_label = load_label(m_conf, name(), TAG_CONTENT);
     }
-
-    m_formatter->get("content")->value =
-        string_util::replace_all(m_formatter->get("content")->value, " ", BUILDER_SPACE_TOKEN);
-  }
-
-  string text_module::get_format() const {
-    return "content";
   }
 
   string text_module::get_output() {
@@ -54,6 +47,16 @@ namespace modules {
 
     return m_builder->flush();
   }
+
+  bool text_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_CONTENT) {
+      builder->node(m_label);
+    } else {
+      return false;
+    }
+    return true;
+  }
+
 }
 
 POLYBAR_NS_END

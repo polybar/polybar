@@ -10,8 +10,14 @@ namespace modules {
     explicit text_module(const bar_settings&, string);
 
     void update() {}
-    string get_format() const;
+
     string get_output();
+    bool build(builder* builder, const string& tag) const;
+
+   private:
+    static constexpr auto TAG_CONTENT{"<content>"};
+
+    label_t m_label;
   };
 }
 
