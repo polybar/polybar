@@ -52,7 +52,7 @@ namespace drawtypes {
         if (tok.max != 0_z && string_util::char_len(repl) > tok.max) {
           repl = string_util::utf8_truncate(std::move(repl), tok.max) + tok.suffix;
         } else if (tok.min != 0_z && repl.length() < tok.min) {
-          repl.insert(0_z, tok.min - repl.length(), ' ');
+          repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
         }
 
         /*
@@ -195,6 +195,8 @@ namespace drawtypes {
 
       try {
         token.min = std::stoul(&token_str[pos + 1], nullptr, 10);
+        // When the number starts with 0 the string is 0-padded
+        token.zpad = token_str[pos + 1] == '0';
       } catch (const std::invalid_argument& err) {
         continue;
       }
