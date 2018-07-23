@@ -223,10 +223,8 @@ namespace modules {
 
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         cmd.erase(0, strlen(EVENT_CLICK));
-        if (i3_util::focused_workspace(conn)->name != cmd) {
-          m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + cmd);
-        }
+        m_log.info("%s: Sending workspace focus command to ipc handler", name());
+        conn.send_command("workspace " + cmd);
         return true;
       }
 
