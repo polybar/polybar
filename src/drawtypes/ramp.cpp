@@ -14,7 +14,7 @@ namespace drawtypes {
   }
 
   icon_t ramp::get_by_percentage(float percentage) {
-    size_t index = percentage * (m_icons.size() - 1) / 100.0f + 0.5f;
+    size_t index = percentage * m_icons.size() / 100.0f;
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
 
