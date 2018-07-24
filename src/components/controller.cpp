@@ -348,7 +348,12 @@ void controller::read_events() {
  */
 void controller::process_eventqueue() {
   m_log.info("Eventqueue worker (thread-id=%lu)", this_thread::get_id());
-  m_sig.emit(signals::eventqueue::start{});
+  if (!m_writeback) {
+    m_sig.emit(signals::eventqueue::start{});
+  } else {
+    // bypass the start eventqueue signal
+    m_sig.emit(signals::ui::ready{});
+  }
 
   while (!g_terminate) {
     event evt{};
