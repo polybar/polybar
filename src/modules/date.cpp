@@ -13,10 +13,10 @@ namespace modules {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
-    m_dateformat = string_util::trim(m_conf.get(name(), "date", ""s), '"');
-    m_dateformat_alt = string_util::trim(m_conf.get(name(), "date-alt", ""s), '"');
-    m_timeformat = string_util::trim(m_conf.get(name(), "time", ""s), '"');
-    m_timeformat_alt = string_util::trim(m_conf.get(name(), "time-alt", ""s), '"');
+    m_dateformat = m_conf.get(name(), "date", ""s);
+    m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
+    m_timeformat = m_conf.get(name(), "time", ""s);
+    m_timeformat_alt = m_conf.get(name(), "time-alt", ""s);
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
