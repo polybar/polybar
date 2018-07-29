@@ -32,10 +32,14 @@ namespace modules {
     string m_dateformat;
     string m_dateformat_alt;
     string m_timeformat;
+    string m_time_timezone; 
+    string m_time_timezone_2; 
     string m_timeformat_alt;
 
     string m_date;
+    string m_date_2;
     string m_time;
+    string m_time_2;
 
     // Single stringstream to be used to gather the results of std::put_time
     std::stringstream datetime_stream;
