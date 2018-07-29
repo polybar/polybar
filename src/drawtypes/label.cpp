@@ -151,12 +151,6 @@ namespace drawtypes {
       text = conf.get(section, name, move(def));
     }
 
-    size_t len{text.size()};
-
-    if (len > 2 && text[0] == '"' && text[len - 1] == '"') {
-      text = text.substr(1, len - 2);
-    }
-
     const auto get_left_right = [&](string key) {
       auto value = conf.get(section, key, 0U);
       auto left = conf.get(section, key + "-left", value);
