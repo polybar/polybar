@@ -17,7 +17,6 @@ namespace modules {
     m_dateformat_alt = string_util::trim(m_conf.get(name(), "date-alt", ""s), '"');
     m_timeformat = string_util::trim(m_conf.get(name(), "time", ""s), '"');
     m_time_timezone = string_util::trim(m_conf.get(name(), "time-TZ", ""s), '"');
-    m_time_timezone_2 = string_util::trim(m_conf.get(name(), "time-2-TZ", ""s), '"');
     m_timeformat_alt = string_util::trim(m_conf.get(name(), "time-alt", ""s), '"');
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
@@ -47,7 +46,6 @@ namespace modules {
     const char* timezone_format_original = getenv("TZ");
 
     string timezone_format = m_time_timezone;
-    string timezone_format_2 = m_time_timezone_2;
     if (timezone_format != ""){ 
       setenv("TZ", timezone_format.c_str(), 1);
     }
@@ -64,38 +62,17 @@ namespace modules {
     datetime_stream << std::put_time(localtime(&time), time_format.c_str());
     auto time_string = datetime_stream.str();
 
-    //Secondary time zone
-    string date_string_2, time_string_2;
-    if(timezone_format_2 != ""){
-      setenv("TZ", timezone_format_2.c_str(), 1);
-      auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
-      // Clear stream contents
-      datetime_stream.str("");
-      datetime_stream << std::put_time(localtime(&time), date_format.c_str());
-      date_string_2 = datetime_stream.str();
-
-      auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
-      // Clear stream contents
-      datetime_stream.str("");
-      datetime_stream << std::put_time(localtime(&time), time_format.c_str());
-      time_string_2 = datetime_stream.str();
-    }
-
     if (m_date == date_string && m_time == time_string) {
       return false;
     }
 
     m_date = date_string;
-    m_date_2 = date_string_2;
     m_time = time_string;
-    m_time_2 = time_string_2;
 
     if (m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%date%", m_date);
-      m_label->replace_token("%date-2%", m_date_2);
       m_label->replace_token("%time%", m_time);
-      m_label->replace_token("%time-2%", m_time_2);
     }
 
     //Reset TZ so other modules work fine
