@@ -58,6 +58,7 @@ namespace modules {
     map<control, control_t> m_ctrl;
     int m_headphoneid{0};
     bool m_mapped{false};
+    int m_interval{5};
     atomic<bool> m_muted{false};
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
