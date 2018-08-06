@@ -21,6 +21,7 @@ namespace modules {
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
     // Load configuration values
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
+    m_interval = m_conf.get(name(), "interval", m_interval);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
@@ -249,13 +250,13 @@ namespace modules {
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
         for (auto&& mixer : mixers) {
-          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + 5, 0, 100))
-                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
+          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + m_interval, 0, 100))
+                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + m_interval, 0, 100));
         }
       } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
         for (auto&& mixer : mixers) {
-          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - 5, 0, 100))
-                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
+          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - m_interval, 0, 100))
+                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() - m_interval, 0, 100));
         }
       } else {
         return false;
