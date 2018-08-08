@@ -42,6 +42,8 @@ struct tray_settings {
 
   alignment align{alignment::NONE};
   bool running{false};
+  int rel_x{0};
+  int rel_y{0};
   int orig_x{0};
   int orig_y{0};
   int configured_x{0};
@@ -102,8 +104,8 @@ class tray_manager
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
 
-  int calculate_x(unsigned width) const;
-  int calculate_y() const;
+  int calculate_x(unsigned width, bool abspos = true) const;
+  int calculate_y(bool abspos = true) const;
   unsigned int calculate_w() const;
   unsigned int calculate_h() const;
 

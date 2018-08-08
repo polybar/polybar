@@ -161,6 +161,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
 
   m_opts.orig_x += offset_x;
   m_opts.orig_y += offset_y;
+  m_opts.rel_x = m_opts.orig_x - bar_opts.pos.x;
+  m_opts.rel_y = m_opts.orig_y - bar_opts.pos.y;
 
   // Put the tray next to the bar in the window stack
   m_opts.sibling = bar_opts.window;
@@ -383,8 +385,8 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
 
   auto w = calculate_w();
-  auto x = calculate_x(w);
-  auto y = calculate_y();
+  auto x = calculate_x(w, false);
+  auto y = calculate_y(false);
 
   if(!m_context) {
     return m_log.err("tray: no context for drawing the background");
@@ -764,8 +766,8 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int tray_manager::calculate_x(unsigned int width) const {
-  auto x = m_opts.orig_x;
+int tray_manager::calculate_x(unsigned int width, bool abspos) const {
+  auto x = abspos ? m_opts.orig_x : m_opts.rel_x;
   if (m_opts.align == alignment::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
   } else if (m_opts.align == alignment::CENTER) {
@@ -777,8 +779,8 @@ int tray_manager::calculate_x(unsigned int width) const {
 /**
  * Calculate y position of tray window
  */
-int tray_manager::calculate_y() const {
-  return m_opts.orig_y;
+int tray_manager::calculate_y(bool abspos) const {
+  return abspos ? m_opts.orig_y : m_opts.rel_y;
 }
 
 /**
