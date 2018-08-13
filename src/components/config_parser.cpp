@@ -91,8 +91,7 @@ sectionmap_t config_parser::create_sectionmap() {
 void config_parser::parse_file(string file, file_list path) {
   if(std::find(path.begin(), path.end(), file) != path.end()) {
     // We have already parsed this file in this path, so there are cyclic dependencies
-    // TODO print dependency cycle
-    throw application_error("Cyclic dependency detected while parsing " + file);
+    throw application_error("include-file: Dependency cycle detected at " + file);
   }
 
   int file_index = files.size();
