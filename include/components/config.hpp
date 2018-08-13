@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
@@ -16,11 +18,12 @@ POLYBAR_NS
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);
 
+using valuemap_t = std::unordered_map<string, string>;
+using sectionmap_t = std::map<string, valuemap_t>;
+using file_list = vector<string>;
+
 class config {
  public:
-  using valuemap_t = std::map<string, string>;
-  using sectionmap_t = std::map<string, valuemap_t>;
-  using file_list = vector<string>;
 
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");

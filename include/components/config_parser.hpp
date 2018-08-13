@@ -96,10 +96,6 @@ struct line_t {
 class config_parser {
   public:
 
-    using valuemap_t = std::map<string, string>;
-    using sectionmap_t = std::map<string, valuemap_t>;
-    using file_list = vector<string>;
-
     config_parser(const logger& logger, string&& file, string&& bar);
 
     /**

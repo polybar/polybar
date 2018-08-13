@@ -44,7 +44,7 @@ config::make_type config_parser::parse() {
   return result;
 }
 
-config_parser::sectionmap_t config_parser::create_sectionmap() {
+sectionmap_t config_parser::create_sectionmap() {
   sectionmap_t sections{};
 
   string current_section = "";
