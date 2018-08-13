@@ -46,6 +46,7 @@ void config::use_xrm() {
 
 void config::set_sections(sectionmap_t sections) {
   m_sections = sections;
+  copy_inherited();
 }
 
 void config::set_included(file_list included) {
@@ -74,7 +75,7 @@ void config::warn_deprecated(const string& section, const string& key, string re
 void config::copy_inherited() {
   for (auto&& section : m_sections) {
     for (auto&& param : section.second) {
-      if (param.first.find("inherit") == 0) {
+      if(param.first == "inherit") {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
@@ -92,7 +93,7 @@ void config::copy_inherited() {
         // Iterate the base and copy the parameters
         // that hasn't been defined for the sub-section
         for (auto&& base_param : base_section->second) {
-          section.second.insert(make_pair(base_param.first, base_param.second));
+          section.second.emplace(base_param.first, base_param.second);
         }
       }
     }
