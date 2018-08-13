@@ -36,7 +36,7 @@ logger::make_type logger::make(loglevel level) {
 logger::logger(loglevel level) : m_level(level) {
   // clang-format off
   if (isatty(m_fd)) {
-    m_prefixes[loglevel::TRACE]   = "\r\033[0;90m- ";
+    m_prefixes[loglevel::TRACE]   = "\r\033[0;32m- \033[0m";
     m_prefixes[loglevel::INFO]    = "\r\033[1;32m* \033[0m";
     m_prefixes[loglevel::WARNING] = "\r\033[1;33mwarn: \033[0m";
     m_prefixes[loglevel::ERROR]   = "\r\033[1;31merror: \033[0m";
