@@ -54,7 +54,12 @@ void background_manager::activate(xcb_window_t window, xcb_rectangle_t rect) {
 }
 
 void background_manager::deactivate() {
+  if(m_attached) {
+    m_connection.detach_sink(this, SINK_PRIORITY_SCREEN);
+    m_attached = false;
+  }
   free_resources();
+  m_rect = xcb_rectangle_t{0, 0, 0, 0};
 }
 
 
