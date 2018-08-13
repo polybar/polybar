@@ -52,7 +52,7 @@ class invalid_name_error : public syntax_error {
      * type is the type of name (Header, Key)
      */
     invalid_name_error(string type, string name)
-      : syntax_error(type + " '" + name + "' is an invalid name") {}
+      : syntax_error(type + " '" + name + "' contains forbidden characters.") {}
 };
 
 /**

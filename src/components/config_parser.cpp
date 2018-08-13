@@ -202,7 +202,7 @@ string config_parser::parse_header(string line) {
   string header = line.substr(1, line.size() - 2);
 
   if(!is_valid_name(header)) {
-    throw invalid_name_error("Header", header);
+    throw invalid_name_error("Section", header);
   }
 
   return header;
