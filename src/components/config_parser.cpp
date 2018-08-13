@@ -205,6 +205,10 @@ string config_parser::parse_header(string line) {
     throw invalid_name_error("Section", header);
   }
 
+  if(reserved_section_names.find(header) != reserved_section_names.end()) {
+    throw syntax_error("'" + header + "' is reserved and cannot be used as a section name");
+  }
+
   return header;
 }
 

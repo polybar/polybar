@@ -239,5 +239,10 @@ TEST_F(ParseHeaderTest, throwsSyntaxError) {
   EXPECT_THROW(parser->parse_header("[no_end"), syntax_error);
   EXPECT_THROW(parser->parse_header("[forbidden char]"), syntax_error);
   EXPECT_THROW(parser->parse_header("[forbidden\tchar]"), syntax_error);
+
+  // Reserved names
+  EXPECT_THROW(parser->parse_header("[self]"), syntax_error);
+  EXPECT_THROW(parser->parse_header("[BAR]"), syntax_error);
+  EXPECT_THROW(parser->parse_header("[root]"), syntax_error);
 }
 // }}}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <set>
 
 #include "common.hpp"
 #include "errors.hpp"
@@ -263,6 +264,16 @@ class config_parser {
      * \brief None of these characters can be used in the key and section names
      */
     string forbidden_chars{"\"'=;#[](){}:.$\\%"};
+
+    /*
+     * \brief List of names that cannot be used as section names
+     *
+     * These strings have inside references and so the section [self] could
+     * never be referenced.
+     */
+    std::set<string> reserved_section_names = {
+      "self", "BAR", "root",
+    };
 };
 
 POLYBAR_NS_END
