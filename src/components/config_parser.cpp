@@ -7,11 +7,7 @@ POLYBAR_NS
 config_parser::config_parser(const logger& logger, string&& file, string&& bar)
   : m_log(logger),
   m_file(forward<string>(file)),
-  m_barname(forward<string>(bar)) {
-  if (!file_util::exists(m_file)) {
-    throw application_error("Could not find config file: " + m_file);
-  }
-}
+  m_barname(forward<string>(bar)) {}
 
 config::make_type config_parser::parse() {
   m_log.trace("Parsing config file: %s", m_file);
@@ -102,8 +98,12 @@ void config_parser::parse_file(string file, file_list path) {
 
   string line_str;
 
-  // TODO error handling
   std::ifstream in(file);
+
+  if (!in) {
+    throw application_error("Failed to open config file " + file + ": " + strerror(errno));
+  }
+
   while (std::getline(in, line_str)) {
     line_no++;
     line_t line;
@@ -134,7 +134,6 @@ void config_parser::parse_file(string file, file_list path) {
     else {
       lines.push_back(line);
     }
-
   }
 }
 
