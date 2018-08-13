@@ -6,7 +6,7 @@ POLYBAR_NS
 
 config_parser::config_parser(const logger& logger, string&& file, string&& bar)
   : m_log(logger),
-  m_file(forward<string>(file)),
+  m_file(file_util::expand(forward<string>(file))),
   m_barname(forward<string>(bar)) {}
 
 config::make_type config_parser::parse() {

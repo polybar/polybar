@@ -144,6 +144,8 @@ class config_parser {
      *
      * This method directly resolves `include-file` directives and checks for
      * cyclic dependencies
+     *
+     * file is expected to be an already resolved absolute or relative path
      */
     void parse_file(string file, file_list path);
 
