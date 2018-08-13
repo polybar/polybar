@@ -38,6 +38,7 @@ void config::use_xrm() {
   // Initialize the xresource manager if there are any xrdb refs
   // present in the configuration
   if (!m_xrm) {
+    m_log.info("Enabling xresource manager");
     m_xrm.reset(new xresource_manager{connection::make()});
   }
 #endif

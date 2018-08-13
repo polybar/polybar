@@ -226,6 +226,15 @@ std::pair<string, string> config_parser::parse_key(string line) {
     value = value.substr(1, value.size() - 2);
   }
 
+#if WITH_XRM
+  /*
+   * Use xrm, if at least one value is an xrdb reference
+   */
+  if(!use_xrm && value.find("%{xrdb") == 0) {
+    use_xrm = true;
+  }
+#endif
+
   return {key, value};
 }
 
