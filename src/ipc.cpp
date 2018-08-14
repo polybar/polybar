@@ -38,15 +38,7 @@ void remove_pipe(const string& handle) {
 }
 
 bool validate_type(const string& type) {
-  if (type == "action") {
-    return true;
-  } else if (type == "cmd") {
-    return true;
-  } else if (type == "hook") {
-    return true;
-  } else {
-    return false;
-  }
+  return (type == "action" || type == "cmd" || type == "hook");
 }
 
 int main(int argc, char** argv) {
