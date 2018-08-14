@@ -34,11 +34,7 @@ namespace drawtypes {
   void progressbar::set_colors(vector<string>&& colors) {
     m_colors = forward<decltype(colors)>(colors);
 
-    if (m_colors.empty()) {
-      m_colorstep = 1;
-    } else {
-      m_colorstep = m_width / m_colors.size();
-    }
+    m_colorstep = m_colors.empty() ? 1 : m_width / m_colors.size();
   }
 
   string progressbar::output(float percentage) {
