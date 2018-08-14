@@ -4,9 +4,7 @@ POLYBAR_NS
 
 namespace cursor_util {
   bool valid(string name) {
-    if (cursors.find(name) != cursors.end())
-      return true;
-    return false;
+    return (cursors.find(name) != cursors.end());
   }
 
   bool set_cursor(xcb_connection_t *c, xcb_screen_t *screen, xcb_window_t w, string name) {
