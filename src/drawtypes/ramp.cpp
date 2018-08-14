@@ -34,7 +34,11 @@ namespace drawtypes {
     vector<icon_t> vec;
     vector<string> icons;
 
-    icons = required ? conf.get_list<string>(section, name) : conf.get_list<string>(section, name, {});
+    if (required) {
+      icons = conf.get_list<string>(section, name);
+    } else {
+      icons = conf.get_list<string>(section, name, {});
+    }
 
     for (size_t i = 0; i < icons.size(); i++) {
       auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
