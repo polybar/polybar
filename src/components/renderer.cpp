@@ -169,13 +169,19 @@ renderer::renderer(
     m_background.activate(m_window, m_bar.outer_area(false));
   }
 
-  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
+  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+
+  // if we use pseudo-transparency, CAIRO_OPERATOR_SOURCE makes no sense as default
+  auto m_comp_bg_default = m_pseudo_transparency ? CAIRO_OPERATOR_OVER : m_comp_bg;
+  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg_default);
   m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
   m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
   m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
 
-  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+  if (m_comp_bg == CAIRO_OPERATOR_SOURCE && m_pseudo_transparency) {
+    m_log.warn("pseudo-transparency may not work correctly with settings.compositing-background = source");
+  }
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
