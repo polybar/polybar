@@ -7,6 +7,7 @@
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
+#include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/winspec.hpp"
@@ -25,7 +26,8 @@ renderer::make_type renderer::make(const bar_settings& bar) {
       signal_emitter::make(),
       config::make(),
       logger::make(),
-      forward<decltype(bar)>(bar));
+      forward<decltype(bar)>(bar),
+      background_manager::make());
   // clang-format on
 }
 
@@ -33,13 +35,15 @@ renderer::make_type renderer::make(const bar_settings& bar) {
  * Construct renderer instance
  */
 renderer::renderer(
-    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar)
+    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar, background_manager& background)
     : m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
     , m_bar(forward<const bar_settings&>(bar))
+    , m_background(background)
     , m_rect(m_bar.inner_area()) {
+
   m_sig.attach(this);
   m_log.trace("renderer: Get TrueColor visual");
   {
@@ -160,13 +164,24 @@ renderer::renderer(
       m_log.info("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
+
+    m_log.trace("Activate root background manager");
+    m_background.activate(m_window, m_bar.outer_area(false));
   }
 
-  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
+  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+
+  // if we use pseudo-transparency, CAIRO_OPERATOR_SOURCE makes no sense as default
+  auto m_comp_bg_default = m_pseudo_transparency ? CAIRO_OPERATOR_OVER : m_comp_bg;
+  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg_default);
   m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
   m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
   m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
+
+  if (m_comp_bg == CAIRO_OPERATOR_SOURCE && m_pseudo_transparency) {
+    m_log.warn("pseudo-transparency may not work correctly with settings.compositing-background = source");
+  }
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
@@ -231,6 +246,16 @@ void renderer::begin(xcb_rectangle_t rect) {
     m_context->restore();
   }
 
+  // if using pseudo-transparency, fill the background with the root window's contents
+  // otherwise, we simply use a fully transparent base layer
+  if(m_pseudo_transparency) {
+    auto root_bg = m_background.get_surface();
+    if(root_bg != nullptr) {
+      m_log.trace_x("renderer: root background");
+      *m_context << *root_bg;
+      m_context->paint();
+    }
+  }
   fill_borders();
 
   // clang-format off

@@ -243,7 +243,7 @@ namespace cairo {
   /**
    * Match and create font from given fontconfig pattern
    */
-  decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset, double dpi_x, double dpi_y) {
+  inline decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset, double dpi_x, double dpi_y) {
     static bool fc_init{false};
     if (!fc_init && !(fc_init = FcInit())) {
       throw application_error("Could not load fontconfig");

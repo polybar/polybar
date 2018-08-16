@@ -61,7 +61,6 @@ modules-right = @MODULES_RIGHT@
 
 tray-position = right
 tray-padding = 2
-;tray-transparent = true
 ;tray-background = #0063ff
 
 ;wm-restack = bspwm
@@ -415,6 +414,7 @@ screenchange-reload = true
 ;compositing-background = screen
 ;compositing-foreground = source
 ;compositing-border = over
+;pseudo-transparency = false
 
 [global/wm]
 margin-top = 5

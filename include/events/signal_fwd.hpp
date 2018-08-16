@@ -38,6 +38,8 @@ namespace signals {
     struct shade_window;
     struct unshade_window;
     struct request_snapshot;
+    struct update_background;
+    struct update_geometry;
   }
   namespace ui_tray {
     struct mapped_clients;
