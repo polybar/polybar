@@ -17,7 +17,7 @@ Here are a few screenshots showing you what it can look like:
 
 If you need help, check out the [Support](SUPPORT.md) page.
 
-Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new) here on GitHub.
+Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new/choose) here on GitHub.
 Make sure you include steps on how to reproduce it. There's also an irc channel available at freenode, cleverly named `#polybar`.
 
 
@@ -118,7 +118,7 @@ Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/
 
 ### Building from source
 
-Please [report any problems](https://github.com/jaagr/polybar/issues/new) you run into when building the project.
+Please [report any problems](https://github.com/jaagr/polybar/issues/new/choose) you run into when building the project.
 
   ~~~ sh
   $ git clone --branch 3.2 --recursive https://github.com/jaagr/polybar
