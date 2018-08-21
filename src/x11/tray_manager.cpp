@@ -754,7 +754,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     m_log.err(err.what());
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
-    remove_client(win, false);
+    remove_client(win, true);
     return;
   }
 
@@ -1044,7 +1044,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
     return;
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
-    remove_client(win, false);
+    remove_client(win, true);
     return;
   }
 
