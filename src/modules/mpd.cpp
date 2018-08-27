@@ -26,7 +26,9 @@ namespace modules {
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
               TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
               TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
+
       auto mod_format = m_formatter->get(format);
+
       mod_format->fg = m_conf.get(name(), FORMAT_ONLINE + "-foreground"s, mod_format->fg);
       mod_format->bg = m_conf.get(name(), FORMAT_ONLINE + "-background"s, mod_format->bg);
       mod_format->ul = m_conf.get(name(), FORMAT_ONLINE + "-underline"s, mod_format->ul);
@@ -38,6 +40,17 @@ namespace modules {
       mod_format->margin = m_conf.get(name(), FORMAT_ONLINE + "-margin"s, mod_format->margin);
       mod_format->offset = m_conf.get(name(), FORMAT_ONLINE + "-offset"s, mod_format->offset);
 
+      try {
+        mod_format->prefix = load_label(m_conf, name(), FORMAT_ONLINE + "-prefix"s);
+      } catch (const key_error& err) {
+        // format-online-prefix not defined
+      }
+
+      try {
+        mod_format->suffix = load_label(m_conf, name(), FORMAT_ONLINE + "-suffix"s);
+      } catch (const key_error& err) {
+        // format-online-suffix not defined
+      }
     }
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
