@@ -16,7 +16,7 @@ Here are a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
-You can polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes): 
+You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes). 
 
 
 If you need help, check out the [Support](SUPPORT.md) page.
