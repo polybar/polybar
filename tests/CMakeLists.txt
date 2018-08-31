@@ -2,7 +2,6 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage -Wno-missing-field-initializers")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 
-link_libraries(${libs})
 include_directories(${dirs})
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
@@ -59,7 +58,7 @@ function(unit_test file tests)
   add_executable(${name} unit_tests/${file}.cpp ${sources})
 
   # Link against gmock (this automatically links against gtest)
-  target_link_libraries(${name} gmock_main)
+  target_link_libraries(${name} gmock_main ${libs})
 
   add_test(NAME ${name} COMMAND ${name})
 
