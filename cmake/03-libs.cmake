@@ -7,15 +7,7 @@ list(APPEND libs ${CMAKE_THREAD_LIBS_INIT})
 
 querylib(TRUE "pkg-config" cairo-fc libs dirs)
 
-querylib(ENABLE_ALSA "pkg-config" alsa libs dirs)
 querylib(ENABLE_CURL "pkg-config" libcurl libs dirs)
-querylib(ENABLE_MPD "pkg-config" libmpdclient libs dirs)
-if(WITH_LIBNL)
-  querylib(ENABLE_NETWORK "pkg-config" libnl-genl-3.0 libs dirs)
-else()
-  querylib(ENABLE_NETWORK "cmake" Libiw libs dirs)
-endif()
-querylib(ENABLE_PULSEAUDIO "pkg-config" libpulse libs dirs)
 
 querylib(WITH_XCOMPOSITE "pkg-config" xcb-composite libs dirs)
 querylib(WITH_XDAMAGE "pkg-config" xcb-damage libs dirs)

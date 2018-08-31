@@ -101,13 +101,6 @@ function(make_library target_name)
     set(LIB_HEADERS_ABS ${LIB_HEADERS_ABS} ${PROJECT_SOURCE_DIR}/include/${HEADER})
   endforeach()
 
-  # add defined INCLUDE_DIRS
-  foreach(DIR ${LIB_INCLUDE_DIRS})
-    string(TOUPPER ${DIR} DIR)
-    include_directories(${DIR})
-    include_directories(${${DIR}_INCLUDE_DIRS})
-  endforeach()
-
   # add INCLUDE_DIRS for all external dependencies
   foreach(DEP ${LIB_TARGET_DEPENDS} ${LIB_PKG_DEPENDS} ${LIB_CMAKE_DEPENDS})
     string(TOUPPER ${DEP} DEP)
@@ -123,9 +116,20 @@ function(make_library target_name)
 
   foreach(library_target_name ${library_targets})
     message(STATUS "${library_target_name}")
-    add_library(${library_target_name}
-      ${LIB_HEADERS_ABS}
-      ${LIB_SOURCES})
+
+    if(library_target_name MATCHES "_shared$")
+      add_library(${library_target_name}
+        SHARED
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    else()
+      add_library(${library_target_name}
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    endif()
+
+    # add defined INCLUDE_DIRS
+    target_include_directories(${library_target_name} PRIVATE ${LIB_INCLUDE_DIRS})
 
     # link libraries from pkg-config imports
     foreach(DEP ${LIB_PKG_DEPENDS})
@@ -153,20 +157,18 @@ function(make_library target_name)
       endif()
     endforeach()
 
-    if(${LIB_RAW_DEPENDS})
-      if(LIB_BUILD_STATIC)
-        target_link_libraries(${library_target_name} ${LIB_RAW_DEPENDS})
-      endif()
+    if(LIB_RAW_DEPENDS)
+      target_link_libraries(${library_target_name} ${LIB_RAW_DEPENDS})
     endif()
 
     # set the output file basename
     set_target_properties(${library_target_name} PROPERTIES OUTPUT_NAME ${target_name})
 
     # install headers
-    install(FILES ${LIBRARY_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
+    install(FILES ${LIB_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
 
     # install targets
-    install(TARGETS ${LIBRARY_TARGETS}
+    install(TARGETS ${library_targets}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
