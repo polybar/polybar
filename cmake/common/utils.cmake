@@ -88,7 +88,7 @@ endfunction()
 # make_library {{{
 
 function(make_library target_name)
-  set(zero_value_args SHARED STATIC)
+  set(zero_value_args SHARED STATIC INTERNAL)
   set(one_value_args PACKAGE HEADER_INSTALL_DIR)
   set(multi_value_args SOURCES HEADERS INCLUDE_DIRS PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS RAW_DEPENDS)
 
@@ -164,15 +164,17 @@ function(make_library target_name)
     # set the output file basename
     set_target_properties(${library_target_name} PROPERTIES OUTPUT_NAME ${target_name})
 
-    # install headers
-    install(FILES ${LIB_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
+    if(NOT LIB_INTERNAL)
+      # install headers
+      install(FILES ${LIB_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
 
-    # install targets
-    install(TARGETS ${library_targets}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      COMPONENT library)
+      # install targets
+      install(TARGETS ${library_targets}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library)
+    endif()
   endforeach()
 endfunction()
 
