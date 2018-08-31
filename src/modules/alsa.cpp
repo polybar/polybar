@@ -5,6 +5,7 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "modules/meta/factory.hpp"
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
@@ -17,6 +18,8 @@ using namespace alsa;
 
 namespace modules {
   template class module<alsa_module>;
+
+  POLYBAR_MODULE(alsa_module, "internal/alsa");
 
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
     // Load configuration values

@@ -1,0 +1,23 @@
+make_library(polybar-components
+  STATIC
+  INTERNAL
+  SOURCES
+    bar.cpp
+    builder.cpp
+    command_line.cpp
+    config.cpp
+    controller.cpp
+    ipc.cpp
+    logger.cpp
+    parser.cpp
+    renderer.cpp
+    screen.cpp
+    taskqueue.cpp
+    ../utils/i3.cpp
+  INCLUDE_DIRS
+    ${dirs}
+    ${I3IPCPP_INCLUDE_DIRS}
+  RAW_DEPENDS
+    ${libs}
+    polybar-cairo_static
+    ${I3IPCPP_LIBRARIES})

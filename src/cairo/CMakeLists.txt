@@ -1,0 +1,10 @@
+make_library(polybar-cairo
+  STATIC
+  INTERNAL
+  SOURCES
+    utils.cpp
+  INCLUDE_DIRS
+    ${dirs}
+    ${cairo-dirs}
+  RAW_DEPENDS
+    ${cairo-libs})

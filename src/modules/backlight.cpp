@@ -6,11 +6,14 @@
 #include "utils/file.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<backlight_module>;
+
+  POLYBAR_MODULE(backlight_module, "internal/backlight");
 
   void backlight_module::brightness_handle::filepath(const string& path) {
     if (!file_util::exists(path)) {

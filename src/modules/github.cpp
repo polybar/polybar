@@ -5,11 +5,14 @@
 #include "utils/concurrency.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<github_module>;
+
+  POLYBAR_MODULE(github_module, "internal/github");
 
   /**
    * Construct module

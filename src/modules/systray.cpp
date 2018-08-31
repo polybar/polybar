@@ -5,11 +5,16 @@
 #include "x11/tray_manager.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<systray_module>;
+
+#if DEBUG
+  POLYBAR_MODULE(systray_module, "internal/systray");
+#endif
 
   /**
    * Construct module

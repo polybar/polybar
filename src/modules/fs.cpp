@@ -10,6 +10,7 @@
 #include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
@@ -20,6 +21,8 @@ POLYBAR_NS
 
 namespace modules {
   template class module<fs_module>;
+
+  POLYBAR_MODULE(fs_module, "internal/fs");
 
   /**
    * Bootstrap the module by reading config values and

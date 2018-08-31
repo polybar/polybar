@@ -1,0 +1,20 @@
+make_library(polybar-utils
+  STATIC
+  INTERNAL
+  SOURCES
+    bspwm.cpp
+    command.cpp
+    concurrency.cpp
+    env.cpp
+    factory.cpp
+    file.cpp
+    inotify.cpp
+    io.cpp
+    process.cpp
+    socket.cpp
+    string.cpp
+    throttle.cpp
+  INCLUDE_DIRS
+    ${dirs}
+  RAW_DEPENDS
+    ${libs})

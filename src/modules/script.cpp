@@ -1,11 +1,14 @@
 #include "modules/script.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<script_module>;
+
+  POLYBAR_MODULE(script_module, "custom/script");
 
   /**
    * Construct script module by loading configuration values

@@ -2,11 +2,14 @@
 #include "components/ipc.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<ipc_module>;
+
+  POLYBAR_MODULE(ipc_module, "custom/ipc");
 
   /**
    * Load user-defined ipc hooks and

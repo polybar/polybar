@@ -1,0 +1,11 @@
+make_library(polybar-drawtypes
+  STATIC
+  INTERNAL
+  SOURCES
+    animation.cpp
+    iconset.cpp
+    label.cpp
+    progressbar.cpp
+    ramp.cpp
+  INCLUDE_DIRS
+    ${dirs})

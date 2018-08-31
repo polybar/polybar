@@ -10,6 +10,7 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
@@ -21,6 +22,8 @@ namespace {
 
 namespace modules {
   template class module<xworkspaces_module>;
+
+  POLYBAR_MODULE(xworkspaces_module, "internal/xworkspaces");
 
   /**
    * Construct module

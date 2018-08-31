@@ -2,54 +2,16 @@
 # Configure src
 #
 
-add_subdirectory(modules)
 
 # Source tree {{{
 
-file(GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.c[p]*)
-list(REMOVE_ITEM files ipc.cpp)
-
-list(REMOVE_ITEM files modules/alsa.cpp)
-list(REMOVE_ITEM files adapters/alsa/control.cpp)
-list(REMOVE_ITEM files adapters/alsa/mixer.cpp)
-list(REMOVE_ITEM files modules/github.cpp)
-list(REMOVE_ITEM files utils/http.cpp)
-list(REMOVE_ITEM files modules/mpd.cpp)
-list(REMOVE_ITEM files adapters/mpd.cpp)
-list(REMOVE_ITEM files modules/network.cpp)
-list(REMOVE_ITEM files adapters/net.cpp)
-list(REMOVE_ITEM files adapters/net_iw.cpp)
-list(REMOVE_ITEM files adapters/net_nl.cpp)
-list(REMOVE_ITEM files modules/i3.cpp)
-list(REMOVE_ITEM files utils/i3.cpp)
-list(REMOVE_ITEM files modules/pulseaudio.cpp)
-list(REMOVE_ITEM files adapters/pulseaudio.cpp)
-
-if(NOT WITH_XRANDR)
-  list(REMOVE_ITEM files x11/extensions/randr.cpp)
-endif()
-if(NOT WITH_XRENDER)
-  list(REMOVE_ITEM files x11/extensions/render.cpp)
-endif()
-if(NOT WITH_XDAMAGE)
-  list(REMOVE_ITEM files x11/extensions/damage.cpp)
-endif()
-if(NOT WITH_XSYNC)
-  list(REMOVE_ITEM files x11/extensions/sync.cpp)
-endif()
-if(NOT WITH_XCOMPOSITE)
-  list(REMOVE_ITEM files x11/extensions/composite.cpp)
-endif()
-if(NOT WITH_XKB)
-  list(REMOVE_ITEM files x11/extensions/xkb.cpp)
-  list(REMOVE_ITEM files modules/xkeyboard.cpp)
-endif()
-if(NOT WITH_XRM)
-  list(REMOVE_ITEM files x11/xresources.cpp)
-endif()
-if(NOT WITH_XCURSOR)
-  list(REMOVE_ITEM files x11/cursor.cpp)
-endif()
+add_subdirectory(cairo)
+add_subdirectory(components)
+add_subdirectory(drawtypes)
+add_subdirectory(events)
+add_subdirectory(modules)
+add_subdirectory(utils)
+add_subdirectory(x11)
 
 # }}}
 
@@ -57,11 +19,16 @@ endif()
 
 make_executable(polybar
   SOURCES
-    ${files}
+    main.cpp
   INCLUDE_DIRS
     ${dirs}
   TARGET_DEPENDS
     ${shared_modules}
+    polybar-components_static
+    polybar-drawtypes_static
+    polybar-events_static
+    polybar-utils_static
+    polybar-x11_static
   RAW_DEPENDS
     ${libs}
     Threads::Threads)
