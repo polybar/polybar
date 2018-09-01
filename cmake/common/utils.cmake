@@ -88,7 +88,7 @@ endfunction()
 # make_library {{{
 
 function(make_library target_name)
-  set(zero_value_args SHARED STATIC INTERNAL)
+  set(zero_value_args SHARED STATIC INTERNAL MODULE)
   set(one_value_args PACKAGE HEADER_INSTALL_DIR)
   set(multi_value_args SOURCES HEADERS INCLUDE_DIRS PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS RAW_DEPENDS)
 
@@ -113,6 +113,9 @@ function(make_library target_name)
   if(LIB_STATIC)
     list(APPEND library_targets ${target_name}_static)
   endif()
+  if(LIB_MODULE)
+    list(APPEND library_targets ${target_name}_module)
+  endif()
 
   foreach(library_target_name ${library_targets})
     message(STATUS "${library_target_name}")
@@ -120,6 +123,11 @@ function(make_library target_name)
     if(library_target_name MATCHES "_shared$")
       add_library(${library_target_name}
         SHARED
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    elseif(library_target_name MATCHES "_module$")
+      add_library(${library_target_name}
+        MODULE
         ${LIB_HEADERS_ABS}
         ${LIB_SOURCES})
     else()
@@ -163,6 +171,9 @@ function(make_library target_name)
 
     # set the output file basename
     set_target_properties(${library_target_name} PROPERTIES OUTPUT_NAME ${target_name})
+
+    # set output file folder
+    set_target_properties(${library_target_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
     if(NOT LIB_INTERNAL)
       # install headers
