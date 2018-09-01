@@ -21,17 +21,6 @@ class plugin_handle {
   void* m_handle = nullptr;
 };
 
-// clang-format off
-const static std::array<const char*, 8> plugin_names = {
-  "libpolybar-utils-i3.so",
-  "libpolybar-modules-alsa.so",
-  "libpolybar-modules-github.so",
-  "libpolybar-modules-i3.so",
-  "libpolybar-modules-mpd.so",
-  "libpolybar-modules-network.so",
-  "libpolybar-modules-pulseaudio.so",
-  "libpolybar-modules-xkeyboard.so"
-};
-// clang-format on
+extern std::vector<const char*> plugin_names;
 
 POLYBAR_NS_END

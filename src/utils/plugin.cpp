@@ -6,6 +6,19 @@
 
 POLYBAR_NS
 
+// clang-format off
+std::vector<const char*> plugin_names = {
+  "libpolybar-utils-i3.so",
+  "libpolybar-modules-alsa.so",
+  "libpolybar-modules-github.so",
+  "libpolybar-modules-i3.so",
+  "libpolybar-modules-mpd.so",
+  "libpolybar-modules-network.so",
+  "libpolybar-modules-pulseaudio.so",
+  "libpolybar-modules-xkeyboard.so"
+};
+// clang-format on
+
 plugin_handle::plugin_handle(const char* libname) {
   m_handle = ::dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
   if (!m_handle)
