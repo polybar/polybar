@@ -1,6 +1,6 @@
 if(ENABLE_ALSA)
   make_library(polybar-modules-alsa
-    SHARED
+    MODULE
     SOURCES
       ../adapters/alsa/control.cpp
       ../adapters/alsa/mixer.cpp
@@ -10,12 +10,11 @@ if(ENABLE_ALSA)
       ${alsa-dirs}
     RAW_DEPENDS
       ${alsa-libs})
-  list(APPEND shared_modules polybar-modules-alsa_shared)
 endif()
 
 if(ENABLE_CURL)
   make_library(polybar-modules-github
-    SHARED
+    MODULE
     SOURCES
       ../utils/http.cpp
       github.cpp
@@ -24,12 +23,11 @@ if(ENABLE_CURL)
       ${curl-dirs}
     RAW_DEPENDS
       ${curl-libs})
-  list(APPEND shared_modules polybar-modules-github_shared)
 endif()
 
 if(ENABLE_MPD)
   make_library(polybar-modules-mpd
-    SHARED
+    MODULE
     SOURCES
       ../adapters/mpd.cpp
       mpd.cpp
@@ -38,13 +36,12 @@ if(ENABLE_MPD)
       ${mpd-dirs}
     RAW_DEPENDS
       ${mpd-libs})
-  list(APPEND shared_modules polybar-modules-mpd_shared)
 endif()
 
 if(ENABLE_NETWORK)
   list(APPEND net-src ../adapters/net.cpp network.cpp)
   make_library(polybar-modules-network
-    SHARED
+    MODULE
     SOURCES
       ${net-src}
     INCLUDE_DIRS
@@ -52,26 +49,21 @@ if(ENABLE_NETWORK)
       ${net-dirs}
     RAW_DEPENDS
       ${net-libs})
-  list(APPEND shared_modules polybar-modules-network_shared)
 endif()
 
 if(ENABLE_I3)
   make_library(polybar-modules-i3
-    SHARED
+    MODULE
     SOURCES
-      ../utils/i3.cpp
       i3.cpp
     INCLUDE_DIRS
       ${dirs}
-      ${I3IPCPP_INCLUDE_DIRS}
-    RAW_DEPENDS
-      ${I3IPCPP_LIBRARIES})
-  list(APPEND shared_modules polybar-modules-i3_shared)
+      ${I3IPCPP_INCLUDE_DIRS})
 endif()
 
 if(ENABLE_PULSEAUDIO)
   make_library(polybar-modules-pulseaudio
-    SHARED
+    MODULE
     SOURCES
       ../adapters/pulseaudio.cpp
       pulseaudio.cpp
@@ -80,12 +72,11 @@ if(ENABLE_PULSEAUDIO)
       ${pulse-dirs}
     RAW_DEPENDS
       ${pulse-libs})
-  list(APPEND shared_modules polybar-modules-pulseaudio_shared)
 endif()
 
 if(WITH_XKB)
   make_library(polybar-modules-xkeyboard
-    SHARED
+    MODULE
     SOURCES
       ../x11/extensions/xkb.cpp
       xkeyboard.cpp
@@ -94,7 +85,6 @@ if(WITH_XKB)
       ${xkb-dirs}
     RAW_DEPENDS
       ${xkb-libs})
-  list(APPEND shared_modules polybar-modules-xkeyboard_shared)
 endif()
 
 make_library(polybar-modules-internal
@@ -120,7 +110,6 @@ make_library(polybar-modules-internal
     xwindow.cpp
     xworkspaces.cpp
   INCLUDE_DIRS
-    ${dirs})
-list(APPEND shared_modules polybar-modules-internal_shared)
-
-set(shared_modules ${shared_modules} PARENT_SCOPE)
+    ${dirs}
+  RAW_DEPENDS
+    polybar-utils-bspwm_shared)

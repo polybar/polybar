@@ -2,7 +2,6 @@ make_library(polybar-utils
   STATIC
   INTERNAL
   SOURCES
-    bspwm.cpp
     command.cpp
     concurrency.cpp
     env.cpp
@@ -10,11 +9,35 @@ make_library(polybar-utils
     file.cpp
     inotify.cpp
     io.cpp
+    plugin.cpp
     process.cpp
+    restack.cpp
     socket.cpp
     string.cpp
     throttle.cpp
   INCLUDE_DIRS
     ${dirs}
   RAW_DEPENDS
+    ${libs}
+    ${CMAKE_DL_LIBS})
+
+make_library(polybar-utils-bspwm
+  SHARED
+  SOURCES
+    bspwm.cpp
+  INCLUDE_DIRS
+    ${dirs}
+  RAW_DEPENDS
     ${libs})
+
+if(ENABLE_I3)
+  make_library(polybar-utils-i3
+    SHARED
+    SOURCES
+      i3.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${I3IPCPP_INCLUDE_DIRS}
+    RAW_DEPENDS
+      ${I3IPCPP_LIBRARIES})
+endif()

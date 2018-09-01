@@ -2,8 +2,10 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
+#include "components/logger.hpp"
 #include "settings.hpp"
 #include "utils/i3.hpp"
+#include "utils/restack.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/connection.hpp"
@@ -78,6 +80,25 @@ namespace i3_util {
     }
     return false;
   }
-}
+}  // namespace i3_util
+
+namespace restack {
+  struct i3_restacker : public wm_restacker {
+    void operator()(connection& conn, const bar_settings& opts, const logger& log) const override {
+      if (opts.override_redirect) {
+        auto restacked = i3_util::restack_to_root(conn, opts.window);
+        if (restacked) {
+          log.info("Successfully restacked bar window");
+        } else {
+          log.err("Failed to restack bar window");
+        }
+      } else {
+        log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
+      }
+    }
+  };
+
+  POLYBAR_RESTACKER(i3_restacker, "i3");
+}  // namespace restack
 
 POLYBAR_NS_END

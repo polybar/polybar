@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <moodycamel/blockingconcurrentqueue.h>
 #include <thread>
 
@@ -9,6 +10,7 @@
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "utils/file.hpp"
+#include "utils/plugin.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
@@ -142,6 +144,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * @brief Misc threads
    */
   vector<std::thread> m_threads;
+
+  /**
+   * @brief Loaded plugins
+   */
+  std::list<plugin_handle> m_plugins;
 };
 
 POLYBAR_NS_END

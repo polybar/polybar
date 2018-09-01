@@ -8,13 +8,14 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/ipc.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "modules/meta/input_handler.hpp"
-#include "modules/ipc.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
+#include "utils/plugin.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
@@ -75,6 +76,15 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   sigaction(SIGTERM, &act, nullptr);
   sigaction(SIGUSR1, &act, nullptr);
   sigaction(SIGALRM, &act, nullptr);
+
+  m_log.trace("controller: Load plugins");
+  for (const auto name : plugin_names) {
+    try {
+      m_plugins.emplace_back(name);
+    } catch (const application_error& err) {
+      m_log.warn("Failed to load plugin '%s': %s", name, err.what());
+    }
+  }
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};

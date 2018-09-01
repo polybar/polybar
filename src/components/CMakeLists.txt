@@ -13,11 +13,8 @@ make_library(polybar-components
     renderer.cpp
     screen.cpp
     taskqueue.cpp
-    ../utils/i3.cpp
   INCLUDE_DIRS
     ${dirs}
-    ${I3IPCPP_INCLUDE_DIRS}
   RAW_DEPENDS
     ${libs}
-    polybar-cairo_static
-    ${I3IPCPP_LIBRARIES})
+    polybar-cairo_static)

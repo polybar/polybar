@@ -23,7 +23,7 @@ make_executable(polybar
   INCLUDE_DIRS
     ${dirs}
   TARGET_DEPENDS
-    ${shared_modules}
+    polybar-modules-internal_shared
     polybar-components_static
     polybar-drawtypes_static
     polybar-events_static
