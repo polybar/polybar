@@ -6,7 +6,6 @@
 # Source tree {{{
 
 add_subdirectory(cairo)
-add_subdirectory(components)
 add_subdirectory(drawtypes)
 add_subdirectory(events)
 add_subdirectory(modules)
@@ -20,11 +19,22 @@ add_subdirectory(x11)
 make_executable(polybar
   SOURCES
     main.cpp
+    components/bar.cpp
+    components/builder.cpp
+    components/command_line.cpp
+    components/config.cpp
+    components/controller.cpp
+    components/ipc.cpp
+    components/logger.cpp
+    components/parser.cpp
+    components/renderer.cpp
+    components/screen.cpp
+    components/taskqueue.cpp
   INCLUDE_DIRS
     ${dirs}
   TARGET_DEPENDS
     polybar-modules-internal_shared
-    polybar-components_static
+    polybar-cairo_static
     polybar-drawtypes_static
     polybar-events_static
     polybar-utils_static
