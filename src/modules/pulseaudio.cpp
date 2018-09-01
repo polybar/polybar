@@ -172,6 +172,8 @@ namespace modules {
         builder->node(m_port_icons->get("speaker"));
       } else if (string_util::contains(port, "hdmi")) {
         builder->node(m_port_icons->get("hdmi"));
+      } else {
+        builder->node(m_port_icons->get("other"));
       }
     } else {
       return false;
