@@ -15,6 +15,7 @@ namespace restack {
 
   struct wm_restacker {
     virtual void operator()(connection& conn, const bar_settings& opts, const logger& log) const = 0;
+    virtual ~wm_restacker() = default;
   };
 
   using restacker_map = std::unordered_map<std::string, std::unique_ptr<wm_restacker>>;
