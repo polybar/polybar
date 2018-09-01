@@ -13,7 +13,7 @@ namespace restack {
     const auto& rmap = get_restacker_map();
     auto it = rmap.find(name);
     if (it != rmap.end()) {
-      return it->second.get();
+      return &it->second();
     } else {
       return nullptr;
     }

@@ -18,7 +18,8 @@ namespace restack {
     virtual ~wm_restacker() = default;
   };
 
-  using restacker_map = std::unordered_map<std::string, std::unique_ptr<wm_restacker>>;
+  using factory_function = const wm_restacker& (*)();
+  using restacker_map = std::unordered_map<std::string, factory_function>;
 
   restacker_map& get_restacker_map();
 
@@ -26,13 +27,17 @@ namespace restack {
 
   template <class Restacker>
   struct restacker_registration {
-    restacker_registration(std::string name) {
-      get_restacker_map()[std::move(name)] = std::make_unique<Restacker>();
+    restacker_registration(std::string name, factory_function ff) {
+      get_restacker_map()[std::move(name)] = ff;
     }
   };
 
 #define POLYBAR_RESTACKER(RESTACKER_TYPE, RESTACKER_NAME) \
-  restacker_registration<RESTACKER_TYPE> RESTACKER_TYPE##_registration(RESTACKER_NAME)
+  const wm_restacker& get_##RESTACKER_TYPE() {\
+    static RESTACKER_TYPE local_restacker;\
+    return local_restacker;\
+  }\
+  restacker_registration<RESTACKER_TYPE> RESTACKER_TYPE##_registration(RESTACKER_NAME, &get_##RESTACKER_TYPE)
 
 }  // namespace restack
 
