@@ -8,4 +8,6 @@ make_library(polybar-drawtypes
     progressbar.cpp
     ramp.cpp
   INCLUDE_DIRS
-    ${dirs})
+    ${dirs}
+  RAW_DEPENDS
+    ${libs})

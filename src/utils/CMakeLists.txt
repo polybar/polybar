@@ -39,5 +39,6 @@ if(ENABLE_I3)
       ${dirs}
       ${I3IPCPP_INCLUDE_DIRS}
     RAW_DEPENDS
+      ${libs}
       ${I3IPCPP_LIBRARIES})
 endif()

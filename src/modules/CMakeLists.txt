@@ -9,6 +9,7 @@ if(ENABLE_ALSA)
       ${dirs}
       ${alsa-dirs}
     RAW_DEPENDS
+      ${libs}
       ${alsa-libs})
 endif()
 
@@ -22,6 +23,7 @@ if(ENABLE_CURL)
       ${dirs}
       ${curl-dirs}
     RAW_DEPENDS
+      ${libs}
       ${curl-libs})
 endif()
 
@@ -35,6 +37,7 @@ if(ENABLE_MPD)
       ${dirs}
       ${mpd-dirs}
     RAW_DEPENDS
+      ${libs}
       ${mpd-libs})
 endif()
 
@@ -48,6 +51,7 @@ if(ENABLE_NETWORK)
       ${dirs}
       ${net-dirs}
     RAW_DEPENDS
+      ${libs}
       ${net-libs})
 endif()
 
@@ -58,7 +62,9 @@ if(ENABLE_I3)
       i3.cpp
     INCLUDE_DIRS
       ${dirs}
-      ${I3IPCPP_INCLUDE_DIRS})
+      ${I3IPCPP_INCLUDE_DIRS}
+    RAW_DEPENDS
+      ${libs})
 endif()
 
 if(ENABLE_PULSEAUDIO)
@@ -71,6 +77,7 @@ if(ENABLE_PULSEAUDIO)
       ${dirs}
       ${pulse-dirs}
     RAW_DEPENDS
+      ${libs}
       ${pulse-libs})
 endif()
 
@@ -84,6 +91,7 @@ if(WITH_XKB)
       ${dirs}
       ${xkb-dirs}
     RAW_DEPENDS
+      ${libs}
       ${xkb-libs})
 endif()
 
@@ -112,4 +120,5 @@ make_library(polybar-modules-internal
   INCLUDE_DIRS
     ${dirs}
   RAW_DEPENDS
+    ${libs}
     polybar-utils-bspwm_shared)
