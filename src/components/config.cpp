@@ -35,8 +35,10 @@ string config::section() const {
 
 void config::use_xrm() {
 #if WITH_XRM
-  // Initialize the xresource manager if there are any xrdb refs
-  // present in the configuration
+  /*
+   * Initialize the xresource manager if there are any xrdb refs
+   * present in the configuration
+   */
   if (!m_xrm) {
     m_log.info("Enabling xresource manager");
     m_xrm.reset(new xresource_manager{connection::make()});
@@ -69,7 +71,7 @@ void config::warn_deprecated(const string& section, const string& key, string re
  * Look for sections set up to inherit from a base section
  * and copy the missing parameters
  *
- *   [sub/seciton]
+ *   [sub/section]
  *   inherit = base/section
  */
 void config::copy_inherited() {
@@ -90,8 +92,10 @@ void config::copy_inherited() {
 
         m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
 
-        // Iterate the base and copy the parameters
-        // that hasn't been defined for the sub-section
+        /*
+         * Iterate the base and copy the parameters that haven't been defined
+         * for the sub-section
+         */
         for (auto&& base_param : base_section->second) {
           section.second.emplace(base_param.first, base_param.second);
         }

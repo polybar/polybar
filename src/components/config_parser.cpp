@@ -54,9 +54,7 @@ sectionmap_t config_parser::create_sectionmap() {
       current_section = line.header;
     }
     else {
-      /*
-       * The first valid line in the config is not a section definition
-       */
+      // The first valid line in the config is not a section definition
       if(current_section == "") {
         throw syntax_error("First valid line in config must be section header",
             files[line.file_index], line.line_no);
@@ -64,8 +62,6 @@ sectionmap_t config_parser::create_sectionmap() {
 
       string key = line.key_value[0];
       string value = line.key_value[1];
-
-      // TODO check value for references
 
       valuemap_t& valuemap = sections[current_section];
 
@@ -207,6 +203,7 @@ string config_parser::parse_header(string line) {
     throw syntax_error("Missing ']' in header '" + line + "'");
   }
 
+  // Stripping square brackets
   string header = line.substr(1, line.size() - 2);
 
   if(!is_valid_name(header)) {
@@ -238,10 +235,10 @@ std::pair<string, string> config_parser::parse_key(string line) {
     value = value.substr(1, value.size() - 2);
   }
 
+  // TODO check value for references
+
 #if WITH_XRM
-  /*
-   * Use xrm, if at least one value is an xrdb reference
-   */
+  // Use xrm, if at least one value is an xrdb reference
   if(!use_xrm && value.find("${xrdb") == 0) {
     use_xrm = true;
   }

@@ -369,7 +369,8 @@ class config {
   sectionmap_t m_sections{};
 
   /**
-   * All files parsed while parsing this config (actual config file excluded)
+   * Absolute path of all files that were parsed in the process of parsing the
+   * config (Path of the main config file also included)
    */
   file_list m_included;
 #if WITH_XRM

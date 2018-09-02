@@ -12,9 +12,6 @@
 
 POLYBAR_NS
 
-/**
- * \brief Generic exception for the config_parser
- */
 DEFINE_ERROR(parser_error);
 
 /**
@@ -44,26 +41,21 @@ class syntax_error : public parser_error {
     string msg;
 };
 
-/**
- * \brief syntax_error subclass for invalid names
- */
 class invalid_name_error : public syntax_error {
   public:
     /**
-     * type is the type of name (Header, Key)
+     * type is either Header or Key
      */
     invalid_name_error(string type, string name)
       : syntax_error(type + " '" + name + "' contains forbidden characters.") {}
 };
 
 /**
- * \enum line_type
  * \brief All different types a line in a config can be
  */
 enum line_type {KEY, HEADER, COMMENT, EMPTY, UNKNOWN};
 
 /**
- * \struct line_t
  * \brief Storage for a single config line
  *
  * More sanitized than the actual string of the comment line, with information
@@ -100,27 +92,7 @@ class config_parser {
     config_parser(const logger& logger, string&& file, string&& bar);
 
     /**
-     * \brief Performs the parsing of the main config file
-     *
-     * Goes through multiple steps:
-     * - Reads and parses all the lines in the config file while resolving
-     *   include-file directives and detecting cyclic dependencies in those
-     *   directives.
-     * - Builds a graph. The nodes are key value pairs and (u, v) is an edge,
-     *   when the value of u references v (via ${section.key} and the like)
-     * - The topological order is calculated. If that is not possible, there
-     *   are cyclic dependencies in the config and it is not valid. We reverse
-     *   the topological order, traverse the nodes in that order and
-     *   dereference all references. In the end no valid ${...} references
-     *   should be left.
-     * - Builds a second graph. The nodes are sections and (u, v) is and edge,
-     *   iff u has an inherit key that points to v.
-     * - The topological order of this second graph is calculated and all
-     *   sections without an inherit key are ignored.
-     * - The topological order is reversed, the sections are traversed in
-     *   that order, and the keys of the inherited sections are pulled in.
-     *   Here, there shouldn't be any inherit keys left.
-     * - Finally the data is put into a sectionmap_t
+     * \brief Performs the parsing of the main config file m_file
      *
      * \returns config class instance populated with the parsed config
      *
@@ -132,27 +104,25 @@ class config_parser {
   protected:
 
     /**
-     * \brief Converts lines vector to a proper sectionmap
-     *
-     * Also searches for references in the values
+     * \brief Converts the `lines` vector to a proper sectionmap
      */
     sectionmap_t create_sectionmap();
 
     /**
-     * \brief Parses the given file and extracts key-value pairs and section
+     * \brief Parses the given file, extracts key-value pairs and section
      *        headers and adds them onto the `lines` vector
      *
      * This method directly resolves `include-file` directives and checks for
      * cyclic dependencies
      *
-     * file is expected to be an already resolved absolute or relative path
+     * `file` is expected to be an already resolved absolute path
      */
     void parse_file(string file, file_list path);
 
     /**
-     * \brief Parses the given line string creates a line_t struct
+     * \brief Parses the given line string to create a line_t struct
      *
-     * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file);
+     * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file)
      * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
      * Keys and section names can contain any character except for the following:
      * - spaces
@@ -186,10 +156,10 @@ class config_parser {
     line_t parse_line(string line);
 
     /**
-     * \brief Deterimes the type of a line read from a config file
+     * \brief Determines the type of a line read from a config file
      *
      * Expects that line is trimmed
-     * This only looks at the first character and doesn't check if the line is
+     * This mainly looks at the first character and doesn't check if the line is
      * actually syntactically correct.
      * HEADER ('['), COMMENT (';' or '#') and EMPTY (None) are uniquely
      * identified by their first character (or lack thereof). Any line that
@@ -210,7 +180,7 @@ class config_parser {
 
     /**
      * \brief Parses a line containing a key-value pair and returns the key name
-     *        and the value string inside a std::pair
+     *        and the value string inside an std::pair
      *
      * Only assumes that the line contains '=' at least once and is trimmed
      *
@@ -245,7 +215,7 @@ class config_parser {
     const logger& m_log;
 
     /**
-     * \brief Full path to the main config file
+     * \brief Absolute path to the main config file
      */
     string m_file;
 
@@ -270,12 +240,12 @@ class config_parser {
     /*
      * \brief List of names that cannot be used as section names
      *
-     * These strings have inside references and so the section [self] could
-     * never be referenced.
+     * These strings have a special meaning inside references and so the
+     * section [self] could never be referenced.
+     *
+     * Note: BAR is deprecated
      */
-    std::set<string> reserved_section_names = {
-      "self", "BAR", "root",
-    };
+    std::set<string> reserved_section_names = {"self", "BAR", "root"};
 };
 
 POLYBAR_NS_END
