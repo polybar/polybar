@@ -94,8 +94,23 @@ void config_parser::parse_file(string file, file_list path) {
 
   m_log.trace("config_parser: Parsing %s", file);
 
-  int file_index = files.size();
-  files.push_back(file);
+  int file_index;
+
+  auto found = std::find(files.begin(), files.end(), file);
+
+  if(found == files.end()) {
+    file_index = files.size();
+    files.push_back(file);
+  } else {
+    /*
+     * `file` is already in the `files` vector so we calculate its index.
+     *
+     * This means that the file was already parsed, this can happen without
+     * cyclic dependencies, if the file is included twice
+     */
+    file_index = found - files.begin();
+  }
+
   path.push_back(file);
 
   int line_no = 0;
