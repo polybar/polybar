@@ -175,9 +175,7 @@ line_t config_parser::parse_line(string line) {
   if(type == HEADER) {
     result.is_header = true;
     result.header = parse_header(line);
-  }
-
-  if(type == KEY) {
+  } else if(type == KEY) {
     result.is_header = false;
     auto key_value = parse_key(line);
     result.key_value[0] = key_value.first;
