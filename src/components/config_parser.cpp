@@ -52,8 +52,7 @@ sectionmap_t config_parser::create_sectionmap() {
 
     if(line.is_header) {
       current_section = line.header;
-    }
-    else {
+    } else {
       // The first valid line in the config is not a section definition
       if(current_section == "") {
         throw syntax_error("First valid line in config must be section header",
@@ -67,8 +66,7 @@ sectionmap_t config_parser::create_sectionmap() {
 
       if(valuemap.find(key) == valuemap.end()) {
         valuemap.emplace(key, value);
-      }
-      else {
+      } else {
         // Key already exists in this section
         throw syntax_error("Duplicate key name \"" + key
             + "\" defined in section \"" + current_section + "\"",
@@ -136,8 +134,7 @@ void config_parser::parse_file(string file, file_list path) {
       file_list cloned_path(path);
 
       parse_file(file_util::expand(line.key_value[1]), cloned_path);
-    }
-    else {
+    } else {
       lines.push_back(line);
     }
   }
@@ -191,8 +188,7 @@ line_type config_parser::get_line_type(string line) {
     default:
       if(string_util::contains(line, "=")) {
         return KEY;
-      }
-      else {
+      } else {
         return UNKNOWN;
       }
   }
