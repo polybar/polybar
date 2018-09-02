@@ -232,7 +232,7 @@ std::pair<string, string> config_parser::parse_key(string line) {
   /*
    * Use xrm, if at least one value is an xrdb reference
    */
-  if(!use_xrm && value.find("%{xrdb") == 0) {
+  if(!use_xrm && value.find("${xrdb") == 0) {
     use_xrm = true;
   }
 #endif
