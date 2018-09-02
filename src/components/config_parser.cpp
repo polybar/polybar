@@ -10,7 +10,7 @@ config_parser::config_parser(const logger& logger, string&& file, string&& bar)
   m_barname(forward<string>(bar)) {}
 
 config::make_type config_parser::parse() {
-  m_log.trace("Parsing config file: %s", m_file);
+  m_log.info("Parsing config file: %s", m_file);
 
   parse_file(m_file, {});
 
@@ -86,9 +86,19 @@ sectionmap_t config_parser::create_sectionmap() {
 
 void config_parser::parse_file(string file, file_list path) {
   if(std::find(path.begin(), path.end(), file) != path.end()) {
+    string path_str{};
+
+    for (auto p : path) {
+      path_str += ">\t" + p + "\n";
+    }
+
+    path_str += ">\t" + file;
+
     // We have already parsed this file in this path, so there are cyclic dependencies
-    throw application_error("include-file: Dependency cycle detected at " + file);
+    throw application_error("include-file: Dependency cycle detected:\n" + path_str);
   }
+
+  m_log.trace("config_parser: Parsing %s", file);
 
   int file_index = files.size();
   files.push_back(file);
