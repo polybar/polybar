@@ -39,7 +39,7 @@ string(REGEX REPLACE "-Werror[^ ]*" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 string(REPLACE "-pedantic-errors" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 function(unit_test file tests)
-  set(multi_value_args SOURCES)
+  set(multi_value_args SOURCES RAW_DEPENDS)
 
   cmake_parse_arguments("BIN" "" "" "${multi_value_args}" ${ARGN})
 
@@ -59,7 +59,7 @@ function(unit_test file tests)
   add_executable(${name} unit_tests/${file}.cpp ${sources})
 
   # Link against gmock (this automatically links against gtest)
-  target_link_libraries(${name} gmock_main ${libs})
+  target_link_libraries(${name} gmock_main ${libs} ${BIN_RAW_DEPENDS})
 
   add_test(NAME ${name} COMMAND ${name})
 
@@ -99,7 +99,9 @@ unit_test(components/bar unit_tests)
 
 unit_test(components/builder unit_tests
   SOURCES
-  ${files})
+  ${files}
+  RAW_DEPENDS
+  polybar-modules-internal_shared)
 
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})
