@@ -43,6 +43,11 @@ endif()
 
 if(ENABLE_NETWORK)
   list(APPEND net-src ../adapters/net.cpp network.cpp)
+  if(WITH_LIBNL)
+    list(APPEND net-src ../adapters/net_nl.cpp)
+  else()
+    list(APPEND net-src ../adapters/net_iw.cpp)
+  endif()
   make_library(polybar-modules-network
     MODULE
     SOURCES
