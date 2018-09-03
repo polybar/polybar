@@ -27,7 +27,6 @@ make_executable(polybar
     polybar-modules-internal_shared
   RAW_DEPENDS
     ${libs}
-    ${CMAKE_DL_LIBS}
     Threads::Threads)
 
 target_compile_options(polybar PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)

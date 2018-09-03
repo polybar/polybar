@@ -4,11 +4,9 @@
 
 find_package(Threads REQUIRED)
 list(APPEND libs ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND libs ${CMAKE_DL_LIBS})
 
-querylib(TRUE "pkg-config" cairo-fc cairo-libs cairo-dirs)
-list(APPEND libs ${cairo-libs})
-list(APPEND dirs ${cairo-dirs})
-
+querylib(TRUE "pkg-config" cairo-fc libs dirs)
 querylib(ENABLE_ALSA "pkg-config" alsa alsa-libs alsa-dirs)
 querylib(ENABLE_CURL "pkg-config" libcurl curl-libs curl-dirs)
 querylib(ENABLE_MPD "pkg-config" libmpdclient mpd-libs mpd-dirs)
