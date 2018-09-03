@@ -1,0 +1,12 @@
+add_sources(files
+  bar.cpp
+  builder.cpp
+  command_line.cpp
+  config.cpp
+  controller.cpp
+  ipc.cpp
+  logger.cpp
+  parser.cpp
+  renderer.cpp
+  screen.cpp
+  taskqueue.cpp)

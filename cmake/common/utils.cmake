@@ -191,6 +191,16 @@ endfunction()
 
 # }}}
 
+# add_sources {{{
+macro(add_sources varname)
+  foreach(SRC ${ARGN})
+    list(APPEND ${varname} ${CMAKE_CURRENT_SOURCE_DIR}/${SRC})
+  endforeach()
+  set(${varname} ${${varname}} PARENT_SCOPE)
+endmacro()
+
+# }}}
+
 # queryfont {{{
 
 function(queryfont output_variable fontname)

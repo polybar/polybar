@@ -1,8 +1,3 @@
-make_library(polybar-events
-  STATIC
-  INTERNAL
-  SOURCES
+add_sources(files
     signal_emitter.cpp
-    signal_receiver.cpp
-  INCLUDE_DIRS
-    ${dirs})
+    signal_receiver.cpp)

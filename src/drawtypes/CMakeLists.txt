@@ -1,13 +1,6 @@
-make_library(polybar-drawtypes
-  STATIC
-  INTERNAL
-  SOURCES
+add_sources(files
     animation.cpp
     iconset.cpp
     label.cpp
     progressbar.cpp
-    ramp.cpp
-  INCLUDE_DIRS
-    ${dirs}
-  RAW_DEPENDS
-    ${libs})
+    ramp.cpp)

@@ -120,5 +120,4 @@ make_library(polybar-modules-internal
   INCLUDE_DIRS
     ${dirs}
   RAW_DEPENDS
-    ${libs}
-    polybar-utils-bspwm_shared)
+    ${libs})

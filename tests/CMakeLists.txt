@@ -47,9 +47,10 @@ function(unit_test file tests)
   # unit_test function become cleaner
   SET(sources "")
   FOREACH(f ${BIN_SOURCES})
-    # Do not add main.cpp, because it will override the main function
-    if(NOT "${f}" STREQUAL "main.cpp")
+    if(NOT IS_ABSOLUTE ${f})
       LIST(APPEND sources "../src/${f}")
+    else()
+      LIST(APPEND sources ${f})
     endif()
   ENDFOREACH(f)
 
