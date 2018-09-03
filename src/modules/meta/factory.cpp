@@ -9,11 +9,11 @@ namespace modules {
     return fmap;
   }
 
-  module_interface* make_module(string&& name, const bar_settings& bar, string module_name) {
+  module_interface* make_module(string&& name, const bar_settings& bar, string module_name, const logger& m_log) {
     const auto& fmap = get_factory_map();
     auto it = fmap.find(name);
     if (it != fmap.end()) {
-      return it->second(bar, move(module_name));
+      return it->second(bar, move(module_name), m_log);
     } else {
       throw application_error("Unknown module: " + name);
     }
