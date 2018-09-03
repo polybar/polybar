@@ -13,7 +13,7 @@ POLYBAR_NS
 namespace modules {
   template class module<xkeyboard_module>;
 
-  POLYBAR_MODULE(xkeyboard_module, "xkeyboard");
+  POLYBAR_MODULE(xkeyboard_module, "internal/xkeyboard");
 
   /**
    * Construct module
