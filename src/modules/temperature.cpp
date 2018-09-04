@@ -51,11 +51,11 @@ namespace modules {
 
   bool temperature_module::update() {
     m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
-    int m_temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
+    int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
     m_perc = math_util::cap(math_util::percentage(m_temp, 0, m_tempwarn), 0, 100);
 
     string temp_c_string = to_string(m_temp);
-    string temp_f_string = to_string(m_temp_f);
+    string temp_f_string = to_string(temp_f);
 
     // Add units if `units = true` in config
     if(m_units) {
