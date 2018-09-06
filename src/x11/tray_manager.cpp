@@ -382,7 +382,7 @@ void tray_manager::reconfigure_clients() {
  * Reconfigure root pixmap
  */
 void tray_manager::reconfigure_bg(bool realloc) {
-  if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
+  if (m_clients.empty() || !m_mapped) {
     return;
   } else if (!m_rootpixmap) {
     realloc = true;
