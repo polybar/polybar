@@ -117,6 +117,11 @@ struct action_block : public action {
   }
 };
 
+struct icon_data {
+   std::vector<unsigned int> buf{};
+   unsigned int id;
+}
+
 struct bar_settings {
   explicit bar_settings() = default;
   bar_settings(const bar_settings& other) = default;
@@ -169,6 +174,8 @@ struct bar_settings {
     1U, 1U
   };
   position shade_pos{1U, 1U};
+
+  vector<icon_data> icons{};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect = this->outer_area(abspos);
