@@ -140,7 +140,7 @@ namespace modules {
 
    protected:
     signal_emitter& m_sig;
-    const bar_settings m_bar;
+    bar_settings m_bar;
     const logger& m_log;
     const config& m_conf;
 

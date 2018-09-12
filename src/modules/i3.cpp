@@ -14,7 +14,7 @@ POLYBAR_NS
 namespace modules {
   template class module<i3_module>;
 
-  i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
+  i3_module::i3_module(bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
     auto socket_path = i3ipc::get_socketpath();
 
     if (!file_util::exists(socket_path)) {
@@ -116,7 +116,7 @@ namespace modules {
     }
   }
 
-  std::vector<std::string> getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree) {
+  std::vector<std::string> i3_module::getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree) {
     std::vector<std::string> windows;
     auto t = *tree;
 
@@ -125,8 +125,8 @@ namespace modules {
       auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
 
       if (!icon.empty()) {
-        auto b64 = base64_encode(icon.data(), icon.size());
-        windows.push_back(b64);
+        m_bar.icons.emplace_back(move(icon), xwindow_id);
+        windows.push_back(to_string(xwindow_id));
       }
     }
 

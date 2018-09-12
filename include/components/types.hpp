@@ -118,9 +118,16 @@ struct action_block : public action {
 };
 
 struct icon_data {
-   std::vector<unsigned int> buf{};
-   unsigned int id;
-}
+   std::vector<unsigned char> buf{};
+   uint64_t id;
+
+   icon_data(vector<unsigned char> buf, uint64_t id) : buf(buf), id(id) {}
+   //icon_data(icon_data&& data) : id(data.id) {
+   //  buf = move(data.buf);
+   //}
+
+   ~icon_data() {}
+};
 
 struct bar_settings {
   explicit bar_settings() = default;

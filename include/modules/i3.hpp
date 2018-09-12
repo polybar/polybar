@@ -47,7 +47,7 @@ namespace modules {
     };
 
    public:
-    explicit i3_module(const bar_settings&, string);
+    explicit i3_module(bar_settings&, string);
 
     void stop();
     bool has_event();
@@ -58,6 +58,8 @@ namespace modules {
     bool input(string&& cmd);
 
    private:
+    std::vector<std::string> getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree);
+
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};
     static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};

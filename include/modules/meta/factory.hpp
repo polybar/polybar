@@ -52,7 +52,7 @@ POLYBAR_NS
 using namespace modules;
 
 namespace {
-  module_interface* make_module(string&& name, const bar_settings& bar, string module_name, const logger& m_log) {
+  module_interface* make_module(string&& name, bar_settings& bar, string module_name, const logger& m_log) {
     if (name == "internal/counter") {
       return new counter_module(bar, move(module_name));
     } else if (name == "internal/backlight") {
