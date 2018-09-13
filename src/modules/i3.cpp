@@ -116,8 +116,8 @@ namespace modules {
     }
   }
 
-  std::vector<std::string> i3_module::getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree) {
-    std::vector<std::string> windows;
+  vector<string> i3_module::get_windows_for_tree(shared_ptr<i3ipc::container_t> tree) {
+    vector<string> windows;
     auto t = *tree;
 
     if (tree->xwindow_id != 0) {
@@ -133,8 +133,8 @@ namespace modules {
     }
 
     for (auto sub_tree : tree->nodes) {
-      auto newVec = getApplicationsForTree(sub_tree);
-      windows.insert(windows.end(), newVec.begin(), newVec.end());
+      auto new_vec = get_windows_for_tree(sub_tree);
+      windows.insert(windows.end(), new_vec.begin(), new_vec.end());
     }
 
     return windows;
@@ -152,9 +152,9 @@ namespace modules {
     i3_util::connection_t ipc;
 
     auto list = ipc.get_tree()->nodes;
-    std::vector<std::shared_ptr<i3ipc::container_t>> mons(std::begin(list), std::end(list));
+    vector<shared_ptr<i3ipc::container_t>> mons(begin(list), end(list));
 
-    std::map<std::string, std::vector<std::string>> map;
+    map<string, vector<string>> map;
 
     if (m_show_icons) {
       auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
@@ -166,8 +166,8 @@ namespace modules {
         for (auto cont : monitor->nodes) {
           if (cont->type == "con" && cont->name == "content") {
             for (auto workspace : cont->nodes) {
-              auto applications = getApplicationsForTree(workspace);
-              map.insert(std::make_pair(workspace->name, applications));
+              auto windows = get_windows_for_tree(workspace);
+              map.emplace(workspace->name, windows);
             }
           }
         }
@@ -254,8 +254,7 @@ namespace modules {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
         }
 
-
-        if (m_icons_side == "left") {
+        auto set_icons = [&]() {
           for (auto ic : ws->icons) {
             auto icon = factory_util::shared<real_icon>("");
             icon->m_background = ws->label->m_background;
@@ -265,20 +264,16 @@ namespace modules {
             icon->m_location = ic;
             builder->node(icon);
           }
+        };
+
+        if (m_icons_side == "left") {
+          set_icons();
         }
 
         builder->node(ws->label);
 
         if (m_icons_side == "right") {
-          for (auto ic : ws->icons) {
-            auto icon = factory_util::shared<real_icon>("");
-            icon->m_background = ws->label->m_background;
-            icon->m_underline = ws->label->m_underline;
-            icon->m_overline = ws->label->m_overline;
-            icon->m_padding = side_values{1, 1};
-            icon->m_location = ic;
-            builder->node(icon);
-          }
+          set_icons();
         }
 
         if (m_click) {

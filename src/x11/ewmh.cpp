@@ -55,7 +55,7 @@ namespace ewmh_util {
     return "";
   }
 
-  std::vector<unsigned char> get_wm_icon(xcb_window_t win) {
+  vector<unsigned char> get_wm_icon(xcb_window_t win) {
     auto conn = initialize().get();
     auto cookie = xcb_ewmh_get_wm_icon(conn, win);
     xcb_ewmh_get_wm_icon_reply_t reply{};
@@ -65,12 +65,12 @@ namespace ewmh_util {
       auto height = iter.height;
       auto data = iter.data;
       auto uc_data = (unsigned char*)data;
-      std::vector<unsigned char> icon(uc_data, uc_data + width * height * 4);
+      vector<unsigned char> icon(uc_data, uc_data + width * height * 4);
       xcb_ewmh_get_wm_icon_reply_wipe(&reply);
       return icon;
     }
 
-    return std::vector<unsigned char>();
+    return vector<unsigned char>();
   }
 
   string get_icon_name(xcb_window_t win) {

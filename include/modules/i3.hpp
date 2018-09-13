@@ -35,7 +35,7 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(string name, enum state state_, label_t&& label, std::vector<std::string> icons)
+      explicit workspace(string name, enum state state_, label_t&& label, vector<string> icons)
           : name(name), state(state_), label(forward<label_t>(label)), icons(icons) {}
 
       operator bool();
@@ -43,7 +43,7 @@ namespace modules {
       string name;
       enum state state;
       label_t label;
-      std::vector<std::string> icons;
+      vector<string> icons;
     };
 
    public:
@@ -58,7 +58,7 @@ namespace modules {
     bool input(string&& cmd);
 
    private:
-    std::vector<std::string> getApplicationsForTree(std::shared_ptr<i3ipc::container_t> tree);
+    vector<string> get_windows_for_tree(shared_ptr<i3ipc::container_t> tree);
 
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};

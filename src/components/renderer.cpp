@@ -650,7 +650,7 @@ void renderer::draw_icon(const string& icon_location) {
   auto height = m_rect.height;
 
   vector<unsigned int> vec(dest_icon_size * height);
-  std::fill(vec.begin(), vec.end(), m_bg);
+  fill(vec.begin(), vec.end(), m_bg);
 
   cairo_surface_t* surface = cairo_image_surface_create_for_data(
       (unsigned char*)vec.data(), CAIRO_FORMAT_ARGB32, dest_icon_size, height, dest_icon_size * 4);
