@@ -19,7 +19,7 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(bar_settings& bar) {
+renderer::make_type renderer::make(const bar_settings& bar) {
   // clang-format off
   return factory_util::unique<renderer>(
       connection::make(),
@@ -35,12 +35,12 @@ renderer::make_type renderer::make(bar_settings& bar) {
  * Construct renderer instance
  */
 renderer::renderer(
-    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, bar_settings& bar, background_manager& background)
+    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar, background_manager& background)
     : m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
-    , m_bar(forward<bar_settings&>(bar))
+    , m_bar(forward<const bar_settings&>(bar))
     , m_rect(m_bar.inner_area()) {
 
   m_sig.attach(this);
@@ -638,7 +638,8 @@ cairo_surface_t* resize_surface(cairo_surface_t* old_surface, double new_width, 
 
 void renderer::draw_icon(const string& icon_location) {
   auto id = stoull(icon_location);
-  vector<icon_data>& icon_vec = m_bar.icons;
+  auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
+
   auto icon_iter = find_if(icon_vec.begin(), icon_vec.end(), [&](const struct icon_data& i) {
     return i.id == id;
   });
@@ -684,8 +685,6 @@ void renderer::draw_icon(const string& icon_location) {
   fill_overline(origin.x, dest_icon_size);
 
   m_blocks[m_align].x += dest_icon_size;
-
-  icon_vec.erase(icon_iter);
 }
 
 /**

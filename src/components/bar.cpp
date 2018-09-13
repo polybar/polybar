@@ -315,7 +315,7 @@ bar::~bar() {
 /**
  * Get the bar settings container
  */
-bar_settings& bar::settings() {
+const bar_settings& bar::settings() const {
   return m_opts;
 }
 

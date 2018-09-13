@@ -120,7 +120,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings bar, string name);
+    module(const bar_settings& bar, string name);
     ~module() noexcept;
 
     string name() const;
@@ -140,7 +140,7 @@ namespace modules {
 
    protected:
     signal_emitter& m_sig;
-    bar_settings m_bar;
+    const bar_settings& m_bar;
     const logger& m_log;
     const config& m_conf;
 

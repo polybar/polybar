@@ -47,7 +47,7 @@ namespace modules {
     };
 
    public:
-    explicit i3_module(bar_settings&, string);
+    explicit i3_module(const bar_settings&, string);
 
     void stop();
     bool has_event();

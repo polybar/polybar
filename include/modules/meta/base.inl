@@ -11,7 +11,7 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings bar, string name)
+  module<Impl>::module(const bar_settings& bar, string name)
       : m_sig(signal_emitter::make())
       , m_bar(bar)
       , m_log(logger::make())

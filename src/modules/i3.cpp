@@ -14,7 +14,7 @@ POLYBAR_NS
 namespace modules {
   template class module<i3_module>;
 
-  i3_module::i3_module(bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
+  i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
     auto socket_path = i3ipc::get_socketpath();
 
     if (!file_util::exists(socket_path)) {
@@ -125,7 +125,9 @@ namespace modules {
       auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
 
       if (!icon.empty()) {
-        m_bar.icons.emplace_back(move(icon), xwindow_id);
+        // un-const bar_settings (m_bar)
+        auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
+        icon_vec.emplace_back(icon, xwindow_id);
         windows.push_back(to_string(xwindow_id));
       }
     }
@@ -155,6 +157,9 @@ namespace modules {
     std::map<std::string, std::vector<std::string>> map;
 
     if (m_show_icons) {
+      auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
+      icon_vec.clear();
+
       for (auto monitor : mons) {
         for (auto cont : monitor->nodes) {
           if (cont->type == "con" && cont->name == "content") {

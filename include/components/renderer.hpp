@@ -39,10 +39,10 @@ class renderer
           signals::parser::text, signals::parser::icon> {
  public:
   using make_type = unique_ptr<renderer>;
-  static make_type make(bar_settings& bar);
+  static make_type make(const bar_settings& bar);
 
   explicit renderer(
-      connection& conn, signal_emitter& sig, const config&, const logger& logger, bar_settings& bar, background_manager& background_manager);
+      connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar, background_manager& background_manager);
   ~renderer();
 
   xcb_window_t window() const;
@@ -99,7 +99,7 @@ class renderer
   signal_emitter& m_sig;
   const config& m_conf;
   const logger& m_log;
-  bar_settings& m_bar;
+  const bar_settings& m_bar;
   std::shared_ptr<bg_slice> m_background;
 
   int m_depth{32};
