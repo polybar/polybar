@@ -1,4 +1,6 @@
-![Polybar](banner.png)
+<p align="center">
+	<img src="banner.png" alt="Polybar">
+</p>
 
 [![Release](https://img.shields.io/github/release/jaagr/polybar.svg)](https://github.com/jaagr/polybar/releases)
 [![Build Status](https://travis-ci.org/jaagr/polybar.svg?branch=master)](https://travis-ci.org/jaagr/polybar)
