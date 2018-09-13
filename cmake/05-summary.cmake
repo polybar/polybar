@@ -17,7 +17,7 @@ colored_option("   alsa" ENABLE_ALSA)
 colored_option("   curl" ENABLE_CURL)
 colored_option("   i3" ENABLE_I3)
 colored_option("   mpd" ENABLE_MPD)
-colored_option("   network" ENABLE_NETWORK)
+colored_option("   network (${WIRELESS_LIB})" ENABLE_NETWORK)
 colored_option("   pulseaudio" ENABLE_PULSEAUDIO)
 colored_option("   xkeyboard" WITH_XKB)
 
