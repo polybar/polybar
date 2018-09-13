@@ -658,8 +658,9 @@ void renderer::draw_icon(const string& icon_location) {
   cairo_t* cr = cairo_create(surface);
   auto image = cairo_image_surface_create_for_data(
       (unsigned char*)icon_data.data(), CAIRO_FORMAT_ARGB32, icon_size, icon_size, icon_size * 4);
-  if (image == nullptr) {
-    m_log.err("Cannot create icon");
+  auto status = cairo_surface_status(image);
+  if (status != CAIRO_STATUS_SUCCESS) {
+    m_log.err("Cannot create icon: %s", cairo_status_to_string(status));
     return;
   }
 
