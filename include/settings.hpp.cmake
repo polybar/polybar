@@ -21,6 +21,7 @@
 #cmakedefine01 ENABLE_MPD
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 WITH_LIBNL
+#define WIRELESS_LIB "@WIRELESS_LIB@"
 #cmakedefine01 ENABLE_I3
 #cmakedefine01 ENABLE_CURL
 #cmakedefine01 ENABLE_PULSEAUDIO
@@ -102,12 +103,13 @@ const auto version_details = [](const std::vector<std::string>& args) {
 // clang-format off
 const auto print_build_info = [](bool extended = false) {
   printf("%s %s\n\n", APP_NAME, APP_VERSION);
-  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork %cpulseaudio %cxkeyboard\n",
+  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork(%s) %cpulseaudio %cxkeyboard\n",
     (ENABLE_ALSA       ? '+' : '-'),
     (ENABLE_CURL       ? '+' : '-'),
     (ENABLE_I3         ? '+' : '-'),
     (ENABLE_MPD        ? '+' : '-'),
     (ENABLE_NETWORK    ? '+' : '-'),
+    WIRELESS_LIB,
     (ENABLE_PULSEAUDIO ? '+' : '-'),
     (ENABLE_XKEYBOARD  ? '+' : '-'));
   if (extended) {
