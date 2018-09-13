@@ -56,6 +56,14 @@ enum class strut {
   BOTTOM_END_X,
 };
 
+enum class icon_module {
+  NONE = 0,
+  BSPWM,
+  I3,
+  XWORKSPACES,
+  TRAY,
+};
+
 struct position {
   int x{0};
   int y{0};
@@ -120,8 +128,10 @@ struct action_block : public action {
 struct icon_data {
    std::vector<unsigned char> buf{};
    uint64_t id;
+   icon_module module{icon_module::NONE};
 
-   icon_data(vector<unsigned char> buf, uint64_t id) : buf(buf), id(id) {}
+   icon_data(vector<unsigned char> buf, uint64_t id, icon_module module) :
+       buf(buf), id(id), module(module) {}
 };
 
 struct bar_settings {

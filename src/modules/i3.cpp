@@ -127,7 +127,7 @@ namespace modules {
       if (!icon.empty()) {
         // un-const bar_settings (m_bar)
         auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-        icon_vec.emplace_back(icon, xwindow_id);
+        icon_vec.emplace_back(icon, xwindow_id, icon_module::I3);
         windows.push_back(to_string(xwindow_id));
       }
     }
@@ -158,7 +158,9 @@ namespace modules {
 
     if (m_show_icons) {
       auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-      icon_vec.clear();
+      icon_vec.erase(remove_if(icon_vec.begin(), icon_vec.end(), [](const struct icon_data& i) {
+        return i.module == icon_module::I3;
+      }), icon_vec.end());
 
       for (auto monitor : mons) {
         for (auto cont : monitor->nodes) {

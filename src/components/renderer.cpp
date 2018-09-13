@@ -639,7 +639,6 @@ cairo_surface_t* resize_surface(cairo_surface_t* old_surface, double new_width, 
 void renderer::draw_icon(const string& icon_location) {
   auto id = stoull(icon_location);
   auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-
   auto icon_iter = find_if(icon_vec.begin(), icon_vec.end(), [&](const struct icon_data& i) {
     return i.id == id;
   });
