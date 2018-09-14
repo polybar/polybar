@@ -2,12 +2,16 @@
 	<img src="banner.png" alt="Polybar">
 </p>
 
+<p align="center">
 [![Release](https://img.shields.io/github/release/jaagr/polybar.svg)](https://github.com/jaagr/polybar/releases)
 [![Build Status](https://travis-ci.org/jaagr/polybar.svg?branch=master)](https://travis-ci.org/jaagr/polybar)
 [![Coverage Status](https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg)](https://codecov.io/gh/jaagr/polybar/branch/master)
 [![MIT License](https://img.shields.io/github/license/jaagr/polybar.svg)](https://github.com/jaagr/polybar/blob/master/LICENSE)
+</p>
 
+<p align="center">
 A fast and easy-to-use tool for creating status bars.
+</p>
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
@@ -18,7 +22,7 @@ Here are a few screenshots showing you what it can look like:
 [![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
 [![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
 
-You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes). 
+You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
 
 If you need help, check out the [Support](SUPPORT.md) page.
