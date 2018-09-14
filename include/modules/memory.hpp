@@ -21,6 +21,10 @@ namespace modules {
     static constexpr const char* TAG_BAR_FREE{"<bar-free>"};
     static constexpr const char* TAG_RAMP_USED{"<ramp-used>"};
     static constexpr const char* TAG_RAMP_FREE{"<ramp-free>"};
+    static constexpr const char* TAG_BAR_SWAP_USED{"<bar-swap-used>"};
+    static constexpr const char* TAG_BAR_SWAP_FREE{"<bar-swap-free>"};
+    static constexpr const char* TAG_RAMP_SWAP_USED{"<ramp-swap-used>"};
+    static constexpr const char* TAG_RAMP_SWAP_FREE{"<ramp-swap-free>"};
 
     label_t m_label;
     progressbar_t m_bar_memused;
@@ -29,8 +33,12 @@ namespace modules {
     int m_perc_memfree{0};
     ramp_t m_ramp_memused;
     ramp_t m_ramp_memfree;
+    progressbar_t m_bar_swapused;
+    progressbar_t m_bar_swapfree;
     int m_perc_swap_used{0};
     int m_perc_swap_free{0};
+    ramp_t m_ramp_swapused;
+    ramp_t m_ramp_swapfree;
   };
 }
 

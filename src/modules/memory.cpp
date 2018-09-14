@@ -18,7 +18,8 @@ namespace modules {
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE, 
+                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
       m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
@@ -32,6 +33,19 @@ namespace modules {
     if(m_formatter->has(TAG_RAMP_FREE)) {
       m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
+    if (m_formatter->has(TAG_BAR_SWAP_USED)) {
+      m_bar_swapused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_USED);
+    }
+    if (m_formatter->has(TAG_BAR_SWAP_FREE)) {
+      m_bar_swapfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_FREE);
+    }
+    if(m_formatter->has(TAG_RAMP_SWAP_USED)) {
+      m_ramp_swapused = load_ramp(m_conf, name(), TAG_RAMP_SWAP_USED);
+    }
+    if(m_formatter->has(TAG_RAMP_SWAP_FREE)) {
+      m_ramp_swapfree = load_ramp(m_conf, name(), TAG_RAMP_SWAP_FREE);
+    }
+
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
     }
@@ -116,6 +130,14 @@ namespace modules {
       builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
     } else if (tag == TAG_RAMP_USED) {
       builder->node(m_ramp_memused->get_by_percentage(m_perc_memused));
+    } else if (tag == TAG_BAR_SWAP_USED) {
+      builder->node(m_bar_swapused->output(m_perc_swap_used));
+    } else if (tag == TAG_BAR_SWAP_FREE) {
+      builder->node(m_bar_swapfree->output(m_perc_swap_free));
+    } else if (tag == TAG_RAMP_SWAP_FREE) {
+      builder->node(m_ramp_swapfree->get_by_percentage(m_perc_swap_free));
+    } else if (tag == TAG_RAMP_SWAP_USED) {
+      builder->node(m_ramp_swapused->get_by_percentage(m_perc_swap_used));
     } else {
       return false;
     }
