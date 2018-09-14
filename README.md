@@ -3,14 +3,14 @@
 </p>
 
 <p align="center">
-[![Release](https://img.shields.io/github/release/jaagr/polybar.svg)](https://github.com/jaagr/polybar/releases)
-[![Build Status](https://travis-ci.org/jaagr/polybar.svg?branch=master)](https://travis-ci.org/jaagr/polybar)
-[![Coverage Status](https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg)](https://codecov.io/gh/jaagr/polybar/branch/master)
-[![MIT License](https://img.shields.io/github/license/jaagr/polybar.svg)](https://github.com/jaagr/polybar/blob/master/LICENSE)
+A fast and easy-to-use tool for creating status bars.
 </p>
 
 <p align="center">
-A fast and easy-to-use tool for creating status bars.
+<a href="https://github.com/jaagr/polybar/releases"><img src="https://img.shields.io/github/release/jaagr/polybar.svg"></a>
+<a href="https://travis-ci.org/jaagr/polybar"><img src="https://travis-ci.org/jaagr/polybar.svg?branch=master"></a>
+<a href="https://codecov.io/gh/jaagr/polybar/branch/master"><img src="https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg"></a>
+<a href="https://github.com/jaagr/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/jaagr/polybar.svg"></a>
 </p>
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
