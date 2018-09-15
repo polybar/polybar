@@ -125,7 +125,7 @@ namespace modules {
       auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
 
       if (!icon.empty()) {
-        m_bar.icon_manager->add_icon(icon, xwindow_id, dynamic_cast<modules::module_interface*>(this));
+        m_bar.icon_manager->add_icon(icon, xwindow_id, this);
         windows.push_back(to_string(xwindow_id));
       }
     }
@@ -155,7 +155,7 @@ namespace modules {
     map<string, vector<string>> map;
 
     if (m_show_icons) {
-      m_bar.icon_manager->clear_icons(dynamic_cast<modules::module_interface*>(this));
+      m_bar.icon_manager->clear_icons(this);
 
       for (auto monitor : mons) {
         for (auto cont : monitor->nodes) {

@@ -15,7 +15,7 @@ namespace modules {
 
 class icon_manager {
  public:
-  explicit icon_manager();
+  explicit icon_manager() {};
   void add_icon(vector<unsigned char> buf, uint64_t id, modules::module_interface* module);
   //vector<unsigned char>& get_icon(uint64_t id, modules::module_interface* module);
   vector<unsigned char>& get_icon(uint64_t id);

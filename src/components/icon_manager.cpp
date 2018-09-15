@@ -4,8 +4,6 @@
 
 POLYBAR_NS
 
-icon_manager::icon_manager() {}
-
 /**
  * Add an icon to the vector of icons
  */

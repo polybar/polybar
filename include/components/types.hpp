@@ -4,7 +4,6 @@
 
 #include <string>
 #include <unordered_map>
-#include <mutex>
 
 #include "common.hpp"
 #include "components/icon_manager.hpp"
