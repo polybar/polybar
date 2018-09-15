@@ -127,7 +127,7 @@ namespace modules {
       if (!icon.empty()) {
         // un-const bar_settings (m_bar)
         auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-        icon_vec.emplace_back(icon, xwindow_id, icon_module::I3);
+        icon_vec.emplace_back(icon, xwindow_id, dynamic_cast<modules::module_interface *>(this));
         windows.push_back(to_string(xwindow_id));
       }
     }
@@ -157,9 +157,13 @@ namespace modules {
     map<string, vector<string>> map;
 
     if (m_show_icons) {
+      auto& icon_lock = const_cast<std::mutex&>(m_bar.icon_lock);
+      std::lock_guard<std::mutex> guard(icon_lock);
+
       auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-      icon_vec.erase(remove_if(icon_vec.begin(), icon_vec.end(), [](const struct icon_data& i) {
-        return i.module == icon_module::I3;
+      auto iface = dynamic_cast<modules::module_interface*>(this);
+      icon_vec.erase(remove_if(icon_vec.begin(), icon_vec.end(), [&iface](const struct icon_data& i) {
+        return i.module == iface;
       }), icon_vec.end());
 
       for (auto monitor : mons) {

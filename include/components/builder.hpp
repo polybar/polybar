@@ -70,7 +70,7 @@ class builder {
   void tag_close(attribute attr);
 
  private:
-  const bar_settings m_bar;
+  const bar_settings& m_bar;
   string m_output;
 
   map<syntaxtag, int> m_tags{};

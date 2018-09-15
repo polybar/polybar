@@ -4,6 +4,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 #include "common.hpp"
 
@@ -12,6 +13,9 @@ POLYBAR_NS
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+namespace modules {
+  struct module_interface;
+}
 // }}}
 
 struct enum_hash {
@@ -54,14 +58,6 @@ enum class strut {
   TOP_END_X,
   BOTTOM_START_X,
   BOTTOM_END_X,
-};
-
-enum class icon_module {
-  NONE = 0,
-  BSPWM,
-  I3,
-  XWORKSPACES,
-  TRAY,
 };
 
 struct position {
@@ -128,9 +124,9 @@ struct action_block : public action {
 struct icon_data {
    std::vector<unsigned char> buf{};
    uint64_t id;
-   icon_module module{icon_module::NONE};
+   modules::module_interface *module;
 
-   icon_data(vector<unsigned char> buf, uint64_t id, icon_module module) :
+   icon_data(vector<unsigned char> buf, uint64_t id, modules::module_interface *module) :
        buf(buf), id(id), module(module) {}
 };
 
@@ -187,6 +183,7 @@ struct bar_settings {
   };
   position shade_pos{1U, 1U};
 
+  std::mutex icon_lock{};
   vector<icon_data> icons{};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
