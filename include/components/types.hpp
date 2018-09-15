@@ -15,6 +15,8 @@ struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
 // }}}
 
+using icon_manager_t = unique_ptr<icon_manager>;
+
 struct enum_hash {
   template <typename T>
   inline typename std::enable_if<std::is_enum<T>::value, size_t>::type operator()(T const value) const {
@@ -180,7 +182,7 @@ struct bar_settings {
   };
   position shade_pos{1U, 1U};
 
-  unique_ptr<icon_manager> icon_manager{};
+  icon_manager_t icon_manager;
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect = this->outer_area(abspos);
