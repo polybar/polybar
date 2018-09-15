@@ -7,15 +7,13 @@
 #include <mutex>
 
 #include "common.hpp"
+#include "components/icon_manager.hpp"
 
 POLYBAR_NS
 
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
-namespace modules {
-  struct module_interface;
-}
 // }}}
 
 struct enum_hash {
@@ -183,8 +181,7 @@ struct bar_settings {
   };
   position shade_pos{1U, 1U};
 
-  std::mutex icon_lock{};
-  vector<icon_data> icons{};
+  unique_ptr<icon_manager> icon_manager{};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect = this->outer_area(abspos);

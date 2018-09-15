@@ -2,6 +2,7 @@
 
 #include "components/bar.hpp"
 #include "components/config.hpp"
+#include "components/icon_manager.hpp"
 #include "components/parser.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
@@ -295,6 +296,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
       m_opts.size.h, m_opts.pos.x, m_opts.pos.y,
       m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size,
       m_opts.borders[edge::BOTTOM].size, m_opts.borders[edge::LEFT].size);
+
+  m_opts.icon_manager = std::make_unique<icon_manager>();
 
   m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);

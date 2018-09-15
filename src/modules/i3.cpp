@@ -125,9 +125,7 @@ namespace modules {
       auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
 
       if (!icon.empty()) {
-        // un-const bar_settings (m_bar)
-        auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-        icon_vec.emplace_back(icon, xwindow_id, dynamic_cast<modules::module_interface *>(this));
+        m_bar.icon_manager->add_icon(icon, xwindow_id, dynamic_cast<modules::module_interface*>(this));
         windows.push_back(to_string(xwindow_id));
       }
     }
@@ -157,14 +155,7 @@ namespace modules {
     map<string, vector<string>> map;
 
     if (m_show_icons) {
-      auto& icon_lock = const_cast<std::mutex&>(m_bar.icon_lock);
-      std::lock_guard<std::mutex> guard(icon_lock);
-
-      auto& icon_vec = const_cast<vector<icon_data>&>(m_bar.icons);
-      auto iface = dynamic_cast<modules::module_interface*>(this);
-      icon_vec.erase(remove_if(icon_vec.begin(), icon_vec.end(), [&iface](const struct icon_data& i) {
-        return i.module == iface;
-      }), icon_vec.end());
+      m_bar.icon_manager->clear_icons(dynamic_cast<modules::module_interface*>(this));
 
       for (auto monitor : mons) {
         for (auto cont : monitor->nodes) {
