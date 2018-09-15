@@ -172,6 +172,22 @@ namespace modules {
     return format->decorate(&*m_builder, m_builder->flush());
   }
 
+  template <typename Impl>
+  void module<Impl>::add_icon(vector<unsigned char> buf, uint64_t id) {
+    m_bar.icon_manager->add_icon(buf, id, this);
+  }
+
+  template <typename Impl>
+  vector<unsigned char>& module<Impl>::get_icon(uint64_t id) const {
+    return m_bar.icon_manager->get_icon(id);
+  }
+
+  template <typename Impl>
+  void module<Impl>::clear_icons() {
+    m_bar.icon_manager->clear_icons(this);
+  }
+
+
   // }}}
 }
 

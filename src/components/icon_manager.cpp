@@ -15,11 +15,8 @@ void icon_manager::add_icon(vector<unsigned char> buf, uint64_t id, modules::mod
 /**
  * Get icon by id and module if exists, otherwise get generic missing icon
  */
-//vector<unsigned char>& icon_manager::get_icon(uint64_t id, modules::module_interface* module) {
-// need module to get icon? what if two ids are the same, but diff modules?
 vector<unsigned char>& icon_manager::get_icon(uint64_t id) {
   auto icon = find_if(m_icons.begin(), m_icons.end(), [&](const struct icon_data& i) {
-    //return i.id == id && i.module == module;
     return i.id == id;
   });
   if (icon != m_icons.end()) {
