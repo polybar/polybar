@@ -97,25 +97,25 @@ If you are using **Gentoo**, both release and git-master versions are available 
 ### Dependencies
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
-- cairo
-- libxcb
-- python2
-- xcb-proto
-- xcb-util-image
-- xcb-util-wm
+- `cairo`
+- `libxcb`
+- `python2`
+- `xcb-proto`
+- `xcb-util-image`
+- `xcb-util-wm`
 
 **Optional dependencies:**
-- xcb-util-cursor *required for the `cursor-click` and `cursor-scroll` settings*
-- xcb-util-xrm *required for accessing X resources with `${xrdb:...}`*
+- `xcb-util-cursor` *required for the `cursor-click` and `cursor-scroll` settings*
+- `xcb-util-xrm` *required for accessing X resources with `${xrdb:...}`*
 
 **Optional dependencies for extended module support:**
-- alsa-lib *required by `internal/alsa`*
-- libpulse *required by `internal/pulseaudio`*
-- i3-wm *required by `internal/i3`*
-- jsoncpp *required by `internal/i3`*
-- libmpdclient *required by `internal/mpd`*
-- libcurl *required by `internal/github`*
-- libnl-genl or wireless_tools *required by `internal/network`*
+- `alsa-lib` *required by `internal/alsa`*
+- `libpulse` *required by `internal/pulseaudio`*
+- `i3-wm` *required by `internal/i3`*
+- `jsoncpp` *required by `internal/i3`*
+- `libmpdclient` *required by `internal/mpd`*
+- `libcurl` *required by `internal/github`*
+- `libnl-genl` or `wireless_tools` *required by `internal/network`*
 
 Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
 
