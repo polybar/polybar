@@ -109,6 +109,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - `xcb-util-xrm` *required for accessing X resources with `${xrdb:...}`*
 
 **Optional dependencies for extended module support:**
+- `xcb-xkb` *required by `internal/xkeyboard`*
 - `alsa-lib` *required by `internal/alsa`*
 - `libpulse` *required by `internal/pulseaudio`*
 - `i3-wm` *required by `internal/i3`*
