@@ -74,12 +74,23 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
   m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
   m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
+  //auto monitor_primary = m_conf.get(bs, "monitor-primary", false);
   auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
   }
+  // if monitor_name is not defined, first check for primary monitor
+  if (monitor_name.empty()) {
+    for (auto&& mon : monitors) {
+      if (mon->primary) {
+        monitor_name = mon->name;
+        break;
+      }
+    }
+  }
 
+  // if still not found (and not strict matching), get first connected monitor
   if (monitor_name.empty() && !m_opts.monitor_strict) {
     auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
     if (!connected_monitors.empty()) {
@@ -88,7 +99,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
-  if (monitor_name.empty()) {
+  if (monitor_name.empty() && !monitor_primary) {
     monitor_name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", monitor_name);
   }
@@ -98,6 +109,20 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   if(!monitor_name_fallback.empty()) {
     fallback = randr_util::match_monitor(monitors, monitor_name_fallback, m_opts.monitor_exact);
+/*
+  for (auto&& monitor : monitors) {
+    if (monitor_primary && monitor->primary) {
+      m_opts.monitor = move(monitor);
+    } else if (!name_found && (name_found = monitor->match(monitor_name, monitor_strictmode))) {
+      m_opts.monitor = move(monitor);
+    } else if (!fallback_found && (fallback_found = monitor->match(monitor_name_fallback, monitor_strictmode))) {
+      fallback = move(monitor);
+    }
+
+    if (name_found && fallback_found) {
+      break;
+    }
+*/
   }
 
   if (!m_opts.monitor) {
