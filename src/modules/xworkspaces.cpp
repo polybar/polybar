@@ -86,11 +86,11 @@ namespace modules {
     m_current_desktop_name = m_desktop_names[m_current_desktop];
 
     rebuild_desktops();
-    recount_clients_on_desktops();
-    rebuild_desktop_states();
 
     // Get _NET_CLIENT_LIST
     rebuild_clientlist();
+
+    rebuild_desktop_states();
   }
 
   /**
@@ -105,7 +105,7 @@ namespace modules {
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
-      recount_clients_on_desktops();
+      rebuild_clientlist();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
@@ -130,55 +130,35 @@ namespace modules {
    * Rebuild the list of managed clients
    */
   void xworkspaces_module::rebuild_clientlist() {
-    vector<pair<xcb_window_t, unsigned int>> clients;
-    vector<pair<xcb_window_t, unsigned int>> diff;
+    vector<xcb_window_t> clients = ewmh_util::get_client_list();
+    vector<xcb_window_t> new_windows;
 
-    m_log.info("%s: Tally has %u Desktops at start of rebuild_clientlist", name(), m_desktop_client_count.size());
+    std::sort(std::begin(clients), std::end(clients));
+    std::sort(std::begin(m_clientlist), std::end(m_clientlist));
+    std::fill(std::begin(m_desktop_occupied), std::end(m_desktop_occupied), false);
 
-    for(xcb_window_t win : ewmh_util::get_client_list()) {
-      pair<xcb_window_t, unsigned int> win_desktop(win, ewmh_util::get_desktop_from_window(win));
-      clients.emplace_back(win_desktop);
-    }
-
-    std::set_difference(
-        m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
-    for (auto&& win_desktop : diff) {
-      // untrack window
-      m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win_desktop), m_clientlist.end());
-      m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] + 1);
-    }
-
-    std::set_difference(
-        clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
-    for (auto&& win_desktop : diff) {
-      // listen for wm_hint (urgency) changes
-      m_connection.ensure_event_mask(win_desktop.first, XCB_EVENT_MASK_PROPERTY_CHANGE);
-      // track window
-      m_clientlist.emplace_back(win_desktop);
-      m_desktop_client_count[win_desktop.second] = (m_desktop_client_count[win_desktop.second] - 1);
-    }
-
-    m_log.info("%s: Tally has %u Desktops at the end of rebuild_clientlist", name(), m_desktop_client_count.size());
-  }
-
-
-  /**
-   * Rebuild count of clients on each desktop
-   */
-  void xworkspaces_module::recount_clients_on_desktops() {
-    m_log.info("%s: Tally has %u Desktops, EWMH has %u", name(), m_desktop_client_count.size(), m_desktop_names.size());
-    if (m_desktop_client_count.size() != m_desktop_names.size()) {
-      m_log.info("%s: Resizing and Recounting Tally", name());
-      m_desktop_client_count.resize(m_desktop_names.size(), 0);
-
-      m_desktop_client_count.clear();
-
-      for(xcb_window_t win : ewmh_util::get_client_list()) {
-        auto desk = ewmh_util::get_desktop_from_window(win);
-        m_desktop_client_count[desk] = (m_desktop_client_count[desk] + 1);
-        m_log.info("%s: Desktop %u has now %u windows", name(), (desk + 1), m_desktop_client_count[desk]);
+    auto it = std::begin(clients);
+    auto m_it = std::begin(m_clientlist);
+    while (it != std::end(clients) || m_it != std::end(m_clientlist)) {
+      if (it != std::end(clients)) {
+        auto desktop = ewmh_util::get_desktop_from_window(*it);
+        m_desktop_occupied[desktop] = true;
+      }
+      if (m_it == std::end(m_clientlist) || *it < *m_it) {
+        // listen for wm_hint (urgency) changes
+        m_connection.ensure_event_mask(*it, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        // track window
+        new_windows.emplace_back(*it);
+        ++it;
+      } else if (it == std::end(clients) || *it > *m_it) {
+        // untrack window
+        m_it = m_clientlist.erase(m_it);
+      } else {
+        ++it;
+        ++m_it;
       }
     }
+    std::copy(std::begin(new_windows), std::end(new_windows), std::back_inserter(m_clientlist));
   }
 
   /**
@@ -237,7 +217,8 @@ namespace modules {
       }
       offset += step;
     }
-  }
+    m_desktop_occupied.resize(m_desktop_names.size(), false);
+ }
 
   /**
    * Update active state of current desktops
@@ -248,13 +229,11 @@ namespace modules {
 
         if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
-        } else if (m_desktop_client_count[d->index] > 0) {
+        } else if (m_desktop_occupied[d->index]) {
           d->state = desktop_state::OCCUPIED;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
-
-        m_log.info("%s: Desktop %u has %u windows assigned", name(), (d->index + 1), m_desktop_client_count[d->index]);
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
@@ -293,27 +272,6 @@ namespace modules {
       for (auto&& d : v->desktops) {
         if (d->index == desk && d->state != desktop_state::URGENT) {
           d->state = desktop_state::URGENT;
-
-          d->label = m_labels.at(d->state)->clone();
-          d->label->reset_tokens();
-          d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
-          d->label->replace_token("%name%", m_desktop_names[d->index]);
-          d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
-          return;
-        }
-      }
-    }
-  }
-
-  /**
-   * Find window and set corresponding desktop to occupied
-   */
-  void xworkspaces_module::set_desktop_occupied(xcb_window_t window) {
-    auto desk = ewmh_util::get_desktop_from_window(window);
-    for (auto&& v : m_viewports) {
-      for (auto&& d : v->desktops) {
-        if (d->index == desk && d->state == desktop_state::EMPTY) {
-          d->state = desktop_state::OCCUPIED;
 
           d->label = m_labels.at(d->state)->clone();
           d->label->reset_tokens();

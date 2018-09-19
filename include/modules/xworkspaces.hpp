@@ -65,11 +65,9 @@ namespace modules {
     void handle(const evt::property_notify& evt);
 
     void rebuild_clientlist();
-    void recount_clients_on_desktops();
     void rebuild_desktops();
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
-    void set_desktop_occupied(xcb_window_t window);
 
     bool input(string&& cmd);
     vector<string> get_desktop_names();
@@ -96,9 +94,9 @@ namespace modules {
     vector<string> m_desktop_names;
     unsigned int m_current_desktop;
     string m_current_desktop_name;
-    vector<unsigned int> m_desktop_client_count;
+    vector<bool> m_desktop_occupied;
 
-    vector<pair<xcb_window_t, unsigned int>> m_clientlist;
+    vector<xcb_window_t> m_clientlist;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;
