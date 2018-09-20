@@ -146,7 +146,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   vector<std::thread> m_threads;
 
   /**
-   * @brief Loaded plugins
+   * \brief Loaded plugins
    */
   std::list<plugin_handle> m_plugins;
 };
