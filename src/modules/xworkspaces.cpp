@@ -85,10 +85,11 @@ namespace modules {
     m_current_desktop = ewmh_util::get_current_desktop();
 
     rebuild_desktops();
-    rebuild_desktop_states();
 
     // Get _NET_CLIENT_LIST
     rebuild_clientlist();
+
+    rebuild_desktop_states();
   }
 
   /**
@@ -97,9 +98,11 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
+      rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
       m_desktop_names = ewmh_util::get_desktop_names();
       rebuild_desktops();
+      rebuild_clientlist();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
@@ -122,27 +125,34 @@ namespace modules {
    */
   void xworkspaces_module::rebuild_clientlist() {
     vector<xcb_window_t> clients = ewmh_util::get_client_list();
-    vector<xcb_window_t> diff;
-    std::sort(clients.begin(), clients.end());
-    std::sort(m_clientlist.begin(), m_clientlist.end());
+    vector<xcb_window_t> new_windows;
 
-    if (m_clientlist.size() > clients.size()) {
-      std::set_difference(
-          m_clientlist.begin(), m_clientlist.end(), clients.begin(), clients.end(), back_inserter(diff));
-      for (auto&& win : diff) {
-        // untrack window
-        m_clientlist.erase(std::remove(m_clientlist.begin(), m_clientlist.end(), win), m_clientlist.end());
+    std::sort(std::begin(clients), std::end(clients));
+    std::sort(std::begin(m_clientlist), std::end(m_clientlist));
+    std::fill(std::begin(m_desktop_occupied), std::end(m_desktop_occupied), false);
+
+    auto it = std::begin(clients);
+    auto m_it = std::begin(m_clientlist);
+    while (it != std::end(clients) || m_it != std::end(m_clientlist)) {
+      if (it != std::end(clients)) {
+        auto desktop = ewmh_util::get_desktop_from_window(*it);
+        m_desktop_occupied[desktop] = true;
       }
-    } else {
-      std::set_difference(
-          clients.begin(), clients.end(), m_clientlist.begin(), m_clientlist.end(), back_inserter(diff));
-      for (auto&& win : diff) {
+      if (m_it == std::end(m_clientlist) || *it < *m_it) {
         // listen for wm_hint (urgency) changes
-        m_connection.ensure_event_mask(win, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        m_connection.ensure_event_mask(*it, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
-        m_clientlist.emplace_back(win);
+        new_windows.emplace_back(*it);
+        ++it;
+      } else if (it == std::end(clients) || *it > *m_it) {
+        // untrack window
+        m_it = m_clientlist.erase(m_it);
+      } else {
+        ++it;
+        ++m_it;
       }
     }
+    std::copy(std::begin(new_windows), std::end(new_windows), std::back_inserter(m_clientlist));
   }
 
   /**
@@ -163,7 +173,12 @@ namespace modules {
 
     bounds.erase(std::unique(bounds.begin(), bounds.end(), [](auto& a, auto& b) { return a == b; }), bounds.end());
 
-    unsigned int step = m_desktop_names.size() / bounds.size();
+    unsigned int step;
+    if (bounds.size() > 0) {
+      step = m_desktop_names.size() / bounds.size();
+    } else {
+      step = 1;
+    }
     unsigned int offset = 0;
     for (unsigned int i = 0; i < bounds.size(); i++) {
       if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
@@ -196,7 +211,8 @@ namespace modules {
       }
       offset += step;
     }
-  }
+    m_desktop_occupied.resize(m_desktop_names.size(), false);
+ }
 
   /**
    * Update active state of current desktops
@@ -204,11 +220,14 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
+
         if (d->index == m_current_desktop) {
           d->state = desktop_state::ACTIVE;
+        } else if (m_desktop_occupied[d->index]) {
+          d->state = desktop_state::OCCUPIED;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
@@ -241,7 +260,6 @@ namespace modules {
         }
       }
     }
-
   }
 
   /**
