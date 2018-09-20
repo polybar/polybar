@@ -79,10 +79,12 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
 
   m_log.trace("controller: Load plugins");
   for (const auto name : plugin_names) {
-    try {
-      m_plugins.emplace_back(name);
-    } catch (const application_error& err) {
-      m_log.warn("Failed to load plugin '%s': %s", name, err.what());
+    if (name) {
+      try {
+        m_plugins.emplace_back(name);
+      } catch (const application_error& err) {
+        m_log.warn("Failed to load plugin '%s': %s", name, err.what());
+      }
     }
   }
 

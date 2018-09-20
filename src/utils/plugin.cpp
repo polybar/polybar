@@ -2,20 +2,38 @@
 
 #include "components/logger.hpp"
 #include "errors.hpp"
+#include "settings.hpp"
 #include "utils/plugin.hpp"
 
 POLYBAR_NS
 
 // clang-format off
 std::vector<const char*> plugin_names = {
+#if ENABLE_I3
   "libpolybar-utils-i3.so",
+#endif
+#if ENABLE_ALSA
   "libpolybar-modules-alsa.so",
+#endif
+#if ENABLE_CURL
   "libpolybar-modules-github.so",
+#endif
+#if ENABLE_I3
   "libpolybar-modules-i3.so",
+#endif
+#if ENABLE_MPD
   "libpolybar-modules-mpd.so",
+#endif
+#if ENABLE_NETWORK
   "libpolybar-modules-network.so",
+#endif
+#if ENABLE_PLUSEAUDIO
   "libpolybar-modules-pulseaudio.so",
-  "libpolybar-modules-xkeyboard.so"
+#endif
+#if WITH_XKB
+  "libpolybar-modules-xkeyboard.so",
+#endif
+  nullptr
 };
 // clang-format on
 
