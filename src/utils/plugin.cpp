@@ -21,8 +21,9 @@ std::vector<const char*> plugin_names = {
 
 plugin_handle::plugin_handle(const char* libname) {
   m_handle = ::dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
-  if (!m_handle)
+  if (!m_handle) {
     throw application_error(::dlerror());
+  }
 }
 
 plugin_handle::~plugin_handle() {
