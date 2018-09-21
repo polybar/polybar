@@ -144,13 +144,13 @@ namespace modules {
         auto desktop = ewmh_util::get_desktop_from_window(*it);
         m_desktop_occupied[desktop] = true;
       }
-      if (m_it == std::end(m_clientlist) || *it < *m_it) {
+      if (m_it == std::end(m_clientlist) || (it != std::end(clients) && *it < *m_it)) {
         // listen for wm_hint (urgency) changes
         m_connection.ensure_event_mask(*it, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         new_windows.emplace_back(*it);
         ++it;
-      } else if (it == std::end(clients) || *it > *m_it) {
+      } else if (it == std::end(clients) || (m_it != std::end(m_clientlist) && *it > *m_it)) {
         // untrack window
         m_it = m_clientlist.erase(m_it);
       } else {
