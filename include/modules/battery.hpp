@@ -39,7 +39,7 @@ namespace modules {
       const function<ReturnType()> m_fn;
     };
 
-    using state_reader = mutex_wrapper<value_reader<bool /* is_charging */>>;
+    using state_reader = mutex_wrapper<value_reader<int /* 0 = charging, 1 = dischargin, 2 = other */>>;
     using capacity_reader = mutex_wrapper<value_reader<int /* percentage */>>;
     using rate_reader = mutex_wrapper<value_reader<unsigned long /* seconds */>>;
     using consumption_reader = mutex_wrapper<value_reader<string /* watts */>>;

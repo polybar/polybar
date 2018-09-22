@@ -37,10 +37,12 @@ namespace modules {
     if (file_util::exists((m_fstate = path_battery + "status"))) {
       m_state_reader = make_unique<state_reader>([=] { 
         // status of battery being neither charged nor discharged is usually "unknown" (ex: two battery thinkpads)
-        if (file_util::contents(m_fstate).compare(0, 7, "Unknown")) {
+        if (file_util::contents(m_fstate).compare(0, 8, "Charging") == 0) {
           return 0;
+        } else if (file_util::contents(m_fstate).compare(0, 11, "Discharging") == 0) {
+          return 1;
         } else {
-          return file_util::contents(m_fstate).compare(0, 8, "Charging");
+          return 2;
         }
       });
     } else if (file_util::exists((m_fstate = path_adapter + "online"))) {
@@ -74,7 +76,7 @@ namespace modules {
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
       unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
       unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
-      unsigned long cap{read(*m_state_reader) ? max - now : now};
+      unsigned long cap{read(*m_state_reader) == 0 ? max - now : now};
 
       if (rate && volt && cap) {
         auto remaining = (cap / volt);
@@ -288,9 +290,9 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    if (!read(*m_state_reader)) {
+    if (read(*m_state_reader) == 1) {
       return battery_module::state::DISCHARGING;
-    } else if (read(*m_capacity_reader) < m_fullat) {
+    } else if (read(*m_state_reader) == 0 && read(*m_capacity_reader) < m_fullat) {
       return battery_module::state::CHARGING;
     } else {
       return battery_module::state::FULL;
