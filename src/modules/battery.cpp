@@ -34,11 +34,17 @@ namespace modules {
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
     // Make state reader
-    if (file_util::exists((m_fstate = path_adapter + "online"))) {
+    if (file_util::exists((m_fstate = path_battery + "status"))) {
+      m_state_reader = make_unique<state_reader>([=] { 
+        // status of battery being neither charged nor discharged is usually "unknown" (ex: two battery thinkpads)
+        if (file_util::contents(m_fstate).compare(0, 7, "Unknown")) {
+          return 0;
+        } else {
+          return file_util::contents(m_fstate).compare(0, 8, "Charging");
+        }
+      });
+    } else if (file_util::exists((m_fstate = path_adapter + "online"))) {
       m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
-    } else if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
     } else {
       throw module_error("No suitable way to get current charge state");
     }
