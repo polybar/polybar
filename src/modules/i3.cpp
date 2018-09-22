@@ -122,7 +122,7 @@ namespace modules {
 
     if (tree->xwindow_id != 0) {
       auto xwindow_id = tree->xwindow_id;
-      auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id);
+      auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id, m_bar.size.h);
 
       if (!icon.empty()) {
         add_icon(icon, xwindow_id);

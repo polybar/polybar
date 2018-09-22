@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <xcb/xcb_ewmh.h>
 
+#include <algorithm>
+
 #include <utils/factory.hpp>
 #include "components/types.hpp"
 #include "utils/string.hpp"
@@ -55,12 +57,37 @@ namespace ewmh_util {
     return "";
   }
 
-  vector<unsigned char> get_wm_icon(xcb_window_t win) {
+  /**
+   * Get the closest icon size (equal to or slightly bigger than height)
+   */
+  unsigned int get_closest_icon(xcb_ewmh_wm_icon_iterator_t *iter, uint32_t size) {
+    vector<unsigned int> sizes;
+    while (iter->rem) {
+      sizes.emplace_back(iter->height);
+      xcb_ewmh_get_wm_icon_next(iter);
+    }
+    std::sort(sizes.begin(), sizes.end());
+    for (auto&& s : sizes) {
+      if (s >= size) {
+        return s;
+      }
+    }
+    // just get the largest if none are large enough
+    return sizes.back();
+  }
+
+  vector<unsigned char> get_wm_icon(xcb_window_t win, uint32_t size) {
     auto conn = initialize().get();
     auto cookie = xcb_ewmh_get_wm_icon(conn, win);
     xcb_ewmh_get_wm_icon_reply_t reply{};
     if (xcb_ewmh_get_wm_icon_reply(conn, cookie, &reply, nullptr)) {
       xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&reply);
+      auto iter_cpy = iter;
+      auto best_size = get_closest_icon(&iter_cpy, size);
+
+      while (iter.height != best_size) {
+        xcb_ewmh_get_wm_icon_next(&iter);
+      }
       auto width = iter.width;
       auto height = iter.height;
       auto data = iter.data;
