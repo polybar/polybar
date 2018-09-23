@@ -135,8 +135,8 @@ namespace modules {
     void idle();
     void sleep(chrono::duration<double> duration);
     void wakeup();
-    void add_icon(vector<unsigned char> buf, uint64_t id);
-    vector<unsigned char>& get_icon(uint64_t id) const;
+    void add_icon(icon_surface_t surface, uint64_t id);
+    icon_surface_t get_icon(uint64_t id) const;
     void clear_icons();
     string get_format() const;
     string get_output();

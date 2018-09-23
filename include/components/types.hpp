@@ -13,9 +13,10 @@ POLYBAR_NS
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+using icon_manager_t = unique_ptr<icon_manager>;
 // }}}
 
-using icon_manager_t = unique_ptr<icon_manager>;
+
 
 struct enum_hash {
   template <typename T>
@@ -121,12 +122,12 @@ struct action_block : public action {
 };
 
 struct icon_data {
-   std::vector<unsigned char> buf{};
+   icon_surface_t surface;
    uint64_t id;
    modules::module_interface *module;
 
-   icon_data(vector<unsigned char> buf, uint64_t id, modules::module_interface *module) :
-       buf(buf), id(id), module(module) {}
+   icon_data(icon_surface_t surface, uint64_t id, modules::module_interface *module) :
+       surface(surface), id(id), module(module) {}
 };
 
 struct bar_settings {

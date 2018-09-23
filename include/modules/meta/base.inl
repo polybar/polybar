@@ -1,6 +1,7 @@
 #include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
+#include "components/icon_manager.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -173,12 +174,12 @@ namespace modules {
   }
 
   template <typename Impl>
-  void module<Impl>::add_icon(vector<unsigned char> buf, uint64_t id) {
-    m_bar.icon_manager->add_icon(buf, id, this);
+  void module<Impl>::add_icon(icon_surface_t surface, uint64_t id) {
+    m_bar.icon_manager->add_icon(surface, id, this);
   }
 
   template <typename Impl>
-  vector<unsigned char>& module<Impl>::get_icon(uint64_t id) const {
+  icon_surface_t module<Impl>::get_icon(uint64_t id) const {
     return m_bar.icon_manager->get_icon(id);
   }
 

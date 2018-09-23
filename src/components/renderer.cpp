@@ -1,6 +1,7 @@
 #include "components/renderer.hpp"
 #include "cairo/context.hpp"
 #include "components/config.hpp"
+#include "components/icon_manager.hpp"
 #include "events/signal.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
@@ -638,10 +639,8 @@ cairo_surface_t* resize_surface(cairo_surface_t* old_surface, double new_width, 
 
 void renderer::draw_icon(const string& icon_location) {
   auto id = stoull(icon_location);
-  auto& icon_data = m_bar.icon_manager->get_icon(id);
+  auto& image = *(m_bar.icon_manager->get_icon(id).get());
   auto dest_icon_size = m_rect.height >= 16 ? 16 : pow(2, floor(log2(m_rect.height)));
-
-  auto icon_size = (int)sqrt(icon_data.size() / 4);
 
   auto height = m_rect.height;
 
@@ -652,21 +651,14 @@ void renderer::draw_icon(const string& icon_location) {
       (unsigned char*)vec.data(), CAIRO_FORMAT_ARGB32, dest_icon_size, height, dest_icon_size * 4);
 
   cairo_t* cr = cairo_create(surface);
-  auto image = cairo_image_surface_create_for_data(
-      (unsigned char*)icon_data.data(), CAIRO_FORMAT_ARGB32, icon_size, icon_size, icon_size * 4);
-  auto status = cairo_surface_status(image);
-  if (status != CAIRO_STATUS_SUCCESS) {
-    m_log.err("Cannot create icon: %s", cairo_status_to_string(status));
-    return;
-  }
 
-  image = resize_surface(image, dest_icon_size, dest_icon_size);
+  auto resized_image = resize_surface(image, dest_icon_size, dest_icon_size);
 
-  cairo_set_source_surface(cr, image, 0, (height - dest_icon_size) / 2 + m_rect.y);
-  cairo_mask_surface(cr, image, 0, (height - dest_icon_size) / 2 + m_rect.y);
+  cairo_set_source_surface(cr, resized_image, 0, (height - dest_icon_size) / 2 + m_rect.y);
+  cairo_mask_surface(cr, resized_image, 0, (height - dest_icon_size) / 2 + m_rect.y);
   cairo_destroy(cr);
 
-  cairo_surface_destroy(image);
+  //cairo_surface_destroy(image);
 
   cairo::abspos origin{};
   origin.x = m_rect.x + m_blocks[m_align].x;

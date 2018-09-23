@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <utils/factory.hpp>
+#include "cairo/surface.hpp"
 #include "components/types.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
@@ -76,7 +77,7 @@ namespace ewmh_util {
     return sizes.back();
   }
 
-  vector<unsigned char> get_wm_icon(xcb_window_t win, uint32_t size) {
+  icon_surface_t get_wm_icon(xcb_window_t win, uint32_t size) {
     auto conn = initialize().get();
     auto cookie = xcb_ewmh_get_wm_icon(conn, win);
     xcb_ewmh_get_wm_icon_reply_t reply{};
@@ -92,12 +93,12 @@ namespace ewmh_util {
       auto height = iter.height;
       auto data = iter.data;
       auto uc_data = (unsigned char*)data;
-      vector<unsigned char> icon(uc_data, uc_data + width * height * 4);
+      auto icon = make_shared<cairo::icon_surface>(uc_data, width, height);
       xcb_ewmh_get_wm_icon_reply_wipe(&reply);
       return icon;
     }
 
-    return vector<unsigned char>();
+    return nullptr;
   }
 
   string get_icon_name(xcb_window_t win) {

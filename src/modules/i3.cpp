@@ -1,6 +1,8 @@
 #include <sys/socket.h>
 #include <x11/ewmh.hpp>
 
+#include <cairo.h>
+#include "cairo/surface.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/i3.hpp"
@@ -124,7 +126,7 @@ namespace modules {
       auto xwindow_id = tree->xwindow_id;
       auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id, m_bar.size.h);
 
-      if (!icon.empty()) {
+      if (icon) {
         add_icon(icon, xwindow_id);
         windows.push_back(to_string(xwindow_id));
       }

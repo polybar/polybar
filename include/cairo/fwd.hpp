@@ -8,6 +8,7 @@ namespace cairo {
   class context;
   class surface;
   class xcb_surface;
+  class icon_surface;
   class font;
   class font_fc;
 }
