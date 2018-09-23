@@ -663,7 +663,7 @@ void renderer::draw_icon(const string& icon_location) {
   image = resize_surface(image, dest_icon_size, dest_icon_size);
 
   cairo_set_source_surface(cr, image, 0, (height - dest_icon_size) / 2 + m_rect.y);
-  cairo_paint(cr);
+  cairo_mask_surface(cr, image, 0, (height - dest_icon_size) / 2 + m_rect.y);
   cairo_destroy(cr);
 
   cairo_surface_destroy(image);
