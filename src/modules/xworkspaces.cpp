@@ -133,24 +133,24 @@ namespace modules {
     vector<xcb_window_t> clients = ewmh_util::get_client_list();
     vector<xcb_window_t> new_windows;
 
-    std::sort(std::begin(clients), std::end(clients));
-    std::sort(std::begin(m_clientlist), std::end(m_clientlist));
-    std::fill(std::begin(m_desktop_occupied), std::end(m_desktop_occupied), false);
+    std::sort(clients.begin(), clients.end());
+    std::sort(m_clientlist.begin(), m_clientlist.end());
+    std::fill(m_desktop_occupied.begin(), m_desktop_occupied.end(), false);
 
-    auto it = std::begin(clients);
-    auto m_it = std::begin(m_clientlist);
-    while (it != std::end(clients) || m_it != std::end(m_clientlist)) {
-      if (it != std::end(clients)) {
+    auto it = clients.begin();
+    auto m_it = m_clientlist.begin();
+    while (it != clients.end() || m_it != m_clientlist.end()) {
+      if (it != clients.end()) {
         auto desktop = ewmh_util::get_desktop_from_window(*it);
         m_desktop_occupied[desktop] = true;
       }
-      if (m_it == std::end(m_clientlist) || (it != std::end(clients) && *it < *m_it)) {
+      if (m_it == m_clientlist.end() || (it != clients.end() && *it < *m_it)) {
         // listen for wm_hint (urgency) changes
         m_connection.ensure_event_mask(*it, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
         new_windows.emplace_back(*it);
         ++it;
-      } else if (it == std::end(clients) || (m_it != std::end(m_clientlist) && *it > *m_it)) {
+      } else if (it == clients.end() || (m_it != m_clientlist.end() && *it > *m_it)) {
         // untrack window
         m_it = m_clientlist.erase(m_it);
       } else {
@@ -158,7 +158,7 @@ namespace modules {
         ++m_it;
       }
     }
-    std::copy(std::begin(new_windows), std::end(new_windows), std::back_inserter(m_clientlist));
+    std::copy(new_windows.begin(), new_windows.end(), std::back_inserter(m_clientlist));
   }
 
   /**
