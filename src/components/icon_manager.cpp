@@ -11,7 +11,7 @@ POLYBAR_NS
 /**
  * Add an icon to the vector of icons
  */
-void icon_manager::add_icon(icon_surface_t surface, uint64_t id, modules::module_interface* module) {
+void icon_manager::add_icon(surface_t surface, uint64_t id, modules::module_interface* module) {
   std::lock_guard<std::mutex> guard(m_mutex);
   auto d = icon_data{surface, id, module};
   cairo_surface_reference(*(d.surface));
@@ -21,7 +21,7 @@ void icon_manager::add_icon(icon_surface_t surface, uint64_t id, modules::module
 /**
  * Get icon by id and module if exists, otherwise get generic missing icon
  */
-icon_surface_t icon_manager::get_icon(uint64_t id) {
+surface_t icon_manager::get_icon(uint64_t id) {
   auto icon = find_if(m_icons.begin(), m_icons.end(), [&](const struct icon_data& i) {
     return i.id == id;
   });

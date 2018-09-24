@@ -122,11 +122,11 @@ struct action_block : public action {
 };
 
 struct icon_data {
-   icon_surface_t surface;
+   surface_t surface;
    uint64_t id;
    modules::module_interface *module;
 
-   icon_data(icon_surface_t surface, uint64_t id, modules::module_interface *module) :
+   icon_data(surface_t surface, uint64_t id, modules::module_interface *module) :
        surface(surface), id(id), module(module) {}
 };
 

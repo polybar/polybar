@@ -12,23 +12,23 @@ namespace modules {
   struct module_interface;
 }
 namespace cairo {
-  class icon_surface;
+  class surface;
 }
-using icon_surface_t = shared_ptr<cairo::icon_surface>;
+using surface_t = shared_ptr<cairo::surface>;
 
 
 class icon_manager {
  public:
   explicit icon_manager() {};
-  void add_icon(icon_surface_t surface, uint64_t id, modules::module_interface* module);
-  icon_surface_t get_icon(uint64_t id);
+  void add_icon(surface_t surface, uint64_t id, modules::module_interface* module);
+  surface_t get_icon(uint64_t id);
   void clear_icons(modules::module_interface* module);
 
  private:
   vector<icon_data> m_icons{};
   std::mutex m_mutex{};
   //TODO provide default missing icon
-  icon_surface_t m_missing_icon{};
+  surface_t m_missing_icon{};
 
 };
 

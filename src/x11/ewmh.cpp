@@ -77,7 +77,7 @@ namespace ewmh_util {
     return sizes.back();
   }
 
-  icon_surface_t get_wm_icon(xcb_window_t win, uint32_t size) {
+  surface_t get_wm_icon(xcb_window_t win, uint32_t size) {
     auto conn = initialize().get();
     auto cookie = xcb_ewmh_get_wm_icon(conn, win);
     xcb_ewmh_get_wm_icon_reply_t reply{};

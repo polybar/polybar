@@ -174,12 +174,12 @@ namespace modules {
   }
 
   template <typename Impl>
-  void module<Impl>::add_icon(icon_surface_t surface, uint64_t id) {
+  void module<Impl>::add_icon(surface_t surface, uint64_t id) {
     m_bar.icon_manager->add_icon(surface, id, this);
   }
 
   template <typename Impl>
-  icon_surface_t module<Impl>::get_icon(uint64_t id) const {
+  surface_t module<Impl>::get_icon(uint64_t id) const {
     return m_bar.icon_manager->get_icon(id);
   }
 
