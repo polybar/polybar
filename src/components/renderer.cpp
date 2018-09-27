@@ -301,10 +301,12 @@ void renderer::end() {
   }
 
 
+  // For pseudo-transparency, capture the contents of the rendered bar and
+  // composite it against the desktop wallpaper. This way transparent parts of
+  // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_surface->write_png("/tmp/test.png");
-    m_context->pop(&barcontents);
+    m_context->pop(&barcontents); // corresponding push is in renderer::begin
 
     auto root_bg = m_background.get_surface();
     if (root_bg != nullptr) {
