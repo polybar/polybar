@@ -171,17 +171,11 @@ renderer::renderer(
 
   m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
 
-  // if we use pseudo-transparency, CAIRO_OPERATOR_SOURCE makes no sense as default
-  auto m_comp_bg_default = m_pseudo_transparency ? CAIRO_OPERATOR_OVER : m_comp_bg;
-  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg_default);
+  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
   m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
   m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
   m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
-
-  if (m_comp_bg == CAIRO_OPERATOR_SOURCE && m_pseudo_transparency) {
-    m_log.warn("pseudo-transparency may not work correctly with settings.compositing-background = source");
-  }
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
 }
@@ -229,6 +223,12 @@ void renderer::begin(xcb_rectangle_t rect) {
   m_context->save();
   m_context->clear();
 
+  // when pseudo-transparency is requested, render the bar into a new layer
+  // that will later be composited against the desktop background
+  if (m_pseudo_transparency) {
+    m_context->push();
+  }
+
   // Create corner mask
   if (m_bar.radius && m_cornermask == nullptr) {
     m_context->save();
@@ -246,16 +246,6 @@ void renderer::begin(xcb_rectangle_t rect) {
     m_context->restore();
   }
 
-  // if using pseudo-transparency, fill the background with the root window's contents
-  // otherwise, we simply use a fully transparent base layer
-  if(m_pseudo_transparency) {
-    auto root_bg = m_background.get_surface();
-    if(root_bg != nullptr) {
-      m_log.trace_x("renderer: root background");
-      *m_context << *root_bg;
-      m_context->paint();
-    }
-  }
   fill_borders();
 
   // clang-format off
@@ -308,6 +298,24 @@ void renderer::end() {
     m_context->destroy(&blockcontents);
   } else {
     fill_background();
+  }
+
+
+  if (m_pseudo_transparency) {
+    cairo_pattern_t* barcontents{};
+    m_surface->write_png("/tmp/test.png");
+    m_context->pop(&barcontents);
+
+    auto root_bg = m_background.get_surface();
+    if (root_bg != nullptr) {
+      m_log.trace_x("renderer: root background");
+      *m_context << *root_bg;
+      m_context->paint();
+      *m_context << CAIRO_OPERATOR_OVER;
+    }
+    *m_context << barcontents;
+    m_context->paint();
+    m_context->destroy(&barcontents);
   }
 
   m_context->restore();
