@@ -257,6 +257,12 @@ namespace cairo {
     });
 
     auto pattern = FcNameParse((FcChar8*)fontname.c_str());
+
+    if(!pattern) {
+      logger::make().err("Could not parse font \"%s\"", fontname);
+      throw application_error("Could not parse font \"" + fontname + "\"");
+    }
+
     FcDefaultSubstitute(pattern);
     FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
 
