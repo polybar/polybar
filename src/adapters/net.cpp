@@ -194,7 +194,7 @@ namespace net {
      */
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
 
-    request.ifr_data = reinterpret_cast<caddr_t>(&driver);
+    request.ifr_data = reinterpret_cast<char*>(&driver);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return;
@@ -258,7 +258,7 @@ namespace net {
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GSET;
-    request.ifr_data = reinterpret_cast<caddr_t>(&data);
+    request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
@@ -283,7 +283,7 @@ namespace net {
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GLINK;
-    request.ifr_data = reinterpret_cast<caddr_t>(&data);
+    request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
