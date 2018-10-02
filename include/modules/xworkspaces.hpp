@@ -107,7 +107,7 @@ namespace modules {
     size_t m_index{0};
 
     event_timer m_timer{0L, 25L};
-    std::mutex m_mutex;
+    mutable std::mutex m_mutex;
   };
 }
 

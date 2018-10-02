@@ -317,6 +317,8 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
+    std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
     if (tag == TAG_LABEL_MONITOR) {
       if (m_viewports[m_index]->state != viewport_state::NONE) {
         builder->node(m_viewports[m_index]->label);
