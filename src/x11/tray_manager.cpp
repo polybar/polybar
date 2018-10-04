@@ -120,6 +120,10 @@ void tray_manager::setup(const bar_settings& bar_opts) {
       break;
   }
 
+  if (conf.has(bs, "tray-transparent")) {
+    m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
+  }
+
   // Set user-defined background color
   auto bg = conf.get(bs, "tray-background", ""s);
 
