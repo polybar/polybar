@@ -179,15 +179,16 @@ namespace modules {
       auto action = m_actions[btn];
 
       if (!action.empty()) {
-        m_builder->cmd(btn, string_util::replace_all(action, "%counter%", cnt));
+        auto action_replaced = string_util::replace_all(action, "%counter%", cnt);
 
         /*
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
         if(m_tail && m_command && m_command->is_running()) {
-          m_builder->cmd(btn, string_util::replace_all(action, "%pid%", to_string(m_command->get_pid())));
+          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(m_command->get_pid()));
         }
+        m_builder->cmd(btn, action_replaced);
       }
     }
 
