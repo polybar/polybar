@@ -64,6 +64,33 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
     }
 
     char tag{data[0]};
+
+    /*
+     * Contains the string from the current position to the next space or
+     * closing curly bracket (})
+     *
+     * This may be unsuitable for some tags (e.g. action tag) to use
+     * These MUST set value to the actual string they parsed from the beginning
+     * of data (or a string with the same length). The length of value is used
+     * to progress the cursor further.
+     *
+     * example:
+     *
+     * data = A1:echo "test": ...}
+     *
+     * erase(0,1)
+     * -> data = 1:echo "test": ...}
+     *
+     * case 'A', parse_action_cmd
+     * -> value = echo "test"
+     *
+     * Padding value
+     * -> value = echo "test"0::
+     *
+     * erase(0, value.length())
+     * -> data =  ...}
+     *
+     */
     string value;
 
     // Remove the tag
@@ -134,28 +161,38 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'A':
-        if (isdigit(data[0]) || data[0] == ':') {
-          value = parse_action_cmd(data.substr(data[0] != ':' ? 1 : 0));
-          mousebtn btn = parse_action_btn(data);
-          m_actions.push_back(static_cast<int>(btn));
-          m_sig.emit(action_begin{action{btn, value}});
+        {
+          bool has_btn_id = (data[0] != ':');
+          if (isdigit(data[0]) || !has_btn_id) {
+            value = parse_action_cmd(data.substr(has_btn_id ? 1 : 0));
+            mousebtn btn = parse_action_btn(data);
+            m_actions.push_back(static_cast<int>(btn));
 
-          // make sure we strip the correct length (btn+wrapping colons)
-          if (value[0] != ':') {
-            value += "0";
+            // Unescape colons inside command before sending it to the renderer
+            auto cmd = string_util::replace_all(value, "\\:", ":");
+            m_sig.emit(action_begin{action{btn, cmd}});
+
+            /*
+             * make sure value has the same length as the inside of the action
+             * tag which is btn_id + ':' + value + ':'
+             */
+            if (has_btn_id) {
+              value += "0";
+            }
+            value += "::";
+          } else if (!m_actions.empty()) {
+            m_sig.emit(action_end{parse_action_btn(value)});
+            m_actions.pop_back();
           }
-          value += "::";
-        } else if (!m_actions.empty()) {
-          m_sig.emit(action_end{parse_action_btn(value)});
-          m_actions.pop_back();
+          break;
         }
-        break;
 
       default:
         throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
     }
 
     if (!data.empty()) {
+      // Remove the parsed string from data
       data.erase(0, !value.empty() ? value.length() : 1);
     }
   }
