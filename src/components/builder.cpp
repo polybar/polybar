@@ -499,11 +499,7 @@ void builder::underline_close() {
  */
 void builder::cmd(mousebtn index, string action, bool condition) {
   if (condition && !action.empty()) {
-    size_t p{0};
-    while ((p = action.find(':', p)) != string::npos && action[p - 1] != '\\') {
-      action.insert(p, 1, '\\');
-      p++;
-    }
+    action = string_util::replace_all(action, ":", "\\:");
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
 }
