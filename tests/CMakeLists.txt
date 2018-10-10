@@ -100,5 +100,14 @@ unit_test(components/builder unit_tests
   SOURCES
   ${files})
 
+unit_test(components/parser unit_tests
+  SOURCES
+  components/parser.cpp
+  utils/factory.cpp
+  utils/string.cpp
+  events/signal_emitter.cpp
+  events/signal_receiver.cpp
+  )
+
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target("all_unit_tests" DEPENDS ${unit_tests})

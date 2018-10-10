@@ -232,6 +232,11 @@ mousebtn parser::parse_action_btn(const string& data) {
 
 /**
  * Process action command string
+ *
+ * data is the action cmd surrounded by unescaped colons followed by an
+ * arbitrary string
+ *
+ * Returns everything inside the unescaped colons as is
  */
 string parser::parse_action_cmd(string&& data) {
   if (data[0] != ':') {
