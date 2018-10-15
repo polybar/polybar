@@ -18,8 +18,6 @@ namespace modules {
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
-
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
@@ -90,7 +88,7 @@ namespace modules {
       auto i = 0;
       for (auto&& load : m_load) {
         if (i++ > 0) {
-          builder->space(m_ramp_padding);
+          builder->space(1);
         }
         builder->node(m_rampload_core->get_by_percentage(load));
       }
