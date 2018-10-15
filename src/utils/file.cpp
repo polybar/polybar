@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <glob.h>
+#include <pwd.h>
 #include <sys/stat.h>
 #include <cstdio>
 #include <cstdlib>
@@ -165,6 +166,36 @@ int fd_streambuf::underflow() {
 // }}}
 
 namespace file_util {
+  namespace {
+    void expand_home_dir(string& path) {
+      if (path.empty() || path[0] != '~')
+        return;
+
+      auto pos = path.find('/', 1);
+      if (pos == string::npos)
+        pos = path.length();
+
+      if (pos == 1)
+      {
+        path.replace(0, 1, env_util::get("HOME"));
+        return;
+      }
+
+      auto username = path.substr(1, pos - 1); // username = path[1:pos]
+
+      struct passwd pwd;
+      char buffer[4096];
+      struct passwd *result;
+
+      if (getpwnam_r(username.c_str(), &pwd, buffer, sizeof(buffer), &result) != 0)
+        throw system_error("getpwnam_r failed");
+
+      if (result == nullptr)
+        throw application_error("could not find user \"" + username + '"');
+
+      path.replace(0, pos, result->pw_dir);
+    }
+  }
   /**
    * Checks if the given file exist
    */
@@ -210,6 +241,14 @@ namespace file_util {
     return stat(filename.c_str(), &buffer) == 0 && S_ISFIFO(buffer.st_mode);
   }
 
+  /*
+   * Checks if the (potentionally non-canonical) path is absolute
+   */
+  bool is_absolute(const string& filename) {
+    // this is sufficient for Unix-like systems
+    return !filename.empty() && (filename[0] == '/' || filename[0] == '~');
+  }
+
   /**
    * Get glob results using given pattern
    */
@@ -219,9 +258,8 @@ namespace file_util {
 
     // Manually expand tilde to fix builds using versions of libc
     // that doesn't provide the GLOB_TILDE flag (musl for example)
-    if (pattern[0] == '~') {
-      pattern.replace(0, 1, env_util::get("HOME"));
-    }
+    if (pattern[0] == '~')
+      file_util::expand_home_dir(pattern);
 
     if (::glob(pattern.c_str(), 0, nullptr, &result) == 0) {
       for (size_t i = 0_z; i < result.gl_pathc; ++i) {
@@ -233,25 +271,108 @@ namespace file_util {
     return ret;
   }
 
+  /*
+   * Return the path without the last component (see dirname(3))
+   */
+  const string dirname(const string& path) {
+    if (path.empty())
+      return ".";
+
+    auto start = path.size() - 1;
+    if (path[start] == '/' && start > 0)
+      --start;
+
+    auto pos = path.rfind('/', start);
+    if (pos == string::npos)
+      return ".";
+    if (pos == 0) // path == "/" or path == "/directory"
+      return "/";
+
+    return path.substr(0, pos);
+  }
+
   /**
    * Path expansion
    */
   const string expand(const string& path) {
-    string ret;
-    vector<string> p_exploded = string_util::split(path, '/');
-    for (auto& section : p_exploded) {
-      switch(section[0]) {
-        case '$':
-          section = env_util::get(section.substr(1));
-          break;
-        case '~':
-          section = env_util::get("HOME");
-          break;
+    auto ret = path;
+    if (ret[0] == '~')
+      file_util::expand_home_dir(ret);
+
+    vector<string> p_exploded = string_util::split(ret, '/');
+    for (auto it = p_exploded.begin(); it != p_exploded.end(); ) {
+      if (it->empty() || *it == ".")
+        it = p_exploded.erase(it);
+      else if (*it == "..")
+      {
+        if (it != p_exploded.begin())
+        {
+          --it;
+          it = p_exploded.erase(it);
+        }
+        it = p_exploded.erase(it);
+      }
+      else
+      {
+        auto& path = *it;
+
+        // subtract 1 since we are not interested when the last character is '$'
+        for (auto pos = path.find('$'); pos < path.length() - 1; pos = path.find('$', pos + 1))
+        {
+          auto replace_start = pos++;
+
+          string::size_type replace_end, count;
+          if (path[pos] == '{')
+          {
+            ++pos;
+            count = path.find('}', pos + 1);
+            if (count == string::npos)
+              break;
+            count -= pos;
+            replace_end = pos + (count + 1);
+          }
+          else
+          {
+            count = path.length() - pos;
+            replace_end = pos + count;
+          }
+
+          auto env = env_util::get(path.substr(pos, count));
+          path.replace(replace_start, replace_end, env);
+
+          pos += count;
+          if ( pos >= path.length() - 1)
+            break;
+        }
+
+        // erase any separators at the end (due to expansion) to avoid double '//'
+        while (!path.empty() && path.back() == '/')
+            path.pop_back();
+
+        // remove separators at the start to avoid double '//'
+        string::size_type start = 0;
+        while (start < path.length() && path[start] == '/')
+            ++start;
+        if (start > 0)
+            path = path.substr(start);
+
+        ++it;
       }
     }
+
+    if (p_exploded.empty())
+        return "/";
+
     ret = string_util::join(p_exploded, "/");
+
+    // if the original path had a trailing separator, preserve it
+    if (path.back() == '/')
+      ret += '/';
+
+    // if the path is not absolute, insert a separator at the start
     if (ret[0] != '/')
       ret.insert(0, 1, '/');
+
     return ret;
   }
 }

@@ -105,7 +105,9 @@ namespace file_util {
   string pick(const vector<string>& filenames);
   string contents(const string& filename);
   bool is_fifo(const string& filename);
+  bool is_absolute(const string& filename);
   vector<string> glob(string pattern);
+  const string dirname(const string& path);
   const string expand(const string& path);
 
   template <typename... Args>
