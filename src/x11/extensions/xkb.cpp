@@ -208,7 +208,7 @@ namespace xkb_util {
     if (string_util::contains(LAYOUT_SYMBOL_BLACKLIST, ";" + name + ";")) {
       return "";
     }
-    return name;
+    return move(name);
   }
 }
 
