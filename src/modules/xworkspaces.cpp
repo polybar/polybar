@@ -97,7 +97,7 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
@@ -317,7 +317,7 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
-    std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     if (tag == TAG_LABEL_MONITOR) {
       if (m_viewports[m_index]->state != viewport_state::NONE) {
