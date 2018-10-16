@@ -36,12 +36,15 @@ namespace modules {
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
       m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
+      m_label_headphones_volume = load_optional_label(m_conf, name(), TAG_LABEL_HEADPHONES_VOLUME);
     }
     if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
       m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%%");
+      m_label_headphones_muted = load_optional_label(m_conf, name(), TAG_LABEL_HEADPHONES_MUTED);
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
+      m_ramp_headphones = load_ramp(m_conf, name(), TAG_RAMP_HEADPHONES, false);
     }
   }
 
@@ -67,11 +70,13 @@ namespace modules {
     // Get volume and mute state
     m_volume = 100;
     m_muted = false;
+    m_headphones = false;
 
     try {
       if (m_pulseaudio) {
         m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
         m_muted = m_muted || m_pulseaudio->is_muted();
+        m_headphones = m_pulseaudio->is_headphone();
       }
     } catch (const pulseaudio_error& err) {
       m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
@@ -86,6 +91,16 @@ namespace modules {
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
+    }
+
+    if (m_headphones && m_label_headphones_volume) {
+      m_label_headphones_volume->reset_tokens();
+      m_label_headphones_volume->replace_token("%percentage%", to_string(m_volume));
+    }
+
+    if (m_headphones && m_label_headphones_muted) {
+      m_label_headphones_muted->reset_tokens();
+      m_label_headphones_muted->replace_token("%percentage%", to_string(m_volume));
     }
 
     return true;
@@ -115,12 +130,18 @@ namespace modules {
   bool pulseaudio_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR_VOLUME) {
       builder->node(m_bar_volume->output(m_volume));
-    } else if (tag == TAG_RAMP_VOLUME) {
+    } else if (tag == TAG_RAMP_VOLUME && (!m_headphones || !*m_ramp_headphones)) {
       builder->node(m_ramp_volume->get_by_percentage(m_volume));
-    } else if (tag == TAG_LABEL_VOLUME) {
+    } else if (tag == TAG_RAMP_VOLUME && m_headphones && *m_ramp_headphones) {
+      builder->node(m_ramp_headphones->get_by_percentage(m_volume));
+    } else if (tag == TAG_LABEL_VOLUME && (!m_headphones || !*m_label_headphones_volume)) {
       builder->node(m_label_volume);
-    } else if (tag == TAG_LABEL_MUTED) {
+    } else if (tag == TAG_LABEL_VOLUME && m_headphones && *m_label_headphones_volume) {
+      builder->node(m_label_headphones_volume);
+    } else if (tag == TAG_LABEL_MUTED && (!m_headphones || !*m_label_headphones_muted)) {
       builder->node(m_label_muted);
+    } else if (tag == TAG_LABEL_MUTED && m_headphones && *m_label_headphones_muted) {
+      builder->node(m_label_headphones_muted);
     } else {
       return false;
     }

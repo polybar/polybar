@@ -31,9 +31,12 @@ namespace modules {
     static constexpr auto FORMAT_MUTED = "format-muted";
 
     static constexpr auto TAG_RAMP_VOLUME = "<ramp-volume>";
+    static constexpr auto TAG_RAMP_HEADPHONES = "<ramp-headphones>";
     static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
+    static constexpr auto TAG_LABEL_HEADPHONES_VOLUME = "<label-headphones-volume>";
+    static constexpr auto TAG_LABEL_HEADPHONES_MUTED = "<label-headphones-muted>";
 
     static constexpr auto EVENT_PREFIX = "pa_vol";
     static constexpr auto EVENT_VOLUME_UP = "pa_volup";
@@ -42,13 +45,17 @@ namespace modules {
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
+    ramp_t m_ramp_headphones;
     label_t m_label_volume;
     label_t m_label_muted;
+    label_t m_label_headphones_volume;
+    label_t m_label_headphones_muted;
 
     pulseaudio_t m_pulseaudio;
 
     int m_interval{5};
     atomic<bool> m_muted{false};
+    atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
   };
 }

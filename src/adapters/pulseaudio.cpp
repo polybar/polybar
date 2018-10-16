@@ -216,6 +216,21 @@ bool pulseaudio::is_muted() {
 }
 
 /**
+ * True if sink's active_port is a headphone
+ */
+bool pulseaudio::is_headphone() {
+  // see pulseaudio source - src/pulse/proplist.h:211 PA_PROP_DEVICE_FORM_FACTOR
+  vector<string> form_factors{"headphone", "headset", "hands-free"};
+  if (!active_port_name.empty()) {
+    for (size_t i = 0; i < form_factors.size(); i++) {
+      if (active_port_name.find(form_factors[i]) != string::npos)
+        return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Update local volume cache
  */
 void pulseaudio::update_volume(pa_operation *o) {
@@ -231,6 +246,9 @@ void pulseaudio::get_sink_volume_callback(pa_context *, const pa_sink_info *info
   if (info) {
     This->cv = info->volume;
     This->muted = info->mute;
+    if (info->active_port) {
+      This->active_port_name = info->active_port->name;
+    }
   }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
