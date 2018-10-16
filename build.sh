@@ -178,11 +178,11 @@ main() {
       msg "Removing existing build dir (-f)"
       rm -rf ./build >/dev/null || msg_err "Failed to remove existing build dir"
     else
-      msg_err "A build dir already exists (pass -f to replace)"
+      msg "A build dir already exists (pass -f to replace)"
     fi
   }
 
-  mkdir ./build || msg_err "Failed to create build dir"
+  mkdir -p ./build || msg_err "Failed to create build dir"
   cd ./build || msg_err "Failed to enter build dir"
 
   set_build_opts
