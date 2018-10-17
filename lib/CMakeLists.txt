@@ -4,7 +4,10 @@
 
 # Library: concurrentqueue {{{
 
-list(APPEND dirs ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
+add_library(concurrentqueue INTERFACE)
+target_include_directories(concurrentqueue INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include>)
+list(APPEND libs concurrentqueue)
 
 # }}}
 # Library: xpp {{{
@@ -31,8 +34,7 @@ if(WITH_XKB)
 endif()
 
 add_subdirectory(xpp)
-list(APPEND libs ${XPP_LIBRARIES})
-list(APPEND dirs ${XPP_INCLUDE_DIRS})
+list(APPEND libs xpp)
 
 # }}}
 # Library: i3ipcpp {{{
@@ -40,10 +42,8 @@ list(APPEND dirs ${XPP_INCLUDE_DIRS})
 if(ENABLE_I3)
   add_subdirectory(i3ipcpp)
   list(APPEND libs ${I3IPCPP_LIBRARIES})
-  list(APPEND dirs ${I3IPCPP_INCLUDE_DIRS})
 endif()
 
 # }}}
 
 set(libs ${libs} PARENT_SCOPE)
-set(dirs ${dirs} PARENT_SCOPE)
