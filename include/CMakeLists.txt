@@ -38,5 +38,4 @@ configure_file(
   ${CMAKE_CURRENT_LIST_DIR}/settings.hpp
   ESCAPE_QUOTES @ONLY)
 
-set(libs ${libs} PARENT_SCOPE)
 set(dirs ${dirs} PARENT_SCOPE)
