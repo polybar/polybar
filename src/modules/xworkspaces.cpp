@@ -99,7 +99,7 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
+    if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
