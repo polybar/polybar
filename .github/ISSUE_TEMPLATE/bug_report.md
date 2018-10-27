@@ -37,6 +37,7 @@ about: Create a report to help us improve
 
 ## Environment:
 * WM:
+* Distro:
 * Output of `polybar -vvv`:
 
 ## Additional context
