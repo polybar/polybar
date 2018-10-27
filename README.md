@@ -34,6 +34,7 @@ Make sure you include steps on how to reproduce it.
   * [Building from source](#building-from-source)
   * [Configuration](#configuration)
   * [Running](#running)
+* [Community](#community)
 * [Contributors](#contributors)
 * [License](#license)
 
@@ -158,10 +159,15 @@ $ make userconfig
   $ polybar example
   ~~~
 
-
 ### Running
 
 [See the wiki for details on how to run polybar](https://github.com/jaagr/polybar/wiki).
+
+## Community
+Want to get in touch?
+
+* We have our own subreddit at [r/polybar](https://www.reddit.com/r/polybar).
+* Chat with us in the `#polybar` IRC channel on the `chat.freenode.net` server.
 
 ## Contributors
 
