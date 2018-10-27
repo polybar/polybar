@@ -1,6 +1,6 @@
 ---
-name: Bug or Issue Report
-about: Create a report to help us improve
+name: Bug Report
+about: Create a report for something that misbehaves
 
 ---
 

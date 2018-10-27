@@ -19,15 +19,16 @@ Here are a few screenshots showing you what it can look like:
 You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
 
-If you need help, check out the [Support](SUPPORT.md) page.
+**If you need help**, check out the [Support](SUPPORT.md) page.
 
-Please report any issues or bugs you may find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new/choose) here on GitHub.
-Make sure you include steps on how to reproduce it. There's also an irc channel available at freenode, cleverly named `#polybar`.
+Please report any bugs you find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new/choose) here on GitHub.
+Make sure you include steps on how to reproduce it.
 
 
 ## Table of Contents
 
 * [Introduction](#introduction)
+* [Getting Help](#getting-help)
 * [Getting started](#getting-started)
   * [Dependencies](#dependencies)
   * [Building from source](#building-from-source)
@@ -63,6 +64,9 @@ Some of the services included so far:
 
 [See the wiki for more details](https://github.com/jaagr/polybar/wiki).
 
+## Getting Help
+
+If you find yourself stuck, have a look at our [Support](SUPPORT.md) page for resources where you can find help.
 
 ## Getting started
 
