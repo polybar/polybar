@@ -6,16 +6,6 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
-#ifdef inline
-#undef inline
-#endif
-
-#include "common.hpp"
-#include "settings.hpp"
-#include "errors.hpp"
-#include "components/logger.hpp"
-#include "utils/math.hpp"
-
 #if WITH_LIBNL
 #include <net/if.h>
 
@@ -23,7 +13,22 @@ struct nl_msg;
 struct nlattr;
 #else
 #include <iwlib.h>
+
+/*
+ * wirless_tools 29 (and possibly earlier) redefines 'inline' in iwlib.h
+ * With clang this leads to a conflict in the POLYBAR_NS macro
+ * wirless_tools 30 doesn't have that issue anymore
+ */
+#ifdef inline
+#undef inline
 #endif
+#endif
+
+#include "common.hpp"
+#include "settings.hpp"
+#include "errors.hpp"
+#include "components/logger.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
