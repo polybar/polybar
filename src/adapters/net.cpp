@@ -12,10 +12,6 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-#ifdef inline
-#undef inline
-#endif
-
 #include "common.hpp"
 #include "settings.hpp"
 #include "utils/command.hpp"
