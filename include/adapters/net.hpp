@@ -6,6 +6,12 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
+#include "common.hpp"
+#include "settings.hpp"
+#include "errors.hpp"
+#include "components/logger.hpp"
+#include "utils/math.hpp"
+
 #if WITH_LIBNL
 #include <net/if.h>
 
@@ -23,12 +29,6 @@ struct nlattr;
 #undef inline
 #endif
 #endif
-
-#include "common.hpp"
-#include "settings.hpp"
-#include "errors.hpp"
-#include "components/logger.hpp"
-#include "utils/math.hpp"
 
 POLYBAR_NS
 
