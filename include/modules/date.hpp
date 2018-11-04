@@ -24,7 +24,7 @@ namespace modules {
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto EVENT_TOGGLE = "datetoggle";
 
-    // @deprecated: Use <label>
+    // \deprecated: Use <label>
     static constexpr auto TAG_DATE = "<date>";
 
     label_t m_label;

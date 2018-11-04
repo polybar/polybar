@@ -31,11 +31,11 @@ namespace throttle_util {
    * Throttle events within a set window of time
    *
    * Example usage:
-   * @code cpp
+   * \code cpp
    *   auto t = throttle_util::make_throttler(2, 1s);
    *   if (t->passthrough())
    *     ...
-   * @endcode
+   * \endcode
    */
   class event_throttler {
    public:

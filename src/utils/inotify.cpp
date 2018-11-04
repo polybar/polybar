@@ -50,7 +50,7 @@ void inotify_watch::remove(bool force) {
 /**
  * Poll the inotify fd for events
  *
- * @brief A wait_ms of -1 blocks until an event is fired
+ * \brief A wait_ms of -1 blocks until an event is fired
  */
 bool inotify_watch::poll(int wait_ms) const {
   if (m_fd == -1) {

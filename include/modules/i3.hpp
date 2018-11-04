@@ -16,19 +16,19 @@ namespace modules {
     enum class state {
       NONE,
       /**
-       * @brief Active workspace on focused monitor
+       * \brief Active workspace on focused monitor
        */
       FOCUSED,
       /**
-       * @brief Inactive workspace on any monitor
+       * \brief Inactive workspace on any monitor
        */
       UNFOCUSED,
       /**
-       * @brief Active workspace on unfocused monitor
+       * \brief Active workspace on unfocused monitor
        */
       VISIBLE,
       /**
-       * @brief Workspace with urgency hint set
+       * \brief Workspace with urgency hint set
        */
       URGENT,
     };

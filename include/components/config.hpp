@@ -179,7 +179,7 @@ class config {
   }
 
   /**
-   * @see deprecated<T>
+   * \see deprecated<T>
    */
   template <typename T = string>
   T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {

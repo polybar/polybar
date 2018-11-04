@@ -26,7 +26,7 @@ namespace drawtypes {
   using label_t = shared_ptr<label>;
 
   /**
-   * @decprecated: use label
+   * \deprecated use label
    */
   using icon = label;
   using icon_t = label_t;

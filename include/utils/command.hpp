@@ -18,27 +18,27 @@ DEFINE_ERROR(command_error);
  *
  * Example usage:
  *
- * @code cpp
+ * \code cpp
  *   auto cmd = command_util::make_command("cat /etc/rc.local");
  *   cmd->exec();
  *   cmd->tail([](string s) { std::cout << s << std::endl; });
- * @endcode
+ * \endcode
  *
- * @code cpp
+ * \code cpp
  *   auto cmd = command_util::make_command(
  *    "while read -r line; do echo data from parent process: $line; done");
  *   cmd->exec(false);
  *   cmd->writeline("Test");
  *   cout << cmd->readline();
  *   cmd->wait();
- * @endcode
+ * \endcode
  *
- * @code cpp
+ * \code cpp
  *   auto cmd = command_util::make_command("for i in 1 2 3; do echo $i; done");
  *   cmd->exec();
  *   cout << cmd->readline(); // 1
  *   cout << cmd->readline() << cmd->readline(); // 23
- * @endcode
+ * \endcode
  */
 class command {
  public:
