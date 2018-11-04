@@ -186,7 +186,7 @@ void builder::node(string str, bool add_space) {
 /**
  * Insert text node with specific font index
  *
- * @see builder::node
+ * \see builder::node
  */
 void builder::node(string str, int font_index, bool add_space) {
   font(font_index);

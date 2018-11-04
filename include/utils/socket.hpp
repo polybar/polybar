@@ -34,11 +34,11 @@ namespace socket_util {
    * Creates a wrapper for a unix socket connection
    *
    * Example usage:
-   * @code cpp
+   * \code cpp
    *   auto conn = socket_util::make_unix_connection("/tmp/socket");
    *   conn->send(...);
    *   conn->receive(...);
-   * @endcode
+   * \endcode
    */
   auto make_unix_connection = [](string&& path) -> unique_ptr<unix_connection> {
     return factory_util::unique<unix_connection>(forward<string>(path));
