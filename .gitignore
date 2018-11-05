@@ -1,6 +1,7 @@
 /build*
 /doc/config
 /include/settings.hpp
+/man/polybar.1
 /polybar
 /polybar-msg
 /tags

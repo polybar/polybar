@@ -1,4 +1,4 @@
-.TH polybar 1 2017-01-26 "polybar 3.0.2" "User Manual"
+.TH polybar 1 @LAST_COMMIT_DATE@ "polybar @APP_VERSION@" "User Manual"
 .SH NAME
 polybar \- A fast and easy-to-use tool status bar
 .SH SYNOPSIS
