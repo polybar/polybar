@@ -38,4 +38,5 @@ configure_file(
   ${CMAKE_CURRENT_LIST_DIR}/settings.hpp
   ESCAPE_QUOTES @ONLY)
 
+set(APP_VERSION ${APP_VERSION} PARENT_SCOPE)
 set(dirs ${dirs} PARENT_SCOPE)
