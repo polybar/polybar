@@ -94,8 +94,7 @@ namespace randr_util {
       for (auto&& mon : conn.get_monitors(root, true).monitors()) {
         try {
           auto name = conn.get_atom_name(mon.name).name();
-          auto primary = (mon.primary != 0);
-          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y, primary));
+          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y, mon.primary));
         } catch (const exception&) {
           // silently ignore output
         }
