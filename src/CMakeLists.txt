@@ -5,7 +5,7 @@
 # Source tree {{{
 
 file(GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.c[p]*)
-list(REMOVE_ITEM files ipc.cpp)
+list(REMOVE_ITEM files main.cpp ipc.cpp)
 
 if(NOT ENABLE_ALSA)
   list(REMOVE_ITEM files modules/alsa.cpp)
@@ -69,10 +69,13 @@ endif()
 
 # Target: polybar {{{
 
-add_executable(polybar ${files})
-target_include_directories(polybar PRIVATE ${dirs})
-target_link_libraries(polybar ${libs} Threads::Threads)
-target_compile_options(polybar PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+add_library(polybar-lib STATIC ${files})
+target_include_directories(polybar-lib PUBLIC ${dirs})
+target_link_libraries(polybar-lib ${libs} Threads::Threads)
+target_compile_options(polybar-lib PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+
+add_executable(polybar main.cpp)
+target_link_libraries(polybar polybar-lib)
 
 install(TARGETS polybar
   DESTINATION ${CMAKE_INSTALL_BINDIR}
