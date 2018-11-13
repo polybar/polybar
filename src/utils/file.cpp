@@ -295,6 +295,9 @@ namespace file_util {
    * Path expansion
    */
   const string expand(const string& path) {
+    if (path.empty())
+      return "/";
+
     auto ret = path;
     if (ret[0] == '~')
       file_util::expand_home_dir(ret);
