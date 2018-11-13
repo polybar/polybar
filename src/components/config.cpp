@@ -101,16 +101,18 @@ void config::parse_file() {
     }
 
     if (key == "include-file") {
-      auto file_path = file_util::expand(value);
+      auto file_path = file_util::is_absolute(value)
+          ? file_util::expand(value)
+          : file_util::expand(file_util::dirname(files.back()) + "/" + value);
       if (file_path.empty() || !file_util::exists(file_path)) {
         throw value_error("Invalid include file \"" + file_path + "\" defined on line " + to_string(lineno));
       }
       if (std::find(files.begin(), files.end(), file_path) != files.end()) {
         throw value_error("Recursive include file \"" + file_path + "\"");
       }
-      files.push_back(file_util::expand(file_path));
+      files.push_back(move(file_path));
       m_log.trace("config: Including file \"%s\"", file_path);
-      for (auto&& l : string_util::split(file_util::contents(file_path), '\n')) {
+      for (auto&& l : string_util::split(file_util::contents(files.back()), '\n')) {
         pushline(lineno, forward<string>(l));
       }
       files.pop_back();
