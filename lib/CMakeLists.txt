@@ -34,17 +34,14 @@ if(WITH_XKB)
 endif()
 
 add_subdirectory(xpp)
-add_library(xpp-interface INTERFACE)
-target_link_libraries(xpp-interface INTERFACE ${XPP_LIBRARIES})
-target_include_directories(xpp-interface INTERFACE ${XPP_INCLUDE_DIRS})
-list(APPEND libs xpp-interface)
+list(APPEND libs xpp)
 
 # }}}
 # Library: i3ipcpp {{{
 
 if(ENABLE_I3)
   add_subdirectory(i3ipcpp)
-  list(APPEND libs i3ipc++)
+  list(APPEND libs ${I3IPCPP_LIBRARIES})
 endif()
 
 # }}}
