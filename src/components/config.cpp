@@ -112,7 +112,7 @@ void config::parse_file() {
       }
       files.push_back(move(file_path));
       m_log.trace("config: Including file \"%s\"", file_path);
-      for (auto&& l : string_util::split(files.back(), '\n')) {
+      for (auto&& l : string_util::split(file_util::contents(files.back()), '\n')) {
         pushline(lineno, forward<string>(l));
       }
       files.pop_back();
