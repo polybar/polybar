@@ -69,13 +69,13 @@ endif()
 
 # Target: polybar {{{
 
-add_library(polybar-lib STATIC ${files})
-target_include_directories(polybar-lib PUBLIC ${dirs})
-target_link_libraries(polybar-lib ${libs} Threads::Threads)
-target_compile_options(polybar-lib PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+add_library(poly STATIC ${files})
+target_include_directories(poly PUBLIC ${dirs})
+target_link_libraries(poly ${libs} Threads::Threads)
+target_compile_options(poly PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 
 add_executable(polybar main.cpp)
-target_link_libraries(polybar polybar-lib)
+target_link_libraries(polybar poly)
 
 install(TARGETS polybar
   DESTINATION ${CMAKE_INSTALL_BINDIR}
