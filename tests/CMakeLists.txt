@@ -1,7 +1,3 @@
-# Compile and link with coverage
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage -Wno-missing-field-initializers")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
-
 include_directories(${dirs})
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
@@ -33,10 +29,6 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 
 # }}}
-
-# Disable errors for warnings so that we can run tests even with some warnings
-string(REGEX REPLACE "-Werror[^ ]*" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-string(REPLACE "-pedantic-errors" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 # Compile all unit tests with 'make all_unit_tests'
 add_custom_target(all_unit_tests
