@@ -6,7 +6,7 @@
 
 add_library(concurrentqueue INTERFACE)
 target_include_directories(concurrentqueue INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include>)
 list(APPEND libs concurrentqueue)
 
 # }}}
