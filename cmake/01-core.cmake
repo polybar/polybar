@@ -96,7 +96,7 @@ if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
 endif()
 
 # Custom build type ; SANITIZE
-SET(CMAKE_CXX_FLAGS_SANITIZE "-O1 -g -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+SET(CMAKE_CXX_FLAGS_SANITIZE "-O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls"
   CACHE STRING "Flags used by the C++ compiler during sanitize builds." FORCE)
 SET(CMAKE_C_FLAGS_SANITIZE ""
   CACHE STRING "Flags used by the C compiler during sanitize builds." FORCE)
