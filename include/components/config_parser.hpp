@@ -26,18 +26,12 @@ class syntax_error : public parser_error {
      * Default values are used when the thrower doesn't know the position.
      * parse_line has to catch, set the proper values and rethrow
      */
-    syntax_error(string msg, string file = "", int line_no = -1)
-      : parser_error(msg), file(file), line_no(line_no), msg(msg) {}
-
-    virtual const char* what() const throw() {
-      return ("Syntax error at " + file + ":" + to_string(line_no) + " " + msg).c_str();
-    }
+    explicit syntax_error(string msg, string file = "", int line_no = -1)
+      : parser_error(file + ":" + to_string(line_no) + ": " + msg), msg(msg) {}
 
     string get_msg() { return msg; };
 
   private:
-    string file;
-    int line_no;
     string msg;
 };
 
