@@ -85,7 +85,7 @@ namespace net {
           break;
 
         case AF_INET6:
-          char ip6_buffer[INET_ADDRSTRLEN];
+          char ip6_buffer[INET6_ADDRSTRLEN];
           sa6 = reinterpret_cast<decltype(sa6)>(ifa->ifa_addr);
           if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
               continue;
@@ -97,7 +97,7 @@ namespace net {
               /* Skip Unique Local Addresses (fc00::/7) */
               continue;
           }
-          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
+          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, INET6_ADDRSTRLEN) == 0) {
               m_log.warn("inet_ntop() " + string(strerror(errno)));
               continue;
           }
