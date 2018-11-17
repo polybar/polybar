@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm>
 
 #include "components/config_parser.hpp"
 
@@ -59,8 +60,8 @@ sectionmap_t config_parser::create_sectionmap() {
             files[line.file_index], line.line_no);
       }
 
-      string key = line.key_value[0];
-      string value = line.key_value[1];
+      string key = line.key;
+      string value = line.value;
 
       valuemap_t& valuemap = sections[current_section];
 
@@ -145,10 +146,10 @@ void config_parser::parse_file(string file, file_list path) {
       continue;
     }
 
-    if(!line.is_header && line.key_value[0] == "include-file") {
+    if(!line.is_header && line.key == "include-file") {
       file_list cloned_path(path);
 
-      parse_file(file_util::expand(line.key_value[1]), cloned_path);
+      parse_file(file_util::expand(line.value), cloned_path);
     } else {
       lines.push_back(line);
     }
@@ -178,8 +179,8 @@ line_t config_parser::parse_line(string line) {
   } else if(type == KEY) {
     result.is_header = false;
     auto key_value = parse_key(line);
-    result.key_value[0] = key_value.first;
-    result.key_value[1] = key_value.second;
+    result.key = key_value.first;
+    result.value = key_value.second;
   }
 
   return result;

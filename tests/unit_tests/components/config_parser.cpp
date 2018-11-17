@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "common/test.hpp"
 #include "components/config_parser.hpp"
 #include "components/logger.hpp"
@@ -94,8 +92,8 @@ TEST_P(ParseLineKeyTest, correctness) {
   EXPECT_TRUE(line.useful);
 
   EXPECT_FALSE(line.is_header);
-  EXPECT_EQ(GetParam().first.first, line.key_value[0]);
-  EXPECT_EQ(GetParam().first.second, line.key_value[1]);
+  EXPECT_EQ(GetParam().first.first, line.key);
+  EXPECT_EQ(GetParam().first.second, line.value);
 }
 
 TEST_F(ParseLineInValidTest, throwsSyntaxError) {

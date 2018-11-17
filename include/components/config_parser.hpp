@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <set>
 
 #include "common.hpp"
@@ -72,12 +71,19 @@ struct line_t {
   int line_no;
 
   /**
-   * We access header, if is_header == true otherwise we access key_value
+   * We access header, if is_header == true otherwise we access key, value
    */
   bool is_header;
 
+  /**
+   * Only set for header lines
+   */
   string header;
-  string key_value[2];
+
+  /**
+   * Only set for key-value lines
+   */
+  string key, value;
 };
 
 class config_parser {

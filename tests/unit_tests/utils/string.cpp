@@ -1,6 +1,3 @@
-#include <iomanip>
-#include <functional>
-
 #include "common/test.hpp"
 #include "utils/string.hpp"
 
