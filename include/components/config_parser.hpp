@@ -57,13 +57,13 @@ enum line_type {KEY, HEADER, COMMENT, EMPTY, UNKNOWN};
  */
 struct line_t {
   /**
-   * Whether or not this struct contains a valid line
-   * If false all other fields are not set
+   * Whether or not this struct contains a "useful" line
+   * I set to true for header and key-value lines
+   * If false all other fields are not set.
    * Set this to false, if you want to return a line that has no effect
-   * (for example when you parse a comment line), do not use this to signal
-   * any kind of error, throw an exception instead
+   * (for example when you parse a comment line)
    */
-  bool is_valid;
+  bool useful;
 
   /**
    * Index of the config_parser::files vector where this line is from

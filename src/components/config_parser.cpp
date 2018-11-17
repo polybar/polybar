@@ -46,7 +46,7 @@ sectionmap_t config_parser::create_sectionmap() {
   string current_section = "";
 
   for(line_t line : lines) {
-    if(!line.is_valid) {
+    if(!line.useful) {
       continue;
     }
 
@@ -140,8 +140,8 @@ void config_parser::parse_file(string file, file_list path) {
       throw syntax_error(err.get_msg(), files[file_index], line_no);
     }
 
-    // Not valid means 'not important to us' and never implies a syntax error
-    if(!line.is_valid) {
+    // Skip useless lines (comments, empty lines)
+    if(!line.useful) {
       continue;
     }
 
@@ -162,15 +162,15 @@ line_t config_parser::parse_line(string line) {
   line_t result = {};
 
   if(type == EMPTY || type == COMMENT) {
-    result.is_valid = false;
+    result.useful = false;
     return result;
   }
 
   if(type == UNKNOWN) {
-    throw syntax_error("Unknown line type " + line);
+    throw syntax_error("Unknown line type: " + line);
   }
 
-  result.is_valid = true;
+  result.useful = true;
 
   if(type == HEADER) {
     result.is_header = true;

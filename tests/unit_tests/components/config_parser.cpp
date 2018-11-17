@@ -70,7 +70,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineInValidTest,
 TEST_P(ParseLineInValidTest, correctness) {
   line_t line = parser->parse_line(GetParam());
 
-  EXPECT_FALSE(line.is_valid);
+  EXPECT_FALSE(line.useful);
 }
 
 INSTANTIATE_TEST_CASE_P(Inst, ParseLineHeaderTest,
@@ -79,7 +79,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineHeaderTest,
 TEST_P(ParseLineHeaderTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
 
-  EXPECT_TRUE(line.is_valid);
+  EXPECT_TRUE(line.useful);
 
   EXPECT_TRUE(line.is_header);
   EXPECT_EQ(GetParam().first, line.header);
@@ -91,7 +91,7 @@ INSTANTIATE_TEST_CASE_P(Inst, ParseLineKeyTest,
 TEST_P(ParseLineKeyTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
 
-  EXPECT_TRUE(line.is_valid);
+  EXPECT_TRUE(line.useful);
 
   EXPECT_FALSE(line.is_header);
   EXPECT_EQ(GetParam().first.first, line.key_value[0]);
