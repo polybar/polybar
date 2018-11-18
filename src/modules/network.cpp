@@ -60,15 +60,6 @@ namespace modules {
       }
     }
 
-    // Get an instance of the network interface
-    if (net::is_wireless_interface(m_interface)) {
-      m_wireless = factory_util::unique<net::wireless_network>(m_interface);
-      m_wireless->set_unknown_up(m_unknown_up);
-    } else {
-      m_wired = factory_util::unique<net::wired_network>(m_interface);
-      m_wired->set_unknown_up(m_unknown_up);
-    };
-
     // We only need to start the subthread if the packetloss animation is used
     if (m_animation_packetloss) {
       m_threads.emplace_back(thread(&network_module::subthread_routine, this));
@@ -81,6 +72,13 @@ namespace modules {
   }
 
   bool network_module::update() {
+    // Checks if we have an interface yet. If we don't, try to set it.
+    // If that fails don't update the module and wait for next update call to
+    // try and set it.
+    if (!m_wireless && !m_wired && !set_interface()) {
+      return false;
+    }
+
     net::network* network =
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
@@ -188,6 +186,26 @@ namespace modules {
     }
 
     m_log.trace("%s: Reached end of network subthread", name());
+  }
+
+  /**
+   * Attempts to set the interface. Returns true if successful.
+   */
+  bool network_module::set_interface() {
+    try {
+      if (net::is_wireless_interface(m_interface)) {
+        m_wireless = factory_util::unique<net::wireless_network>(m_interface);
+        m_wireless->set_unknown_up(m_unknown_up);
+      } else {
+        m_wired = factory_util::unique<net::wired_network>(m_interface);
+        m_wired->set_unknown_up(m_unknown_up);
+      }
+    } catch (const net::network_error& err) {
+      m_log.warn("%s: Could not access interface %s, assuming disconnected", name(), m_interface);
+      return false;
+    }
+
+    return true;
   }
 }
 
