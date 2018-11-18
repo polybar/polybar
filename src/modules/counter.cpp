@@ -1,11 +1,14 @@
 #include "modules/counter.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<counter_module>;
+
+  POLYBAR_MODULE(counter_module, "internal/counter");
 
   counter_module::counter_module(const bar_settings& bar, string name_)
       : timer_module<counter_module>(bar, move(name_)) {

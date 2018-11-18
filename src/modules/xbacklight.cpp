@@ -7,11 +7,14 @@
 #include "x11/winspec.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<xbacklight_module>;
+
+  POLYBAR_MODULE(xbacklight_module, "internal/xbacklight");
 
   /**
    * Construct module

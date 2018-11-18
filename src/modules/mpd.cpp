@@ -7,11 +7,14 @@
 #include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<mpd_module>;
+
+  POLYBAR_MODULE(mpd_module, "internal/mpd");
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
     m_host = m_conf.get(name(), "host", m_host);

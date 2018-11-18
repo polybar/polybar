@@ -7,11 +7,14 @@
 #include <cmath>
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<temperature_module>;
+
+  POLYBAR_MODULE(temperature_module, "internal/temperature");
 
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {

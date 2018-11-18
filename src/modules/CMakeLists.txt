@@ -1,0 +1,128 @@
+if(ENABLE_ALSA)
+  make_library(polybar-modules-alsa
+    MODULE
+    SOURCES
+      ../adapters/alsa/control.cpp
+      ../adapters/alsa/mixer.cpp
+      alsa.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${alsa-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${alsa-libs})
+endif()
+
+if(ENABLE_CURL)
+  make_library(polybar-modules-github
+    MODULE
+    SOURCES
+      ../utils/http.cpp
+      github.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${curl-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${curl-libs})
+endif()
+
+if(ENABLE_MPD)
+  make_library(polybar-modules-mpd
+    MODULE
+    SOURCES
+      ../adapters/mpd.cpp
+      mpd.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${mpd-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${mpd-libs})
+endif()
+
+if(ENABLE_NETWORK)
+  list(APPEND net-src ../adapters/net.cpp network.cpp)
+  if(WITH_LIBNL)
+    list(APPEND net-src ../adapters/net_nl.cpp)
+  else()
+    list(APPEND net-src ../adapters/net_iw.cpp)
+  endif()
+  make_library(polybar-modules-network
+    MODULE
+    SOURCES
+      ${net-src}
+    INCLUDE_DIRS
+      ${dirs}
+      ${net-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${net-libs})
+endif()
+
+if(ENABLE_I3)
+  make_library(polybar-modules-i3
+    MODULE
+    SOURCES
+      i3.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${I3IPCPP_INCLUDE_DIRS}
+    RAW_DEPENDS
+      ${libs})
+endif()
+
+if(ENABLE_PULSEAUDIO)
+  make_library(polybar-modules-pulseaudio
+    MODULE
+    SOURCES
+      ../adapters/pulseaudio.cpp
+      pulseaudio.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${pulse-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${pulse-libs})
+endif()
+
+if(WITH_XKB)
+  make_library(polybar-modules-xkeyboard
+    MODULE
+    SOURCES
+      ../x11/extensions/xkb.cpp
+      xkeyboard.cpp
+    INCLUDE_DIRS
+      ${dirs}
+      ${xkb-dirs}
+    RAW_DEPENDS
+      ${libs}
+      ${xkb-libs})
+endif()
+
+make_library(polybar-modules-internal
+  SHARED
+  SOURCES
+    backlight.cpp
+    battery.cpp
+    bspwm.cpp
+    counter.cpp
+    cpu.cpp
+    date.cpp
+    fs.cpp
+    ipc.cpp
+    memory.cpp
+    menu.cpp
+    meta/base.cpp
+    meta/factory.cpp
+    script.cpp
+    systray.cpp
+    temperature.cpp
+    text.cpp
+    xbacklight.cpp
+    xwindow.cpp
+    xworkspaces.cpp
+  INCLUDE_DIRS
+    ${dirs}
+  RAW_DEPENDS
+    ${libs})

@@ -6,6 +6,7 @@
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 #include "settings.hpp"
 
@@ -13,6 +14,8 @@ POLYBAR_NS
 
 namespace modules {
   template class module<pulseaudio_module>;
+
+  POLYBAR_MODULE(pulseaudio_module, "internal/pulseaudio");
 
   pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
     // Load configuration values

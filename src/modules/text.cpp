@@ -1,11 +1,14 @@
 #include "modules/text.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<text_module>;
+
+  POLYBAR_MODULE(text_module, "custom/text");
 
   text_module::text_module(const bar_settings& bar, string name_) : static_module<text_module>(bar, move(name_)) {
     m_formatter->add("content", "", {});

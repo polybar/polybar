@@ -88,7 +88,7 @@ endfunction()
 # make_library {{{
 
 function(make_library target_name)
-  set(zero_value_args SHARED STATIC)
+  set(zero_value_args SHARED STATIC INTERNAL MODULE)
   set(one_value_args PACKAGE HEADER_INSTALL_DIR)
   set(multi_value_args SOURCES HEADERS INCLUDE_DIRS PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS RAW_DEPENDS)
 
@@ -99,13 +99,6 @@ function(make_library target_name)
   # make the header paths absolute
   foreach(HEADER ${LIB_HEADERS})
     set(LIB_HEADERS_ABS ${LIB_HEADERS_ABS} ${PROJECT_SOURCE_DIR}/include/${HEADER})
-  endforeach()
-
-  # add defined INCLUDE_DIRS
-  foreach(DIR ${LIB_INCLUDE_DIRS})
-    string(TOUPPER ${DIR} DIR)
-    include_directories(${DIR})
-    include_directories(${${DIR}_INCLUDE_DIRS})
   endforeach()
 
   # add INCLUDE_DIRS for all external dependencies
@@ -120,12 +113,31 @@ function(make_library target_name)
   if(LIB_STATIC)
     list(APPEND library_targets ${target_name}_static)
   endif()
+  if(LIB_MODULE)
+    list(APPEND library_targets ${target_name}_module)
+  endif()
 
   foreach(library_target_name ${library_targets})
     message(STATUS "${library_target_name}")
-    add_library(${library_target_name}
-      ${LIB_HEADERS_ABS}
-      ${LIB_SOURCES})
+
+    if(library_target_name MATCHES "_shared$")
+      add_library(${library_target_name}
+        SHARED
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    elseif(library_target_name MATCHES "_module$")
+      add_library(${library_target_name}
+        MODULE
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    else()
+      add_library(${library_target_name}
+        ${LIB_HEADERS_ABS}
+        ${LIB_SOURCES})
+    endif()
+
+    # add defined INCLUDE_DIRS
+    target_include_directories(${library_target_name} PRIVATE ${LIB_INCLUDE_DIRS})
 
     # link libraries from pkg-config imports
     foreach(DEP ${LIB_PKG_DEPENDS})
@@ -153,26 +165,39 @@ function(make_library target_name)
       endif()
     endforeach()
 
-    if(${LIB_RAW_DEPENDS})
-      if(LIB_BUILD_STATIC)
-        target_link_libraries(${library_target_name} ${LIB_RAW_DEPENDS})
-      endif()
+    if(LIB_RAW_DEPENDS)
+      target_link_libraries(${library_target_name} ${LIB_RAW_DEPENDS})
     endif()
 
     # set the output file basename
     set_target_properties(${library_target_name} PROPERTIES OUTPUT_NAME ${target_name})
 
-    # install headers
-    install(FILES ${LIBRARY_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
+    # set output file folder
+    set_target_properties(${library_target_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
-    # install targets
-    install(TARGETS ${LIBRARY_TARGETS}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      COMPONENT library)
+    if(NOT LIB_INTERNAL)
+      # install headers
+      install(FILES ${LIB_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIB_HEADERS_ABS})
+
+      # install targets
+      install(TARGETS ${library_targets}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT library)
+    endif()
   endforeach()
 endfunction()
+
+# }}}
+
+# add_sources {{{
+macro(add_sources varname)
+  foreach(SRC ${ARGN})
+    list(APPEND ${varname} ${CMAKE_CURRENT_SOURCE_DIR}/${SRC})
+  endforeach()
+  set(${varname} ${${varname}} PARENT_SCOPE)
+endmacro()
 
 # }}}
 

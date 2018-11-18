@@ -9,11 +9,14 @@
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<cpu_module>;
+
+  POLYBAR_MODULE(cpu_module, "internal/cpu");
 
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);

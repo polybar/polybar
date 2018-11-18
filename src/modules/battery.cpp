@@ -8,11 +8,14 @@
 #include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<battery_module>;
+
+  POLYBAR_MODULE(battery_module, "internal/battery");
 
   template <typename ValueReader>
   typename ValueReader::return_type read(ValueReader& reader) {

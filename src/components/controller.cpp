@@ -8,11 +8,14 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/ipc.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
+#include "utils/plugin.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
@@ -74,6 +77,17 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   sigaction(SIGUSR1, &act, nullptr);
   sigaction(SIGALRM, &act, nullptr);
 
+  m_log.trace("controller: Load plugins");
+  for (const auto name : plugin_names) {
+    if (name) {
+      try {
+        m_plugins.emplace_back(name);
+      } catch (const application_error& err) {
+        m_log.warn("Failed to load plugin '%s': %s", name, err.what());
+      }
+    }
+  }
+
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
 
@@ -101,7 +115,7 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name, m_log));
+        m_modules[align].emplace_back(modules::make_module(move(type), m_bar->settings(), module_name, m_log));
         created_modules++;
       } catch (const runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
@@ -163,8 +177,8 @@ bool controller::run(bool writeback, string snapshot_dst) {
   size_t started_modules{0};
   for (const auto& block : m_modules) {
     for (const auto& module : block.second) {
-      auto inp_handler = dynamic_cast<input_handler*>(&*module);
-      auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
+      auto inp_handler = dynamic_cast<modules::input_handler*>(&*module);
+      auto evt_handler = dynamic_cast<modules::event_handler_interface*>(&*module);
 
       if (inp_handler != nullptr) {
         m_inputhandlers.emplace_back(inp_handler);
@@ -273,8 +287,7 @@ void controller::read_events() {
     int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
     // Check for errors
-    if (events == -1)  {
-
+    if (events == -1) {
       /*
        * The Interrupt errno is generated when polybar is stopped, so it
        * shouldn't generate an error message
@@ -676,7 +689,7 @@ bool controller::on(const signals::ipc::hook& evt) {
       if (!module->running()) {
         continue;
       }
-      auto ipc = dynamic_cast<ipc_module*>(module.get());
+      auto ipc = dynamic_cast<modules::ipc_module*>(module.get());
       if (ipc != nullptr) {
         ipc->on_message(hook);
       }

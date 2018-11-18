@@ -1,10 +1,11 @@
-#include "modules/alsa.hpp"
 #include "adapters/alsa/control.hpp"
 #include "adapters/alsa/generic.hpp"
 #include "adapters/alsa/mixer.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "modules/alsa.hpp"
+#include "modules/meta/factory.hpp"
 #include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
@@ -17,6 +18,14 @@ using namespace alsa;
 
 namespace modules {
   template class module<alsa_module>;
+
+  POLYBAR_MODULE(alsa_module, "internal/alsa");
+
+  module_interface* volume_module_create(const bar_settings& bar, std::string module_name, const logger& m_log) {
+    m_log.warn("internal/volume is deprecated, use internal/alsa instead");
+    return alsa_module_create(bar, std::move(module_name), m_log);
+  }
+  module_registration<alsa_module> volume_module_registration("internal/volume", &volume_module_create);
 
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
     // Load configuration values

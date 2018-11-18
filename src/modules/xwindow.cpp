@@ -5,11 +5,14 @@
 #include "x11/connection.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<xwindow_module>;
+
+  POLYBAR_MODULE(xwindow_module, "internal/xwindow");
 
   /**
    * Wrapper used to update the event mask of the

@@ -8,6 +8,7 @@
 #include "utils/string.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
@@ -39,6 +40,8 @@ namespace {
 
 namespace modules {
   template class module<bspwm_module>;
+
+  POLYBAR_MODULE(bspwm_module, "internal/bspwm");
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
     auto socket_path = bspwm_util::get_socket_path();

@@ -6,11 +6,14 @@
 #include "utils/factory.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<network_module>;
+
+  POLYBAR_MODULE(network_module, "internal/network");
 
   network_module::network_module(const bar_settings& bar, string name_)
       : timer_module<network_module>(bar, move(name_)) {

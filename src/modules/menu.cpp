@@ -5,11 +5,14 @@
 #include "utils/scope.hpp"
 
 #include "modules/meta/base.inl"
+#include "modules/meta/factory.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<menu_module>;
+
+  POLYBAR_MODULE(menu_module, "custom/menu");
 
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
