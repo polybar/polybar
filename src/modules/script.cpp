@@ -90,6 +90,9 @@ namespace modules {
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
     m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
     m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
+    m_actions[mousebtn::DOUBLE_LEFT] = m_conf.get(name(), "double-click-left", ""s);
+    m_actions[mousebtn::DOUBLE_MIDDLE] = m_conf.get(name(), "double-click-middle", ""s);
+    m_actions[mousebtn::DOUBLE_RIGHT] = m_conf.get(name(), "double-click-right", ""s);
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
@@ -174,7 +177,10 @@ namespace modules {
     string cnt{to_string(m_counter)};
     string output{module::get_output()};
 
-    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
+    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
+                     mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
+                     mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP,
+                     mousebtn::SCROLL_DOWN}) {
 
       auto action = m_actions[btn];
 
