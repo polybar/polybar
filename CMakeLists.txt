@@ -47,5 +47,5 @@ add_subdirectory(src bin)
 # can be run in the build directory
 if(BUILD_TESTS)
   enable_testing()
-  add_subdirectory(tests EXCLUDE_FROM_ALL)
+  add_subdirectory(tests)
 endif()
