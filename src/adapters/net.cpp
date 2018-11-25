@@ -45,7 +45,7 @@ namespace net {
       throw network_error("Failed to open socket");
     }
 
-    check_tuntap();
+    check_tuntap_or_bridge();
   }
 
   /**
@@ -174,9 +174,9 @@ namespace net {
 
   /**
    * Query driver info to check if the
-   * interface is a TUN/TAP device
+   * interface is a TUN/TAP device or BRIDGE
    */
-  void network::check_tuntap() {
+  void network::check_tuntap_or_bridge() {
     struct ethtool_drvinfo driver {};
     struct ifreq request {};
 
@@ -204,6 +204,11 @@ namespace net {
     } else {
       m_tuntap = false;
     }
+
+    if (strncmp(driver.driver, "bridge", 3) == 0) {
+      m_bridge = true;
+    }
+
   }
 
   /**
@@ -248,19 +253,21 @@ namespace net {
       return false;
     }
 
-    struct ifreq request {};
-    struct ethtool_cmd data {};
+    if(!m_bridge) { // If bridge network then link speed cannot be computed TODO: Identify the physical network in bridge and compute the link speed
+	  struct ifreq request {};
+	  struct ethtool_cmd data {};
 
-    memset(&request, 0, sizeof(request));
-    strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
-    data.cmd = ETHTOOL_GSET;
-    request.ifr_data = reinterpret_cast<char*>(&data);
+	  memset(&request, 0, sizeof(request));
+	  strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
+	  data.cmd = ETHTOOL_GSET;
+	  request.ifr_data = reinterpret_cast<char*>(&data);
 
-    if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
-      return false;
+	  if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
+	    return false;
+	  }
+
+	  m_linkspeed = data.speed;
     }
-
-    m_linkspeed = data.speed;
 
     return true;
   }
