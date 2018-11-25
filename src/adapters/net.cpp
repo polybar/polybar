@@ -253,21 +253,23 @@ namespace net {
       return false;
     }
 
-    if(!m_bridge) { // If bridge network then link speed cannot be computed TODO: Identify the physical network in bridge and compute the link speed
-	  struct ifreq request {};
-	  struct ethtool_cmd data {};
-
-	  memset(&request, 0, sizeof(request));
-	  strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
-	  data.cmd = ETHTOOL_GSET;
-	  request.ifr_data = reinterpret_cast<char*>(&data);
-
-	  if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
-	    return false;
-	  }
-
-	  m_linkspeed = data.speed;
+    if(m_bridge) { // If bridge network then link speed cannot be computed TODO: Identify the physical network in bridge and compute the link speed
+      return true;
     }
+
+    struct ifreq request {};
+    struct ethtool_cmd data {};
+
+	memset(&request, 0, sizeof(request));
+	strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
+	data.cmd = ETHTOOL_GSET;
+	request.ifr_data = reinterpret_cast<char*>(&data);
+
+    if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
+	  return false;
+	}
+
+    m_linkspeed = data.speed;
 
     return true;
   }
