@@ -205,7 +205,7 @@ namespace net {
       m_tuntap = false;
     }
 
-    if (strncmp(driver.driver, "bridge", 3) == 0) {
+    if (strncmp(driver.driver, "bridge", 6) == 0) {
       m_bridge = true;
     }
 
@@ -267,7 +267,7 @@ namespace net {
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
-	}
+    }
 
     m_linkspeed = data.speed;
 
