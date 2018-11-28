@@ -69,6 +69,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   bool on(const signals::ui::update_background& evt);
 
  private:
+  size_t setup_modules(alignment align);
+
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;

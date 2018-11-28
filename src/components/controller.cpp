@@ -80,40 +80,9 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
-
-  for (int i = 0; i < 3; i++) {
-    alignment align{static_cast<alignment>(i + 1)};
-    string configured_modules;
-
-    if (align == alignment::LEFT) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-left", ""s);
-    } else if (align == alignment::CENTER) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-center", ""s);
-    } else if (align == alignment::RIGHT) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-right", ""s);
-    }
-
-    for (auto& module_name : string_util::split(configured_modules, ' ')) {
-      if (module_name.empty()) {
-        continue;
-      }
-
-      try {
-        auto type = m_conf.get("module/" + module_name, "type");
-
-        if (type == "custom/ipc" && !m_ipc) {
-          throw application_error("Inter-process messaging needs to be enabled");
-        }
-
-        module_t module = shared_ptr<modules::module_interface>(make_module(move(type), m_bar->settings(), module_name, m_log));
-        m_modules.push_back(module);
-        m_blocks[align].push_back(module);
-        created_modules++;
-      } catch (const runtime_error& err) {
-        m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
-      }
-    }
-  }
+  created_modules += setup_modules(alignment::LEFT);
+  created_modules += setup_modules(alignment::CENTER);
+  created_modules += setup_modules(alignment::RIGHT);
 
   if (!created_modules) {
     throw application_error("No modules created");
@@ -548,6 +517,64 @@ bool controller::process_update(bool force) {
   }
 
   return true;
+}
+
+/**
+ * Creates module instances for all the modules in the given alignment block
+ */
+size_t controller::setup_modules(alignment align) {
+  size_t count{0};
+
+  string key;
+
+  switch (align) {
+    case alignment::LEFT:
+      key = "modules-left";
+      break;
+
+    case alignment::CENTER:
+      key = "modules-center";
+      break;
+
+    case alignment::RIGHT:
+      key = "modules-right";
+      break;
+
+    case alignment::NONE:
+      m_log.err("controller: Tried to setup modules for alignment NONE");
+      break;
+  }
+
+  string configured_modules;
+  if (!key.empty()) {
+    configured_modules = m_conf.get(m_conf.section(), key, ""s);
+  }
+
+  for (auto& module_name : string_util::split(configured_modules, ' ')) {
+    if (module_name.empty()) {
+      continue;
+    }
+
+    try {
+      auto type = m_conf.get("module/" + module_name, "type");
+
+      if (type == "custom/ipc" && !m_ipc) {
+        throw application_error("Inter-process messaging needs to be enabled");
+      }
+
+      auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
+      module_t module = shared_ptr<modules::module_interface>(ptr);
+      ptr = NULL;
+
+      m_modules.push_back(module);
+      m_blocks[align].push_back(module);
+      count++;
+    } catch (const runtime_error& err) {
+      m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
+    }
+  }
+
+  return count;
 }
 
 /**
