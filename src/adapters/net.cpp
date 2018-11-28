@@ -253,7 +253,10 @@ namespace net {
       return false;
     }
 
-    if(m_bridge) { // If bridge network then link speed cannot be computed TODO: Identify the physical network in bridge and compute the link speed
+    if(m_bridge) {
+    /* If bridge network then link speed cannot be computed
+     * TODO: Identify the physical network in bridge and compute the link speed
+     */
       return true;
     }
 
