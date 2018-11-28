@@ -45,7 +45,7 @@ namespace net {
       throw network_error("Failed to open socket");
     }
 
-    check_tuntap();
+    check_tuntap_or_bridge();
   }
 
   /**
@@ -174,9 +174,9 @@ namespace net {
 
   /**
    * Query driver info to check if the
-   * interface is a TUN/TAP device
+   * interface is a TUN/TAP device or BRIDGE
    */
-  void network::check_tuntap() {
+  void network::check_tuntap_or_bridge() {
     struct ethtool_drvinfo driver {};
     struct ifreq request {};
 
@@ -204,6 +204,11 @@ namespace net {
     } else {
       m_tuntap = false;
     }
+
+    if (strncmp(driver.driver, "bridge", 6) == 0) {
+      m_bridge = true;
+    }
+
   }
 
   /**
@@ -246,6 +251,13 @@ namespace net {
       return true;
     } else if (!network::query(accumulate)) {
       return false;
+    }
+
+    if(m_bridge) {
+      /* If bridge network then link speed cannot be computed
+       * TODO: Identify the physical network in bridge and compute the link speed
+       */
+      return true;
     }
 
     struct ifreq request {};
