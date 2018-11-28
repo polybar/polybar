@@ -105,7 +105,9 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
           throw application_error("Inter-process messaging needs to be enabled");
         }
 
-        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name, m_log));
+        module_t module = shared_ptr<modules::module_interface>(make_module(move(type), m_bar->settings(), module_name, m_log));
+        m_modules.push_back(module);
+        m_blocks[align].push_back(module);
         created_modules++;
       } catch (const runtime_error& err) {
         m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
@@ -137,15 +139,13 @@ controller::~controller() {
   m_sig.detach(this);
 
   m_log.trace("controller: Stop modules");
-  for (auto&& block : m_modules) {
-    for (auto&& module : block.second) {
-      auto module_name = module->name();
-      auto cleanup_ms = time_util::measure([&module] {
-        module->stop();
-        module.reset();
-      });
-      m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
-    }
+  for (auto&& module : m_modules) {
+    auto module_name = module->name();
+    auto cleanup_ms = time_util::measure([&module] {
+      module->stop();
+      module.reset();
+    });
+    m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
   }
 
   m_log.trace("controller: Joining threads");
@@ -171,26 +171,24 @@ bool controller::run(bool writeback, string snapshot_dst) {
   m_sig.attach(this);
 
   size_t started_modules{0};
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      auto inp_handler = dynamic_cast<input_handler*>(&*module);
-      auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
+  for (const auto& module : m_modules) {
+    auto inp_handler = dynamic_cast<input_handler*>(&*module);
+    auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
 
-      if (inp_handler != nullptr) {
-        m_inputhandlers.emplace_back(inp_handler);
-      }
+    if (inp_handler != nullptr) {
+      m_inputhandlers.emplace_back(inp_handler);
+    }
 
-      if (evt_handler != nullptr) {
-        evt_handler->connect(m_connection);
-      }
+    if (evt_handler != nullptr) {
+      evt_handler->connect(m_connection);
+    }
 
-      try {
-        m_log.info("Starting %s", module->name());
-        module->start();
-        started_modules++;
-      } catch (const application_error& err) {
-        m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
-      }
+    try {
+      m_log.info("Starting %s", module->name());
+      module->start();
+      started_modules++;
+    } catch (const application_error& err) {
+      m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
     }
   }
 
@@ -465,7 +463,7 @@ bool controller::process_update(bool force) {
   string margin_left(bar.module_margin.left, ' ');
   string margin_right(bar.module_margin.right, ' ');
 
-  for (const auto& block : m_modules) {
+  for (const auto& block : m_blocks) {
     string block_contents;
     bool is_left = false;
     bool is_center = false;
@@ -586,11 +584,9 @@ bool controller::on(const signals::eventqueue::exit_reload&) {
  * Process eventqueue check event
  */
 bool controller::on(const signals::eventqueue::check_state&) {
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      if (module->running()) {
-        return true;
-      }
+  for (const auto& module : m_modules) {
+    if (module->running()) {
+      return true;
     }
   }
   m_log.warn("No running modules...");
@@ -681,15 +677,13 @@ bool controller::on(const signals::ipc::command& evt) {
 bool controller::on(const signals::ipc::hook& evt) {
   string hook{evt.cast()};
 
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      if (!module->running()) {
-        continue;
-      }
-      auto ipc = dynamic_cast<ipc_module*>(module.get());
-      if (ipc != nullptr) {
-        ipc->on_message(hook);
-      }
+  for (const auto& module : m_modules) {
+    if (!module->running()) {
+      continue;
+    }
+    auto ipc = dynamic_cast<ipc_module*>(module.get());
+    if (ipc != nullptr) {
+      ipc->on_message(hook);
     }
   }
 

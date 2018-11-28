@@ -28,7 +28,7 @@ namespace modules {
   struct module_interface;
   class input_handler;
 }
-using module_t = unique_ptr<modules::module_interface>;
+using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
@@ -103,7 +103,12 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   /**
    * \brief Loaded modules
    */
-  modulemap_t m_modules;
+  vector<module_t> m_modules;
+
+  /**
+   * \brief Loaded modules grouped by block
+   */
+  modulemap_t m_blocks;
 
   /**
    * \brief Module input handlers
