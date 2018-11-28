@@ -1,13 +1,14 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+
 #include <thread>
 
 #include "common.hpp"
-#include "settings.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
+#include "settings.hpp"
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
@@ -27,16 +28,17 @@ class signal_emitter;
 namespace modules {
   struct module_interface;
   class input_handler;
-}
+}  // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
 
-class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate, signals::eventqueue::exit_reload,
-                       signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state, signals::ipc::action,
-                       signals::ipc::command, signals::ipc::hook, signals::ui::ready, signals::ui::button_press,
-                       signals::ui::update_background> {
+class controller
+    : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate,
+          signals::eventqueue::exit_reload, signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange,
+          signals::eventqueue::check_state, signals::ipc::action, signals::ipc::command, signals::ipc::hook,
+          signals::ui::ready, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);

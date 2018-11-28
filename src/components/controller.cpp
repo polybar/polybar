@@ -1,8 +1,9 @@
+#include "components/controller.hpp"
+
 #include <csignal>
 
 #include "components/bar.hpp"
 #include "components/config.hpp"
-#include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
@@ -17,7 +18,6 @@
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/all.hpp"
-#include "x11/types.hpp"
 
 POLYBAR_NS
 
@@ -87,6 +87,30 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   if (!created_modules) {
     throw application_error("No modules created");
   }
+
+  /*
+   * Check if each module name only appears once
+   */
+  std::sort(m_modules.begin(), m_modules.end(), [](const auto& m1, const auto& m2) { return m1->name() < m2->name(); });
+
+  auto dup_it = m_modules.cbegin();
+
+  do {
+    auto equal_predicate = [](const auto& m1, const auto& m2) { return m1->name() == m2->name(); };
+    dup_it = std::adjacent_find(dup_it, m_modules.cend(), equal_predicate);
+
+    if (dup_it != m_modules.cend()) {
+      m_log.err(
+          "The module \"%s\" appears multiple times in your modules list. "
+          "This is deprecated and should be avoided, as it can lead to inconsistent behavior. "
+          "Both modules will be displayed for now.",
+          (*dup_it)->name());
+
+      dup_it = std::find_if_not(dup_it, m_modules.cend(), std::bind(equal_predicate, *dup_it, std::placeholders::_1));
+    } else {
+      break;
+    }
+  } while (true);
 }
 
 /**
@@ -110,10 +134,7 @@ controller::~controller() {
   m_log.trace("controller: Stop modules");
   for (auto&& module : m_modules) {
     auto module_name = module->name();
-    auto cleanup_ms = time_util::measure([&module] {
-      module->stop();
-      module.reset();
-    });
+    auto cleanup_ms = time_util::measure([&module] { module->stop(); });
     m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
   }
 
@@ -250,8 +271,7 @@ void controller::read_events() {
     int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
     // Check for errors
-    if (events == -1)  {
-
+    if (events == -1) {
       /*
        * The Interrupt errno is generated when polybar is stopped, so it
        * shouldn't generate an error message
@@ -287,7 +307,8 @@ void controller::read_events() {
         // file to a different location (and subsequently deleting it).
         //
         // We need to re-attach the watch to the new file in this case.
-        fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
+        fds.erase(
+            std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
         m_confwatch = inotify_util::make_watch(m_confwatch->path());
         m_confwatch->attach(IN_MODIFY | IN_IGNORED);
         fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
@@ -564,7 +585,7 @@ size_t controller::setup_modules(alignment align) {
 
       auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
       module_t module = shared_ptr<modules::module_interface>(ptr);
-      ptr = NULL;
+      ptr = nullptr;
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
@@ -708,7 +729,7 @@ bool controller::on(const signals::ipc::hook& evt) {
     if (!module->running()) {
       continue;
     }
-    auto ipc = dynamic_cast<ipc_module*>(module.get());
+    auto ipc = std::dynamic_pointer_cast<ipc_module>(module);
     if (ipc != nullptr) {
       ipc->on_message(hook);
     }
