@@ -92,3 +92,15 @@ install(FILES config
   COMPONENT config)
 
 # }}}
+
+# Documentation {{{
+
+add_custom_target(doc ALL
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/doc
+  COMMAND make html)
+
+install(DIRECTORY build/html/
+  DESTINATION share/doc/polybar
+  COMPONENT doc)
+
+# }}}
