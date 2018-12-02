@@ -40,7 +40,6 @@ add_subdirectory(doc/bash)
 add_subdirectory(doc/zsh)
 add_subdirectory(include)
 add_subdirectory(lib)
-add_subdirectory(man)
 add_subdirectory(src bin)
 
 # We need to enable testing in the root folder so that 'ctest' and 'make test'
