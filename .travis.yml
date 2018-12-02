@@ -22,6 +22,7 @@ addons:
       - &clang
         - libstdc++-5-dev
       - &base_deps
+        - libxcb-composite0-dev
         - libxcb-ewmh-dev
         - libxcb-icccm4-dev
         - libxcb-image0-dev
