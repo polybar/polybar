@@ -97,10 +97,13 @@ install(FILES config
 
 add_custom_target(doc ALL
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/doc
-  COMMAND make html)
+  COMMAND make html man)
 
 install(DIRECTORY build/html/
   DESTINATION share/doc/polybar
   COMPONENT doc)
 
+install(FILES build/man/polybar.1
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+  COMPONENT doc)
 # }}}
