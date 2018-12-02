@@ -19,14 +19,15 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'polybar'
-copyright = '2018, Polybar Team'
+project = 'Polybar User Manual'
+copyright = ''
 author = 'Polybar Team'
 
 # The short X.Y version
-version = ''
+# TODO set this dynamically
+version = '3.2.1'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = version
 
 
 # -- General configuration ---------------------------------------------------
@@ -138,10 +139,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'polybar', 'polybar Documentation',
-     [author], 1)
+    ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1)
 ]
-
 
 # -- Options for Texinfo output ----------------------------------------------
 
