@@ -20,8 +20,6 @@ namespace modules {
 
     m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
 
-    m_normalize_load = m_conf.get<bool>(name(), "normalize-load", true);
-
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
@@ -66,9 +64,7 @@ namespace modules {
       }
     }
 
-    if (m_normalize_load) {
-      m_total /= static_cast<float>(cores_n);
-    }
+    m_total = m_total / static_cast<float>(cores_n);
 
     if (m_label) {
       m_label->reset_tokens();
