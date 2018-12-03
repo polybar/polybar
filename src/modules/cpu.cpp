@@ -69,6 +69,7 @@ namespace modules {
     if (m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
+      m_label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
       m_label->replace_token("%percentage-cores%", string_util::join(percentage_cores, "% ") + "%");
 
       for (size_t i = 0; i < percentage_cores.size(); i++) {
