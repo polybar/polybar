@@ -19,9 +19,8 @@ namespace modules {
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
       : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
     auto output = m_conf.get(name(), "output", m_bar.monitor->name);
-    auto strict = m_conf.get(name(), "monitor-strict", false);
 
-    auto monitors = randr_util::get_monitors(m_connection, m_connection.root(), strict);
+    auto monitors = randr_util::get_monitors(m_connection, m_connection.root(), bar.monitor_strict);
 
     m_output = randr_util::match_monitor(monitors, output, bar.monitor_exact);
 
