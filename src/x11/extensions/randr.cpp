@@ -12,15 +12,17 @@
 POLYBAR_NS
 
 /**
- * Workaround for the inconsistent naming
- * of outputs between my intel and nvidia
+ * Workaround for the inconsistent naming of outputs between intel and nvidia
  * drivers (xf86-video-intel drops the dash)
+ *
+ * If exact == false, dashes will be ignored while matching
  */
-bool randr_output::match(const string& o, bool strict) const {
-  if (strict && name != o) {
-    return false;
+bool randr_output::match(const string& o, bool exact) const {
+  if (exact) {
+    return name == o;
+  } else {
+    return string_util::replace(name, "-", "") == string_util::replace(o, "-", "");
   }
-  return name == o || name == string_util::replace(o, "-", "");
 }
 
 /**
@@ -170,6 +172,34 @@ namespace randr_util {
     });
 
     return monitors;
+  }
+
+  /**
+   * Searches for a monitor with name in monitors
+   *
+   * Does best-fit matching (if exact_match == true, this is also first-fit)
+   */
+  monitor_t match_monitor(vector<monitor_t> monitors, const string& name, bool exact_match) {
+    monitor_t result{};
+    for(auto&& monitor : monitors) {
+      // If we can do an exact match, we have found our result
+      if(monitor->match(name, true)) {
+        result = move(monitor);
+        break;
+      }
+
+      /*
+       * Non-exact matches are moved into the result but we continue searching
+       * through the list, maybe we can find an exact match
+       * Note: If exact_match == true, we don't need to run this because it
+       * would be the exact same check as above
+       */
+      if(!exact_match && monitor->match(name, false)) {
+        result = move(monitor);
+      }
+    }
+
+    return result;
   }
 
   /**

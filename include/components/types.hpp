@@ -123,6 +123,7 @@ struct bar_settings {
 
   xcb_window_t window{XCB_NONE};
   monitor_t monitor{};
+  bool monitor_exact{true};
   edge origin{edge::TOP};
   struct size size {
     1U, 1U
