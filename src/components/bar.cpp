@@ -72,15 +72,15 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
-  auto monitor_strictmode = m_conf.get(bs, "monitor-strict", false);
+  m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
   m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, monitor_strictmode);
+  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
   }
 
-  if (monitor_name.empty() && !monitor_strictmode) {
+  if (monitor_name.empty() && !m_opts.monitor_strict) {
     auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
     if (!connected_monitors.empty()) {
       monitor_name = connected_monitors[0]->name;
