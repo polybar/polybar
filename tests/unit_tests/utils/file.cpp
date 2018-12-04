@@ -9,8 +9,7 @@ using namespace polybar;
 
 namespace {
 
-  auto expand_with_shell(string const& path) -> string
-  {
+  auto expand_with_shell(string const& path) -> string {
     auto cmd = command_util::make_command("echo " + path);
     cmd->exec();
 

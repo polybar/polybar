@@ -14,25 +14,25 @@ using namespace polybar;
 
 namespace {
 
-  class temp_directory
-  {
+  class temp_directory {
   public:
-    temp_directory(string directory)
-    {
-      if (file_util::is_absolute(directory))
+    temp_directory(string directory) {
+      if (file_util::is_absolute(directory)) {
         m_directory = directory;
-      else
+      } else {
         m_directory = "/tmp/" + directory;
+      }
 
-      if (m_directory.length() < 6 || m_directory.compare(m_directory.length() - 6, 6, "XXXXXX") != 0)
+      if (m_directory.length() < 6 || m_directory.compare(m_directory.length() - 6, 6, "XXXXXX") != 0) {
         m_directory += "_XXXXXX";
+      }
 
-      if(mkdtemp(&m_directory[0]) == nullptr)
+      if(mkdtemp(&m_directory[0]) == nullptr) {
         throw system_error("mkdtemp failed");
+      }
     }
 
-    ~temp_directory()
-    {
+    ~temp_directory() {
       // this will fail if directory is not empty: tests should clear their own files
       rmdir(m_directory.c_str());
     }
@@ -45,15 +45,13 @@ namespace {
     string m_directory;
   };
 
-  class temp_filestream : public fd_stream<std::iostream>
-  {
+  class temp_filestream : public fd_stream<std::iostream> {
   public:
     explicit temp_filestream(string directory)
       : temp_filestream(directory, "filename_XXXXXX")
     {}
 
-    ~temp_filestream()
-    {
+    ~temp_filestream() {
       unlink(m_full_path.c_str());
     }
 
@@ -82,8 +80,9 @@ namespace {
       directory += filename;
 
       auto fd = mkstemp(&directory[0]);
-      if (fd == -1)
+      if (fd == -1) {
         throw system_error("mkstemp failed");
+      }
 
       filename = directory.substr(directory.length() - filename.length());
       directory.erase(directory.length() - (filename.length() + 1));
