@@ -101,9 +101,7 @@ void config::parse_file() {
     }
 
     if (key == "include-file") {
-      auto file_path = file_util::is_absolute(value)
-          ? file_util::expand(value)
-          : file_util::expand(file_util::dirname(files.back()) + "/" + value);
+      auto file_path = file_util::expand_relative_to(value, file_util::dirname(files.back()));
       if (file_path.empty() || !file_util::exists(file_path)) {
         throw value_error("Invalid include file \"" + file_path + "\" defined on line " + to_string(lineno));
       }
