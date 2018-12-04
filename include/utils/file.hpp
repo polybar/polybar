@@ -107,8 +107,9 @@ namespace file_util {
   bool is_fifo(const string& filename);
   bool is_absolute(const string& filename);
   vector<string> glob(string pattern);
-  const string dirname(const string& path);
-  const string expand(const string& path);
+  string dirname(const string& path);
+  string expand(const string& path);
+  string expand_relative_to(const string& path, const string& base_dir);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {
