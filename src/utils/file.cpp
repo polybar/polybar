@@ -194,6 +194,7 @@ namespace file_util {
 
       if (result == nullptr) {
         throw application_error("could not find user \"" + username + '"');
+      }
 
       path.replace(0, pos, result->pw_dir);
     }
@@ -278,7 +279,7 @@ namespace file_util {
   /*
    * Return the path without the last component (see dirname(3))
    */
-  const string dirname(const string& path) {
+  string dirname(const string& path) {
     if (path.empty()) {
       return ".";
     }
@@ -303,7 +304,7 @@ namespace file_util {
   /**
    * Path expansion
    */
-  const string expand(const string& path) {
+  string expand(const string& path) {
     if (path.empty()) {
       return "/";
     }
@@ -389,6 +390,24 @@ namespace file_util {
     }
 
     return ret;
+  }
+
+  /**
+   * Path expansion, making relative paths absolute
+   */
+  string expand_relative_to(const string& path, const string& base_dir) {
+    auto result = expand(path);
+
+    if (is_absolute(path)) {
+      return result;
+    }
+
+    auto base = expand(base_dir);
+    if (base.empty() || base.back() != '/') {
+      base += '/';
+    }
+
+    return move(base) + move(result);
   }
 }
 
