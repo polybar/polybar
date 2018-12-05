@@ -33,6 +33,8 @@ namespace modules {
 
     string m_exec;
     string m_exec_if;
+    string m_exec_else;
+    string* m_exec_ptr;
 
     chrono::duration<double> m_interval{0};
     map<mousebtn, string> m_actions;

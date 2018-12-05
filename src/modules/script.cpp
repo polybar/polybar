@@ -20,7 +20,7 @@ namespace modules {
         if (m_tail) {
           return [&] {
             if (!m_command || !m_command->is_running()) {
-              string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
+              string exec{string_util::replace_all(*m_exec_ptr, "%counter%", to_string(++m_counter))};
               m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
               m_command = command_util::make_command(exec);
 
@@ -57,7 +57,7 @@ namespace modules {
 
         return [&] {
           try {
-            auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+            auto exec = string_util::replace_all(*m_exec_ptr, "%counter%", to_string(++m_counter));
             m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
             m_command = command_util::make_command(exec);
             m_command->exec(true);
@@ -84,6 +84,8 @@ namespace modules {
     // Load configuration values
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
+    m_exec_else = m_conf.get(name(), "exec-else", m_exec_else);
+    m_exec_ptr = &m_exec;
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
 
     // Load configured click handlers
@@ -144,6 +146,10 @@ namespace modules {
     if (m_exec_if.empty()) {
       return true;
     } else if (command_util::make_command(m_exec_if)->exec(true) == 0) {
+      m_exec_ptr = &m_exec;
+      return true;
+    } else if (!m_exec_else.empty()) {
+      m_exec_ptr = &m_exec_else;
       return true;
     } else if (!m_output.empty()) {
       broadcast();
