@@ -1,4 +1,4 @@
-/build*
+/build/*
 /doc/config
 /include/settings.hpp
 /man/polybar.1
