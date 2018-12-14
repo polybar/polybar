@@ -1,6 +1,7 @@
 #
 # Build options
 #
+checklib(BUILD_DOC "binary" sphinx-build)
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
@@ -30,7 +31,7 @@ option(CXXLIB_GCC "Link against stdlibc++" OFF)
 
 option(BUILD_IPC_MSG "Build ipc messager" ON)
 option(BUILD_TESTS "Build testsuite" OFF)
-option(BUILD_TESTS "Build documentation" ON)
+option(BUILD_DOC "Build documentation" ON)
 
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
