@@ -12,6 +12,7 @@ message_colored(STATUS "   LD: ${CMAKE_LINKER} ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE
 message(STATUS " Targets:")
 colored_option("   polybar-msg" BUILD_IPC_MSG)
 colored_option("   testsuite" BUILD_TESTS)
+colored_option("   documentation" BUILD_DOC)
 
 message(STATUS " Module support:")
 colored_option("   alsa" ENABLE_ALSA)
