@@ -39,6 +39,7 @@ execute_process(COMMAND git describe --tags --dirty=-dev
 if(git_result EQUAL "0")
   set(APP_VERSION "${git_describe}")
 else()
+  message(STATUS "Could not detect version with git, falling back to built-in version information.")
   set(APP_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 endif()
 
