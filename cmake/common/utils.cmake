@@ -71,16 +71,6 @@ function(queryfont output_variable fontname)
 endfunction()
 
 # }}}
-# querybin {{{
-
-function(querybin binary_name)
-  find_program(BIN_${binary_name} ${binary_name})
-  if(NOT BIN_${binary_name})
-    message_colored(FATAL_ERROR "Failed to locate ${binary_name} binary" 31)
-  endif()
-endfunction()
-
-# }}}
 # querylib {{{
 
 function(querylib flag type pkg out_library out_include_dirs)
