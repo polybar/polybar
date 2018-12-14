@@ -1,3 +1,7 @@
+if(NOT BUILD_DOC)
+  return()
+endif()
+
 #
 # Generate configuration file
 #

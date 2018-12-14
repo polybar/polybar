@@ -30,6 +30,7 @@ option(CXXLIB_GCC "Link against stdlibc++" OFF)
 
 option(BUILD_IPC_MSG "Build ipc messager" ON)
 option(BUILD_TESTS "Build testsuite" OFF)
+option(BUILD_TESTS "Build documentation" ON)
 
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
