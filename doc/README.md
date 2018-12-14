@@ -7,9 +7,8 @@ The html documentation and man pages are built automatically when you build with
 target `doc`).
 
 ## Preview Locally
-The documentation uses [Sphinx](http://www.sphinx-doc.org/en/stable/) with the "Read The Docs" theme
-[`sphinx_rtd_theme`](https://github.com/rtfd/sphinx_rtd_theme/) to generate the documentation, so you will need to
-have those installed.
+The documentation uses [Sphinx](http://www.sphinx-doc.org/en/stable/) to generate the documentation, so you will need to
+have that installed.
 
 To generate the documentation you first need to configure polybar the same as when you compile it (`cmake ..` in `build`
 folder).
