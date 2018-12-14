@@ -22,17 +22,23 @@ endif()
 
 project(polybar C CXX)
 
+# Polybar version information
+# Update this on every release
+# This is used to create the version string if a git repo is not available
 set(VERSION_MAJOR "3")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "0")
 
-# TODO set APP_VERSION by checking it command was successful
-execute_process(COMMAND git describe --tags --dirty=-git
+# If we are in a git repo we can get the version information from git describe
+execute_process(COMMAND git describe --tags --dirty=-dev
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  OUTPUT_VARIABLE APP_VERSION
+  RESULT_VARIABLE git_result
+  OUTPUT_VARIABLE git_describe
   OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 
-if(NOT APP_VERSION)
+if(git_result EQUAL "0")
+  set(APP_VERSION "${git_describe}")
+else()
   set(APP_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 endif()
 
