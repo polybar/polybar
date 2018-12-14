@@ -20,7 +20,7 @@ optdepends=("alsa-lib: alsa module support"
             "siji-git: Font used in example config"
             "xorg-fonts-misc: Font used in example config"
             "curl: github module support")
-makedepends=("cmake" "git" "python" "python2" "pkg-config")
+makedepends=("cmake" "git" "python" "python2" "pkg-config" "python-sphinx")
 provides=("polybar")
 conflicts=("polybar")
 install="${_pkgname}.install"
