@@ -4,18 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "version.hpp"
-
 #define APP_NAME "@PROJECT_NAME@"
 #cmakedefine APP_VERSION "@APP_VERSION@"
-#ifndef APP_VERSION
-#define APP_VERSION GIT_TAG
-#endif
 #cmakedefine APP_VERSION_NAMESPACE @APP_VERSION_NAMESPACE@
-#ifndef APP_VERSION_NAMESPACE
-#define APP_VERSION_NAMESPACE GIT_TAG_NAMESPACE
-#endif
-#define BASE_PATH "@PROJECT_SOURCE_DIR@"
 
 #cmakedefine01 ENABLE_ALSA
 #cmakedefine01 ENABLE_MPD

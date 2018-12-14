@@ -24,15 +24,6 @@ if(WITH_XKB)
 endif()
 string(REPLACE ";" ", " XPP_EXTENSION_LIST "${XPP_EXTENSION_LIST}")
 
-execute_process(COMMAND git describe --tags --dirty=-git
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  OUTPUT_VARIABLE APP_VERSION
-  OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
-
-if(APP_VERSION)
-  STRING(REGEX REPLACE "[^a-zA-Z0-9_]" "_" APP_VERSION_NAMESPACE "v${APP_VERSION}")
-endif()
-
 configure_file(
   ${CMAKE_CURRENT_LIST_DIR}/settings.hpp.cmake
   ${CMAKE_BINARY_DIR}/generated-sources/settings.hpp
