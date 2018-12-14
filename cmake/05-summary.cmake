@@ -3,6 +3,7 @@
 #
 
 message(STATUS " Build:")
+message_colored(STATUS "   Version: ${APP_VERSION}" "32;1")
 message_colored(STATUS "   Type: ${CMAKE_BUILD_TYPE}" "37;2")
 message_colored(STATUS "   CC: ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
 message_colored(STATUS "   CXX: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
