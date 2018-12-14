@@ -1,7 +1,3 @@
-if(NOT BUILD_DOC)
-  return()
-endif()
-
 #
 # Generate configuration file
 #
@@ -98,6 +94,14 @@ install(FILES config
 # }}}
 
 # Documentation {{{
+find_program(SPHINX_EXECUTABLE
+  NAMES sphinx-build
+  DOC "Sphinx Documentation Builder")
+
+if(NOT SPHINX_EXECUTABLE)
+  message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
+endif()
+
 configure_file(conf.py.in conf.py @ONLY)
 
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
@@ -115,7 +119,7 @@ foreach(builder ${doc_builders})
   set(doc_target "doc_${builder}")
   set(builder_log "builder-${builder}.log")
   add_custom_target(${doc_target}
-    COMMAND sphinx-build
+    COMMAND ${SPHINX_EXECUTABLE}
             -b ${builder}
             -c "${CMAKE_CURRENT_BINARY_DIR}"
             -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
