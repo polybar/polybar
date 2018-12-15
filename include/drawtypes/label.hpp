@@ -47,7 +47,7 @@ namespace drawtypes {
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
         string overline = ""s, int font = 0, struct side_values padding = {0U, 0U},
-        struct side_values margin = {0U, 0U}, int minlen = 0, alignment alignment = alignment::RIGHT,
+        struct side_values margin = {0U, 0U}, int minlen = 0, alignment label_alignment = alignment::RIGHT,
         size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
@@ -57,7 +57,7 @@ namespace drawtypes {
         , m_padding(padding)
         , m_margin(margin)
         , m_minlen(minlen)
-        , m_alignment(alignment)
+        , m_alignment(label_alignment)
         , m_maxlen(maxlen)
         , m_ellipsis(ellipsis)
         , m_text(text)
