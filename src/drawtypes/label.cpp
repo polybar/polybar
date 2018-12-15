@@ -254,7 +254,7 @@ namespace drawtypes {
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
     if (maxlen > 0 && maxlen < minlen) {
       throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
-                                        << " which is smaller than min_len " << minlen);
+                                        << " which is smaller than minlen " << minlen);
     }
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
