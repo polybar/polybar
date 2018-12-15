@@ -11,13 +11,7 @@ namespace drawtypes {
   string label::get() const {
     const size_t len = string_util::char_len(m_tokenized);
     if (len >= m_minlen) {
-      if (m_maxlen <= 0 || len <= m_maxlen) {
-        return m_tokenized;
-      }
-      if (!m_ellipsis) {
-        return string_util::utf8_truncate(string(m_tokenized), m_maxlen);
-      }
-      return string_util::utf8_truncate(string(m_tokenized), m_maxlen - 3) + "...";
+      return m_tokenized;
     }
     const size_t num_fill_chars = m_minlen - len;
     string aligned_label;
