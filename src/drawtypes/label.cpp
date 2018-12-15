@@ -21,9 +21,9 @@ namespace drawtypes {
     }
     const size_t num_fill_chars = m_minlen - len;
     string aligned_label;
-    if (m_alignment == label_alignment::RIGHT) {
+    if (m_alignment == alignment::RIGHT) {
       aligned_label = string(num_fill_chars, ' ') + m_tokenized;
-    } else if (m_alignment == label_alignment::LEFT) {
+    } else if (m_alignment == alignment::LEFT) {
       aligned_label = m_tokenized + string(num_fill_chars, ' ');
     } else {
       const string sided_fill_chars(std::ceil(num_fill_chars / 2.0), ' ');
@@ -239,13 +239,13 @@ namespace drawtypes {
     }
     size_t minlen = conf.get(section, name + "-minlen", 0_z);
     string alignment_conf_value = conf.get(section, name + "-alignment", "right"s);
-    label_alignment alignment;
+    alignment label_alignment;
     if (alignment_conf_value == "right") {
-      alignment = label_alignment::RIGHT;
+      label_alignment = alignment::RIGHT;
     } else if (alignment_conf_value == "left") {
-      alignment = label_alignment::LEFT;
+      label_alignment = alignment::LEFT;
     } else if (alignment_conf_value == "center") {
-      alignment = label_alignment::CENTER;
+      label_alignment = alignment::CENTER;
     } else {
       throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
                                         << alignment_conf_value << ", expecting one of: right, left, center.");
@@ -275,7 +275,7 @@ namespace drawtypes {
         padding,
         margin,
         minlen,
-        alignment,
+        label_alignment,
         maxlen,
         ellipsis,
         move(tokens));
