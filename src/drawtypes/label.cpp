@@ -1,3 +1,4 @@
+#include <cmath>
 #include <utility>
 
 #include "drawtypes/label.hpp"
@@ -8,7 +9,27 @@ POLYBAR_NS
 
 namespace drawtypes {
   string label::get() const {
-    return m_tokenized;
+    const size_t len = string_util::char_len(m_tokenized);
+    if (len >= m_minlen) {
+      if (m_maxlen <= 0 || len <= m_maxlen) {
+        return m_tokenized;
+      }
+      if (!m_ellipsis) {
+        return string_util::utf8_truncate(string(m_tokenized), m_maxlen);
+      }
+      return string_util::utf8_truncate(string(m_tokenized), m_maxlen - 3) + "...";
+    }
+    const size_t num_fill_chars = m_minlen - len;
+    string aligned_label;
+    if (m_alignment == label_alignment::RIGHT) {
+      aligned_label = string(num_fill_chars, ' ') + m_tokenized;
+    } else if (m_alignment == label_alignment::LEFT) {
+      aligned_label = m_tokenized + string(num_fill_chars, ' ');
+    } else {
+      const string sided_fill_chars(std::ceil(num_fill_chars / 2.0), ' ');
+      aligned_label = sided_fill_chars + m_tokenized + sided_fill_chars;
+    }
+    return aligned_label;
   }
 
   label::operator bool() {
@@ -22,7 +43,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_minlen, m_alignment, m_maxlen, m_ellipsis, move(tokens));
   }
 
   void label::clear() {
@@ -216,8 +237,25 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
+    size_t minlen = conf.get(section, name + "-minlen", 0_z);
+    string alignment_conf_value = conf.get(section, name + "-alignment", "right"s);
+    label_alignment alignment;
+    if (alignment_conf_value == "right") {
+      alignment = label_alignment::RIGHT;
+    } else if (alignment_conf_value == "left") {
+      alignment = label_alignment::LEFT;
+    } else if (alignment_conf_value == "center") {
+      alignment = label_alignment::CENTER;
+    } else {
+      throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
+                                        << alignment_conf_value << ", expecting one of: right, left, center.");
+    }
 
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
+    if (maxlen > 0 && maxlen < minlen) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << " which is smaller than min_len " << minlen);
+    }
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
     if(ellipsis && maxlen > 0 && maxlen < 3) {
@@ -236,6 +274,8 @@ namespace drawtypes {
         conf.get(section, name + "-font", 0),
         padding,
         margin,
+        minlen,
+        alignment,
         maxlen,
         ellipsis,
         move(tokens));
