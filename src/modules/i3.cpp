@@ -31,6 +31,8 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_workspaces_max_count = m_conf.get(name(), "workspaces-max-count", m_workspaces_max_count);
+    m_workspaces_max_width = m_conf.get(name(), "workspaces-max-width", m_workspaces_max_width);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -130,7 +132,13 @@ namespace modules {
         sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
       }
 
-      for (auto&& ws : workspaces) {
+      auto num_workspaces_shown = static_cast<int>(workspaces.size());
+      if (m_workspaces_max_count >= 0) {
+        num_workspaces_shown = std::min(num_workspaces_shown, m_workspaces_max_count);
+      }
+      int workspaces_char_width = 0;
+      for (int i = 0; i < num_workspaces_shown; ++i) {
+        const auto& ws = workspaces[i];
         state ws_state{state::NONE};
 
         if (ws->focused) {
@@ -161,6 +169,12 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
+        const int label_width = string_util::char_len(label->get());
+        if (m_workspaces_max_width >= 0 && workspaces_char_width + label_width > m_workspaces_max_width) {
+          break;
+        }
+        workspaces_char_width += label_width;
+
         m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
       }
 
@@ -186,10 +200,9 @@ namespace modules {
          * The separator should only be inserted in between the workspaces, so
          * we insert it in front of all workspaces except the first one.
          */
-        if(first) {
+        if (first) {
           first = false;
-        }
-        else if (*m_labelseparator) {
+        } else if (*m_labelseparator) {
           builder->node(m_labelseparator);
         }
 
@@ -239,8 +252,7 @@ namespace modules {
       }
 
       auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
-      auto current_ws = find_if(workspaces.begin(), workspaces.end(),
-                                [](auto ws) { return ws->visible; });
+      auto current_ws = find_if(workspaces.begin(), workspaces.end(), [](auto ws) { return ws->visible; });
 
       if (current_ws == workspaces.end()) {
         m_log.warn("%s: Current workspace not found", name());
@@ -269,6 +281,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
