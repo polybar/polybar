@@ -5,15 +5,15 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  void ramp::add(icon_t&& icon) {
+  void ramp::add(label_t&& icon) {
     m_icons.emplace_back(forward<decltype(icon)>(icon));
   }
 
-  icon_t ramp::get(size_t index) {
+  label_t ramp::get(size_t index) {
     return m_icons[index];
   }
 
-  icon_t ramp::get_by_percentage(float percentage) {
+  label_t ramp::get_by_percentage(float percentage) {
     size_t index = percentage * m_icons.size() / 100.0f;
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
@@ -29,9 +29,9 @@ namespace drawtypes {
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    auto ramp_defaults = load_optional_icon(conf, section, name);
+    auto ramp_defaults = load_optional_label(conf, section, name);
 
-    vector<icon_t> vec;
+    vector<label_t> vec;
     vector<string> icons;
 
     if (required) {
@@ -41,7 +41,7 @@ namespace drawtypes {
     }
 
     for (size_t i = 0; i < icons.size(); i++) {
-      auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
+      auto icon = load_optional_label(conf, section, name + "-" + to_string(i), icons[i]);
       icon->copy_undefined(ramp_defaults);
       vec.emplace_back(move(icon));
     }

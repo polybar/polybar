@@ -13,8 +13,6 @@ using std::map;
 namespace drawtypes {
   class label;
   using label_t = shared_ptr<label>;
-  using icon = label;
-  using icon_t = label_t;
 }
 using namespace drawtypes;
 

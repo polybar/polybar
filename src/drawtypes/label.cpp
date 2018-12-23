@@ -249,19 +249,6 @@ namespace drawtypes {
     return load_label(conf, move(section), move(name), false, move(def));
   }
 
-  /**
-   * Create an icon by loading values from the configuration
-   */
-  icon_t load_icon(const config& conf, string section, string name, bool required, string def) {
-    return load_label(conf, move(section), move(name), required, move(def));
-  }
-
-  /**
-   * Create an icon by loading optional values from the configuration
-   */
-  icon_t load_optional_icon(const config& conf, string section, string name, string def) {
-    return load_icon(conf, move(section), move(name), false, move(def));
-  }
 }
 
 POLYBAR_NS_END
