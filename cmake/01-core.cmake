@@ -97,23 +97,18 @@ endif()
 # Custom build type ; SANITIZE
 SET(CMAKE_CXX_FLAGS_SANITIZE "-O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls"
   CACHE STRING "Flags used by the C++ compiler during sanitize builds." FORCE)
-SET(CMAKE_C_FLAGS_SANITIZE ""
-  CACHE STRING "Flags used by the C compiler during sanitize builds." FORCE)
 SET(CMAKE_EXE_LINKER_FLAGS_SANITIZE ""
   CACHE STRING "Flags used for linking binaries during sanitize builds." FORCE)
 SET(CMAKE_SHARED_LINKER_FLAGS_SANITIZE ""
   CACHE STRING "Flags used by the shared libraries linker during sanitize builds." FORCE)
 MARK_AS_ADVANCED(
   CMAKE_CXX_FLAGS_SANITIZE
-  CMAKE_C_FLAGS_SANITIZE
   CMAKE_EXE_LINKER_FLAGS_SANITIZE
   CMAKE_SHARED_LINKER_FLAGS_SANITIZE)
 
 # Custom build type ; Coverage
 SET(CMAKE_CXX_FLAGS_COVERAGE
   "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_COVERAGE} --coverage")
-SET(CMAKE_C_FLAGS_COVERAGE
-  "${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS_COVERAGE} --coverage")
 SET(CMAKE_EXE_LINKER_FLAGS_COVERAGE
   "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
 SET(CMAKE_SHARED_LINKER_FLAGS_COVERAGE

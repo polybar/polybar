@@ -149,21 +149,17 @@ set_build_opts() {
 
 
   CXX="c++"
-  CC="cc"
 
   if [[ "$USE_GCC" == OFF ]]; then
     if command -v clang++ >/dev/null; then
       msg "Using compiler: clang++/clang"
       CXX="clang++"
-      CC="clang"
     elif command -v g++ >/dev/null; then
       msg "Using compiler: g++/gcc"
       CXX="g++"
-      CC="gcc"
     fi
   else
     CXX="g++"
-    CC="gcc"
   fi
 }
 
@@ -189,7 +185,6 @@ main() {
 
   msg "Executing cmake command"
   cmake                                       \
-    -DCMAKE_C_COMPILER="${CC}"                \
     -DCMAKE_CXX_COMPILER="${CXX}"             \
     -DENABLE_ALSA:BOOL="${ENABLE_ALSA}"       \
     -DENABLE_PULSEAUDIO:BOOL="${ENABLE_PULSEAUDIO}"\
