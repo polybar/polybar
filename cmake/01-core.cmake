@@ -13,8 +13,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set default build type if not specified
 if(NOT CMAKE_BUILD_TYPE)
-  message_colored(STATUS "No build type specified; using RelWithDebInfo" 33)
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+  set(CMAKE_BUILD_TYPE "Release")
+  message_colored(STATUS "No build type specified; using ${CMAKE_BUILD_TYPE}" 33)
 endif()
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
 
