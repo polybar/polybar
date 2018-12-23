@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 
 env:
@@ -13,14 +13,7 @@ env:
 # install
 addons:
   apt:
-    sources: &sources
-      - ubuntu-toolchain-r-test
     packages:
-      - &gcc
-        - g++-5
-        - gcc-5
-      - &clang
-        - libstdc++-5-dev
       - &base_deps
         - libxcb-composite0-dev
         - libxcb-ewmh-dev
@@ -48,11 +41,11 @@ matrix:
   include:
     - compiler: clang
       env: BUILD_TYPE=Release
-      addons: {apt: {sources: *sources, packages: [*clang, *base_deps, *optional_deps]}}
+      addons: {apt: {packages: [*base_deps, *optional_deps]}}
 
     - compiler: gcc
       env: BUILD_TYPE=Coverage POLYBAR_BUILD_TYPE=tests BUILD_TESTS=ON
-      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
+      addons: {apt: {packages: [*base_deps, *optional_deps]}}
       script: ${TRAVIS_BUILD_DIR}/common/travis/tests.sh
       after_success:
         - cd ${TRAVIS_BUILD_DIR}
@@ -60,14 +53,14 @@ matrix:
 
     - compiler: gcc
       env: BUILD_TYPE=Release
-      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps, *optional_deps]}}
+      addons: {apt: {packages: [*base_deps, *optional_deps]}}
 
       # Minimal build, contains no optional dependencies. This makes sure that
       # we properly remove files from compilation that depend on libraries that
       # are not installed
     - compiler: gcc
       env: BUILD_TYPE=Release POLYBAR_BUILD_TYPE=minimal
-      addons: {apt: {sources: *sources, packages: [*gcc, *base_deps]}}
+      addons: {apt: {packages: [*base_deps]}}
 
 cache:
   ccache: true
@@ -78,7 +71,6 @@ cache:
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
-  - source ${TRAVIS_BUILD_DIR}/common/travis/environment.sh
   - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
 
 before_script:
