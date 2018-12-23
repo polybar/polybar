@@ -37,8 +37,6 @@ namespace drawtypes {
   using progressbar_t = shared_ptr<progressbar>;
   class animation;
   using animation_t = shared_ptr<animation>;
-  using icon = label;
-  using icon_t = label_t;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
 }

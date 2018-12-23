@@ -12,15 +12,15 @@ namespace drawtypes {
   progressbar::progressbar(const bar_settings& bar, int width, string format)
       : m_builder(factory_util::unique<builder>(bar)), m_format(move(format)), m_width(width) {}
 
-  void progressbar::set_fill(icon_t&& fill) {
+  void progressbar::set_fill(label_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
   }
 
-  void progressbar::set_empty(icon_t&& empty) {
+  void progressbar::set_empty(label_t&& empty) {
     m_empty = forward<decltype(empty)>(empty);
   }
 
-  void progressbar::set_indicator(icon_t&& indicator) {
+  void progressbar::set_indicator(label_t&& indicator) {
     if (!m_indicator && indicator.get()) {
       m_width--;
     }
@@ -100,18 +100,18 @@ namespace drawtypes {
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
     pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
 
-    icon_t icon_empty;
-    icon_t icon_fill;
-    icon_t icon_indicator;
+    label_t icon_empty;
+    label_t icon_fill;
+    label_t icon_indicator;
 
     if (format.find("%empty%") != string::npos) {
-      icon_empty = load_icon(conf, section, name + "-empty");
+      icon_empty = load_label(conf, section, name + "-empty");
     }
     if (format.find("%fill%") != string::npos) {
-      icon_fill = load_icon(conf, section, name + "-fill");
+      icon_fill = load_label(conf, section, name + "-fill");
     }
     if (format.find("%indicator%") != string::npos) {
-      icon_indicator = load_icon(conf, section, name + "-indicator");
+      icon_indicator = load_label(conf, section, name + "-indicator");
     }
 
     // If a foreground/background color is defined for the indicator

@@ -59,45 +59,45 @@ namespace modules {
     m_icons = factory_util::shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("play", load_icon(m_conf, name(), TAG_ICON_PLAY));
+      m_icons->add("play", load_label(m_conf, name(), TAG_ICON_PLAY));
     }
     if (m_formatter->has(TAG_ICON_PAUSE) || m_formatter->has(TAG_TOGGLE)) {
-      m_icons->add("pause", load_icon(m_conf, name(), TAG_ICON_PAUSE));
+      m_icons->add("pause", load_label(m_conf, name(), TAG_ICON_PAUSE));
     }
     if (m_formatter->has(TAG_ICON_STOP) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("stop", load_icon(m_conf, name(), TAG_ICON_STOP));
+      m_icons->add("stop", load_label(m_conf, name(), TAG_ICON_STOP));
     }
     if (m_formatter->has(TAG_ICON_PREV)) {
-      m_icons->add("prev", load_icon(m_conf, name(), TAG_ICON_PREV));
+      m_icons->add("prev", load_label(m_conf, name(), TAG_ICON_PREV));
     }
     if (m_formatter->has(TAG_ICON_NEXT)) {
-      m_icons->add("next", load_icon(m_conf, name(), TAG_ICON_NEXT));
+      m_icons->add("next", load_label(m_conf, name(), TAG_ICON_NEXT));
     }
     if (m_formatter->has(TAG_ICON_SEEKB)) {
-      m_icons->add("seekb", load_icon(m_conf, name(), TAG_ICON_SEEKB));
+      m_icons->add("seekb", load_label(m_conf, name(), TAG_ICON_SEEKB));
     }
     if (m_formatter->has(TAG_ICON_SEEKF)) {
-      m_icons->add("seekf", load_icon(m_conf, name(), TAG_ICON_SEEKF));
+      m_icons->add("seekf", load_label(m_conf, name(), TAG_ICON_SEEKF));
     }
     if (m_formatter->has(TAG_ICON_RANDOM)) {
-      m_icons->add("random", load_icon(m_conf, name(), TAG_ICON_RANDOM));
+      m_icons->add("random", load_label(m_conf, name(), TAG_ICON_RANDOM));
     }
     if (m_formatter->has(TAG_ICON_REPEAT)) {
-      m_icons->add("repeat", load_icon(m_conf, name(), TAG_ICON_REPEAT));
+      m_icons->add("repeat", load_label(m_conf, name(), TAG_ICON_REPEAT));
     }
 
     if (m_formatter->has(TAG_ICON_SINGLE)) {
-      m_icons->add("single", load_icon(m_conf, name(), TAG_ICON_SINGLE));
+      m_icons->add("single", load_label(m_conf, name(), TAG_ICON_SINGLE));
     }
     else if(m_formatter->has(TAG_ICON_REPEAT_ONE)){
 
       m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
 
-      m_icons->add("single", load_icon(m_conf, name(), TAG_ICON_REPEAT_ONE));
+      m_icons->add("single", load_label(m_conf, name(), TAG_ICON_REPEAT_ONE));
     }
 
     if (m_formatter->has(TAG_ICON_CONSUME)) {
-      m_icons->add("consume", load_icon(m_conf, name(), TAG_ICON_CONSUME));
+      m_icons->add("consume", load_label(m_conf, name(), TAG_ICON_CONSUME));
     }
 
     if (m_formatter->has(TAG_LABEL_SONG)) {
