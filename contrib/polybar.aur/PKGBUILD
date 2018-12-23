@@ -22,11 +22,10 @@ optdepends=("alsa-lib: alsa module support"
 makedepends=("cmake" "git" "python" "python2" "pkg-config")
 conflicts=("polybar-git")
 install="${pkgname}.install"
-source=("${pkgname}::git+${url}.git#tag=${pkgver}")
-md5sums=("SKIP")
+source=(${url}/releases/download/${pkgver}/polybar.tar)
+sha256sums=('647dde8fbf6690138b354bf538d1d97ba8c1743ff22314af4ee085e06a1f506a')
 
 prepare() {
-  git -C "${pkgname}" submodule update --init --recursive
   mkdir -p "${pkgname}/build"
 }
 
