@@ -1,6 +1,4 @@
 /build
-/polybar
-/polybar-msg
 /tags
 /compile_commands.json
 *.bak
