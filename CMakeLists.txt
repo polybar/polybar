@@ -20,7 +20,7 @@ if(ENABLE_CCACHE)
   endif()
 endif()
 
-project(polybar C CXX)
+project(polybar CXX)
 
 # Extract version information from version.txt. The first line that looks like
 # a version string is used, so the file supports comments
