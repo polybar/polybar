@@ -32,6 +32,9 @@ namespace modules {
       }
     }
 
+    m_capslock_display_name = m_conf.get<string>(name(), "capslock-displayname", "");
+    m_numlock_display_name = m_conf.get<string>(name(), "numlock-displayname", "");
+
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
 
@@ -69,7 +72,7 @@ namespace modules {
         m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
         m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
       }
- 
+
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
         auto icon_triple = string_util::split(it, ';');
         if (icon_triple.size() == 3) {
@@ -140,7 +143,6 @@ namespace modules {
           indicator->replace_token("%icon%", icon->get());
           m_indicators.emplace(it, move(indicator));
         }
-      }
     }
 
     // Trigger redraw
