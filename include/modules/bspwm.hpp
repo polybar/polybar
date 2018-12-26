@@ -27,7 +27,8 @@ namespace modules {
       STATE_PSEUDOTILED,
       NODE_LOCKED,
       NODE_STICKY,
-      NODE_PRIVATE
+      NODE_PRIVATE,
+      NODE_MARKED
     };
 
     struct bspwm_monitor {
