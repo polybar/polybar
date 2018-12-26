@@ -8,10 +8,6 @@
 #include "utils/time.hpp"
 POLYBAR_NS
 
-#ifndef BUILDER_SPACE_TOKEN
-#define BUILDER_SPACE_TOKEN "%__"
-#endif
-
 builder::builder(const bar_settings& bar) : m_bar(bar) {
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
@@ -66,7 +62,7 @@ string builder::flush() {
   m_output.clear();
   m_fontindex = 1;
 
-  return string_util::replace_all(output, BUILDER_SPACE_TOKEN, " ");
+  return output;
 }
 
 /**

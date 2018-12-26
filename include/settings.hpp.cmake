@@ -72,8 +72,6 @@ static constexpr const char* PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
 static constexpr const char* PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
 static constexpr const char* PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
 
-static constexpr const char* BUILDER_SPACE_TOKEN{"%__"};
-
 const auto version_details = [](const std::vector<std::string>& args) {
   for (auto&& arg : args) {
     if (arg.compare(0, 3, "-vv") == 0)
