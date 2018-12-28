@@ -208,11 +208,6 @@ void builder::node(const label_t& label, bool add_space) {
 
   auto text = get_label_text(label);
 
-  // if ((label->m_overline.empty() && m_tags[syntaxtag::o] > 0) || (m_tags[syntaxtag::o] > 0 && label->m_margin > 0))
-  //   overline_close();
-  // if ((label->m_underline.empty() && m_tags[syntaxtag::u] > 0) || (m_tags[syntaxtag::u] > 0 && label->m_margin > 0))
-  //   underline_close();
-
   if (label->m_margin.left > 0) {
     space(label->m_margin.left);
   }
@@ -248,10 +243,10 @@ void builder::node(const label_t& label, bool add_space) {
     color_close();
   }
 
-  if (!label->m_underline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::u] > 0)) {
+  if (!label->m_underline.empty()) {
     underline_close();
   }
-  if (!label->m_overline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::o] > 0)) {
+  if (!label->m_overline.empty()) {
     overline_close();
   }
 
