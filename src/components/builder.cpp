@@ -9,6 +9,10 @@
 POLYBAR_NS
 
 builder::builder(const bar_settings& bar) : m_bar(bar) {
+  /* Add all values as keys so that we never have to check if a key exists in
+   * the map
+   */
+  m_tags[syntaxtag::NONE] = 0;
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
@@ -20,6 +24,10 @@ builder::builder(const bar_settings& bar) : m_bar(bar) {
   m_colors[syntaxtag::F] = string();
   m_colors[syntaxtag::o] = string();
   m_colors[syntaxtag::u] = string();
+
+  m_attrs[attribute::NONE] = false;
+  m_attrs[attribute::UNDERLINE] = false;
+  m_attrs[attribute::OVERLINE] = false;
 }
 
 /**
@@ -43,10 +51,10 @@ string builder::flush() {
   if (m_tags[syntaxtag::u]) {
     underline_color_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::UNDERLINE)) & 1) {
+  if (m_attrs[attribute::UNDERLINE]) {
     underline_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::OVERLINE)) & 1) {
+  if (m_attrs[attribute::OVERLINE]) {
     overline_close();
   }
 
@@ -561,10 +569,6 @@ string builder::get_label_text(const label_t& label) {
  * Insert directive to change value of given tag
  */
 void builder::tag_open(syntaxtag tag, const string& value) {
-  if (m_tags.find(tag) == m_tags.end()) {
-    m_tags[tag] = 0;
-  }
-
   m_tags[tag]++;
 
   switch (tag) {
@@ -601,11 +605,11 @@ void builder::tag_open(syntaxtag tag, const string& value) {
  * Insert directive to use given attribute unless already set
  */
 void builder::tag_open(attribute attr) {
-  if ((m_attributes >> static_cast<int>(attr)) & 1) {
+  if (m_attrs[attr]) {
     return;
   }
 
-  m_attributes |= 1 << static_cast<int>(attr);
+  m_attrs[attr] = true;
 
   switch (attr) {
     case attribute::NONE:
@@ -623,7 +627,7 @@ void builder::tag_open(attribute attr) {
  * Insert directive to reset given tag if it's open and closable
  */
 void builder::tag_close(syntaxtag tag) {
-  if (m_tags.find(tag) == m_tags.end() || !m_tags[tag]) {
+  if (!m_tags[tag]) {
     return;
   }
 
@@ -661,11 +665,11 @@ void builder::tag_close(syntaxtag tag) {
  * Insert directive to remove given attribute if set
  */
 void builder::tag_close(attribute attr) {
-  if (!((m_attributes >> static_cast<int>(attr)) & 1)) {
+  if (!m_attrs[attr]) {
     return;
   }
 
-  m_attributes &= ~(1 << static_cast<int>(attr));
+  m_attrs[attr] = false;
 
   switch (attr) {
     case attribute::NONE:
