@@ -38,7 +38,7 @@ namespace modules {
       m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
     } else if (file_util::exists((m_fstate = path_battery + "status"))) {
       m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
+          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 11, "Discharging") == 0; });
     } else {
       throw module_error("No suitable way to get current charge state");
     }
@@ -283,7 +283,7 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    if (!read(*m_state_reader)) {
+    if (read(*m_state_reader)) {
       return battery_module::state::DISCHARGING;
     } else if (read(*m_capacity_reader) < m_fullat) {
       return battery_module::state::CHARGING;
