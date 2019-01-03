@@ -35,7 +35,7 @@ namespace modules {
 
     // Make state reader
     if (file_util::exists((m_fstate = path_adapter + "online"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
+      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "0") == 0; });
     } else if (file_util::exists((m_fstate = path_battery + "status"))) {
       m_state_reader =
           make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 11, "Discharging") == 0; });
