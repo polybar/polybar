@@ -102,7 +102,8 @@ if(NOT SPHINX_EXECUTABLE)
   message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
 endif()
 
-configure_file(conf.py.in conf.py @ONLY)
+# Configures conf.py in the current folder and puts it in the build folder
+configure_file(conf.py conf.py @ONLY)
 
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
