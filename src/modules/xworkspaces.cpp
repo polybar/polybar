@@ -163,7 +163,12 @@ namespace modules {
 
     bounds.erase(std::unique(bounds.begin(), bounds.end(), [](auto& a, auto& b) { return a == b; }), bounds.end());
 
-    unsigned int step = m_desktop_names.size() / bounds.size();
+    unsigned int step;
+    if (bounds.size() > 0) {
+      step = m_desktop_names.size() / bounds.size();
+    } else {
+      step = 1;
+    }
     unsigned int offset = 0;
     for (unsigned int i = 0; i < bounds.size(); i++) {
       if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
