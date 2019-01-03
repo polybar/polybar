@@ -13,6 +13,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import datetime
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
@@ -20,7 +21,9 @@ import os
 # -- Project information -----------------------------------------------------
 
 project = 'Polybar User Manual'
-copyright = ''
+copyright = '2016-{}, Michael Carlberg & contributors'.format(
+    datetime.datetime.now().year
+  )
 author = 'Polybar Team'
 
 # The short X.Y version
