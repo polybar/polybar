@@ -492,7 +492,7 @@ void tray_manager::create_window() {
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
 
-  // activate the background manager if have transparency
+  // activate the background manager if we have transparency
   if (m_opts.transparent) {
     xcb_rectangle_t rect{0, 0, calculate_w(), calculate_h()};
     m_bg_slice = m_background_manager.observe(rect, m_tray);
