@@ -2,6 +2,7 @@
 
 #include <bitset>
 #include <cairo/cairo.h>
+#include <memory>
 
 #include "cairo/fwd.hpp"
 #include "common.hpp"
@@ -18,6 +19,7 @@ class connection;
 class config;
 class logger;
 class background_manager;
+class bg_slice;
 // }}}
 
 using std::map;
@@ -96,7 +98,7 @@ class renderer
   const config& m_conf;
   const logger& m_log;
   const bar_settings& m_bar;
-  background_manager& m_background;
+  std::shared_ptr<bg_slice> m_background;
 
   int m_depth{32};
   xcb_window_t m_window;
