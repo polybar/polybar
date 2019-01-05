@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
@@ -35,6 +36,7 @@ using namespace std::chrono_literals;
 class connection;
 struct xembed_data;
 class background_manager;
+class bg_slice;
 
 struct tray_settings {
   tray_settings() = default;
@@ -106,8 +108,8 @@ class tray_manager
 
   int calculate_x(unsigned width, bool abspos = true) const;
   int calculate_y(bool abspos = true) const;
-  unsigned int calculate_w() const;
-  unsigned int calculate_h() const;
+  unsigned short int calculate_w() const;
+  unsigned short int calculate_h() const;
 
   int calculate_client_x(const xcb_window_t& win);
   int calculate_client_y();
@@ -138,7 +140,8 @@ class tray_manager
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  background_manager& m_background;
+  background_manager& m_background_manager;
+  std::shared_ptr<bg_slice> m_bg_slice;
   vector<shared_ptr<tray_client>> m_clients;
 
   tray_settings m_opts{};

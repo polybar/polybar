@@ -41,7 +41,6 @@ renderer::renderer(
     , m_conf(conf)
     , m_log(logger)
     , m_bar(forward<const bar_settings&>(bar))
-    , m_background(background)
     , m_rect(m_bar.inner_area()) {
 
   m_sig.attach(this);
@@ -166,10 +165,12 @@ renderer::renderer(
     }
 
     m_log.trace("Activate root background manager");
-    m_background.activate(m_window, m_bar.outer_area(false));
   }
 
   m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+  if (m_pseudo_transparency) {
+    m_background = background.observe(m_bar.outer_area(false), m_window);
+  }
 
   m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
   m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
@@ -308,7 +309,7 @@ void renderer::end() {
     cairo_pattern_t* barcontents{};
     m_context->pop(&barcontents); // corresponding push is in renderer::begin
 
-    auto root_bg = m_background.get_surface();
+    auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {
       m_log.trace_x("renderer: root background");
       *m_context << *root_bg;

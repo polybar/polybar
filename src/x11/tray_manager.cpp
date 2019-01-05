@@ -44,7 +44,7 @@ tray_manager::make_type tray_manager::make() {
 }
 
 tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back)
-  : m_connection(conn), m_sig(emitter), m_log(logger), m_background(back) {
+  : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -338,6 +338,11 @@ void tray_manager::reconfigure_window() {
   auto width = calculate_w();
   auto x = calculate_x(width);
 
+  if (m_opts.transparent) {
+    xcb_rectangle_t rect{0, 0, calculate_w(), calculate_h()};
+    m_bg_slice = m_background_manager.observe(rect, m_tray);
+  }
+
   if (width > 0) {
     m_log.trace("tray: New window values, width=%d, x=%d", width, x);
 
@@ -388,22 +393,18 @@ void tray_manager::reconfigure_bg(bool realloc) {
   m_log.trace("tray: Reconfigure bg (realloc=%i)", realloc);
 
 
-  auto w = calculate_w();
-  auto x = calculate_x(w, false);
-  auto y = calculate_y(false);
-
   if(!m_context) {
     return m_log.err("tray: no context for drawing the background");
   }
 
-  cairo::surface* surface = m_background.get_surface();
+  cairo::surface* surface = m_bg_slice->get_surface();
   if(!surface) {
     return m_log.err("tray: no root surface");
   }
 
   m_context->clear();
   *m_context << CAIRO_OPERATOR_SOURCE << *m_surface;
-  cairo_set_source_surface(*m_context, *surface, -x, -y);
+  cairo_set_source_surface(*m_context, *surface, 0, 0);
   m_context->paint();
   *m_context << CAIRO_OPERATOR_OVER << m_opts.background;
   m_context->paint();
@@ -490,6 +491,12 @@ void tray_manager::create_window() {
 
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
+
+  // activate the background manager if we have transparency
+  if (m_opts.transparent) {
+    xcb_rectangle_t rect{0, 0, calculate_w(), calculate_h()};
+    m_bg_slice = m_background_manager.observe(rect, m_tray);
+  }
 
   const unsigned int shadow{0};
   m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
@@ -790,7 +797,7 @@ int tray_manager::calculate_y(bool abspos) const {
 /**
  * Calculate width of tray window
  */
-unsigned int tray_manager::calculate_w() const {
+unsigned short int tray_manager::calculate_w() const {
   unsigned int width = m_opts.spacing;
   unsigned int count{0};
   for (auto&& client : m_clients) {
@@ -805,7 +812,7 @@ unsigned int tray_manager::calculate_w() const {
 /**
  * Calculate height of tray window
  */
-unsigned int tray_manager::calculate_h() const {
+unsigned short int tray_manager::calculate_h() const {
   return m_opts.height_fill;
 }
 

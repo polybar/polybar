@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "common.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
@@ -15,6 +18,44 @@ namespace cairo {
   class surface;
   class xcb_surface;
 }
+
+class bg_slice {
+ public:
+  ~bg_slice();
+  // copying bg_slices is not allowed
+  bg_slice(const bg_slice&) = delete;
+  bg_slice& operator=(const bg_slice&) = delete;
+
+  /**
+   * Get the current desktop background at the location of this slice.
+   * The returned pointer is only valid as long as the slice itself is alive.
+   *
+   * This function is fast, since the current desktop background is cached.
+   */
+  cairo::surface* get_surface() const {
+    return m_surface.get();
+  }
+
+ private:
+  bg_slice(connection& conn, const logger& log, xcb_rectangle_t rect, xcb_window_t window, xcb_visualtype_t* visual);
+
+  // standard components
+  connection& m_connection;
+
+  // area covered by this slice
+  xcb_rectangle_t m_rect{0, 0, 0U, 0U};
+  xcb_window_t m_window;
+
+  // cache for the root window background at this slice's position
+  xcb_pixmap_t m_pixmap{XCB_NONE};
+  unique_ptr<cairo::xcb_surface> m_surface;
+  xcb_gcontext_t m_gcontext{XCB_NONE};
+
+  void allocate_resources(const logger& log, xcb_visualtype_t* visual);
+  void free_resources();
+
+  friend class background_manager;
+};
 
 /**
  * \brief Class to keep track of the desktop background used to support pseudo-transparency
@@ -42,48 +83,35 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
    * Starts observing a rectangular slice of the desktop background.
    *
    * After calling this function, you can obtain the current slice of the desktop background
-   * with background_manager::get_surface. Whenever the background slice changes (for example,
-   * due to bar position changes or because the user changed the desktop background) the class
-   * emits a signals::ui::update_background event.
+   * by calling get_surface on the returned bg_slice object.
+   * Whenever the background slice changes (for example, due to bar position changes or because
+   * the user changed the desktop background) the class emits a signals::ui::update_background event.
    *
-   * \param window This should be set to the bar window.
+   * You should only call this function once and then re-use the returned bg_slice because the bg_slice
+   * caches the background. If you don't need the background anymore, destroy the shared_ptr to free up
+   * resources.
+   *
    * \param rect Slice of the background to observe (coordinates relative to window).
-   *             Typically set to the outer area of the bar.
+   * \param window Coordinates are interpreted relative to this window
    */
-  void activate(xcb_window_t window, xcb_rectangle_t rect);
-
-
-  /**
-   * Stops observing the desktop background and frees all resources.
-   */
-  void deactivate();
-
-  /**
-   * Retrieve the current desktop background slice.
-   *
-   * This function returns a slice of the desktop background that has the size of the rectangle
-   * given to background_manager::activate. As the slice is cached by the manager, this function
-   * is fast.
-   */
-  cairo::surface* get_surface() const;
+  std::shared_ptr<bg_slice> observe(xcb_rectangle_t rect, xcb_window_t window);
 
   void handle(const evt::property_notify& evt);
   bool on(const signals::ui::update_geometry&);
  private:
+  void activate();
+  void deactivate();
+
   // references to standard components
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
 
-  // these are set by activate
-  xcb_window_t m_window;
-  xcb_rectangle_t m_rect{0, 0, 0U, 0U};
+  // list of slices that need to be filled with the desktop background
+  std::vector<std::weak_ptr<bg_slice>> m_slices;
 
   // required values for fetching the root window's background
   xcb_visualtype_t* m_visual{nullptr};
-  xcb_gcontext_t m_gcontext{XCB_NONE};
-  xcb_pixmap_t m_pixmap{XCB_NONE};
-  unique_ptr<cairo::xcb_surface> m_surface;
 
   // true if we are currently attached as a listener for desktop background changes
   bool m_attached{false};
