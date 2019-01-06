@@ -22,6 +22,7 @@ namespace modules {
     // Load configuration values
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
     m_interval = m_conf.get(name(), "interval", m_interval);
+    m_click_to_mute = m_conf.get(name(),"click-to-mute", m_click_to_mute);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
@@ -244,7 +245,7 @@ namespace modules {
             string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
       }
 
-      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0 && m_click_to_mute) {
         for (auto&& mixer : mixers) {
           mixer->set_mute(m_muted || mixers[0]->is_muted());
         }

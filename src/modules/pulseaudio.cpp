@@ -17,6 +17,7 @@ namespace modules {
   pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
     // Load configuration values
     m_interval = m_conf.get(name(), "interval", m_interval);
+    m_click_to_mute = m_conf.get(name(),"click-to-mute", m_click_to_mute);
 
     auto sink_name = m_conf.get(name(), "sink", ""s);
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
@@ -136,7 +137,7 @@ namespace modules {
 
     try {
       if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
-        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0 && m_click_to_mute) {
           m_pulseaudio->toggle_mute();
         } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
           // cap above 100 (~150)?

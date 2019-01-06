@@ -48,6 +48,7 @@ namespace modules {
     pulseaudio_t m_pulseaudio;
 
     int m_interval{5};
+    bool m_click_to_mute{true};
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
   };
