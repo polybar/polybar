@@ -129,13 +129,18 @@ Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/
 
 Please [report any problems](https://github.com/jaagr/polybar/issues/new/choose) you run into when building the project.
 
-  ~~~ sh
-  $ git clone --branch 3.3 --recursive https://github.com/jaagr/polybar
-  $ mkdir polybar/build
-  $ cd polybar/build
-  $ cmake ..
-  $ sudo make install
-  ~~~
+Download the `polybar-<version>.tar` for the version you want to build from the
+[release page](https://github.com/jaagr/polybar/releases), extract it with
+`tar xvf polybar-<version>.tar` and go into the extracted folder. There, run
+the following commands:
+
+```sh
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make -j$(nproc)
+$ sudo make install
+```
 
 There's also a helper script available in the root folder:
 
