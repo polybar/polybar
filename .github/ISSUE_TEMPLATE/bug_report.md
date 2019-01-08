@@ -15,6 +15,10 @@ about: Create a report to help us improve
 
 *What actually happens*
 
+**Was it working before?**
+* Did you also experience this bug in an earlier version of polybar?
+* If no, what was the last version where this worked correctly?
+
 ## To Reproduce
 *A minimal but complete config with which the problem occurs:*
 ```dosini
