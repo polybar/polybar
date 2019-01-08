@@ -148,7 +148,7 @@ namespace modules {
         }
       }
     } catch (const exception& err) {
-      m_log.err("%s: Failed to handle command (%s)", name(), err.what());
+      m_log.err("%s: Failed to handle command '%s' (%s)", name(), cmd, err.what());
     }
 
     return true;

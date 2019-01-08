@@ -1,3 +1,4 @@
+#include "utils/string.hpp"
 #include "adapters/pulseaudio.hpp"
 #include "components/logger.hpp"
 
@@ -53,11 +54,17 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
   pa_operation *op{nullptr};
   if (!sink_name.empty()) {
     op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
+    if (!op) {
+      throw_error("pa_context_get_sink_info_by_name failed");
+    }
     wait_loop(op, m_mainloop);
   }
   if (s_name.empty()) {
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
+    if (!op) {
+      throw_error("pa_context_get_sink_info_by_name failed");
+    }
     wait_loop(op, m_mainloop);
     m_log.warn("pulseaudio: using default sink %s", s_name);
   } else {
@@ -68,6 +75,9 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
 
   auto event_types = static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER);
   op = pa_context_subscribe(m_context, event_types, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_subscribe failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to subscribe to sink.");
@@ -119,6 +129,9 @@ int pulseaudio::process_events() {
         // redundant if already using specified sink
         if (!spec_s_name.empty()) {
           o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
+          if (!o) {
+            throw_error("pa_context_get_sink_info_by_name failed");
+          }
           wait_loop(o, m_mainloop);
           break;
         }
@@ -132,6 +145,9 @@ int pulseaudio::process_events() {
       // get default sink
       case evtype::REMOVE:
         o = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
+        if (!o) {
+          throw_error("pa_context_get_sink_info_by_name failed");
+        }
         wait_loop(o, m_mainloop);
         if (spec_s_name != s_name)
           m_log.warn("pulseaudio: using default sink %s", s_name);
@@ -162,6 +178,9 @@ void pulseaudio::set_volume(float percentage) {
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
   pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_volume_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -183,6 +202,9 @@ void pulseaudio::inc_volume(int delta_perc) {
   } else
     pa_cvolume_dec(&cv, vol);
   pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_volume_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -195,6 +217,9 @@ void pulseaudio::inc_volume(int delta_perc) {
 void pulseaudio::set_mute(bool mode) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_set_sink_mute_by_index(m_context, m_index, mode, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_mute_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to mute sink.");
@@ -220,7 +245,14 @@ bool pulseaudio::is_muted() {
  */
 void pulseaudio::update_volume(pa_operation *o) {
   o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
+  if (!o) {
+    throw_error("pa_context_get_sink_info_by_index failed");
+  }
   wait_loop(o, m_mainloop);
+}
+
+void pulseaudio::throw_error(const string& msg) {
+  throw pulseaudio_error(sstream() << msg << ": " << pa_strerror(pa_context_errno(m_context)));
 }
 
 /**
