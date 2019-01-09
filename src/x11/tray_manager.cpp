@@ -133,7 +133,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.background = bar_opts.background;
   }
 
-  if (color_util::alpha_channel(m_opts.background) != 1) {
+  if (color_util::alpha_channel<unsigned char>(m_opts.background) != 255) {
+    m_log.trace("tray: enable transparency");
     m_opts.transparent = true;
   }
 
