@@ -227,19 +227,23 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", 0);
+  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
   m_opts.borders[edge::TOP].color = parse_or_throw("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
   m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
+  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->h);
   m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
 
   // Load geometry values
