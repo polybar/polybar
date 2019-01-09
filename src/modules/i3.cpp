@@ -114,6 +114,13 @@ namespace modules {
   }
 
   bool i3_module::update() {
+    /*
+     * update only populates m_workspaces and those are only needed when
+     * <label-state> appears in the format
+     */
+    if (!m_formatter->has(TAG_LABEL_STATE)) {
+      return true;
+    }
     m_workspaces.clear();
     i3_util::connection_t ipc;
 
