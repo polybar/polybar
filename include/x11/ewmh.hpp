@@ -24,6 +24,7 @@ namespace ewmh_util {
   vector<position> get_desktop_viewports(int screen = 0);
   vector<string> get_desktop_names(int screen = 0);
   unsigned int get_current_desktop(int screen = 0);
+  unsigned int get_number_of_desktops(int screen = 0);
   xcb_window_t get_active_window(int screen = 0);
 
   void change_current_desktop(unsigned int desktop);

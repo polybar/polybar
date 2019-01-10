@@ -81,7 +81,7 @@ namespace modules {
     m_monitors = randr_util::get_monitors(m_connection, m_connection.root(), false);
 
     // Get desktop details
-    m_desktop_names = ewmh_util::get_desktop_names();
+    m_desktop_names = get_desktop_names();
     m_current_desktop = ewmh_util::get_current_desktop();
 
     rebuild_desktops();
@@ -98,7 +98,7 @@ namespace modules {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
-      m_desktop_names = ewmh_util::get_desktop_names();
+      m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
@@ -217,6 +217,21 @@ namespace modules {
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
+  }
+
+  vector<string> xworkspaces_module::get_desktop_names(){
+    vector<string> names = ewmh_util::get_desktop_names();
+    unsigned int desktops_number = ewmh_util::get_number_of_desktops();
+    if(desktops_number == names.size())
+      return names;
+    else if(desktops_number < names.size()){
+      names.erase(names.begin()+desktops_number, names.end());
+      return names;
+    }
+    for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
+      names.insert(names.end(), to_string(i));
+    }
+    return names;
   }
 
   /**

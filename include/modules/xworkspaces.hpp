@@ -69,6 +69,7 @@ namespace modules {
     void set_desktop_urgent(xcb_window_t window);
 
     bool input(string&& cmd);
+    vector<string> get_desktop_names();
 
    private:
     static constexpr const char* DEFAULT_ICON{"icon-default"};
