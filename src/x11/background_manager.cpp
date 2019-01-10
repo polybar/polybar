@@ -128,6 +128,9 @@ void background_manager::handle(const evt::property_notify& evt) {
 }
 
 bool background_manager::on(const signals::ui::update_geometry&) {
+  // if there are no slices to observe, don't do anything
+  if(m_slices.empty()) return false;
+
   fetch_root_pixmap();
   m_sig.emit(signals::ui::update_background());
   return false;
