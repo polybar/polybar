@@ -243,7 +243,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
   m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->h);
+  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
   m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
 
   // Load geometry values
