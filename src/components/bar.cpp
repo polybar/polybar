@@ -278,19 +278,6 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
-  // m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
-  // m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
-
-  m_opts.center.y = m_opts.size.h;
-  m_opts.center.y -= m_opts.borders[edge::BOTTOM].size;
-  m_opts.center.y /= 2;
-  m_opts.center.y += m_opts.borders[edge::TOP].size;
-
-  m_opts.center.x = m_opts.size.w;
-  m_opts.center.x -= m_opts.borders[edge::RIGHT].size;
-  m_opts.center.x /= 2;
-  m_opts.center.x += m_opts.borders[edge::LEFT].size;
-
   m_log.info("Bar geometry: %ix%i+%i+%i; Borders: %d,%d,%d,%d", m_opts.size.w,
       m_opts.size.h, m_opts.pos.x, m_opts.pos.y,
       m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size,
