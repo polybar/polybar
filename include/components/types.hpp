@@ -131,7 +131,6 @@ struct bar_settings {
   };
   position pos{0, 0};
   position offset{0, 0};
-  position center{0, 0};
   side_values padding{0U, 0U};
   side_values margin{0U, 0U};
   side_values module_margin{0U, 0U};
