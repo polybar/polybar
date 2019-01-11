@@ -57,3 +57,9 @@ add_unit_test(components/command_line)
 add_unit_test(components/bar)
 add_unit_test(components/builder)
 add_unit_test(components/parser)
+
+# Run make check to build and run all unit tests
+add_custom_target(check
+  COMMAND GTEST_COLOR=1 ctest --output-on-failure
+  DEPENDS all_unit_tests
+  )
