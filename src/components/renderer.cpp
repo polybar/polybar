@@ -2,6 +2,7 @@
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
@@ -824,6 +825,26 @@ bool renderer::on(const signals::parser::action_end& evt) {
 bool renderer::on(const signals::parser::text& evt) {
   auto text = evt.cast();
   draw_text(text);
+  return true;
+}
+
+bool renderer::on(const signals::parser::control& evt) {
+  auto ctrl = evt.cast();
+
+  switch(ctrl) {
+    case controltag::R:
+      m_bg = m_bar.background;
+      m_fg = m_bar.foreground;
+      m_ul = m_bar.underline.color;
+      m_ol = m_bar.overline.color;
+      m_font = 0;
+      m_attr.reset();
+      break;
+
+    case controltag::NONE:
+      break;
+  }
+
   return true;
 }
 

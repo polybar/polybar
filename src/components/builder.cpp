@@ -9,25 +9,37 @@
 POLYBAR_NS
 
 builder::builder(const bar_settings& bar) : m_bar(bar) {
+  reset();
+}
+
+void builder::reset() {
   /* Add all values as keys so that we never have to check if a key exists in
    * the map
    */
+  m_tags.clear();
   m_tags[syntaxtag::NONE] = 0;
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
   m_tags[syntaxtag::T] = 0;
+  m_tags[syntaxtag::R] = 0;
   m_tags[syntaxtag::o] = 0;
   m_tags[syntaxtag::u] = 0;
+  m_tags[syntaxtag::P] = 0;
 
+  m_colors.clear();
   m_colors[syntaxtag::B] = string();
   m_colors[syntaxtag::F] = string();
   m_colors[syntaxtag::o] = string();
   m_colors[syntaxtag::u] = string();
 
+  m_attrs.clear();
   m_attrs[attribute::NONE] = false;
   m_attrs[attribute::UNDERLINE] = false;
   m_attrs[attribute::OVERLINE] = false;
+
+  m_output.clear();
+  m_fontindex = 1;
 }
 
 /**
@@ -64,11 +76,7 @@ string builder::flush() {
 
   string output{m_output};
 
-  // reset values
-  m_tags.clear();
-  m_colors.clear();
-  m_output.clear();
-  m_fontindex = 1;
+  reset();
 
   return output;
 }
@@ -405,6 +413,24 @@ void builder::underline_close() {
 }
 
 /**
+ * Add a polybar control tag
+ */
+void builder::control(controltag tag) {
+  string str;
+  switch (tag) {
+    case controltag::R:
+      str = "R";
+      break;
+    default:
+      break;
+  }
+
+  if(!str.empty()) {
+    tag_open(syntaxtag::P, str);
+  }
+}
+
+/**
  * Open command tag
  */
 void builder::cmd(mousebtn index, string action, bool condition) {
@@ -504,6 +530,9 @@ void builder::tag_open(syntaxtag tag, const string& value) {
     case syntaxtag::O:
       append("%{O" + value + "}");
       break;
+    case syntaxtag::P:
+      append("%{P" + value + "}");
+      break;
   }
 }
 
@@ -540,8 +569,6 @@ void builder::tag_close(syntaxtag tag) {
   m_tags[tag]--;
 
   switch (tag) {
-    case syntaxtag::NONE:
-      break;
     case syntaxtag::A:
       append("%{A}");
       break;
@@ -560,8 +587,9 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::o:
       append("%{o-}");
       break;
+    case syntaxtag::NONE:
     case syntaxtag::R:
-      break;
+    case syntaxtag::P:
     case syntaxtag::O:
       break;
   }

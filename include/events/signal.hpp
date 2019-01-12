@@ -12,6 +12,7 @@ POLYBAR_NS
 // fwd
 enum class mousebtn;
 enum class syntaxtag;
+enum class controltag;
 enum class alignment;
 enum class attribute;
 
@@ -177,6 +178,9 @@ namespace signals {
       using base_type::base_type;
     };
     struct text : public detail::value_signal<text, string> {
+      using base_type::base_type;
+    };
+    struct control : public detail::value_signal<control, controltag> {
       using base_type::base_type;
     };
   }
