@@ -32,6 +32,7 @@ vector<pair<double, string>> to_pixels_with_offset_list = {
   {990, "100%:-10"},
   {10, "0%:+10"},
   {1000, "99%:+10"},
+  {0, "1%:-100"},
 };
 
 INSTANTIATE_TEST_CASE_P(NoOffset, GeomFormatToPixelsTest,

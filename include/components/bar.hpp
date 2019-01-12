@@ -28,19 +28,17 @@ class tray_manager;
 // }}}
 
 /**
- * Allows a new format for width, height, offset-x and offset-y in the bar section
+ * Allows a new format for pixel sizes (like width in the bar section)
  *
  * The new format is X%:Z, where X is in [0, 100], and Z is any real value
  * describing a pixel offset. The actual value is calculated by X% * max + Z
- * The max is the monitor width for width and offset-x and monitor height for
- * the other two
  */
 inline double geom_format_to_pixels(std::string str, double max) {
   size_t i;
   if ((i = str.find(':')) != std::string::npos) {
     std::string a = str.substr(0, i - 1);
     std::string b = str.substr(i + 1);
-    return math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr);
+    return math_util::max<double>(0,math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr));
   } else {
     if (str.find('%') != std::string::npos) {
       return math_util::percentage_to_value<double>(strtod(str.c_str(), nullptr), max);
