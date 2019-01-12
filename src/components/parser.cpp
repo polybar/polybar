@@ -187,6 +187,11 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
           break;
         }
 
+      // Internal Polybar control tags
+      case 'P':
+        m_sig.emit(control{parse_control(value)});
+        break;
+
       default:
         throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
     }
@@ -290,6 +295,21 @@ string parser::parse_action_cmd(string&& data) {
   }
 
   return data.substr(1, end - 1);
+}
+
+controltag parser::parse_control(const string& data) {
+  if(data.length() != 1) {
+    return controltag::NONE;
+  }
+
+  switch(data[0]) {
+    case 'R':
+      return controltag::R;
+      break;
+    default:
+      return controltag::NONE;
+      break;
+  }
 }
 
 POLYBAR_NS_END

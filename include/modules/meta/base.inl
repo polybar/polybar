@@ -80,6 +80,11 @@ namespace modules {
     if (m_changed) {
       m_log.info("%s: Rebuilding cache", name());
       m_cache = CAST_MOD(Impl)->get_output();
+      // Make sure builder is really empty
+      m_builder->flush();
+      // Add a reset tag after the module
+      m_builder->control(controltag::R);
+      m_cache += m_builder->flush();
       m_changed = false;
     }
     return m_cache;
