@@ -28,7 +28,7 @@ namespace net {
     return file_util::exists("/sys/class/net/" + ifname + "/wireless");
   }
 
-  static const string NO_IP6 = string("N/A");
+  static const string NO_IP = string("N/A");
 
   // class : network {{{
 
@@ -61,7 +61,8 @@ namespace net {
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
-    m_status.ip6 = NO_IP6;
+    m_status.ip = NO_IP;
+    m_status.ip6 = NO_IP;
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
