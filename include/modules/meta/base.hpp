@@ -74,6 +74,7 @@ namespace modules {
     size_t padding{0};
     size_t margin{0};
     int offset{0};
+    int font{0};
 
     string decorate(builder* builder, string output);
   };
