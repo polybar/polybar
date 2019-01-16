@@ -81,7 +81,7 @@ void background_manager::fetch_root_pixmap() {
 
   try {
     if (!m_connection.root_pixmap(&pixmap, &pixmap_depth, &pixmap_geom)) {
-      return m_log.err("background_manager: Failed to get root pixmap for background (realloc=%i)", realloc);
+      return m_log.warn("background_manager: Failed to get root pixmap, default to black (is there a wallpaper?)");
     };
     m_log.trace("background_manager: root pixmap (%d:%d) %dx%d+%dx%d", pixmap, pixmap_depth,
                 pixmap_geom.width, pixmap_geom.height, pixmap_geom.x, pixmap_geom.y);
