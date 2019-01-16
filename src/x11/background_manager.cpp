@@ -76,12 +76,11 @@ void background_manager::fetch_root_pixmap() {
   m_log.trace("background_manager: Fetching pixmap");
 
   int pixmap_depth;
-  xcb_pixmap_t pixmap;
+  xcb_pixmap_t pixmap = 0;
   xcb_rectangle_t pixmap_geom;
 
   try {
     if (!m_connection.root_pixmap(&pixmap, &pixmap_depth, &pixmap_geom)) {
-      free_resources();
       return m_log.err("background_manager: Failed to get root pixmap for background (realloc=%i)", realloc);
     };
     m_log.trace("background_manager: root pixmap (%d:%d) %dx%d+%dx%d", pixmap, pixmap_depth,
@@ -168,8 +167,9 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
 
   if(m_gcontext == XCB_NONE) {
     log.trace("background_manager: Allocating graphics context");
-    unsigned int mask = XCB_GC_GRAPHICS_EXPOSURES;
-    unsigned int value_list[1] = {0};
+    auto black_pixel = m_connection.screen()->black_pixel;
+    unsigned int mask = XCB_GC_GRAPHICS_EXPOSURES | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
+    unsigned int value_list[3] = {black_pixel, black_pixel, 0};
     m_gcontext = m_connection.generate_id();
     m_connection.create_gc(m_gcontext, m_pixmap, mask, value_list);
   }
@@ -178,6 +178,10 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
     log.trace("background_manager: Allocating cairo surface");
     m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, m_rect.width, m_rect.height);
   }
+
+  // fill (to provide a default in the case that fetching the background fails)
+  xcb_rectangle_t rect{0, 0, m_rect.width, m_rect.height};
+  m_connection.poly_fill_rectangle(m_pixmap, m_gcontext, 1, &rect);
 }
 
 void bg_slice::free_resources() {
