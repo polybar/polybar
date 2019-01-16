@@ -189,11 +189,11 @@ bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* 
   // see https://metacpan.org/pod/X11::Protocol::XSetRoot#ROOT-WINDOW-PROPERTIES for description of the properties
   // the properties here are ordered by reliability:
   //    _XSETROOT_ID: this is usually a dummy 1x1 pixmap only for resource managment, use only as last resort
-  //    ESETROOT_PMAP_ID: according to the link above, this should usually by equal to _XROOTMAP_ID
-  //    _XROOTMAP_ID: this appears to be the "correct" property to use? if available, use this
+  //    ESETROOT_PMAP_ID: according to the link above, this should usually by equal to _XROOTPMAP_ID
+  //    _XROOTPMAP_ID: this appears to be the "correct" property to use? if available, use this
   // later values in the list will override earlier ones if the property is set
-  // (so _XROOTMAP_ID is last to override everything else if set)
-  const xcb_atom_t pixmap_properties[3]{_XSETROOT_ID, ESETROOT_PMAP_ID, _XROOTMAP_ID};
+  // (so _XROOTPMAP_ID is last to override everything else if set)
+  const xcb_atom_t pixmap_properties[3]{_XSETROOT_ID, ESETROOT_PMAP_ID, _XROOTPMAP_ID};
   for (auto&& property : pixmap_properties) {
     try {
       auto prop = get_property(false, screen()->root, property, XCB_ATOM_PIXMAP, 0L, 1L);

@@ -126,7 +126,7 @@ void background_manager::handle(const evt::property_notify& evt) {
   // if there are no slices to observe, don't do anything
   if(m_slices.empty()) return;
 
-  if (evt->atom == _XROOTMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID) {
+  if (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID) {
     fetch_root_pixmap();
     m_sig.emit(signals::ui::update_background());
   }

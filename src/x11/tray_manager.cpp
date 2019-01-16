@@ -997,7 +997,7 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
     return;
-  } else if (evt->atom == _XROOTMAP_ID) {
+  } else if (evt->atom == _XROOTPMAP_ID) {
     redraw_window(true);
   } else if (evt->atom == _XSETROOT_ID) {
     redraw_window(true);
