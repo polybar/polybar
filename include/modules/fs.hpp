@@ -17,10 +17,10 @@ namespace modules {
     string type;
     string fsname;
 
-    unsigned long long bytes_free{0ULL};
-    unsigned long long bytes_used{0ULL};
-    unsigned long long bytes_avail{0ULL};
-    unsigned long long bytes_total{0ULL};
+    uint64_t bytes_free{0ULL};
+    uint64_t bytes_used{0ULL};
+    uint64_t bytes_avail{0ULL};
+    uint64_t bytes_total{0ULL};
 
     int percentage_free{0};
     int percentage_used{0};
