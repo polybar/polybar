@@ -103,7 +103,7 @@ void background_manager::fetch_root_pixmap() {
       auto src_y = math_util::cap(translated->dst_y, pixmap_geom.y, int16_t(pixmap_geom.y + pixmap_geom.height));
       auto w = math_util::cap(slice->m_rect.width, uint16_t(0), uint16_t(pixmap_geom.width - (src_x - pixmap_geom.x)));
       auto h = math_util::cap(slice->m_rect.height, uint16_t(0), uint16_t(pixmap_geom.height - (src_y - pixmap_geom.y)));
-      m_log.trace("background_manager: Copying from root pixmap (%d) %dx%d+%dx%d", pixmap, w, h, src_x, src_y);
+      m_log.trace("background_manager: Copying from root pixmap (%d:%d) %dx%d+%dx%d", pixmap, pixmap_depth, w, h, src_x, src_y);
       m_connection.copy_area_checked(pixmap, slice->m_pixmap, slice->m_gcontext, src_x, src_y, 0, 0, w, h);
 
       it++;
