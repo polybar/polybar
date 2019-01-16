@@ -98,7 +98,7 @@ namespace modules {
 
         // see: http://en.cppreference.com/w/cpp/filesystem/space
         mount->bytes_total = buffer.f_frsize * buffer.f_blocks;
-        mount->bytes_free = buffer.f_bsize * buffer.f_bfree;
+        mount->bytes_free = buffer.f_frsize * buffer.f_bfree;
         mount->bytes_used = mount->bytes_total - mount->bytes_free;
         mount->bytes_avail = buffer.f_frsize * buffer.f_bavail;
 
