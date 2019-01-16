@@ -84,6 +84,12 @@ void background_manager::fetch_root_pixmap() {
       free_resources();
       return m_log.err("background_manager: Failed to get root pixmap for background (realloc=%i)", realloc);
     };
+    m_log.trace("background_manager: root pixmap (%d:%d) %dx%d+%dx%d", pixmap, pixmap_depth,
+                pixmap_geom.width, pixmap_geom.height, pixmap_geom.x, pixmap_geom.y);
+
+    if (pixmap_depth == 1 && pixmap_geom.width == 1 && pixmap_geom.height == 1) {
+      return m_log.err("background_manager: Got only dummy pixmap (1x1 size with depth 1), try a different tool to set the desktop background");
+    }
 
     for (auto it = m_slices.begin(); it != m_slices.end(); ) {
       auto slice = it->lock();
