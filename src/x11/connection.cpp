@@ -182,6 +182,8 @@ xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visua
  * Query root window pixmap
  */
 bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* rect) {
+  *pixmap = XCB_NONE; // default value if getting the root pixmap fails
+
   /*
    * We try multiple properties for the root pixmap here because I am not 100% sure
    * if all programs set them the same way. We might be able to just use _XSETROOT_ID

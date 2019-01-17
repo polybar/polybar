@@ -76,7 +76,7 @@ void background_manager::fetch_root_pixmap() {
   m_log.trace("background_manager: Fetching pixmap");
 
   int pixmap_depth;
-  xcb_pixmap_t pixmap = 0;
+  xcb_pixmap_t pixmap;
   xcb_rectangle_t pixmap_geom;
 
   try {
