@@ -195,29 +195,27 @@ bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* 
    *    ESETROOT_PMAP_ID: according to the link above, this should usually by equal to _XROOTPMAP_ID
    *    _XROOTPMAP_ID: this appears to be the "correct" property to use? if available, use this
    */
-  const xcb_atom_t pixmap_properties[3]{_XSETROOT_ID, ESETROOT_PMAP_ID, _XROOTPMAP_ID};
+  const xcb_atom_t pixmap_properties[3]{_XROOTPMAP_ID, ESETROOT_PMAP_ID, _XSETROOT_ID};
   for (auto&& property : pixmap_properties) {
     try {
       auto prop = get_property(false, screen()->root, property, XCB_ATOM_PIXMAP, 0L, 1L);
       if (prop->format == 32 && prop->value_len == 1) {
         *pixmap = *prop.value<xcb_pixmap_t>().begin();
       }
-    } catch (const exception& err) {
-      continue;
-    }
-  }
-  if (*pixmap) {
-    try {
-      auto geom = get_geometry(*pixmap);
-      *depth = geom->depth;
-      rect->width = geom->width;
-      rect->height = geom->height;
-      rect->x = geom->x;
-      rect->y = geom->y;
-      return true;
+
+      if (*pixmap) {
+        auto geom = get_geometry(*pixmap);
+        *depth = geom->depth;
+        rect->width = geom->width;
+        rect->height = geom->height;
+        rect->x = geom->x;
+        rect->y = geom->y;
+        return true;
+      }
     } catch (const exception& err) {
       *pixmap = XCB_NONE;
       *rect = xcb_rectangle_t{0, 0, 0U, 0U};
+      continue;
     }
   }
   return false;
