@@ -18,7 +18,7 @@ namespace modules {
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE, 
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
@@ -101,16 +101,16 @@ namespace modules {
       m_label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
       m_label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
       m_label->replace_token("%gb_total%", string_util::filesize_gb(kb_total, 2, m_bar.locale));
-      m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
+      m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 0, m_bar.locale));
+      m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 0, m_bar.locale));
+      m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 0, m_bar.locale));
       m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
       m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
       m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
       m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
-      m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 2, m_bar.locale));
-      m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 2, m_bar.locale));
-      m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+      m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 0, m_bar.locale));
+      m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 0, m_bar.locale));
+      m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 0, m_bar.locale));
       m_label->replace_token("%gb_swap_total%", string_util::filesize_gb(kb_swap_total, 2, m_bar.locale));
       m_label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
       m_label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
