@@ -40,7 +40,7 @@ extern xcb_atom_t _NET_SYSTEM_TRAY_COLORS;
 extern xcb_atom_t WM_TAKE_FOCUS;
 extern xcb_atom_t Backlight;
 extern xcb_atom_t BACKLIGHT;
-extern xcb_atom_t _XROOTMAP_ID;
+extern xcb_atom_t _XROOTPMAP_ID;
 extern xcb_atom_t _XSETROOT_ID;
 extern xcb_atom_t ESETROOT_PMAP_ID;
 extern xcb_atom_t _COMPTON_SHADOW;

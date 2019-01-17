@@ -163,12 +163,11 @@ renderer::renderer(
       m_log.info("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
-
-    m_log.trace("Activate root background manager");
   }
 
   m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
   if (m_pseudo_transparency) {
+    m_log.trace("Activate root background manager");
     m_background = background.observe(m_bar.outer_area(false), m_window);
   }
 
