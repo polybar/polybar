@@ -133,7 +133,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.background = bar_opts.background;
   }
 
-  if (color_util::alpha_channel(m_opts.background) != 1) {
+  if (color_util::alpha_channel<unsigned char>(m_opts.background) != 255) {
+    m_log.trace("tray: enable transparency");
     m_opts.transparent = true;
   }
 
@@ -996,7 +997,7 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
     return;
-  } else if (evt->atom == _XROOTMAP_ID) {
+  } else if (evt->atom == _XROOTPMAP_ID) {
     redraw_window(true);
   } else if (evt->atom == _XSETROOT_ID) {
     redraw_window(true);
