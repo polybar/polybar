@@ -87,7 +87,7 @@ void background_manager::fetch_root_pixmap() {
                 pixmap_geom.width, pixmap_geom.height, pixmap_geom.x, pixmap_geom.y);
 
     if (pixmap_depth == 1 && pixmap_geom.width == 1 && pixmap_geom.height == 1) {
-      return m_log.err("background_manager: Got only dummy pixmap (1x1 size with depth 1), try a different tool to set the desktop background");
+      return m_log.err("background_manager: Cannot find root pixmap, try a different tool to set the desktop background");
     }
 
     for (auto it = m_slices.begin(); it != m_slices.end(); ) {
