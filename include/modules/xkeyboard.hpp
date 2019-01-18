@@ -70,9 +70,9 @@ namespace modules {
     label_t m_indicator;
     map<indicator_state, label_t> m_indicatorstates;
     map<keyboard::indicator::type, label_t> m_indicators;
+    map<keyboard::indicator::type, label_t> m_indicator_on_labels;
+    map<keyboard::indicator::type, label_t> m_indicator_off_labels;
 
-    string m_capslock_display_name;
-    string m_numlock_display_name;
     vector<string> m_blacklist;
     iconset_t m_layout_icons;
     iconset_t m_indicator_icons_on;

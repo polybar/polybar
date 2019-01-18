@@ -17,6 +17,18 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
+
+
+    // Setup extension
+    // clang-format off
+    m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
+                                             XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
+                                             XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
+    // clang-format on
+
+    // Create keyboard object
+    query_keyboard();
+
     // Load config values
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
     
@@ -31,9 +43,6 @@ namespace modules {
         m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));  
       }
     }
-
-    m_capslock_display_name = m_conf.get<string>(name(), "capslock-displayname", "");
-    m_numlock_display_name = m_conf.get<string>(name(), "numlock-displayname", "");
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
@@ -81,17 +90,29 @@ namespace modules {
           m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(icon_triple[2]));
         }
       }
+      // clang-format off
+      const keyboard::indicator::type indicator_types[] {
+        keyboard::indicator::type::CAPS_LOCK,
+        keyboard::indicator::type::NUM_LOCK,
+        keyboard::indicator::type::SCROLL_LOCK
+      };
+      // clang-format on
+
+      for (auto it : indicator_types) {
+        const auto& indicator_str = m_keyboard->indicator_name(it);
+        auto key_name = string_util::replace(string_util::lower(indicator_str), " "s, ""s);
+        const auto indicator_key_on = "label-indicator-on-"s + key_name;
+        const auto indicator_key_off = "label-indicator-off-"s + key_name;
+        std::cout << indicator_key_on << std::endl;
+
+        if (m_conf.has(name(), indicator_key_on)) {
+          m_indicator_on_labels.emplace(it, load_optional_label(m_conf, name(), indicator_key_on));
+        }
+        if (m_conf.has(name(), indicator_key_off)) {
+          m_indicator_on_labels.emplace(it, load_optional_label(m_conf, name(), indicator_key_off));
+        }
+      }
     }
-
-    // Setup extension
-    // clang-format off
-    m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
-    // clang-format on
-
-    // Create keyboard object
-    query_keyboard();
   }
 
   /**
@@ -101,7 +122,7 @@ namespace modules {
     if (m_layout) {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
-      
+
       auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
       auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
 
@@ -112,7 +133,7 @@ namespace modules {
 
     if (m_indicator) {
       m_indicators.clear();
-      
+
       // clang-format off
       const keyboard::indicator::type indicator_types[] {
         keyboard::indicator::type::CAPS_LOCK,
@@ -120,7 +141,7 @@ namespace modules {
         keyboard::indicator::type::SCROLL_LOCK
       };
       // clang-format on
- 
+
       for (auto it : indicator_types) {
         const auto& indicator_str = m_keyboard->indicator_name(it);
 
@@ -129,20 +150,37 @@ namespace modules {
         }
 
         if (m_keyboard->on(it)) {
-          auto indicator = m_indicatorstates[indicator_state::ON]->clone();
+          label_t indicator;
+
+          if (m_indicator_on_labels.find(it) != m_indicator_on_labels.end()) {
+            indicator = m_indicator_on_labels[it]->clone();
+          }
+          else {
+            indicator = m_indicatorstates[indicator_state::ON]->clone();
+          }
+
           auto icon = m_indicator_icons_on->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
-          
+
           indicator->replace_token("%name%", indicator_str);
           indicator->replace_token("%icon%", icon->get());
           m_indicators.emplace(it, move(indicator));
         } else {
-          auto indicator = m_indicatorstates[indicator_state::OFF]->clone();
+          label_t indicator;
+
+          if (m_indicator_off_labels.find(it) != m_indicator_off_labels.end()) {
+            indicator = m_indicator_off_labels[it]->clone();
+          }
+          else {
+            indicator = m_indicatorstates[indicator_state::OFF]->clone();
+          }
+
           auto icon = m_indicator_icons_off->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
 
           indicator->replace_token("%name%", indicator_str);
           indicator->replace_token("%icon%", icon->get());
           m_indicators.emplace(it, move(indicator));
         }
+      }
     }
 
     // Trigger redraw
