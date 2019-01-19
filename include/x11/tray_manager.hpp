@@ -62,6 +62,17 @@ struct tray_settings {
   unsigned int background{0U};
   bool transparent{false};
   bool detached{false};
+
+  /**
+   * Allows users to turn off reparenting in favor of being able to use the
+   * offsets without restrictions.
+   *
+   * If the bar window is reparented by the WM under a window that has the
+   * exact same size as the bar (openbox does this), if the tray is also
+   * reparented, it is not possible to move the tray outside of the bounds of
+   * the bar window.
+   */
+  bool reparent{true};
 };
 
 class tray_manager

@@ -80,6 +80,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   m_opts.detached = conf.get(bs, "tray-detached", false);
+  m_opts.reparent = conf.get(bs, "tray-reparent", m_opts.reparent);
   m_opts.height = bar_opts.size.h;
   m_opts.height -= bar_opts.borders.at(edge::BOTTOM).size;
   m_opts.height -= bar_opts.borders.at(edge::TOP).size;
@@ -608,7 +609,9 @@ void tray_manager::restack_window() {
     return;
   }
 
-  reparent_window();
+  if (m_opts.reparent) {
+    reparent_window();
+  }
 
   try {
     m_log.trace("tray: Restacking tray window");
