@@ -58,7 +58,7 @@ struct tray_settings {
   unsigned int height{0U};
   unsigned int height_fill{0U};
   unsigned int spacing{0U};
-  unsigned int sibling{0U};
+  xcb_window_t bar{XCB_NONE};
   unsigned int background{0U};
   bool transparent{false};
   bool detached{false};
@@ -137,6 +137,8 @@ class tray_manager
   bool on(const signals::ui::update_background& evt);
 
  private:
+  void reparent_window();
+
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;

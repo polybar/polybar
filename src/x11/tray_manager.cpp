@@ -169,8 +169,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   m_opts.rel_x = m_opts.orig_x - bar_opts.pos.x;
   m_opts.rel_y = m_opts.orig_y - bar_opts.pos.y;
 
-  // Put the tray next to the bar in the window stack
-  m_opts.sibling = bar_opts.window;
+  m_opts.bar = bar_opts.window;
 
   // Activate the tray manager
   query_atom();
@@ -578,12 +577,38 @@ void tray_manager::create_bg(bool realloc) {
 }
 
 /**
- * Put tray window above the defined sibling in the window stack
+ * Make the tray a child of the bar's parent window
+ *
+ * Some WMs move around windows without override-redirect in the window tree
+ * (like i3 and openbox), making the bar and tray no longer siblings and
+ * causing the restack to fail.
  */
-void tray_manager::restack_window() {
-  if (m_opts.sibling == XCB_NONE) {
+void tray_manager::reparent_window() {
+  if (m_opts.bar == XCB_NONE) {
     return;
   }
+
+  m_log.trace("tray: Reparenting tray window");
+
+  try {
+    auto tree = m_connection.query_tree(m_opts.bar);
+    m_connection.reparent_window_checked(m_tray, tree->parent, 0, 0);
+  } catch (const exception& err) {
+    auto tray_id = m_connection.id(m_tray);
+    auto bar_id = m_connection.id(m_opts.bar);
+    m_log.err("tray: Failed to make tray (%s) and bar (%s) siblings (%s)", tray_id, bar_id, err.what());
+  }
+}
+
+/**
+ * Put tray window above the bar
+ */
+void tray_manager::restack_window() {
+  if (m_opts.bar == XCB_NONE) {
+    return;
+  }
+
+  reparent_window();
 
   try {
     m_log.trace("tray: Restacking tray window");
@@ -592,13 +617,13 @@ void tray_manager::restack_window() {
     unsigned int values[7];
     xcb_params_configure_window_t params{};
 
-    XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.sibling);
+    XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.bar);
     XCB_AUX_ADD_PARAM(&mask, &params, stack_mode, XCB_STACK_MODE_ABOVE);
 
     connection::pack_values(mask, &params, values);
     m_connection.configure_window_checked(m_tray, mask, values);
   } catch (const exception& err) {
-    auto id = m_connection.id(m_opts.sibling);
+    auto id = m_connection.id(m_opts.bar);
     m_log.err("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
   }
 }
