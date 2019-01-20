@@ -54,13 +54,6 @@ namespace randr_util {
   }
 
   /**
-   * Check for XRandR monitor support
-   */
-  bool check_monitor_support() {
-    return WITH_XRANDR_MONITORS && g_major_version >= 1 && g_minor_version >= 5;
-  }
-
-  /**
    * Define monitor
    */
   monitor_t make_monitor(
@@ -129,8 +122,6 @@ namespace randr_util {
       // Test if there are any clones in the set
       for (auto& monitor : monitors) {
         if ((*m) == monitor || monitor->w == 0) {
-          continue;
-        } else if (check_monitor_support() && (monitor->output == XCB_NONE || (*m)->output == XCB_NONE)) {
           continue;
         }
 

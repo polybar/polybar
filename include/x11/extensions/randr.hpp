@@ -47,8 +47,6 @@ using monitor_t = shared_ptr<randr_output>;
 namespace randr_util {
   void query_extension(connection& conn);
 
-  bool check_monitor_support();
-
   monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
       bool primary);
   vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false, bool realloc = false);

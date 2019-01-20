@@ -23,7 +23,6 @@ colored_option("   xkeyboard" WITH_XKB)
 
 message(STATUS " X extensions:")
 colored_option("   xcb-randr" WITH_XRANDR)
-colored_option("   xcb-randr (monitor support)" WITH_XRANDR_MONITORS)
 colored_option("   xcb-render" WITH_XRENDER)
 colored_option("   xcb-damage" WITH_XDAMAGE)
 colored_option("   xcb-sync" WITH_XSYNC)
