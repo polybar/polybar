@@ -80,6 +80,17 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("No monitors found");
   }
 
+  // if monitor_name is not defined, first check for primary monitor
+  if (monitor_name.empty()) {
+    for (auto&& mon : monitors) {
+      if (mon->primary) {
+        monitor_name = mon->name;
+        break;
+      }
+    }
+  }
+
+  // if still not found (and not strict matching), get first connected monitor
   if (monitor_name.empty() && !m_opts.monitor_strict) {
     auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
     if (!connected_monitors.empty()) {
@@ -88,11 +99,13 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
+  // if still not found, get first monitor
   if (monitor_name.empty()) {
     monitor_name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", monitor_name);
   }
 
+  // get the monitor data based on the name
   m_opts.monitor = randr_util::match_monitor(monitors, monitor_name, m_opts.monitor_exact);
   monitor_t fallback{};
 

@@ -64,7 +64,8 @@ namespace randr_util {
    * Define monitor
    */
   monitor_t make_monitor(
-      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y) {
+      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
+      bool primary) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = move(name);
@@ -72,6 +73,7 @@ namespace randr_util {
     mon->y = y;
     mon->h = h;
     mon->w = w;
+    mon->primary = primary;
     return mon;
   }
 
@@ -92,13 +94,17 @@ namespace randr_util {
       for (auto&& mon : conn.get_monitors(root, true).monitors()) {
         try {
           auto name = conn.get_atom_name(mon.name).name();
-          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y));
+          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y, mon.primary));
         } catch (const exception&) {
           // silently ignore output
         }
       }
     }
 #endif
+    auto primary_output = conn.get_output_primary(root).output();
+    auto primary_info = conn.get_output_info(primary_output);
+    auto name_iter = primary_info.name();
+    string primary_name = {name_iter.begin(), name_iter.end()};
 
     for (auto&& output : conn.get_screen_resources(root).outputs()) {
       try {
@@ -124,7 +130,8 @@ namespace randr_util {
 #endif
 
         auto crtc = conn.get_crtc_info(info->crtc);
-        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
+        auto primary = (primary_name == name);
+        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
       } catch (const exception&) {
         // silently ignore output
       }
