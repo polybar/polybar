@@ -84,6 +84,13 @@ class pulseaudio {
      */
     std::atomic_bool m_state_callback_signal{false};
 
+    /**
+     * Whether or not m_mainloop and m_context have been allocated
+     *
+     * This is basically a check whether or not reset can be called
+     */
+    bool m_init{false};
+
     // used for temporary callback results
     int success{0};
     pa_cvolume cv;

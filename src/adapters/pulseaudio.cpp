@@ -16,6 +16,8 @@ void pulseaudio::connect() {
   // Clear eventqueue
   m_events = {};
 
+  m_init = false;
+
   m_mainloop = pa_threaded_mainloop_new();
   if (!m_mainloop) {
     throw pulseaudio_error("Could not create pulseaudio threaded mainloop.");
@@ -29,22 +31,20 @@ void pulseaudio::connect() {
     throw pulseaudio_error("Could not create pulseaudio context.");
   }
 
+  // From this point on, reset can be called
+  m_init = true;
+
   pa_context_set_state_callback(m_context, context_state_callback, this);
 
   m_state_callback_signal = false;
   if (pa_context_connect(m_context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
     pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not connect pulseaudio context.");
   }
 
   if (pa_threaded_mainloop_start(m_mainloop) < 0) {
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
-    pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not start pulseaudio mainloop.");
   }
 
@@ -60,10 +60,7 @@ void pulseaudio::connect() {
 
   if (pa_context_get_state(m_context) != PA_CONTEXT_READY) {
     pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_stop(m_mainloop);
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not connect to pulseaudio server.");
   }
 
@@ -71,6 +68,7 @@ void pulseaudio::connect() {
   if (!spec_s_name.empty()) {
     op = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
     if (!op) {
+      reset();
       throw_error("pa_context_get_sink_info_by_name failed");
     }
     wait_loop(op, m_mainloop);
@@ -79,6 +77,7 @@ void pulseaudio::connect() {
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
     if (!op) {
+      reset();
       throw_error("pa_context_get_sink_info_by_name failed");
     }
     wait_loop(op, m_mainloop);
@@ -90,11 +89,14 @@ void pulseaudio::connect() {
   auto event_types = static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER);
   op = pa_context_subscribe(m_context, event_types, simple_callback, this);
   if (!op) {
+    reset();
     throw_error("pa_context_subscribe failed");
   }
   wait_loop(op, m_mainloop);
-  if (!success)
+  if (!success) {
+    reset();
     throw pulseaudio_error("Failed to subscribe to sink.");
+  }
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
 
@@ -108,7 +110,13 @@ void pulseaudio::connect() {
  * Deconstruct pulseaudio
  */
 pulseaudio::~pulseaudio() {
-  reset();
+  /*
+   * If m_init is false here, it means that connect threw and exception while
+   * reconnecting (not during construction)
+   */
+  if (m_init) {
+    reset();
+  }
 }
 
 void pulseaudio::reset() {
