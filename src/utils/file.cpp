@@ -182,6 +182,8 @@ namespace file_util {
         return;
       }
 
+      // perform username filde expanansion as specified in POSIX
+      // see: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_01
       auto username = path.substr(1, pos - 1); // username = path[1:pos]
 
       struct passwd pwd;
@@ -193,7 +195,7 @@ namespace file_util {
       }
 
       if (result == nullptr) {
-        throw application_error("could not find user \"" + username + '"');
+        throw application_error("Could not find user \"" + username + '"');
       }
 
       path.replace(0, pos, result->pw_dir);
@@ -245,7 +247,7 @@ namespace file_util {
     return stat(filename.c_str(), &buffer) == 0 && S_ISFIFO(buffer.st_mode);
   }
 
-  /*
+  /**
    * Checks if the (potentionally non-canonical) path is absolute
    */
   bool is_absolute(const string& filename) {
@@ -262,9 +264,7 @@ namespace file_util {
 
     // Manually expand tilde to fix builds using versions of libc
     // that doesn't provide the GLOB_TILDE flag (musl for example)
-    if (pattern[0] == '~') {
-      file_util::expand_home_dir(pattern);
-    }
+    file_util::expand_home_dir(pattern);
 
     if (::glob(pattern.c_str(), 0, nullptr, &result) == 0) {
       for (size_t i = 0_z; i < result.gl_pathc; ++i) {
@@ -276,7 +276,7 @@ namespace file_util {
     return ret;
   }
 
-  /*
+  /**
    * Return the path without the last component (see dirname(3))
    */
   string dirname(const string& path) {
@@ -305,76 +305,85 @@ namespace file_util {
    * Path expansion
    */
   string expand(const string& path) {
+    // the empty path expands to the root directory
     if (path.empty()) {
       return "/";
     }
 
+    // copy the input so we can modify it in-place
     auto ret = path;
-    if (ret[0] == '~') {
-      file_util::expand_home_dir(ret);
-    }
+
+    file_util::expand_home_dir(ret);
 
     vector<string> p_exploded = string_util::split(ret, '/');
     for (auto it = p_exploded.begin(); it != p_exploded.end(); ) {
       if (it->empty() || *it == ".") {
+        // delete an empty component (i.e. if the path has consecutive '/') or a '.' component
         it = p_exploded.erase(it);
       } else if (*it == "..") {
         if (it != p_exploded.begin()) {
+          // only pop off the previous component if this isn't the first component (this ensures "/foo/../../" == "/")
           --it;
           it = p_exploded.erase(it);
         }
 
         it = p_exploded.erase(it);
-      } else {
-        auto& path = *it;
+      } else { // this is non-empty and not a special component ("." and ".."), so try to expand any variables
+        auto& component = *it;
 
-        // subtract 1 since we are not interested when the last character is '$'
-        for (auto pos = path.find('$'); pos < path.length() - 1; pos = path.find('$', pos + 1)) {
+        // subtract 1 from length since we are not interested when the last character is '$'
+        for (auto pos = component.find('$'); pos < component.length() - 1; pos = component.find('$', pos + 1)) {
+          // check if this '$' was escaped and skip it if so
+          if (pos > 0 && component[pos - 1] == '\\') {
+            continue;
+          }
+
           auto replace_start = pos++;
 
           string::size_type replace_end, count;
-          if (path[pos] == '{') {
+          if (component[pos] == '{') { // the variable name is enclosed in braces
             ++pos;
-            count = path.find('}', pos + 1);
+            count = component.find('}', pos + 1);
 
-            if (count == string::npos) {
+            if (count == string::npos) { // missing the closing brace, do not try to expand the variable
               break;
             }
 
             count -= pos;
             replace_end = pos + (count + 1);
-          } else {
-            count = path.length() - pos;
+          } else { // no braces, use everything up to the next path separator
+            count = component.length() - pos;
             replace_end = pos + count;
           }
 
-          auto env = env_util::get(path.substr(pos, count));
-          path.replace(replace_start, replace_end, env);
+          auto env = env_util::get(component.substr(pos, count));
+          component.replace(replace_start, replace_end, env);
 
           pos += count;
         }
 
         // erase any separators at the end (due to expansion) to avoid double '//'
-        while (!path.empty() && path.back() == '/') {
-            path.pop_back();
+        while (!component.empty() && component.back() == '/') {
+          component.pop_back();
         }
 
         // remove separators at the start to avoid double '//'
         string::size_type start = 0;
-        while (start < path.length() && path[start] == '/') {
-            ++start;
+        while (start < component.length() && component[start] == '/') {
+          ++start;
         }
 
         if (start > 0) {
-            path = path.substr(start);
+          component = component.substr(start);
         }
 
         ++it;
       }
     }
 
+    // we deleted everything (the path was just a combination of '.' and '..'), return the root directory
     if (p_exploded.empty()) {
-        return "/";
+      return "/";
     }
 
     ret = string_util::join(p_exploded, "/");

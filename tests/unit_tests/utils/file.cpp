@@ -13,12 +13,7 @@ namespace {
     auto cmd = command_util::make_command("echo " + path);
     cmd->exec();
 
-    string result;
-    cmd->tail([&result](string output) {
-      result = std::move(output);
-    });
-
-    return result;
+    return cmd->readline();
   }
 
 }
