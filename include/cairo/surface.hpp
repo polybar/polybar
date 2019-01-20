@@ -79,8 +79,9 @@ namespace cairo {
    public:
     icon_surface(unsigned char* data, unsigned int w, unsigned int h) : surface(nullptr) {
       m_data = vector<unsigned char>(data, data + w * h * 4);
+      auto stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, w);
       m_s = cairo_image_surface_create_for_data(
-          (unsigned char*)m_data.data(), CAIRO_FORMAT_ARGB32, w, h, w * 4);
+          (unsigned char*)m_data.data(), CAIRO_FORMAT_ARGB32, w, h, stride);
       auto status = cairo_surface_status(m_s);
       if (status != CAIRO_STATUS_SUCCESS) {
         throw application_error(sstream() << "Failed to create surface from image: " << cairo_status_to_string(status));
