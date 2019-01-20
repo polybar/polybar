@@ -342,8 +342,9 @@ void pulseaudio::context_state_callback(pa_context *context, void *userdata) {
 }
 
 inline void pulseaudio::wait_loop(pa_operation *op, pa_threaded_mainloop *loop) {
-  while (pa_operation_get_state(op) != PA_OPERATION_DONE)
+  while (pa_operation_get_state(op) == PA_OPERATION_RUNNING) {
     pa_threaded_mainloop_wait(loop);
+  }
   pa_operation_unref(op);
 }
 
