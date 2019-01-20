@@ -83,7 +83,7 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
     throw pulseaudio_error("Failed to subscribe to sink.");
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
-  update_volume(op);
+  update_volume();
 
   pa_threaded_mainloop_unlock(m_mainloop);
 
@@ -155,7 +155,7 @@ int pulseaudio::process_events() {
       default:
         break;
     }
-    update_volume(o);
+    update_volume();
     m_events.pop();
   }
   pa_threaded_mainloop_unlock(m_mainloop);
@@ -243,8 +243,8 @@ bool pulseaudio::is_muted() {
 /**
  * Update local volume cache
  */
-void pulseaudio::update_volume(pa_operation *o) {
-  o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
+void pulseaudio::update_volume() {
+  pa_operation *o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
   if (!o) {
     throw_error("pa_context_get_sink_info_by_index failed");
   }
