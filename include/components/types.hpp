@@ -16,8 +16,6 @@ using monitor_t = shared_ptr<randr_output>;
 using icon_manager_t = unique_ptr<icon_manager>;
 // }}}
 
-
-
 struct enum_hash {
   template <typename T>
   inline typename std::enable_if<std::is_enum<T>::value, size_t>::type operator()(T const value) const {

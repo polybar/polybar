@@ -644,8 +644,7 @@ void renderer::draw_icon(const string& icon_location) {
 
   auto height = m_rect.height;
 
-  vector<unsigned int> vec(dest_icon_size * height);
-  fill(vec.begin(), vec.end(), m_bg);
+  vector<uint32_t> vec(dest_icon_size * height, m_bg);
 
   auto stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, dest_icon_size);
   cairo_surface_t* surface = cairo_image_surface_create_for_data(
