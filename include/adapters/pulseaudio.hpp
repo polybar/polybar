@@ -22,7 +22,22 @@ DEFINE_ERROR(pulseaudio_error);
 
 class pulseaudio {
   // events to add to our queue
-  enum class evtype { NEW = 0, CHANGE, REMOVE, SERVER };
+  enum class evtype {
+    NEW = 0,
+    CHANGE,
+    REMOVE,
+    SERVER,
+    /**
+     * Disconnect and reconnect to the pulseaudio daemon
+     */
+    RECONNECT,
+    /**
+     * Event that does nothing.
+     *
+     * Can be used to make sure that update_volume is called
+     */
+    NOP,
+  };
   using queue = std::queue<evtype>;
 
   public:
@@ -45,6 +60,9 @@ class pulseaudio {
     bool is_muted();
 
   private:
+    void connect();
+    void reset();
+
     void update_volume();
     void throw_error(const string& msg);
     static void check_mute_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
