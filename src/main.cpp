@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
       for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
         if (WITH_XRANDR_MONITORS && mon->output == XCB_NONE) {
           printf("%s: %ix%i+%i+%i (XRandR monitor%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
-              mon->primary ? " (primary)" : "");
+              mon->primary ? ", primary" : "");
         } else {
           printf("%s: %ix%i+%i+%i%s\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y, mon->primary ? " (primary)" : "");
         }
