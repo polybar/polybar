@@ -2,6 +2,7 @@
 
 #include <pulse/pulseaudio.h>
 #include <queue>
+#include <atomic>
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -75,6 +76,13 @@ class pulseaudio {
     inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
 
     const logger& m_log;
+
+    /**
+     * Has context_state_callback signalled the mainloop
+     *
+     * The context_state_callback and connect function communicate via this variable
+     */
+    std::atomic_bool m_state_callback_signal{false};
 
     // used for temporary callback results
     int success{0};
