@@ -252,11 +252,48 @@ namespace file_util {
 
   /**
    * Checks if the (potentionally non-canonical) path is absolute.
-   * Note that the path must have any tildes or variable replacements expanded before calling this function.
    */
   bool is_absolute(const string& filename) {
-    // this is sufficient for Unix-like systems
-    return !filename.empty() && (filename[0] == '/' || filename[0] == '~');
+    if (filename.empty()) {
+      return false;
+    }
+
+    // This allows for the possibility that the filename is something like "~foo" and that user "foo" does not exist.
+    // The logic is that if "foo" does exist, then the path is absolute,
+    // and if "foo" does not exist, this is not the appropriate place to handle that error
+    if (filename[0] == '/' || filename[0] == '~') {
+      return true;
+    }
+
+    // no use trying to expand if the beginning of the path is definitely not a variable
+    if (filename[0] != '$') {
+      return false;
+    }
+
+
+    string::size_type start_pos, end_pos;
+    if (filename[1] == '{') {
+      start_pos = 2;
+      end_pos = filename.find('}', start_pos + 1);
+
+      // missing closing brace, error
+      if (end_pos == string::npos) {
+        return false;
+      }
+    } else {
+      start_pos = 1;
+      end_pos = filename.find('/', start_pos + 1);
+
+      if (end_pos == string::npos) {
+        end_pos = filename.length();
+      }
+    }
+
+    const auto count = start_pos - end_pos;
+    const auto variable = env_util::get(filename.substr(start_pos, count));
+
+    // safe even if variable is empty, since variable[0] will be '\0'
+    return variable[0] == '/';
   }
 
   /**
@@ -409,18 +446,13 @@ namespace file_util {
    * Path expansion, making relative paths absolute
    */
   string expand_relative_to(const string& path, const string& base_dir) {
-    auto result = expand(path);
+    const auto result = expand(path);
 
     if (is_absolute(path)) {
       return result;
     }
 
-    auto base = expand(base_dir);
-    if (base.empty() || base.back() != '/') {
-      base += '/';
-    }
-
-    return move(base) + move(result);
+    return expand(base_dir + '/' + path);
   }
 }
 

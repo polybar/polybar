@@ -2,7 +2,7 @@
 #include <iostream>
 #include <memory>
 
-#include <string.h> // dirname
+#include <libgen.h> // dirname
 
 #include "common/test.hpp"
 #include "utils/command.hpp"
@@ -22,8 +22,7 @@ namespace {
 }
 
 TEST(File, expand) {
-  struct TestCase
-  {
+  struct TestCase {
       string input;
       string expected;
   };
@@ -69,10 +68,9 @@ TEST(File, expand) {
     { "/tmp/$HOME", "/tmp" + expand_with_shell("~")},
   };
 
-  for (auto const& test_case : test_cases)
-  {
+  for (auto const& test_case : test_cases) {
     const auto expanded = file_util::expand(test_case.input);
-    EXPECT_EQ(expanded, test_case.expected);
+    EXPECT_EQ(expanded, test_case.expected) << "input = " << test_case.input;
   }
 
   // correctly handles POSIX "~username" expansion (use root since every system has a user with that name)
@@ -86,17 +84,44 @@ TEST(File, expand) {
 }
 
 TEST(File, expandRelativeTo) {
-  struct TestCase
-  {
+  struct TestCase {
     string base_dir;
     string path;
     string expected;
   };
+
+  std::vector<TestCase> test_cases = {
+    // relative path, absolute base dir
+    { "/", "a", "/a" },
+    { "/foo", "bar", "/foo/bar" },
+    { "//foo///", "bar/", "/foo/bar/" },
+
+    // absolute path (base dir is ignored)
+    { "/foo", "/bar", "/bar" },
+    { "/a/b/c", "/x/y/z", "/x/y/z" },
+
+    // relative base dir and relative path (result has '/' prepended)
+    { "foo", "bar", "/foo/bar" },
+    { "a/b/c", "x/y/z", "/a/b/c/x/y/z" },
+
+    // special components "." and ".." are handled in both
+    { "/foo", "../bar", "/bar" },
+    { "/foo/bar", "../baz", "/foo/baz" },
+    { "/foo/../bar", "baz", "/bar/baz" },
+    { "/a/./b/./c", "d/./.././e", "/a/b/c/e" },
+    { "../foo", "../bar", "/bar" },
+  };
+
+  for (auto const& test_case : test_cases) {
+    const auto expanded = file_util::expand_relative_to(test_case.path, test_case.base_dir);
+    EXPECT_EQ(expanded, test_case.expected)
+      << "base_dir = " << test_case.base_dir << ", "
+      << "path = " << test_case.path;
+  }
 }
 
 TEST(File, dirname) {
-  struct TestCase
-  {
+  struct TestCase {
       string input;
       string expected;
   };
@@ -112,10 +137,9 @@ TEST(File, dirname) {
     { "", "." },
   };
 
-  for (auto const& test_case : test_cases)
-  {
+  for (auto const& test_case : test_cases) {
     const auto dir_name = file_util::dirname(test_case.input);
-    EXPECT_EQ(dir_name, test_case.expected);
+    EXPECT_EQ(dir_name, test_case.expected) << "input = " << test_case.input;
 
     auto buffer = std::make_unique<char[]>(test_case.input.length() + 1);
 
@@ -140,11 +164,13 @@ TEST(File, isAbsolute) {
     "~/",
     "~root",
     "~root/",
+
+    // path with env variable
+    "$HOME",
   };
 
-  for (auto const& path : absolute_paths)
-  {
-    EXPECT_TRUE(file_util::is_absolute(path));
+  for (auto const& path : absolute_paths) {
+    EXPECT_TRUE(file_util::is_absolute(path)) << "path = " << path;
   }
 
   std::vector<string> relative_paths = {
@@ -154,8 +180,7 @@ TEST(File, isAbsolute) {
     "",
   };
 
-  for (auto const& path : relative_paths)
-  {
-    EXPECT_FALSE(file_util::is_absolute(path));
+  for (auto const& path : relative_paths) {
+    EXPECT_FALSE(file_util::is_absolute(path)) << "path = " << path;
   }
 }
