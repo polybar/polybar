@@ -96,47 +96,46 @@ namespace {
     string m_full_path;
   };
 
+  class ConfigIncludeFile : public ::testing::Test
+  {
+  protected:
+    ConfigIncludeFile()
+      : m_temp_dir{"polybar_config_unit_test"}
+      , m_base_file{m_temp_dir.directory()}
+      , m_include_file{m_temp_dir.directory()}
+      , m_null_logger{logger::make(loglevel::NONE)} // everything is discarded
+    {
+      // base config file needs at least one section "[bar/BARNAME]"; add "test_bar"
+      m_base_file << "[bar/test_bar]\n" << std::flush;
+
+      // add a variable assignment to the included file
+      m_include_file << "key = value\n" << std::flush;
+    }
+
+  protected:
+    temp_directory  m_temp_dir;
+    temp_filestream m_base_file;
+    temp_filestream m_include_file;
+    logger const&   m_null_logger;
+  };
+
 } // (anonymous namespace)
 
-TEST(Config, IncludeFileAbsolutePath) {
-  temp_directory temp_dir("polybar_unit_test");
+TEST_F(ConfigIncludeFile, AbsolutePath) {
+  // include the file using its absolute path
+  m_base_file << "include-file = " << m_include_file.full_path() << "\n" << std::flush;
 
-  temp_filestream base_file(temp_dir.directory());
-  temp_filestream include_file(temp_dir.directory());
-
-  // log file needs section [bar/BARNAME]
-  base_file << "[bar/test_bar]\n";
-  base_file << "include-file = " << include_file.full_path() << "\n";
-  base_file << std::flush;
-
-  include_file << "key = value\n";
-  include_file << std::flush;
-
-  auto const& null_logger = logger::make(loglevel::NONE); // everything is discarded
-
-  config test_config(null_logger, string{ base_file.full_path() }, "test_bar");
+  config test_config(m_null_logger, string{ m_base_file.full_path() }, "test_bar");
 
   ASSERT_TRUE(test_config.has("bar/test_bar", "key"));
   ASSERT_EQ(test_config.get("bar/test_bar", "key"), "value");
 }
 
-TEST(Config, IncludeFileRelativePath) {
-  temp_directory temp_dir("polybar_unit_test");
+TEST_F(ConfigIncludeFile, RelativePath) {
+  // include the file using its path relative to m_base_file (both are in m_temp_dir)
+  m_base_file << "include-file = " << m_include_file.filename() << "\n" << std::flush;
 
-  temp_filestream base_file(temp_dir.directory());
-  temp_filestream include_file(temp_dir.directory());
-
-  // log file needs section [bar/BARNAME]
-  base_file << "[bar/test_bar]\n";
-  base_file << "include-file = " << include_file.filename() << "\n";
-  base_file << std::flush;
-
-  include_file << "key = value\n";
-  include_file << std::flush;
-
-  auto const& null_logger = logger::make(loglevel::NONE); // everything is discarded
-
-  config test_config(null_logger, string{ base_file.full_path() }, "test_bar");
+  config test_config(m_null_logger, string{ m_base_file.full_path() }, "test_bar");
 
   ASSERT_TRUE(test_config.has("bar/test_bar", "key"));
   ASSERT_EQ(test_config.get("bar/test_bar", "key"), "value");

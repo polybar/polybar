@@ -167,6 +167,9 @@ int fd_streambuf::underflow() {
 
 namespace file_util {
   namespace {
+    /**
+     * expand "~" to $HOME and "~username" to the home directory of "username"
+     */
     void expand_home_dir(string& path) {
       if (path.empty() || path[0] != '~') {
         return;
@@ -248,7 +251,8 @@ namespace file_util {
   }
 
   /**
-   * Checks if the (potentionally non-canonical) path is absolute
+   * Checks if the (potentionally non-canonical) path is absolute.
+   * Note that the path must have any tildes or variable replacements expanded before calling this function.
    */
   bool is_absolute(const string& filename) {
     // this is sufficient for Unix-like systems
