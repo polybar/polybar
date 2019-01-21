@@ -446,10 +446,8 @@ namespace file_util {
    * Path expansion, making relative paths absolute
    */
   string expand_relative_to(const string& path, const string& base_dir) {
-    const auto result = expand(path);
-
     if (is_absolute(path)) {
-      return result;
+      return expand(path);
     }
 
     return expand(base_dir + '/' + path);
