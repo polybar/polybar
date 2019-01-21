@@ -93,8 +93,7 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
-    bool m_show_icons{false};
-    string m_icons_side{"right"};
+    alignment m_icons_side{};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };

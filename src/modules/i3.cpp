@@ -34,8 +34,16 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
-    m_show_icons = m_conf.get(name(), "show-icons", m_show_icons);
-    m_icons_side = m_conf.get(name(), "icons-side", m_icons_side);
+    string side = m_conf.get(name(), "icons-side", "none"s);
+    if (side == "left") {
+      m_icons_side = alignment::LEFT;
+    } else if (side == "right") {
+      m_icons_side = alignment::RIGHT;
+    } else if (side == "none") {
+      m_icons_side = alignment::NONE;
+    } else {
+      m_log.err("%s: Invalid icon side setting", name());
+    }
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -156,7 +164,7 @@ namespace modules {
 
     map<string, vector<string>> map;
 
-    if (m_show_icons) {
+    if (m_icons_side != alignment::NONE) {
       clear_icons();
 
       for (auto monitor : mons) {
@@ -263,13 +271,13 @@ namespace modules {
           }
         };
 
-        if (m_icons_side == "left") {
+        if (m_icons_side == alignment::LEFT) {
           set_icons();
         }
 
         builder->node(ws->label);
 
-        if (m_icons_side == "right") {
+        if (m_icons_side == alignment::RIGHT) {
           set_icons();
         }
 
