@@ -20,29 +20,6 @@ namespace modules {
 
     m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
 
-    // Add click action
-    auto click_left = m_conf.get(name(), "click-left", ""s);
-    auto click_middle = m_conf.get(name(), "click-middle", ""s);
-    auto click_right = m_conf.get(name(), "click-right", ""s);
-    auto scroll_up = m_conf.get(name(), "scroll-up", ""s);
-    auto scroll_down = m_conf.get(name(), "scroll-down", ""s);
-
-    if (!click_left.empty()) {
-      m_builder->cmd(mousebtn::LEFT, click_left);
-    }
-    if (!click_middle.empty()) {
-      m_builder->cmd(mousebtn::MIDDLE, click_middle);
-    }
-    if (!click_right.empty()) {
-      m_builder->cmd(mousebtn::RIGHT, click_right);
-    }
-    if (!scroll_up.empty()) {
-      m_builder->cmd(mousebtn::SCROLL_UP, scroll_up);
-    }
-    if (!scroll_down.empty()) {
-      m_builder->cmd(mousebtn::SCROLL_DOWN, scroll_down);
-    }
-
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
