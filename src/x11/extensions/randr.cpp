@@ -102,7 +102,7 @@ namespace randr_util {
     }
 #endif
     auto primary_output = conn.get_output_primary(root).output();
-    string primary_name{""};
+    string primary_name{};
 
     if (primary_output != XCB_NONE) {
       auto primary_info = conn.get_output_info(primary_output);
