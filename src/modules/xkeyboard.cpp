@@ -103,7 +103,6 @@ namespace modules {
         auto key_name = string_util::replace(string_util::lower(indicator_str), " "s, ""s);
         const auto indicator_key_on = "label-indicator-on-"s + key_name;
         const auto indicator_key_off = "label-indicator-off-"s + key_name;
-        std::cout << indicator_key_on << std::endl;
 
         if (m_conf.has(name(), indicator_key_on)) {
           m_indicator_on_labels.emplace(it, load_optional_label(m_conf, name(), indicator_key_on));
