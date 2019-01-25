@@ -3,6 +3,7 @@
 #include "components/config.hpp"
 #include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "utils/command.hpp"
 
 POLYBAR_NS
 
@@ -65,6 +66,13 @@ namespace modules {
 
     // used while formatting output
     size_t m_index{0_z};
+
+    // added for click events
+    map<mousebtn, string> m_actions;
+    unique_ptr<command> m_command;
+    bool m_tail;
+    int m_counter{0};
+
   };
 }
 

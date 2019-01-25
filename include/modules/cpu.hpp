@@ -2,6 +2,7 @@
 
 #include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "utils/command.hpp"
 
 POLYBAR_NS
 
@@ -38,6 +39,12 @@ namespace modules {
     ramp_t m_rampload_core;
     label_t m_label;
     int m_ramp_padding;
+
+    // added for click actions
+    map<mousebtn, string> m_actions;
+    int m_counter{0};
+    unique_ptr<command> m_command;
+    bool m_tail;
 
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;

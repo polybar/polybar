@@ -3,6 +3,7 @@
 #include "adapters/net.hpp"
 #include "components/config.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "utils/command.hpp"
 
 POLYBAR_NS
 
@@ -52,6 +53,12 @@ namespace modules {
     int m_udspeed_minwidth{0};
     bool m_accumulate{false};
     bool m_unknown_up{false};
+
+    // added for click events
+    map<mousebtn, string> m_actions;
+    unique_ptr<command> m_command;
+    bool m_tail;
+
   };
 }
 
