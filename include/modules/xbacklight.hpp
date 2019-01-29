@@ -19,7 +19,7 @@ namespace modules {
    * module that was set up using with inotify watches listening
    * for changes to the raw file handle.
    *
-   * This module is alot faster, it's more responsive and it will
+   * This module is a lot faster, it's more responsive and it will
    * be dormant until new values are reported. Inotify watches
    * are a bit random when it comes to proc-/sysfs.
    *
