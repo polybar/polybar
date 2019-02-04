@@ -97,7 +97,7 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
-    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
+    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_desktop_states();
