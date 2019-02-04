@@ -224,7 +224,7 @@ namespace modules {
     unsigned int desktops_number = ewmh_util::get_number_of_desktops();
     if(desktops_number == names.size())
       return names;
-    else if(desktops_number < names.size()){
+    else if(desktops_number < names.size()) {
       names.erase(names.begin()+desktops_number, names.end());
       return names;
     }
