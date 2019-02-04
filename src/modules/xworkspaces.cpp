@@ -222,8 +222,9 @@ namespace modules {
   vector<string> xworkspaces_module::get_desktop_names(){
     vector<string> names = ewmh_util::get_desktop_names();
     unsigned int desktops_number = ewmh_util::get_number_of_desktops();
-    if(desktops_number == names.size())
+    if(desktops_number == names.size()) {
       return names;
+    }
     else if(desktops_number < names.size()) {
       names.erase(names.begin()+desktops_number, names.end());
       return names;
