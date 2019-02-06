@@ -51,7 +51,7 @@ vector<pair<string, tuple<string, bool, int>>> get_label_text_list = {
   {"abcdefgh", make_tuple("abcdefgh", true, 8)},
 };
 
-INSTANTIATE_TEST_CASE_P(Inst, GetLabelTextTest,
+INSTANTIATE_TEST_SUITE_P(Inst, GetLabelTextTest,
     ::testing::ValuesIn(get_label_text_list));
 
 TEST_P(GetLabelTextTest, correctness) {
