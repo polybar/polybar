@@ -14,7 +14,7 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
 
 void pulseaudio::connect() {
   // Clear eventqueue
-  m_events = {};
+  queue().swap(m_events);
 
   m_init = false;
 
