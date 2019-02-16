@@ -11,25 +11,25 @@ help:
 	@awk -F':' '/^\w*:/ {print "  "$$1;}' Makefile
 
 configure:
-	@echo "\033[32;1m**\033[0m Configuring..."
+	@echo "$$(tput setaf 2)**$$(tput sgr0) Configuring..."
 	@mkdir -p $(BUILDDIR)
 	@cd $(BUILDDIR) && cmake -G "$(GENERATOR)" ..
 
 build:
-	@echo "\033[32;1m**\033[0m Building..."
+	@echo "$$(tput setaf 2)**$$(tput sgr0) Building..."
 	@cmake --build $(BUILDDIR)
 
 install:
-	@echo "\033[32;1m**\033[0m Installing..."
+	@echo "$$(tput setaf 2)**$$(tput sgr0) Installing..."
 	@cmake --build $(BUILDDIR) --target install
 
 link:
-	@echo "\033[32;1m**\033[0m Linking executable..."
+	@echo "$$(tput setaf 2)**$$(tput sgr0) Linking executable..."
 	@if [ -x $(BUILDDIR)/bin/polybar ]; then ln -sfv $(BUILDDIR)/bin/polybar; fi
 	@if [ -x $(BUILDDIR)/bin/polybar-msg ]; then ln -sfv $(BUILDDIR)/bin/polybar-msg; fi
 
 clean:
-	@echo "\033[32;1m**\033[0m Cleaning up..."
+	@echo "$$(tput setaf 2)**$$(tput sgr0) Cleaning up..."
 	@if [ -d $(BUILDDIR) ]; then rm -rf $(BUILDDIR); fi
 	@if [ -L polybar ]; then rm -v polybar; fi
 	@if [ -L polybar-msg ]; then rm -v polybar-msg; fi
