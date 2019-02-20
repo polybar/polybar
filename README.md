@@ -159,6 +159,7 @@ Run the following inside the build directory:
 ~~~ sh
 $ make userconfig
 ~~~
+Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /usr/local/share/doc/polybar/config` (depending on your install parameters)
 
 #### Launch the example bar
   ~~~ sh
