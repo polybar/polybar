@@ -46,7 +46,7 @@ namespace modules {
     
     // load layout icons
     m_layout_icons = factory_util::shared<iconset>();
-    m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, "s"));
+    m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
 
     for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
       auto vec = string_util::split(it, ';');
