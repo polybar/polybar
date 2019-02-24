@@ -181,6 +181,8 @@ namespace xkb_util {
         type = keyboard::indicator::type::CAPS_LOCK;
       } else if (string_util::compare(name, "num lock")) {
         type = keyboard::indicator::type::NUM_LOCK;
+      } else if (string_util::compare(name, "scroll lock")) {
+        type = keyboard::indicator::type::SCROLL_LOCK;
       } else {
         continue;
       }
