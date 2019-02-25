@@ -43,7 +43,7 @@ namespace modules {
 
     // Load config values
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
-    
+
     // load layout icons
     m_layout_icons = factory_util::shared<iconset>();
     m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
@@ -51,7 +51,7 @@ namespace modules {
     for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
       auto vec = string_util::split(it, ';');
       if (vec.size() == 2) {
-        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));  
+        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
     }
 
@@ -61,28 +61,25 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
       m_layout = load_optional_label(m_conf, name(), TAG_LABEL_LAYOUT, "%layout%");
     }
-    
-    
-    if (m_formatter->has(TAG_LABEL_INDICATOR)) {
-      label_t indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
-      m_conf.warn_deprecated(name(), TAG_LABEL_INDICATOR, "label-indicator-on");
 
+    if (m_formatter->has(TAG_LABEL_INDICATOR)) {
+      m_conf.warn_deprecated(name(), TAG_LABEL_INDICATOR, "label-indicator-on");
       // load an empty label if 'label-indicator-off' is not explicitly specified so
       // no existing user configs are broken (who expect nothing to be shown when indicator is off)
       m_indicator_state_off = load_optional_label(m_conf, name(), "label-indicator-off"s, ""s);
-     
+
       if (m_conf.has(name(), "label-indicator-on"s)) {
         m_indicator_state_on = load_optional_label(m_conf, name(), "label-indicator-on"s, "%name%"s);
       } else {
         // if 'label-indicator-on' is not explicitly specified, use 'label-indicator'
         // as to not break existing user configs
-        m_indicator_state_off = std::move(indicator);
+        m_indicator_state_on = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
       }
 
       // load indicator icons
       m_indicator_icons_off = factory_util::shared<iconset>();
       m_indicator_icons_on = factory_util::shared<iconset>();
-      
+
       auto icon_pair = string_util::split(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
       if(icon_pair.size() == 2) {
         m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
