@@ -63,7 +63,7 @@ namespace modules {
     }
 
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
-      m_conf.warn_deprecated(name(), TAG_LABEL_INDICATOR, "label-indicator-on");
+      m_conf.warn_deprecated(name(), "label-indicator", "label-indicator-on");
       // load an empty label if 'label-indicator-off' is not explicitly specified so
       // no existing user configs are broken (who expect nothing to be shown when indicator is off)
       m_indicator_state_off = load_optional_label(m_conf, name(), "label-indicator-off"s, ""s);
