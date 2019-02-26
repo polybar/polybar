@@ -144,8 +144,7 @@ namespace modules {
     const logger& m_log;
     const config& m_conf;
 
-    mutex m_buildlock;
-    mutex m_updatelock;
+    mutex m_contentlock;
     mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 

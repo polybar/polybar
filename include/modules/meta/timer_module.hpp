@@ -21,7 +21,7 @@ namespace modules {
       this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
 
       const auto check = [&]() -> bool {
-        std::unique_lock<std::mutex> guard(this->m_updatelock);
+        std::unique_lock<std::mutex> guard(this->m_contentlock);
         return CAST_MOD(Impl)->update();
       };
 

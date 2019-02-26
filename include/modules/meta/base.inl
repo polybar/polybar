@@ -54,9 +54,7 @@ namespace modules {
     m_log.info("%s: Stopping", name());
     m_enabled = false;
 
-    std::lock(m_buildlock, m_updatelock);
-    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
-    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
+    std::lock_guard<std::mutex> guard_b(m_contentlock);
     {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
@@ -122,7 +120,8 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::get_output() {
-    std::lock_guard<std::mutex> guard(m_buildlock);
+    std::lock_guard<std::mutex> guard_b(m_contentlock);
+
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
     bool no_tag_built{true};
