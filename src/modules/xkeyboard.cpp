@@ -130,32 +130,34 @@ namespace modules {
       m_layout->replace_token("%number%", to_string(m_keyboard->current()));
     }
 
-    m_indicators.clear();
+    if (m_formatter->has(TAG_LABEL_INDICATOR)) {
+      m_indicators.clear();
 
-    for (auto it : INDICATOR_TYPES) {
-      const auto& indicator_str = m_keyboard->indicator_name(it);
+      for (auto it : INDICATOR_TYPES) {
+        const auto& indicator_str = m_keyboard->indicator_name(it);
 
-      if (blacklisted(indicator_str)) {
-        continue;
+        if (blacklisted(indicator_str)) {
+          continue;
+        }
+
+        auto indicator_on = m_keyboard->on(it);
+        auto &indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
+        auto &indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
+        auto &indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
+
+        label_t indicator;
+        if (indicator_labels.find(it) != indicator_labels.end()) {
+          indicator = indicator_labels[it]->clone();
+        } else {
+          indicator = indicator_state->clone();
+        }
+
+        auto icon = indicator_icons->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
+
+        indicator->replace_token("%name%", indicator_str);
+        indicator->replace_token("%icon%", icon->get());
+        m_indicators.emplace(it, move(indicator));
       }
-
-      auto indicator_on = m_keyboard->on(it);
-      auto &indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
-      auto &indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
-      auto &indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
-
-      label_t indicator;
-      if (indicator_labels.find(it) != indicator_labels.end()) {
-        indicator = indicator_labels[it]->clone();
-      } else {
-        indicator = indicator_state->clone();
-      }
-
-      auto icon = indicator_icons->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
-
-      indicator->replace_token("%name%", indicator_str);
-      indicator->replace_token("%icon%", icon->get());
-      m_indicators.emplace(it, move(indicator));
     }
 
     // Trigger redraw
