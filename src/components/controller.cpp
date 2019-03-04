@@ -462,8 +462,8 @@ bool controller::process_update(bool force) {
   string separator{bar.separator};
   string padding_left = unit_utils::size_with_unit_to_string(bar.padding.left, bar.dpi_x);
   string padding_right = unit_utils::size_with_unit_to_string(bar.padding.right, bar.dpi_x);
-  string margin_left = unit_utils::size_with_unit_to_string(bar.margin.left, bar.dpi_x);
-  string margin_right = unit_utils::size_with_unit_to_string(bar.margin.right, bar.dpi_x);
+  string margin_left = unit_utils::size_with_unit_to_string(bar.module_margin.left, bar.dpi_x);
+  string margin_right = unit_utils::size_with_unit_to_string(bar.module_margin.right, bar.dpi_x);
 
   for (const auto& block : m_modules) {
     string block_contents;
