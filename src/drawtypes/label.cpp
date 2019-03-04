@@ -152,9 +152,18 @@ namespace drawtypes {
     }
 
     const auto get_left_right = [&](string&& key) {
-      auto value = conf.get(section, key, size_with_unit{});
-      auto left = conf.get(section, key + "-left", value);
-      auto right = conf.get(section, key + "-right", value);
+      const auto parse_or_throw = [&](const string& key, size_with_unit default_value) {
+        try {
+          return conf.get(section, key, default_value);
+        } catch (const std::exception& err) {
+          throw application_error(
+              sstream() << "Failed to set " << section << "." << key << " (reason: " << err.what() << ")");
+        }
+      };
+
+      auto value = parse_or_throw(key, size_with_unit{});
+      auto left = parse_or_throw(key + "-left", value);
+      auto right = parse_or_throw(key + "-right", value);
       return side_values{left, right};
     };
 
