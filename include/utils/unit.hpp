@@ -14,7 +14,7 @@ namespace unit_utils {
 
   template <typename ReturnType = int>
   ReturnType size_with_unit_to_pixel(size_with_unit size, double dpi) {
-    if (size.type == unit_type::PIXEL) {
+    if (size.type == unit_type::PIXEL || size.type == unit_type::SPACE) { // For this function space are interpreted as PIXEL
       return size.value;
     }
 
