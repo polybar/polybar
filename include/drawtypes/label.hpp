@@ -39,12 +39,12 @@ namespace drawtypes {
      * labels in a different way.
      */
     size_t m_maxlen{0_z};
-    bool m_ellipsis{true};
+    string m_ellipsis;
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
         string overline = ""s, int font = 0, struct side_values padding = {0U,0U}, struct side_values margin = {0U,0U},
-        size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
+        size_t maxlen = 0_z, string ellipsis = "...", vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
@@ -53,11 +53,11 @@ namespace drawtypes {
         , m_padding(padding)
         , m_margin(margin)
         , m_maxlen(maxlen)
-        , m_ellipsis(ellipsis)
+        , m_ellipsis(move(ellipsis))
         , m_text(text)
         , m_tokenized(m_text)
         , m_tokens(forward<vector<token>>(tokens)) {
-          assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
+          assert(m_ellipsis.empty() || (m_maxlen == 0 || m_maxlen >= string_util::char_len(ellipsis)));
         }
 
     string get() const;

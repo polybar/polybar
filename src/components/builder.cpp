@@ -485,8 +485,9 @@ string builder::get_label_text(const label_t& label) {
   size_t maxlen = label->m_maxlen;
 
   if (maxlen > 0 && string_util::char_len(text) > maxlen) {
-    if (label->m_ellipsis) {
-      text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
+    if (!label->m_ellipsis.empty()) {
+      text = string_util::utf8_truncate(std::move(text), maxlen - string_util::char_len(label->m_ellipsis)) +
+             label->m_ellipsis;
     } else {
       text = string_util::utf8_truncate(std::move(text), maxlen);
     }

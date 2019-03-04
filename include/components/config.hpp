@@ -175,6 +175,23 @@ class config {
 
   /**
    * Attempt to load value using the deprecated key name. If successful show a
+   * warning message. If it fails, the default value is returned.
+   * This version is to by used when the new key doesn't have the same type as the old one.
+   */
+  template <typename T = string>
+  T deprecated_type_changed(
+      const string& section, const string& old, const string& newkey, const T& default_value) const {
+    try {
+      T value{get<T>(section, old)};
+      warn_deprecated(section, old, newkey);
+      return value;
+    } catch (const key_error& err) {
+      return default_value;
+    }
+  }
+
+  /**
+   * Attempt to load value using the deprecated key name. If successful show a
    * warning message. If it fails load the value using the new key and given
    * fallback value
    */
