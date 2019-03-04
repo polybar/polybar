@@ -185,7 +185,32 @@ unsigned long long config::convert(string&& value) const {
 template <>
 size_with_unit config::convert(string&& value) const {
   char* new_end;
-  size_with_unit size{unit_type::SPACE, static_cast<int>(std::strtol(value.c_str(), &new_end, 10))};
+  auto size_value = std::strtol(value.c_str(), &new_end, 10);
+
+  if (size_value < 0) {
+    throw application_error(sstream() << "Value: " << value << " must be positive ");
+  }
+
+  size_with_unit size{unit_type::SPACE, static_cast<long unsigned int>(size_value)};
+
+  string unit = string_util::trim(new_end);
+  if (!unit.empty()) {
+    if (unit == "px") {
+      size.type = unit_type::PIXEL;
+    } else if (unit == "pt") {
+      size.type = unit_type::POINT;
+    }
+  }
+
+  return size;
+}
+
+template <>
+ssize_with_unit config::convert(string&& value) const {
+  char* new_end;
+  auto size_value = std::strtol(value.c_str(), &new_end, 10);
+
+  ssize_with_unit size{unit_type::SPACE, size_value};
 
   string unit = string_util::trim(new_end);
   if (!unit.empty()) {
@@ -206,8 +231,8 @@ size_with_unit config::convert(string&& value) const {
  */
 template <>
 geometry_format_values config::convert(string&& value) const {
-  auto get_space_value = [this](string&& str) {
-    auto s_value = convert<size_with_unit>(move(str));
+  auto get_space_value = [this](string&& str) -> ssize_with_unit {
+    auto s_value = convert<ssize_with_unit>(move(str));
     s_value.type = (s_value.type == unit_type::SPACE) ? unit_type::PIXEL : s_value.type;
 
     return s_value;

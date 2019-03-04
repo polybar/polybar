@@ -80,10 +80,16 @@ struct size {
 
 enum class unit_type { SPACE, POINT, PIXEL };
 
-struct size_with_unit {
-  unit_type type{unit_type::SPACE};
-  int value{0U};
-};
+namespace details {
+  template <typename T>
+  struct size_with_unit_impl {
+    unit_type type{unit_type::SPACE};
+    T value{0U};
+  };
+}  // namespace details
+
+using size_with_unit = details::size_with_unit_impl<unsigned long int>;
+using ssize_with_unit = details::size_with_unit_impl<long int>;
 
 struct side_values {
   size_with_unit left{unit_type::SPACE, 0U};
@@ -91,8 +97,8 @@ struct side_values {
 };
 
 struct geometry_format_values {
-    double percentage{0.};
-    size_with_unit offset{unit_type::PIXEL, 0U};
+  double percentage{0.};
+  ssize_with_unit offset{unit_type::PIXEL, 0U};
 };
 
 struct edge_values {

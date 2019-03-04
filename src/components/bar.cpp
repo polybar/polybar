@@ -184,8 +184,16 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load configuration values
+  auto parse_size_with_unit = [bs, this](string key, size_with_unit default_value) {
+    try {
+      return m_conf.get(bs, key, default_value);
+    } catch (const std::exception& err) {
+      throw application_error(sstream() << "Failed to set " << bs << "." << key << " (reason: " << err.what() << ")");
+    }
+  };
+
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
-  m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
+  m_opts.spacing = parse_size_with_unit("spacing", m_opts.spacing);
   m_opts.separator = m_conf.get(bs, "separator", ""s);
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
@@ -193,13 +201,13 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
   m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
 
-  auto padding = m_conf.get(bs, "padding", size_with_unit{});
-  m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
-  m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
+  auto padding = parse_size_with_unit("padding", size_with_unit{});
+  m_opts.padding.left = parse_size_with_unit("padding-left", padding);
+  m_opts.padding.right = parse_size_with_unit("padding-right", padding);
 
-  auto margin = m_conf.get(bs, "module-margin", size_with_unit{});
-  m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
-  m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
+  auto margin = parse_size_with_unit("module-margin", size_with_unit{});
+  m_opts.module_margin.left = parse_size_with_unit("module-margin-left", margin);
+  m_opts.module_margin.right = parse_size_with_unit("module-margin-right", margin);
 
   if (only_initialize_values) {
     return;
@@ -253,16 +261,15 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.foreground = parse_or_throw("foreground", m_opts.foreground);
 
   // Load over-/underline
-  auto ensure_non_negative = [this](size_with_unit&& size) -> unsigned int {
-    return static_cast<unsigned int>(math_util::max(0, unit_utils::size_with_unit_to_pixel(size, m_opts.dpi_x)));
-  };
-
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = m_conf.get(bs, "line-size", size_with_unit{});
+  auto line_size = parse_size_with_unit("line-size", size_with_unit{});
 
-  m_opts.overline.size = ensure_non_negative(m_conf.get(bs, "overline-size", line_size));
+  auto overline_size = parse_size_with_unit("overline-size", line_size);
+  auto underline_size = parse_size_with_unit("underline-size", line_size);
+
+  m_opts.overline.size = static_cast<unsigned int>(unit_utils::size_with_unit_to_pixel(overline_size, m_opts.dpi_y));
   m_opts.overline.color = parse_or_throw("overline-color", line_color);
-  m_opts.underline.size = ensure_non_negative(m_conf.get(bs, "underline-size", line_size));
+  m_opts.underline.size = static_cast<unsigned int>(unit_utils::size_with_unit_to_pixel(underline_size, m_opts.dpi_y));
   m_opts.underline.color = parse_or_throw("underline-color", line_color);
 
   // Load border settings
