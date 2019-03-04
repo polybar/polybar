@@ -182,6 +182,51 @@ unsigned long long config::convert(string&& value) const {
 }
 
 template <>
+size_with_unit config::convert(string&& value) const {
+  char* new_end;
+  size_with_unit size{unit_type::SPACE, static_cast<int>(std::strtol(value.c_str(), &new_end, 10))};
+
+  string unit = string_util::trim(new_end);
+  if (!unit.empty()) {
+    if (unit == "px") {
+      size.type = unit_type::PIXEL;
+    } else if (unit == "pt") {
+      size.type = unit_type::POINT;
+    }
+  }
+
+  return size;
+}
+/**
+ * Allows a new format for pixel sizes (like width in the bar section)
+ *
+ * The new format is X%:Z, where X is in [0, 100], and Z is any real value
+ * describing a pixel offset. The actual value is calculated by X% * max + Z
+ */
+template <>
+geometry_format_values config::convert(string&& value) const {
+  auto get_space_value = [this](string&& str) {
+    auto s_value = convert<size_with_unit>(move(str));
+    s_value.type = (s_value.type == unit_type::SPACE) ? unit_type::PIXEL : s_value.type;
+
+    return s_value;
+  };
+
+  size_t i = value.find(':');
+
+  if (i == std::string::npos) {
+    if (value.find('%') != std::string::npos) {
+      return {strtod(value.c_str(), nullptr), {}};
+    } else {
+      return {0., get_space_value(move(value))};
+    }
+  } else {
+    std::string percentage = value.substr(0, i - 1);
+    return {strtod(percentage.c_str(), nullptr), get_space_value(value.substr(i + 1))};
+  }
+}
+
+template <>
 chrono::seconds config::convert(string&& value) const {
   return chrono::seconds{convert<chrono::seconds::rep>(forward<string>(value))};
 }

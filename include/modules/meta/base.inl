@@ -133,7 +133,7 @@ namespace modules {
     bool no_tag_built{true};
     bool fake_no_tag_built{false};
     bool tag_built{false};
-    auto mingap = std::max(1_z, format->spacing);
+    auto mingap = std::max(1, format->spacing.value);
     size_t start, end;
     string value{format->value};
     while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {

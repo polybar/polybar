@@ -79,16 +79,16 @@ namespace drawtypes {
     if (label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (label->m_padding.left != 0U) {
+    if (label->m_padding.left.value != 0U) {
       m_padding.left = label->m_padding.left;
     }
-    if (label->m_padding.right != 0U) {
+    if (label->m_padding.right.value != 0U) {
       m_padding.right = label->m_padding.right;
     }
-    if (label->m_margin.left != 0U) {
+    if (label->m_margin.left.value != 0U) {
       m_margin.left = label->m_margin.left;
     }
-    if (label->m_margin.right != 0U) {
+    if (label->m_margin.right.value != 0U) {
       m_margin.right = label->m_margin.right;
     }
     if (label->m_maxlen != 0_z) {
@@ -113,16 +113,16 @@ namespace drawtypes {
     if (m_font == 0 && label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (m_padding.left == 0U && label->m_padding.left != 0U) {
+    if (m_padding.left.value == 0U && label->m_padding.left.value != 0U) {
       m_padding.left = label->m_padding.left;
     }
-    if (m_padding.right == 0U && label->m_padding.right != 0U) {
+    if (m_padding.right.value == 0U && label->m_padding.right.value != 0U) {
       m_padding.right = label->m_padding.right;
     }
-    if (m_margin.left == 0U && label->m_margin.left != 0U) {
+    if (m_margin.left.value == 0U && label->m_margin.left.value != 0U) {
       m_margin.left = label->m_margin.left;
     }
-    if (m_margin.right == 0U && label->m_margin.right != 0U) {
+    if (m_margin.right.value == 0U && label->m_margin.right.value != 0U) {
       m_margin.right = label->m_margin.right;
     }
     if (m_maxlen == 0_z && label->m_maxlen != 0_z) {
@@ -151,11 +151,11 @@ namespace drawtypes {
       text = conf.get(section, name, move(def));
     }
 
-    const auto get_left_right = [&](string key) {
-      auto value = conf.get(section, key, 0U);
+    const auto get_left_right = [&](string&& key) {
+      auto value = conf.get(section, key, size_with_unit{});
       auto left = conf.get(section, key + "-left", value);
       auto right = conf.get(section, key + "-right", value);
-      return side_values{static_cast<unsigned short int>(left), static_cast<unsigned short int>(right)};
+      return side_values{left, right};
     };
 
     padding = get_left_right(name + "-padding");

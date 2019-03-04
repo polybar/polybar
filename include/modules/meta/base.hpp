@@ -39,7 +39,7 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 class builder;
 class config;
@@ -68,9 +68,9 @@ namespace modules {
     string ol{};
     size_t ulsize{0};
     size_t olsize{0};
-    size_t spacing{0};
-    size_t padding{0};
-    size_t margin{0};
+    size_with_unit spacing{unit_type::SPACE, 0U};
+    size_with_unit padding{unit_type::SPACE, 0U};
+    size_with_unit margin{unit_type::SPACE, 0U};
     int offset{0};
     int font{0};
 
@@ -162,6 +162,6 @@ namespace modules {
   };
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -5,6 +5,8 @@
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
+#include "utils/unit.hpp"
+
 POLYBAR_NS
 
 builder::builder(const bar_settings& bar) : m_bar(bar) {
@@ -126,7 +128,7 @@ void builder::node(const label_t& label, bool add_space) {
 
   auto text = get_label_text(label);
 
-  if (label->m_margin.left > 0) {
+  if (label->m_margin.left.value > 0) {
     space(label->m_margin.left);
   }
 
@@ -144,13 +146,13 @@ void builder::node(const label_t& label, bool add_space) {
     color(label->m_foreground);
   }
 
-  if (label->m_padding.left > 0) {
+  if (label->m_padding.left.value > 0) {
     space(label->m_padding.left);
   }
 
   node(text, label->m_font, add_space);
 
-  if (label->m_padding.right > 0) {
+  if (label->m_padding.right.value > 0) {
     space(label->m_padding.right);
   }
 
@@ -161,14 +163,14 @@ void builder::node(const label_t& label, bool add_space) {
     color_close();
   }
 
-  if (!label->m_underline.empty()) {
+  if (!label->m_underline.empty() || (label->m_margin.right.value > 0 && m_tags[syntaxtag::u] > 0)) {
     underline_close();
   }
-  if (!label->m_overline.empty()) {
+  if (!label->m_overline.empty() || (label->m_margin.right.value > 0 && m_tags[syntaxtag::o] > 0)) {
     overline_close();
   }
 
-  if (label->m_margin.right > 0) {
+  if (label->m_margin.right.value > 0) {
     space(label->m_margin.right);
   }
 }
@@ -213,15 +215,17 @@ void builder::offset(int pixels) {
 /**
  * Insert spaces
  */
-void builder::space(size_t width) {
-  if (width) {
-    m_output.append(width, ' ');
+void builder::space(size_with_unit size) {
+  if (size.value > 0) {
+    m_output += unit_utils::size_with_unit_to_string(size, m_bar.dpi_x);
   } else {
     space();
   }
 }
 void builder::space() {
-  m_output.append(m_bar.spacing, ' ');
+  if (m_bar.spacing.value > 0) {
+    space(m_bar.spacing);
+  }
 }
 
 /**
@@ -235,7 +239,7 @@ void builder::remove_trailing_space(size_t len) {
   }
 }
 void builder::remove_trailing_space() {
-  remove_trailing_space(m_bar.spacing);
+  remove_trailing_space(static_cast<size_t>(m_bar.spacing.value));
 }
 
 /**
