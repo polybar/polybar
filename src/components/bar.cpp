@@ -152,6 +152,37 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
+  // Configure DPI
+  {
+    double dpi_x = 96, dpi_y = 96;
+    if (m_conf.has(m_conf.section(), "dpi")) {
+      dpi_x = dpi_y = m_conf.get<double>("dpi");
+    } else {
+      if (m_conf.has(m_conf.section(), "dpi-x")) {
+        dpi_x = m_conf.get<double>("dpi-x");
+      }
+      if (m_conf.has(m_conf.section(), "dpi-y")) {
+        dpi_y = m_conf.get<double>("dpi-y");
+      }
+    }
+
+    // dpi to be comptued
+    if (dpi_x <= 0 || dpi_y <= 0) {
+      auto screen = m_connection.screen();
+      if (dpi_x <= 0) {
+        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
+      }
+      if (dpi_y <= 0) {
+        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
+      }
+    }
+
+    m_opts.dpi_x = dpi_x;
+    m_opts.dpi_y = dpi_y;
+
+    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
+  }
+
   // Load configuration values
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
@@ -162,11 +193,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
   m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
 
-  auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
+  auto padding = m_conf.get(bs, "padding", size_with_unit{});
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
   m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
 
-  auto margin = m_conf.get<unsigned int>(bs, "module-margin", 0U);
+  auto margin = m_conf.get(bs, "module-margin", size_with_unit{});
   m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
   m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
 
@@ -175,8 +206,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load values used to adjust the struts atom
-  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0);
-  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0);
+  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0U);
+  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0U);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -222,45 +253,49 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.foreground = parse_or_throw("foreground", m_opts.foreground);
 
   // Load over-/underline
-  auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = m_conf.get(bs, "line-size", 0);
+  auto ensure_non_negative = [this](size_with_unit&& size) -> unsigned int {
+    return static_cast<unsigned int>(math_util::max(0, unit_utils::size_with_unit_to_pixel(size, m_opts.dpi_x)));
+  };
 
-  m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
+  auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
+  auto line_size = m_conf.get(bs, "line-size", size_with_unit{});
+
+  m_opts.overline.size = ensure_non_negative(m_conf.get(bs, "overline-size", line_size));
   m_opts.overline.color = parse_or_throw("overline-color", line_color);
-  m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
+  m_opts.underline.size = ensure_non_negative(m_conf.get(bs, "underline-size", line_size));
   m_opts.underline.color = parse_or_throw("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_size = m_conf.get(bs, "border-size", geometry_format_values{});
   auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
   auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
   auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
   auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
+  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::TOP].color = parse_or_throw("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
+  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
+  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
+  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
 
   // Load geometry values
-  auto w = m_conf.get(m_conf.section(), "width", "100%"s);
-  auto h = m_conf.get(m_conf.section(), "height", "24"s);
-  auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
-  auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
+  auto w = m_conf.get(m_conf.section(), "width", geometry_format_values{100.});
+  auto h = m_conf.get(m_conf.section(), "height", geometry_format_values{0., {unit_type::PIXEL, 24}});
+  auto offsetx = m_conf.get(m_conf.section(), "offset-x", geometry_format_values{});
+  auto offsety = m_conf.get(m_conf.section(), "offset-y", geometry_format_values{});
 
-  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w);
-  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h);;
-  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w);
-  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h);
+  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h, m_opts.dpi_y);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;

@@ -66,9 +66,21 @@ struct size {
   unsigned int h{1U};
 };
 
+enum class unit_type { SPACE, POINT, PIXEL };
+
+struct size_with_unit {
+  unit_type type{unit_type::SPACE};
+  int value{0U};
+};
+
 struct side_values {
-  unsigned int left{0U};
-  unsigned int right{0U};
+  size_with_unit left{unit_type::SPACE, 0U};
+  size_with_unit right{unit_type::SPACE, 0U};
+};
+
+struct geometry_format_values {
+    double percentage{0.};
+    size_with_unit offset{unit_type::PIXEL, 0U};
 };
 
 struct edge_values {
@@ -129,11 +141,15 @@ struct bar_settings {
   struct size size {
     1U, 1U
   };
+
+  double dpi_x{0.};
+  double dpi_y{0.};
+
   position pos{0, 0};
   position offset{0, 0};
-  side_values padding{0U, 0U};
-  side_values margin{0U, 0U};
-  side_values module_margin{0U, 0U};
+  side_values padding{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
+  side_values margin{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
+  side_values module_margin{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
   edge_values strut{0U, 0U, 0U, 0U};
 
   unsigned int background{0xFF000000};
@@ -146,7 +162,7 @@ struct bar_settings {
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
   struct radius radius {};
-  int spacing{0};
+  size_with_unit spacing{unit_type::SPACE, 0};
   string separator{};
 
   string wmname{};

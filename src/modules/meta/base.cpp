@@ -17,7 +17,7 @@ namespace modules {
     if (offset != 0) {
       builder->offset(offset);
     }
-    if (margin > 0) {
+    if (margin.value > 0) {
       builder->space(margin);
     }
     if (!bg.empty()) {
@@ -35,7 +35,7 @@ namespace modules {
     if(font > 0) {
       builder->font(font);
     }
-    if (padding > 0) {
+    if (padding.value > 0) {
       builder->space(padding);
     }
 
@@ -57,7 +57,7 @@ namespace modules {
     builder->append(move(output));
     builder->node(suffix);
 
-    if (padding > 0) {
+    if (padding.value > 0) {
       builder->space(padding);
     }
     if(font > 0) {
@@ -75,7 +75,7 @@ namespace modules {
     if (!bg.empty()) {
       builder->background_close();
     }
-    if (margin > 0) {
+    if (margin.value > 0) {
       builder->space(margin);
     }
 

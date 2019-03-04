@@ -37,7 +37,7 @@ namespace modules {
     ramp_t m_rampload;
     ramp_t m_rampload_core;
     label_t m_label;
-    int m_ramp_padding;
+    size_with_unit m_ramp_padding{unit_type::SPACE, 1U};
 
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;
