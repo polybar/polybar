@@ -32,8 +32,8 @@ namespace drawtypes {
     side_values m_margin{0U,0U};
 
     /*
-     * If m_ellipsis is true, m_maxlen MUST be larger or equal to the length of
-     * the ellipsis (3), everything else is a programming error
+     * m_maxlen MUST be larger or equal to the length of m_ellipsis (in number of UTF-8 characters),
+     * everything else is a programming error
      *
      * load_label should take care of this, but be aware, if you are creating
      * labels in a different way.
