@@ -77,7 +77,7 @@ class command<output_policy::IGNORED> {
   string m_cmd;
 
   pid_t m_forkpid{};
-  int m_forkstatus{};
+  int m_forkstatus = - 1;
 };
 
 template <>
