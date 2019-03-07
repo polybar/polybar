@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "common.hpp"
+#include "components/types.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
