@@ -129,7 +129,7 @@ namespace net {
   bool network::ping() const {
     try {
       auto exec = "ping -c 2 -W 2 -I " + m_interface + " " + string(CONNECTION_TEST_IP);
-      auto ping = command_util::make_command(exec);
+      auto ping = command_util::make_command<output_policy::IGNORED>(exec);
       return ping && ping->exec(true) == EXIT_SUCCESS;
     } catch (const std::exception& err) {
       return false;

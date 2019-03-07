@@ -408,7 +408,7 @@ void controller::process_inputdata() {
       }
 
       m_log.info("Executing shell command: %s", cmd);
-      m_command = command_util::make_command(move(cmd));
+      m_command = command_util::make_command<output_policy::IGNORED>(move(cmd));
       m_command->exec();
       m_command.reset();
       process_update(true);
