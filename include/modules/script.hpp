@@ -27,7 +27,7 @@ namespace modules {
 
     mutex_wrapper<function<chrono::duration<double>()>> m_handler;
 
-    unique_ptr<command> m_command;
+    unique_ptr<command<output_policy::REDIRECTED>> m_command;
 
     bool m_tail;
 

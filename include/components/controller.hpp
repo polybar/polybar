@@ -18,6 +18,7 @@ POLYBAR_NS
 
 enum class alignment;
 class bar;
+template <output_policy>
 class command;
 class config;
 class connection;
@@ -80,7 +81,7 @@ class controller
   unique_ptr<bar> m_bar;
   unique_ptr<ipc> m_ipc;
   unique_ptr<inotify_watch> m_confwatch;
-  unique_ptr<command> m_command;
+  unique_ptr<command<output_policy::IGNORED>> m_command;
 
   array<unique_ptr<file_descriptor>, 2> m_queuefd{};
 

@@ -236,4 +236,9 @@ struct event_timer {
   };
 };
 
+enum class output_policy {
+  REDIRECTED,
+  IGNORED,
+};
+
 POLYBAR_NS_END
