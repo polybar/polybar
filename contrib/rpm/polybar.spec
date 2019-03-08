@@ -28,6 +28,7 @@ BuildRequires:  pkgconfig(python)
 BuildRequires:  pkgconfig(xcb)
 BuildRequires:  pkgconfig(xcb-proto)
 BuildRequires:  pkgconfig(xcb-util)
+BuildRequires:  pkgconfig(libudev)
 %if 0%{?suse_version} <= 1315
 BuildRequires:  i3-devel
 %else

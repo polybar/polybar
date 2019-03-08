@@ -8,7 +8,7 @@ pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/jaagr/polybar"
 license=("MIT")
-depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor")
+depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor" "udev")
 optdepends=("alsa-lib: alsa module support"
             "pulseaudio: pulseaudio module support"
             "libmpdclient: mpd module support"
