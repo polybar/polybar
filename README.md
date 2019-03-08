@@ -107,6 +107,7 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - `xcb-proto`
 - `xcb-util-image`
 - `xcb-util-wm`
+- `libudev`
 
 **Optional dependencies:**
 - `xcb-util-cursor` *required for the `cursor-click` and `cursor-scroll` settings*
