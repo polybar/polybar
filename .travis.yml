@@ -23,6 +23,7 @@ addons:
         - libxcb-util0-dev
         - python-xcbgen
         - xcb-proto
+        - libudev-dev
       - &optional_deps
         - libxcb-xkb-dev
         - libxcb-cursor-dev
