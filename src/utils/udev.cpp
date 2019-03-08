@@ -1,6 +1,7 @@
 #include "utils/udev.hpp"
 
 #include <libudev.h>
+#include <utils/udev.hpp>
 
 POLYBAR_NS
 
@@ -62,6 +63,10 @@ const char* udev_device::get_syspath() const {
 
 const char* udev_device::get_devtype() const {
   return udev_device_get_devtype(m_dev);
+}
+
+const char* udev_device::get_action() const {
+  return udev_device_get_action(m_dev);
 }
 
 udev_event::udev_event(udev_device&& dev) : dev(move(dev)) {}

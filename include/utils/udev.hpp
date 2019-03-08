@@ -72,6 +72,11 @@ class udev_device {
    */
   const char* get_devtype() const;
 
+  /**
+   * Returns the action of the device (in case of an event)
+   */
+  const char* get_action() const;
+
  private:
   ::udev_device* m_dev = nullptr;
 };

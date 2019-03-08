@@ -1,27 +1,18 @@
 #pragma once
 
 #include "components/config.hpp"
+#include "modules/meta/udev_module.hpp"
 #include "settings.hpp"
-#include "modules/meta/inotify_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class backlight_module : public inotify_module<backlight_module> {
-   public:
-    struct brightness_handle {
-      void filepath(const string& path);
-      float read() const;
-
-     private:
-      string m_path;
-    };
-
+  class backlight_module : public udev_module<backlight_module> {
    public:
     explicit backlight_module(const bar_settings&, string);
 
     void idle();
-    bool on_event(inotify_event* event);
+    bool on_event(udev_event&& event);
     bool build(builder* builder, const string& tag) const;
 
    private:
@@ -33,11 +24,10 @@ namespace modules {
     label_t m_label;
     progressbar_t m_progressbar;
 
-    brightness_handle m_val;
-    brightness_handle m_max;
+    string m_card;
 
     int m_percentage = 0;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

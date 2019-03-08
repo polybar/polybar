@@ -1,5 +1,7 @@
 #include "modules/backlight.hpp"
 
+#include <cmath>
+
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -12,21 +14,8 @@ POLYBAR_NS
 namespace modules {
   template class module<backlight_module>;
 
-  void backlight_module::brightness_handle::filepath(const string& path) {
-    if (!file_util::exists(path)) {
-      throw module_error("The file '" + path + "' does not exist");
-    }
-    m_path = path;
-  }
-
-  float backlight_module::brightness_handle::read() const {
-    return std::strtof(file_util::contents(m_path).c_str(), nullptr);
-  }
-
   backlight_module::backlight_module(const bar_settings& bar, string name_)
-      : inotify_module<backlight_module>(bar, move(name_)) {
-    auto card = m_conf.get(name(), "card");
-
+      : udev_module<backlight_module>(bar, move(name_)), m_card{m_conf.get(name(), "card")} {
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
@@ -40,24 +29,37 @@ namespace modules {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
     }
 
-    // Build path to the file where the current/maximum brightness value is located
-    m_val.filepath(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
-    m_max.filepath(string_util::replace(PATH_BACKLIGHT_MAX, "%card%", card));
+    auto dev = udev_util::get_device(m_card);
+    if (!dev) {
+      throw application_error(sstream() << "Specified card: " << m_card << " doesn't exist");
+    }
 
-    // Add inotify watch
-    watch(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+    // Warm up module output before entering the loop
+    on_event(udev_event{move(dev)});
+
+    // Add udev watch
+    watch("backlight");
   }
 
   void backlight_module::idle() {
     sleep(75ms);
   }
 
-  bool backlight_module::on_event(inotify_event* event) {
-    if (event != nullptr) {
-      m_log.trace("%s: %s", name(), event->filename);
+  bool backlight_module::on_event(udev_event&& event) {
+    if (event.dev.get_sysname() != m_card && event.dev.get_action() != "change"s) {
+      return false;
     }
 
-    m_percentage = static_cast<int>(m_val.read() / m_max.read() * 100.0f + 0.5f);
+    if (event.dev) {
+      m_log.trace("%s: %s", name(), event.dev.get_syspath());
+    }
+
+    // Documentation of the available attributes
+    // https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-class-backlight
+    float brightness = strtof(event.dev.get_sysattr("actual_brightness"), nullptr);
+    float max_brightness = strtof(event.dev.get_sysattr("max_brightness"), nullptr);
+
+    m_percentage = static_cast<int>(std::round(brightness / max_brightness * 100.0f));
 
     if (m_label) {
       m_label->reset_tokens();
@@ -79,6 +81,6 @@ namespace modules {
     }
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
