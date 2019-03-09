@@ -345,19 +345,25 @@ namespace modules {
     m_log.trace("%s: Start of subthread", name());
 
     while (running()) {
-      int framerate = 1000; // milliseconds
+      auto now = chrono::system_clock::now();
+      auto framerate = 1000U;  // milliseconds
       if (m_state == battery_module::state::CHARGING) {
+        m_animation_charging->increment();
         broadcast();
         framerate = m_animation_charging->framerate();
       } else if (m_state == battery_module::state::DISCHARGING) {
+        m_animation_discharging->increment();
         broadcast();
         framerate = m_animation_discharging->framerate();
       }
-      this_thread::sleep_for(std::chrono::milliseconds(framerate));
+
+      // We don't count the the first part of the loop to be as close as possible to the framerate.
+      now += chrono::milliseconds(framerate);
+      this_thread::sleep_until(now);
     }
 
     m_log.trace("%s: End of subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
