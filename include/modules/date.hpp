@@ -3,9 +3,10 @@
 #include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
-#include <iostream>
-#include <iomanip>
+#include <atomic>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
 
 POLYBAR_NS
 
@@ -33,15 +34,20 @@ namespace modules {
     string m_dateformat_alt;
     string m_timeformat;
     string m_timeformat_alt;
+    string m_timezone;
+    string m_timezone_alt;
 
     string m_date;
     string m_time;
+
+    static std::atomic_bool s_timezone_activated;
+    static mutex s_timezone_mutex;
 
     // Single stringstream to be used to gather the results of std::put_time
     std::stringstream datetime_stream;
 
     std::atomic<bool> m_toggled{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

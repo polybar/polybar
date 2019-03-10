@@ -8,6 +8,9 @@ POLYBAR_NS
 namespace modules {
   template class module<date_module>;
 
+  std::atomic_bool date_module::s_timezone_activated{false};
+  mutex date_module::s_timezone_mutex;
+
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
@@ -17,6 +20,12 @@ namespace modules {
     m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
     m_timeformat = m_conf.get(name(), "time", ""s);
     m_timeformat_alt = m_conf.get(name(), "time-alt", ""s);
+    m_timezone = m_conf.get(name(), "timezone", ""s);
+    m_timezone_alt = m_conf.get(name(), "timezone-alt", ""s);
+
+    if (!m_timezone.empty() || !m_timezone_alt.empty()) {
+      date_module::s_timezone_activated = true;
+    }
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
@@ -41,24 +50,68 @@ namespace modules {
   bool date_module::update() {
     auto time = std::time(nullptr);
 
-    auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
-    // Clear stream contents
-    datetime_stream.str("");
-    datetime_stream << std::put_time(localtime(&time), date_format.c_str());
-    auto date_string = datetime_stream.str();
+    string date_string;
+    string time_string;
 
-    auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
-    // Clear stream contents
-    datetime_stream.str("");
-    datetime_stream << std::put_time(localtime(&time), time_format.c_str());
-    auto time_string = datetime_stream.str();
+    auto get_date = [this](std::time_t time) -> std::tuple<string, string> {
+      auto date_format = m_toggled ? m_dateformat_alt : m_dateformat;
+      // Clear stream contents
+      datetime_stream.str("");
+      datetime_stream.clear();
+      datetime_stream << std::put_time(localtime(&time), date_format.c_str());
+      auto date_str = datetime_stream.str();
+
+      auto time_format = m_toggled ? m_timeformat_alt : m_timeformat;
+      // Clear stream contents
+      datetime_stream.str("");
+      datetime_stream.clear();
+      datetime_stream << std::put_time(localtime(&time), time_format.c_str());
+      auto time_str = datetime_stream.str();
+
+      return std::make_tuple(move(date_str), move(time_str));
+    };
+
+    if (s_timezone_activated) {
+      std::lock_guard<std::mutex> guard(s_timezone_mutex);
+
+      const string original_timezone = []() -> string {
+        const char* value = const_cast<const char*>(getenv("TZ"));
+        if (value) {
+          return string{value};
+        }
+
+        return "";
+      }();
+
+      if (!m_timezone.empty() && !m_toggled) {
+        setenv("TZ", m_timezone.c_str(), true);
+        tzset();
+      } else if (!m_timeformat_alt.empty() && m_toggled) {
+        setenv("TZ", m_timeformat_alt.c_str(), true);
+        tzset();
+      }
+
+      std::tie(date_string, time_string) = get_date(time);
+
+      if ((!m_timezone.empty() && !m_toggled) || (!m_timeformat_alt.empty() && m_toggled)) {
+        if (original_timezone.empty()) {
+          unsetenv("TZ");
+        } else {
+          setenv("TZ", original_timezone.c_str(), true);
+        }
+        tzset();
+      }
+
+    } else {
+      std::tie(date_string, time_string) = get_date(time);
+    }
 
     if (m_date == date_string && m_time == time_string) {
       return false;
     }
 
-    m_date = date_string;
-    m_time = time_string;
+    m_date = move(date_string);
+    m_time = move(time_string);
 
     if (m_label) {
       m_label->reset_tokens();
@@ -93,6 +146,6 @@ namespace modules {
     wakeup();
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
