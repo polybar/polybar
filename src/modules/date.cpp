@@ -1,15 +1,16 @@
 #include "modules/date.hpp"
-#include "drawtypes/label.hpp"
 
+#include <ctime>
+#include <iomanip>
+
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<date_module>;
-
-  std::atomic_bool date_module::s_timezone_activated{false};
-  mutex date_module::s_timezone_mutex;
 
   date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
     if (!m_bar.locale.empty()) {
@@ -21,11 +22,7 @@ namespace modules {
     m_timeformat = m_conf.get(name(), "time", ""s);
     m_timeformat_alt = m_conf.get(name(), "time-alt", ""s);
     m_timezone = m_conf.get(name(), "timezone", ""s);
-    m_timezone_alt = m_conf.get(name(), "timezone-alt", ""s);
-
-    if (!m_timezone.empty() || !m_timezone_alt.empty()) {
-      date_module::s_timezone_activated = true;
-    }
+    m_timezone_alt = m_conf.get(name(), "timezone-alt", m_timezone);
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
@@ -71,38 +68,17 @@ namespace modules {
       return std::make_tuple(move(date_str), move(time_str));
     };
 
-    if (s_timezone_activated) {
-      std::lock_guard<std::mutex> guard(s_timezone_mutex);
+    string& timezone = m_toggled ? m_timezone_alt : m_timezone;
 
-      const string original_timezone = []() -> string {
-        const char* value = const_cast<const char*>(getenv("TZ"));
-        if (value) {
-          return string{value};
-        }
-
-        return "";
-      }();
-
-      if (!m_timezone.empty() && !m_toggled) {
-        setenv("TZ", m_timezone.c_str(), true);
-        tzset();
-      } else if (!m_timeformat_alt.empty() && m_toggled) {
-        setenv("TZ", m_timeformat_alt.c_str(), true);
+    auto cleanup = [](bool empty_value) {
+      if (!empty_value) {
         tzset();
       }
+    };
 
-      std::tie(date_string, time_string) = get_date(time);
-
-      if ((!m_timezone.empty() && !m_toggled) || (!m_timeformat_alt.empty() && m_toggled)) {
-        if (original_timezone.empty()) {
-          unsetenv("TZ");
-        } else {
-          setenv("TZ", original_timezone.c_str(), true);
-        }
-        tzset();
-      }
-
-    } else {
+    {
+      env_util::env_guard<decltype(cleanup)> guard("TZ", timezone, cleanup);
+      tzset();
       std::tie(date_string, time_string) = get_date(time);
     }
 

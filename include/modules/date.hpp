@@ -4,9 +4,7 @@
 #include "modules/meta/timer_module.hpp"
 
 #include <atomic>
-#include <ctime>
-#include <iomanip>
-#include <iostream>
+#include <sstream>
 
 POLYBAR_NS
 
@@ -39,9 +37,6 @@ namespace modules {
 
     string m_date;
     string m_time;
-
-    static std::atomic_bool s_timezone_activated;
-    static mutex s_timezone_mutex;
 
     // Single stringstream to be used to gather the results of std::put_time
     std::stringstream datetime_stream;

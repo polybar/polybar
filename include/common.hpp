@@ -44,4 +44,6 @@ constexpr size_t operator"" _z(unsigned long long n) {
   return n;
 }
 
+[[deprecated("Use env_util::env_guard (thread safe version)")]] int setenv(const char*, const char*, int);
+
 POLYBAR_NS_END
