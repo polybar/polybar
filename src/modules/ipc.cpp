@@ -96,7 +96,7 @@ namespace modules {
 
     for (auto&& action : m_actions) {
       if (!action.second.empty()) {
-        m_builder->cmd(action.first, action.second);
+        m_builder->cmd(action.first, replace_active_hook_token(action.second));
       }
     }
 
@@ -192,6 +192,18 @@ namespace modules {
   void ipc_module::wakeup() {
     m_should_wake_up = true;
     module<ipc_module>::wakeup();
+  }
+
+  string ipc_module::replace_active_hook_token(string hook_command) {
+    const char active_hook_token[] = "%active-hook%";
+    string::size_type p = hook_command.find(active_hook_token);
+
+    if (p != string::npos) {
+      hook_command.replace(p, string_util::strlen(active_hook_token), to_string(m_current));
+      return hook_command;
+    }
+
+    return hook_command;
   }
 }  // namespace modules
 

@@ -43,6 +43,8 @@ namespace modules {
    private:
     friend class module<ipc_module>;
 
+    string replace_active_hook_token(string hook_cmd);
+
     static constexpr const char* TAG_OUTPUT{"<output>"};
     vector<unique_ptr<hook>> m_hooks;
     map<mousebtn, string> m_actions;

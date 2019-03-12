@@ -99,6 +99,11 @@ namespace string_util {
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);
+
+  template <typename CharType, size_t Size>
+  constexpr size_t strlen(CharType(&)[Size]) {
+    return Size - 1;
+  }
 }  // namespace string_util
 
 POLYBAR_NS_END
