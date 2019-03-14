@@ -71,7 +71,7 @@ set(SETTING_PATH_ADAPTER "/sys/class/power_supply/%adapter%"
   CACHE STRING "Path to adapter")
 set(SETTING_PATH_BACKLIGHT_MAX "/sys/class/backlight/%card%/max_brightness"
   CACHE STRING "Path to file containing the maximum backlight value")
-set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/brightness"
+set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/actual_brightness"
   CACHE STRING "Path to file containing the current backlight value")
 set(SETTING_PATH_BATTERY "/sys/class/power_supply/%battery%"
   CACHE STRING "Path to battery")
