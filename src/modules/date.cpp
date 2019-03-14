@@ -31,6 +31,7 @@ namespace modules {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_DATE});
+    m_formatter->add(FORMAT_ALT, TAG_LABEL_ALT, {TAG_LABEL_ALT});
 
     if (m_formatter->has(TAG_DATE)) {
       m_log.warn("%s: The format tag `<date>` is deprecated, use `<label>` instead.", name());
@@ -39,8 +40,12 @@ namespace modules {
           string_util::replace_all(m_formatter->get(DEFAULT_FORMAT)->value, TAG_DATE, TAG_LABEL);
     }
 
-    if (m_formatter->has(TAG_LABEL)) {
+    if (m_formatter->has(TAG_LABEL, DEFAULT_FORMAT)) {
       m_label = load_optional_label(m_conf, name(), "label", "%date%");
+    }
+
+    if (m_formatter->has(TAG_LABEL_ALT, FORMAT_ALT)) {
+      m_label_alt = load_optional_label(m_conf, name(), "label-alt", "%date-alt%");
     }
   }
 
@@ -89,10 +94,14 @@ namespace modules {
     m_date = move(date_string);
     m_time = move(time_string);
 
-    if (m_label) {
+    if (!m_toggled && m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%date%", m_date);
       m_label->replace_token("%time%", m_time);
+    } else if (m_toggled && m_label_alt) {
+      m_label_alt->reset_tokens();
+      m_label_alt->replace_token("%date-alt%", m_date);
+      m_label_alt->replace_token("%time-alt%", m_time);
     }
 
     return true;
@@ -107,11 +116,27 @@ namespace modules {
       } else {
         builder->node(m_label);
       }
+    } else if (tag == TAG_LABEL_ALT) {
+      if (!m_dateformat.empty() || !m_timeformat.empty()) {
+        builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
+        builder->node(m_label_alt);
+        builder->cmd_close();
+      } else {
+        builder->node(m_label_alt);
+      }
     } else {
       return false;
     }
 
     return true;
+  }
+
+  string date_module::get_format() const {
+    if (m_toggled) {
+      return FORMAT_ALT;
+    } else {
+      return DEFAULT_FORMAT;
+    }
   }
 
   bool date_module::input(string&& cmd) {
