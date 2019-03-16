@@ -47,7 +47,7 @@ namespace modules {
    public:
     explicit battery_module(const bar_settings&, string);
 
-    void start();
+    void start() override;
     void teardown();
     void idle();
     bool on_event(inotify_event* event);

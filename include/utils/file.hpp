@@ -58,7 +58,7 @@ class fd_streambuf : public std::streambuf {
     setg(m_in, m_in, m_in);
     setp(m_out, m_out + bufsize - 1);
   }
-  ~fd_streambuf();
+  ~fd_streambuf() override;
 
   explicit operator int();
   operator int() const;
@@ -67,9 +67,9 @@ class fd_streambuf : public std::streambuf {
   void close();
 
  protected:
-  int sync();
-  int overflow(int c);
-  int underflow();
+  int sync() override;
+  int overflow(int c) override;
+  int underflow() override;
 
  private:
   file_descriptor m_fd;

@@ -21,7 +21,7 @@ class signal_emitter {
   static make_type make();
 
   explicit signal_emitter() = default;
-  virtual ~signal_emitter() {}
+  virtual ~signal_emitter() = default;
 
   template <typename Signal>
   bool emit(const Signal& sig) {

@@ -43,7 +43,7 @@ class renderer
 
   explicit renderer(
       connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar, background_manager& background_manager);
-  ~renderer();
+  ~renderer() override;
 
   xcb_window_t window() const;
   const vector<action_block> actions() const;
@@ -70,21 +70,21 @@ class renderer
   void flush(alignment a);
   void highlight_clickable_areas();
 
-  bool on(const signals::ui::request_snapshot& evt);
-  bool on(const signals::parser::change_background& evt);
-  bool on(const signals::parser::change_foreground& evt);
-  bool on(const signals::parser::change_underline& evt);
-  bool on(const signals::parser::change_overline& evt);
-  bool on(const signals::parser::change_font& evt);
-  bool on(const signals::parser::change_alignment& evt);
-  bool on(const signals::parser::reverse_colors&);
-  bool on(const signals::parser::offset_pixel& evt);
-  bool on(const signals::parser::attribute_set& evt);
-  bool on(const signals::parser::attribute_unset& evt);
-  bool on(const signals::parser::attribute_toggle& evt);
-  bool on(const signals::parser::action_begin& evt);
-  bool on(const signals::parser::action_end& evt);
-  bool on(const signals::parser::text& evt);
+  bool on(const signals::ui::request_snapshot& evt) override;
+  bool on(const signals::parser::change_background& evt) override;
+  bool on(const signals::parser::change_foreground& evt) override;
+  bool on(const signals::parser::change_underline& evt) override;
+  bool on(const signals::parser::change_overline& evt) override;
+  bool on(const signals::parser::change_font& evt) override;
+  bool on(const signals::parser::change_alignment& evt) override;
+  bool on(const signals::parser::reverse_colors&) override;
+  bool on(const signals::parser::offset_pixel& evt) override;
+  bool on(const signals::parser::attribute_set& evt) override;
+  bool on(const signals::parser::attribute_unset& evt) override;
+  bool on(const signals::parser::attribute_toggle& evt) override;
+  bool on(const signals::parser::action_begin& evt) override;
+  bool on(const signals::parser::action_end& evt) override;
+  bool on(const signals::parser::text& evt) override;
 
  protected:
   struct reserve_area {

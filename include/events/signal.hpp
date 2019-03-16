@@ -20,7 +20,7 @@ namespace signals {
     class signal {
      public:
       explicit signal() = default;
-      virtual ~signal() {}
+      virtual ~signal() = default;
       virtual size_t size() const = 0;
     };
 
@@ -30,9 +30,9 @@ namespace signals {
       using base_type = base_signal<Derived>;
 
       explicit base_signal() = default;
-      virtual ~base_signal() {}
+      ~base_signal() override = default;
 
-      virtual size_t size() const override {
+      size_t size() const override {
         return sizeof(Derived);
       };
     };
@@ -45,7 +45,7 @@ namespace signals {
       explicit value_signal(void* data) : m_ptr(data) {}
       explicit value_signal(ValueType&& data) : m_ptr(&data) {}
 
-      virtual ~value_signal() {}
+      ~value_signal() override = default;
 
       inline ValueType cast() const {
         return *static_cast<ValueType*>(m_ptr);

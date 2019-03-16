@@ -12,8 +12,8 @@
 struct pa_context;
 struct pa_threaded_mainloop;
 struct pa_cvolume;
-typedef struct pa_context pa_context;
-typedef struct pa_threaded_mainloop pa_threaded_mainloop;
+using pa_context = struct pa_context;
+using pa_threaded_mainloop = struct pa_threaded_mainloop;
 
 POLYBAR_NS
 class logger;

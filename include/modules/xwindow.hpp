@@ -41,7 +41,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    void handle(const evt::property_notify& evt);
+    void handle(const evt::property_notify& evt) override;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

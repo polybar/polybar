@@ -13,7 +13,7 @@ class signal_receiver_interface {
  public:
   using prio = int;
   using prio_map = std::multimap<prio, signal_receiver_interface*>;
-  virtual ~signal_receiver_interface() {}
+  virtual ~signal_receiver_interface() = default;
   virtual prio priority() const = 0;
   template <typename Signal>
   bool on(const Signal& signal);
@@ -22,7 +22,7 @@ class signal_receiver_interface {
 template <typename Signal>
 class signal_receiver_impl {
  public:
-  virtual ~signal_receiver_impl() {}
+  virtual ~signal_receiver_impl() = default;
   virtual bool on(const Signal&) = 0;
 };
 
@@ -42,7 +42,7 @@ class signal_receiver : public signal_receiver_interface,
                         public signal_receiver_impl<Signal>,
                         public signal_receiver_impl<Signals>... {
  public:
-  prio priority() const {
+  prio priority() const override {
     return Priority;
   }
 };

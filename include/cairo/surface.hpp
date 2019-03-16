@@ -64,7 +64,7 @@ namespace cairo {
     explicit xcb_surface(xcb_connection_t* c, xcb_pixmap_t p, xcb_visualtype_t* v, int w, int h)
         : surface(cairo_xcb_surface_create(c, p, v, w, h)) {}
 
-    ~xcb_surface() override {}
+    ~xcb_surface() override = default;
 
     void set_drawable(xcb_drawable_t d, int w, int h) {
       cairo_surface_flush(m_s);

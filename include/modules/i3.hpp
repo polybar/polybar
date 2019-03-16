@@ -1,6 +1,7 @@
 #pragma once
 
 #include <i3ipc++/ipc.hpp>
+#include <utility>
 
 #include "components/config.hpp"
 #include "modules/meta/event_module.hpp"
@@ -35,7 +36,7 @@ namespace modules {
 
     struct workspace {
       explicit workspace(string name, enum state state_, label_t&& label)
-          : name(name), state(state_), label(forward<label_t>(label)) {}
+          : name(std::move(name)), state(state_), label(forward<label_t>(label)) {}
 
       operator bool();
 
@@ -47,13 +48,13 @@ namespace modules {
    public:
     explicit i3_module(const bar_settings&, string);
 
-    void stop();
+    void stop() override;
     bool has_event();
     bool update();
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    bool input(string&& cmd);
+    bool input(string&& cmd) override;
 
    private:
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};

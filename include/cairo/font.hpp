@@ -25,7 +25,7 @@ namespace cairo {
   class font {
    public:
     explicit font(cairo_t* cairo, double offset) : m_cairo(cairo), m_offset(offset) {}
-    virtual ~font(){};
+    virtual ~font() = default;
 
     virtual string name() const = 0;
     virtual string file() const = 0;

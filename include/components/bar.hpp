@@ -62,7 +62,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, unique_ptr<screen>&&,
       unique_ptr<tray_manager>&&, unique_ptr<parser>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
-  ~bar();
+  ~bar() override;
 
   const bar_settings settings() const;
 
@@ -79,23 +79,23 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
-  void handle(const evt::client_message& evt);
-  void handle(const evt::destroy_notify& evt);
-  void handle(const evt::enter_notify& evt);
-  void handle(const evt::leave_notify& evt);
-  void handle(const evt::motion_notify& evt);
-  void handle(const evt::button_press& evt);
-  void handle(const evt::expose& evt);
-  void handle(const evt::property_notify& evt);
-  void handle(const evt::configure_notify& evt);
+  void handle(const evt::client_message& evt) override;
+  void handle(const evt::destroy_notify& evt) override;
+  void handle(const evt::enter_notify& evt) override;
+  void handle(const evt::leave_notify& evt) override;
+  void handle(const evt::motion_notify& evt) override;
+  void handle(const evt::button_press& evt) override;
+  void handle(const evt::expose& evt) override;
+  void handle(const evt::property_notify& evt) override;
+  void handle(const evt::configure_notify& evt) override;
 
-  bool on(const signals::eventqueue::start&);
-  bool on(const signals::ui::unshade_window&);
-  bool on(const signals::ui::shade_window&);
-  bool on(const signals::ui::tick&);
-  bool on(const signals::ui::dim_window&);
+  bool on(const signals::eventqueue::start&) override;
+  bool on(const signals::ui::unshade_window&) override;
+  bool on(const signals::ui::shade_window&) override;
+  bool on(const signals::ui::tick&) override;
+  bool on(const signals::ui::dim_window&) override;
 #if WITH_XCURSOR
-  bool on(const signals::ui::cursor_change&);
+  bool on(const signals::ui::cursor_change&) override;
 #endif
 
  private:

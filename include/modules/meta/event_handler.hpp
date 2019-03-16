@@ -10,7 +10,7 @@ class connection;
 
 namespace modules {
   struct event_handler_interface {
-    virtual ~event_handler_interface() {}
+    virtual ~event_handler_interface() = default;
     virtual void connect(connection&) {}
     virtual void disconnect(connection&) {}
   };
@@ -18,13 +18,13 @@ namespace modules {
   template <typename Event, typename... Events>
   class event_handler : public event_handler_interface, public xpp::event::sink<Event, Events...> {
    public:
-    virtual ~event_handler() {}
+    ~event_handler() override = default;
 
-    virtual void connect(connection& conn) override {
+    void connect(connection& conn) override {
       conn.attach_sink(this, SINK_PRIORITY_MODULE);
     }
 
-    virtual void disconnect(connection& conn) override {
+    void disconnect(connection& conn) override {
       conn.detach_sink(this, SINK_PRIORITY_MODULE);
     }
   };

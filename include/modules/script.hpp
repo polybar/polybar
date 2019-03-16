@@ -10,10 +10,10 @@ namespace modules {
   class script_module : public module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);
-    ~script_module() {}
+    ~script_module() override = default;
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
     string get_output();
     bool build(builder* builder, const string& tag) const;

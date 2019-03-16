@@ -344,7 +344,7 @@ class config {
       m_log.info("File reference \"%s\" found", var);
       return convert<T>(string_util::trim(file_util::contents(var), '\n'));
     } else if (!fallback.empty()) {
-      m_log.warn("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
+      m_log.warn(R"(File reference "%s" not found, using defined fallback value "%s")", var, fallback);
       return convert<T>(move(fallback));
     } else {
       throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");

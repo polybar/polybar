@@ -31,7 +31,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    bool input(string&& cmd);
+    bool input(string&& cmd) override;
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";

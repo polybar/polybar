@@ -18,7 +18,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    bool input(string&& cmd);
+    bool input(string&& cmd) override;
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

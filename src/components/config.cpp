@@ -1,5 +1,6 @@
 #include <climits>
 #include <fstream>
+#include <memory>
 
 #include "cairo/utils.hpp"
 #include "components/config.hpp"
@@ -166,7 +167,7 @@ void config::parse_file() {
     // Initialize the xresource manage if there are any xrdb refs
     // present in the configuration
     if (!m_xrm && value.find("${xrdb") != string::npos) {
-      m_xrm.reset(new xresource_manager{connection::make()});
+      m_xrm = std::make_unique<xresource_manager>(connection::make());
     }
 #endif
 
@@ -188,7 +189,7 @@ void config::copy_inherited() {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
-          throw value_error("Invalid section \"\" defined for \"" + section.first + ".inherit\"");
+          throw value_error(R"(Invalid section "" defined for ")" + section.first + ".inherit\"");
         }
 
         // Find and validate base section
@@ -197,7 +198,7 @@ void config::copy_inherited() {
           throw value_error("Invalid section \"" + inherit + "\" defined for \"" + section.first + ".inherit\"");
         }
 
-        m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
+        m_log.trace(R"(config: Copying missing params (sub="%s", base="%s"))", section.first, inherit);
 
         // Iterate the base and copy the parameters
         // that hasn't been defined for the sub-section

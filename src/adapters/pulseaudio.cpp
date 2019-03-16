@@ -227,7 +227,7 @@ void pulseaudio::update_volume(pa_operation *o) {
  * Callback when getting volume
  */
 void pulseaudio::get_sink_volume_callback(pa_context *, const pa_sink_info *info, int, void *userdata) {
-  pulseaudio* This = static_cast<pulseaudio *>(userdata);
+  auto* This = static_cast<pulseaudio *>(userdata);
   if (info) {
     This->cv = info->volume;
     This->muted = info->mute;
@@ -239,7 +239,7 @@ void pulseaudio::get_sink_volume_callback(pa_context *, const pa_sink_info *info
  * Callback when subscribing to changes
  */
 void pulseaudio::subscribe_callback(pa_context *, pa_subscription_event_type_t t, uint32_t idx, void* userdata) {
-  pulseaudio *This = static_cast<pulseaudio *>(userdata);
+  auto *This = static_cast<pulseaudio *>(userdata);
   switch(t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
     case PA_SUBSCRIPTION_EVENT_SERVER:
       switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
@@ -271,7 +271,7 @@ void pulseaudio::subscribe_callback(pa_context *, pa_subscription_event_type_t t
  * Simple callback to check for success
  */
 void pulseaudio::simple_callback(pa_context *, int success, void *userdata) {
-  pulseaudio *This = static_cast<pulseaudio *>(userdata);
+  auto *This = static_cast<pulseaudio *>(userdata);
   This->success = success;
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
@@ -281,7 +281,7 @@ void pulseaudio::simple_callback(pa_context *, int success, void *userdata) {
  * Callback when getting sink info & existence
  */
 void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int eol, void *userdata) {
-  pulseaudio *This = static_cast<pulseaudio *>(userdata);
+  auto *This = static_cast<pulseaudio *>(userdata);
   if (!eol && info) {
     This->m_index = info->index;
     This->s_name = info->name;
@@ -293,7 +293,7 @@ void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int 
  * Callback when context state changes
  */
 void pulseaudio::context_state_callback(pa_context *context, void *userdata) {
-  pulseaudio* This = static_cast<pulseaudio *>(userdata);
+  auto* This = static_cast<pulseaudio *>(userdata);
   switch (pa_context_get_state(context)) {
     case PA_CONTEXT_READY:
     case PA_CONTEXT_TERMINATED:

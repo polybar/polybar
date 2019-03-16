@@ -36,8 +36,8 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    void handle(const evt::randr_notify& evt);
-    bool input(string&& cmd);
+    void handle(const evt::randr_notify& evt) override;
+    bool input(string&& cmd) override;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

@@ -22,7 +22,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   static make_type make();
 
   explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
-  ~screen();
+  ~screen() override;
 
   struct size size() const {
     return m_size;
@@ -33,7 +33,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   }
 
  protected:
-  void handle(const evt::randr_screen_change_notify& evt);
+  void handle(const evt::randr_screen_change_notify& evt) override;
 
  private:
   connection& m_connection;

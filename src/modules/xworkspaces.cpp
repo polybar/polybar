@@ -170,11 +170,11 @@ namespace modules {
       step = 1;
     }
     unsigned int offset = 0;
-    for (unsigned int i = 0; i < bounds.size(); i++) {
-      if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
+    for (auto bound : bounds) {
+      if (!m_pinworkspaces || m_bar.monitor->match(bound)) {
         auto viewport = make_unique<struct viewport>();
         viewport->state = viewport_state::UNFOCUSED;
-        viewport->pos = bounds[i];
+        viewport->pos = bound;
 
         for (auto&& m : m_monitors) {
           if (m->match(viewport->pos)) {

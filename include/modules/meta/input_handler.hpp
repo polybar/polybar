@@ -7,7 +7,7 @@ POLYBAR_NS
 namespace modules {
   class input_handler {
    public:
-    virtual ~input_handler() {}
+    virtual ~input_handler() = default;
     virtual bool input(string&& cmd) = 0;
   };
 }

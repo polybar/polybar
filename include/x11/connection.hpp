@@ -42,9 +42,9 @@ namespace detail {
       m_root_window = screen_of_display(default_screen())->root;
     }
 
-    virtual ~connection_base() {}
+    ~connection_base() override = default;
 
-    void operator()(const shared_ptr<xcb_generic_error_t>& error) const {
+    void operator()(const shared_ptr<xcb_generic_error_t>& error) const override {
       check<xpp::x::extension, Extensions...>(error);
     }
 
@@ -59,7 +59,7 @@ namespace detail {
       return make()(*this, m_root_window);
     }
 
-    shared_ptr<xcb_generic_event_t> wait_for_event() const {
+    shared_ptr<xcb_generic_event_t> wait_for_event() const override {
       try {
         return core::wait_for_event();
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
@@ -68,7 +68,7 @@ namespace detail {
       throw;  // re-throw exception
     }
 
-    shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const {
+    shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const override {
       try {
         return core::wait_for_special_event(se);
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
@@ -103,7 +103,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   static make_type make(xcb_connection_t* conn = nullptr, int default_screen = 0);
 
   explicit connection(xcb_connection_t* c, int default_screen);
-  ~connection();
+  ~connection() override;
 
   const connection& operator=(const connection& o) {
     return o;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "components/config.hpp"
 #include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
@@ -25,7 +27,7 @@ namespace modules {
     int percentage_free{0};
     int percentage_used{0};
 
-    explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
+    explicit fs_mount(string  mountpoint, bool mounted = false) : mountpoint(std::move(mountpoint)), mounted(mounted) {}
   };
 
   using fs_mount_t = unique_ptr<fs_mount>;

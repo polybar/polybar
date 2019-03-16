@@ -74,7 +74,7 @@ namespace net {
   class network {
    public:
     explicit network(string interface);
-    virtual ~network() {}
+    virtual ~network() = default;
 
     virtual bool query(bool accumulate = false);
     virtual bool connected() const = 0;

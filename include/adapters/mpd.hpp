@@ -1,9 +1,9 @@
 #pragma once
 
 #include <mpd/client.h>
-#include <stdlib.h>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 
 #include "common.hpp"
 #include "errors.hpp"

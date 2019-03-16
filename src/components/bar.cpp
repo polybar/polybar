@@ -116,7 +116,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   if (!m_opts.monitor) {
     if (fallback) {
       m_opts.monitor = move(fallback);
-      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, m_opts.monitor->name);
+      m_log.warn(R"(Monitor "%s" not found, reverting to fallback "%s")", monitor_name, m_opts.monitor->name);
     } else {
       throw application_error("Monitor \"" + monitor_name + "\" not found or disconnected");
     }

@@ -10,12 +10,12 @@ POLYBAR_NS
 template <class T>
 class non_copyable_mixin {
  protected:
-  non_copyable_mixin() {}
-  ~non_copyable_mixin() {}
+  non_copyable_mixin() = default;
+  ~non_copyable_mixin() = default;
 
  private:
-  non_copyable_mixin(const non_copyable_mixin&);
-  non_copyable_mixin& operator=(const non_copyable_mixin&);
+  non_copyable_mixin(const non_copyable_mixin&) = delete;
+  non_copyable_mixin& operator=(const non_copyable_mixin&) = delete;
 };
 
 /**
@@ -24,12 +24,12 @@ class non_copyable_mixin {
 template <class T>
 class non_movable_mixin {
  protected:
-  non_movable_mixin() {}
-  ~non_movable_mixin() {}
+  non_movable_mixin() = default;
+  ~non_movable_mixin() = default;
 
  private:
-  non_movable_mixin(non_movable_mixin&&);
-  non_movable_mixin& operator=(non_movable_mixin&&);
+  non_movable_mixin(non_movable_mixin&&) = delete;
+  non_movable_mixin& operator=(non_movable_mixin&&) = delete;
 };
 
 POLYBAR_NS_END

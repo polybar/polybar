@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 
 #include "common.hpp"
 #include "components/config.hpp"
@@ -51,20 +52,20 @@ namespace drawtypes {
     size_t m_maxlen{0_z};
     bool m_ellipsis{true};
 
-    explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
+    explicit label(string text, int font) : m_font(font), m_text(std::move(text)), m_tokenized(m_text) {}
     explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
         string overline = ""s, int font = 0, struct side_values padding = {0U,0U}, struct side_values margin = {0U,0U},
         size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
-        : m_foreground(foreground)
-        , m_background(background)
-        , m_underline(underline)
-        , m_overline(overline)
+        : m_foreground(std::move(foreground))
+        , m_background(std::move(background))
+        , m_underline(std::move(underline))
+        , m_overline(std::move(overline))
         , m_font(font)
         , m_padding(padding)
         , m_margin(margin)
         , m_maxlen(maxlen)
         , m_ellipsis(ellipsis)
-        , m_text(text)
+        , m_text(std::move(text))
         , m_tokenized(m_text)
         , m_tokens(forward<vector<token>>(tokens)) {
           assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));

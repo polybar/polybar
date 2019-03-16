@@ -42,14 +42,14 @@ namespace modules {
    public:
     explicit bspwm_module(const bar_settings&, string);
 
-    void stop();
+    void stop() override;
     bool has_event();
     bool update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    bool input(string&& cmd);
+    bool input(string&& cmd) override;
 
    private:
     bool handle_status(string& data);
