@@ -96,8 +96,10 @@ void config::parse_file() {
     if ((pos = line.find('=')) != string::npos) {
       key = forward<string>(string_util::trim(forward<string>(line.substr(0, pos))));
       value = forward<string>(string_util::trim(line.substr(pos + 1)));
-    } else if (line[0] != '[' || line[line.length() - 1] != ']') {
-      return;
+    } else {
+      if (line[0] != '[' || line.find_last_of(']') == string::npos) {
+        return;
+      }
     }
 
     if (key == "include-file") {
@@ -132,8 +134,9 @@ void config::parse_file() {
     auto& line = l.second;
 
     // New section
-    if (line[0] == '[' && line[line.length() - 1] == ']') {
-      section = line.substr(1, line.length() - 2);
+    string::size_type end_bracket;
+    if (line[0] == '[' && (end_bracket = line.find_last_of(']')) != string::npos) {
+      section = line.substr(1, end_bracket - 1);
       continue;
     } else if (section.empty()) {
       continue;
