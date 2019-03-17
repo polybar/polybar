@@ -62,8 +62,8 @@ vector<pair<pair<string, string>, string>> parse_line_key_list = {
   {{"key", "\""}, " key\t = \"\"\""},
 };
 
-INSTANTIATE_TEST_CASE_P(Inst, ParseLineInValidTest,
-    ::testing::ValuesIn(parse_line_invalid_list),);
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest,
+    ::testing::ValuesIn(parse_line_invalid_list));
 
 TEST_P(ParseLineInValidTest, correctness) {
   line_t line = parser->parse_line(GetParam());
@@ -71,8 +71,8 @@ TEST_P(ParseLineInValidTest, correctness) {
   EXPECT_FALSE(line.useful);
 }
 
-INSTANTIATE_TEST_CASE_P(Inst, ParseLineHeaderTest,
-    ::testing::ValuesIn(parse_line_header_list),);
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineHeaderTest,
+    ::testing::ValuesIn(parse_line_header_list));
 
 TEST_P(ParseLineHeaderTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
@@ -83,8 +83,8 @@ TEST_P(ParseLineHeaderTest, correctness) {
   EXPECT_EQ(GetParam().first, line.header);
 }
 
-INSTANTIATE_TEST_CASE_P(Inst, ParseLineKeyTest,
-    ::testing::ValuesIn(parse_line_key_list),);
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineKeyTest,
+    ::testing::ValuesIn(parse_line_key_list));
 
 TEST_P(ParseLineKeyTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
@@ -140,11 +140,11 @@ auto line_type_unknown = line_type_transform({"|a", " |a", "a"}, line_type::UNKN
 /**
  * Instantiate GetLineTypeTest for the different line types
  */
-INSTANTIATE_TEST_CASE_P(LineTypeKey, GetLineTypeTest, ::testing::ValuesIn(line_type_key),);
-INSTANTIATE_TEST_CASE_P(LineTypeHeader, GetLineTypeTest, ::testing::ValuesIn(line_type_header),);
-INSTANTIATE_TEST_CASE_P(LineTypeComment, GetLineTypeTest, ::testing::ValuesIn(line_type_comment),);
-INSTANTIATE_TEST_CASE_P(LineTypeEmpty, GetLineTypeTest, ::testing::ValuesIn(line_type_empty),);
-INSTANTIATE_TEST_CASE_P(LineTypeUnknown, GetLineTypeTest, ::testing::ValuesIn(line_type_unknown),);
+INSTANTIATE_TEST_SUITE_P(LineTypeKey, GetLineTypeTest, ::testing::ValuesIn(line_type_key));
+INSTANTIATE_TEST_SUITE_P(LineTypeHeader, GetLineTypeTest, ::testing::ValuesIn(line_type_header));
+INSTANTIATE_TEST_SUITE_P(LineTypeComment, GetLineTypeTest, ::testing::ValuesIn(line_type_comment));
+INSTANTIATE_TEST_SUITE_P(LineTypeEmpty, GetLineTypeTest, ::testing::ValuesIn(line_type_empty));
+INSTANTIATE_TEST_SUITE_P(LineTypeUnknown, GetLineTypeTest, ::testing::ValuesIn(line_type_unknown));
 
 /**
  * \brief Parameterized test for get_line_type
@@ -181,8 +181,8 @@ vector<pair<pair<string, string>, string>> parse_key_list = {
   {{"key", "\"\""}, "key =\"\"\"\""},
 };
 
-INSTANTIATE_TEST_CASE_P(Inst, ParseKeyTest,
-    ::testing::ValuesIn(parse_key_list),);
+INSTANTIATE_TEST_SUITE_P(Inst, ParseKeyTest,
+    ::testing::ValuesIn(parse_key_list));
 
 /**
  * Parameterized test for parse_key with valid line
@@ -219,8 +219,8 @@ vector<pair<string, string>> parse_header_list = {
   {"with_underscore", "[with_underscore]"},
 };
 
-INSTANTIATE_TEST_CASE_P(Inst, ParseHeaderTest,
-    ::testing::ValuesIn(parse_header_list),);
+INSTANTIATE_TEST_SUITE_P(Inst, ParseHeaderTest,
+    ::testing::ValuesIn(parse_header_list));
 
 /**
  * Parameterized test for parse_header with valid line
