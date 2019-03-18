@@ -48,17 +48,50 @@ namespace drawtypes {
 
     for (auto&& tok : m_tokens) {
       string repl{replacement};
+      size_t string_length;
       if (token == tok.token) {
         if (tok.max != 0_z && string_util::char_len(repl) > tok.max) {
           repl = string_util::utf8_truncate(std::move(repl), tok.max) + tok.suffix;
-        } else if (tok.min != 0_z && repl.length() < tok.min) {
-          repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
+        } else if (tok.min != 0_z && (string_length = string_util::char_len(repl)) < tok.min) {
+          repl.insert(0_z, tok.min - string_length, tok.zpad ? '0' : ' ');
         }
 
         /*
          * Only replace first occurence, so that the proper token objects can be used
          */
-        m_tokenized = string_util::replace(m_tokenized, token, move(repl));
+        m_tokenized = string_util::replace(m_tokenized, token, repl);
+      }
+    }
+  }
+
+  void label::replace_compound_token(const string& token, const std::vector<string>& replacements, const string& join) {
+    if (!has_token(token)) {
+      return;
+    }
+
+    for (auto&& tok : m_tokens) {
+      if (token == tok.token) {
+        string repl;
+        for (auto string : replacements) {
+          size_t string_length;
+          if (tok.max != 0_z && string_util::char_len(string) > tok.max) {
+            repl += string_util::utf8_truncate(std::move(string), tok.max) + tok.suffix;
+          } else if (tok.min != 0_z && (string_length = string_util::char_len(string)) < tok.min) {
+            string.insert(0_z, tok.min - string_length, tok.zpad ? '0' : ' ');
+            repl += string;
+          } else {
+            repl += string;
+          }
+
+          repl += join;
+        }
+
+        repl = string_util::rtrim(move(repl));
+
+        /*
+         * Only replace first occurence, so that the proper token objects can be used
+         */
+        m_tokenized = string_util::replace(m_tokenized, token, repl);
       }
     }
   }
