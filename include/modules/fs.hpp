@@ -1,8 +1,10 @@
 #pragma once
 
+#include <utility>
+
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -25,7 +27,7 @@ namespace modules {
     int percentage_free{0};
     int percentage_used{0};
 
-    explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
+    explicit fs_mount(string mountpoint, bool mounted = false) : mountpoint(std::move(mountpoint)), mounted(mounted) {}
   };
 
   using fs_mount_t = unique_ptr<fs_mount>;
@@ -61,11 +63,11 @@ namespace modules {
     vector<fs_mount_t> m_mounts;
     bool m_fixed{false};
     bool m_remove_unmounted{false};
-    size_with_unit m_spacing{unit_type::SPACE, 2U};
+    space_size m_spacing{space_type::SPACE, 2U};
 
     // used while formatting output
     size_t m_index{0_z};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

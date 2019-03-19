@@ -12,21 +12,32 @@ namespace unit_utils {
     return static_cast<ReturnType>(dpi * point / ValueType(72));
   }
 
-  template <typename ReturnType = int, typename T>
-  ReturnType size_with_unit_to_pixel(details::size_with_unit_impl<T> size, double dpi) {
-    if (size.type == unit_type::PIXEL || size.type == unit_type::SPACE) { // For this function space are interpreted as PIXEL
+  template <typename ReturnType = int>
+  ReturnType space_type_to_pixel(space_size size, double dpi) {
+    assert(size.type != space_type::SPACE);
+
+    if (size.type == space_type::PIXEL) {
       return size.value;
     }
 
     return point_to_pixel<double, ReturnType>(size.value, dpi);
   }
 
-  inline string size_with_unit_to_string(size_with_unit size, double dpi) {
+  template <typename ReturnType = int>
+  ReturnType geometry_type_to_pixel(ssize_with_unit size, double dpi) {
+    if (size.type == size_type::PIXEL) {
+      return size.value;
+    }
+
+    return point_to_pixel<double, ReturnType>(size.value, dpi);
+  }
+
+  inline string size_with_unit_to_string(space_size size, double dpi) {
     if (size.value > 0) {
-      if (size.type == unit_type::SPACE) {
-        return string(size.value, ' ');
+      if (size.type == space_type::SPACE) {
+        return string(static_cast<string::size_type>(size.value), ' ');
       } else {
-        if (size.type == unit_type::POINT) {
+        if (size.type == space_type::POINT) {
           size.value = point_to_pixel(static_cast<double>(size.value), dpi);
         }
 

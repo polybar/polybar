@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -37,7 +37,7 @@ namespace modules {
     ramp_t m_rampload;
     ramp_t m_rampload_core;
     label_t m_label;
-    size_with_unit m_ramp_padding{unit_type::SPACE, 1U};
+    space_size m_ramp_padding{space_type::SPACE, 1U};
 
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;
@@ -45,6 +45,6 @@ namespace modules {
     float m_total = 0;
     vector<float> m_load;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

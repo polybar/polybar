@@ -68,9 +68,9 @@ namespace modules {
     string ol{};
     size_t ulsize{0};
     size_t olsize{0};
-    size_with_unit spacing{unit_type::SPACE, 0U};
-    size_with_unit padding{unit_type::SPACE, 0U};
-    size_with_unit margin{unit_type::SPACE, 0U};
+    space_size spacing{space_type::SPACE, 0U};
+    space_size padding{space_type::SPACE, 0U};
+    space_size margin{space_type::SPACE, 0U};
     int offset{0};
     int font{0};
 

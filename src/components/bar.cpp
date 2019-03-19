@@ -109,7 +109,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.monitor = randr_util::match_monitor(monitors, monitor_name, m_opts.monitor_exact);
   monitor_t fallback{};
 
-  if(!monitor_name_fallback.empty()) {
+  if (!monitor_name_fallback.empty()) {
     fallback = randr_util::match_monitor(monitors, monitor_name_fallback, m_opts.monitor_exact);
   }
 
@@ -184,9 +184,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load configuration values
-  auto parse_size_with_unit = [bs, this](string key, size_with_unit default_value) {
+  auto parse_size_with_unit = [bs, this](string key, space_size default_value) {
     try {
-      return m_conf.get(bs, key, default_value);
+      auto size = m_conf.get(bs, key, default_value);
+      size.type = space_type::PIXEL;
+      return size;
     } catch (const std::exception& err) {
       throw application_error(sstream() << "Failed to set " << bs << "." << key << " (reason: " << err.what() << ")");
     }
@@ -201,11 +203,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
   m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
 
-  auto padding = parse_size_with_unit("padding", size_with_unit{});
+  auto padding = parse_size_with_unit("padding", space_size{});
   m_opts.padding.left = parse_size_with_unit("padding-left", padding);
   m_opts.padding.right = parse_size_with_unit("padding-right", padding);
 
-  auto margin = parse_size_with_unit("module-margin", size_with_unit{});
+  auto margin = parse_size_with_unit("module-margin", space_size{});
   m_opts.module_margin.left = parse_size_with_unit("module-margin-left", margin);
   m_opts.module_margin.right = parse_size_with_unit("module-margin-right", margin);
 
@@ -262,14 +264,14 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = parse_size_with_unit("line-size", size_with_unit{});
+  auto line_size = parse_size_with_unit("line-size", space_size{space_type::PIXEL, 0U});
 
   auto overline_size = parse_size_with_unit("overline-size", line_size);
   auto underline_size = parse_size_with_unit("underline-size", line_size);
 
-  m_opts.overline.size = static_cast<unsigned int>(unit_utils::size_with_unit_to_pixel(overline_size, m_opts.dpi_y));
+  m_opts.overline.size = static_cast<unsigned int>(unit_utils::space_type_to_pixel(overline_size, m_opts.dpi_y));
   m_opts.overline.color = parse_or_throw("overline-color", line_color);
-  m_opts.underline.size = static_cast<unsigned int>(unit_utils::size_with_unit_to_pixel(underline_size, m_opts.dpi_y));
+  m_opts.underline.size = static_cast<unsigned int>(unit_utils::space_type_to_pixel(underline_size, m_opts.dpi_y));
   m_opts.underline.color = parse_or_throw("underline-color", line_color);
 
   // Load border settings
@@ -295,7 +297,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load geometry values
   auto w = m_conf.get(m_conf.section(), "width", geometry_format_values{100.});
-  auto h = m_conf.get(m_conf.section(), "height", geometry_format_values{0., {unit_type::PIXEL, 24}});
+  auto h = m_conf.get(m_conf.section(), "height", geometry_format_values{0., {size_type::PIXEL, 24}});
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", geometry_format_values{});
   auto offsety = m_conf.get(m_conf.section(), "offset-y", geometry_format_values{});
 
@@ -320,10 +322,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
+  // clang-format off
   m_log.info("Bar geometry: %ix%i+%i+%i; Borders: %d,%d,%d,%d", m_opts.size.w,
       m_opts.size.h, m_opts.pos.x, m_opts.pos.y,
       m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size,
       m_opts.borders[edge::BOTTOM].size, m_opts.borders[edge::LEFT].size);
+  // clang-format on
 
   m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);
@@ -652,18 +656,22 @@ void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
   m_motion_pos = evt->event_x;
-  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
+  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
+  // action
   bool found_scroll = false;
   const auto find_click_area = [&](const action& action) {
-    if (!m_opts.cursor_click.empty() && !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN || action.button == mousebtn::NONE)) {
+    if (!m_opts.cursor_click.empty() &&
+        !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
+            action.button == mousebtn::NONE)) {
       if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
         m_opts.cursor = m_opts.cursor_click;
         m_sig.emit(cursor_change{string{m_opts.cursor}});
       }
       return true;
-    } else if (!m_opts.cursor_scroll.empty() && (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
+    } else if (!m_opts.cursor_scroll.empty() &&
+               (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
       if (!found_scroll) {
-          found_scroll = true;
+        found_scroll = true;
       }
     }
     return false;
@@ -672,11 +680,11 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_renderer->actions()) {
     if (action.test(m_motion_pos)) {
       m_log.trace("Found matching input area");
-      if(find_click_area(action))
+      if (find_click_area(action))
         return;
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -686,11 +694,11 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if(find_click_area(action))
+      if (find_click_area(action))
         return;
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -831,7 +839,7 @@ bool bar::on(const signals::eventqueue::start&) {
   if (m_opts.dimvalue != 1.0) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() ) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
@@ -979,7 +987,7 @@ bool bar::on(const signals::ui::dim_window& sig) {
 
 #if WITH_XCURSOR
 bool bar::on(const signals::ui::cursor_change& sig) {
-  if(!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
     m_log.warn("Failed to create cursor context");
   }
   m_connection.flush();
