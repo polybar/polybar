@@ -148,11 +148,11 @@ namespace drawtypes {
     if (required) {
       text = conf.get(section, name);
     } else {
-      text = conf.get(section, name, move(def));
+      text = conf.get(section, name, def);
     }
 
     const auto get_left_right = [&](string&& key) {
-      const auto parse_or_throw = [&](const string& key, size_with_unit default_value) {
+      const auto parse_or_throw = [&](const string& key, space_size default_value) {
         try {
           return conf.get(section, key, default_value);
         } catch (const std::exception& err) {
@@ -161,7 +161,7 @@ namespace drawtypes {
         }
       };
 
-      auto value = parse_or_throw(key, size_with_unit{});
+      auto value = parse_or_throw(key, space_size{});
       auto left = parse_or_throw(key + "-left", value);
       auto right = parse_or_throw(key + "-right", value);
       return side_values{left, right};
@@ -229,12 +229,14 @@ namespace drawtypes {
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
+    // clang-format off
     if(ellipsis && maxlen > 0 && maxlen < 3) {
       throw application_error(sstream()
           << "Label " << section << "." << name
           << " has maxlen " << maxlen
           << ", which is smaller than length of ellipsis (3)");
     }
+    // clang-format on
 
     // clang-format off
     return factory_util::shared<label>(text,
@@ -255,9 +257,9 @@ namespace drawtypes {
    * Create a label by loading optional values from the configuration
    */
   label_t load_optional_label(const config& conf, string section, string name, string def) {
-    return load_label(conf, move(section), move(name), false, move(def));
+    return load_label(conf, section, move(name), false, move(def));
   }
 
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

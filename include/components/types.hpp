@@ -2,6 +2,7 @@
 
 #include <xcb/xcb.h>
 
+#include <cassert>
 #include <string>
 #include <unordered_map>
 
@@ -66,27 +67,36 @@ struct size {
   unsigned int h{1U};
 };
 
-enum class unit_type { SPACE, POINT, PIXEL };
+enum class space_type { SPACE, POINT, PIXEL };
+
+enum class size_type { POINT, PIXEL };
 
 namespace details {
   template <typename T>
   struct size_with_unit_impl {
-    unit_type type{unit_type::SPACE};
+    space_type type{space_type::SPACE};
     T value{0U};
   };
 }  // namespace details
 
-using size_with_unit = details::size_with_unit_impl<unsigned long int>;
-using ssize_with_unit = details::size_with_unit_impl<long int>;
+struct space_size {
+  space_type type{space_type::SPACE};
+  float value{0.f};
+};
+
+struct ssize_with_unit {
+  size_type type{size_type::PIXEL};
+  float value{0.f};
+};
 
 struct side_values {
-  size_with_unit left{unit_type::SPACE, 0U};
-  size_with_unit right{unit_type::SPACE, 0U};
+  space_size left{space_type::SPACE, 0_z};
+  space_size right{space_type::SPACE, 0_z};
 };
 
 struct geometry_format_values {
   double percentage{0.};
-  ssize_with_unit offset{unit_type::PIXEL, 0U};
+  ssize_with_unit offset{size_type::PIXEL, 0};
 };
 
 struct edge_values {
@@ -153,9 +163,9 @@ struct bar_settings {
 
   position pos{0, 0};
   position offset{0, 0};
-  side_values padding{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
-  side_values margin{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
-  side_values module_margin{{unit_type::SPACE, 0U}, {unit_type::SPACE, 0U}};
+  side_values padding{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
+  side_values margin{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
+  side_values module_margin{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
   edge_values strut{0U, 0U, 0U, 0U};
 
   unsigned int background{0xFF000000};
@@ -168,7 +178,7 @@ struct bar_settings {
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
   struct radius radius {};
-  size_with_unit spacing{unit_type::SPACE, 0};
+  space_size spacing{space_type::SPACE, 0_z};
   string separator{};
 
   string wmname{};

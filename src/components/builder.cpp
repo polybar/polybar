@@ -298,8 +298,8 @@ void builder::offset(int pixels) {
 /**
  * Insert spaces
  */
-void builder::space(size_with_unit size) {
-  if (size.value > 0) {
+void builder::space(space_size size) {
+  if (size.value > 0.) {
     m_output += unit_utils::size_with_unit_to_string(size, m_bar.dpi_x);
   } else {
     space();

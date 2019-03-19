@@ -1,4 +1,5 @@
 #include <climits>
+#include <cmath>
 #include <fstream>
 
 #include "cairo/utils.hpp"
@@ -290,22 +291,25 @@ unsigned long long config::convert(string&& value) const {
 }
 
 template <>
-size_with_unit config::convert(string&& value) const {
+space_size config::convert(string&& value) const {
   char* new_end;
-  auto size_value = std::strtol(value.c_str(), &new_end, 10);
+  auto size_value = std::strtof(value.c_str(), &new_end);
 
   if (size_value < 0) {
     throw application_error(sstream() << "Value: " << value << " must be positive ");
   }
 
-  size_with_unit size{unit_type::SPACE, static_cast<long unsigned int>(size_value)};
+  space_size size{space_type::SPACE, size_value};
 
   string unit = string_util::trim(new_end);
   if (!unit.empty()) {
     if (unit == "px") {
-      size.type = unit_type::PIXEL;
+      size.type = space_type::PIXEL;
+      size.value = std::trunc(size.value);
     } else if (unit == "pt") {
-      size.type = unit_type::POINT;
+      size.type = space_type::POINT;
+    } else {
+      size.value = std::trunc(size.value);
     }
   }
 
@@ -315,16 +319,16 @@ size_with_unit config::convert(string&& value) const {
 template <>
 ssize_with_unit config::convert(string&& value) const {
   char* new_end;
-  auto size_value = std::strtol(value.c_str(), &new_end, 10);
+  auto size_value = std::strtof(value.c_str(), &new_end);
 
-  ssize_with_unit size{unit_type::SPACE, size_value};
+  ssize_with_unit size{size_type::PIXEL, size_value};
 
   string unit = string_util::trim(new_end);
   if (!unit.empty()) {
     if (unit == "px") {
-      size.type = unit_type::PIXEL;
+      size.value = static_cast<ssize_t>(std::trunc(size.value));
     } else if (unit == "pt") {
-      size.type = unit_type::POINT;
+      size.type = size_type::POINT;
     }
   }
 
@@ -338,24 +342,17 @@ ssize_with_unit config::convert(string&& value) const {
  */
 template <>
 geometry_format_values config::convert(string&& value) const {
-  auto get_space_value = [this](string&& str) -> ssize_with_unit {
-    auto s_value = convert<ssize_with_unit>(move(str));
-    s_value.type = (s_value.type == unit_type::SPACE) ? unit_type::PIXEL : s_value.type;
-
-    return s_value;
-  };
-
   size_t i = value.find(':');
 
   if (i == std::string::npos) {
     if (value.find('%') != std::string::npos) {
       return {strtod(value.c_str(), nullptr), {}};
     } else {
-      return {0., get_space_value(move(value))};
+      return {0., convert<ssize_with_unit>(move(value))};
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {strtod(percentage.c_str(), nullptr), get_space_value(value.substr(i + 1))};
+    return {strtod(percentage.c_str(), nullptr), convert<ssize_with_unit>(value.substr(i + 1))};
   }
 }
 
