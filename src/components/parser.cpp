@@ -31,15 +31,29 @@ parser::parser(signal_emitter& emitter) : m_sig(emitter) {}
  */
 void parser::parse(const bar_settings& bar, string data) {
   while (!data.empty()) {
-    size_t pos{string::npos};
+    size_t beg_pos{string::npos};
+    size_t end_pos{string::npos};
 
-    if (data.compare(0, 2, "%{") == 0 && (pos = data.find('}')) != string::npos) {
-      codeblock(data.substr(2, pos - 2), bar);
-      data.erase(0, pos + 1);
-    } else if ((pos = data.find("%{")) != string::npos) {
-      data.erase(0, text(data.substr(0, pos)));
+    beg_pos = data.find("%{");
+
+    if ((beg_pos == 0 || beg_pos == 1) && (end_pos = data.find('}')) != string::npos && beg_pos < end_pos) {
+      if (beg_pos == 1 && data[beg_pos - 1] == '%') {
+        data.erase(0, text(data.substr(1, end_pos - beg_pos + 1)) + 1);
+      } else {
+        codeblock(data.substr(beg_pos + 2, end_pos - beg_pos - 2), bar);
+        data.erase(0, end_pos + 1);
+      }
+    } else if (beg_pos != string::npos) {
+      // Erase data until the next tag
+      if (data[beg_pos - 1] == '%') {
+        data.erase(0, text(data.substr(0, beg_pos - 1)));
+      } else {
+        data.erase(0, text(data.substr(0, beg_pos)));
+      }
     } else {
-      data.erase(0, text(data.substr(0)));
+      // No more tag to parse, emit the rest of the text.
+      text(move(data));
+      break;
     }
   }
 

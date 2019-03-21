@@ -327,7 +327,6 @@ void bar::parse(string&& data, bool force) {
     return m_log.trace("bar: Ignoring update (shaded)");
   } else if (data == m_lastinput) {
     return m_log.trace("bar: Ignoring update (unchanged)");
-    return;
   }
 
   m_lastinput = data;
@@ -349,7 +348,7 @@ void bar::parse(string&& data, bool force) {
   m_renderer->begin(rect);
 
   try {
-    m_parser->parse(settings(), data);
+    m_parser->parse(settings(), move(data));
   } catch (const parser_error& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
