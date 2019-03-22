@@ -150,17 +150,17 @@ void tray_manager::setup(const bar_settings& bar_opts) {
 
   if (offset_x != 0 && offset_x_def.find('%') != string::npos) {
     if (m_opts.detached) {
-      offset_x = math_util::percentage_to_value<int>(offset_x, bar_opts.monitor->w);
+      offset_x = math_util::signed_percentage_to_value<int>(offset_x, bar_opts.monitor->w);
     } else {
-      offset_x = math_util::percentage_to_value<int>(offset_x, inner_area.width);
+      offset_x = math_util::signed_percentage_to_value<int>(offset_x, inner_area.width);
     }
   }
 
   if (offset_y != 0 && offset_y_def.find('%') != string::npos) {
     if (m_opts.detached) {
-      offset_y = math_util::percentage_to_value<int>(offset_y, bar_opts.monitor->h);
+      offset_y = math_util::signed_percentage_to_value<int>(offset_y, bar_opts.monitor->h);
     } else {
-      offset_y = math_util::percentage_to_value<int>(offset_y, inner_area.height);
+      offset_y = math_util::signed_percentage_to_value<int>(offset_y, inner_area.height);
     }
   }
 

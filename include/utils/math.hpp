@@ -56,7 +56,18 @@ namespace math_util {
   }
 
   /**
-   * Get value for percentage of `max_value`
+   * Get value for signed percentage of `max_value` (cap between -max_value and max_value)
+   */
+  template <typename ValueType, typename ReturnType = int>
+  ReturnType signed_percentage_to_value(ValueType signed_percentage, ValueType max_value) {
+    if (std::is_integral<ReturnType>())
+      return cap<ReturnType>(signed_percentage * max_value / 100.0f + 0.5f, -max_value, max_value);
+    else
+      return cap<ReturnType>(signed_percentage * max_value / 100.0f, -max_value, max_value);
+  }
+
+  /**
+   * Get value for percentage of `max_value` (cap between 0 and max_value)
    */
   template <typename ValueType, typename ReturnType = int>
   ReturnType percentage_to_value(ValueType percentage, ValueType max_value) {
