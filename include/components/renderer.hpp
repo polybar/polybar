@@ -34,7 +34,7 @@ class renderer
     : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_background,
           signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
           signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
-          signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
+          signals::parser::offset, signals::parser::attribute_set, signals::parser::attribute_unset,
           signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
           signals::parser::text> {
  public:
@@ -79,7 +79,7 @@ class renderer
   bool on(const signals::parser::change_font& evt);
   bool on(const signals::parser::change_alignment& evt);
   bool on(const signals::parser::reverse_colors&);
-  bool on(const signals::parser::offset_pixel& evt);
+  bool on(const signals::parser::offset& evt);
   bool on(const signals::parser::attribute_set& evt);
   bool on(const signals::parser::attribute_unset& evt);
   bool on(const signals::parser::attribute_toggle& evt);

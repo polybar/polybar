@@ -7,6 +7,7 @@
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include "utils/unit.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
@@ -643,8 +644,8 @@ void renderer::draw_offset(double x, double w) {
     m_context->save();
     *m_context << m_comp_bg;
     *m_context << m_bg;
-    *m_context << cairo::rect{m_rect.x + x, static_cast<double>(m_rect.y), w,
-                              static_cast<double>(m_rect.y + m_rect.height)};
+    *m_context << cairo::rect{
+        m_rect.x + x, static_cast<double>(m_rect.y), w, static_cast<double>(m_rect.y + m_rect.height)};
     m_context->fill();
     m_context->restore();
   }
@@ -754,10 +755,14 @@ bool renderer::on(const signals::parser::reverse_colors&) {
   return true;
 }
 
-bool renderer::on(const signals::parser::offset_pixel& evt) {
-  m_log.trace_x("renderer: offset_pixel(%f)", evt.cast());
-  draw_offset(m_blocks[m_align].x, evt.cast());
-  m_blocks[m_align].x += evt.cast();
+bool renderer::on(const signals::parser::offset& evt) {
+  m_log.trace_x("renderer: offset(%f)", evt.cast());
+
+  auto& x_offset = m_blocks[m_align].x;
+  auto offset_width = unit_utils::geometry_to_pixel(unit_utils::geometry_from_string(evt.cast()), m_bar.dpi_x);
+
+  draw_offset(x_offset, offset_width);
+  x_offset += offset_width;
   return true;
 }
 

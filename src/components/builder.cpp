@@ -300,7 +300,17 @@ void builder::offset(int pixels) {
  */
 void builder::space(space_size size) {
   if (size.value > 0.) {
-    m_output += unit_utils::size_with_unit_to_string(size, m_bar.dpi_x);
+    switch (size.type) {
+      case space_type::SPACE:
+        m_output += string(static_cast<string::size_type>(size.value), ' ');
+        break;
+      case space_type::POINT:
+      case space_type::PIXEL:
+        m_output += "%{O";
+        m_output += unit_utils::space_size_to_string(size);
+        m_output += "}";
+        break;
+    }
   } else {
     space();
   }

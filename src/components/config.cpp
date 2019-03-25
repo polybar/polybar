@@ -11,6 +11,7 @@
 #include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
+#include "utils/unit.hpp"
 
 POLYBAR_NS
 
@@ -316,24 +317,6 @@ space_size config::convert(string&& value) const {
   return size;
 }
 
-template <>
-ssize_with_unit config::convert(string&& value) const {
-  char* new_end;
-  auto size_value = std::strtof(value.c_str(), &new_end);
-
-  ssize_with_unit size{size_type::PIXEL, size_value};
-
-  string unit = string_util::trim(new_end);
-  if (!unit.empty()) {
-    if (unit == "px") {
-      size.value = static_cast<ssize_t>(std::trunc(size.value));
-    } else if (unit == "pt") {
-      size.type = size_type::POINT;
-    }
-  }
-
-  return size;
-}
 /**
  * Allows a new format for pixel sizes (like width in the bar section)
  *
@@ -348,11 +331,11 @@ geometry_format_values config::convert(string&& value) const {
     if (value.find('%') != std::string::npos) {
       return {strtod(value.c_str(), nullptr), {}};
     } else {
-      return {0., convert<ssize_with_unit>(move(value))};
+      return {0., unit_utils::geometry_from_string(move(value))};
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {strtod(percentage.c_str(), nullptr), convert<ssize_with_unit>(value.substr(i + 1))};
+    return {strtod(percentage.c_str(), nullptr), unit_utils::geometry_from_string(value.substr(i + 1))};
   }
 }
 
