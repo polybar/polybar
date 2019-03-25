@@ -1,7 +1,7 @@
 #pragma once
 
-#include <bitset>
 #include <cairo/cairo.h>
+#include <bitset>
 #include <memory>
 
 #include "cairo/fwd.hpp"
@@ -41,8 +41,8 @@ class renderer
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
 
-  explicit renderer(
-      connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar, background_manager& background_manager);
+  explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
+      background_manager& background_manager);
   ~renderer();
 
   xcb_window_t window() const;
@@ -60,6 +60,7 @@ class renderer
   void fill_underline(double x, double w);
   void fill_borders();
   void draw_text(const string& contents);
+  void draw_offset(double x, double w);
 
  protected:
   double block_x(alignment a) const;
