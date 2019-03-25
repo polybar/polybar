@@ -1,4 +1,5 @@
 #include "components/renderer.hpp"
+
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
@@ -635,6 +636,19 @@ void renderer::draw_text(const string& contents) {
   }
 }
 
+void renderer::draw_offset(double x, double w) {
+  if (w > 0. && m_bg != m_bar.background) {
+    m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
+    m_context->save();
+    *m_context << m_comp_bg;
+    *m_context << m_bg;
+    *m_context << cairo::rect{m_rect.x + x, static_cast<double>(m_rect.y), w,
+                              static_cast<double>(m_rect.y + m_rect.height)};
+    m_context->fill();
+    m_context->restore();
+  }
+}
+
 /**
  * Colorize the bounding box of created action blocks
  */
@@ -741,6 +755,7 @@ bool renderer::on(const signals::parser::reverse_colors&) {
 
 bool renderer::on(const signals::parser::offset_pixel& evt) {
   m_log.trace_x("renderer: offset_pixel(%f)", evt.cast());
+  draw_offset(m_blocks[m_align].x, evt.cast());
   m_blocks[m_align].x += evt.cast();
   return true;
 }
