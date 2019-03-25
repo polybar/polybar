@@ -83,20 +83,12 @@ enum class space_type { SPACE, POINT, PIXEL };
 
 enum class size_type { POINT, PIXEL };
 
-namespace details {
-  template <typename T>
-  struct size_with_unit_impl {
-    space_type type{space_type::SPACE};
-    T value{0U};
-  };
-}  // namespace details
-
 struct space_size {
   space_type type{space_type::SPACE};
   float value{0.f};
 };
 
-struct ssize_with_unit {
+struct geometry {
   size_type type{size_type::PIXEL};
   float value{0.f};
 };
@@ -108,7 +100,7 @@ struct side_values {
 
 struct geometry_format_values {
   double percentage{0.};
-  ssize_with_unit offset{size_type::PIXEL, 0};
+  geometry offset{size_type::PIXEL, 0};
 };
 
 struct edge_values {

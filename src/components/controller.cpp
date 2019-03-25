@@ -283,8 +283,7 @@ void controller::read_events() {
     int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
     // Check for errors
-    if (events == -1)  {
-
+    if (events == -1) {
       /*
        * The Interrupt errno is generated when polybar is stopped, so it
        * shouldn't generate an error message
@@ -320,7 +319,8 @@ void controller::read_events() {
         // file to a different location (and subsequently deleting it).
         //
         // We need to re-attach the watch to the new file in this case.
-        fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
+        fds.erase(
+            std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
         m_confwatch = inotify_util::make_watch(m_confwatch->path());
         m_confwatch->attach(IN_MODIFY | IN_IGNORED);
         fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
@@ -460,10 +460,30 @@ bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
   string separator{bar.separator};
-  string padding_left = unit_utils::size_with_unit_to_string(bar.padding.left, bar.dpi_x);
-  string padding_right = unit_utils::size_with_unit_to_string(bar.padding.right, bar.dpi_x);
-  string margin_left = unit_utils::size_with_unit_to_string(bar.module_margin.left, bar.dpi_x);
-  string margin_right = unit_utils::size_with_unit_to_string(bar.module_margin.right, bar.dpi_x);
+
+  auto add_surrounding_tag = [](const space_size& space_size) -> std::string {
+    if (space_size.value == 0) {
+      return "";
+    }
+
+    string out;
+    if (space_size.type == space_type::POINT || space_size.type == space_type::PIXEL) {
+      out += "%{O";
+    }
+
+    out += unit_utils::space_size_to_string(space_size);
+
+    if (space_size.type == space_type::POINT || space_size.type == space_type::PIXEL) {
+      out += '}';
+    }
+
+    return out;
+  };
+
+  string padding_left = add_surrounding_tag(bar.padding.left);
+  string padding_right = add_surrounding_tag(bar.padding.right);
+  string margin_left = add_surrounding_tag(bar.module_margin.left);
+  string margin_right = add_surrounding_tag(bar.module_margin.right);
 
   for (const auto& block : m_modules) {
     string block_contents;
