@@ -37,7 +37,7 @@ void parser::parse(const bar_settings& bar, string data) {
     beg_pos = data.find("%{");
 
     if ((beg_pos == 0 || beg_pos == 1) && (end_pos = data.find('}')) != string::npos && beg_pos < end_pos) {
-      if (beg_pos == 1 && data[beg_pos - 1] == '%') {
+      if (beg_pos == 1 && data[beg_pos - 1] == '\\') {
         data.erase(0, text(data.substr(1, end_pos - beg_pos + 1)) + 1);
       } else {
         codeblock(data.substr(beg_pos + 2, end_pos - beg_pos - 2), bar);
@@ -45,7 +45,7 @@ void parser::parse(const bar_settings& bar, string data) {
       }
     } else if (beg_pos != string::npos) {
       // Erase data until the next tag
-      if (data[beg_pos - 1] == '%') {
+      if (data[beg_pos - 1] == '\\') {
         data.erase(0, text(data.substr(0, beg_pos - 1)));
       } else {
         data.erase(0, text(data.substr(0, beg_pos)));

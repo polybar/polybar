@@ -56,7 +56,7 @@ namespace drawtypes {
         }
 
         if (!std::binary_search(m_token_whitelist.cbegin(), m_token_whitelist.cend(), token)) {
-          repl = string_util::replace_all(repl, "%", "%%");
+          repl = string_util::replace_all(repl, "%{", "\\%{");
         }
 
         /*
