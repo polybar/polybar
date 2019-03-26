@@ -103,6 +103,13 @@ If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x1
 
 If you are using **Gentoo**, both release and git-master versions are available in the [main](https://packages.gentoo.org/packages/x11-misc/polybar) repository.
 
+If you are using **Fedora**, polybar is available from [gregw-i3desktop copr](https://copr.fedorainfracloud.org/coprs/gregw/i3desktop/)
+```
+$ sudo dnf copr enable gregw/i3desktop # make sure to enable the repository
+$ sudo dnf update
+$ sudo dnf install polybar
+```
+
 ### Dependencies
 
 A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
