@@ -25,13 +25,13 @@ class syntax_error : public parser_error {
      * Default values are used when the thrower doesn't know the position.
      * parse_line has to catch, set the proper values and rethrow
      */
-    explicit syntax_error(string msg, string file = "", int line_no = -1)
+    explicit syntax_error(const string& msg, const string& file = "", int line_no = -1)
       : parser_error(file + ":" + to_string(line_no) + ": " + msg), msg(msg) {}
 
-    string get_msg() { return msg; };
+    const string get_msg() { return msg; };
 
   private:
-    string msg;
+    const string& msg;
 };
 
 class invalid_name_error : public syntax_error {
@@ -39,7 +39,7 @@ class invalid_name_error : public syntax_error {
     /**
      * type is either Header or Key
      */
-    invalid_name_error(string type, string name)
+    invalid_name_error(const string& type, const string& name)
       : syntax_error(type + " '" + name + "' contains forbidden characters.") {}
 };
 
@@ -89,7 +89,7 @@ struct line_t {
 class config_parser {
   public:
 
-    config_parser(const logger& logger, string&& file, string&& bar);
+    config_parser(const logger& logger, const string&& file, const string&& bar);
 
     /**
      * \brief Performs the parsing of the main config file m_file
@@ -117,7 +117,7 @@ class config_parser {
      *
      * `file` is expected to be an already resolved absolute path
      */
-    void parse_file(string file, file_list path);
+    void parse_file(const string& file, file_list path);
 
     /**
      * \brief Parses the given line string to create a line_t struct
@@ -153,7 +153,7 @@ class config_parser {
      *         doesn't know about those. Whoever calls parse_line needs to
      *         catch those exceptions and set the file path and line number
      */
-    line_t parse_line(string line);
+    line_t parse_line(const string& line);
 
     /**
      * \brief Determines the type of a line read from a config file
@@ -166,7 +166,7 @@ class config_parser {
      * is none of the above and contains an equal sign, is treated as KEY.
      * All others are UNKNOWN
      */
-    line_type get_line_type(string line);
+    line_type get_line_type(const string& line);
 
     /**
      * \brief Parse a line containing a section header and returns the header name
@@ -176,7 +176,7 @@ class config_parser {
      * \throws syntax_error if the line doesn't end with ']' or the header name
      *         contains forbidden characters
      */
-    string parse_header(string line);
+    string parse_header(const string& line);
 
     /**
      * \brief Parses a line containing a key-value pair and returns the key name
@@ -186,7 +186,7 @@ class config_parser {
      *
      * \throws syntax_error if the key contains forbidden characters
      */
-    std::pair<string, string> parse_key(string line);
+    std::pair<string, string> parse_key(const string& line);
 
     /**
      * \brief Name of all the files the config includes values from
@@ -203,7 +203,7 @@ class config_parser {
      * \brief Checks if the given name doesn't contain any spaces or characters
      *        in config_parser::forbidden_chars
      */
-    bool is_valid_name(string name);
+    bool is_valid_name(const string& name);
 
     /**
      * \brief Whether or not an xresource manager should be used

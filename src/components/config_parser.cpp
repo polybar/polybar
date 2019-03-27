@@ -5,10 +5,10 @@
 
 POLYBAR_NS
 
-config_parser::config_parser(const logger& logger, string&& file, string&& bar)
+config_parser::config_parser(const logger& logger, const string&& file, const string&& bar)
   : m_log(logger),
-  m_file(file_util::expand(forward<string>(file))),
-  m_barname(forward<string>(bar)) {}
+  m_file(file_util::expand(forward<const string>(file))),
+  m_barname(forward<const string>(bar)) {}
 
 config::make_type config_parser::parse() {
   m_log.info("Parsing config file: %s", m_file);
@@ -79,7 +79,7 @@ sectionmap_t config_parser::create_sectionmap() {
   return sections;
 }
 
-void config_parser::parse_file(string file, file_list path) {
+void config_parser::parse_file(const string& file, file_list path) {
   if(std::find(path.begin(), path.end(), file) != path.end()) {
     string path_str{};
 
@@ -147,18 +147,16 @@ void config_parser::parse_file(string file, file_list path) {
     }
 
     if(!line.is_header && line.key == "include-file") {
-      file_list cloned_path(path);
-
-      parse_file(file_util::expand(line.value), cloned_path);
+      parse_file(file_util::expand(line.value), path);
     } else {
       lines.push_back(line);
     }
   }
 }
 
-line_t config_parser::parse_line(string line) {
-  line = string_util::trim(line, string_util::isspace_pred);
-  line_type type = get_line_type(line);
+line_t config_parser::parse_line(const string& line) {
+  string line_trimmed = string_util::trim(line, string_util::isspace_pred);
+  line_type type = get_line_type(line_trimmed);
 
   line_t result = {};
 
@@ -168,17 +166,17 @@ line_t config_parser::parse_line(string line) {
   }
 
   if(type == UNKNOWN) {
-    throw syntax_error("Unknown line type: " + line);
+    throw syntax_error("Unknown line type: " + line_trimmed);
   }
 
   result.useful = true;
 
   if(type == HEADER) {
     result.is_header = true;
-    result.header = parse_header(line);
+    result.header = parse_header(line_trimmed);
   } else if(type == KEY) {
     result.is_header = false;
-    auto key_value = parse_key(line);
+    auto key_value = parse_key(line_trimmed);
     result.key = key_value.first;
     result.value = key_value.second;
   }
@@ -186,7 +184,7 @@ line_t config_parser::parse_line(string line) {
   return result;
 }
 
-line_type config_parser::get_line_type(string line) {
+line_type config_parser::get_line_type(const string& line) {
   if(line.empty()) {
     return EMPTY;
   }
@@ -208,7 +206,7 @@ line_type config_parser::get_line_type(string line) {
   }
 }
 
-string config_parser::parse_header(string line) {
+string config_parser::parse_header(const string& line) {
   if(line.back() != ']') {
     throw syntax_error("Missing ']' in header '" + line + "'");
   }
@@ -227,7 +225,7 @@ string config_parser::parse_header(string line) {
   return header;
 }
 
-std::pair<string, string> config_parser::parse_key(string line) {
+std::pair<string, string> config_parser::parse_key(const string& line) {
   size_t pos = line.find_first_of('=');
 
   string key = trim(line.substr(0, pos), string_util::isspace_pred);
@@ -257,7 +255,7 @@ std::pair<string, string> config_parser::parse_key(string line) {
   return {key, value};
 }
 
-bool config_parser::is_valid_name(string name) {
+bool config_parser::is_valid_name(const string& name) {
   if(name.empty()) {
     return false;
   }
