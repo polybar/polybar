@@ -83,6 +83,7 @@ namespace modules {
     // Get desktop details
     m_desktop_names = get_desktop_names();
     m_current_desktop = ewmh_util::get_current_desktop();
+    m_current_desktop_name = m_desktop_names[m_current_desktop];
 
     rebuild_desktops();
     rebuild_desktop_states();
@@ -103,6 +104,7 @@ namespace modules {
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
+      m_current_desktop_name = m_desktop_names[m_current_desktop];
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
       if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
@@ -209,7 +211,7 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        if (d->index == m_current_desktop) {
+        if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
