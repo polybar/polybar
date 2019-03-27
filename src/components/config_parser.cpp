@@ -236,8 +236,8 @@ std::pair<string, string> config_parser::parse_key(const string& line) {
   }
 
   /*
-   * Remove double quotes around value, only if it starts end ends with
-   * double quotes
+   * Only if the string is surrounded with double quotes, do we treat them
+   * not as part of the value and remove them.
    */
   if(value.size() >= 2 && value.front() == '"' && value.back() == '"') {
     value = value.substr(1, value.size() - 2);

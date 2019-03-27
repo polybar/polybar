@@ -56,8 +56,8 @@ enum line_type {KEY, HEADER, COMMENT, EMPTY, UNKNOWN};
  */
 struct line_t {
   /**
-   * Whether or not this struct contains a "useful" line
-   * I set to true for header and key-value lines
+   * Whether or not this struct represents a "useful" line, a line that has
+   * any semantic significance (key-value or header line)
    * If false all other fields are not set.
    * Set this to false, if you want to return a line that has no effect
    * (for example when you parse a comment line)
