@@ -3,9 +3,9 @@
 #include <set>
 
 #include "common.hpp"
-#include "errors.hpp"
-#include "components/logger.hpp"
 #include "components/config.hpp"
+#include "components/logger.hpp"
+#include "errors.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -19,34 +19,35 @@ DEFINE_ERROR(parser_error);
  * Contains filepath and line number where syntax error was found
  */
 class syntax_error : public parser_error {
+ public:
+  /**
+   * Default values are used when the thrower doesn't know the position.
+   * parse_line has to catch, set the proper values and rethrow
+   */
+  explicit syntax_error(string msg, const string& file = "", int line_no = -1)
+      : parser_error(file + ":" + to_string(line_no) + ": " + msg), msg(move(msg)) {}
 
-  public:
-    /**
-     * Default values are used when the thrower doesn't know the position.
-     * parse_line has to catch, set the proper values and rethrow
-     */
-    explicit syntax_error(const string& msg, const string& file = "", int line_no = -1)
-      : parser_error(file + ":" + to_string(line_no) + ": " + msg), msg(msg) {}
+  const string& get_msg() {
+    return msg;
+  };
 
-    const string get_msg() { return msg; };
-
-  private:
-    const string& msg;
+ private:
+  string msg;
 };
 
 class invalid_name_error : public syntax_error {
-  public:
-    /**
-     * type is either Header or Key
-     */
-    invalid_name_error(const string& type, const string& name)
+ public:
+  /**
+   * type is either Header or Key
+   */
+  invalid_name_error(const string& type, const string& name)
       : syntax_error(type + " '" + name + "' contains forbidden characters.") {}
 };
 
 /**
  * \brief All different types a line in a config can be
  */
-enum line_type {KEY, HEADER, COMMENT, EMPTY, UNKNOWN};
+enum class line_type { KEY, HEADER, COMMENT, EMPTY, UNKNOWN };
 
 /**
  * \brief Storage for a single config line
@@ -87,165 +88,162 @@ struct line_t {
 };
 
 class config_parser {
-  public:
+ public:
+  config_parser(const logger& logger, string&& file, string&& bar);
 
-    config_parser(const logger& logger, const string&& file, const string&& bar);
+  /**
+   * \brief Performs the parsing of the main config file m_file
+   *
+   * \returns config class instance populated with the parsed config
+   *
+   * \throws syntax_error If there was any kind of syntax error
+   * \throws parser_error If aynthing else went wrong
+   */
+  config::make_type parse();
 
-    /**
-     * \brief Performs the parsing of the main config file m_file
-     *
-     * \returns config class instance populated with the parsed config
-     *
-     * \throws syntax_error If there was any kind of syntax error
-     * \throws parser_error If aynthing else went wrong
-     */
-    config::make_type parse();
+ protected:
+  /**
+   * \brief Converts the `lines` vector to a proper sectionmap
+   */
+  sectionmap_t create_sectionmap();
 
-  protected:
+  /**
+   * \brief Parses the given file, extracts key-value pairs and section
+   *        headers and adds them onto the `lines` vector
+   *
+   * This method directly resolves `include-file` directives and checks for
+   * cyclic dependencies
+   *
+   * `file` is expected to be an already resolved absolute path
+   */
+  void parse_file(const string& file, file_list path);
 
-    /**
-     * \brief Converts the `lines` vector to a proper sectionmap
-     */
-    sectionmap_t create_sectionmap();
+  /**
+   * \brief Parses the given line string to create a line_t struct
+   *
+   * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file)
+   * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
+   * Keys and section names can contain any character except for the following:
+   * - spaces
+   * - equal sign (=)
+   * - semicolon (;)
+   * - pound sign (#)
+   * - Any kind of parentheses ([](){})
+   * - colon (:)
+   * - period (.)
+   * - dollar sign ($)
+   * - backslash (\)
+   * - percent sign (%)
+   * - single and double quotes ('")
+   * So basically any character that has any kind of special meaning is prohibited.
+   *
+   * Comment lines have to start with a semicolon (;) or a pound sign (#),
+   * you cannot put a comment after another type of line.
+   *
+   * key and section names are case-sensitive.
+   *
+   * Keys are specified as `key = value`, spaces around the equal sign, as
+   * well as double quotes around the value are ignored
+   *
+   * sections are defined as [section], everything inside the square brackets is part of the name
+   *
+   * \throws syntax_error if the line isn't well formed. The syntax error
+   *         does not contain the filename or line numbers because parse_line
+   *         doesn't know about those. Whoever calls parse_line needs to
+   *         catch those exceptions and set the file path and line number
+   */
+  line_t parse_line(const string& line);
 
-    /**
-     * \brief Parses the given file, extracts key-value pairs and section
-     *        headers and adds them onto the `lines` vector
-     *
-     * This method directly resolves `include-file` directives and checks for
-     * cyclic dependencies
-     *
-     * `file` is expected to be an already resolved absolute path
-     */
-    void parse_file(const string& file, file_list path);
+  /**
+   * \brief Determines the type of a line read from a config file
+   *
+   * Expects that line is trimmed
+   * This mainly looks at the first character and doesn't check if the line is
+   * actually syntactically correct.
+   * HEADER ('['), COMMENT (';' or '#') and EMPTY (None) are uniquely
+   * identified by their first character (or lack thereof). Any line that
+   * is none of the above and contains an equal sign, is treated as KEY.
+   * All others are UNKNOWN
+   */
+  static line_type get_line_type(const string& line);
 
-    /**
-     * \brief Parses the given line string to create a line_t struct
-     *
-     * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file)
-     * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
-     * Keys and section names can contain any character except for the following:
-     * - spaces
-     * - equal sign (=)
-     * - semicolon (;)
-     * - pound sign (#)
-     * - Any kind of parentheses ([](){})
-     * - colon (:)
-     * - period (.)
-     * - dollar sign ($)
-     * - backslash (\)
-     * - percent sign (%)
-     * - single and double quotes ('")
-     * So basically any character that has any kind of special meaning is prohibited.
-     *
-     * Comment lines have to start with a semicolon (;) or a pound sign (#),
-     * you cannot put a comment after another type of line.
-     *
-     * key and section names are case-sensitive.
-     *
-     * Keys are specified as `key = value`, spaces around the equal sign, as
-     * well as double quotes around the value are ignored
-     *
-     * sections are defined as [section], everything inside the square brackets is part of the name
-     *
-     * \throws syntax_error if the line isn't well formed. The syntax error
-     *         does not contain the filename or line numbers because parse_line
-     *         doesn't know about those. Whoever calls parse_line needs to
-     *         catch those exceptions and set the file path and line number
-     */
-    line_t parse_line(const string& line);
+  /**
+   * \brief Parse a line containing a section header and returns the header name
+   *
+   * Only assumes that the line starts with '[' and is trimmed
+   *
+   * \throws syntax_error if the line doesn't end with ']' or the header name
+   *         contains forbidden characters
+   */
+  string parse_header(const string& line);
 
-    /**
-     * \brief Determines the type of a line read from a config file
-     *
-     * Expects that line is trimmed
-     * This mainly looks at the first character and doesn't check if the line is
-     * actually syntactically correct.
-     * HEADER ('['), COMMENT (';' or '#') and EMPTY (None) are uniquely
-     * identified by their first character (or lack thereof). Any line that
-     * is none of the above and contains an equal sign, is treated as KEY.
-     * All others are UNKNOWN
-     */
-    line_type get_line_type(const string& line);
+  /**
+   * \brief Parses a line containing a key-value pair and returns the key name
+   *        and the value string inside an std::pair
+   *
+   * Only assumes that the line contains '=' at least once and is trimmed
+   *
+   * \throws syntax_error if the key contains forbidden characters
+   */
+  std::pair<string, string> parse_key(const string& line);
 
-    /**
-     * \brief Parse a line containing a section header and returns the header name
-     *
-     * Only assumes that the line starts with '[' and is trimmed
-     *
-     * \throws syntax_error if the line doesn't end with ']' or the header name
-     *         contains forbidden characters
-     */
-    string parse_header(const string& line);
+  /**
+   * \brief Name of all the files the config includes values from
+   *
+   * The line_t struct uses indices to this vector to map lines to their
+   * original files. This allows us to point the user to the exact location
+   * of errors
+   */
+  file_list m_files;
 
-    /**
-     * \brief Parses a line containing a key-value pair and returns the key name
-     *        and the value string inside an std::pair
-     *
-     * Only assumes that the line contains '=' at least once and is trimmed
-     *
-     * \throws syntax_error if the key contains forbidden characters
-     */
-    std::pair<string, string> parse_key(const string& line);
+ private:
+  /**
+   * \brief Checks if the given name doesn't contain any spaces or characters
+   *        in config_parser::m_forbidden_chars
+   */
+  bool is_valid_name(const string& name);
 
-    /**
-     * \brief Name of all the files the config includes values from
-     *
-     * The line_t struct uses indices to this vector to map lines to their
-     * original files. This allows us to point the user to the exact location
-     * of errors
-     */
-    file_list files;
+  /**
+   * \brief Whether or not an xresource manager should be used
+   *
+   * Is set to true if any ${xrdb...} references are found
+   */
+  bool use_xrm{false};
 
-  private:
+  const logger& m_log;
 
-    /**
-     * \brief Checks if the given name doesn't contain any spaces or characters
-     *        in config_parser::forbidden_chars
-     */
-    bool is_valid_name(const string& name);
+  /**
+   * \brief Absolute path to the main config file
+   */
+  string m_config;
 
-    /**
-     * \brief Whether or not an xresource manager should be used
-     *
-     * Is set to true if any ${xrdb...} references are found
-     */
-    bool use_xrm{false};
+  /**
+   * Is used to resolve ${root...} references
+   */
+  string m_barname;
 
-    const logger& m_log;
+  /**
+   * \brief List of all the lines in the config (with included files)
+   *
+   * The order here matters, as we have not yet associated key-value pairs
+   * with sections
+   */
+  vector<line_t> m_lines;
 
-    /**
-     * \brief Absolute path to the main config file
-     */
-    string m_file;
+  /**
+   * \brief None of these characters can be used in the key and section names
+   */
+  const string m_forbidden_chars{"\"'=;#[](){}:.$\\%"};
 
-    /**
-     * Is used to resolve ${root...} references
-     */
-    string m_barname;
-
-    /*
-     * \brief List of all the lines in the config (with included files)
-     *
-     * The order here matters, as we have not yet associated key-value pairs
-     * with sections
-     */
-    vector<line_t> lines;
-
-    /*
-     * \brief None of these characters can be used in the key and section names
-     */
-    string forbidden_chars{"\"'=;#[](){}:.$\\%"};
-
-    /*
-     * \brief List of names that cannot be used as section names
-     *
-     * These strings have a special meaning inside references and so the
-     * section [self] could never be referenced.
-     *
-     * Note: BAR is deprecated
-     */
-    std::set<string> reserved_section_names = {"self", "BAR", "root"};
+  /**
+   * \brief List of names that cannot be used as section names
+   *
+   * These strings have a special meaning inside references and so the
+   * section [self] could never be referenced.
+   *
+   * Note: BAR is deprecated
+   */
+  const std::set<string> m_reserved_section_names = {"self", "BAR", "root"};
 };
 
 POLYBAR_NS_END

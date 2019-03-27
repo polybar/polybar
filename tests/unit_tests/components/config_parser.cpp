@@ -1,5 +1,5 @@
-#include "common/test.hpp"
 #include "components/config_parser.hpp"
+#include "common/test.hpp"
 #include "components/logger.hpp"
 
 using namespace polybar;
@@ -10,60 +10,62 @@ using namespace std;
  */
 class TestableConfigParser : public config_parser {
   using config_parser::config_parser;
-  public: using config_parser::get_line_type;
-  public: using config_parser::parse_key;
-  public: using config_parser::parse_header;
-  public: using config_parser::parse_line;
-  public: using config_parser::files;
+
+ public:
+  using config_parser::get_line_type;
+
+ public:
+  using config_parser::parse_key;
+
+ public:
+  using config_parser::parse_header;
+
+ public:
+  using config_parser::parse_line;
+
+ public:
+  using config_parser::m_files;
 };
 
 /**
  * \brief Fixture class
  */
 class ConfigParser : public ::testing::Test {
-  protected:
-    unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(logger(loglevel::NONE), "/dev/zero", "TEST");
+ protected:
+  unique_ptr<TestableConfigParser> parser =
+      make_unique<TestableConfigParser>(logger(loglevel::NONE), "/dev/zero", "TEST");
 };
 
 // ParseLineTest {{{
-class ParseLineInValidTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<string> {
-  };
+class ParseLineInValidTest : public ConfigParser, public ::testing::WithParamInterface<string> {};
 
-class ParseLineHeaderTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<pair<string, string>> {
-  };
+class ParseLineHeaderTest : public ConfigParser, public ::testing::WithParamInterface<pair<string, string>> {};
 
-class ParseLineKeyTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<pair<pair<string, string>, string>> {
-  };
+class ParseLineKeyTest : public ConfigParser,
+                         public ::testing::WithParamInterface<pair<pair<string, string>, string>> {};
 
 vector<string> parse_line_invalid_list = {
-  " # comment",
-  "; comment",
-  "\t#",
-  "",
-  " ",
-  "\t ",
+    " # comment",
+    "; comment",
+    "\t#",
+    "",
+    " ",
+    "\t ",
 };
 
 vector<pair<string, string>> parse_line_header_list = {
-  {"section", "\t[section]"},
-  {"section", "\t[section]  "},
-  {"bar/name", "\t[bar/name]  "},
+    {"section", "\t[section]"},
+    {"section", "\t[section]  "},
+    {"bar/name", "\t[bar/name]  "},
 };
 
 vector<pair<pair<string, string>, string>> parse_line_key_list = {
-  {{"key", "value"}, " key = value"},
-  {{"key", ""}, " key\t = \"\""},
-  {{"key", "\""}, " key\t = \"\"\""},
+    {{"key", "value"}, " key = value"},
+    {{"key", ""}, " key\t = \"\""},
+    {{"key", "\""}, " key\t = \"\"\""},
 };
 
-INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest,
-    ::testing::ValuesIn(parse_line_invalid_list));
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest, ::testing::ValuesIn(parse_line_invalid_list));
 
 TEST_P(ParseLineInValidTest, correctness) {
   line_t line = parser->parse_line(GetParam());
@@ -71,8 +73,7 @@ TEST_P(ParseLineInValidTest, correctness) {
   EXPECT_FALSE(line.useful);
 }
 
-INSTANTIATE_TEST_SUITE_P(Inst, ParseLineHeaderTest,
-    ::testing::ValuesIn(parse_line_header_list));
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineHeaderTest, ::testing::ValuesIn(parse_line_header_list));
 
 TEST_P(ParseLineHeaderTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
@@ -83,8 +84,7 @@ TEST_P(ParseLineHeaderTest, correctness) {
   EXPECT_EQ(GetParam().first, line.header);
 }
 
-INSTANTIATE_TEST_SUITE_P(Inst, ParseLineKeyTest,
-    ::testing::ValuesIn(parse_line_key_list));
+INSTANTIATE_TEST_SUITE_P(Inst, ParseLineKeyTest, ::testing::ValuesIn(parse_line_key_list));
 
 TEST_P(ParseLineKeyTest, correctness) {
   line_t line = parser->parse_line(GetParam().second);
@@ -109,24 +109,21 @@ TEST_F(ParseLineInValidTest, throwsSyntaxError) {
  * Parameters are pairs of the expected line type and a string that should be
  * detected as that line type
  */
-class GetLineTypeTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<pair<line_type, string>> {
-  };
+class GetLineTypeTest : public ConfigParser, public ::testing::WithParamInterface<pair<line_type, string>> {};
 
 /**
  * \brief Helper function generate GetLineTypeTest parameter values
  */
-vector<pair<line_type, string>> line_type_transform(vector<string> in, line_type type) {
+vector<pair<line_type, string>> line_type_transform(vector<string>&& in, line_type type) {
   vector<pair<line_type, string>> out;
 
-  for (auto i : in) {
+  out.reserve(in.size());
+  for (const auto& i : in) {
     out.emplace_back(type, i);
   }
 
   return out;
 }
-
 
 /**
  * \brief Parameter values for GetLineTypeTest
@@ -163,26 +160,22 @@ TEST_P(GetLineTypeTest, correctness) {
  * The first element of the pair is the expected key-value pair and the second
  * element is the string to be parsed, has to be trimmed and valid.
  */
-class ParseKeyTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<pair<pair<string, string>, string>> {};
-
+class ParseKeyTest : public ConfigParser, public ::testing::WithParamInterface<pair<pair<string, string>, string>> {};
 
 vector<pair<pair<string, string>, string>> parse_key_list = {
-  {{"key", "value"}, "key = value"},
-  {{"key", "value"}, "key=value"},
-  {{"key", "value"}, "key =\"value\""},
-  {{"key", "value"}, "key\t=\t \"value\""},
-  {{"key", "\"value"}, "key = \"value"},
-  {{"key", "value\""}, "key = value\""},
-  {{"key", "= value"}, "key == value"},
-  {{"key", ""}, "key ="},
-  {{"key", ""}, "key =\"\""},
-  {{"key", "\"\""}, "key =\"\"\"\""},
+    {{"key", "value"}, "key = value"},
+    {{"key", "value"}, "key=value"},
+    {{"key", "value"}, "key =\"value\""},
+    {{"key", "value"}, "key\t=\t \"value\""},
+    {{"key", "\"value"}, "key = \"value"},
+    {{"key", "value\""}, "key = value\""},
+    {{"key", "= value"}, "key == value"},
+    {{"key", ""}, "key ="},
+    {{"key", ""}, R"(key ="")"},
+    {{"key", "\"\""}, R"(key ="""")"},
 };
 
-INSTANTIATE_TEST_SUITE_P(Inst, ParseKeyTest,
-    ::testing::ValuesIn(parse_key_list));
+INSTANTIATE_TEST_SUITE_P(Inst, ParseKeyTest, ::testing::ValuesIn(parse_key_list));
 
 /**
  * Parameterized test for parse_key with valid line
@@ -209,18 +202,15 @@ TEST_F(ParseKeyTest, throwsSyntaxError) {
  * The first element of the pair is the expected key-value pair and the second
  * element is the string to be parsed, has to be trimmed and valid
  */
-class ParseHeaderTest :
-  public ConfigParser,
-  public ::testing::WithParamInterface<pair<string, string>> {};
+class ParseHeaderTest : public ConfigParser, public ::testing::WithParamInterface<pair<string, string>> {};
 
 vector<pair<string, string>> parse_header_list = {
-  {"section", "[section]"},
-  {"bar/name", "[bar/name]"},
-  {"with_underscore", "[with_underscore]"},
+    {"section", "[section]"},
+    {"bar/name", "[bar/name]"},
+    {"with_underscore", "[with_underscore]"},
 };
 
-INSTANTIATE_TEST_SUITE_P(Inst, ParseHeaderTest,
-    ::testing::ValuesIn(parse_header_list));
+INSTANTIATE_TEST_SUITE_P(Inst, ParseHeaderTest, ::testing::ValuesIn(parse_header_list));
 
 /**
  * Parameterized test for parse_header with valid line

@@ -1,5 +1,5 @@
-#include "common/test.hpp"
 #include "utils/string.hpp"
+#include "common/test.hpp"
 
 using namespace polybar;
 
@@ -56,8 +56,8 @@ TEST(String, trim) {
 }
 
 TEST(String, trimPredicate) {
-  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", string_util::isspace_pred));
-  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", string_util::isspace_pred));
+  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", isspace));
+  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", isspace));
 }
 
 TEST(String, join) {

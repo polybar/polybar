@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -130,7 +129,7 @@ namespace string_util {
    * Trims all characters that match pred from both sides
    */
   string trim(string value, function<bool(char)> pred) {
-    return ltrim(rtrim(value, pred), pred);
+    return ltrim(rtrim(move(value), pred), pred);
   }
 
   /**
@@ -298,6 +297,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}
+}  // namespace string_util
 
 POLYBAR_NS_END

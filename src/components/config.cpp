@@ -6,8 +6,6 @@
 #include "utils/color.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
-#include "utils/math.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -22,7 +20,7 @@ config::make_type config::make(string path, string bar) {
 /**
  * Get path of loaded file
  */
-string config::filepath() const {
+const string& config::filepath() const {
   return m_file;
 }
 
@@ -47,12 +45,12 @@ void config::use_xrm() {
 }
 
 void config::set_sections(sectionmap_t sections) {
-  m_sections = sections;
+  m_sections = move(sections);
   copy_inherited();
 }
 
 void config::set_included(file_list included) {
-  m_included = included;
+  m_included = move(included);
 }
 
 /**
@@ -77,7 +75,7 @@ void config::warn_deprecated(const string& section, const string& key, string re
 void config::copy_inherited() {
   for (auto&& section : m_sections) {
     for (auto&& param : section.second) {
-      if(param.first == "inherit") {
+      if (param.first == "inherit") {
         // Get name of base section
         auto inherit = param.second;
         if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {

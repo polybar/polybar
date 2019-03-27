@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <cstring>
 
 #include "common.hpp"
 
@@ -27,7 +26,7 @@ namespace {
       a.erase(a.size() - b.size());
     }
   }
-}
+}  // namespace
 
 class sstream {
  public:
@@ -61,11 +60,6 @@ namespace string_util {
    * Hash type
    */
   using hash_type = unsigned long;
-
-  /**
-   * Predicate that determines if a given character is not a space
-   */
-  auto isspace_pred = [](int ch) { return isspace(ch); };
 
   bool contains(const string& haystack, const string& needle);
   string upper(const string& s);
@@ -105,6 +99,6 @@ namespace string_util {
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);
-}
+}  // namespace string_util
 
 POLYBAR_NS_END

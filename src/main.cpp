@@ -82,7 +82,8 @@ int main(int argc, char** argv) {
           printf("%s: %ix%i+%i+%i (XRandR monitor%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
               mon->primary ? ", primary" : "");
         } else {
-          printf("%s: %ix%i+%i+%i%s\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y, mon->primary ? " (primary)" : "");
+          printf("%s: %ix%i+%i+%i%s\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
+              mon->primary ? " (primary)" : "");
         }
       }
       return EXIT_SUCCESS;

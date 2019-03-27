@@ -24,14 +24,13 @@ using file_list = vector<string>;
 
 class config {
  public:
-
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  config(const logger& logger, string&& path = "", string&& bar = "")
-    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {};
+  explicit config(const logger& logger, string&& path = "", string&& bar = "")
+      : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
-  string filepath() const;
+  const string& filepath() const;
   string section() const;
 
   /**
