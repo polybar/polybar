@@ -382,7 +382,7 @@ namespace mpd {
 
   void mpdstatus::fetch_data(mpdconnection* conn) {
     m_status.reset(mpd_run_status(*conn));
-    m_updated_at = chrono::system_clock::now();
+    m_updated_at = chrono::steady_clock::now();
     m_songid = mpd_status_get_song_id(m_status.get());
     m_queuelen = mpd_status_get_queue_length(m_status.get());
     m_random = mpd_status_get_random(m_status.get());

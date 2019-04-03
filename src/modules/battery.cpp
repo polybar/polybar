@@ -28,7 +28,7 @@ namespace modules {
     // Load configuration values
     m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
-    m_lastpoll = chrono::system_clock::now();
+    m_lastpoll = chrono::steady_clock::now();
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
@@ -183,7 +183,7 @@ namespace modules {
    */
   void battery_module::idle() {
     if (m_interval.count() > 0) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
@@ -202,7 +202,7 @@ namespace modules {
     auto percentage = current_percentage(state);
 
     // Reset timer to avoid unnecessary polling
-    m_lastpoll = chrono::system_clock::now();
+    m_lastpoll = chrono::steady_clock::now();
 
     if (event != nullptr) {
       m_log.trace("%s: Inotify event reported for %s", name(), event->filename);

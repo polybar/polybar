@@ -86,7 +86,7 @@ namespace modules {
     string m_pass;
     unsigned int m_port{6600U};
 
-    chrono::system_clock::time_point m_lastsync{};
+    chrono::steady_clock::time_point m_lastsync{};
     float m_synctime{1.0f};
 
     int m_quick_attempts{0};

@@ -35,6 +35,9 @@
 #cmakedefine01 WITH_XRM
 #cmakedefine01 WITH_XCURSOR
 
+#cmakedefine01 WITH_RT
+#cmakedefine01 HAVE_CLOCK_GETTIME
+
 #if WITH_XRANDR
 #cmakedefine01 WITH_XRANDR_MONITORS
 #else
@@ -124,6 +127,8 @@ const auto print_build_info = [](bool extended = false) {
       (WITH_XKB               ? '+' : '-'),
       (WITH_XRM               ? '+' : '-'),
       (WITH_XCURSOR           ? '+' : '-'));
+    printf("clock library: %crt\n",
+      (WITH_RT                ? '+' : '-'));
     printf("\n");
     printf("Build type: @CMAKE_BUILD_TYPE@\n");
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");

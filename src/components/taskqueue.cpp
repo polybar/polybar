@@ -22,7 +22,7 @@ taskqueue::taskqueue() {
         for (auto&& task : m_deferred) {
           auto when = task->now + task->wait;
           if (when < wait) {
-            wait = move(when);
+            wait = when;
           }
         }
         if (wait > now) {
@@ -48,8 +48,8 @@ taskqueue::~taskqueue() {
 void taskqueue::defer(
     string id, deferred::duration ms, deferred::callback fn, deferred::duration offset, size_t count) {
   std::unique_lock<std::mutex> guard(m_lock);
-  deferred::timepoint now{chrono::time_point_cast<deferred::duration>(deferred::clock::now() + move(offset))};
-  m_deferred.emplace_back(make_unique<deferred>(move(id), move(now), move(ms), move(fn), move(count)));
+  deferred::timepoint now{chrono::time_point_cast<deferred::duration>(deferred::clock::now() + offset)};
+  m_deferred.emplace_back(make_unique<deferred>(move(id), now, ms, move(fn), count));
   guard.unlock();
   m_hold.notify_one();
 }
@@ -58,8 +58,8 @@ void taskqueue::defer_unique(
     string id, deferred::duration ms, deferred::callback fn, deferred::duration offset, size_t count) {
   purge(id);
   std::unique_lock<std::mutex> guard(m_lock);
-  deferred::timepoint now{chrono::time_point_cast<deferred::duration>(deferred::clock::now() + move(offset))};
-  m_deferred.emplace_back(make_unique<deferred>(move(id), move(now), move(ms), move(fn), move(count)));
+  deferred::timepoint now{chrono::time_point_cast<deferred::duration>(deferred::clock::now() + offset)};
+  m_deferred.emplace_back(make_unique<deferred>(move(id), now, ms, move(fn), count));
   guard.unlock();
   m_hold.notify_one();
 }

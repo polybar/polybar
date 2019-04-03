@@ -121,7 +121,7 @@ namespace modules {
 
     // }}}
 
-    m_lastsync = chrono::system_clock::now();
+    m_lastsync = chrono::steady_clock::now();
 
     try {
       m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
@@ -196,7 +196,7 @@ namespace modules {
     }
 
     if ((m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING)) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       auto diff = now - m_lastsync;
 
       if (chrono::duration_cast<chrono::milliseconds>(diff).count() > m_synctime * 1000) {

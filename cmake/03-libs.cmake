@@ -31,3 +31,13 @@ querylib(WITH_XCURSOR "pkg-config" xcb-cursor libs dirs)
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   querylib(TRUE "pkg-config" libinotify libs dirs)
 endif()
+
+include(CheckLibraryExists)
+check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+
+if (NOT HAVE_CLOCK_GETTIME)
+  # Before glibc 2.17 clock_gettime is in rt library
+  CHECK_LIBRARY_EXISTS(rt clock_gettime "time.h" WITH_RT)
+  set(HAVE_CLOCK_GETTIME ${WITH_RT})
+  find_package(rt REQUIRED)
+endif()

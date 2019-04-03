@@ -24,7 +24,7 @@ namespace drawtypes {
   }
 
   void animation::tick() {
-    auto now = chrono::system_clock::now();
+    auto now = chrono::steady_clock::now();
     auto diff = chrono::duration_cast<chrono::milliseconds>(now - m_lastupdate);
 
     if (diff.count() < m_framerate_ms) {

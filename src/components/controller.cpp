@@ -236,7 +236,7 @@ bool controller::enqueue(event&& evt) {
 bool controller::enqueue(string&& input_data) {
   if (!m_inputdata.empty()) {
     m_log.trace("controller: Swallowing input event (pending data)");
-  } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
+  } else if (chrono::steady_clock::now() - m_swallow_input < m_lastinput) {
     m_log.trace("controller: Swallowing input event (throttled)");
   } else {
     m_inputdata = forward<string>(input_data);
@@ -425,7 +425,7 @@ void controller::process_eventqueue() {
 void controller::process_inputdata() {
   if (!m_inputdata.empty()) {
     string cmd = m_inputdata;
-    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
+    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::steady_clock::now());
     m_inputdata.clear();
 
     for (auto&& handler : m_inputhandlers) {

@@ -58,7 +58,7 @@ namespace net {
   struct link_activity {
     bytes_t transmitted{0};
     bytes_t received{0};
-    std::chrono::system_clock::time_point time;
+    std::chrono::steady_clock::time_point time;
   };
 
   struct link_status {

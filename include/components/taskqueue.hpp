@@ -2,12 +2,12 @@
 
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <mutex>
 #include <thread>
 
 #include "common.hpp"
 #include "utils/mixins.hpp"
+#include "utils/condition_variable.hpp"
 
 POLYBAR_NS
 
@@ -17,13 +17,13 @@ using namespace std::chrono_literals;
 class taskqueue : non_copyable_mixin<taskqueue> {
  public:
   struct deferred {
-    using clock = chrono::high_resolution_clock;
+    using clock = chrono::steady_clock;
     using duration = chrono::milliseconds;
     using timepoint = chrono::time_point<clock, duration>;
     using callback = function<void(size_t remaining)>;
 
     explicit deferred(string id, timepoint now, duration wait, callback fn, size_t count)
-        : id(move(id)), func(move(fn)), now(move(now)), wait(move(wait)), count(move(count)) {}
+        : id(move(id)), func(move(fn)), now(now), wait(wait), count(count) {}
 
     const string id;
     const callback func;
@@ -53,7 +53,7 @@ class taskqueue : non_copyable_mixin<taskqueue> {
  private:
   std::thread m_thread;
   std::mutex m_lock{};
-  std::condition_variable m_hold;
+  condition_variable m_hold;
   std::atomic_bool m_active{true};
 
   vector<unique_ptr<deferred>> m_deferred;

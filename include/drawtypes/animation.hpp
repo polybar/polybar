@@ -19,7 +19,7 @@ namespace drawtypes {
         : m_frames(forward<decltype(frames)>(frames))
         , m_framerate_ms(framerate_ms)
         , m_framecount(m_frames.size())
-        , m_lastupdate(chrono::system_clock::now()) {}
+        , m_lastupdate(chrono::steady_clock::now()) {}
 
     void add(icon_t&& frame);
     icon_t get();
@@ -33,7 +33,7 @@ namespace drawtypes {
     int m_framerate_ms = 1000;
     int m_frame = 0;
     int m_framecount = 0;
-    chrono::system_clock::time_point m_lastupdate;
+    chrono::steady_clock::time_point m_lastupdate;
   };
 
   using animation_t = shared_ptr<animation>;

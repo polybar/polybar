@@ -60,7 +60,7 @@ namespace net {
     m_status.previous = m_status.current;
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
-    m_status.current.time = std::chrono::system_clock::now();
+    m_status.current.time = std::chrono::steady_clock::now();
     m_status.ip = NO_IP;
     m_status.ip6 = NO_IP;
 

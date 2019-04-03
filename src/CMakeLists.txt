@@ -72,6 +72,10 @@ endif()
 add_library(poly STATIC ${files})
 target_include_directories(poly PUBLIC ${dirs})
 target_link_libraries(poly ${libs} Threads::Threads)
+if (WITH_RT)
+  target_link_libraries(poly librt::librt)
+endif()
+
 target_compile_options(poly PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 
 add_executable(polybar main.cpp)

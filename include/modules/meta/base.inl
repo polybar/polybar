@@ -11,12 +11,12 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings bar, string name)
+  module<Impl>::module(const bar_settings& bar, string name)
       : m_sig(signal_emitter::make())
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
-      , m_name("module/" + name)
+      , m_name("module/" + move(name))
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true)) {}

@@ -2,14 +2,15 @@
 
 #include <algorithm>
 #include <chrono>
-#include <condition_variable>
 #include <map>
 #include <mutex>
+#include <utility>
 
 #include "common.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
+#include "utils/condition_variable.hpp"
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
@@ -41,7 +42,7 @@ namespace drawtypes {
   using icon_t = label_t;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 class builder;
 class config;
@@ -84,7 +85,7 @@ namespace modules {
 
   class module_formatter {
    public:
-    explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
+    explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(move(modname)) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
     bool has(const string& tag, const string& format_name);
@@ -103,7 +104,7 @@ namespace modules {
 
   struct module_interface {
    public:
-    virtual ~module_interface() {}
+    virtual ~module_interface() = default;
 
     virtual string name() const = 0;
     virtual bool running() const = 0;
@@ -120,15 +121,15 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings bar, string name);
-    ~module() noexcept;
+    module(const bar_settings& bar, string name);
+    ~module() noexcept override;
 
-    string name() const;
-    bool running() const;
-    void stop();
-    void halt(string error_message);
+    string name() const override;
+    bool running() const override;
+    void stop() override;
+    void halt(string error_message) override;
     void teardown();
-    string contents();
+    string contents() override;
 
    protected:
     void broadcast();
@@ -147,7 +148,7 @@ namespace modules {
     mutex m_buildlock;
     mutex m_updatelock;
     mutex m_sleeplock;
-    std::condition_variable m_sleephandler;
+    condition_variable m_sleephandler;
 
     string m_name;
     unique_ptr<builder> m_builder;
@@ -164,6 +165,6 @@ namespace modules {
   };
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -162,7 +162,7 @@ namespace mpd {
     mpd_status_t m_status{};
     unique_ptr<mpdsong> m_song{};
     mpdstate m_state{mpdstate::UNKNOWN};
-    chrono::system_clock::time_point m_updated_at{};
+    chrono::steady_clock::time_point m_updated_at{};
 
     bool m_random{false};
     bool m_repeat{false};
