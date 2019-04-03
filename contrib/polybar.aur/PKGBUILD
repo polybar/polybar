@@ -1,7 +1,7 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
-pkgver=3.3.0
+pkgver=3.3.1
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
@@ -23,7 +23,7 @@ makedepends=("cmake" "git" "python" "python2" "pkg-config")
 conflicts=("polybar-git")
 install="${pkgname}.install"
 source=(${url}/releases/download/${pkgver}/polybar-${pkgver}.tar)
-sha256sums=('647dde8fbf6690138b354bf538d1d97ba8c1743ff22314af4ee085e06a1f506a')
+sha256sums=('b0982a729f99f658d77969fd582d074843a57982b5e7c6b2b6efee5480b2a81c')
 
 prepare() {
   mkdir -p "${pkgname}/build"
