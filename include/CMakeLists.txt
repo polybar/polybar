@@ -35,8 +35,9 @@ endif()
 
 configure_file(
   ${CMAKE_CURRENT_LIST_DIR}/settings.hpp.cmake
-  ${CMAKE_CURRENT_LIST_DIR}/settings.hpp
+  ${CMAKE_BINARY_DIR}/generated-sources/settings.hpp
   ESCAPE_QUOTES @ONLY)
 
+list(APPEND dirs ${CMAKE_BINARY_DIR}/generated-sources/)
 set(APP_VERSION ${APP_VERSION} PARENT_SCOPE)
 set(dirs ${dirs} PARENT_SCOPE)
