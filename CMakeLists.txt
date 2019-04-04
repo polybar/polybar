@@ -22,12 +22,9 @@ endif()
 
 project(polybar C CXX)
 
-# Polybar version information
-# Update this on every release
-# This is used to create the version string if a git repo is not available
-set(VERSION_MAJOR "3")
-set(VERSION_MINOR "3")
-set(VERSION_PATCH "0")
+# Extract version information from version.txt. The first line that looks like
+# a version string is used, so the file supports comments
+file(STRINGS version.txt version_txt REGEX "^[0-9]+\\.[0-9]+\\.[0-9]+.*$" LIMIT_COUNT 1)
 
 # If we are in a git repo we can get the version information from git describe
 execute_process(COMMAND git describe --tags --dirty=-dev
@@ -40,7 +37,7 @@ if(git_result EQUAL "0")
   set(APP_VERSION "${git_describe}")
 else()
   message(STATUS "Could not detect version with git, falling back to built-in version information.")
-  set(APP_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+  set(APP_VERSION "${version_txt}")
 endif()
 
 STRING(REGEX REPLACE "[^a-zA-Z0-9_]" "_" APP_VERSION_NAMESPACE "v${APP_VERSION}")
