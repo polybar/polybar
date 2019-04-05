@@ -176,7 +176,7 @@ namespace modules {
     const chrono::milliseconds framerate{m_animation_packetloss->framerate()};
 
     while (running()) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       if (m_connected && m_packetloss) {
         m_animation_packetloss->increment();
         broadcast();
