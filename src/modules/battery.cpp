@@ -160,7 +160,10 @@ namespace modules {
    */
   void battery_module::start() {
     this->inotify_module::start();
-    m_subthread = thread(&battery_module::subthread, this);
+    // We only start animation thread if there is at least one animation.
+    if (m_animation_charging || m_animation_discharging) {
+      m_subthread = thread(&battery_module::subthread, this);
+    }
   }
 
   /**
@@ -345,13 +348,13 @@ namespace modules {
     m_log.trace("%s: Start of subthread", name());
 
     while (running()) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       auto framerate = 1000U;  // milliseconds
-      if (m_state == battery_module::state::CHARGING) {
+      if (m_state == battery_module::state::CHARGING && m_animation_charging) {
         m_animation_charging->increment();
         broadcast();
         framerate = m_animation_charging->framerate();
-      } else if (m_state == battery_module::state::DISCHARGING) {
+      } else if (m_state == battery_module::state::DISCHARGING && m_animation_discharging) {
         m_animation_discharging->increment();
         broadcast();
         framerate = m_animation_discharging->framerate();
