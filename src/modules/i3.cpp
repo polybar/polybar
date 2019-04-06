@@ -1,5 +1,8 @@
 #include <sys/socket.h>
+#include <x11/ewmh.hpp>
 
+#include <cairo.h>
+#include "cairo/surface.hpp"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/i3.hpp"
@@ -31,6 +34,16 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    string side = m_conf.get(name(), "icons-side", "none"s);
+    if (side == "left") {
+      m_icons_side = alignment::LEFT;
+    } else if (side == "right") {
+      m_icons_side = alignment::RIGHT;
+    } else if (side == "none") {
+      m_icons_side = alignment::NONE;
+    } else {
+      m_log.err("%s: Invalid icon side setting", name());
+    }
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -74,7 +87,7 @@ namespace modules {
           }
         };
       }
-      m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_MODE);
+      m_ipc->subscribe(i3ipc::ET_WORKSPACE | i3ipc::ET_MODE | i3ipc::ET_WINDOW);
     } catch (const exception& err) {
       throw module_error(err.what());
     }
@@ -113,6 +126,28 @@ namespace modules {
     }
   }
 
+  vector<string> i3_module::get_windows_for_tree(shared_ptr<i3ipc::container_t> tree) {
+    vector<string> windows;
+    auto t = *tree;
+
+    if (tree->xwindow_id != 0) {
+      auto xwindow_id = tree->xwindow_id;
+      auto icon = ewmh_util::get_wm_icon((xcb_window_t)xwindow_id, m_bar.size.h);
+
+      if (icon) {
+        add_icon(icon, xwindow_id);
+        windows.push_back(to_string(xwindow_id));
+      }
+    }
+
+    for (auto sub_tree : tree->nodes) {
+      auto new_vec = get_windows_for_tree(sub_tree);
+      windows.insert(windows.end(), new_vec.begin(), new_vec.end());
+    }
+
+    return windows;
+  }
+
   bool i3_module::update() {
     /*
      * update only populates m_workspaces and those are only needed when
@@ -123,6 +158,26 @@ namespace modules {
     }
     m_workspaces.clear();
     i3_util::connection_t ipc;
+
+    auto list = ipc.get_tree()->nodes;
+    vector<shared_ptr<i3ipc::container_t>> mons(begin(list), end(list));
+
+    map<string, vector<string>> map;
+
+    if (m_icons_side != alignment::NONE) {
+      clear_icons();
+
+      for (auto monitor : mons) {
+        for (auto cont : monitor->nodes) {
+          if (cont->type == "con" && cont->name == "content") {
+            for (auto workspace : cont->nodes) {
+              auto windows = get_windows_for_tree(workspace);
+              map.emplace(workspace->name, windows);
+            }
+          }
+        }
+      }
+    }
 
     try {
       vector<shared_ptr<i3_util::workspace_t>> workspaces;
@@ -168,7 +223,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label), map[ws->name]));
       }
 
       return true;
@@ -202,10 +257,32 @@ namespace modules {
 
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
-          builder->node(ws->label);
+        }
+
+        auto set_icons = [&]() {
+          for (auto ic : ws->icons) {
+            auto icon = factory_util::shared<real_icon>("");
+            icon->m_background = ws->label->m_background;
+            icon->m_underline = ws->label->m_underline;
+            icon->m_overline = ws->label->m_overline;
+            icon->m_padding = side_values{1, 1};
+            icon->m_location = ic;
+            builder->node(icon);
+          }
+        };
+
+        if (m_icons_side == alignment::LEFT) {
+          set_icons();
+        }
+
+        builder->node(ws->label);
+
+        if (m_icons_side == alignment::RIGHT) {
+          set_icons();
+        }
+
+        if (m_click) {
           builder->cmd_close();
-        } else {
-          builder->node(ws->label);
         }
       }
 

@@ -3,6 +3,7 @@
 #include <xcb/xcb_ewmh.h>
 
 #include "common.hpp"
+#include "components/types.hpp"
 #include "utils/memory.hpp"
 
 POLYBAR_NS
@@ -18,6 +19,8 @@ namespace ewmh_util {
 
   string get_wm_name(xcb_window_t win);
   string get_visible_name(xcb_window_t win);
+  unsigned int get_closest_icon(xcb_ewmh_wm_icon_iterator_t *iter, uint32_t size);
+  surface_t get_wm_icon(xcb_window_t win, uint32_t size);
   string get_icon_name(xcb_window_t win);
   string get_reply_string(xcb_ewmh_get_utf8_strings_reply_t* reply);
 

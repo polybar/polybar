@@ -1,6 +1,7 @@
 #include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
+#include "components/icon_manager.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -11,7 +12,7 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings bar, string name)
+  module<Impl>::module(const bar_settings& bar, string name)
       : m_sig(signal_emitter::make())
       , m_bar(bar)
       , m_log(logger::make())
@@ -171,6 +172,22 @@ namespace modules {
 
     return format->decorate(&*m_builder, m_builder->flush());
   }
+
+  template <typename Impl>
+  void module<Impl>::add_icon(surface_t surface, uint64_t id) {
+    m_bar.icon_manager->add_icon(surface, id, this);
+  }
+
+  template <typename Impl>
+  surface_t module<Impl>::get_icon(uint64_t id) const {
+    return m_bar.icon_manager->get_icon(id);
+  }
+
+  template <typename Impl>
+  void module<Impl>::clear_icons() {
+    m_bar.icon_manager->clear_icons(this);
+  }
+
 
   // }}}
 }

@@ -140,6 +140,10 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         m_sig.emit(change_alignment{alignment::LEFT});
         break;
 
+      case 'i':
+        m_sig.emit(icon{forward<string>(value)});
+        break;
+
       case 'c':
         m_sig.emit(change_alignment{alignment::CENTER});
         break;

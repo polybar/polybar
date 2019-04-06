@@ -120,7 +120,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings bar, string name);
+    module(const bar_settings& bar, string name);
     ~module() noexcept;
 
     string name() const;
@@ -135,12 +135,15 @@ namespace modules {
     void idle();
     void sleep(chrono::duration<double> duration);
     void wakeup();
+    void add_icon(surface_t surface, uint64_t id);
+    surface_t get_icon(uint64_t id) const;
+    void clear_icons();
     string get_format() const;
     string get_output();
 
    protected:
     signal_emitter& m_sig;
-    const bar_settings m_bar;
+    const bar_settings& m_bar;
     const logger& m_log;
     const config& m_conf;
 

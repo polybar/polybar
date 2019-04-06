@@ -25,6 +25,9 @@ namespace drawtypes {
   class label;
   using label_t = shared_ptr<label>;
 
+  class real_icon;
+  using real_icon_t = shared_ptr<real_icon>;
+
   /**
    * \deprecated use label
    */
@@ -86,6 +89,18 @@ namespace drawtypes {
     string m_tokenized{};
     const vector<token> m_tokens{};
   };
+
+  class real_icon : public non_copyable_mixin<real_icon> {
+   public:
+    string m_location{};
+    string m_background{};
+    string m_underline{};
+    side_values m_padding{0U,0U};
+    side_values m_margin{0U,0U};
+    string m_overline{};
+    explicit real_icon(string location): m_location(location) {};
+  };
+
 
   label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
   label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
