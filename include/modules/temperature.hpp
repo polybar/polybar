@@ -29,9 +29,11 @@ namespace modules {
 
     string m_path;
     int m_zone = 0;
+    // Base temperature used for where to start the ramp
     int m_tempbase = 0;
     int m_tempwarn = 0;
     int m_temp = 0;
+    // Percentage used in the ramp
     int m_perc = 0;
 
     // Whether or not to show units with the %temperature-X% tokens
