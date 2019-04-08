@@ -9,6 +9,7 @@ A fast and easy-to-use tool for creating status bars.
 <p align="center">
 <a href="https://github.com/jaagr/polybar/releases"><img src="https://img.shields.io/github/release/jaagr/polybar.svg"></a>
 <a href="https://travis-ci.org/jaagr/polybar"><img src="https://travis-ci.org/jaagr/polybar.svg?branch=master"></a>
+<a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
 <a href="https://codecov.io/gh/jaagr/polybar/branch/master"><img src="https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg"></a>
 <a href="https://github.com/jaagr/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/jaagr/polybar.svg"></a>
 </p>
