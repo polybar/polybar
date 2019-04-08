@@ -14,6 +14,7 @@
 #include "modules/menu.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/script.hpp"
+#include "modules/disk_io.hpp"
 #if DEBUG
 #include "modules/systray.hpp"
 #endif
@@ -71,6 +72,8 @@ namespace {
       return new fs_module(bar, move(module_name));
     } else if (name == "internal/memory") {
       return new memory_module(bar, move(module_name));
+    } else if (name == "internal/disk_io") {
+      return new disk_io_module(bar, move(module_name));
     } else if (name == "internal/i3") {
       return new i3_module(bar, move(module_name));
     } else if (name == "internal/mpd") {

@@ -408,6 +408,27 @@ menu-2-0-exec = sudo poweroff
 menu-2-1 = cancel
 menu-2-1-exec = menu-open-0
 
+[module/disk_io]
+type = internal/disk_io
+interval = 1
+; If you want to see I/O only of specific devices, you should provide names
+; of thouse devices, otherwise the sum of all disks' I/O speeds will be
+; displayed.
+;monitored-disks-0 = sda
+;monitored-disks-1 = nvme0n1
+format = <label> <indicator-read> <indicator-write>
+;format-prefix = " "
+format-prefix-foreground = ${colors.foreground-alt}
+format-underline = #4bffdc
+label = R: %speed_read% W: %speed_write%
+; You can enbale indicators for read and write to disk with following:
+; Icons for read/write.
+;indicator-read = R
+;indicator-write = W
+; Colors for displaying if read/write is performed at the moment.
+;toggle-on-foreground = ${colors.foreground}
+;toggle-off-foreground = ${colors.foreground-alt}
+
 [settings]
 screenchange-reload = true
 ;compositing-background = xor

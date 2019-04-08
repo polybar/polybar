@@ -4,7 +4,7 @@
 
 set(MODULES_LEFT "bspwm i3")
 set(MODULES_CENTER "mpd")
-set(MODULES_RIGHT "filesystem xbacklight alsa pulseaudio xkeyboard memory cpu wlan eth battery temperature date powermenu")
+set(MODULES_RIGHT "filesystem xbacklight alsa pulseaudio xkeyboard memory cpu disk_io wlan eth battery temperature date powermenu")
 
 set(FONT_FIXED "fixed:pixelsize=10")
 set(FONT_UNIFONT "unifont:fontformat=truetype")
