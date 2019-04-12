@@ -79,6 +79,7 @@ namespace modules {
       return false;
     }
 
+    // We still want to update all tokens even if the interface is disconnected.
     net::network* network =
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
