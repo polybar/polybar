@@ -115,8 +115,6 @@ namespace modules {
       if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
         set_desktop_urgent(evt->window);
       }
-    // } else if (evt->atom == m_ewmh->_NET_WM_DESKTOP) {
-    //   set_desktop_occupied(evt->window);
     } else {
       return;
     }
