@@ -107,7 +107,7 @@ namespace modules {
     size_t m_index{0};
 
     event_timer m_timer{0L, 25L};
-    mutable std::mutex m_mutex;
+    mutable std::mutex m_event_mutex; // protect m_viewports while building the output
   };
 }
 
