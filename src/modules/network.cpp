@@ -134,9 +134,6 @@ namespace modules {
     if (m_label[connection_state::PACKETLOSS]) {
       replace_tokens(m_label[connection_state::PACKETLOSS]);
     }
-    if (m_label[connection_state::DISCONNECTED]) {
-      replace_tokens(m_label[connection_state::DISCONNECTED]);
-    }
 
     if (m_label[connection_state::DISCONNECTED]) {
       replace_tokens(m_label[connection_state::DISCONNECTED]);
