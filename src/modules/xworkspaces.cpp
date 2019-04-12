@@ -139,6 +139,10 @@ namespace modules {
 
     auto it_old = clients.begin();
     auto it_new = m_clientlist.begin();
+
+    // Traverse both the stored and the up-to-date clientlist to update our
+    // stored list with as little changes as possible (add windows that are
+    // only in the new list, remove windows that are no longer in the list)
     while (it_old != clients.end() || it_new != m_clientlist.end()) {
       if (it_old != clients.end()) {
         auto desktop = ewmh_util::get_desktop_from_window(*it_old);
