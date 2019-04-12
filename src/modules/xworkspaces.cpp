@@ -137,25 +137,25 @@ namespace modules {
     std::sort(m_clientlist.begin(), m_clientlist.end());
     std::fill(m_desktop_occupied.begin(), m_desktop_occupied.end(), false);
 
-    auto it = clients.begin();
-    auto m_it = m_clientlist.begin();
-    while (it != clients.end() || m_it != m_clientlist.end()) {
-      if (it != clients.end()) {
-        auto desktop = ewmh_util::get_desktop_from_window(*it);
+    auto it_old = clients.begin();
+    auto it_new = m_clientlist.begin();
+    while (it_old != clients.end() || it_new != m_clientlist.end()) {
+      if (it_old != clients.end()) {
+        auto desktop = ewmh_util::get_desktop_from_window(*it_old);
         m_desktop_occupied[desktop] = true;
       }
-      if (m_it == m_clientlist.end() || (it != clients.end() && *it < *m_it)) {
+      if (it_new == m_clientlist.end() || (it_old != clients.end() && *it_old < *it_new)) {
         // listen for wm_hint (urgency) changes
-        m_connection.ensure_event_mask(*it, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        m_connection.ensure_event_mask(*it_old, XCB_EVENT_MASK_PROPERTY_CHANGE);
         // track window
-        new_windows.emplace_back(*it);
-        ++it;
-      } else if (it == clients.end() || (m_it != m_clientlist.end() && *it > *m_it)) {
+        new_windows.emplace_back(*it_old);
+        ++it_old;
+      } else if (it_old == clients.end() || (it_new != m_clientlist.end() && *it_old > *it_new)) {
         // untrack window
-        m_it = m_clientlist.erase(m_it);
+        it_new = m_clientlist.erase(it_new);
       } else {
-        ++it;
-        ++m_it;
+        ++it_old;
+        ++it_new;
       }
     }
     std::copy(new_windows.begin(), new_windows.end(), std::back_inserter(m_clientlist));
