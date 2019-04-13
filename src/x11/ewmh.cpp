@@ -84,6 +84,14 @@ namespace ewmh_util {
     return desktops;
   }
 
+  unsigned int get_number_of_windows(unsigned int desktop) {
+    unsigned int count(0);
+    for (auto& win : get_client_list()) {
+      if (get_desktop_from_window(win) == desktop) count++;
+    }
+    return count;
+  }
+
   vector<position> get_desktop_viewports(int screen) {
     auto conn = initialize().get();
     vector<position> viewports;

@@ -98,6 +98,7 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
+      rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
@@ -215,12 +216,13 @@ namespace modules {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
         d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
         d->label->replace_token("%name%", m_desktop_names[d->index]);
+        d->label->replace_token("%nwin%", to_string(ewmh_util::get_number_of_windows(d->index)));
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
@@ -259,6 +261,7 @@ namespace modules {
           d->label->reset_tokens();
           d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
           d->label->replace_token("%name%", m_desktop_names[d->index]);
+          d->label->replace_token("%nwin%", to_string(ewmh_util::get_number_of_windows(d->index)));
           d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
           return;
         }
