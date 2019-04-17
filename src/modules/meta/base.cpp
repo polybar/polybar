@@ -14,7 +14,7 @@ namespace modules {
       builder->flush();
       return "";
     }
-    if (offset != 0) {
+    if (offset.value != 0) {
       builder->offset(offset);
     }
     if (margin.value > 0) {

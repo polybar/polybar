@@ -288,11 +288,11 @@ void builder::node_repeat(const label_t& label, size_t n, bool add_space) {
 /**
  * Insert tag that will offset the contents by given pixels
  */
-void builder::offset(int pixels) {
-  if (pixels == 0) {
+void builder::offset(geometry pixels) {
+  if (pixels.value == 0) {
     return;
   }
-  tag_open(syntaxtag::O, to_string(pixels));
+  tag_open(syntaxtag::O, unit_utils::geometry_to_string(pixels));
 }
 
 /**

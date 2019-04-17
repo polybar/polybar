@@ -71,7 +71,7 @@ namespace modules {
     space_size spacing{ZERO_SPACE};
     space_size padding{ZERO_SPACE};
     space_size margin{ZERO_SPACE};
-    int offset{0};
+    geometry offset{GEOMETRY_ZERO_PIXEL};
     int font{0};
 
     string decorate(builder* builder, string output);
