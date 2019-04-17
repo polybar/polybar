@@ -28,6 +28,7 @@ struct alignment_block {
   cairo_pattern_t* pattern;
   double x;
   double y;
+  double width;
 };
 
 class renderer

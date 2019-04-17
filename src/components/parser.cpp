@@ -11,6 +11,7 @@
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
+#include "utils/unit.hpp"
 
 POLYBAR_NS
 
@@ -133,7 +134,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'O':
-        m_sig.emit(offset{string{value}});
+        m_sig.emit(offset{unit_utils::geometry_from_string(string{value})});
         break;
 
       case 'l':
