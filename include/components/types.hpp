@@ -88,19 +88,23 @@ struct space_size {
   float value{0.f};
 };
 
+static constexpr space_size ZERO_SPACE = {space_type::SPACE, 0.};
+
 struct geometry {
   size_type type{size_type::PIXEL};
   float value{0.f};
 };
 
+static constexpr geometry GEOMETRY_ZERO_PIXEL = {size_type::PIXEL, 0.f};
+
 struct side_values {
-  space_size left{space_type::SPACE, 0_z};
-  space_size right{space_type::SPACE, 0_z};
+  space_size left{ZERO_SPACE};
+  space_size right{ZERO_SPACE};
 };
 
 struct geometry_format_values {
   double percentage{0.};
-  geometry offset{size_type::PIXEL, 0};
+  geometry offset{GEOMETRY_ZERO_PIXEL};
 };
 
 struct edge_values {
