@@ -70,6 +70,24 @@ namespace unit_utils {
 
     return size;
   }
+
+  inline string geometry_to_string(geometry geometry) {
+    if (geometry.value > 0) {
+      switch (geometry.type) {
+        case size_type::POINT: {
+          auto str = to_string(geometry.value);
+          str += "pt";
+          return str;
+        }
+        case size_type::PIXEL: {
+          return to_string(static_cast<int>(geometry.value));
+        }
+      }
+    }
+
+    return {};
+  }
+
 }  // namespace unit_utils
 
 POLYBAR_NS_END

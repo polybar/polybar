@@ -210,6 +210,11 @@ space_size config::convert(string&& value) const {
   return size;
 }
 
+template <>
+geometry config::convert(std::string&& value) const {
+  return unit_utils::geometry_from_string(move(value));
+}
+
 /**
  * Allows a new format for pixel sizes (like width in the bar section)
  *
@@ -224,11 +229,11 @@ geometry_format_values config::convert(string&& value) const {
     if (value.find('%') != std::string::npos) {
       return {strtod(value.c_str(), nullptr), {}};
     } else {
-      return {0., unit_utils::geometry_from_string(move(value))};
+      return {0., convert<geometry>(move(value))};
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {strtod(percentage.c_str(), nullptr), unit_utils::geometry_from_string(value.substr(i + 1))};
+    return {strtod(percentage.c_str(), nullptr), convert<geometry>(value.substr(i + 1))};
   }
 }
 
