@@ -107,9 +107,9 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Allocate alignment blocks");
   {
-    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0, 0.});
   }
 
   m_log.trace("renderer: Allocate cairo components");
@@ -453,7 +453,7 @@ double renderer::block_y(alignment) const {
  * Get block width for given alignment
  */
 double renderer::block_w(alignment a) const {
-  return m_blocks.at(a).x;
+  return m_blocks.at(a).width;
 }
 
 /**
@@ -632,6 +632,7 @@ void renderer::draw_text(const string& contents) {
 
   double dx = m_rect.x + m_blocks[m_align].x - origin.x;
   if (dx > 0.0) {
+    m_blocks[m_align].width += dx;
     fill_underline(origin.x, dx);
     fill_overline(origin.x, dx);
   }
@@ -738,6 +739,7 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
+    m_blocks[m_align].width = 0.;
     m_context->push();
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
 
@@ -757,9 +759,13 @@ bool renderer::on(const signals::parser::reverse_colors&) {
 bool renderer::on(const signals::parser::offset& evt) {
   m_log.trace_x("renderer: offset(%f)", evt.cast());
 
-  auto offset_width = unit_utils::geometry_to_pixel(unit_utils::geometry_from_string(evt.cast()), m_bar.dpi_x);
+  auto offset_width = unit_utils::geometry_to_pixel(evt.cast(), m_bar.dpi_x);
   draw_offset(m_blocks[m_align].x, offset_width);
   m_blocks[m_align].x += offset_width;
+
+  if (offset_width > 0) {
+    m_blocks[m_align].width += offset_width;
+  }
 
   return true;
 }

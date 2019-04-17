@@ -152,7 +152,7 @@ namespace signals {
     struct reverse_colors : public detail::base_signal<reverse_colors> {
       using base_type::base_type;
     };
-    struct offset : public detail::value_signal<offset, string> {
+    struct offset : public detail::value_signal<offset, geometry> {
       using base_type::base_type;
     };
     struct attribute_set : public detail::value_signal<attribute_set, attribute> {
