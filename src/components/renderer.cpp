@@ -757,11 +757,10 @@ bool renderer::on(const signals::parser::reverse_colors&) {
 bool renderer::on(const signals::parser::offset& evt) {
   m_log.trace_x("renderer: offset(%f)", evt.cast());
 
-  auto& x_offset = m_blocks[m_align].x;
   auto offset_width = unit_utils::geometry_to_pixel(unit_utils::geometry_from_string(evt.cast()), m_bar.dpi_x);
+  draw_offset(m_blocks[m_align].x, offset_width);
+  m_blocks[m_align].x += offset_width;
 
-  draw_offset(x_offset, offset_width);
-  x_offset += offset_width;
   return true;
 }
 
