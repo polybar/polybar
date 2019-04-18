@@ -53,6 +53,7 @@ class builder {
   void cmd(mousebtn index, string action, const label_t& label);
   void cmd_close(bool condition = true);
 
+  static string add_surrounding_tag(const space_size& space);
  protected:
   string background_hex();
   string foreground_hex();
