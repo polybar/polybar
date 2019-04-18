@@ -461,29 +461,10 @@ bool controller::process_update(bool force) {
   string contents;
   string separator{bar.separator};
 
-  auto add_surrounding_tag = [](const space_size& space_size) -> std::string {
-    if (space_size.value == 0) {
-      return "";
-    }
-
-    string out;
-    if (space_size.type == space_type::POINT || space_size.type == space_type::PIXEL) {
-      out += "%{O";
-    }
-
-    out += unit_utils::space_size_to_string(space_size);
-
-    if (space_size.type == space_type::POINT || space_size.type == space_type::PIXEL) {
-      out += '}';
-    }
-
-    return out;
-  };
-
-  string padding_left = add_surrounding_tag(bar.padding.left);
-  string padding_right = add_surrounding_tag(bar.padding.right);
-  string margin_left = add_surrounding_tag(bar.module_margin.left);
-  string margin_right = add_surrounding_tag(bar.module_margin.right);
+  string padding_left = builder::add_surrounding_tag(bar.padding.left);
+  string padding_right = builder::add_surrounding_tag(bar.padding.right);
+  string margin_left = builder::add_surrounding_tag(bar.module_margin.left);
+  string margin_right = builder::add_surrounding_tag(bar.module_margin.right);
 
   for (const auto& block : m_modules) {
     string block_contents;

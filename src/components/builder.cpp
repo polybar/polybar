@@ -217,17 +217,7 @@ void builder::offset(geometry pixels) {
  */
 void builder::space(space_size size) {
   if (size.value > 0.) {
-    switch (size.type) {
-      case space_type::SPACE:
-        m_output += string(static_cast<string::size_type>(size.value), ' ');
-        break;
-      case space_type::POINT:
-      case space_type::PIXEL:
-        m_output += "%{O";
-        m_output += unit_utils::space_size_to_string(size);
-        m_output += "}";
-        break;
-    }
+    m_output += add_surrounding_tag(size);
   } else {
     space();
   }
@@ -627,6 +617,24 @@ void builder::tag_close(attribute attr) {
       append("%{-o}");
       break;
   }
+}
+string builder::add_surrounding_tag(const space_size& space) {
+  if (space.value == 0) {
+    return "";
+  }
+
+  string out;
+  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+    out += "%{O";
+  }
+
+  out += unit_utils::space_size_to_string(space);
+
+  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+    out += '}';
+  }
+
+  return out;
 }
 
 POLYBAR_NS_END
