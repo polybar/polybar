@@ -230,6 +230,7 @@ namespace modules {
     if (label) {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(m_percentage));
+      label->replace_token("%percentage_raw%", to_string(current_percentage_raw()));
       label->replace_token("%consumption%", current_consumption());
 
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
@@ -301,6 +302,12 @@ namespace modules {
     }
     return percentage;
   }
+
+  int battery_module::current_percentage_raw() {
+    int percentage{read(*m_capacity_reader)};
+    return percentage;
+  }
+  
 
   /**
   * Get the current power consumption
