@@ -1,3 +1,8 @@
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+
+# Only used if documentation is built on its own
+project(polybar-doc NONE)
+
 find_program(SPHINX_EXECUTABLE
   NAMES sphinx-build
   DOC "Sphinx Documentation Builder")
@@ -6,13 +11,13 @@ if(NOT SPHINX_EXECUTABLE)
   message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
 endif()
 
-# Configures conf.py in the current folder and puts it in the build folder
-configure_file(conf.py conf.py @ONLY)
-
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
 set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# Configures conf.py in the current folder and puts it in the build folder
+configure_file(conf.py conf.py @ONLY)
 
 # We want to run `sphinx-build` with the following builders
 set(doc_builders "html" "man")
@@ -26,10 +31,13 @@ foreach(builder ${doc_builders})
   add_custom_target(${doc_target}
     COMMAND ${SPHINX_EXECUTABLE}
             -b ${builder}
+            # conf.py dir
             -c "${CMAKE_CURRENT_BINARY_DIR}"
             -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
             ${sphinx_flags}
-            "${CMAKE_SOURCE_DIR}/doc"
+            # Documentation source file dir
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            # Output dir
             "${CMAKE_CURRENT_BINARY_DIR}/${builder}" > ${builder_log}
     COMMENT "sphinx-build ${builder}: see doc/${builder_log}")
 
