@@ -109,7 +109,7 @@ namespace modules {
 
     // Load state and capacity level
     m_state = current_state();
-    m_percentage = current_percentage(m_state);
+    m_percentage = current_percentage();
 
     // Add formats and elements
     m_formatter->add(FORMAT_CHARGING, TAG_LABEL_CHARGING,
@@ -199,7 +199,7 @@ namespace modules {
    */
   bool battery_module::on_event(inotify_event* event) {
     auto state = current_state();
-    auto percentage = current_percentage(state);
+    auto percentage = current_percentage();
 
     // Reset timer to avoid unnecessary polling
     m_lastpoll = chrono::system_clock::now();
@@ -229,8 +229,8 @@ namespace modules {
 
     if (label) {
       label->reset_tokens();
-      label->replace_token("%percentage%", to_string(m_percentage));
-      label->replace_token("%percentage_raw%", to_string(current_percentage_raw()));
+      label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
+      label->replace_token("%percentage_raw%", to_string(m_percentage));
       label->replace_token("%consumption%", current_consumption());
 
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
@@ -295,19 +295,17 @@ namespace modules {
   /**
    * Get the current capacity level
    */
-  int battery_module::current_percentage(state state) {
+  int battery_module::current_percentage() {
     int percentage{read(*m_capacity_reader)};
-    if (state == battery_module::state::FULL && percentage >= m_fullat) {
-      percentage = 100;
-    }
     return percentage;
   }
 
-  int battery_module::current_percentage_raw() {
-    int percentage{read(*m_capacity_reader)};
+  int battery_module::clamp_percentage(int percentage, state state) {
+    if (state == battery_module::state::FULL && percentage >= m_fullat) {
+      return 100;
+    }
     return percentage;
   }
-  
 
   /**
   * Get the current power consumption

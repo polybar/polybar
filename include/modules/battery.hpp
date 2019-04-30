@@ -56,8 +56,8 @@ namespace modules {
 
    protected:
     state current_state();
-    int current_percentage(state state);
-    int current_percentage_raw();
+    int current_percentage();
+    int clamp_percentage(int percentage, state state);
     string current_time();
     string current_consumption();
     void subthread();
