@@ -39,6 +39,20 @@ script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
 
 matrix:
   include:
+    # Only builds the documentation
+    - language: generic
+      # Doesn't actually do anything, just used for the indicator on travis
+      compiler: Sphinx
+      addons: {apt: {packages: [python3-sphinx]}}
+      before_script:
+        - mkdir -p doc/build
+        - cd doc/build
+        - cmake ..
+      script: make doc
+      # Disable unnecessary commands
+      install:
+      cache:
+
     - compiler: clang
       env: BUILD_TYPE=Release
       addons: {apt: {packages: [*base_deps, *optional_deps]}}
