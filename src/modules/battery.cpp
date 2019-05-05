@@ -263,9 +263,9 @@ namespace modules {
     } else if (tag == TAG_ANIMATION_DISCHARGING) {
       builder->node(m_animation_discharging->get());
     } else if (tag == TAG_BAR_CAPACITY) {
-      builder->node(m_bar_capacity->output(m_percentage));
+      builder->node(m_bar_capacity->output(clamp_percentage(m_percentage, m_state)));
     } else if (tag == TAG_RAMP_CAPACITY) {
-      builder->node(m_ramp_capacity->get_by_percentage(m_percentage));
+      builder->node(m_ramp_capacity->get_by_percentage(clamp_percentage(m_percentage, m_state)));
     } else if (tag == TAG_LABEL_CHARGING) {
       builder->node(m_label_charging);
     } else if (tag == TAG_LABEL_DISCHARGING) {
@@ -300,7 +300,7 @@ namespace modules {
     return percentage;
   }
 
-  int battery_module::clamp_percentage(int percentage, state state) {
+  int battery_module::clamp_percentage(int percentage, state state) const {
     if (state == battery_module::state::FULL && percentage >= m_fullat) {
       return 100;
     }
