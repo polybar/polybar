@@ -158,7 +158,7 @@ namespace cairo {
       while (!chars.empty()) {
         auto remaining = chars.size();
         for (auto&& f : fns) {
-          unsigned int matches;
+          unsigned int matches = 0;
 
           // Match as many glyphs as possible if the default/preferred font
           // is being tested. Otherwise test one glyph at a time against
