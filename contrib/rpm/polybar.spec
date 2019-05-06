@@ -9,8 +9,8 @@ Release:        0
 Summary:        A fast and easy-to-use status bar
 License:        MIT
 Group:          System/GUI/Other
-URL:            https://github.com/jaagr/polybar
-Source:         https://github.com/jaagr/polybar/archive/%{version}.tar.gz
+URL:            https://github.com/polybar/polybar
+Source:         https://github.com/polybar/polybar/archive/%{version}.tar.gz
 BuildRequires:  clang >= 3.4
 BuildRequires:  cmake >= 3.1
 BuildRequires:  pkgconfig

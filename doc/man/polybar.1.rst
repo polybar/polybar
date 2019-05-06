@@ -61,9 +61,9 @@ AUTHOR
 
 REPORTING BUGS
 --------------
-Report issues on GitHub <https://github.com/jaagr/polybar>
+Report issues on GitHub <https://github.com/polybar/polybar>
 
 SEE ALSO
 --------
-| Full documentation at: <https://github.com/jaagr/polybar>
-| Project wiki: <https://github.com/jaagr/polybar/wiki>
+| Full documentation at: <https://github.com/polybar/polybar>
+| Project wiki: <https://github.com/polybar/polybar/wiki>
