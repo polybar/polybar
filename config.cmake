@@ -10,7 +10,7 @@
 ;
 ;
 ;   To learn more about how to configure Polybar
-;   go to https://github.com/jaagr/polybar
+;   go to https://github.com/polybar/polybar
 ;
 ;   The README contains a lot of information
 ;

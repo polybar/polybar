@@ -7,11 +7,11 @@ A fast and easy-to-use tool for creating status bars.
 </p>
 
 <p align="center">
-<a href="https://github.com/jaagr/polybar/releases"><img src="https://img.shields.io/github/release/jaagr/polybar.svg"></a>
-<a href="https://travis-ci.org/jaagr/polybar"><img src="https://travis-ci.org/jaagr/polybar.svg?branch=master"></a>
+<a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
+<a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
 <a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
-<a href="https://codecov.io/gh/jaagr/polybar/branch/master"><img src="https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg"></a>
-<a href="https://github.com/jaagr/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/jaagr/polybar.svg"></a>
+<a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>
+<a href="https://github.com/polybar/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/polybar/polybar.svg"></a>
 </p>
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
@@ -28,7 +28,7 @@ You can find polybar configs for these example images (and other configs) [here]
 
 **If you need help**, check out the [Support](SUPPORT.md) page.
 
-Please report any bugs you find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new/choose) here on GitHub.
+Please report any bugs you find by [creating an issue ticket](https://github.com/polybar/polybar/issues/new/choose) here on GitHub.
 Make sure you include steps on how to reproduce it.
 
 
@@ -70,7 +70,7 @@ Some of the services included so far:
 - Inter-process messaging
 - And more...
 
-[See the wiki for more details](https://github.com/jaagr/polybar/wiki).
+[See the wiki for more details](https://github.com/polybar/polybar/wiki).
 
 ## Getting Help
 
@@ -128,15 +128,15 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - `libcurl` *required by `internal/github`*
 - `libnl-genl` or `wireless_tools` *required by `internal/network`*
 
-Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
+Find a more complete list on the [dedicated wiki page](https://github.com/polybar/polybar/wiki/Compiling).
 
 
 ### Building from source
 
-Please [report any problems](https://github.com/jaagr/polybar/issues/new/choose) you run into when building the project.
+Please [report any problems](https://github.com/polybar/polybar/issues/new/choose) you run into when building the project.
 
 Download the `polybar-<version>.tar` for the version you want to build from the
-[release page](https://github.com/jaagr/polybar/releases), extract it with
+[release page](https://github.com/polybar/polybar/releases), extract it with
 `tar xvf polybar-<version>.tar` and go into the extracted folder. There, run
 the following commands:
 
@@ -154,11 +154,11 @@ There's also a helper script available in the root folder:
   $ ./build.sh
   ~~~
 
-For more info, have a look at the [Compiling wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
+For more info, have a look at the [Compiling wiki page](https://github.com/polybar/polybar/wiki/Compiling).
 
 ### Configuration
 
-Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/polybar/wiki/Configuration).
+Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/polybar/polybar/wiki/Configuration).
 
 #### Install the example configuration
 Run the following inside the build directory:
@@ -174,7 +174,7 @@ Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /us
 
 ### Running
 
-[See the wiki for details on how to run polybar](https://github.com/jaagr/polybar/wiki).
+[See the wiki for details on how to run polybar](https://github.com/polybar/polybar/wiki).
 
 ## Community
 Want to get in touch?
@@ -196,8 +196,8 @@ Want to get in touch?
 * [**@Tobaloidee**](https://github.com/Tobaloidee)
 
 
-### [All Contributors](https://github.com/jaagr/polybar/graphs/contributors)
+### [All Contributors](https://github.com/polybar/polybar/graphs/contributors)
 
 ## License
 
-Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/jaagr/polybar/blob/master/LICENSE).
+Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/polybar/polybar/blob/master/LICENSE).
