@@ -175,8 +175,12 @@ void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0) {
-    if (pa_cvolume_max(&cv) + vol <= m_max_volume) {
+    pa_volume_t current = pa_cvolume_max(&cv);
+    if (current + vol <= m_max_volume) {
       pa_cvolume_inc(&cv, vol);
+    } else if (current < m_max_volume) {
+      // avoid rounding errors and set to m_max_volume directly
+      pa_cvolume_scale(&cv, m_max_volume);
     } else {
       m_log.warn("pulseaudio: maximum volume reached");
     }
