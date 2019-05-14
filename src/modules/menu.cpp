@@ -13,6 +13,7 @@ namespace modules {
 
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
+    /* TODO: read config to get user setting for whether level should change after a menu option executes */
 
     string default_format;
     if(m_expand_right) {
@@ -118,6 +119,7 @@ namespace modules {
     if (cmd.compare(0, 4, "menu") != 0 && m_level > -1) {
       for (auto&& item : m_levels[m_level]->items) {
         if (item->exec == cmd) {
+          /* TODO: add conditional logic to this - should only change level (close menu) if user chooses */
           m_level = -1;
           break;
         }

@@ -34,6 +34,8 @@ namespace modules {
     static constexpr auto EVENT_MENU_CLOSE = "menu-close";
 
     bool m_expand_right{true};
+    /* TODO: add in boolean variable to configure whether menu changes levels
+       (closes) after menu option execution */
 
     label_t m_labelopen;
     label_t m_labelclose;
