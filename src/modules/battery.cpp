@@ -296,8 +296,7 @@ namespace modules {
    * Get the current capacity level
    */
   int battery_module::current_percentage() {
-    int percentage{read(*m_capacity_reader)};
-    return percentage;
+    return read(*m_capacity_reader);
   }
 
   int battery_module::clamp_percentage(int percentage, state state) const {
