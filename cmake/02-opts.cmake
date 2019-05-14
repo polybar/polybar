@@ -87,6 +87,14 @@ set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
 
 if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
-  set(DEBUG_HINTS_OFFSET_X 0 CACHE INTEGER "Debug hint offset x")
-  set(DEBUG_HINTS_OFFSET_Y 0 CACHE INTEGER "Debug hint offset y")
+  set(DEBUG_HINTS_OFFSET_X 0 CACHE STRING "Debug hint offset x")
+  set(DEBUG_HINTS_OFFSET_Y 0 CACHE STRING "Debug hint offset y")
+
+  if (NOT DEBUG_HINTS_OFFSET_X MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "DEBUG_HINTS_OFFSET_X must be an integer")
+  endif()
+
+  if (NOT DEBUG_HINTS_OFFSET_Y MATCHES "^[0-9]+$")
+    message(FATAL_ERROR "DEBUG_HINTS_OFFSET_Y must be an integer")
+  endif()
 endif()
