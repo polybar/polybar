@@ -42,7 +42,7 @@ namespace drawtypes {
     return m_tokenized.find(token) != string::npos;
   }
 
-  void label::replace_token(const string& token, string replacement) {
+  void label::replace_token(const string& token, const string& replacement) {
     if (!has_token(token)) {
       return;
     }
@@ -139,7 +139,8 @@ namespace drawtypes {
   /**
    * Create a label by loading values from the configuration
    */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def, vector<string>&& whitelisted_tokens) {
+  label_t load_label(const config& conf, const string& section, string name, bool required, const string& def,
+      vector<string>&& whitelisted_tokens) {
     vector<token> tokens;
     size_t start, end, pos;
 
@@ -257,8 +258,9 @@ namespace drawtypes {
   /**
    * Create a label by loading optional values from the configuration
    */
-  label_t load_optional_label(const config& conf, const string& section, string name, string def, vector<string>&& whitelisted_tokens) {
-    return load_label(conf, section, move(name), false, move(def), move(whitelisted_tokens));
+  label_t load_optional_label(
+      const config& conf, const string& section, string name, const string& def, vector<string>&& whitelisted_tokens) {
+    return load_label(conf, section, move(name), false, def, move(whitelisted_tokens));
   }
 }  // namespace drawtypes
 

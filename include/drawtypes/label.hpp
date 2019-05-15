@@ -69,7 +69,7 @@ namespace drawtypes {
     void reset_tokens();
     void reset_tokens(const string& tokenized);
     bool has_token(const string& token) const;
-    void replace_token(const string& token, string replacement);
+    void replace_token(const string& token, const string& replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 
@@ -80,9 +80,9 @@ namespace drawtypes {
     const vector<string> m_token_whitelist{};
   };
 
-  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s,
+  label_t load_label(const config& conf, const string& section, string name, bool required = true, const string& def = ""s,
       vector<string>&& whitelisted_tokens = {});
-  label_t load_optional_label(const config& conf, const string& section, string name, string def = ""s,
+  label_t load_optional_label(const config& conf, const string& section, string name, const string& def = ""s,
       vector<string>&& whitelisted_tokens = {});
 
 }  // namespace drawtypes
