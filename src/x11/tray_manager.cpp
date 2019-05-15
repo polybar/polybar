@@ -256,8 +256,8 @@ void tray_manager::deactivate(bool clear_selection) {
     m_log.trace("tray: Destroy window");
     m_connection.destroy_window(m_tray);
   }
-  m_context.release();
-  m_surface.release();
+  m_context.reset();
+  m_surface.reset();
   if (m_pixmap) {
     m_connection.free_pixmap(m_pixmap);
   }
@@ -523,10 +523,10 @@ void tray_manager::create_bg(bool realloc) {
   }
 
   if(realloc && m_surface) {
-    m_surface.release();
+    m_surface.reset();
   }
   if(realloc && m_context) {
-    m_context.release();
+    m_context.reset();
   }
 
   auto w = m_opts.width_max;
