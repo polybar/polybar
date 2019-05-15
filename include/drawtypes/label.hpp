@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
-#include "utils/algorithm.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
@@ -59,7 +58,7 @@ namespace drawtypes {
         , m_text(move(text))
         , m_tokenized(m_text)
         , m_tokens(move(tokens))
-        , m_token_whitelist{algo_util::sort_in_place(move(token_whitelist))} {
+        , m_token_whitelist{move(token_whitelist)} {
       assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
     }
 

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <utility>
 
 #include "drawtypes/label.hpp"
@@ -55,7 +56,7 @@ namespace drawtypes {
           repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
         }
 
-        if (!std::binary_search(m_token_whitelist.cbegin(), m_token_whitelist.cend(), token)) {
+        if (std::find(m_token_whitelist.cbegin(), m_token_whitelist.cend(), token) == m_token_whitelist.cend()) {
           repl = string_util::replace_all(repl, "%{", "\\%{");
         }
 
