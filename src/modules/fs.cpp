@@ -102,20 +102,24 @@ namespace modules {
         mount->bytes_used = mount->bytes_total - mount->bytes_free;
         mount->bytes_avail = static_cast<uint64_t>(buffer.f_frsize) * static_cast<uint64_t>(buffer.f_bavail);
 
-        mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
-        mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_free =
+            math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_used =
+            math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
       }
     }
 
     if (m_remove_unmounted) {
-      for (auto&& mount : m_mounts) {
-        if (!mount->mounted) {
-          m_log.info("%s: Removing mountpoint \"%s\" (reason: `remove-unmounted = true`)", name(), mount->mountpoint);
-          m_mountpoints.erase(
-              std::remove(m_mountpoints.begin(), m_mountpoints.end(), mount->mountpoint), m_mountpoints.end());
-          m_mounts.erase(std::remove(m_mounts.begin(), m_mounts.end(), mount), m_mounts.end());
-        }
+      auto new_end =
+          std::stable_partition(m_mounts.begin(), m_mounts.end(), [](const auto& mount) { return mount->mounted; });
+
+      for (auto it = new_end; it < m_mounts.end(); ++it) {
+        m_log.info("%s: Removing mountpoint \"%s\" (reason: `remove-unmounted = true`)", name(), (*it)->mountpoint);
+        m_mountpoints.erase(
+            std::remove(m_mountpoints.begin(), m_mountpoints.end(), (*it)->mountpoint), m_mountpoints.end());
       }
+
+      m_mounts.erase(new_end, m_mounts.end());
     }
 
     return true;
