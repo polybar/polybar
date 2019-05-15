@@ -232,15 +232,15 @@ namespace modules {
       bool headphones{m_headphones};
 
       if (m_mixer[mixer::MASTER] && !m_mixer[mixer::MASTER]->get_name().empty()) {
-        mixers.emplace_back(new mixer_t::element_type(
+        mixers.emplace_back(std::make_shared<mixer_t::element_type>(
             string{m_mixer[mixer::MASTER]->get_name()}, string{m_mixer[mixer::MASTER]->get_sound_card()}));
       }
       if (m_mixer[mixer::HEADPHONE] && !m_mixer[mixer::HEADPHONE]->get_name().empty() && headphones) {
-        mixers.emplace_back(new mixer_t::element_type(
+        mixers.emplace_back(std::make_shared<mixer_t::element_type>(
             string{m_mixer[mixer::HEADPHONE]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
       }
       if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
-        mixers.emplace_back(new mixer_t::element_type(
+        mixers.emplace_back(std::make_shared<mixer_t::element_type>(
             string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
       }
 

@@ -83,7 +83,7 @@ namespace modules {
       auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
           [&](const vector<string>& m) { return m.size() > 4 && m[4] == mountpoint; });
 
-      m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end()});
+      m_mounts.emplace_back(std::make_unique<fs_mount>(mountpoint, details != mountinfo.end()));
       struct statvfs buffer {};
 
       if (!m_mounts.back()->mounted) {
@@ -180,6 +180,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
