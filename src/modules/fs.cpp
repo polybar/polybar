@@ -56,7 +56,7 @@ namespace modules {
     // Warn about "unreachable" format tag
     if (m_formatter->has(TAG_LABEL_UNMOUNTED) && m_remove_unmounted) {
       m_log.warn("%s: Defined format tag \"%s\" will never be used (reason: `remove-unmounted = true`)", name(),
-          TAG_LABEL_UNMOUNTED);
+          string{TAG_LABEL_UNMOUNTED});
     }
   }
 
