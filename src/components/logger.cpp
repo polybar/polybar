@@ -60,13 +60,13 @@ logger::logger(loglevel level) : m_level(level) {
 /**
  * Set output verbosity
  */
-void logger::verbosity(loglevel&& level) {
+void logger::verbosity(loglevel level) {
 #ifndef DEBUG_LOGGER
   if (level == loglevel::TRACE) {
     throw application_error("Trace logging is not enabled...");
   }
 #endif
-  m_level = forward<decltype(level)>(level);
+  m_level = level;
 }
 
 /**
