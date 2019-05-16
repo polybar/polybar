@@ -270,10 +270,10 @@ namespace net {
     request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
-      return false;
+      m_linkspeed = -1;
+    } else {
+      m_linkspeed = data.speed;
     }
-
-    m_linkspeed = data.speed;
 
     return true;
   }
@@ -306,6 +306,7 @@ namespace net {
    * about the current connection
    */
   string wired_network::linkspeed() const {
+    if (m_linkspeed == -1) return "N/A";
     return (m_linkspeed == 0 ? "???" : to_string(m_linkspeed)) + " Mbit/s";
   }
 
