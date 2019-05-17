@@ -40,8 +40,6 @@ else()
   set(APP_VERSION "${version_txt}")
 endif()
 
-STRING(REGEX REPLACE "[^a-zA-Z0-9_]" "_" APP_VERSION_NAMESPACE "v${APP_VERSION}")
-
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   ${PROJECT_SOURCE_DIR}/cmake
