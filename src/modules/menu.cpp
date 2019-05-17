@@ -74,10 +74,9 @@ namespace modules {
       builder->cmd_close();
     } else if (tag == TAG_MENU && m_level > -1) {
       auto spacing = m_formatter->get(get_format())->spacing;
-      //Insert spacing after menu-items and before menu-toggle for expand-right=true
-      if (m_expand_right) {
-        if (*m_labelseparator)
-          builder->node(m_labelseparator);
+      //Insert separator after menu-toggle and before menu-items for expand-right=true
+      if (m_expand_right && *m_labelseparator) {
+        builder->node(m_labelseparator);
         builder->space(spacing);
       }
       for (auto&& item : m_levels[m_level]->items) {
@@ -91,11 +90,10 @@ namespace modules {
             builder->space(spacing);
           }
         } else if (item == m_levels[m_level]->items.back()) {
-        //Insert spacing after menu-toggle and before menu-items for expand-right=false
-          if (!m_expand_right) {
+          //Insert separator after last menu-item and before menu-toggle for expand-right=false
+          if (!m_expand_right && *m_labelseparator) {
             builder->space(spacing);
-            if (*m_labelseparator)
-              builder->node(m_labelseparator);
+            builder->node(m_labelseparator);
           }
         }
       }
