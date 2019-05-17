@@ -26,13 +26,18 @@ copyright = '2016-{}, Michael Carlberg & contributors'.format(
   )
 author = 'Polybar Team'
 
-# The short X.Y version
-version = '@APP_VERSION@'
-# The full version, including alpha/beta/rc tags
-release = version
-
 # is whether we are on readthedocs.io
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if on_rtd:
+  # On readthedocs, cmake isn't run so the version string isn't available
+  version = os.environ.get('READTHEDOCS_VERSION', None)
+else:
+  # The short X.Y version
+  version = '@APP_VERSION@'
+
+# The full version, including alpha/beta/rc tags
+release = version
 
 # Set path to documentation
 if on_rtd:
