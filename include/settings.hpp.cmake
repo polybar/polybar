@@ -6,7 +6,6 @@
 
 #define APP_NAME "@PROJECT_NAME@"
 #cmakedefine APP_VERSION "@APP_VERSION@"
-#cmakedefine APP_VERSION_NAMESPACE @APP_VERSION_NAMESPACE@
 
 #cmakedefine01 ENABLE_ALSA
 #cmakedefine01 ENABLE_MPD
