@@ -85,8 +85,3 @@ set(SETTING_PATH_MESSAGING_FIFO "/tmp/polybar_mqueue.%pid%"
   CACHE STRING "Path to file containing the current temperature")
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
-
-if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
-  set(DEBUG_HINTS_OFFSET_X 0 CACHE INTEGER "Debug hint offset x")
-  set(DEBUG_HINTS_OFFSET_Y 0 CACHE INTEGER "Debug hint offset y")
-endif()
