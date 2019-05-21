@@ -34,14 +34,15 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(string name, enum state state_, label_t&& label)
-          : name(name), state(state_), label(forward<label_t>(label)) {}
+      explicit workspace(string name, enum state state_, label_t&& label, string output)
+          : name(name), state(state_), label(forward<label_t>(label)), output(output) {}
 
       operator bool();
 
       string name;
       enum state state;
       label_t label;
+      string output;
     };
 
    public:
@@ -60,6 +61,7 @@ namespace modules {
     static constexpr const char* DEFAULT_MODE{"default"};
     static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};
     static constexpr const char* DEFAULT_WS_LABEL{"%icon% %name%"};
+    static constexpr const char* DEFAULT_GROUT_LABEL{" %output%:"};
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};
@@ -80,6 +82,10 @@ namespace modules {
      * Separator that is inserted in between workspaces
      */
     label_t m_labelseparator;
+    /**
+     * Format for groups label
+     */
+    label_t m_labelgroupoutputs;
 
     bool m_click{true};
     bool m_scroll{true};
@@ -89,6 +95,7 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
+    bool m_group_outputs{false};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
