@@ -35,7 +35,7 @@ namespace modules {
 
     struct workspace {
       explicit workspace(string name, enum state state_, label_t&& label, string output)
-          : name(name), state(state_), label(forward<label_t>(label)), output(output) {}
+          : name(move(name)), state(state_), label(move(label)), output(move(output)) {}
 
       operator bool();
 
