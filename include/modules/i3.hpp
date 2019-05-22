@@ -65,6 +65,7 @@ namespace modules {
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};
+    static constexpr const char* TAG_LABEL_GROUP{"<label-group>"};
 
     static constexpr const char* EVENT_PREFIX{"i3wm"};
     static constexpr const char* EVENT_CLICK{"i3wm-wsfocus-"};
@@ -95,7 +96,6 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
-    bool m_group_outputs{false};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };

@@ -31,12 +31,11 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
-    m_group_outputs = m_conf.get(name(), "group-outputs", m_group_outputs);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
     // Add formats and create components
-    m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE});
+    m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE, TAG_LABEL_GROUP});
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
       m_statelabels.insert(
@@ -54,7 +53,10 @@ namespace modules {
     }
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
-    m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUP_LABEL);
+
+    if (m_formatter->has(TAG_LABEL_GROUP)) {
+        m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUP_LABEL);
+    }
 
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
@@ -139,7 +141,7 @@ namespace modules {
         sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
       }
 
-      if (m_group_outputs) {
+      if (m_formatter->has(TAG_LABEL_GROUP)) {
         stable_sort(workspaces.begin(), workspaces.end(), [](auto a, auto b) { return a->output < b->output; });
       }
 
@@ -207,7 +209,7 @@ namespace modules {
           builder->node(m_labelseparator);
         }
 
-        if (m_group_outputs) {
+        if (m_formatter->has(TAG_LABEL_GROUP)) {
           if (last_ws_output != ws->output) {
             last_ws_output = ws->output;
             auto label = m_labelgroupoutputs->clone();
