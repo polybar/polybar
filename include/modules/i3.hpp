@@ -61,7 +61,7 @@ namespace modules {
     static constexpr const char* DEFAULT_MODE{"default"};
     static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};
     static constexpr const char* DEFAULT_WS_LABEL{"%icon% %name%"};
-    static constexpr const char* DEFAULT_GROUT_LABEL{" %output%:"};
+    static constexpr const char* DEFAULT_GROUP_LABEL{" %output%:"};
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};

@@ -54,7 +54,7 @@ namespace modules {
     }
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
-    m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUT_LABEL);
+    m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUP_LABEL);
 
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
@@ -194,7 +194,7 @@ namespace modules {
       }
 
       bool first = true;
-      string last_ws;
+      string last_ws_output;
       for (auto&& ws : m_workspaces) {
         /*
          * The separator should only be inserted in between the workspaces, so
@@ -208,12 +208,12 @@ namespace modules {
         }
 
         if (m_group_outputs) {
-          if (last_ws != ws->output) {
-            last_ws = ws->output;
+          if (last_ws_output != ws->output) {
+            last_ws_output = ws->output;
             auto label = m_labelgroupoutputs->clone();
             label->reset_tokens();
             label->replace_token("%output%", ws->output);
-            builder->node(move(label));
+            builder->node(label);
           }
         }
 
