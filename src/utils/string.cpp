@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 #include <utility>
+#include <regex>
 
 #include "utils/string.hpp"
 
@@ -146,6 +147,11 @@ namespace string_util {
     return rtrim(ltrim(forward<string>(value), needle), needle);
   }
 
+  bool match(const string& value, const string& regex) {
+    const std::regex r{regex};
+    return std::regex_match(value, r);
+  }
+
   /**
    * Counts the number of codepoints in a utf8 encoded string.
    */
@@ -275,6 +281,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}
+}  // namespace string_util
 
 POLYBAR_NS_END
