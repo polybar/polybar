@@ -56,6 +56,7 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL_GROUP)) {
         m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUP_LABEL);
+        m_labelgroupoutputs ->m_margin.left = 1;
     }
 
     m_icons = factory_util::shared<iconset>();
