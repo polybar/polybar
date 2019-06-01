@@ -8,11 +8,6 @@ namespace xpp {
     class extension;
   }
 #endif
-#if WITH_XRENDER
-  namespace render {
-    class extension;
-  }
-#endif
 #if WITH_XRANDR
   namespace randr {
     class extension;

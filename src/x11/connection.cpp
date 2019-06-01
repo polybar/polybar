@@ -41,9 +41,6 @@ connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, d
 #if WITH_XDAMAGE
   damage_util::query_extension(*this);
 #endif
-#if WITH_XRENDER
-  render_util::query_extension(*this);
-#endif
 #if WITH_XRANDR
   randr_util::query_extension(*this);
 #endif
