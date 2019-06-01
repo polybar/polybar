@@ -23,7 +23,6 @@ querylib(WITH_XKB "pkg-config" xcb-xkb libs dirs)
 querylib(WITH_XRANDR "pkg-config" xcb-randr libs dirs)
 querylib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12" libs dirs)
 querylib(WITH_XRM "pkg-config" xcb-xrm libs dirs)
-querylib(WITH_XSYNC "pkg-config" xcb-sync libs dirs)
 querylib(WITH_XCURSOR "pkg-config" xcb-cursor libs dirs)
 
 # FreeBSD Support

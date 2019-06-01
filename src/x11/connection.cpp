@@ -44,9 +44,6 @@ connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, d
 #if WITH_XRANDR
   randr_util::query_extension(*this);
 #endif
-#if WITH_XSYNC
-  sync_util::query_extension(*this);
-#endif
 #if WITH_XCOMPOSITE
   composite_util::query_extension(*this);
 #endif
