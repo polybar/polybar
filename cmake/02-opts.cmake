@@ -44,7 +44,6 @@ option(ENABLE_PULSEAUDIO "Enable PulseAudio support" ON)
 
 option(WITH_XRANDR "xcb-randr support" ON)
 option(WITH_XRANDR_MONITORS "xcb-randr monitor support" ON)
-option(WITH_XDAMAGE "xcb-damage support" OFF)
 option(WITH_XCOMPOSITE "xcb-composite support" ON)
 option(WITH_XKB "xcb-xkb support" ON)
 option(WITH_XRM "xcb-xrm support" ON)
