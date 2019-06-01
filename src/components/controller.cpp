@@ -74,7 +74,11 @@ controller::~controller() {
   m_log.trace("controller: Stop modules");
   for (auto&& module : m_modules) {
     auto module_name = module->name();
-    auto cleanup_ms = time_util::measure([&module] { module->stop(); });
+    auto cleanup_ms = time_util::measure([&module] {
+      module->stop();
+      module->join();
+      module.reset();
+    });
     m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
   }
 }
