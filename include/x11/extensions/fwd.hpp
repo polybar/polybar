@@ -13,11 +13,6 @@ namespace xpp {
     class extension;
   }
 #endif
-#if WITH_XSYNC
-  namespace sync {
-    class extension;
-  }
-#endif
 #if WITH_XCOMPOSITE
   namespace composite {
     class extension;

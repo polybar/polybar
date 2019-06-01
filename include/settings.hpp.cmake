@@ -18,7 +18,6 @@
 
 #cmakedefine01 WITH_XRANDR
 #cmakedefine01 WITH_XDAMAGE
-#cmakedefine01 WITH_XSYNC
 #cmakedefine01 WITH_XCOMPOSITE
 #cmakedefine01 WITH_XKB
 #cmakedefine01 WITH_XRM
@@ -98,11 +97,10 @@ const auto print_build_info = [](bool extended = false) {
     (ENABLE_XKEYBOARD  ? '+' : '-'));
   if (extended) {
     printf("\n");
-    printf("X extensions: %crandr (%cmonitors) %cdamage %csync %ccomposite %cxkb %cxrm %cxcursor\n",
+    printf("X extensions: %crandr (%cmonitors) %cdamage %ccomposite %cxkb %cxrm %cxcursor\n",
       (WITH_XRANDR            ? '+' : '-'),
       (WITH_XRANDR_MONITORS   ? '+' : '-'),
       (WITH_XDAMAGE           ? '+' : '-'),
-      (WITH_XSYNC             ? '+' : '-'),
       (WITH_XCOMPOSITE        ? '+' : '-'),
       (WITH_XKB               ? '+' : '-'),
       (WITH_XRM               ? '+' : '-'),
