@@ -18,7 +18,6 @@ endif()
 querylib(ENABLE_PULSEAUDIO "pkg-config" libpulse libs dirs)
 
 querylib(WITH_XCOMPOSITE "pkg-config" xcb-composite libs dirs)
-querylib(WITH_XDAMAGE "pkg-config" xcb-damage libs dirs)
 querylib(WITH_XKB "pkg-config" xcb-xkb libs dirs)
 querylib(WITH_XRANDR "pkg-config" xcb-randr libs dirs)
 querylib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12" libs dirs)

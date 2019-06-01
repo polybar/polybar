@@ -3,11 +3,6 @@
 #include "settings.hpp"
 
 namespace xpp {
-#if WITH_XDAMAGE
-  namespace damage {
-    class extension;
-  }
-#endif
 #if WITH_XRANDR
   namespace randr {
     class extension;

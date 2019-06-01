@@ -2,9 +2,6 @@
 
 #include "settings.hpp"
 
-#if WITH_XDAMAGE
-#include "x11/extensions/damage.hpp"
-#endif
 #if WITH_XRANDR
 #include "x11/extensions/randr.hpp"
 #endif
