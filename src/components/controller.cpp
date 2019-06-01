@@ -21,20 +21,19 @@
 
 POLYBAR_NS
 
-array<int, 2> g_eventpipe{{-1, -1}};
-sig_atomic_t g_reload{0};
-sig_atomic_t g_terminate{0};
+namespace {
+  array<int, 2> g_eventpipe{{-1, -1}};
+  std::atomic_bool g_reload{false};
+  std::atomic_bool g_terminate{false};
+}
 
 void interrupt_handler(int signum) {
   if (g_reload || g_terminate) {
     return;
   }
 
-  g_terminate = 1;
+  g_terminate = true;
   g_reload = (signum == SIGUSR1);
-  if (write(g_eventpipe[PIPE_WRITE], &g_terminate, 1) == -1) {
-    throw system_error("Failed to write to eventpipe");
-  }
 }
 
 /**
@@ -326,8 +325,8 @@ void controller::read_events() {
         fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
       }
       m_log.info("Configuration file changed");
-      g_terminate = 1;
-      g_reload = 1;
+      g_terminate = true;
+      g_reload = true;
     }
 
     // Process event on the xcb connection fd
