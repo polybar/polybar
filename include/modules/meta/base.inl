@@ -65,6 +65,18 @@ namespace modules {
     return static_cast<bool>(m_enabled);
   }
 
+  template <class Impl>
+  void module<Impl>::join() {
+    for (auto&& thread_ : m_threads) {
+      if (thread_.joinable()) {
+        thread_.join();
+      }
+    }
+    if (m_mainthread.joinable()) {
+      m_mainthread.join();
+    }
+  }
+
   template <typename Impl>
   bool module<Impl>::visible() const {
     return static_cast<bool>(m_visible);
@@ -85,15 +97,6 @@ namespace modules {
     {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
-
-      for (auto&& thread_ : m_threads) {
-        if (thread_.joinable()) {
-          thread_.join();
-        }
-      }
-      if (m_mainthread.joinable()) {
-        m_mainthread.join();
-      }
 
       m_sig.emit(signals::eventqueue::check_state{});
     }

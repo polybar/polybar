@@ -32,6 +32,7 @@ namespace modules {
     }                                                                                   \
     void start() override {}                                                            \
     void stop() override {}                                                             \
+    void join() override {}                                                             \
     void halt(string) override {}                                                       \
     string contents() override {                                                        \
       return "";                                                                        \

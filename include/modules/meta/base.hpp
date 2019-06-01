@@ -131,6 +131,7 @@ namespace modules {
     virtual bool input(const string& action, const string& data) = 0;
 
     virtual void start() = 0;
+    virtual void join() = 0;
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
@@ -157,6 +158,7 @@ namespace modules {
 
     bool visible() const override;
 
+    void join() final override;
     void stop() override;
     void halt(string error_message) override;
     void teardown();
