@@ -13,7 +13,10 @@ namespace modules {
     void start() {
       this->m_mainthread = thread([&] {
         this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
-        CAST_MOD(Impl)->update();
+        {
+          std::lock_guard<std::mutex> lck(this->m_updatelock);
+          CAST_MOD(Impl)->update();
+        }
         CAST_MOD(Impl)->broadcast();
       });
     }
