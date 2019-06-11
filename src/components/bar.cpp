@@ -9,10 +9,10 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
-#include "utils/bspwm.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
+#include "utils/restack.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
@@ -23,10 +23,6 @@
 
 #if WITH_XCURSOR
 #include "x11/cursor.hpp"
-#endif
-
-#if ENABLE_I3
-#include "utils/i3.hpp"
 #endif
 
 POLYBAR_NS
@@ -438,15 +434,8 @@ void bar::restack_window() {
 
   auto restacked = false;
 
-  if (wm_restack == "bspwm") {
-    restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.window);
-#if ENABLE_I3
-  } else if (wm_restack == "i3" && m_opts.override_redirect) {
-    restacked = i3_util::restack_to_root(m_connection, m_opts.window);
-  } else if (wm_restack == "i3" && !m_opts.override_redirect) {
-    m_log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
-    wm_restack.clear();
-#endif
+  if (auto restacker = restack::get_restacker(wm_restack)) {
+    (*restacker)(m_connection, m_opts, m_log);
   } else {
     m_log.warn("Ignoring unsupported wm-restack option '%s'", wm_restack);
     wm_restack.clear();

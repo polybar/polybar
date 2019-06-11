@@ -3,6 +3,7 @@
 #include "errors.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/env.hpp"
+#include "utils/restack.hpp"
 #include "x11/connection.hpp"
 
 POLYBAR_NS
@@ -146,6 +147,23 @@ namespace bspwm_util {
     }
     return conn;
   }
-}
+}  // namespace bspwm_util
+
+namespace {
+  struct bspwm_restacker : public restack::wm_restacker {
+    bspwm_restacker() : restack::wm_restacker("bspwm") {}
+
+    void operator()(connection& conn, const bar_settings& opts, const logger& log) const override {
+      auto restacked = bspwm_util::restack_to_root(conn, opts.monitor, opts.window);
+      if (restacked) {
+        log.info("Successfully restacked bar window");
+      } else {
+        log.err("Failed to restack bar window");
+      }
+    }
+  };
+
+  bspwm_restacker restacker;
+}  // namespace
 
 POLYBAR_NS_END
