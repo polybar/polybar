@@ -39,7 +39,6 @@ class parser {
  private:
   signal_emitter& m_sig;
   vector<int> m_actions;
-  unique_ptr<parser> m_parser;
 };
 
 POLYBAR_NS_END
