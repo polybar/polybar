@@ -117,4 +117,17 @@ function(checklib flag type pkg)
   endif()
 endfunction()
 
+function(get_include_dirs output)
+  get_filename_component(generated_sources_dir  ${CMAKE_BINARY_DIR}/generated-sources   ABSOLUTE)
+  get_filename_component(include_dir            ${CMAKE_SOURCE_DIR}/include             ABSOLUTE)
+
+  set(${output} ${include_dir} ${generated_sources_dir} PARENT_SCOPE)
+endfunction()
+
+function(get_sources_dirs output)
+  get_filename_component(src_dir                ${CMAKE_SOURCE_DIR}/src                 ABSOLUTE)
+
+  set(${output} ${src_dir} PARENT_SCOPE)
+endfunction()
+
 # }}}
