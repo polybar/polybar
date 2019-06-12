@@ -4,9 +4,8 @@
 
 # Source tree {{{
 
-get_filename_component(generated_sources_dir  ${CMAKE_BINARY_DIR}/generated-sources   ABSOLUTE)
-get_filename_component(include_dir            ${CMAKE_SOURCE_DIR}/include             ABSOLUTE)
-get_filename_component(src_dir                ${CMAKE_CURRENT_SOURCE_DIR}             ABSOLUTE)
+get_include_dirs(includes_dir)
+get_sources_dirs(src_dir)
 
 set(ALSA_SOURCES
   ${src_dir}/adapters/alsa/control.cpp
@@ -129,7 +128,7 @@ set(POLY_SOURCES
 # Target: polybar {{{
 
 add_library(poly STATIC ${POLY_SOURCES})
-target_include_directories(poly PUBLIC ${include_dir} ${generated_sources_dir})
+target_include_directories(poly PUBLIC ${includes_dir})
 target_link_libraries(poly PUBLIC
   Threads::Threads
   Cairo::CairoFC
@@ -170,7 +169,7 @@ if(BUILD_IPC_MSG)
     utils/env.cpp
     utils/file.cpp
     utils/string.cpp)
-  target_include_directories(polybar-msg PRIVATE ${dirs})
+  target_include_directories(polybar-msg PRIVATE ${includes_dir})
   target_compile_options(polybar-msg PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 
   install(TARGETS polybar-msg

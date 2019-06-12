@@ -1,6 +1,3 @@
-include_directories(${dirs})
-include_directories(${CMAKE_CURRENT_LIST_DIR})
-
 # Download and unpack googletest at configure time {{{
 configure_file(
   CMakeLists.txt.in
@@ -39,6 +36,8 @@ function(add_unit_test source_file)
   set(name "unit_test.${testname}")
 
   add_executable(${name} unit_tests/${source_file}.cpp)
+  get_include_dirs(includes_dir)
+  target_include_directories(${name} PRIVATE ${includes_dir} ${CMAKE_CURRENT_LIST_DIR})
 
   # Link against gmock (this automatically links against gtest)
   target_link_libraries(${name} poly gmock_main)
