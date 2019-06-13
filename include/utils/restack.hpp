@@ -17,9 +17,6 @@ namespace restack {
     virtual void operator()(connection& connection, const bar_settings& settings, const logger& logger) const = 0;
   };
 
-  using restacker_map_t = std::unordered_map<std::string, wm_restacker&>;
-
-  restacker_map_t& get_restacker_map();
   wm_restacker* get_restacker(const std::string& wm_name);
 
 
