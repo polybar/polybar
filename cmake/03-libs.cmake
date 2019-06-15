@@ -3,28 +3,55 @@
 #
 
 find_package(Threads REQUIRED)
-list(APPEND libs ${CMAKE_THREAD_LIBS_INIT})
+find_package(CairoFC REQUIRED)
 
-querylib(TRUE "pkg-config" cairo-fc libs dirs)
-
-querylib(ENABLE_ALSA "pkg-config" alsa libs dirs)
-querylib(ENABLE_CURL "pkg-config" libcurl libs dirs)
-querylib(ENABLE_MPD "pkg-config" libmpdclient libs dirs)
-if(WITH_LIBNL)
-  querylib(ENABLE_NETWORK "pkg-config" libnl-genl-3.0 libs dirs)
-else()
-  querylib(ENABLE_NETWORK "cmake" Libiw libs dirs)
+if (ENABLE_ALSA)
+  find_package(ALSA REQUIRED)
 endif()
-querylib(ENABLE_PULSEAUDIO "pkg-config" libpulse libs dirs)
 
-querylib(WITH_XCOMPOSITE "pkg-config" xcb-composite libs dirs)
-querylib(WITH_XKB "pkg-config" xcb-xkb libs dirs)
-querylib(WITH_XRANDR "pkg-config" xcb-randr libs dirs)
-querylib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12" libs dirs)
-querylib(WITH_XRM "pkg-config" xcb-xrm libs dirs)
-querylib(WITH_XCURSOR "pkg-config" xcb-cursor libs dirs)
+if (ENABLE_CURL)
+  find_package(CURL REQUIRED)
+endif()
+
+if (ENABLE_MPD)
+  find_package(LibMPDClient REQUIRED)
+endif()
+
+if (ENABLE_NETWORK)
+  if(WITH_LIBNL)
+    find_package(LibNlGenl3 REQUIRED)
+  else()
+    find_package(Libiw REQUIRED)
+  endif()
+endif()
+
+if (ENABLE_PULSEAUDIO)
+  find_package(LibPulse REQUIRED)
+endif()
+
+# Randr is required
+set(XORG_EXTENSIONS RANDR)
+if (WITH_XCOMPOSITE)
+  set(XORG_EXTENSIONS ${XORG_EXTENSIONS} COMPOSITE)
+endif()
+if (WITH_XKB)
+  set(XORG_EXTENSIONS ${XORG_EXTENSIONS} XKB)
+endif()
+if (WITH_XCURSOR)
+  set(XORG_EXTENSIONS ${XORG_EXTENSIONS} CURSOR)
+endif()
+if (WITH_XRM)
+  set(XORG_EXTENSIONS ${XORG_EXTENSIONS} XRM)
+endif()
+
+set(XCB_VERSION "")
+if (WITH_XRANDR_MONITOR)
+  set(XCB_VERSION "1.12")
+endif()
+
+find_package(Xcb ${XCB_VERSION} REQUIRED COMPONENTS ${XORG_EXTENSIONS})
 
 # FreeBSD Support
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-  querylib(TRUE "pkg-config" libinotify libs dirs)
+  find_package(LibInotify REQUIRED)
 endif()
