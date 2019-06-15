@@ -4,10 +4,8 @@
 
 # Library: concurrentqueue {{{
 
-add_library(concurrentqueue INTERFACE)
-target_include_directories(concurrentqueue INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include>)
-list(APPEND libs concurrentqueue)
+add_library(moodycamel INTERFACE)
+target_include_directories(moodycamel SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
 
 # }}}
 # Library: xpp {{{
@@ -25,7 +23,6 @@ if(WITH_XKB)
 endif()
 
 add_subdirectory(xpp)
-list(APPEND libs xpp)
 
 # }}}
 # Library: i3ipcpp {{{
