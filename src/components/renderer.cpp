@@ -632,7 +632,9 @@ void renderer::draw_text(const string& contents) {
   m_context->restore();
 
   double dx = m_rect.x + m_blocks[m_align].x - origin.x;
-  if (dx > 0.0) {
+  // We need to verify that the need cursor is at a position which is bigger than the previous one
+  // This verification is needed because of negative offset.
+  if (dx > 0.0 && m_blocks[m_align].x > m_blocks[m_align].width) {
     m_blocks[m_align].width += dx;
     fill_underline(origin.x, dx);
     fill_overline(origin.x, dx);
@@ -811,7 +813,7 @@ bool renderer::on(const signals::parser::action_end& evt) {
   m_log.trace_x("renderer: action_end(btn=%i)", static_cast<int>(btn));
   for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
     if (action->active && action->align == m_align && action->button == btn) {
-      action->end_x = m_blocks.at(action->align).x;
+      action->end_x = m_blocks.at(action->align).width;
       action->active = false;
       break;
     }
