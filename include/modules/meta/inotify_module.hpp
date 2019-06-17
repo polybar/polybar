@@ -9,14 +9,13 @@ namespace modules {
   /**
    * A module that listen to inotify events.
    *
-   * @details
+   * \details
    * To implement this module, the following method should be implemented:
    *   - #on_event(inotify_event*): CRTP implementation
    *
    * Optionally, this function can be reimplemented:
    *   - #poll_events(): CRTP implementation
-   *   - module::idle(): CRTP implementation
-   * @see module
+   * \see module
    */
   template <class Impl>
   class inotify_module : public module<Impl> {
@@ -59,8 +58,8 @@ namespace modules {
     }
 
     /**
-     * @brief This method should poll inotify events and dispatch them with the #on_event(inotify_event*) method.
-     * @details
+     * \brief This method should poll inotify events and dispatch them with the #on_event(inotify_event*) method.
+     * \details
      * This method is NOT protected, it must lock the #m_modulelock mutex when modifying or accessing the attributes.
      * The mutex MUST also be locked before calling #on_event(inotify_event*) since it's a precondition to call this
      * method. Moreover the call to #on_event(inotify_event*) should be a CRTP call.
@@ -110,9 +109,9 @@ namespace modules {
     }
 
     /**
-     * @brief Processes the given event
-     * @details
-     * This method should be implemented in subclasses.
+     * \brief Processes the given event
+     * \details
+     * This method must be implemented in subclasses.
      * It's CRTP called by poll_events() when an event is polled.
      * Contract:
      *   - expects: the mutex #m_modulelock is locked
@@ -120,7 +119,7 @@ namespace modules {
      *
      * This method shouldn't block.
      *
-     * @param event - may be nullptr
+     * \param event - may be nullptr
      */
     void on_event(inotify_event* event) = delete;
 

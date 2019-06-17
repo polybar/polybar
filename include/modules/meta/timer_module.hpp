@@ -8,19 +8,19 @@ namespace modules {
   using interval_t = chrono::duration<double>;
 
   /**
-   * @brief Generic module for modules that need to be updated regularly.
-   * @details
+   * \brief Generic module for modules that need to be updated regularly.
+   * \details
    * To implement this module, the following method should be implemented:
-   *   - update(): CRTP implementation
+   *   - #update(): CRTP implementation
    *
-   * @see module
+   * \see module
    */
   template <class Impl>
   class timer_module : public module<Impl> {
    public:
     using module<Impl>::module;
 
-    void start() {
+    void start() override {
       this->m_mainthread = thread(&timer_module::runner, this);
     }
 
@@ -50,13 +50,13 @@ namespace modules {
     }
 
     /**
-     * @brief Updates the internal state of the module and returns true if any modification has been made.
-     * @details
+     * \brief Updates the internal state of the module and returns true if any modification has been made.
+     * \details
      * Contract:
      *   - expects: the mutex #m_modulelock is locked
      *   - ensures: the mutex #m_modulelock is still locked.
      */
-    bool update();
+    bool update() = delete;
 
    protected:
     interval_t m_interval{1.0};

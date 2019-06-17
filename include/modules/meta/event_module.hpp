@@ -7,19 +7,19 @@ POLYBAR_NS
 namespace modules {
   /**
    * Generic class to have a module that listen events
-   * @details
+   * \details
    * To implement this module, the following methods should be implemented:
-   *   - update(): CRTP implementation
-   *   - has_event(): CRTP implementation
+   *   - #update(): CRTP implementation
+   *   - #has_event(): CRTP implementation
    *
-   * @see module
+   * \see module
    */
   template <class Impl>
   class event_module : public module<Impl> {
    public:
     using module<Impl>::module;
 
-    void start() {
+    void start() override {
       this->m_mainthread = thread(&event_module::runner, this);
     }
 
@@ -55,15 +55,15 @@ namespace modules {
     }
 
     /**
-     * @brief Returns true if an event should be processed
-     * @details
+     * \brief Returns true if an event should be processed
+     * \details
      * This method is NOT protected and may block, however the `m_modulelock` MUST NOT be locked when blocking.
      */
     bool has_event() = delete;
 
     /**
-     * @brief Updates the internal state of the module and returns true if any modification has been made.
-     * @details
+     * \brief Updates the internal state of the module and returns true if any modification has been made.
+     * \details
      * Contract:
      *   - expects: the mutex #m_modulelock is locked
      *   - ensures: the mutex #m_modulelock is still locked.
