@@ -18,16 +18,26 @@ namespace modules {
     using module<Impl>::module;
 
     void start() {
-      this->m_mainthread = thread([&] {
-        this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+      {
+        std::lock_guard<std::mutex> guard(this->m_modulelock);
         CAST_MOD(Impl)->update();
-        CAST_MOD(Impl)->broadcast();
-      });
+      }
+      CAST_MOD(Impl)->broadcast();
     }
 
     bool build(builder*, string) const {
       return true;
     }
+
+   protected:
+    /**
+     * @brief Updates the internal state of the module and returns true if any modification has been made.
+     * @details
+     * Contract:
+     *   - expects: the mutex #m_modulelock is locked
+     *   - ensures: the mutex #m_modulelock is still locked.
+     */
+    void update() = delete;
   };
 }  // namespace modules
 
