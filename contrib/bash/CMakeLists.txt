@@ -2,5 +2,5 @@
 # Bash completion template
 #
 install(FILES polybar
-  DESTINATION share/bash-completion/completions
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/bash-completion/completions
   COMPONENT tools)
