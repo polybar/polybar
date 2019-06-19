@@ -47,6 +47,9 @@ endforeach()
 # Dummy target that depends on all documentation targets
 add_custom_target(doc ALL DEPENDS ${doc_targets})
 
+# This is needed for the case where only the doc target is built
+include(GNUInstallDirs)
+
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc)
