@@ -46,6 +46,7 @@ set(CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake/common
   ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+include(GNUInstallDirs)
 include(utils)
 include(01-core)
 include(02-opts)
@@ -160,8 +161,7 @@ configure_file(
   ESCAPE_QUOTES @ONLY)
 
 install(FILES config
-  DESTINATION share/doc/polybar
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT config)
 
 # }}}
-

@@ -47,10 +47,23 @@ endforeach()
 # Dummy target that depends on all documentation targets
 add_custom_target(doc ALL DEPENDS ${doc_targets})
 
+# This is needed for the case where only the doc target is built
+# CMAKE_INSTALL_DOCDIR uses PROJECT_NAME which is now polybar-doc, to be
+# consistent with a regular install we temporarily override it with "polybar"
+# before including GNUInstallDirs
+# Also since no language is set and GNUInstallDirs cannot set
+# CMAKE_INSTALL_LIBDIR, so we set it to a dummy value to suppress a warning
+if(${CMAKE_PROJECT_NAME} STREQUAL "polybar-doc")
+  set(PROJECT_NAME "polybar")
+  set(CMAKE_INSTALL_LIBDIR "")
+  include(GNUInstallDirs)
+  set(PROJECT_NAME "polybar-doc")
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
-  DESTINATION share/doc/polybar
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
   COMPONENT doc)
