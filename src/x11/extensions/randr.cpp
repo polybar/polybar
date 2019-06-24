@@ -80,14 +80,8 @@ namespace randr_util {
   /**
    * Create a list of all available randr outputs
    */
-  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only, bool realloc) {
-    static vector<monitor_t> monitors;
-
-    if (realloc) {
-      monitors.clear();
-    } else if (!monitors.empty()) {
-      return monitors;
-    }
+  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only) {
+    vector<monitor_t> monitors;
 
 #if WITH_XRANDR_MONITORS
     if (check_monitor_support()) {
