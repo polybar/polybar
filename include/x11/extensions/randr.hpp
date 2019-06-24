@@ -40,6 +40,8 @@ struct randr_output {
 
   bool match(const string& o, bool exact = true) const;
   bool match(const position& p) const;
+
+  bool contains(const randr_output& output) const;
 };
 
 using monitor_t = shared_ptr<randr_output>;

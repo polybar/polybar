@@ -32,6 +32,16 @@ bool randr_output::match(const position& p) const {
   return p.x == x && p.y == y;
 }
 
+/**
+ * Checks if inner is contained withing this.
+ *
+ * Also returns true for outputs that occupy the exact same space
+ */
+bool randr_output::contains(const randr_output& inner) const {
+  return inner.x >= x && inner.x + inner.w <= x + w
+    && inner.y >= y && inner.y + inner.h <= y + h;
+}
+
 namespace randr_util {
   /**
    * XRandR version
@@ -135,40 +145,35 @@ namespace randr_util {
       }
     }
 
-    // clang-format off
-    const auto remove_monitor = [&](const monitor_t& monitor) {
-      monitors.erase(find(monitors.begin(), monitors.end(), monitor));
-    };
-    // clang-format on
-
-    for (auto m = monitors.rbegin(); m != monitors.rend(); m++) {
-      if ((*m)->w == 0) {
-        remove_monitor(*m);
-        continue;
-      }
-
-      // Test if there are any clones in the set
-
-      if (!purge_clones) {
-        continue;
-      }
-
-      for (auto& monitor : monitors) {
-        if ((*m) == monitor || monitor->w == 0) {
-          continue;
-        } else if (check_monitor_support() && (monitor->output == XCB_NONE || (*m)->output == XCB_NONE)) {
+    if(purge_clones) {
+      for (auto& outer : monitors) {
+        if (outer->w == 0) {
           continue;
         }
 
-        // clang-format off
-        if (monitor->x >= (*m)->x && monitor->x + monitor->w <= (*m)->x + (*m)->w &&
-            monitor->y >= (*m)->y && monitor->y + monitor->h <= (*m)->y + (*m)->h) {
-          // Reset width so that the output gets
-          // removed in the base loop
-          monitor->w = 0;
+        for (auto& inner : monitors) {
+          if (outer == inner || inner->w == 0) {
+            continue;
+          } else if (check_monitor_support() && (inner->output == XCB_NONE || outer->output == XCB_NONE)) {
+            continue;
+          }
+
+          // If inner is contained in outer, inner is removed
+          // If both happen to be the same size and have the same coordinates,
+          // inner is still removed but it doesn't matter since both occupy the
+          // exact same space
+          if (outer->contains(*inner)) {
+            // Reset width so that the output gets removed afterwards
+            inner->w = 0;
+          }
         }
-        // clang-format on
       }
+
+      // Remove all cloned monitors (monitors with 0 width)
+      monitors.erase(
+          std::remove_if(monitors.begin(), monitors.end(),
+            [](const auto & monitor) { return monitor->w == 0; }),
+          monitors.end());
     }
 
     sort(monitors.begin(), monitors.end(), [](monitor_t& m1, monitor_t& m2) -> bool {
