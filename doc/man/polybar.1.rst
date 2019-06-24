@@ -44,6 +44,13 @@ OPTIONS
 .. option:: -m, --list-monitors
 
    Print list of available monitors and exit
+
+   If some monitors are cloned, this will remove all but one of them
+.. option:: -M, --list-all-monitors
+
+   Print list of available monitors and exit
+
+   This will also include all cloned monitors.
 .. option:: -w, --print-wmname
 
    Print the generated *WM_NAME* and exit

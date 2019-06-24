@@ -31,10 +31,11 @@ _polybar() {
 	               -v --version
 	               -l --log=
 	               -q --quiet
-	               -c --config=
+                 -c --config=
 	               -r --reload
 	               -d --dump=
 	               -m --list-monitors
+	               -M --list-all-monitors
 	               -w --print-wmname
 	               -s --stdout
 	               -p --png='
