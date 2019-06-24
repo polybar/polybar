@@ -76,7 +76,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
   m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
   m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict);
+  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict, false);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
@@ -94,7 +94,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // if still not found (and not strict matching), get first connected monitor
   if (monitor_name.empty() && !m_opts.monitor_strict) {
-    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
+    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true, false);
     if (!connected_monitors.empty()) {
       monitor_name = connected_monitors[0]->name;
       m_log.warn("No monitor specified, using \"%s\"", monitor_name);
