@@ -80,7 +80,7 @@ namespace randr_util {
   /**
    * Create a list of all available randr outputs
    */
-  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only) {
+  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only, bool purge_clones) {
     vector<monitor_t> monitors;
 
 #if WITH_XRANDR_MONITORS
@@ -148,6 +148,11 @@ namespace randr_util {
       }
 
       // Test if there are any clones in the set
+
+      if (!purge_clones) {
+        continue;
+      }
+
       for (auto& monitor : monitors) {
         if ((*m) == monitor || monitor->w == 0) {
           continue;
