@@ -51,7 +51,7 @@ namespace randr_util {
 
   monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
       bool primary);
-  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false);
+  vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false, bool purge_clones = true);
   monitor_t match_monitor(vector<monitor_t> monitors, const string& name, bool exact_match);
 
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst);
