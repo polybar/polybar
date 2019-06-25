@@ -17,8 +17,5 @@ find_package_handle_standard_args(Libiw DEFAULT_MSG LIBIW_LIBRARY LIBIW_INCLUDE_
 mark_as_advanced(LIBIW_INCLUDE_DIR LIBIW_LIBRARY)
 
 if(Libiw_FOUND AND NOT TARGET Libiw::Libiw)
-  add_library(Libiw::Libiw INTERFACE IMPORTED)
-  set_target_properties(Libiw::Libiw PROPERTIES
-    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${LIBIW_INCLUDE_DIR}"
-    INTERFACE_LINK_LIBRARIES "${LIBIW_LIBRARY}")
+  create_imported_target("Libiw::Libiw" "${LIBIW_INCLUDE_DIR}" "${LIBIW_LIBRARIES}")
 endif()
