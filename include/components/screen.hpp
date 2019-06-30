@@ -47,6 +47,8 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   vector<monitor_t> m_monitors;
   struct size m_size {0U, 0U};
   bool m_sigraised{false};
+
+  bool have_monitors_changed() const;
 };
 
 POLYBAR_NS_END

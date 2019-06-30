@@ -42,6 +42,16 @@ bool randr_output::contains(const randr_output& inner) const {
     && inner.y >= y && inner.y + inner.h <= y + h;
 }
 
+/**
+ * Checks if the given output is the same as this
+ *
+ * Looks at xcb_randr_output_t, position, dimension, name and 'primary'
+ */
+bool randr_output::equals(const randr_output& o) const {
+  return o.output == output && o.x == x && o.y == y && o.w == w && o.h == h &&
+    o.primary == primary && o.name == name;
+}
+
 namespace randr_util {
   /**
    * XRandR version
