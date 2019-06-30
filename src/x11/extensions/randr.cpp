@@ -176,16 +176,6 @@ namespace randr_util {
           monitors.end());
     }
 
-    sort(monitors.begin(), monitors.end(), [](monitor_t& m1, monitor_t& m2) -> bool {
-      if (m1->x < m2->x || m1->y + m1->h <= m2->y) {
-        return true;
-      }
-      if (m1->x > m2->x || m1->y + m1->h > m2->y) {
-        return -1;
-      }
-      return false;
-    });
-
     return monitors;
   }
 
