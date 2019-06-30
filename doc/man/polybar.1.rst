@@ -45,7 +45,7 @@ OPTIONS
 
    Print list of available monitors and exit
 
-   If some monitors are cloned, this will remove all but one of them
+   If some monitors are cloned, this will exclude all but one of them
 .. option:: -M, --list-all-monitors
 
    Print list of available monitors and exit
