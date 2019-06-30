@@ -102,6 +102,7 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_click{true};
     bool m_scroll{true};
+    string m_filter{""};
     size_t m_index{0};
 
     event_timer m_timer{0L, 25L};

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <utility>
+#include <regex>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
@@ -31,6 +32,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_filter = m_conf.get(name(), "filter", m_filter);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -215,7 +217,7 @@ namespace modules {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
@@ -229,15 +231,22 @@ namespace modules {
   vector<string> xworkspaces_module::get_desktop_names(){
     vector<string> names = ewmh_util::get_desktop_names();
     unsigned int desktops_number = ewmh_util::get_number_of_desktops();
-    if(desktops_number == names.size()) {
-      return names;
-    }
-    else if(desktops_number < names.size()) {
+    if(desktops_number < names.size()) {
       names.erase(names.begin()+desktops_number, names.end());
-      return names;
     }
-    for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
-      names.insert(names.end(), to_string(i));
+    else if(desktops_number > names.size()) {
+      for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
+        names.insert(names.end(), to_string(i));
+      }
+    }
+    if(m_filter != "") {
+      for (int i = names.size() -1; i >= 0; --i) {
+        string name = names[i];
+        std::regex b(m_filter);
+        if(not regex_match(name, b)) {
+          names.erase(names.begin()+i);
+        }
+      }
     }
     return names;
   }
