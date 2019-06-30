@@ -22,7 +22,7 @@ _polybar() {
     "($C)"{-c,--config=}'[Path to the configuration file]:configuration file:_files' \
     "($R)"{-r,--reload}'[Reload when the configuration has been modified]' \
     "($D $R $M $W $S)"{-d,--dump=}'[Print parameter value in bar section and exit]:parameter name' \
-    "($MM $M $D $R $W $S)"{-m,--list-monitors}'[Print list of available monitors and exit (Removes cloned monitors)]' \
+    "($MM $M $D $R $W $S)"{-m,--list-monitors}'[Print list of available monitors (Excluding cloned monitors) and exit]' \
     "($MM $M $D $R $W $S)"{-M,--list-all-monitors}'[Print list of all available monitors (Including cloned monitors) and exit]' \
     "($W $R $D $M $S)"{-w,--print-wmname}'[Print the generated WM_NAME and exit]' \
     "($S)"{-s,--stdout}'[Output data to stdout instead of drawing the X window]' \

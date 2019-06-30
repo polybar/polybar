@@ -33,7 +33,7 @@ bool randr_output::match(const position& p) const {
 }
 
 /**
- * Checks if inner is contained withing this.
+ * Checks if inner is contained within `this`
  *
  * Also returns true for outputs that occupy the exact same space
  */
