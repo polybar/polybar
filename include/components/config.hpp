@@ -268,9 +268,15 @@ class config {
   T dereference_env(string var) const {
     size_t pos;
     string env_default;
+    /*
+     * This is needed because with only the string we cannot distinguish
+     * between an empty string as default and not default
+     */
+    bool has_default = false;
 
     if ((pos = var.find(':')) != string::npos) {
       env_default = var.substr(pos + 1);
+      has_default = true;
       var.erase(pos);
     }
 
@@ -278,7 +284,7 @@ class config {
       string env_value{env_util::get(var.c_str())};
       m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
       return convert<T>(move(env_value));
-    } else if (!env_default.empty()) {
+    } else if (has_default) {
       m_log.info("Environment var ${%s} is undefined, using defined fallback value \"%s\"", var, env_default);
       return convert<T>(move(env_default));
     } else {
@@ -306,8 +312,10 @@ class config {
     }
 
     string fallback;
+    bool has_fallback = false;
     if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
+      has_fallback = true;
       var.erase(pos);
     }
 
@@ -316,7 +324,7 @@ class config {
       m_log.info("Found matching X resource \"%s\" (value=%s)", var, value);
       return convert<T>(move(value));
     } catch (const xresource_error& err) {
-      if (!fallback.empty()) {
+      if (has_fallback) {
         m_log.warn("%s, using defined fallback value \"%s\"", err.what(), fallback);
         return convert<T>(move(fallback));
       }
@@ -334,8 +342,10 @@ class config {
   T dereference_file(string var) const {
     size_t pos;
     string fallback;
+    bool has_fallback = false;
     if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
+      has_fallback = true;
       var.erase(pos);
     }
     var = file_util::expand(var);
@@ -343,7 +353,7 @@ class config {
     if (file_util::exists(var)) {
       m_log.info("File reference \"%s\" found", var);
       return convert<T>(string_util::trim(file_util::contents(var), '\n'));
-    } else if (!fallback.empty()) {
+    } else if (has_fallback) {
       m_log.warn("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
       return convert<T>(move(fallback));
     } else {
