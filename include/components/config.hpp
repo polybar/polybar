@@ -281,7 +281,7 @@ class config {
     }
 
     if (env_util::has(var)) {
-      string env_value{env_util::get(var.c_str())};
+      string env_value{env_util::get(var)};
       m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
       return convert<T>(move(env_value));
     } else if (has_default) {
