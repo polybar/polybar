@@ -280,7 +280,7 @@ class config {
       var.erase(pos);
     }
 
-    if (env_util::has(var.c_str())) {
+    if (env_util::has(var)) {
       string env_value{env_util::get(var.c_str())};
       m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
       return convert<T>(move(env_value));
