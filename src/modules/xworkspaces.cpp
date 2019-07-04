@@ -239,15 +239,6 @@ namespace modules {
         names.insert(names.end(), to_string(i));
       }
     }
-    if(m_filter != "") {
-      for (int i = names.size() -1; i >= 0; --i) {
-        string name = names[i];
-        std::regex b(m_filter);
-        if(not regex_match(name, b)) {
-          names.erase(names.begin()+i);
-        }
-      }
-    }
     return names;
   }
 
@@ -322,16 +313,19 @@ namespace modules {
       }
     } else if (tag == TAG_LABEL_STATE) {
       unsigned int added_states = 0;
+      std::regex b(m_filter);
       for (auto&& desktop : m_viewports[m_index]->desktops) {
-        if (desktop->label.get()) {
-          if (m_click && desktop->state != desktop_state::ACTIVE) {
-            builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
-            builder->node(desktop->label);
-            builder->cmd_close();
-          } else {
-            builder->node(desktop->label);
+        if (m_filter != "" && regex_match(m_desktop_names[desktop->index], b)) {
+          if (desktop->label.get()) {
+            if (m_click && desktop->state != desktop_state::ACTIVE) {
+              builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
+              builder->node(desktop->label);
+              builder->cmd_close();
+            } else {
+              builder->node(desktop->label);
+            }
+            added_states++;
           }
-          added_states++;
         }
       }
       return added_states > 0;
