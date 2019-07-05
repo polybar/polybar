@@ -315,17 +315,23 @@ namespace modules {
       unsigned int added_states = 0;
       std::regex b(m_filter);
       for (auto&& desktop : m_viewports[m_index]->desktops) {
-        if (m_filter != "" && regex_match(m_desktop_names[desktop->index], b)) {
-          if (desktop->label.get()) {
-            if (m_click && desktop->state != desktop_state::ACTIVE) {
-              builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
+        if (desktop->label.get()) {
+          if (m_click && desktop->state != desktop_state::ACTIVE) {
+            builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
+            if (m_filter == "") {
               builder->node(desktop->label);
-              builder->cmd_close();
-            } else {
+            } else if (regex_match(m_desktop_names[desktop->index], b)) {
               builder->node(desktop->label);
             }
-            added_states++;
+            builder->cmd_close();
+          } else {
+            if (m_filter == "") {
+              builder->node(desktop->label);
+            } else if (regex_match(m_desktop_names[desktop->index], b)) {
+              builder->node(desktop->label);
+            }
           }
+          added_states++;
         }
       }
       return added_states > 0;
