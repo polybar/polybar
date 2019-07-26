@@ -18,7 +18,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    private:
-    void update_label(const int);
+    void update_label(int);
     int get_number_of_notification();
     string request();
     static constexpr auto TAG_LABEL = "<label>";
