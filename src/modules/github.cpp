@@ -16,7 +16,14 @@ namespace modules {
    */
   github_module::github_module(const bar_settings& bar, string name_)
       : timer_module<github_module>(bar, move(name_)), m_http(http_util::make_downloader()) {
+    using namespace std::string_literals;
+
     m_accesstoken = m_conf.get(name(), "token");
+    m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);
+    if (m_api_url.back() != '/') {
+      m_api_url += '/';
+    }
+
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 60s);
     m_empty_notifications = m_conf.get(name(), "empty-notifications", m_empty_notifications);
 
@@ -41,7 +48,7 @@ namespace modules {
   }
 
   string github_module::request() {
-    string content{m_http->get("https://api.github.com/notifications?access_token=" + m_accesstoken)};
+    string content{m_http->get(m_api_url + "notifications?access_token=" + m_accesstoken)};
 
     long response_code{m_http->response_code()};
     switch (response_code) {

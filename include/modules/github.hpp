@@ -24,6 +24,7 @@ namespace modules {
     static constexpr auto TAG_LABEL = "<label>";
 
     label_t m_label{};
+    string m_api_url;
     string m_accesstoken{};
     unique_ptr<http_downloader> m_http{};
     bool m_empty_notifications{false};
