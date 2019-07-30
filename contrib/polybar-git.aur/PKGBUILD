@@ -9,7 +9,7 @@ arch=("i686" "x86_64")
 url="https://github.com/polybar/polybar"
 license=("MIT")
 depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor"
-         "alsa-lib" "pulseaudio" "libmpdclient" "libnl" "jsoncpp" "curl")
+         "alsa-lib" "libpulse" "libmpdclient" "libnl" "jsoncpp" "curl")
 optdepends=("i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
