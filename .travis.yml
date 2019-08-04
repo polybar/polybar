@@ -101,7 +101,7 @@ notifications:
     channels:
       - "irc.freenode.org#polybar"
     template:
-      - " %{repository_slug}(%{branch})#%{build_number} | \"%{commit_subject}\" by %{author} | Commit #%{commit} %{result}"
+      - " %{repository_slug}(%{branch})#%{build_number} | \"%{commit_subject}\" by %{author} | Commit #%{commit} %{result}: %{build_url}"
     use_notice: true
     on_success: change
     on_failure: change
