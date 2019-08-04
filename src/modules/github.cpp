@@ -16,8 +16,6 @@ namespace modules {
    */
   github_module::github_module(const bar_settings& bar, string name_)
       : timer_module<github_module>(bar, move(name_)), m_http(http_util::make_downloader()) {
-    using namespace std::string_literals;
-
     m_accesstoken = m_conf.get(name(), "token");
     m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);
     if (m_api_url.back() != '/') {
