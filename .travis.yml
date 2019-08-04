@@ -101,8 +101,7 @@ notifications:
     channels:
       - "irc.freenode.org#polybar"
     template:
-      - "%{author} pushed #%{commit} \"%{commit_subject}\" to %{repository_name}/%{branch}"
-      - "Build #%{build_number} %{result} / %{build_url} (diff: %{compare_url})"
+      - " %{repository_slug}(%{branch})#%{build_number} | \"%{commit_subject}\" by %{author} | Commit #%{commit} %{result}: %{build_url}"
     use_notice: true
     on_success: change
     on_failure: change
