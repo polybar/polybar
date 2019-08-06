@@ -57,6 +57,7 @@ add_unit_test(components/command_line)
 add_unit_test(components/bar)
 add_unit_test(components/builder)
 add_unit_test(components/parser)
+add_unit_test(components/config_parser)
 
 # Run make check to build and run all unit tests
 add_custom_target(check

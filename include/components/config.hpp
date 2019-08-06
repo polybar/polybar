@@ -18,18 +18,29 @@ POLYBAR_NS
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);
 
+using valuemap_t = std::unordered_map<string, string>;
+using sectionmap_t = std::map<string, valuemap_t>;
+using file_list = vector<string>;
+
 class config {
  public:
-  using valuemap_t = std::unordered_map<string, string>;
-  using sectionmap_t = std::map<string, valuemap_t>;
-
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, string&& path = "", string&& bar = "");
+  explicit config(const logger& logger, string&& path = "", string&& bar = "")
+      : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
-  string filepath() const;
+  const string& filepath() const;
   string section() const;
+
+  /**
+   * \brief Instruct the config to connect to the xresource manager
+   */
+  void use_xrm();
+
+  void set_sections(sectionmap_t sections);
+
+  void set_included(file_list included);
 
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
@@ -193,7 +204,6 @@ class config {
   }
 
  protected:
-  void parse_file();
   void copy_inherited();
 
   template <typename T>
@@ -366,6 +376,12 @@ class config {
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
+
+  /**
+   * Absolute path of all files that were parsed in the process of parsing the
+   * config (Path of the main config file also included)
+   */
+  file_list m_included;
 #if WITH_XRM
   unique_ptr<xresource_manager> m_xrm;
 #endif
