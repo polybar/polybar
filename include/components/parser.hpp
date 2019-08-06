@@ -30,7 +30,7 @@ class parser {
   size_t text(string&& data);
 
   static unsigned int parse_color(const string& s, unsigned int fallback = 0);
-  static int parse_fontindex(const string& s);
+  static int parse_fontindex(const string& s, bool zero_indexed_fonts);
   static attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
   static string parse_action_cmd(string&& data);

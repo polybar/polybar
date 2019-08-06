@@ -134,6 +134,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
+  m_opts.zero_indexed_fonts = m_conf.get(bs, "zero-indexed-fonts", false);
 
   m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
   m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
