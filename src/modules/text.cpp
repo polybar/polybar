@@ -51,6 +51,6 @@ namespace modules {
 
     return m_builder->flush();
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

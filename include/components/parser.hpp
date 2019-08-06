@@ -29,12 +29,12 @@ class parser {
   void codeblock(string&& data, const bar_settings& bar);
   size_t text(string&& data);
 
-  unsigned int parse_color(const string& s, unsigned int fallback = 0);
-  int parse_fontindex(const string& s);
-  attribute parse_attr(const char attr);
+  static unsigned int parse_color(const string& s, unsigned int fallback = 0);
+  static int parse_fontindex(const string& s);
+  static attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
-  string parse_action_cmd(string&& data);
-  controltag parse_control(const string& data);
+  static string parse_action_cmd(string&& data);
+  static controltag parse_control(const string& data);
 
  private:
   signal_emitter& m_sig;
