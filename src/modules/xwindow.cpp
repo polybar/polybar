@@ -86,6 +86,8 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xwindow_module::handle(const evt::property_notify& evt) {
+    std::lock_guard<std::mutex> guard(m_modulelock);
+
     if (evt->atom == _NET_ACTIVE_WINDOW) {
       update(true);
     } else if (evt->atom == _NET_CURRENT_DESKTOP) {
@@ -105,10 +107,6 @@ namespace modules {
    * Update the currently active window and query its title
    */
   void xwindow_module::update(bool force) {
-    std::lock(m_buildlock, m_updatelock);
-    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
-    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
-
     xcb_window_t win;
 
     if (force) {
@@ -138,6 +136,6 @@ namespace modules {
     }
     return false;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

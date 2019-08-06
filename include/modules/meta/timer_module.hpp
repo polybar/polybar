@@ -7,6 +7,14 @@ POLYBAR_NS
 namespace modules {
   using interval_t = chrono::duration<double>;
 
+  /**
+   * @brief Generic module for modules that need to be updated regularly.
+   * @details
+   * To implement this module, the following method should be implemented:
+   *   - update(): CRTP implementation
+   *
+   * @see module
+   */
   template <class Impl>
   class timer_module : public module<Impl> {
    public:
@@ -21,7 +29,7 @@ namespace modules {
       this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
 
       const auto check = [&]() -> bool {
-        std::unique_lock<std::mutex> guard(this->m_updatelock);
+        std::lock_guard<std::mutex> guard(this->m_modulelock);
         return CAST_MOD(Impl)->update();
       };
 
@@ -40,6 +48,15 @@ namespace modules {
         CAST_MOD(Impl)->halt(err.what());
       }
     }
+
+    /**
+     * @brief Updates the internal state of the module and returns true if any modification has been made.
+     * @details
+     * Contract:
+     *   - expects: the mutex #m_modulelock is locked
+     *   - ensures: the mutex #m_modulelock is still locked.
+     */
+    bool update();
 
    protected:
     interval_t m_interval{1.0};

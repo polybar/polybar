@@ -5,6 +5,13 @@
 POLYBAR_NS
 
 namespace modules {
+  /**
+   * @brief Generic class for a static module.
+   * @details
+   * To implement this module, the following method should be implemented:
+   *   - update() : CRTP implementation
+   * @see module
+   */
   template <class Impl>
   class static_module : public module<Impl> {
    public:
@@ -22,6 +29,6 @@ namespace modules {
       return true;
     }
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

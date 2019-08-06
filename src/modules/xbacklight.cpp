@@ -72,6 +72,8 @@ namespace modules {
    * Handler for XCB_RANDR_NOTIFY events
    */
   void xbacklight_module::handle(const evt::randr_notify& evt) {
+    std::lock_guard<std::mutex> guard(this->m_modulelock);
+
     if (evt->subCode != XCB_RANDR_NOTIFY_OUTPUT_PROPERTY) {
       return;
     } else if (evt->u.op.status != XCB_PROPERTY_NEW_VALUE) {
