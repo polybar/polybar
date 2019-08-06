@@ -1,9 +1,9 @@
-#include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -178,6 +178,6 @@ namespace modules {
   }
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

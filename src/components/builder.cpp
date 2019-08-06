@@ -3,7 +3,6 @@
 #include "components/builder.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/color.hpp"
-#include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 POLYBAR_NS
@@ -425,7 +424,7 @@ void builder::control(controltag tag) {
       break;
   }
 
-  if(!str.empty()) {
+  if (!str.empty()) {
     tag_open(syntaxtag::P, str);
   }
 }
@@ -488,8 +487,7 @@ string builder::get_label_text(const label_t& label) {
   if (maxlen > 0 && string_util::char_len(text) > maxlen) {
     if (label->m_ellipsis) {
       text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
-    }
-    else {
+    } else {
       text = string_util::utf8_truncate(std::move(text), maxlen);
     }
   }

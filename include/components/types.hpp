@@ -48,7 +48,7 @@ enum class syntaxtag {
  */
 enum class controltag {
   NONE = 0,
-  R, // Reset all open tags (B, F, T, o, u). Used at module edges
+  R,  // Reset all open tags (B, F, T, o, u). Used at module edges
 };
 
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };

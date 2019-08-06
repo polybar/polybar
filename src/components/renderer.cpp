@@ -5,12 +5,10 @@
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
-#include "x11/extensions/all.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS
@@ -35,15 +33,14 @@ renderer::make_type renderer::make(const bar_settings& bar) {
 /**
  * Construct renderer instance
  */
-renderer::renderer(
-    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar, background_manager& background)
+renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
+    const bar_settings& bar, background_manager& background)
     : m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
     , m_bar(forward<const bar_settings&>(bar))
     , m_rect(m_bar.inner_area()) {
-
   m_sig.attach(this);
   m_log.trace("renderer: Get TrueColor visual");
   {
@@ -301,13 +298,12 @@ void renderer::end() {
     fill_background();
   }
 
-
   // For pseudo-transparency, capture the contents of the rendered bar and
   // composite it against the desktop wallpaper. This way transparent parts of
   // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_context->pop(&barcontents); // corresponding push is in renderer::begin
+    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
 
     auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {
@@ -449,7 +445,7 @@ double renderer::block_x(alignment a) const {
        * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
        * placed on the left
        */
-      if(m_rect.x > border_left) {
+      if (m_rect.x > border_left) {
         base_pos -= m_rect.x - border_left;
       }
 
@@ -831,7 +827,7 @@ bool renderer::on(const signals::parser::text& evt) {
 bool renderer::on(const signals::parser::control& evt) {
   auto ctrl = evt.cast();
 
-  switch(ctrl) {
+  switch (ctrl) {
     case controltag::R:
       m_bg = m_bar.background;
       m_fg = m_bar.foreground;
