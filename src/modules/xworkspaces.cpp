@@ -1,9 +1,10 @@
+#include "modules/xworkspaces.hpp"
+
 #include <algorithm>
 #include <utility>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
-#include "modules/xworkspaces.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
@@ -17,7 +18,7 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-}
+}  // namespace
 
 namespace modules {
   template class module<xworkspaces_module>;
@@ -89,7 +90,6 @@ namespace modules {
 
     // Get _NET_CLIENT_LIST
     rebuild_clientlist();
-
     rebuild_desktop_states();
   }
 
@@ -97,7 +97,7 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    std::lock_guard<std::mutex> lock(m_event_mutex);
+    std::lock_guard<std::mutex> lock(m_workspace_mutex);
 
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
@@ -128,39 +128,21 @@ namespace modules {
    * Rebuild the list of managed clients
    */
   void xworkspaces_module::rebuild_clientlist() {
-    vector<xcb_window_t> clients = ewmh_util::get_client_list();
-    vector<xcb_window_t> new_windows;
+    vector<xcb_window_t> newclients = ewmh_util::get_client_list();
+    std::sort(newclients.begin(), newclients.end());
 
-    std::sort(clients.begin(), clients.end());
-    std::sort(m_clientlist.begin(), m_clientlist.end());
-    std::fill(m_desktop_occupied.begin(), m_desktop_occupied.end(), false);
-
-    auto it_old = clients.begin();
-    auto it_new = m_clientlist.begin();
-
-    // Traverse both the stored and the up-to-date clientlist to update our
-    // stored list with as little changes as possible (add windows that are
-    // only in the new list, remove windows that are no longer in the list)
-    while (it_old != clients.end() || it_new != m_clientlist.end()) {
-      if (it_old != clients.end()) {
-        auto desktop = ewmh_util::get_desktop_from_window(*it_old);
-        m_desktop_occupied[desktop] = true;
-      }
-      if (it_new == m_clientlist.end() || (it_old != clients.end() && *it_old < *it_new)) {
-        // listen for wm_hint (urgency) changes
-        m_connection.ensure_event_mask(*it_old, XCB_EVENT_MASK_PROPERTY_CHANGE);
-        // track window
-        new_windows.emplace_back(*it_old);
-        ++it_old;
-      } else if (it_old == clients.end() || (it_new != m_clientlist.end() && *it_old > *it_new)) {
-        // untrack window
-        it_new = m_clientlist.erase(it_new);
-      } else {
-        ++it_old;
-        ++it_new;
+    for (auto&& client : newclients) {
+      if (m_clients.count(client) == 0) {
+        // new client: listen for changes (wm_hint or desktop)
+        m_connection.ensure_event_mask(client, XCB_EVENT_MASK_PROPERTY_CHANGE);
       }
     }
-    std::copy(new_windows.begin(), new_windows.end(), std::back_inserter(m_clientlist));
+
+    // rebuild entire mapping of clients to desktops
+    m_clients.clear();
+    for (auto&& client : newclients) {
+      m_clients[client] = ewmh_util::get_desktop_from_window(client);
+    }
   }
 
   /**
@@ -181,8 +163,12 @@ namespace modules {
 
     bounds.erase(std::unique(bounds.begin(), bounds.end(), [](auto& a, auto& b) { return a == b; }), bounds.end());
 
-    unsigned int step = bounds.size() ? m_desktop_names.size() / bounds.size() : 1;
-
+    unsigned int step;
+    if (bounds.size() > 0) {
+      step = m_desktop_names.size() / bounds.size();
+    } else {
+      step = 1;
+    }
     unsigned int offset = 0;
     for (unsigned int i = 0; i < bounds.size(); i++) {
       if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
@@ -215,19 +201,22 @@ namespace modules {
       }
       offset += step;
     }
-    m_desktop_occupied.resize(m_desktop_names.size(), false);
- }
+  }
 
   /**
    * Update active state of current desktops
    */
   void xworkspaces_module::rebuild_desktop_states() {
+    std::set<unsigned int> occupied_desks;
+    for (auto&& c : m_clients) {
+      occupied_desks.insert(c.second);
+    }
+
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-
         if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
-        } else if (m_desktop_occupied[d->index]) {
+        } else if (occupied_desks.count(d->index) > 0) {
           d->state = desktop_state::OCCUPIED;
         } else {
           d->state = desktop_state::EMPTY;
@@ -242,14 +231,13 @@ namespace modules {
     }
   }
 
-  vector<string> xworkspaces_module::get_desktop_names(){
+  vector<string> xworkspaces_module::get_desktop_names() {
     vector<string> names = ewmh_util::get_desktop_names();
     unsigned int desktops_number = ewmh_util::get_number_of_desktops();
-    if(desktops_number == names.size()) {
+    if (desktops_number == names.size()) {
       return names;
-    }
-    else if(desktops_number < names.size()) {
-      names.erase(names.begin()+desktops_number, names.end());
+    } else if (desktops_number < names.size()) {
+      names.erase(names.begin() + desktops_number, names.end());
       return names;
     }
     for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
@@ -263,7 +251,7 @@ namespace modules {
    */
   void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
     auto desk = ewmh_util::get_desktop_from_window(window);
-    if(desk == m_current_desktop)
+    if (desk == m_current_desktop)
       // ignore if current desktop is urgent
       return;
     for (auto&& v : m_viewports) {
@@ -291,6 +279,8 @@ namespace modules {
    * Generate module output
    */
   string xworkspaces_module::get_output() {
+    std::unique_lock<std::mutex> lock(m_workspace_mutex);
+
     // Get the module output early so that
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
@@ -319,8 +309,6 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
-    std::lock_guard<std::mutex> lock(m_event_mutex);
-
     if (tag == TAG_LABEL_MONITOR) {
       if (m_viewports[m_index]->state != viewport_state::NONE) {
         builder->node(m_viewports[m_index]->label);
@@ -352,6 +340,8 @@ namespace modules {
    * Handle user input event
    */
   bool xworkspaces_module::input(string&& cmd) {
+    std::lock_guard<std::mutex> lock(m_workspace_mutex);
+
     size_t len{strlen(EVENT_PREFIX)};
     if (cmd.compare(0, len, EVENT_PREFIX) != 0) {
       return false;
@@ -389,6 +379,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
