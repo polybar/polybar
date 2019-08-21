@@ -27,7 +27,8 @@ namespace modules {
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_default_mounted_name = load_optional_label(m_conf, name(), "label-mounted-default", "%mountpoint%");
-    m_default_unmounted_name = load_optional_label(m_conf, name(), "label-unmounted-default", "%mountpoint% is not mounted");
+    m_default_unmounted_name =
+        load_optional_label(m_conf, name(), "label-unmounted-default", "%mountpoint% is not mounted");
 
     m_mountpoints = m_conf.get_list(name(), "mount");
     m_mountpoints_label_mounted.reserve(m_mountpoints.size());
