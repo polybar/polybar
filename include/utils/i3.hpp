@@ -14,6 +14,7 @@ namespace i3_util {
   using workspace_t = i3ipc::workspace_t;
 
   const auto ws_numsort = [](shared_ptr<workspace_t> a, shared_ptr<workspace_t> b) { return a->num < b->num; };
+  const auto ws_namesort = [](shared_ptr<workspace_t> a, shared_ptr<workspace_t> b) { return a->name < b->name; };
 
   vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output = "");
   shared_ptr<workspace_t> focused_workspace(const connection_t&);

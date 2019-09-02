@@ -28,6 +28,7 @@ namespace modules {
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
     m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
     m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
+    m_namesort = m_conf.get(name(), "name-sort", m_namesort);
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
@@ -135,6 +136,8 @@ namespace modules {
 
       if (m_indexsort) {
         sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
+      } else if (m_namesort) {
+        sort(workspaces.begin(), workspaces.end(), i3_util::ws_namesort);
       }
 
       for (auto&& ws : workspaces) {
