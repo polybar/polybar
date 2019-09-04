@@ -32,6 +32,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+  # libinotify uses c99 extension, so suppress this error
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c99-extensions")
+endif()
+
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=parentheses-equality")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-length-array")
