@@ -238,6 +238,12 @@ namespace file_util {
    */
   const string expand(const string& path) {
     string ret;
+    /*
+     * This doesn't capture all cases for absolute paths but the other cases
+     * (tilde and env variable) have the initial '/' character in their
+     * expansion already and will thus not require adding '/' to the beginning.
+     */
+    bool is_absolute = path.size() > 0 && path.at(0) == '/';
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
       switch(section[0]) {
@@ -250,8 +256,10 @@ namespace file_util {
       }
     }
     ret = string_util::join(p_exploded, "/");
-    if (ret[0] != '/')
+    // Don't add an initial slash for relative paths
+    if (ret[0] != '/' && is_absolute) {
       ret.insert(0, 1, '/');
+    }
     return ret;
   }
 }
