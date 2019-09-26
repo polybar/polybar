@@ -13,9 +13,6 @@ namespace modules {
     if (m_formatter->get("content")->value.empty()) {
       throw module_error(name() + ".content is empty or undefined");
     }
-
-    m_formatter->get("content")->value =
-        string_util::replace_all(m_formatter->get("content")->value, " ", BUILDER_SPACE_TOKEN);
   }
 
   string text_module::get_format() const {
@@ -54,6 +51,6 @@ namespace modules {
 
     return m_builder->flush();
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

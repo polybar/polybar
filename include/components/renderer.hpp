@@ -1,7 +1,7 @@
 #pragma once
 
-#include <bitset>
 #include <cairo/cairo.h>
+#include <bitset>
 #include <memory>
 
 #include "cairo/fwd.hpp"
@@ -36,13 +36,13 @@ class renderer
           signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
           signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
           signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
-          signals::parser::text> {
+          signals::parser::text, signals::parser::control> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
 
-  explicit renderer(
-      connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar, background_manager& background_manager);
+  explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
+      background_manager& background_manager);
   ~renderer();
 
   xcb_window_t window() const;
@@ -85,6 +85,7 @@ class renderer
   bool on(const signals::parser::action_begin& evt);
   bool on(const signals::parser::action_end& evt);
   bool on(const signals::parser::text& evt);
+  bool on(const signals::parser::control& evt);
 
  protected:
   struct reserve_area {

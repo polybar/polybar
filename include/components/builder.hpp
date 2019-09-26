@@ -13,13 +13,14 @@ using std::map;
 namespace drawtypes {
   class label;
   using label_t = shared_ptr<label>;
-}
+}  // namespace drawtypes
 using namespace drawtypes;
 
 class builder {
  public:
   explicit builder(const bar_settings& bar);
 
+  void reset();
   string flush();
   void append(string text);
   void node(string str, bool add_space = false);
@@ -49,6 +50,7 @@ class builder {
   void overline_close();
   void underline(const string& color = "");
   void underline_close();
+  void control(controltag tag);
   void cmd(mousebtn index, string action, bool condition = true);
   void cmd(mousebtn index, string action, const label_t& label);
   void cmd_close(bool condition = true);
@@ -70,8 +72,8 @@ class builder {
 
   map<syntaxtag, int> m_tags{};
   map<syntaxtag, string> m_colors{};
+  map<attribute, bool> m_attrs{};
 
-  int m_attributes{0};
   int m_fontindex{0};
 
   string m_background{};

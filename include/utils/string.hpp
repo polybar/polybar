@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <cstring>
 
 #include "common.hpp"
 
@@ -27,7 +26,7 @@ namespace {
       a.erase(a.size() - b.size());
     }
   }
-}
+}  // namespace
 
 class sstream {
  public:
@@ -77,6 +76,10 @@ namespace string_util {
   string strip(const string& haystack, char needle);
   string strip_trailing_newline(const string& haystack);
 
+  string ltrim(string value, function<bool(char)> pred);
+  string rtrim(string value, function<bool(char)> pred);
+  string trim(string value, function<bool(char)> pred);
+
   string ltrim(string&& value, const char& needle = ' ');
   string rtrim(string&& value, const char& needle = ' ');
   string trim(string&& value, const char& needle = ' ');
@@ -96,6 +99,6 @@ namespace string_util {
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);
-}
+}  // namespace string_util
 
 POLYBAR_NS_END

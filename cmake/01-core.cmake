@@ -72,20 +72,6 @@ elseif(CXXLIB_GCC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
 endif()
 
-# Install paths
-if(NOT DEFINED CMAKE_INSTALL_BINDIR)
-  set(CMAKE_INSTALL_BINDIR bin)
-endif()
-if(NOT DEFINED CMAKE_INSTALL_SBINDIR)
-  set(CMAKE_INSTALL_SBINDIR sbin)
-endif()
-if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
-  set(CMAKE_INSTALL_LIBDIR lib)
-endif()
-if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
-  set(CMAKE_INSTALL_INCLUDEDIR include)
-endif()
-
 # Custom build type ; SANITIZE
 SET(CMAKE_CXX_FLAGS_SANITIZE "-O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls"
   CACHE STRING "Flags used by the C++ compiler during sanitize builds." FORCE)

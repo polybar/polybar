@@ -7,8 +7,6 @@
 #include "settings.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
-#include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
 
@@ -160,32 +158,36 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         m_sig.emit(attribute_toggle{parse_attr(value[0])});
         break;
 
-      case 'A':
-        {
-          bool has_btn_id = (data[0] != ':');
-          if (isdigit(data[0]) || !has_btn_id) {
-            value = parse_action_cmd(data.substr(has_btn_id ? 1 : 0));
-            mousebtn btn = parse_action_btn(data);
-            m_actions.push_back(static_cast<int>(btn));
+      case 'A': {
+        bool has_btn_id = (data[0] != ':');
+        if (isdigit(data[0]) || !has_btn_id) {
+          value = parse_action_cmd(data.substr(has_btn_id ? 1 : 0));
+          mousebtn btn = parse_action_btn(data);
+          m_actions.push_back(static_cast<int>(btn));
 
-            // Unescape colons inside command before sending it to the renderer
-            auto cmd = string_util::replace_all(value, "\\:", ":");
-            m_sig.emit(action_begin{action{btn, cmd}});
+          // Unescape colons inside command before sending it to the renderer
+          auto cmd = string_util::replace_all(value, "\\:", ":");
+          m_sig.emit(action_begin{action{btn, cmd}});
 
-            /*
-             * make sure value has the same length as the inside of the action
-             * tag which is btn_id + ':' + value + ':'
-             */
-            if (has_btn_id) {
-              value += "0";
-            }
-            value += "::";
-          } else if (!m_actions.empty()) {
-            m_sig.emit(action_end{parse_action_btn(value)});
-            m_actions.pop_back();
+          /*
+           * make sure value has the same length as the inside of the action
+           * tag which is btn_id + ':' + value + ':'
+           */
+          if (has_btn_id) {
+            value += "0";
           }
-          break;
+          value += "::";
+        } else if (!m_actions.empty()) {
+          m_sig.emit(action_end{parse_action_btn(value)});
+          m_actions.pop_back();
         }
+        break;
+      }
+
+      // Internal Polybar control tags
+      case 'P':
+        m_sig.emit(control{parse_control(value)});
+        break;
 
       default:
         throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
@@ -290,6 +292,21 @@ string parser::parse_action_cmd(string&& data) {
   }
 
   return data.substr(1, end - 1);
+}
+
+controltag parser::parse_control(const string& data) {
+  if (data.length() != 1) {
+    return controltag::NONE;
+  }
+
+  switch (data[0]) {
+    case 'R':
+      return controltag::R;
+      break;
+    default:
+      return controltag::NONE;
+      break;
+  }
 }
 
 POLYBAR_NS_END

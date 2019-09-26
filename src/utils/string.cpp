@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -108,6 +107,29 @@ namespace string_util {
       str.erase(str.length() - 1, 1);
     }
     return str;
+  }
+
+  /**
+   * Trims all characters that match pred from the left
+   */
+  string ltrim(string value, function<bool(char)> pred) {
+    value.erase(value.begin(), find_if(value.begin(), value.end(), not1(pred)));
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from the right
+   */
+  string rtrim(string value, function<bool(char)> pred) {
+    value.erase(find_if(value.rbegin(), value.rend(), not1(pred)).base(), value.end());
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from both sides
+   */
+  string trim(string value, function<bool(char)> pred) {
+    return ltrim(rtrim(move(value), pred), pred);
   }
 
   /**
@@ -275,6 +297,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}
+}  // namespace string_util
 
 POLYBAR_NS_END
