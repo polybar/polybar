@@ -319,18 +319,19 @@ void bar::parse(string&& data, bool force) {
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
+  bool unchanged = data == m_lastinput;
+
+  m_lastinput = data;
+
   if (force) {
     m_log.trace("bar: Force update");
   } else if (!m_visible) {
     return m_log.trace("bar: Ignoring update (invisible)");
   } else if (m_opts.shaded) {
     return m_log.trace("bar: Ignoring update (shaded)");
-  } else if (data == m_lastinput) {
+  } else if (unchanged) {
     return m_log.trace("bar: Ignoring update (unchanged)");
-    return;
   }
-
-  m_lastinput = data;
 
   auto rect = m_opts.inner_area();
 
