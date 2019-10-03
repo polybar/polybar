@@ -1,7 +1,8 @@
 #
 # Build options
 #
-checklib(BUILD_DOC "binary" sphinx-build)
+set(SPHINX_BUILD "sphinx-build" CACHE STRING "Name/Path of the sphinx-build executable to use.")
+checklib(BUILD_DOC "binary" "${SPHINX_BUILD}")
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
