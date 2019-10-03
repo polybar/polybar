@@ -1,8 +1,8 @@
 [submodule "lib/i3ipcpp"]
 	path = lib/i3ipcpp
-	url = https://github.com/jaagr/i3ipcpp
-	branch = v0.7.0
+	url = https://github.com/polybar/i3ipcpp
+	branch = master
 [submodule "lib/xpp"]
 	path = lib/xpp
-	url = https://github.com/jaagr/xpp
-	branch = 1.4.0
+	url = https://github.com/polybar/xpp
+	branch = master

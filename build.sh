@@ -149,21 +149,17 @@ set_build_opts() {
 
 
   CXX="c++"
-  CC="cc"
 
   if [[ "$USE_GCC" == OFF ]]; then
     if command -v clang++ >/dev/null; then
       msg "Using compiler: clang++/clang"
       CXX="clang++"
-      CC="clang"
     elif command -v g++ >/dev/null; then
       msg "Using compiler: g++/gcc"
       CXX="g++"
-      CC="gcc"
     fi
   else
     CXX="g++"
-    CC="gcc"
   fi
 }
 
@@ -178,18 +174,17 @@ main() {
       msg "Removing existing build dir (-f)"
       rm -rf ./build >/dev/null || msg_err "Failed to remove existing build dir"
     else
-      msg_err "A build dir already exists (pass -f to replace)"
+      msg "A build dir already exists (pass -f to replace)"
     fi
   }
 
-  mkdir ./build || msg_err "Failed to create build dir"
+  mkdir -p ./build || msg_err "Failed to create build dir"
   cd ./build || msg_err "Failed to enter build dir"
 
   set_build_opts
 
   msg "Executing cmake command"
   cmake                                       \
-    -DCMAKE_C_COMPILER="${CC}"                \
     -DCMAKE_CXX_COMPILER="${CXX}"             \
     -DENABLE_ALSA:BOOL="${ENABLE_ALSA}"       \
     -DENABLE_PULSEAUDIO:BOOL="${ENABLE_PULSEAUDIO}"\

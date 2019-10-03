@@ -5,7 +5,7 @@
 # Source tree {{{
 
 file(GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.c[p]*)
-list(REMOVE_ITEM files ipc.cpp)
+list(REMOVE_ITEM files main.cpp ipc.cpp)
 
 if(NOT ENABLE_ALSA)
   list(REMOVE_ITEM files modules/alsa.cpp)
@@ -42,15 +42,6 @@ endif()
 if(NOT WITH_XRANDR)
   list(REMOVE_ITEM files x11/extensions/randr.cpp)
 endif()
-if(NOT WITH_XRENDER)
-  list(REMOVE_ITEM files x11/extensions/render.cpp)
-endif()
-if(NOT WITH_XDAMAGE)
-  list(REMOVE_ITEM files x11/extensions/damage.cpp)
-endif()
-if(NOT WITH_XSYNC)
-  list(REMOVE_ITEM files x11/extensions/sync.cpp)
-endif()
 if(NOT WITH_XCOMPOSITE)
   list(REMOVE_ITEM files x11/extensions/composite.cpp)
 endif()
@@ -69,33 +60,37 @@ endif()
 
 # Target: polybar {{{
 
-make_executable(polybar
-  SOURCES
-    ${files}
-  INCLUDE_DIRS
-    ${dirs}
-  RAW_DEPENDS
-    ${libs}
-    Threads::Threads)
+add_library(poly STATIC ${files})
+target_include_directories(poly PUBLIC ${dirs})
+target_link_libraries(poly ${libs} Threads::Threads)
+target_compile_options(poly PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
 
-target_compile_options(polybar PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+add_executable(polybar main.cpp)
+target_link_libraries(polybar poly)
+
+install(TARGETS polybar
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT runtime)
 
 # }}}
 # Target: polybar-msg {{{
 
 if(BUILD_IPC_MSG)
-  make_executable(polybar-msg
-    SOURCES
-      ipc.cpp
-      utils/env.cpp
-      utils/file.cpp
-      utils/string.cpp)
+  add_executable(polybar-msg
+    ipc.cpp
+    utils/env.cpp
+    utils/file.cpp
+    utils/string.cpp)
+  target_include_directories(polybar-msg PRIVATE ${dirs})
   target_compile_options(polybar-msg PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+
+  install(TARGETS polybar-msg
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT runtime)
+
 endif()
 
 # }}}
 
 # Export source file list so that it can be used for test compilation
 set(files ${files} PARENT_SCOPE)
-set(libs ${libs} PARENT_SCOPE)
-set(dirs ${dirs} PARENT_SCOPE)

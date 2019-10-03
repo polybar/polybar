@@ -9,10 +9,6 @@
 
 POLYBAR_NS
 
-/**
- * TODO: Remove icon_t
- */
-
 namespace drawtypes {
   struct token {
     string token;
@@ -24,12 +20,6 @@ namespace drawtypes {
 
   class label;
   using label_t = shared_ptr<label>;
-
-  /**
-   * @decprecated: use label
-   */
-  using icon = label;
-  using icon_t = label_t;
 
   class label : public non_copyable_mixin<label> {
    public:
@@ -89,9 +79,6 @@ namespace drawtypes {
 
   label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
   label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
-
-  icon_t load_icon(const config& conf, string section, string name, bool required = true, string def = ""s);
-  icon_t load_optional_icon(const config& conf, string section, string name, string def = ""s);
 }
 
 POLYBAR_NS_END

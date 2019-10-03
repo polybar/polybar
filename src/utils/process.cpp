@@ -72,7 +72,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * @see wait_for_completion
+   * \see wait_for_completion
    */
   pid_t wait_for_completion_nohang(pid_t process_id, int* status) {
     return wait_for_completion(process_id, status, WNOHANG);
@@ -81,7 +81,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * @see wait_for_completion
+   * \see wait_for_completion
    */
   pid_t wait_for_completion_nohang(int* status) {
     return wait_for_completion_nohang(-1, status);
@@ -90,7 +90,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * @see wait_for_completion
+   * \see wait_for_completion
    */
   pid_t wait_for_completion_nohang() {
     int status = 0;
@@ -100,7 +100,7 @@ namespace process_util {
   /**
    * Non-blocking wait call which returns pid of any child process
    *
-   * @see wait_for_completion
+   * \see wait_for_completion
    */
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;

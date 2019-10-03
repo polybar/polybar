@@ -35,7 +35,8 @@ using modulemap_t = std::map<alignment, vector<module_t>>;
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate, signals::eventqueue::exit_reload,
                        signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state, signals::ipc::action,
-                       signals::ipc::command, signals::ipc::hook, signals::ui::ready, signals::ui::button_press> {
+                       signals::ipc::command, signals::ipc::hook, signals::ui::ready, signals::ui::button_press,
+                       signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -65,6 +66,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   bool on(const signals::ipc::action& evt);
   bool on(const signals::ipc::command& evt);
   bool on(const signals::ipc::hook& evt);
+  bool on(const signals::ui::update_background& evt);
 
  private:
   connection& m_connection;
@@ -79,67 +81,67 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   array<unique_ptr<file_descriptor>, 2> m_queuefd{};
 
   /**
-   * @brief State flag
+   * \brief State flag
    */
   std::atomic<bool> m_process_events{false};
 
   /**
-   * @brief Destination path of generated snapshot
+   * \brief Destination path of generated snapshot
    */
   string m_snapshot_dst;
 
   /**
-   * @brief Controls weather the output gets printed to stdout
+   * \brief Controls weather the output gets printed to stdout
    */
   bool m_writeback{false};
 
   /**
-   * @brief Internal event queue
+   * \brief Internal event queue
    */
   moodycamel::BlockingConcurrentQueue<event> m_queue;
 
   /**
-   * @brief Loaded modules
+   * \brief Loaded modules
    */
   modulemap_t m_modules;
 
   /**
-   * @brief Module input handlers
+   * \brief Module input handlers
    */
   vector<modules::input_handler*> m_inputhandlers;
 
   /**
-   * @brief Maximum number of subsequent events to swallow
+   * \brief Maximum number of subsequent events to swallow
    */
   size_t m_swallow_limit{5U};
 
   /**
-   * @brief Time to wait for subsequent events
+   * \brief Time to wait for subsequent events
    */
   std::chrono::milliseconds m_swallow_update{10};
 
   /**
-   * @brief Time to throttle input events
+   * \brief Time to throttle input events
    */
   std::chrono::milliseconds m_swallow_input{30};
 
   /**
-   * @brief Time of last handled input event
+   * \brief Time of last handled input event
    */
   std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> m_lastinput;
 
   /**
-   * @brief Input data
+   * \brief Input data
    */
   string m_inputdata;
 
   /**
-   * @brief Thread for the eventqueue loop
+   * \brief Thread for the eventqueue loop
    */
   std::thread m_event_thread;
 
   /**
-   * @brief Misc threads
+   * \brief Misc threads
    */
   vector<std::thread> m_threads;
 };

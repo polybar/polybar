@@ -8,10 +8,8 @@
 #include "settings.hpp"
 
 #define POLYBAR_NS    \
-  namespace polybar { \
-    inline namespace APP_VERSION_NAMESPACE {
+  namespace polybar {
 #define POLYBAR_NS_END \
-  }                    \
   }
 
 #ifndef PIPE_READ

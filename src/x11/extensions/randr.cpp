@@ -12,15 +12,17 @@
 POLYBAR_NS
 
 /**
- * Workaround for the inconsistent naming
- * of outputs between my intel and nvidia
+ * Workaround for the inconsistent naming of outputs between intel and nvidia
  * drivers (xf86-video-intel drops the dash)
+ *
+ * If exact == false, dashes will be ignored while matching
  */
-bool randr_output::match(const string& o, bool strict) const {
-  if (strict && name != o) {
-    return false;
+bool randr_output::match(const string& o, bool exact) const {
+  if (exact) {
+    return name == o;
+  } else {
+    return string_util::replace(name, "-", "") == string_util::replace(o, "-", "");
   }
-  return name == o || name == string_util::replace(o, "-", "");
 }
 
 /**
@@ -62,7 +64,8 @@ namespace randr_util {
    * Define monitor
    */
   monitor_t make_monitor(
-      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y) {
+      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
+      bool primary) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = move(name);
@@ -70,6 +73,7 @@ namespace randr_util {
     mon->y = y;
     mon->h = h;
     mon->w = w;
+    mon->primary = primary;
     return mon;
   }
 
@@ -90,13 +94,21 @@ namespace randr_util {
       for (auto&& mon : conn.get_monitors(root, true).monitors()) {
         try {
           auto name = conn.get_atom_name(mon.name).name();
-          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y));
+          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y, mon.primary));
         } catch (const exception&) {
           // silently ignore output
         }
       }
     }
 #endif
+    auto primary_output = conn.get_output_primary(root).output();
+    string primary_name{};
+
+    if (primary_output != XCB_NONE) {
+      auto primary_info = conn.get_output_info(primary_output);
+      auto name_iter = primary_info.name();
+      primary_name = {name_iter.begin(), name_iter.end()};
+    }
 
     for (auto&& output : conn.get_screen_resources(root).outputs()) {
       try {
@@ -122,7 +134,8 @@ namespace randr_util {
 #endif
 
         auto crtc = conn.get_crtc_info(info->crtc);
-        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y));
+        auto primary = (primary_name == name);
+        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
       } catch (const exception&) {
         // silently ignore output
       }
@@ -170,6 +183,34 @@ namespace randr_util {
     });
 
     return monitors;
+  }
+
+  /**
+   * Searches for a monitor with name in monitors
+   *
+   * Does best-fit matching (if exact_match == true, this is also first-fit)
+   */
+  monitor_t match_monitor(vector<monitor_t> monitors, const string& name, bool exact_match) {
+    monitor_t result{};
+    for(auto&& monitor : monitors) {
+      // If we can do an exact match, we have found our result
+      if(monitor->match(name, true)) {
+        result = move(monitor);
+        break;
+      }
+
+      /*
+       * Non-exact matches are moved into the result but we continue searching
+       * through the list, maybe we can find an exact match
+       * Note: If exact_match == true, we don't need to run this because it
+       * would be the exact same check as above
+       */
+      if(!exact_match && monitor->match(name, false)) {
+        result = move(monitor);
+      }
+    }
+
+    return result;
   }
 
   /**

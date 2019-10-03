@@ -1,9 +1,7 @@
-/build*
-/doc/config
-/include/settings.hpp
-/polybar
-/polybar-msg
+/build
 /tags
+/compile_commands.json
+/config
 *.bak
 *.pyc
 *.swp

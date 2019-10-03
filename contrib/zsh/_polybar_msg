@@ -1,6 +1,6 @@
 #compdef polybar-msg
 #
-# Completion for polybar-msg (https://github.com/jaagr/polybar)
+# Completion for polybar-msg (https://github.com/polybar/polybar)
 #   jaagr <c@rlberg.se>
 #
 _polybar_msg() {

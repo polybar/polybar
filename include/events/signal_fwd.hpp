@@ -21,12 +21,12 @@ namespace signals {
     struct notify_change;
     struct notify_forcechange;
     struct check_state;
-  }
+  }  // namespace eventqueue
   namespace ipc {
     struct command;
     struct hook;
     struct action;
-  }
+  }  // namespace ipc
   namespace ui {
     struct ready;
     struct changed;
@@ -38,7 +38,9 @@ namespace signals {
     struct shade_window;
     struct unshade_window;
     struct request_snapshot;
-  }
+    struct update_background;
+    struct update_geometry;
+  }  // namespace ui
   namespace ui_tray {
     struct mapped_clients;
   }
@@ -57,7 +59,8 @@ namespace signals {
     struct action_begin;
     struct action_end;
     struct text;
-  }
-}
+    struct control;
+  }  // namespace parser
+}  // namespace signals
 
 POLYBAR_NS_END

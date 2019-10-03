@@ -36,8 +36,9 @@ struct randr_output {
   short int y{0};
   xcb_randr_output_t output;
   backlight_values backlight;
+  bool primary{false};
 
-  bool match(const string& o, bool strict = false) const;
+  bool match(const string& o, bool exact = true) const;
   bool match(const position& p) const;
 };
 
@@ -48,8 +49,10 @@ namespace randr_util {
 
   bool check_monitor_support();
 
-  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y);
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
+      bool primary);
   vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only = false, bool realloc = false);
+  monitor_t match_monitor(vector<monitor_t> monitors, const string& name, bool exact_match);
 
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst);
   void get_backlight_value(connection& conn, const monitor_t& mon, backlight_values& dst);

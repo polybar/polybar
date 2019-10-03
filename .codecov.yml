@@ -1,3 +1,15 @@
+coverage:
+  status:
+    project:
+      default:
+        # Coverage can drop by 0.1% without failing the status
+        threshold: 0.1
+    patch:
+      default:
+        # Patches don't need test coverage
+        # TODO remove once we have proper testing infrastructure and documentation
+        target: 0
+
 ignore:
   - "tests/*"
   - "lib/*"

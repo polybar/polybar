@@ -122,6 +122,7 @@ namespace modules {
       m_modelabels.emplace(mode::NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked"));
       m_modelabels.emplace(mode::NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky"));
       m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private"));
+      m_modelabels.emplace(mode::NODE_MARKED, load_optional_label(m_conf, name(), "label-marked"));
     }
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
@@ -318,6 +319,9 @@ namespace modules {
                 break;
               case 'P':
                 mode_flag = mode::NODE_PRIVATE;
+                break;
+              case 'M':
+                mode_flag = mode::NODE_MARKED;
                 break;
               default:
                 m_log.warn("%s: Undefined G => '%s'", name(), value.substr(i, 1));

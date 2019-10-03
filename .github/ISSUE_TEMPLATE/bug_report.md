@@ -1,6 +1,6 @@
 ---
-name: Bug or Issue Report
-about: Create a report to help us improve
+name: Bug Report
+about: Create a report for something that misbehaves
 
 ---
 
@@ -14,6 +14,10 @@ about: Create a report to help us improve
 **Actual behavior:**
 
 *What actually happens*
+
+**Was it working before?**
+* Did you also experience this bug in an earlier version of polybar?
+* If no, what was the last version where this worked correctly?
 
 ## To Reproduce
 *A minimal but complete config with which the problem occurs:*
@@ -33,6 +37,7 @@ about: Create a report to help us improve
 
 ## Environment:
 * WM:
+* Distro:
 * Output of `polybar -vvv`:
 
 ## Additional context

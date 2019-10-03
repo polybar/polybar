@@ -6,10 +6,6 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
-#ifdef inline
-#undef inline
-#endif
-
 #include "common.hpp"
 #include "settings.hpp"
 #include "errors.hpp"
@@ -23,6 +19,15 @@ struct nl_msg;
 struct nlattr;
 #else
 #include <iwlib.h>
+
+/*
+ * wirless_tools 29 (and possibly earlier) redefines 'inline' in iwlib.h
+ * With clang this leads to a conflict in the POLYBAR_NS macro
+ * wirless_tools 30 doesn't have that issue anymore
+ */
+#ifdef inline
+#undef inline
+#endif
 #endif
 
 POLYBAR_NS
@@ -82,7 +87,7 @@ namespace net {
     void set_unknown_up(bool unknown = true);
 
    protected:
-    void check_tuntap();
+    void check_tuntap_or_bridge();
     bool test_interface() const;
     string format_speedrate(float bytes_diff, int minwidth) const;
     void query_ip6();
@@ -92,6 +97,7 @@ namespace net {
     link_status m_status{};
     string m_interface;
     bool m_tuntap{false};
+    bool m_bridge{false};
     bool m_unknown_up{false};
   };
 

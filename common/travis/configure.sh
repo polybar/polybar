@@ -24,9 +24,9 @@ if [ "$POLYBAR_BUILD_TYPE" == "minimal" ]; then
 fi
 
 cmake \
-  -DCMAKE_C_COMPILER="${CC}" \
   -DCMAKE_CXX_COMPILER="${CXX}" \
-  -DCMAKE_CXX_FLAGS="${CXXFLAGS}" \
+  -DCMAKE_CXX_FLAGS="${CXXFLAGS} -Werror" \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
   -DBUILD_TESTS:BOOL="${BUILD_TESTS:-OFF}" \
+  -DBUILD_DOC:BOOL="${BUILD_DOC:-OFF}" \
   "${FLAGS[@]}" ..

@@ -1,0 +1,4 @@
+# Polybar version information
+# Update this on every release
+# This is used to create the version string if a git repo is not available
+3.4.0

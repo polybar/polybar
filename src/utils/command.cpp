@@ -145,7 +145,7 @@ int command::wait() {
 /**
  * Tail command output
  *
- * @note: This is a blocking call and will not
+ * \note: This is a blocking call and will not
  * end until the stream is closed
  */
 void command::tail(callback<string> cb) {

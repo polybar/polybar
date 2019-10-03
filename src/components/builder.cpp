@@ -3,27 +3,42 @@
 #include "components/builder.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/color.hpp"
-#include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 POLYBAR_NS
 
-#ifndef BUILDER_SPACE_TOKEN
-#define BUILDER_SPACE_TOKEN "%__"
-#endif
-
 builder::builder(const bar_settings& bar) : m_bar(bar) {
+  reset();
+}
+
+void builder::reset() {
+  /* Add all values as keys so that we never have to check if a key exists in
+   * the map
+   */
+  m_tags.clear();
+  m_tags[syntaxtag::NONE] = 0;
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
   m_tags[syntaxtag::T] = 0;
+  m_tags[syntaxtag::R] = 0;
   m_tags[syntaxtag::o] = 0;
   m_tags[syntaxtag::u] = 0;
+  m_tags[syntaxtag::P] = 0;
 
+  m_colors.clear();
   m_colors[syntaxtag::B] = string();
   m_colors[syntaxtag::F] = string();
   m_colors[syntaxtag::o] = string();
   m_colors[syntaxtag::u] = string();
+
+  m_attrs.clear();
+  m_attrs[attribute::NONE] = false;
+  m_attrs[attribute::UNDERLINE] = false;
+  m_attrs[attribute::OVERLINE] = false;
+
+  m_output.clear();
+  m_fontindex = 1;
 }
 
 /**
@@ -47,10 +62,10 @@ string builder::flush() {
   if (m_tags[syntaxtag::u]) {
     underline_color_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::UNDERLINE)) & 1) {
+  if (m_attrs[attribute::UNDERLINE]) {
     underline_close();
   }
-  if ((m_attributes >> static_cast<int>(attribute::OVERLINE)) & 1) {
+  if (m_attrs[attribute::OVERLINE]) {
     overline_close();
   }
 
@@ -60,13 +75,9 @@ string builder::flush() {
 
   string output{m_output};
 
-  // reset values
-  m_tags.clear();
-  m_colors.clear();
-  m_output.clear();
-  m_fontindex = 1;
+  reset();
 
-  return string_util::replace_all(output, BUILDER_SPACE_TOKEN, " ");
+  return output;
 }
 
 /**
@@ -87,97 +98,8 @@ void builder::node(string str, bool add_space) {
     return;
   }
 
-  string::size_type n, m;
-  string s(move(str));
+  append(move(str));
 
-  while (true) {
-    if (s.empty()) {
-      break;
-
-    } else if ((n = s.find("%{F-}")) == 0) {
-      color_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{F#")) == 0 && (m = s.find('}')) != string::npos) {
-      if (m - n - 4 == 2) {
-        color_alpha(s.substr(n + 3, m - 3));
-      } else {
-        color(s.substr(n + 3, m - 3));
-      }
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{B-}")) == 0) {
-      background_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{B#")) == 0 && (m = s.find('}')) != string::npos) {
-      background(s.substr(n + 3, m - 3));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{T-}")) == 0) {
-      font_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{T")) == 0 && (m = s.find('}')) != string::npos) {
-      font(strtol(s.substr(n + 3, m - 3).c_str(), nullptr, 10));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{U-}")) == 0) {
-      line_color_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{u-}")) == 0) {
-      underline_color_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{o-}")) == 0) {
-      overline_color_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{u#")) == 0 && (m = s.find('}')) != string::npos) {
-      underline_color(s.substr(n + 3, m - 3));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{o#")) == 0 && (m = s.find('}')) != string::npos) {
-      overline_color(s.substr(n + 3, m - 3));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{U#")) == 0 && (m = s.find('}')) != string::npos) {
-      line_color(s.substr(n + 3, m - 3));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{+u}")) == 0) {
-      underline();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{+o}")) == 0) {
-      overline();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{-u}")) == 0) {
-      underline_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{-o}")) == 0) {
-      overline_close();
-      s.erase(0, 5);
-
-    } else if ((n = s.find("%{")) == 0 && (m = s.find('}')) != string::npos) {
-      append(s.substr(n, m + 1));
-      s.erase(n, m + 1);
-
-    } else if ((n = s.find("%{")) > 0) {
-      append(s.substr(0, n));
-      s.erase(0, n);
-
-    } else {
-      break;
-    }
-  }
-
-  if (!s.empty()) {
-    append(s);
-  }
   if (add_space) {
     space();
   }
@@ -186,7 +108,7 @@ void builder::node(string str, bool add_space) {
 /**
  * Insert text node with specific font index
  *
- * @see builder::node
+ * \see builder::node
  */
 void builder::node(string str, int font_index, bool add_space) {
   font(font_index);
@@ -203,11 +125,6 @@ void builder::node(const label_t& label, bool add_space) {
   }
 
   auto text = get_label_text(label);
-
-  // if ((label->m_overline.empty() && m_tags[syntaxtag::o] > 0) || (m_tags[syntaxtag::o] > 0 && label->m_margin > 0))
-  //   overline_close();
-  // if ((label->m_underline.empty() && m_tags[syntaxtag::u] > 0) || (m_tags[syntaxtag::u] > 0 && label->m_margin > 0))
-  //   underline_close();
 
   if (label->m_margin.left > 0) {
     space(label->m_margin.left);
@@ -244,10 +161,10 @@ void builder::node(const label_t& label, bool add_space) {
     color_close();
   }
 
-  if (!label->m_underline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::u] > 0)) {
+  if (!label->m_underline.empty()) {
     underline_close();
   }
-  if (!label->m_overline.empty() || (label->m_margin.right > 0 && m_tags[syntaxtag::o] > 0)) {
+  if (!label->m_overline.empty()) {
     overline_close();
   }
 
@@ -495,15 +412,29 @@ void builder::underline_close() {
 }
 
 /**
+ * Add a polybar control tag
+ */
+void builder::control(controltag tag) {
+  string str;
+  switch (tag) {
+    case controltag::R:
+      str = "R";
+      break;
+    default:
+      break;
+  }
+
+  if (!str.empty()) {
+    tag_open(syntaxtag::P, str);
+  }
+}
+
+/**
  * Open command tag
  */
 void builder::cmd(mousebtn index, string action, bool condition) {
   if (condition && !action.empty()) {
-    size_t p{0};
-    while ((p = action.find(':', p)) != string::npos && action[p - 1] != '\\') {
-      action.insert(p, 1, '\\');
-      p++;
-    }
+    action = string_util::replace_all(action, ":", "\\:");
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
 }
@@ -556,8 +487,7 @@ string builder::get_label_text(const label_t& label) {
   if (maxlen > 0 && string_util::char_len(text) > maxlen) {
     if (label->m_ellipsis) {
       text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
-    }
-    else {
+    } else {
       text = string_util::utf8_truncate(std::move(text), maxlen);
     }
   }
@@ -569,10 +499,6 @@ string builder::get_label_text(const label_t& label) {
  * Insert directive to change value of given tag
  */
 void builder::tag_open(syntaxtag tag, const string& value) {
-  if (m_tags.find(tag) == m_tags.end()) {
-    m_tags[tag] = 0;
-  }
-
   m_tags[tag]++;
 
   switch (tag) {
@@ -602,6 +528,9 @@ void builder::tag_open(syntaxtag tag, const string& value) {
     case syntaxtag::O:
       append("%{O" + value + "}");
       break;
+    case syntaxtag::P:
+      append("%{P" + value + "}");
+      break;
   }
 }
 
@@ -609,11 +538,11 @@ void builder::tag_open(syntaxtag tag, const string& value) {
  * Insert directive to use given attribute unless already set
  */
 void builder::tag_open(attribute attr) {
-  if ((m_attributes >> static_cast<int>(attr)) & 1) {
+  if (m_attrs[attr]) {
     return;
   }
 
-  m_attributes |= 1 << static_cast<int>(attr);
+  m_attrs[attr] = true;
 
   switch (attr) {
     case attribute::NONE:
@@ -631,15 +560,13 @@ void builder::tag_open(attribute attr) {
  * Insert directive to reset given tag if it's open and closable
  */
 void builder::tag_close(syntaxtag tag) {
-  if (m_tags.find(tag) == m_tags.end() || !m_tags[tag]) {
+  if (!m_tags[tag]) {
     return;
   }
 
   m_tags[tag]--;
 
   switch (tag) {
-    case syntaxtag::NONE:
-      break;
     case syntaxtag::A:
       append("%{A}");
       break;
@@ -658,8 +585,9 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::o:
       append("%{o-}");
       break;
+    case syntaxtag::NONE:
     case syntaxtag::R:
-      break;
+    case syntaxtag::P:
     case syntaxtag::O:
       break;
   }
@@ -669,11 +597,11 @@ void builder::tag_close(syntaxtag tag) {
  * Insert directive to remove given attribute if set
  */
 void builder::tag_close(attribute attr) {
-  if (!((m_attributes >> static_cast<int>(attr)) & 1)) {
+  if (!m_attrs[attr]) {
     return;
   }
 
-  m_attributes &= ~(1 << static_cast<int>(attr));
+  m_attrs[attr] = false;
 
   switch (attr) {
     case attribute::NONE:

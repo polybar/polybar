@@ -9,12 +9,6 @@
 
 POLYBAR_NS
 
-// fwd
-enum class mousebtn;
-enum class syntaxtag;
-enum class alignment;
-enum class attribute;
-
 namespace signals {
   namespace detail {
     class signal {
@@ -54,7 +48,7 @@ namespace signals {
      private:
       void* m_ptr;
     };
-  }
+  }  // namespace detail
 
   namespace eventqueue {
     struct start : public detail::base_signal<start> {
@@ -75,7 +69,7 @@ namespace signals {
     struct check_state : public detail::base_signal<check_state> {
       using base_type::base_type;
     };
-  }
+  }  // namespace eventqueue
 
   namespace ipc {
     struct command : public detail::value_signal<command, string> {
@@ -87,7 +81,7 @@ namespace signals {
     struct action : public detail::value_signal<action, string> {
       using base_type::base_type;
     };
-  }
+  }  // namespace ipc
 
   namespace ui {
     struct ready : public detail::base_signal<ready> {
@@ -120,13 +114,21 @@ namespace signals {
     struct request_snapshot : public detail::value_signal<request_snapshot, string> {
       using base_type::base_type;
     };
-  }
+    /// emitted whenever the desktop background slice changes
+    struct update_background : public detail::base_signal<update_background> {
+      using base_type::base_type;
+    };
+    /// emitted when the bar geometry changes (such as position of the bar on the screen)
+    struct update_geometry : public detail::base_signal<update_geometry> {
+      using base_type::base_type;
+    };
+  }  // namespace ui
 
   namespace ui_tray {
     struct mapped_clients : public detail::value_signal<mapped_clients, unsigned int> {
       using base_type::base_type;
     };
-  }
+  }  // namespace ui_tray
 
   namespace parser {
     struct change_background : public detail::value_signal<change_background, unsigned int> {
@@ -171,7 +173,10 @@ namespace signals {
     struct text : public detail::value_signal<text, string> {
       using base_type::base_type;
     };
-  }
-}
+    struct control : public detail::value_signal<control, controltag> {
+      using base_type::base_type;
+    };
+  }  // namespace parser
+}  // namespace signals
 
 POLYBAR_NS_END

@@ -181,6 +181,8 @@ namespace xkb_util {
         type = keyboard::indicator::type::CAPS_LOCK;
       } else if (string_util::compare(name, "num lock")) {
         type = keyboard::indicator::type::NUM_LOCK;
+      } else if (string_util::compare(name, "scroll lock")) {
+        type = keyboard::indicator::type::SCROLL_LOCK;
       } else {
         continue;
       }
@@ -208,7 +210,7 @@ namespace xkb_util {
     if (string_util::contains(LAYOUT_SYMBOL_BLACKLIST, ";" + name + ";")) {
       return "";
     }
-    return name;
+    return move(name);
   }
 }
 

@@ -14,8 +14,8 @@ struct xembed_data;
 class tray_client {
  public:
   explicit tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h);
-  tray_client(const tray_client& c) = default;
-  tray_client& operator=(tray_client& c) = default;
+  tray_client(const tray_client& c) = delete;
+  tray_client& operator=(tray_client& c) = delete;
 
   ~tray_client();
 

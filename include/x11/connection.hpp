@@ -126,6 +126,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
       unsigned int event_mask = 0xFFFFFF, bool propagate = false) const;
 
   xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);
+  xcb_visualtype_t* visual_type_for_id(xcb_screen_t* screen, xcb_visualid_t visual_id);
 
   bool root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* rect);
 

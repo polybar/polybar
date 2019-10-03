@@ -1,6 +1,7 @@
 #
 # Build options
 #
+checklib(BUILD_DOC "binary" sphinx-build)
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
@@ -15,7 +16,6 @@ else()
   set(WIRELESS_LIB "wireless-tools")
 endif()
 checklib(ENABLE_PULSEAUDIO "pkg-config" libpulse)
-checklib(ENABLE_PULSEAUDIO "binary" pulseaudio)
 checklib(WITH_XKB "pkg-config" xcb-xkb)
 checklib(WITH_XRM "pkg-config" xcb-xrm)
 checklib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12")
@@ -30,6 +30,7 @@ option(CXXLIB_GCC "Link against stdlibc++" OFF)
 
 option(BUILD_IPC_MSG "Build ipc messager" ON)
 option(BUILD_TESTS "Build testsuite" OFF)
+option(BUILD_DOC "Build documentation" ON)
 
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
@@ -42,10 +43,7 @@ option(ENABLE_PULSEAUDIO "Enable PulseAudio support" ON)
 
 option(WITH_XRANDR "xcb-randr support" ON)
 option(WITH_XRANDR_MONITORS "xcb-randr monitor support" ON)
-option(WITH_XRENDER "xcb-render support" OFF)
-option(WITH_XDAMAGE "xcb-damage support" OFF)
-option(WITH_XSYNC "xcb-sync support" OFF)
-option(WITH_XCOMPOSITE "xcb-composite support" OFF)
+option(WITH_XCOMPOSITE "xcb-composite support" ON)
 option(WITH_XKB "xcb-xkb support" ON)
 option(WITH_XRM "xcb-xrm support" ON)
 option(WITH_XCURSOR "xcb-cursor support" ON)
@@ -71,7 +69,7 @@ set(SETTING_PATH_ADAPTER "/sys/class/power_supply/%adapter%"
   CACHE STRING "Path to adapter")
 set(SETTING_PATH_BACKLIGHT_MAX "/sys/class/backlight/%card%/max_brightness"
   CACHE STRING "Path to file containing the maximum backlight value")
-set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/brightness"
+set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/actual_brightness"
   CACHE STRING "Path to file containing the current backlight value")
 set(SETTING_PATH_BATTERY "/sys/class/power_supply/%battery%"
   CACHE STRING "Path to battery")
@@ -83,8 +81,3 @@ set(SETTING_PATH_MESSAGING_FIFO "/tmp/polybar_mqueue.%pid%"
   CACHE STRING "Path to file containing the current temperature")
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
-
-if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
-  set(DEBUG_HINTS_OFFSET_X 0 CACHE INTEGER "Debug hint offset x")
-  set(DEBUG_HINTS_OFFSET_Y 0 CACHE INTEGER "Debug hint offset y")
-endif()

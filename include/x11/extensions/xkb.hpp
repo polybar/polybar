@@ -49,7 +49,7 @@ namespace evt {
 class keyboard {
  public:
   struct indicator {
-    enum class type { NONE = 0U, CAPS_LOCK, NUM_LOCK };
+    enum class type { NONE = 0U, CAPS_LOCK, NUM_LOCK, SCROLL_LOCK };
     xcb_atom_t atom{};
     unsigned char mask{0};
     string name{};

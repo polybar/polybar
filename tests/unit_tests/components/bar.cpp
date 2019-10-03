@@ -32,13 +32,14 @@ vector<pair<double, string>> to_pixels_with_offset_list = {
   {990, "100%:-10"},
   {10, "0%:+10"},
   {1000, "99%:+10"},
+  {0, "1%:-100"},
 };
 
-INSTANTIATE_TEST_CASE_P(NoOffset, GeomFormatToPixelsTest,
-    ::testing::ValuesIn(to_pixels_no_offset_list),);
+INSTANTIATE_TEST_SUITE_P(NoOffset, GeomFormatToPixelsTest,
+    ::testing::ValuesIn(to_pixels_no_offset_list));
 
-INSTANTIATE_TEST_CASE_P(WithOffset, GeomFormatToPixelsTest,
-    ::testing::ValuesIn(to_pixels_with_offset_list),);
+INSTANTIATE_TEST_SUITE_P(WithOffset, GeomFormatToPixelsTest,
+    ::testing::ValuesIn(to_pixels_with_offset_list));
 
 TEST_P(GeomFormatToPixelsTest, correctness) {
   double exp = GetParam().first;

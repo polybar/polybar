@@ -32,6 +32,9 @@ namespace modules {
     if (!ol.empty()) {
       builder->overline(ol);
     }
+    if(font > 0) {
+      builder->font(font);
+    }
     if (padding > 0) {
       builder->space(padding);
     }
@@ -56,6 +59,9 @@ namespace modules {
 
     if (padding > 0) {
       builder->space(padding);
+    }
+    if(font > 0) {
+      builder->font_close();
     }
     if (!ol.empty()) {
       builder->overline_close();
@@ -95,6 +101,7 @@ namespace modules {
     format->padding = m_conf.get(m_modname, name + "-padding", formatdef("padding", format->padding));
     format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
     format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
+    format->font = m_conf.get(m_modname, name + "-font", formatdef("font", format->font));
     format->tags.swap(tags);
 
     try {

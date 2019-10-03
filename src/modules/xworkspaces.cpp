@@ -81,8 +81,9 @@ namespace modules {
     m_monitors = randr_util::get_monitors(m_connection, m_connection.root(), false);
 
     // Get desktop details
-    m_desktop_names = ewmh_util::get_desktop_names();
+    m_desktop_names = get_desktop_names();
     m_current_desktop = ewmh_util::get_current_desktop();
+    m_current_desktop_name = m_desktop_names[m_current_desktop];
 
     rebuild_desktops();
     rebuild_desktop_states();
@@ -97,12 +98,13 @@ namespace modules {
   void xworkspaces_module::handle(const evt::property_notify& evt) {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
-    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES) {
-      m_desktop_names = ewmh_util::get_desktop_names();
+    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
+      m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       m_current_desktop = ewmh_util::get_current_desktop();
+      m_current_desktop_name = m_desktop_names[m_current_desktop];
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
       if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
@@ -163,7 +165,12 @@ namespace modules {
 
     bounds.erase(std::unique(bounds.begin(), bounds.end(), [](auto& a, auto& b) { return a == b; }), bounds.end());
 
-    unsigned int step = m_desktop_names.size() / bounds.size();
+    unsigned int step;
+    if (bounds.size() > 0) {
+      step = m_desktop_names.size() / bounds.size();
+    } else {
+      step = 1;
+    }
     unsigned int offset = 0;
     for (unsigned int i = 0; i < bounds.size(); i++) {
       if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
@@ -204,7 +211,7 @@ namespace modules {
   void xworkspaces_module::rebuild_desktop_states() {
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        if (d->index == m_current_desktop) {
+        if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
@@ -217,6 +224,22 @@ namespace modules {
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
+  }
+
+  vector<string> xworkspaces_module::get_desktop_names(){
+    vector<string> names = ewmh_util::get_desktop_names();
+    unsigned int desktops_number = ewmh_util::get_number_of_desktops();
+    if(desktops_number == names.size()) {
+      return names;
+    }
+    else if(desktops_number < names.size()) {
+      names.erase(names.begin()+desktops_number, names.end());
+      return names;
+    }
+    for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
+      names.insert(names.end(), to_string(i));
+    }
+    return names;
   }
 
   /**

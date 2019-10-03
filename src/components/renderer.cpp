@@ -2,13 +2,13 @@
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
+#include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
-#include "x11/extensions/all.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS
@@ -25,15 +25,16 @@ renderer::make_type renderer::make(const bar_settings& bar) {
       signal_emitter::make(),
       config::make(),
       logger::make(),
-      forward<decltype(bar)>(bar));
+      forward<decltype(bar)>(bar),
+      background_manager::make());
   // clang-format on
 }
 
 /**
  * Construct renderer instance
  */
-renderer::renderer(
-    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar)
+renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
+    const bar_settings& bar, background_manager& background)
     : m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
@@ -162,6 +163,12 @@ renderer::renderer(
     }
   }
 
+  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+  if (m_pseudo_transparency) {
+    m_log.trace("Activate root background manager");
+    m_background = background.observe(m_bar.outer_area(false), m_window);
+  }
+
   m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
   m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
   m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
@@ -213,6 +220,12 @@ void renderer::begin(xcb_rectangle_t rect) {
   // Clear canvas
   m_context->save();
   m_context->clear();
+
+  // when pseudo-transparency is requested, render the bar into a new layer
+  // that will later be composited against the desktop background
+  if (m_pseudo_transparency) {
+    m_context->push();
+  }
 
   // Create corner mask
   if (m_bar.radius && m_cornermask == nullptr) {
@@ -283,6 +296,25 @@ void renderer::end() {
     m_context->destroy(&blockcontents);
   } else {
     fill_background();
+  }
+
+  // For pseudo-transparency, capture the contents of the rendered bar and
+  // composite it against the desktop wallpaper. This way transparent parts of
+  // the bar will be filled by the wallpaper creating illusion of transparency.
+  if (m_pseudo_transparency) {
+    cairo_pattern_t* barcontents{};
+    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
+
+    auto root_bg = m_background->get_surface();
+    if (root_bg != nullptr) {
+      m_log.trace_x("renderer: root background");
+      *m_context << *root_bg;
+      m_context->paint();
+      *m_context << CAIRO_OPERATOR_OVER;
+    }
+    *m_context << barcontents;
+    m_context->paint();
+    m_context->destroy(&barcontents);
   }
 
   m_context->restore();
@@ -413,7 +445,7 @@ double renderer::block_x(alignment a) const {
        * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
        * placed on the left
        */
-      if(m_rect.x > border_left) {
+      if (m_rect.x > border_left) {
         base_pos -= m_rect.x - border_left;
       }
 
@@ -763,7 +795,7 @@ bool renderer::on(const signals::parser::action_begin& evt) {
   action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
   action.align = m_align;
   action.start_x = m_blocks.at(m_align).x;
-  action.command = string_util::replace_all(a.command, "\\:", ":");
+  action.command = a.command;
   action.active = true;
   m_actions.emplace_back(action);
   return true;
@@ -789,6 +821,26 @@ bool renderer::on(const signals::parser::action_end& evt) {
 bool renderer::on(const signals::parser::text& evt) {
   auto text = evt.cast();
   draw_text(text);
+  return true;
+}
+
+bool renderer::on(const signals::parser::control& evt) {
+  auto ctrl = evt.cast();
+
+  switch (ctrl) {
+    case controltag::R:
+      m_bg = m_bar.background;
+      m_fg = m_bar.foreground;
+      m_ul = m_bar.underline.color;
+      m_ol = m_bar.overline.color;
+      m_font = 0;
+      m_attr.reset();
+      break;
+
+    case controltag::NONE:
+      break;
+  }
+
   return true;
 }
 

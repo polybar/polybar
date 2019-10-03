@@ -1,9 +1,9 @@
-#include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -80,6 +80,13 @@ namespace modules {
     if (m_changed) {
       m_log.info("%s: Rebuilding cache", name());
       m_cache = CAST_MOD(Impl)->get_output();
+      // Make sure builder is really empty
+      m_builder->flush();
+      if (!m_cache.empty()) {
+        // Add a reset tag after the module
+        m_builder->control(controltag::R);
+        m_cache += m_builder->flush();
+      }
       m_changed = false;
     }
     return m_cache;
@@ -173,6 +180,6 @@ namespace modules {
   }
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

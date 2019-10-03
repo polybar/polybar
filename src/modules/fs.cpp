@@ -97,10 +97,10 @@ namespace modules {
         mount->fsname = details->at(MOUNTINFO_FSNAME);
 
         // see: http://en.cppreference.com/w/cpp/filesystem/space
-        mount->bytes_total = buffer.f_frsize * buffer.f_blocks;
-        mount->bytes_free = buffer.f_bsize * buffer.f_bfree;
+        mount->bytes_total = static_cast<uint64_t>(buffer.f_frsize) * static_cast<uint64_t>(buffer.f_blocks);
+        mount->bytes_free = static_cast<uint64_t>(buffer.f_frsize) * static_cast<uint64_t>(buffer.f_bfree);
         mount->bytes_used = mount->bytes_total - mount->bytes_free;
-        mount->bytes_avail = buffer.f_frsize * buffer.f_bavail;
+        mount->bytes_avail = static_cast<uint64_t>(buffer.f_frsize) * static_cast<uint64_t>(buffer.f_bavail);
 
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);

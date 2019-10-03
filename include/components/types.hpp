@@ -37,6 +37,18 @@ enum class syntaxtag {
   R,  // flip colors
   o,  // overline color
   u,  // underline color
+  P,  // Polybar control tag
+};
+
+/**
+ * Values for polybar control tags
+ *
+ * %{P...} tags are tags for internal polybar control commands, they are not
+ * part of the public interface
+ */
+enum class controltag {
+  NONE = 0,
+  R,  // Reset all open tags (B, F, T, o, u). Used at module edges
 };
 
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
@@ -123,13 +135,14 @@ struct bar_settings {
 
   xcb_window_t window{XCB_NONE};
   monitor_t monitor{};
+  bool monitor_strict{false};
+  bool monitor_exact{true};
   edge origin{edge::TOP};
   struct size size {
     1U, 1U
   };
   position pos{0, 0};
   position offset{0, 0};
-  position center{0, 0};
   side_values padding{0U, 0U};
   side_values margin{0U, 0U};
   side_values module_margin{0U, 0U};
@@ -169,14 +182,8 @@ struct bar_settings {
   position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
-    xcb_rectangle_t rect{0, 0, 0, 0};
-    rect.width += size.w;
-    rect.height += size.h;
+    xcb_rectangle_t rect = this->outer_area(abspos);
 
-    if (abspos) {
-      rect.x = pos.x;
-      rect.y = pos.y;
-    }
     if (borders.find(edge::TOP) != borders.end()) {
       rect.y += borders.at(edge::TOP).size;
       rect.height -= borders.at(edge::TOP).size;
@@ -191,6 +198,19 @@ struct bar_settings {
     if (borders.find(edge::RIGHT) != borders.end()) {
       rect.width -= borders.at(edge::RIGHT).size;
     }
+    return rect;
+  }
+
+  const xcb_rectangle_t outer_area(bool abspos = false) const {
+    xcb_rectangle_t rect{0, 0, 0, 0};
+    rect.width += size.w;
+    rect.height += size.h;
+
+    if (abspos) {
+      rect.x = pos.x;
+      rect.y = pos.y;
+    }
+
     return rect;
   }
 };

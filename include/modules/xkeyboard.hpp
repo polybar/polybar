@@ -42,7 +42,9 @@ namespace modules {
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
     static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
-
+    static constexpr const char* DEFAULT_LAYOUT_ICON{"layout-icon-default"};
+    static constexpr const char* DEFAULT_INDICATOR_ICON{"indicator-icon-default"};
+    
     static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
 
     connection& m_connection;
@@ -52,10 +54,16 @@ namespace modules {
     unique_ptr<keyboard> m_keyboard;
 
     label_t m_layout;
-    label_t m_indicator;
+    label_t m_indicator_state_on;
+    label_t m_indicator_state_off;
     map<keyboard::indicator::type, label_t> m_indicators;
+    map<keyboard::indicator::type, label_t> m_indicator_on_labels;
+    map<keyboard::indicator::type, label_t> m_indicator_off_labels;
 
     vector<string> m_blacklist;
+    iconset_t m_layout_icons;
+    iconset_t m_indicator_icons_on;
+    iconset_t m_indicator_icons_off;
   };
 }
 

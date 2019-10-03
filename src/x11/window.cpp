@@ -7,11 +7,6 @@
 
 POLYBAR_NS
 
-window& window::operator=(const xcb_window_t win) {
-  resource(connection(), win);
-  return *this;
-}
-
 /**
  * Reconfigure the window geometry
  */

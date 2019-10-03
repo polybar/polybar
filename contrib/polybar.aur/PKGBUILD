@@ -1,32 +1,26 @@
 # Maintainer: Michael Carlberg <c@rlberg.se>
 # Contributor: Michael Carlberg <c@rlberg.se>
 pkgname=polybar
-pkgver=3.2.0
-pkgrel=1
+pkgver=3.4.0
+pkgrel=4
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
-url="https://github.com/jaagr/polybar"
+url="https://github.com/polybar/polybar"
 license=("MIT")
-depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor")
-optdepends=("alsa-lib: alsa module support"
-            "pulseaudio: pulseaudio module support"
-            "libmpdclient: mpd module support"
-            "libnl: network module support"
-            "wireless_tools: network module support (legacy)"
-            "jsoncpp: i3 module support"
-            "i3-wm: i3 module support"
+depends=("cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm" "xcb-util-cursor"
+         "alsa-lib" "libpulse" "libmpdclient" "libnl" "jsoncpp" "curl")
+optdepends=("i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
-            "xorg-fonts-misc: Font used in example config"
-            "curl: github module support")
-makedepends=("cmake" "git" "python" "python2" "pkg-config")
+            "xorg-fonts-misc: Font used in example config")
+makedepends=("cmake" "git" "python" "python2" "pkg-config" "python-sphinx"
+             "i3-wm")
 conflicts=("polybar-git")
 install="${pkgname}.install"
-source=("${pkgname}::git+${url}.git#tag=${pkgver}")
-md5sums=("SKIP")
+source=(${url}/releases/download/${pkgver}/polybar-${pkgver}.tar)
+sha256sums=('69a098f22d7a72eb594030aff687801252b18520b097c12f5c7894a99c4bcd1b')
 
 prepare() {
-  git -C "${pkgname}" submodule update --init --recursive
   mkdir -p "${pkgname}/build"
 }
 

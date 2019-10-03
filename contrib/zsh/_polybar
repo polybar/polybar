@@ -1,6 +1,6 @@
 #compdef polybar
 #
-# Completion for polybar (https://github.com/jaagr/polybar)
+# Completion for polybar (https://github.com/polybar/polybar)
 #   jaagr <c@rlberg.se>
 #
 _polybar() {

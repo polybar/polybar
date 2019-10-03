@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/logger.hpp"
 #include "events/signal_receiver.hpp"
 
 POLYBAR_NS
 
 /**
- * @brief Holds all signal receivers attached to the emitter
+ * \brief Holds all signal receivers attached to the emitter
  */
 extern signal_receivers_t g_signal_receivers;
 
@@ -25,12 +26,15 @@ class signal_emitter {
   template <typename Signal>
   bool emit(const Signal& sig) {
     try {
-      for (auto&& item : g_signal_receivers.at(id<Signal>())) {
-        if (item.second->on(sig)) {
-          return true;
+      if (g_signal_receivers.find(id<Signal>()) != g_signal_receivers.end()) {
+        for (auto&& item : g_signal_receivers.at(id<Signal>())) {
+          if (item.second->on(sig)) {
+            return true;
+          }
         }
       }
-    } catch (...) {
+    } catch (const std::exception& e) {
+      logger::make().err(e.what());
     }
 
     return false;

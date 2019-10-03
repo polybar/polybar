@@ -12,10 +12,6 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-#ifdef inline
-#undef inline
-#endif
-
 #include "common.hpp"
 #include "settings.hpp"
 #include "utils/command.hpp"
@@ -32,7 +28,7 @@ namespace net {
     return file_util::exists("/sys/class/net/" + ifname + "/wireless");
   }
 
-  static const string NO_IP6 = string("N/A");
+  static const string NO_IP = string("N/A");
 
   // class : network {{{
 
@@ -49,7 +45,7 @@ namespace net {
       throw network_error("Failed to open socket");
     }
 
-    check_tuntap();
+    check_tuntap_or_bridge();
   }
 
   /**
@@ -65,7 +61,8 @@ namespace net {
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
-    m_status.ip6 = NO_IP6;
+    m_status.ip = NO_IP;
+    m_status.ip6 = NO_IP;
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -88,7 +85,7 @@ namespace net {
           break;
 
         case AF_INET6:
-          char ip6_buffer[INET_ADDRSTRLEN];
+          char ip6_buffer[INET6_ADDRSTRLEN];
           sa6 = reinterpret_cast<decltype(sa6)>(ifa->ifa_addr);
           if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
               continue;
@@ -100,7 +97,7 @@ namespace net {
               /* Skip Unique Local Addresses (fc00::/7) */
               continue;
           }
-          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, NI_MAXHOST) == 0) {
+          if (inet_ntop(AF_INET6, &sa6->sin6_addr, ip6_buffer, INET6_ADDRSTRLEN) == 0) {
               m_log.warn("inet_ntop() " + string(strerror(errno)));
               continue;
           }
@@ -178,9 +175,9 @@ namespace net {
 
   /**
    * Query driver info to check if the
-   * interface is a TUN/TAP device
+   * interface is a TUN/TAP device or BRIDGE
    */
-  void network::check_tuntap() {
+  void network::check_tuntap_or_bridge() {
     struct ethtool_drvinfo driver {};
     struct ifreq request {};
 
@@ -194,7 +191,7 @@ namespace net {
      */
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
 
-    request.ifr_data = reinterpret_cast<caddr_t>(&driver);
+    request.ifr_data = reinterpret_cast<char*>(&driver);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return;
@@ -208,6 +205,11 @@ namespace net {
     } else {
       m_tuntap = false;
     }
+
+    if (strncmp(driver.driver, "bridge", 6) == 0) {
+      m_bridge = true;
+    }
+
   }
 
   /**
@@ -252,19 +254,26 @@ namespace net {
       return false;
     }
 
+    if(m_bridge) {
+      /* If bridge network then link speed cannot be computed
+       * TODO: Identify the physical network in bridge and compute the link speed
+       */
+      return true;
+    }
+
     struct ifreq request {};
     struct ethtool_cmd data {};
 
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GSET;
-    request.ifr_data = reinterpret_cast<caddr_t>(&data);
+    request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
-      return false;
+      m_linkspeed = -1;
+    } else {
+      m_linkspeed = data.speed;
     }
-
-    m_linkspeed = data.speed;
 
     return true;
   }
@@ -283,7 +292,7 @@ namespace net {
     memset(&request, 0, sizeof(request));
     strncpy(request.ifr_name, m_interface.c_str(), IFNAMSIZ - 1);
     data.cmd = ETHTOOL_GLINK;
-    request.ifr_data = reinterpret_cast<caddr_t>(&data);
+    request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
       return false;
@@ -297,7 +306,7 @@ namespace net {
    * about the current connection
    */
   string wired_network::linkspeed() const {
-    return (m_linkspeed == 0 ? "???" : to_string(m_linkspeed)) + " Mbit/s";
+    return m_linkspeed == -1 ? "N/A" : (to_string(m_linkspeed) + " Mbit/s");
   }
 
   // }}}

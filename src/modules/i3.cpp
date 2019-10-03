@@ -114,6 +114,13 @@ namespace modules {
   }
 
   bool i3_module::update() {
+    /*
+     * update only populates m_workspaces and those are only needed when
+     * <label-state> appears in the format
+     */
+    if (!m_formatter->has(TAG_LABEL_STATE)) {
+      return true;
+    }
     m_workspaces.clear();
     i3_util::connection_t ipc;
 
@@ -224,7 +231,7 @@ namespace modules {
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         cmd.erase(0, strlen(EVENT_CLICK));
         m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        conn.send_command("workspace " + cmd);
+        conn.send_command(make_workspace_command(cmd));
         return true;
       }
 
@@ -250,14 +257,14 @@ namespace modules {
       if (scrolldir == "next" && (m_wrap || next(current_ws) != workspaces.end())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + (*current_ws)->name);
+          conn.send_command(make_workspace_command((*current_ws)->name));
         }
         m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
         conn.send_command("workspace next_on_output");
       } else if (scrolldir == "prev" && (m_wrap || current_ws != workspaces.begin())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + (*current_ws)->name);
+          conn.send_command(make_workspace_command((*current_ws)->name));
         }
         m_log.info("%s: Sending workspace prev_on_output command to ipc handler", name());
         conn.send_command("workspace prev_on_output");
@@ -269,6 +276,10 @@ namespace modules {
 
     return true;
   }
-}
+
+  string i3_module::make_workspace_command(const string& workspace) {
+    return "workspace \"" + workspace + "\"";
+  }
+}  // namespace modules
 
 POLYBAR_NS_END

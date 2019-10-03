@@ -72,14 +72,26 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
-  auto monitor_strictmode = m_conf.get(bs, "monitor-strict", false);
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, monitor_strictmode);
+  m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
+  m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
+  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
   }
 
-  if (monitor_name.empty() && !monitor_strictmode) {
+  // if monitor_name is not defined, first check for primary monitor
+  if (monitor_name.empty()) {
+    for (auto&& mon : monitors) {
+      if (mon->primary) {
+        monitor_name = mon->name;
+        break;
+      }
+    }
+  }
+
+  // if still not found (and not strict matching), get first connected monitor
+  if (monitor_name.empty() && !m_opts.monitor_strict) {
     auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
     if (!connected_monitors.empty()) {
       monitor_name = connected_monitors[0]->name;
@@ -87,31 +99,24 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
+  // if still not found, get first monitor
   if (monitor_name.empty()) {
     monitor_name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", monitor_name);
   }
 
-  bool name_found{false};
-  bool fallback_found{monitor_name_fallback.empty()};
+  // get the monitor data based on the name
+  m_opts.monitor = randr_util::match_monitor(monitors, monitor_name, m_opts.monitor_exact);
   monitor_t fallback{};
 
-  for (auto&& monitor : monitors) {
-    if (!name_found && (name_found = monitor->match(monitor_name, monitor_strictmode))) {
-      m_opts.monitor = move(monitor);
-    } else if (!fallback_found && (fallback_found = monitor->match(monitor_name_fallback, monitor_strictmode))) {
-      fallback = move(monitor);
-    }
-
-    if (name_found && fallback_found) {
-      break;
-    }
+  if(!monitor_name_fallback.empty()) {
+    fallback = randr_util::match_monitor(monitors, monitor_name_fallback, m_opts.monitor_exact);
   }
 
   if (!m_opts.monitor) {
     if (fallback) {
       m_opts.monitor = move(fallback);
-      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, monitor_name_fallback);
+      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, m_opts.monitor->name);
     } else {
       throw application_error("Monitor \"" + monitor_name + "\" not found or disconnected");
     }
@@ -227,19 +232,23 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", 0);
+  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
   m_opts.borders[edge::TOP].color = parse_or_throw("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
   m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
+  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
   m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
 
   // Load geometry values
@@ -269,20 +278,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
-  // m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
-  // m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
-
-  m_opts.center.y = m_opts.size.h;
-  m_opts.center.y -= m_opts.borders[edge::BOTTOM].size;
-  m_opts.center.y /= 2;
-  m_opts.center.y += m_opts.borders[edge::TOP].size;
-
-  m_opts.center.x = m_opts.size.w;
-  m_opts.center.x -= m_opts.borders[edge::RIGHT].size;
-  m_opts.center.x /= 2;
-  m_opts.center.x += m_opts.borders[edge::LEFT].size;
-
-  m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
+  m_log.info("Bar geometry: %ix%i+%i+%i; Borders: %d,%d,%d,%d", m_opts.size.w,
+      m_opts.size.h, m_opts.pos.x, m_opts.pos.y,
+      m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size,
+      m_opts.borders[edge::BOTTOM].size, m_opts.borders[edge::LEFT].size);
 
   m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);
@@ -310,8 +309,8 @@ const bar_settings bar::settings() const {
 /**
  * Parse input string and redraw the bar window
  *
- * @param data Input string
- * @param force Unless true, do not parse unchanged data
+ * \param data Input string
+ * \param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
   if (!m_mutex.try_lock()) {
@@ -320,18 +319,19 @@ void bar::parse(string&& data, bool force) {
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
+  bool unchanged = data == m_lastinput;
+
+  m_lastinput = data;
+
   if (force) {
     m_log.trace("bar: Force update");
   } else if (!m_visible) {
     return m_log.trace("bar: Ignoring update (invisible)");
   } else if (m_opts.shaded) {
     return m_log.trace("bar: Ignoring update (shaded)");
-  } else if (data == m_lastinput) {
+  } else if (unchanged) {
     return m_log.trace("bar: Ignoring update (unchanged)");
-    return;
   }
-
-  m_lastinput = data;
 
   auto rect = m_opts.inner_area();
 
@@ -761,9 +761,6 @@ void bar::handle(const evt::expose& evt) {
  * state of the tray container even though the tray
  * window restacking failed.  Used as a fallback for
  * tedious WM's, like i3.
- *
- * - Track the root pixmap atom to update the
- * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
 #ifdef DEBUG_LOGGER_VERBOSE
@@ -774,6 +771,13 @@ void bar::handle(const evt::property_notify& evt) {
   if (evt->window == m_opts.window && evt->atom == WM_STATE) {
     broadcast_visibility();
   }
+}
+
+void bar::handle(const evt::configure_notify&) {
+  // The absolute position of the window in the root may be different after configuration is done
+  // (for example, because the parent is not positioned at 0/0 in the root window).
+  // Notify components that the geometry may have changed (used by the background manager for example).
+  m_sig.emit(signals::ui::update_geometry{});
 }
 
 bool bar::on(const signals::eventqueue::start&) {
@@ -789,6 +793,7 @@ bool bar::on(const signals::eventqueue::start&) {
   if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() ) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
+  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
   restack_window();
@@ -799,6 +804,10 @@ bool bar::on(const signals::eventqueue::start&) {
 
   m_log.trace("bar: Map window");
   m_connection.map_window_checked(m_opts.window);
+
+  // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
+  // Notify all components that depend on the absolute bar position (such as the background manager).
+  m_sig.emit(signals::ui::update_geometry{});
 
   // Reconfigure window position after mapping (required by Openbox)
   // Required by Openbox

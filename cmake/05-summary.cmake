@@ -3,14 +3,22 @@
 #
 
 message(STATUS " Build:")
+message_colored(STATUS "   Version: ${APP_VERSION}" "32;1")
 message_colored(STATUS "   Type: ${CMAKE_BUILD_TYPE}" "37;2")
-message_colored(STATUS "   CC: ${CMAKE_C_COMPILER} ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
 message_colored(STATUS "   CXX: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
 message_colored(STATUS "   LD: ${CMAKE_LINKER} ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
+
+message(STATUS " Install Paths:")
+message_colored(STATUS "   PREFIX:  ${CMAKE_INSTALL_PREFIX}" "32")
+message_colored(STATUS "   BINDIR:  ${CMAKE_INSTALL_FULL_BINDIR}" "32")
+message_colored(STATUS "   DATADIR: ${CMAKE_INSTALL_FULL_DATADIR}" "32")
+message_colored(STATUS "   DOCDIR:  ${CMAKE_INSTALL_FULL_DOCDIR}" "32")
+message_colored(STATUS "   MANDIR:  ${CMAKE_INSTALL_FULL_MANDIR}" "32")
 
 message(STATUS " Targets:")
 colored_option("   polybar-msg" BUILD_IPC_MSG)
 colored_option("   testsuite" BUILD_TESTS)
+colored_option("   documentation" BUILD_DOC)
 
 message(STATUS " Module support:")
 colored_option("   alsa" ENABLE_ALSA)
@@ -24,9 +32,6 @@ colored_option("   xkeyboard" WITH_XKB)
 message(STATUS " X extensions:")
 colored_option("   xcb-randr" WITH_XRANDR)
 colored_option("   xcb-randr (monitor support)" WITH_XRANDR_MONITORS)
-colored_option("   xcb-render" WITH_XRENDER)
-colored_option("   xcb-damage" WITH_XDAMAGE)
-colored_option("   xcb-sync" WITH_XSYNC)
 colored_option("   xcb-composite" WITH_XCOMPOSITE)
 colored_option("   xcb-xkb" WITH_XKB)
 colored_option("   xcb-xrm" WITH_XRM)

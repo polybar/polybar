@@ -19,15 +19,10 @@ namespace modules {
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
       : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
     auto output = m_conf.get(name(), "output", m_bar.monitor->name);
-    auto strict = m_conf.get(name(), "monitor-strict", false);
 
-    // Grab a list of all outputs and try to find the one defined in the config
-    for (auto&& mon : randr_util::get_monitors(m_connection, m_connection.root(), strict)) {
-      if (mon->match(output, strict)) {
-        m_output.swap(mon);
-        break;
-      }
-    }
+    auto monitors = randr_util::get_monitors(m_connection, m_connection.root(), bar.monitor_strict);
+
+    m_output = randr_util::match_monitor(monitors, output, bar.monitor_exact);
 
     // If we didn't get a match we stop the module
     if (!m_output) {
@@ -44,7 +39,7 @@ namespace modules {
       randr_util::get_backlight_value(m_connection, m_output, backlight);
     } catch (const exception& err) {
       m_log.err("%s: Could not get data (err: %s)", name(), err.what());
-      throw module_error("Not supported for \"" + output + "\"");
+      throw module_error("Not supported for \"" + m_output->name + "\"");
     }
 
     // Create window that will proxy all RandR notify events

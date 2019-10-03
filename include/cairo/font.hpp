@@ -15,12 +15,12 @@ POLYBAR_NS
 
 namespace cairo {
   /**
-   * @brief Global pointer to the Freetype library handler
+   * \brief Global pointer to the Freetype library handler
    */
   static FT_Library g_ftlib;
 
   /**
-   * @brief Abstract font face
+   * \brief Abstract font face
    */
   class font {
    public:
@@ -51,7 +51,7 @@ namespace cairo {
   };
 
   /**
-   * @brief Font based on fontconfig/freetype
+   * \brief Font based on fontconfig/freetype
    */
   class font_fc : public font {
    public:
@@ -112,19 +112,75 @@ namespace cairo {
       return m_offset;
     }
 
+    /**
+     * Calculates the font size in pixels for the given dpi
+     *
+     * We use the two font properties size and pixelsize. size is in points and
+     * needs to be scaled with the given dpi. pixelsize is not scaled.
+     *
+     * If both size properties are 0, we fall back to a default value of 10
+     * points for scalable fonts or 10 pixel for non-scalable ones. This should
+     * only happen if both properties are purposefully set to 0
+     *
+     * For scalable fonts we try to use the size property scaled according to
+     * the dpi.
+     * For non-scalable fonts we try to use the pixelsize property as-is
+     */
     double size(double dpi) const override {
       bool scalable;
-      double px;
+      double fc_pixelsize = 0, fc_size = 0;
+
       property(FC_SCALABLE, &scalable);
-      if (scalable) {
-        // convert from pt to px using the provided dpi
-        property(FC_SIZE, &px);
-        px = static_cast<int>(px * dpi / 72.0 + 0.5);
-      } else {
-        property(FC_PIXEL_SIZE, &px);
-        px = static_cast<int>(px + 0.5);
+
+      // Size in points
+      property(FC_SIZE, &fc_size);
+
+      // Size in pixels
+      property(FC_PIXEL_SIZE, &fc_pixelsize);
+
+      // Fall back to a default value if the size is 0
+      double pixelsize = fc_pixelsize == 0? 10 : fc_pixelsize;
+      double size = fc_size == 0? 10 : fc_size;
+
+      // Font size in pixels if we use the pixelsize property
+      int px_pixelsize = pixelsize + 0.5;
+
+      /*
+       * Font size in pixels if we use the size property. Since the size
+       * specifies the font size in points, this is converted to pixels
+       * according to the dpi given.
+       * One point is 1/72 inches, thus this gives us the number of 'dots'
+       * (or pixels) for this font
+       */
+      int px_size = size / 72.0 * dpi + 0.5;
+
+      if (fc_size == 0 && fc_pixelsize == 0) {
+        return scalable? px_size : px_pixelsize;
       }
-      return px;
+
+      if (scalable) {
+        /*
+         * Use the point size if it's not 0. The pixelsize is only used if the
+         * size property is 0 and pixelsize is not
+         */
+        if (fc_size != 0) {
+          return px_size;
+        }
+        else {
+          return px_pixelsize;
+        }
+      } else {
+        /*
+         * Non-scalable fonts do it the other way around, here the size
+         * property is only used if pixelsize is 0 and size is not
+         */
+        if (fc_pixelsize != 0) {
+          return px_pixelsize;
+        }
+        else {
+          return px_size;
+        }
+      }
     }
 
     void use() override {
@@ -243,7 +299,7 @@ namespace cairo {
   /**
    * Match and create font from given fontconfig pattern
    */
-  decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset, double dpi_x, double dpi_y) {
+  inline decltype(auto) make_font(cairo_t* cairo, string&& fontname, double offset, double dpi_x, double dpi_y) {
     static bool fc_init{false};
     if (!fc_init && !(fc_init = FcInit())) {
       throw application_error("Could not load fontconfig");
@@ -257,6 +313,12 @@ namespace cairo {
     });
 
     auto pattern = FcNameParse((FcChar8*)fontname.c_str());
+
+    if(!pattern) {
+      logger::make().err("Could not parse font \"%s\"", fontname);
+      throw application_error("Could not parse font \"" + fontname + "\"");
+    }
+
     FcDefaultSubstitute(pattern);
     FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
 

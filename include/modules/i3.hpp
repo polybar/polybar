@@ -16,19 +16,19 @@ namespace modules {
     enum class state {
       NONE,
       /**
-       * @brief Active workspace on focused monitor
+       * \brief Active workspace on focused monitor
        */
       FOCUSED,
       /**
-       * @brief Inactive workspace on any monitor
+       * \brief Inactive workspace on any monitor
        */
       UNFOCUSED,
       /**
-       * @brief Active workspace on unfocused monitor
+       * \brief Active workspace on unfocused monitor
        */
       VISIBLE,
       /**
-       * @brief Workspace with urgency hint set
+       * \brief Workspace with urgency hint set
        */
       URGENT,
     };
@@ -56,6 +56,8 @@ namespace modules {
     bool input(string&& cmd);
 
    private:
+    static string make_workspace_command(const string& workspace);
+
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};
     static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};
@@ -92,6 +94,6 @@ namespace modules {
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

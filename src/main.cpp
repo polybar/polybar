@@ -1,6 +1,7 @@
 #include "components/bar.hpp"
 #include "components/command_line.hpp"
 #include "components/config.hpp"
+#include "components/config_parser.hpp"
 #include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "utils/env.hpp"
@@ -78,9 +79,11 @@ int main(int argc, char** argv) {
     if (cli->has("list-monitors")) {
       for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
         if (WITH_XRANDR_MONITORS && mon->output == XCB_NONE) {
-          printf("%s: %ix%i+%i+%i (XRandR monitor)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+          printf("%s: %ix%i+%i+%i (XRandR monitor%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
+              mon->primary ? ", primary" : "");
         } else {
-          printf("%s: %ix%i+%i+%i\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y);
+          printf("%s: %ix%i+%i+%i%s\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
+              mon->primary ? " (primary)" : "");
         }
       }
       return EXIT_SUCCESS;
@@ -111,7 +114,8 @@ int main(int argc, char** argv) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config::make_type conf{config::make(move(confpath), cli->get(0))};
+    config_parser parser{logger, move(confpath), cli->get(0)};
+    config::make_type conf = parser.parse();
 
     //==================================================
     // Dump requested data

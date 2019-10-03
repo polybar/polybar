@@ -26,6 +26,10 @@ sig_atomic_t g_reload{0};
 sig_atomic_t g_terminate{0};
 
 void interrupt_handler(int signum) {
+  if (g_reload || g_terminate) {
+    return;
+  }
+
   g_terminate = 1;
   g_reload = (signum == SIGUSR1);
   if (write(g_eventpipe[PIPE_WRITE], &g_terminate, 1) == -1) {
@@ -122,6 +126,12 @@ controller::~controller() {
   signal(SIGINT, SIG_DFL);
   signal(SIGQUIT, SIG_DFL);
   signal(SIGTERM, SIG_DFL);
+  signal(SIGALRM, SIG_DFL);
+
+  if (g_reload) {
+    // Cause SIGUSR1 to be ignored until registered in the new polybar process
+    signal(SIGUSR1, SIG_IGN);
+  }
 
   m_log.trace("controller: Detach signal receiver");
   m_sig.detach(this);
@@ -684,6 +694,12 @@ bool controller::on(const signals::ipc::hook& evt) {
   }
 
   return true;
+}
+
+bool controller::on(const signals::ui::update_background&) {
+  enqueue(make_update_evt(true));
+
+  return false;
 }
 
 POLYBAR_NS_END

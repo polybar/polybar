@@ -7,8 +7,6 @@
 #include "settings.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
-#include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
 
@@ -64,6 +62,33 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
     }
 
     char tag{data[0]};
+
+    /*
+     * Contains the string from the current position to the next space or
+     * closing curly bracket (})
+     *
+     * This may be unsuitable for some tags (e.g. action tag) to use
+     * These MUST set value to the actual string they parsed from the beginning
+     * of data (or a string with the same length). The length of value is used
+     * to progress the cursor further.
+     *
+     * example:
+     *
+     * data = A1:echo "test": ...}
+     *
+     * erase(0,1)
+     * -> data = 1:echo "test": ...}
+     *
+     * case 'A', parse_action_cmd
+     * -> value = echo "test"
+     *
+     * Padding value
+     * -> value = echo "test"0::
+     *
+     * erase(0, value.length())
+     * -> data =  ...}
+     *
+     */
     string value;
 
     // Remove the tag
@@ -133,15 +158,22 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         m_sig.emit(attribute_toggle{parse_attr(value[0])});
         break;
 
-      case 'A':
-        if (isdigit(data[0]) || data[0] == ':') {
-          value = parse_action_cmd(data.substr(data[0] != ':' ? 1 : 0));
+      case 'A': {
+        bool has_btn_id = (data[0] != ':');
+        if (isdigit(data[0]) || !has_btn_id) {
+          value = parse_action_cmd(data.substr(has_btn_id ? 1 : 0));
           mousebtn btn = parse_action_btn(data);
           m_actions.push_back(static_cast<int>(btn));
-          m_sig.emit(action_begin{action{btn, value}});
 
-          // make sure we strip the correct length (btn+wrapping colons)
-          if (value[0] != ':') {
+          // Unescape colons inside command before sending it to the renderer
+          auto cmd = string_util::replace_all(value, "\\:", ":");
+          m_sig.emit(action_begin{action{btn, cmd}});
+
+          /*
+           * make sure value has the same length as the inside of the action
+           * tag which is btn_id + ':' + value + ':'
+           */
+          if (has_btn_id) {
             value += "0";
           }
           value += "::";
@@ -150,12 +182,19 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
           m_actions.pop_back();
         }
         break;
+      }
+
+      // Internal Polybar control tags
+      case 'P':
+        m_sig.emit(control{parse_control(value)});
+        break;
 
       default:
         throw unrecognized_token("Unrecognized token '" + string{tag} + "'");
     }
 
     if (!data.empty()) {
+      // Remove the parsed string from data
       data.erase(0, !value.empty() ? value.length() : 1);
     }
   }
@@ -232,6 +271,11 @@ mousebtn parser::parse_action_btn(const string& data) {
 
 /**
  * Process action command string
+ *
+ * data is the action cmd surrounded by unescaped colons followed by an
+ * arbitrary string
+ *
+ * Returns everything inside the unescaped colons as is
  */
 string parser::parse_action_cmd(string&& data) {
   if (data[0] != ':') {
@@ -248,6 +292,21 @@ string parser::parse_action_cmd(string&& data) {
   }
 
   return data.substr(1, end - 1);
+}
+
+controltag parser::parse_control(const string& data) {
+  if (data.length() != 1) {
+    return controltag::NONE;
+  }
+
+  switch (data[0]) {
+    case 'R':
+      return controltag::R;
+      break;
+    default:
+      return controltag::NONE;
+      break;
+  }
 }
 
 POLYBAR_NS_END
