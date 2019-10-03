@@ -160,7 +160,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1)
+    ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1),
+    ('man/polybar.5', 'polybar', 'configuration file for polybar(1)', [], 5)
 ]
 
 # -- Options for Texinfo output ----------------------------------------------

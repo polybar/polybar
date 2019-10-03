@@ -17,6 +17,7 @@ Welcome to the official polybar documentation.
    :caption: Manual Pages:
 
    man/polybar.1
+   man/polybar.5
 
 Getting Help
 ============

@@ -67,3 +67,11 @@ SEE ALSO
 --------
 | Full documentation at: <https://github.com/polybar/polybar>
 | Project wiki: <https://github.com/polybar/polybar/wiki>
+
+.. only:: man
+
+  :manpage:`polybar(5)`
+
+.. only:: not man
+
+  :doc:`polybar.5`
