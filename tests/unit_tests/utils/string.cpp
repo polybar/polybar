@@ -65,19 +65,39 @@ TEST(String, join) {
 }
 
 TEST(String, splitInto) {
-  vector<string> strings;
-  string_util::split_into("A,B,C", ',', strings);
-  EXPECT_EQ(3, strings.size());
-  EXPECT_EQ("A", strings[0]);
-  EXPECT_EQ("C", strings[2]);
+  {
+    vector<string> strings = string_util::split("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
+
+  {
+    vector<string> strings = string_util::split(",A,,B,,C,", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
 }
 
-TEST(String, split) {
-  vector<string> strings{"foo", "bar"};
-  vector<string> result{string_util::split("foo,bar", ',')};
-  EXPECT_EQ(strings.size(), result.size());
-  EXPECT_EQ(strings[0], result[0]);
-  EXPECT_EQ("bar", result[1]);
+TEST(String, tokenize) {
+  {
+    vector<string> strings = string_util::tokenize("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
+
+  {
+    using namespace std::string_literals;
+    vector<string> strings = string_util::tokenize(",A,,B,,C,", ',');
+    vector<string> result{""s, "A"s, ""s, "B"s, ""s, "C"s, ""s};
+
+    EXPECT_TRUE(strings == result);
+  }
 }
 
 TEST(String, findNth) {

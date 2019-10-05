@@ -58,7 +58,7 @@ namespace modules {
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
-      auto vec = string_util::split(workspace, ';');
+      auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
