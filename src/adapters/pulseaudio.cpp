@@ -155,6 +155,13 @@ int pulseaudio::get_volume() {
 }
 
 /**
+ * Get volume in decibels
+ */
+double pulseaudio::get_decibels() {
+  return pa_sw_volume_to_dB(pa_cvolume_max(&cv));
+}
+
+/**
  * Set volume to given percentage
  */
 void pulseaudio::set_volume(float percentage) {

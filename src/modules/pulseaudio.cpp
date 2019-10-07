@@ -66,11 +66,13 @@ namespace modules {
 
     // Get volume and mute state
     m_volume = 100;
+    m_decibels = PA_DECIBEL_MININFTY;
     m_muted = false;
 
     try {
       if (m_pulseaudio) {
         m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
+        m_decibels = m_pulseaudio->get_decibels();
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
@@ -81,11 +83,13 @@ namespace modules {
     if (m_label_volume) {
       m_label_volume->reset_tokens();
       m_label_volume->replace_token("%percentage%", to_string(m_volume));
+      m_label_volume->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
+      m_label_muted->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     return true;
