@@ -38,6 +38,7 @@ class pulseaudio {
     int process_events();
 
     int get_volume();
+    double get_decibels();
     void set_volume(float percentage);
     void inc_volume(int delta_perc);
     void set_mute(bool mode);
