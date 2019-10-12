@@ -32,8 +32,6 @@ namespace drawtypes {
     side_values m_margin{0U,0U};
 
     size_t m_minlen{0};
-    // The default is set to RIGHT for backwards compatibility.
-    alignment m_alignment{alignment::RIGHT};
     /*
      * If m_ellipsis is true, m_maxlen MUST be larger or equal to the length of
      * the ellipsis (3), everything else is a programming error
@@ -42,13 +40,15 @@ namespace drawtypes {
      * labels in a different way.
      */
     size_t m_maxlen{0_z};
+    // The default is set to RIGHT for backwards compatibility.
+    alignment m_alignment{alignment::RIGHT};
     bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
     explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
         string overline = ""s, int font = 0, struct side_values padding = {0U, 0U},
-        struct side_values margin = {0U, 0U}, int minlen = 0, alignment label_alignment = alignment::RIGHT,
-        size_t maxlen = 0_z, bool ellipsis = true, vector<token>&& tokens = {})
+        struct side_values margin = {0U, 0U}, int minlen = 0, size_t maxlen = 0_z,
+        alignment label_alignment = alignment::RIGHT, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
         , m_background(background)
         , m_underline(underline)
@@ -57,8 +57,8 @@ namespace drawtypes {
         , m_padding(padding)
         , m_margin(margin)
         , m_minlen(minlen)
-        , m_alignment(label_alignment)
         , m_maxlen(maxlen)
+        , m_alignment(label_alignment)
         , m_ellipsis(ellipsis)
         , m_text(text)
         , m_tokenized(m_text)

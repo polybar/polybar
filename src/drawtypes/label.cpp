@@ -11,19 +11,28 @@ namespace drawtypes {
   string label::get() const {
     const size_t len = string_util::char_len(m_tokenized);
     if (len >= m_minlen) {
-      return m_tokenized;
+      string text = m_tokenized;
+      if (m_maxlen > 0 && string_util::char_len(text) > m_maxlen) {
+        if (m_ellipsis) {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen - 3) + "...";
+        } else {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen);
+        }
+      }
+      return text;
     }
     const size_t num_fill_chars = m_minlen - len;
-    string aligned_label;
     if (m_alignment == alignment::RIGHT) {
-      aligned_label = string(num_fill_chars, ' ') + m_tokenized;
+      return string(num_fill_chars, ' ') + m_tokenized;
     } else if (m_alignment == alignment::LEFT) {
-      aligned_label = m_tokenized + string(num_fill_chars, ' ');
-    } else {
-      const string sided_fill_chars(std::ceil(num_fill_chars / 2.0), ' ');
-      aligned_label = sided_fill_chars + m_tokenized + sided_fill_chars;
+      return m_tokenized + string(num_fill_chars, ' ');
     }
-    return aligned_label;
+    size_t right_fill_len = std::ceil(num_fill_chars / 2.0);
+    size_t left_fill_len = right_fill_len;
+    if (len + 2*right_fill_len > m_minlen) {
+      --left_fill_len;
+    }
+    return string(left_fill_len, ' ') + m_tokenized + string(right_fill_len, ' ');
   }
 
   label::operator bool() {
@@ -37,7 +46,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_minlen, m_alignment, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_minlen, m_maxlen, m_alignment, m_ellipsis, move(tokens));
   }
 
   void label::clear() {
@@ -269,8 +278,8 @@ namespace drawtypes {
         padding,
         margin,
         minlen,
-        label_alignment,
         maxlen,
+        label_alignment,
         ellipsis,
         move(tokens));
     // clang-format on
