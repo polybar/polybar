@@ -40,12 +40,21 @@ namespace modules {
       m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
     }
 
-    // Build path to the file where the current/maximum brightness value is located
-    m_val.filepath(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
-    m_max.filepath(string_util::replace(PATH_BACKLIGHT_MAX, "%card%", card));
+    // Build path to the sysfs folder the current/maximum brightness values are located
+    auto path_backlight = string_util::replace(PATH_BACKLIGHT, "%card%", card);
+
+    /*
+     * amdgpu drivers set the actual_brightness in a different scale than [0, max_brightness]
+     * The only sensible way is to use the 'brightness' file instead
+     * Ref: https://github.com/Alexays/Waybar/issues/335
+     */
+    auto path_backlight_val = path_backlight + "/" + (card == "amdgpu_bl0"? "brightness" : "actual_brightness");
+
+    m_val.filepath(path_backlight_val);
+    m_max.filepath(path_backlight + "/max_brightness");
 
     // Add inotify watch
-    watch(string_util::replace(PATH_BACKLIGHT_VAL, "%card%", card));
+    watch(path_backlight_val);
   }
 
   void backlight_module::idle() {
