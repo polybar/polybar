@@ -403,6 +403,11 @@ void bar::show() {
   try {
     m_log.info("Showing bar window");
     m_sig.emit(visibility_change{true});
+    /**
+     * First reconfigures the window so that WMs that discard some information
+     * when unmapping have the correct window properties (geometry etc).
+     */
+    reconfigue_window();
     m_connection.map_window_checked(m_opts.window);
     m_connection.flush();
     m_visible = true;
@@ -457,6 +462,22 @@ void bar::restack_window() {
   } else if (!wm_restack.empty()) {
     m_log.err("Failed to restack bar window");
   }
+}
+
+void bar::reconfigue_window() {
+  m_log.trace("bar: Reconfigure window");
+  restack_window();
+  reconfigure_geom();
+  reconfigure_struts();
+  reconfigure_wm_hints();
+}
+
+/**
+ * Reconfigure window geometry
+ */
+void bar::reconfigure_geom() {
+  window win{m_connection, m_opts.window};
+  win.reconfigure_geom(m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 }
 
 /**
@@ -795,11 +816,7 @@ bool bar::on(const signals::eventqueue::start&) {
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  restack_window();
-
-  m_log.trace("bar: Reconfigure window");
-  reconfigure_struts();
-  reconfigure_wm_hints();
+  reconfigue_window();
 
   m_log.trace("bar: Map window");
   m_connection.map_window_checked(m_opts.window);
@@ -809,7 +826,6 @@ bool bar::on(const signals::eventqueue::start&) {
   m_sig.emit(signals::ui::update_geometry{});
 
   // Reconfigure window position after mapping (required by Openbox)
-  // Required by Openbox
   reconfigure_pos();
 
   m_log.trace("bar: Draw empty bar");
