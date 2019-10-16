@@ -160,7 +160,9 @@ namespace modules {
    */
   void battery_module::start() {
     this->inotify_module::start();
-    m_subthread = thread(&battery_module::subthread, this);
+    if (m_animation_discharging || m_animation_charging) {
+      m_subthread = thread(&battery_module::subthread, this);
+    }
   }
 
   /**
@@ -344,19 +346,25 @@ namespace modules {
   void battery_module::subthread() {
     chrono::duration<double> dur{0.0};
 
-    if (battery_module::state::CHARGING == m_state && m_animation_charging) {
-      dur += chrono::milliseconds{m_animation_charging->framerate()};
-    } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
-      dur += chrono::milliseconds{m_animation_discharging->framerate()};
-    } else {
-      dur += 1s;
+    {
+      std::lock_guard<std::mutex> guard(m_modulelock);
+
+      if (battery_module::state::CHARGING == m_state && m_animation_charging) {
+        dur += chrono::milliseconds{m_animation_charging->framerate()};
+      } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
+        dur += chrono::milliseconds{m_animation_discharging->framerate()};
+      } else {
+        dur += 1s;
+      }
     }
 
     while (running()) {
       for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING ||
-            m_state == battery_module::state::DISCHARGING) {
-          broadcast();
+        {
+          std::lock_guard<std::mutex> guard(m_modulelock);
+          if (m_state == battery_module::state::CHARGING || m_state == battery_module::state::DISCHARGING) {
+            broadcast();
+          }
         }
         sleep(dur);
       }

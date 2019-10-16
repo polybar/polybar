@@ -5,23 +5,40 @@
 POLYBAR_NS
 
 namespace modules {
+  /**
+   * \brief Generic class for a static module.
+   * \details
+   * To implement this module, the following method should be implemented:
+   *   - update() : CRTP implementation
+   * \see module
+   */
   template <class Impl>
   class static_module : public module<Impl> {
    public:
     using module<Impl>::module;
 
-    void start() {
-      this->m_mainthread = thread([&] {
-        this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+    void start() override {
+      {
+        std::lock_guard<std::mutex> guard(this->m_modulelock);
         CAST_MOD(Impl)->update();
-        CAST_MOD(Impl)->broadcast();
-      });
+      }
+      CAST_MOD(Impl)->broadcast();
     }
 
-    bool build(builder*, string) const {
+    bool build(builder*, const string&) const {
       return true;
     }
+
+   protected:
+    /**
+     * \brief Updates the internal state of the module and returns true if any modification has been made.
+     * \details
+     * Contract:
+     *   - expects: the mutex #m_modulelock is locked
+     *   - ensures: the mutex #m_modulelock is still locked.
+     */
+    void update() = delete;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

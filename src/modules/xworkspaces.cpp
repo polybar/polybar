@@ -17,7 +17,7 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-}
+}  // namespace
 
 namespace modules {
   template class module<xworkspaces_module>;
@@ -96,6 +96,8 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
+    std::lock_guard<std::mutex> guard(m_modulelock);
+
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST) {
       rebuild_clientlist();
     } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
@@ -215,7 +217,7 @@ namespace modules {
           d->state = desktop_state::ACTIVE;
         } else {
           d->state = desktop_state::EMPTY;
-        } 
+        }
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
@@ -226,14 +228,13 @@ namespace modules {
     }
   }
 
-  vector<string> xworkspaces_module::get_desktop_names(){
+  vector<string> xworkspaces_module::get_desktop_names() {
     vector<string> names = ewmh_util::get_desktop_names();
     unsigned int desktops_number = ewmh_util::get_number_of_desktops();
-    if(desktops_number == names.size()) {
+    if (desktops_number == names.size()) {
       return names;
-    }
-    else if(desktops_number < names.size()) {
-      names.erase(names.begin()+desktops_number, names.end());
+    } else if (desktops_number < names.size()) {
+      names.erase(names.begin() + desktops_number, names.end());
       return names;
     }
     for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
@@ -247,7 +248,7 @@ namespace modules {
    */
   void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
     auto desk = ewmh_util::get_desktop_from_window(window);
-    if(desk == m_current_desktop)
+    if (desk == m_current_desktop)
       // ignore if current desktop is urgent
       return;
     for (auto&& v : m_viewports) {
@@ -264,7 +265,6 @@ namespace modules {
         }
       }
     }
-
   }
 
   /**
@@ -341,6 +341,7 @@ namespace modules {
     }
     cmd.erase(0, len);
 
+    std::lock_guard<std::mutex> guard(m_modulelock);
     vector<unsigned int> indexes;
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
@@ -372,6 +373,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

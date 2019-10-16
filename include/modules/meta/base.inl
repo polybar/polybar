@@ -54,11 +54,11 @@ namespace modules {
     m_log.info("%s: Stopping", name());
     m_enabled = false;
 
-    std::lock(m_buildlock, m_updatelock);
-    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
-    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
+    CAST_MOD(Impl)->wakeup();
+
+    std::lock_guard<mutex> guard(m_modulelock);
+
     {
-      CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
 
       m_sig.emit(signals::eventqueue::check_state{});
@@ -79,7 +79,11 @@ namespace modules {
   string module<Impl>::contents() {
     if (m_changed) {
       m_log.info("%s: Rebuilding cache", name());
-      m_cache = CAST_MOD(Impl)->get_output();
+      {
+        std::lock_guard<std::mutex> guard(this->m_modulelock);
+        m_cache = CAST_MOD(Impl)->get_output();
+      }
+
       // Make sure builder is really empty
       m_builder->flush();
       if (!m_cache.empty()) {
@@ -129,7 +133,6 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::get_output() {
-    std::lock_guard<std::mutex> guard(m_buildlock);
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
     bool no_tag_built{true};
