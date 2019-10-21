@@ -97,6 +97,9 @@ namespace modules {
     unsigned int m_current_desktop;
     string m_current_desktop_name;
 
+    /**
+     * Maps an xcb window to its desktop number
+     */
     map<xcb_window_t, unsigned int> m_clients;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
