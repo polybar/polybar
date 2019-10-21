@@ -1,8 +1,9 @@
+#include "components/controller.hpp"
+
 #include <csignal>
 
 #include "components/bar.hpp"
 #include "components/config.hpp"
-#include "components/controller.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
@@ -17,7 +18,6 @@
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
 #include "x11/extensions/all.hpp"
-#include "x11/types.hpp"
 
 POLYBAR_NS
 
@@ -80,42 +80,37 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
-
-  for (int i = 0; i < 3; i++) {
-    alignment align{static_cast<alignment>(i + 1)};
-    string configured_modules;
-
-    if (align == alignment::LEFT) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-left", ""s);
-    } else if (align == alignment::CENTER) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-center", ""s);
-    } else if (align == alignment::RIGHT) {
-      configured_modules = m_conf.get(m_conf.section(), "modules-right", ""s);
-    }
-
-    for (auto& module_name : string_util::split(configured_modules, ' ')) {
-      if (module_name.empty()) {
-        continue;
-      }
-
-      try {
-        auto type = m_conf.get("module/" + module_name, "type");
-
-        if (type == "custom/ipc" && !m_ipc) {
-          throw application_error("Inter-process messaging needs to be enabled");
-        }
-
-        m_modules[align].emplace_back(make_module(move(type), m_bar->settings(), module_name, m_log));
-        created_modules++;
-      } catch (const runtime_error& err) {
-        m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
-      }
-    }
-  }
+  created_modules += setup_modules(alignment::LEFT);
+  created_modules += setup_modules(alignment::CENTER);
+  created_modules += setup_modules(alignment::RIGHT);
 
   if (!created_modules) {
     throw application_error("No modules created");
   }
+
+  /*
+   * Check if each module name only appears once
+   */
+  std::sort(m_modules.begin(), m_modules.end(), [](const auto& m1, const auto& m2) { return m1->name() < m2->name(); });
+
+  auto dup_it = m_modules.cbegin();
+
+  do {
+    auto equal_predicate = [](const auto& m1, const auto& m2) { return m1->name() == m2->name(); };
+    dup_it = std::adjacent_find(dup_it, m_modules.cend(), equal_predicate);
+
+    if (dup_it != m_modules.cend()) {
+      m_log.err(
+          "The module \"%s\" appears multiple times in your modules list. "
+          "This is deprecated and should be avoided, as it can lead to inconsistent behavior. "
+          "Both modules will be displayed for now.",
+          (*dup_it)->name());
+
+      dup_it = std::find_if_not(dup_it, m_modules.cend(), std::bind(equal_predicate, *dup_it, std::placeholders::_1));
+    } else {
+      break;
+    }
+  } while (true);
 }
 
 /**
@@ -137,15 +132,10 @@ controller::~controller() {
   m_sig.detach(this);
 
   m_log.trace("controller: Stop modules");
-  for (auto&& block : m_modules) {
-    for (auto&& module : block.second) {
-      auto module_name = module->name();
-      auto cleanup_ms = time_util::measure([&module] {
-        module->stop();
-        module.reset();
-      });
-      m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
-    }
+  for (auto&& module : m_modules) {
+    auto module_name = module->name();
+    auto cleanup_ms = time_util::measure([&module] { module->stop(); });
+    m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
   }
 
   m_log.trace("controller: Joining threads");
@@ -171,26 +161,24 @@ bool controller::run(bool writeback, string snapshot_dst) {
   m_sig.attach(this);
 
   size_t started_modules{0};
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      auto inp_handler = dynamic_cast<input_handler*>(&*module);
-      auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
+  for (const auto& module : m_modules) {
+    auto inp_handler = dynamic_cast<input_handler*>(&*module);
+    auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
 
-      if (inp_handler != nullptr) {
-        m_inputhandlers.emplace_back(inp_handler);
-      }
+    if (inp_handler != nullptr) {
+      m_inputhandlers.emplace_back(inp_handler);
+    }
 
-      if (evt_handler != nullptr) {
-        evt_handler->connect(m_connection);
-      }
+    if (evt_handler != nullptr) {
+      evt_handler->connect(m_connection);
+    }
 
-      try {
-        m_log.info("Starting %s", module->name());
-        module->start();
-        started_modules++;
-      } catch (const application_error& err) {
-        m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
-      }
+    try {
+      m_log.info("Starting %s", module->name());
+      module->start();
+      started_modules++;
+    } catch (const application_error& err) {
+      m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
     }
   }
 
@@ -283,8 +271,7 @@ void controller::read_events() {
     int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
 
     // Check for errors
-    if (events == -1)  {
-
+    if (events == -1) {
       /*
        * The Interrupt errno is generated when polybar is stopped, so it
        * shouldn't generate an error message
@@ -320,7 +307,8 @@ void controller::read_events() {
         // file to a different location (and subsequently deleting it).
         //
         // We need to re-attach the watch to the new file in this case.
-        fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
+        fds.erase(
+            std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
         m_confwatch = inotify_util::make_watch(m_confwatch->path());
         m_confwatch->attach(IN_MODIFY | IN_IGNORED);
         fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
@@ -465,7 +453,7 @@ bool controller::process_update(bool force) {
   string margin_left(bar.module_margin.left, ' ');
   string margin_right(bar.module_margin.right, ' ');
 
-  for (const auto& block : m_modules) {
+  for (const auto& block : m_blocks) {
     string block_contents;
     bool is_left = false;
     bool is_center = false;
@@ -553,6 +541,64 @@ bool controller::process_update(bool force) {
 }
 
 /**
+ * Creates module instances for all the modules in the given alignment block
+ */
+size_t controller::setup_modules(alignment align) {
+  size_t count{0};
+
+  string key;
+
+  switch (align) {
+    case alignment::LEFT:
+      key = "modules-left";
+      break;
+
+    case alignment::CENTER:
+      key = "modules-center";
+      break;
+
+    case alignment::RIGHT:
+      key = "modules-right";
+      break;
+
+    case alignment::NONE:
+      m_log.err("controller: Tried to setup modules for alignment NONE");
+      break;
+  }
+
+  string configured_modules;
+  if (!key.empty()) {
+    configured_modules = m_conf.get(m_conf.section(), key, ""s);
+  }
+
+  for (auto& module_name : string_util::split(configured_modules, ' ')) {
+    if (module_name.empty()) {
+      continue;
+    }
+
+    try {
+      auto type = m_conf.get("module/" + module_name, "type");
+
+      if (type == "custom/ipc" && !m_ipc) {
+        throw application_error("Inter-process messaging needs to be enabled");
+      }
+
+      auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
+      module_t module = shared_ptr<modules::module_interface>(ptr);
+      ptr = nullptr;
+
+      m_modules.push_back(module);
+      m_blocks[align].push_back(module);
+      count++;
+    } catch (const runtime_error& err) {
+      m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
+    }
+  }
+
+  return count;
+}
+
+/**
  * Process broadcast events
  */
 bool controller::on(const signals::eventqueue::notify_change&) {
@@ -586,11 +632,9 @@ bool controller::on(const signals::eventqueue::exit_reload&) {
  * Process eventqueue check event
  */
 bool controller::on(const signals::eventqueue::check_state&) {
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      if (module->running()) {
-        return true;
-      }
+  for (const auto& module : m_modules) {
+    if (module->running()) {
+      return true;
     }
   }
   m_log.warn("No running modules...");
@@ -681,15 +725,13 @@ bool controller::on(const signals::ipc::command& evt) {
 bool controller::on(const signals::ipc::hook& evt) {
   string hook{evt.cast()};
 
-  for (const auto& block : m_modules) {
-    for (const auto& module : block.second) {
-      if (!module->running()) {
-        continue;
-      }
-      auto ipc = dynamic_cast<ipc_module*>(module.get());
-      if (ipc != nullptr) {
-        ipc->on_message(hook);
-      }
+  for (const auto& module : m_modules) {
+    if (!module->running()) {
+      continue;
+    }
+    auto ipc = std::dynamic_pointer_cast<ipc_module>(module);
+    if (ipc != nullptr) {
+      ipc->on_message(hook);
     }
   }
 
