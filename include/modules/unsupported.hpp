@@ -17,6 +17,9 @@ namespace modules {
     MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
+    string name_raw() const {                                                           \
+      return "";                                                                        \
+    }                                                                                   \
     string name() const {                                                               \
       return "";                                                                        \
     }                                                                                   \
