@@ -1,5 +1,5 @@
 sudo: required
-dist: xenial
+dist: bionic
 language: cpp
 
 env:
@@ -26,6 +26,7 @@ addons:
       - &optional_deps
         - libxcb-xkb-dev
         - libxcb-cursor-dev
+        - libxcb-xrm-dev
         - libxcb1-dev
         - xutils-dev
         - i3-wm
@@ -50,7 +51,6 @@ matrix:
         - cmake ..
       script: make doc
       # Disable unnecessary commands
-      install:
       cache:
 
     - compiler: clang
@@ -79,13 +79,6 @@ matrix:
 cache:
   ccache: true
   apt: true
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
-
-install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
-  - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
 
 before_script:
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
