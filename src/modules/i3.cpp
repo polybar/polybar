@@ -31,6 +31,8 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_workspaces_max_count = m_conf.get(name(), "workspaces-max-count", m_workspaces_max_count);
+    m_workspaces_max_width = m_conf.get(name(), "workspaces-max-width", m_workspaces_max_width);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -122,55 +124,24 @@ namespace modules {
       return true;
     }
     m_workspaces.clear();
-    i3_util::connection_t ipc;
-
     try {
-      vector<shared_ptr<i3_util::workspace_t>> workspaces;
-
-      if (m_pinworkspaces) {
-        workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
-      } else {
-        workspaces = i3_util::workspaces(ipc);
+      vector<unique_ptr<workspace>> all_workspaces = get_workspaces();
+      auto max_workspaces_shown = static_cast<int>(all_workspaces.size());
+      if (m_workspaces_max_count >= 0) {
+        max_workspaces_shown = std::min(max_workspaces_shown, m_workspaces_max_count);
       }
+      int workspaces_char_width = 0;
 
-      if (m_indexsort) {
-        sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
-      }
-
-      for (auto&& ws : workspaces) {
-        state ws_state{state::NONE};
-
-        if (ws->focused) {
-          ws_state = state::FOCUSED;
-        } else if (ws->urgent) {
-          ws_state = state::URGENT;
-        } else if (ws->visible) {
-          ws_state = state::VISIBLE;
-        } else {
-          ws_state = state::UNFOCUSED;
+      for (int i = 0; i < max_workspaces_shown; ++i) {
+        auto& ws = all_workspaces[i];
+        const int label_width = string_util::char_len(ws->label->get());
+        if (m_workspaces_max_width >= 0 && workspaces_char_width + label_width > m_workspaces_max_width) {
+          break;
         }
+        workspaces_char_width += label_width;
 
-        string ws_name{ws->name};
-
-        // Remove workspace numbers "0:"
-        if (m_strip_wsnumbers) {
-          ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
-        }
-
-        // Trim leading and trailing whitespace
-        ws_name = string_util::trim(move(ws_name), ' ');
-
-        auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
-        auto label = m_statelabels.find(ws_state)->second->clone();
-
-        label->reset_tokens();
-        label->replace_token("%output%", ws->output);
-        label->replace_token("%name%", ws_name);
-        label->replace_token("%icon%", icon->get());
-        label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(std::move(ws));
       }
-
       return true;
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());
@@ -279,6 +250,62 @@ namespace modules {
 
   string i3_module::make_workspace_command(const string& workspace) {
     return "workspace \"" + workspace + "\"";
+  }
+
+  vector<unique_ptr<i3_module::workspace>> i3_module::get_workspaces() {
+    vector<shared_ptr<i3_util::workspace_t>> i3_workspaces;
+    i3_util::connection_t ipc;
+
+    if (m_pinworkspaces) {
+      i3_workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
+    } else {
+      i3_workspaces = i3_util::workspaces(ipc);
+    }
+
+    if (m_indexsort) {
+      sort(i3_workspaces.begin(), i3_workspaces.end(), i3_util::ws_numsort);
+    }
+
+    vector<unique_ptr<workspace>> workspaces;
+    for (auto&& ws : i3_workspaces) {
+      state ws_state{state::NONE};
+
+      if (ws->focused) {
+        ws_state = state::FOCUSED;
+      } else if (ws->urgent) {
+        ws_state = state::URGENT;
+      } else if (ws->visible) {
+        ws_state = state::VISIBLE;
+      } else {
+        ws_state = state::UNFOCUSED;
+      }
+
+      string ws_name{ws->name};
+
+      // Remove workspace numbers "0:"
+      if (m_strip_wsnumbers) {
+        ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
+      }
+      // Trim leading and trailing whitespace
+      ws_name = string_util::trim(move(ws_name), ' ');
+
+      auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
+      auto label = m_statelabels.find(ws_state)->second->clone();
+
+      label->reset_tokens();
+      label->replace_token("%output%", ws->output);
+      label->replace_token("%name%", ws_name);
+      label->replace_token("%icon%", icon->get());
+      label->replace_token("%index%", to_string(ws->num));
+
+      const int label_width = string_util::char_len(label->get());
+      if (label_width == 0) {
+        continue;
+      }
+
+      workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+    }
+    return workspaces;
   }
 }  // namespace modules
 
