@@ -31,6 +31,10 @@ namespace modules {
        * \brief Workspace with urgency hint set
        */
       URGENT,
+      /**
+       * \brief Dummy workspace to show ellipsis when the workspaces don't fit
+       */
+      DUMMY_ELLIPSIS,
     };
 
     struct workspace {
@@ -58,6 +62,7 @@ namespace modules {
    private:
     static string make_workspace_command(const string& workspace);
     vector<unique_ptr<workspace>> get_workspaces();
+    size_t get_num_fitting_workspaces(const vector<unique_ptr<workspace>>& workspaces);
 
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};

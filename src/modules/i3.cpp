@@ -48,6 +48,8 @@ namespace modules {
           make_pair(state::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
       m_statelabels.insert(
           make_pair(state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+          make_pair(state::DUMMY_ELLIPSIS, load_optional_label(m_conf, name(), "label-ellipsis", DEFAULT_WS_LABEL)));
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
@@ -126,21 +128,74 @@ namespace modules {
     m_workspaces.clear();
     try {
       vector<unique_ptr<workspace>> all_workspaces = get_workspaces();
-      auto max_workspaces_shown = static_cast<int>(all_workspaces.size());
+
+      auto max_workspaces_shown = all_workspaces.size();
       if (m_workspaces_max_count >= 0) {
-        max_workspaces_shown = std::min(max_workspaces_shown, m_workspaces_max_count);
+        max_workspaces_shown = std::min<size_t>(max_workspaces_shown, m_workspaces_max_count);
       }
-      int workspaces_char_width = 0;
-
-      for (int i = 0; i < max_workspaces_shown; ++i) {
-        auto& ws = all_workspaces[i];
-        const int label_width = string_util::char_len(ws->label->get());
-        if (m_workspaces_max_width >= 0 && workspaces_char_width + label_width > m_workspaces_max_width) {
-          break;
+      // The simple case: if everything fits, no need for ellipsis and other
+      // complications.
+      if (max_workspaces_shown >= all_workspaces.size() && get_num_fitting_workspaces(all_workspaces) == all_workspaces.size()) {
+        m_workspaces = std::move(all_workspaces);
+        return true;
+      }
+      // If we're here, it means not all the workspaces should be displayed, and
+      // we use an ellipsis to communicate that this is the case. This is
+      // implemented using a dummy workspace object with its name set to "...".
+      auto dummy_ws_label = m_statelabels.find(state::DUMMY_ELLIPSIS)->second->clone();
+      dummy_ws_label->reset_tokens();
+      dummy_ws_label->replace_token("%output%", "");
+      dummy_ws_label->replace_token("%name%", "...");
+      dummy_ws_label->replace_token("%icon%", "");
+      dummy_ws_label->replace_token("%index%", "");
+      auto dummy_ws = factory_util::unique<workspace>("", state::DUMMY_ELLIPSIS, move(dummy_ws_label));
+      // We now compute two lists: the workspaces displayed before and after the
+      // ellipsis. The latter can contain only zero or one elements, depending
+      // on whether the focused workspace fits in the list of workspaces before
+      // the ellipsis. Below are examples for the workspaces displayed, with
+      // stars wrapping the focused workspace:
+      // ws1 |  ws2  | ... | *ws8*
+      // ws1 | *ws2* | ...
+      // ...
+      using ws_iterator = typename decltype(all_workspaces)::iterator;
+      vector<ws_iterator> before_ellipsis;
+      vector<ws_iterator> after_ellipsis;
+      size_t displayed_ws_count = 0;
+      int displayed_ws_width = string_util::char_len(dummy_ws->label->get());
+      // Checks if the given workspace fits, and if so, returns its width.
+      // Otherwise, returns 0.
+      auto count_ws_if_fits = [&](const workspace& ws) -> bool {
+        if (displayed_ws_count + 1 > max_workspaces_shown) {
+          return false;
         }
-        workspaces_char_width += label_width;
+        int label_width = string_util::char_len(ws.label->get());
+        if (m_workspaces_max_width >= 0 && displayed_ws_width + label_width > m_workspaces_max_width) {
+          return false;
+        }
+        displayed_ws_count += 1;
+        displayed_ws_width += label_width;
+        return true;
+      };
+      const auto focused_ws_iter = std::find_if(
+          all_workspaces.begin(), all_workspaces.end(), [](auto& ws) { return ws->state == state::FOCUSED; });
+      if (focused_ws_iter != all_workspaces.end() && count_ws_if_fits(**focused_ws_iter)) {
+        for (auto i = all_workspaces.begin(); i != all_workspaces.end(); ++i) {
+          if (i != focused_ws_iter && !count_ws_if_fits(**i)) {
+            break;
+          }
+          before_ellipsis.push_back(i);
+        }
+        if (std::find(before_ellipsis.begin(), before_ellipsis.end(), focused_ws_iter) == before_ellipsis.end()) {
+          after_ellipsis.push_back(focused_ws_iter);
+        }
+      }
 
-        m_workspaces.emplace_back(std::move(ws));
+      for (auto iter : before_ellipsis) {
+        m_workspaces.emplace_back(std::move(*iter));
+      }
+      m_workspaces.emplace_back(std::move(dummy_ws));
+      for (auto iter : after_ellipsis) {
+        m_workspaces.emplace_back(std::move(*iter));
       }
       return true;
     } catch (const exception& err) {
@@ -306,6 +361,21 @@ namespace modules {
       workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
     }
     return workspaces;
+  }
+
+  size_t i3_module::get_num_fitting_workspaces(const vector<unique_ptr<workspace>>& workspaces) {
+    if (m_workspaces_max_width < 0) {
+      return workspaces.size();
+    }
+    int workspaces_label_width_total = 0;
+    for (size_t i = 0; i < workspaces.size(); ++i) {
+      int ws_width = string_util::char_len(workspaces[i]->label->get());
+      if (workspaces_label_width_total + ws_width > m_workspaces_max_width) {
+        return i;
+      }
+      workspaces_label_width_total += ws_width;
+    }
+    return workspaces.size();
   }
 }  // namespace modules
 
