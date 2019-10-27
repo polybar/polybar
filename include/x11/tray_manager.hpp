@@ -59,16 +59,16 @@ struct tray_settings {
   unsigned int height_fill{0U};
   unsigned int spacing{0U};
   unsigned int sibling{0U};
-  unsigned int background{0U};
+  rgba background{};
   bool transparent{false};
   bool detached{false};
 };
 
-class tray_manager
-    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
-          evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
-          evt::map_notify, evt::unmap_notify>,
-      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window, signals::ui::update_background> {
+class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
+                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
+                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
+                     public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
+                         signals::ui::update_background> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make();

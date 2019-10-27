@@ -56,17 +56,6 @@ namespace cairo {
       return *this;
     }
 
-    context& operator<<(const unsigned int& c) {
-      // clang-format off
-      cairo_set_source_rgba(m_c,
-        color_util::red_channel<unsigned char>(c) / 255.0,
-        color_util::green_channel<unsigned char>(c) / 255.0,
-        color_util::blue_channel<unsigned char>(c) / 255.0,
-        color_util::alpha_channel<unsigned char>(c) / 255.0);
-      // clang-format on
-      return *this;
-    }
-
     context& operator<<(const abspos& p) {
       if (p.clear) {
         cairo_new_path(m_c);
@@ -81,7 +70,7 @@ namespace cairo {
     }
 
     context& operator<<(const rgba& f) {
-      cairo_set_source_rgba(m_c, f.r, f.g, f.b, f.a);
+      cairo_set_source_rgba(m_c, f.r(), f.g(), f.b(), f.a());
       return *this;
     }
 
@@ -116,11 +105,7 @@ namespace cairo {
         auto offset = 0.0;
         for (auto&& color : l.steps) {
           // clang-format off
-          cairo_pattern_add_color_stop_rgba(pattern, offset,
-            color_util::red_channel<unsigned char>(color) / 255.0,
-            color_util::green_channel<unsigned char>(color) / 255.0,
-            color_util::blue_channel<unsigned char>(color) / 255.0,
-            color_util::alpha_channel<unsigned char>(color) / 255.0);
+          cairo_pattern_add_color_stop_rgba(pattern, offset, color.r(), color.g(), color.b(), color.a());
           // clang-format on
           offset += step;
         }

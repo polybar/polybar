@@ -1,4 +1,7 @@
+#include "x11/tray_manager.hpp"
+
 #include <xcb/xcb_image.h>
+
 #include <thread>
 
 #include "cairo/context.hpp"
@@ -14,7 +17,6 @@
 #include "x11/background_manager.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
-#include "x11/tray_manager.hpp"
 #include "x11/window.hpp"
 #include "x11/winspec.hpp"
 #include "x11/xembed.hpp"
@@ -40,11 +42,12 @@ POLYBAR_NS
  * Create instance
  */
 tray_manager::make_type tray_manager::make() {
-  return factory_util::unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
+  return factory_util::unique<tray_manager>(
+      connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
 }
 
 tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back)
-  : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back) {
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -125,15 +128,9 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Set user-defined background color
-  auto bg = conf.get(bs, "tray-background", ""s);
+  m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
 
-  if (!bg.empty()) {
-    m_opts.background = color_util::parse(bg);
-  } else {
-    m_opts.background = bar_opts.background;
-  }
-
-  if (color_util::alpha_channel<unsigned char>(m_opts.background) != 255) {
+  if (color_util::alpha_channel(m_opts.background) != 255) {
     m_log.trace("tray: enable transparency");
     m_opts.transparent = true;
   }
@@ -393,13 +390,12 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
   m_log.trace("tray: Reconfigure bg (realloc=%i)", realloc);
 
-
-  if(!m_context) {
+  if (!m_context) {
     return m_log.err("tray: no context for drawing the background");
   }
 
   cairo::surface* surface = m_bg_slice->get_surface();
-  if(!surface) {
+  if (!surface) {
     return m_log.err("tray: no root surface");
   }
 
@@ -431,7 +427,8 @@ void tray_manager::refresh_window() {
     m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
   }
 
-  if(m_surface) m_surface->flush();
+  if (m_surface)
+    m_surface->flush();
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
@@ -522,10 +519,10 @@ void tray_manager::create_bg(bool realloc) {
     m_gc = 0;
   }
 
-  if(realloc && m_surface) {
+  if (realloc && m_surface) {
     m_surface.release();
   }
-  if(realloc && m_context) {
+  if (realloc && m_context) {
     m_context.release();
   }
 
@@ -555,15 +552,16 @@ void tray_manager::create_bg(bool realloc) {
     }
   }
 
-  if(!m_surface) {
-    xcb_visualtype_t* visual = m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
-    if(!visual) {
+  if (!m_surface) {
+    xcb_visualtype_t* visual =
+        m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
+    if (!visual) {
       return m_log.err("Failed to get root visual for tray background");
     }
     m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, w, h);
   }
 
-  if(!m_context) {
+  if (!m_context) {
     m_context = make_unique<cairo::context>(*m_surface, m_log);
     m_context->clear();
     *m_context << CAIRO_OPERATOR_SOURCE << m_opts.background;
@@ -640,9 +638,9 @@ void tray_manager::set_wm_hints() {
 void tray_manager::set_tray_colors() {
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.background);
 
-  auto r = color_util::red_channel(m_opts.background);
-  auto g = color_util::green_channel(m_opts.background);
-  auto b = color_util::blue_channel(m_opts.background);
+  auto r = m_opts.background.r_int();
+  auto g = m_opts.background.g_int();
+  auto b = m_opts.background.b_int();
 
   const unsigned int colors[12] = {
       r, g, b,  // normal
