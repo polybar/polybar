@@ -261,7 +261,8 @@ void builder::font_close() {
 void builder::background(rgba color) {
   if (color.m_type == color.ALPHA_ONLY) {
     rgba bg = m_bar.background;
-    color.m_value |= bg;
+    bg.apply_alpha(color);
+    color = bg;
   }
 
   auto hex = color_util::simplify_hex(color);
@@ -282,8 +283,9 @@ void builder::background_close() {
  */
 void builder::color(rgba color) {
   if (color.m_type == color.ALPHA_ONLY) {
-    rgba bg = m_bar.foreground;
-    color.m_value |= bg;
+    rgba fg = m_bar.foreground;
+    fg.apply_alpha(color);
+    color = fg;
   }
 
   auto hex = color_util::simplify_hex(color);
