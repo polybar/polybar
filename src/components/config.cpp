@@ -201,7 +201,13 @@ chrono::duration<double> config::convert(string&& value) const {
 
 template <>
 rgba config::convert(string&& value) const {
-  return rgba{value};
+  rgba ret{value};
+
+  if (!ret.has_color()) {
+    throw value_error("\"" + value + "\" is an invalid color value.");
+  }
+
+  return ret;
 }
 
 template <>
