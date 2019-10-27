@@ -101,17 +101,15 @@ TEST(Rgba, hasColor) {
   EXPECT_FALSE(v.has_color());
 }
 
-TEST(ColorUtil, rgba) {
-  uint32_t color{0xCC123456};
-  EXPECT_EQ(0xCC, color_util::alpha_channel(color));
-  EXPECT_EQ(0x12, color_util::red_channel(color));
-  EXPECT_EQ(0x34, color_util::green_channel(color));
-  EXPECT_EQ(0x56, color_util::blue_channel(color));
+TEST(Rgba, channel) {
+  rgba v{0xCC123456};
+  EXPECT_EQ(0xCC, v.a_int());
+  EXPECT_EQ(0x12, v.r_int());
+  EXPECT_EQ(0x34, v.g_int());
+  EXPECT_EQ(0x56, v.b_int());
 
   EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.a());
   EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.g());
-  EXPECT_EQ(0xFF111111, static_cast<uint32_t>(rgba{"#FF111111"}));
-  EXPECT_EQ(0x00FFFFFF, static_cast<uint32_t>(rgba{"#00FFFFFF"}));
 }
 
 TEST(ColorUtil, simplify) {

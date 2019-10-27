@@ -36,12 +36,6 @@ struct rgba {
 };
 
 namespace color_util {
-
-  uint8_t alpha_channel(const uint32_t value);
-  uint8_t red_channel(const uint32_t value);
-  uint8_t green_channel(const uint32_t value);
-  uint8_t blue_channel(const uint32_t value);
-
   string simplify_hex(string hex);
 }  // namespace color_util
 

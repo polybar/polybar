@@ -116,35 +116,19 @@ double rgba::b() const {
 }
 
 uint8_t rgba::a_int() const {
-  return color_util::alpha_channel(m_value);
+  return (m_value >> 24) & 0xFF;
 }
 
 uint8_t rgba::r_int() const {
-  return color_util::red_channel(m_value);
+  return (m_value >> 16) & 0xFF;
 }
 
 uint8_t rgba::g_int() const {
-  return color_util::green_channel(m_value);
+  return (m_value >> 8) & 0xFF;
 }
 
 uint8_t rgba::b_int() const {
-  return color_util::blue_channel(m_value);
-}
-
-uint8_t color_util::alpha_channel(const uint32_t value) {
-  return (value >> 24) & 0xFF;
-}
-
-uint8_t color_util::red_channel(const uint32_t value) {
-  return (value >> 16) & 0xFF;
-}
-
-uint8_t color_util::green_channel(const uint32_t value) {
-  return (value >> 8) & 0xFF;
-}
-
-uint8_t color_util::blue_channel(const uint32_t value) {
-  return value & 0xFF;
+  return m_value & 0xFF;
 }
 
 bool rgba::has_color() const {
