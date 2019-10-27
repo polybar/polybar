@@ -128,17 +128,17 @@ void builder::node(const label_t& label) {
     space(label->m_margin.left);
   }
 
-  if (!label->m_overline.empty()) {
+  if (label->m_overline.has_color()) {
     overline(label->m_overline);
   }
-  if (!label->m_underline.empty()) {
+  if (label->m_underline.has_color()) {
     underline(label->m_underline);
   }
 
-  if (!label->m_background.empty()) {
+  if (label->m_background.has_color()) {
     background(label->m_background);
   }
-  if (!label->m_foreground.empty()) {
+  if (label->m_foreground.has_color()) {
     color(label->m_foreground);
   }
 
@@ -152,17 +152,17 @@ void builder::node(const label_t& label) {
     space(label->m_padding.right);
   }
 
-  if (!label->m_background.empty()) {
+  if (label->m_background.has_color()) {
     background_close();
   }
-  if (!label->m_foreground.empty()) {
+  if (label->m_foreground.has_color()) {
     color_close();
   }
 
-  if (!label->m_underline.empty()) {
+  if (label->m_underline.has_color()) {
     underline_close();
   }
-  if (!label->m_overline.empty()) {
+  if (label->m_overline.has_color()) {
     overline_close();
   }
 
@@ -258,16 +258,15 @@ void builder::font_close() {
 /**
  * Insert tag to alter the current background color
  */
-void builder::background(string color) {
-  if (color.length() == 2 || (color.find('#') == 0 && color.length() == 3)) {
-    string bg{background_hex()};
-    color = "#" + color.substr(color.length() - 2);
-    color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
+void builder::background(rgba color) {
+  if (color.m_type == color.ALPHA_ONLY) {
+    rgba bg = m_bar.background;
+    color.m_value |= bg;
   }
 
-  color = color_util::simplify_hex(color);
-  m_colors[syntaxtag::B] = color;
-  tag_open(syntaxtag::B, color);
+  auto hex = color_util::simplify_hex(color);
+  m_colors[syntaxtag::B] = hex;
+  tag_open(syntaxtag::B, hex);
 }
 
 /**
@@ -281,36 +280,15 @@ void builder::background_close() {
 /**
  * Insert tag to alter the current foreground color
  */
-void builder::color(string color) {
-  if (color.length() == 2 || (color[0] == '#' && color.length() == 3)) {
-    string fg{foreground_hex()};
-    if (!fg.empty()) {
-      color = "#" + color.substr(color.length() - 2);
-      color += fg.substr(fg.length() - (fg.length() < 6 ? 3 : 6));
-    }
+void builder::color(rgba color) {
+  if (color.m_type == color.ALPHA_ONLY) {
+    rgba bg = m_bar.foreground;
+    color.m_value |= bg;
   }
 
-  color = color_util::simplify_hex(color);
-  m_colors[syntaxtag::F] = color;
-  tag_open(syntaxtag::F, color);
-}
-
-/**
- * Insert tag to alter the alpha value of the default foreground color
- */
-void builder::color_alpha(string alpha) {
-  if (alpha.find('#') == string::npos) {
-    alpha = "#" + alpha;
-  }
-  if (alpha.size() == 4) {
-    color(alpha);
-  } else {
-    string val{foreground_hex()};
-    if (val.size() < 6 && val.size() > 2) {
-      val.append(val.substr(val.size() - 3));
-    }
-    color((alpha.substr(0, 3) + val.substr(val.size() - 6)).substr(0, 9));
-  }
+  auto hex = color_util::simplify_hex(color);
+  m_colors[syntaxtag::F] = hex;
+  tag_open(syntaxtag::F, hex);
 }
 
 /**
@@ -324,7 +302,7 @@ void builder::color_close() {
 /**
  * Insert tag to alter the current overline/underline color
  */
-void builder::line_color(const string& color) {
+void builder::line_color(const rgba& color) {
   overline_color(color);
   underline_color(color);
 }
@@ -340,10 +318,10 @@ void builder::line_color_close() {
 /**
  * Insert tag to alter the current overline color
  */
-void builder::overline_color(string color) {
-  color = color_util::simplify_hex(color);
-  m_colors[syntaxtag::o] = color;
-  tag_open(syntaxtag::o, color);
+void builder::overline_color(rgba color) {
+  auto hex = color_util::simplify_hex(color);
+  m_colors[syntaxtag::o] = hex;
+  tag_open(syntaxtag::o, hex);
   tag_open(attribute::OVERLINE);
 }
 
@@ -358,10 +336,10 @@ void builder::overline_color_close() {
 /**
  * Insert tag to alter the current underline color
  */
-void builder::underline_color(string color) {
-  color = color_util::simplify_hex(color);
-  m_colors[syntaxtag::u] = color;
-  tag_open(syntaxtag::u, color);
+void builder::underline_color(rgba color) {
+  auto hex = color_util::simplify_hex(color);
+  m_colors[syntaxtag::u] = hex;
+  tag_open(syntaxtag::u, hex);
   tag_open(attribute::UNDERLINE);
 }
 
@@ -376,8 +354,8 @@ void builder::underline_color_close() {
 /**
  * Insert tag to enable the overline attribute
  */
-void builder::overline(const string& color) {
-  if (!color.empty()) {
+void builder::overline(const rgba& color) {
+  if (color.has_color()) {
     overline_color(color);
   } else {
     tag_open(attribute::OVERLINE);
@@ -394,8 +372,8 @@ void builder::overline_close() {
 /**
  * Insert tag to enable the underline attribute
  */
-void builder::underline(const string& color) {
-  if (!color.empty()) {
+void builder::underline(const rgba& color) {
+  if (color.has_color()) {
     underline_color(color);
   } else {
     tag_open(attribute::UNDERLINE);
@@ -470,26 +448,6 @@ void builder::action(
  */
 void builder::action_close() {
   tag_close(syntaxtag::A);
-}
-
-/**
- * Get default background hex string
- */
-string builder::background_hex() {
-  if (m_background.empty()) {
-    m_background = color_util::hex<unsigned short int>(m_bar.background);
-  }
-  return m_background;
-}
-
-/**
- * Get default foreground hex string
- */
-string builder::foreground_hex() {
-  if (m_foreground.empty()) {
-    m_foreground = color_util::hex<unsigned short int>(m_bar.foreground);
-  }
-  return m_foreground;
 }
 
 /**

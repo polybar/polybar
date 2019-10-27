@@ -1,8 +1,9 @@
+#include "modules/meta/base.hpp"
+
 #include <utility>
 
 #include "components/builder.hpp"
 #include "drawtypes/label.hpp"
-#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -20,19 +21,19 @@ namespace modules {
     if (margin > 0) {
       builder->space(margin);
     }
-    if (!bg.empty()) {
+    if (bg.has_color()) {
       builder->background(bg);
     }
-    if (!fg.empty()) {
+    if (fg.has_color()) {
       builder->color(fg);
     }
-    if (!ul.empty()) {
+    if (ul.has_color()) {
       builder->underline(ul);
     }
-    if (!ol.empty()) {
+    if (ol.has_color()) {
       builder->overline(ol);
     }
-    if(font > 0) {
+    if (font > 0) {
       builder->font(font);
     }
     if (padding > 0) {
@@ -41,16 +42,16 @@ namespace modules {
 
     builder->node(prefix);
 
-    if (!bg.empty()) {
+    if (bg.has_color()) {
       builder->background(bg);
     }
-    if (!fg.empty()) {
+    if (fg.has_color()) {
       builder->color(fg);
     }
-    if (!ul.empty()) {
+    if (ul.has_color()) {
       builder->underline(ul);
     }
-    if (!ol.empty()) {
+    if (ol.has_color()) {
       builder->overline(ol);
     }
 
@@ -60,19 +61,19 @@ namespace modules {
     if (padding > 0) {
       builder->space(padding);
     }
-    if(font > 0) {
+    if (font > 0) {
       builder->font_close();
     }
-    if (!ol.empty()) {
+    if (ol.has_color()) {
       builder->overline_close();
     }
-    if (!ul.empty()) {
+    if (ul.has_color()) {
       builder->underline_close();
     }
-    if (!fg.empty()) {
+    if (fg.has_color()) {
       builder->color_close();
     }
-    if (!bg.empty()) {
+    if (bg.has_color()) {
       builder->background_close();
     }
     if (margin > 0) {
@@ -86,8 +87,9 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](
-        const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
+    const auto formatdef = [&](const string& param, const auto& fallback) {
+      return m_conf.get("settings", "format-" + param, fallback);
+    };
 
     auto format = make_unique<module_format>();
     format->value = m_conf.get(m_modname, name, move(fallback));
@@ -165,6 +167,6 @@ namespace modules {
   }
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

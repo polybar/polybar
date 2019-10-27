@@ -102,8 +102,8 @@ namespace modules {
     label_t m_label_time;
     label_t m_label_offline;
 
-    string m_toggle_on_color;
-    string m_toggle_off_color;
+    rgba m_toggle_on_color;
+    rgba m_toggle_off_color;
   };
 }  // namespace modules
 
