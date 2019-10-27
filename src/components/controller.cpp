@@ -3,6 +3,7 @@
 #include <csignal>
 
 #include "components/bar.hpp"
+#include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
@@ -447,11 +448,14 @@ void controller::process_inputdata() {
 bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
-  string separator{bar.separator};
   string padding_left(bar.padding.left, ' ');
   string padding_right(bar.padding.right, ' ');
   string margin_left(bar.module_margin.left, ' ');
   string margin_right(bar.module_margin.right, ' ');
+
+  builder build{bar};
+  build.node(bar.separator);
+  string separator{build.flush()};
 
   for (const auto& block : m_blocks) {
     string block_contents;
