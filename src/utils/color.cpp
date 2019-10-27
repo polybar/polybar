@@ -58,7 +58,6 @@ rgba::rgba(string hex) {
   hex = normalize_hex(hex);
 
   if (hex.length() == 0) {
-    // TODO we need a way to inform the user that their color was malformed
     m_value = 0;
     m_type = NONE;
   } else if (hex.length() == 2) {
