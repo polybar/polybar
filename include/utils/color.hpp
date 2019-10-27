@@ -3,11 +3,8 @@
 #include <cstdlib>
 
 #include "common.hpp"
-#include "utils/cache.hpp"
 
 POLYBAR_NS
-
-static cache<string, uint32_t> g_cache_hex;
 
 struct rgba {
   /**
@@ -44,8 +41,6 @@ namespace color_util {
   uint8_t red_channel(const uint32_t value);
   uint8_t green_channel(const uint32_t value);
   uint8_t blue_channel(const uint32_t value);
-
-  string hex(uint32_t color);
 
   string simplify_hex(string hex);
 }  // namespace color_util

@@ -147,10 +147,6 @@ uint8_t color_util::blue_channel(const uint32_t value) {
   return value & 0xFF;
 }
 
-string color_util::hex(uint32_t color) {
-  return *g_cache_hex.object(color, [&] { return static_cast<string>(rgba{color}); }());
-}
-
 bool rgba::has_color() const {
   return m_type != NONE;
 }

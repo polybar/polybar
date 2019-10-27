@@ -114,15 +114,6 @@ TEST(ColorUtil, rgba) {
   EXPECT_EQ(0x00FFFFFF, static_cast<uint32_t>(rgba{"#00FFFFFF"}));
 }
 
-TEST(ColorUtil, hex) {
-  uint32_t colorA{0x123456};
-  EXPECT_EQ("#00123456"s, color_util::hex(colorA));
-  uint32_t colorB{0xCC123456};
-  EXPECT_EQ("#cc123456"s, color_util::hex(colorB));
-  uint32_t colorC{0x00ffffff};
-  EXPECT_EQ("#00ffffff"s, color_util::hex(colorC));
-}
-
 TEST(ColorUtil, simplify) {
   EXPECT_EQ("#111", color_util::simplify_hex("#FF111111"));
   EXPECT_EQ("#234", color_util::simplify_hex("#ff223344"));
