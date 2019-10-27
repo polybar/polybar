@@ -130,7 +130,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   // Set user-defined background color
   m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
 
-  if (color_util::alpha_channel(m_opts.background) != 255) {
+  if (m_opts.background.a_int() != 255) {
     m_log.trace("tray: enable transparency");
     m_opts.transparent = true;
   }
