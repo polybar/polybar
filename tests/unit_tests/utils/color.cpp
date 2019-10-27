@@ -112,6 +112,16 @@ TEST(Rgba, channel) {
   EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.g());
 }
 
+TEST(Rgba, applyAlpha) {
+  rgba v{0xCC123456};
+  v.apply_alpha(rgba{0xAA000000, rgba::ALPHA_ONLY});
+  EXPECT_EQ(0xAA123456, v.m_value);
+
+  v = rgba{0x00123456};
+  v.apply_alpha(rgba{0xCC999999});
+  EXPECT_EQ(0xCC123456, v.m_value);
+}
+
 TEST(ColorUtil, simplify) {
   EXPECT_EQ("#111", color_util::simplify_hex("#FF111111"));
   EXPECT_EQ("#234", color_util::simplify_hex("#ff223344"));
