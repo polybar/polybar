@@ -1,68 +1,129 @@
-#include "common/test.hpp"
 #include "utils/color.hpp"
+
+#include "common/test.hpp"
 
 using namespace polybar;
 
-TEST(String, rgb) {
-  unsigned int color{0x123456};
-  EXPECT_EQ(0, color_util::alpha_channel<unsigned char>(color));
-  EXPECT_EQ(0x12, color_util::red_channel<unsigned char>(color));
-  EXPECT_EQ(0x34, color_util::green_channel<unsigned char>(color));
-  EXPECT_EQ(0x3434, color_util::green_channel<unsigned short int>(color));
-  EXPECT_EQ(0x56, color_util::blue_channel<unsigned char>(color));
+TEST(Rgba, constructor) {
+  rgba v{"invalid"};
+  EXPECT_FALSE(v.has_color());
 
-  EXPECT_TRUE(0x33 / 255.0 == rgb{0xFF112233}.b);
-  EXPECT_TRUE(0x51 / 255.0 == rgb{0x88449933}.g);
-  EXPECT_TRUE(0xff0f0f0f == rgb{0xee111111});
-  EXPECT_TRUE(0xff0a141e == rgb{0x99112233});
+  v = rgba{"#f"};
+  EXPECT_FALSE(v.has_color());
+
+  v = rgba{"#12"};
+  EXPECT_EQ(rgba::ALPHA_ONLY, v.m_type);
+
+  v = rgba{"#ff"};
+  EXPECT_EQ(0xff000000, v.m_value);
+
+  v = rgba{"#fff"};
+  EXPECT_EQ(0xffffffff, v.m_value);
+
+  v = rgba{"#890"};
+  EXPECT_EQ(0xFF889900, v.m_value);
+
+  v = rgba{"#a890"};
+  EXPECT_EQ(0xaa889900, v.m_value);
+
+  v = rgba{"#55888777"};
+  EXPECT_EQ(0x55888777, v.m_value);
+
+  v = rgba{"#88aaaaaa"};
+  EXPECT_EQ(0x88aaaaaa, v.m_value);
+
+  v = rgba{"#00aaaaaa"};
+  EXPECT_EQ(0x00aaaaaa, v.m_value);
+
+  v = rgba{"#00FFFFFF"};
+  EXPECT_EQ(0x00FFFFFF, v.m_value);
 }
 
-TEST(String, rgba) {
-  unsigned int color{0xCC123456};
-  EXPECT_EQ(0xCCCC, color_util::alpha_channel<unsigned short int>(color));
-  EXPECT_EQ(0x1212, color_util::red_channel<unsigned short int>(color));
-  EXPECT_EQ(0x12, color_util::red_channel<unsigned char>(color));
-  EXPECT_EQ(0x3434, color_util::green_channel<unsigned short int>(color));
-  EXPECT_EQ(0x5656, color_util::blue_channel<unsigned short int>(color));
-
-  EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.a);
-  EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.g);
-  EXPECT_EQ(0xFF111111, static_cast<unsigned int>(rgba{0xFF111111}));
-  EXPECT_EQ(0x00FFFFFF, static_cast<unsigned int>(rgba{0x00FFFFFF}));
+TEST(Rgba, parse) {
+  EXPECT_EQ(0xffffffff, rgba{"#fff"}.m_value);
+  EXPECT_EQ(0xffffffff, rgba{"fff"}.m_value);
+  EXPECT_EQ(0xff112233, rgba{"#123"}.m_value);
+  EXPECT_EQ(0xff112233, rgba{"123"}.m_value);
+  EXPECT_EQ(0xff888888, rgba{"#888888"}.m_value);
+  EXPECT_EQ(0xff888888, rgba{"888888"}.m_value);
+  EXPECT_EQ(0x00aa00aa, rgba{"#00aa00aa"}.m_value);
+  EXPECT_EQ(0x00aa00aa, rgba{"00aa00aa"}.m_value);
+  EXPECT_EQ(0x11223344, rgba{"#1234"}.m_value);
+  EXPECT_EQ(0x11223344, rgba{"1234"}.m_value);
+  EXPECT_EQ(0xaa000000, rgba{"#aa"}.m_value);
+  EXPECT_EQ(0xaa000000, rgba{"aa"}.m_value);
 }
 
-TEST(String, hex) {
-  unsigned int colorA{0x123456};
-  EXPECT_EQ("#123456"s, color_util::hex<unsigned char>(colorA));
-  unsigned int colorB{0xCC123456};
-  EXPECT_EQ("#cc123456"s, color_util::hex<unsigned short int>(colorB));
-  unsigned int colorC{0x00ffffff};
-  EXPECT_EQ("#00ffffff"s, color_util::hex<unsigned short int>(colorC));
+TEST(Rgba, string) {
+  rgba v{"#1234"};
+
+  EXPECT_EQ("#11223344", static_cast<string>(v));
+
+  v = rgba{"#12"};
+
+  EXPECT_EQ("#12000000", static_cast<string>(v));
 }
 
-TEST(String, parseHex) {
-  EXPECT_EQ("#ffffffff", color_util::parse_hex("#fff"));
-  EXPECT_EQ("#ff112233", color_util::parse_hex("#123"));
-  EXPECT_EQ("#ff888888", color_util::parse_hex("#888888"));
-  EXPECT_EQ("#00aa00aa", color_util::parse_hex("#00aa00aa"));
+TEST(Rgba, eq) {
+  rgba v(0x12, rgba::NONE);
+
+  EXPECT_TRUE(v == rgba(0, rgba::NONE));
+  EXPECT_TRUE(v == rgba(0x11, rgba::NONE));
+  EXPECT_FALSE(v == rgba{0x1234});
+
+  v = rgba{0xCC123456};
+
+  EXPECT_TRUE(v == rgba{0xCC123456});
+  EXPECT_FALSE(v == rgba(0xCC123456, rgba::NONE));
+
+  v = rgba{"#aa"};
+
+  EXPECT_TRUE(v == rgba(0xaa000000, rgba::ALPHA_ONLY));
+  EXPECT_FALSE(v == rgba(0xaa000000, rgba::ARGB));
+  EXPECT_FALSE(v == rgba(0xab000000, rgba::ALPHA_ONLY));
 }
 
-TEST(String, parse) {
-  EXPECT_EQ(0, color_util::parse("invalid"));
-  EXPECT_EQ(0, color_util::parse("#f"));
-  EXPECT_EQ(0, color_util::parse("#ff"));
-  EXPECT_EQ(0xFF999999, color_util::parse("invalid", 0xFF999999));
-  EXPECT_EQ(0x00111111, color_util::parse("invalid", 0x00111111));
-  EXPECT_EQ(0xFF000000, color_util::parse("invalid", 0xFF000000));
-  EXPECT_EQ(0xffffffff, color_util::parse("#fff"));
-  EXPECT_EQ(0xFF889900, color_util::parse("#890"));
-  EXPECT_EQ(0x55888777, color_util::parse("#55888777"));
-  EXPECT_EQ(0x88aaaaaa, color_util::parse("#88aaaaaa"));
-  EXPECT_EQ(0x00aaaaaa, color_util::parse("#00aaaaaa"));
-  EXPECT_EQ(0x00FFFFFF, color_util::parse("#00FFFFFF"));
+TEST(Rgba, hasColor) {
+  rgba v{"#"};
+
+  EXPECT_FALSE(v.has_color());
+
+  v = rgba{"#ff"};
+
+  EXPECT_TRUE(v.has_color());
+
+  v = rgba{"#cc123456"};
+
+  EXPECT_TRUE(v.has_color());
+
+  v = rgba(0x1243, rgba::NONE);
+
+  EXPECT_FALSE(v.has_color());
 }
 
-TEST(String, simplify) {
+TEST(ColorUtil, rgba) {
+  uint32_t color{0xCC123456};
+  EXPECT_EQ(0xCC, color_util::alpha_channel(color));
+  EXPECT_EQ(0x12, color_util::red_channel(color));
+  EXPECT_EQ(0x34, color_util::green_channel(color));
+  EXPECT_EQ(0x56, color_util::blue_channel(color));
+
+  EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.a());
+  EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.g());
+  EXPECT_EQ(0xFF111111, static_cast<uint32_t>(rgba{"#FF111111"}));
+  EXPECT_EQ(0x00FFFFFF, static_cast<uint32_t>(rgba{"#00FFFFFF"}));
+}
+
+TEST(ColorUtil, hex) {
+  uint32_t colorA{0x123456};
+  EXPECT_EQ("#00123456"s, color_util::hex(colorA));
+  uint32_t colorB{0xCC123456};
+  EXPECT_EQ("#cc123456"s, color_util::hex(colorB));
+  uint32_t colorC{0x00ffffff};
+  EXPECT_EQ("#00ffffff"s, color_util::hex(colorC));
+}
+
+TEST(ColorUtil, simplify) {
   EXPECT_EQ("#111", color_util::simplify_hex("#FF111111"));
   EXPECT_EQ("#234", color_util::simplify_hex("#ff223344"));
   EXPECT_EQ("#ee223344", color_util::simplify_hex("#ee223344"));
