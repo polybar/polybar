@@ -1,12 +1,12 @@
+#include "modules/mpd.hpp"
+
 #include <csignal>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
-#include "modules/mpd.hpp"
-#include "utils/factory.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -24,8 +24,8 @@ namespace modules {
     for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
       m_formatter->add(format, format_online,
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
-              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
-              TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
+              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY,
+              TAG_ICON_PAUSE, TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
 
       auto mod_format = m_formatter->get(format);
 
@@ -88,9 +88,7 @@ namespace modules {
 
     if (m_formatter->has(TAG_ICON_SINGLE)) {
       m_icons->add("single", load_label(m_conf, name(), TAG_ICON_SINGLE));
-    }
-    else if(m_formatter->has(TAG_ICON_REPEAT_ONE)){
-
+    } else if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
       m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
 
       m_icons->add("single", load_label(m_conf, name(), TAG_ICON_REPEAT_ONE));
@@ -109,8 +107,8 @@ namespace modules {
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
         m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_SINGLE) ||
         m_formatter->has(TAG_ICON_CONSUME)) {
-      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", ""s);
-      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", ""s);
+      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", rgba{});
+      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", rgba{});
     }
     if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE)) {
       m_label_offline = load_label(m_conf, name(), TAG_LABEL_OFFLINE);
@@ -280,8 +278,7 @@ namespace modules {
       m_icons->get("repeat")->m_foreground = m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
     }
     if (m_icons->has("single")) {
-      m_icons->get("single")->m_foreground =
-          m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
+      m_icons->get("single")->m_foreground = m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
     }
     if (m_icons->has("consume")) {
       m_icons->get("consume")->m_foreground = m_status && m_status->consume() ? m_toggle_on_color : m_toggle_off_color;
@@ -406,6 +403,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

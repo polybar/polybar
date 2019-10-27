@@ -99,16 +99,16 @@ namespace drawtypes {
   }
 
   void label::replace_defined_values(const label_t& label) {
-    if (!label->m_foreground.empty()) {
+    if (label->m_foreground.has_color()) {
       m_foreground = label->m_foreground;
     }
-    if (!label->m_background.empty()) {
+    if (label->m_background.has_color()) {
       m_background = label->m_background;
     }
-    if (!label->m_underline.empty()) {
+    if (label->m_underline.has_color()) {
       m_underline = label->m_underline;
     }
-    if (!label->m_overline.empty()) {
+    if (label->m_overline.has_color()) {
       m_overline = label->m_overline;
     }
     if (label->m_font != 0) {
@@ -133,16 +133,16 @@ namespace drawtypes {
   }
 
   void label::copy_undefined(const label_t& label) {
-    if (m_foreground.empty() && !label->m_foreground.empty()) {
+    if (!m_foreground.has_color() && label->m_foreground.has_color()) {
       m_foreground = label->m_foreground;
     }
-    if (m_background.empty() && !label->m_background.empty()) {
+    if (!m_background.has_color() && label->m_background.has_color()) {
       m_background = label->m_background;
     }
-    if (m_underline.empty() && !label->m_underline.empty()) {
+    if (!m_underline.has_color() && label->m_underline.has_color()) {
       m_underline = label->m_underline;
     }
-    if (m_overline.empty() && !label->m_overline.empty()) {
+    if (!m_overline.has_color() && label->m_overline.has_color()) {
       m_overline = label->m_overline;
     }
     if (m_font == 0 && label->m_font != 0) {
@@ -279,10 +279,10 @@ namespace drawtypes {
 
     // clang-format off
     return factory_util::shared<label>(text,
-        conf.get(section, name + "-foreground", ""s),
-        conf.get(section, name + "-background", ""s),
-        conf.get(section, name + "-underline", ""s),
-        conf.get(section, name + "-overline", ""s),
+        conf.get(section, name + "-foreground", rgba{}),
+        conf.get(section, name + "-background", rgba{}),
+        conf.get(section, name + "-underline", rgba{}),
+        conf.get(section, name + "-overline", rgba{}),
         conf.get(section, name + "-font", 0),
         padding,
         margin,
