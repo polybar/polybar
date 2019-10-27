@@ -12,6 +12,14 @@ struct rgba {
    */
   uint32_t m_value;
 
+  /**
+   * NONE marks this instance as invalid. If such a color is encountered, it
+   * should be treated as if no color was set.
+   *
+   * ALPHA_ONLY is used for color strings that only have an alpha channel (#AA)
+   * these kinds should be combined with another color that has RGB channels
+   * before they are used to render anything.
+   */
   enum color_type { NONE, ARGB, ALPHA_ONLY } m_type{NONE};
 
   explicit rgba();
@@ -33,6 +41,7 @@ struct rgba {
   uint8_t b_int() const;
 
   bool has_color() const;
+  void apply_alpha(rgba other);
 };
 
 namespace color_util {

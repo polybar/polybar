@@ -30,7 +30,7 @@ static string normalize_hex(string hex) {
   }
 
   if (hex.length() == 3) {
-    // RGB -> ARGB
+    // RGB -> FRGB
     hex.insert(0, 1, 'f');
   }
 
@@ -132,6 +132,15 @@ uint8_t rgba::b_int() const {
 
 bool rgba::has_color() const {
   return m_type != NONE;
+}
+
+/**
+ * Replaces the current alpha channel with the alpha channel of the other color
+ *
+ * Useful for ALPHA_ONLY colors
+ */
+void rgba::apply_alpha(rgba other) {
+  m_value = (m_value & 0x00FFFFFF) | (other.a_int() << 24);
 }
 
 string color_util::simplify_hex(string hex) {

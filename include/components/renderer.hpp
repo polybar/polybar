@@ -129,10 +129,10 @@ class renderer
   alignment m_align;
   std::bitset<3> m_attr;
   int m_font{0};
-  rgba m_bg{0U};
-  rgba m_fg{0U};
-  rgba m_ol{0U};
-  rgba m_ul{0U};
+  rgba m_bg{};
+  rgba m_fg{};
+  rgba m_ol{};
+  rgba m_ul{};
   vector<action_block> m_actions;
 
   bool m_fixedcenter;
