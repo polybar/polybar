@@ -12,6 +12,12 @@ POLYBAR_NS
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+
+namespace drawtypes {
+  class label;
+}
+
+using label_t = shared_ptr<drawtypes::label>;
 // }}}
 
 struct enum_hash {
@@ -159,7 +165,7 @@ struct bar_settings {
 
   struct radius radius {};
   int spacing{0};
-  string separator{};
+  label_t separator{};
 
   string wmname{};
   string locale{};

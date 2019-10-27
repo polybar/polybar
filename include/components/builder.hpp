@@ -10,10 +10,6 @@ POLYBAR_NS
 using std::map;
 
 // fwd decl
-namespace drawtypes {
-  class label;
-  using label_t = shared_ptr<label>;
-}  // namespace drawtypes
 using namespace drawtypes;
 
 class builder {
