@@ -100,13 +100,18 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     dup_it = std::adjacent_find(dup_it, m_modules.cend(), equal_predicate);
 
     if (dup_it != m_modules.cend()) {
-      m_log.err(
-          "The module \"%s\" appears multiple times in your modules list. "
-          "This is deprecated and should be avoided, as it can lead to inconsistent behavior. "
-          "Both modules will be displayed for now.",
-          (*dup_it)->name());
+      auto mod = *dup_it;
+      if (mod->allow_multiple()) {
+        m_log.info("Module %s appears multiple times, the module allows this.", mod->name());
+      } else {
+        m_log.err(
+            "The module \"%s\" appears multiple times in your modules list. "
+            "This is deprecated and should be avoided, as it can lead to inconsistent behavior. "
+            "All modules will be displayed for now.",
+            mod->name());
+      }
 
-      dup_it = std::find_if_not(dup_it, m_modules.cend(), std::bind(equal_predicate, *dup_it, std::placeholders::_1));
+      dup_it = std::find_if_not(dup_it, m_modules.cend(), std::bind(equal_predicate, mod, std::placeholders::_1));
     } else {
       break;
     }

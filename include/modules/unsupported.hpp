@@ -23,6 +23,9 @@ namespace modules {
     bool running() const {                                                              \
       return false;                                                                     \
     }                                                                                   \
+    bool allow_multiple() const {                                                       \
+      return false;                                                                     \
+    }                                                                                   \
     void start() {}                                                                     \
     void stop() {}                                                                      \
     void halt(string) {}                                                                \

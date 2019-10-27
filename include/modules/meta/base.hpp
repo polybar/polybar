@@ -39,7 +39,7 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 class builder;
 class config;
@@ -106,6 +106,8 @@ namespace modules {
     virtual string name() const = 0;
     virtual bool running() const = 0;
 
+    virtual bool allow_multiple() const = 0;
+
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
@@ -127,6 +129,8 @@ namespace modules {
     void halt(string error_message);
     void teardown();
     string contents();
+
+    bool allow_multiple() const;
 
    protected:
     void broadcast();
@@ -154,6 +158,7 @@ namespace modules {
     thread m_mainthread;
 
     bool m_handle_events{true};
+    const bool m_allow_multiple{false};
 
    private:
     atomic<bool> m_enabled{true};
@@ -162,6 +167,6 @@ namespace modules {
   };
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END
