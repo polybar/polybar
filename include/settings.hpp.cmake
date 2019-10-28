@@ -45,8 +45,6 @@ extern const char* const APP_VERSION;
 #cmakedefine DEBUG_FONTCONFIG
 #endif
 
-static const size_t EVENT_SIZE = 64;
-
 static const int SIGN_PRIORITY_CONTROLLER{1};
 static const int SIGN_PRIORITY_SCREEN{2};
 static const int SIGN_PRIORITY_BAR{3};
