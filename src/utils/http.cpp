@@ -14,7 +14,7 @@ http_downloader::http_downloader(int connection_timeout) {
   curl_easy_setopt(m_curl, CURLOPT_CONNECTTIMEOUT, connection_timeout);
   curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, true);
   curl_easy_setopt(m_curl, CURLOPT_NOSIGNAL, true);
-  curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "polybar/" APP_VERSION);
+  curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "polybar/" + string{APP_VERSION});
   curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, http_downloader::write);
   curl_easy_setopt(m_curl, CURLOPT_FORBID_REUSE, true);
 }
