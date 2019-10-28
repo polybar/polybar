@@ -3,6 +3,11 @@
 const char* const APP_NAME{"@PROJECT_NAME@"};
 const char* const APP_VERSION{"@APP_VERSION@"};
 
+const int SINK_PRIORITY_BAR{1};
+const int SINK_PRIORITY_SCREEN{2};
+const int SINK_PRIORITY_TRAY{3};
+const int SINK_PRIORITY_MODULE{4};
+
 const char* const ALSA_SOUNDCARD{"@SETTING_ALSA_SOUNDCARD@"};
 const char* const BSPWM_SOCKET_PATH{"@SETTING_BSPWM_SOCKET_PATH@"};
 const char* const BSPWM_STATUS_PREFIX{"@SETTING_BSPWM_STATUS_PREFIX@"};
@@ -14,6 +19,7 @@ const char* const PATH_CPU_INFO{"@SETTING_PATH_CPU_INFO@"};
 const char* const PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
 const char* const PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
 const char* const PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
+const char* const WIRELESS_LIB{"@WIRELESS_LIB@"};
 
 bool version_details(const std::vector<std::string>& args) {
   for (auto&& arg : args) {
