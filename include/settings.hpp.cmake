@@ -11,7 +11,6 @@ extern const char* const APP_VERSION;
 #cmakedefine01 ENABLE_MPD
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 WITH_LIBNL
-#define WIRELESS_LIB "@WIRELESS_LIB@"
 #cmakedefine01 ENABLE_I3
 #cmakedefine01 ENABLE_CURL
 #cmakedefine01 ENABLE_PULSEAUDIO
@@ -54,10 +53,10 @@ static const int SIGN_PRIORITY_BAR{3};
 static const int SIGN_PRIORITY_RENDERER{4};
 static const int SIGN_PRIORITY_TRAY{5};
 
-static const int SINK_PRIORITY_BAR{1};
-static const int SINK_PRIORITY_SCREEN{2};
-static const int SINK_PRIORITY_TRAY{3};
-static const int SINK_PRIORITY_MODULE{4};
+extern const int SINK_PRIORITY_BAR;
+extern const int SINK_PRIORITY_SCREEN;
+extern const int SINK_PRIORITY_TRAY;
+extern const int SINK_PRIORITY_MODULE;
 
 extern const char* const ALSA_SOUNDCARD;
 extern const char* const BSPWM_SOCKET_PATH;
@@ -70,9 +69,10 @@ extern const char* const PATH_CPU_INFO;
 extern const char* const PATH_MEMORY_INFO;
 extern const char* const PATH_MESSAGING_FIFO;
 extern const char* const PATH_TEMPERATURE_INFO;
+extern const char* const WIRELESS_LIB;
 
-extern bool version_details(const std::vector<std::string>& args);
+bool version_details(const std::vector<std::string>& args);
 
-extern void print_build_info(bool extended = false);
+void print_build_info(bool extended = false);
 
 // vim:ft=cpp
