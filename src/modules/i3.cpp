@@ -142,26 +142,21 @@ namespace modules {
       // If we're here, it means not all the workspaces should be displayed, and
       // we use an ellipsis to communicate that this is the case. This is
       // implemented using a dummy workspace object with its name set to "...".
-      auto dummy_ws_label = m_statelabels.find(state::DUMMY_ELLIPSIS)->second->clone();
-      dummy_ws_label->reset_tokens();
-      dummy_ws_label->replace_token("%output%", "");
-      dummy_ws_label->replace_token("%name%", "...");
-      dummy_ws_label->replace_token("%icon%", "");
-      dummy_ws_label->replace_token("%index%", "");
-      auto dummy_ws = factory_util::unique<workspace>("", state::DUMMY_ELLIPSIS, move(dummy_ws_label));
+      auto ellipsis_ws = create_ellipsis_workspace();
       // We now compute two lists: the workspaces displayed before and after the
       // ellipsis. The latter can contain only zero or one elements, depending
       // on whether the focused workspace fits in the list of workspaces before
       // the ellipsis. Below are examples for the workspaces displayed, with
       // stars wrapping the focused workspace:
+      // ws1 |  ws2  | ... | *ws8* | ...
       // ws1 |  ws2  | ... | *ws8*
       // ws1 | *ws2* | ...
       // ...
       using ws_iterator = typename decltype(all_workspaces)::iterator;
-      vector<ws_iterator> before_ellipsis;
-      vector<ws_iterator> after_ellipsis;
+      vector<ws_iterator> before_first_ellipsis;
+      vector<ws_iterator> after_first_ellipsis;
       size_t displayed_ws_count = 0;
-      int displayed_ws_width = string_util::char_len(dummy_ws->label->get());
+      int displayed_ws_width = 0;
       // Checks if the given workspace fits, and if so, returns its width.
       // Otherwise, returns 0.
       auto count_ws_if_fits = [&](const workspace& ws) -> bool {
@@ -176,6 +171,10 @@ namespace modules {
         displayed_ws_width += label_width;
         return true;
       };
+      // Allocate space for two ellipsis workspaces from our "width budget". The
+      // second one won't necessarily be needed, but we want to make sure we
+      // never pass use more than m_workspaces_max_width chars.
+      displayed_ws_width += 2*string_util::char_len(ellipsis_ws->label->get());
       const auto focused_ws_iter = std::find_if(
           all_workspaces.begin(), all_workspaces.end(), [](auto& ws) { return ws->state == state::FOCUSED; });
       if (focused_ws_iter != all_workspaces.end() && count_ws_if_fits(**focused_ws_iter)) {
@@ -183,19 +182,25 @@ namespace modules {
           if (i != focused_ws_iter && !count_ws_if_fits(**i)) {
             break;
           }
-          before_ellipsis.push_back(i);
+          before_first_ellipsis.push_back(i);
         }
-        if (std::find(before_ellipsis.begin(), before_ellipsis.end(), focused_ws_iter) == before_ellipsis.end()) {
-          after_ellipsis.push_back(focused_ws_iter);
+        if (std::find(before_first_ellipsis.begin(), before_first_ellipsis.end(), focused_ws_iter) ==
+            before_first_ellipsis.end()) {
+          after_first_ellipsis.push_back(focused_ws_iter);
         }
       }
 
-      for (auto iter : before_ellipsis) {
+      for (auto iter : before_first_ellipsis) {
         m_workspaces.emplace_back(std::move(*iter));
       }
-      m_workspaces.emplace_back(std::move(dummy_ws));
-      for (auto iter : after_ellipsis) {
+      m_workspaces.emplace_back(std::move(ellipsis_ws));
+      for (auto iter : after_first_ellipsis) {
         m_workspaces.emplace_back(std::move(*iter));
+      }
+      // If the last shown workspace is not the last one, we need to add another
+      // ellipsis after it.
+      if (!after_first_ellipsis.empty() && next(after_first_ellipsis.back()) != all_workspaces.end()) {
+        m_workspaces.emplace_back(create_ellipsis_workspace());
       }
       return true;
     } catch (const exception& err) {
@@ -376,6 +381,16 @@ namespace modules {
       workspaces_label_width_total += ws_width;
     }
     return workspaces.size();
+  }
+
+  unique_ptr<i3_module::workspace> i3_module::create_ellipsis_workspace() {
+    auto label = m_statelabels.find(state::DUMMY_ELLIPSIS)->second->clone();
+    label->reset_tokens();
+    label->replace_token("%output%", "");
+    label->replace_token("%name%", "...");
+    label->replace_token("%icon%", "");
+    label->replace_token("%index%", "");
+    return factory_util::unique<workspace>("", state::DUMMY_ELLIPSIS, move(label));
   }
 }  // namespace modules
 
