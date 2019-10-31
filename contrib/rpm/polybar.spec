@@ -4,7 +4,7 @@
 #
 
 Name:           polybar
-Version:        3.3.0
+Version:        3.4.1
 Release:        0
 Summary:        A fast and easy-to-use status bar
 License:        MIT
@@ -14,6 +14,7 @@ Source:         https://github.com/polybar/polybar/archive/%{version}.tar.gz
 BuildRequires:  clang >= 3.4
 BuildRequires:  cmake >= 3.1
 BuildRequires:  pkgconfig
+BuildRequires:  python-Sphinx
 BuildRequires:  python-xml
 BuildRequires:  xcb-util-image-devel
 BuildRequires:  xcb-util-wm-devel
@@ -24,7 +25,7 @@ BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(jsoncpp)
 BuildRequires:  pkgconfig(libcurl)
 BuildRequires:  pkgconfig(libpulse)
-BuildRequires:  pkgconfig(python)
+BuildRequires:  pkgconfig(python3)
 BuildRequires:  pkgconfig(xcb)
 BuildRequires:  pkgconfig(xcb-proto)
 BuildRequires:  pkgconfig(xcb-util)
