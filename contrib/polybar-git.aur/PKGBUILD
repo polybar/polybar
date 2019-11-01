@@ -1,5 +1,4 @@
-# Maintainer: Michael Carlberg <c@rlberg.se>
-# Contributor: Michael Carlberg <c@rlberg.se>
+# Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 _pkgname=polybar
 pkgname="${_pkgname}-git"
 pkgver=3.4.0

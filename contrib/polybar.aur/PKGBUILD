@@ -1,5 +1,4 @@
-# Maintainer: Michael Carlberg <c@rlberg.se>
-# Contributor: Michael Carlberg <c@rlberg.se>
+# Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
 pkgver=3.4.1
 pkgrel=1
