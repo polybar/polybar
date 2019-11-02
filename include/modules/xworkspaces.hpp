@@ -33,10 +33,9 @@ namespace modules {
   };
 
   struct desktop {
-    explicit desktop(unsigned int index, unsigned int offset, desktop_state state, label_t&& label)
-        : index(index), offset(offset), state(state), label(label) {}
+    explicit desktop(unsigned int index, desktop_state state, label_t&& label)
+        : index(index), state(state), label(label) {}
     unsigned int index;
-    unsigned int offset;
     desktop_state state;
     label_t label;
   };

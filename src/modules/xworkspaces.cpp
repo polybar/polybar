@@ -225,7 +225,7 @@ namespace modules {
         for (size_t i = 0; i < ws_positions.size(); i++) {
           auto&& ws_pos = ws_positions[i];
           if (ws_pos == viewport_pos) {
-            viewport->desktops.emplace_back(make_unique<struct desktop>(i, 0, desktop_state::EMPTY, label_t{}));
+            viewport->desktops.emplace_back(make_unique<struct desktop>(i, desktop_state::EMPTY, label_t{}));
           }
         }
 
@@ -255,7 +255,7 @@ namespace modules {
 
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
-        d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
+        d->label->replace_token("%index%", to_string(d->index + 1));
         d->label->replace_token("%name%", m_desktop_names[d->index]);
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
@@ -292,7 +292,7 @@ namespace modules {
 
           d->label = m_labels.at(d->state)->clone();
           d->label->reset_tokens();
-          d->label->replace_token("%index%", to_string(d->index - d->offset + 1));
+          d->label->replace_token("%index%", to_string(d->index + 1));
           d->label->replace_token("%name%", m_desktop_names[d->index]);
           d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
           return;
