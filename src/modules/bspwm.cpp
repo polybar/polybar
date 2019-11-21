@@ -131,7 +131,7 @@ namespace modules {
     m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
-      auto vec = string_util::split(workspace, ';');
+      auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
@@ -224,11 +224,7 @@ namespace modules {
     size_t workspace_n{0U};
 
     for (auto&& tag : string_util::split(data, ':')) {
-      if (tag.empty()) {
-        continue;
-      }
-
-      auto value = !tag.empty() ? tag.substr(1) : "";
+      auto value = tag.substr(1);
       auto mode_flag = mode::NONE;
       unsigned int workspace_mask{0U};
 
