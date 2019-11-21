@@ -64,7 +64,7 @@ TEST(String, join) {
   EXPECT_EQ("A, B, C", string_util::join({"A", "B", "C"}, ", "));
 }
 
-TEST(String, splitInto) {
+TEST(String, split) {
   {
     vector<string> strings = string_util::split("A,B,C", ',');
     EXPECT_EQ(3, strings.size());
