@@ -85,8 +85,8 @@ namespace string_util {
   string utf8_truncate(string&& value, size_t len);
 
   string join(const vector<string>& strs, const string& delim);
-  vector<string>& split_into(const string& s, char delim, vector<string>& container);
   vector<string> split(const string& s, char delim);
+  std::vector<std::string> tokenize(const string& str, char delimiters);
 
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth);
 

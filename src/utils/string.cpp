@@ -200,27 +200,42 @@ namespace string_util {
   }
 
   /**
-   * Explode string by delim into container
-   */
-  vector<string>& split_into(const string& s, char delim, vector<string>& container) {
-    string str;
-    std::stringstream buffer(s);
-    while (getline(buffer, str, delim)) {
-      container.emplace_back(str);
-    }
-    return container;
-  }
-
-  /**
-   * Explode string by delim
+   * Explode string by delim, ignore empty tokens
    */
   vector<string> split(const string& s, char delim) {
-    vector<string> vec;
-    return split_into(s, delim, vec);
+    std::string::size_type pos = 0;
+    std::vector<std::string> result;
+
+    while ((pos = s.find_first_not_of(delim, pos)) != std::string::npos) {
+      auto nextpos = s.find_first_of(delim, pos);
+      result.emplace_back(s.substr(pos, nextpos - pos));
+      pos = nextpos;
+    }
+
+    return result;
   }
 
   /**
-   * Find the nth occurence of needle in haystack starting from pos
+   * Explode string by delim, include empty tokens
+   */
+  std::vector<std::string> tokenize(const string& str, char delimiters) {
+    std::vector<std::string> tokens;
+    std::string::size_type lastPos = 0;
+    auto pos = str.find_first_of(delimiters, lastPos);
+
+    while (pos != std::string::npos && lastPos != std::string::npos) {
+      tokens.emplace_back(str.substr(lastPos, pos - lastPos));
+
+      lastPos = pos + 1;
+      pos = str.find_first_of(delimiters, lastPos);
+    }
+
+    tokens.emplace_back(str.substr(lastPos, pos - lastPos));
+    return tokens;
+  }
+
+  /**
+   * Find the nth occurrence of needle in haystack starting from pos
    */
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth) {
     size_t found_pos = haystack.find(needle, pos);
