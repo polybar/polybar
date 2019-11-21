@@ -1,4 +1,5 @@
 #include "components/renderer.hpp"
+
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
@@ -454,11 +455,25 @@ double renderer::block_x(alignment a) const {
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
-      double gap{0.0};
-      if (block_w(alignment::LEFT) || block_w(alignment::CENTER)) {
-        gap = BLOCK_GAP;
+      /*
+       * The block immediately to the left of this block
+       *
+       * Generally the center block unless it is empty.
+       */
+      alignment left_barrier = alignment::CENTER;
+
+      if (block_w(alignment::CENTER) == 0) {
+        left_barrier = alignment::LEFT;
       }
-      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + gap + block_w(alignment::CENTER));
+
+      // The minimum x position this block can start at
+      double min_pos = block_x(left_barrier) + block_w(left_barrier);
+
+      if (block_w(left_barrier) != 0) {
+        min_pos += BLOCK_GAP;
+      }
+
+      return std::max(m_rect.width - block_w(a), min_pos);
     }
     default:
       return 0.0;
