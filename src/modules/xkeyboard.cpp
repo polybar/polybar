@@ -49,7 +49,7 @@ namespace modules {
     m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
 
     for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
-      auto vec = string_util::split(it, ';');
+      auto vec = string_util::tokenize(it, ';');
       if (vec.size() == 2) {
         m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
@@ -80,7 +80,7 @@ namespace modules {
       m_indicator_icons_off = factory_util::shared<iconset>();
       m_indicator_icons_on = factory_util::shared<iconset>();
 
-      auto icon_pair = string_util::split(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
+      auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
       if(icon_pair.size() == 2) {
         m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
         m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
@@ -90,7 +90,7 @@ namespace modules {
       }
 
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
-        auto icon_triple = string_util::split(it, ';');
+        auto icon_triple = string_util::tokenize(it, ';');
         if (icon_triple.size() == 3) {
           auto const indicator_str = string_util::lower(icon_triple[0]);
           m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(icon_triple[1]));
