@@ -433,40 +433,61 @@ void renderer::flush() {
 
 /**
  * Get x position of block for given alignment
+ *
+ * The position is relative to m_rect.x (the left side of the bar w/o borders and tray)
  */
 double renderer::block_x(alignment a) const {
   switch (a) {
     case alignment::CENTER: {
-      double base_pos{0.0};
-      double min_pos{0.0};
-      if (!m_fixedcenter || m_rect.width / 2.0 + block_w(a) / 2.0 > m_rect.width - block_w(alignment::RIGHT)) {
-        base_pos = (m_rect.width - block_w(alignment::RIGHT) + block_w(alignment::LEFT)) / 2.0;
-      } else {
-        base_pos = m_rect.width / 2.0;
-      }
-      if ((min_pos = block_w(alignment::LEFT))) {
+      // The leftmost x position this block can start at
+      double min_pos = block_w(alignment::LEFT);
+
+      if (min_pos != 0) {
         min_pos += BLOCK_GAP;
       }
 
-      base_pos += (m_bar.size.w - m_rect.width) / 2.0;
-
-      int border_left = m_bar.borders.at(edge::LEFT).size;
-
+      double right_width = block_w(alignment::RIGHT);
       /*
-       * If m_rect.x is greater than the left border, then the systray is rendered on the left and we need to adjust for
-       * that.
-       * Since we cannot access any tray objects from here we need to calculate the tray size through m_rect.x
-       * m_rect.x is the x-position of the bar (without the tray or any borders), so if the tray is on the left,
-       * m_rect.x effectively is border_left + tray_width.
-       * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
-       * placed on the left
+       * The rightmost x position this block can end at
+       *
+       * We can't use block_x(alignment::RIGHT) because that would lead to infinite recursion
        */
-      if (m_rect.x > border_left) {
-        base_pos -= m_rect.x - border_left;
+      double max_pos = m_rect.width - right_width;
+
+      if (right_width != 0) {
+        max_pos -= BLOCK_GAP;
       }
 
-      base_pos -= border_left;
+      /*
+       * x position of the center of this block
+       *
+       * With fixed-center this will be the center of the bar unless it is pushed to the left by a large right block
+       * Without fixed-center this will be the middle between the end of the left and the start of the right block.
+       */
+      double base_pos{0.0};
 
+      if (m_fixedcenter) {
+        /*
+         * This is in the middle of the *bar*. Not just the middle of m_rect because this way we need to account for the
+         * tray.
+         *
+         * The resulting position is relative to the very left of the bar (including border and tray), so we need to
+         * compensate for that by subtracting m_rect.x
+         */
+        base_pos = m_bar.size.w / 2.0 - m_rect.x;
+
+        /*
+         * The center block can be moved to the left if the right block is too large
+         */
+        base_pos = std::min(base_pos, max_pos - block_w(a) / 2.0);
+      }
+      else {
+        base_pos = (min_pos + max_pos) / 2.0;
+      }
+
+      /*
+       * The left block always has priority (even with fixed-center = true)
+       */
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
