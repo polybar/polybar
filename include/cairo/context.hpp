@@ -108,10 +108,9 @@ namespace cairo {
     }
 
     context& operator<<(const linear_gradient& l) {
-      if (l.steps.size() >= 2) {
+      auto stops = l.steps.size();
+      if (stops >= 2) {
         auto pattern = cairo_pattern_create_linear(l.x1, l.y1, l.x2, l.y2);
-        *this << pattern;
-        auto stops = l.steps.size();
         auto step = 1.0 / (stops - 1);
         auto offset = 0.0;
         for (auto&& color : l.steps) {
@@ -124,6 +123,7 @@ namespace cairo {
           // clang-format on
           offset += step;
         }
+        *this << pattern;
         cairo_pattern_destroy(pattern);
       }
       return *this;
