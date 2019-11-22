@@ -341,7 +341,7 @@ void renderer::flush(alignment a) {
   double w = static_cast<int>(block_w(a) + 0.5);
   double h = static_cast<int>(block_h(a) + 0.5);
   double xw = x + w;
-  bool fits{xw <= m_rect.x + m_rect.width};
+  bool fits{xw <= m_rect.width};
 
   m_log.trace("renderer: flush(%i geom=%gx%g+%g+%g, falloff=%i)", static_cast<int>(a), w, h, x, y, !fits);
 
@@ -359,19 +359,34 @@ void renderer::flush(alignment a) {
   *m_context << m_blocks[a].pattern;
   m_context->paint();
 
-  if (!fits) {
-    // Paint falloff gradient at the end of the visible block
-    // to indicate that the content expands past the canvas
-    double fx = w - (xw - m_rect.width);
-    double fsize = std::max(5.0, std::min(std::abs(fx), 30.0));
-    m_log.trace("renderer: Drawing falloff (pos=%g, size=%g)", fx, fsize);
-    *m_context << cairo::linear_gradient{fx - fsize, 0.0, fx, 0.0, {0x00000000, 0xFF000000}};
-    m_context->paint(0.25);
-  }
-
   *m_context << cairo::abspos{0.0, 0.0};
   m_context->destroy(&m_blocks[a].pattern);
   m_context->restore();
+
+  if (!fits) {
+    // Paint falloff gradient at the end of the visible block
+    // to indicate that the content expands past the canvas
+
+    /*
+     * How many pixels are hidden
+     */
+    double overflow = xw - m_rect.width;
+    double visible_width = w - overflow;
+
+    /*
+     * Width of the falloff gradient. Depends on how much of the block is hidden
+     */
+    double fsize = std::max(5.0, std::min(std::abs(overflow), 30.0));
+    m_log.trace("renderer: Drawing falloff (pos=%g, size=%g, overflow=%g)", visible_width - fsize, fsize, overflow);
+    m_context->save();
+    *m_context << cairo::translate{(double) m_rect.x, (double) m_rect.y};
+    *m_context << cairo::abspos{0.0, 0.0};
+    *m_context << cairo::rect{x + visible_width - fsize, y, fsize, h};
+    m_context->clip(true);
+    *m_context << cairo::linear_gradient{x + visible_width - fsize, y, x + visible_width, y, {0x00000000, 0xFF000000}};
+    m_context->paint(0.25);
+    m_context->restore();
+  }
 }
 
 /**
