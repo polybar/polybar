@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <utility>
 
 #include "drawtypes/label.hpp"
@@ -41,7 +42,7 @@ namespace drawtypes {
     return m_tokenized.find(token) != string::npos;
   }
 
-  void label::replace_token(const string& token, string replacement) {
+  void label::replace_token(const string& token, const string& replacement) {
     if (!has_token(token)) {
       return;
     }
@@ -55,10 +56,14 @@ namespace drawtypes {
           repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
         }
 
+        if (std::find(m_token_whitelist.cbegin(), m_token_whitelist.cend(), token) == m_token_whitelist.cend()) {
+          repl = string_util::replace_all(repl, "%{", "\\%{");
+        }
+
         /*
          * Only replace first occurence, so that the proper token objects can be used
          */
-        m_tokenized = string_util::replace(m_tokenized, token, move(repl));
+        m_tokenized = string_util::replace(m_tokenized, token, repl);
       }
     }
   }
@@ -134,7 +139,8 @@ namespace drawtypes {
   /**
    * Create a label by loading values from the configuration
    */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
+  label_t load_label(const config& conf, const string& section, string name, bool required, const string& def,
+      vector<string>&& whitelisted_tokens) {
     vector<token> tokens;
     size_t start, end, pos;
 
@@ -148,7 +154,7 @@ namespace drawtypes {
     if (required) {
       text = conf.get(section, name);
     } else {
-      text = conf.get(section, name, move(def));
+      text = conf.get(section, name, def);
     }
 
     const auto get_left_right = [&](string key) {
@@ -220,11 +226,17 @@ namespace drawtypes {
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
-    if(ellipsis && maxlen > 0 && maxlen < 3) {
+    if (ellipsis && maxlen > 0 && maxlen < 3) {
+      // clang-format off
       throw application_error(sstream()
           << "Label " << section << "." << name
           << " has maxlen " << maxlen
           << ", which is smaller than length of ellipsis (3)");
+      // clang-format on
+    }
+
+    if (conf.has(section, name + "-whitelist")) {
+      whitelisted_tokens = string_util::split(conf.get(section, name + "-whitelist"), ' ');
     }
 
     // clang-format off
@@ -238,17 +250,18 @@ namespace drawtypes {
         margin,
         maxlen,
         ellipsis,
-        move(tokens));
+        move(tokens),
+        move(whitelisted_tokens));
     // clang-format on
   }
 
   /**
    * Create a label by loading optional values from the configuration
    */
-  label_t load_optional_label(const config& conf, string section, string name, string def) {
-    return load_label(conf, move(section), move(name), false, move(def));
+  label_t load_optional_label(
+      const config& conf, const string& section, string name, const string& def, vector<string>&& whitelisted_tokens) {
+    return load_label(conf, section, move(name), false, def, move(whitelisted_tokens));
   }
-
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

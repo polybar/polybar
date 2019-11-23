@@ -99,7 +99,7 @@ namespace modules {
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), "label", "%output%");
+      m_label = load_optional_label(m_conf, name(), "label", "%output%", {"%output%"});
     }
   }
 
