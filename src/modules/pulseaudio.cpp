@@ -106,6 +106,17 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
+        auto click_middle = m_conf.get(name(), "click-middle", ""s);
+        auto click_right = m_conf.get(name(), "click-right", ""s);
+
+        if (!click_middle.empty()) {
+            m_builder->cmd(mousebtn::MIDDLE, click_middle);
+        }
+
+        if (!click_right.empty()) {
+            m_builder->cmd(mousebtn::RIGHT, click_right);
+        }
+
       m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
       m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
       m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
