@@ -39,6 +39,7 @@ namespace modules {
     static constexpr auto EVENT_VOLUME_UP = "pa_volup";
     static constexpr auto EVENT_VOLUME_DOWN = "pa_voldown";
     static constexpr auto EVENT_TOGGLE_MUTE = "pa_volmute";
+    static constexpr auto EVENT_OPEN_CONTROL_PANEL = "pa_volctl";
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
@@ -48,6 +49,7 @@ namespace modules {
     pulseaudio_t m_pulseaudio;
 
     int m_interval{5};
+    string m_controlpanelapp;
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
     atomic<double> m_decibels{0};
