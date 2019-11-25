@@ -98,3 +98,10 @@ notifications:
     use_notice: true
     on_success: change
     on_failure: change
+  webhooks:
+    urls:
+      # For the https://gitter.im/polybar/polybar gitter room
+      - https://webhooks.gitter.im/e/10bdbe25961312646ace
+    on_success: change
+    on_failure: always
+    on_start: never

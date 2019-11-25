@@ -22,8 +22,7 @@ Getting Help
 ============
 
 * `Polybar Wiki <https://github.com/polybar/polybar/wiki>`_
+* `Gitter <https://gitter.im/polybar/polybar>`_
 * `/r/polybar <https://reddit.com/r/polybar>`_ on reddit
 * ``#polybar`` on ``chat.freenode.net``
-* `Unix & Linux StackExchange <https://unix.stackexchange.com/>`_
-
 
