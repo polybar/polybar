@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="banner.png" alt="Polybar">
+  <img src="banner.png" alt="Polybar">
 </p>
 
 <p align="center">
@@ -10,6 +10,7 @@ A fast and easy-to-use tool for creating status bars.
 <a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
 <a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
 <a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
+<a href="https://gitter.im/polybar/polybar"><img src="https://badges.gitter.im/polybar/polybar.svg"></a>
 <a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>
 <a href="https://github.com/polybar/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/polybar/polybar.svg"></a>
 <a href="https://www.codetriage.com/polybar/polybar"><img src="https://www.codetriage.com/polybar/polybar/badges/users.svg"></a>
@@ -180,6 +181,7 @@ Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /us
 ## Community
 Want to get in touch?
 
+* Join our Gitter room at [gitter.im/polybar/polybar](https://gitter.im/polybar/polybar)
 * We have our own subreddit at [r/polybar](https://www.reddit.com/r/polybar).
 * Chat with us in the `#polybar` IRC channel on the `chat.freenode.net` server.
 
