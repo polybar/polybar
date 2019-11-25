@@ -214,23 +214,72 @@ class config {
    */
   template <typename T>
   T dereference(const string& section, const string& key, const string& var, const T& fallback) const {
-    if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
-      return fallback;
+    // Find the first reference
+    string::size_type reference_begin = var.find("$");
+    while (reference_begin != string::npos && reference_begin != var.length() - 1 && var[reference_begin + 1] != '{') {
+      if (var[reference_begin + 1] == '$') {
+        ++reference_begin;
+      }
+      reference_begin = var.find("$", reference_begin + 1);
     }
-
-    auto path = var.substr(2, var.length() - 3);
-    size_t pos;
-
-    if (path.compare(0, 4, "env:") == 0) {
-      return dereference_env<T>(path.substr(4));
-    } else if (path.compare(0, 5, "xrdb:") == 0) {
-      return dereference_xrdb<T>(path.substr(5));
-    } else if (path.compare(0, 5, "file:") == 0) {
-      return dereference_file<T>(path.substr(5));
-    } else if ((pos = path.find(".")) != string::npos) {
-      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
+    // If there is any reference
+    if (reference_begin != string::npos && reference_begin != var.length() - 1) {
+      // Find the closing bracket of the first reference
+      // For there is not supposed to be any character '}' in a reference,
+      // all character '}' will be viewed as a closing bracket, without consideration of escaping
+      // Besides, there is not supposed to be any escaped '$' in a reference,
+      // so escaping is not considered here.
+      string::size_type reference_end = string::npos;
+      int reference_cnt = 0;
+      for (auto i=var.begin() + reference_begin; i!=var.end(); ++i) {
+        if (*i == '$' && i + 1 != var.end() && *(i + 1) == '{') {
+          ++reference_cnt;
+        } else if (*i == '}' && --reference_cnt == 0) {
+          reference_end = i - var.begin();
+          break;
+        }
+      }
+      // If closing brackets are not enough, throw
+      if (reference_end == string::npos) {
+        throw value_error("Unclosed reference at \"" + section + "." + key + "\"");
+      } else if (reference_begin == 0 && reference_end == var.length() - 1) {
+        // If the whole var is surrounded by a pair of brackets, start dereferencing
+        string path{dereference<string>(section, key, var.substr(2, var.length() - 3), var.substr(2, var.length() - 3))};
+        string result{};
+        if (path.compare(0, 4, "env:") == 0) {
+          result = dereference_env<string>(path.substr(4));
+        } else if (path.compare(0, 5, "xrdb:") == 0) {
+          result = dereference_xrdb<string>(path.substr(5));
+        } else if (path.compare(0, 5, "file:") == 0) {
+          result = dereference_file<string>(path.substr(5));
+        } else if (path.find(".") != string::npos) {
+          string::size_type pos = path.find(".");
+          result = dereference_local<string>(path.substr(0, pos), path.substr(pos + 1), section);
+        } else {
+          throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
+        }
+        return dereference<T>(section, key, result, fallback);
+      } else {
+        // If var is partly surrounded by brackets, divide it into three parts and dereference recursively
+        string head(var, 0, reference_begin);
+        head = dereference<string>(section, key, head, head);
+        string middle{var.substr(reference_begin, reference_end - reference_begin + 1)};
+        middle = dereference<string>(section, key, middle, middle);
+        string tail{var, reference_end + 1};
+        tail = dereference<string>(section, key, tail, tail);
+        return convert<T>(head + middle + tail);
+      }
     } else {
-      throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
+      // Finally convert all "$$" into "$".
+      // Because character '$' is not supposed to be in a reference,
+      // This process will take effect only once
+      string result{var};
+      string::size_type escaped_pos = result.find("$$");
+      while ((escaped_pos = result.find("$$", escaped_pos)) != string::npos) {
+        result.replace(escaped_pos, 2, "$");
+        ++escaped_pos;
+      }
+      return convert<T>(move(result));
     }
   }
 
@@ -255,8 +304,7 @@ class config {
 
     try {
       string string_value{get<string>(section, key)};
-      T result{convert<T>(string{string_value})};
-      return dereference<T>(string(section), move(key), move(string_value), move(result));
+      return convert<T>(string{string_value});
     } catch (const key_error& err) {
       size_t pos;
       if ((pos = key.find(':')) != string::npos) {
