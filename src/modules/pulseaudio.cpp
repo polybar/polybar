@@ -19,9 +19,6 @@ namespace modules {
     m_interval = m_conf.get(name(), "interval", m_interval);
 
     m_controlpanelapp = m_conf.get(name(), "control-panel", "pavucontrol"s);
-    if (m_controlpanelapp.compare(m_controlpanelapp.length() - 1, 1, "&"s) != 0) {
-        m_controlpanelapp += "&";
-    }
 
     auto sink_name = m_conf.get(name(), "sink", ""s);
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
@@ -149,10 +146,12 @@ namespace modules {
         if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
           m_pulseaudio->toggle_mute();
         } else if (cmd.compare(0, strlen(EVENT_OPEN_CONTROL_PANEL), EVENT_OPEN_CONTROL_PANEL) == 0) {
-            m_log.info("%s: Launching pulseaudio control panel (%s)", name(), this->m_controlpanelapp);
-            int rc = system(this->m_controlpanelapp.c_str());
-            if (rc != 0) {
-                m_log.info("%s: Launch of pulseaudio control panel failed with rc = %i", name(), rc);
+            if (!m_controlpanelcmd || !m_controlpanelcmd->is_running()) {
+                m_log.info("%s: Launching pulseaudio control panel (%s)", name(), this->m_controlpanelapp);
+                m_controlpanelcmd = command_util::make_command(m_controlpanelapp);
+                m_controlpanelcmd->exec(false);
+            } else {
+                m_log.info("%s: Pulseaudio control panel already running", name(), this->m_controlpanelapp);
             }
         } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
           // cap above 100 (~150)?

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "settings.hpp"
+#include "utils/command.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/input_handler.hpp"
 
@@ -50,6 +51,7 @@ namespace modules {
 
     int m_interval{5};
     string m_controlpanelapp;
+    unique_ptr<command> m_controlpanelcmd;
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
     atomic<double> m_decibels{0};
