@@ -1,5 +1,5 @@
-#include "modules/ipc.hpp"
 #include "components/ipc.hpp"
+#include "modules/ipc.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -12,11 +12,15 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
     size_t index = 0;
 
     for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
-      m_hooks.emplace_back(new hook{name() + to_string(++index), command});
+      m_hooks.emplace_back(new hook{name() + to_string(++index), command, 0_z});
+    }
+
+    for (size_t i = 0; i < m_hooks.size(); ++i) {
+      m_hooks[i]->interval = m_conf.get(name(), "hook-" + to_string(i) + "-interval", 0_z);
     }
 
     if (m_hooks.empty()) {
@@ -26,6 +30,8 @@ namespace modules {
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
     }
+
+    m_current = m_initial;
 
     // clang-format off
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
@@ -64,7 +70,19 @@ namespace modules {
       command->exec(false);
       command->tail([this](string line) { m_output = line; });
     }
-    static_module::start();
+    m_mainthread = thread(&ipc_module::runner, this);
+  }
+
+  bool ipc_module::update() {
+    if (m_current && m_hooks.at(m_current - 1)->interval) {
+      auto command = command_util::make_command(m_hooks[m_current - 1]->command);
+      command->exec(false);
+      command->tail([this](string line) { m_output = line; });
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -78,7 +96,7 @@ namespace modules {
 
     for (auto&& action : m_actions) {
       if (!action.second.empty()) {
-        m_builder->cmd(action.first, action.second);
+        m_builder->cmd(action.first, replace_active_hook_token(action.second));
       }
     }
 
@@ -104,10 +122,15 @@ namespace modules {
    * execute its command
    */
   void ipc_module::on_message(const string& message) {
+    size_t i = 0;
     for (auto&& hook : m_hooks) {
+      ++i;
       if (hook->payload != message) {
         continue;
       }
+
+      // Lock to avoid concurrency issues with ipc_module::update()
+      m_updatelock.lock();
 
       m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
 
@@ -121,8 +144,67 @@ namespace modules {
       }
 
       broadcast();
+
+      m_current = i;
+      // No need to wakeup the thread if hook interval is 0
+      if (hook->interval) {
+        m_updatelock.unlock();  // Must be unlocked before the wakeup
+        wakeup();
+      } else {
+        m_updatelock.unlock();
+      }
     }
   }
-}
+
+  void ipc_module::runner() {
+    this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+
+    const auto check = [this]() -> bool {
+      std::unique_lock<std::mutex> guard(this->m_updatelock);
+      return update();
+    };
+
+    try {
+      // warm up module output before entering the loop
+      check();
+      broadcast();
+
+      while (this->running()) {
+        if (check()) {
+          broadcast();
+        }
+
+        if (m_current && m_hooks[m_current - 1]->interval) {
+          sleep(chrono::seconds(m_hooks[m_current - 1]->interval));
+        } else {
+          // No need to let the thread run if the current hook have an interval of 0.
+          // The on_message method will wakeup this thread if the activated hook as an interval != 0.
+          std::unique_lock<std::mutex> guard(m_sleeplock);
+          m_sleephandler.wait(guard, [this]() { return m_should_wake_up; });
+          m_should_wake_up = false;
+        }
+      }
+    } catch (const exception& err) {
+      halt(err.what());
+    }
+  }
+
+  void ipc_module::wakeup() {
+    m_should_wake_up = true;
+    module<ipc_module>::wakeup();
+  }
+
+  string ipc_module::replace_active_hook_token(string hook_command) {
+    const char active_hook_token[] = "%active-hook%";
+    string::size_type p = hook_command.find(active_hook_token);
+
+    if (p != string::npos) {
+      hook_command.replace(p, string_util::strlen(active_hook_token), to_string(m_current));
+      return hook_command;
+    }
+
+    return hook_command;
+  }
+}  // namespace modules
 
 POLYBAR_NS_END
