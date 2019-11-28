@@ -9,11 +9,16 @@
 POLYBAR_NS
 
 namespace drawtypes {
+  /**
+   * Gets the text from the label as it should be rendered
+   *
+   * Here tokens are replaced with values and minlen and maxlen properties are applied
+   */
   string label::get() const {
     const size_t len = string_util::char_len(m_tokenized);
     if (len >= m_minlen) {
       string text = m_tokenized;
-      if (m_maxlen > 0 && string_util::char_len(text) > m_maxlen) {
+      if (m_maxlen > 0 && len > m_maxlen) {
         if (m_ellipsis) {
           text = string_util::utf8_truncate(std::move(text), m_maxlen - 3) + "...";
         } else {
@@ -22,16 +27,21 @@ namespace drawtypes {
       }
       return text;
     }
+
     const size_t num_fill_chars = m_minlen - len;
+    size_t right_fill_len = 0;
+    size_t left_fill_len = 0;
     if (m_alignment == alignment::RIGHT) {
-      return string(num_fill_chars, ' ') + m_tokenized;
+      left_fill_len = num_fill_chars;
     } else if (m_alignment == alignment::LEFT) {
-      return m_tokenized + string(num_fill_chars, ' ');
-    }
-    size_t right_fill_len = std::ceil(num_fill_chars / 2.0);
-    size_t left_fill_len = right_fill_len;
-    if (len + 2 * right_fill_len > m_minlen) {
-      --left_fill_len;
+      right_fill_len = num_fill_chars;
+    } else {
+      right_fill_len = std::ceil(num_fill_chars / 2.0);
+      left_fill_len = right_fill_len;
+      // The text is positioned one character to the left if we can't perfectly center it
+      if (len + left_fill_len + right_fill_len > m_minlen) {
+        --left_fill_len;
+      }
     }
     return string(left_fill_len, ' ') + m_tokenized + string(right_fill_len, ' ');
   }
