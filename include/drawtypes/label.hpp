@@ -18,9 +18,6 @@ namespace drawtypes {
     bool zpad{false};
   };
 
-  class label;
-  using label_t = shared_ptr<label>;
-
   class label : public non_copyable_mixin<label> {
    public:
     string m_foreground{};

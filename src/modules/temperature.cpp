@@ -84,7 +84,7 @@ namespace modules {
   }
 
   string temperature_module::get_format() const {
-    if (m_temp > m_tempwarn) {
+    if (m_temp >= m_tempwarn) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;
