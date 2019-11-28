@@ -37,10 +37,7 @@ namespace drawtypes {
      * labels in a different way.
      */
     size_t m_maxlen{0_z};
-    /*
-     * The default is set to RIGHT for backwards compatibility.
-     */
-    alignment m_alignment{alignment::RIGHT};
+    alignment m_alignment{alignment::LEFT};
     bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
