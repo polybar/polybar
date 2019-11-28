@@ -1,6 +1,7 @@
+#include "components/builder.hpp"
+
 #include <utility>
 
-#include "components/builder.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/color.hpp"
 #include "utils/string.hpp"

@@ -1,9 +1,10 @@
+#include "drawtypes/label.hpp"
+
 #include <memory>
 
 #include "common.hpp"
 #include "common/test.hpp"
 #include "components/types.hpp"
-#include "drawtypes/label.hpp"
 
 using namespace polybar;
 using namespace polybar::drawtypes;

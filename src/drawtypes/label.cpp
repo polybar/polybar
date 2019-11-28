@@ -1,7 +1,8 @@
+#include "drawtypes/label.hpp"
+
 #include <cmath>
 #include <utility>
 
-#include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
 
@@ -29,7 +30,7 @@ namespace drawtypes {
     }
     size_t right_fill_len = std::ceil(num_fill_chars / 2.0);
     size_t left_fill_len = right_fill_len;
-    if (len + 2*right_fill_len > m_minlen) {
+    if (len + 2 * right_fill_len > m_minlen) {
       --left_fill_len;
     }
     return string(left_fill_len, ' ') + m_tokenized + string(right_fill_len, ' ');
@@ -261,11 +262,9 @@ namespace drawtypes {
     }
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
-    if(ellipsis && maxlen > 0 && maxlen < 3) {
-      throw application_error(sstream()
-          << "Label " << section << "." << name
-          << " has maxlen " << maxlen
-          << ", which is smaller than length of ellipsis (3)");
+    if (ellipsis && maxlen > 0 && maxlen < 3) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << ", which is smaller than length of ellipsis (3)");
     }
 
     // clang-format off
@@ -292,6 +291,6 @@ namespace drawtypes {
     return load_label(conf, move(section), move(name), false, move(def));
   }
 
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END
