@@ -37,7 +37,9 @@ namespace drawtypes {
      * labels in a different way.
      */
     size_t m_maxlen{0_z};
-    // The default is set to RIGHT for backwards compatibility.
+    /*
+     * The default is set to RIGHT for backwards compatibility.
+     */
     alignment m_alignment{alignment::RIGHT};
     bool m_ellipsis{true};
 
