@@ -1,20 +1,20 @@
 #include "modules/pulseaudio.hpp"
+
 #include "adapters/pulseaudio.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
-
 #include "settings.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<pulseaudio_module>;
 
-  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
+  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
+      : event_module<pulseaudio_module>(bar, move(name_)) {
     // Load configuration values
     m_interval = m_conf.get(name(), "interval", m_interval);
 
@@ -168,6 +168,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
