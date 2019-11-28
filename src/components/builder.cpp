@@ -125,7 +125,7 @@ void builder::node(const label_t& label, bool add_space) {
     return;
   }
 
-  auto text = get_label_text(label);
+  auto text = label->get();
 
   if (label->m_margin.left > 0) {
     space(label->m_margin.left);
@@ -478,10 +478,6 @@ string builder::foreground_hex() {
     m_foreground = color_util::hex<unsigned short int>(m_bar.foreground);
   }
   return m_foreground;
-}
-
-string builder::get_label_text(const label_t& label) {
-  return label->get();
 }
 
 /**
