@@ -56,7 +56,6 @@ namespace drawtypes {
     unsigned int fill_width = math_util::percentage_to_value(perc, m_width);
     unsigned int empty_width = m_width - fill_width;
 
-
     // Output fill icons
     fill(perc, fill_width);
     output = string_util::replace_all(output, "%fill%", m_builder->flush());
