@@ -118,7 +118,6 @@ namespace drawtypes {
     pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
 
     const auto get_left_right = [&](string key) {
-    fprintf(stderr, "getting padding for key=%s\n", key.c_str());
       auto value = conf.get(section, key, 0U);
       auto left = conf.get(section, key + "-left", value);
       auto right = conf.get(section, key + "-right", value);
@@ -126,7 +125,6 @@ namespace drawtypes {
     };
 
     auto padding = get_left_right(name + "-padding");
-    fprintf(stderr, "setting padding to %i, %i\n", padding.left, padding.right);
     pbar->set_padding(padding);
 
     label_t icon_empty;
