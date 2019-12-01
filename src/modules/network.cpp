@@ -60,15 +60,6 @@ namespace modules {
       }
     }
 
-    // Get an intstance of the network interface
-    if (net::is_wireless_interface(m_interface)) {
-      m_wireless = factory_util::unique<net::wireless_network>(m_interface);
-      m_wireless->set_unknown_up(m_unknown_up);
-    } else {
-      m_wired = factory_util::unique<net::wired_network>(m_interface);
-      m_wired->set_unknown_up(m_unknown_up);
-    };
-
     // We only need to start the subthread if the packetloss animation is used
     if (m_animation_packetloss) {
       m_threads.emplace_back(thread(&network_module::subthread_routine, this));
@@ -81,22 +72,27 @@ namespace modules {
   }
 
   bool network_module::update() {
+    // Check if the interface exists
+    if (!m_wireless && !m_wired && !set_interface()) {
+        return false;
+    }
+
+    // Update tokens anyway
     net::network* network =
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
     if (!network->query(m_accumulate)) {
-      m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
+      m_log.warn("%s: Failed to query interface '%s', assuming disconnected", name(), m_interface);
       m_connected = false;
-      return false;
-    }
-
-    try {
-      if (m_wireless) {
-        m_signal = m_wireless->signal();
-        m_quality = m_wireless->quality();
+    } else {
+      try {
+        if (m_wireless) {
+          m_signal = m_wireless->signal();
+          m_quality = m_wireless->quality();
+        }
+      } catch (const net::network_error& err) {
+        m_log.warn("%s: Error getting interface data (%s)", name(), err.what());
       }
-    } catch (const net::network_error& err) {
-      m_log.warn("%s: Error getting interface data (%s)", name(), err.what());
     }
 
     m_connected = network->connected();
@@ -185,6 +181,23 @@ namespace modules {
 
     m_log.trace("%s: Reached end of network subthread", name());
   }
+
+  bool network_module::set_interface() {
+    try {
+      if (net::is_wireless_interface(m_interface)) {
+          m_wireless = factory_util::unique<net::wireless_network>(m_interface);
+          m_wireless->set_unknown_up(m_unknown_up);
+      } else {
+          m_wired = factory_util::unique<net::wired_network>(m_interface);
+          m_wired->set_unknown_up(m_unknown_up);
+      }
+    } catch (const net::network_error& err) {
+          m_log.warn("%s: Could not access interface %s, assuming disconnected with error message %s", name(), m_interface, err.what());
+          return false;
+    }
+    return true;
+  }
+
 }
 
 POLYBAR_NS_END

@@ -1,7 +1,9 @@
+/.idea
 /build
 /tags
 /compile_commands.json
 /config
+/cmake-build-debug
 *.bak
 *.pyc
 *.swp
