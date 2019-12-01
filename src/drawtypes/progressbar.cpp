@@ -31,6 +31,10 @@ namespace drawtypes {
     m_gradient = mode;
   }
 
+  void progressbar::set_padding(side_values padding) {
+    m_padding = padding;
+  }
+
   void progressbar::set_colors(vector<string>&& colors) {
     m_colors = forward<decltype(colors)>(colors);
 
@@ -38,12 +42,20 @@ namespace drawtypes {
   }
 
   string progressbar::output(float percentage) {
-    string output{m_format};
+    string output;
+
+    if (m_padding.left != 0U) {
+      m_builder->space(m_padding.left);
+      output.append(m_builder->flush());
+    }
+
+    output.append(m_format);
 
     // Get fill/empty widths based on percentage
     unsigned int perc = math_util::cap(percentage, 0.0f, 100.0f);
     unsigned int fill_width = math_util::percentage_to_value(perc, m_width);
     unsigned int empty_width = m_width - fill_width;
+
 
     // Output fill icons
     fill(perc, fill_width);
@@ -56,6 +68,11 @@ namespace drawtypes {
     // Output empty icons
     m_builder->node_repeat(m_empty, empty_width);
     output = string_util::replace_all(output, "%empty%", m_builder->flush());
+
+    if (m_padding.right != 0U) {
+      m_builder->space(m_padding.right);
+      output.append(m_builder->flush());
+    }
 
     return output;
   }
@@ -99,6 +116,18 @@ namespace drawtypes {
     auto pbar = factory_util::shared<progressbar>(bar, width, format);
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
     pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
+
+    const auto get_left_right = [&](string key) {
+    fprintf(stderr, "getting padding for key=%s\n", key.c_str());
+      auto value = conf.get(section, key, 0U);
+      auto left = conf.get(section, key + "-left", value);
+      auto right = conf.get(section, key + "-right", value);
+      return side_values{static_cast<unsigned short int>(left), static_cast<unsigned short int>(right)};
+    };
+
+    auto padding = get_left_right(name + "-padding");
+    fprintf(stderr, "setting padding to %i, %i\n", padding.left, padding.right);
+    pbar->set_padding(padding);
 
     label_t icon_empty;
     label_t icon_fill;

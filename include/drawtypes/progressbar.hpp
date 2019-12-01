@@ -18,6 +18,7 @@ namespace drawtypes {
     void set_indicator(label_t&& indicator);
     void set_gradient(bool mode);
     void set_colors(vector<string>&& colors);
+    void set_padding(side_values padding);
 
     string output(float percentage);
 
@@ -31,6 +32,7 @@ namespace drawtypes {
     unsigned int m_width;
     unsigned int m_colorstep = 1;
     bool m_gradient = false;
+    side_values m_padding{0U, 0U};
 
     label_t m_fill;
     label_t m_empty;
