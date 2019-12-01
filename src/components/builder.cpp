@@ -1,6 +1,7 @@
+#include "components/builder.hpp"
+
 #include <utility>
 
-#include "components/builder.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/color.hpp"
 #include "utils/string.hpp"
@@ -124,7 +125,7 @@ void builder::node(const label_t& label, bool add_space) {
     return;
   }
 
-  auto text = get_label_text(label);
+  auto text = label->get();
 
   if (label->m_margin.left > 0) {
     space(label->m_margin.left);
@@ -477,22 +478,6 @@ string builder::foreground_hex() {
     m_foreground = color_util::hex<unsigned short int>(m_bar.foreground);
   }
   return m_foreground;
-}
-
-string builder::get_label_text(const label_t& label) {
-  string text{label->get()};
-
-  size_t maxlen = label->m_maxlen;
-
-  if (maxlen > 0 && string_util::char_len(text) > maxlen) {
-    if (label->m_ellipsis) {
-      text = string_util::utf8_truncate(std::move(text), maxlen - 3) + "...";
-    } else {
-      text = string_util::utf8_truncate(std::move(text), maxlen);
-    }
-  }
-
-  return text;
 }
 
 /**

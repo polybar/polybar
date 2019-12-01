@@ -55,8 +55,6 @@ class builder {
   string background_hex();
   string foreground_hex();
 
-  string get_label_text(const label_t& label);
-
   void tag_open(syntaxtag tag, const string& value);
   void tag_open(attribute attr);
   void tag_close(syntaxtag tag);
