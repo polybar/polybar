@@ -252,7 +252,7 @@ namespace drawtypes {
       }
     }
     size_t minlen = conf.get(section, name + "-minlen", 0_z);
-    string alignment_conf_value = conf.get(section, name + "-alignment", "right"s);
+    string alignment_conf_value = conf.get(section, name + "-alignment", "left"s);
     alignment label_alignment;
     if (alignment_conf_value == "right") {
       label_alignment = alignment::RIGHT;
