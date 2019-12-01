@@ -11,11 +11,12 @@ POLYBAR_NS
 namespace drawtypes {
   class progressbar : public non_copyable_mixin<progressbar> {
    public:
-    explicit progressbar(const bar_settings& bar, int width, string format);
+    explicit progressbar(const bar_settings& bar, int width);
 
     void set_fill(label_t&& fill);
     void set_empty(label_t&& empty);
     void set_indicator(label_t&& indicator);
+    void set_bar_label(label_t&& bar_label);
     void set_gradient(bool mode);
     void set_colors(vector<string>&& colors);
     void set_padding(side_values padding);
@@ -28,15 +29,14 @@ namespace drawtypes {
    private:
     unique_ptr<builder> m_builder;
     vector<string> m_colors;
-    string m_format;
     unsigned int m_width;
     unsigned int m_colorstep = 1;
     bool m_gradient = false;
-    side_values m_padding{0U, 0U};
 
     label_t m_fill;
     label_t m_empty;
     label_t m_indicator;
+    label_t m_bar;
   };
 
   using progressbar_t = shared_ptr<progressbar>;
