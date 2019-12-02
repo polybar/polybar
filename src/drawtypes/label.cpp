@@ -191,7 +191,7 @@ namespace drawtypes {
       if (deprecated_name.empty()) {
         text = conf.get(section, name);
       } else {
-        text = conf.deprecated(section, deprecated_name, name, ""s);
+        text = conf.deprecated_required(section, deprecated_name, name);
       }
     } else {
       if (deprecated_name.empty()) {
