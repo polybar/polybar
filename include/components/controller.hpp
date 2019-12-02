@@ -122,7 +122,7 @@ class controller
    * Maps the name of the input handler (module name) to the corresponding input
    * handler
    */
-  std::map<string, shared_ptr<modules::input_handler>> m_inputhandlers;
+  std::vector<shared_ptr<modules::input_handler>> m_inputhandlers;
 
   /**
    * \brief Maximum number of subsequent events to swallow
