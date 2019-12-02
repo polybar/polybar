@@ -148,7 +148,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
 
     if (inp_handler) {
       m_log.trace("Registering module %s as input handler", module->name_raw());
-      m_inputhandlers.emplace(module->name_raw(), inp_handler);
+      m_inputhandlers.push_back(inp_handler);
     }
 
     if (evt_handler != nullptr) {
@@ -415,17 +415,26 @@ void controller::process_inputdata() {
     auto handler_name = cmd.substr(1, end_pos - 1);
     auto action = cmd.substr(end_pos + 1);
 
-    m_log.info("Forwarding data to input handler (name: %s, action: %s) ", handler_name, action);
+    m_log.info("Forwarding data to input handlers (name: %s, action: %s) ", handler_name, action);
 
-    auto handler = m_inputhandlers.find(handler_name);
+    int num_delivered = 0;
 
-    if (handler == m_inputhandlers.end()) {
-      m_log.err("The input handler with name '%s' doesn't exist (input: %s)", handler_name, cmd);
-      return;
+    // Forwards the action to all input handlers that match the name
+    for (auto&& handler : m_inputhandlers) {
+      if (handler->input_handler_name() == handler_name) {
+        if(!handler->input(string{action})) {
+          m_log.warn("The '%s' module does not support the '%s' action.", handler_name, action);
+        }
+
+        num_delivered++;
+      }
     }
 
-    if(!handler->second->input(string{action})) {
-      m_log.warn("The '%s' module does not support the '%s' action.", handler_name, action);
+    if (num_delivered == 0) {
+      m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
+    }
+    else {
+      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1? "s": "");
     }
 
     return;
