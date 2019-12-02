@@ -81,7 +81,10 @@ namespace modules {
     net::network* network =
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
+    printf("Network interface %s updated\n", m_interface.c_str());
+
     if (!network->query(m_accumulate)) {
+      printf("Disconnected %s\n", m_interface.c_str());
       m_log.warn("%s: Failed to query interface '%s', assuming disconnected", name(), m_interface);
       m_connected = false;
     } else {
