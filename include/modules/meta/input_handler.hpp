@@ -14,6 +14,13 @@ namespace modules {
      * \returns true if the command is supported and false otherwise
      */
     virtual bool input(string&& cmd) = 0;
+
+    /**
+     * The name of this input handler
+     *
+     * Actions of the form '#NAME#ACTION' can be sent to this handler if NAME is the name of this input handler.
+     */
+    virtual string input_handler_name() const = 0;
   };
 }
 

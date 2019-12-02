@@ -5,14 +5,13 @@
 #include "utils/env.hpp"
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
 using namespace mpd;
 
 namespace modules {
-  class mpd_module : public event_module<mpd_module>, public input_handler {
+  class mpd_module : public event_module<mpd_module> {
    public:
     explicit mpd_module(const bar_settings&, string);
 

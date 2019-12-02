@@ -2,7 +2,6 @@
 #pragma once
 
 #include "modules/meta/static_module.hpp"
-#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
@@ -13,7 +12,7 @@ namespace modules {
    * Module used to display information about the
    * currently active X window.
    */
-  class systray_module : public static_module<systray_module>, public input_handler {
+  class systray_module : public static_module<systray_module> {
    public:
     explicit systray_module(const bar_settings&, string);
 

@@ -7,7 +7,6 @@
 #include "components/config.hpp"
 #include "components/types.hpp"
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
@@ -52,8 +51,7 @@ namespace modules {
    * Module used to display EWMH desktops
    */
   class xworkspaces_module : public static_module<xworkspaces_module>,
-                             public event_handler<evt::property_notify>,
-                             public input_handler {
+                             public event_handler<evt::property_notify> {
    public:
     explicit xworkspaces_module(const bar_settings& bar, string name_);
 

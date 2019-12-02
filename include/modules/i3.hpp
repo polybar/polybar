@@ -4,14 +4,13 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class i3_module : public event_module<i3_module>, public input_handler {
+  class i3_module : public event_module<i3_module> {
    public:
     enum class state {
       NONE,

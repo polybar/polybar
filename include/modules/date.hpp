@@ -1,6 +1,5 @@
 #pragma once
 
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/timer_module.hpp"
 
 #include <iostream>
@@ -10,7 +9,7 @@
 POLYBAR_NS
 
 namespace modules {
-  class date_module : public timer_module<date_module>, public input_handler {
+  class date_module : public timer_module<date_module> {
    public:
     explicit date_module(const bar_settings&, string);
 
