@@ -176,7 +176,7 @@ namespace drawtypes {
   /**
    * Create a label by loading values from the configuration
    */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
+  label_t load_label(const config& conf, const string& section, string name, bool required, string def, string deprecated_name) {
     vector<token> tokens;
     size_t start, end, pos;
 
@@ -188,9 +188,17 @@ namespace drawtypes {
     }, margin{};
 
     if (required) {
-      text = conf.get(section, name);
+      if (deprecated_name.empty()) {
+        text = conf.get(section, name);
+      } else {
+        text = conf.deprecated(section, deprecated_name, name, ""s);
+      }
     } else {
-      text = conf.get(section, name, move(def));
+      if (deprecated_name.empty()) {
+        text = conf.get(section, name, move(def));
+      } else {
+        text = conf.deprecated(section, deprecated_name, name, move(def));
+      }
     }
 
     const auto get_left_right = [&](string key) {
