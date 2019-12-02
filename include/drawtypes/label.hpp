@@ -62,6 +62,7 @@ namespace drawtypes {
       assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
     }
 
+    string get_format() const;
     string get() const;
     operator bool();
     label_t clone();

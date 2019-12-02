@@ -10,6 +10,13 @@ POLYBAR_NS
 
 namespace drawtypes {
   /**
+   * Gets the raw format string from the label
+   */
+  string label::get_format() const {
+    return m_text;
+  }
+
+  /**
    * Gets the text from the label as it should be rendered
    *
    * Here tokens are replaced with values and minlen and maxlen properties are applied
