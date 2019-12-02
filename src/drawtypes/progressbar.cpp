@@ -91,8 +91,8 @@ namespace drawtypes {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    label_t bar_label = load_label(conf, section, name, false, "%fill%%indicator%%empty%");
-    string format = bar_label->get();
+    label_t bar_label = load_label(conf, section, name, false, "%fill%%indicator%%empty%", name + "-format");
+    string format = bar_label->get_format();
     unsigned int width;
 
     if (format.empty()) {
