@@ -2,7 +2,6 @@
 
 #include "settings.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
@@ -19,7 +18,7 @@ namespace modules {
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
 
-  class alsa_module : public event_module<alsa_module>, public input_handler {
+  class alsa_module : public event_module<alsa_module> {
    public:
     explicit alsa_module(const bar_settings&, string);
 

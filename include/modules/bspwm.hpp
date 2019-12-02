@@ -1,13 +1,12 @@
 #pragma once
 
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/bspwm.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class bspwm_module : public event_module<bspwm_module>, public input_handler {
+  class bspwm_module : public event_module<bspwm_module> {
    public:
     enum class state {
       NONE = 0U,

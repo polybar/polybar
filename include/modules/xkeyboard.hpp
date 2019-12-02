@@ -4,7 +4,6 @@
 #include "components/config.hpp"
 #include "components/types.hpp"
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/extensions/xkb.hpp"
 #include "x11/window.hpp"
@@ -19,8 +18,7 @@ namespace modules {
    */
   class xkeyboard_module
       : public static_module<xkeyboard_module>,
-        public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify>,
-        public input_handler {
+        public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify> {
    public:
     explicit xkeyboard_module(const bar_settings& bar, string name_);
 

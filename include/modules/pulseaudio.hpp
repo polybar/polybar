@@ -2,7 +2,6 @@
 
 #include "settings.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
@@ -12,7 +11,7 @@ class pulseaudio;
 namespace modules {
   using pulseaudio_t = shared_ptr<pulseaudio>;
 
-  class pulseaudio_module : public event_module<pulseaudio_module>, public input_handler {
+  class pulseaudio_module : public event_module<pulseaudio_module> {
    public:
     explicit pulseaudio_module(const bar_settings&, string);
 

@@ -9,11 +9,11 @@
 #include "common.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
+#include "modules/meta/input_handler.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;
@@ -118,7 +118,7 @@ namespace modules {
   // class definition : module {{{
 
   template <class Impl>
-  class module : public module_interface {
+  class module : public module_interface, public input_handler {
    public:
     module(const bar_settings bar, string name);
     ~module() noexcept;
@@ -130,6 +130,9 @@ namespace modules {
     void halt(string error_message);
     void teardown();
     string contents();
+
+    bool input(string&& cmd);
+    string input_handler_name() const;
 
    protected:
     void broadcast();

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class menu_module : public static_module<menu_module>, public input_handler {
+  class menu_module : public static_module<menu_module> {
    public:
     struct menu_tree_item {
       string exec;
