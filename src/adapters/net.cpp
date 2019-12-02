@@ -286,6 +286,9 @@ namespace net {
       return false;
     }
 
+    else return true;
+
+    /*
     struct ethtool_value data {};
     struct ifreq request {};
 
@@ -299,6 +302,7 @@ namespace net {
     }
 
     return data.data != 0;
+    */
   }
 
   /**

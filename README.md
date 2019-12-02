@@ -1,3 +1,7 @@
+## sushisharkjl/polybar
+
+This fork was created with the **sole** intent of allowing disconnected network interfaces to be kept alive in the internal/network module. It will only track upstream when I (the maintainer) decide to merge. Do not use this fork with the intent that it will perpetually track upstream.
+
 <p align="center">
   <img src="banner.png" alt="Polybar">
 </p>
