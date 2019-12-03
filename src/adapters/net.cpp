@@ -282,11 +282,11 @@ namespace net {
    * Check current connection state
    */
   bool wired_network::connected() const {
-    if (!m_tuntap && !network::test_interface()) {
-      return false;
-    }
+    // if (!m_tuntap && !network::test_interface()) {
+    //   return false;
+    // }
 
-    else return true;
+    return network::test_interface();
 
     /*
     struct ethtool_value data {};

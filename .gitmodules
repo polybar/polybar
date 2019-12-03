@@ -6,3 +6,6 @@
 	path = lib/xpp
 	url = https://github.com/polybar/xpp
 	branch = master
+[submodule "polybar-scripts"]
+	path = polybar-scripts
+	url = https://github.com/polybar/polybar-scripts
