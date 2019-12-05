@@ -11,8 +11,7 @@ A fast and easy-to-use tool for creating status bars.
 </p>
 
 <p align="center">
-<a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
-<a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
+<a href="https://travis-ci.com/sushisharkjl/polybar"><img src="https://travis-ci.com/sushisharkjl/polybar.svg?branch=master"></a>
 <a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
 <a href="https://gitter.im/polybar/polybar"><img src="https://badges.gitter.im/polybar/polybar.svg"></a>
 <a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>

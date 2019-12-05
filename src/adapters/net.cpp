@@ -217,8 +217,9 @@ namespace net {
    */
   bool network::test_interface() const {
     auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
-    bool up = operstate.compare(0, 2, "up") == 0;
-    return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
+    bool up = operstate.compare(0, 4, "down") != 0;
+    return up;
+    // return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
   }
 
   /**
