@@ -19,11 +19,11 @@ class builder {
   void reset();
   string flush();
   void append(string text);
-  void node(string str, bool add_space = false);
-  void node(string str, int font_index, bool add_space = false);
-  void node(const label_t& label, bool add_space = false);
-  void node_repeat(const string& str, size_t n, bool add_space = false);
-  void node_repeat(const label_t& label, size_t n, bool add_space = false);
+  void node(string str);
+  void node(string str, int font_index);
+  void node(const label_t& label);
+  void node_repeat(const string& str, size_t n);
+  void node_repeat(const label_t& label, size_t n);
   void offset(int pixels = 0);
   void space(size_t width);
   void space();
