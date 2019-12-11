@@ -1,6 +1,6 @@
 #include "modules/ipc.hpp"
-#include "components/ipc.hpp"
 
+#include "components/ipc.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -112,6 +112,8 @@ namespace modules {
       m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
 
       try {
+        // Clear the output in case the command produces no output
+        m_output.clear();
         auto command = command_util::make_command(hook->command);
         command->exec(false);
         command->tail([this](string line) { m_output = line; });
@@ -123,6 +125,6 @@ namespace modules {
       broadcast();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
