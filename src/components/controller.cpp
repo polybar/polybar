@@ -97,7 +97,7 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   auto dup_it = m_modules.cbegin();
 
   do {
-    auto equal_predicate = [](const auto& m1, const auto& m2) { return m1->name() == m2->name(); };
+    auto equal_predicate = [](const module_t& m1, const module_t& m2) { return m1->name() == m2->name(); };
     dup_it = std::adjacent_find(dup_it, m_modules.cend(), equal_predicate);
 
     if (dup_it != m_modules.cend()) {
