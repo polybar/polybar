@@ -11,6 +11,7 @@ namespace modules {
     unsigned long long nice;
     unsigned long long system;
     unsigned long long idle;
+    unsigned long long steal;
     unsigned long long total;
   };
 
