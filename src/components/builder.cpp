@@ -429,8 +429,8 @@ void builder::control(controltag tag) {
 /**
  * Open command tag
  */
-void builder::cmd(mousebtn index, string action, bool condition) {
-  if (condition && !action.empty()) {
+void builder::cmd(mousebtn index, string action) {
+  if (!action.empty()) {
     action = string_util::replace_all(action, ":", "\\:");
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
@@ -441,7 +441,7 @@ void builder::cmd(mousebtn index, string action, bool condition) {
  */
 void builder::cmd(mousebtn index, string action, const label_t& label) {
   if (label && *label) {
-    cmd(index, action, true);
+    cmd(index, action);
     node(label);
     tag_close(syntaxtag::A);
   }
@@ -450,10 +450,8 @@ void builder::cmd(mousebtn index, string action, const label_t& label) {
 /**
  * Close command tag
  */
-void builder::cmd_close(bool condition) {
-  if (condition) {
-    tag_close(syntaxtag::A);
-  }
+void builder::cmd_close() {
+  tag_close(syntaxtag::A);
 }
 
 /**
