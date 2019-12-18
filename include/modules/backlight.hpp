@@ -1,15 +1,14 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/inotify_module.hpp"
 #include "modules/meta/input_handler.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class backlight_module : public inotify_module<backlight_module>,
-                           public input_handler {
+  class backlight_module : public inotify_module<backlight_module>, public input_handler {
    public:
     struct brightness_handle {
       void filepath(const string& path);
@@ -51,6 +50,6 @@ namespace modules {
 
     int m_percentage = 0;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

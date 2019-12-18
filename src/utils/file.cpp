@@ -1,6 +1,9 @@
+#include "utils/file.hpp"
+
 #include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -8,7 +11,6 @@
 
 #include "errors.hpp"
 #include "utils/env.hpp"
-#include "utils/file.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -208,9 +210,7 @@ namespace file_util {
   void write_contents(const string& filename, const string& contents) {
     std::ofstream out(filename, std::ofstream::out);
     if (!(out << contents)) {
-      throw std::system_error(
-          errno, std::system_category(),
-          "failed to write to " + filename);
+      throw std::system_error(errno, std::system_category(), "failed to write to " + filename);
     }
   }
 
@@ -258,7 +258,7 @@ namespace file_util {
     bool is_absolute = path.size() > 0 && path.at(0) == '/';
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
-      switch(section[0]) {
+      switch (section[0]) {
         case '$':
           section = env_util::get(section.substr(1));
           break;
@@ -274,6 +274,6 @@ namespace file_util {
     }
     return ret;
   }
-}
+}  // namespace file_util
 
 POLYBAR_NS_END

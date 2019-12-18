@@ -3,10 +3,9 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "modules/meta/base.inl"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -131,11 +130,14 @@ namespace modules {
       int value = math_util::percentage_to_value<int>(rounded, m_max_brightness);
       file_util::write_contents(m_path_backlight + "/brightness", to_string(value));
     } catch (const exception& err) {
-      m_log.err("%s: %s", name(), err.what());
+      m_log.err(
+          "%s: Unable to change backlight value. Your system may require additional "
+          "configuration. Please read the module documentation.\n(reason: %s)",
+          name(), err.what());
     }
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
