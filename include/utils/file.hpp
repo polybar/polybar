@@ -104,6 +104,7 @@ namespace file_util {
   bool exists(const string& filename);
   string pick(const vector<string>& filenames);
   string contents(const string& filename);
+  void write_contents(const string& filename, const string& contents);
   bool is_fifo(const string& filename);
   vector<string> glob(string pattern);
   const string expand(const string& path);

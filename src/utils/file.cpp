@@ -203,6 +203,18 @@ namespace file_util {
   }
 
   /**
+   * Writes the contents of the given file
+   */
+  void write_contents(const string& filename, const string& contents) {
+    std::ofstream out(filename, std::ofstream::out);
+    if (!(out << contents)) {
+      throw std::system_error(
+          errno, std::system_category(),
+          "failed to write to " + filename);
+    }
+  }
+
+  /**
    * Checks if the given file is a named pipe
    */
   bool is_fifo(const string& filename) {

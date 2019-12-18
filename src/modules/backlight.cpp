@@ -4,6 +4,7 @@
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "utils/file.hpp"
+#include "utils/math.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -27,6 +28,9 @@ namespace modules {
       : inotify_module<backlight_module>(bar, move(name_)) {
     auto card = m_conf.get(name(), "card");
 
+    // Get flag to check if we should add scroll handlers for changing value
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
@@ -41,17 +45,17 @@ namespace modules {
     }
 
     // Build path to the sysfs folder the current/maximum brightness values are located
-    auto path_backlight = string_util::replace(PATH_BACKLIGHT, "%card%", card);
+    m_path_backlight = string_util::replace(PATH_BACKLIGHT, "%card%", card);
 
     /*
      * amdgpu drivers set the actual_brightness in a different scale than [0, max_brightness]
      * The only sensible way is to use the 'brightness' file instead
      * Ref: https://github.com/Alexays/Waybar/issues/335
      */
-    auto path_backlight_val = path_backlight + "/" + (card == "amdgpu_bl0"? "brightness" : "actual_brightness");
+    auto path_backlight_val = m_path_backlight + "/" + (card == "amdgpu_bl0" ? "brightness" : "actual_brightness");
 
     m_val.filepath(path_backlight_val);
-    m_max.filepath(path_backlight + "/max_brightness");
+    m_max.filepath(m_path_backlight + "/max_brightness");
 
     // Add inotify watch
     watch(path_backlight_val);
@@ -66,7 +70,8 @@ namespace modules {
       m_log.trace("%s: %s", name(), event->filename);
     }
 
-    m_percentage = static_cast<int>(m_val.read() / m_max.read() * 100.0f + 0.5f);
+    m_max_brightness = m_max.read();
+    m_percentage = static_cast<int>(m_val.read() / m_max_brightness * 100.0f + 0.5f);
 
     if (m_label) {
       m_label->reset_tokens();
@@ -74,6 +79,25 @@ namespace modules {
     }
 
     return true;
+  }
+
+  string backlight_module::get_output() {
+    // Get the module output early so that
+    // the format prefix/suffix also gets wrapped
+    // with the cmd handlers
+    string output{module::get_output()};
+
+    if (m_scroll) {
+      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
+      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+    }
+
+    m_builder->append(output);
+
+    m_builder->cmd_close();
+    m_builder->cmd_close();
+
+    return m_builder->flush();
   }
 
   bool backlight_module::build(builder* builder, const string& tag) const {
@@ -86,6 +110,30 @@ namespace modules {
     } else {
       return false;
     }
+    return true;
+  }
+
+  bool backlight_module::input(string&& cmd) {
+    double value_mod{0.0};
+
+    if (cmd == EVENT_SCROLLUP) {
+      value_mod = 5.0;
+    } else if (cmd == EVENT_SCROLLDOWN) {
+      value_mod = -5.0;
+    } else {
+      return false;
+    }
+
+    m_log.info("%s: Changing value by %f%", name(), value_mod);
+
+    try {
+      int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
+      int value = math_util::percentage_to_value<int>(rounded, m_max_brightness);
+      file_util::write_contents(m_path_backlight + "/brightness", to_string(value));
+    } catch (const exception& err) {
+      m_log.err("%s: %s", name(), err.what());
+    }
+
     return true;
   }
 }
