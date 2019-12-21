@@ -245,6 +245,9 @@ namespace modules {
       for (auto&& d : v->desktops) {
         if (d->index == m_current_desktop) {
           d->state = desktop_state::ACTIVE;
+          m_urgent_desktops.erase(m_current_desktop_name);
+        } else if (m_urgent_desktops[m_desktop_names[d->index]]) {
+          d->state = desktop_state::URGENT;
         } else if (occupied_desks.count(d->index) > 0) {
           d->state = desktop_state::OCCUPIED;
         } else {
@@ -287,6 +290,7 @@ namespace modules {
       for (auto&& d : v->desktops) {
         if (d->index == desk && d->state != desktop_state::URGENT) {
           d->state = desktop_state::URGENT;
+          m_urgent_desktops[m_desktop_names[d->index]] = true;
 
           d->label = m_labels.at(d->state)->clone();
           d->label->reset_tokens();
