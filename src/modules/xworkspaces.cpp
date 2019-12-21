@@ -164,17 +164,17 @@ namespace modules {
     bounds.erase(std::unique(bounds.begin(), bounds.end(), [](auto& a, auto& b) { return a == b; }), bounds.end());
 
     unsigned int step;
-    if (bounds.size() > 0) {
+    if (!bounds.empty()) {
       step = m_desktop_names.size() / bounds.size();
     } else {
       step = 1;
     }
     unsigned int offset = 0;
-    for (unsigned int i = 0; i < bounds.size(); i++) {
-      if (!m_pinworkspaces || m_bar.monitor->match(bounds[i])) {
+    for (const auto& bound : bounds) {
+      if (!m_pinworkspaces || m_bar.monitor->match(bound)) {
         auto viewport = make_unique<struct viewport>();
         viewport->state = viewport_state::UNFOCUSED;
-        viewport->pos = bounds[i];
+        viewport->pos = bound;
 
         for (auto&& m : m_monitors) {
           if (m->match(viewport->pos)) {
@@ -216,6 +216,9 @@ namespace modules {
       for (auto&& d : v->desktops) {
         if (m_desktop_names[d->index] == m_current_desktop_name) {
           d->state = desktop_state::ACTIVE;
+          m_urgent_desktops.erase(m_current_desktop_name);
+        } else if (m_urgent_desktops[m_desktop_names[d->index]]) {
+          d->state = desktop_state::URGENT;
         } else if (occupied_desks.count(d->index) > 0) {
           d->state = desktop_state::OCCUPIED;
         } else {
@@ -258,6 +261,7 @@ namespace modules {
       for (auto&& d : v->desktops) {
         if (d->index == desk && d->state != desktop_state::URGENT) {
           d->state = desktop_state::URGENT;
+          m_urgent_desktops[m_desktop_names[d->index]] = true;
 
           d->label = m_labels.at(d->state)->clone();
           d->label->reset_tokens();

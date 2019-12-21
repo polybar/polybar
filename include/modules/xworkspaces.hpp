@@ -3,6 +3,7 @@
 #include <bitset>
 #include <mutex>
 #include <set>
+#include <unordered_map>
 
 #include "components/config.hpp"
 #include "components/types.hpp"
@@ -63,14 +64,14 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
 
    protected:
-    void handle(const evt::property_notify& evt);
+    void handle(const evt::property_notify& evt) override;
 
     void rebuild_clientlist();
     void rebuild_desktops();
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
 
-    bool input(string&& cmd);
+    bool input(string&& cmd) override;
 
    private:
     static vector<string> get_desktop_names();
@@ -94,6 +95,7 @@ namespace modules {
     bool m_monitorsupport{true};
 
     vector<string> m_desktop_names;
+    std::unordered_map<string, bool> m_urgent_desktops;
     unsigned int m_current_desktop;
     string m_current_desktop_name;
 
