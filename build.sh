@@ -107,6 +107,7 @@ set_build_opts() {
     [[ -z "$ENABLE_MPD" ]] && ENABLE_MPD="OFF"
     [[ -z "$ENABLE_CURL" ]] && ENABLE_CURL="OFF"
     [[ -z "$ENABLE_IPC_MSG" ]] && ENABLE_IPC_MSG="OFF"
+    [[ -z "$JOB_COUNT" ]] && JOB_COUNT=1
   fi
 
   if [[ -z "$USE_GCC" ]]; then
@@ -147,6 +148,11 @@ set_build_opts() {
   if [[ -z "$ENABLE_IPC_MSG" ]]; then
     read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages ------------------ [y/N]: ")" -n 1 p && echo
     [[ "${p^^}" != "Y" ]] && ENABLE_IPC_MSG="OFF" || ENABLE_IPC_MSG="ON"
+  fi
+  
+  if [[ -z "$JOB_COUNT" ]]; then
+	read -r -p "$(msg "Parallelize the build using make -j$(nproc) ----------------- [y/N]: ")" -n 1 p && echo
+	[[ "${p^^}" != "Y" ]] && JOB_COUNT=1 || JOB_COUNT=$(nproc)
   fi
 
 
