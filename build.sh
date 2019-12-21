@@ -151,7 +151,7 @@ set_build_opts() {
   fi
   
   if [[ -z "$JOB_COUNT" ]]; then
-	read -r -p "$(msg "Parallelize the build using make -j$(nproc) ----------------- [y/N]: ")" -n 1 p && echo
+	read -r -p "$(msg "Parallelize the build using make -j$(nproc) --------------------------- [y/N]: ")" -n 1 p && echo
 	[[ "${p^^}" != "Y" ]] && JOB_COUNT=1 || JOB_COUNT=$(nproc)
   fi
 
