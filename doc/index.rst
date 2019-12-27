@@ -18,6 +18,12 @@ Welcome to the official polybar documentation.
 
    man/polybar.1
 
+.. toctree::
+   :maxdepth: 1
+   :caption: For Contributors:
+
+   dev/packaging
+
 Getting Help
 ============
 
