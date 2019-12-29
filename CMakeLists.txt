@@ -165,3 +165,25 @@ install(FILES config
   COMPONENT config)
 
 # }}}
+# Build Linux packages {{{
+if(CPACK_GENERATOR)
+  # General
+  set(CPACK_PACKAGE_VERSION "${version_txt}")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A fast and easy-to-use tool for creating status bars.")
+
+  # DEB
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Polybar developers")
+  set(CPACK_DEBIAN_PACKAGE_SECTION "x11")
+  set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+
+  # RPM
+  set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+  set(CPACK_RPM_PACKAGE_AUTOREQPROV ON)
+  set(CPACK_RPM_PACKAGE_VENDOR "Polybar developers")
+  set(CPACK_RPM_PACKAGE_GROUP "System/GUI/Other")
+  set(CPACK_RPM_PACKAGE_PRIORITY "optional")
+
+  include(CPack)
+endif()
