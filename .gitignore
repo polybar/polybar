@@ -7,3 +7,6 @@
 *.swp
 *.tmp
 .tags
+*.snap
+parts
+.snapcraft

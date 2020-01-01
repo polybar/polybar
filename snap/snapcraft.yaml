@@ -1,0 +1,80 @@
+name: polybar-git
+adopt-info: polybar-git
+summary: A fast and easy-to-use status bar
+description: |
+  This is my-snap's description. You have a paragraph or two to tell the
+  most important story about your snap. Keep it under 100 words though,
+  we live in tweetspace and your description wants to look good in the snap
+  store.
+
+base: core18
+grade: stable
+confinement: strict
+
+
+
+apps:
+  polybar:
+    command: polybar
+    plugs: 
+      - network
+      - network-bind
+      - unity7
+      - opengl
+      - home
+      - pulseaudio
+      - desktop
+      - desktop-legacy
+      - removable-media
+
+
+parts:
+  polybar-git:
+    plugin: autotools
+    source: https://github.com/polybar/polybar.git
+    source-type: git
+    build-packages: 
+      - build-essential
+      - git
+      - cmake
+      - cmake-data
+      - pkg-config
+      - python3-sphinx
+      - libcairo2-dev
+      - libxcb1-dev
+      - libxcb-util0-dev
+      - libxcb-randr0-dev
+      - libxcb-composite0-dev
+      - python-xcbgen
+      - xcb-proto
+      - libxcb-image0-dev
+      - libxcb-ewmh-dev
+      - libxcb-icccm4-dev
+      - libxcb-xkb-dev
+      - libxcb-xrm-dev
+      - libxcb-cursor-dev
+      - libasound2-dev
+      - libpulse-dev
+      - i3-wm
+      - libjsoncpp-dev
+      - libmpdclient-dev
+      - libcurl4-openssl-dev
+      - libnl-genl-3-dev
+    override-pull: |
+      snapcraftctl pull
+      last_committed_tag="$(git tag -l | grep -v v | sort -rV | head -n1)"
+      git checkout "${last_committed_tag}"
+      snapcraftctl set-version "${last_committed_tag}"
+    override-build: |
+      cmake \
+        -DCMAKE_CXX_COMPILER="c++" \
+        -DENABLE_ALSA:BOOL="ON" \
+        -DENABLE_PULSEAUDIO:BOOL="ON" \
+        -DENABLE_I3:BOOL="ON" \
+        -DENABLE_MPD:BOOL="ON" \
+        -DENABLE_NETWORK:BOOL="ON" \
+        -DENABLE_CURL:BOOL="ON" \
+        -DBUILD_IPC_MSG:BOOL="ON" \
+        -DCMAKE_BUILD_TYPE=Release
+      make
+      make install
