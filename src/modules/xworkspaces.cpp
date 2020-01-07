@@ -5,12 +5,11 @@
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -240,8 +239,8 @@ namespace modules {
       names.erase(names.begin() + desktops_number, names.end());
       return names;
     }
-    for (unsigned int i = names.size(); i < desktops_number + 1; i++) {
-      names.insert(names.end(), to_string(i));
+    for (unsigned int i = names.size(); i < desktops_number; i++) {
+      names.insert(names.end(), to_string(i + 1));
     }
     return names;
   }
