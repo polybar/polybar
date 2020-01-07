@@ -88,30 +88,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   if (!created_modules) {
     throw application_error("No modules created");
   }
-
-  /*
-   * Check if each module name only appears once
-   */
-  std::sort(m_modules.begin(), m_modules.end(), [](const auto& m1, const auto& m2) { return m1->name() < m2->name(); });
-
-  auto dup_it = m_modules.cbegin();
-
-  do {
-    auto equal_predicate = [](const module_t& m1, const module_t& m2) { return m1->name() == m2->name(); };
-    dup_it = std::adjacent_find(dup_it, m_modules.cend(), equal_predicate);
-
-    if (dup_it != m_modules.cend()) {
-      m_log.err(
-          "The module \"%s\" appears multiple times in your modules list. "
-          "This is deprecated and should be avoided, as it can lead to inconsistent behavior. "
-          "Both modules will be displayed for now.",
-          (*dup_it)->name());
-
-      dup_it = std::find_if_not(dup_it, m_modules.cend(), std::bind(equal_predicate, *dup_it, std::placeholders::_1));
-    } else {
-      break;
-    }
-  } while (true);
 }
 
 /**
