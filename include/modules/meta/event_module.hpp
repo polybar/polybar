@@ -6,7 +6,7 @@ POLYBAR_NS
 
 namespace modules {
   /**
-   * Generic class to have a module that listen events
+   * Generic class to have a module that listens to events
    * \details
    * To implement this module, the following methods should be implemented:
    *   - #update(): CRTP implementation

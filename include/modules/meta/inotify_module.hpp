@@ -7,7 +7,7 @@ POLYBAR_NS
 
 namespace modules {
   /**
-   * A module that listen to inotify events.
+   * A module that listens to inotify events.
    *
    * \details
    * To implement this module, the following method should be implemented:

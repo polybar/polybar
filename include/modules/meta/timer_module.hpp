@@ -8,7 +8,7 @@ namespace modules {
   using interval_t = chrono::duration<double>;
 
   /**
-   * \brief Generic module for modules that need to be updated regularly.
+   * \brief Generic module for modules that need to be updated at regular intervals.
    * \details
    * To implement this module, the following method should be implemented:
    *   - #update(): CRTP implementation

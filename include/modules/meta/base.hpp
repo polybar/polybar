@@ -124,7 +124,7 @@ namespace modules {
   // class definition : module {{{
 
   /**
-   * \brief Base classes of every modules.
+   * \brief Base class of every module.
    * \details
    * To implement a simple module, the following methods must be implemented:
    *   - #start(): virtual override
@@ -172,9 +172,9 @@ namespace modules {
     void stop() override;
 
     /**
-     * \brief Logs an error and stop the module
+     * \brief Logs an error and stops the module
      * \details
-     * Logs the given error and call #stop()
+     * Logs the given error and calls #stop()
      */
     void halt(string error_message) final;
 
