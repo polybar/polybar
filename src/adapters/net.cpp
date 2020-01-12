@@ -52,17 +52,17 @@ namespace net {
    * Query device driver for information
    */
   bool network::query(bool accumulate) {
-    struct ifaddrs* ifaddr;
-    if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
-      return false;
-    }
-
     m_status.previous = m_status.current;
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
     m_status.ip = NO_IP;
     m_status.ip6 = NO_IP;
+
+    struct ifaddrs* ifaddr;
+    if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
+      return false;
+    }
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -248,10 +248,12 @@ namespace net {
    * Query device driver for information
    */
   bool wired_network::query(bool accumulate) {
+    if (!network::query(accumulate)) {
+      return false;
+    }
+
     if (m_tuntap) {
       return true;
-    } else if (!network::query(accumulate)) {
-      return false;
     }
 
     if(m_bridge) {
