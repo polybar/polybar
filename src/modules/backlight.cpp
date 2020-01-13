@@ -91,7 +91,7 @@ namespace modules {
       m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
     }
 
-    m_builder->append(output);
+    m_builder->append(std::move(output));
 
     m_builder->cmd_close();
     m_builder->cmd_close();
