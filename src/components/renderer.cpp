@@ -711,6 +711,64 @@ void renderer::draw_text(const string& contents) {
   }
 }
 
+
+cairo_surface_t *renderer::imageFromFile(const std::string& name) {
+   auto element = m_cachedImageFiles.find(name);
+
+   if (element == m_cachedImageFiles.end()) {
+      m_log.info("Loading image: %s", name.c_str());
+
+      cairo_surface_t* image = cairo_image_surface_create_from_png(name.c_str());
+      cairo_status_t status = cairo_surface_status(image);
+
+      if (status != CAIRO_STATUS_SUCCESS) {
+         m_log.err("Filed to load: %s, status: %d", name.c_str(), status);
+
+         image = NULL;
+      }
+
+      m_cachedImageFiles[name] = image;
+
+      return image;
+   }
+
+   return element->second;
+}
+
+/**
+ * Draw image from filename
+ */
+void renderer::draw_image(const string& filename) {
+  m_log.trace_x("renderer: image(%s)", filename.c_str());
+
+  cairo_surface_t *image = imageFromFile(filename);
+  
+  if (image) {
+
+     const int width = cairo_image_surface_get_width(image);
+
+     cairo::abspos origin{};
+     origin.x = m_rect.x + m_blocks[m_align].x;
+     origin.y = m_rect.y + m_rect.height;
+
+     m_context->save();
+     *m_context << origin;
+     *m_context << m_comp_fg;
+     *m_context << m_bg;
+     *m_context << cairo::rect{origin.x, (double)m_rect.y, (double)width, (double)m_rect.height};
+     m_context->fill();
+     *m_context << origin;
+     m_context->drawSurface(image);
+     m_context->restore();
+
+     if (width >0) {
+       fill_underline(origin.x, width);
+       fill_overline(origin.x, width);
+     }
+     m_blocks[m_align].x += width;
+  } 
+}
+
 /**
  * Colorize the bounding box of created action blocks
  */
@@ -872,6 +930,12 @@ bool renderer::on(const signals::parser::action_end& evt) {
 bool renderer::on(const signals::parser::text& evt) {
   auto text = evt.cast();
   draw_text(text);
+  return true;
+}
+
+bool renderer::on(const signals::parser::image& evt) {
+  auto image = evt.cast();
+  draw_image(image);
   return true;
 }
 

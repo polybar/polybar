@@ -113,6 +113,10 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         m_sig.emit(change_font{parse_fontindex(value)});
         break;
 
+      case 'I':
+        m_sig.emit(image{string(value)});
+        break;
+
       case 'U':
         m_sig.emit(change_underline{parse_color(value, bar.underline.color)});
         m_sig.emit(change_overline{parse_color(value, bar.overline.color)});

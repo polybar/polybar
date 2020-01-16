@@ -173,6 +173,9 @@ namespace signals {
     struct text : public detail::value_signal<text, string> {
       using base_type::base_type;
     };
+    struct image : public detail::value_signal<image, string> {
+      using base_type::base_type;
+    };
     struct control : public detail::value_signal<control, controltag> {
       using base_type::base_type;
     };

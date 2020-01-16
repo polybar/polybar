@@ -46,6 +46,13 @@ namespace cairo {
       return *this;
     }
 
+    void drawSurface(cairo_surface_t* s) {
+     double x;
+     position(&x, nullptr);
+     cairo_set_source_surface(m_c, s, x, 0);
+     cairo_paint(m_c);
+    }
+
     context& operator<<(cairo_operator_t o) {
       cairo_set_operator(m_c, o);
       return *this;
