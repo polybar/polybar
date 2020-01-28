@@ -88,6 +88,7 @@ namespace modules {
     bool m_inlinemode{false};
     string_util::hash_type m_hash{0U};
     bool m_fuzzy_match{false};
+    bool m_prefix_match{false};
 
     // used while formatting output
     size_t m_index{0U};

@@ -57,6 +57,7 @@ namespace modules {
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
     m_inlinemode = m_conf.get(name(), "inline-mode", m_inlinemode);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_prefix_match = m_conf.get(name(), "prefix-match", m_prefix_match);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
@@ -340,7 +341,7 @@ namespace modules {
       }
 
       if (workspace_mask && m_formatter->has(TAG_LABEL_STATE)) {
-        auto icon = m_icons->get(value, DEFAULT_ICON, m_fuzzy_match);
+        auto icon = m_icons->get(value, DEFAULT_ICON, m_fuzzy_match, m_prefix_match);
         auto label = m_statelabels.at(workspace_mask)->clone();
 
         if (!m_monitors.back()->focused) {
