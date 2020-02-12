@@ -137,6 +137,21 @@ namespace net {
   }
 
   /**
+   * Get current latency to the internet
+   */
+  string network::latency() const {
+    try {
+  	auto exec = "ping -c1 google.com 2>&1 | grep -Po 'time=.*' | cut -c 6-i";
+  	auto command = command_util::make_command(exec);
+ 	string latency = command->get_stdout(PIPE_READ);
+
+	return latency;	
+    } catch (const std::exception& err) {
+    	return 0;
+    }
+  }
+
+  /**
    * Get interface ipv4 address
    */
   string network::ip() const {

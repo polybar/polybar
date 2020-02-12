@@ -80,6 +80,7 @@ namespace net {
     virtual bool connected() const = 0;
     virtual bool ping() const;
 
+    string latency() const;
     string ip() const;
     string ip6() const;
     string downspeed(int minwidth = 3) const;

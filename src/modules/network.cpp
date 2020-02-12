@@ -111,6 +111,7 @@ namespace modules {
 
     auto upspeed = network->upspeed(m_udspeed_minwidth);
     auto downspeed = network->downspeed(m_udspeed_minwidth);
+    auto latency = network->latency();
 
     // Update label contents
     const auto replace_tokens = [&](label_t& label) {
@@ -120,6 +121,7 @@ namespace modules {
       label->replace_token("%local_ip6%", network->ip6());
       label->replace_token("%upspeed%", upspeed);
       label->replace_token("%downspeed%", downspeed);
+      label->replace_token("%latency%", latency);	
 
       if (m_wired) {
         label->replace_token("%linkspeed%", m_wired->linkspeed());
