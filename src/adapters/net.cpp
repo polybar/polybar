@@ -140,15 +140,13 @@ namespace net {
    * Get current latency to the internet
    */
   string network::latency() const {
-    try {
-  	  auto exec = "ping -c1 google.com 2>&1 | grep -Po 'time=.*' | cut -c 6-i";
-  	  auto command = command_util::make_command(exec);
- 	    string latency = command->readline();
+    
+     string latency = "";
+  	 auto ping_command = "ping -c1 google.com 2>&1 | grep -Po 'time=.*' | cut -c 6-";
+  	 auto command = command_util::make_command(ping_command);
+     command->exec();
 
-	return latency;	
-    } catch (const std::exception& err) {
-    	return 0;
-    }
+     return command->readline();
   }
 
   /**
