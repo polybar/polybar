@@ -143,7 +143,7 @@ namespace net {
     try {
   	auto exec = "ping -c1 google.com 2>&1 | grep -Po 'time=.*' | cut -c 6-i";
   	auto command = command_util::make_command(exec);
- 	string latency = command->get_stdout(PIPE_READ);
+ 	  string latency = command->readline();
 
 	return latency;	
     } catch (const std::exception& err) {
