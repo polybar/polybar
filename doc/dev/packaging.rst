@@ -25,7 +25,7 @@ polybar in some cases. Some of these cases are:
   :)
 
 The list above is not exhaustive, if you are unsure, feel free to ask in a new
-GitHub issue or on `Gitter <http://gitter.im/polybar>`_. Please also ask if you
+GitHub issue or on `Gitter <https://gitter.im/polybar>`_. Please also ask if you
 run into any polybar related issues while packaging.
 
 Packaging
