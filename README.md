@@ -20,10 +20,10 @@ A fast and easy-to-use tool for creating status bars.
 for their desktop environment, without the need of having a black belt in shell scripting.
 Here are a few screenshots showing you what it can look like:
 
-[![sample screenshot](http://i.imgur.com/xvlw9iHt.png)](http://i.imgur.com/xvlw9iH.png)
-[![sample screenshot](http://i.imgur.com/cYQOuRrt.png)](http://i.imgur.com/cYQOuRr.png)
-[![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
-[![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
+[![sample screenshot](https://i.imgur.com/xvlw9iHt.png)](https://i.imgur.com/xvlw9iH.png)
+[![sample screenshot](https://i.imgur.com/cYQOuRrt.png)](https://i.imgur.com/cYQOuRr.png)
+[![sample screenshot](https://i.imgur.com/A6spiZZt.png)](https://i.imgur.com/A6spiZZ.png)
+[![sample screenshot](https://i.imgur.com/TY5a5r9t.png)](https://i.imgur.com/TY5a5r9.png)
 
 You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
@@ -57,7 +57,7 @@ Some of the services included so far:
 - Systray icons
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
-- [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
+- [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
 - Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
 - Keyboard layout and indicator status
@@ -110,7 +110,7 @@ If you are using **Fedora**, you can install [polybar](https://src.fedoraproject
 
 ### Dependencies
 
-A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
+A compiler with C++14 support ([clang-3.4+](https://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
 - `cairo`
 - `libxcb`
 - `python`
@@ -190,7 +190,7 @@ Want to get in touch?
 ## Contributors
 
 ### Owner
-* Michael Carlberg [**@jaagr**](http://github.com/jaagr/)
+* Michael Carlberg [**@jaagr**](https://github.com/jaagr/)
 
 ### Maintainers
 * [**@NBonaparte**](https://github.com/NBonaparte)

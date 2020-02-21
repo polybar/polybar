@@ -7,7 +7,7 @@ The html documentation and man pages are built automatically when you build with
 target `doc`).
 
 ## Preview Locally
-The documentation uses [Sphinx](http://www.sphinx-doc.org/en/stable/) to generate the documentation, so you will need to
+The documentation uses [Sphinx](https://www.sphinx-doc.org/en/stable/) to generate the documentation, so you will need to
 have that installed.
 
 If you build polybar normally while having Sphinx installed during configuration, the documentation will be enabled and
