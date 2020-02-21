@@ -98,9 +98,16 @@ namespace modules {
   }
 
   void github_module::update_label(const int notifications) {
-    if ((0 != notifications || m_empty_notifications) && m_label) {
+    if (!m_label) {
+      return;
+    }
+
+    if (0 != notifications || m_empty_notifications) {
       m_label->reset_tokens();
       m_label->replace_token("%notifications%", to_string(notifications));
+    }
+    else {
+      m_label->clear();
     }
   }
 
