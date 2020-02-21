@@ -105,8 +105,7 @@ namespace modules {
     if (0 != notifications || m_empty_notifications) {
       m_label->reset_tokens();
       m_label->replace_token("%notifications%", to_string(notifications));
-    }
-    else {
+    } else {
       m_label->clear();
     }
   }
