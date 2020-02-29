@@ -67,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))
+- `internal/network`: `interface-type` may be used in place of `interface` to
+  automatically select a network interface
+  ([`#2025`](https://github.com/polybar/polybar/pull/2025))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible

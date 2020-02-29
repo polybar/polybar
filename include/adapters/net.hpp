@@ -1,15 +1,15 @@
 #pragma once
 
-#include <chrono>
-#include <cstdlib>
-
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
+#include <chrono>
+#include <cstdlib>
+
 #include "common.hpp"
-#include "settings.hpp"
-#include "errors.hpp"
 #include "components/logger.hpp"
+#include "errors.hpp"
+#include "settings.hpp"
 #include "utils/math.hpp"
 
 #if WITH_LIBNL
@@ -38,6 +38,8 @@ namespace net {
   DEFINE_ERROR(network_error);
 
   bool is_wireless_interface(const string& ifname);
+  std::string find_wireless_interface();
+  std::string find_wired_interface();
 
   // types {{{
 
