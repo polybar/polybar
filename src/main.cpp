@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
     //==================================================
     // Load user configuration
     //==================================================
-    string confpath = "";
+    string confpath;
 
     // Make sure a bar name is passed in
     if (!cli->has(0)) {
@@ -106,18 +106,8 @@ int main(int argc, char** argv) {
 
     if (cli->has("config")) {
       confpath = cli->get("config");
-    }
-    if (env_util::has("XDG_CONFIG_HOME") && confpath.empty()) {
-      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
-      if (!file_util::exists(confpath)) {
-        confpath = "";
-      }
-    }
-    if (env_util::has("HOME") && confpath.empty()) {
-      confpath = env_util::get("HOME") + "/.config/polybar/config";
-      if (!file_util::exists(confpath)) {
-        confpath = "";
-      }
+    } else {
+      confpath = file_util::get_config_path();
     }
     if (confpath.empty()) {
       throw application_error("Define configuration using --config=PATH");

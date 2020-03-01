@@ -274,6 +274,26 @@ namespace file_util {
     }
     return ret;
   }
+
+  /*
+   * Search for polybar config and returns the path if found
+   */
+  string get_config_path() {
+    string confpath;
+    if (env_util::has("XDG_CONFIG_HOME")) {
+      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+    }
+    if (env_util::has("HOME")) {
+      confpath = env_util::get("HOME") + "/.config/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+    }
+    return "";
+  }
 }  // namespace file_util
 
 POLYBAR_NS_END
