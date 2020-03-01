@@ -9,7 +9,7 @@ config_parser::config_parser(const logger& logger, string&& file, string&& bar)
     : m_log(logger), m_config(file_util::expand(file)), m_barname(move(bar)) {}
 
 config::make_type config_parser::parse() {
-  m_log.info("Parsing config file: %s", m_config);
+  m_log.notice("Parsing config file: %s", m_config);
 
   parse_file(m_config, {});
 

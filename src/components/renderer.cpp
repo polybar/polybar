@@ -159,7 +159,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
         pattern.erase(pos);
       }
       auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
-      m_log.info("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
+      m_log.notice("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
   }
