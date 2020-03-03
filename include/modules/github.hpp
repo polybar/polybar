@@ -18,7 +18,6 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     string get_format() const;
 
-
    private:
     void update_label(int);
     int get_number_of_notification();
@@ -30,11 +29,12 @@ namespace modules {
     label_t m_label{};
     label_t m_label_offline{};
     string m_api_url;
+    string m_user;
     string m_accesstoken{};
     unique_ptr<http_downloader> m_http{};
     bool m_empty_notifications{false};
     std::atomic<bool> m_offline{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

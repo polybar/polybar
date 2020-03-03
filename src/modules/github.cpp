@@ -17,6 +17,7 @@ namespace modules {
   github_module::github_module(const bar_settings& bar, string name_)
       : timer_module<github_module>(bar, move(name_)), m_http(http_util::make_downloader()) {
     m_accesstoken = m_conf.get(name(), "token");
+    m_user = m_conf.get(name(), "user", ""s);
     m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);
     if (m_api_url.back() != '/') {
       m_api_url += '/';
@@ -52,7 +53,12 @@ namespace modules {
   }
 
   string github_module::request() {
-    string content{m_http->get(m_api_url + "notifications?access_token=" + m_accesstoken)};
+    string content;
+    if (m_user.empty()) {
+      content = m_http->get(m_api_url + "notifications?access_token=" + m_accesstoken);
+    } else {
+      content = m_http->get(m_api_url + "notifications", m_user, m_accesstoken);
+    }
 
     long response_code{m_http->response_code()};
     switch (response_code) {
