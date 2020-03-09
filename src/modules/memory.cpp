@@ -52,6 +52,7 @@ namespace modules {
   }
 
   bool memory_module::update() {
+    unsigned long long kb_free{0ULL};
     unsigned long long kb_total{0ULL};
     unsigned long long kb_avail{0ULL};
     unsigned long long kb_swap_total{0ULL};
@@ -73,6 +74,7 @@ namespace modules {
         parsed[id] = value;
       }
 
+      kb_free = parsed["MemFree"];
       kb_total = parsed["MemTotal"];
       kb_swap_total = parsed["SwapTotal"];
       kb_swap_free = parsed["SwapFree"];
@@ -92,6 +94,10 @@ namespace modules {
 
     m_perc_memfree = math_util::percentage(kb_avail, kb_total);
     m_perc_memused = 100 - m_perc_memfree;
+    m_perc_memavail = math_util::percentage(kb_avail, kb_total);
+    m_perc_memavailused = 100 - m_perc_memavail;
+    m_perc_memactualfree = math_util::percentage(kb_free, kb_total);
+    m_perc_memactualfreeused = 100 - m_perc_memactualfree;
     m_perc_swap_free = math_util::percentage(kb_swap_free, kb_swap_total);
     m_perc_swap_used = 100 - m_perc_swap_free;
 
@@ -106,6 +112,10 @@ namespace modules {
       m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 0, m_bar.locale));
       m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
       m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+      m_label->replace_token("%percentage_available%", to_string(m_perc_memavail));
+      m_label->replace_token("%percentage_available_used%", to_string(m_perc_memavailused));
+      m_label->replace_token("%percentage_actualfree%", to_string(m_perc_memactualfree));
+      m_label->replace_token("%percentage_actualfree_used%", to_string(m_perc_memactualfreeused));
       m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
       m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
       m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 0, m_bar.locale));

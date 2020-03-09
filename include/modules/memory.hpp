@@ -8,6 +8,7 @@ POLYBAR_NS
 namespace modules {
   enum class memtype { NONE = 0, TOTAL, USED, FREE, SHARED, BUFFERS, CACHE, AVAILABLE };
 
+
   class memory_module : public timer_module<memory_module> {
    public:
     explicit memory_module(const bar_settings&, string);
@@ -31,6 +32,10 @@ namespace modules {
     progressbar_t m_bar_memfree;
     int m_perc_memused{0};
     int m_perc_memfree{0};
+    int m_perc_memavail{0};
+    int m_perc_memavailused{0};
+    int m_perc_memactualfree{0};
+    int m_perc_memactualfreeused{0};
     ramp_t m_ramp_memused;
     ramp_t m_ramp_memfree;
     progressbar_t m_bar_swapused;
