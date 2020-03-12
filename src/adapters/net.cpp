@@ -217,8 +217,9 @@ namespace net {
    */
   bool network::test_interface() const {
     auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
-    bool up = operstate.compare(0, 2, "up") == 0;
-    return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
+    bool up = operstate.length() != 0 && operstate.compare(0, 4, "down") != 0;
+    return up;
+    // return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
   }
 
   /**
@@ -284,10 +285,13 @@ namespace net {
    * Check current connection state
    */
   bool wired_network::connected() const {
-    if (!m_tuntap && !network::test_interface()) {
-      return false;
-    }
+    // if (!m_tuntap && !network::test_interface()) {
+    //   return false;
+    // }
 
+    return network::test_interface();
+
+    /*
     struct ethtool_value data {};
     struct ifreq request {};
 
@@ -301,6 +305,7 @@ namespace net {
     }
 
     return data.data != 0;
+    */
   }
 
   /**
