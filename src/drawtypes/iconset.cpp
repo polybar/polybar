@@ -12,26 +12,27 @@ namespace drawtypes {
   }
 
   label_t iconset::get(const string& id, const string& fallback_id, bool fuzzy_match) {
-    if (fuzzy_match) {
-      for (auto const& ent1 : m_icons) {
-        if (id.find(ent1.first) != std::string::npos) {
-          return ent1.second;
-        }
-      }
-      return m_icons.find(fallback_id)->second;
+    // Try to match exactly first
+    auto icon = m_icons.find(id);
+    if (icon != m_icons.end()) {
+      return icon->second;
     }
 
-    // Not fuzzy matching so use old method which requires an exact match on icon id
-    auto icon = m_icons.find(id);
-    if (icon == m_icons.end()) {
-      return m_icons.find(fallback_id)->second;
+    // If fuzzy matching is turned on, try that first before returning the fallback.
+    if (fuzzy_match) {
+      for (auto const& icon : m_icons) {
+        if (id.find(icon.first) != std::string::npos) {
+          return icon.second;
+        }
+      }
     }
-    return icon->second;
+
+    return m_icons.find(fallback_id)->second;
   }
 
   iconset::operator bool() {
     return !m_icons.empty();
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END
