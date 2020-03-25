@@ -176,8 +176,8 @@ namespace net {
   /**
    * Set if we should ignore not-present interfaces
    */
-  void network::set_ignore_not_present(bool unknown) {
-      m_ignore_not_present = unknown;
+  void network::set_ignore_absent(bool unknown) {
+      m_ignore_absent = unknown;
   }
 
   /**
@@ -305,7 +305,7 @@ namespace net {
     //   return false;
     // }
 
-    return (m_ignore_not_present || network::test_interface_up());
+    return (m_ignore_absent || network::test_interface_up());
 
     /*
     struct ethtool_value data {};

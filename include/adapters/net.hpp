@@ -85,12 +85,12 @@ namespace net {
     string downspeed(int minwidth = 3) const;
     string upspeed(int minwidth = 3) const;
     void set_unknown_up(bool unknown = true);
-    void set_ignore_not_present(bool unknown = true);
+    void set_ignore_absent(bool unknown = true);
+    bool test_interface_present() const;
 
    protected:
     void check_tuntap_or_bridge();
     bool test_interface_up() const;
-    bool test_interface_present() const;
     string format_speedrate(float bytes_diff, int minwidth) const;
     void query_ip6();
 
@@ -101,7 +101,7 @@ namespace net {
     bool m_tuntap{false};
     bool m_bridge{false};
     bool m_unknown_up{false};
-    bool m_ignore_not_present{false};
+    bool m_ignore_absent{false};
   };
 
   // }}}

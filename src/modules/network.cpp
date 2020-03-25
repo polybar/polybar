@@ -21,13 +21,15 @@ namespace modules {
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
     m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
-    m_ignore_not_present = m_conf.get<bool>(name(), "ignore-not-present", false);
+    m_ignore_absent = m_conf.get<bool>(name(), "ignore-absent", false);
+    m_print_warnings = m_conf.get<bool>(name(), "print-warnings", true);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 
     // Add formats
     m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
     m_formatter->add(FORMAT_DISCONNECTED, TAG_LABEL_DISCONNECTED, {TAG_LABEL_DISCONNECTED});
+    m_formatter->add(FORMAT_ABSENT, TAG_LABEL_ABSENT, {TAG_LABEL_ABSENT});
 
     // Create elements for format-connected
     if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED)) {
@@ -46,6 +48,13 @@ namespace modules {
       m_label[connection_state::DISCONNECTED] = load_optional_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
       m_label[connection_state::DISCONNECTED]->reset_tokens();
       m_label[connection_state::DISCONNECTED]->replace_token("%ifname%", m_interface);
+    }
+
+    // Create elements for format-absent
+    if (m_formatter->has(TAG_LABEL_ABSENT, FORMAT_ABSENT)) {
+      m_label[connection_state::NONE] = load_optional_label(m_conf, name(), TAG_LABEL_ABSENT, "");
+      m_label[connection_state::NONE]->reset_tokens();
+      m_label[connection_state::NONE]->replace_token("%ifname%", m_interface);
     }
 
     // Create elements for format-packetloss if we are told to test connectivity
@@ -86,7 +95,8 @@ namespace modules {
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
     if (!network->query(m_accumulate)) {
-      m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
+      if (m_print_warnings) 
+          m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
       m_connected = false;
       return false;
     }
@@ -97,7 +107,8 @@ namespace modules {
         m_quality = m_wireless->quality();
       }
     } catch (const net::network_error& err) {
-      m_log.warn("%s: Error getting interface data (%s)", name(), err.what());
+      if (m_print_warnings) 
+          m_log.warn("%s: Error getting interface data (%s)", name(), err.what());
     }
 
     m_connected = network->connected();
@@ -146,7 +157,14 @@ namespace modules {
 
   string network_module::get_format() const {
     if (!m_connected) {
-      return FORMAT_DISCONNECTED;
+      // Check if the interface is absent, or if it's just disconnected
+      net::network* network =
+          m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
+      if (!network->test_interface_present()) {
+          return FORMAT_ABSENT;
+      } else {
+          return FORMAT_DISCONNECTED;
+      }
     } else if (m_packetloss && m_ping_nth_update > 0) {
       return FORMAT_PACKETLOSS;
     } else {
@@ -159,6 +177,8 @@ namespace modules {
       builder->node(m_label.at(connection_state::CONNECTED));
     } else if (tag == TAG_LABEL_DISCONNECTED) {
       builder->node(m_label.at(connection_state::DISCONNECTED));
+    } else if (tag == TAG_LABEL_ABSENT) {
+      builder->node(m_label.at(connection_state::NONE));
     } else if (tag == TAG_LABEL_PACKETLOSS) {
       builder->node(m_label.at(connection_state::PACKETLOSS));
     } else if (tag == TAG_ANIMATION_PACKETLOSS) {

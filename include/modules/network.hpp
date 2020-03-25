@@ -25,10 +25,12 @@ namespace modules {
     static constexpr auto FORMAT_CONNECTED = "format-connected";
     static constexpr auto FORMAT_PACKETLOSS = "format-packetloss";
     static constexpr auto FORMAT_DISCONNECTED = "format-disconnected";
+    static constexpr auto FORMAT_ABSENT = "format-absent";
     static constexpr auto TAG_RAMP_SIGNAL = "<ramp-signal>";
     static constexpr auto TAG_RAMP_QUALITY = "<ramp-quality>";
     static constexpr auto TAG_LABEL_CONNECTED = "<label-connected>";
     static constexpr auto TAG_LABEL_DISCONNECTED = "<label-disconnected>";
+    static constexpr auto TAG_LABEL_ABSENT = "<label-absent>";
     static constexpr auto TAG_LABEL_PACKETLOSS = "<label-packetloss>";
     static constexpr auto TAG_ANIMATION_PACKETLOSS = "<animation-packetloss>";
 
@@ -52,7 +54,8 @@ namespace modules {
     int m_udspeed_minwidth{0};
     bool m_accumulate{false};
     bool m_unknown_up{false};
-    bool m_ignore_not_present{false};
+    bool m_ignore_absent{false};
+    bool m_print_warnings{true};
   };
 }
 
