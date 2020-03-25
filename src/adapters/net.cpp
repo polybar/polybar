@@ -225,7 +225,6 @@ namespace net {
    */
   bool network::test_interface_up() const {
     auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
-    // bool up = operstate.length() != 0 && operstate.compare(0, 4, "down") != 0;
     bool up = operstate.compare(0, 2, "up") == 0;
     return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
   }
@@ -305,7 +304,7 @@ namespace net {
     //   return false;
     // }
 
-    return (m_ignore_absent || network::test_interface_up());
+    return (!m_tuntap && (m_ignore_absent || network::test_interface_up()));
 
     /*
     struct ethtool_value data {};
