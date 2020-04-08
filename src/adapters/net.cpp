@@ -308,7 +308,7 @@ namespace net {
    * about the current connection
    */
   string wired_network::linkspeed() const {
-    return m_linkspeed == -1 ? "N/A" : (to_string(m_linkspeed) + " Mbit/s");
+    return m_linkspeed == -1 ? "N/A" : (m_linkspeed < 1000 ? (to_string(m_linkspeed) + " Mbit/s") : (to_string(m_linkspeed / 1000) + " Gbit/s"));
   }
 
   // }}}
