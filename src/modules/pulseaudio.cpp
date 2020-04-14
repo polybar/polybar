@@ -1,6 +1,7 @@
 #include "modules/pulseaudio.hpp"
 
 #include "adapters/pulseaudio.hpp"
+#include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
@@ -27,9 +28,11 @@ namespace modules {
       throw module_error(err.what());
     }
 
+    m_port_icons = factory_util::shared<iconset>();
+
     // Add formats and elements
-    m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
-    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
+    m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME, TAG_ICON_PORT});
+    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME, TAG_ICON_PORT});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
       m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
@@ -42,6 +45,29 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
+    }
+    if (m_formatter->has(TAG_ICON_PORT)) {
+      m_port_icons->add("headphones", load_optional_icon(m_conf, name(), TAG_ICON_HEADPHONES));
+      m_port_icons->add("speaker", load_optional_icon(m_conf, name(), TAG_ICON_SPEAKER));
+      m_port_icons->add("other", load_optional_icon(m_conf, name(), TAG_ICON_OTHER));
+      m_port_icons->add("hdmi",
+          load_optional_icon(m_conf, name(), TAG_ICON_HDMI, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-headset",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADSET, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-handsfree",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HANDSFREE, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-speaker",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_SPEAKER, m_port_icons->get("speaker")->get()));
+      m_port_icons->add("bt-headphones",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HEADPHONES, m_port_icons->get("headphones")->get()));
+      m_port_icons->add("bt-portable",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_PORTABLE, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-car",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_CAR, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-hifi",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_HIFI, m_port_icons->get("other")->get()));
+      m_port_icons->add("bt-phone",
+          load_optional_icon(m_conf, name(), TAG_ICON_BT_PHONE, m_port_icons->get("other")->get()));
     }
   }
 
@@ -136,6 +162,36 @@ namespace modules {
       builder->node(m_label_volume);
     } else if (tag == TAG_LABEL_MUTED) {
       builder->node(m_label_muted);
+    } else if (tag == TAG_ICON_PORT) {
+      auto port = m_pulseaudio->get_port_name();
+      auto sink = m_pulseaudio->get_name();
+      if (string_util::contains(sink, "a2dp_sink")) {
+        if (string_util::contains(port, "headset")) {
+          builder->node(m_port_icons->get("bt-headset"));
+        } else if (string_util::contains(port, "handsfree")) {
+          builder->node(m_port_icons->get("bt-handsfree"));
+        } else if (string_util::contains(port, "speaker")) {
+          builder->node(m_port_icons->get("bt-speaker"));
+        } else if (string_util::contains(port, "headphone")) {
+          builder->node(m_port_icons->get("bt-headphones"));
+        } else if (string_util::contains(port, "portable")) {
+          builder->node(m_port_icons->get("bt-portable"));
+        } else if (string_util::contains(port, "car")) {
+          builder->node(m_port_icons->get("bt-car"));
+        } else if (string_util::contains(port, "hifi")) {
+          builder->node(m_port_icons->get("bt-hifi"));
+        } else if (string_util::contains(port, "phone")) {
+          builder->node(m_port_icons->get("bt-phone"));
+        }
+      } else if (string_util::contains(port, "headphones")) {
+        builder->node(m_port_icons->get("headphones"));
+      } else if (string_util::contains(port, "speaker")) {
+        builder->node(m_port_icons->get("speaker"));
+      } else if (string_util::contains(port, "hdmi")) {
+        builder->node(m_port_icons->get("hdmi"));
+      } else {
+        builder->node(m_port_icons->get("other"));
+      }
     } else {
       return false;
     }

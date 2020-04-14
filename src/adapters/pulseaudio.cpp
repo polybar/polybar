@@ -59,9 +59,9 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
     wait_loop(op, m_mainloop);
-    m_log.warn("pulseaudio: using default sink %s", s_name);
+    m_log.warn("pulseaudio: using default sink %s and port %s", s_name, p_name);
   } else {
-    m_log.trace("pulseaudio: using sink %s", s_name);
+    m_log.trace("pulseaudio: using sink %s and port %s", s_name, p_name);
   }
 
   m_max_volume = max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
@@ -98,6 +98,13 @@ const string& pulseaudio::get_name() {
 }
 
 /**
+ * Get port name
+ */
+const string& pulseaudio::get_port_name() {
+  return p_name;
+}
+
+/**
  * Wait for events
  */
 bool pulseaudio::wait() {
@@ -120,6 +127,7 @@ int pulseaudio::process_events() {
         if (!spec_s_name.empty()) {
           o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
           wait_loop(o, m_mainloop);
+          m_log.trace("pulseaudio: using sink %s and port %s", s_name, p_name);
           break;
         }
         // FALLTHRU
@@ -133,6 +141,7 @@ int pulseaudio::process_events() {
       case evtype::REMOVE:
         o = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
         wait_loop(o, m_mainloop);
+        m_log.trace("pulseaudio: using sink %s and port %s", s_name, p_name);
         if (spec_s_name != s_name)
           m_log.warn("pulseaudio: using default sink %s", s_name);
         break;
@@ -296,6 +305,9 @@ void pulseaudio::sink_info_callback(pa_context *, const pa_sink_info *info, int 
   if (!eol && info) {
     This->m_index = info->index;
     This->s_name = info->name;
+    if (info->active_port) {
+      This->p_name = info->active_port->name;
+    }
   }
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }

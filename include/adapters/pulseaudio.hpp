@@ -33,6 +33,7 @@ class pulseaudio {
     pulseaudio& operator=(const pulseaudio& o) = delete;
 
     const string& get_name();
+    const string& get_port_name();
 
     bool wait();
     int process_events();
@@ -73,6 +74,7 @@ class pulseaudio {
     // specified sink name
     string spec_s_name;
     string s_name;
+    string p_name;
     uint32_t m_index{0};
 
     pa_volume_t m_max_volume{PA_VOLUME_UI_MAX};
