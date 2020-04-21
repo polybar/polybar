@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   const command_line::options opts{
       command_line::option{"-h", "--help", "Display this help and exit"},
       command_line::option{"-v", "--version", "Display build details and exit"},
-      command_line::option{"-l", "--log", "Set the logging verbosity (default: WARNING)", "LEVEL", {"error", "warning", "info", "trace"}},
+      command_line::option{"-l", "--log", "Set the logging verbosity (default: notice)", "LEVEL", {"error", "warning", "notice", "info", "trace"}},
       command_line::option{"-q", "--quiet", "Be quiet (will override -l)"},
       command_line::option{"-c", "--config", "Path to the configuration file", "FILE"},
       command_line::option{"-r", "--reload", "Reload when the configuration has been modified"},
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
   unsigned char exit_code{EXIT_SUCCESS};
   bool reload{false};
 
-  logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::WARNING))};
+  logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::NOTICE))};
 
   try {
     //==================================================

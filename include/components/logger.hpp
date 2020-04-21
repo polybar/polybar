@@ -22,6 +22,7 @@ enum class loglevel {
   NONE = 0,
   ERROR,
   WARNING,
+  NOTICE,
   INFO,
   TRACE,
 };
@@ -64,6 +65,14 @@ class logger {
   template <typename... Args>
   void info(const string& message, Args&&... args) const {
     output(loglevel::INFO, message, std::forward<Args>(args)...);
+  }
+
+  /**
+   * Output a notice
+   */
+  template <typename... Args>
+  void notice(const string& message, Args&&... args) const {
+    output(loglevel::NOTICE, message, std::forward<Args>(args)...);
   }
 
   /**
