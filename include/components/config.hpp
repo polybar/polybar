@@ -335,7 +335,7 @@ class config {
       return convert<T>(move(value));
     } catch (const xresource_error& err) {
       if (has_fallback) {
-        m_log.warn("%s, using defined fallback value \"%s\"", err.what(), fallback);
+        m_log.info("%s, using defined fallback value \"%s\"", err.what(), fallback);
         return convert<T>(move(fallback));
       }
       throw value_error(sstream() << err.what() << " (no fallback set)");
@@ -364,7 +364,7 @@ class config {
       m_log.info("File reference \"%s\" found", var);
       return convert<T>(string_util::trim(file_util::contents(var), '\n'));
     } else if (has_fallback) {
-      m_log.warn("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
+      m_log.info("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
       return convert<T>(move(fallback));
     } else {
       throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");
