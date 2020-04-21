@@ -148,7 +148,7 @@ namespace modules {
 
   bool bspwm_module::has_event() {
     if (m_subscriber->poll(POLLHUP, 0)) {
-      m_log.warn("%s: Reconnecting to socket...", name());
+      m_log.notice("%s: Reconnecting to socket...", name());
       m_subscriber = bspwm_util::make_subscriber();
     }
     return m_subscriber->peek(1);

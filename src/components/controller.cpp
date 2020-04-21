@@ -173,7 +173,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
     m_event_thread.join();
   }
 
-  m_log.warn("Termination signal received, shutting down...");
+  m_log.notice("Termination signal received, shutting down...");
 
   return !g_reload;
 }

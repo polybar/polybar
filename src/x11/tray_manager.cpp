@@ -916,7 +916,7 @@ void tray_manager::handle(const evt::client_message& evt) {
   if (!m_activated) {
     return;
   } else if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_tray) {
-    m_log.warn("Received WM_DELETE");
+    m_log.notice("Received WM_DELETE");
     m_tray = 0;
     deactivate();
   } else if (evt->type == _NET_SYSTEM_TRAY_OPCODE && evt->format == 32) {
