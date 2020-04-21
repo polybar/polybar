@@ -42,6 +42,7 @@ _polybar() {
 
   local log_levels='error
                     warning
+                    notice
                     info
                     trace'
 

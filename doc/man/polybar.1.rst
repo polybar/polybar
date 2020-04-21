@@ -23,8 +23,8 @@ OPTIONS
    Display build details and exit
 .. option:: -l, --log=LEVEL
 
-   | Set the logging verbosity (default: **WARNING**)
-   | *LEVEL* is one of: error, warning, info, trace
+   | Set the logging verbosity (default: **notice**)
+   | *LEVEL* is one of: error, warning, notice, info, trace
 .. option:: -q, --quiet
 
    Be quiet (will override -l)
