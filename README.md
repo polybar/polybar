@@ -89,6 +89,9 @@ If you can't find your distro here, you will have to [build from source](#buildi
 
 If you create a package for any other distribution, please consider contributing the template.
 
+If you are using **Debian** (unstable or testing), you can install [polybar](https://tracker.debian.org/pkg/polybar) using `sudo apt install polybar`.  
+If you are using **Debian** (buster/stable), you need to enable [backports](https://wiki.debian.org/Backports) and then install using `sudo apt -t buster-backports install polybar`.
+
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release.
 
