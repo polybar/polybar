@@ -1,6 +1,7 @@
 #include "components/controller.hpp"
 
 #include <csignal>
+#include <utility>
 
 #include "components/bar.hpp"
 #include "components/builder.hpp"
@@ -423,7 +424,7 @@ void controller::process_inputdata() {
     for (auto&& handler : m_inputhandlers) {
       if (handler->input_handler_name() == handler_name) {
         if (!handler->input(string{action})) {
-          m_log.warn("The '%s' module does not support the '%s' action.", handler_name, action);
+          m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
         }
 
         num_delivered++;
@@ -437,6 +438,40 @@ void controller::process_inputdata() {
     }
 
     return;
+  }
+
+  /*
+   * Maps legacy action names to a module type and the new action name in that module.
+   *
+   * The action will be delivered to the first module of that type so that it is consistent with existing behavior.
+   *
+   * TODO Remove when deprecated action names are removed
+   */
+  const std::map<string, std::pair<string, const string>> legacy_actions {
+    {"datetoggle", {string(date_module::TYPE), "toggle"}},
+  };
+
+  auto it = legacy_actions.find(cmd);
+
+  if (it != legacy_actions.end()) {
+    auto action = it->second.second;
+
+    for (auto&& handler : m_inputhandlers) {
+      auto module_ptr = std::dynamic_pointer_cast<module_interface>(handler);
+
+      if (module_ptr && module_ptr->type() == it->second.first) {
+        // TODO make this message more descriptive and maybe link to some documentation
+        m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler->input_handler_name(), action);
+        m_log.info("Forwarding legacy action '%s' to module '%s' as '%s'", cmd, handler->input_handler_name(), action);
+        if (!handler->input(string{action})) {
+          m_log.err("Failed to forward deprecated action to %s module. THIS IS A BUG!", it->second.first);
+        }
+        // Only deliver to the first matching module.
+        return;
+      }
+    }
+
+    // Fall through to running the action as a command to not break existing behavior.
   }
 
   try {
