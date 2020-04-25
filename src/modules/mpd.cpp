@@ -23,7 +23,7 @@ namespace modules {
     auto format_online = m_conf.get<string>(name(), FORMAT_ONLINE, TAG_LABEL_SONG);
     for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
       m_formatter->add(format, format_online,
-          {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
+          {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_UNKARTIST_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
               TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
               TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
 
@@ -102,6 +102,9 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL_SONG)) {
       m_label_song = load_optional_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
+    }
+    if (m_formatter->has(TAG_UNKARTIST_SONG)) {
+      m_unkartist_song = load_optional_label(m_conf, name(), TAG_UNKARTIST_SONG, "untitled artist -");
     }
     if (m_formatter->has(TAG_LABEL_TIME)) {
       m_label_time = load_optional_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
@@ -230,6 +233,8 @@ namespace modules {
 
     string artist;
     string album_artist;
+    // string artist_and_title;
+    string unkartist = m_unkartist_song->get();
     string album;
     string title;
     string date;
@@ -261,6 +266,9 @@ namespace modules {
     if (m_label_song) {
       m_label_song->reset_tokens();
       m_label_song->replace_token("%artist%", !artist.empty() ? artist : "untitled artist");
+
+      m_label_song->replace_token("%cartist%", !artist.empty() ? (artist + " -") : unkartist);
+
       m_label_song->replace_token("%album-artist%", !album_artist.empty() ? album_artist : "untitled album artist");
       m_label_song->replace_token("%album%", !album.empty() ? album : "untitled album");
       m_label_song->replace_token("%title%", !title.empty() ? title : "untitled track");

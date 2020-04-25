@@ -37,6 +37,7 @@ namespace modules {
     static constexpr const char* TAG_TOGGLE{"<toggle>"};
     static constexpr const char* TAG_TOGGLE_STOP{"<toggle-stop>"};
     static constexpr const char* TAG_LABEL_SONG{"<label-song>"};
+    static constexpr const char* TAG_UNKARTIST_SONG{"<unkartist-song>"};
     static constexpr const char* TAG_LABEL_TIME{"<label-time>"};
     static constexpr const char* TAG_ICON_RANDOM{"<icon-random>"};
     static constexpr const char* TAG_ICON_REPEAT{"<icon-repeat>"};
@@ -98,6 +99,7 @@ namespace modules {
     progressbar_t m_bar_progress;
     iconset_t m_icons;
     label_t m_label_song;
+    label_t m_unkartist_song;
     label_t m_label_time;
     label_t m_label_offline;
 
