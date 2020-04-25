@@ -27,6 +27,8 @@ namespace modules {
       : inotify_module<battery_module>(bar, move(name_)) {
     // Load configuration values
     m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
+    m_critat = m_conf.get(name(), "crit-at", m_critat);
+    m_lowat = math_util::max(m_conf.get(name(), "low-at", m_lowat), m_critat);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
 
@@ -117,6 +119,10 @@ namespace modules {
     m_formatter->add(FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
+    m_formatter->add(FORMAT_LOW, TAG_LABEL_LOW,
+        {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_LOW});
+    m_formatter->add(FORMAT_CRITICAL, TAG_LABEL_CRITICAL,
+        {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_CRITICAL});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
@@ -138,6 +144,12 @@ namespace modules {
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
+    }
+    if (m_formatter->has(TAG_LABEL_LOW, FORMAT_LOW)) {
+      m_label_low = load_optional_label(m_conf, name(), TAG_LABEL_LOW, "%percentage%%");
+    }
+    if (m_formatter->has(TAG_LABEL_CRITICAL, FORMAT_CRITICAL)) {
+      m_label_critical = load_optional_label(m_conf, name(), TAG_LABEL_CRITICAL, "%percentage%%");
     }
 
     // Create inotify watches
@@ -225,6 +237,10 @@ namespace modules {
         return m_label_full;
       } else if (m_state == battery_module::state::DISCHARGING) {
         return m_label_discharging;
+      } else if (m_state == battery_module::state::LOW) {
+        return m_label_low;
+      } else if (m_state == battery_module::state::CRITICAL) {
+        return m_label_critical;
       } else {
         return m_label_charging;
       }
@@ -252,6 +268,10 @@ namespace modules {
       return FORMAT_CHARGING;
     } else if (m_state == battery_module::state::DISCHARGING) {
       return FORMAT_DISCHARGING;
+    } else if (m_state == battery_module::state::LOW) {
+      return FORMAT_LOW;
+    } else if (m_state == battery_module::state::CRITICAL) {
+      return FORMAT_CRITICAL;
     } else {
       return FORMAT_FULL;
     }
@@ -275,6 +295,10 @@ namespace modules {
       builder->node(m_label_discharging);
     } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
+    } else if (tag == TAG_LABEL_LOW) {
+      builder->node(m_label_low);
+    } else if (tag == TAG_LABEL_CRITICAL) {
+      builder->node(m_label_critical);
     } else {
       return false;
     }
@@ -287,7 +311,13 @@ namespace modules {
    */
   battery_module::state battery_module::current_state() {
     if (!read(*m_state_reader)) {
-      return battery_module::state::DISCHARGING;
+      if (read(*m_capacity_reader) <= m_critat) {
+        return battery_module::state::CRITICAL;
+      } else if (read(*m_capacity_reader) <= m_lowat) {
+        return battery_module::state::LOW;
+      } else {
+        return battery_module::state::DISCHARGING;
+      }
     } else if (read(*m_capacity_reader) < m_fullat) {
       return battery_module::state::CHARGING;
     } else {
