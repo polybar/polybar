@@ -1,3 +1,5 @@
+#include "x11/extensions/randr.hpp"
+
 #include <algorithm>
 #include <utility>
 
@@ -7,7 +9,6 @@
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 
@@ -33,13 +34,19 @@ bool randr_output::match(const position& p) const {
 }
 
 /**
+ * Checks if `this` contains the position p
+ */
+bool randr_output::contains(const position& p) const {
+  return x <= p.x && y <= p.y && (x + w) > p.x && (y + h) > p.y;
+}
+
+/**
  * Checks if inner is contained within `this`
  *
  * Also returns true for outputs that occupy the exact same space
  */
 bool randr_output::contains(const randr_output& inner) const {
-  return inner.x >= x && inner.x + inner.w <= x + w
-    && inner.y >= y && inner.y + inner.h <= y + h;
+  return inner.x >= x && inner.x + inner.w <= x + w && inner.y >= y && inner.y + inner.h <= y + h;
 }
 
 /**
@@ -48,8 +55,7 @@ bool randr_output::contains(const randr_output& inner) const {
  * Looks at xcb_randr_output_t, position, dimension, name and 'primary'
  */
 bool randr_output::equals(const randr_output& o) const {
-  return o.output == output && o.x == x && o.y == y && o.w == w && o.h == h &&
-    o.primary == primary && o.name == name;
+  return o.output == output && o.x == x && o.y == y && o.w == w && o.h == h && o.primary == primary && o.name == name;
 }
 
 namespace randr_util {
@@ -83,9 +89,8 @@ namespace randr_util {
   /**
    * Define monitor
    */
-  monitor_t make_monitor(
-      xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x, short int y,
-      bool primary) {
+  monitor_t make_monitor(xcb_randr_output_t randr, string name, unsigned short int w, unsigned short int h, short int x,
+      short int y, bool primary) {
     monitor_t mon{new monitor_t::element_type{}};
     mon->output = randr;
     mon->name = move(name);
@@ -155,7 +160,7 @@ namespace randr_util {
       }
     }
 
-    if(purge_clones) {
+    if (purge_clones) {
       for (auto& outer : monitors) {
         if (outer->w == 0) {
           continue;
@@ -181,8 +186,7 @@ namespace randr_util {
 
       // Remove all cloned monitors (monitors with 0 width)
       monitors.erase(
-          std::remove_if(monitors.begin(), monitors.end(),
-            [](const auto & monitor) { return monitor->w == 0; }),
+          std::remove_if(monitors.begin(), monitors.end(), [](const auto& monitor) { return monitor->w == 0; }),
           monitors.end());
     }
 
@@ -196,9 +200,9 @@ namespace randr_util {
    */
   monitor_t match_monitor(vector<monitor_t> monitors, const string& name, bool exact_match) {
     monitor_t result{};
-    for(auto&& monitor : monitors) {
+    for (auto&& monitor : monitors) {
       // If we can do an exact match, we have found our result
-      if(monitor->match(name, true)) {
+      if (monitor->match(name, true)) {
         result = move(monitor);
         break;
       }
@@ -209,7 +213,7 @@ namespace randr_util {
        * Note: If exact_match == true, we don't need to run this because it
        * would be the exact same check as above
        */
-      if(!exact_match && monitor->match(name, false)) {
+      if (!exact_match && monitor->match(name, false)) {
         result = move(monitor);
       }
     }
@@ -258,6 +262,6 @@ namespace randr_util {
       dst.val = static_cast<double>(value);
     }
   }
-}
+}  // namespace randr_util
 
 POLYBAR_NS_END
