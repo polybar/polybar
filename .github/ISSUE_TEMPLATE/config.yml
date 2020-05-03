@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Polybar Gitter Room
+    url: https://gitter.im/polybar/polybar
+    about: Please ask and answer questions here.
+  - name: Polybar subreddit
+    url: https://www.reddit.com/r/polybar
+    about: Please ask and answer questions here.

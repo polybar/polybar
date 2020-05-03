@@ -123,8 +123,9 @@ namespace modules {
         m_cputimes.back()->nice = std::stoull(values[2], nullptr, 10);
         m_cputimes.back()->system = std::stoull(values[3], nullptr, 10);
         m_cputimes.back()->idle = std::stoull(values[4], nullptr, 10);
-        m_cputimes.back()->total =
-            m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system + m_cputimes.back()->idle;
+        m_cputimes.back()->steal = std::stoull(values[8], nullptr, 10);
+        m_cputimes.back()->total = m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system +
+                                   m_cputimes.back()->idle + m_cputimes.back()->steal;
       }
     } catch (const std::ios_base::failure& e) {
       m_log.err("Failed to read CPU values (what: %s)", e.what());

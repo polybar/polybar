@@ -29,8 +29,6 @@ using std::map;
 // fwd decl {{{
 
 namespace drawtypes {
-  class label;
-  using label_t = shared_ptr<label>;
   class ramp;
   using ramp_t = shared_ptr<ramp>;
   class progressbar;

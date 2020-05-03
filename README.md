@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="banner.png" alt="Polybar">
+  <img src="banner.png" alt="Polybar">
 </p>
 
 <p align="center">
@@ -10,6 +10,7 @@ A fast and easy-to-use tool for creating status bars.
 <a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
 <a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
 <a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
+<a href="https://gitter.im/polybar/polybar"><img src="https://badges.gitter.im/polybar/polybar.svg"></a>
 <a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>
 <a href="https://github.com/polybar/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/polybar/polybar.svg"></a>
 <a href="https://www.codetriage.com/polybar/polybar"><img src="https://www.codetriage.com/polybar/polybar/badges/users.svg"></a>
@@ -19,10 +20,10 @@ A fast and easy-to-use tool for creating status bars.
 for their desktop environment, without the need of having a black belt in shell scripting.
 Here are a few screenshots showing you what it can look like:
 
-[![sample screenshot](http://i.imgur.com/xvlw9iHt.png)](http://i.imgur.com/xvlw9iH.png)
-[![sample screenshot](http://i.imgur.com/cYQOuRrt.png)](http://i.imgur.com/cYQOuRr.png)
-[![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
-[![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
+[![sample screenshot](https://i.imgur.com/xvlw9iHt.png)](https://i.imgur.com/xvlw9iH.png)
+[![sample screenshot](https://i.imgur.com/cYQOuRrt.png)](https://i.imgur.com/cYQOuRr.png)
+[![sample screenshot](https://i.imgur.com/A6spiZZt.png)](https://i.imgur.com/A6spiZZ.png)
+[![sample screenshot](https://i.imgur.com/TY5a5r9t.png)](https://i.imgur.com/TY5a5r9.png)
 
 You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
@@ -56,7 +57,7 @@ Some of the services included so far:
 - Systray icons
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
-- [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
+- [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
 - Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
 - Keyboard layout and indicator status
@@ -88,6 +89,9 @@ If you can't find your distro here, you will have to [build from source](#buildi
 
 If you create a package for any other distribution, please consider contributing the template.
 
+If you are using **Debian** (unstable or testing), you can install [polybar](https://tracker.debian.org/pkg/polybar) using `sudo apt install polybar`.  
+If you are using **Debian** (buster/stable), you need to enable [backports](https://wiki.debian.org/Backports) and then install using `sudo apt -t buster-backports install polybar`.
+
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release.
 
@@ -105,12 +109,14 @@ If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x1
 
 If you are using **Gentoo**, both release and git-master versions are available in the [main](https://packages.gentoo.org/packages/x11-misc/polybar) repository.
 
+If you are using **Fedora**, you can install [polybar](https://src.fedoraproject.org/rpms/polybar) using `sudo dnf install polybar`.
+
 ### Dependencies
 
-A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
+A compiler with C++14 support ([clang-3.4+](https://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
 - `cairo`
 - `libxcb`
-- `python2`
+- `python`
 - `xcb-proto`
 - `xcb-util-image`
 - `xcb-util-wm`
@@ -180,13 +186,14 @@ Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /us
 ## Community
 Want to get in touch?
 
+* Join our Gitter room at [gitter.im/polybar/polybar](https://gitter.im/polybar/polybar)
 * We have our own subreddit at [r/polybar](https://www.reddit.com/r/polybar).
 * Chat with us in the `#polybar` IRC channel on the `chat.freenode.net` server.
 
 ## Contributors
 
 ### Owner
-* Michael Carlberg [**@jaagr**](http://github.com/jaagr/)
+* Michael Carlberg [**@jaagr**](https://github.com/jaagr/)
 
 ### Maintainers
 * [**@NBonaparte**](https://github.com/NBonaparte)

@@ -40,6 +40,8 @@ usage() {
           equal to -3 -a -p -n -m -c -i
       ${COLORS[GREEN]}-g, --gcc${COLORS[OFF]}
           Use GCC even if Clang is installed; disabled by default.
+      ${COLORS[GREEN]}-j, --jobs${COLORS[OFF]}
+          Use make -j to use make jobs with $(nproc) jobs; disabled by default.
       ${COLORS[GREEN]}-f${COLORS[OFF]}
           Remove existing build dir; disabled by default.
       ${COLORS[GREEN]}-I, --no-install${COLORS[OFF]}
@@ -105,6 +107,7 @@ set_build_opts() {
     [[ -z "$ENABLE_MPD" ]] && ENABLE_MPD="OFF"
     [[ -z "$ENABLE_CURL" ]] && ENABLE_CURL="OFF"
     [[ -z "$ENABLE_IPC_MSG" ]] && ENABLE_IPC_MSG="OFF"
+    [[ -z "$JOB_COUNT" ]] && JOB_COUNT=1
   fi
 
   if [[ -z "$USE_GCC" ]]; then
@@ -145,6 +148,11 @@ set_build_opts() {
   if [[ -z "$ENABLE_IPC_MSG" ]]; then
     read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages ------------------ [y/N]: ")" -n 1 p && echo
     [[ "${p^^}" != "Y" ]] && ENABLE_IPC_MSG="OFF" || ENABLE_IPC_MSG="ON"
+  fi
+  
+  if [[ -z "$JOB_COUNT" ]]; then
+	read -r -p "$(msg "Parallelize the build using make -j$(nproc) --------------------------- [y/N]: ")" -n 1 p && echo
+	[[ "${p^^}" != "Y" ]] && JOB_COUNT=1 || JOB_COUNT=$(nproc)
   fi
 
 
@@ -196,7 +204,11 @@ main() {
     .. || msg_err "Failed to generate build... read output to get a hint of what went wrong"
 
   msg "Building project"
-  make || msg_err "Failed to build project"
+  if [ -z ${JOB_COUNT} ]; then
+	make || msg_err "Failed to build project"
+  else
+	make -j$JOB_COUNT || msg_err "Failed to build project"
+  fi
   install
   msg "Build complete!"
 
@@ -235,6 +247,8 @@ while [[ "$1" == -* ]]; do
 
     -g|--gcc)
       USE_GCC=ON; shift ;;
+    -j|--jobs)
+	  JOB_COUNT=$(nproc); shift ;;
     -f)
       REMOVE_BUILD_DIR=ON; shift ;;
     -I|--no-install)

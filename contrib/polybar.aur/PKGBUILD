@@ -1,8 +1,7 @@
-# Maintainer: Michael Carlberg <c@rlberg.se>
-# Contributor: Michael Carlberg <c@rlberg.se>
+# Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.4.0
-pkgrel=4
+pkgver=3.4.2
+pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/polybar/polybar"
@@ -13,12 +12,11 @@ optdepends=("i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "xorg-fonts-misc: Font used in example config")
-makedepends=("cmake" "git" "python" "python2" "pkg-config" "python-sphinx"
-             "i3-wm")
+makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "i3-wm")
 conflicts=("polybar-git")
 install="${pkgname}.install"
 source=(${url}/releases/download/${pkgver}/polybar-${pkgver}.tar)
-sha256sums=('69a098f22d7a72eb594030aff687801252b18520b097c12f5c7894a99c4bcd1b')
+sha256sums=('4d22c977969a561f561fdc7a609073854d8fea8a9eec6941e12a80457edcb63a')
 
 prepare() {
   mkdir -p "${pkgname}/build"

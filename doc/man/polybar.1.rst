@@ -23,8 +23,8 @@ OPTIONS
    Display build details and exit
 .. option:: -l, --log=LEVEL
 
-   | Set the logging verbosity (default: **WARNING**)
-   | *LEVEL* is one of: error, warning, info, trace
+   | Set the logging verbosity (default: **notice**)
+   | *LEVEL* is one of: error, warning, notice, info, trace
 .. option:: -q, --quiet
 
    Be quiet (will override -l)
@@ -44,6 +44,13 @@ OPTIONS
 .. option:: -m, --list-monitors
 
    Print list of available monitors and exit
+
+   If some monitors are cloned, this will exclude all but one of them
+.. option:: -M, --list-all-monitors
+
+   Print list of available monitors and exit
+
+   This will also include all cloned monitors.
 .. option:: -w, --print-wmname
 
    Print the generated *WM_NAME* and exit
@@ -67,3 +74,11 @@ SEE ALSO
 --------
 | Full documentation at: <https://github.com/polybar/polybar>
 | Project wiki: <https://github.com/polybar/polybar/wiki>
+
+.. only:: man
+
+  :manpage:`polybar(5)`
+
+.. only:: not man
+
+  :doc:`polybar.5`

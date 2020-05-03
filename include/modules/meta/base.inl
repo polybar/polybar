@@ -68,7 +68,7 @@ namespace modules {
   template <typename Impl>
   void module<Impl>::halt(string error_message) {
     m_log.err("%s: %s", name(), error_message);
-    m_log.warn("Stopping '%s'...", name());
+    m_log.notice("Stopping '%s'...", name());
     stop();
   }
 

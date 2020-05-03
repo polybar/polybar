@@ -3,14 +3,6 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 # Only used if documentation is built on its own
 project(polybar-doc NONE)
 
-find_program(SPHINX_EXECUTABLE
-  NAMES sphinx-build
-  DOC "Sphinx Documentation Builder")
-
-if(NOT SPHINX_EXECUTABLE)
-  message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
-endif()
-
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
@@ -29,7 +21,7 @@ foreach(builder ${doc_builders})
   set(doc_target "doc_${builder}")
   set(builder_log "builder-${builder}.log")
   add_custom_target(${doc_target}
-    COMMAND ${SPHINX_EXECUTABLE}
+    COMMAND ${SPHINX_BUILD}
             -b ${builder}
             # conf.py dir
             -c "${CMAKE_CURRENT_BINARY_DIR}"
@@ -66,4 +58,8 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
   DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+  COMPONENT doc)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.5
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man5
   COMPONENT doc)

@@ -1,4 +1,5 @@
 #include <csignal>
+#include <algorithm>
 #include <thread>
 
 #include "components/config.hpp"
@@ -33,7 +34,7 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
     , m_log(logger)
     , m_conf(conf)
     , m_root(conn.root())
-    , m_monitors(randr_util::get_monitors(m_connection, m_root, true))
+    , m_monitors(randr_util::get_monitors(m_connection, m_root, true, false))
     , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
   // Check if the reloading has been disabled by the user
   if (!m_conf.get("settings", "screenchange-reload", false)) {
@@ -88,7 +89,7 @@ screen::~screen() {
 /**
  * Handle XCB_RANDR_SCREEN_CHANGE_NOTIFY events
  *
- * If the screen dimensions have changed we raise USR1 to trigger a reload
+ * If any of the monitors have changed we raise USR1 to trigger a reload
  */
 void screen::handle(const evt::randr_screen_change_notify& evt) {
   if (m_sigraised || evt->request_window != m_proxy) {
@@ -98,24 +99,49 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
   auto screen = m_connection.screen(true);
   auto changed = false;
 
+  // We need to reload if the screen size changed as well
   if (screen->width_in_pixels != m_size.w || screen->height_in_pixels != m_size.h) {
     changed = true;
   } else {
-    auto monitors = randr_util::get_monitors(m_connection, m_root, true, true);
-    for (size_t n = 0; n < monitors.size(); n++) {
-      if (n < m_monitors.size() && monitors[n]->output != m_monitors[n]->output) {
-        changed = true;
-      }
+    changed = have_monitors_changed();
+  }
+
+  if (changed) {
+    m_log.notice("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
+    m_sig.emit(exit_reload{});
+    m_sigraised = true;
+  }
+}
+
+/**
+ * Checks if the stored monitor list is different from a newly fetched one
+ *
+ * Fetches the monitor list and compares it with the one stored
+ */
+bool screen::have_monitors_changed() const {
+  auto monitors = randr_util::get_monitors(m_connection, m_root, true, false);
+
+  if(monitors.size() != m_monitors.size()) {
+    return true;
+  }
+
+  for (auto m : m_monitors) {
+    auto it = std::find_if(monitors.begin(), monitors.end(),
+        [m] (auto& monitor) -> bool {
+        return m->equals(*monitor);
+        });
+
+    /*
+     * Every monitor in the stored list should also exist in the newly fetched
+     * list. If this holds then the two lists are equivalent since they have
+     * the same size
+     */
+    if(it == monitors.end()) {
+      return true;
     }
   }
 
-  if (!changed) {
-    return;
-  }
-
-  m_log.warn("randr_screen_change_notify (%ux%u)... reloading", evt->width, evt->height);
-  m_sig.emit(exit_reload{});
-  m_sigraised = true;
+  return false;
 }
 
 POLYBAR_NS_END

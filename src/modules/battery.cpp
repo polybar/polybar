@@ -168,7 +168,10 @@ namespace modules {
    */
   void battery_module::start() {
     this->inotify_module::start();
-    m_subthread = thread(&battery_module::subthread, this);
+    // We only start animation thread if there is at least one animation.
+    if (m_animation_charging || m_animation_discharging) {
+      m_subthread = thread(&battery_module::subthread, this);
+    }
   }
 
   /**
@@ -350,28 +353,28 @@ namespace modules {
    * same time.
    */
   void battery_module::subthread() {
-    chrono::duration<double> dur{0.0};
-
-    if (battery_module::state::CHARGING == m_state && m_animation_charging) {
-      dur += chrono::milliseconds{m_animation_charging->framerate()};
-    } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
-      dur += chrono::milliseconds{m_animation_discharging->framerate()};
-    } else {
-      dur += 1s;
-    }
+    m_log.trace("%s: Start of subthread", name());
 
     while (running()) {
-      for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING ||
-            m_state == battery_module::state::DISCHARGING) {
-          broadcast();
-        }
-        sleep(dur);
+      auto now = chrono::steady_clock::now();
+      auto framerate = 1000U;  // milliseconds
+      if (m_state == battery_module::state::CHARGING && m_animation_charging) {
+        m_animation_charging->increment();
+        broadcast();
+        framerate = m_animation_charging->framerate();
+      } else if (m_state == battery_module::state::DISCHARGING && m_animation_discharging) {
+        m_animation_discharging->increment();
+        broadcast();
+        framerate = m_animation_discharging->framerate();
       }
+
+      // We don't count the the first part of the loop to be as close as possible to the framerate.
+      now += chrono::milliseconds(framerate);
+      this_thread::sleep_until(now);
     }
 
     m_log.trace("%s: End of subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

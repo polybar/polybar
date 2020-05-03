@@ -1,20 +1,20 @@
 #include "modules/pulseaudio.hpp"
+
 #include "adapters/pulseaudio.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
-
 #include "settings.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<pulseaudio_module>;
 
-  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
+  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
+      : event_module<pulseaudio_module>(bar, move(name_)) {
     // Load configuration values
     m_interval = m_conf.get(name(), "interval", m_interval);
 
@@ -66,11 +66,13 @@ namespace modules {
 
     // Get volume and mute state
     m_volume = 100;
+    m_decibels = PA_DECIBEL_MININFTY;
     m_muted = false;
 
     try {
       if (m_pulseaudio) {
         m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
+        m_decibels = m_pulseaudio->get_decibels();
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
@@ -81,11 +83,13 @@ namespace modules {
     if (m_label_volume) {
       m_label_volume->reset_tokens();
       m_label_volume->replace_token("%percentage%", to_string(m_volume));
+      m_label_volume->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
+      m_label_muted->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     return true;
@@ -102,6 +106,17 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
+      auto click_middle = m_conf.get(name(), "click-middle", ""s);
+      auto click_right = m_conf.get(name(), "click-right", ""s);
+
+      if (!click_middle.empty()) {
+        m_builder->cmd(mousebtn::MIDDLE, click_middle);
+      }
+
+      if (!click_right.empty()) {
+        m_builder->cmd(mousebtn::RIGHT, click_right);
+      }
+
       m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
       m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
       m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
@@ -153,6 +168,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

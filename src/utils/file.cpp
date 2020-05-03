@@ -1,6 +1,9 @@
+#include "utils/file.hpp"
+
 #include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -8,7 +11,6 @@
 
 #include "errors.hpp"
 #include "utils/env.hpp"
-#include "utils/file.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -203,6 +205,16 @@ namespace file_util {
   }
 
   /**
+   * Writes the contents of the given file
+   */
+  void write_contents(const string& filename, const string& contents) {
+    std::ofstream out(filename, std::ofstream::out);
+    if (!(out << contents)) {
+      throw std::system_error(errno, std::system_category(), "failed to write to " + filename);
+    }
+  }
+
+  /**
    * Checks if the given file is a named pipe
    */
   bool is_fifo(const string& filename) {
@@ -246,7 +258,7 @@ namespace file_util {
     bool is_absolute = path.size() > 0 && path.at(0) == '/';
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
-      switch(section[0]) {
+      switch (section[0]) {
         case '$':
           section = env_util::get(section.substr(1));
           break;
@@ -262,6 +274,26 @@ namespace file_util {
     }
     return ret;
   }
-}
+
+  /*
+   * Search for polybar config and returns the path if found
+   */
+  string get_config_path() {
+    string confpath;
+    if (env_util::has("XDG_CONFIG_HOME")) {
+      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+    }
+    if (env_util::has("HOME")) {
+      confpath = env_util::get("HOME") + "/.config/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+    }
+    return "";
+  }
+}  // namespace file_util
 
 POLYBAR_NS_END

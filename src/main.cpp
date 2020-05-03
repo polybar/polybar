@@ -16,12 +16,13 @@ int main(int argc, char** argv) {
   const command_line::options opts{
       command_line::option{"-h", "--help", "Display this help and exit"},
       command_line::option{"-v", "--version", "Display build details and exit"},
-      command_line::option{"-l", "--log", "Set the logging verbosity (default: WARNING)", "LEVEL", {"error", "warning", "info", "trace"}},
+      command_line::option{"-l", "--log", "Set the logging verbosity (default: notice)", "LEVEL", {"error", "warning", "notice", "info", "trace"}},
       command_line::option{"-q", "--quiet", "Be quiet (will override -l)"},
       command_line::option{"-c", "--config", "Path to the configuration file", "FILE"},
       command_line::option{"-r", "--reload", "Reload when the configuration has been modified"},
       command_line::option{"-d", "--dump", "Print value of PARAM in bar section and exit", "PARAM"},
-      command_line::option{"-m", "--list-monitors", "Print list of available monitors and exit"},
+      command_line::option{"-m", "--list-monitors", "Print list of available monitors and exit (Removes cloned monitors)"},
+      command_line::option{"-M", "--list-all-monitors", "Print list of all available monitors (Including cloned monitors) and exit"},
       command_line::option{"-w", "--print-wmname", "Print the generated WM_NAME and exit"},
       command_line::option{"-s", "--stdout", "Output data to stdout instead of drawing it to the X window"},
       command_line::option{"-p", "--png", "Save png snapshot to FILE after running for 3 seconds", "FILE"},
@@ -31,7 +32,7 @@ int main(int argc, char** argv) {
   unsigned char exit_code{EXIT_SUCCESS};
   bool reload{false};
 
-  logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::WARNING))};
+  logger& logger{const_cast<decltype(logger)>(logger::make(loglevel::NOTICE))};
 
   try {
     //==================================================
@@ -76,8 +77,10 @@ int main(int argc, char** argv) {
     //==================================================
     // List available XRandR entries
     //==================================================
-    if (cli->has("list-monitors")) {
-      for (auto&& mon : randr_util::get_monitors(conn, conn.root(), true)) {
+    if (cli->has("list-monitors") || cli->has("list-all-monitors")) {
+      bool purge_clones = !cli->has("list-all-monitors");
+      auto monitors = randr_util::get_monitors(conn, conn.root(), true, purge_clones);
+      for (auto&& mon : monitors) {
         if (WITH_XRANDR_MONITORS && mon->output == XCB_NONE) {
           printf("%s: %ix%i+%i+%i (XRandR monitor%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
               mon->primary ? ", primary" : "");
@@ -106,11 +109,10 @@ int main(int argc, char** argv) {
 
     if (cli->has("config")) {
       confpath = cli->get("config");
-    } else if (env_util::has("XDG_CONFIG_HOME")) {
-      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
-    } else if (env_util::has("HOME")) {
-      confpath = env_util::get("HOME") + "/.config/polybar/config";
     } else {
+      confpath = file_util::get_config_path();
+    }
+    if (confpath.empty()) {
       throw application_error("Define configuration using --config=PATH");
     }
 

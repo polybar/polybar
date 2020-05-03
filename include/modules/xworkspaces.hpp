@@ -1,6 +1,8 @@
 #pragma once
 
 #include <bitset>
+#include <mutex>
+#include <set>
 
 #include "components/config.hpp"
 #include "components/types.hpp"
@@ -31,10 +33,9 @@ namespace modules {
   };
 
   struct desktop {
-    explicit desktop(unsigned int index, unsigned int offset, desktop_state state, label_t&& label)
-        : index(index), offset(offset), state(state), label(label) {}
+    explicit desktop(unsigned int index, desktop_state state, label_t&& label)
+        : index(index), state(state), label(label) {}
     unsigned int index;
-    unsigned int offset;
     desktop_state state;
     label_t label;
   };
@@ -69,9 +70,10 @@ namespace modules {
     void set_desktop_urgent(xcb_window_t window);
 
     bool input(string&& cmd);
-    vector<string> get_desktop_names();
 
    private:
+    static vector<string> get_desktop_names();
+
     static constexpr const char* DEFAULT_ICON{"icon-default"};
     static constexpr const char* DEFAULT_LABEL_STATE{"%icon% %name%"};
     static constexpr const char* DEFAULT_LABEL_MONITOR{"%name%"};
@@ -94,7 +96,10 @@ namespace modules {
     unsigned int m_current_desktop;
     string m_current_desktop_name;
 
-    vector<xcb_window_t> m_clientlist;
+    /**
+     * Maps an xcb window to its desktop number
+     */
+    map<xcb_window_t, unsigned int> m_clients;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;
@@ -104,8 +109,12 @@ namespace modules {
     bool m_scroll{true};
     size_t m_index{0};
 
+    // The following mutex is here to protect the data of this modules.
+    // This can't be achieved using m_buildlock since we "CRTP override" get_output().
+    mutable mutex m_workspace_mutex;
+
     event_timer m_timer{0L, 25L};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

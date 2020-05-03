@@ -10,7 +10,7 @@ class http_downloader {
   http_downloader(int connection_timeout = 5);
   ~http_downloader();
 
-  string get(const string& url);
+  string get(const string& url, const string& user = "", const string& password = "");
   long response_code();
 
  protected:
@@ -25,6 +25,6 @@ namespace http_util {
   decltype(auto) make_downloader(Args&&... args) {
     return factory_util::unique<http_downloader>(forward<Args>(args)...);
   }
-}
+}  // namespace http_util
 
 POLYBAR_NS_END

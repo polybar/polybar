@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cairo/cairo-xcb.h>
+
 #include <algorithm>
 #include <cmath>
 #include <deque>
@@ -108,10 +109,9 @@ namespace cairo {
     }
 
     context& operator<<(const linear_gradient& l) {
-      if (l.steps.size() >= 2) {
+      auto stops = l.steps.size();
+      if (stops >= 2) {
         auto pattern = cairo_pattern_create_linear(l.x1, l.y1, l.x2, l.y2);
-        *this << pattern;
-        auto stops = l.steps.size();
         auto step = 1.0 / (stops - 1);
         auto offset = 0.0;
         for (auto&& color : l.steps) {
@@ -124,6 +124,7 @@ namespace cairo {
           // clang-format on
           offset += step;
         }
+        *this << pattern;
         cairo_pattern_destroy(pattern);
       }
       return *this;
@@ -218,7 +219,7 @@ namespace cairo {
 
         char unicode[6]{'\0'};
         utils::ucs4_to_utf8(unicode, chars.begin()->codepoint);
-        m_log.warn("Dropping unmatched character %s (U+%04x)", unicode, chars.begin()->codepoint);
+        m_log.warn("Dropping unmatched character %s (U+%04x) in '%s'", unicode, chars.begin()->codepoint, t.contents);
         utf8.erase(chars.begin()->offset, chars.begin()->length);
         for (auto&& c : chars) {
           c.offset -= chars.begin()->length;
@@ -353,6 +354,6 @@ namespace cairo {
     std::deque<pair<double, double>> m_points;
     int m_activegroups{0};
   };
-}
+}  // namespace cairo
 
 POLYBAR_NS_END

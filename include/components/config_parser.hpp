@@ -41,7 +41,7 @@ class invalid_name_error : public syntax_error {
    * type is either Header or Key
    */
   invalid_name_error(const string& type, const string& name)
-      : syntax_error(type + " '" + name + "' contains forbidden characters.") {}
+      : syntax_error(type + " name '" + name + "' is empty or contains forbidden characters.") {}
 };
 
 /**
