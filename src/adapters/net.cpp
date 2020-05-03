@@ -36,6 +36,10 @@ namespace net {
    * Construct network interface
    */
   network::network(string interface) : m_log(logger::make()), m_interface(move(interface)) {
+    if (m_interface == "<default-interface>") {
+      m_interface = defaultinterface();
+    }    
+    
     if (if_nametoindex(m_interface.c_str()) == 0) {
       throw network_error("Invalid network interface \"" + m_interface + "\"");
     }
@@ -133,6 +137,21 @@ namespace net {
       return ping && ping->exec(true) == EXIT_SUCCESS;
     } catch (const std::exception& err) {
       return false;
+    }
+  }
+
+  /**
+   * Get current default interface
+   */
+    string network::defaultinterface() const {
+    try {
+      string get_interface = "ip route | grep '^default' | awk '{print $5}' | head -n1";
+  	  auto command = command_util::make_command(get_interface);
+      command->exec();
+      
+      return command->readline();
+    } catch (const std::exception& err) {
+      return NULL;
     }
   }
 
