@@ -9,11 +9,11 @@ namespace modules {
    public:
     virtual ~input_handler() {}
     /**
-     * Handle command
+     * Handle action
      *
-     * \returns true if the command is supported and false otherwise
+     * \returns true if the action is supported and false otherwise
      */
-    virtual bool input(string&& cmd) = 0;
+    virtual bool input(string&& action) = 0;
 
     /**
      * The name of this input handler
