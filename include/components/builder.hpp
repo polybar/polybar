@@ -4,6 +4,7 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
+#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
@@ -48,7 +49,9 @@ class builder {
   void underline_close();
   void control(controltag tag);
   void cmd(mousebtn index, string action);
+  void cmd(mousebtn btn, const modules::input_handler& handler, string action);
   void cmd(mousebtn index, string action, const label_t& label);
+  void cmd(mousebtn btn, const modules::input_handler& handler, string action, const label_t& label);
   void cmd_close();
 
  protected:

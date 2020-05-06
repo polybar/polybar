@@ -6,6 +6,7 @@
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
+#include "utils/actions.hpp"
 POLYBAR_NS
 
 builder::builder(const bar_settings& bar) : m_bar(bar) {
@@ -437,6 +438,13 @@ void builder::cmd(mousebtn index, string action) {
 }
 
 /**
+ * Open an action tag for the given input handler and action
+ */
+void builder::cmd(mousebtn btn, const modules::input_handler& handler, string action) {
+  cmd(btn, actions_util::get_action_string(handler, action));
+}
+
+/**
  * Wrap label in command block
  */
 void builder::cmd(mousebtn index, string action, const label_t& label) {
@@ -445,6 +453,14 @@ void builder::cmd(mousebtn index, string action, const label_t& label) {
     node(label);
     tag_close(syntaxtag::A);
   }
+}
+
+
+/**
+ * Wrap label in module action
+ */
+void builder::cmd(mousebtn btn, const modules::input_handler& handler, string action, const label_t& label) {
+  cmd(btn, actions_util::get_action_string(handler, action), label);
 }
 
 /**
