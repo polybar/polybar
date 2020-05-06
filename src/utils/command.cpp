@@ -37,6 +37,7 @@ int command<output_policy::IGNORED>::exec(bool wait_for_completion) {
 
   if (process_util::in_forked_process(m_forkpid)) {
     setpgid(m_forkpid, 0);
+    process_util::redirect_process_output_to_dev_null();
     process_util::exec_sh(m_cmd.c_str());
   } else {
     if (wait_for_completion) {
