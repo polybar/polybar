@@ -20,7 +20,7 @@ namespace modules {
         if (m_tail) {
           return [&] {
             if (!m_command || !m_command->is_running()) {
-              string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
+              string exec = get_exec();
               m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
               m_command = command_util::make_command(exec);
 
@@ -57,7 +57,7 @@ namespace modules {
 
         return [&] {
           try {
-            auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+            string exec = get_exec();
             m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
             m_command = command_util::make_command(exec);
             m_command->exec(true);
@@ -84,6 +84,7 @@ namespace modules {
     // Load configuration values
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
+    m_exec_else = m_conf.get(name(), "exec-else", m_exec_else);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
 
     // Load configured click handlers
@@ -98,6 +99,7 @@ namespace modules {
 
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
+    m_formatter->add(FORMAT_ELSE, TAG_LABEL, {TAG_LABEL});
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), "label", "%output%");
     }
@@ -110,7 +112,7 @@ namespace modules {
     m_mainthread = thread([&] {
       try {
         while (running() && !m_stopping) {
-          if (check_condition()) {
+          if ((m_if_state = check_condition())) {
             sleep(process(m_handler));
           } else if (m_interval > 1s) {
             sleep(m_interval);
@@ -140,17 +142,19 @@ namespace modules {
   /**
    * Check if defined condition is met
    */
-  bool script_module::check_condition() {
+  int script_module::check_condition() {
     if (m_exec_if.empty()) {
-      return true;
+      return script_state::IF;
     } else if (command_util::make_command(m_exec_if)->exec(true) == 0) {
-      return true;
+      return script_state::IF;
+    } else if (!m_exec_else.empty() || has_else_format()) {
+      return script_state::ELSE;
     } else if (!m_output.empty()) {
       broadcast();
       m_output.clear();
       m_prev.clear();
     }
-    return false;
+    return script_state::NONE;
   }
 
   /**
@@ -165,10 +169,6 @@ namespace modules {
    * Generate module output
    */
   string script_module::get_output() {
-    if (m_output.empty()) {
-      return "";
-    }
-
     if (m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%output%", m_output);
@@ -203,6 +203,14 @@ namespace modules {
     return m_builder->flush();
   }
 
+  string script_module::get_format() const {
+    if (m_if_state == script_state::ELSE && has_else_format()) {
+      return FORMAT_ELSE;
+    } else {
+      return DEFAULT_FORMAT;
+    }
+  }
+
   /**
    * Output format tags
    */
@@ -214,6 +222,23 @@ namespace modules {
     }
 
     return true;
+  }
+
+  bool script_module::has_else_format() const {
+    try {
+      m_formatter->has("", FORMAT_ELSE);
+      return true;
+    } catch (const undefined_format& e) {
+      return false;
+    }
+  }
+
+  string script_module::get_exec()
+  {
+    if (m_if_state == script_state::ELSE)
+      return string_util::replace_all(m_exec_else, "%counter%", to_string(++m_counter));
+    else
+      return string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
   }
 }
 
