@@ -497,28 +497,39 @@ void controller::process_inputdata() {
   };
 #undef A_MAP
 
-  auto it = legacy_actions.find(cmd);
+  // Check if any key in the map is a prefix for the `cmd`
+  for (const auto& entry : legacy_actions) {
+    const auto& key = entry.first;
+    if (cmd.compare(0, key.length(), key) == 0) {
+      string type = entry.second.first;
+      auto data = cmd.substr(key.length());
+      string action = entry.second.second + data;
 
-  if (it != legacy_actions.end()) {
-    auto action = it->second.second;
-
-    for (auto&& handler : m_inputhandlers) {
-      auto module_ptr = std::dynamic_pointer_cast<module_interface>(handler);
-
-      if (module_ptr && module_ptr->type() == it->second.first) {
-        // TODO make this message more descriptive and maybe link to some documentation
-        m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler->input_handler_name(), action);
-        m_log.info("Forwarding legacy action '%s' to module '%s' as '%s'", cmd, handler->input_handler_name(), action);
-        if (!handler->input(string{action})) {
-          m_log.err("Failed to forward deprecated action to %s module. THIS IS A BUG!", it->second.first);
+      // Search for the first module that matches the type for this legacy action
+      for (auto&& mod : m_modules) {
+        if (mod->type() == type) {
+          auto handler_ptr = std::dynamic_pointer_cast<input_handler>(mod);
+          auto handler_name = handler_ptr->input_handler_name();
+          // TODO make this message more descriptive and maybe link to some documentation
+          // TODO use route to string methods to print action name that should be used.
+          m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler_name, action);
+          m_log.info("Forwarding legacy action '%s' to module '%s' as '%s'", cmd, handler_name, action);
+          if (!handler_ptr->input(std::forward<string>(action))) {
+            m_log.err("Failed to forward deprecated action to %s module", type);
+            /*
+             * Forward to shell if the module cannot accept the action to not break existing behavior.
+             * goto is used to break out of multiple loops at once.
+             */
+            goto forward_shell;
+          }
+          // Only deliver to the first matching module.
+          return;
         }
-        // Only deliver to the first matching module.
-        return;
       }
     }
-
-    // Fall through to running the action as a command to not break existing behavior.
   }
+
+forward_shell:
 
   try {
     // Run input as command if it's not an input for a module
