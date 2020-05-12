@@ -399,6 +399,8 @@ void controller::process_inputdata() {
   const string cmd = m_inputdata;
   m_inputdata.clear();
 
+  m_log.trace("controller: Processing inputdata: %s", cmd);
+
   /*
    * Module inputs have the following form (w/o the quotes): "#NAME#INPUT"
    * where 'NAME' is the name of the module (for which '#' is a forbidden
@@ -423,7 +425,7 @@ void controller::process_inputdata() {
     // Forwards the action to all input handlers that match the name
     for (auto&& handler : m_inputhandlers) {
       if (handler->input_handler_name() == handler_name) {
-        if (!handler->input(string{action})) {
+        if (!handler->input(std::forward<string>(action))) {
           m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
         }
 
@@ -443,13 +445,57 @@ void controller::process_inputdata() {
   /*
    * Maps legacy action names to a module type and the new action name in that module.
    *
+   * We try to match the old action name as a prefix, and everything after it will also be added to the end of the new
+   * action string (for example "mpdseek+5" will be redirected to "seek+5" in the first mpd module).
+   *
    * The action will be delivered to the first module of that type so that it is consistent with existing behavior.
+   * If the module does not support the action or no matching module is found, the command is forwarded to the shell.
    *
    * TODO Remove when deprecated action names are removed
    */
-  const std::map<string, std::pair<string, const string>> legacy_actions {
-    {"datetoggle", {string(date_module::TYPE), "toggle"}},
+#define A_MAP(old, module_name, event) {old, {string(module_name::TYPE), string(module_name::event)}}
+
+  const std::map<string, std::pair<string, const string>> legacy_actions{
+      A_MAP("datetoggle", date_module, EVENT_TOGGLE),
+      A_MAP("volup", alsa_module, EVENT_INC),
+      A_MAP("voldown", alsa_module, EVENT_DEC),
+      A_MAP("volmute", alsa_module, EVENT_TOGGLE),
+      A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
+      A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),
+      A_MAP("pa_volmute", pulseaudio_module, EVENT_TOGGLE),
+      A_MAP("xbacklight+", xbacklight_module, EVENT_INC),
+      A_MAP("xbacklight-", xbacklight_module, EVENT_DEC),
+      A_MAP("backlight+", backlight_module, EVENT_INC),
+      A_MAP("backlight-", backlight_module, EVENT_DEC),
+      A_MAP("xkeyboard/switch", xkeyboard_module, EVENT_SWITCH),
+      A_MAP("mpdplay", mpd_module, EVENT_PLAY),
+      A_MAP("mpdpause", mpd_module, EVENT_PAUSE),
+      A_MAP("mpdstop", mpd_module, EVENT_STOP),
+      A_MAP("mpdprev", mpd_module, EVENT_PREV),
+      A_MAP("mpdnext", mpd_module, EVENT_NEXT),
+      A_MAP("mpdrepeat", mpd_module, EVENT_REPEAT),
+      A_MAP("mpdsingle", mpd_module, EVENT_SINGLE),
+      A_MAP("mpdrandom", mpd_module, EVENT_RANDOM),
+      A_MAP("mpdconsume", mpd_module, EVENT_CONSUME),
+      // Has data
+      A_MAP("mpdseek", mpd_module, EVENT_SEEK),
+      // Has data
+      A_MAP("xworkspaces-focus=", xworkspaces_module, EVENT_FOCUS),
+      A_MAP("xworkspaces-next", xworkspaces_module, EVENT_NEXT),
+      A_MAP("xworkspaces-prev", xworkspaces_module, EVENT_PREV),
+      // Has data
+      A_MAP("bspwm-deskfocus", bspwm_module, EVENT_FOCUS),
+      A_MAP("bspwm-desknext", bspwm_module, EVENT_NEXT),
+      A_MAP("bspwm-deskprev", bspwm_module, EVENT_PREV),
+      // Has data
+      A_MAP("i3wm-wsfocus-", i3_module, EVENT_FOCUS),
+      A_MAP("i3wm-wsnext", i3_module, EVENT_NEXT),
+      A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
+      // Has data
+      A_MAP("menu-open-", menu_module, EVENT_OPEN),
+      A_MAP("menu-close", menu_module, EVENT_CLOSE),
   };
+#undef A_MAP
 
   auto it = legacy_actions.find(cmd);
 
