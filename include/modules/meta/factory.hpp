@@ -73,7 +73,7 @@ namespace {
     } else if (name == mpd_module::TYPE) {
       return new mpd_module(bar, move(module_name));
     } else if (name == "internal/volume") {
-      m_log.warn("internal/volume is deprecated, use %s instead", alsa_module::TYPE);
+      m_log.warn("internal/volume is deprecated, use %s instead", string(alsa_module::TYPE));
       return new alsa_module(bar, move(module_name));
     } else if (name == alsa_module::TYPE) {
       return new alsa_module(bar, move(module_name));

@@ -14,6 +14,7 @@ namespace modules {
     MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
+    static constexpr auto TYPE = MODULE_TYPE;                                           \
     string type() const {                                                               \
       return "";                                                                        \
     }                                                                                   \
