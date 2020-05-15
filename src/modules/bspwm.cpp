@@ -63,6 +63,7 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL_MONITOR)) {
       m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_MONITOR_LABEL);
+      m_dimmed_monitorlabel = load_optional_label(m_conf, name(), "label-dimmed-monitor");
     }
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
@@ -234,6 +235,11 @@ namespace modules {
 
         if (m_monitorlabel) {
           m_monitors.back()->label = m_monitorlabel->clone();
+
+          if (tag[0] == 'm') {
+            m_monitors.back()->label->replace_defined_values(m_dimmed_monitorlabel);
+          }
+
           m_monitors.back()->label->replace_token("%name%", value);
         }
       }
