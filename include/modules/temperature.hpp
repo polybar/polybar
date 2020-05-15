@@ -2,8 +2,8 @@
 
 #include <istream>
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -17,6 +17,8 @@ namespace modules {
     bool update();
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/temperature";
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
@@ -39,6 +41,6 @@ namespace modules {
     // Whether or not to show units with the %temperature-X% tokens
     bool m_units{true};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

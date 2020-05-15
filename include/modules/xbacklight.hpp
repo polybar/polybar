@@ -1,9 +1,9 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
+#include "settings.hpp"
 #include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
@@ -21,17 +21,16 @@ namespace modules {
    * This module is a lot faster, it's more responsive and it will
    * be dormant until new values are reported. Inotify watches
    * are a bit random when it comes to proc-/sysfs.
-   *
-   * TODO: Implement backlight configuring using scroll events
    */
-  class xbacklight_module : public static_module<xbacklight_module>,
-                            public event_handler<evt::randr_notify> {
+  class xbacklight_module : public static_module<xbacklight_module>, public event_handler<evt::randr_notify> {
    public:
     explicit xbacklight_module(const bar_settings& bar, string name_);
 
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/xbacklight";
 
    protected:
     void handle(const evt::randr_notify& evt);
@@ -56,6 +55,6 @@ namespace modules {
     bool m_scroll{true};
     std::atomic<int> m_percentage{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

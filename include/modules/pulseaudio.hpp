@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -21,6 +21,8 @@ namespace modules {
     string get_format() const;
     string get_output();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/pulseaudio";
 
    protected:
     bool input(string&& cmd);
@@ -51,6 +53,6 @@ namespace modules {
     atomic<int> m_volume{0};
     atomic<double> m_decibels{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

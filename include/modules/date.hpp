@@ -1,10 +1,10 @@
 #pragma once
 
-#include "modules/meta/timer_module.hpp"
-
-#include <iostream>
-#include <iomanip>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+
+#include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS
 
@@ -15,6 +15,8 @@ namespace modules {
 
     bool update();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/date";
 
    protected:
     bool input(string&& cmd);
@@ -41,6 +43,6 @@ namespace modules {
 
     std::atomic<bool> m_toggled{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

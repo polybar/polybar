@@ -22,7 +22,6 @@ using std::map;
 
 #define DEFAULT_FORMAT "format"
 
-#define DEFINE_MODULE(name, type) struct name : public type<name>
 #define CONST_MOD(name) static_cast<name const&>(*this)
 #define CAST_MOD(name) static_cast<name*>(this)
 
@@ -102,6 +101,11 @@ namespace modules {
     virtual ~module_interface() {}
 
     /**
+     * The type users have to specify in the module section `type` key
+     */
+    virtual string type() const = 0;
+
+    /**
      * Module name w/o 'module/' prefix
      */
     virtual string name_raw() const = 0;
@@ -123,6 +127,8 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
+    string type() const;
+
     string name_raw() const;
     string name() const;
     bool running() const;
@@ -133,6 +139,8 @@ namespace modules {
 
     bool input(string&& cmd);
     string input_handler_name() const;
+
+    static constexpr auto TYPE = "";
 
    protected:
     void broadcast();
@@ -155,8 +163,8 @@ namespace modules {
     mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 
-    string m_name;
-    string m_name_raw;
+    const string m_name;
+    const string m_name_raw;
     unique_ptr<builder> m_builder;
     unique_ptr<module_formatter> m_formatter;
     vector<thread> m_threads;

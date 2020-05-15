@@ -47,6 +47,8 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/bspwm";
+
    protected:
     bool input(string&& cmd);
 
@@ -91,6 +93,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0U};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

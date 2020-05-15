@@ -2,13 +2,12 @@
 
 #include "components/config.hpp"
 #include "modules/meta/inotify_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "settings.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class backlight_module : public inotify_module<backlight_module>, public input_handler {
+  class backlight_module : public inotify_module<backlight_module> {
    public:
     struct brightness_handle {
       void filepath(const string& path);
@@ -26,6 +25,8 @@ namespace modules {
     void idle();
     bool on_event(inotify_event* event);
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/backlight";
 
    protected:
     bool input(string&& cmd);

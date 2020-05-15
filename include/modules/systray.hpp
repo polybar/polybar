@@ -19,6 +19,8 @@ namespace modules {
     void update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/systray";
+
    protected:
     bool input(string&& cmd);
 
@@ -33,7 +35,7 @@ namespace modules {
 
     bool m_hidden{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END
 #endif

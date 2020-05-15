@@ -18,6 +18,8 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/network";
+
    protected:
     void subthread_routine();
 
@@ -53,6 +55,6 @@ namespace modules {
     bool m_accumulate{false};
     bool m_unknown_up{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -26,6 +26,8 @@ namespace modules {
     void update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/xkeyboard";
+
    protected:
     bool query_keyboard();
     bool blacklisted(const string& indicator_name);
@@ -42,7 +44,7 @@ namespace modules {
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
     static constexpr const char* DEFAULT_LAYOUT_ICON{"layout-icon-default"};
     static constexpr const char* DEFAULT_INDICATOR_ICON{"indicator-icon-default"};
-    
+
     static constexpr const char* EVENT_SWITCH{"xkeyboard/switch"};
 
     connection& m_connection;
@@ -63,6 +65,6 @@ namespace modules {
     iconset_t m_indicator_icons_on;
     iconset_t m_indicator_icons_off;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

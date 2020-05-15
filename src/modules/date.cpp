@@ -1,6 +1,6 @@
 #include "modules/date.hpp"
-#include "drawtypes/label.hpp"
 
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -93,6 +93,6 @@ namespace modules {
     wakeup();
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

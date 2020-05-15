@@ -50,14 +50,15 @@ namespace modules {
   /**
    * Module used to display EWMH desktops
    */
-  class xworkspaces_module : public static_module<xworkspaces_module>,
-                             public event_handler<evt::property_notify> {
+  class xworkspaces_module : public static_module<xworkspaces_module>, public event_handler<evt::property_notify> {
    public:
     explicit xworkspaces_module(const bar_settings& bar, string name_);
 
     void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/xworkspaces";
 
    protected:
     void handle(const evt::property_notify& evt);
