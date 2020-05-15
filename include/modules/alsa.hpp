@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -9,7 +9,7 @@ POLYBAR_NS
 namespace alsa {
   class mixer;
   class control;
-}
+}  // namespace alsa
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
@@ -28,6 +28,8 @@ namespace modules {
     string get_format() const;
     string get_output();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/alsa";
 
    protected:
     bool input(string&& cmd);
@@ -62,6 +64,6 @@ namespace modules {
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -422,7 +422,7 @@ void controller::process_inputdata() {
     // Forwards the action to all input handlers that match the name
     for (auto&& handler : m_inputhandlers) {
       if (handler->input_handler_name() == handler_name) {
-        if(!handler->input(string{action})) {
+        if (!handler->input(string{action})) {
           m_log.warn("The '%s' module does not support the '%s' action.", handler_name, action);
         }
 
@@ -432,9 +432,8 @@ void controller::process_inputdata() {
 
     if (num_delivered == 0) {
       m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
-    }
-    else {
-      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1? "s": "");
+    } else {
+      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
     }
 
     return;
@@ -600,7 +599,7 @@ size_t controller::setup_modules(alignment align) {
     try {
       auto type = m_conf.get("module/" + module_name, "type");
 
-      if (type == "custom/ipc" && !m_ipc) {
+      if (type == ipc_module::TYPE && !m_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");
       }
 

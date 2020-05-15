@@ -2,9 +2,9 @@
 
 #include <chrono>
 
-#include "utils/env.hpp"
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
@@ -23,6 +23,8 @@ namespace modules {
     string get_format() const;
     string get_output();
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/mpd";
 
    protected:
     bool input(string&& cmd);
@@ -103,6 +105,6 @@ namespace modules {
     string m_toggle_on_color;
     string m_toggle_off_color;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

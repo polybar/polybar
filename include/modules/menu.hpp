@@ -22,6 +22,8 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     void update() {}
 
+    static constexpr auto TYPE = "custom/menu";
+
    protected:
     bool input(string&& cmd);
 
@@ -42,6 +44,6 @@ namespace modules {
 
     std::atomic<int> m_level{-1};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -51,6 +51,8 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/i3";
+
    protected:
     bool input(string&& cmd);
 

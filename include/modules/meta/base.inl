@@ -47,6 +47,11 @@ namespace modules {
   }
 
   template <typename Impl>
+  string module<Impl>::type() const {
+    return string(CONST_MOD(Impl).TYPE);
+  }
+
+  template <typename Impl>
   bool module<Impl>::running() const {
     return static_cast<bool>(m_enabled);
   }
