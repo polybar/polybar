@@ -457,17 +457,24 @@ void controller::process_inputdata() {
 
   const std::map<string, std::pair<string, const string>> legacy_actions{
       A_MAP("datetoggle", date_module, EVENT_TOGGLE),
+#if ENABLE_ALSA
       A_MAP("volup", alsa_module, EVENT_INC),
       A_MAP("voldown", alsa_module, EVENT_DEC),
       A_MAP("volmute", alsa_module, EVENT_TOGGLE),
+#endif
+#if ENABLE_PULSEAUDIO
       A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
       A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),
       A_MAP("pa_volmute", pulseaudio_module, EVENT_TOGGLE),
+#endif
       A_MAP("xbacklight+", xbacklight_module, EVENT_INC),
       A_MAP("xbacklight-", xbacklight_module, EVENT_DEC),
       A_MAP("backlight+", backlight_module, EVENT_INC),
       A_MAP("backlight-", backlight_module, EVENT_DEC),
+#if ENABLE_XKEYBOARD
       A_MAP("xkeyboard/switch", xkeyboard_module, EVENT_SWITCH),
+#endif
+#if ENABLE_MPD
       A_MAP("mpdplay", mpd_module, EVENT_PLAY),
       A_MAP("mpdpause", mpd_module, EVENT_PAUSE),
       A_MAP("mpdstop", mpd_module, EVENT_STOP),
@@ -479,6 +486,7 @@ void controller::process_inputdata() {
       A_MAP("mpdconsume", mpd_module, EVENT_CONSUME),
       // Has data
       A_MAP("mpdseek", mpd_module, EVENT_SEEK),
+#endif
       // Has data
       A_MAP("xworkspaces-focus=", xworkspaces_module, EVENT_FOCUS),
       A_MAP("xworkspaces-next", xworkspaces_module, EVENT_NEXT),
@@ -487,10 +495,12 @@ void controller::process_inputdata() {
       A_MAP("bspwm-deskfocus", bspwm_module, EVENT_FOCUS),
       A_MAP("bspwm-desknext", bspwm_module, EVENT_NEXT),
       A_MAP("bspwm-deskprev", bspwm_module, EVENT_PREV),
+#if ENABLE_I3
       // Has data
       A_MAP("i3wm-wsfocus-", i3_module, EVENT_FOCUS),
       A_MAP("i3wm-wsnext", i3_module, EVENT_NEXT),
       A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
+#endif
       // Has data
       A_MAP("menu-open-", menu_module, EVENT_OPEN),
       A_MAP("menu-close", menu_module, EVENT_CLOSE),
