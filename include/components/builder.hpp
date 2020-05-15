@@ -24,7 +24,7 @@ class builder {
   void node(const label_t& label);
   void node_repeat(const string& str, size_t n);
   void node_repeat(const label_t& label, size_t n);
-  void offset(int pixels = 0);
+  void offset(int pixels);
   void space(size_t width);
   void space();
   void remove_trailing_space(size_t len);
