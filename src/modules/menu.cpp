@@ -89,12 +89,10 @@ namespace modules {
             builder->node(m_labelseparator);
             builder->space(spacing);
           }
-        } else if (item == m_levels[m_level]->items.back()) {
-          //Insert separator after last menu-item and before menu-toggle for expand-right=false
-          if (!m_expand_right && *m_labelseparator) {
-            builder->space(spacing);
-            builder->node(m_labelseparator);
-          }
+        //Insert separator after last menu-item and before menu-toggle for expand-right=false
+        } else if (!m_expand_right && *m_labelseparator) {
+          builder->space(spacing);
+          builder->node(m_labelseparator);
         }
       }
     } else {
