@@ -74,38 +74,25 @@ namespace modules {
       builder->cmd_close();
     } else if (tag == TAG_MENU && m_level > -1) {
       auto spacing = m_formatter->get(get_format())->spacing;
+      //Insert separator after menu-toggle and before menu-items for expand-right=true
+      if (m_expand_right && *m_labelseparator) {
+        builder->node(m_labelseparator);
+        builder->space(spacing);
+      }
       for (auto&& item : m_levels[m_level]->items) {
-        /*
-         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be
-         * drawn before or after the spacings and the separator
-         *
-         * If the menu expands to the left, the separator should be drawn on the right side because otherwise the menu
-         * would look like this:
-         * | x | y <label-toggle>
-         */
-        if(!m_expand_right) {
-          builder->cmd(mousebtn::LEFT, item->exec);
-          builder->node(item->label);
-          builder->cmd_close();
-        }
-
-        if (*m_labelseparator) {
-          if (item != m_levels[m_level]->items[0]) {
+        builder->cmd(mousebtn::LEFT, item->exec);
+        builder->node(item->label);
+        builder->cmd_close();
+        if (item != m_levels[m_level]->items.back()) {
+          builder->space(spacing);
+          if (*m_labelseparator) {
+            builder->node(m_labelseparator);
             builder->space(spacing);
           }
-          builder->node(m_labelseparator);
+        //Insert separator after last menu-item and before menu-toggle for expand-right=false
+        } else if (!m_expand_right && *m_labelseparator) {
           builder->space(spacing);
-        }
-
-        /*
-         * If the menu expands to the right, the separator should be drawn on the left side because otherwise the menu
-         * would look like this:
-         * <label-toggle> x | y |
-         */
-        if(m_expand_right) {
-          builder->cmd(mousebtn::LEFT, item->exec);
-          builder->node(item->label);
-          builder->cmd_close();
+          builder->node(m_labelseparator);
         }
       }
     } else {
