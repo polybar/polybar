@@ -325,27 +325,27 @@ namespace modules {
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
     } else if (tag == TAG_ICON_RANDOM) {
-      builder->action(mousebtn::LEFT, *this, EVENT_RANDOM, m_icons->get("random"));
+      builder->action(mousebtn::LEFT, *this, EVENT_RANDOM, "", m_icons->get("random"));
     } else if (tag == TAG_ICON_REPEAT) {
-      builder->action(mousebtn::LEFT, *this, EVENT_REPEAT, m_icons->get("repeat"));
+      builder->action(mousebtn::LEFT, *this, EVENT_REPEAT, "", m_icons->get("repeat"));
     } else if (tag == TAG_ICON_REPEAT_ONE || tag == TAG_ICON_SINGLE) {
-      builder->action(mousebtn::LEFT, *this, EVENT_SINGLE, m_icons->get("single"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SINGLE, "", m_icons->get("single"));
     } else if (tag == TAG_ICON_CONSUME) {
-      builder->action(mousebtn::LEFT, *this, EVENT_CONSUME, m_icons->get("consume"));
+      builder->action(mousebtn::LEFT, *this, EVENT_CONSUME, "", m_icons->get("consume"));
     } else if (tag == TAG_ICON_PREV) {
-      builder->action(mousebtn::LEFT, *this, EVENT_PREV, m_icons->get("prev"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PREV, "", m_icons->get("prev"));
     } else if ((tag == TAG_ICON_STOP || tag == TAG_TOGGLE_STOP) && (is_playing || is_paused)) {
-      builder->action(mousebtn::LEFT, *this, EVENT_STOP, m_icons->get("stop"));
+      builder->action(mousebtn::LEFT, *this, EVENT_STOP, "", m_icons->get("stop"));
     } else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing) {
-      builder->action(mousebtn::LEFT, *this, EVENT_PAUSE, m_icons->get("pause"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PAUSE, "", m_icons->get("pause"));
     } else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE || tag == TAG_TOGGLE_STOP) && !is_playing) {
-      builder->action(mousebtn::LEFT, *this, EVENT_PLAY, m_icons->get("play"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PLAY, "", m_icons->get("play"));
     } else if (tag == TAG_ICON_NEXT) {
-      builder->action(mousebtn::LEFT, *this, EVENT_NEXT, m_icons->get("next"));
+      builder->action(mousebtn::LEFT, *this, EVENT_NEXT, "", m_icons->get("next"));
     } else if (tag == TAG_ICON_SEEKB) {
-      builder->action(mousebtn::LEFT, *this, EVENT_SEEK + "-5"s, m_icons->get("seekb"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK, "-5"s, m_icons->get("seekb"));
     } else if (tag == TAG_ICON_SEEKF) {
-      builder->action(mousebtn::LEFT, *this, EVENT_SEEK + "+5"s, m_icons->get("seekf"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK, "+5"s, m_icons->get("seekf"));
     } else {
       return false;
     }
@@ -353,7 +353,7 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::input(string&& action) {
+  bool mpd_module::input(string&& action, string&& data) {
     m_log.info("%s: event: %s", name(), action);
 
     try {
@@ -384,17 +384,16 @@ namespace modules {
         mpd->set_random(!status->random());
       } else if (action == EVENT_CONSUME) {
         mpd->set_consume(!status->consume());
-      } else if (action.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
-        auto s = action.substr(strlen(EVENT_SEEK));
+      } else if (action == EVENT_SEEK) {
         int percentage = 0;
-        if (s.empty()) {
+        if (data.empty()) {
           return false;
-        } else if (s[0] == '+') {
-          percentage = status->get_elapsed_percentage() + std::strtol(s.substr(1).c_str(), nullptr, 10);
-        } else if (s[0] == '-') {
-          percentage = status->get_elapsed_percentage() - std::strtol(s.substr(1).c_str(), nullptr, 10);
+        } else if (data[0] == '+') {
+          percentage = status->get_elapsed_percentage() + std::strtol(data.substr(1).c_str(), nullptr, 10);
+        } else if (data[0] == '-') {
+          percentage = status->get_elapsed_percentage() - std::strtol(data.substr(1).c_str(), nullptr, 10);
         } else {
-          percentage = std::strtol(s.c_str(), nullptr, 10);
+          percentage = std::strtol(data.c_str(), nullptr, 10);
         }
         mpd->seek(status->get_songid(), status->get_seek_position(percentage));
       } else {

@@ -54,7 +54,7 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    bool input(string&& action);
+    bool input(string&& action, string&& data);
 
    private:
     bool handle_status(string& data);

@@ -32,7 +32,7 @@ namespace modules {
     static constexpr const char* EVENT_DEC = "dec";
 
    protected:
-    bool input(string&& cmd);
+    bool input(string&& cmd, string&& data);
 
    private:
     static constexpr auto TAG_LABEL = "<label>";

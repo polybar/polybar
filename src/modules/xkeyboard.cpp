@@ -172,7 +172,7 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_keyboard && m_keyboard->size() > 1) {
-      m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH, "");
       m_builder->append(output);
       m_builder->action_close();
     } else {
@@ -207,7 +207,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(string&& action) {
+  bool xkeyboard_module::input(string&& action, string&&) {
     if (action != EVENT_SWITCH) {
       return false;
     }

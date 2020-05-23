@@ -38,7 +38,7 @@ namespace modules {
     static constexpr const char* EVENT_SEEK = "seek";
 
    protected:
-    bool input(string&& action);
+    bool input(string&& action, string&& data);
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};

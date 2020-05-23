@@ -324,8 +324,8 @@ namespace modules {
     }
 
     if (m_scroll) {
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, string{EVENT_PREV});
-      m_builder->action(mousebtn::SCROLL_UP, *this, string{EVENT_NEXT});
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
     }
 
     m_builder->append(output);
@@ -352,7 +352,7 @@ namespace modules {
       for (auto&& desktop : m_viewports[m_index]->desktops) {
         if (desktop->label.get()) {
           if (m_click && desktop->state != desktop_state::ACTIVE) {
-            builder->action(mousebtn::LEFT, *this, string{EVENT_FOCUS} + to_string(desktop->index), desktop->label);
+            builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(desktop->index), desktop->label);
           } else {
             builder->node(desktop->label);
           }
@@ -368,7 +368,7 @@ namespace modules {
   /**
    * Handle user input event
    */
-  bool xworkspaces_module::input(string&& action) {
+  bool xworkspaces_module::input(string&& action, string&& data) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
 
     vector<unsigned int> indexes;
@@ -383,14 +383,12 @@ namespace modules {
     unsigned int new_desktop{0};
     unsigned int current_desktop{ewmh_util::get_current_desktop()};
 
-    size_t len;
-
-    if ((len = strlen(EVENT_FOCUS)) && action.compare(0, len, EVENT_FOCUS) == 0) {
-      new_desktop = std::strtoul(action.substr(len).c_str(), nullptr, 10);
-    } else if ((len = strlen(EVENT_NEXT)) && action.compare(0, len, EVENT_NEXT) == 0) {
+    if (action == EVENT_FOCUS) {
+      new_desktop = std::strtoul(data.c_str(), nullptr, 10);
+    } else if (action == EVENT_NEXT) {
       new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
       new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else if ((len = strlen(EVENT_PREV)) && action.compare(0, len, EVENT_PREV) == 0) {
+    } else if (action == EVENT_PREV) {
       new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
       new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
     }

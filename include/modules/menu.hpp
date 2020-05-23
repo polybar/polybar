@@ -28,7 +28,7 @@ namespace modules {
     static constexpr auto EVENT_CLOSE = "close";
 
    protected:
-    bool input(string&& action);
+    bool input(string&& action, string&& data);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";

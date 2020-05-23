@@ -396,8 +396,8 @@ namespace modules {
       size_t workspace_n{0U};
 
       if (m_scroll) {
-        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV);
-        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT);
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
       }
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
@@ -409,7 +409,7 @@ namespace modules {
           workspace_n++;
 
           if (m_click) {
-            builder->action(mousebtn::LEFT, *this, sstream() << EVENT_FOCUS << m_index << "+" << workspace_n, ws.second);
+            builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, sstream() << m_index << "+" << workspace_n, ws.second);
           } else {
             builder->node(ws.second);
           }
@@ -445,7 +445,7 @@ namespace modules {
     return false;
   }
 
-  bool bspwm_module::input(string&& action) {
+  bool bspwm_module::input(string&& action, string&& data) {
     auto send_command = [this](string payload_cmd, string log_info) {
       try {
         auto ipc = bspwm_util::make_connection();
@@ -458,18 +458,16 @@ namespace modules {
       }
     };
 
-    if (action.compare(0, strlen(EVENT_FOCUS), EVENT_FOCUS) == 0) {
-      action.erase(0, strlen(EVENT_FOCUS));
-
-      size_t separator{string_util::find_nth(action, 0, "+", 1)};
-      size_t monitor_n{std::strtoul(action.substr(0, separator).c_str(), nullptr, 10)};
-      string workspace_n{action.substr(separator + 1)};
+    if (action == EVENT_FOCUS) {
+      size_t separator{string_util::find_nth(data, 0, "+", 1)};
+      size_t monitor_n{std::strtoul(data.substr(0, separator).c_str(), nullptr, 10)};
+      string workspace_n{data.substr(separator + 1)};
 
       if (monitor_n < m_monitors.size()) {
         send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
             "Sending desktop focus command to ipc handler");
       } else {
-        m_log.err("%s: Invalid monitor index in command: %s", name(), action);
+        m_log.err("%s: Invalid monitor index in command: %s", name(), data);
       }
 
       return true;

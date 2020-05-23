@@ -117,9 +117,9 @@ namespace modules {
         m_builder->action(mousebtn::RIGHT, click_right);
       }
 
-      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE);
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC);
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
@@ -142,7 +142,7 @@ namespace modules {
     return true;
   }
 
-  bool pulseaudio_module::input(string&& action) {
+  bool pulseaudio_module::input(string&& action, string&&) {
     if (!m_handle_events) {
       return false;
     }

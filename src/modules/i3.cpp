@@ -183,8 +183,8 @@ namespace modules {
       builder->node(m_modelabel);
     } else if (tag == TAG_LABEL_STATE && !m_workspaces.empty()) {
       if (m_scroll) {
-        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV);
-        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT);
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
       }
 
       bool first = true;
@@ -201,7 +201,7 @@ namespace modules {
         }
 
         if (m_click) {
-          builder->action(mousebtn::LEFT, *this, string{EVENT_FOCUS} + ws->name, ws->label);
+          builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, ws->name, ws->label);
         } else {
           builder->node(ws->label);
         }
@@ -218,14 +218,13 @@ namespace modules {
     return true;
   }
 
-  bool i3_module::input(string&& action) {
+  bool i3_module::input(string&& action, string&& data) {
     try {
       const i3_util::connection_t conn{};
 
-      if (action.compare(0, strlen(EVENT_FOCUS), EVENT_FOCUS) == 0) {
-        action.erase(0, strlen(EVENT_FOCUS));
+      if (action == EVENT_FOCUS) {
         m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        conn.send_command(make_workspace_command(action));
+        conn.send_command(make_workspace_command(data));
         return true;
       }
 
