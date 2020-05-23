@@ -402,9 +402,11 @@ void controller::process_inputdata() {
   m_log.trace("controller: Processing inputdata: %s", cmd);
 
   /*
-   * Module inputs have the following form (w/o the quotes): "#NAME#INPUT"
+   * Module inputs have the following form (w/o the quotes): "#NAME#ACTION[.DATA]"
    * where 'NAME' is the name of the module (for which '#' is a forbidden
-   * character) and 'INPUT' is the input that is sent to the module
+   * character) and 'ACTION' is the input that is sent to the module. 'DATA'
+   * is optional data that is attached to the action and is also sent to the
+   * module.
    */
   if (cmd.front() == '#') {
     // Find the second delimiter '#'
@@ -417,15 +419,25 @@ void controller::process_inputdata() {
 
     auto handler_name = cmd.substr(1, end_pos - 1);
     auto action = cmd.substr(end_pos + 1);
+    string data;
 
-    m_log.info("Forwarding data to input handlers (name: %s, action: %s) ", handler_name, action);
+    // Find the '.' character that separates the data from the action name
+    auto data_sep_pos = action.find('.', 0);
+
+    // The action contains data
+    if (data_sep_pos != string::npos) {
+      data = action.substr(end_pos + 1);
+      action.erase(end_pos);
+    }
+
+    m_log.info("Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
 
     int num_delivered = 0;
 
     // Forwards the action to all input handlers that match the name
     for (auto&& handler : m_inputhandlers) {
       if (handler->input_handler_name() == handler_name) {
-        if (!handler->input(std::forward<string>(action))) {
+        if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
           m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
         }
 
@@ -513,7 +525,7 @@ void controller::process_inputdata() {
     if (cmd.compare(0, key.length(), key) == 0) {
       string type = entry.second.first;
       auto data = cmd.substr(key.length());
-      string action = entry.second.second + data;
+      string action = entry.second.second;
 
       // Search for the first module that matches the type for this legacy action
       for (auto&& mod : m_modules) {
@@ -522,9 +534,13 @@ void controller::process_inputdata() {
           auto handler_name = handler_ptr->input_handler_name();
           // TODO make this message more descriptive and maybe link to some documentation
           // TODO use route to string methods to print action name that should be used.
-          m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler_name, action);
-          m_log.info("Forwarding legacy action '%s' to module '%s' as '%s'", cmd, handler_name, action);
-          if (!handler_ptr->input(std::forward<string>(action))) {
+          if (data.empty()) {
+            m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler_name, action);
+          } else {
+            m_log.warn("The action '%s' is deprecated, use '#%s#%s.%s' instead!", cmd, handler_name, action, data);
+          }
+          m_log.info("Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
+          if (!handler_ptr->input(std::forward<string>(action), std::forward<string>(data))) {
             m_log.err("Failed to forward deprecated action to %s module", type);
             /*
              * Forward to shell if the module cannot accept the action to not break existing behavior.

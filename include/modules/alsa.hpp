@@ -36,7 +36,7 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "toggle";
 
    protected:
-    bool input(string&& action);
+    bool input(string&& action, string&& data);
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";

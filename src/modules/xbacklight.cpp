@@ -116,8 +116,8 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_scroll) {
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC);
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC);
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
@@ -147,7 +147,7 @@ namespace modules {
   /**
    * Process scroll events by changing backlight value
    */
-  bool xbacklight_module::input(string&& action) {
+  bool xbacklight_module::input(string&& action, string&&) {
     double value_mod{0.0};
 
     if (action == EVENT_INC) {

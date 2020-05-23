@@ -41,7 +41,7 @@ namespace modules {
    */
   bool systray_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_TOGGLE) {
-      builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, m_label);
+      builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
     } else if (tag == TAG_TRAY_CLIENTS && !m_hidden) {
       builder->append(TRAY_PLACEHOLDER);
     } else {
@@ -53,7 +53,7 @@ namespace modules {
   /**
    * Handle input event
    */
-  bool systray_module::input(string&& action) {
+  bool systray_module::input(string&& action, string&& data) {
     if (action.find(EVENT_TOGGLE) != 0) {
       return false;
     }

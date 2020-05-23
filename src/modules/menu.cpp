@@ -58,7 +58,7 @@ namespace modules {
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
         auto item = factory_util::unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
-        item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE));
+        item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE, ""));
         m_levels.back()->items.emplace_back(move(item));
       }
     }
@@ -66,9 +66,9 @@ namespace modules {
 
   bool menu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
-      builder->action(mousebtn::LEFT, *this, string(EVENT_OPEN) + "0", m_labelopen);
+      builder->action(mousebtn::LEFT, *this, string(EVENT_OPEN), "0", m_labelopen);
     } else if (tag == TAG_LABEL_TOGGLE && m_level > -1) {
-      builder->action(mousebtn::LEFT, *this, EVENT_CLOSE, m_labelclose);
+      builder->action(mousebtn::LEFT, *this, EVENT_CLOSE, "", m_labelclose);
     } else if (tag == TAG_MENU && m_level > -1) {
       auto spacing = m_formatter->get(get_format())->spacing;
       //Insert separator after menu-toggle and before menu-items for expand-right=true
@@ -96,7 +96,7 @@ namespace modules {
     return true;
   }
 
-  bool menu_module::input(string&& action) {
+  bool menu_module::input(string&& action, string&& data) {
     // TODO Figure out how to close menu when command is executed (maybe exec-N action)
     if (action.compare(0, 4, "menu") != 0 && m_level > -1) {
       for (auto&& item : m_levels[m_level]->items) {
@@ -109,8 +109,8 @@ namespace modules {
       return false;
     }
 
-    if (action.compare(0, strlen(EVENT_OPEN), EVENT_OPEN) == 0) {
-      auto level = action.substr(strlen(EVENT_OPEN));
+    if (action == EVENT_OPEN) {
+      auto level = data;
 
       if (level.empty()) {
         level = "0";

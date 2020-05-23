@@ -191,9 +191,9 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE);
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC);
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
@@ -218,7 +218,7 @@ namespace modules {
     return true;
   }
 
-  bool alsa_module::input(string&& action) {
+  bool alsa_module::input(string&& action , string&&) {
     if (!m_handle_events) {
       return false;
     } else if (!m_mixer[mixer::MASTER]) {

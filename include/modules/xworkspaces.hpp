@@ -72,7 +72,7 @@ namespace modules {
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
 
-    bool input(string&& action);
+    bool input(string&& action, string&& data);
 
    private:
     static vector<string> get_desktop_names();

@@ -9,11 +9,14 @@ namespace modules {
    public:
     virtual ~input_handler() {}
     /**
-     * Handle action
+     * Handle action, possibly with data attached
+     *
+     * Any implementation is free to ignore the data, if the action does not
+     * require additional data.
      *
      * \returns true if the action is supported and false otherwise
      */
-    virtual bool input(string&& action) = 0;
+    virtual bool input(string&& action, string&& data) = 0;
 
     /**
      * The name of this input handler

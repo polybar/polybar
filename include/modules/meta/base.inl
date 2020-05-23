@@ -104,7 +104,7 @@ namespace modules {
   }
 
   template <typename Impl>
-  bool module<Impl>::input(string&&) {
+  bool module<Impl>::input(string&&, string&&) {
     // By default a module doesn't support inputs
     return false;
   }
