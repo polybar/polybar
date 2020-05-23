@@ -402,15 +402,15 @@ void controller::process_inputdata() {
   m_log.trace("controller: Processing inputdata: %s", cmd);
 
   /*
-   * Module inputs have the following form (w/o the quotes): "#NAME#ACTION[.DATA]"
-   * where 'NAME' is the name of the module (for which '#' is a forbidden
+   * Module inputs have the following form (w/o the quotes): "#NAME.ACTION[.DATA]"
+   * where 'NAME' is the name of the module (for which '.' is a forbidden
    * character) and 'ACTION' is the input that is sent to the module. 'DATA'
    * is optional data that is attached to the action and is also sent to the
    * module.
    */
   if (cmd.front() == '#') {
-    // Find the second delimiter '#'
-    auto end_pos = cmd.find('#', 1);
+    // Find the second delimiter '.'
+    auto end_pos = cmd.find('.', 1);
 
     if (end_pos == string::npos) {
       m_log.err("Invalid action string (input: %s)", cmd);
@@ -535,9 +535,9 @@ void controller::process_inputdata() {
           // TODO make this message more descriptive and maybe link to some documentation
           // TODO use route to string methods to print action name that should be used.
           if (data.empty()) {
-            m_log.warn("The action '%s' is deprecated, use '#%s#%s' instead!", cmd, handler_name, action);
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, handler_name, action);
           } else {
-            m_log.warn("The action '%s' is deprecated, use '#%s#%s.%s' instead!", cmd, handler_name, action, data);
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, handler_name, action, data);
           }
           m_log.info("Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
           if (!handler_ptr->input(std::forward<string>(action), std::forward<string>(data))) {
