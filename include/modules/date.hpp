@@ -18,12 +18,13 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/date";
 
+    static constexpr auto EVENT_TOGGLE = "toggle";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto EVENT_TOGGLE = "datetoggle";
 
     // \deprecated: Use <label>
     static constexpr auto TAG_DATE = "<date>";

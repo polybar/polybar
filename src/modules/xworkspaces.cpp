@@ -324,14 +324,14 @@ namespace modules {
     }
 
     if (m_scroll) {
-      m_builder->cmd(mousebtn::SCROLL_DOWN, string{EVENT_PREFIX} + string{EVENT_SCROLL_DOWN});
-      m_builder->cmd(mousebtn::SCROLL_UP, string{EVENT_PREFIX} + string{EVENT_SCROLL_UP});
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, string{EVENT_PREV});
+      m_builder->action(mousebtn::SCROLL_UP, *this, string{EVENT_NEXT});
     }
 
     m_builder->append(output);
 
-    m_builder->cmd_close();
-    m_builder->cmd_close();
+    m_builder->action_close();
+    m_builder->action_close();
 
     return m_builder->flush();
   }
@@ -352,9 +352,7 @@ namespace modules {
       for (auto&& desktop : m_viewports[m_index]->desktops) {
         if (desktop->label.get()) {
           if (m_click && desktop->state != desktop_state::ACTIVE) {
-            builder->cmd(mousebtn::LEFT, string{EVENT_PREFIX} + string{EVENT_CLICK} + to_string(desktop->index));
-            builder->node(desktop->label);
-            builder->cmd_close();
+            builder->action(mousebtn::LEFT, *this, string{EVENT_FOCUS} + to_string(desktop->index), desktop->label);
           } else {
             builder->node(desktop->label);
           }
@@ -370,14 +368,8 @@ namespace modules {
   /**
    * Handle user input event
    */
-  bool xworkspaces_module::input(string&& cmd) {
+  bool xworkspaces_module::input(string&& action) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
-
-    size_t len{strlen(EVENT_PREFIX)};
-    if (cmd.compare(0, len, EVENT_PREFIX) != 0) {
-      return false;
-    }
-    cmd.erase(0, len);
 
     vector<unsigned int> indexes;
     for (auto&& viewport : m_viewports) {
@@ -391,12 +383,14 @@ namespace modules {
     unsigned int new_desktop{0};
     unsigned int current_desktop{ewmh_util::get_current_desktop()};
 
-    if ((len = strlen(EVENT_CLICK)) && cmd.compare(0, len, EVENT_CLICK) == 0) {
-      new_desktop = std::strtoul(cmd.substr(len).c_str(), nullptr, 10);
-    } else if ((len = strlen(EVENT_SCROLL_UP)) && cmd.compare(0, len, EVENT_SCROLL_UP) == 0) {
+    size_t len;
+
+    if ((len = strlen(EVENT_FOCUS)) && action.compare(0, len, EVENT_FOCUS) == 0) {
+      new_desktop = std::strtoul(action.substr(len).c_str(), nullptr, 10);
+    } else if ((len = strlen(EVENT_NEXT)) && action.compare(0, len, EVENT_NEXT) == 0) {
       new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
       new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else if ((len = strlen(EVENT_SCROLL_DOWN)) && cmd.compare(0, len, EVENT_SCROLL_DOWN) == 0) {
+    } else if ((len = strlen(EVENT_PREV)) && action.compare(0, len, EVENT_PREV) == 0) {
       new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
       new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
     }

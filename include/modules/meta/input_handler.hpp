@@ -17,8 +17,6 @@ namespace modules {
 
     /**
      * The name of this input handler
-     *
-     * Actions of the form '#NAME#ACTION' can be sent to this handler if NAME is the name of this input handler.
      */
     virtual string input_handler_name() const = 0;
   };

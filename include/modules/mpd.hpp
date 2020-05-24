@@ -26,8 +26,19 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/mpd";
 
+    static constexpr const char* EVENT_PLAY = "play";
+    static constexpr const char* EVENT_PAUSE = "pause";
+    static constexpr const char* EVENT_STOP = "stop";
+    static constexpr const char* EVENT_PREV = "prev";
+    static constexpr const char* EVENT_NEXT = "next";
+    static constexpr const char* EVENT_REPEAT = "repeat";
+    static constexpr const char* EVENT_SINGLE = "single";
+    static constexpr const char* EVENT_RANDOM = "random";
+    static constexpr const char* EVENT_CONSUME = "consume";
+    static constexpr const char* EVENT_SEEK = "seek";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};
@@ -62,17 +73,6 @@ namespace modules {
 
     static constexpr const char* FORMAT_OFFLINE{"format-offline"};
     static constexpr const char* TAG_LABEL_OFFLINE{"<label-offline>"};
-
-    static constexpr const char* EVENT_PLAY{"mpdplay"};
-    static constexpr const char* EVENT_PAUSE{"mpdpause"};
-    static constexpr const char* EVENT_STOP{"mpdstop"};
-    static constexpr const char* EVENT_PREV{"mpdprev"};
-    static constexpr const char* EVENT_NEXT{"mpdnext"};
-    static constexpr const char* EVENT_REPEAT{"mpdrepeat"};
-    static constexpr const char* EVENT_SINGLE{"mpdsingle"};
-    static constexpr const char* EVENT_RANDOM{"mpdrandom"};
-    static constexpr const char* EVENT_CONSUME{"mpdconsume"};
-    static constexpr const char* EVENT_SEEK{"mpdseek"};
 
     unique_ptr<mpdconnection> m_mpd;
 

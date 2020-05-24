@@ -24,15 +24,15 @@ namespace modules {
 
     static constexpr auto TYPE = "custom/menu";
 
+    static constexpr auto EVENT_OPEN = "open";
+    static constexpr auto EVENT_CLOSE = "close";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";
     static constexpr auto TAG_MENU = "<menu>";
-
-    static constexpr auto EVENT_MENU_OPEN = "menu-open-";
-    static constexpr auto EVENT_MENU_CLOSE = "menu-close";
 
     bool m_expand_right{true};
 

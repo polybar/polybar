@@ -191,9 +191,9 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE);
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC);
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC);
     }
 
     m_builder->append(output);
@@ -218,10 +218,8 @@ namespace modules {
     return true;
   }
 
-  bool alsa_module::input(string&& cmd) {
+  bool alsa_module::input(string&& action) {
     if (!m_handle_events) {
-      return false;
-    } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
       return false;
     } else if (!m_mixer[mixer::MASTER]) {
       return false;
@@ -244,16 +242,16 @@ namespace modules {
             string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
       }
 
-      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+      if (action == EVENT_TOGGLE) {
         for (auto&& mixer : mixers) {
           mixer->set_mute(m_muted || mixers[0]->is_muted());
         }
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+      } else if (action == EVENT_INC) {
         for (auto&& mixer : mixers) {
           m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + m_interval, 0, 100))
                    : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + m_interval, 0, 100));
         }
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+      } else if (action == EVENT_DEC) {
         for (auto&& mixer : mixers) {
           m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - m_interval, 0, 100))
                    : mixer->set_volume(math_util::cap<float>(mixer->get_volume() - m_interval, 0, 100));

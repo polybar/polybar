@@ -137,7 +137,7 @@ namespace modules {
     void teardown();
     string contents();
 
-    bool input(string&& cmd);
+    bool input(string&& action);
     string input_handler_name() const;
 
     static constexpr auto TYPE = "";

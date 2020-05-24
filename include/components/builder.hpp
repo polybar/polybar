@@ -48,11 +48,11 @@ class builder {
   void underline(const string& color = "");
   void underline_close();
   void control(controltag tag);
-  void cmd(mousebtn index, string action);
-  void cmd(mousebtn btn, const modules::input_handler& handler, string action);
-  void cmd(mousebtn index, string action, const label_t& label);
-  void cmd(mousebtn btn, const modules::input_handler& handler, string action, const label_t& label);
-  void cmd_close();
+  void action(mousebtn index, string action);
+  void action(mousebtn btn, const modules::input_handler& handler, string action);
+  void action(mousebtn index, string action, const label_t& label);
+  void action(mousebtn btn, const modules::input_handler& handler, string action, const label_t& label);
+  void action_close();
 
  protected:
   string background_hex();

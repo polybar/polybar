@@ -116,14 +116,14 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_scroll) {
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC);
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC);
     }
 
     m_builder->append(output);
 
-    m_builder->cmd_close();
-    m_builder->cmd_close();
+    m_builder->action_close();
+    m_builder->action_close();
 
     return m_builder->flush();
   }
@@ -147,13 +147,13 @@ namespace modules {
   /**
    * Process scroll events by changing backlight value
    */
-  bool xbacklight_module::input(string&& cmd) {
+  bool xbacklight_module::input(string&& action) {
     double value_mod{0.0};
 
-    if (cmd == EVENT_SCROLLUP) {
+    if (action == EVENT_INC) {
       value_mod = 5.0;
       m_log.info("%s: Increasing value by %i%", name(), value_mod);
-    } else if (cmd == EVENT_SCROLLDOWN) {
+    } else if (action == EVENT_DEC) {
       value_mod = -5.0;
       m_log.info("%s: Decreasing value by %i%", name(), -value_mod);
     } else {

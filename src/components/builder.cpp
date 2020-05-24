@@ -72,7 +72,7 @@ string builder::flush() {
   }
 
   while (m_tags[syntaxtag::A]) {
-    cmd_close();
+    action_close();
   }
 
   string output{m_output};
@@ -428,9 +428,11 @@ void builder::control(controltag tag) {
 }
 
 /**
- * Open command tag
+ * Open action tag with the given action string
+ *
+ * The action string is escaped, if needed.
  */
-void builder::cmd(mousebtn index, string action) {
+void builder::action(mousebtn index, string action) {
   if (!action.empty()) {
     action = string_util::replace_all(action, ":", "\\:");
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
@@ -438,18 +440,18 @@ void builder::cmd(mousebtn index, string action) {
 }
 
 /**
- * Open an action tag for the given input handler and action
+ * Open action tag for the action of the given input_handler
  */
-void builder::cmd(mousebtn btn, const modules::input_handler& handler, string action) {
-  cmd(btn, actions_util::get_action_string(handler, action));
+void builder::action(mousebtn btn, const modules::input_handler& handler, string action_name) {
+  action(btn, actions_util::get_action_string(handler, action_name));
 }
 
 /**
- * Wrap label in command block
+ * Wrap label in action tag
  */
-void builder::cmd(mousebtn index, string action, const label_t& label) {
+void builder::action(mousebtn index, string action_name, const label_t& label) {
   if (label && *label) {
-    cmd(index, action);
+    action(index, action_name);
     node(label);
     tag_close(syntaxtag::A);
   }
@@ -457,16 +459,16 @@ void builder::cmd(mousebtn index, string action, const label_t& label) {
 
 
 /**
- * Wrap label in module action
+ * Wrap label in module action tag
  */
-void builder::cmd(mousebtn btn, const modules::input_handler& handler, string action, const label_t& label) {
-  cmd(btn, actions_util::get_action_string(handler, action), label);
+void builder::action(mousebtn btn, const modules::input_handler& handler, string action_name, const label_t& label) {
+  action(btn, actions_util::get_action_string(handler, action_name), label);
 }
 
 /**
  * Close command tag
  */
-void builder::cmd_close() {
+void builder::action_close() {
   tag_close(syntaxtag::A);
 }
 
