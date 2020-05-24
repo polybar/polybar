@@ -426,8 +426,8 @@ void controller::process_inputdata() {
 
     // The action contains data
     if (data_sep_pos != string::npos) {
-      data = action.substr(end_pos + 1);
-      action.erase(end_pos);
+      data = action.substr(data_sep_pos + 1);
+      action.erase(data_sep_pos);
     }
 
     m_log.info("Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
