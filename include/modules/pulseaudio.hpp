@@ -24,8 +24,12 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/pulseaudio";
 
+    static constexpr auto EVENT_INC = "inc";
+    static constexpr auto EVENT_DEC = "dec";
+    static constexpr auto EVENT_TOGGLE = "toggle";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";
@@ -35,11 +39,6 @@ namespace modules {
     static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
-
-    static constexpr auto EVENT_PREFIX = "pa_vol";
-    static constexpr auto EVENT_VOLUME_UP = "pa_volup";
-    static constexpr auto EVENT_VOLUME_DOWN = "pa_voldown";
-    static constexpr auto EVENT_TOGGLE_MUTE = "pa_volmute";
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;

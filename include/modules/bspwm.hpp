@@ -49,8 +49,12 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/bspwm";
 
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     bool handle_status(string& data);
@@ -62,11 +66,6 @@ namespace modules {
     static constexpr auto TAG_LABEL_MONITOR = "<label-monitor>";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";
-
-    static constexpr const char* EVENT_PREFIX{"bspwm-desk"};
-    static constexpr const char* EVENT_CLICK{"bspwm-deskfocus"};
-    static constexpr const char* EVENT_SCROLL_UP{"bspwm-desknext"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"bspwm-deskprev"};
 
     bspwm_util::connection_t m_subscriber;
 

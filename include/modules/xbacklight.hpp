@@ -32,17 +32,17 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/xbacklight";
 
+    static constexpr const char* EVENT_INC = "inc";
+    static constexpr const char* EVENT_DEC = "dec";
+
    protected:
     void handle(const evt::randr_notify& evt);
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
     static constexpr const char* TAG_BAR{"<bar>"};
     static constexpr const char* TAG_RAMP{"<ramp>"};
-
-    static constexpr const char* EVENT_SCROLLUP{"xbacklight+"};
-    static constexpr const char* EVENT_SCROLLDOWN{"xbacklight-"};
 
     connection& m_connection;
     monitor_t m_output;

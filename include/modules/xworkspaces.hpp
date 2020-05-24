@@ -60,6 +60,10 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/xworkspaces";
 
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
    protected:
     void handle(const evt::property_notify& evt);
 
@@ -68,7 +72,7 @@ namespace modules {
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
 
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
     static vector<string> get_desktop_names();
@@ -79,11 +83,6 @@ namespace modules {
 
     static constexpr const char* TAG_LABEL_MONITOR{"<label-monitor>"};
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
-
-    static constexpr const char* EVENT_PREFIX{"xworkspaces-"};
-    static constexpr const char* EVENT_CLICK{"focus="};
-    static constexpr const char* EVENT_SCROLL_UP{"next"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"prev"};
 
     connection& m_connection;
     ewmh_connection_t m_ewmh;

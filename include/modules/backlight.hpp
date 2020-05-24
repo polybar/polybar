@@ -28,6 +28,9 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/backlight";
 
+    static constexpr const char* EVENT_INC = "inc";
+    static constexpr const char* EVENT_DEC = "dec";
+
    protected:
     bool input(string&& cmd);
 
@@ -35,9 +38,6 @@ namespace modules {
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_BAR = "<bar>";
     static constexpr auto TAG_RAMP = "<ramp>";
-
-    static constexpr const char* EVENT_SCROLLUP{"backlight+"};
-    static constexpr const char* EVENT_SCROLLDOWN{"backlight-"};
 
     ramp_t m_ramp;
     label_t m_label;

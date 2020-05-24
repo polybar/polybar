@@ -72,9 +72,7 @@ namespace modules {
   bool date_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
       if (!m_dateformat_alt.empty() || !m_timeformat_alt.empty()) {
-        builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
-        builder->node(m_label);
-        builder->cmd_close();
+        builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, m_label);
       } else {
         builder->node(m_label);
       }
@@ -85,8 +83,8 @@ namespace modules {
     return true;
   }
 
-  bool date_module::input(string&& cmd) {
-    if (cmd != EVENT_TOGGLE) {
+  bool date_module::input(string&& action) {
+    if (action != EVENT_TOGGLE) {
       return false;
     }
     m_toggled = !m_toggled;

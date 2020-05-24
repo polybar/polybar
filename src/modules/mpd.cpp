@@ -325,27 +325,27 @@ namespace modules {
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
     } else if (tag == TAG_ICON_RANDOM) {
-      builder->cmd(mousebtn::LEFT, EVENT_RANDOM, m_icons->get("random"));
+      builder->action(mousebtn::LEFT, *this, EVENT_RANDOM, m_icons->get("random"));
     } else if (tag == TAG_ICON_REPEAT) {
-      builder->cmd(mousebtn::LEFT, EVENT_REPEAT, m_icons->get("repeat"));
+      builder->action(mousebtn::LEFT, *this, EVENT_REPEAT, m_icons->get("repeat"));
     } else if (tag == TAG_ICON_REPEAT_ONE || tag == TAG_ICON_SINGLE) {
-      builder->cmd(mousebtn::LEFT, EVENT_SINGLE, m_icons->get("single"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SINGLE, m_icons->get("single"));
     } else if (tag == TAG_ICON_CONSUME) {
-      builder->cmd(mousebtn::LEFT, EVENT_CONSUME, m_icons->get("consume"));
+      builder->action(mousebtn::LEFT, *this, EVENT_CONSUME, m_icons->get("consume"));
     } else if (tag == TAG_ICON_PREV) {
-      builder->cmd(mousebtn::LEFT, EVENT_PREV, m_icons->get("prev"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PREV, m_icons->get("prev"));
     } else if ((tag == TAG_ICON_STOP || tag == TAG_TOGGLE_STOP) && (is_playing || is_paused)) {
-      builder->cmd(mousebtn::LEFT, EVENT_STOP, m_icons->get("stop"));
+      builder->action(mousebtn::LEFT, *this, EVENT_STOP, m_icons->get("stop"));
     } else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing) {
-      builder->cmd(mousebtn::LEFT, EVENT_PAUSE, m_icons->get("pause"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PAUSE, m_icons->get("pause"));
     } else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE || tag == TAG_TOGGLE_STOP) && !is_playing) {
-      builder->cmd(mousebtn::LEFT, EVENT_PLAY, m_icons->get("play"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PLAY, m_icons->get("play"));
     } else if (tag == TAG_ICON_NEXT) {
-      builder->cmd(mousebtn::LEFT, EVENT_NEXT, m_icons->get("next"));
+      builder->action(mousebtn::LEFT, *this, EVENT_NEXT, m_icons->get("next"));
     } else if (tag == TAG_ICON_SEEKB) {
-      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "-5"s, m_icons->get("seekb"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK + "-5"s, m_icons->get("seekb"));
     } else if (tag == TAG_ICON_SEEKF) {
-      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "+5"s, m_icons->get("seekf"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK + "+5"s, m_icons->get("seekf"));
     } else {
       return false;
     }
@@ -353,12 +353,8 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::input(string&& cmd) {
-    if (cmd.compare(0, 3, "mpd") != 0) {
-      return false;
-    }
-
-    m_log.info("%s: event: %s", name(), cmd);
+  bool mpd_module::input(string&& action) {
+    m_log.info("%s: event: %s", name(), action);
 
     try {
       auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
@@ -370,26 +366,26 @@ namespace modules {
       bool is_paused = status->match_state(mpdstate::PAUSED);
       bool is_stopped = status->match_state(mpdstate::STOPPED);
 
-      if (cmd == EVENT_PLAY && !is_playing) {
+      if (action == EVENT_PLAY && !is_playing) {
         mpd->play();
-      } else if (cmd == EVENT_PAUSE && !is_paused) {
+      } else if (action == EVENT_PAUSE && !is_paused) {
         mpd->pause(true);
-      } else if (cmd == EVENT_STOP && !is_stopped) {
+      } else if (action == EVENT_STOP && !is_stopped) {
         mpd->stop();
-      } else if (cmd == EVENT_PREV && !is_stopped) {
+      } else if (action == EVENT_PREV && !is_stopped) {
         mpd->prev();
-      } else if (cmd == EVENT_NEXT && !is_stopped) {
+      } else if (action == EVENT_NEXT && !is_stopped) {
         mpd->next();
-      } else if (cmd == EVENT_SINGLE) {
+      } else if (action == EVENT_SINGLE) {
         mpd->set_single(!status->single());
-      } else if (cmd == EVENT_REPEAT) {
+      } else if (action == EVENT_REPEAT) {
         mpd->set_repeat(!status->repeat());
-      } else if (cmd == EVENT_RANDOM) {
+      } else if (action == EVENT_RANDOM) {
         mpd->set_random(!status->random());
-      } else if (cmd == EVENT_CONSUME) {
+      } else if (action == EVENT_CONSUME) {
         mpd->set_consume(!status->consume());
-      } else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
-        auto s = cmd.substr(strlen(EVENT_SEEK));
+      } else if (action.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
+        auto s = action.substr(strlen(EVENT_SEEK));
         int percentage = 0;
         if (s.empty()) {
           return false;

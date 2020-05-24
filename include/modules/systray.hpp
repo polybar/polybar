@@ -21,11 +21,12 @@ namespace modules {
 
     static constexpr auto TYPE = "internal/systray";
 
+    static constexpr auto EVENT_TOGGLE = "toggle";
+
    protected:
-    bool input(string&& cmd);
+    bool input(string&& action);
 
    private:
-    static constexpr const char* EVENT_TOGGLE{"systray-toggle"};
 
     static constexpr const char* TAG_LABEL_TOGGLE{"<label-toggle>"};
     static constexpr const char* TAG_TRAY_CLIENTS{"<tray-clients>"};

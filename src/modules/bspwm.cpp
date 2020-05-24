@@ -396,8 +396,8 @@ namespace modules {
       size_t workspace_n{0U};
 
       if (m_scroll) {
-        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
-        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV);
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT);
       }
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
@@ -409,7 +409,7 @@ namespace modules {
           workspace_n++;
 
           if (m_click) {
-            builder->cmd(mousebtn::LEFT, sstream() << EVENT_CLICK << m_index << "+" << workspace_n, ws.second);
+            builder->action(mousebtn::LEFT, *this, sstream() << EVENT_FOCUS << m_index << "+" << workspace_n, ws.second);
           } else {
             builder->node(ws.second);
           }
@@ -423,8 +423,8 @@ namespace modules {
       }
 
       if (m_scroll) {
-        builder->cmd_close();
-        builder->cmd_close();
+        builder->action_close();
+        builder->action_close();
       }
 
       return workspace_n > 0;
@@ -445,11 +445,7 @@ namespace modules {
     return false;
   }
 
-  bool bspwm_module::input(string&& cmd) {
-    if (cmd.find(EVENT_PREFIX) != 0) {
-      return false;
-    }
-
+  bool bspwm_module::input(string&& action) {
     auto send_command = [this](string payload_cmd, string log_info) {
       try {
         auto ipc = bspwm_util::make_connection();
@@ -462,18 +458,18 @@ namespace modules {
       }
     };
 
-    if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-      cmd.erase(0, strlen(EVENT_CLICK));
+    if (action.compare(0, strlen(EVENT_FOCUS), EVENT_FOCUS) == 0) {
+      action.erase(0, strlen(EVENT_FOCUS));
 
-      size_t separator{string_util::find_nth(cmd, 0, "+", 1)};
-      size_t monitor_n{std::strtoul(cmd.substr(0, separator).c_str(), nullptr, 10)};
-      string workspace_n{cmd.substr(separator + 1)};
+      size_t separator{string_util::find_nth(action, 0, "+", 1)};
+      size_t monitor_n{std::strtoul(action.substr(0, separator).c_str(), nullptr, 10)};
+      string workspace_n{action.substr(separator + 1)};
 
       if (monitor_n < m_monitors.size()) {
         send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
             "Sending desktop focus command to ipc handler");
       } else {
-        m_log.err("%s: Invalid monitor index in command: %s", name(), cmd);
+        m_log.err("%s: Invalid monitor index in command: %s", name(), action);
       }
 
       return true;
@@ -481,9 +477,9 @@ namespace modules {
 
     string scrolldir;
 
-    if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+    if (action == EVENT_NEXT) {
       scrolldir = m_revscroll ? "prev" : "next";
-    } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+    } else if (action == EVENT_PREV) {
       scrolldir = m_revscroll ? "next" : "prev";
     } else {
       return false;

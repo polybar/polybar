@@ -183,8 +183,8 @@ namespace modules {
       builder->node(m_modelabel);
     } else if (tag == TAG_LABEL_STATE && !m_workspaces.empty()) {
       if (m_scroll) {
-        builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLL_DOWN);
-        builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLL_UP);
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV);
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT);
       }
 
       bool first = true;
@@ -201,17 +201,15 @@ namespace modules {
         }
 
         if (m_click) {
-          builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
-          builder->node(ws->label);
-          builder->cmd_close();
+          builder->action(mousebtn::LEFT, *this, string{EVENT_FOCUS} + ws->name, ws->label);
         } else {
           builder->node(ws->label);
         }
       }
 
       if (m_scroll) {
-        builder->cmd_close();
-        builder->cmd_close();
+        builder->action_close();
+        builder->action_close();
       }
     } else {
       return false;
@@ -220,26 +218,22 @@ namespace modules {
     return true;
   }
 
-  bool i3_module::input(string&& cmd) {
-    if (cmd.find(EVENT_PREFIX) != 0) {
-      return false;
-    }
-
+  bool i3_module::input(string&& action) {
     try {
       const i3_util::connection_t conn{};
 
-      if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
-        cmd.erase(0, strlen(EVENT_CLICK));
+      if (action.compare(0, strlen(EVENT_FOCUS), EVENT_FOCUS) == 0) {
+        action.erase(0, strlen(EVENT_FOCUS));
         m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        conn.send_command(make_workspace_command(cmd));
+        conn.send_command(make_workspace_command(action));
         return true;
       }
 
       string scrolldir;
 
-      if (cmd.compare(0, strlen(EVENT_SCROLL_UP), EVENT_SCROLL_UP) == 0) {
+      if (action == EVENT_NEXT) {
         scrolldir = m_revscroll ? "prev" : "next";
-      } else if (cmd.compare(0, strlen(EVENT_SCROLL_DOWN), EVENT_SCROLL_DOWN) == 0) {
+      } else if (action == EVENT_PREV) {
         scrolldir = m_revscroll ? "next" : "prev";
       } else {
         return false;
