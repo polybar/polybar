@@ -14,8 +14,10 @@
 #
 import os
 import datetime
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import subprocess
+from docutils.nodes import Node
+from typing import List
+from sphinx.domains.changeset import VersionChange
 
 
 # -- Project information -----------------------------------------------------
@@ -192,3 +194,27 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
+
+# The 'versionadded' and 'versionchanged' directives are overridden.
+suppress_warnings = ['app.add_directive']
+
+def setup(app):
+  app.add_directive('deprecated', VersionDirective)
+  app.add_directive('versionadded', VersionDirective)
+  app.add_directive('versionchanged', VersionDirective)
+
+class VersionDirective(VersionChange):
+  """
+  Overwrites the Sphinx directive for versionchanged, versionadded, and
+  deprecated and adds an unreleased tag to versions that are not yet released
+  """
+  def run(self) -> List[Node]:
+    # If the tag exists 'git rev-parse' will succeed and otherwise fail
+    completed = subprocess.run(["git", "rev-parse", self.arguments[0]],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=doc_path,
+        check=False)
+
+    if completed.returncode != 0:
+      self.arguments[0] += " (unreleased)"
+
+    return super().run()
