@@ -1,11 +1,11 @@
 #include "modules/menu.hpp"
 
 #include "drawtypes/label.hpp"
+#include "events/signal.hpp"
+#include "modules/meta/base.inl"
+#include "utils/actions.hpp"
 #include "utils/factory.hpp"
 #include "utils/scope.hpp"
-#include "utils/actions.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -97,19 +97,37 @@ namespace modules {
   }
 
   bool menu_module::input(string&& action, string&& data) {
-    // TODO Figure out how to close menu when command is executed (maybe exec-N action)
-    if (action.compare(0, 4, "menu") != 0 && m_level > -1) {
-      for (auto&& item : m_levels[m_level]->items) {
-        if (item->exec == action) {
-          m_level = -1;
-          break;
-        }
-      }
-      broadcast();
-      return false;
-    }
+    if (action == EVENT_EXEC) {
+      auto sep = data.find("-");
 
-    if (action == EVENT_OPEN) {
+      if (sep == data.npos) {
+        m_log.err("%s: Malformed data for exec action (data: '%s')", name(), data);
+        return false;
+      }
+
+      auto level = std::strtoul(data.substr(0, sep).c_str(), nullptr, 10);
+      auto item = std::strtoul(data.substr(sep + 1).c_str(), nullptr, 10);
+
+      if (level >= m_levels.size() || item >= m_levels[level]->items.size()) {
+        m_log.err("%s: menu-exec-%d-%d doesn't exist (data: '%s')", name(), level, item, data);
+        return false;
+      }
+
+      string exec = m_levels[level]->items[item]->exec;
+      // Send exec action to be executed
+      m_sig.emit(signals::ipc::action{std::move(exec)});
+
+      /*
+       * Only close the menu if the executed action is visible in the menu
+       * This stops the menu from closing, if the exec action comes from an
+       * external source
+       */
+      if (m_level == (int) level) {
+        m_level = -1;
+        broadcast();
+      }
+
+    } else if (action == EVENT_OPEN) {
       auto level = data;
 
       if (level.empty()) {
