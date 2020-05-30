@@ -53,7 +53,7 @@ namespace modules {
   /**
    * Handle input event
    */
-  bool systray_module::input(string&& action, string&& data) {
+  bool systray_module::input(string&& action, string&&) {
     if (action.find(EVENT_TOGGLE) != 0) {
       return false;
     }
