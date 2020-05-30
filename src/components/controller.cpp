@@ -58,7 +58,11 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     , m_bar(forward<decltype(bar)>(bar))
     , m_ipc(forward<decltype(ipc)>(ipc))
     , m_confwatch(forward<decltype(confwatch)>(confwatch)) {
-  m_swallow_input = m_conf.get("settings", "throttle-input-for", m_swallow_input);
+
+  if (m_conf.has("settings", "throttle-input-for")) {
+    m_log.warn("The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please remove it from your config");
+  }
+
   m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
   m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
 
@@ -201,8 +205,6 @@ bool controller::enqueue(event&& evt) {
 bool controller::enqueue(string&& input_data) {
   if (!m_inputdata.empty()) {
     m_log.trace("controller: Swallowing input event (pending data)");
-  } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
-    m_log.trace("controller: Swallowing input event (throttled)");
   } else {
     m_inputdata = forward<string>(input_data);
     return enqueue(make_input_evt());
@@ -390,7 +392,6 @@ void controller::process_eventqueue() {
 void controller::process_inputdata() {
   if (!m_inputdata.empty()) {
     string cmd = m_inputdata;
-    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
     m_inputdata.clear();
 
     for (auto&& handler : m_inputhandlers) {

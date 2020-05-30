@@ -132,16 +132,6 @@ class controller
   std::chrono::milliseconds m_swallow_update{10};
 
   /**
-   * \brief Time to throttle input events
-   */
-  std::chrono::milliseconds m_swallow_input{30};
-
-  /**
-   * \brief Time of last handled input event
-   */
-  std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> m_lastinput;
-
-  /**
    * \brief Input data
    */
   string m_inputdata;
