@@ -26,6 +26,7 @@ namespace modules {
 
     static constexpr auto EVENT_OPEN = "open";
     static constexpr auto EVENT_CLOSE = "close";
+    static constexpr auto EVENT_EXEC = "exec";
 
    protected:
     bool input(string&& action, string&& data);
