@@ -76,8 +76,11 @@ namespace modules {
         builder->node(m_labelseparator);
         builder->space(spacing);
       }
-      for (auto&& item : m_levels[m_level]->items) {
-        builder->action(mousebtn::LEFT, item->exec, item->label);
+      auto&& items = m_levels[m_level]->items;
+      for (size_t i = 0; i < items.size(); i++) {
+        auto&& item = items[i];
+        builder->action(
+            mousebtn::LEFT, *this, string(EVENT_EXEC), to_string(m_level) + "-" + to_string(i), item->label);
         if (item != m_levels[m_level]->items.back()) {
           builder->space(spacing);
           if (*m_labelseparator) {
