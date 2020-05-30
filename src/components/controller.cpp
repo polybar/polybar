@@ -143,11 +143,12 @@ bool controller::run(bool writeback, string snapshot_dst) {
 
   size_t started_modules{0};
   for (const auto& module : m_modules) {
-    auto inp_handler = dynamic_cast<input_handler*>(&*module);
+    auto inp_handler = std::dynamic_pointer_cast<input_handler>(module);
     auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
 
-    if (inp_handler != nullptr) {
-      m_inputhandlers.emplace_back(inp_handler);
+    if (inp_handler) {
+      m_log.trace("Registering module %s as input handler", module->name_raw());
+      m_inputhandlers.emplace(module->name_raw(), inp_handler);
     }
 
     if (evt_handler != nullptr) {
@@ -390,32 +391,62 @@ void controller::process_eventqueue() {
  * Process stored input data
  */
 void controller::process_inputdata() {
-  if (!m_inputdata.empty()) {
-    string cmd = m_inputdata;
-    m_inputdata.clear();
+  if (m_inputdata.empty()) {
+    return;
+  }
 
-    for (auto&& handler : m_inputhandlers) {
-      if (handler->input(string{cmd})) {
-        return;
-      }
+  const string cmd = m_inputdata;
+  m_inputdata.clear();
+
+  /*
+   * Module inputs have the following form (w/o the quotes): "#NAME#INPUT"
+   * where 'NAME' is the name of the module (for which '#' is a forbidden
+   * character) and 'INPUT' is the input that is sent to the module
+   */
+  if (cmd.front() == '#') {
+    // Find the second delimiter '#'
+    auto end_pos = cmd.find('#', 1);
+
+    if (end_pos == string::npos) {
+      m_log.err("Invalid action string (input: %s)", cmd);
+      return;
     }
 
-    try {
-      m_log.info("Uncaught input event, forwarding to shell... (input: %s)", cmd);
+    auto handler_name = cmd.substr(1, end_pos - 1);
+    auto action = cmd.substr(end_pos + 1);
 
-      if (m_command) {
-        m_log.warn("Terminating previous shell command");
-        m_command->terminate();
-      }
+    m_log.info("Forwarding data to input handler (name: %s, action: %s) ", handler_name, action);
 
-      m_log.info("Executing shell command: %s", cmd);
-      m_command = command_util::make_command<output_policy::IGNORED>(move(cmd));
-      m_command->exec();
-      m_command.reset();
-      process_update(true);
-    } catch (const application_error& err) {
-      m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
+    auto handler = m_inputhandlers.find(handler_name);
+
+    if (handler == m_inputhandlers.end()) {
+      m_log.err("The input handler with name '%s' doesn't exist (input: %s)", handler_name, cmd);
+      return;
     }
+
+    if(!handler->second->input(string{action})) {
+      m_log.warn("The '%s' module does not support the '%s' action.", handler_name, action);
+    }
+
+    return;
+  }
+
+  try {
+    // Run input as command if it's not an input for a module
+    m_log.info("Forwarding command to shell... (input: %s)", cmd);
+
+    if (m_command) {
+      m_log.warn("Terminating previous shell command");
+      m_command->terminate();
+    }
+
+    m_log.info("Executing shell command: %s", cmd);
+    m_command = command_util::make_command<output_policy::IGNORED>(move(cmd));
+    m_command->exec();
+    m_command.reset();
+    process_update(true);
+  } catch (const application_error& err) {
+    m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 }
 
