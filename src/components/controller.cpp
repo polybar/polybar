@@ -60,9 +60,10 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     , m_bar(forward<decltype(bar)>(bar))
     , m_ipc(forward<decltype(ipc)>(ipc))
     , m_confwatch(forward<decltype(confwatch)>(confwatch)) {
-
   if (m_conf.has("settings", "throttle-input-for")) {
-    m_log.warn("The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please remove it from your config");
+    m_log.warn(
+        "The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please "
+        "remove it from your config");
   }
 
   m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
@@ -456,59 +457,61 @@ void controller::process_inputdata() {
    *
    * TODO Remove when deprecated action names are removed
    */
+// clang-format off
 #define A_MAP(old, module_name, event) {old, {string(module_name::TYPE), string(module_name::event)}}
 
   const std::map<string, std::pair<string, const string>> legacy_actions{
-      A_MAP("datetoggle", date_module, EVENT_TOGGLE),
+    A_MAP("datetoggle", date_module, EVENT_TOGGLE),
 #if ENABLE_ALSA
-      A_MAP("volup", alsa_module, EVENT_INC),
-      A_MAP("voldown", alsa_module, EVENT_DEC),
-      A_MAP("volmute", alsa_module, EVENT_TOGGLE),
+    A_MAP("volup", alsa_module, EVENT_INC),
+    A_MAP("voldown", alsa_module, EVENT_DEC),
+    A_MAP("volmute", alsa_module, EVENT_TOGGLE),
 #endif
 #if ENABLE_PULSEAUDIO
-      A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
-      A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),
-      A_MAP("pa_volmute", pulseaudio_module, EVENT_TOGGLE),
+    A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
+    A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),
+    A_MAP("pa_volmute", pulseaudio_module, EVENT_TOGGLE),
 #endif
-      A_MAP("xbacklight+", xbacklight_module, EVENT_INC),
-      A_MAP("xbacklight-", xbacklight_module, EVENT_DEC),
-      A_MAP("backlight+", backlight_module, EVENT_INC),
-      A_MAP("backlight-", backlight_module, EVENT_DEC),
+    A_MAP("xbacklight+", xbacklight_module, EVENT_INC),
+    A_MAP("xbacklight-", xbacklight_module, EVENT_DEC),
+    A_MAP("backlight+", backlight_module, EVENT_INC),
+    A_MAP("backlight-", backlight_module, EVENT_DEC),
 #if ENABLE_XKEYBOARD
-      A_MAP("xkeyboard/switch", xkeyboard_module, EVENT_SWITCH),
+    A_MAP("xkeyboard/switch", xkeyboard_module, EVENT_SWITCH),
 #endif
 #if ENABLE_MPD
-      A_MAP("mpdplay", mpd_module, EVENT_PLAY),
-      A_MAP("mpdpause", mpd_module, EVENT_PAUSE),
-      A_MAP("mpdstop", mpd_module, EVENT_STOP),
-      A_MAP("mpdprev", mpd_module, EVENT_PREV),
-      A_MAP("mpdnext", mpd_module, EVENT_NEXT),
-      A_MAP("mpdrepeat", mpd_module, EVENT_REPEAT),
-      A_MAP("mpdsingle", mpd_module, EVENT_SINGLE),
-      A_MAP("mpdrandom", mpd_module, EVENT_RANDOM),
-      A_MAP("mpdconsume", mpd_module, EVENT_CONSUME),
-      // Has data
-      A_MAP("mpdseek", mpd_module, EVENT_SEEK),
+    A_MAP("mpdplay", mpd_module, EVENT_PLAY),
+    A_MAP("mpdpause", mpd_module, EVENT_PAUSE),
+    A_MAP("mpdstop", mpd_module, EVENT_STOP),
+    A_MAP("mpdprev", mpd_module, EVENT_PREV),
+    A_MAP("mpdnext", mpd_module, EVENT_NEXT),
+    A_MAP("mpdrepeat", mpd_module, EVENT_REPEAT),
+    A_MAP("mpdsingle", mpd_module, EVENT_SINGLE),
+    A_MAP("mpdrandom", mpd_module, EVENT_RANDOM),
+    A_MAP("mpdconsume", mpd_module, EVENT_CONSUME),
+    // Has data
+    A_MAP("mpdseek", mpd_module, EVENT_SEEK),
 #endif
-      // Has data
-      A_MAP("xworkspaces-focus=", xworkspaces_module, EVENT_FOCUS),
-      A_MAP("xworkspaces-next", xworkspaces_module, EVENT_NEXT),
-      A_MAP("xworkspaces-prev", xworkspaces_module, EVENT_PREV),
-      // Has data
-      A_MAP("bspwm-deskfocus", bspwm_module, EVENT_FOCUS),
-      A_MAP("bspwm-desknext", bspwm_module, EVENT_NEXT),
-      A_MAP("bspwm-deskprev", bspwm_module, EVENT_PREV),
+    // Has data
+    A_MAP("xworkspaces-focus=", xworkspaces_module, EVENT_FOCUS),
+    A_MAP("xworkspaces-next", xworkspaces_module, EVENT_NEXT),
+    A_MAP("xworkspaces-prev", xworkspaces_module, EVENT_PREV),
+    // Has data
+    A_MAP("bspwm-deskfocus", bspwm_module, EVENT_FOCUS),
+    A_MAP("bspwm-desknext", bspwm_module, EVENT_NEXT),
+    A_MAP("bspwm-deskprev", bspwm_module, EVENT_PREV),
 #if ENABLE_I3
-      // Has data
-      A_MAP("i3wm-wsfocus-", i3_module, EVENT_FOCUS),
-      A_MAP("i3wm-wsnext", i3_module, EVENT_NEXT),
-      A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
+    // Has data
+    A_MAP("i3wm-wsfocus-", i3_module, EVENT_FOCUS),
+    A_MAP("i3wm-wsnext", i3_module, EVENT_NEXT),
+    A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
 #endif
-      // Has data
-      A_MAP("menu-open-", menu_module, EVENT_OPEN),
-      A_MAP("menu-close", menu_module, EVENT_CLOSE),
+    // Has data
+    A_MAP("menu-open-", menu_module, EVENT_OPEN),
+    A_MAP("menu-close", menu_module, EVENT_CLOSE),
   };
 #undef A_MAP
+// clang-format on
 
   // Check if any key in the map is a prefix for the `cmd`
   for (const auto& entry : legacy_actions) {
@@ -530,7 +533,8 @@ void controller::process_inputdata() {
           } else {
             m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, handler_name, action, data);
           }
-          m_log.info("Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
+          m_log.info(
+              "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
           if (!handler_ptr->input(std::forward<string>(action), std::forward<string>(data))) {
             m_log.err("Failed to forward deprecated action to %s module", type);
             /*
