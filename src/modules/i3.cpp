@@ -218,7 +218,7 @@ namespace modules {
     return true;
   }
 
-  bool i3_module::input(string&& action, string&& data) {
+  bool i3_module::input(const string& action, const string& data) {
     try {
       const i3_util::connection_t conn{};
 

@@ -83,7 +83,7 @@ namespace modules {
     return true;
   }
 
-  bool date_module::input(string&& action, string&&) {
+  bool date_module::input(const string& action, const string&) {
     if (action != EVENT_TOGGLE) {
       return false;
     }

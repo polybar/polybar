@@ -142,7 +142,7 @@ namespace modules {
     return true;
   }
 
-  bool pulseaudio_module::input(string&& action, string&&) {
+  bool pulseaudio_module::input(const string& action, const string&) {
     if (!m_handle_events) {
       return false;
     }

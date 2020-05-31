@@ -147,7 +147,7 @@ namespace modules {
   /**
    * Process scroll events by changing backlight value
    */
-  bool xbacklight_module::input(string&& action, string&&) {
+  bool xbacklight_module::input(const string& action, const string&) {
     double value_mod{0.0};
 
     if (action == EVENT_INC) {

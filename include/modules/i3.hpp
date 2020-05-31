@@ -58,7 +58,7 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    bool input(string&& action, string&& data);
+    bool input(const string& action, const string& data);
 
    private:
     static string make_workspace_command(const string& workspace);

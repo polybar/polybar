@@ -368,7 +368,7 @@ namespace modules {
   /**
    * Handle user input event
    */
-  bool xworkspaces_module::input(string&& action, string&& data) {
+  bool xworkspaces_module::input(const string& action, const string& data) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
 
     vector<unsigned int> indexes;

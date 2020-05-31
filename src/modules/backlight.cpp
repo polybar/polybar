@@ -113,12 +113,12 @@ namespace modules {
     return true;
   }
 
-  bool backlight_module::input(string&& cmd, string&&) {
+  bool backlight_module::input(const string& action, const string&) {
     double value_mod{0.0};
 
-    if (cmd == EVENT_INC) {
+    if (action == EVENT_INC) {
       value_mod = 5.0;
-    } else if (cmd == EVENT_DEC) {
+    } else if (action == EVENT_DEC) {
       value_mod = -5.0;
     } else {
       return false;

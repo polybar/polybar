@@ -207,7 +207,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(string&& action, string&&) {
+  bool xkeyboard_module::input(const string& action, const string&) {
     if (action != EVENT_SWITCH) {
       return false;
     }
