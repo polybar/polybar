@@ -37,7 +37,7 @@ namespace modules {
 
    protected:
     void handle(const evt::randr_notify& evt);
-    bool input(string&& action, string&& data);
+    bool input(const string& action, const string& data);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

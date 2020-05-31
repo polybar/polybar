@@ -99,7 +99,7 @@ namespace modules {
     return true;
   }
 
-  bool menu_module::input(string&& action, string&& data) {
+  bool menu_module::input(const string& action, const string& data) {
     if (action == EVENT_EXEC) {
       auto sep = data.find("-");
 

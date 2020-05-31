@@ -29,7 +29,7 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "toggle";
 
    protected:
-    bool input(string&& action, string&& data);
+    bool input(const string& action, const string& data);
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";

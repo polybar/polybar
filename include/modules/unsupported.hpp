@@ -36,7 +36,7 @@ namespace modules {
     string input_handler_name() const {                                                 \
       return "";                                                                        \
     }                                                                                   \
-    bool input(string&&, string&&) {                                                    \
+    bool input(const string&, const string&) {                                          \
       return false;                                                                     \
     }                                                                                   \
   }

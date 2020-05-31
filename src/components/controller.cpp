@@ -397,7 +397,7 @@ void controller::process_eventqueue() {
  * \returns true iff the given command matches a legacy action string and was
  *          successfully forwarded to a module
  */
-bool controller::try_forward_legacy_action(const string cmd) {
+bool controller::try_forward_legacy_action(const string& cmd) {
   /*
    * Maps legacy action names to a module type and the new action name in that module.
    *
@@ -412,7 +412,7 @@ bool controller::try_forward_legacy_action(const string cmd) {
 // clang-format off
 #define A_MAP(old, module_name, event) {old, {string(module_name::TYPE), string(module_name::event)}}
 
-  const std::map<string, std::pair<string, const string>> legacy_actions{
+  static const std::map<string, std::pair<string, const string>> legacy_actions{
     A_MAP("datetoggle", date_module, EVENT_TOGGLE),
 #if ENABLE_ALSA
     A_MAP("volup", alsa_module, EVENT_INC),
@@ -487,7 +487,7 @@ bool controller::try_forward_legacy_action(const string cmd) {
           }
           m_log.info(
               "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
-          if (!handler_ptr->input(std::forward<string>(action), std::forward<string>(data))) {
+          if (!handler_ptr->input(action, data)) {
             m_log.err("Failed to forward deprecated action to %s module", type);
             // Forward to shell if the module cannot accept the action to not break existing behavior.
             return false;
@@ -514,8 +514,8 @@ void controller::process_inputdata() {
     return;
   }
 
-  const string cmd = m_inputdata;
-  m_inputdata.clear();
+  const string cmd = std::move(m_inputdata);
+  m_inputdata = string{};
 
   m_log.trace("controller: Processing inputdata: %s", cmd);
 
@@ -543,7 +543,7 @@ void controller::process_inputdata() {
     // Forwards the action to all input handlers that match the name
     for (auto&& handler : m_inputhandlers) {
       if (handler->input_handler_name() == handler_name) {
-        if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
+        if (!handler->input(action, data)) {
           m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
         }
 

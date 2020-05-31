@@ -16,7 +16,7 @@ namespace modules {
      *
      * \returns true if the action is supported and false otherwise
      */
-    virtual bool input(string&& action, string&& data) = 0;
+    virtual bool input(const string& action, const string& data) = 0;
 
     /**
      * The name of this input handler

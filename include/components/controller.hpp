@@ -75,7 +75,7 @@ class controller
  private:
   size_t setup_modules(alignment align);
 
-  bool try_forward_legacy_action(const string cmd);
+  bool try_forward_legacy_action(const string& cmd);
 
   connection& m_connection;
   signal_emitter& m_sig;

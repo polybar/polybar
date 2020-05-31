@@ -445,7 +445,7 @@ namespace modules {
     return false;
   }
 
-  bool bspwm_module::input(string&& action, string&& data) {
+  bool bspwm_module::input(const string& action, const string& data) {
     auto send_command = [this](string payload_cmd, string log_info) {
       try {
         auto ipc = bspwm_util::make_connection();

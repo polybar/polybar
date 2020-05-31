@@ -353,7 +353,7 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::input(string&& action, string&& data) {
+  bool mpd_module::input(const string& action, const string& data) {
     m_log.info("%s: event: %s", name(), action);
 
     try {

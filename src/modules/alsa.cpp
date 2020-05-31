@@ -218,7 +218,7 @@ namespace modules {
     return true;
   }
 
-  bool alsa_module::input(string&& action , string&&) {
+  bool alsa_module::input(const string& action, const string&) {
     if (!m_handle_events) {
       return false;
     } else if (!m_mixer[mixer::MASTER]) {
