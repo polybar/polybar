@@ -567,15 +567,11 @@ void controller::process_inputdata() {
     // Run input as command if it's not an input for a module
     m_log.info("Forwarding command to shell... (input: %s)", cmd);
 
-    if (m_command) {
-      m_log.warn("Terminating previous shell command");
-      m_command->terminate();
-    }
-
     m_log.info("Executing shell command: %s", cmd);
-    m_command = command_util::make_command<output_policy::IGNORED>(move(cmd));
-    m_command->exec();
-    m_command.reset();
+
+    auto shell_cmd = command_util::make_command<output_policy::IGNORED>(move(cmd));
+    shell_cmd->exec();
+    shell_cmd.reset();
     process_update(true);
   } catch (const application_error& err) {
     m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
