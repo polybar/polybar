@@ -13,6 +13,7 @@
 #include "events/signal_emitter.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
+#include "utils/actions.hpp"
 #include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
@@ -409,46 +410,36 @@ void controller::process_inputdata() {
    * module.
    */
   if (cmd.front() == '#') {
-    // Find the second delimiter '.'
-    auto end_pos = cmd.find('.', 1);
+    try {
+      auto res = actions_util::parse_action_string(cmd);
 
-    if (end_pos == string::npos) {
-      m_log.err("Invalid action string (input: %s)", cmd);
-      return;
-    }
+      auto handler_name = std::get<0>(res);
+      auto action = std::get<1>(res);
+      auto data = std::get<2>(res);
 
-    auto handler_name = cmd.substr(1, end_pos - 1);
-    auto action = cmd.substr(end_pos + 1);
-    string data;
+      m_log.info(
+          "Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
 
-    // Find the '.' character that separates the data from the action name
-    auto data_sep_pos = action.find('.', 0);
+      int num_delivered = 0;
 
-    // The action contains data
-    if (data_sep_pos != string::npos) {
-      data = action.substr(data_sep_pos + 1);
-      action.erase(data_sep_pos);
-    }
+      // Forwards the action to all input handlers that match the name
+      for (auto&& handler : m_inputhandlers) {
+        if (handler->input_handler_name() == handler_name) {
+          if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
+            m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
+          }
 
-    m_log.info("Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
-
-    int num_delivered = 0;
-
-    // Forwards the action to all input handlers that match the name
-    for (auto&& handler : m_inputhandlers) {
-      if (handler->input_handler_name() == handler_name) {
-        if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
-          m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
+          num_delivered++;
         }
-
-        num_delivered++;
       }
-    }
 
-    if (num_delivered == 0) {
-      m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
-    } else {
-      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
+      if (num_delivered == 0) {
+        m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
+      } else {
+        m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
+      }
+    } catch (runtime_error& e) {
+      m_log.err("Invalid action string (reason: %s)", e.what());
     }
 
     return;

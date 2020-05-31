@@ -47,6 +47,7 @@ function(add_unit_test source_file)
   add_dependencies(all_unit_tests ${name})
 endfunction()
 
+add_unit_test(utils/actions)
 add_unit_test(utils/color)
 add_unit_test(utils/command)
 add_unit_test(utils/math unit_tests)
