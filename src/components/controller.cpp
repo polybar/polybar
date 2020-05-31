@@ -391,66 +391,18 @@ void controller::process_eventqueue() {
 }
 
 /**
- * Process stored input data
+ * Tries to match the given command to a legacy action string and sends the
+ * appropriate new action (and data) to the right module if possible.
+ *
+ * \returns true iff the given command matches a legacy action string and was
+ *          successfully forwarded to a module
  */
-void controller::process_inputdata() {
-  if (m_inputdata.empty()) {
-    return;
-  }
-
-  const string cmd = m_inputdata;
-  m_inputdata.clear();
-
-  m_log.trace("controller: Processing inputdata: %s", cmd);
-
-  /*
-   * Module inputs have the following form (w/o the quotes): "#NAME.ACTION[.DATA]"
-   * where 'NAME' is the name of the module (for which '.' is a forbidden
-   * character) and 'ACTION' is the input that is sent to the module. 'DATA'
-   * is optional data that is attached to the action and is also sent to the
-   * module.
-   */
-  if (cmd.front() == '#') {
-    try {
-      auto res = actions_util::parse_action_string(cmd);
-
-      auto handler_name = std::get<0>(res);
-      auto action = std::get<1>(res);
-      auto data = std::get<2>(res);
-
-      m_log.info(
-          "Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
-
-      int num_delivered = 0;
-
-      // Forwards the action to all input handlers that match the name
-      for (auto&& handler : m_inputhandlers) {
-        if (handler->input_handler_name() == handler_name) {
-          if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
-            m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
-          }
-
-          num_delivered++;
-        }
-      }
-
-      if (num_delivered == 0) {
-        m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
-      } else {
-        m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
-      }
-    } catch (runtime_error& e) {
-      m_log.err("Invalid action string (reason: %s)", e.what());
-    }
-
-    return;
-  }
-
+bool controller::try_forward_legacy_action(const string cmd) {
   /*
    * Maps legacy action names to a module type and the new action name in that module.
    *
    * We try to match the old action name as a prefix, and everything after it will also be added to the end of the new
-   * action string (for example "mpdseek+5" will be redirected to "seek+5" in the first mpd module).
+   * action string (for example "mpdseek+5" will be redirected to "seek.+5" in the first mpd module).
    *
    * The action will be delivered to the first module of that type so that it is consistent with existing behavior.
    * If the module does not support the action or no matching module is found, the command is forwarded to the shell.
@@ -511,7 +463,7 @@ void controller::process_inputdata() {
     A_MAP("menu-close", menu_module, EVENT_CLOSE),
   };
 #undef A_MAP
-// clang-format on
+  // clang-format on
 
   // Check if any key in the map is a prefix for the `cmd`
   for (const auto& entry : legacy_actions) {
@@ -537,20 +489,79 @@ void controller::process_inputdata() {
               "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
           if (!handler_ptr->input(std::forward<string>(action), std::forward<string>(data))) {
             m_log.err("Failed to forward deprecated action to %s module", type);
-            /*
-             * Forward to shell if the module cannot accept the action to not break existing behavior.
-             * goto is used to break out of multiple loops at once.
-             */
-            goto forward_shell;
+            // Forward to shell if the module cannot accept the action to not break existing behavior.
+            return false;
           }
           // Only deliver to the first matching module.
-          return;
+          return true;
         }
       }
     }
   }
 
-forward_shell:
+  /*
+   * If we couldn't find any matching legacy action, we return false and let
+   * the command be forwarded to the shell
+   */
+  return false;
+}
+
+/**
+ * Process stored input data
+ */
+void controller::process_inputdata() {
+  if (m_inputdata.empty()) {
+    return;
+  }
+
+  const string cmd = m_inputdata;
+  m_inputdata.clear();
+
+  m_log.trace("controller: Processing inputdata: %s", cmd);
+
+  // Every command that starts with '#' is considered an action string.
+  if (cmd.front() == '#') {
+    string handler_name;
+    string action;
+    string data;
+
+    try {
+      auto res = actions_util::parse_action_string(cmd);
+
+      handler_name = std::get<0>(res);
+      action = std::get<1>(res);
+      data = std::get<2>(res);
+    } catch (runtime_error& e) {
+      m_log.err("Invalid action string (reason: %s)", e.what());
+      return;
+    }
+
+    m_log.info("Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
+
+    int num_delivered = 0;
+
+    // Forwards the action to all input handlers that match the name
+    for (auto&& handler : m_inputhandlers) {
+      if (handler->input_handler_name() == handler_name) {
+        if (!handler->input(std::forward<string>(action), std::forward<string>(data))) {
+          m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
+        }
+
+        num_delivered++;
+      }
+    }
+
+    if (num_delivered == 0) {
+      m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
+    } else {
+      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
+    }
+    return;
+  }
+
+  if (this->try_forward_legacy_action(cmd)) {
+    return;
+  }
 
   try {
     // Run input as command if it's not an input for a module
