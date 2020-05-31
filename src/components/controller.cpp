@@ -412,7 +412,7 @@ bool controller::try_forward_legacy_action(const string& cmd) {
 // clang-format off
 #define A_MAP(old, module_name, event) {old, {string(module_name::TYPE), string(module_name::event)}}
 
-  static const std::map<string, std::pair<string, const string>> legacy_actions{
+  static const std::unordered_map<string, std::pair<string, const string>> legacy_actions{
     A_MAP("datetoggle", date_module, EVENT_TOGGLE),
 #if ENABLE_ALSA
     A_MAP("volup", alsa_module, EVENT_INC),
