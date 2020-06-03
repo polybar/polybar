@@ -117,6 +117,15 @@ namespace modules {
   }
 
   template <typename Impl>
+  template <class Clock, class Duration>
+  void module<Impl>::sleep_until(chrono::time_point<Clock, Duration> point) {
+    if (running()) {
+      std::unique_lock<std::mutex> lck(m_sleeplock);
+      m_sleephandler.wait_until(lck, point);
+    }
+  }
+
+  template <typename Impl>
   void module<Impl>::wakeup() {
     m_log.trace("%s: Release sleep lock", name());
     m_sleephandler.notify_all();
