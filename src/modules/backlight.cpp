@@ -51,7 +51,8 @@ namespace modules {
      * The only sensible way is to use the 'brightness' file instead
      * Ref: https://github.com/Alexays/Waybar/issues/335
      */
-    auto path_backlight_val = m_path_backlight + "/" + (card == "amdgpu_bl0" ? "brightness" : "actual_brightness");
+    std::string brightness_type = ((card.substr(0, 9) == "amdgpu_bl") ? "brightness" : "actual_brightness");
+    auto path_backlight_val = m_path_backlight + "/" + brightness_type;
 
     m_val.filepath(path_backlight_val);
     m_max.filepath(m_path_backlight + "/max_brightness");
