@@ -89,6 +89,10 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
+highlight_language = 'none'
+
+smartquotes = False
+
 
 # -- Options for HTML output -------------------------------------------------
 
