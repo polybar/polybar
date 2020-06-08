@@ -34,11 +34,22 @@ namespace modules {
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
     // Make state reader
-    if (file_util::exists((m_fstate = path_adapter + "online"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
-    } else if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
+    if (file_util::exists((m_fstate = path_battery + "status"))) {
+      m_fstate = path_battery + "status";
+      m_state_reader = make_unique<state_reader>([=] {
+	string filecontents = file_util::contents(m_fstate);
+	if (filecontents.compare(0, 11, "Discharging") == 0) {
+	  return 0;
+	} else if (filecontents.compare(0, 8, "Charging") == 0) {
+	  return 1;
+	} else if (filecontents.compare(0, 7, "Unknown") == 0) {
+	  return 3;
+	} else if (filecontents.compare(0, 4, "Full") == 0) {
+	  return 2;
+	} else {
+	  throw module_error("unknown battery state '" + filecontents + "'");
+	}
+      });
     } else {
       throw module_error("No suitable way to get current charge state");
     }
@@ -68,7 +79,7 @@ namespace modules {
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
       unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
       unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
-      unsigned long cap{read(*m_state_reader) ? max - now : now};
+      unsigned long cap{read(*m_state_reader) == 0 ? max - now : now};
 
       if (rate && volt && cap) {
         auto remaining = (cap / volt);
@@ -117,6 +128,7 @@ namespace modules {
     m_formatter->add(FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
+    m_formatter->add(FORMAT_UNKNOWN, TAG_LABEL_UNKNOWN, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_UNKNOWN});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
@@ -138,6 +150,9 @@ namespace modules {
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
+    }
+    if (m_formatter->has(TAG_LABEL_UNKNOWN, FORMAT_UNKNOWN)) {
+      m_label_unknown = load_optional_label(m_conf, name(), TAG_LABEL_UNKNOWN, "%percentage%%");
     }
 
     // Create inotify watches
@@ -221,13 +236,16 @@ namespace modules {
     m_percentage = percentage;
 
     const auto label = [this] {
-      if (m_state == battery_module::state::FULL) {
-        return m_label_full;
-      } else if (m_state == battery_module::state::DISCHARGING) {
+      if (m_state == battery_module::state::DISCHARGING) {
         return m_label_discharging;
-      } else {
+      } else if (m_state == battery_module::state::CHARGING) {
         return m_label_charging;
+      } else if (m_state == battery_module::state::UNKNOWN) {
+        return m_label_unknown;
+      } else {
+        return m_label_full;
       }
+
     }();
 
     if (label) {
@@ -252,6 +270,8 @@ namespace modules {
       return FORMAT_CHARGING;
     } else if (m_state == battery_module::state::DISCHARGING) {
       return FORMAT_DISCHARGING;
+    } else if (m_state == battery_module::state::UNKNOWN) {
+      return FORMAT_UNKNOWN;
     } else {
       return FORMAT_FULL;
     }
@@ -275,6 +295,8 @@ namespace modules {
       builder->node(m_label_discharging);
     } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
+    } else if (tag == TAG_LABEL_UNKNOWN) {
+      builder->node(m_label_unknown);
     } else {
       return false;
     }
@@ -286,12 +308,15 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    if (!read(*m_state_reader)) {
+    int state = read(*m_state_reader);
+    if (state == 0) {
       return battery_module::state::DISCHARGING;
-    } else if (read(*m_capacity_reader) < m_fullat) {
+    } else if (read(*m_capacity_reader) < m_fullat && state == 1) {
       return battery_module::state::CHARGING;
-    } else {
+    } else if (state == 2) {
       return battery_module::state::FULL;
+    } else {
+      return battery_module::state::UNKNOWN;
     }
   }
 
