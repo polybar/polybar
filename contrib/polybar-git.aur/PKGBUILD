@@ -31,7 +31,8 @@ prepare() {
 
 build() {
   cd "${_pkgname}/build" || exit 1
-  cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+  # Force cmake to use system python (to detect xcbgen)
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
   cmake --build .
 }
 
