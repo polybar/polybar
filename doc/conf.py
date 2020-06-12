@@ -99,7 +99,7 @@ smartquotes = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-if on_rtd:
+if on_rtd or os.environ.get('USE_RTD_THEME', '0') == '1':
   html_theme = 'sphinx_rtd_theme'
 else:
   html_theme = 'alabaster'
