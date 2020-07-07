@@ -17,11 +17,14 @@ namespace modules {
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
-    m_memimportant = m_conf.get(name(), "important-percentage", 60);
+    m_mem_atwarning = m_conf.get(name(), "warn-at", 60);
+    m_mem_atcritical = m_conf.get(name(), "critical-at", 90);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
-    m_formatter->add(FORMAT_IMPORTANT, TAG_LABEL_IMPORTANT, {TAG_LABEL_IMPORTANT, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+    m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add(FORMAT_CRITICAL, TAG_LABEL_CRITICAL, {TAG_LABEL_CRITICAL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
@@ -52,8 +55,11 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL)) {
       m_label[mem_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
     }
-    if (m_formatter->has(TAG_LABEL_IMPORTANT)) {
-      m_label[mem_state::IMPORTANT] = load_optional_label(m_conf, name(), TAG_LABEL_IMPORTANT, "%percentage_used%%");
+    if (m_formatter->has(TAG_LABEL_WARN)) {
+      m_label[mem_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage_used%%");
+    }
+    if (m_formatter->has(TAG_LABEL_CRITICAL)) {
+      m_label[mem_state::CRITICAL] = load_optional_label(m_conf, name(), TAG_LABEL_CRITICAL, "%percentage_used%%");
     }
   }
 
@@ -102,7 +108,7 @@ namespace modules {
     m_perc_swap_used = 100 - m_perc_swap_free;
 
     // replace tokens
-    auto states = { mem_state::NORMAL, mem_state::IMPORTANT };
+    auto states = { mem_state::NORMAL, mem_state::WARN, mem_state::CRITICAL };
     for (auto memory_state: states) {
      if (m_label[memory_state]) {
        auto label = m_label.at(memory_state);
@@ -129,8 +135,10 @@ namespace modules {
   }
   
   string memory_module::get_format() const {
-    if (m_perc_memused >= m_memimportant) {
-      return FORMAT_IMPORTANT;
+    if (m_perc_memused >= m_mem_atcritical) {
+      return FORMAT_CRITICAL;
+    } else if (m_perc_memused >= m_mem_atwarning) {
+      return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;
     }
@@ -143,8 +151,10 @@ namespace modules {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label.at(mem_state::NORMAL));
-    } else if (tag == TAG_LABEL_IMPORTANT) {
-      builder->node(m_label.at(mem_state::IMPORTANT));
+    } else if (tag == TAG_LABEL_WARN) {
+      builder->node(m_label.at(mem_state::WARN));
+    } else if (tag == TAG_LABEL_CRITICAL) {
+      builder->node(m_label.at(mem_state::CRITICAL));
     } else if (tag == TAG_RAMP_FREE) {
       builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
     } else if (tag == TAG_RAMP_USED) {
