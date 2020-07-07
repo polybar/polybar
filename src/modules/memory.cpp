@@ -17,8 +17,11 @@ namespace modules {
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    m_memimportant = m_conf.get(name(), "important-percentage", 60);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add(FORMAT_IMPORTANT, TAG_LABEL_IMPORTANT, {TAG_LABEL_IMPORTANT, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_BAR_USED)) {
@@ -47,7 +50,10 @@ namespace modules {
     }
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
+      m_label[mem_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
+    }
+    if (m_formatter->has(TAG_LABEL_IMPORTANT)) {
+      m_label[mem_state::IMPORTANT] = load_optional_label(m_conf, name(), TAG_LABEL_IMPORTANT, "%percentage_used%%");
     }
   }
 
@@ -96,27 +102,38 @@ namespace modules {
     m_perc_swap_used = 100 - m_perc_swap_free;
 
     // replace tokens
-    if (m_label) {
-      m_label->reset_tokens();
-      m_label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%gb_total%", string_util::filesize_gb(kb_total, 2, m_bar.locale));
-      m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 0, m_bar.locale));
-      m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 0, m_bar.locale));
-      m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 0, m_bar.locale));
-      m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
-      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
-      m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
-      m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
-      m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 0, m_bar.locale));
-      m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 0, m_bar.locale));
-      m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 0, m_bar.locale));
-      m_label->replace_token("%gb_swap_total%", string_util::filesize_gb(kb_swap_total, 2, m_bar.locale));
-      m_label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
-      m_label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+    auto states = { mem_state::NORMAL, mem_state::IMPORTANT };
+    for (auto memory_state: states) {
+     if (m_label[memory_state]) {
+       auto label = m_label.at(memory_state);
+       label->reset_tokens();
+       label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
+       label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
+       label->replace_token("%gb_total%", string_util::filesize_gb(kb_total, 2, m_bar.locale));
+       label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 0, m_bar.locale));
+       label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 0, m_bar.locale));
+       label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 0, m_bar.locale));
+       label->replace_token("%percentage_used%", to_string(m_perc_memused));
+       label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+       label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
+       label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
+       label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 0, m_bar.locale));
+       label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 0, m_bar.locale));
+       label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 0, m_bar.locale));
+       label->replace_token("%gb_swap_total%", string_util::filesize_gb(kb_swap_total, 2, m_bar.locale));
+       label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
+       label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+     }
     }
-
     return true;
+  }
+  
+  string memory_module::get_format() const {
+    if (m_perc_memused >= m_memimportant) {
+      return FORMAT_IMPORTANT;
+    } else {
+      return DEFAULT_FORMAT;
+    }
   }
 
   bool memory_module::build(builder* builder, const string& tag) const {
@@ -125,7 +142,9 @@ namespace modules {
     } else if (tag == TAG_BAR_FREE) {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
-      builder->node(m_label);
+      builder->node(m_label.at(mem_state::NORMAL));
+    } else if (tag == TAG_LABEL_IMPORTANT) {
+      builder->node(m_label.at(mem_state::IMPORTANT));
     } else if (tag == TAG_RAMP_FREE) {
       builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
     } else if (tag == TAG_RAMP_USED) {

@@ -7,16 +7,19 @@ POLYBAR_NS
 
 namespace modules {
   enum class memtype { NONE = 0, TOTAL, USED, FREE, SHARED, BUFFERS, CACHE, AVAILABLE };
+  enum class mem_state { NORMAL = 0, IMPORTANT };
 
   class memory_module : public timer_module<memory_module> {
    public:
     explicit memory_module(const bar_settings&, string);
 
     bool update();
+    string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
+    static constexpr const char* TAG_LABEL_IMPORTANT{"<label-important>"};
     static constexpr const char* TAG_BAR_USED{"<bar-used>"};
     static constexpr const char* TAG_BAR_FREE{"<bar-free>"};
     static constexpr const char* TAG_RAMP_USED{"<ramp-used>"};
@@ -25,10 +28,12 @@ namespace modules {
     static constexpr const char* TAG_BAR_SWAP_FREE{"<bar-swap-free>"};
     static constexpr const char* TAG_RAMP_SWAP_USED{"<ramp-swap-used>"};
     static constexpr const char* TAG_RAMP_SWAP_FREE{"<ramp-swap-free>"};
+    static constexpr const char* FORMAT_IMPORTANT{"format-important"};
 
-    label_t m_label;
+    map<mem_state, label_t> m_label;
     progressbar_t m_bar_memused;
     progressbar_t m_bar_memfree;
+    int m_memimportant;
     int m_perc_memused{0};
     int m_perc_memfree{0};
     ramp_t m_ramp_memused;
