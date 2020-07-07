@@ -48,6 +48,6 @@ namespace modules {
     ramp_t m_ramp_swapused;
     ramp_t m_ramp_swapfree;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END
