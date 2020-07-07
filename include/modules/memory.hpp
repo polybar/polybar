@@ -20,7 +20,7 @@ namespace modules {
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
     static constexpr const char* TAG_LABEL_WARN{"<label-warn>"};
-    static constexpr const char* TAG_LABEL_CRITICAL{"<label-warn>"};
+    static constexpr const char* TAG_LABEL_CRITICAL{"<label-critical>"};
     static constexpr const char* TAG_BAR_USED{"<bar-used>"};
     static constexpr const char* TAG_BAR_FREE{"<bar-free>"};
     static constexpr const char* TAG_RAMP_USED{"<ramp-used>"};
@@ -30,7 +30,7 @@ namespace modules {
     static constexpr const char* TAG_RAMP_SWAP_USED{"<ramp-swap-used>"};
     static constexpr const char* TAG_RAMP_SWAP_FREE{"<ramp-swap-free>"};
     static constexpr const char* FORMAT_WARN{"format-warn"};
-    static constexpr const char* FORMAT_CRITICAL{"format-warn"};
+    static constexpr const char* FORMAT_CRITICAL{"format-critical"};
 
     map<mem_state, label_t> m_label;
     progressbar_t m_bar_memused;
