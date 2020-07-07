@@ -2,6 +2,8 @@
 /tags
 /compile_commands.json
 /config
+/.clangd
+/.vscode
 *.bak
 *.pyc
 *.swp
