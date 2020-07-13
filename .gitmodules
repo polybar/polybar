@@ -6,3 +6,7 @@
 	path = lib/xpp
 	url = https://github.com/polybar/xpp
 	branch = master
+[submodule "lib/dwmipcpp"]
+	path = lib/dwmipcpp
+	url = https://github.com/mihirlad55/dwmipcpp
+    branch = master
