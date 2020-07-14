@@ -12,6 +12,7 @@ const char* const ALSA_SOUNDCARD{"@SETTING_ALSA_SOUNDCARD@"};
 const char* const BSPWM_SOCKET_PATH{"@SETTING_BSPWM_SOCKET_PATH@"};
 const char* const BSPWM_STATUS_PREFIX{"@SETTING_BSPWM_STATUS_PREFIX@"};
 const char* const CONNECTION_TEST_IP{"@SETTING_CONNECTION_TEST_IP@"};
+const char* const DWM_SOCKET_PATH{"@SETTING_DWM_SOCKET_PATH@"};
 const char* const PATH_ADAPTER{"@SETTING_PATH_ADAPTER@"};
 const char* const PATH_BACKLIGHT{"@SETTING_PATH_BACKLIGHT@"};
 const char* const PATH_BATTERY{"@SETTING_PATH_BATTERY@"};
@@ -32,9 +33,10 @@ bool version_details(const std::vector<std::string>& args) {
 // clang-format off
 void print_build_info(bool extended) {
   printf("%s %s\n\n", APP_NAME, APP_VERSION);
-  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork(%s) %cpulseaudio %cxkeyboard\n",
+  printf("Features: %calsa %ccurl %cdwm %ci3 %cmpd %cnetwork(%s) %cpulseaudio %cxkeyboard\n",
     (ENABLE_ALSA       ? '+' : '-'),
     (ENABLE_CURL       ? '+' : '-'),
+    (ENABLE_DWM        ? '+' : '-'),
     (ENABLE_I3         ? '+' : '-'),
     (ENABLE_MPD        ? '+' : '-'),
     (ENABLE_NETWORK    ? '+' : '-'),

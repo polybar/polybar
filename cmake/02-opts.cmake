@@ -6,6 +6,7 @@ checklib(BUILD_DOC "binary" "${SPHINX_BUILD}")
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
+checklib(ENABLE_DWM "binary" dwm)
 checklib(ENABLE_I3 "binary" i3)
 checklib(ENABLE_MPD "pkg-config" libmpdclient)
 checklib(WITH_LIBNL "pkg-config" libnl-genl-3.0)
@@ -35,6 +36,7 @@ option(BUILD_DOC "Build documentation" ON)
 
 option(ENABLE_ALSA "Enable alsa support" ON)
 option(ENABLE_CURL "Enable curl support" ON)
+option(ENABLE_DWM "Enable dwm support" ON)
 option(ENABLE_I3 "Enable i3 support" ON)
 option(ENABLE_MPD "Enable mpd support" ON)
 option(WITH_LIBNL "Use netlink interface for wireless" ON)
@@ -62,6 +64,8 @@ set(SETTING_ALSA_SOUNDCARD "default"
   CACHE STRING "Name of the ALSA soundcard driver")
 set(SETTING_BSPWM_SOCKET_PATH "/tmp/bspwm_0_0-socket"
   CACHE STRING "Path to bspwm socket")
+set(SETTING_DWM_SOCKET_PATH "/tmp/dwm.sock"
+  CACHE STRING "Path to dwm socket")
 set(SETTING_BSPWM_STATUS_PREFIX "W"
   CACHE STRING "Prefix prepended to the bspwm status line")
 set(SETTING_CONNECTION_TEST_IP "8.8.8.8"

@@ -12,6 +12,7 @@ extern const char* const APP_VERSION;
 #cmakedefine01 ENABLE_NETWORK
 #cmakedefine01 WITH_LIBNL
 #cmakedefine01 ENABLE_I3
+#cmakedefine01 ENABLE_DWM
 #cmakedefine01 ENABLE_CURL
 #cmakedefine01 ENABLE_PULSEAUDIO
 
@@ -60,6 +61,7 @@ extern const char* const ALSA_SOUNDCARD;
 extern const char* const BSPWM_SOCKET_PATH;
 extern const char* const BSPWM_STATUS_PREFIX;
 extern const char* const CONNECTION_TEST_IP;
+extern const char* const DWM_SOCKET_PATH;
 extern const char* const PATH_ADAPTER;
 extern const char* const PATH_BACKLIGHT;
 extern const char* const PATH_BATTERY;

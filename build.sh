@@ -23,6 +23,8 @@ usage() {
   ${COLORS[GREEN]}${COLORS[BOLD]}Options:${COLORS[OFF]}
       ${COLORS[GREEN]}-3, --i3${COLORS[OFF]}
           Include support for internal/i3 (requires i3); disabled by default.
+      ${COLORS[GREEN]}-d, --dwm${COLORS[OFF]}
+          Include support for internal/dwm (requires dwm with IPC patch); disabled by default.
       ${COLORS[GREEN]}-a, --alsa${COLORS[OFF]}
           Include support for internal/alsa (requires alsalib); disabled by default.
       ${COLORS[GREEN]}-p, --pulseaudio${COLORS[OFF]}
@@ -101,6 +103,7 @@ set_build_opts() {
   if [[ "$AUTO" == ON ]]; then
     [[ -z "$USE_GCC" ]] && USE_GCC="OFF"
     [[ -z "$ENABLE_I3" ]] && ENABLE_I3="OFF"
+    [[ -z "$ENABLE_DWM" ]] && ENABLE_DWM="OFF"
     [[ -z "$ENABLE_ALSA" ]] && ENABLE_ALSA="OFF"
     [[ -z "$ENABLE_PULSEAUDIO" ]] && ENABLE_PULSEAUDIO="OFF"
     [[ -z "$ENABLE_NETWORK" ]] && ENABLE_NETWORK="OFF"
@@ -118,6 +121,11 @@ set_build_opts() {
   if [[ -z "$ENABLE_I3" ]]; then
     read -r -p "$(msg "Include support for \"internal/i3\" (requires i3) ---------------- [y/N]: ")" -n 1 p && echo
     [[ "${p^^}" != "Y" ]] && ENABLE_I3="OFF" || ENABLE_I3="ON"
+  fi
+
+  if [[ -z "$ENABLE_DWM" ]]; then
+    read -r -p "$(msg "Include support for \"internal/dwm\" (requires dwm) -------------- [y/N]: ")" -n 1 p && echo
+    [[ "${p^^}" != "Y" ]] && ENABLE_DWM="OFF" || ENABLE_DWM="ON"
   fi
 
   if [[ -z "$ENABLE_ALSA" ]]; then
@@ -197,6 +205,7 @@ main() {
     -DENABLE_ALSA:BOOL="${ENABLE_ALSA}"       \
     -DENABLE_PULSEAUDIO:BOOL="${ENABLE_PULSEAUDIO}"\
     -DENABLE_I3:BOOL="${ENABLE_I3}"           \
+    -DENABLE_DWM:BOOL="${ENABLE_DWM}"         \
     -DENABLE_MPD:BOOL="${ENABLE_MPD}"         \
     -DENABLE_NETWORK:BOOL="${ENABLE_NETWORK}" \
     -DENABLE_CURL:BOOL="${ENABLE_CURL}"       \
@@ -223,6 +232,8 @@ while [[ "$1" == -* ]]; do
   case "$1" in
     -3|--i3)
       ENABLE_I3=ON; shift ;;
+    -d|--dwm)
+      ENABLE_DWM=ON; shift ;;
     -a|--alsa)
       ENABLE_ALSA=ON; shift ;;
     -p|--pulseaudio)
@@ -237,6 +248,7 @@ while [[ "$1" == -* ]]; do
       ENABLE_IPC_MSG=ON; shift ;;
     --all-features)
       ENABLE_I3=ON
+      ENABLE_DWM=ON
       ENABLE_ALSA=ON
       ENABLE_PULSEAUDIO=ON
       ENABLE_NETWORK=ON

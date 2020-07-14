@@ -75,7 +75,7 @@ endif()
 # Generate configuration file
 #
 
-set(MODULES_LEFT "bspwm i3")
+set(MODULES_LEFT "bspwm i3 dwm")
 set(MODULES_CENTER "mpd")
 set(MODULES_RIGHT "filesystem xbacklight alsa pulseaudio xkeyboard memory cpu wlan eth battery temperature date powermenu")
 
@@ -97,6 +97,9 @@ if(NOT ENABLE_ALSA)
 endif()
 if(NOT ENABLE_I3)
   string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
+endif()
+if (NOT ENABLE_DWM)
+  string(REPLACE " dwm" "" MODULES_LEFT ${MODULES_LEFT})
 endif()
 if(NOT ENABLE_MPD)
   string(REPLACE "mpd" "" MODULES_CENTER ${MODULES_CENTER})

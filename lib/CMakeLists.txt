@@ -36,5 +36,13 @@ if(ENABLE_I3)
 endif()
 
 # }}}
+# Library: dwmipcpp {{{
+
+if(ENABLE_DWM)
+  add_subdirectory(dwmipcpp)
+  list(APPEND libs ${DWMIPCPP_LIBRARIES})
+endif()
+
+# }}}
 
 set(libs ${libs} PARENT_SCOPE)
