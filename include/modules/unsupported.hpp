@@ -41,6 +41,9 @@ namespace modules {
 #if not ENABLE_I3
   DEFINE_UNSUPPORTED_MODULE(i3_module, "internal/i3");
 #endif
+#if not ENABLE_DWM
+  DEFINE_UNSUPPORTED_MODULE(dwm_module, "internal/dwm");
+#endif
 #if not ENABLE_MPD
   DEFINE_UNSUPPORTED_MODULE(mpd_module, "internal/mpd");
 #endif
