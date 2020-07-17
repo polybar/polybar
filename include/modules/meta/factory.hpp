@@ -24,6 +24,9 @@
 #if ENABLE_I3
 #include "modules/i3.hpp"
 #endif
+#if ENABLE_DWM
+#include "modules/dwm.hpp"
+#endif
 #if ENABLE_MPD
 #include "modules/mpd.hpp"
 #endif
@@ -62,6 +65,8 @@ namespace {
       return new cpu_module(bar, move(module_name));
     } else if (name == date_module::TYPE) {
       return new date_module(bar, move(module_name));
+    } else if (name == "internal/dwm") {
+      return new dwm_module(bar, move(module_name));
     } else if (name == github_module::TYPE) {
       return new github_module(bar, move(module_name));
     } else if (name == fs_module::TYPE) {
