@@ -166,6 +166,51 @@ label-urgent-padding = 2
 ; Separator in between workspaces
 ; label-separator = |
 
+[module/dwm]
+type = internal/dwm
+format = <label-state> <label-layout> <label-title>
+
+enable-click = false
+
+; State
+; Available tokens:
+;   %name%
+
+; Only show tags on the same output as the bar
+;pin-tags = true
+
+label-title = "%title%"
+label-title-padding = 2
+label-title-forefround = ${colors.primary}
+label-title-maxlen = 30
+
+label-layout-padding = 2
+label-layout-foreground = #000
+label-layout-background = ${colors.primary}
+
+; focused = Active tag on focused monitor
+label-focused = %name%
+label-focused-background = ${colors.background-alt}
+label-focused-underline= ${colors.primary}
+label-focused-padding = 2
+
+; unfocused = Inactive tag on any monitor
+label-unfocused = %name%
+label-unfocused-padding = 2
+
+; visible = Active tag on unfocused monitor
+label-visible = %index%
+label-visible-background = ${self.label-focused-background}
+label-visible-underline = ${self.label-focused-underline}
+label-visible-padding = ${self.label-focused-padding}
+
+; urgent = Tag with urgency hint set
+label-urgent = %index%
+label-urgent-background = ${colors.alert}
+label-urgent-padding = 2
+
+; Separator in between workspaces
+; label-separator = |
 
 [module/mpd]
 type = internal/mpd
