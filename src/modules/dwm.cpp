@@ -111,12 +111,20 @@ namespace modules {
           return;
         }
 
+        m_focused_client_id = ev.new_win_id;
         m_title_label->reset_tokens();
-        if (ev.new_win_id != 0) {
-          auto focused_client = m_ipc->get_client(ev.new_win_id);
+        if (m_focused_client_id != 0) {
+          auto focused_client = m_ipc->get_client(m_focused_client_id);
           m_title_label->replace_token("%title%", focused_client->name);
         } else {
           m_title_label->replace_token("%title%", "");
+        }
+      };
+
+      m_ipc->on_focused_title_change = [this](const dwmipc::FocusedTitleChangeEvent& ev) {
+        if (ev.monitor_num == m_bar_mon && ev.client_window_id == m_focused_client_id) {
+          m_title_label->reset_tokens();
+          m_title_label->replace_token("%title%", ev.new_name);
         }
       };
 
@@ -124,6 +132,7 @@ namespace modules {
       m_ipc->subscribe(dwmipc::Event::CLIENT_FOCUS_CHANGE);
       m_ipc->subscribe(dwmipc::Event::TAG_CHANGE);
       m_ipc->subscribe(dwmipc::Event::MONITOR_FOCUS_CHANGE);
+      m_ipc->subscribe(dwmipc::Event::FOCUSED_TITLE_CHANGE);
     } catch (const dwmipc::IPCError& err) {
       throw module_error(err.what());
     }

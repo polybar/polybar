@@ -67,6 +67,7 @@ namespace modules {
     shared_ptr<std::vector<dwmipc::Monitor>> m_monitors;
     unsigned int m_active_mon_num = 0;
     unsigned int m_bar_mon = 0;
+    unsigned int m_focused_client_id = 0;
 
     std::unordered_map<state_t, label_t> m_state_labels;
     vector<tag_t> m_tags;
