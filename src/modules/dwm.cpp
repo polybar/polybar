@@ -81,7 +81,7 @@ namespace modules {
         };
       }
 
-      m_ipc->on_selected_monitor_change = [this](const dwmipc::SelectedMonitorChangeEvent& ev) {
+      m_ipc->on_monitor_focus_change = [this](const dwmipc::MonitorFocusChangeEvent& ev) {
         m_active_mon_num = ev.new_mon_num;
 
         for (auto& t : m_tags) {
@@ -106,7 +106,7 @@ namespace modules {
         }
       };
 
-      m_ipc->on_selected_client_change = [this](const dwmipc::SelectedClientChangeEvent& ev) {
+      m_ipc->on_client_focus_change = [this](const dwmipc::ClientFocusChangeEvent& ev) {
         if (ev.monitor_num != m_bar_mon) {
           return;
         }
@@ -121,9 +121,9 @@ namespace modules {
       };
 
       m_ipc->subscribe(dwmipc::Event::LAYOUT_CHANGE);
-      m_ipc->subscribe(dwmipc::Event::SELECTED_MONITOR_CHANGE);
+      m_ipc->subscribe(dwmipc::Event::CLIENT_FOCUS_CHANGE);
       m_ipc->subscribe(dwmipc::Event::TAG_CHANGE);
-      m_ipc->subscribe(dwmipc::Event::SELECTED_CLIENT_CHANGE);
+      m_ipc->subscribe(dwmipc::Event::MONITOR_FOCUS_CHANGE);
     } catch (const dwmipc::IPCError& err) {
       throw module_error(err.what());
     }
@@ -143,7 +143,7 @@ namespace modules {
     try {
       return m_ipc->handle_event();
     } catch (const dwmipc::SocketClosedError& err) {
-      m_log.err("%s: Disconnected from socket: %s", name(),err.what());
+      m_log.err("%s: Disconnected from socket: %s", name(), err.what());
       try {
         if (!m_ipc->is_main_socket_connected()) {
           m_log.info("%s: Attempting to reconnect to main socket", name());
