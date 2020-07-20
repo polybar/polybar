@@ -177,6 +177,9 @@ namespace modules {
       try {
         m_ipc->run_command(ev_name, stoul(cmd));
         return true;
+      } catch (const dwmipc::SocketClosedError& err) {
+        m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        reconnect_dwm();
       } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
       }
@@ -254,6 +257,9 @@ namespace modules {
     if (client_id != 0) {
       try {
         new_title = m_ipc->get_client(client_id)->name;
+      } catch (const dwmipc::SocketClosedError& err) {
+        m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        reconnect_dwm();
       } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
       }
