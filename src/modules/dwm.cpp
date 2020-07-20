@@ -62,6 +62,15 @@ namespace modules {
           [](dwmipc::Monitor& m1, dwmipc::Monitor& m2) { return m1.num < m2.num; });
       update_monitor_ref();
 
+      auto selected_client = m_monitors->at(m_bar_mon).clients.selected;
+      std::shared_ptr<dwmipc::Client> c;
+      if (selected_client != 0) {
+        c = m_ipc->get_client(selected_client);
+      }
+
+      m_title_label->reset_tokens();
+      m_title_label->replace_token("%title%", c->name);
+
       auto tags = m_ipc->get_tags();
       // m_tags.resize(tags->size());
 
