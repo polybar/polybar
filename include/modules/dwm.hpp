@@ -48,31 +48,39 @@ namespace modules {
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
     static constexpr const char* TAG_LABEL_TITLE{"<label-title>"};
 
-    static constexpr const char* EVENT_PREFIX{"dwm"};
-    static constexpr const char* EVENT_LCLICK{"dwm-view-"};
-    static constexpr const char* EVENT_RCLICK{"dwm-toggleview-"};
-    static constexpr const char* EVENT_SCROLL_UP{"dwm-tagnext"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"dwm-tagprev"};
+    static constexpr const char* EVENT_PREFIX{"dwm-"};
+    static constexpr const char* EVENT_LCLICK{"view"};
+    static constexpr const char* EVENT_RCLICK{"toggleview"};
+
+    void on_layout_change(const dwmipc::LayoutChangeEvent& ev);
+    void on_monitor_focus_change(const dwmipc::MonitorFocusChangeEvent& ev);
+    void on_tag_change(const dwmipc::TagChangeEvent& ev);
+    void on_client_focus_change(const dwmipc::ClientFocusChangeEvent& ev);
+    void on_focused_title_change(const dwmipc::FocusedTitleChangeEvent& ev);
+
+    void update_monitor_ref();
+    void update_tag_labels();
+    void update_title_label(unsigned int client_id);
 
     auto get_state(tag_mask_t bit_mask) const -> state_t;
-    void update_monitor_ref();
+    auto check_send_cmd(string&& cmd, const string& ev_name) -> bool;
+    auto reconnect_dwm() -> bool;
 
     bool m_click{true};
     bool m_pin_tags{false};
+
+    const dwmipc::Monitor* m_active_mon = nullptr;
+    const dwmipc::Monitor* m_bar_mon = nullptr;
+    unsigned int m_focused_client_id = 0;
 
     label_t m_layout_label;
     label_t m_seperator_label;
     label_t m_title_label;
 
+    unique_ptr<dwmipc::Connection> m_ipc;
     shared_ptr<std::vector<dwmipc::Monitor>> m_monitors;
-    unsigned int m_active_mon_num = 0;
-    unsigned int m_bar_mon = 0;
-    unsigned int m_focused_client_id = 0;
-
     std::unordered_map<state_t, label_t> m_state_labels;
     vector<tag_t> m_tags;
-
-    unique_ptr<dwmipc::Connection> m_ipc;
   };
 }  // namespace modules
 
