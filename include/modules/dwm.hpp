@@ -42,7 +42,7 @@ namespace modules {
 
    private:
     static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-state> <label-layout> <label-title>"};
-    static constexpr const char* DEFAULT_TAG_LABEL{"%name%"};
+    static constexpr const char* DEFAULT_STATE_LABEL{"%name%"};
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};

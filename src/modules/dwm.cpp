@@ -33,16 +33,15 @@ namespace modules {
     // Populate m_state_labels map with labels and their states
     if (m_formatter->has(TAG_LABEL_STATE)) {
       m_state_labels.insert(
-          std::make_pair(state_t::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_TAG_LABEL)));
+          std::make_pair(state_t::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(std::make_pair(
-          state_t::UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_TAG_LABEL)));
+          state_t::UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(
-          std::make_pair(state_t::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_TAG_LABEL)));
+          std::make_pair(state_t::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(
-          std::make_pair(state_t::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_TAG_LABEL)));
-      // Dummy label for unoccupied tags
+          std::make_pair(state_t::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(
-          std::make_pair(state_t::NONE, load_optional_label(m_conf, name(), "label-none", DEFAULT_TAG_LABEL)));
+          std::make_pair(state_t::NONE, load_optional_label(m_conf, name(), "label-none", DEFAULT_STATE_LABEL)));
     }
 
     m_seperator_label = load_optional_label(m_conf, name(), "label-separator", "");
