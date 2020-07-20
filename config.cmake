@@ -176,14 +176,12 @@ enable-click = false
 ; Available tokens:
 ;   %name%
 
-; Only show tags on the same output as the bar
-;pin-tags = true
-
-label-title = "%title%"
+label-title = %title%
 label-title-padding = 2
 label-title-forefround = ${colors.primary}
 label-title-maxlen = 30
 
+label-layout = %layout%
 label-layout-padding = 2
 label-layout-foreground = #000
 label-layout-background = ${colors.primary}
@@ -199,15 +197,21 @@ label-unfocused = %name%
 label-unfocused-padding = 2
 
 ; visible = Active tag on unfocused monitor
-label-visible = %index%
+label-visible = %name%
 label-visible-background = ${self.label-focused-background}
 label-visible-underline = ${self.label-focused-underline}
 label-visible-padding = ${self.label-focused-padding}
 
 ; urgent = Tag with urgency hint set
-label-urgent = %index%
+label-urgent = %name%
 label-urgent-background = ${colors.alert}
 label-urgent-padding = 2
+
+; empty = Tags with no windows assigned
+; This can be set to an empty string to hide empty tags
+label-empty = %name%
+label-empty-background = ${colors.primary}
+label-empty-padding = 2
 
 ; Separator in between workspaces
 ; label-separator = |

@@ -19,7 +19,7 @@ namespace modules {
       URGENT,     ///< Tag is urgent, overrides all below
       UNFOCUSED,  ///< Monitor is not selected, but tag is selected
       VISIBLE,    ///< Tag is not selected, but occupied
-      NONE        ///< Tag is unoccupied and unselected
+      EMPTY       ///< Tag is unoccupied and unselected
     };
 
     struct tag_t {
@@ -67,7 +67,6 @@ namespace modules {
     auto reconnect_dwm() -> bool;
 
     bool m_click{true};
-    bool m_pin_tags{false};
 
     const dwmipc::Monitor* m_active_mon = nullptr;
     const dwmipc::Monitor* m_bar_mon = nullptr;

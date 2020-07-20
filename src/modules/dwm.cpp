@@ -41,7 +41,7 @@ namespace modules {
       m_state_labels.insert(
           std::make_pair(state_t::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(
-          std::make_pair(state_t::NONE, load_optional_label(m_conf, name(), "label-none", DEFAULT_STATE_LABEL)));
+          std::make_pair(state_t::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_STATE_LABEL)));
     }
 
     m_seperator_label = load_optional_label(m_conf, name(), "label-separator", "");
@@ -55,7 +55,6 @@ namespace modules {
     }
 
     m_click = m_conf.get(name(), "enable-click", m_click);
-    m_pin_tags = m_conf.get(name(), "pin-tags", m_pin_tags);
 
     try {
       update_monitor_ref();
@@ -141,24 +140,21 @@ namespace modules {
     } else if (tag == TAG_LABEL_STATE) {
       bool first = true;
       for (const auto& tag : m_tags) {
-        // Print tags without state only if m_pin_tags
-        if ((tag.state == state_t::NONE && m_pin_tags) || (!m_pin_tags && tag.state != state_t::NONE)) {
-          // Don't insert separator before first tag
-          if (first) {
-            first = false;
-          } else if (*m_seperator_label) {
-            builder->node(m_seperator_label);
-          }
+        // Don't insert separator before first tag
+        if (first) {
+          first = false;
+        } else if (*m_seperator_label) {
+          builder->node(m_seperator_label);
+        }
 
-          if (m_click) {
-            builder->cmd(mousebtn::LEFT, EVENT_PREFIX + string{EVENT_LCLICK} + "-" + to_string(tag.bit_mask));
-            builder->cmd(mousebtn::RIGHT, EVENT_PREFIX + string{EVENT_RCLICK} + "-" + to_string(tag.bit_mask));
-            builder->node(tag.label);
-            builder->cmd_close();
-            builder->cmd_close();
-          } else {
-            builder->node(tag.label);
-          }
+        if (m_click) {
+          builder->cmd(mousebtn::LEFT, EVENT_PREFIX + string{EVENT_LCLICK} + "-" + to_string(tag.bit_mask));
+          builder->cmd(mousebtn::RIGHT, EVENT_PREFIX + string{EVENT_RCLICK} + "-" + to_string(tag.bit_mask));
+          builder->node(tag.label);
+          builder->cmd_close();
+          builder->cmd_close();
+        } else {
+          builder->node(tag.label);
         }
       }
     } else {
@@ -202,7 +198,7 @@ namespace modules {
     // Monitor unselected - Tag selected UNFOCUSED
     // Tag unselected - Tag occupied - Tag non-urgent VISIBLE
     // Tag unselected - Tag occupied - Tag urgent URGENT
-    // Tag unselected - Tag unoccupied PIN?
+    // Tag unselected - Tag unoccupied EMPTY
 
     auto tag_state = m_bar_mon->tag_state;
     bool is_mon_active = m_bar_mon == m_active_mon;
@@ -221,7 +217,7 @@ namespace modules {
       return state_t::VISIBLE;
     }
 
-    return state_t::NONE;
+    return state_t::EMPTY;
   }
 
   void dwm_module::update_monitor_ref() {
@@ -258,7 +254,7 @@ namespace modules {
     if (client_id != 0) {
       try {
         new_title = m_ipc->get_client(client_id)->name;
-      } catch (const dwmipc::IPCError &err) {
+      } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
       }
     }
