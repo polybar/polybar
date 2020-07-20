@@ -13,6 +13,7 @@ namespace modules {
     explicit dwm_module(const bar_settings&, string);
 
     using tag_mask_t = unsigned int;
+    using window_t = unsigned int;
 
     enum class state_t : uint8_t {
       FOCUSED,    ///< Monitor is selected and tag is selected, overrides all below
@@ -23,11 +24,11 @@ namespace modules {
     };
 
     struct tag_t {
-      tag_t(string& name, unsigned int bit_mask, state_t state, label_t&& label)
+      tag_t(string& name, tag_mask_t bit_mask, state_t state, label_t&& label)
           : name(name), bit_mask(bit_mask), state(state), label(forward<label_t>(label)) {}
 
       string name;
-      unsigned int bit_mask;
+      tag_mask_t bit_mask;
       state_t state;
       label_t label;
     };
@@ -60,7 +61,7 @@ namespace modules {
 
     void update_monitor_ref();
     void update_tag_labels();
-    void update_title_label(unsigned int client_id);
+    void update_title_label(window_t client_id);
 
     auto get_state(tag_mask_t bit_mask) const -> state_t;
     auto check_send_cmd(string cmd, const string& ev_name) -> bool;
@@ -70,7 +71,7 @@ namespace modules {
 
     const dwmipc::Monitor* m_active_mon = nullptr;
     const dwmipc::Monitor* m_bar_mon = nullptr;
-    unsigned int m_focused_client_id = 0;
+    window_t m_focused_client_id = 0;
 
     label_t m_layout_label;
     label_t m_seperator_label;

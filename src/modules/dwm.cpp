@@ -252,7 +252,7 @@ namespace modules {
     }
   }
 
-  void dwm_module::update_title_label(unsigned int client_id) {
+  void dwm_module::update_title_label(window_t client_id) {
     std::string new_title;
     if (client_id != 0) {
       try {
