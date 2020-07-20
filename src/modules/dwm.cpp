@@ -85,8 +85,10 @@ namespace modules {
         auto layouts = m_ipc->get_layouts();
         m_layout_label->replace_token("%layout%", m_monitors->at(m_bar_mon).layout.symbol.cur);
         m_ipc->on_layout_change = [this](const dwmipc::LayoutChangeEvent& ev) {
-          m_layout_label->reset_tokens();
-          m_layout_label->replace_token("%layout%", ev.new_symbol);
+          if (ev.monitor_num == m_bar_mon) {
+            m_layout_label->reset_tokens();
+            m_layout_label->replace_token("%layout%", ev.new_symbol);
+          }
         };
       }
 
