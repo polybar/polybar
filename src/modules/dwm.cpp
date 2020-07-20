@@ -271,14 +271,14 @@ namespace modules {
   auto dwm_module::reconnect_dwm() -> bool {
     try {
       if (!m_ipc->is_main_socket_connected()) {
-        m_log.info("%s: Attempting to reconnect to main socket", name());
+        m_log.notice("%s: Attempting to reconnect to main socket", name());
         m_ipc->connect_main_socket();
-        m_log.info("%s: Successfully reconnected to main socket", name());
+        m_log.notice("%s: Successfully reconnected to main socket", name());
       }
       if (!m_ipc->is_event_socket_connected()) {
-        m_log.info("%s: Attempting to reconnect event socket", name());
+        m_log.notice("%s: Attempting to reconnect event socket", name());
         m_ipc->connect_event_socket();
-        m_log.info("%s: Successfully reconnected event to socket", name());
+        m_log.notice("%s: Successfully reconnected event to socket", name());
       }
       return true;
     } catch (const exception& err) {
