@@ -81,7 +81,7 @@ namespace modules {
 
       // These events are only necessary to update the focused window title
       if (m_title_label) {
-        update_title_label(m_active_mon->clients.selected);
+        update_title_label(m_bar_mon->clients.selected);
         m_ipc->on_client_focus_change = [this](const dwmipc::ClientFocusChangeEvent& ev) {
           this->on_client_focus_change(ev);
         };
