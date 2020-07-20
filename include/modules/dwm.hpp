@@ -63,7 +63,7 @@ namespace modules {
     void update_title_label(unsigned int client_id);
 
     auto get_state(tag_mask_t bit_mask) const -> state_t;
-    auto check_send_cmd(string&& cmd, const string& ev_name) -> bool;
+    auto check_send_cmd(string cmd, const string& ev_name) -> bool;
     auto reconnect_dwm() -> bool;
 
     bool m_click{true};

@@ -152,8 +152,8 @@ namespace modules {
           }
 
           if (m_click) {
-            builder->cmd(mousebtn::LEFT, string{EVENT_LCLICK} + to_string(tag.bit_mask));
-            builder->cmd(mousebtn::RIGHT, string{EVENT_RCLICK} + to_string(tag.bit_mask));
+            builder->cmd(mousebtn::LEFT, EVENT_PREFIX + string{EVENT_LCLICK} + "-" + to_string(tag.bit_mask));
+            builder->cmd(mousebtn::RIGHT, EVENT_PREFIX + string{EVENT_RCLICK} + "-" + to_string(tag.bit_mask));
             builder->node(tag.label);
             builder->cmd_close();
             builder->cmd_close();
@@ -168,16 +168,16 @@ namespace modules {
     return true;
   }
 
-  auto dwm_module::check_send_cmd(string&& cmd, const string& ev_name) -> bool {
-    // cmd = <EVENT_PREFIX>-<ev_name>-<arg>
-    // +1 : Erase '-'
-    cmd.erase(0, strlen(EVENT_PREFIX) + 1);
+  auto dwm_module::check_send_cmd(string cmd, const string& ev_name) -> bool {
+    std::cerr << cmd << std::endl;
+    // cmd = <EVENT_PREFIX><ev_name>-<arg>
+    cmd.erase(0, strlen(EVENT_PREFIX));
 
     // cmd = <ev_name>-<arg>
     if (cmd.compare(0, ev_name.size(), ev_name) == 0) {
       // Erase '<ev_name>-'
       cmd.erase(0, ev_name.size() + 1);
-      m_log.info("%s: Sending workspace view command to ipc handler", name());
+      m_log.info("%s: Sending workspace %s command to ipc handler", ev_name, name());
 
       try {
         m_ipc->run_command(ev_name, stoul(cmd));
@@ -194,7 +194,7 @@ namespace modules {
       return false;
     }
 
-    return check_send_cmd(move(cmd), EVENT_LCLICK) || check_send_cmd(move(cmd), EVENT_RCLICK);
+    return check_send_cmd(cmd, EVENT_LCLICK) || check_send_cmd(cmd, EVENT_RCLICK);
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
