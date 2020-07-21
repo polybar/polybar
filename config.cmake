@@ -172,6 +172,9 @@ format = <label-state> <label-layout> <label-title>
 
 enable-click = false
 
+; If enable-click = true, clicking the layout symbol will switch to this layout
+secondary-layout-symbol = [M]
+
 ; State
 ; Available tokens:
 ;   %name%

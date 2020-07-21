@@ -56,6 +56,8 @@ namespace modules {
 
     m_click = m_conf.get(name(), "enable-click", m_click);
 
+    m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
+
     try {
       update_monitor_ref();
 
@@ -68,11 +70,20 @@ namespace modules {
         m_tags.emplace_back(t.tag_name, t.bit_mask, state, move(label));
       }
 
-      // This event is only needed to update the layout label
       if (m_layout_label) {
         auto layouts = m_ipc->get_layouts();
+        m_layouts = m_ipc->get_layouts();
+        // First layout is treated as default by dwm
+        m_default_layout = &m_layouts->at(0);
+        m_current_layout = find_layout(m_bar_mon->layout.address.cur);
+        m_secondary_layout = find_layout(m_secondary_layout_symbol);
+        if (m_secondary_layout == nullptr) {
+          throw module_error("Secondary layout symbol does not exist");
+        }
+
         // Initialize layout symbol
         m_layout_label->replace_token("%layout%", m_bar_mon->layout.symbol.cur);
+        // This event is only needed to update the layout label
         m_ipc->on_layout_change = [this](const dwmipc::LayoutChangeEvent& ev) { on_layout_change(ev); };
         m_ipc->subscribe(dwmipc::Event::LAYOUT_CHANGE);
       }
@@ -137,10 +148,21 @@ namespace modules {
   }
 
   auto dwm_module::build(builder* builder, const string& tag) const -> bool {
-    if (tag == TAG_LABEL_LAYOUT) {
-      builder->node(m_layout_label);
-    } else if (tag == TAG_LABEL_TITLE) {
+    if (tag == TAG_LABEL_TITLE) {
       builder->node(m_title_label);
+    } else if (tag == TAG_LABEL_LAYOUT) {
+      if (m_click) {
+        // Toggle between secondary and default layout
+        auto addr = (m_current_layout == m_default_layout ? m_secondary_layout : m_default_layout)->address;
+        builder->cmd(mousebtn::LEFT, build_cmd(EVENT_LAYOUT_LCLICK, to_string(addr)));
+        // Set previous layout
+        builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_LAYOUT_RCLICK, "0"));
+        builder->node(m_layout_label);
+        builder->cmd_close();
+        builder->cmd_close();
+      } else {
+        builder->node(m_layout_label);
+      }
     } else if (tag == TAG_LABEL_STATE) {
       bool first = true;
       for (const auto& tag : m_tags) {
@@ -168,7 +190,6 @@ namespace modules {
   }
 
   auto dwm_module::check_send_cmd(string cmd, const string& ev_name) -> bool {
-    std::cerr << cmd << std::endl;
     // cmd = <EVENT_PREFIX><ev_name>-<arg>
     cmd.erase(0, strlen(EVENT_PREFIX));
 
@@ -176,7 +197,7 @@ namespace modules {
     if (cmd.compare(0, ev_name.size(), ev_name) == 0) {
       // Erase '<ev_name>-'
       cmd.erase(0, ev_name.size() + 1);
-      m_log.info("%s: Sending workspace %s command to ipc handler", ev_name, name());
+      m_log.info("%s: Sending workspace %s command to ipc handler", name(), ev_name);
 
       try {
         m_ipc->run_command(ev_name, stoul(cmd));
@@ -196,7 +217,8 @@ namespace modules {
       return false;
     }
 
-    return check_send_cmd(cmd, EVENT_TAG_LCLICK) || check_send_cmd(cmd, EVENT_TAG_RCLICK);
+    return check_send_cmd(cmd, EVENT_TAG_LCLICK) || check_send_cmd(cmd, EVENT_TAG_RCLICK) ||
+           check_send_cmd(cmd, EVENT_LAYOUT_LCLICK) || check_send_cmd(cmd, EVENT_LAYOUT_RCLICK);
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
@@ -247,6 +269,24 @@ namespace modules {
     }
   }
 
+  auto dwm_module::find_layout(const string& sym) const -> const dwmipc::Layout* {
+    for (const auto& lt : *m_layouts) {
+      if (lt.symbol == sym) {
+        return &lt;
+      }
+    }
+    return nullptr;
+  }
+
+  auto dwm_module::find_layout(const uintptr_t addr) const -> const dwmipc::Layout* {
+    for (const auto& lt : *m_layouts) {
+      if (lt.address == addr) {
+        return &lt;
+      }
+    }
+    return nullptr;
+  }
+
   void dwm_module::update_tag_labels() {
     for (auto& t : m_tags) {
       t.state = get_state(t.bit_mask);
@@ -293,6 +333,7 @@ namespace modules {
 
   void dwm_module::on_layout_change(const dwmipc::LayoutChangeEvent& ev) {
     if (ev.monitor_num == m_bar_mon->num) {
+      m_current_layout = find_layout(ev.new_address);
       m_layout_label->reset_tokens();
       m_layout_label->replace_token("%layout%", ev.new_symbol);
     }

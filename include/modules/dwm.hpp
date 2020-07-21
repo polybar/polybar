@@ -94,6 +94,18 @@ namespace modules {
     static constexpr const char* EVENT_TAG_RCLICK{"toggleview"};
 
     /**
+     * Event name is same as the IPC command name to set the layout to the
+     * secondary layout when the layout symbol is clicked
+     */
+    static constexpr const char* EVENT_LAYOUT_LCLICK{"setlayoutsafe"};
+
+    /**
+     * Event name is same as the IPC command name to set the layout to the
+     * last layout.
+     */
+    static constexpr const char* EVENT_LAYOUT_RCLICK{"setlayoutsafe"};
+
+    /**
      * Called by has_event on layout changes. This updates the layout label
      *
      * @param ev Event data
@@ -163,6 +175,16 @@ namespace modules {
     auto get_state(tag_mask_t bit_mask) const -> state_t;
 
     /**
+     * Get the address to the layout represented by the symbol.
+     */
+    auto find_layout(const string& sym) const -> const dwmipc::Layout*;
+
+    /**
+     * Get the address to the layout represented by the address.
+     */
+    auto find_layout(uintptr_t addr) const -> const dwmipc::Layout*;
+
+    /**
      * Check if the command matches the specified event name and if so, send a
      * command to dwm after parsing the command.
      *
@@ -192,6 +214,28 @@ namespace modules {
      * If true, enables the click handlers for the tags
      */
     bool m_click{true};
+
+    /**
+     * If the layout symbol is clicked on, it will set the layout represented by
+     * this symbol. The default is monocle mode [M].
+     */
+    string m_secondary_layout_symbol{"[M]"};
+
+    /**
+     * Holds the address to the secondary layout specified by the secondary
+     * layout symbol
+     */
+    const dwmipc::Layout* m_secondary_layout = nullptr;
+
+    /**
+     * Holds the address to the current layout
+     */
+    const dwmipc::Layout* m_current_layout = nullptr;
+
+    /**
+     * Holds the address to the default layout
+     */
+    const dwmipc::Layout* m_default_layout = nullptr;
 
     /**
      * Holds the address to the currently active monitor in the m_monitors array
@@ -232,6 +276,11 @@ namespace modules {
      * Vector of monitors returned by m_ipc->get_monitors
      */
     shared_ptr<vector<dwmipc::Monitor>> m_monitors;
+
+    /**
+     * Vector of layouts returned by m_ipc->get_layouts
+     */
+    shared_ptr<vector<dwmipc::Layout>> m_layouts;
 
     /**
      * Maps state_t enum values to their corresponding labels
