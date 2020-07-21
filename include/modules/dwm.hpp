@@ -80,42 +80,26 @@ namespace modules {
      */
     static constexpr const char* TAG_LABEL_TITLE{"<label-title>"};
 
+    /**
+     * All input handler commands start with this
+     */
     static constexpr const char* EVENT_PREFIX{"dwm-"};
 
     /**
-     * Event name is same as the IPC command name to view the tag clicked on
+     * DWM command for changing the view to a tag with the specified bit mask
      */
-    static constexpr const char* EVENT_TAG_LCLICK{"view"};
+    static constexpr const char* CMD_TAG_VIEW{"view"};
 
     /**
-     * Event name is same as IPC command name to toggle the view of the tag
-     * clicked on
+     * DWM command for toggling the selected state of a tag with the specified
+     * bit mask
      */
-    static constexpr const char* EVENT_TAG_RCLICK{"toggleview"};
+    static constexpr const char* CMD_TAG_TOGGLE_VIEW{"toggleview"};
 
     /**
-     * Event name is same as the IPC command name to set the layout to the
-     * secondary layout when the layout symbol is clicked
+     * DWM command for setting the layout to a layout specified by the address
      */
-    static constexpr const char* EVENT_LAYOUT_LCLICK{"setlayoutsafe"};
-
-    /**
-     * Event name is same as the IPC command name to set the layout to the
-     * last layout.
-     */
-    static constexpr const char* EVENT_LAYOUT_RCLICK{"setlayoutsafe"};
-
-    /**
-     * Event name is same as the IPC command name to set the layout to the
-     * previous layout in the array.
-     */
-    static constexpr const char* EVENT_LAYOUT_SDOWN{"setlayoutsafe"};
-
-    /**
-     * Event name is same as the IPC command name to set the layout to the
-     * next layout in the array.
-     */
-    static constexpr const char* EVENT_LAYOUT_SUP{"setlayoutsafe"};
+    static constexpr const char* CMD_LAYOUT_SET{"setlayoutsafe"};
 
     /**
      * Called by has_event on layout changes. This updates the layout label
@@ -213,25 +197,24 @@ namespace modules {
     auto prev_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout*;
 
     /**
-     * Check if the command matches the specified event name and if so, send a
-     * command to dwm after parsing the command.
+     * Check if the command matches the specified IPC command name and if so,
+     * parse and send the command to dwm
      *
      * @param cmd The command string given by dwm_modue::input
-     * @param ev_name The name of the event to check for (should be the same as
-     *   the dwm command name)
+     * @param ipc_cmd The name of dwm IPC command to check for
      *
      * @return true if the command matched, was succesfully parsed, and sent to
      *   dwm, false otherwise
      */
-    auto check_send_cmd(string cmd, const string& ev_name) -> bool;
+    auto check_send_cmd(string cmd, const string& ipc_cmd) -> bool;
 
     /**
      * Helper function to build cmd string
      *
-     * @param ev The event name (should be same as dwm command name)
+     * @param ipc_cmd The dwm IPC command name
      * @param arg The argument to the dwm command
      */
-    auto static build_cmd(const char* ev, const string& arg) -> string;
+    auto static build_cmd(const char* ipc_cmd, const string& arg) -> string;
 
     /**
      * Attempt to connect to any disconnected dwm sockets. Catch errors.

@@ -147,8 +147,8 @@ namespace modules {
     return true;
   }
 
-  auto dwm_module::build_cmd(const char* ev, const string& arg) -> string {
-    return EVENT_PREFIX + string(ev) + "-" + arg;
+  auto dwm_module::build_cmd(const char* ipc_cmd, const string& arg) -> string {
+    return EVENT_PREFIX + string(ipc_cmd) + "-" + arg;
   }
 
   auto dwm_module::build(builder* builder, const string& tag) const -> bool {
@@ -158,19 +158,19 @@ namespace modules {
       if (m_layout_click) {
         // Toggle between secondary and default layout
         auto addr = (m_current_layout == m_default_layout ? m_secondary_layout : m_default_layout)->address;
-        builder->cmd(mousebtn::LEFT, build_cmd(EVENT_LAYOUT_LCLICK, to_string(addr)));
+        builder->cmd(mousebtn::LEFT, build_cmd(CMD_LAYOUT_SET, to_string(addr)));
         // Set previous layout
-        builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_LAYOUT_RCLICK, "0"));
+        builder->cmd(mousebtn::RIGHT, build_cmd(CMD_LAYOUT_SET, "0"));
       }
       if (m_layout_scroll) {
         auto addr_next = next_layout(*m_current_layout, m_layout_wrap)->address;
         auto addr_prev = prev_layout(*m_current_layout, m_layout_wrap)->address;
         if (m_layout_reverse) {
-          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_prev)));
-          builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_next)));
+          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, to_string(addr_prev)));
+          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, to_string(addr_next)));
         } else {
-          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_next)));
-          builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_prev)));
+          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, to_string(addr_next)));
+          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, to_string(addr_prev)));
         }
       }
       builder->node(m_layout_label);
@@ -193,8 +193,8 @@ namespace modules {
         }
 
         if (m_tags_click) {
-          builder->cmd(mousebtn::LEFT, build_cmd(EVENT_TAG_LCLICK, to_string(tag.bit_mask)));
-          builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_TAG_RCLICK, to_string(tag.bit_mask)));
+          builder->cmd(mousebtn::LEFT, build_cmd(CMD_TAG_VIEW, to_string(tag.bit_mask)));
+          builder->cmd(mousebtn::RIGHT, build_cmd(CMD_TAG_TOGGLE_VIEW, to_string(tag.bit_mask)));
           builder->node(tag.label);
           builder->cmd_close();
           builder->cmd_close();
@@ -208,18 +208,18 @@ namespace modules {
     return true;
   }
 
-  auto dwm_module::check_send_cmd(string cmd, const string& ev_name) -> bool {
-    // cmd = <EVENT_PREFIX><ev_name>-<arg>
+  auto dwm_module::check_send_cmd(string cmd, const string& ipc_cmd) -> bool {
+    // cmd = <EVENT_PREFIX><ipc_cmd>-<arg>
     cmd.erase(0, strlen(EVENT_PREFIX));
 
-    // cmd = <ev_name>-<arg>
-    if (cmd.compare(0, ev_name.size(), ev_name) == 0) {
-      // Erase '<ev_name>-'
-      cmd.erase(0, ev_name.size() + 1);
-      m_log.info("%s: Sending workspace %s command to ipc handler", name(), ev_name);
+    // cmd = <ipc_cmd>-<arg>
+    if (cmd.compare(0, ipc_cmd.size(), ipc_cmd) == 0) {
+      // Erase '<ipc_cmd>-'
+      cmd.erase(0, ipc_cmd.size() + 1);
+      m_log.info("%s: Sending workspace %s command to ipc handler", name(), ipc_cmd);
 
       try {
-        m_ipc->run_command(ev_name, stoul(cmd));
+        m_ipc->run_command(ipc_cmd, stoul(cmd));
         return true;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
@@ -236,9 +236,8 @@ namespace modules {
       return false;
     }
 
-    return check_send_cmd(cmd, EVENT_TAG_LCLICK) || check_send_cmd(cmd, EVENT_TAG_RCLICK) ||
-           check_send_cmd(cmd, EVENT_LAYOUT_LCLICK) || check_send_cmd(cmd, EVENT_LAYOUT_RCLICK) ||
-           check_send_cmd(cmd, EVENT_LAYOUT_SDOWN) || check_send_cmd(cmd, EVENT_LAYOUT_SUP);
+    return check_send_cmd(cmd, CMD_TAG_VIEW) || check_send_cmd(cmd, CMD_TAG_TOGGLE_VIEW) ||
+           check_send_cmd(cmd, CMD_LAYOUT_SET);
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
