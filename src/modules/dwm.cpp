@@ -28,8 +28,7 @@ namespace modules {
     m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
 
     // Load configuration
-    m_formatter->add(
-        DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_TITLE});
+    m_formatter->add(DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_TITLE});
 
     // Populate m_state_labels map with labels and their states
     if (m_formatter->has(TAG_LABEL_TAGS)) {
@@ -55,8 +54,10 @@ namespace modules {
       m_title_label = load_optional_label(m_conf, name(), "label-title", "%title%");
     }
 
-    m_click = m_conf.get(name(), "enable-click", m_click);
-
+    m_tags_click = m_conf.get(name(), "enable-tags-click", m_tags_click);
+    m_layout_click = m_conf.get(name(), "enable-layout-click", m_layout_click);
+    m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
+    m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
 
     try {
@@ -153,17 +154,27 @@ namespace modules {
     if (tag == TAG_LABEL_TITLE) {
       builder->node(m_title_label);
     } else if (tag == TAG_LABEL_LAYOUT) {
-      if (m_click) {
+      if (m_layout_click) {
         // Toggle between secondary and default layout
         auto addr = (m_current_layout == m_default_layout ? m_secondary_layout : m_default_layout)->address;
         builder->cmd(mousebtn::LEFT, build_cmd(EVENT_LAYOUT_LCLICK, to_string(addr)));
         // Set previous layout
         builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_LAYOUT_RCLICK, "0"));
-        builder->node(m_layout_label);
+      }
+      if (m_layout_scroll) {
+        auto addr_next = next_layout(*m_current_layout, m_layout_wrap)->address;
+        auto addr_prev = prev_layout(*m_current_layout, m_layout_wrap)->address;
+        builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_prev)));
+        builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_next)));
+      }
+      builder->node(m_layout_label);
+      if (m_layout_click) {
         builder->cmd_close();
         builder->cmd_close();
-      } else {
-        builder->node(m_layout_label);
+      }
+      if (m_layout_scroll) {
+        builder->cmd_close();
+        builder->cmd_close();
       }
     } else if (tag == TAG_LABEL_TAGS) {
       bool first = true;
@@ -175,7 +186,7 @@ namespace modules {
           builder->node(m_seperator_label);
         }
 
-        if (m_click) {
+        if (m_tags_click) {
           builder->cmd(mousebtn::LEFT, build_cmd(EVENT_TAG_LCLICK, to_string(tag.bit_mask)));
           builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_TAG_RCLICK, to_string(tag.bit_mask)));
           builder->node(tag.label);
@@ -220,7 +231,8 @@ namespace modules {
     }
 
     return check_send_cmd(cmd, EVENT_TAG_LCLICK) || check_send_cmd(cmd, EVENT_TAG_RCLICK) ||
-           check_send_cmd(cmd, EVENT_LAYOUT_LCLICK) || check_send_cmd(cmd, EVENT_LAYOUT_RCLICK);
+           check_send_cmd(cmd, EVENT_LAYOUT_LCLICK) || check_send_cmd(cmd, EVENT_LAYOUT_RCLICK) ||
+           check_send_cmd(cmd, EVENT_LAYOUT_SDOWN) || check_send_cmd(cmd, EVENT_LAYOUT_SUP);
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
@@ -287,6 +299,30 @@ namespace modules {
       }
     }
     return nullptr;
+  }
+
+  auto dwm_module::next_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout* {
+    const auto* next = &layout + 1;
+    const auto* first = m_layouts->begin().base();
+    if (next < m_layouts->end().base()) {
+      return next;
+    } else if (wrap) {
+      return first;
+    } else {
+      return &layout;
+    }
+  }
+
+  auto dwm_module::prev_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout* {
+    const auto* prev = &layout - 1;
+    const auto* last = m_layouts->end().base() - 1;
+    if (prev >= m_layouts->begin().base()) {
+      return prev;
+    } else if (wrap) {
+      return last;
+    } else {
+      return &layout;
+    }
   }
 
   void dwm_module::update_tag_labels() {

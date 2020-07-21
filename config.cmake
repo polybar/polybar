@@ -168,11 +168,14 @@ label-urgent-padding = 2
 
 [module/dwm]
 type = internal/dwm
-format = <label-tags> <label-layout>> <label-title>
+format = <label-tags> <label-layout> <label-title>
 
-enable-click = false
+enable-tags-click = false
+enable-layout-click = false
+enable-layout-scroll = false
+layout-scroll-wrap = false
 
-; If enable-click = true, clicking the layout symbol will switch to this layout
+; If enable-layout-click = true, clicking the layout symbol will switch to this layout
 secondary-layout-symbol = [M]
 
 ; State

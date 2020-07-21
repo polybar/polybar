@@ -106,6 +106,18 @@ namespace modules {
     static constexpr const char* EVENT_LAYOUT_RCLICK{"setlayoutsafe"};
 
     /**
+     * Event name is same as the IPC command name to set the layout to the
+     * previous layout in the array.
+     */
+    static constexpr const char* EVENT_LAYOUT_SDOWN{"setlayoutsafe"};
+
+    /**
+     * Event name is same as the IPC command name to set the layout to the
+     * next layout in the array.
+     */
+    static constexpr const char* EVENT_LAYOUT_SUP{"setlayoutsafe"};
+
+    /**
      * Called by has_event on layout changes. This updates the layout label
      *
      * @param ev Event data
@@ -183,6 +195,24 @@ namespace modules {
     auto find_layout(uintptr_t addr) const -> const dwmipc::Layout*;
 
     /**
+     * Get the address of the next layout in m_layouts.
+     *
+     * @param layout Address of the current layout
+     * @param wrap True to wrap around the array, false to return the same
+     *   layout if the next layout does not exist.
+     */
+    auto next_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout*;
+
+    /**
+     * Get the address of the previous layout in m_layouts.
+     *
+     * @param layout Address of the current layout
+     * @param wrap True to wrap around the array, false to return the same
+     *   layout if the next layout does not exist.
+     */
+    auto prev_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout*;
+
+    /**
      * Check if the command matches the specified event name and if so, send a
      * command to dwm after parsing the command.
      *
@@ -211,7 +241,22 @@ namespace modules {
     /**
      * If true, enables the click handlers for the tags
      */
-    bool m_click{true};
+    bool m_tags_click{true};
+
+    /**
+     * If true, enables the click handlers for the layout label
+     */
+    bool m_layout_click{true};
+
+    /**
+     * If true, scrolling the layout cycle through available layouts
+     */
+    bool m_layout_scroll{true};
+
+    /**
+     * If true, scrolling the layout will wrap around to the beginning
+     */
+    bool m_layout_wrap{true};
 
     /**
      * If the layout symbol is clicked on, it will set the layout represented by
