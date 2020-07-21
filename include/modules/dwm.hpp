@@ -158,12 +158,10 @@ namespace modules {
     void update_tag_labels();
 
     /**
-     * Get the window title of the specified client from dwm and update the
-     * title label
-     *
-     * @param client_id The window XID of the client
+     * Get the window title of the currently focused client from dwm and update
+     * the title label
      */
-    void update_title_label(window_t client_id);
+    void update_title_label();
 
     /**
      * Translate the tag's tag states to a state_t enum value

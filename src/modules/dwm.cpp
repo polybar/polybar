@@ -60,6 +60,7 @@ namespace modules {
 
     try {
       update_monitor_ref();
+      m_focused_client_id = m_bar_mon->clients.selected;
 
       // Initialize tags array
       auto tags = m_ipc->get_tags();
@@ -90,7 +91,7 @@ namespace modules {
 
       // These events are only necessary to update the focused window title
       if (m_title_label) {
-        update_title_label(m_bar_mon->clients.selected);
+        update_title_label();
         m_ipc->on_client_focus_change = [this](const dwmipc::ClientFocusChangeEvent& ev) {
           this->on_client_focus_change(ev);
         };
@@ -296,11 +297,11 @@ namespace modules {
     }
   }
 
-  void dwm_module::update_title_label(window_t client_id) {
+  void dwm_module::update_title_label() {
     std::string new_title;
-    if (client_id != 0) {
+    if (m_focused_client_id != 0) {
       try {
-        new_title = m_ipc->get_client(client_id)->name;
+        new_title = m_ipc->get_client(m_focused_client_id)->name;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
         reconnect_dwm();
@@ -363,7 +364,7 @@ namespace modules {
   void dwm_module::on_client_focus_change(const dwmipc::ClientFocusChangeEvent& ev) {
     if (ev.monitor_num == m_bar_mon->num) {
       m_focused_client_id = ev.new_win_id;
-      update_title_label(ev.new_win_id);
+      update_title_label();
     }
   }
 
