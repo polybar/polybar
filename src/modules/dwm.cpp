@@ -132,6 +132,10 @@ namespace modules {
     return true;
   }
 
+  auto dwm_module::build_cmd(const char* ev, const string& arg) -> string {
+    return EVENT_PREFIX + string(ev) + "-" + arg;
+  }
+
   auto dwm_module::build(builder* builder, const string& tag) const -> bool {
     if (tag == TAG_LABEL_LAYOUT) {
       builder->node(m_layout_label);
@@ -148,8 +152,8 @@ namespace modules {
         }
 
         if (m_click) {
-          builder->cmd(mousebtn::LEFT, EVENT_PREFIX + string{EVENT_LCLICK} + "-" + to_string(tag.bit_mask));
-          builder->cmd(mousebtn::RIGHT, EVENT_PREFIX + string{EVENT_RCLICK} + "-" + to_string(tag.bit_mask));
+          builder->cmd(mousebtn::LEFT, build_cmd(EVENT_TAG_LCLICK, to_string(tag.bit_mask)));
+          builder->cmd(mousebtn::RIGHT, build_cmd(EVENT_TAG_RCLICK, to_string(tag.bit_mask)));
           builder->node(tag.label);
           builder->cmd_close();
           builder->cmd_close();
@@ -192,7 +196,7 @@ namespace modules {
       return false;
     }
 
-    return check_send_cmd(cmd, EVENT_LCLICK) || check_send_cmd(cmd, EVENT_RCLICK);
+    return check_send_cmd(cmd, EVENT_TAG_LCLICK) || check_send_cmd(cmd, EVENT_TAG_RCLICK);
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {

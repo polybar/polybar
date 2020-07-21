@@ -85,13 +85,13 @@ namespace modules {
     /**
      * Event name is same as the IPC command name to view the tag clicked on
      */
-    static constexpr const char* EVENT_LCLICK{"view"};
+    static constexpr const char* EVENT_TAG_LCLICK{"view"};
 
     /**
      * Event name is same as IPC command name to toggle the view of the tag
      * clicked on
      */
-    static constexpr const char* EVENT_RCLICK{"toggleview"};
+    static constexpr const char* EVENT_TAG_RCLICK{"toggleview"};
 
     /**
      * Called by has_event on layout changes. This updates the layout label
@@ -176,6 +176,14 @@ namespace modules {
     auto check_send_cmd(string cmd, const string& ev_name) -> bool;
 
     /**
+     * Helper function to build cmd string
+     *
+     * @param ev The event name (should be same as dwm command name)
+     * @param arg The argument to the dwm command
+     */
+    auto static build_cmd(const char* ev, const string& arg) -> string;
+
+    /**
      * Attempt to connect to any disconnected dwm sockets. Catch errors.
      */
     auto reconnect_dwm() -> bool;
@@ -223,7 +231,7 @@ namespace modules {
     /**
      * Vector of monitors returned by m_ipc->get_monitors
      */
-    shared_ptr<std::vector<dwmipc::Monitor>> m_monitors;
+    shared_ptr<vector<dwmipc::Monitor>> m_monitors;
 
     /**
      * Maps state_t enum values to their corresponding labels
