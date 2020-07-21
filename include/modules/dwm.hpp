@@ -56,11 +56,11 @@ namespace modules {
     auto input(string&& cmd) -> bool override;
 
    private:
-    static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-state> <label-layout> <label-title>"};
+    static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-tags> <label-layout> <label-title>"};
     static constexpr const char* DEFAULT_STATE_LABEL{"%name%"};
 
     /**
-     * The state label is used to represent a tag. This label is replaced by one
+     * The tags label is replaced with the tags. Each tag is displayed using one
      * of the following labels based on the tag state:
      *   * label-focused
      *   * label-unfocused
@@ -68,7 +68,7 @@ namespace modules {
      *   * label-urgent
      *   * label-empty
      */
-    static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
+    static constexpr const char* TAG_LABEL_TAGS{"<label-tags>"};
 
     /**
      * The layout label is replaced by the current layout symbol

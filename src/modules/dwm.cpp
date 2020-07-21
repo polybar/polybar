@@ -28,10 +28,11 @@ namespace modules {
     m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
 
     // Load configuration
-    m_formatter->add(DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_LAYOUT, TAG_LABEL_TITLE});
+    m_formatter->add(
+        DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_TITLE});
 
     // Populate m_state_labels map with labels and their states
-    if (m_formatter->has(TAG_LABEL_STATE)) {
+    if (m_formatter->has(TAG_LABEL_TAGS)) {
       m_state_labels.insert(
           std::make_pair(state_t::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_STATE_LABEL)));
       m_state_labels.insert(std::make_pair(
@@ -164,7 +165,7 @@ namespace modules {
       } else {
         builder->node(m_layout_label);
       }
-    } else if (tag == TAG_LABEL_STATE) {
+    } else if (tag == TAG_LABEL_TAGS) {
       bool first = true;
       for (const auto& tag : m_tags) {
         // Don't insert separator before first tag
