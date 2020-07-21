@@ -165,13 +165,11 @@ namespace modules {
       if (m_layout_scroll) {
         auto addr_next = next_layout(*m_current_layout, m_layout_wrap)->address;
         auto addr_prev = prev_layout(*m_current_layout, m_layout_wrap)->address;
-        if (m_layout_reverse) {
-          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, to_string(addr_prev)));
-          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, to_string(addr_next)));
-        } else {
-          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, to_string(addr_next)));
-          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, to_string(addr_prev)));
-        }
+        // Set address based on scroll direction
+        auto scroll_down_addr = to_string(m_layout_reverse ? addr_prev : addr_next);
+        auto scroll_up_addr = to_string(m_layout_reverse ? addr_next : addr_prev);
+        builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, scroll_down_addr));
+        builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, scroll_up_addr));
       }
       builder->node(m_layout_label);
       if (m_layout_click) {
