@@ -259,6 +259,11 @@ namespace modules {
     bool m_layout_wrap{true};
 
     /**
+     * If true, scrolling the layout will cycle layouts in the reverse direction
+     */
+    bool m_layout_reverse{false};
+
+    /**
      * If the layout symbol is clicked on, it will set the layout represented by
      * this symbol. The default is monocle mode [M].
      */

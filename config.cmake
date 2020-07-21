@@ -174,6 +174,7 @@ enable-tags-click = false
 enable-layout-click = false
 enable-layout-scroll = false
 layout-scroll-wrap = false
+layout-scroll-reverse = false
 
 ; If enable-layout-click = true, clicking the layout symbol will switch to this layout
 secondary-layout-symbol = [M]

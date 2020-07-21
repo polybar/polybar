@@ -58,6 +58,7 @@ namespace modules {
     m_layout_click = m_conf.get(name(), "enable-layout-click", m_layout_click);
     m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
     m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
+    m_layout_reverse = m_conf.get(name(), "layout-scroll-reverse", m_layout_reverse);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
 
     try {
@@ -164,8 +165,13 @@ namespace modules {
       if (m_layout_scroll) {
         auto addr_next = next_layout(*m_current_layout, m_layout_wrap)->address;
         auto addr_prev = prev_layout(*m_current_layout, m_layout_wrap)->address;
-        builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_prev)));
-        builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_next)));
+        if (m_layout_reverse) {
+          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_prev)));
+          builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_next)));
+        } else {
+          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(EVENT_LAYOUT_SDOWN, to_string(addr_next)));
+          builder->cmd(mousebtn::SCROLL_UP, build_cmd(EVENT_LAYOUT_SUP, to_string(addr_prev)));
+        }
       }
       builder->node(m_layout_label);
       if (m_layout_click) {
