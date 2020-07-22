@@ -170,28 +170,45 @@ label-urgent-padding = 2
 type = internal/dwm
 format = <label-tags> <label-layout> <label-floating> <label-title>
 
+; Left-click to view tag, right-click to toggle tag view
 enable-tags-click = false
+; Left-click to set secondary layout, right-click to switch to previous layout
 enable-layout-click = false
+; Scroll to cycle between available layouts
 enable-layout-scroll = false
+; Wrap when scrolling and reaching begining/end of layouts
 layout-scroll-wrap = false
+; Reverse scroll direction
 layout-scroll-reverse = false
 
 ; If enable-layout-click = true, clicking the layout symbol will switch to this layout
 secondary-layout-symbol = [M]
 
-; State
-; Available tokens:
-;   %name%
+; Separator in between shown tags
+; label-separator = |
 
+; Title of currently focused window
+; Available tokens:
+;   %title%
 label-title = %title%
 label-title-padding = 2
 label-title-forefround = ${colors.primary}
 label-title-maxlen = 30
 
+; Symbol of current layout
+; Available tokens:
+;   %symbol%
 label-layout = %symbol%
 label-layout-padding = 2
 label-layout-foreground = #000
 label-layout-background = ${colors.primary}
+
+; Text to show when currently focused window is floating
+label-floating = F
+
+; States: focused, unfocused, visible, urgent, empty
+; Available tokens:
+;   %name%
 
 ; focused = Active tag on focused monitor
 label-focused = %name%
@@ -219,9 +236,6 @@ label-urgent-padding = 2
 label-empty = %name%
 label-empty-background = ${colors.primary}
 label-empty-padding = 2
-
-; Separator in between workspaces
-; label-separator = |
 
 [module/mpd]
 type = internal/mpd
