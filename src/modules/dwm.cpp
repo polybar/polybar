@@ -28,7 +28,8 @@ namespace modules {
     m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
 
     // Load configuration
-    m_formatter->add(DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_FLOATING, TAG_LABEL_TITLE});
+    m_formatter->add(
+        DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_FLOATING, TAG_LABEL_TITLE});
 
     // Populate m_state_labels map with labels and their states
     if (m_formatter->has(TAG_LABEL_TAGS)) {
@@ -47,7 +48,7 @@ namespace modules {
     m_seperator_label = load_optional_label(m_conf, name(), "label-separator", "");
 
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
-      m_layout_label = load_optional_label(m_conf, name(), "label-layout", "%layout%");
+      m_layout_label = load_optional_label(m_conf, name(), "label-layout", "%symbol%");
     }
 
     if (m_formatter->has(TAG_LABEL_FLOATING)) {
@@ -94,7 +95,7 @@ namespace modules {
         }
 
         // Initialize layout symbol
-        m_layout_label->replace_token("%layout%", m_bar_mon->layout.symbol.cur);
+        m_layout_label->replace_token("%symbol%", m_bar_mon->layout.symbol.cur);
         // This event is only needed to update the layout label
         m_ipc->on_layout_change = [this](const dwmipc::LayoutChangeEvent& ev) { on_layout_change(ev); };
         m_ipc->subscribe(dwmipc::Event::LAYOUT_CHANGE);
@@ -412,7 +413,7 @@ namespace modules {
     if (ev.monitor_num == m_bar_mon->num) {
       m_current_layout = find_layout(ev.new_address);
       m_layout_label->reset_tokens();
-      m_layout_label->replace_token("%layout%", ev.new_symbol);
+      m_layout_label->replace_token("%symbol%", ev.new_symbol);
     }
   }
 

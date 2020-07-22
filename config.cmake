@@ -188,7 +188,7 @@ label-title-padding = 2
 label-title-forefround = ${colors.primary}
 label-title-maxlen = 30
 
-label-layout = %layout%
+label-layout = %symbol%
 label-layout-padding = 2
 label-layout-foreground = #000
 label-layout-background = ${colors.primary}
