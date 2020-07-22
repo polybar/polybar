@@ -168,7 +168,7 @@ label-urgent-padding = 2
 
 [module/dwm]
 type = internal/dwm
-format = <label-tags> <label-layout> <label-title>
+format = <label-tags> <label-layout> <label-floating> <label-title>
 
 enable-tags-click = false
 enable-layout-click = false

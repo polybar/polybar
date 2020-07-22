@@ -28,7 +28,7 @@ namespace modules {
     m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
 
     // Load configuration
-    m_formatter->add(DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_TITLE});
+    m_formatter->add(DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_FLOATING, TAG_LABEL_TITLE});
 
     // Populate m_state_labels map with labels and their states
     if (m_formatter->has(TAG_LABEL_TAGS)) {
@@ -48,6 +48,10 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
       m_layout_label = load_optional_label(m_conf, name(), "label-layout", "%layout%");
+    }
+
+    if (m_formatter->has(TAG_LABEL_FLOATING)) {
+      m_floating_label = load_optional_label(m_conf, name(), "label-floating", "");
     }
 
     if (m_formatter->has(TAG_LABEL_TITLE)) {
@@ -72,6 +76,10 @@ namespace modules {
         auto label = m_state_labels.at(state)->clone();
         label->replace_token("%name%", t.tag_name);
         m_tags.emplace_back(t.tag_name, t.bit_mask, state, move(label));
+      }
+
+      if (m_floating_label) {
+        update_floating_label();
       }
 
       if (m_layout_label) {
@@ -104,6 +112,14 @@ namespace modules {
           this->on_focused_title_change(ev);
         };
         m_ipc->subscribe(dwmipc::Event::FOCUSED_TITLE_CHANGE);
+      }
+
+      if (m_floating_label) {
+        update_floating_label();
+        m_ipc->on_focused_state_change = [this](const dwmipc::FocusedStateChangeEvent& ev) {
+          this->on_focused_state_change(ev);
+        };
+        m_ipc->subscribe(dwmipc::Event::FOCUSED_STATE_CHANGE);
       }
 
       // This event is for keeping track of the currently focused monitor
@@ -154,6 +170,11 @@ namespace modules {
   auto dwm_module::build(builder* builder, const string& tag) const -> bool {
     if (tag == TAG_LABEL_TITLE) {
       builder->node(m_title_label);
+    } else if (tag == TAG_LABEL_FLOATING) {
+      if (!m_is_floating) {
+        return true;
+      }
+      builder->node(m_floating_label);
     } else if (tag == TAG_LABEL_LAYOUT) {
       if (m_layout_click) {
         // Toggle between secondary and default layout
@@ -353,6 +374,21 @@ namespace modules {
     m_title_label->replace_token("%title%", new_title);
   }
 
+  void dwm_module::update_floating_label() {
+    if (m_focused_client_id != 0) {
+      try {
+        m_is_floating = m_ipc->get_client(m_focused_client_id)->states.is_floating;
+      } catch (const dwmipc::SocketClosedError& err) {
+        m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        reconnect_dwm();
+      } catch (const dwmipc::IPCError& err) {
+        throw module_error(err.what());
+      }
+    } else {
+      m_is_floating = false;
+    }
+  }
+
   auto dwm_module::reconnect_dwm() -> bool {
     try {
       if (!m_ipc->is_main_socket_connected()) {
@@ -401,10 +437,17 @@ namespace modules {
     }
   }
 
+  void dwm_module::on_focused_state_change(const dwmipc::FocusedStateChangeEvent& ev) {
+    if (ev.monitor_num == m_bar_mon->num && ev.client_window_id == m_focused_client_id) {
+      m_is_floating = ev.new_state.is_floating;
+    }
+  }
+
   void dwm_module::on_client_focus_change(const dwmipc::ClientFocusChangeEvent& ev) {
     if (ev.monitor_num == m_bar_mon->num) {
       m_focused_client_id = ev.new_win_id;
       update_title_label();
+      update_floating_label();
     }
   }
 

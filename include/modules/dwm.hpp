@@ -56,7 +56,7 @@ namespace modules {
     auto input(string&& cmd) -> bool override;
 
    private:
-    static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-tags> <label-layout> <label-title>"};
+    static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-tags> <label-layout> <label-floating> <label-title>"};
     static constexpr const char* DEFAULT_STATE_LABEL{"%name%"};
 
     /**
@@ -74,6 +74,11 @@ namespace modules {
      * The layout label is replaced by the current layout symbol
      */
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
+
+    /**
+     * The floating label is shown when the selected window is floating
+     */
+    static constexpr const char* TAG_LABEL_FLOATING{"<label-floating>"};
 
     /**
      * The title layout is replaced by the currently focused window title
@@ -141,6 +146,14 @@ namespace modules {
     void on_focused_title_change(const dwmipc::FocusedTitleChangeEvent& ev);
 
     /**
+     * Called by has_event when the state of the currently focused window
+     * changes. This updates the floating label.
+     *
+     * @param ev Event data
+     */
+    void on_focused_state_change(const dwmipc::FocusedStateChangeEvent& ev);
+
+    /**
      * Get a list of monitors from dwm, store them in m_monitors, and update the
      * pointers to the active monitor and bar monitor.
      *
@@ -158,6 +171,12 @@ namespace modules {
      * the title label
      */
     void update_title_label();
+
+    /**
+     * Query dwm to determine if the currently focused client and update
+     * m_is_floating
+     */
+    void update_floating_label();
 
     /**
      * Translate the tag's tag states to a state_t enum value
@@ -247,6 +266,11 @@ namespace modules {
     bool m_layout_reverse{false};
 
     /**
+     * If true, show floating label
+     */
+    bool m_is_floating{false};
+
+    /**
      * If the layout symbol is clicked on, it will set the layout represented by
      * this symbol. The default is monocle mode [M].
      */
@@ -287,6 +311,11 @@ namespace modules {
      * Current layout symbol
      */
     label_t m_layout_label;
+
+    /**
+     * Shown when currently focused window is floating
+     */
+    label_t m_floating_label;
 
     /**
      * Inserted between tags
