@@ -167,6 +167,13 @@ namespace modules {
     void update_tag_labels();
 
     /**
+     * Update the title label with the specified title
+     *
+     * @param title The title to use to update the label
+     */
+    void update_title_label(const string& title);
+
+    /**
      * Get the window title of the currently focused client from dwm and update
      * the title label
      */
@@ -177,6 +184,13 @@ namespace modules {
      * m_is_floating
      */
     void update_floating_label();
+
+    /**
+     * Update the layout label with the specified symbol
+     *
+     * @param symbol The symbol to use to update the label
+     */
+    void update_layout_label(const string& symbol);
 
     /**
      * Translate the tag's tag states to a state_t enum value

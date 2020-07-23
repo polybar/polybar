@@ -86,16 +86,19 @@ namespace modules {
       if (m_layout_label) {
         auto layouts = m_ipc->get_layouts();
         m_layouts = m_ipc->get_layouts();
+
         // First layout is treated as default by dwm
         m_default_layout = &m_layouts->at(0);
         m_current_layout = find_layout(m_bar_mon->layout.address.cur);
         m_secondary_layout = find_layout(m_secondary_layout_symbol);
+
         if (m_secondary_layout == nullptr) {
           throw module_error("Secondary layout symbol does not exist");
         }
 
         // Initialize layout symbol
-        m_layout_label->replace_token("%symbol%", m_bar_mon->layout.symbol.cur);
+        update_layout_label(m_bar_mon->layout.symbol.cur);
+
         // This event is only needed to update the layout label
         m_ipc->on_layout_change = [this](const dwmipc::LayoutChangeEvent& ev) { on_layout_change(ev); };
         m_ipc->subscribe(dwmipc::Event::LAYOUT_CHANGE);
@@ -359,6 +362,11 @@ namespace modules {
     }
   }
 
+  void dwm_module::update_title_label(const string& title) {
+    m_title_label->reset_tokens();
+    m_title_label->replace_token("%title%", title);
+  }
+
   void dwm_module::update_title_label() {
     std::string new_title;
     if (m_focused_client_id != 0) {
@@ -371,8 +379,7 @@ namespace modules {
         throw module_error(err.what());
       }
     }
-    m_title_label->reset_tokens();
-    m_title_label->replace_token("%title%", new_title);
+    update_title_label(new_title);
   }
 
   void dwm_module::update_floating_label() {
@@ -388,6 +395,11 @@ namespace modules {
     } else {
       m_is_floating = false;
     }
+  }
+
+  void dwm_module::update_layout_label(const string& symbol) {
+    m_layout_label->reset_tokens();
+    m_layout_label->replace_token("%symbol%", symbol);
   }
 
   auto dwm_module::reconnect_dwm() -> bool {
@@ -412,8 +424,7 @@ namespace modules {
   void dwm_module::on_layout_change(const dwmipc::LayoutChangeEvent& ev) {
     if (ev.monitor_num == m_bar_mon->num) {
       m_current_layout = find_layout(ev.new_address);
-      m_layout_label->reset_tokens();
-      m_layout_label->replace_token("%symbol%", ev.new_symbol);
+      update_layout_label(ev.new_symbol);
     }
   }
 
@@ -433,8 +444,7 @@ namespace modules {
 
   void dwm_module::on_focused_title_change(const dwmipc::FocusedTitleChangeEvent& ev) {
     if (ev.monitor_num == m_bar_mon->num && ev.client_window_id == m_focused_client_id) {
-      m_title_label->reset_tokens();
-      m_title_label->replace_token("%title%", ev.new_name);
+      update_title_label(ev.new_name);
     }
   }
 
