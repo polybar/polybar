@@ -70,13 +70,19 @@ namespace modules {
       update_monitor_ref();
       m_focused_client_id = m_bar_mon->clients.selected;
 
-      // Initialize tags array
-      auto tags = m_ipc->get_tags();
-      for (dwmipc::Tag& t : *tags) {
-        auto state = get_state(t.bit_mask);
-        auto label = m_state_labels.at(state)->clone();
-        label->replace_token("%name%", t.tag_name);
-        m_tags.emplace_back(t.tag_name, t.bit_mask, state, move(label));
+      if (m_formatter->has(TAG_LABEL_TAGS)) {
+        // Initialize tags array
+        auto tags = m_ipc->get_tags();
+        for (dwmipc::Tag& t : *tags) {
+          auto state = get_state(t.bit_mask);
+          auto label = m_state_labels.at(state)->clone();
+          label->replace_token("%name%", t.tag_name);
+          m_tags.emplace_back(t.tag_name, t.bit_mask, state, move(label));
+        }
+
+        // This event is for keeping track of the tag states
+        m_ipc->on_tag_change = [this](const dwmipc::TagChangeEvent& ev) { this->on_tag_change(ev); };
+        m_ipc->subscribe(dwmipc::Event::TAG_CHANGE);
       }
 
       if (m_floating_label) {
@@ -131,10 +137,6 @@ namespace modules {
         this->on_monitor_focus_change(ev);
       };
       m_ipc->subscribe(dwmipc::Event::MONITOR_FOCUS_CHANGE);
-
-      // This event is for keeping track of the tag states
-      m_ipc->on_tag_change = [this](const dwmipc::TagChangeEvent& ev) { this->on_tag_change(ev); };
-      m_ipc->subscribe(dwmipc::Event::TAG_CHANGE);
     } catch (const dwmipc::IPCError& err) {
       throw module_error(err.what());
     }
@@ -430,7 +432,9 @@ namespace modules {
 
   void dwm_module::on_monitor_focus_change(const dwmipc::MonitorFocusChangeEvent& ev) {
     m_active_mon = &m_monitors->at(ev.new_mon_num);
-    update_tag_labels();
+    if (m_formatter->has(TAG_LABEL_TAGS)) {
+      update_tag_labels();
+    }
   }
 
   void dwm_module::on_tag_change(const dwmipc::TagChangeEvent& ev) {
