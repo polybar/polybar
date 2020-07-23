@@ -157,6 +157,7 @@ namespace modules {
       return m_ipc->handle_event();
     } catch (const dwmipc::SocketClosedError& err) {
       m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+      sleep(chrono::duration<double>(1));
       return reconnect_dwm();
     } catch (const dwmipc::IPCError& err) {
       m_log.err("%s: Failed to handle event (reason: %s)", name(), err.what());
@@ -248,6 +249,7 @@ namespace modules {
         return true;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        sleep(chrono::duration<double>(1));
         reconnect_dwm();
       } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
@@ -376,6 +378,7 @@ namespace modules {
         new_title = m_ipc->get_client(m_focused_client_id)->name;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        sleep(chrono::duration<double>(1));
         reconnect_dwm();
       } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
@@ -390,6 +393,7 @@ namespace modules {
         m_is_floating = m_ipc->get_client(m_focused_client_id)->states.is_floating;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+        sleep(chrono::duration<double>(1));
         reconnect_dwm();
       } catch (const dwmipc::IPCError& err) {
         throw module_error(err.what());
