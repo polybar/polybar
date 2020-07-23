@@ -153,7 +153,7 @@ namespace modules {
     } catch (const dwmipc::SocketClosedError& err) {
       m_log.err("%s: Disconnected from socket: %s", name(), err.what());
       return reconnect_dwm();
-    } catch (const exception& err) {
+    } catch (const dwmipc::IPCError& err) {
       m_log.err("%s: Failed to handle event (reason: %s)", name(), err.what());
     }
     return false;
@@ -403,7 +403,7 @@ namespace modules {
         m_log.notice("%s: Successfully reconnected event to socket", name());
       }
       return true;
-    } catch (const exception& err) {
+    } catch (const dwmipc::IPCError& err) {
       m_log.err("%s: Failed to reconnect to socket: %s", name(), err.what());
     }
     return false;
