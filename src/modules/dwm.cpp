@@ -25,7 +25,11 @@ namespace modules {
       throw module_error("Could not find socket: " + (socket_path.empty() ? "<empty>" : socket_path));
     }
 
-    m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
+    try {
+      m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
+    } catch (const dwmipc::IPCError& err) {
+      throw module_error(err.what());
+    }
 
     // Load configuration
     m_formatter->add(
