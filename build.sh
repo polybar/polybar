@@ -39,7 +39,7 @@ usage() {
           Build polybar-msg used to send ipc messages; disabled by default.
       ${COLORS[GREEN]}--all-features${COLORS[OFF]}
           Enable all abovementioned features;
-          equal to -3 -a -p -n -m -c -i
+          equal to -3 -d -a -p -n -m -c -i
       ${COLORS[GREEN]}-g, --gcc${COLORS[OFF]}
           Use GCC even if Clang is installed; disabled by default.
       ${COLORS[GREEN]}-j, --jobs${COLORS[OFF]}
