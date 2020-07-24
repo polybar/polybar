@@ -101,10 +101,13 @@ namespace modules {
         // First layout is treated as default by dwm
         m_default_layout = &m_layouts->at(0);
         m_current_layout = find_layout(m_bar_mon->layout.address.cur);
-        m_secondary_layout = find_layout(m_secondary_layout_symbol);
 
-        if (m_secondary_layout == nullptr) {
-          throw module_error("Secondary layout symbol does not exist");
+        if (m_layout_click) {
+          m_secondary_layout = find_layout(m_secondary_layout_symbol);
+
+          if (m_secondary_layout == nullptr) {
+            throw module_error("Secondary layout symbol does not exist");
+          }
         }
 
         // Initialize layout symbol
