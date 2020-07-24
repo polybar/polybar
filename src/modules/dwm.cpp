@@ -145,7 +145,7 @@ namespace modules {
   void dwm_module::stop() {
     try {
       m_log.info("%s: Disconnecting from socket", name());
-      m_ipc.reset();
+      m_ipc.reset(nullptr);
     } catch (...) {
     }
 
