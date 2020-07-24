@@ -89,10 +89,6 @@ namespace modules {
         m_ipc->subscribe(dwmipc::Event::TAG_CHANGE);
       }
 
-      if (m_floating_label) {
-        update_floating_label();
-      }
-
       if (m_layout_label) {
         auto layouts = m_ipc->get_layouts();
         m_layouts = m_ipc->get_layouts();
