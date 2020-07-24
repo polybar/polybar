@@ -96,7 +96,6 @@ namespace modules {
       }
 
       if (m_layout_label) {
-        auto layouts = m_ipc->get_layouts();
         m_layouts = m_ipc->get_layouts();
 
         // First layout is treated as default by dwm
