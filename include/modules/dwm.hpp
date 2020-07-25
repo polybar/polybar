@@ -272,7 +272,7 @@ namespace modules {
 	 /**
 	  * If true, scrolling the bar cycles through the available tags
 	  */ 
-    bool m_tags_scroll{true};
+    bool m_tags_scroll{false};
 
     /**
      * If true, scrolling the layout will wrap around to the beginning
