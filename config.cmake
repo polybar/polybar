@@ -174,6 +174,8 @@ format = <label-tags> <label-layout> <label-floating> <label-title>
 
 ; Left-click to view tag, right-click to toggle tag view
 enable-tags-click = false
+; Scroll to cycle between available tags
+enable-tags-scroll = false
 ; Left-click to set secondary layout, right-click to switch to previous layout
 enable-layout-click = false
 ; Scroll to cycle between available layouts

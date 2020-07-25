@@ -49,6 +49,7 @@ namespace modules {
     m_tags_click = m_conf.get(name(), "enable-tags-click", m_tags_click);
     m_layout_click = m_conf.get(name(), "enable-layout-click", m_layout_click);
     m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
+    m_tags_scroll = m_conf.get(name(), "enable-tags-scroll", m_tags_scroll);
     m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
     m_layout_reverse = m_conf.get(name(), "layout-scroll-reverse", m_layout_reverse);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
@@ -180,6 +181,27 @@ namespace modules {
     m_log.info("%s: Building module", name());
     if (tag == TAG_LABEL_TITLE) {
       m_log.info("%s: Building title", name());
+      if (m_tags_scroll && m_title_label) {
+        bool ignore_empty_tags = m_conf.get<string>(name(), "label-empty", "").empty();
+        auto current_tag_it =
+            std::find_if(m_tags.begin(), m_tags.end(), [](const tag_t& tag) { return tag.state == state_t::FOCUSED; });
+        if (current_tag_it != m_tags.end()) {
+          auto next = current_tag_it + 1 < m_tags.end() ? current_tag_it + 1 : current_tag_it;
+          auto prev = current_tag_it == m_tags.begin() ? current_tag_it : current_tag_it - 1;
+          while (ignore_empty_tags && next->state == state_t::EMPTY && next + 1 < m_tags.end()) {
+            ++next;
+          }
+          while (ignore_empty_tags && prev->state == state_t::EMPTY && prev >= m_tags.begin()) {
+            --prev;
+          }
+          if (!ignore_empty_tags || next->state != state_t::EMPTY) {
+            builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_TAG_VIEW, to_string(next->bit_mask)));
+          }
+          if (!ignore_empty_tags || prev->state != state_t::EMPTY) {
+            builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_TAG_VIEW, to_string(prev->bit_mask)));
+          }
+        }
+      }
       builder->node(m_title_label);
     } else if (tag == TAG_LABEL_FLOATING) {
       if (!m_is_floating) {
