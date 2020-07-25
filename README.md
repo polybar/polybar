@@ -52,7 +52,7 @@ Some of the services included so far:
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
 - [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) and [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) volume controls
-- Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
+- Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm), [i3](https://github.com/i3/i3), and [dwm](https://dwm.suckless.org)
 - Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
 - Keyboard layout and indicator status
 - CPU and memory load indicator
