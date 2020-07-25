@@ -8,6 +8,7 @@
 #include "modules/meta/base.inl"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
+#include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
 
