@@ -263,7 +263,7 @@ namespace modules {
       m_log.info("%s: Sending workspace %s command to ipc handler", name(), ipc_cmd);
 
       try {
-        m_ipc->run_command(ipc_cmd, stoul(cmd));
+        m_ipc->run_command(ipc_cmd, (Json::UInt64)stoul(cmd));
         return true;
       } catch (const dwmipc::SocketClosedError& err) {
         m_log.err("%s: Disconnected from socket: %s", name(), err.what());
