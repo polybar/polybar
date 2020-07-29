@@ -436,7 +436,7 @@ namespace modules {
       if (!m_ipc->is_event_socket_connected()) {
         m_log.notice("%s: Attempting to reconnect event socket", name());
         m_ipc->connect_event_socket();
-        m_log.notice("%s: Successfully reconnected event to socket", name());
+        m_log.notice("%s: Successfully reconnected to event socket", name());
       }
       return true;
     } catch (const dwmipc::IPCError& err) {
