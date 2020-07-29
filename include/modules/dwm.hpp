@@ -229,6 +229,20 @@ namespace modules {
      */
     const dwmipc::Layout* prev_layout(const dwmipc::Layout& layout, bool wrap) const;
 
+	 /**
+     * Get the address of the next tag in m_tags or return NULL if not applicable
+     *
+     * @param ignore_empty Ignore empty tags
+     */
+    auto next_scrollable_tag(bool ignore_empty) const -> const tag_t*;
+
+    /**
+     * Get the address of the prev tag in m_tags or return NULL if not applicable
+     *
+     * @param ignore_empty Ignore empty tags
+     */
+    auto prev_scrollable_tag(bool ignore_empty) const -> const tag_t*;
+
     /**
      * Check if the command matches the specified IPC command name and if so,
      * parse and send the command to dwm
@@ -273,6 +287,11 @@ namespace modules {
 	  * If true, scrolling the bar cycles through the available tags
 	  */ 
     bool m_tags_scroll{false};
+
+	 /**
+	  * If true, scrolling will view all tags regardless if occupied
+	  */ 
+    bool m_tags_scroll_empty{false};
 
     /**
      * If true, scrolling the layout will wrap around to the beginning

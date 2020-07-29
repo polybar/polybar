@@ -50,6 +50,7 @@ namespace modules {
     m_layout_click = m_conf.get(name(), "enable-layout-click", m_layout_click);
     m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
     m_tags_scroll = m_conf.get(name(), "enable-tags-scroll", m_tags_scroll);
+    m_tags_scroll_empty = m_conf.get(name(), "tags-scroll-empty", m_tags_scroll_empty);
     m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
     m_layout_reverse = m_conf.get(name(), "layout-scroll-reverse", m_layout_reverse);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
@@ -181,27 +182,6 @@ namespace modules {
     m_log.info("%s: Building module", name());
     if (tag == TAG_LABEL_TITLE) {
       m_log.info("%s: Building title", name());
-      if (m_tags_scroll && m_title_label) {
-        bool ignore_empty_tags = m_conf.get<string>(name(), "label-empty", "").empty();
-        auto current_tag_it =
-            std::find_if(m_tags.begin(), m_tags.end(), [](const tag_t& tag) { return tag.state == state_t::FOCUSED; });
-        if (current_tag_it != m_tags.end()) {
-          auto next = current_tag_it + 1 < m_tags.end() ? current_tag_it + 1 : current_tag_it;
-          auto prev = current_tag_it == m_tags.begin() ? current_tag_it : current_tag_it - 1;
-          while (ignore_empty_tags && next->state == state_t::EMPTY && next + 1 < m_tags.end()) {
-            ++next;
-          }
-          while (ignore_empty_tags && prev->state == state_t::EMPTY && prev >= m_tags.begin()) {
-            --prev;
-          }
-          if (!ignore_empty_tags || next->state != state_t::EMPTY) {
-            builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_TAG_VIEW, to_string(next->bit_mask)));
-          }
-          if (!ignore_empty_tags || prev->state != state_t::EMPTY) {
-            builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_TAG_VIEW, to_string(prev->bit_mask)));
-          }
-        }
-      }
       builder->node(m_title_label);
     } else if (tag == TAG_LABEL_FLOATING) {
       if (!m_is_floating) {
@@ -238,6 +218,21 @@ namespace modules {
       }
     } else if (tag == TAG_LABEL_TAGS) {
       m_log.info("%s: Building tags label", name());
+      int cmd_count = 0;
+      if (m_tags_scroll) {
+        bool ignore_empty_tags = !m_tags_scroll_empty && m_conf.get<string>(name(), "label-empty", "").empty();
+        auto next = next_scrollable_tag(ignore_empty_tags);
+        auto prev = prev_scrollable_tag(ignore_empty_tags);
+        if (next != NULL) {
+          ++cmd_count;
+          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_TAG_VIEW, to_string(next->bit_mask)));
+        }
+        if (prev != NULL) {
+          ++cmd_count;
+          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_TAG_VIEW, to_string(prev->bit_mask)));
+        }
+      }
+
       bool first = true;
       for (const auto& tag : m_tags) {
         // Don't insert separator before first tag
@@ -256,6 +251,9 @@ namespace modules {
         } else {
           builder->node(tag.label);
         }
+      }
+      for (; cmd_count; --cmd_count) {
+        builder->cmd_close();
       }
     } else {
       return false;
@@ -379,6 +377,36 @@ namespace modules {
     } else {
       return &layout;
     }
+  }
+
+  const dwm_module::tag_t* dwm_module::next_scrollable_tag(bool ignore_empty) const {
+    auto current_tag_it = std::find_if(
+        m_tags.begin(), m_tags.end(), [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
+    if (current_tag_it != m_tags.end()) {
+      auto next = current_tag_it + 1 < m_tags.end() ? current_tag_it + 1 : current_tag_it;
+      while (ignore_empty && next->state == state_t::EMPTY && next + 1 < m_tags.end()) {
+        ++next;
+      }
+      if (!ignore_empty || next->state != state_t::EMPTY) {
+        return &(*next);
+      }
+    }
+    return NULL;
+  }
+
+  const dwm_module::tag_t* dwm_module::prev_scrollable_tag(bool ignore_empty) const {
+    auto current_tag_it = std::find_if(
+        m_tags.begin(), m_tags.end(), [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
+    if (current_tag_it != m_tags.end()) {
+      auto prev = current_tag_it == m_tags.begin() ? current_tag_it : current_tag_it - 1;
+      while (ignore_empty && prev->state == state_t::EMPTY && prev >= m_tags.begin()) {
+        --prev;
+      }
+      if (!ignore_empty || prev->state != state_t::EMPTY) {
+        return &(*prev);
+      }
+    }
+    return NULL;
   }
 
   const dwmipc::Layout* dwm_module::prev_layout(const dwmipc::Layout& layout, bool wrap) const {
