@@ -437,6 +437,7 @@ namespace modules {
       return true;
     } catch (const dwmipc::IPCError& err) {
       m_log.err("%s: Failed to reconnect to socket: %s", name(), err.what());
+      throw module_error(err.what());
     }
     return false;
   }
