@@ -22,16 +22,14 @@ namespace modules {
 
     // Populate m_state_labels map with labels and their states
     if (m_formatter->has(TAG_LABEL_TAGS)) {
-      m_state_labels.insert(
-          std::make_pair(state_t::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_STATE_LABEL)));
-      m_state_labels.insert(std::make_pair(
-          state_t::UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_STATE_LABEL)));
-      m_state_labels.insert(
-          std::make_pair(state_t::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_STATE_LABEL)));
-      m_state_labels.insert(
-          std::make_pair(state_t::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_STATE_LABEL)));
-      m_state_labels.insert(
-          std::make_pair(state_t::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_STATE_LABEL)));
+      m_state_labels.emplace(
+          state_t::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_STATE_LABEL));
+      m_state_labels.emplace(
+          state_t::UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_STATE_LABEL));
+      m_state_labels.emplace(
+          state_t::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_STATE_LABEL));
+      m_state_labels.emplace(state_t::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_STATE_LABEL));
+      m_state_labels.emplace(state_t::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_STATE_LABEL));
     }
 
     m_seperator_label = load_optional_label(m_conf, name(), "label-separator", "");
@@ -330,7 +328,7 @@ namespace modules {
     }
   }
 
-  const dwmipc::Layout*  dwm_module::find_layout(const string& sym) const {
+  const dwmipc::Layout* dwm_module::find_layout(const string& sym) const {
     for (const auto& lt : *m_layouts) {
       if (lt.symbol == sym) {
         return &lt;
