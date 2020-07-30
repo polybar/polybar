@@ -205,11 +205,11 @@ namespace modules {
         builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, scroll_up_addr));
       }
       builder->node(m_layout_label);
-      if (m_layout_click) {
+      if (m_layout_scroll) {
         builder->cmd_close();
         builder->cmd_close();
       }
-      if (m_layout_scroll) {
+      if (m_layout_click) {
         builder->cmd_close();
         builder->cmd_close();
       }
