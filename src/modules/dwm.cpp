@@ -155,7 +155,7 @@ namespace modules {
     event_module::stop();
   }
 
-  auto dwm_module::has_event() -> bool {
+  bool dwm_module::has_event() {
     try {
       return m_ipc->handle_event();
     } catch (const dwmipc::SocketClosedError& err) {
@@ -168,16 +168,16 @@ namespace modules {
     return false;
   }
 
-  auto dwm_module::update() -> bool {
+  bool dwm_module::update() {
     // All updates are handled in has_event
     return true;
   }
 
-  auto dwm_module::build_cmd(const char* ipc_cmd, const string& arg) -> string {
+  string dwm_module::build_cmd(const char* ipc_cmd, const string& arg) {
     return EVENT_PREFIX + string(ipc_cmd) + "-" + arg;
   }
 
-  auto dwm_module::build(builder* builder, const string& tag) const -> bool {
+  bool dwm_module::build(builder* builder, const string& tag) const {
     m_log.info("%s: Building module", name());
     if (tag == TAG_LABEL_TITLE) {
       m_log.info("%s: Building title", name());
@@ -242,7 +242,7 @@ namespace modules {
     return true;
   }
 
-  auto dwm_module::check_send_cmd(string cmd, const string& ipc_cmd) -> bool {
+  bool dwm_module::check_send_cmd(string cmd, const string& ipc_cmd) {
     // cmd = <EVENT_PREFIX><ipc_cmd>-<arg>
     cmd.erase(0, strlen(EVENT_PREFIX));
 
@@ -266,7 +266,7 @@ namespace modules {
     return false;
   }
 
-  auto dwm_module::input(string&& cmd) -> bool {
+  bool dwm_module::input(string&& cmd) {
     if (cmd.find(EVENT_PREFIX) != 0) {
       return false;
     }
@@ -275,7 +275,7 @@ namespace modules {
            check_send_cmd(cmd, CMD_LAYOUT_SET);
   }
 
-  auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
+  dwm_module::state_t dwm_module::get_state(tag_mask_t bit_mask) const {
     /**
      * ---------------------------------------------------------------
      * |             Tag              |                  |           |
@@ -330,7 +330,7 @@ namespace modules {
     }
   }
 
-  auto dwm_module::find_layout(const string& sym) const -> const dwmipc::Layout* {
+  const dwmipc::Layout*  dwm_module::find_layout(const string& sym) const {
     for (const auto& lt : *m_layouts) {
       if (lt.symbol == sym) {
         return &lt;
@@ -339,7 +339,7 @@ namespace modules {
     return nullptr;
   }
 
-  auto dwm_module::find_layout(const uintptr_t addr) const -> const dwmipc::Layout* {
+  const dwmipc::Layout* dwm_module::find_layout(const uintptr_t addr) const {
     for (const auto& lt : *m_layouts) {
       if (lt.address == addr) {
         return &lt;
@@ -348,7 +348,7 @@ namespace modules {
     return nullptr;
   }
 
-  auto dwm_module::next_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout* {
+  const dwmipc::Layout* dwm_module::next_layout(const dwmipc::Layout& layout, bool wrap) const {
     const auto* next = &layout + 1;
     const auto* first = m_layouts->begin().base();
     if (next < m_layouts->end().base()) {
@@ -360,7 +360,7 @@ namespace modules {
     }
   }
 
-  auto dwm_module::prev_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout* {
+  const dwmipc::Layout* dwm_module::prev_layout(const dwmipc::Layout& layout, bool wrap) const {
     const auto* prev = &layout - 1;
     const auto* last = m_layouts->end().base() - 1;
     if (prev >= m_layouts->begin().base()) {
@@ -423,7 +423,7 @@ namespace modules {
     m_layout_label->replace_token("%symbol%", symbol);
   }
 
-  auto dwm_module::reconnect_dwm() -> bool {
+  bool dwm_module::reconnect_dwm() {
     try {
       if (!m_ipc->is_main_socket_connected()) {
         m_log.notice("%s: Attempting to reconnect to main socket", name());

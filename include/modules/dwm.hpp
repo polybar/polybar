@@ -47,13 +47,13 @@ namespace modules {
       label_t label;
     };
 
-    auto stop() -> void override;
-    auto has_event() -> bool;
-    auto update() -> bool;
-    auto build(builder* builder, const string& tag) const -> bool;
+    void stop() override;
+    bool has_event();
+    bool update();
+    bool build(builder* builder, const string& tag) const;
 
    protected:
-    auto input(string&& cmd) -> bool override;
+    bool input(string&& cmd) override;
 
    private:
     static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-tags> <label-layout> <label-floating> <label-title>"};
@@ -199,17 +199,17 @@ namespace modules {
      *
      * @return state_t enum value representing the state of the tag
      */
-    auto get_state(tag_mask_t bit_mask) const -> state_t;
+    state_t get_state(tag_mask_t bit_mask) const;
 
     /**
      * Get the address to the layout represented by the symbol.
      */
-    auto find_layout(const string& sym) const -> const dwmipc::Layout*;
+    const dwmipc::Layout* find_layout(const string& sym) const;
 
     /**
      * Get the address to the layout represented by the address.
      */
-    auto find_layout(uintptr_t addr) const -> const dwmipc::Layout*;
+    const dwmipc::Layout* find_layout(uintptr_t addr) const;
 
     /**
      * Get the address of the next layout in m_layouts.
@@ -218,7 +218,7 @@ namespace modules {
      * @param wrap True to wrap around the array, false to return the same
      *   layout if the next layout does not exist.
      */
-    auto next_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout*;
+    const dwmipc::Layout* next_layout(const dwmipc::Layout& layout, bool wrap) const;
 
     /**
      * Get the address of the previous layout in m_layouts.
@@ -227,7 +227,7 @@ namespace modules {
      * @param wrap True to wrap around the array, false to return the same
      *   layout if the next layout does not exist.
      */
-    auto prev_layout(const dwmipc::Layout& layout, bool wrap) const -> const dwmipc::Layout*;
+    const dwmipc::Layout* prev_layout(const dwmipc::Layout& layout, bool wrap) const;
 
     /**
      * Check if the command matches the specified IPC command name and if so,
@@ -239,7 +239,7 @@ namespace modules {
      * @return true if the command matched, was succesfully parsed, and sent to
      *   dwm, false otherwise
      */
-    auto check_send_cmd(string cmd, const string& ipc_cmd) -> bool;
+    bool check_send_cmd(string cmd, const string& ipc_cmd);
 
     /**
      * Helper function to build cmd string
@@ -247,12 +247,12 @@ namespace modules {
      * @param ipc_cmd The dwm IPC command name
      * @param arg The argument to the dwm command
      */
-    auto static build_cmd(const char* ipc_cmd, const string& arg) -> string;
+    static string build_cmd(const char* ipc_cmd, const string& arg);
 
     /**
      * Attempt to connect to any disconnected dwm sockets. Catch errors.
      */
-    auto reconnect_dwm() -> bool;
+    bool reconnect_dwm();
 
     /**
      * If true, enables the click handlers for the tags
