@@ -64,8 +64,6 @@ set(SETTING_ALSA_SOUNDCARD "default"
   CACHE STRING "Name of the ALSA soundcard driver")
 set(SETTING_BSPWM_SOCKET_PATH "/tmp/bspwm_0_0-socket"
   CACHE STRING "Path to bspwm socket")
-set(SETTING_DWM_SOCKET_PATH "/tmp/dwm.sock"
-  CACHE STRING "Path to dwm socket")
 set(SETTING_BSPWM_STATUS_PREFIX "W"
   CACHE STRING "Prefix prepended to the bspwm status line")
 set(SETTING_CONNECTION_TEST_IP "8.8.8.8"

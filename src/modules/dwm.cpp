@@ -16,23 +16,6 @@ namespace modules {
   template class module<dwm_module>;
 
   dwm_module::dwm_module(const bar_settings& bar, string name_) : event_module<dwm_module>(bar, move(name_)) {
-    string socket_path = env_util::get("DWM_SOCKET");
-    if (socket_path.empty()) {
-      // Defined by cmake
-      socket_path = DWM_SOCKET_PATH;
-    }
-
-    if (!file_util::exists(socket_path)) {
-      throw module_error("Could not find socket: " + (socket_path.empty() ? "<empty>" : socket_path));
-    }
-
-    try {
-      m_ipc = factory_util::unique<dwmipc::Connection>(socket_path);
-    } catch (const dwmipc::IPCError& err) {
-      throw module_error(err.what());
-    }
-    m_log.info("%s: Connected to dwm socket", name());
-
     // Load configuration
     m_formatter->add(
         DEFAULT_FORMAT, DEFAULT_FORMAT_TAGS, {TAG_LABEL_TAGS, TAG_LABEL_LAYOUT, TAG_LABEL_FLOATING, TAG_LABEL_TITLE});
@@ -71,10 +54,18 @@ namespace modules {
     m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
     m_layout_reverse = m_conf.get(name(), "layout-scroll-reverse", m_layout_reverse);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
-
+    m_socket_path = m_conf.get(name(), "socket-path", m_socket_path);
     m_log.info("%s: Initialized formatter and labels", name());
 
+
+    if (!file_util::exists(m_socket_path)) {
+      throw module_error("Could not find socket: " + (m_socket_path.empty() ? "<empty>" : m_socket_path));
+    }
+
     try {
+      m_ipc = factory_util::unique<dwmipc::Connection>(m_socket_path);
+      m_log.info("%s: Connected to dwm socket", name());
+
       update_monitor_ref();
       m_log.info("%s: Initialized monitors", name());
 

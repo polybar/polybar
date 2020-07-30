@@ -61,7 +61,6 @@ extern const char* const ALSA_SOUNDCARD;
 extern const char* const BSPWM_SOCKET_PATH;
 extern const char* const BSPWM_STATUS_PREFIX;
 extern const char* const CONNECTION_TEST_IP;
-extern const char* const DWM_SOCKET_PATH;
 extern const char* const PATH_ADAPTER;
 extern const char* const PATH_BACKLIGHT;
 extern const char* const PATH_BATTERY;

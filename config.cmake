@@ -169,6 +169,8 @@ label-urgent-padding = 2
 [module/dwm]
 type = internal/dwm
 format = <label-tags> <label-layout> <label-floating> <label-title>
+; Path to dwm socket (default: /tmp/dwm.sock)
+; socket-path = /tmp/dwm.sock
 
 ; Left-click to view tag, right-click to toggle tag view
 enable-tags-click = false

@@ -291,6 +291,11 @@ namespace modules {
     string m_secondary_layout_symbol{"[M]"};
 
     /**
+     * DWM socket path. Can be overriden by config.
+     */
+    string m_socket_path{"/tmp/dwm.sock"};
+
+    /**
      * Holds the address to the secondary layout specified by the secondary
      * layout symbol
      */
