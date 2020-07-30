@@ -6,7 +6,6 @@ checklib(BUILD_DOC "binary" "${SPHINX_BUILD}")
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
-checklib(ENABLE_DWM "binary" dwm)
 checklib(ENABLE_I3 "binary" i3)
 checklib(ENABLE_MPD "pkg-config" libmpdclient)
 checklib(WITH_LIBNL "pkg-config" libnl-genl-3.0)
