@@ -57,7 +57,6 @@ namespace modules {
     m_socket_path = m_conf.get(name(), "socket-path", m_socket_path);
     m_log.info("%s: Initialized formatter and labels", name());
 
-
     if (!file_util::exists(m_socket_path)) {
       throw module_error("Could not find socket: " + (m_socket_path.empty() ? "<empty>" : m_socket_path));
     }
@@ -140,7 +139,7 @@ namespace modules {
         this->on_monitor_focus_change(ev);
       };
       m_ipc->subscribe(dwmipc::Event::MONITOR_FOCUS_CHANGE);
-        m_log.info("%s: Subscribed to monitor focus change", name());
+      m_log.info("%s: Subscribed to monitor focus change", name());
     } catch (const dwmipc::IPCError& err) {
       throw module_error(err.what());
     }
@@ -277,22 +276,29 @@ namespace modules {
   }
 
   auto dwm_module::get_state(tag_mask_t bit_mask) const -> state_t {
-    // Tag selected > occupied > urgent
-    // Monitor selected - Tag selected FOCUSED
-    // Monitor unselected - Tag selected UNFOCUSED
-    // Tag unselected - Tag occupied - Tag non-urgent VISIBLE
-    // Tag unselected - Tag occupied - Tag urgent URGENT
-    // Tag unselected - Tag unoccupied EMPTY
+    /**
+     * ---------------------------------------------------------------
+     * |             Tag              |                  |           |
+     * |------------------------------| Monitor Selected |   State   |
+     * | Urgent | Selected | Occupied |                  |           |
+     * |--------|----------|----------|------------------|-----------|
+     * |   Yes  |     *    |     *    |         *        |   Urgent  |
+     * |   No   |    Yes   |     *    |        Yes       |  Focused  |
+     * |   No   |    Yes   |     *    |        No        | Unfocused |
+     * |   No   |    No    |    Yes   |         *        |  Visible  |
+     * |   No   |    No    |    No    |         *        |   Empty   |
+     * ---------------------------------------------------------------
+     */
 
     auto tag_state = m_bar_mon->tag_state;
     bool is_mon_active = m_bar_mon == m_active_mon;
 
-    if (is_mon_active && tag_state.selected & bit_mask) {
-      // Tag selected on selected monitor
-      return state_t::FOCUSED;
-    } else if (tag_state.urgent & bit_mask) {
+    if (tag_state.urgent & bit_mask) {
       // Tag is urgent
       return state_t::URGENT;
+    } else if (is_mon_active && tag_state.selected & bit_mask) {
+      // Tag selected on selected monitor
+      return state_t::FOCUSED;
     } else if (!is_mon_active && tag_state.selected & bit_mask) {
       // Tag is selected, but not on selected monitor
       return state_t::UNFOCUSED;
