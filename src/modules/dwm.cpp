@@ -147,7 +147,8 @@ namespace modules {
     try {
       m_log.info("%s: Disconnecting from socket", name());
       m_ipc.reset(nullptr);
-    } catch (...) {
+    } catch (const dwmipc::IPCError& err) {
+      throw module_error(err.what());
     }
 
     event_module::stop();
