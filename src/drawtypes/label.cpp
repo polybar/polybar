@@ -9,6 +9,33 @@
 POLYBAR_NS
 
 namespace drawtypes {
+  int char2int(char input)
+  {
+    if (input >= '0' && input <= '9') {
+      return input - '0';
+    }
+    if (input >= 'A' && input <= 'F') {
+      return input - 'A' + 10;
+    }
+    if (input >= 'a' && input <= 'f') {
+      return input - 'a' + 10;
+    }
+    throw std::invalid_argument("Invalid input string");
+  }
+
+  string hex2bin(const char* src)
+  {
+    string buf = "";
+    while(*src && src[1])
+    {
+      char c = (char2int(*src) << 4) | char2int(src[1]);
+      buf.append(1, c);
+      src += 2;
+    }
+
+    return buf;
+  }
+
   /**
    * Gets the text from the label as it should be rendered
    *
@@ -23,6 +50,20 @@ namespace drawtypes {
           text = string_util::utf8_truncate(std::move(text), m_maxlen - 3) + "...";
         } else {
           text = string_util::utf8_truncate(std::move(text), m_maxlen);
+        }
+      }
+      size_t start = 0;
+      size_t offset = 0;
+      size_t end;
+
+      while ((start = text.find("\\u", offset)) != string::npos && (end = text.find(';', start + 2)) != string::npos) {
+        auto token_str = text.substr(start + 2, end - start - 2);
+        offset = start + 1;
+        try {
+          string glyph = hex2bin(token_str.c_str());
+          text = text.replace(start, token_str.length() + 3, glyph);
+        } catch (const std::invalid_argument& err) {
+          continue;
         }
       }
       return text;
