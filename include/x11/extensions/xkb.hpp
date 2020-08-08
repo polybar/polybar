@@ -71,6 +71,7 @@ class keyboard {
   unsigned char current() const;
   const string group_name(size_t index = 0) const;
   const string layout_name(size_t index = 0) const;
+  const string variant_name(size_t index = 0) const;
   const string indicator_name(const indicator::type&) const;
   size_t size() const;
 

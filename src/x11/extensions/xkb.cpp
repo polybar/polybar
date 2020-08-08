@@ -65,6 +65,16 @@ const string keyboard::layout_name(size_t index) const {
 }
 
 /**
+ * Get current variant name
+ */
+const string keyboard::variant_name(size_t index) const {
+  string group_name = this->group_name(index);
+  int start = group_name.find('(') + 1;
+  int num_chars = group_name.find(')') - start;
+  return group_name.substr(start, num_chars);
+}
+
+/**
  * Get indicator name
  */
 const string keyboard::indicator_name(const indicator::type& i) const {
