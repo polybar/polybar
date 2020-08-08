@@ -178,6 +178,10 @@ enable-tags-click = false
 enable-tags-scroll = false
 ; If true and enable-tags-scroll = true, scrolling will view all tags regardless if occupied
 tags-scroll-empty = false
+; If true and enable-tags-scroll = true, scrolling will cycle through tags backwards
+tags-scroll-reverse = false
+; If true and enable-tags-scroll = true, wrap active tag when scrolling
+tags-scroll-wrap = false
 ; Left-click to set secondary layout, right-click to switch to previous layout
 enable-layout-click = false
 ; Scroll to cycle between available layouts

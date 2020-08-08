@@ -51,6 +51,8 @@ namespace modules {
     m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
     m_tags_scroll = m_conf.get(name(), "enable-tags-scroll", m_tags_scroll);
     m_tags_scroll_empty = m_conf.get(name(), "tags-scroll-empty", m_tags_scroll_empty);
+    m_tags_scroll_reverse = m_conf.get(name(), "tags-scroll-reverse", m_tags_scroll_reverse);
+    m_tags_scroll_wrap = m_conf.get(name(), "tags-scroll-wrap", m_tags_scroll_wrap);
     m_layout_wrap = m_conf.get(name(), "layout-scroll-wrap", m_layout_wrap);
     m_layout_reverse = m_conf.get(name(), "layout-scroll-reverse", m_layout_reverse);
     m_secondary_layout_symbol = m_conf.get(name(), "secondary-layout-symbol", m_secondary_layout_symbol);
@@ -221,8 +223,10 @@ namespace modules {
       int cmd_count = 0;
       if (m_tags_scroll) {
         bool ignore_empty_tags = !m_tags_scroll_empty && m_conf.get<string>(name(), "label-empty", "").empty();
-        auto next = next_scrollable_tag(ignore_empty_tags);
-        auto prev = prev_scrollable_tag(ignore_empty_tags);
+        auto next =
+            m_tags_scroll_reverse ? prev_scrollable_tag(ignore_empty_tags) : next_scrollable_tag(ignore_empty_tags);
+        auto prev =
+            m_tags_scroll_reverse ? next_scrollable_tag(ignore_empty_tags) : prev_scrollable_tag(ignore_empty_tags);
         if (next != NULL) {
           ++cmd_count;
           builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_TAG_VIEW, to_string(next->bit_mask)));
@@ -380,10 +384,20 @@ namespace modules {
   }
 
   const dwm_module::tag_t* dwm_module::next_scrollable_tag(bool ignore_empty) const {
-    auto current_tag_it = std::find_if(
-        m_tags.begin(), m_tags.end(), [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
+    auto current_tag_it = std::find_if(m_tags.begin(), m_tags.end(),
+        [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
     if (current_tag_it != m_tags.end()) {
       auto next = current_tag_it + 1 < m_tags.end() ? current_tag_it + 1 : current_tag_it;
+      if (m_tags_scroll_wrap &&
+          // if tag is the last tag
+          (current_tag_it + 1 == m_tags.end() ||
+              // or tag is the last non empty tag
+              (ignore_empty && &(*std::find_if(m_tags.rbegin(), m_tags.rend(), [](const tag_t& tag) {
+                return tag.state != state_t::EMPTY;
+              })) == &(*current_tag_it)))) {
+        // wrap the tag
+        next = m_tags.begin();
+      }
       while (ignore_empty && next->state == state_t::EMPTY && next + 1 < m_tags.end()) {
         ++next;
       }
@@ -395,10 +409,14 @@ namespace modules {
   }
 
   const dwm_module::tag_t* dwm_module::prev_scrollable_tag(bool ignore_empty) const {
-    auto current_tag_it = std::find_if(
-        m_tags.begin(), m_tags.end(), [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
+    auto current_tag_it = std::find_if(m_tags.begin(), m_tags.end(),
+        [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
     if (current_tag_it != m_tags.end()) {
       auto prev = current_tag_it == m_tags.begin() ? current_tag_it : current_tag_it - 1;
+      if (m_tags_scroll_wrap && current_tag_it == m_tags.begin()) {
+        // wrap the tag
+        prev = m_tags.end() - 1;
+      }
       while (ignore_empty && prev->state == state_t::EMPTY && prev >= m_tags.begin()) {
         --prev;
       }

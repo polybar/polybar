@@ -234,14 +234,14 @@ namespace modules {
      *
      * @param ignore_empty Ignore empty tags
      */
-    auto next_scrollable_tag(bool ignore_empty) const -> const tag_t*;
+    const tag_t* next_scrollable_tag(bool ignore_empty) const;
 
     /**
      * Get the address of the prev tag in m_tags or return NULL if not applicable
      *
      * @param ignore_empty Ignore empty tags
      */
-    auto prev_scrollable_tag(bool ignore_empty) const -> const tag_t*;
+    const tag_t* prev_scrollable_tag(bool ignore_empty) const;
 
     /**
      * Check if the command matches the specified IPC command name and if so,
@@ -287,6 +287,16 @@ namespace modules {
 	  * If true, scrolling the bar cycles through the available tags
 	  */ 
     bool m_tags_scroll{false};
+
+	 /**
+	  * If true, scrolling the bar cycles through the available tags backwards
+	  */ 
+    bool m_tags_scroll_reverse{false};
+
+	 /**
+	  * If true, wrap tag when scrolling
+	  */ 
+    bool m_tags_scroll_wrap{false};
 
 	 /**
 	  * If true, scrolling will view all tags regardless if occupied
