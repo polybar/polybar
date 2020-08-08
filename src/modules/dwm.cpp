@@ -413,7 +413,13 @@ namespace modules {
         [this](const tag_t& tag) { return m_bar_mon->tag_state.selected & tag.bit_mask; });
     if (current_tag_it != m_tags.end()) {
       auto prev = current_tag_it == m_tags.begin() ? current_tag_it : current_tag_it - 1;
-      if (m_tags_scroll_wrap && current_tag_it == m_tags.begin()) {
+      if (m_tags_scroll_wrap &&
+          // if tag is the first tag
+          (current_tag_it == m_tags.begin() ||
+              // or tag is the first non empty tag
+              (ignore_empty && &(*std::find_if(m_tags.begin(), m_tags.end(), [](const tag_t& tag) {
+                return tag.state != state_t::EMPTY;
+              })) == &(*current_tag_it)))) {
         // wrap the tag
         prev = m_tags.end() - 1;
       }
