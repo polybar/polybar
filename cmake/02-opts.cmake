@@ -1,7 +1,8 @@
 #
 # Build options
 #
-checklib(BUILD_DOC "binary" sphinx-build)
+set(SPHINX_BUILD "sphinx-build" CACHE STRING "Name/Path of the sphinx-build executable to use.")
+checklib(BUILD_DOC "binary" "${SPHINX_BUILD}")
 
 checklib(ENABLE_ALSA "pkg-config" alsa)
 checklib(ENABLE_CURL "pkg-config" libcurl)
@@ -16,7 +17,6 @@ else()
   set(WIRELESS_LIB "wireless-tools")
 endif()
 checklib(ENABLE_PULSEAUDIO "pkg-config" libpulse)
-checklib(ENABLE_PULSEAUDIO "binary" pulseaudio)
 checklib(WITH_XKB "pkg-config" xcb-xkb)
 checklib(WITH_XRM "pkg-config" xcb-xrm)
 checklib(WITH_XRANDR_MONITORS "pkg-config" "xcb-randr>=1.12")
@@ -44,9 +44,6 @@ option(ENABLE_PULSEAUDIO "Enable PulseAudio support" ON)
 
 option(WITH_XRANDR "xcb-randr support" ON)
 option(WITH_XRANDR_MONITORS "xcb-randr monitor support" ON)
-option(WITH_XRENDER "xcb-render support" OFF)
-option(WITH_XDAMAGE "xcb-damage support" OFF)
-option(WITH_XSYNC "xcb-sync support" OFF)
 option(WITH_XCOMPOSITE "xcb-composite support" ON)
 option(WITH_XKB "xcb-xkb support" ON)
 option(WITH_XRM "xcb-xrm support" ON)
@@ -71,10 +68,8 @@ set(SETTING_CONNECTION_TEST_IP "8.8.8.8"
   CACHE STRING "Address to ping when testing network connection")
 set(SETTING_PATH_ADAPTER "/sys/class/power_supply/%adapter%"
   CACHE STRING "Path to adapter")
-set(SETTING_PATH_BACKLIGHT_MAX "/sys/class/backlight/%card%/max_brightness"
-  CACHE STRING "Path to file containing the maximum backlight value")
-set(SETTING_PATH_BACKLIGHT_VAL "/sys/class/backlight/%card%/actual_brightness"
-  CACHE STRING "Path to file containing the current backlight value")
+set(SETTING_PATH_BACKLIGHT "/sys/class/backlight/%card%"
+  CACHE STRING "Path to backlight sysfs folder")
 set(SETTING_PATH_BATTERY "/sys/class/power_supply/%battery%"
   CACHE STRING "Path to battery")
 set(SETTING_PATH_CPU_INFO "/proc/stat"
@@ -85,8 +80,3 @@ set(SETTING_PATH_MESSAGING_FIFO "/tmp/polybar_mqueue.%pid%"
   CACHE STRING "Path to file containing the current temperature")
 set(SETTING_PATH_TEMPERATURE_INFO "/sys/class/thermal/thermal_zone%zone%/temp"
   CACHE STRING "Path to file containing the current temperature")
-
-if(CMAKE_BUILD_TYPE_UPPER MATCHES DEBUG)
-  set(DEBUG_HINTS_OFFSET_X 0 CACHE INTEGER "Debug hint offset x")
-  set(DEBUG_HINTS_OFFSET_Y 0 CACHE INTEGER "Debug hint offset y")
-endif()

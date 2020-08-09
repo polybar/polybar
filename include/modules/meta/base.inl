@@ -1,9 +1,9 @@
-#include "modules/meta/base.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
@@ -68,7 +68,7 @@ namespace modules {
   template <typename Impl>
   void module<Impl>::halt(string error_message) {
     m_log.err("%s: %s", name(), error_message);
-    m_log.warn("Stopping '%s'...", name());
+    m_log.notice("Stopping '%s'...", name());
     stop();
   }
 
@@ -80,6 +80,13 @@ namespace modules {
     if (m_changed) {
       m_log.info("%s: Rebuilding cache", name());
       m_cache = CAST_MOD(Impl)->get_output();
+      // Make sure builder is really empty
+      m_builder->flush();
+      if (!m_cache.empty()) {
+        // Add a reset tag after the module
+        m_builder->control(controltag::R);
+        m_cache += m_builder->flush();
+      }
       m_changed = false;
     }
     return m_cache;
@@ -106,6 +113,15 @@ namespace modules {
     if (running()) {
       std::unique_lock<std::mutex> lck(m_sleeplock);
       m_sleephandler.wait_for(lck, sleep_duration);
+    }
+  }
+
+  template <typename Impl>
+  template <class Clock, class Duration>
+  void module<Impl>::sleep_until(chrono::time_point<Clock, Duration> point) {
+    if (running()) {
+      std::unique_lock<std::mutex> lck(m_sleeplock);
+      m_sleephandler.wait_until(lck, point);
     }
   }
 
@@ -173,6 +189,6 @@ namespace modules {
   }
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

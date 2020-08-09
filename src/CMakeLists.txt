@@ -7,6 +7,13 @@
 file(GLOB_RECURSE files RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.c[p]*)
 list(REMOVE_ITEM files main.cpp ipc.cpp)
 
+configure_file(
+  ${CMAKE_CURRENT_LIST_DIR}/settings.cpp.cmake
+  ${CMAKE_BINARY_DIR}/generated-sources/settings.cpp
+  ESCAPE_QUOTES)
+
+list(APPEND files ${CMAKE_BINARY_DIR}/generated-sources/settings.cpp)
+
 if(NOT ENABLE_ALSA)
   list(REMOVE_ITEM files modules/alsa.cpp)
   list(REMOVE_ITEM files adapters/alsa/control.cpp)
@@ -42,15 +49,6 @@ endif()
 if(NOT WITH_XRANDR)
   list(REMOVE_ITEM files x11/extensions/randr.cpp)
 endif()
-if(NOT WITH_XRENDER)
-  list(REMOVE_ITEM files x11/extensions/render.cpp)
-endif()
-if(NOT WITH_XDAMAGE)
-  list(REMOVE_ITEM files x11/extensions/damage.cpp)
-endif()
-if(NOT WITH_XSYNC)
-  list(REMOVE_ITEM files x11/extensions/sync.cpp)
-endif()
 if(NOT WITH_XCOMPOSITE)
   list(REMOVE_ITEM files x11/extensions/composite.cpp)
 endif()
@@ -64,7 +62,6 @@ endif()
 if(NOT WITH_XCURSOR)
   list(REMOVE_ITEM files x11/cursor.cpp)
 endif()
-
 # }}}
 
 # Target: polybar {{{

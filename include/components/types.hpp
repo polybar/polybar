@@ -12,6 +12,12 @@ POLYBAR_NS
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+
+namespace drawtypes {
+  class label;
+}
+
+using label_t = shared_ptr<drawtypes::label>;
 // }}}
 
 struct enum_hash {
@@ -37,6 +43,18 @@ enum class syntaxtag {
   R,  // flip colors
   o,  // overline color
   u,  // underline color
+  P,  // Polybar control tag
+};
+
+/**
+ * Values for polybar control tags
+ *
+ * %{P...} tags are tags for internal polybar control commands, they are not
+ * part of the public interface
+ */
+enum class controltag {
+  NONE = 0,
+  R,  // Reset all open tags (B, F, T, o, u). Used at module edges
 };
 
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
@@ -147,7 +165,7 @@ struct bar_settings {
 
   struct radius radius {};
   int spacing{0};
-  string separator{};
+  label_t separator{};
 
   string wmname{};
   string locale{};
@@ -216,6 +234,11 @@ struct event_timer {
   bool deny(xcb_timestamp_t time) {
     return !allow(time);
   };
+};
+
+enum class output_policy {
+  REDIRECTED,
+  IGNORED,
 };
 
 POLYBAR_NS_END

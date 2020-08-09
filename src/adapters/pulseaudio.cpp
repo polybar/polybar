@@ -59,7 +59,7 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
     wait_loop(op, m_mainloop);
-    m_log.warn("pulseaudio: using default sink %s", s_name);
+    m_log.notice("pulseaudio: using default sink %s", s_name);
   } else {
     m_log.trace("pulseaudio: using sink %s", s_name);
   }
@@ -134,7 +134,7 @@ int pulseaudio::process_events() {
         o = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
         wait_loop(o, m_mainloop);
         if (spec_s_name != s_name)
-          m_log.warn("pulseaudio: using default sink %s", s_name);
+          m_log.notice("pulseaudio: using default sink %s", s_name);
         break;
       default:
         break;
@@ -152,6 +152,13 @@ int pulseaudio::process_events() {
 int pulseaudio::get_volume() {
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
   return static_cast<int>(pa_cvolume_max(&cv) * 100.0f / PA_VOLUME_NORM + 0.5f);
+}
+
+/**
+ * Get volume in decibels
+ */
+double pulseaudio::get_decibels() {
+  return pa_sw_volume_to_dB(pa_cvolume_max(&cv));
 }
 
 /**
@@ -175,10 +182,14 @@ void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0) {
-    if (pa_cvolume_max(&cv) + vol <= m_max_volume) {
+    pa_volume_t current = pa_cvolume_max(&cv);
+    if (current + vol <= m_max_volume) {
       pa_cvolume_inc(&cv, vol);
+    } else if (current < m_max_volume) {
+      // avoid rounding errors and set to m_max_volume directly
+      pa_cvolume_scale(&cv, m_max_volume);
     } else {
-      m_log.warn("pulseaudio: maximum volume reached");
+      m_log.notice("pulseaudio: maximum volume reached");
     }
   } else
     pa_cvolume_dec(&cv, vol);

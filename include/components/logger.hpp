@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -21,6 +22,7 @@ enum class loglevel {
   NONE = 0,
   ERROR,
   WARNING,
+  NOTICE,
   INFO,
   TRACE,
 };
@@ -34,51 +36,59 @@ class logger {
 
   static loglevel parse_verbosity(const string& name, loglevel fallback = loglevel::NONE);
 
-  void verbosity(loglevel&& level);
+  void verbosity(loglevel level);
 
 #ifdef DEBUG_LOGGER  // {{{
   template <typename... Args>
-  void trace(string message, Args... args) const {
-    output(loglevel::TRACE, message, args...);
+  void trace(const string& message, Args&&... args) const {
+    output(loglevel::TRACE, message, std::forward<Args>(args)...);
   }
 #ifdef DEBUG_LOGGER_VERBOSE
   template <typename... Args>
-  void trace_x(string message, Args... args) const {
-    output(loglevel::TRACE, message, args...);
+  void trace_x(const string& message, Args&&... args) const {
+    output(loglevel::TRACE, message, std::forward<Args>(args)...);
   }
 #else
   template <typename... Args>
-  void trace_x(Args...) const {}
+  void trace_x(Args&&...) const {}
 #endif
 #else
   template <typename... Args>
-  void trace(Args...) const {}
+  void trace(Args&&...) const {}
   template <typename... Args>
-  void trace_x(Args...) const {}
+  void trace_x(Args&&...) const {}
 #endif  // }}}
 
   /**
    * Output an info message
    */
   template <typename... Args>
-  void info(string message, Args... args) const {
-    output(loglevel::INFO, message, args...);
+  void info(const string& message, Args&&... args) const {
+    output(loglevel::INFO, message, std::forward<Args>(args)...);
+  }
+
+  /**
+   * Output a notice
+   */
+  template <typename... Args>
+  void notice(const string& message, Args&&... args) const {
+    output(loglevel::NOTICE, message, std::forward<Args>(args)...);
   }
 
   /**
    * Output a warning message
    */
   template <typename... Args>
-  void warn(string message, Args... args) const {
-    output(loglevel::WARNING, message, args...);
+  void warn(const string& message, Args&&... args) const {
+    output(loglevel::WARNING, message, std::forward<Args>(args)...);
   }
 
   /**
    * Output an error message
    */
   template <typename... Args>
-  void err(string message, Args... args) const {
-    output(loglevel::ERROR, message, args...);
+  void err(const string& message, Args&&... args) const {
+    output(loglevel::ERROR, message, std::forward<Args>(args)...);
   }
 
  protected:
@@ -95,14 +105,14 @@ class logger {
   /**
    * Convert thread id
    */
-  size_t convert(const std::thread::id arg) const;
+  size_t convert(std::thread::id arg) const;
 
   /**
    * Write the log message to the output channel
    * if the defined verbosity level allows it
    */
   template <typename... Args>
-  void output(loglevel level, string format, Args... values) const {
+  void output(loglevel level, const string& format, Args&&... values) const {
     if (level > m_level) {
       return;
     }

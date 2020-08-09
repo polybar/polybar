@@ -8,6 +8,8 @@ namespace process_util {
   bool in_parent_process(pid_t pid);
   bool in_forked_process(pid_t pid);
 
+  void redirect_process_output_to_dev_null();
+
   void exec(char* cmd, char** args);
   void exec_sh(const char* cmd);
 

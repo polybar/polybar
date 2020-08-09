@@ -5,8 +5,6 @@
 
 POLYBAR_NS
 
-struct ipc_hook;  // fwd
-
 namespace modules {
   /**
    * Module that allow users to configure hooks on

@@ -109,7 +109,7 @@ namespace modules {
 
     // Load state and capacity level
     m_state = current_state();
-    m_percentage = current_percentage(m_state);
+    m_percentage = current_percentage();
 
     // Add formats and elements
     m_formatter->add(FORMAT_CHARGING, TAG_LABEL_CHARGING,
@@ -160,7 +160,10 @@ namespace modules {
    */
   void battery_module::start() {
     this->inotify_module::start();
-    m_subthread = thread(&battery_module::subthread, this);
+    // We only start animation thread if there is at least one animation.
+    if (m_animation_charging || m_animation_discharging) {
+      m_subthread = thread(&battery_module::subthread, this);
+    }
   }
 
   /**
@@ -199,7 +202,7 @@ namespace modules {
    */
   bool battery_module::on_event(inotify_event* event) {
     auto state = current_state();
-    auto percentage = current_percentage(state);
+    auto percentage = current_percentage();
 
     // Reset timer to avoid unnecessary polling
     m_lastpoll = chrono::system_clock::now();
@@ -229,7 +232,8 @@ namespace modules {
 
     if (label) {
       label->reset_tokens();
-      label->replace_token("%percentage%", to_string(m_percentage));
+      label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
+      label->replace_token("%percentage_raw%", to_string(m_percentage));
       label->replace_token("%consumption%", current_consumption());
 
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
@@ -262,9 +266,9 @@ namespace modules {
     } else if (tag == TAG_ANIMATION_DISCHARGING) {
       builder->node(m_animation_discharging->get());
     } else if (tag == TAG_BAR_CAPACITY) {
-      builder->node(m_bar_capacity->output(m_percentage));
+      builder->node(m_bar_capacity->output(clamp_percentage(m_percentage, m_state)));
     } else if (tag == TAG_RAMP_CAPACITY) {
-      builder->node(m_ramp_capacity->get_by_percentage(m_percentage));
+      builder->node(m_ramp_capacity->get_by_percentage(clamp_percentage(m_percentage, m_state)));
     } else if (tag == TAG_LABEL_CHARGING) {
       builder->node(m_label_charging);
     } else if (tag == TAG_LABEL_DISCHARGING) {
@@ -282,22 +286,25 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    if (!read(*m_state_reader)) {
-      return battery_module::state::DISCHARGING;
-    } else if (read(*m_capacity_reader) < m_fullat) {
-      return battery_module::state::CHARGING;
-    } else {
+    if (read(*m_capacity_reader) >= m_fullat) {
       return battery_module::state::FULL;
+    } else if (!read(*m_state_reader)) {
+      return battery_module::state::DISCHARGING;
+    } else {
+      return battery_module::state::CHARGING;
     }
   }
 
   /**
    * Get the current capacity level
    */
-  int battery_module::current_percentage(state state) {
-    int percentage{read(*m_capacity_reader)};
+  int battery_module::current_percentage() {
+    return read(*m_capacity_reader);
+  }
+
+  int battery_module::clamp_percentage(int percentage, state state) const {
     if (state == battery_module::state::FULL && percentage >= m_fullat) {
-      percentage = 100;
+      return 100;
     }
     return percentage;
   }
@@ -338,28 +345,28 @@ namespace modules {
    * same time.
    */
   void battery_module::subthread() {
-    chrono::duration<double> dur{0.0};
-
-    if (battery_module::state::CHARGING == m_state && m_animation_charging) {
-      dur += chrono::milliseconds{m_animation_charging->framerate()};
-    } else if (battery_module::state::DISCHARGING == m_state && m_animation_discharging) {
-      dur += chrono::milliseconds{m_animation_discharging->framerate()};
-    } else {
-      dur += 1s;
-    }
+    m_log.trace("%s: Start of subthread", name());
 
     while (running()) {
-      for (int i = 0; running() && i < dur.count(); ++i) {
-        if (m_state == battery_module::state::CHARGING ||
-            m_state == battery_module::state::DISCHARGING) {
-          broadcast();
-        }
-        sleep(dur);
+      auto now = chrono::steady_clock::now();
+      auto framerate = 1000U;  // milliseconds
+      if (m_state == battery_module::state::CHARGING && m_animation_charging) {
+        m_animation_charging->increment();
+        broadcast();
+        framerate = m_animation_charging->framerate();
+      } else if (m_state == battery_module::state::DISCHARGING && m_animation_discharging) {
+        m_animation_discharging->increment();
+        broadcast();
+        framerate = m_animation_discharging->framerate();
       }
+
+      // We don't count the the first part of the loop to be as close as possible to the framerate.
+      now += chrono::milliseconds(framerate);
+      this_thread::sleep_until(now);
     }
 
     m_log.trace("%s: End of subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

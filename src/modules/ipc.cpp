@@ -1,6 +1,6 @@
 #include "modules/ipc.hpp"
-#include "components/ipc.hpp"
 
+#include "components/ipc.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -60,7 +60,7 @@ namespace modules {
    */
   void ipc_module::start() {
     if (m_initial) {
-      auto command = command_util::make_command(m_hooks.at(m_initial - 1)->command);
+      auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks.at(m_initial - 1)->command);
       command->exec(false);
       command->tail([this](string line) { m_output = line; });
     }
@@ -112,7 +112,9 @@ namespace modules {
       m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
 
       try {
-        auto command = command_util::make_command(hook->command);
+        // Clear the output in case the command produces no output
+        m_output.clear();
+        auto command = command_util::make_command<output_policy::REDIRECTED>(hook->command);
         command->exec(false);
         command->tail([this](string line) { m_output = line; });
       } catch (const exception& err) {
@@ -123,6 +125,6 @@ namespace modules {
       broadcast();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

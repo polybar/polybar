@@ -61,12 +61,12 @@ void ipc::receive_message() {
   } else if (bytes_read > 0) {
     string payload{string_util::trim(string{buffer}, '\n')};
 
-    if (payload.find(ipc_command::prefix) == 0) {
-      m_sig.emit(signals::ipc::command{payload.substr(strlen(ipc_command::prefix))});
-    } else if (payload.find(ipc_hook::prefix) == 0) {
-      m_sig.emit(signals::ipc::hook{payload.substr(strlen(ipc_hook::prefix))});
-    } else if (payload.find(ipc_action::prefix) == 0) {
-      m_sig.emit(signals::ipc::action{payload.substr(strlen(ipc_action::prefix))});
+    if (payload.find(ipc_command_prefix) == 0) {
+      m_sig.emit(signals::ipc::command{payload.substr(strlen(ipc_command_prefix))});
+    } else if (payload.find(ipc_hook_prefix) == 0) {
+      m_sig.emit(signals::ipc::hook{payload.substr(strlen(ipc_hook_prefix))});
+    } else if (payload.find(ipc_action_prefix) == 0) {
+      m_sig.emit(signals::ipc::action{payload.substr(strlen(ipc_action_prefix))});
     } else if (!payload.empty()) {
       m_log.warn("Received unknown ipc message: (payload=%s)", payload);
     }

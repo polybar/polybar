@@ -52,17 +52,17 @@ namespace net {
    * Query device driver for information
    */
   bool network::query(bool accumulate) {
-    struct ifaddrs* ifaddr;
-    if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
-      return false;
-    }
-
     m_status.previous = m_status.current;
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
     m_status.current.time = std::chrono::system_clock::now();
     m_status.ip = NO_IP;
     m_status.ip6 = NO_IP;
+
+    struct ifaddrs* ifaddr;
+    if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
+      return false;
+    }
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
@@ -129,7 +129,7 @@ namespace net {
   bool network::ping() const {
     try {
       auto exec = "ping -c 2 -W 2 -I " + m_interface + " " + string(CONNECTION_TEST_IP);
-      auto ping = command_util::make_command(exec);
+      auto ping = command_util::make_command<output_policy::IGNORED>(exec);
       return ping && ping->exec(true) == EXIT_SUCCESS;
     } catch (const std::exception& err) {
       return false;
@@ -248,10 +248,12 @@ namespace net {
    * Query device driver for information
    */
   bool wired_network::query(bool accumulate) {
+    if (!network::query(accumulate)) {
+      return false;
+    }
+
     if (m_tuntap) {
       return true;
-    } else if (!network::query(accumulate)) {
-      return false;
     }
 
     if(m_bridge) {
@@ -270,10 +272,10 @@ namespace net {
     request.ifr_data = reinterpret_cast<char*>(&data);
 
     if (ioctl(*m_socketfd, SIOCETHTOOL, &request) == -1) {
-      return false;
+      m_linkspeed = -1;
+    } else {
+      m_linkspeed = data.speed;
     }
-
-    m_linkspeed = data.speed;
 
     return true;
   }
@@ -306,7 +308,7 @@ namespace net {
    * about the current connection
    */
   string wired_network::linkspeed() const {
-    return (m_linkspeed == 0 ? "???" : to_string(m_linkspeed)) + " Mbit/s";
+    return m_linkspeed == -1 ? "N/A" : (m_linkspeed < 1000 ? (to_string(m_linkspeed) + " Mbit/s") : (to_string(m_linkspeed / 1000) + " Gbit/s"));
   }
 
   // }}}

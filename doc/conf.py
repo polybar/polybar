@@ -4,7 +4,7 @@
 #
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+# https://www.sphinx-doc.org/en/master/config
 
 # -- Path setup --------------------------------------------------------------
 
@@ -14,8 +14,10 @@
 #
 import os
 import datetime
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import subprocess
+from docutils.nodes import Node
+from typing import List
+from sphinx.domains.changeset import VersionChange
 
 
 # -- Project information -----------------------------------------------------
@@ -26,13 +28,18 @@ copyright = '2016-{}, Michael Carlberg & contributors'.format(
   )
 author = 'Polybar Team'
 
-# The short X.Y version
-version = '@APP_VERSION@'
-# The full version, including alpha/beta/rc tags
-release = version
-
 # is whether we are on readthedocs.io
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if on_rtd:
+  # On readthedocs, cmake isn't run so the version string isn't available
+  version = os.environ.get('READTHEDOCS_VERSION', None)
+else:
+  # The short X.Y version
+  version = '@APP_VERSION@'
+
+# The full version, including alpha/beta/rc tags
+release = version
 
 # Set path to documentation
 if on_rtd:
@@ -155,7 +162,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1)
+    ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1),
+    ('man/polybar.5', 'polybar', 'configuration file for polybar(1)', [], 5)
 ]
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -186,3 +194,27 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
+
+# The 'versionadded' and 'versionchanged' directives are overridden.
+suppress_warnings = ['app.add_directive']
+
+def setup(app):
+  app.add_directive('deprecated', VersionDirective)
+  app.add_directive('versionadded', VersionDirective)
+  app.add_directive('versionchanged', VersionDirective)
+
+class VersionDirective(VersionChange):
+  """
+  Overwrites the Sphinx directive for versionchanged, versionadded, and
+  deprecated and adds an unreleased tag to versions that are not yet released
+  """
+  def run(self) -> List[Node]:
+    # If the tag exists 'git rev-parse' will succeed and otherwise fail
+    completed = subprocess.run(["git", "rev-parse", self.arguments[0]],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=doc_path,
+        check=False)
+
+    if completed.returncode != 0:
+      self.arguments[0] += " (unreleased)"
+
+    return super().run()

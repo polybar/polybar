@@ -1,114 +1,15 @@
-#
-# Generate configuration file
-#
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-set(MODULES_LEFT "bspwm i3")
-set(MODULES_CENTER "mpd")
-set(MODULES_RIGHT "filesystem xbacklight alsa pulseaudio xkeyboard memory cpu wlan eth battery temperature date powermenu")
-
-set(FONT_FIXED "fixed:pixelsize=10")
-set(FONT_UNIFONT "unifont:fontformat=truetype")
-set(FONT_SIJI "siji:pixelsize=10")
-
-queryfont(FONT_FIXED ${FONT_FIXED} FIELDS family pixelsize)
-queryfont(FONT_UNIFONT ${FONT_UNIFONT} FIELDS family fontformat)
-queryfont(FONT_SIJI ${FONT_SIJI} FIELDS family pixelsize)
-
-# Strip disabled modules {{{
-
-if(NOT ENABLE_PULSEAUDIO)
-  string(REPLACE " pulseaudio" "" MODULES_RIGHT ${MODULES_RIGHT})
-endif()
-if(NOT ENABLE_ALSA)
-  string(REPLACE " alsa" "" MODULES_RIGHT ${MODULES_RIGHT})
-endif()
-if(NOT ENABLE_I3)
-  string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
-endif()
-if(NOT ENABLE_MPD)
-  string(REPLACE "mpd" "" MODULES_CENTER ${MODULES_CENTER})
-endif()
-if(NOT ENABLE_NETWORK)
-  string(REPLACE " wlan eth" "" MODULES_RIGHT ${MODULES_RIGHT})
-endif()
-if(NOT WITH_XRANDR)
-  string(REPLACE "xbacklight " "backlight-acpi " MODULES_RIGHT ${MODULES_RIGHT})
-endif()
-if(NOT WITH_XKB)
-  string(REPLACE "xkeyboard " "" MODULES_RIGHT ${MODULES_RIGHT})
-endif()
-
-# }}}
-# Get battery/adapter name {{{
-
-string(REGEX REPLACE /%battery%.* "" PATH_BAT ${SETTING_PATH_BATTERY})
-string(REGEX REPLACE /%adapter%.* "" PATH_ADP ${SETTING_PATH_ADAPTER})
-file(GLOB BAT_LIST RELATIVE ${PATH_BAT} ${PATH_ADP}/B*)
-file(GLOB ADP_LIST RELATIVE ${PATH_ADP} ${PATH_ADP}/A*)
-if(BAT_LIST)
-  list(GET BAT_LIST 0 BATTERY)
-else()
-  set(BATTERY BAT0)
-endif()
-if(ADP_LIST)
-  list(GET ADP_LIST 0 ADAPTER)
-else()
-  set(ADAPTER ADP1)
-endif()
-
-# }}}
-# Get network interfaces {{{
-
-if(ENABLE_NETWORK)
-  file(GLOB IFLIST RELATIVE /sys/class/net /sys/class/net/*)
-  foreach(INTERFACE ${IFLIST})
-    if(NOT ${INTERFACE} STREQUAL "lo")
-      file(GLOB IS_WIRELESS /sys/class/net/${INTERFACE}/wireless)
-      if(IS_WIRELESS)
-        set(INTERFACE_WLAN ${INTERFACE})
-      else()
-        set(INTERFACE_ETH ${INTERFACE})
-      endif()
-    endif()
-  endforeach()
-  if(NOT INTERFACE_ETH)
-    set(INTERFACE_ETH net0)
-  endif()
-  if(NOT INTERFACE_WLAN)
-    set(INTERFACE_WLAN net1)
-  endif()
-endif()
-
-# }}}
-# Configure and install {{{
-
-configure_file(
-  ${CMAKE_CURRENT_LIST_DIR}/config.cmake
-  ${CMAKE_CURRENT_LIST_DIR}/config
-  ESCAPE_QUOTES @ONLY)
-
-install(FILES config
-  DESTINATION share/doc/polybar
-  COMPONENT config)
-
-# }}}
-
-# Documentation {{{
-find_program(SPHINX_EXECUTABLE
-  NAMES sphinx-build
-  DOC "Sphinx Documentation Builder")
-
-if(NOT SPHINX_EXECUTABLE)
-  message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
-endif()
-
-# Configures conf.py in the current folder and puts it in the build folder
-configure_file(conf.py conf.py @ONLY)
+# Only used if documentation is built on its own
+project(polybar-doc NONE)
 
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
 set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# Configures conf.py in the current folder and puts it in the build folder
+configure_file(conf.py conf.py @ONLY)
 
 # We want to run `sphinx-build` with the following builders
 set(doc_builders "html" "man")
@@ -120,12 +21,15 @@ foreach(builder ${doc_builders})
   set(doc_target "doc_${builder}")
   set(builder_log "builder-${builder}.log")
   add_custom_target(${doc_target}
-    COMMAND ${SPHINX_EXECUTABLE}
+    COMMAND ${SPHINX_BUILD}
             -b ${builder}
+            # conf.py dir
             -c "${CMAKE_CURRENT_BINARY_DIR}"
             -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
             ${sphinx_flags}
-            "${CMAKE_SOURCE_DIR}/doc"
+            # Documentation source file dir
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            # Output dir
             "${CMAKE_CURRENT_BINARY_DIR}/${builder}" > ${builder_log}
     COMMENT "sphinx-build ${builder}: see doc/${builder_log}")
 
@@ -135,11 +39,27 @@ endforeach()
 # Dummy target that depends on all documentation targets
 add_custom_target(doc ALL DEPENDS ${doc_targets})
 
+# This is needed for the case where only the doc target is built
+# CMAKE_INSTALL_DOCDIR uses PROJECT_NAME which is now polybar-doc, to be
+# consistent with a regular install we temporarily override it with "polybar"
+# before including GNUInstallDirs
+# Also since no language is set and GNUInstallDirs cannot set
+# CMAKE_INSTALL_LIBDIR, so we set it to a dummy value to suppress a warning
+if(${CMAKE_PROJECT_NAME} STREQUAL "polybar-doc")
+  set(PROJECT_NAME "polybar")
+  set(CMAKE_INSTALL_LIBDIR "")
+  include(GNUInstallDirs)
+  set(PROJECT_NAME "polybar-doc")
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
-  DESTINATION share/doc/polybar
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
   COMPONENT doc)
-# }}}
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.5
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man5
+  COMPONENT doc)

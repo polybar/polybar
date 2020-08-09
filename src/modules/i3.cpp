@@ -58,7 +58,7 @@ namespace modules {
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
-      auto vec = string_util::split(workspace, ';');
+      auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
       }
@@ -231,7 +231,7 @@ namespace modules {
       if (cmd.compare(0, strlen(EVENT_CLICK), EVENT_CLICK) == 0) {
         cmd.erase(0, strlen(EVENT_CLICK));
         m_log.info("%s: Sending workspace focus command to ipc handler", name());
-        conn.send_command("workspace " + cmd);
+        conn.send_command(make_workspace_command(cmd));
         return true;
       }
 
@@ -257,14 +257,14 @@ namespace modules {
       if (scrolldir == "next" && (m_wrap || next(current_ws) != workspaces.end())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + (*current_ws)->name);
+          conn.send_command(make_workspace_command((*current_ws)->name));
         }
         m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
         conn.send_command("workspace next_on_output");
       } else if (scrolldir == "prev" && (m_wrap || current_ws != workspaces.begin())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
-          conn.send_command("workspace " + (*current_ws)->name);
+          conn.send_command(make_workspace_command((*current_ws)->name));
         }
         m_log.info("%s: Sending workspace prev_on_output command to ipc handler", name());
         conn.send_command("workspace prev_on_output");
@@ -276,6 +276,10 @@ namespace modules {
 
     return true;
   }
-}
+
+  string i3_module::make_workspace_command(const string& workspace) {
+    return "workspace \"" + workspace + "\"";
+  }
+}  // namespace modules
 
 POLYBAR_NS_END

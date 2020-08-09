@@ -174,13 +174,16 @@ namespace modules {
 
   void network_module::subthread_routine() {
     const chrono::milliseconds framerate{m_animation_packetloss->framerate()};
-    const auto dur = chrono::duration<double>(framerate);
 
     while (running()) {
+      auto now = chrono::steady_clock::now();
       if (m_connected && m_packetloss) {
+        m_animation_packetloss->increment();
         broadcast();
       }
-      sleep(dur);
+
+      now += framerate;
+      this_thread::sleep_until(now);
     }
 
     m_log.trace("%s: Reached end of network subthread", name());

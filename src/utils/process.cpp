@@ -1,9 +1,11 @@
+#include "utils/process.hpp"
+
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "errors.hpp"
 #include "utils/env.hpp"
-#include "utils/process.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -21,6 +23,19 @@ namespace process_util {
    */
   bool in_forked_process(pid_t pid) {
     return pid == 0;
+  }
+
+  void redirect_process_output_to_dev_null() {
+    auto redirect = [](int fd_to_redirect) {
+      int fd = open("/dev/null", O_WRONLY);
+      if (fd < 0 || dup2(fd, fd_to_redirect) < 0) {
+        throw system_error("Failed to redirect process output");
+      }
+      close(fd);
+    };
+
+    redirect(STDOUT_FILENO);
+    redirect(STDERR_FILENO);
   }
 
   /**
@@ -105,6 +120,6 @@ namespace process_util {
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;
   }
-}
+}  // namespace process_util
 
 POLYBAR_NS_END

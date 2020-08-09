@@ -1,14 +1,49 @@
+#include "drawtypes/label.hpp"
+
+#include <cmath>
 #include <utility>
 
-#include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
+  /**
+   * Gets the text from the label as it should be rendered
+   *
+   * Here tokens are replaced with values and minlen and maxlen properties are applied
+   */
   string label::get() const {
-    return m_tokenized;
+    const size_t len = string_util::char_len(m_tokenized);
+    if (len >= m_minlen) {
+      string text = m_tokenized;
+      if (m_maxlen > 0 && len > m_maxlen) {
+        if (m_ellipsis) {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen - 3) + "...";
+        } else {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen);
+        }
+      }
+      return text;
+    }
+
+    const size_t num_fill_chars = m_minlen - len;
+    size_t right_fill_len = 0;
+    size_t left_fill_len = 0;
+    if (m_alignment == alignment::RIGHT) {
+      left_fill_len = num_fill_chars;
+    } else if (m_alignment == alignment::LEFT) {
+      right_fill_len = num_fill_chars;
+    } else {
+      right_fill_len = std::ceil(num_fill_chars / 2.0);
+      left_fill_len = right_fill_len;
+      // The text is positioned one character to the left if we can't perfectly center it
+      if (len + left_fill_len + right_fill_len > m_minlen) {
+        --left_fill_len;
+      }
+    }
+    return string(left_fill_len, ' ') + m_tokenized + string(right_fill_len, ' ');
   }
 
   label::operator bool() {
@@ -22,7 +57,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_minlen, m_maxlen, m_alignment, m_ellipsis, move(tokens));
   }
 
   void label::clear() {
@@ -216,15 +251,30 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
+    size_t minlen = conf.get(section, name + "-minlen", 0_z);
+    string alignment_conf_value = conf.get(section, name + "-alignment", "left"s);
+    alignment label_alignment;
+    if (alignment_conf_value == "right") {
+      label_alignment = alignment::RIGHT;
+    } else if (alignment_conf_value == "left") {
+      label_alignment = alignment::LEFT;
+    } else if (alignment_conf_value == "center") {
+      label_alignment = alignment::CENTER;
+    } else {
+      throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
+                                        << alignment_conf_value << ", expecting one of: right, left, center.");
+    }
 
     size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
+    if (maxlen > 0 && maxlen < minlen) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << " which is smaller than minlen " << minlen);
+    }
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
-    if(ellipsis && maxlen > 0 && maxlen < 3) {
-      throw application_error(sstream()
-          << "Label " << section << "." << name
-          << " has maxlen " << maxlen
-          << ", which is smaller than length of ellipsis (3)");
+    if (ellipsis && maxlen > 0 && maxlen < 3) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << ", which is smaller than length of ellipsis (3)");
     }
 
     // clang-format off
@@ -236,7 +286,9 @@ namespace drawtypes {
         conf.get(section, name + "-font", 0),
         padding,
         margin,
+        minlen,
         maxlen,
+        label_alignment,
         ellipsis,
         move(tokens));
     // clang-format on
@@ -249,6 +301,6 @@ namespace drawtypes {
     return load_label(conf, move(section), move(name), false, move(def));
   }
 
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

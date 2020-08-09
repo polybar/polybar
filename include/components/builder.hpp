@@ -10,23 +10,20 @@ POLYBAR_NS
 using std::map;
 
 // fwd decl
-namespace drawtypes {
-  class label;
-  using label_t = shared_ptr<label>;
-}
 using namespace drawtypes;
 
 class builder {
  public:
   explicit builder(const bar_settings& bar);
 
+  void reset();
   string flush();
   void append(string text);
-  void node(string str, bool add_space = false);
-  void node(string str, int font_index, bool add_space = false);
-  void node(const label_t& label, bool add_space = false);
-  void node_repeat(const string& str, size_t n, bool add_space = false);
-  void node_repeat(const label_t& label, size_t n, bool add_space = false);
+  void node(string str);
+  void node(string str, int font_index);
+  void node(const label_t& label);
+  void node_repeat(const string& str, size_t n);
+  void node_repeat(const label_t& label, size_t n);
   void offset(int pixels = 0);
   void space(size_t width);
   void space();
@@ -49,15 +46,14 @@ class builder {
   void overline_close();
   void underline(const string& color = "");
   void underline_close();
-  void cmd(mousebtn index, string action, bool condition = true);
+  void control(controltag tag);
+  void cmd(mousebtn index, string action);
   void cmd(mousebtn index, string action, const label_t& label);
-  void cmd_close(bool condition = true);
+  void cmd_close();
 
  protected:
   string background_hex();
   string foreground_hex();
-
-  string get_label_text(const label_t& label);
 
   void tag_open(syntaxtag tag, const string& value);
   void tag_open(attribute attr);
@@ -70,8 +66,8 @@ class builder {
 
   map<syntaxtag, int> m_tags{};
   map<syntaxtag, string> m_colors{};
+  map<attribute, bool> m_attrs{};
 
-  int m_attributes{0};
   int m_fontindex{0};
 
   string m_background{};

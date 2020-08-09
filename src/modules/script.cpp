@@ -22,7 +22,7 @@ namespace modules {
             if (!m_command || !m_command->is_running()) {
               string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
               m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-              m_command = command_util::make_command(exec);
+              m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
 
               try {
                 m_command->exec(false);
@@ -59,7 +59,7 @@ namespace modules {
           try {
             auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
             m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-            m_command = command_util::make_command(exec);
+            m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
             m_command->exec(true);
           } catch (const exception& err) {
             m_log.err("%s: %s", name(), err.what());
@@ -143,7 +143,7 @@ namespace modules {
   bool script_module::check_condition() {
     if (m_exec_if.empty()) {
       return true;
-    } else if (command_util::make_command(m_exec_if)->exec(true) == 0) {
+    } else if (command_util::make_command<output_policy::IGNORED>(m_exec_if)->exec(true) == 0) {
       return true;
     } else if (!m_output.empty()) {
       broadcast();

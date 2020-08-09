@@ -48,6 +48,7 @@ function(add_unit_test source_file)
 endfunction()
 
 add_unit_test(utils/color)
+add_unit_test(utils/command)
 add_unit_test(utils/math unit_tests)
 add_unit_test(utils/memory unit_tests)
 add_unit_test(utils/scope unit_tests)
@@ -55,8 +56,10 @@ add_unit_test(utils/string unit_tests)
 add_unit_test(utils/file)
 add_unit_test(components/command_line)
 add_unit_test(components/bar)
-add_unit_test(components/builder)
 add_unit_test(components/parser)
+add_unit_test(components/config_parser)
+add_unit_test(drawtypes/label)
+add_unit_test(drawtypes/iconset)
 
 # Run make check to build and run all unit tests
 add_custom_target(check

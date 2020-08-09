@@ -1,5 +1,5 @@
 sudo: required
-dist: xenial
+dist: bionic
 language: cpp
 
 env:
@@ -26,9 +26,11 @@ addons:
       - &optional_deps
         - libxcb-xkb-dev
         - libxcb-cursor-dev
+        - libxcb-xrm-dev
         - libxcb1-dev
         - xutils-dev
         - i3-wm
+        - libjsoncpp-dev
         - libasound2-dev
         - libpulse-dev
         - libcairo2-dev
@@ -39,6 +41,19 @@ script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
 
 matrix:
   include:
+    # Only builds the documentation
+    - language: generic
+      # Doesn't actually do anything, just used for the indicator on travis
+      compiler: Sphinx
+      addons: {apt: {packages: [python3-sphinx]}}
+      before_script:
+        - mkdir -p doc/build
+        - cd doc/build
+        - cmake ..
+      script: make doc
+      # Disable unnecessary commands
+      cache:
+
     - compiler: clang
       env: BUILD_TYPE=Release
       addons: {apt: {packages: [*base_deps, *optional_deps]}}
@@ -65,13 +80,6 @@ matrix:
 cache:
   ccache: true
   apt: true
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps/xcb-util-xrm
-
-install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir -p "${DEPS_DIR}" && cd "${DEPS_DIR}"
-  - source ${TRAVIS_BUILD_DIR}/common/travis/install_xcb_xrm.sh
 
 before_script:
   - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
@@ -87,8 +95,14 @@ notifications:
     channels:
       - "irc.freenode.org#polybar"
     template:
-      - "%{author} pushed #%{commit} \"%{commit_subject}\" to %{repository_name}/%{branch}"
-      - "Build #%{build_number} %{result} / %{build_url} (diff: %{compare_url})"
+      - " %{repository_slug}(%{branch})#%{build_number} | \"%{commit_subject}\" by %{author} | Commit #%{commit} %{result}: %{build_url}"
     use_notice: true
     on_success: change
     on_failure: change
+  webhooks:
+    urls:
+      # For the https://gitter.im/polybar/polybar gitter room
+      - https://webhooks.gitter.im/e/10bdbe25961312646ace
+    on_success: change
+    on_failure: always
+    on_start: never

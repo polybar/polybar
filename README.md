@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="banner.png" alt="Polybar">
+  <img src="banner.png" alt="Polybar">
 </p>
 
 <p align="center">
@@ -7,27 +7,30 @@ A fast and easy-to-use tool for creating status bars.
 </p>
 
 <p align="center">
-<a href="https://github.com/jaagr/polybar/releases"><img src="https://img.shields.io/github/release/jaagr/polybar.svg"></a>
-<a href="https://travis-ci.org/jaagr/polybar"><img src="https://travis-ci.org/jaagr/polybar.svg?branch=master"></a>
-<a href="https://codecov.io/gh/jaagr/polybar/branch/master"><img src="https://codecov.io/gh/jaagr/polybar/branch/master/graph/badge.svg"></a>
-<a href="https://github.com/jaagr/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/jaagr/polybar.svg"></a>
+<a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
+<a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
+<a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
+<a href="https://gitter.im/polybar/polybar"><img src="https://badges.gitter.im/polybar/polybar.svg"></a>
+<a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>
+<a href="https://github.com/polybar/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/polybar/polybar.svg"></a>
+<a href="https://www.codetriage.com/polybar/polybar"><img src="https://www.codetriage.com/polybar/polybar/badges/users.svg"></a>
 </p>
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
 Here are a few screenshots showing you what it can look like:
 
-[![sample screenshot](http://i.imgur.com/xvlw9iHt.png)](http://i.imgur.com/xvlw9iH.png)
-[![sample screenshot](http://i.imgur.com/cYQOuRrt.png)](http://i.imgur.com/cYQOuRr.png)
-[![sample screenshot](http://i.imgur.com/A6spiZZt.png)](http://i.imgur.com/A6spiZZ.png)
-[![sample screenshot](http://i.imgur.com/TY5a5r9t.png)](http://i.imgur.com/TY5a5r9.png)
+[![sample screenshot](https://i.imgur.com/xvlw9iHt.png)](https://i.imgur.com/xvlw9iH.png)
+[![sample screenshot](https://i.imgur.com/cYQOuRrt.png)](https://i.imgur.com/cYQOuRr.png)
+[![sample screenshot](https://i.imgur.com/A6spiZZt.png)](https://i.imgur.com/A6spiZZ.png)
+[![sample screenshot](https://i.imgur.com/TY5a5r9t.png)](https://i.imgur.com/TY5a5r9.png)
 
 You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
 
 **If you need help**, check out the [Support](SUPPORT.md) page.
 
-Please report any bugs you find by [creating an issue ticket](https://github.com/jaagr/polybar/issues/new/choose) here on GitHub.
+Please report any bugs you find by [creating an issue ticket](https://github.com/polybar/polybar/issues/new/choose) here on GitHub.
 Make sure you include steps on how to reproduce it.
 
 
@@ -54,7 +57,7 @@ Some of the services included so far:
 - Systray icons
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
-- [ALSA](http://www.alsa-project.org/main/index.php/Main_Page) volume controls
+- [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
 - Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
 - Keyboard layout and indicator status
@@ -69,7 +72,7 @@ Some of the services included so far:
 - Inter-process messaging
 - And more...
 
-[See the wiki for more details](https://github.com/jaagr/polybar/wiki).
+[See the wiki for more details](https://github.com/polybar/polybar/wiki).
 
 ## Getting Help
 
@@ -85,6 +88,9 @@ Polybar was already packaged for the distros listed below.
 If you can't find your distro here, you will have to [build from source](#building-from-source).
 
 If you create a package for any other distribution, please consider contributing the template.
+
+If you are using **Debian** (unstable or testing), you can install [polybar](https://tracker.debian.org/pkg/polybar) using `sudo apt install polybar`.  
+If you are using **Debian** (buster/stable), you need to enable [backports](https://wiki.debian.org/Backports) and then install using `sudo apt -t buster-backports install polybar`.
 
 If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
 [polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release.
@@ -103,12 +109,14 @@ If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x1
 
 If you are using **Gentoo**, both release and git-master versions are available in the [main](https://packages.gentoo.org/packages/x11-misc/polybar) repository.
 
+If you are using **Fedora**, you can install [polybar](https://src.fedoraproject.org/rpms/polybar) using `sudo dnf install polybar`.
+
 ### Dependencies
 
-A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
+A compiler with C++14 support ([clang-3.4+](https://llvm.org/releases/download.html), [gcc-5.1+](https://gcc.gnu.org/releases.html)), [cmake 3.1+](https://cmake.org/download/), [git](https://git-scm.com/downloads)
 - `cairo`
 - `libxcb`
-- `python2`
+- `python`
 - `xcb-proto`
 - `xcb-util-image`
 - `xcb-util-wm`
@@ -127,15 +135,15 @@ A compiler with C++14 support ([clang-3.4+](http://llvm.org/releases/download.ht
 - `libcurl` *required by `internal/github`*
 - `libnl-genl` or `wireless_tools` *required by `internal/network`*
 
-Find a more complete list on the [dedicated wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
+Find a more complete list on the [dedicated wiki page](https://github.com/polybar/polybar/wiki/Compiling).
 
 
 ### Building from source
 
-Please [report any problems](https://github.com/jaagr/polybar/issues/new/choose) you run into when building the project.
+Please [report any problems](https://github.com/polybar/polybar/issues/new/choose) you run into when building the project.
 
 Download the `polybar-<version>.tar` for the version you want to build from the
-[release page](https://github.com/jaagr/polybar/releases), extract it with
+[release page](https://github.com/polybar/polybar/releases), extract it with
 `tar xvf polybar-<version>.tar` and go into the extracted folder. There, run
 the following commands:
 
@@ -153,11 +161,11 @@ There's also a helper script available in the root folder:
   $ ./build.sh
   ~~~
 
-For more info, have a look at the [Compiling wiki page](https://github.com/jaagr/polybar/wiki/Compiling).
+For more info, have a look at the [Compiling wiki page](https://github.com/polybar/polybar/wiki/Compiling).
 
 ### Configuration
 
-Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/jaagr/polybar/wiki/Configuration).
+Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/polybar/polybar/wiki/Configuration).
 
 #### Install the example configuration
 Run the following inside the build directory:
@@ -173,18 +181,19 @@ Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /us
 
 ### Running
 
-[See the wiki for details on how to run polybar](https://github.com/jaagr/polybar/wiki).
+[See the wiki for details on how to run polybar](https://github.com/polybar/polybar/wiki).
 
 ## Community
 Want to get in touch?
 
+* Join our Gitter room at [gitter.im/polybar/polybar](https://gitter.im/polybar/polybar)
 * We have our own subreddit at [r/polybar](https://www.reddit.com/r/polybar).
 * Chat with us in the `#polybar` IRC channel on the `chat.freenode.net` server.
 
 ## Contributors
 
 ### Owner
-* Michael Carlberg [**@jaagr**](http://github.com/jaagr/)
+* Michael Carlberg [**@jaagr**](https://github.com/jaagr/)
 
 ### Maintainers
 * [**@NBonaparte**](https://github.com/NBonaparte)
@@ -195,8 +204,8 @@ Want to get in touch?
 * [**@Tobaloidee**](https://github.com/Tobaloidee)
 
 
-### [All Contributors](https://github.com/jaagr/polybar/graphs/contributors)
+### [All Contributors](https://github.com/polybar/polybar/graphs/contributors)
 
 ## License
 
-Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/jaagr/polybar/blob/master/LICENSE).
+Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/polybar/polybar/blob/master/LICENSE).
