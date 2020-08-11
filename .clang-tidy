@@ -15,6 +15,7 @@ Checks: '
         modernize-*,
         -modernize-raw-string-literal,
         -modernize-use-bool-literals,
+        -modernize-use-trailing-return-type,
         -readability-implicit-bool-cast,
         -readability-else-after-return,
         -readability-named-parameter,
