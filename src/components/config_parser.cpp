@@ -151,6 +151,11 @@ void config_parser::parse_file(const string& file, file_list path) {
 }
 
 line_t config_parser::parse_line(const string& line) {
+  if (string_util::contains(line, "\ufeff")) {
+    throw syntax_error(
+        "This config file uses UTF-8 with BOM, which is not supported. Please use plain UTF-8 without BOM.");
+  }
+
   string line_trimmed = string_util::trim(line, isspace);
   line_type type = get_line_type(line_trimmed);
 
@@ -194,9 +199,6 @@ line_type config_parser::get_line_type(const string& line) {
       return line_type::COMMENT;
 
     default: {
-      if (string_util::contains(line, "﻿"))
-        throw syntax_error("The file encoding is not supported. Please use UTF-8");
-
       if (string_util::contains(line, "=")) {
         return line_type::KEY;
       } else {

@@ -1,4 +1,5 @@
 #include "components/config_parser.hpp"
+
 #include "common/test.hpp"
 #include "components/logger.hpp"
 
@@ -98,6 +99,7 @@ TEST_P(ParseLineKeyTest, correctness) {
 
 TEST_F(ParseLineInValidTest, throwsSyntaxError) {
   EXPECT_THROW(parser->parse_line("unknown"), syntax_error);
+  EXPECT_THROW(parser->parse_line("\ufeff"), syntax_error);
 }
 // }}}
 
