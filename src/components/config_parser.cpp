@@ -1,7 +1,7 @@
+#include "components/config_parser.hpp"
+
 #include <algorithm>
 #include <fstream>
-
-#include "components/config_parser.hpp"
 
 POLYBAR_NS
 
@@ -193,12 +193,16 @@ line_type config_parser::get_line_type(const string& line) {
     case '#':
       return line_type::COMMENT;
 
-    default:
+    default: {
+      if (string_util::contains(line, "﻿"))
+        throw syntax_error("The file encoding is not supported. Please use UTF-8");
+
       if (string_util::contains(line, "=")) {
         return line_type::KEY;
       } else {
         return line_type::UNKNOWN;
       }
+    }
   }
 }
 
