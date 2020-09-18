@@ -110,7 +110,7 @@ namespace alsa {
       }
     }
 
-    return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
+    return math_util::lower_bound_percentage(vol_total / chan_n, vol_min, vol_max);
   }
 
   /**
@@ -133,7 +133,7 @@ namespace alsa {
     }
 
     if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100) {
-      return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
+       return math_util::lower_bound_percentage(vol_total / chan_n, vol_min, vol_max);
     }
 
     normalized = pow(10, (vol_total / chan_n - vol_max) / 6000.0);
