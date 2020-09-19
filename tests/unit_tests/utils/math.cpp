@@ -25,6 +25,15 @@ TEST(Math, cap) {
   EXPECT_EQ(0, math_util::cap<float>(1.0f, 0.0f, 0.0f));
 }
 
+TEST(Math, unbounded_percentage) {
+  EXPECT_EQ(101.0f, (math_util::unbounded_percentage<float, float>(101.0f, 0.0f, 100.0f)));
+  EXPECT_EQ(102, (math_util::unbounded_percentage<float, int>(101.5f, 0.0f, 100.0f)));
+  EXPECT_EQ(110.0f, (math_util::unbounded_percentage<float, float>(12.0f, -10.0f, 10.0f)));
+  EXPECT_EQ(150.0f, (math_util::unbounded_percentage<float, float>(11.5f, 10.0f, 11.0f)));
+  EXPECT_EQ(-50.0f, (math_util::unbounded_percentage<float, float>(-50.0f, 0.0f, 100.0f)));
+  EXPECT_EQ(-50.0f, (math_util::unbounded_percentage<float, float>(9.5f, 10.0f, 11.0f)));
+}
+
 TEST(Math, percentage) {
   EXPECT_EQ(55.0f, (math_util::percentage<float, float>(5.5f, 0.0f, 10.0f)));
   EXPECT_EQ(56, (math_util::percentage<float, int>(5.55f, 0.0f, 10.0f)));

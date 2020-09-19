@@ -35,6 +35,7 @@ namespace math_util {
 
   /**
    * Calculate the percentage for a value
+   * between min_value and max_value
    */
   template<typename ValueType, typename ReturnType = int>
   ReturnType unbounded_percentage(ValueType value, ValueType min_value, ValueType max_value){
@@ -44,16 +45,6 @@ namespace math_util {
     if (std::is_integral<ReturnType>())
       percentage += 0.5f;
     return percentage;
-  }
-
-  /**
-   * Calculate the percentage for a value and
-   * limit lower bound to 0
-   */
-  template<typename ValueType, typename ReturnType = int>
-  ReturnType lower_bound_percentage(ValueType value, ValueType min_value, ValueType max_value){
-    auto raw_percentage = unbounded_percentage<ValueType, ReturnType>(value, min_value, max_value);
-    return std::max<ReturnType>(raw_percentage, 0.0f);
   }
 
   /**
