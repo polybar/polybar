@@ -25,6 +25,12 @@ Welcome to the official polybar documentation.
 
    dev/packaging
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer Documentation:
+
+   dev/release-workflow
+
 Getting Help
 ============
 
