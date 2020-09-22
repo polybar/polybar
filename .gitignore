@@ -7,3 +7,5 @@
 *.swp
 *.tmp
 .tags
+
+polybar-*.tar
