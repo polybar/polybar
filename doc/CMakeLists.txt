@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 # Only used if documentation is built on its own
 project(polybar-doc NONE)
 
+if(NOT SPHINX_BUILD)
+  set(SPHINX_BUILD "sphinx-build")
+endif()
+
 set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
