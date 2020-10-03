@@ -1,5 +1,5 @@
 sudo: required
-dist: bionic
+dist: focal
 language: cpp
 
 env:
@@ -21,7 +21,7 @@ addons:
         - libxcb-image0-dev
         - libxcb-randr0-dev
         - libxcb-util0-dev
-        - python-xcbgen
+        - python3-xcbgen
         - xcb-proto
       - &optional_deps
         - libxcb-xkb-dev
