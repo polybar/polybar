@@ -6,6 +6,7 @@
 POLYBAR_NS
 
 namespace modules {
+  enum class cpu_state { NORMAL = 0, WARN };
   struct cpu_time {
     unsigned long long user;
     unsigned long long nice;
@@ -22,6 +23,7 @@ namespace modules {
     explicit cpu_module(const bar_settings&, string);
 
     bool update();
+    string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
    protected:
@@ -29,15 +31,18 @@ namespace modules {
     float get_load(size_t core) const;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_LABEL = "<label>";    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
     static constexpr auto TAG_BAR_LOAD = "<bar-load>";
     static constexpr auto TAG_RAMP_LOAD = "<ramp-load>";
     static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-coreload>";
+    static constexpr auto FORMAT_WARN = "format-warn";
 
+
+    float m_totalwarn;
     progressbar_t m_barload;
     ramp_t m_rampload;
     ramp_t m_rampload_core;
-    label_t m_label;
+    map<cpu_state, label_t> m_label;
     int m_ramp_padding;
 
     vector<cpu_time_t> m_cputimes;
