@@ -1,5 +1,6 @@
 #include "utils/file.hpp"
 
+#include <dirent.h>
 #include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
@@ -293,6 +294,27 @@ namespace file_util {
       }
     }
     return "";
+  }
+
+  /**
+   * Return a list of file names in a directory.
+   */
+  vector<string> list_files(const string& dirname) {
+    vector<string> files;
+    DIR* dir;
+    if ((dir = opendir(dirname.c_str())) != NULL) {
+      struct dirent* ent;
+      while ((ent = readdir(dir)) != NULL) {
+        // Type can be unknown for filesystems that do not support d_type
+        if ((ent->d_type & DT_REG) ||
+            ((ent->d_type & DT_UNKNOWN) && strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)) {
+          files.push_back(ent->d_name);
+        }
+      }
+      closedir(dir);
+      return files;
+    }
+    throw system_error("Failed to open directory stream for " + dirname);
   }
 }  // namespace file_util
 
