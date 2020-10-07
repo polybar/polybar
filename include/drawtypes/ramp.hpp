@@ -16,6 +16,7 @@ namespace drawtypes {
     void add(label_t&& icon);
     label_t get(size_t index);
     label_t get_by_percentage(float percentage);
+    label_t get_by_percentage_with_borders(float percentage);
     operator bool();
 
    protected:
