@@ -24,7 +24,7 @@ namespace drawtypes {
   }
 
   ramp::operator bool() {
-    return m_icons.size() >= 2;
+    return !m_icons.empty();
   }
 
   /**
