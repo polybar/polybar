@@ -28,7 +28,7 @@ namespace modules {
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_mountpoints = m_conf.get_list(name(), "mount");
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
-    m_perc_used_warn = m_conf.get(name(), "warn-used-percentage", m_remove_unmounted);
+    m_perc_used_warn = m_conf.get(name(), "warn-used-percentage", 90);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 30s);
@@ -172,8 +172,9 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
+    m_log.warn("actual: %d, warn: %d",m_mounts[m_index]->percentage_used, m_perc_used_warn);
     return !m_mounts[m_index]->mounted ? FORMAT_UNMOUNTED :
-        m_mounts[m_index]->percentage_used < m_perc_used_warn ? FORMAT_WARN : FORMAT_MOUNTED;
+        m_mounts[m_index]->percentage_used >= m_perc_used_warn ? FORMAT_WARN : FORMAT_MOUNTED;
   }
 
   /**
