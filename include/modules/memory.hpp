@@ -35,7 +35,7 @@ namespace modules {
     progressbar_t m_bar_memfree;
     int m_perc_memused{0};
     int m_perc_memfree{0};
-    int m_perc_memused_warn{0};
+    int m_perc_memused_warn{90};
     ramp_t m_ramp_memused;
     ramp_t m_ramp_memfree;
     progressbar_t m_bar_swapused;

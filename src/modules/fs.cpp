@@ -187,7 +187,7 @@ namespace modules {
     } else if (tag == TAG_BAR_USED) {
       builder->node(m_barused->output(mount->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
-      builder->node(m_rampcapacity->get_by_percentage(mount->percentage_free));
+      builder->node(m_rampcapacity->get_by_percentage_with_borders(mount->percentage_free, 0, m_perc_used_warn));
     } else if (tag == TAG_LABEL_MOUNTED) {
       builder->node(m_labelmounted);
     } else if (tag == TAG_LABEL_WARN) {

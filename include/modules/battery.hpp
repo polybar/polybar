@@ -12,6 +12,7 @@ namespace modules {
       NONE = 0,
       CHARGING,
       DISCHARGING,
+      LOW,
       FULL,
     };
 
@@ -66,14 +67,17 @@ namespace modules {
     static constexpr const char* FORMAT_CHARGING{"format-charging"};
     static constexpr const char* FORMAT_DISCHARGING{"format-discharging"};
     static constexpr const char* FORMAT_FULL{"format-full"};
+    static constexpr const char* FORMAT_LOW{"format-low"};
 
     static constexpr const char* TAG_ANIMATION_CHARGING{"<animation-charging>"};
     static constexpr const char* TAG_ANIMATION_DISCHARGING{"<animation-discharging>"};
+    static constexpr const char* TAG_ANIMATION_LOW{"<animation-low>"};
     static constexpr const char* TAG_BAR_CAPACITY{"<bar-capacity>"};
     static constexpr const char* TAG_RAMP_CAPACITY{"<ramp-capacity>"};
     static constexpr const char* TAG_LABEL_CHARGING{"<label-charging>"};
     static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
     static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
+    static constexpr const char* TAG_LABEL_LOW{"<label-low>"};
 
     static const size_t SKIP_N_UNCHANGED{3_z};
 
@@ -85,8 +89,10 @@ namespace modules {
     label_t m_label_charging;
     label_t m_label_discharging;
     label_t m_label_full;
+    label_t m_label_low;
     animation_t m_animation_charging;
     animation_t m_animation_discharging;
+    animation_t m_animation_low;
     progressbar_t m_bar_capacity;
     ramp_t m_ramp_capacity;
 
@@ -100,6 +106,7 @@ namespace modules {
     int m_percentage{0};
 
     int m_fullat{100};
+    int m_lowat{10};
     string m_timeformat;
     size_t m_unchanged{SKIP_N_UNCHANGED};
     chrono::duration<double> m_interval{};

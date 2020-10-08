@@ -40,7 +40,6 @@ namespace modules {
 
     label_t m_label;
     label_t m_labelwarn;
-    float m_totalwarn;
     progressbar_t m_barload;
     ramp_t m_rampload;
     ramp_t m_rampload_core;
@@ -49,6 +48,7 @@ namespace modules {
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;
 
+    float m_totalwarn = 80;
     float m_total = 0;
     vector<float> m_load;
   };

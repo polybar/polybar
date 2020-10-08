@@ -65,7 +65,7 @@ namespace modules {
     bool m_fixed{false};
     bool m_remove_unmounted{false};
     int m_spacing{2};
-    int m_perc_used_warn{0};
+    int m_perc_used_warn{90};
 
     // used while formatting output
     size_t m_index{0_z};

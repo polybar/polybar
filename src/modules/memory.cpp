@@ -150,17 +150,17 @@ namespace modules {
     } else if (tag == TAG_LABEL_WARN) {
       builder->node(m_labelwarn);
     } else if (tag == TAG_RAMP_FREE) {
-      builder->node(m_ramp_memfree->get_by_percentage_with_borders(m_perc_memfree, m_perc_memused_warn));
+      builder->node(m_ramp_memfree->get_by_percentage_with_borders(m_perc_memfree, 0, m_perc_memused_warn));
     } else if (tag == TAG_RAMP_USED) {
-      builder->node(m_ramp_memused->get_by_percentage_with_borders(m_perc_memused, m_perc_memused_warn));
+      builder->node(m_ramp_memused->get_by_percentage_with_borders(m_perc_memused, 0, m_perc_memused_warn));
     } else if (tag == TAG_BAR_SWAP_USED) {
       builder->node(m_bar_swapused->output(m_perc_swap_used));
     } else if (tag == TAG_BAR_SWAP_FREE) {
       builder->node(m_bar_swapfree->output(m_perc_swap_free));
     } else if (tag == TAG_RAMP_SWAP_FREE) {
-      builder->node(m_ramp_swapfree->get_by_percentage_with_borders(m_perc_swap_free, m_perc_memused_warn));
+      builder->node(m_ramp_swapfree->get_by_percentage_with_borders(m_perc_swap_free, 0, m_perc_memused_warn));
     } else if (tag == TAG_RAMP_SWAP_USED) {
-      builder->node(m_ramp_swapused->get_by_percentage_with_borders(m_perc_swap_used, m_perc_memused_warn));
+      builder->node(m_ramp_swapused->get_by_percentage_with_borders(m_perc_swap_used, 0, m_perc_memused_warn));
     } else {
       return false;
     }
