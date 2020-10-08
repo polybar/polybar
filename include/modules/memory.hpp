@@ -29,7 +29,8 @@ namespace modules {
     static constexpr const char* TAG_RAMP_SWAP_FREE{"<ramp-swap-free>"};
     static constexpr const char* FORMAT_WARN{"format-warn"};
 
-    map<memory_state, label_t> m_label;
+    label_t m_label;
+    label_t m_labelwarn;
     progressbar_t m_bar_memused;
     progressbar_t m_bar_memfree;
     int m_perc_memused{0};

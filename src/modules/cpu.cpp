@@ -28,10 +28,10 @@ namespace modules {
     read_values();
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label[cpu_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_label[cpu_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage%%");
+      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage%%");
     }
     if (m_formatter->has(TAG_BAR_LOAD)) {
       m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
@@ -63,7 +63,7 @@ namespace modules {
       m_total += load;
       m_load.emplace_back(load);
 
-      if (!m_label.empty()) {
+      if (m_label || m_labelwarn) {
         percentage_cores.emplace_back(to_string(static_cast<int>(load + 0.5)));
       }
     }
@@ -81,11 +81,11 @@ namespace modules {
       }
     };
 
-    if (m_label[cpu_state::NORMAL]) {
-      replace_tokens(m_label[cpu_state::NORMAL]);
+    if (m_label) {
+      replace_tokens(m_label);
     }
-    if (m_label[cpu_state::WARN]) {
-      replace_tokens(m_label[cpu_state::WARN]);
+    if (m_labelwarn) {
+      replace_tokens(m_labelwarn);
     }
 
     return true;
@@ -102,9 +102,9 @@ namespace modules {
 
   bool cpu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
-      builder->node(m_label.at(cpu_state::NORMAL));
+      builder->node(m_label);
     } else if (tag == TAG_LABEL_WARN) {
-      builder->node(m_label.at(cpu_state::WARN));
+      builder->node(m_labelwarn);
     } else if (tag == TAG_BAR_LOAD) {
       builder->node(m_barload->output(m_total));
     } else if (tag == TAG_RAMP_LOAD) {

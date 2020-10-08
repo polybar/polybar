@@ -172,7 +172,6 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
-    m_log.warn("actual: %d, warn: %d",m_mounts[m_index]->percentage_used, m_perc_used_warn);
     return !m_mounts[m_index]->mounted ? FORMAT_UNMOUNTED :
         m_mounts[m_index]->percentage_used >= m_perc_used_warn ? FORMAT_WARN : FORMAT_MOUNTED;
   }

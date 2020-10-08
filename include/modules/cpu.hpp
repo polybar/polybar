@@ -38,11 +38,12 @@ namespace modules {
     static constexpr auto FORMAT_WARN = "format-warn";
 
 
+    label_t m_label;
+    label_t m_labelwarn;
     float m_totalwarn;
     progressbar_t m_barload;
     ramp_t m_rampload;
     ramp_t m_rampload_core;
-    map<cpu_state, label_t> m_label;
     int m_ramp_padding;
 
     vector<cpu_time_t> m_cputimes;
