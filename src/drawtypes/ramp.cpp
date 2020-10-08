@@ -18,8 +18,8 @@ namespace drawtypes {
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
 
-  label_t ramp::get_by_percentage_with_borders(float percentage) {
-    size_t index = percentage * (m_icons.size() - 2) / 100.0f + 1;
+  label_t ramp::get_by_percentage_with_borders(float percentage, float max_percentage) {
+    size_t index = percentage / max_percentage * 100.0f * (m_icons.size() - 2) / 100.0f + 1;
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
 

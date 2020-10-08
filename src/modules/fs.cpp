@@ -28,6 +28,7 @@ namespace modules {
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
     m_mountpoints = m_conf.get_list(name(), "mount");
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
+    m_perc_used_warn = m_conf.get(name(), "warn-used-percentage", m_remove_unmounted);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 30s);
@@ -35,10 +36,15 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
+    m_formatter->add(
+        FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
       m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
+    }
+    if (m_formatter->has(TAG_LABEL_WARN)) {
+      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
       m_labelunmounted = load_optional_label(m_conf, name(), TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
@@ -104,6 +110,31 @@ namespace modules {
 
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
+
+        const auto replace_tokens = [&](label_t& label) {
+          label->reset_tokens();
+          label->replace_token("%mountpoint%", mount->mountpoint);
+          label->replace_token("%type%", mount->type);
+          label->replace_token("%fsname%", mount->fsname);
+          label->replace_token("%percentage_free%", to_string(mount->percentage_free));
+          label->replace_token("%percentage_used%", to_string(mount->percentage_used));
+          label->replace_token(
+              "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+          label->replace_token(
+              "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+          label->replace_token(
+              "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+        };
+	if (m_labelmounted) {
+	  replace_tokens(m_labelmounted);
+	}
+	if (m_labelwarn) {
+	  replace_tokens(m_labelwarn);
+	}
+	if (m_labelunmounted) {
+          m_labelunmounted->reset_tokens();
+          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
+	}
       }
     }
 
@@ -141,7 +172,8 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
-    return m_mounts[m_index]->mounted ? FORMAT_MOUNTED : FORMAT_UNMOUNTED;
+    return !m_mounts[m_index]->mounted ? FORMAT_UNMOUNTED :
+        m_mounts[m_index]->percentage_used < m_perc_used_warn ? FORMAT_WARN : FORMAT_MOUNTED;
   }
 
   /**
@@ -157,22 +189,10 @@ namespace modules {
     } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_rampcapacity->get_by_percentage(mount->percentage_free));
     } else if (tag == TAG_LABEL_MOUNTED) {
-      m_labelmounted->reset_tokens();
-      m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
-      m_labelmounted->replace_token("%type%", mount->type);
-      m_labelmounted->replace_token("%fsname%", mount->fsname);
-      m_labelmounted->replace_token("%percentage_free%", to_string(mount->percentage_free));
-      m_labelmounted->replace_token("%percentage_used%", to_string(mount->percentage_used));
-      m_labelmounted->replace_token(
-          "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      m_labelmounted->replace_token(
-          "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      m_labelmounted->replace_token(
-          "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
       builder->node(m_labelmounted);
+    } else if (tag == TAG_LABEL_WARN) {
+      builder->node(m_labelwarn);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
-      m_labelunmounted->reset_tokens();
-      m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
       builder->node(m_labelunmounted);
     } else {
       return false;

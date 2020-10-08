@@ -97,7 +97,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_WARN) {
       builder->node(m_label.at(temp_state::WARN));
     } else if (tag == TAG_RAMP) {
-      builder->node(m_ramp->get_by_percentage_with_borders(m_perc));
+      builder->node(m_ramp->get_by_percentage_with_borders(m_perc, 100.0f));
     } else {
       return false;
     }

@@ -108,14 +108,14 @@ namespace modules {
     } else if (tag == TAG_BAR_LOAD) {
       builder->node(m_barload->output(m_total));
     } else if (tag == TAG_RAMP_LOAD) {
-      builder->node(m_rampload->get_by_percentage(m_total));
+      builder->node(m_rampload->get_by_percentage_with_borders(m_total, m_totalwarn));
     } else if (tag == TAG_RAMP_LOAD_PER_CORE) {
       auto i = 0;
       for (auto&& load : m_load) {
         if (i++ > 0) {
           builder->space(m_ramp_padding);
         }
-        builder->node(m_rampload_core->get_by_percentage(load));
+        builder->node(m_rampload_core->get_by_percentage_with_borders(load, m_totalwarn));
       }
       builder->node(builder->flush());
     } else {
