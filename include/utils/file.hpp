@@ -109,6 +109,7 @@ namespace file_util {
   vector<string> glob(string pattern);
   const string expand(const string& path);
   string get_config_path();
+  vector<string> list_files(const string& dirname);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

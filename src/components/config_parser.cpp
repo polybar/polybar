@@ -144,6 +144,13 @@ void config_parser::parse_file(const string& file, file_list path) {
 
     if (!line.is_header && line.key == "include-file") {
       parse_file(file_util::expand(line.value), path);
+    } else if (!line.is_header && line.key == "include-directory") {
+      const string expanded_path = file_util::expand(line.value);
+      vector<string> file_list = file_util::list_files(expanded_path);
+      sort(file_list.begin(), file_list.end());
+      for (const auto& filename : file_list) {
+        parse_file(expanded_path + "/" + filename, path);
+      }
     } else {
       m_lines.push_back(line);
     }
