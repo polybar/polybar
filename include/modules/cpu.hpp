@@ -31,7 +31,8 @@ namespace modules {
     float get_load(size_t core) const;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
     static constexpr auto TAG_BAR_LOAD = "<bar-load>";
     static constexpr auto TAG_RAMP_LOAD = "<ramp-load>";
     static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-coreload>";
