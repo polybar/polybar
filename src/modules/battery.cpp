@@ -29,12 +29,8 @@ namespace modules {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
     m_design_capacity = m_conf.get(name(), "design-capacity", false);
-    m_fullat = math_util::min(m_conf.get(name(), "full-at", m_design_capacity ? -1 : m_fullat), 100);
-
-    // Check if the user have deliberately set full-at to negative, which would  break stuff later on
-    if (m_fullat < 0 && !m_design_capacity) {
-      throw module_error("Invalid full-at value");
-    }
+    if (m_design_capacity)
+      m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
@@ -302,9 +298,9 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    auto charge = read(*m_capacity_reader);
-    auto full_at = m_fullat >= 0 ? m_fullat : read(*m_degradation_reader);
-    if (charge >= full_at) {
+    if (m_design_capacity)
+      m_fullat = read(*m_degradation_reader);
+    if (read(*m_capacity_reader) >= m_fullat) {
       return battery_module::state::FULL;
     } else if (!read(*m_state_reader)) {
       return battery_module::state::DISCHARGING;
