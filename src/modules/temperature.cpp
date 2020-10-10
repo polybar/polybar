@@ -53,7 +53,6 @@ namespace modules {
   bool temperature_module::update() {
     m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
     int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
-    m_perc = math_util::unbounded_percentage(m_temp, m_tempbase, m_tempwarn);
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
@@ -97,7 +96,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_WARN) {
       builder->node(m_label.at(temp_state::WARN));
     } else if (tag == TAG_RAMP) {
-      builder->node(m_ramp->get_by_percentage_with_borders(m_perc));
+      builder->node(m_ramp->get_by_percentage_with_borders(m_temp, m_tempbase, m_tempwarn));
     } else {
       return false;
     }

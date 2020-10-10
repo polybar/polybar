@@ -18,11 +18,15 @@ namespace drawtypes {
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
 
-  label_t ramp::get_by_percentage_with_borders(float percentage) {
+  label_t ramp::get_by_percentage_with_borders(int percentage, int min, int max) {
+    return get_by_percentage_with_borders(static_cast<float>(percentage), static_cast<float>(min), static_cast<float>(max));
+  }
+
+  label_t ramp::get_by_percentage_with_borders(float percentage, float min, float max) {
     size_t index;
-    if (percentage <= 0.0f) {
+    if (percentage <= min) {
       index = 0;
-    } else if (percentage >= 100.0f) {
+    } else if (percentage >= max) {
       index = m_icons.size() - 1;
     } else {
       index = percentage * (m_icons.size() - 2) / 100.0f + 1;
