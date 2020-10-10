@@ -26,10 +26,12 @@ namespace modules {
   battery_module::battery_module(const bar_settings& bar, string name_)
       : inotify_module<battery_module>(bar, move(name_)) {
     // Load configuration values
-    m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_lowat = math_util::max(m_conf.get(name(), "low-at", m_lowat), 0);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::system_clock::now();
+    m_design_capacity = m_conf.get(name(), "design-capacity", false);
+    if (m_design_capacity)
+      m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
@@ -49,12 +51,22 @@ namespace modules {
       throw module_error("No suitable way to get current capacity value");
     } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
       throw module_error("No suitable way to get max capacity value");
+    } else if (m_design_capacity && (m_fcapfull_design = file_util::pick({path_battery + "charge_full_design", path_battery + "energy_full"})).empty()) {
+      throw module_error("No suitable way to get design max capacity value");
     }
 
     m_capacity_reader = make_unique<capacity_reader>([=] {
       auto cap_now = std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10);
-      auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
+      auto cap_max = std::strtoul(file_util::contents(m_design_capacity ? m_fcapfull_design : m_fcapfull).c_str(), nullptr, 10);
       return math_util::percentage(cap_now, 0UL, cap_max);
+    });
+    
+    // Make degradation reader
+
+    m_degradation_reader = make_unique<degradation_reader>([=] {
+      auto cap_design = std::strtoul(file_util::contents(m_fcapfull_design).c_str(), nullptr, 10);
+      auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
+      return math_util::percentage(cap_max, 0UL, cap_design);
     });
 
     // Make rate reader
@@ -298,8 +310,9 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
-    auto charge = read(*m_capacity_reader);
-    if (charge >= m_fullat) {
+    if (m_design_capacity)
+      m_fullat = read(*m_degradation_reader);
+    if (read(*m_capacity_reader) >= m_fullat) {
       return battery_module::state::FULL;
     } else if (!read(*m_state_reader)) {
       return charge <= m_lowat ? battery_module::state::LOW : battery_module::state::DISCHARGING;
@@ -316,7 +329,7 @@ namespace modules {
   }
 
   int battery_module::clamp_percentage(int percentage, state state) const {
-    if (state == battery_module::state::FULL && percentage >= m_fullat) {
+    if (state == battery_module::state::FULL && percentage >= m_fullat && !m_design_capacity) {
       return 100;
     }
     return percentage;

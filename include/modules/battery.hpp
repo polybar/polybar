@@ -44,6 +44,7 @@ namespace modules {
     using capacity_reader = mutex_wrapper<value_reader<int /* percentage */>>;
     using rate_reader = mutex_wrapper<value_reader<unsigned long /* seconds */>>;
     using consumption_reader = mutex_wrapper<value_reader<string /* watts */>>;
+    using degradation_reader = mutex_wrapper<value_reader<int /* percentage */>>;
 
    public:
     explicit battery_module(const bar_settings&, string);
@@ -85,6 +86,7 @@ namespace modules {
     unique_ptr<capacity_reader> m_capacity_reader;
     unique_ptr<rate_reader> m_rate_reader;
     unique_ptr<consumption_reader> m_consumption_reader;
+    unique_ptr<degradation_reader> m_degradation_reader;
 
     label_t m_label_charging;
     label_t m_label_discharging;
@@ -95,10 +97,12 @@ namespace modules {
     animation_t m_animation_low;
     progressbar_t m_bar_capacity;
     ramp_t m_ramp_capacity;
+    bool m_design_capacity;
 
     string m_fstate;
     string m_fcapnow;
     string m_fcapfull;
+    string m_fcapfull_design;
     string m_frate;
     string m_fvoltage;
 
