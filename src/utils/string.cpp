@@ -278,17 +278,17 @@ namespace string_util {
   }
 
   /**
-   * Create a MB filesize string
+   * Create a MiB filesize string
    */
-  string filesize_mb(unsigned long long kbytes, size_t precision, const string& locale) {
-    return floating_point(kbytes / 1024.0, precision, true, locale) + " MB";
+  string filesize_mib(unsigned long long kibibytes, size_t precision, const string& locale) {
+    return floating_point(kibibytes / 1024.0, precision, true, locale) + " MiB";
   }
 
   /**
-   * Create a GB filesize string
+   * Create a GiB filesize string
    */
-  string filesize_gb(unsigned long long kbytes, size_t precision, const string& locale) {
-    return floating_point(kbytes / 1024.0 / 1024.0, precision, true, locale) + " GB";
+  string filesize_gib(unsigned long long kibibytes, size_t precision, const string& locale) {
+    return floating_point(kibibytes / 1024.0 / 1024.0, precision, true, locale) + " GiB";
   }
 
   /**

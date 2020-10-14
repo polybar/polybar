@@ -124,13 +124,13 @@ TEST(String, floatingPoint) {
 }
 
 TEST(String, filesize) {
-  EXPECT_EQ("3.000 MB", string_util::filesize_mb(3 * 1024, 3));
-  EXPECT_EQ("3.195 MB", string_util::filesize_mb(3 * 1024 + 200, 3));
-  EXPECT_EQ("3 MB", string_util::filesize_mb(3 * 1024 + 400));
-  EXPECT_EQ("4 MB", string_util::filesize_mb(3 * 1024 + 800));
-  EXPECT_EQ("3.195 GB", string_util::filesize_gb(3 * 1024 * 1024 + 200 * 1024, 3));
-  EXPECT_EQ("3 GB", string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024));
-  EXPECT_EQ("4 GB", string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024));
+  EXPECT_EQ("3.000 MiB", string_util::filesize_mib(3 * 1024, 3));
+  EXPECT_EQ("3.195 MiB", string_util::filesize_mib(3 * 1024 + 200, 3));
+  EXPECT_EQ("3 MiB", string_util::filesize_mib(3 * 1024 + 400));
+  EXPECT_EQ("4 MiB", string_util::filesize_mib(3 * 1024 + 800));
+  EXPECT_EQ("3.195 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 200 * 1024, 3));
+  EXPECT_EQ("3 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 400 * 1024));
+  EXPECT_EQ("4 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 800 * 1024));
   EXPECT_EQ("3 B", string_util::filesize(3));
   EXPECT_EQ("3 KB", string_util::filesize(3 * 1024));
   EXPECT_EQ("3 MB", string_util::filesize(3 * 1024 * 1024));
