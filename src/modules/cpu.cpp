@@ -17,15 +17,22 @@ namespace modules {
 
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
-
+    m_totalwarn = m_conf.get(name(), "warn-percentage", 80);
     m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
+    m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
     read_values();
     read_values();
 
+    if (m_formatter->has(TAG_LABEL)) {
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+    }
+    if (m_formatter->has(TAG_LABEL_WARN)) {
+      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage%%");
+    }
     if (m_formatter->has(TAG_BAR_LOAD)) {
       m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
     }
@@ -34,9 +41,6 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE)) {
       m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
-    }
-    if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
     }
   }
 
@@ -59,41 +63,59 @@ namespace modules {
       m_total += load;
       m_load.emplace_back(load);
 
-      if (m_label) {
+      if (m_label || m_labelwarn) {
         percentage_cores.emplace_back(to_string(static_cast<int>(load + 0.5)));
       }
     }
 
     m_total = m_total / static_cast<float>(cores_n);
 
-    if (m_label) {
-      m_label->reset_tokens();
-      m_label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
-      m_label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
-      m_label->replace_token("%percentage-cores%", string_util::join(percentage_cores, "% ") + "%");
+    const auto replace_tokens = [&](label_t& label) {
+      label->reset_tokens();
+      label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
+      label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
+      label->replace_token("%percentage-cores%", string_util::join(percentage_cores, "% ") + "%");
 
       for (size_t i = 0; i < percentage_cores.size(); i++) {
-        m_label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
+        label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
       }
+    };
+
+    if (m_label) {
+      replace_tokens(m_label);
+    }
+    if (m_labelwarn) {
+      replace_tokens(m_labelwarn);
     }
 
     return true;
   }
 
+  string cpu_module::get_format() const {
+    if (m_total >= m_totalwarn) {
+      return FORMAT_WARN;
+    } else {
+      return DEFAULT_FORMAT;
+    }
+  }
+
+
   bool cpu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == TAG_LABEL_WARN) {
+      builder->node(m_labelwarn);
     } else if (tag == TAG_BAR_LOAD) {
       builder->node(m_barload->output(m_total));
     } else if (tag == TAG_RAMP_LOAD) {
-      builder->node(m_rampload->get_by_percentage(m_total));
+      builder->node(m_rampload->get_by_percentage_with_borders(m_total, 0.0f, m_totalwarn));
     } else if (tag == TAG_RAMP_LOAD_PER_CORE) {
       auto i = 0;
       for (auto&& load : m_load) {
         if (i++ > 0) {
           builder->space(m_ramp_padding);
         }
-        builder->node(m_rampload_core->get_by_percentage(load));
+        builder->node(m_rampload_core->get_by_percentage_with_borders(load, 0.0f, m_totalwarn));
       }
       builder->node(builder->flush());
     } else {
