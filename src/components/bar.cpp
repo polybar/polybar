@@ -158,6 +158,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
+  m_opts.space_unit = m_conf.get(bs, "space-unit", static_cast<string>(" "));
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
   auto radius = m_conf.get<double>(bs, "radius", 0.0);

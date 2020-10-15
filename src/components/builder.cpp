@@ -212,13 +212,15 @@ void builder::offset(int pixels) {
  */
 void builder::space(size_t width) {
   if (width) {
-    m_output.append(width, ' ');
+    for (size_t i = 0; i < width; i++)
+      m_output.append(m_bar.space_unit);
   } else {
     space();
   }
 }
 void builder::space() {
-  m_output.append(m_bar.spacing, ' ');
+  for (size_t i = 0; i < m_bar.spacing; i++)
+    m_output.append(m_bar.space_unit);
 }
 
 /**

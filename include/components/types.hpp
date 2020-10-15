@@ -166,6 +166,7 @@ struct bar_settings {
   struct radius radius {};
   int spacing{0};
   label_t separator{};
+  string space_unit{};
 
   string wmname{};
   string locale{};
