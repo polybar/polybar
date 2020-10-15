@@ -310,9 +310,10 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
+    auto charge = read(*m_capacity_reader);
     if (m_design_capacity)
       m_fullat = read(*m_degradation_reader);
-    if (read(*m_capacity_reader) >= m_fullat) {
+    if (charge >= m_fullat) {
       return battery_module::state::FULL;
     } else if (!read(*m_state_reader)) {
       return charge <= m_lowat ? battery_module::state::LOW : battery_module::state::DISCHARGING;
