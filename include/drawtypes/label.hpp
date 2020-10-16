@@ -70,6 +70,7 @@ namespace drawtypes {
     void reset_tokens(const string& tokenized);
     bool has_token(const string& token) const;
     void replace_token(const string& token, string replacement);
+    void useas_token(const label_t& container, const string& token);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 

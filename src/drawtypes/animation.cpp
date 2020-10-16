@@ -15,6 +15,16 @@ namespace drawtypes {
     return m_frames[m_frame];
   }
 
+  label_t& animation::get_default() {
+    return m_default_frame;
+  }
+
+  void animation::update_frames() {
+    for(auto frame : m_frames) {
+      frame->useas_token(m_default_frame, "%frame%");
+    }
+  }
+
   unsigned int animation::framerate() const {
     return m_framerate_ms;
   }
@@ -41,7 +51,7 @@ namespace drawtypes {
 
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    auto anim_defaults = load_optional_label(conf, section, name);
+    label_t anim_defaults = forward<label_t>(load_label(conf, section, name, false, "%frame%"));
 
     if (required) {
       frames = conf.get_list(section, name);
@@ -56,7 +66,7 @@ namespace drawtypes {
 
     auto framerate = conf.get(section, name + "-framerate", 1000);
 
-    return factory_util::shared<animation>(move(vec), framerate);
+    return factory_util::shared<animation>(move(vec), framerate, move(anim_defaults));
   }
 }  // namespace drawtypes
 

@@ -76,6 +76,13 @@ namespace drawtypes {
     return m_tokenized.find(token) != string::npos;
   }
 
+  void label::useas_token(const label_t& container, const string& token) {
+    auto backup = container->m_tokenized;
+    container->replace_token(token, m_text);
+    m_tokenized = container->m_tokenized;
+    container->m_tokenized = backup;
+  }
+    
   void label::replace_token(const string& token, string replacement) {
     if (!has_token(token)) {
       return;
