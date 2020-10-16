@@ -15,7 +15,7 @@ namespace drawtypes {
 
   label_t ramp::get_by_percentage(float percentage) {
     size_t index = percentage * m_icons.size() / 100.0f;
-    return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
+    return get(math_util::cap<size_t>(index, 0, m_icons.size() - 1));
   }
 
   label_t ramp::get_by_percentage_with_borders(int percentage, int min, int max) {
@@ -33,6 +33,16 @@ namespace drawtypes {
       index = math_util::cap<size_t>(index, 0, m_icons.size() - 1);
     }
     return m_icons[index];
+  }
+
+  label_t& ramp::get_default() {
+    return m_default;
+  }
+  
+  void ramp::update_icons() {
+    for (auto icon : m_icons) {
+      icon->useas_token(m_default, "%icon%");
+    }
   }
 
   ramp::operator bool() {
@@ -63,7 +73,7 @@ namespace drawtypes {
       vec.emplace_back(move(icon));
     }
 
-    return factory_util::shared<drawtypes::ramp>(move(vec));
+    return factory_util::shared<drawtypes::ramp>(move(vec), move(ramp_defaults));
   }
 }
 
