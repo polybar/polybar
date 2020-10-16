@@ -326,10 +326,14 @@ namespace modules {
 
     chrono::seconds sec{read(*m_rate_reader)};
     if (sec.count() > 0) {
-      t.tm_hour = chrono::duration_cast<chrono::hours>(sec).count();
-      sec -= chrono::seconds{3600 * t.tm_hour};
-      t.tm_min = chrono::duration_cast<chrono::minutes>(sec).count();
-      sec -= chrono::seconds{60 * t.tm_min};
+      if (m_timeformat.find("%H") != string::npos || m_timeformat.find("%I") != string::npos) {
+        t.tm_hour = chrono::duration_cast<chrono::hours>(sec).count();
+        sec -= chrono::seconds{3600 * t.tm_hour};
+      }
+      if (m_timeformat.find("%M") != string::npos) {
+        t.tm_min = chrono::duration_cast<chrono::minutes>(sec).count();
+        sec -= chrono::seconds{60 * t.tm_min};
+      }
       t.tm_sec = chrono::duration_cast<chrono::seconds>(sec).count();
     }
 
