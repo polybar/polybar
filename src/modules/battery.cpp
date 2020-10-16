@@ -249,21 +249,24 @@ namespace modules {
         label->replace_token("%time%", current_time());
       }
     };
+    const auto replace_labellist_tokens = [&](labellist_t labellist) {
+      if(!labellist) return;
+      replace_tokens(labellist->get_template());
+      labellist->apply_template();
+    };
 
+    replace_labellist_tokens(m_ramp_capacity);
     if(m_state == battery_module::state::FULL) {
       replace_tokens(m_label_full);
     } else if (m_state == battery_module::state::DISCHARGING) {
       replace_tokens(m_label_discharging);
-      replace_tokens(m_animation_discharging->get_default());
-      m_animation_discharging->update_frames();
+      replace_labellist_tokens(m_animation_discharging);
     } else if (m_state == battery_module::state::LOW) {
       replace_tokens(m_label_low);
-      replace_tokens(m_animation_low->get_default());
-      m_animation_low->update_frames();
+      replace_labellist_tokens(m_animation_low);
     } else {
       replace_tokens(m_label_charging);
-      replace_tokens(m_animation_charging->get_default());
-      m_animation_charging->update_frames();
+      replace_labellist_tokens(m_animation_charging);
     }
 
     return true;

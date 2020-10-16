@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "drawtypes/label.hpp"
+#include "drawtypes/labellist.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
@@ -13,30 +14,24 @@ POLYBAR_NS
 namespace chrono = std::chrono;
 
 namespace drawtypes {
-  class animation : public non_copyable_mixin<animation> {
+  class animation : public labellist {
    public:
     explicit animation(unsigned int framerate_ms) : m_framerate_ms(framerate_ms) {}
-    explicit animation(vector<label_t>&& frames, int framerate_ms, label_t&& default_frame)
-        : m_frames(move(frames))
-        , m_default_frame(move(default_frame))
+    explicit animation(vector<label_t>&& frames, int framerate_ms, label_t&& tmplate)
+        : labellist(move(frames), move(tmplate))
         , m_framerate_ms(framerate_ms)
-        , m_framecount(m_frames.size())
-        , m_frame(m_frames.size() - 1) {}
+        , m_framecount(m_labels.size())
+        , m_frame(m_labels.size() - 1) {}
 
     void add(label_t&& frame);
     void increment();
 
     label_t get() const;
-    label_t& get_default();
-    void update_frames();
     unsigned int framerate() const;
 
     explicit operator bool() const;
 
    protected:
-    vector<label_t> m_frames;
-    label_t m_default_frame;
-
     unsigned int m_framerate_ms = 1000;
     size_t m_framecount = 0;
     std::atomic_size_t m_frame{0_z};
