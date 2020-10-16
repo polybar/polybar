@@ -16,9 +16,9 @@ namespace drawtypes {
   class animation : public non_copyable_mixin<animation> {
    public:
     explicit animation(unsigned int framerate_ms) : m_framerate_ms(framerate_ms) {}
-    explicit animation(vector<label_t>&& frames, int framerate_ms, label_t&& default_frame)
+    explicit animation(vector<label_t>&& frames, int framerate_ms, label_t& default_frame)
         : m_frames(move(frames))
-        , m_default_frame(move(default_frame))
+        , m_default_frame(default_frame)
         , m_framerate_ms(framerate_ms)
         , m_framecount(m_frames.size())
         , m_frame(m_frames.size() - 1) {}
