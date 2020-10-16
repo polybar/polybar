@@ -242,16 +242,22 @@ namespace modules {
       replace_tokens(m_label_full);
     } else if (m_state == battery_module::state::DISCHARGING) {
       replace_tokens(m_label_discharging);
-      replace_tokens(m_animation_discharging->get_default());
-      m_animation_discharging->update_frames();
+      if (m_animation_discharging) {
+        replace_tokens(m_animation_discharging->get_default());
+        m_animation_discharging->update_frames();
+      }
     } else if (m_state == battery_module::state::LOW) {
       replace_tokens(m_label_low);
-      replace_tokens(m_animation_low->get_default());
-      m_animation_low->update_frames();
+      if (m_animation_low) {
+        replace_tokens(m_animation_low->get_default());
+        m_animation_low->update_frames();
+      }
     } else {
       replace_tokens(m_label_charging);
-      replace_tokens(m_animation_charging->get_default());
-      m_animation_charging->update_frames();
+      if (m_animation_charging) {
+        replace_tokens(m_animation_charging->get_default());
+        m_animation_charging->update_frames();
+      }
     }
 
     return true;
