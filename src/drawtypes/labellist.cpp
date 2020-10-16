@@ -28,6 +28,7 @@ namespace drawtypes {
     for (size_t i = 0; i < names.size(); i++) {
       labels.emplace_back(forward<label_t>(load_optional_label(conf, section, name + "-" + to_string(i), names[i])));
       labels.back()->copy_undefined(tmplate);
+      labels.back()->useas_token(tmplate, "%label%");
     }
   }
 }
