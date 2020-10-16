@@ -102,6 +102,7 @@ namespace modules {
 
     // replace tokens
     const auto replace_tokens = [&](label_t& label) {
+      if(!label) return;
       label->reset_tokens();
       label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
       label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
@@ -120,14 +121,18 @@ namespace modules {
       label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
       label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
     };
+    const auto replace_labellist_tokens = [&](labellist_t labellist) {
+      if(!labellist) return;
+      replace_tokens(labellist->get_template());
+      labellist->apply_template();
+    };
 
-    if (m_label) {
-      replace_tokens(m_label);
-    }
-
-    if (m_labelwarn) {
-      replace_tokens(m_labelwarn);
-    }
+    replace_tokens(m_label);
+    replace_tokens(m_labelwarn);
+    replace_labellist_tokens(m_ramp_memused);
+    replace_labellist_tokens(m_ramp_memfree);
+    replace_labellist_tokens(m_ramp_swapused);
+    replace_labellist_tokens(m_ramp_swapfree);
 
     return true;
   }
