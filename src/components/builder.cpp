@@ -219,7 +219,7 @@ void builder::space(size_t width) {
   }
 }
 void builder::space() {
-  for (size_t i = 0; i < m_bar.spacing; i++)
+  for (int i = 0; i < m_bar.spacing; i++)
     m_output.append(m_bar.space_unit);
 }
 
