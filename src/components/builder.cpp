@@ -264,6 +264,7 @@ void builder::background(string color) {
     color += bg.substr(bg.length() - (bg.length() < 6 ? 3 : 6));
   }
 
+  color = hsl::convert_hsl(color);
   color = color_util::simplify_hex(color);
   m_colors[syntaxtag::B] = color;
   tag_open(syntaxtag::B, color);
@@ -289,6 +290,7 @@ void builder::color(string color) {
     }
   }
 
+  color = hsl::convert_hsl(color);
   color = color_util::simplify_hex(color);
   m_colors[syntaxtag::F] = color;
   tag_open(syntaxtag::F, color);
