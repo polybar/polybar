@@ -69,3 +69,20 @@ TEST(String, simplify) {
   EXPECT_EQ("#234567", color_util::simplify_hex("#ff234567"));
   EXPECT_EQ("#00223344", color_util::simplify_hex("#00223344"));
 }
+
+TEST(String, hsl) {
+  EXPECT_EQ((0xff000000 ^ static_cast<unsigned int>(hsl(360, 0, 0).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff00ff00 ^ static_cast<unsigned int>(hsl(120, 1, 0.5).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff0000ff ^ static_cast<unsigned int>(hsl(240, 1, 0.5).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff00ffff ^ static_cast<unsigned int>(hsl(180, 1, 0.5).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff008888 ^ static_cast<unsigned int>(hsl::from_rgb(rgb{0xff008888}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff008800 ^ static_cast<unsigned int>(hsl::from_rgb(rgb{0xff008800}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ((0xff123456 ^ static_cast<unsigned int>(hsl::from_rgb(rgb{0xff123456}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ(0.5, hsl(240, 1, 0.25).to_rgb().b);
+  EXPECT_EQ(1.0, hsl(240, 1, 0.75).to_rgb().b);
+  EXPECT_EQ(0.5, hsl(240, 1, 0.75).to_rgb().r);
+  EXPECT_EQ(hsl(240, 1, 0.75).to_rgba(0.75).r, hsl(240, 1, 0.75).to_rgb().r);
+  EXPECT_EQ(hsl(240, 1, 0.75).to_rgba(0.75).g, hsl(240, 1, 0.75).to_rgb().g);
+  EXPECT_EQ(hsl(240, 1, 0.75).to_rgba(0.75).b, hsl(240, 1, 0.75).to_rgb().b);
+  EXPECT_EQ(0.5, hsl(240, 1, 0.75).to_rgba(0.75).g);
+}

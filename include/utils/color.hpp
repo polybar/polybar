@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdlib>
+#include <regex>
 
 #include "common.hpp"
 #include "utils/cache.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -114,6 +116,8 @@ namespace color_util {
   }
 }
 
+          
+    
 struct rgb {
   double r;
   double g;
@@ -160,6 +164,91 @@ struct rgba {
          | static_cast<int>(b * 255);
     // clang-format on
   }
+};
+
+// Represent HSL color space colors, with h values in the set [0, 360] and s, l values in the set [0, 1]
+struct hsl {
+  double h;
+  double s;
+  double l;
+  
+  explicit hsl(double h, double s, double l) : h(h), s(s), l(l) {}
+
+  void get_rgb(double& r, double& g, double& b) {
+    if (s == 0.0) {
+      r = g = b = l;
+    } else {
+      const auto hue2rgb = [&](double p, double q, double t) {
+        if (t < 0.0) t += 360.0;
+        if (t > 360.0) t -= 360.0;
+        if (t < 60.0) return p + (q - p) * t/60.0;
+        if (t < 180.0) return q;
+        if (t < 240.0) return p + (q - p) * (240.0 - t)/60.0;
+        return p;
+      };
+
+      auto q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+      auto p = 2.0 * l - q;
+      r = hue2rgb(p, q, h + 120.0);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 120.0);
+    }
+  }
+
+  rgb to_rgb() {
+    double r, g, b;
+    get_rgb(r, g, b);
+
+    return rgb(r, g, b);
+  }
+
+  rgba to_rgba(double a) {
+    double r, g, b;
+    get_rgb(r, g, b);
+    return rgba(r, g, b, a);
+  }
+
+  static hsl from_rgb(rgb color) {
+    double& r = color.r, g = color.g, b = color.b;
+    double max = math_util::max(r, math_util::max(g, b)), min = math_util::min(r, math_util::min(g, b));
+    double h, s, l = (max + min) / 2;
+
+    if (max == min) {
+      h = s = 0;
+    } else {
+      auto d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max == r)
+        h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max == g)
+        h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+    }
+
+    return hsl(h, s, l);
+  }
+
+
+  static inline string convert_hsl(string color) {
+    if (color.rfind("hsla") == 0) {
+      std::regex rgx(R"(hsla\( *([0-9\.]+), *([0-9\.]+), *([0-9\.]+), *([0-9\.]+) *\))");
+      std::smatch match;
+      if (std::regex_search(color, match, rgx)) {
+        return color_util::hex<unsigned short int>(hsl(stod(match[1].str()), stod(match[2].str()), stod(match[3].str())).to_rgba(stod(match[4].str())));
+      }
+      return "";
+    } else if (color.rfind("hsl") == 0) {
+      std::regex rgx(R"(hsl\( *([0-9\.]+), *([0-9\.]+), *([0-9\.]+) *\))");
+      std::smatch match;
+      if (std::regex_search(color, match, rgx)) {
+        return color_util::hex<unsigned short int>(hsl(stod(match[1].str()), stod(match[2].str()), stod(match[3].str())).to_rgb());
+      }
+      return "#00f";
+    }
+    return color;
+  }
+
 };
 
 POLYBAR_NS_END
