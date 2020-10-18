@@ -81,7 +81,9 @@ TEST(String, hsl) {
   EXPECT_EQ(delta(0xff0000ff, static_cast<unsigned int>(hsl(240, 1, 0.5).to_rgb())) & 0xfffefefe, 0);
   EXPECT_EQ(delta(0xff00ffff, static_cast<unsigned int>(hsl(180, 1, 0.5).to_rgb())) & 0xfffefefe, 0);
   EXPECT_EQ(delta(0xff008888, static_cast<unsigned int>(hsl::from_rgb(rgb{0xff008888}).to_rgb())) & 0xfffefefe, 0);
-  EXPECT_EQ(delta(0xff008800, static_cast<unsigned int>(hsl::from_rgb(rgb{0xff008800}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ(delta(0xffff8888, static_cast<unsigned int>(hsl::from_rgb(rgb{0xffff8888}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ(delta(0xff009988, static_cast<unsigned int>(hsl::from_rgb(rgb{0xff009988}).to_rgb())) & 0xfffefefe, 0);
+  EXPECT_EQ(delta(0xff888888, static_cast<unsigned int>(hsl::from_rgb(rgb{0xff888888}).to_rgb())) & 0xfffefefe, 0);
   EXPECT_EQ(delta(0xff123456, static_cast<unsigned int>(hsl::from_rgb(rgb{0xff123456}).to_rgb())) & 0xfffefefe, 0);
   EXPECT_EQ(0.5, hsl(240, 1, 0.25).to_rgb().b);
   EXPECT_EQ(1.0, hsl(240, 1, 0.75).to_rgb().b);
@@ -90,4 +92,9 @@ TEST(String, hsl) {
   EXPECT_EQ(hsl(240, 1, 0.75).to_rgba(0.75).g, hsl(240, 1, 0.75).to_rgb().g);
   EXPECT_EQ(hsl(240, 1, 0.75).to_rgba(0.75).b, hsl(240, 1, 0.75).to_rgb().b);
   EXPECT_EQ(0.5, hsl(240, 1, 0.75).to_rgba(0.75).g);
+  EXPECT_EQ("#ffff0000", hsl::convert_hsl("hsl(0, 1, 0.5)"));
+  EXPECT_EQ("#00ff0000", hsl::convert_hsl("hsla(0, 1, 0.5, 0)"));
+  EXPECT_EQ("hslinvalid", hsl::convert_hsl("hslinvalid"));
+  EXPECT_EQ("hslainvalid", hsl::convert_hsl("hslainvalid"));
+  EXPECT_EQ("invalid", hsl::convert_hsl("invalid"));
 }

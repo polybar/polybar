@@ -237,14 +237,14 @@ struct hsl {
       if (std::regex_search(color, match, rgx)) {
         return color_util::hex<unsigned short int>(hsl(stod(match[1].str()), stod(match[2].str()), stod(match[3].str())).to_rgba(stod(match[4].str())));
       }
-      return "";
+      return color;
     } else if (color.rfind("hsl") == 0) {
       std::regex rgx(R"(hsl\( *([0-9\.]+), *([0-9\.]+), *([0-9\.]+) *\))");
       std::smatch match;
       if (std::regex_search(color, match, rgx)) {
         return color_util::hex<unsigned short int>(hsl(stod(match[1].str()), stod(match[2].str()), stod(match[3].str())).to_rgb());
       }
-      return "#00f";
+      return color;
     }
     return color;
   }
