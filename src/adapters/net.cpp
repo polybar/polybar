@@ -225,9 +225,10 @@ namespace net {
    * Format up- and download speed
    */
   string network::format_speedrate(float bytes_diff, int minwidth) const {
-    const auto duration = m_status.current.time - m_status.previous.time;
-    float time_diff = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    float speedrate = bytes_diff / (time_diff ? time_diff : 1);
+    // Get time difference in seconds as a float
+    const std::chrono::duration<float> duration = m_status.current.time - m_status.previous.time;
+    float time_diff = duration.count();
+    float speedrate = bytes_diff / time_diff;
 
     vector<string> suffixes{"GB", "MB"};
     string suffix{"KB"};
