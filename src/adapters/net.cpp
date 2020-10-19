@@ -229,10 +229,10 @@ namespace net {
     float time_diff = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
     float speedrate = bytes_diff / (time_diff ? time_diff : 1);
 
-    vector<string> suffixes{"GB", "MB"};
-    string suffix{"KB"};
+    vector<string> suffixes{"GiB", "MiB"};
+    string suffix{"KiB"};
 
-    while ((speedrate /= 1000) > 999) {
+    while ((speedrate /= 1024) > 1023) {
       suffix = suffixes.back();
       suffixes.pop_back();
     }
