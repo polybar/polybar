@@ -29,6 +29,7 @@ namespace drawtypes {
     } else if (value >= max) {
       index = m_icons.size() - 1;
     } else {
+      value = math_util::percentage(value, min, max);
       index = value * (m_icons.size() - 2) / 100.0f + 1;
       index = math_util::cap<size_t>(index, 0, m_icons.size() - 1);
     }
