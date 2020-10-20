@@ -59,6 +59,7 @@ add_unit_test(components/bar)
 add_unit_test(components/parser)
 add_unit_test(components/config_parser)
 add_unit_test(drawtypes/label)
+add_unit_test(drawtypes/ramp)
 add_unit_test(drawtypes/iconset)
 
 # Run make check to build and run all unit tests
