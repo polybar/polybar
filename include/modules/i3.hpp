@@ -93,6 +93,7 @@ namespace modules {
     bool m_wrap{true};
     bool m_indexsort{false};
     bool m_pinworkspaces{false};
+    bool m_show_urgent{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
 

@@ -50,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository.
 
 ### Added
+- Option to always show urgent windows in i3 module when `pin-workspace` is active
+  ([`2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
   direction when cycling through desktops.
 - The backslash escape character (\\).
