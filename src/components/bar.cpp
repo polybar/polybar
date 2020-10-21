@@ -161,8 +161,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
   auto radius = m_conf.get<double>(bs, "radius", 0.0);
-  m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
-  m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
+  auto top = m_conf.get(bs, "radius-top", radius);
+  m_opts.radius.top_left = m_conf.get(bs, "radius-top-left", top);
+  m_opts.radius.top_right = m_conf.get(bs, "radius-top-right", top);
+  auto bottom = m_conf.get(bs, "radius-bottom", radius);
+  m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
+  m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
   auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
