@@ -112,6 +112,7 @@ namespace modules {
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
 
         const auto replace_tokens = [&](label_t& label) {
+          if (!label) return;
           label->reset_tokens();
           label->replace_token("%mountpoint%", mount->mountpoint);
           label->replace_token("%type%", mount->type);
@@ -125,16 +126,16 @@ namespace modules {
           label->replace_token(
               "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
         };
-	if (m_labelmounted) {
-	  replace_tokens(m_labelmounted);
-	}
-	if (m_labelwarn) {
-	  replace_tokens(m_labelwarn);
-	}
-	if (m_labelunmounted) {
+        replace_tokens(m_labelmounted);
+        replace_tokens(m_labelwarn);
+        if (m_labelunmounted) {
           m_labelunmounted->reset_tokens();
           m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
-	}
+        }
+        if (m_rampcapacity) {
+          replace_tokens(m_rampcapacity->get_template());
+          m_rampcapacity->apply_template();
+        }
       }
     }
 
