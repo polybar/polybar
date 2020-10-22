@@ -27,11 +27,11 @@ namespace drawtypes {
     if (value <= min) {
       index = 0;
     } else if (value >= max) {
-      index = m_icons.size() - 1;
+      index = m_labels.size() - 1;
     } else {
       value = math_util::percentage(value, min, max);
-      index = value * (m_icons.size() - 2) / 100.0f + 1;
-      index = math_util::cap<size_t>(index, 0, m_icons.size() - 1);
+      index = value * (m_labels.size() - 2) / 100.0f + 1;
+      index = math_util::cap<size_t>(index, 0, m_labels.size() - 1);
     }
     return m_labels[index];
   }
@@ -45,6 +45,7 @@ namespace drawtypes {
    * from the configuration
    */
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
     vector<label_t> vec;
     label_t tmplate;
 

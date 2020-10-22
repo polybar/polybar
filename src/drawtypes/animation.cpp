@@ -36,6 +36,7 @@ namespace drawtypes {
    * from the configuration
    */
   animation_t load_animation(const config& conf, const string& section, string name, bool required) {
+    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
     vector<label_t> vec;
     label_t tmplate;
 
