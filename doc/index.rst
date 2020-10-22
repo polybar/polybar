@@ -10,7 +10,7 @@ Welcome to the official polybar documentation.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Content:
 
    user/actions
 
