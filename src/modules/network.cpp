@@ -21,7 +21,7 @@ namespace modules {
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
     m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
-    m_udspeed_unit = m_conf.get<string>(name(), "udspeed-unit", m_udspeed_unit);
+    m_udspeed_unit = m_conf.get<string>(name(), "speed-unit", m_udspeed_unit);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 
