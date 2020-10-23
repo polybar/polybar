@@ -15,8 +15,6 @@ namespace drawtypes {
   }
   
   void load_labellist(vector<label_t>& labels, label_t& tmplate, const config& conf, const string& section, string name, bool required) {
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
     vector<string> names;
     if(required) {
       names = conf.get_list(section, name);
