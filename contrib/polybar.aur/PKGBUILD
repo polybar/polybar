@@ -24,7 +24,7 @@ prepare() {
 
 build() {
   cd "${pkgname}/build" || exit 1
-  cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
   cmake --build .
 }
 
