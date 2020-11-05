@@ -1,19 +1,7 @@
 #pragma once
 
-#include <pulse/pulseaudio.h>
-#include <queue>
-
 #include "common.hpp"
-#include "settings.hpp"
 #include "errors.hpp"
-
-#include "utils/math.hpp"
-// fwd
-struct pa_context;
-struct pa_threaded_mainloop;
-struct pa_cvolume;
-typedef struct pa_context pa_context;
-typedef struct pa_threaded_mainloop pa_threaded_mainloop;
 
 POLYBAR_NS
 class logger;
@@ -21,61 +9,21 @@ class logger;
 DEFINE_ERROR(pulseaudio_error);
 
 class pulseaudio {
-  // events to add to our queue
-  enum class evtype { NEW = 0, CHANGE, REMOVE, SERVER };
-  using queue = std::queue<evtype>;
+ public:
+  virtual ~pulseaudio(){};
 
-  public:
-    explicit pulseaudio(const logger& logger, string&& sink_name, bool m_max_volume);
-    ~pulseaudio();
+  virtual const string& get_name() = 0;
 
-    pulseaudio(const pulseaudio& o) = delete;
-    pulseaudio& operator=(const pulseaudio& o) = delete;
+  virtual bool wait() = 0;
+  virtual int process_events() = 0;
 
-    const string& get_name();
-
-    bool wait();
-    int process_events();
-
-    int get_volume();
-    double get_decibels();
-    void set_volume(float percentage);
-    void inc_volume(int delta_perc);
-    void set_mute(bool mode);
-    void toggle_mute();
-    bool is_muted();
-
-  private:
-    void update_volume(pa_operation *o);
-    static void check_mute_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
-    static void get_sink_volume_callback(pa_context *context, const pa_sink_info *info, int is_last, void *userdata);
-    static void subscribe_callback(pa_context* context, pa_subscription_event_type_t t, uint32_t idx, void* userdata);
-    static void simple_callback(pa_context *context, int success, void *userdata);
-    static void sink_info_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
-    static void context_state_callback(pa_context *context, void *userdata);
-
-    inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
-
-    const logger& m_log;
-
-    // used for temporary callback results
-    int success{0};
-    pa_cvolume cv;
-    bool muted{false};
-    // default sink name
-    static constexpr auto DEFAULT_SINK{"@DEFAULT_SINK@"};
-
-    pa_context* m_context{nullptr};
-    pa_threaded_mainloop* m_mainloop{nullptr};
-
-    queue m_events;
-
-    // specified sink name
-    string spec_s_name;
-    string s_name;
-    uint32_t m_index{0};
-
-    pa_volume_t m_max_volume{PA_VOLUME_UI_MAX};
+  virtual int get_volume() = 0;
+  virtual double get_decibels() = 0;
+  virtual void set_volume(float percentage) = 0;
+  virtual void inc_volume(int delta_perc) = 0;
+  virtual void set_mute(bool mode) = 0;
+  virtual void toggle_mute() = 0;
+  virtual bool is_muted() = 0;
 };
 
 POLYBAR_NS_END

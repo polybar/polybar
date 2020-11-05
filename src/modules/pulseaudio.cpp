@@ -1,11 +1,14 @@
 #include "modules/pulseaudio.hpp"
 
 #include "adapters/pulseaudio.hpp"
+#include "adapters/pulseaudio_sink.hpp"
+
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta/base.inl"
 #include "settings.hpp"
+
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -22,7 +25,7 @@ namespace modules {
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
 
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
+      m_pulseaudio = factory_util::unique<pulseaudio_sink>(m_log, move(sink_name), m_max_volume);
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }
