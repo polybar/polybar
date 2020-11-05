@@ -2,13 +2,12 @@
 
 #include "adapters/pulseaudio.hpp"
 #include "adapters/pulseaudio_sink.hpp"
-
+#include "adapters/pulseaudio_source.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta/base.inl"
 #include "settings.hpp"
-
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -21,11 +20,22 @@ namespace modules {
     // Load configuration values
     m_interval = m_conf.get(name(), "interval", m_interval);
 
-    auto sink_name = m_conf.get(name(), "sink", ""s);
+    // Get configuration
+    auto s_type = "sink"s;
+    auto s_name = m_conf.get(name(), "sink", ""s);
+    if (!m_conf.has(name(), "sink") && m_conf.has(name(), "source")) {
+      s_type = "source";
+      s_name = m_conf.get(name(), "source", ""s);
+    }
+
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
 
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio_sink>(m_log, move(sink_name), m_max_volume);
+      if (s_type == "sink"s) {
+        m_pulseaudio = factory_util::unique<pulseaudio_sink>(m_log, move(s_name), m_max_volume);
+      } else {
+        m_pulseaudio = factory_util::unique<pulseaudio_source>(m_log, move(s_name), m_max_volume);
+      }
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }
@@ -79,7 +89,7 @@ namespace modules {
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
-      m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
+      m_log.err("%s: Failed to query pulseaudio device (%s)", name(), err.what());
     }
 
     // Replace label tokens
