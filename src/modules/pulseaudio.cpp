@@ -130,9 +130,9 @@ namespace modules {
         m_builder->cmd(mousebtn::RIGHT, click_right);
       }
 
-      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+      m_builder->cmd(mousebtn::LEFT, event_toggle_mute());
+      m_builder->cmd(mousebtn::SCROLL_UP, event_volume_up());
+      m_builder->cmd(mousebtn::SCROLL_DOWN, event_volume_down());
     }
 
     m_builder->append(output);
@@ -158,18 +158,18 @@ namespace modules {
   bool pulseaudio_module::input(string&& cmd) {
     if (!m_handle_events) {
       return false;
-    } else if (cmd.compare(0, strlen(EVENT_PREFIX), EVENT_PREFIX) != 0) {
+    } else if (cmd.compare(0, event_prefix().length(), event_prefix()) != 0) {
       return false;
     }
 
     try {
       if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
-        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
+        if (cmd.compare(event_toggle_mute()) == 0) {
           m_pulseaudio->toggle_mute();
-        } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
+        } else if (cmd.compare(event_volume_up()) == 0) {
           // cap above 100 (~150)?
           m_pulseaudio->inc_volume(m_interval);
-        } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
+        } else if (cmd.compare(event_volume_down()) == 0) {
           m_pulseaudio->inc_volume(-m_interval);
         } else {
           return false;
@@ -181,6 +181,24 @@ namespace modules {
 
     return true;
   }
+
+  std::string pulseaudio_module::event_prefix() const {
+    // event prefix is depend on module name
+    return std::string("pa_vol") + "-" + name();
+  }
+
+  std::string pulseaudio_module::event_volume_up() const {
+    return event_prefix() + "-up";
+  }
+
+  std::string pulseaudio_module::event_volume_down() const {
+    return event_prefix() + "-down";
+  }
+
+  std::string pulseaudio_module::event_toggle_mute() const {
+      return event_prefix() + "-toggle-mute";
+  }
+
 }  // namespace modules
 
 POLYBAR_NS_END
