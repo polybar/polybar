@@ -84,7 +84,7 @@ namespace modules {
     // Load configuration values
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
 
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
