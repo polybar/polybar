@@ -3,6 +3,9 @@ Actions
 
 .. versionadded:: 3.5.0
 
+.. contents:: Table of Contents
+   :local:
+
 "Actions" are used to trigger certain behavior in modules.
 For example, when you click on your volume module (pulseaudio or alsa), polybar
 internally sends an action to that module that tells it to mute/unmute the
@@ -43,6 +46,8 @@ The action string for toggling between the date formats would look like this:
 ::
 
   #mydate.toggle
+
+Note that we use the name of the module (``mydate``) and not the type.
 
 As an example for an action string with additional data, take the menu module:
 
@@ -108,84 +113,128 @@ also be used to trigger actions:
   interpret the ``#`` as the beginning of the comment and ignore the rest of the
   line.
 
-Supported Actions
+Available Actions
 -----------------
 
-.. TODO Finish table. Maybe one section per module type (table not really convenient)
+internal/date
+^^^^^^^^^^^^^
 
-+-------------------------+---------------+----+---------------------+
-|Module Type              |New Action Name|Data|Description          |
-+=========================+===============+====+=====================+
-|``internal/date``        |``toggle``     |no  ||date_toggle_desc|   |
-+-------------------------+---------------+----+---------------------+
-|``internal/alsa``        |``inc``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``dec``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``toggle``     |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/pulseaudio``  |``inc``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``dec``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``toggle``     |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/xbacklight``  |``inc``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``dec``        |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/backlight``   |``inc``        |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``dec``        |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/xkeyboard``   |``switch``     |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/mpd``         |``play``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``pause``      |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``stop``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``prev``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``next``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``repeat``     |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``single``     |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``random``     |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``consume``    |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``seek``       |yes |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/xworkspaces`` |``focus``      |yes |                     |
-|                         +---------------+----+---------------------+
-|                         |``next``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``prev``       |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/bspwm``       |``focus``      |yes |                     |
-|                         +---------------+----+---------------------+
-|                         |``next``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``prev``       |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``internal/i3``          |``focus``      |yes |                     |
-|                         +---------------+----+---------------------+
-|                         |``next``       |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``prev``       |no  |                     |
-+-------------------------+---------------+----+---------------------+
-|``custom/menu``          |``open``       |yes |                     |
-|                         +---------------+----+---------------------+
-|                         |``close``      |no  |                     |
-|                         +---------------+----+---------------------+
-|                         |``exec``       |yes |                     |
-+-------------------------+---------------+----+---------------------+
+:``toggle``:
+  Toggles the date/time format between ``date``/``time`` and
+  ``date-alt``/``time-alt``
 
-.. |date_toggle_desc| replace:: Toggles the date/time format between ``date``/``time`` and ``date-alt``/``time-alt``.
+internal/alsa
+^^^^^^^^^^^^^
+
+:``inc``, ``dec``:
+  Increases/Decreases the volume by ``interval`` percentage points, where
+  ``interval`` is the config setting in the module. Volume changed like this
+  will never go above 100%.
+
+:``toggle``:
+  Toggles between muted and unmuted.
+
+internal/pulseaudio
+^^^^^^^^^^^^^^^^^^^
+
+:``inc``, ``dec``:
+  Increases/Decreases the volume by ``interval`` percentage points, where
+  ``interval`` is the config setting in the module. Volume changed like this
+  will never go above ~153% (if ``use-ui-max`` is set to ``true``) or 100% (if
+  not).
+
+:``toggle``:
+  Toggles between muted and unmuted.
+
+internal/xbacklight
+^^^^^^^^^^^^^^^^^^^
+
+:``inc``, ``dec``:
+  Increases/Decreases screen brightness 5 percentage points.
+
+internal/backlight
+^^^^^^^^^^^^^^^^^^
+
+:``inc``, ``dec``:
+  Increases/Decreases screen brightness 5 percentage points.
+
+internal/xkeyboard
+^^^^^^^^^^^^^^^^^^
+
+:``switch``:
+  Cycles through configured keyboard layouts.
+
+internal/mpd
+^^^^^^^^^^^^
+
+:``play``: Starts playing the current song.
+:``pause``: Pauses the current song.
+:``stop``: Stops playing.
+:``prev``: Starts playing the previous song.
+:``next``: Starts playing the next song.
+:``repeat``: Toggles repeat mode.
+:``single``: Toggles single mode.
+:``random``: Toggles random mode.
+:``consume``: Toggles consume mode.
+:``seek``: *(Has Data)* Seeks inside the current song.
+
+           The data must be of the form ``[+-]N``, where ``N`` is a number
+           between 0 and 100.
+
+           If either ``+`` or ``-`` is used, it will seek forward or backward
+           from the current position by ``N%`` (relative to the length of the
+           song).
+           Otherwise it will seek to ``N%`` of the current song.
+
+internal/xworkspaces
+^^^^^^^^^^^^^^^^^^^^
+
+:``focus``: *(Has Data)* Switches to the given workspace.
+
+            The data is the index of the workspace that should be selected.
+:``next``: Switches to the next workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+:``prev``: Switches to the previous workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+
+internal/bspwm
+^^^^^^^^^^^^^^
+
+:``focus``: *(Has Data)* Switches to the given workspace.
+
+            The data has the form ``N+M``, where ``N`` is the index of the
+            monitor and ``M`` the index of the workspace on that monitor.
+            Both indices are 0-based and correspond to the position the monitor
+            and workspace appear in the output of ``bspc subscribe report``.
+:``next``: Switches to the next workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+:``prev``: Switches to the previous workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+
+
+internal/i3
+^^^^^^^^^^^
+
+:``focus``: *(Has Data)* Switches to the given workspace.
+
+            The data is the name of the workspace defined in the i3 config.
+:``next``: Switches to the next workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+:``prev``: Switches to the previous workspace. The behavior of this action is
+           affected by the ``pin-workspaces`` setting.
+
+custom/menu
+^^^^^^^^^^^
+
+:``open``: *(Has Data)* Opens the given menu level
+
+           The data is a single number specifying which menu level should be
+           opened.
+:``close``: Closes the menu
+:``exec``: *(Has Data)* Executes the command at the given menu element.
+
+           The data has the form ``N-M`` and the action will execute the command
+           in ``menu-N-M-exec``.
 
 Legacy Action Names
 -------------------
