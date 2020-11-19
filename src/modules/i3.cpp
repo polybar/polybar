@@ -1,12 +1,12 @@
+#include "modules/i3.hpp"
+
 #include <sys/socket.h>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
-#include "modules/i3.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -183,8 +183,8 @@ namespace modules {
       builder->node(m_modelabel);
     } else if (tag == TAG_LABEL_STATE && !m_workspaces.empty()) {
       if (m_scroll) {
-        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
-        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
+        builder->action(mousebtn::SCROLL_DOWN, *this, m_revscroll ? EVENT_NEXT : EVENT_PREV, "");
+        builder->action(mousebtn::SCROLL_UP, *this, m_revscroll ? EVENT_PREV : EVENT_NEXT, "");
       }
 
       bool first = true;
@@ -193,10 +193,9 @@ namespace modules {
          * The separator should only be inserted in between the workspaces, so
          * we insert it in front of all workspaces except the first one.
          */
-        if(first) {
+        if (first) {
           first = false;
-        }
-        else if (*m_labelseparator) {
+        } else if (*m_labelseparator) {
           builder->node(m_labelseparator);
         }
 
@@ -228,33 +227,28 @@ namespace modules {
         return true;
       }
 
-      string scrolldir;
-
-      if (action == EVENT_NEXT) {
-        scrolldir = m_revscroll ? "prev" : "next";
-      } else if (action == EVENT_PREV) {
-        scrolldir = m_revscroll ? "next" : "prev";
-      } else {
+      if (action != EVENT_NEXT && action != EVENT_PREV) {
         return false;
       }
 
+      bool next = action == EVENT_NEXT;
+
       auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
-      auto current_ws = find_if(workspaces.begin(), workspaces.end(),
-                                [](auto ws) { return ws->visible; });
+      auto current_ws = std::find_if(workspaces.begin(), workspaces.end(), [](auto ws) { return ws->visible; });
 
       if (current_ws == workspaces.end()) {
         m_log.warn("%s: Current workspace not found", name());
         return false;
       }
 
-      if (scrolldir == "next" && (m_wrap || next(current_ws) != workspaces.end())) {
+      if (next && (m_wrap || std::next(current_ws) != workspaces.end())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
           conn.send_command(make_workspace_command((*current_ws)->name));
         }
         m_log.info("%s: Sending workspace next_on_output command to ipc handler", name());
         conn.send_command("workspace next_on_output");
-      } else if (scrolldir == "prev" && (m_wrap || current_ws != workspaces.begin())) {
+      } else if (!next && (m_wrap || current_ws != workspaces.begin())) {
         if (!(*current_ws)->focused) {
           m_log.info("%s: Sending workspace focus command to ipc handler", name());
           conn.send_command(make_workspace_command((*current_ws)->name));
