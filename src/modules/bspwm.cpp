@@ -1,13 +1,13 @@
+#include "modules/bspwm.hpp"
+
 #include <sys/socket.h>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
-#include "modules/bspwm.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -35,7 +35,7 @@ namespace {
     }
     return (base & mask) == mask;
   }
-}
+}  // namespace
 
 namespace modules {
   template class module<bspwm_module>;
@@ -396,13 +396,13 @@ namespace modules {
       size_t workspace_n{0U};
 
       if (m_scroll) {
-        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
-        builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
+        builder->action(mousebtn::SCROLL_DOWN, *this, m_revscroll ? EVENT_NEXT : EVENT_PREV, "");
+        builder->action(mousebtn::SCROLL_UP, *this, m_revscroll ? EVENT_PREV : EVENT_NEXT, "");
       }
 
       for (auto&& ws : m_monitors[m_index]->workspaces) {
         if (ws.second.get()) {
-          if(workspace_n != 0 && *m_labelseparator) {
+          if (workspace_n != 0 && *m_labelseparator) {
             builder->node(m_labelseparator);
           }
 
@@ -476,9 +476,9 @@ namespace modules {
     string scrolldir;
 
     if (action == EVENT_NEXT) {
-      scrolldir = m_revscroll ? "prev" : "next";
+      scrolldir = "next";
     } else if (action == EVENT_PREV) {
-      scrolldir = m_revscroll ? "next" : "prev";
+      scrolldir = "prev";
     } else {
       return false;
     }
@@ -495,11 +495,10 @@ namespace modules {
       }
     }
 
-
     send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
