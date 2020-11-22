@@ -16,6 +16,8 @@ actions to polybar through `Inter Process Communication
 <https://github.com/polybar/polybar/wiki/Inter-process-messaging>`_ (IPC) to
 trigger certain behavior in polybar modules.
 
+.. _action-string-format:
+
 Action String Format
 --------------------
 
@@ -115,6 +117,9 @@ also be used to trigger actions:
 
 Available Actions
 -----------------
+
+The following modules have actions available. Most of them are already used by
+the module by default for click and scroll events.
 
 internal/date
 ^^^^^^^^^^^^^
@@ -239,6 +244,8 @@ custom/menu
 Legacy Action Names
 -------------------
 
+.. deprecated:: 3.5.0
+
 In earlier versions (< 3.5.0) action strings only included information about the
 module type.
 This meant in bars that contained multiple different modules of the same type,
@@ -249,7 +256,8 @@ Since version 3.5.0, this no longer happens. However, this also means we had to
 change what actions are recognized by polybar modules.
 
 If you explicitly use any polybar action names in your config or any of your
-scripts, you are advised to change them, as they may stop working at some point.
+scripts, you are advised to change them, as they may stop working at some point
+in the future.
 For now polybar still supports the old action names, will convert them to the
 appropriate new action name, and will print a warning to help you find old
 action names in your config.
@@ -261,8 +269,16 @@ old action names to open and close the menu (for example ``menu-open-1`` or
 The ``i3wm-wsnext``, ``i3wm-wsprev``, ``bspwm-desknext``, and ``bspwm-deskprev``
 actions, to switch workspaces in i3 and bspwm, may also appear in your config.
 
-Migration to New Action Strings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Migration
+^^^^^^^^^
+
+Updating your config to use the new action names is quite straightforward.
+
+For each action name, consult the table below to find the new action name.
+Afterwards build the complete action string as described in
+:ref:`action-string-format`.
+
+Please see :ref:`below <menu-example>` for an example of migrating a typical menu module.
 
 +-------------------------+-----------------------+---------------+
 |Module Type              |Legacy Action Name     |New Action Name|
@@ -340,4 +356,64 @@ Migration to New Action Strings
    some additional data (represented by that ``N``), in the new action names,
    this data will appear in exactly the same way, after a period.
 
-.. TODO show how to migrate
+.. _menu-example:
+
+Menu Module Example
+"""""""""""""""""""
+
+The menu module is the only module where we have to explicitly use actions for
+it to work. Because of this, almost everyone will need to update their menu
+module to use the new action format.
+
+Below you can see an example of a menu module:
+
+.. code-block:: ini
+
+  [module/apps]
+  type = custom/menu
+
+  menu-0-0 = Browsers
+  menu-0-0-exec = menu-open-1
+  menu-0-1 = Multimedia
+  menu-0-1-exec = menu-open-2
+
+  menu-1-0 = Firefox
+  menu-1-0-exec = firefox &
+  menu-1-1 = Chromium
+  menu-1-1-exec = chromium &
+
+  menu-2-0 = Gimp
+  menu-2-0-exec = gimp &
+  menu-2-1 = Scrot
+  menu-2-1-exec = scrot &
+
+This module uses two actions: ``menu-open-1`` and ``menu-open-2``.
+These are actions with data, the data specifies which level of the menu should
+be opened.
+
+Looking at the table, we see that the new action name for ``menu-open-N`` is
+``open.N``, where ``.N`` is the data attached to the action.
+Putting this together with the name of the module gives us ``#apps.open.1`` and
+``#apps.open.2`` as action strings.
+Since your menu module likely has a different name, your action strings will
+likely not use ``apps``, but the name of your module.
+
+.. code-block:: ini
+
+  [module/apps]
+  type = custom/menu
+
+  menu-0-0 = Browsers
+  menu-0-0-exec = #apps.open.1
+  menu-0-1 = Multimedia
+  menu-0-1-exec = #apps.open.2
+
+  menu-1-0 = Firefox
+  menu-1-0-exec = firefox &
+  menu-1-1 = Chromium
+  menu-1-1-exec = chromium &
+
+  menu-2-0 = Gimp
+  menu-2-0-exec = gimp &
+  menu-2-1 = Scrot
+  menu-2-1-exec = scrot &
