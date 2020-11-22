@@ -479,6 +479,7 @@ bool controller::try_forward_legacy_action(const string& cmd) {
           } else {
             m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, module_name, action, data);
           }
+          m_log.warn("Consult the 'Actions' page in the polybar documentation for more information.");
           m_log.info(
               "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, module_name, action, data);
           if (!module->input(action, data)) {

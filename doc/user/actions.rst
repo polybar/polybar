@@ -241,8 +241,8 @@ custom/menu
            The data has the form ``N-M`` and the action will execute the command
            in ``menu-N-M-exec``.
 
-Legacy Action Names
--------------------
+Deprecated Action Names
+-----------------------
 
 .. deprecated:: 3.5.0
 
@@ -281,7 +281,7 @@ Afterwards build the complete action string as described in
 Please see :ref:`below <menu-example>` for an example of migrating a typical menu module.
 
 +-------------------------+-----------------------+---------------+
-|Module Type              |Legacy Action Name     |New Action Name|
+|Module Type              |Deprecated Action Name |New Action Name|
 +=========================+=======================+===============+
 |``internal/date``        |``datetoggle``         |``toggle``     |
 +-------------------------+-----------------------+---------------+
@@ -352,9 +352,9 @@ Please see :ref:`below <menu-example>` for an example of migrating a typical men
 
 .. note::
 
-   Some legacy action names are suffixed with ``N``, this means that action has
-   some additional data (represented by that ``N``), in the new action names,
-   this data will appear in exactly the same way, after a period.
+   Some deprecated action names are suffixed with ``N``, this means that that
+   action has some additional data (represented by that ``N``), in the new
+   action names this data will appear in exactly the same way, after a period.
 
 .. _menu-example:
 
