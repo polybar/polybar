@@ -109,11 +109,6 @@ namespace modules {
     return false;
   }
 
-  template <typename Impl>
-  string module<Impl>::input_handler_name() const {
-    return m_name_raw;
-  }
-
   // }}}
   // module<Impl> protected {{{
 

@@ -9,7 +9,6 @@
 #include "common.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/concurrency.hpp"
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
@@ -112,6 +111,16 @@ namespace modules {
     virtual string name() const = 0;
     virtual bool running() const = 0;
 
+    /**
+     * Handle action, possibly with data attached
+     *
+     * Any implementation is free to ignore the data, if the action does not
+     * require additional data.
+     *
+     * \returns true if the action is supported and false otherwise
+     */
+    virtual bool input(const string& action, const string& data) = 0;
+
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
@@ -122,7 +131,7 @@ namespace modules {
   // class definition : module {{{
 
   template <class Impl>
-  class module : public module_interface, public input_handler {
+  class module : public module_interface {
    public:
     module(const bar_settings bar, string name);
     ~module() noexcept;
@@ -138,7 +147,6 @@ namespace modules {
     string contents();
 
     bool input(const string& action, const string& data);
-    string input_handler_name() const;
 
     static constexpr auto TYPE = "";
 

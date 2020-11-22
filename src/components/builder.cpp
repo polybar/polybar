@@ -3,10 +3,10 @@
 #include <utility>
 
 #include "drawtypes/label.hpp"
+#include "utils/actions.hpp"
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
-#include "utils/actions.hpp"
 POLYBAR_NS
 
 builder::builder(const bar_settings& bar) : m_bar(bar) {
@@ -440,10 +440,10 @@ void builder::action(mousebtn index, string action) {
 }
 
 /**
- * Open action tag for the action of the given input_handler
+ * Open action tag for the action of the given module
  */
-void builder::action(mousebtn btn, const modules::input_handler& handler, string action_name, string data) {
-  action(btn, actions_util::get_action_string(handler, action_name, data));
+void builder::action(mousebtn btn, const modules::module_interface& module, string action_name, string data) {
+  action(btn, actions_util::get_action_string(module, action_name, data));
 }
 
 /**
@@ -457,12 +457,12 @@ void builder::action(mousebtn index, string action_name, const label_t& label) {
   }
 }
 
-
 /**
  * Wrap label in module action tag
  */
-void builder::action(mousebtn btn, const modules::input_handler& handler, string action_name, string data, const label_t& label) {
-  action(btn, actions_util::get_action_string(handler, action_name, data), label);
+void builder::action(
+    mousebtn btn, const modules::module_interface& module, string action_name, string data, const label_t& label) {
+  action(btn, actions_util::get_action_string(module, action_name, data), label);
 }
 
 /**

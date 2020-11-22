@@ -11,6 +11,7 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/actions.hpp"
@@ -146,13 +147,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
 
   size_t started_modules{0};
   for (const auto& module : m_modules) {
-    auto inp_handler = std::dynamic_pointer_cast<input_handler>(module);
     auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
-
-    if (inp_handler) {
-      m_log.trace("Registering module %s as input handler", module->name_raw());
-      m_inputhandlers.push_back(inp_handler);
-    }
 
     if (evt_handler != nullptr) {
       evt_handler->connect(m_connection);
@@ -474,20 +469,19 @@ bool controller::try_forward_legacy_action(const string& cmd) {
       string action = entry.second.second;
 
       // Search for the first module that matches the type for this legacy action
-      for (auto&& mod : m_modules) {
-        if (mod->type() == type) {
-          auto handler_ptr = std::dynamic_pointer_cast<input_handler>(mod);
-          auto handler_name = handler_ptr->input_handler_name();
+      for (auto&& module : m_modules) {
+        if (module->type() == type) {
+          auto module_name = module->name_raw();
           // TODO make this message more descriptive and maybe link to some documentation
           // TODO use route to string methods to print action name that should be used.
           if (data.empty()) {
-            m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, handler_name, action);
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, module_name, action);
           } else {
-            m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, handler_name, action, data);
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, module_name, action, data);
           }
           m_log.info(
-              "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, handler_name, action, data);
-          if (!handler_ptr->input(action, data)) {
+              "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, module_name, action, data);
+          if (!module->input(action, data)) {
             m_log.err("Failed to forward deprecated action to %s module", type);
             // Forward to shell if the module cannot accept the action to not break existing behavior.
             return false;
@@ -521,14 +515,14 @@ void controller::process_inputdata() {
 
   // Every command that starts with '#' is considered an action string.
   if (cmd.front() == '#') {
-    string handler_name;
+    string module_name;
     string action;
     string data;
 
     try {
       auto res = actions_util::parse_action_string(cmd);
 
-      handler_name = std::get<0>(res);
+      module_name = std::get<0>(res);
       action = std::get<1>(res);
       data = std::get<2>(res);
     } catch (runtime_error& e) {
@@ -536,15 +530,15 @@ void controller::process_inputdata() {
       return;
     }
 
-    m_log.info("Forwarding data to input handlers (name: '%s', action: '%s', data: '%s') ", handler_name, action, data);
+    m_log.info("Forwarding action to modules (name: '%s', action: '%s', data: '%s') ", module_name, action, data);
 
     int num_delivered = 0;
 
-    // Forwards the action to all input handlers that match the name
-    for (auto&& handler : m_inputhandlers) {
-      if (handler->input_handler_name() == handler_name) {
-        if (!handler->input(action, data)) {
-          m_log.err("The '%s' module does not support the '%s' action.", handler_name, action);
+    // Forwards the action to all modules that match the name
+    for (auto&& module : m_modules) {
+      if (module->name_raw() == module_name) {
+        if (!module->input(action, data)) {
+          m_log.err("The '%s' module does not support the '%s' action.", module_name, action);
         }
 
         num_delivered++;
@@ -552,9 +546,9 @@ void controller::process_inputdata() {
     }
 
     if (num_delivered == 0) {
-      m_log.err("There exists no input handler with name '%s' (input: %s)", handler_name, cmd);
+      m_log.err("There exists no module with name '%s' (input: %s)", module_name, cmd);
     } else {
-      m_log.info("Delivered input to %d input handler%s", num_delivered, num_delivered > 1 ? "s" : "");
+      m_log.info("Delivered action to %d module%s", num_delivered, num_delivered > 1 ? "s" : "");
     }
     return;
   }

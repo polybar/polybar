@@ -1,12 +1,15 @@
 #pragma once
 
 #include "common.hpp"
-#include "modules/meta/input_handler.hpp"
+
+namespace modules {
+  struct module_interface;
+}  // namespace modules
 
 POLYBAR_NS
 
 namespace actions_util {
-  string get_action_string(const modules::input_handler& handler, string action, string data);
+  string get_action_string(const modules::module_interface& module, string action, string data);
 
   /**
    * Parses an action string of the form "#name.action[.data]".

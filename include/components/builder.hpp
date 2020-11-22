@@ -4,14 +4,15 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
-#include "modules/meta/input_handler.hpp"
-
 POLYBAR_NS
 
 using std::map;
 
 // fwd decl
 using namespace drawtypes;
+namespace modules {
+  struct module_interface;
+}
 
 class builder {
  public:
@@ -49,9 +50,9 @@ class builder {
   void underline_close();
   void control(controltag tag);
   void action(mousebtn index, string action);
-  void action(mousebtn btn, const modules::input_handler& handler, string action, string data);
+  void action(mousebtn btn, const modules::module_interface& module, string action, string data);
   void action(mousebtn index, string action, const label_t& label);
-  void action(mousebtn btn, const modules::input_handler& handler, string action, string data, const label_t& label);
+  void action(mousebtn btn, const modules::module_interface& module, string action, string data, const label_t& label);
   void action_close();
 
  protected:

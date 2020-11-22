@@ -4,12 +4,13 @@
 #include <stdexcept>
 
 #include "common.hpp"
+#include "modules/meta/base.hpp"
 
 POLYBAR_NS
 
 namespace actions_util {
-  string get_action_string(const modules::input_handler& handler, string action, string data) {
-    string str = "#" + handler.input_handler_name() + "." + action;
+  string get_action_string(const modules::module_interface& module, string action, string data) {
+    string str = "#" + module.name_raw() + "." + action;
     if (!data.empty()) {
       str += "." + data;
     }
@@ -28,10 +29,10 @@ namespace actions_util {
       throw std::runtime_error("Missing separator between name and action");
     }
 
-    auto handler_name = action_str.substr(0, action_sep);
+    auto module_name = action_str.substr(0, action_sep);
 
-    if (handler_name.empty()) {
-      throw std::runtime_error("The handler name must not be empty");
+    if (module_name.empty()) {
+      throw std::runtime_error("The module name must not be empty");
     }
 
     auto action = action_str.substr(action_sep + 1);
@@ -47,7 +48,7 @@ namespace actions_util {
       throw std::runtime_error("The action name must not be empty");
     }
 
-    return std::tuple<string, string, string>{handler_name, action, data};
+    return std::tuple<string, string, string>{module_name, action, data};
   }
 }  // namespace actions_util
 
