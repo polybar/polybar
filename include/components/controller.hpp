@@ -29,7 +29,6 @@ class logger;
 class signal_emitter;
 namespace modules {
   struct module_interface;
-  class input_handler;
 }  // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
@@ -116,14 +115,6 @@ class controller
    * \brief Loaded modules grouped by block
    */
   modulemap_t m_blocks;
-
-  /**
-   * \brief Input handlers modules
-   *
-   * Maps the name of the input handler (module name) to the corresponding input
-   * handler
-   */
-  std::vector<shared_ptr<modules::input_handler>> m_inputhandlers;
 
   /**
    * \brief Maximum number of subsequent events to swallow

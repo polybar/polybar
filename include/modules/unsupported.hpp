@@ -9,7 +9,7 @@ namespace modules {
   struct module_interface;
 
 #define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
-  class MODULE_NAME : public module_interface, public input_handler {                   \
+  class MODULE_NAME : public module_interface {                                         \
    public:                                                                              \
     MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
@@ -31,9 +31,6 @@ namespace modules {
     void stop() {}                                                                      \
     void halt(string) {}                                                                \
     string contents() {                                                                 \
-      return "";                                                                        \
-    }                                                                                   \
-    string input_handler_name() const {                                                 \
       return "";                                                                        \
     }                                                                                   \
     bool input(const string&, const string&) {                                          \
