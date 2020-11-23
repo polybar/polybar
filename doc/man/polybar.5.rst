@@ -31,10 +31,8 @@ places in the following order:
 
 * If the ``-c`` or ``--config`` command line argument is specified, it will use
   the path given there.
-* If the environment variable ``XDG_CONFIG_HOME`` is set it will use
-  ``$XDG_CONFIG_HOME/polybar/config``
-* If the environment variable ``HOME`` is set it will use
-  ``$HOME/.config/polybar/config``
+* ``$XDG_CONFIG_HOME/polybar/config``
+* ``$HOME/.config/polybar/config``
 
 Syntax
 ------
