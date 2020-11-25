@@ -9,6 +9,9 @@ namespace modules {
 POLYBAR_NS
 
 namespace actions_util {
+
+  using action = std::tuple<string, string, string>;
+
   string get_action_string(const modules::module_interface& module, string action, string data);
 
   /**
@@ -22,7 +25,7 @@ namespace actions_util {
    *          same result.
    * \throws runtime_error If the action string is malformed
    */
-  std::tuple<string, string, string> parse_action_string(string action);
+  action parse_action_string(string action);
 }  // namespace actions_util
 
 POLYBAR_NS_END

@@ -501,6 +501,35 @@ bool controller::try_forward_legacy_action(const string& cmd) {
   return false;
 }
 
+bool controller::forward_action(const actions_util::action& action_triple) {
+  string module_name = std::get<0>(action_triple);
+  string action = std::get<1>(action_triple);
+  string data = std::get<2>(action_triple);
+
+  m_log.info("Forwarding action to modules (module: '%s', action: '%s', data: '%s')", module_name, action, data);
+
+  int num_delivered = 0;
+
+  // Forwards the action to all modules that match the name
+  for (auto&& module : m_modules) {
+    if (module->name_raw() == module_name) {
+      if (!module->input(action, data)) {
+        m_log.err("The '%s' module does not support the '%s' action.", module_name, action);
+      }
+
+      num_delivered++;
+    }
+  }
+
+  if (num_delivered == 0) {
+    m_log.err("Could not forward action to module: No module named '%s' (action: '%s', data: '%s')", module_name,
+        action, data);
+  } else {
+    m_log.info("Delivered action to %d module%s", num_delivered, num_delivered > 1 ? "s" : "");
+  }
+  return true;
+}
+
 /**
  * Process stored input data
  */
@@ -516,41 +545,12 @@ void controller::process_inputdata() {
 
   // Every command that starts with '#' is considered an action string.
   if (cmd.front() == '#') {
-    string module_name;
-    string action;
-    string data;
-
     try {
-      auto res = actions_util::parse_action_string(cmd);
-
-      module_name = std::get<0>(res);
-      action = std::get<1>(res);
-      data = std::get<2>(res);
+      this->forward_action(actions_util::parse_action_string(cmd));
     } catch (runtime_error& e) {
-      m_log.err("Invalid action string (reason: %s)", e.what());
-      return;
+      m_log.err("Invalid action string (action: %s, reason: %s)", cmd, e.what());
     }
 
-    m_log.info("Forwarding action to modules (name: '%s', action: '%s', data: '%s') ", module_name, action, data);
-
-    int num_delivered = 0;
-
-    // Forwards the action to all modules that match the name
-    for (auto&& module : m_modules) {
-      if (module->name_raw() == module_name) {
-        if (!module->input(action, data)) {
-          m_log.err("The '%s' module does not support the '%s' action.", module_name, action);
-        }
-
-        num_delivered++;
-      }
-    }
-
-    if (num_delivered == 0) {
-      m_log.err("There exists no module with name '%s' (input: %s)", module_name, cmd);
-    } else {
-      m_log.info("Delivered action to %d module%s", num_delivered, num_delivered > 1 ? "s" : "");
-    }
     return;
   }
 
