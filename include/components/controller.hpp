@@ -10,6 +10,7 @@
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "settings.hpp"
+#include "utils/actions.hpp"
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
@@ -74,6 +75,7 @@ class controller
  private:
   size_t setup_modules(alignment align);
 
+  bool forward_action(const actions_util::action& cmd);
   bool try_forward_legacy_action(const string& cmd);
 
   connection& m_connection;
