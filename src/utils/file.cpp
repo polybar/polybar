@@ -170,10 +170,27 @@ int fd_streambuf::underflow() {
 namespace file_util {
   /**
    * Checks if the given file exist
+   *
+   * May also return false if the file status  cannot be read
+   *
+   * Sets errno when returning false
    */
   bool exists(const string& filename) {
     struct stat buffer {};
     return stat(filename.c_str(), &buffer) == 0;
+  }
+
+  /**
+   * Checks if the given path exists and is a file
+   */
+  bool is_file(const string& filename) {
+    struct stat buffer {};
+
+    if (stat(filename.c_str(), &buffer) != 0) {
+      return false;
+    }
+
+    return S_ISREG(buffer.st_mode);
   }
 
   /**
