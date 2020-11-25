@@ -1,12 +1,14 @@
+#include "utils/command.hpp"
+
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <csignal>
 #include <cstdlib>
 #include <utility>
 #include <utils/string.hpp>
 
 #include "errors.hpp"
-#include "utils/command.hpp"
 #include "utils/io.hpp"
 #include "utils/process.hpp"
 
@@ -31,20 +33,11 @@ command<output_policy::IGNORED>::~command() {
  * Execute the command
  */
 int command<output_policy::IGNORED>::exec(bool wait_for_completion) {
-  if ((m_forkpid = fork()) == -1) {
-    throw system_error("Failed to fork process");
-  }
-
-  if (process_util::in_forked_process(m_forkpid)) {
-    setpgid(m_forkpid, 0);
-    process_util::redirect_process_output_to_dev_null();
-    process_util::exec_sh(m_cmd.c_str());
-  } else {
-    if (wait_for_completion) {
-      auto status = wait();
-      m_forkpid = -1;
-      return status;
-    }
+  m_forkpid = process_util::fork_detached([m_cmd = m_cmd] { process_util::exec_sh(m_cmd.c_str()); });
+  if (wait_for_completion) {
+    auto status = wait();
+    m_forkpid = -1;
+    return status;
   }
 
   return EXIT_SUCCESS;
@@ -90,7 +83,7 @@ int command<output_policy::IGNORED>::wait() {
     }
   } while (!WIFEXITED(m_forkstatus) && !WIFSIGNALED(m_forkstatus));
 
-  return m_forkstatus;
+  return WEXITSTATUS(m_forkstatus);
 }
 
 /**
@@ -104,7 +97,7 @@ pid_t command<output_policy::IGNORED>::get_pid() {
  * Get command exit status
  */
 int command<output_policy::IGNORED>::get_exit_status() {
-  return m_forkstatus;
+  return WEXITSTATUS(m_forkstatus);
 }
 
 command<output_policy::REDIRECTED>::command(const polybar::logger& logger, std::string cmd)

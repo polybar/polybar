@@ -20,8 +20,6 @@ POLYBAR_NS
 
 enum class alignment;
 class bar;
-template <output_policy>
-class command;
 class config;
 class connection;
 class inotify_watch;

@@ -15,9 +15,9 @@
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/actions.hpp"
-#include "utils/command.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
+#include "utils/process.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
@@ -561,12 +561,8 @@ void controller::process_inputdata() {
   try {
     // Run input as command if it's not an input for a module
     m_log.info("Forwarding command to shell... (input: %s)", cmd);
-
     m_log.info("Executing shell command: %s", cmd);
-
-    auto shell_cmd = command_util::make_command<output_policy::IGNORED>(move(cmd));
-    shell_cmd->exec();
-    shell_cmd.reset();
+    process_util::fork_detached([cmd] { process_util::exec_sh(cmd.c_str()); });
     process_update(true);
   } catch (const application_error& err) {
     m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
