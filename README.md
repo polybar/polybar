@@ -27,17 +27,11 @@ Here are a few screenshots showing you what it can look like:
 
 You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
 
-
-**If you need help**, check out the [Support](SUPPORT.md) page.
-
-Please report any bugs you find by [creating an issue ticket](https://github.com/polybar/polybar/issues/new/choose) here on GitHub.
-Make sure you include steps on how to reproduce it.
-
-
 ## Table of Contents
 
 * [Introduction](#introduction)
 * [Getting Help](#getting-help)
+* [Contributing](#contributing)
 * [Getting started](#getting-started)
   * [Installation](#installation)
   * [Configuration](#configuration)
@@ -56,7 +50,7 @@ Some of the services included so far:
 - Systray icons
 - Window title
 - Playback controls and status display for [MPD](https://www.musicpd.org/) using [libmpdclient](https://www.musicpd.org/libs/libmpdclient/)
-- [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) volume controls
+- [ALSA](https://www.alsa-project.org/main/index.php/Main_Page) and [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) volume controls
 - Workspace and desktop panel for [bspwm](https://github.com/baskerville/bspwm) and [i3](https://github.com/i3/i3)
 - Workspace module for [EWMH compliant](https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#idm140130320786080) window managers
 - Keyboard layout and indicator status
@@ -76,6 +70,10 @@ Some of the services included so far:
 ## Getting Help
 
 If you find yourself stuck, have a look at our [Support](SUPPORT.md) page for resources where you can find help.
+
+## Contributing
+
+Read our [contributing guidelines](CONTRIBUTING.md) for how to get started with contributing to polybar.
 
 ## Getting started
 
