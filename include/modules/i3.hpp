@@ -34,12 +34,13 @@ namespace modules {
     };
 
     struct workspace {
-      explicit workspace(string name, enum state state_, label_t&& label)
-          : name(name), state(state_), label(forward<label_t>(label)) {}
+      explicit workspace(string name, string output, enum state state_, label_t&& label)
+          : name(name), output(output), state(state_), label(forward<label_t>(label)) {}
 
       operator bool();
 
       string name;
+      string output;
       enum state state;
       label_t label;
     };
@@ -82,6 +83,11 @@ namespace modules {
      * Separator that is inserted in between workspaces
      */
     label_t m_labelseparator;
+
+    /**
+     * Separator that is inserted in between outputs
+     */
+    label_t m_labeloutputseparator;
 
     bool m_click{true};
     bool m_scroll{true};

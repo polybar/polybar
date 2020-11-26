@@ -53,6 +53,7 @@ namespace modules {
     }
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+    m_labeloutputseparator = load_optional_label(m_conf, name(), "label-output-separator", "");
 
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
@@ -168,7 +169,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws->output, ws_state, move(label)));
       }
 
       return true;
@@ -188,6 +189,7 @@ namespace modules {
       }
 
       bool first = true;
+      std::string lastoutput;
       for (auto&& ws : m_workspaces) {
         /*
          * The separator should only be inserted in between the workspaces, so
@@ -196,9 +198,14 @@ namespace modules {
         if(first) {
           first = false;
         }
+        else if (*m_labeloutputseparator && lastoutput != ws->output) {
+          builder->node(m_labeloutputseparator);
+        }
         else if (*m_labelseparator) {
           builder->node(m_labelseparator);
         }
+
+        lastoutput = ws->output;
 
         if (m_click) {
           builder->cmd(mousebtn::LEFT, string{EVENT_CLICK} + ws->name);
