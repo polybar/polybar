@@ -174,6 +174,13 @@ namespace net {
   }
 
   /**
+   * Set if we should ignore not-present interfaces
+   */
+  void network::set_ignore_absent(bool unknown) {
+      m_ignore_absent = unknown;
+  }
+
+  /**
    * Query driver info to check if the
    * interface is a TUN/TAP device or BRIDGE
    */
@@ -212,12 +219,21 @@ namespace net {
   }
 
   /**
-   * Test if the network interface is in a valid state
+   * Test if the network interface is currently connected, ie. up.
+   *
    */
-  bool network::test_interface() const {
+  bool network::test_interface_up() const {
     auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
     bool up = operstate.compare(0, 2, "up") == 0;
     return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
+  }
+
+  /**
+   * Test if the network interface is present in the system. 
+   */
+  bool network::test_interface_present() const {
+    auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
+    return operstate.length() != 0;
   }
 
   /**
@@ -284,10 +300,13 @@ namespace net {
    * Check current connection state
    */
   bool wired_network::connected() const {
-    if (!m_tuntap && !network::test_interface()) {
-      return false;
-    }
+    // if (!m_tuntap && !network::test_interface()) {
+    //   return false;
+    // }
 
+    return (!m_tuntap && (m_ignore_absent || network::test_interface_up()));
+
+    /*
     struct ethtool_value data {};
     struct ifreq request {};
 
@@ -301,6 +320,7 @@ namespace net {
     }
 
     return data.data != 0;
+    */
   }
 
   /**

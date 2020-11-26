@@ -68,7 +68,7 @@ namespace net {
    * Check current connection state
    */
   bool wireless_network::connected() const {
-    if (!network::test_interface()) {
+    if (!m_ignore_absent && !network::test_interface_up()) {
       return false;
     }
     return !m_essid.empty();
