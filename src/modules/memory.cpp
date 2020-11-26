@@ -18,19 +18,31 @@ namespace modules {
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_AVAILABLE_USED, TAG_BAR_AVAILABLE_FREE, TAG_BAR_FREE_USED, TAG_BAR_FREE, TAG_RAMP_AVAILABLE_USED, TAG_RAMP_AVAILABLE_FREE, TAG_RAMP_FREE_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
-    if (m_formatter->has(TAG_BAR_USED)) {
-      m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
+    if (m_formatter->has(TAG_BAR_AVAILABLE_USED)) {
+      m_bar_memavailused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_AVAILABLE_USED);
+    }
+    if (m_formatter->has(TAG_BAR_AVAILABLE_FREE)) {
+      m_bar_memavail = load_progressbar(m_bar, m_conf, name(), TAG_BAR_AVAILABLE_FREE);
+    }
+    if (m_formatter->has(TAG_BAR_FREE_USED)) {
+      m_bar_memfreeused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE_USED);
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
     }
-    if(m_formatter->has(TAG_RAMP_USED)) {
-      m_ramp_memused = load_ramp(m_conf, name(), TAG_RAMP_USED);
+    if (m_formatter->has(TAG_RAMP_AVAILABLE_USED)) {
+      m_ramp_memavailused = load_ramp(m_conf, name(), TAG_RAMP_AVAILABLE_USED);
     }
-    if(m_formatter->has(TAG_RAMP_FREE)) {
+    if (m_formatter->has(TAG_RAMP_AVAILABLE_FREE)) {
+      m_ramp_memavail = load_ramp(m_conf, name(), TAG_RAMP_AVAILABLE_FREE);
+    }
+    if (m_formatter->has(TAG_RAMP_FREE_USED)) {
+      m_ramp_memfreeused = load_ramp(m_conf, name(), TAG_RAMP_FREE_USED);
+    }
+    if (m_formatter->has(TAG_RAMP_FREE)) {
       m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
     if (m_formatter->has(TAG_BAR_SWAP_USED)) {
@@ -52,6 +64,7 @@ namespace modules {
   }
 
   bool memory_module::update() {
+    unsigned long long kb_free{0ULL};
     unsigned long long kb_total{0ULL};
     unsigned long long kb_avail{0ULL};
     unsigned long long kb_swap_total{0ULL};
@@ -73,6 +86,7 @@ namespace modules {
         parsed[id] = value;
       }
 
+      kb_free = parsed["MemFree"];
       kb_total = parsed["MemTotal"];
       kb_swap_total = parsed["SwapTotal"];
       kb_swap_free = parsed["SwapFree"];
@@ -90,8 +104,10 @@ namespace modules {
       m_log.err("Failed to read memory values (what: %s)", err.what());
     }
 
-    m_perc_memfree = math_util::percentage(kb_avail, kb_total);
-    m_perc_memused = 100 - m_perc_memfree;
+    m_perc_memfree = math_util::percentage(kb_free, kb_total);
+    m_perc_memfreeused = 100 - m_perc_memfree;
+    m_perc_memavail = math_util::percentage(kb_avail, kb_total);
+    m_perc_memavailused = 100 - m_perc_memavail;
     m_perc_swap_free = math_util::percentage(kb_swap_free, kb_swap_total);
     m_perc_swap_used = 100 - m_perc_swap_free;
 
@@ -104,8 +120,12 @@ namespace modules {
       m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 0, m_bar.locale));
       m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 0, m_bar.locale));
       m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 0, m_bar.locale));
-      m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
-      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+      m_label->replace_token("%percentage_used%", to_string(m_perc_memavailused));
+      m_label->replace_token("%percentage_free%", to_string(m_perc_memavail));
+      m_label->replace_token("%percentage_available_used%", to_string(m_perc_memavailused));
+      m_label->replace_token("%percentage_available%", to_string(m_perc_memavail));
+      m_label->replace_token("%percentage_actualfree_used%", to_string(m_perc_memfreeused));
+      m_label->replace_token("%percentage_actualfree%", to_string(m_perc_memfree));
       m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
       m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
       m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 0, m_bar.locale));
@@ -120,16 +140,24 @@ namespace modules {
   }
 
   bool memory_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_BAR_USED) {
-      builder->node(m_bar_memused->output(m_perc_memused));
+    if (tag == TAG_BAR_AVAILABLE_USED) {
+      builder->node(m_bar_memavailused->output(m_perc_memavailused));
+    } else if (tag == TAG_BAR_AVAILABLE_FREE) {
+      builder->node(m_bar_memavailused->output(m_perc_memavail));
+    } else if (tag == TAG_BAR_FREE_USED) {
+      builder->node(m_bar_memfree->output(m_perc_memfreeused));
     } else if (tag == TAG_BAR_FREE) {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == TAG_RAMP_FREE_USED) {
+      builder->node(m_ramp_memfreeused->get_by_percentage(m_perc_memfreeused));
     } else if (tag == TAG_RAMP_FREE) {
       builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
-    } else if (tag == TAG_RAMP_USED) {
-      builder->node(m_ramp_memused->get_by_percentage(m_perc_memused));
+    } else if (tag == TAG_RAMP_AVAILABLE_USED) {
+      builder->node(m_ramp_memavailused->get_by_percentage(m_perc_memavailused));
+    } else if (tag == TAG_RAMP_AVAILABLE_FREE) {
+      builder->node(m_ramp_memavail->get_by_percentage(m_perc_memavail));
     } else if (tag == TAG_BAR_SWAP_USED) {
       builder->node(m_bar_swapused->output(m_perc_swap_used));
     } else if (tag == TAG_BAR_SWAP_FREE) {
