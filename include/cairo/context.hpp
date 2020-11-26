@@ -146,10 +146,16 @@ namespace cairo {
       position(&x, &y);
 
       // Prioritize the preferred font
-      vector<shared_ptr<font>> fns(m_fonts.begin(), m_fonts.end());
+      vector<shared_ptr<font>> fns;
+      fns.reserve(m_fonts.size());
 
-      if (t.font > 0 && t.font <= std::distance(fns.begin(), fns.end())) {
-        std::iter_swap(fns.begin(), fns.begin() + t.font - 1);
+      if (t.font > 0) {
+        std::size_t idx = static_cast<std::size_t>(t.font) - 1U;
+        fns.push_back(m_fonts[idx]);
+        std::copy(m_fonts.cbegin(), std::next(m_fonts.cbegin(), idx), std::back_inserter(fns));
+        std::copy(std::next(m_fonts.cbegin(), idx + 1), m_fonts.cend(), std::back_inserter(fns));
+      } else {
+        std::copy(m_fonts.cbegin(), m_fonts.cend(), std::back_inserter(fns));
       }
 
       string utf8 = string(t.contents);

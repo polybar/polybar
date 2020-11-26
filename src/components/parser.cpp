@@ -110,7 +110,7 @@ void parser::codeblock(string&& data, const bar_settings& bar) {
         break;
 
       case 'T':
-        m_sig.emit(change_font{parse_fontindex(value)});
+        m_sig.emit(change_font{parse_fontindex(value, bar.zero_indexed_fonts)});
         break;
 
       case 'U':
@@ -228,13 +228,13 @@ unsigned int parser::parse_color(const string& s, unsigned int fallback) {
 /**
  * Process font index and convert it to the correct value
  */
-int parser::parse_fontindex(const string& s) {
+int parser::parse_fontindex(const string& s, bool zero_indexed_fonts) {
   if (s.empty() || s[0] == '-') {
     return 0;
   }
 
   try {
-    return std::stoul(s, nullptr, 10);
+    return std::stoul(s, nullptr, 10) + (zero_indexed_fonts ? 1 : 0);
   } catch (const std::invalid_argument& err) {
     return 0;
   }

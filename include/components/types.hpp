@@ -181,6 +181,7 @@ struct bar_settings {
   bool dimmed{false};
   double dimvalue{1.0};
 
+  bool zero_indexed_fonts{false};
   bool shaded{false};
   struct size shade_size {
     1U, 1U
