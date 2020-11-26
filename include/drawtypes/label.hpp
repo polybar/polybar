@@ -62,6 +62,7 @@ namespace drawtypes {
       assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
     }
 
+    string get_format() const;
     string get() const;
     operator bool();
     label_t clone();
@@ -79,7 +80,7 @@ namespace drawtypes {
     const vector<token> m_tokens{};
   };
 
-  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
+  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s, string deprecated_name = ""s);
   label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
 }  // namespace drawtypes
 

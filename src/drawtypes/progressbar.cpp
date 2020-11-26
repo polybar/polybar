@@ -9,8 +9,8 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  progressbar::progressbar(const bar_settings& bar, int width, string format)
-      : m_builder(factory_util::unique<builder>(bar)), m_format(move(format)), m_width(width) {}
+  progressbar::progressbar(const bar_settings& bar, int width)
+      : m_builder(factory_util::unique<builder>(bar)), m_width(width) {}
 
   void progressbar::set_fill(label_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
@@ -27,6 +27,10 @@ namespace drawtypes {
     m_indicator = forward<decltype(indicator)>(indicator);
   }
 
+  void progressbar::set_bar_label(label_t&& bar_label) {
+    m_bar = forward<decltype(bar_label)>(bar_label);
+  }
+
   void progressbar::set_gradient(bool mode) {
     m_gradient = mode;
   }
@@ -38,26 +42,27 @@ namespace drawtypes {
   }
 
   string progressbar::output(float percentage) {
-    string output{m_format};
+    m_bar->reset_tokens();
 
     // Get fill/empty widths based on percentage
     unsigned int perc = math_util::cap(percentage, 0.0f, 100.0f);
     unsigned int fill_width = math_util::percentage_to_value(perc, m_width);
     unsigned int empty_width = m_width - fill_width;
 
-    // Output fill icons
+    // fill icons
     fill(perc, fill_width);
-    output = string_util::replace_all(output, "%fill%", m_builder->flush());
+    m_bar->replace_token("%fill%", m_builder->flush());
 
-    // Output indicator icon
+    // indicator icon
     m_builder->node(m_indicator);
-    output = string_util::replace_all(output, "%indicator%", m_builder->flush());
+    m_bar->replace_token("%indicator%", m_builder->flush());
 
-    // Output empty icons
+    // empty icons
     m_builder->node_repeat(m_empty, empty_width);
-    output = string_util::replace_all(output, "%empty%", m_builder->flush());
+    m_bar->replace_token("%empty%", m_builder->flush());
 
-    return output;
+    m_builder->node(m_bar);
+    return m_builder->flush();
   }
 
   void progressbar::fill(unsigned int perc, unsigned int fill_width) {
@@ -86,17 +91,18 @@ namespace drawtypes {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    string format = "%fill%%indicator%%empty%";
+    label_t bar_label = load_label(conf, section, name, false, "%fill%%indicator%%empty%", name + "-format");
+    string format = bar_label->get_format();
     unsigned int width;
 
-    if ((format = conf.get(section, name + "-format", format)).empty()) {
+    if (format.empty()) {
       throw application_error("Invalid format defined at [" + section + "." + name + "]");
     }
     if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
       throw application_error("Invalid width defined at [" + section + "." + name + "]");
     }
 
-    auto pbar = factory_util::shared<progressbar>(bar, width, format);
+    auto pbar = factory_util::shared<progressbar>(bar, width);
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
     pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
 
@@ -129,6 +135,7 @@ namespace drawtypes {
     pbar->set_empty(move(icon_empty));
     pbar->set_fill(move(icon_fill));
     pbar->set_indicator(move(icon_indicator));
+    pbar->set_bar_label(move(bar_label));
 
     return pbar;
   }
