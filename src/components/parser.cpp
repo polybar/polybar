@@ -223,7 +223,7 @@ rgba parser::parse_color(const string& s, rgba fallback) {
   if (!s.empty() && s[0] != '-') {
     rgba ret = rgba{s};
 
-    if (!ret.has_color() || ret.m_type == rgba::ALPHA_ONLY) {
+    if (!ret.has_color() || ret.type() == rgba::ALPHA_ONLY) {
       logger::make().warn(
           "Invalid color in formatting tag detected: \"%s\", using fallback \"%s\". This is an issue with one of your "
           "formatting tags. If it is not, please report this as a bug.",
