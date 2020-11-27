@@ -250,6 +250,10 @@ namespace cairo {
         //   cairo_glyph_path(m_cairo, glyphs, nglyphs);
         // }
 
+        for (int i = 0; i < nglyphs; i++) {
+          glyphs[i].index = 0;
+        }
+
         cairo_text_extents_t extents{};
         cairo_scaled_font_glyph_extents(m_scaled, glyphs, nglyphs, &extents);
         cairo_show_text_glyphs(m_cairo, utf8.c_str(), utf8.size(), glyphs, nglyphs, clusters, nclusters, cf);
