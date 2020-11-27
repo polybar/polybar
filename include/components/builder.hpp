@@ -70,9 +70,6 @@ class builder {
   map<attribute, bool> m_attrs{};
 
   int m_fontindex{0};
-
-  string m_background{};
-  string m_foreground{};
 };
 
 POLYBAR_NS_END
