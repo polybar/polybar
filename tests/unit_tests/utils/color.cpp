@@ -12,46 +12,46 @@ TEST(Rgba, constructor) {
   EXPECT_FALSE(v.has_color());
 
   v = rgba{"#12"};
-  EXPECT_EQ(rgba::ALPHA_ONLY, v.m_type);
+  EXPECT_EQ(rgba::ALPHA_ONLY, v.type());
 
   v = rgba{"#ff"};
-  EXPECT_EQ(0xff000000, v.m_value);
+  EXPECT_EQ(0xff000000, (uint32_t)v.value());
 
   v = rgba{"#fff"};
-  EXPECT_EQ(0xffffffff, v.m_value);
+  EXPECT_EQ(0xffffffff, v.value());
 
   v = rgba{"#890"};
-  EXPECT_EQ(0xFF889900, v.m_value);
+  EXPECT_EQ(0xFF889900, v.value());
 
   v = rgba{"#a890"};
-  EXPECT_EQ(0xaa889900, v.m_value);
+  EXPECT_EQ(0xaa889900, v.value());
 
   v = rgba{"#55888777"};
-  EXPECT_EQ(0x55888777, v.m_value);
+  EXPECT_EQ(0x55888777, v.value());
 
   v = rgba{"#88aaaaaa"};
-  EXPECT_EQ(0x88aaaaaa, v.m_value);
+  EXPECT_EQ(0x88aaaaaa, v.value());
 
   v = rgba{"#00aaaaaa"};
-  EXPECT_EQ(0x00aaaaaa, v.m_value);
+  EXPECT_EQ(0x00aaaaaa, v.value());
 
   v = rgba{"#00FFFFFF"};
-  EXPECT_EQ(0x00FFFFFF, v.m_value);
+  EXPECT_EQ(0x00FFFFFF, v.value());
 }
 
 TEST(Rgba, parse) {
-  EXPECT_EQ(0xffffffff, rgba{"#fff"}.m_value);
-  EXPECT_EQ(0xffffffff, rgba{"fff"}.m_value);
-  EXPECT_EQ(0xff112233, rgba{"#123"}.m_value);
-  EXPECT_EQ(0xff112233, rgba{"123"}.m_value);
-  EXPECT_EQ(0xff888888, rgba{"#888888"}.m_value);
-  EXPECT_EQ(0xff888888, rgba{"888888"}.m_value);
-  EXPECT_EQ(0x00aa00aa, rgba{"#00aa00aa"}.m_value);
-  EXPECT_EQ(0x00aa00aa, rgba{"00aa00aa"}.m_value);
-  EXPECT_EQ(0x11223344, rgba{"#1234"}.m_value);
-  EXPECT_EQ(0x11223344, rgba{"1234"}.m_value);
-  EXPECT_EQ(0xaa000000, rgba{"#aa"}.m_value);
-  EXPECT_EQ(0xaa000000, rgba{"aa"}.m_value);
+  EXPECT_EQ(0xffffffff, rgba{"#fff"}.value());
+  EXPECT_EQ(0xffffffff, rgba{"fff"}.value());
+  EXPECT_EQ(0xff112233, rgba{"#123"}.value());
+  EXPECT_EQ(0xff112233, rgba{"123"}.value());
+  EXPECT_EQ(0xff888888, rgba{"#888888"}.value());
+  EXPECT_EQ(0xff888888, rgba{"888888"}.value());
+  EXPECT_EQ(0x00aa00aa, rgba{"#00aa00aa"}.value());
+  EXPECT_EQ(0x00aa00aa, rgba{"00aa00aa"}.value());
+  EXPECT_EQ(0x11223344, rgba{"#1234"}.value());
+  EXPECT_EQ(0x11223344, rgba{"1234"}.value());
+  EXPECT_EQ(0xaa000000, rgba{"#aa"}.value());
+  EXPECT_EQ(0xaa000000, rgba{"aa"}.value());
 }
 
 TEST(Rgba, string) {
@@ -114,12 +114,12 @@ TEST(Rgba, channel) {
 
 TEST(Rgba, applyAlpha) {
   rgba v{0xCC123456};
-  v.apply_alpha(rgba{0xAA000000, rgba::ALPHA_ONLY});
-  EXPECT_EQ(0xAA123456, v.m_value);
+  rgba modified = v.apply_alpha(rgba{0xAA000000, rgba::ALPHA_ONLY});
+  EXPECT_EQ(0xAA123456, modified.value());
 
   v = rgba{0x00123456};
-  v.apply_alpha(rgba{0xCC999999});
-  EXPECT_EQ(0xCC123456, v.m_value);
+  modified = v.apply_alpha(rgba{0xCC999999});
+  EXPECT_EQ(0xCC123456, modified.value());
 }
 
 TEST(ColorUtil, simplify) {

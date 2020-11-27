@@ -98,6 +98,15 @@ rgba::operator uint32_t() const {
   return m_value;
 }
 
+
+uint32_t rgba::value() const {
+  return this->m_value;
+}
+
+rgba::color_type rgba::type() const {
+  return m_type;
+}
+
 double rgba::a() const {
   return a_int() / 255.0;
 }
@@ -139,8 +148,20 @@ bool rgba::has_color() const {
  *
  * Useful for ALPHA_ONLY colors
  */
-void rgba::apply_alpha(rgba other) {
-  m_value = (m_value & 0x00FFFFFF) | (other.a_int() << 24);
+rgba rgba::apply_alpha(rgba other) const {
+  uint32_t val = (m_value & 0x00FFFFFF) | (((uint32_t)other.a_int()) << 24);
+  return rgba(val, m_type);
+}
+
+/**
+ * Calls apply_alpha, if the given color is ALPHA_ONLY.
+ */
+rgba rgba::try_apply_alpha(rgba other) const {
+  if (other.type() == ALPHA_ONLY) {
+    return apply_alpha(other);
+  }
+
+  return *this;
 }
 
 string color_util::simplify_hex(string hex) {
