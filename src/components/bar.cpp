@@ -199,7 +199,17 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   const auto parse_or_throw_color = [&](string key, rgba def) -> rgba {
     try {
-      return m_conf.get(bs, key, def);
+      rgba color = m_conf.get(bs, key, def);
+
+      /*
+       * These are the base colors of the bar and cannot be alpha only
+       * In that case, we just use the alpha channel on the default value.
+       */
+      if (color.type() == rgba::ALPHA_ONLY) {
+        return def.apply_alpha(color);
+      } else {
+        return color;
+      }
     } catch (const exception& err) {
       throw application_error(sstream() << "Failed to set " << key << " (reason: " << err.what() << ")");
     }
