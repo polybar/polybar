@@ -5,38 +5,27 @@
 using namespace polybar;
 
 TEST(Rgba, constructor) {
-  rgba v{"invalid"};
-  EXPECT_FALSE(v.has_color());
+  EXPECT_FALSE(rgba("invalid").has_color());
 
-  v = rgba{"#f"};
-  EXPECT_FALSE(v.has_color());
+  EXPECT_FALSE(rgba("#f").has_color());
 
-  v = rgba{"#12"};
-  EXPECT_EQ(rgba::ALPHA_ONLY, v.type());
+  EXPECT_EQ(rgba::ALPHA_ONLY, rgba{"#12"}.type());
 
-  v = rgba{"#ff"};
-  EXPECT_EQ(0xff000000, (uint32_t)v.value());
+  EXPECT_EQ(0xff000000, rgba{"#ff"}.value());
 
-  v = rgba{"#fff"};
-  EXPECT_EQ(0xffffffff, v.value());
+  EXPECT_EQ(0xffffffff, rgba{"#fff"}.value());
 
-  v = rgba{"#890"};
-  EXPECT_EQ(0xFF889900, v.value());
+  EXPECT_EQ(0xFF889900, rgba{"#890"}.value());
 
-  v = rgba{"#a890"};
-  EXPECT_EQ(0xaa889900, v.value());
+  EXPECT_EQ(0xaa889900, rgba{"#a890"}.value());
 
-  v = rgba{"#55888777"};
-  EXPECT_EQ(0x55888777, v.value());
+  EXPECT_EQ(0x55888777, rgba{"#55888777"}.value());
 
-  v = rgba{"#88aaaaaa"};
-  EXPECT_EQ(0x88aaaaaa, v.value());
+  EXPECT_EQ(0x88aaaaaa, rgba{"#88aaaaaa"}.value());
 
-  v = rgba{"#00aaaaaa"};
-  EXPECT_EQ(0x00aaaaaa, v.value());
+  EXPECT_EQ(0x00aaaaaa, rgba{"#00aaaaaa"}.value());
 
-  v = rgba{"#00FFFFFF"};
-  EXPECT_EQ(0x00FFFFFF, v.value());
+  EXPECT_EQ(0x00FFFFFF, rgba{"#00FFFFFF"}.value());
 }
 
 TEST(Rgba, parse) {
@@ -55,13 +44,8 @@ TEST(Rgba, parse) {
 }
 
 TEST(Rgba, string) {
-  rgba v{"#1234"};
-
-  EXPECT_EQ("#11223344", static_cast<string>(v));
-
-  v = rgba{"#12"};
-
-  EXPECT_EQ("#12000000", static_cast<string>(v));
+  EXPECT_EQ("#11223344", static_cast<string>(rgba{"#1234"}));
+  EXPECT_EQ("#12000000", static_cast<string>(rgba{"#12"}));
 }
 
 TEST(Rgba, eq) {
@@ -69,7 +53,7 @@ TEST(Rgba, eq) {
 
   EXPECT_TRUE(v == rgba(0, rgba::NONE));
   EXPECT_TRUE(v == rgba(0x11, rgba::NONE));
-  EXPECT_FALSE(v == rgba{0x1234});
+  EXPECT_FALSE(v == rgba{0x123456});
 
   v = rgba{0xCC123456};
 

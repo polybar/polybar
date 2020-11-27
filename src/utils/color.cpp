@@ -51,7 +51,6 @@ static string normalize_hex(string hex) {
   return hex;
 }
 
-
 rgba::rgba() : m_value(0), m_type(NONE) {}
 rgba::rgba(uint32_t value, color_type type) : m_value(value), m_type(type) {}
 rgba::rgba(string hex) {
@@ -71,9 +70,7 @@ rgba::rgba(string hex) {
 
 rgba::operator string() const {
   char s[10];
-  size_t len = 0;
-
-  len = snprintf(s, 10, "#%08x", m_value);
+  size_t len = snprintf(s, 10, "#%08x", m_value);
   return string(s, len);
 }
 
@@ -97,7 +94,6 @@ bool rgba::operator==(const rgba& other) const {
 rgba::operator uint32_t() const {
   return m_value;
 }
-
 
 uint32_t rgba::value() const {
   return this->m_value;
