@@ -85,7 +85,7 @@ bool rgba::operator==(const rgba& other) const {
     case ARGB:
       return m_value == other.m_value;
     case ALPHA_ONLY:
-      return a_int() == other.a_int();
+      return alpha_i() == other.alpha_i();
     default:
       return false;
   }
@@ -103,35 +103,35 @@ rgba::color_type rgba::type() const {
   return m_type;
 }
 
-double rgba::a() const {
-  return a_int() / 255.0;
+double rgba::alpha_d() const {
+  return alpha_i() / 255.0;
 }
 
-double rgba::r() const {
-  return r_int() / 255.0;
+double rgba::red_d() const {
+  return red_i() / 255.0;
 }
 
-double rgba::g() const {
-  return g_int() / 255.0;
+double rgba::green_d() const {
+  return green_i() / 255.0;
 }
 
-double rgba::b() const {
-  return b_int() / 255.0;
+double rgba::blue_d() const {
+  return blue_i() / 255.0;
 }
 
-uint8_t rgba::a_int() const {
+uint8_t rgba::alpha_i() const {
   return (m_value >> 24) & 0xFF;
 }
 
-uint8_t rgba::r_int() const {
+uint8_t rgba::red_i() const {
   return (m_value >> 16) & 0xFF;
 }
 
-uint8_t rgba::g_int() const {
+uint8_t rgba::green_i() const {
   return (m_value >> 8) & 0xFF;
 }
 
-uint8_t rgba::b_int() const {
+uint8_t rgba::blue_i() const {
   return m_value & 0xFF;
 }
 
@@ -145,7 +145,7 @@ bool rgba::has_color() const {
  * Useful for ALPHA_ONLY colors
  */
 rgba rgba::apply_alpha(rgba other) const {
-  uint32_t val = (m_value & 0x00FFFFFF) | (((uint32_t)other.a_int()) << 24);
+  uint32_t val = (m_value & 0x00FFFFFF) | (((uint32_t)other.alpha_i()) << 24);
   return rgba(val, m_type);
 }
 

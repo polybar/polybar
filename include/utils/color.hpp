@@ -24,15 +24,15 @@ class rgba {
   uint32_t value() const;
   color_type type() const;
 
-  double a() const;
-  double r() const;
-  double g() const;
-  double b() const;
+  double alpha_d() const;
+  double red_d() const;
+  double green_d() const;
+  double blue_d() const;
 
-  uint8_t a_int() const;
-  uint8_t r_int() const;
-  uint8_t g_int() const;
-  uint8_t b_int() const;
+  uint8_t alpha_i() const;
+  uint8_t red_i() const;
+  uint8_t green_i() const;
+  uint8_t blue_i() const;
 
   bool has_color() const;
   rgba apply_alpha(rgba other) const;
