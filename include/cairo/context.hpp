@@ -70,7 +70,7 @@ namespace cairo {
     }
 
     context& operator<<(const rgba& f) {
-      cairo_set_source_rgba(m_c, f.r(), f.g(), f.b(), f.a());
+      cairo_set_source_rgba(m_c, f.red_d(), f.green_d(), f.blue_d(), f.alpha_d());
       return *this;
     }
 
@@ -105,7 +105,7 @@ namespace cairo {
         auto offset = 0.0;
         for (auto&& color : l.steps) {
           // clang-format off
-          cairo_pattern_add_color_stop_rgba(pattern, offset, color.r(), color.g(), color.b(), color.a());
+          cairo_pattern_add_color_stop_rgba(pattern, offset, color.red_d(), color.green_d(), color.blue_d(), color.alpha_d());
           // clang-format on
           offset += step;
         }

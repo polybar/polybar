@@ -130,7 +130,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   // Set user-defined background color
   m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
 
-  if (m_opts.background.a_int() != 255) {
+  if (m_opts.background.alpha_i() != 255) {
     m_log.trace("tray: enable transparency");
     m_opts.transparent = true;
   }
@@ -638,9 +638,9 @@ void tray_manager::set_wm_hints() {
 void tray_manager::set_tray_colors() {
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.background);
 
-  auto r = m_opts.background.r_int();
-  auto g = m_opts.background.g_int();
-  auto b = m_opts.background.b_int();
+  auto r = m_opts.background.red_i();
+  auto g = m_opts.background.green_i();
+  auto b = m_opts.background.blue_i();
 
   const unsigned int colors[12] = {
       r, g, b,  // normal

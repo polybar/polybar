@@ -87,13 +87,13 @@ TEST(Rgba, hasColor) {
 
 TEST(Rgba, channel) {
   rgba v{0xCC123456};
-  EXPECT_EQ(0xCC, v.a_int());
-  EXPECT_EQ(0x12, v.r_int());
-  EXPECT_EQ(0x34, v.g_int());
-  EXPECT_EQ(0x56, v.b_int());
+  EXPECT_EQ(0xCC, v.alpha_i());
+  EXPECT_EQ(0x12, v.red_i());
+  EXPECT_EQ(0x34, v.green_i());
+  EXPECT_EQ(0x56, v.blue_i());
 
-  EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.a());
-  EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.g());
+  EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.alpha_d());
+  EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.green_d());
 }
 
 TEST(Rgba, applyAlpha) {
