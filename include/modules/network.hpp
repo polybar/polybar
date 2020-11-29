@@ -54,6 +54,7 @@ namespace modules {
     int m_udspeed_minwidth{0};
     bool m_accumulate{false};
     bool m_unknown_up{false};
+    string m_udspeed_unit{"B/s"};
   };
 }  // namespace modules
 

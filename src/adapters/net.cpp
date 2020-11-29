@@ -153,17 +153,17 @@ namespace net {
   /**
    * Get download speed rate
    */
-  string network::downspeed(int minwidth) const {
+  string network::downspeed(int minwidth, const string& unit) const {
     float bytes_diff = m_status.current.received - m_status.previous.received;
-    return format_speedrate(bytes_diff, minwidth);
+    return format_speedrate(bytes_diff, minwidth, unit);
   }
 
   /**
    * Get upload speed rate
    */
-  string network::upspeed(int minwidth) const {
+  string network::upspeed(int minwidth, const string& unit) const {
     float bytes_diff = m_status.current.transmitted - m_status.previous.transmitted;
-    return format_speedrate(bytes_diff, minwidth);
+    return format_speedrate(bytes_diff, minwidth, unit);
   }
 
   /**
@@ -223,14 +223,14 @@ namespace net {
   /**
    * Format up- and download speed
    */
-  string network::format_speedrate(float bytes_diff, int minwidth) const {
+  string network::format_speedrate(float bytes_diff, int minwidth, const string& unit) const {
     // Get time difference in seconds as a float
     const std::chrono::duration<float> duration = m_status.current.time - m_status.previous.time;
     float time_diff = duration.count();
     float speedrate = bytes_diff / time_diff;
 
-    vector<string> suffixes{"GB", "MB"};
-    string suffix{"KB"};
+    vector<string> suffixes{"G", "M"};
+    string suffix{"K"};
 
     while ((speedrate /= 1000) > 999) {
       suffix = suffixes.back();
@@ -238,7 +238,7 @@ namespace net {
     }
 
     return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
-                     << " " << suffix << "/s";
+                     << " " << suffix << unit;
   }
 
   // }}}
