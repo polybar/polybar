@@ -117,7 +117,7 @@ namespace modules {
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_CHARGING, TAG_LABEL_CHARGING});
     m_formatter->add(FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
-    m_formatter->add(FORMAT_LOW, TAG_LABEL_LOW,
+    m_formatter->add(FORMAT_LOW,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_LOW, TAG_LABEL_LOW});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
@@ -259,8 +259,12 @@ namespace modules {
   string battery_module::get_format() const {
     switch (m_state) {
       case battery_module::state::FULL: return FORMAT_FULL;
+      case battery_module::state::LOW:
+        if (m_formatter->has_format(FORMAT_LOW)) {
+          return FORMAT_LOW;
+        }  
+        // fall through
       case battery_module::state::DISCHARGING: return FORMAT_DISCHARGING;
-      case battery_module::state::LOW: return FORMAT_LOW;
       default: return FORMAT_CHARGING;
     }
   }

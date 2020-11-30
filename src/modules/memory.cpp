@@ -21,7 +21,7 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
-    m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+    m_formatter->add(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_LABEL)) {
@@ -133,7 +133,7 @@ namespace modules {
   }
   
   string memory_module::get_format() const {
-    if (m_perc_memused>= m_perc_memused_warn) {
+    if (m_perc_memused>= m_perc_memused_warn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;

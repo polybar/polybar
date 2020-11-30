@@ -21,7 +21,7 @@ namespace modules {
     m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
-    m_formatter->add(FORMAT_WARN, TAG_FALLBACK, {TAG_FALLBACK, TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
+    m_formatter->add(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
     read_values();
@@ -92,7 +92,7 @@ namespace modules {
   }
 
   string cpu_module::get_format() const {
-    if (m_total >= m_totalwarn && !m_formatter->has(TAG_FALLBACK, FORMAT_WARN)) {
+    if (m_total >= m_totalwarn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;
