@@ -21,6 +21,7 @@ using namespace std::chrono_literals;
 using std::map;
 
 #define DEFAULT_FORMAT "format"
+#define TAG_FALLBACK "<fallback>"
 
 #define DEFINE_MODULE(name, type) struct name : public type<name>
 #define CONST_MOD(name) static_cast<name const&>(*this)

@@ -132,8 +132,8 @@ namespace modules {
 	  replace_tokens(m_labelwarn);
 	}
 	if (m_labelunmounted) {
-          m_labelunmounted->reset_tokens();
-          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
+    m_labelunmounted->reset_tokens();
+    m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
 	}
       }
     }

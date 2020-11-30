@@ -17,6 +17,8 @@ TEST(Ramp, perc) {
   EXPECT_EQ("test2", r.get_by_percentage_with_borders(21, 20, 40)->get());
   EXPECT_EQ("test2", r.get_by_percentage_with_borders(39, 20, 40)->get());
   EXPECT_EQ("test3", r.get_by_percentage_with_borders(41, 20, 40)->get());
+  EXPECT_EQ("test1", r.get_by_percentage_with_borders(20, 20, 40)->get());
+  EXPECT_EQ("test3", r.get_by_percentage_with_borders(40, 20, 40)->get());
   r.add(factory_util::shared<label>("test4", 0));
   EXPECT_EQ("test2", r.get_by_percentage_with_borders(29, 20, 40)->get());
   EXPECT_EQ("test3", r.get_by_percentage_with_borders(31, 20, 40)->get());
