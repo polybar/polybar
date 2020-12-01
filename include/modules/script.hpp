@@ -18,6 +18,8 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "custom/script";
+
    protected:
     chrono::duration<double> process(const mutex_wrapper<function<chrono::duration<double>()>>& handler) const;
     bool check_condition();
@@ -27,7 +29,7 @@ namespace modules {
 
     mutex_wrapper<function<chrono::duration<double>()>> m_handler;
 
-    unique_ptr<command> m_command;
+    unique_ptr<command<output_policy::REDIRECTED>> m_command;
 
     bool m_tail;
 
@@ -44,6 +46,6 @@ namespace modules {
 
     bool m_stopping{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

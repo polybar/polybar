@@ -102,6 +102,7 @@ class fd_stream : public StreamType {
 
 namespace file_util {
   bool exists(const string& filename);
+  bool is_file(const string& filename);
   string pick(const vector<string>& filenames);
   string contents(const string& filename);
   void write_contents(const string& filename, const string& contents);
@@ -109,6 +110,7 @@ namespace file_util {
   vector<string> glob(string pattern);
   const string expand(const string& path);
   string get_config_path();
+  vector<string> list_files(const string& dirname);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

@@ -32,19 +32,19 @@ namespace modules {
     auto scroll_down = m_conf.get(name(), "scroll-down", ""s);
 
     if (!click_left.empty()) {
-      m_builder->cmd(mousebtn::LEFT, click_left);
+      m_builder->action(mousebtn::LEFT, click_left);
     }
     if (!click_middle.empty()) {
-      m_builder->cmd(mousebtn::MIDDLE, click_middle);
+      m_builder->action(mousebtn::MIDDLE, click_middle);
     }
     if (!click_right.empty()) {
-      m_builder->cmd(mousebtn::RIGHT, click_right);
+      m_builder->action(mousebtn::RIGHT, click_right);
     }
     if (!scroll_up.empty()) {
-      m_builder->cmd(mousebtn::SCROLL_UP, scroll_up);
+      m_builder->action(mousebtn::SCROLL_UP, scroll_up);
     }
     if (!scroll_down.empty()) {
-      m_builder->cmd(mousebtn::SCROLL_DOWN, scroll_down);
+      m_builder->action(mousebtn::SCROLL_DOWN, scroll_down);
     }
 
     m_builder->append(output);

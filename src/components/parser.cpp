@@ -1,6 +1,7 @@
+#include "components/parser.hpp"
+
 #include <cassert>
 
-#include "components/parser.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -218,9 +219,19 @@ size_t parser::text(string&& data) {
 /**
  * Process color hex string and convert it to the correct value
  */
-unsigned int parser::parse_color(const string& s, unsigned int fallback) {
+rgba parser::parse_color(const string& s, rgba fallback) {
   if (!s.empty() && s[0] != '-') {
-    return color_util::parse(s, fallback);
+    rgba ret = rgba{s};
+
+    if (!ret.has_color() || ret.type() == rgba::ALPHA_ONLY) {
+      logger::make().warn(
+          "Invalid color in formatting tag detected: \"%s\", using fallback \"%s\". This is an issue with one of your "
+          "formatting tags. If it is not, please report this as a bug.",
+          s, static_cast<string>(fallback));
+      return fallback;
+    }
+
+    return ret;
   }
   return fallback;
 }

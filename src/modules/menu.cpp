@@ -1,10 +1,11 @@
 #include "modules/menu.hpp"
 
 #include "drawtypes/label.hpp"
+#include "events/signal.hpp"
+#include "modules/meta/base.inl"
+#include "utils/actions.hpp"
 #include "utils/factory.hpp"
 #include "utils/scope.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -57,7 +58,7 @@ namespace modules {
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
         auto item = factory_util::unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
-        item->exec = m_conf.get(name(), item_param + "-exec", string{EVENT_MENU_CLOSE});
+        item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE, ""));
         m_levels.back()->items.emplace_back(move(item));
       }
     }
@@ -65,47 +66,31 @@ namespace modules {
 
   bool menu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_TOGGLE && m_level == -1) {
-      builder->cmd(mousebtn::LEFT, string(EVENT_MENU_OPEN) + "0");
-      builder->node(m_labelopen);
-      builder->cmd_close();
+      builder->action(mousebtn::LEFT, *this, string(EVENT_OPEN), "0", m_labelopen);
     } else if (tag == TAG_LABEL_TOGGLE && m_level > -1) {
-      builder->cmd(mousebtn::LEFT, EVENT_MENU_CLOSE);
-      builder->node(m_labelclose);
-      builder->cmd_close();
+      builder->action(mousebtn::LEFT, *this, EVENT_CLOSE, "", m_labelclose);
     } else if (tag == TAG_MENU && m_level > -1) {
       auto spacing = m_formatter->get(get_format())->spacing;
-      for (auto&& item : m_levels[m_level]->items) {
-        /*
-         * Depending on whether the menu items are to the left or right of the toggle label, the items need to be
-         * drawn before or after the spacings and the separator
-         *
-         * If the menu expands to the left, the separator should be drawn on the right side because otherwise the menu
-         * would look like this:
-         * | x | y <label-toggle>
-         */
-        if(!m_expand_right) {
-          builder->cmd(mousebtn::LEFT, item->exec);
-          builder->node(item->label);
-          builder->cmd_close();
-        }
-
-        if (*m_labelseparator) {
-          if (item != m_levels[m_level]->items[0]) {
+      //Insert separator after menu-toggle and before menu-items for expand-right=true
+      if (m_expand_right && *m_labelseparator) {
+        builder->node(m_labelseparator);
+        builder->space(spacing);
+      }
+      auto&& items = m_levels[m_level]->items;
+      for (size_t i = 0; i < items.size(); i++) {
+        auto&& item = items[i];
+        builder->action(
+            mousebtn::LEFT, *this, string(EVENT_EXEC), to_string(m_level) + "-" + to_string(i), item->label);
+        if (item != m_levels[m_level]->items.back()) {
+          builder->space(spacing);
+          if (*m_labelseparator) {
+            builder->node(m_labelseparator);
             builder->space(spacing);
           }
-          builder->node(m_labelseparator);
+        //Insert separator after last menu-item and before menu-toggle for expand-right=false
+        } else if (!m_expand_right && *m_labelseparator) {
           builder->space(spacing);
-        }
-
-        /*
-         * If the menu expands to the right, the separator should be drawn on the left side because otherwise the menu
-         * would look like this:
-         * <label-toggle> x | y |
-         */
-        if(m_expand_right) {
-          builder->cmd(mousebtn::LEFT, item->exec);
-          builder->node(item->label);
-          builder->cmd_close();
+          builder->node(m_labelseparator);
         }
       }
     } else {
@@ -114,20 +99,39 @@ namespace modules {
     return true;
   }
 
-  bool menu_module::input(string&& cmd) {
-    if (cmd.compare(0, 4, "menu") != 0 && m_level > -1) {
-      for (auto&& item : m_levels[m_level]->items) {
-        if (item->exec == cmd) {
-          m_level = -1;
-          break;
-        }
-      }
-      broadcast();
-      return false;
-    }
+  bool menu_module::input(const string& action, const string& data) {
+    if (action == EVENT_EXEC) {
+      auto sep = data.find("-");
 
-    if (cmd.compare(0, strlen(EVENT_MENU_OPEN), EVENT_MENU_OPEN) == 0) {
-      auto level = cmd.substr(strlen(EVENT_MENU_OPEN));
+      if (sep == data.npos) {
+        m_log.err("%s: Malformed data for exec action (data: '%s')", name(), data);
+        return false;
+      }
+
+      auto level = std::strtoul(data.substr(0, sep).c_str(), nullptr, 10);
+      auto item = std::strtoul(data.substr(sep + 1).c_str(), nullptr, 10);
+
+      if (level >= m_levels.size() || item >= m_levels[level]->items.size()) {
+        m_log.err("%s: menu-exec-%d-%d doesn't exist (data: '%s')", name(), level, item, data);
+        return false;
+      }
+
+      string exec = m_levels[level]->items[item]->exec;
+      // Send exec action to be executed
+      m_sig.emit(signals::ipc::action{std::move(exec)});
+
+      /*
+       * Only close the menu if the executed action is visible in the menu
+       * This stops the menu from closing, if the exec action comes from an
+       * external source
+       */
+      if (m_level == (int) level) {
+        m_level = -1;
+        broadcast();
+      }
+
+    } else if (action == EVENT_OPEN) {
+      auto level = data;
 
       if (level.empty()) {
         level = "0";
@@ -139,7 +143,7 @@ namespace modules {
         m_log.warn("%s: Cannot open unexisting menu level '%i'", name(), level);
         m_level = -1;
       }
-    } else if (cmd == EVENT_MENU_CLOSE) {
+    } else if (action == EVENT_CLOSE) {
       m_log.info("%s: Closing menu tree", name());
       m_level = -1;
     } else {

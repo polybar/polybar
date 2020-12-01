@@ -12,7 +12,9 @@ namespace modules {
     void update() {}
     string get_format() const;
     string get_output();
+
+    static constexpr auto TYPE = "custom/text";
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

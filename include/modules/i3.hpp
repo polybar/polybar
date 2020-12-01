@@ -4,14 +4,13 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class i3_module : public event_module<i3_module>, public input_handler {
+  class i3_module : public event_module<i3_module> {
    public:
     enum class state {
       NONE,
@@ -52,8 +51,14 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/i3";
+
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
    protected:
-    bool input(string&& cmd);
+    bool input(const string& action, const string& data);
 
    private:
     static string make_workspace_command(const string& workspace);
@@ -65,11 +70,6 @@ namespace modules {
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};
-
-    static constexpr const char* EVENT_PREFIX{"i3wm"};
-    static constexpr const char* EVENT_CLICK{"i3wm-wsfocus-"};
-    static constexpr const char* EVENT_SCROLL_UP{"i3wm-wsnext"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"i3wm-wsprev"};
 
     map<state, label_t> m_statelabels;
     vector<unique_ptr<workspace>> m_workspaces;

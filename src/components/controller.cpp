@@ -1,6 +1,7 @@
 #include "components/controller.hpp"
 
 #include <csignal>
+#include <utility>
 
 #include "components/bar.hpp"
 #include "components/builder.hpp"
@@ -10,11 +11,13 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
-#include "utils/command.hpp"
+#include "utils/actions.hpp"
 #include "utils/factory.hpp"
 #include "utils/inotify.hpp"
+#include "utils/process.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
 #include "x11/connection.hpp"
@@ -58,7 +61,12 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     , m_bar(forward<decltype(bar)>(bar))
     , m_ipc(forward<decltype(ipc)>(ipc))
     , m_confwatch(forward<decltype(confwatch)>(confwatch)) {
-  m_swallow_input = m_conf.get("settings", "throttle-input-for", m_swallow_input);
+  if (m_conf.has("settings", "throttle-input-for")) {
+    m_log.warn(
+        "The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please "
+        "remove it from your config");
+  }
+
   m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
   m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
 
@@ -139,12 +147,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
 
   size_t started_modules{0};
   for (const auto& module : m_modules) {
-    auto inp_handler = dynamic_cast<input_handler*>(&*module);
     auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
-
-    if (inp_handler != nullptr) {
-      m_inputhandlers.emplace_back(inp_handler);
-    }
 
     if (evt_handler != nullptr) {
       evt_handler->connect(m_connection);
@@ -173,7 +176,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
     m_event_thread.join();
   }
 
-  m_log.warn("Termination signal received, shutting down...");
+  m_log.notice("Termination signal received, shutting down...");
 
   return !g_reload;
 }
@@ -201,8 +204,6 @@ bool controller::enqueue(event&& evt) {
 bool controller::enqueue(string&& input_data) {
   if (!m_inputdata.empty()) {
     m_log.trace("controller: Swallowing input event (pending data)");
-  } else if (chrono::system_clock::now() - m_swallow_input < m_lastinput) {
-    m_log.trace("controller: Swallowing input event (throttled)");
   } else {
     m_inputdata = forward<string>(input_data);
     return enqueue(make_input_evt());
@@ -385,36 +386,186 @@ void controller::process_eventqueue() {
 }
 
 /**
+ * Tries to match the given command to a legacy action string and sends the
+ * appropriate new action (and data) to the right module if possible.
+ *
+ * \returns true iff the given command matches a legacy action string and was
+ *          successfully forwarded to a module
+ */
+bool controller::try_forward_legacy_action(const string& cmd) {
+  /*
+   * Maps legacy action names to a module type and the new action name in that module.
+   *
+   * We try to match the old action name as a prefix, and everything after it will also be added to the end of the new
+   * action string (for example "mpdseek+5" will be redirected to "seek.+5" in the first mpd module).
+   *
+   * The action will be delivered to the first module of that type so that it is consistent with existing behavior.
+   * If the module does not support the action or no matching module is found, the command is forwarded to the shell.
+   *
+   * TODO Remove when deprecated action names are removed
+   */
+// clang-format off
+#define A_MAP(old, module_name, event) {old, {string(module_name::TYPE), string(module_name::event)}}
+
+  static const std::unordered_map<string, std::pair<string, const string>> legacy_actions{
+    A_MAP("datetoggle", date_module, EVENT_TOGGLE),
+#if ENABLE_ALSA
+    A_MAP("volup", alsa_module, EVENT_INC),
+    A_MAP("voldown", alsa_module, EVENT_DEC),
+    A_MAP("volmute", alsa_module, EVENT_TOGGLE),
+#endif
+#if ENABLE_PULSEAUDIO
+    A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
+    A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),
+    A_MAP("pa_volmute", pulseaudio_module, EVENT_TOGGLE),
+#endif
+    A_MAP("xbacklight+", xbacklight_module, EVENT_INC),
+    A_MAP("xbacklight-", xbacklight_module, EVENT_DEC),
+    A_MAP("backlight+", backlight_module, EVENT_INC),
+    A_MAP("backlight-", backlight_module, EVENT_DEC),
+#if ENABLE_XKEYBOARD
+    A_MAP("xkeyboard/switch", xkeyboard_module, EVENT_SWITCH),
+#endif
+#if ENABLE_MPD
+    A_MAP("mpdplay", mpd_module, EVENT_PLAY),
+    A_MAP("mpdpause", mpd_module, EVENT_PAUSE),
+    A_MAP("mpdstop", mpd_module, EVENT_STOP),
+    A_MAP("mpdprev", mpd_module, EVENT_PREV),
+    A_MAP("mpdnext", mpd_module, EVENT_NEXT),
+    A_MAP("mpdrepeat", mpd_module, EVENT_REPEAT),
+    A_MAP("mpdsingle", mpd_module, EVENT_SINGLE),
+    A_MAP("mpdrandom", mpd_module, EVENT_RANDOM),
+    A_MAP("mpdconsume", mpd_module, EVENT_CONSUME),
+    // Has data
+    A_MAP("mpdseek", mpd_module, EVENT_SEEK),
+#endif
+    // Has data
+    A_MAP("xworkspaces-focus=", xworkspaces_module, EVENT_FOCUS),
+    A_MAP("xworkspaces-next", xworkspaces_module, EVENT_NEXT),
+    A_MAP("xworkspaces-prev", xworkspaces_module, EVENT_PREV),
+    // Has data
+    A_MAP("bspwm-deskfocus", bspwm_module, EVENT_FOCUS),
+    A_MAP("bspwm-desknext", bspwm_module, EVENT_NEXT),
+    A_MAP("bspwm-deskprev", bspwm_module, EVENT_PREV),
+#if ENABLE_I3
+    // Has data
+    A_MAP("i3wm-wsfocus-", i3_module, EVENT_FOCUS),
+    A_MAP("i3wm-wsnext", i3_module, EVENT_NEXT),
+    A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
+#endif
+    // Has data
+    A_MAP("menu-open-", menu_module, EVENT_OPEN),
+    A_MAP("menu-close", menu_module, EVENT_CLOSE),
+  };
+#undef A_MAP
+  // clang-format on
+
+  // Check if any key in the map is a prefix for the `cmd`
+  for (const auto& entry : legacy_actions) {
+    const auto& key = entry.first;
+    if (cmd.compare(0, key.length(), key) == 0) {
+      string type = entry.second.first;
+      auto data = cmd.substr(key.length());
+      string action = entry.second.second;
+
+      // Search for the first module that matches the type for this legacy action
+      for (auto&& module : m_modules) {
+        if (module->type() == type) {
+          auto module_name = module->name_raw();
+          // TODO make this message more descriptive and maybe link to some documentation
+          // TODO use route to string methods to print action name that should be used.
+          if (data.empty()) {
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, module_name, action);
+          } else {
+            m_log.warn("The action '%s' is deprecated, use '#%s.%s.%s' instead!", cmd, module_name, action, data);
+          }
+          m_log.warn("Consult the 'Actions' page in the polybar documentation for more information.");
+          m_log.info(
+              "Forwarding legacy action '%s' to module '%s' as '%s' with data '%s'", cmd, module_name, action, data);
+          if (!module->input(action, data)) {
+            m_log.err("Failed to forward deprecated action to %s module", type);
+            // Forward to shell if the module cannot accept the action to not break existing behavior.
+            return false;
+          }
+          // Only deliver to the first matching module.
+          return true;
+        }
+      }
+    }
+  }
+
+  /*
+   * If we couldn't find any matching legacy action, we return false and let
+   * the command be forwarded to the shell
+   */
+  return false;
+}
+
+bool controller::forward_action(const actions_util::action& action_triple) {
+  string module_name = std::get<0>(action_triple);
+  string action = std::get<1>(action_triple);
+  string data = std::get<2>(action_triple);
+
+  m_log.info("Forwarding action to modules (module: '%s', action: '%s', data: '%s')", module_name, action, data);
+
+  int num_delivered = 0;
+
+  // Forwards the action to all modules that match the name
+  for (auto&& module : m_modules) {
+    if (module->name_raw() == module_name) {
+      if (!module->input(action, data)) {
+        m_log.err("The '%s' module does not support the '%s' action.", module_name, action);
+      }
+
+      num_delivered++;
+    }
+  }
+
+  if (num_delivered == 0) {
+    m_log.err("Could not forward action to module: No module named '%s' (action: '%s', data: '%s')", module_name,
+        action, data);
+  } else {
+    m_log.info("Delivered action to %d module%s", num_delivered, num_delivered > 1 ? "s" : "");
+  }
+  return true;
+}
+
+/**
  * Process stored input data
  */
 void controller::process_inputdata() {
-  if (!m_inputdata.empty()) {
-    string cmd = m_inputdata;
-    m_lastinput = chrono::time_point_cast<decltype(m_swallow_input)>(chrono::system_clock::now());
-    m_inputdata.clear();
+  if (m_inputdata.empty()) {
+    return;
+  }
 
-    for (auto&& handler : m_inputhandlers) {
-      if (handler->input(string{cmd})) {
-        return;
-      }
-    }
+  const string cmd = std::move(m_inputdata);
+  m_inputdata = string{};
 
+  m_log.trace("controller: Processing inputdata: %s", cmd);
+
+  // Every command that starts with '#' is considered an action string.
+  if (cmd.front() == '#') {
     try {
-      m_log.info("Uncaught input event, forwarding to shell... (input: %s)", cmd);
-
-      if (m_command) {
-        m_log.warn("Terminating previous shell command");
-        m_command->terminate();
-      }
-
-      m_log.info("Executing shell command: %s", cmd);
-      m_command = command_util::make_command(move(cmd));
-      m_command->exec();
-      m_command.reset();
-      process_update(true);
-    } catch (const application_error& err) {
-      m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
+      this->forward_action(actions_util::parse_action_string(cmd));
+    } catch (runtime_error& e) {
+      m_log.err("Invalid action string (action: %s, reason: %s)", cmd, e.what());
     }
+
+    return;
+  }
+
+  if (this->try_forward_legacy_action(cmd)) {
+    return;
+  }
+
+  try {
+    // Run input as command if it's not an input for a module
+    m_log.info("Forwarding command to shell... (input: %s)", cmd);
+    m_log.info("Executing shell command: %s", cmd);
+    process_util::fork_detached([cmd] { process_util::exec_sh(cmd.c_str()); });
+    process_update(true);
+  } catch (const application_error& err) {
+    m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 }
 
@@ -559,7 +710,7 @@ size_t controller::setup_modules(alignment align) {
     try {
       auto type = m_conf.get("module/" + module_name, "type");
 
-      if (type == "custom/ipc" && !m_ipc) {
+      if (type == ipc_module::TYPE && !m_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");
       }
 

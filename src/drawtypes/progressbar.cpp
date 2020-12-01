@@ -1,7 +1,8 @@
+#include "drawtypes/progressbar.hpp"
+
 #include <utility>
 
 #include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
@@ -31,7 +32,7 @@ namespace drawtypes {
     m_gradient = mode;
   }
 
-  void progressbar::set_colors(vector<string>&& colors) {
+  void progressbar::set_colors(vector<rgba>&& colors) {
     m_colors = forward<decltype(colors)>(colors);
 
     m_colorstep = m_colors.empty() ? 1 : m_width / m_colors.size();
@@ -98,7 +99,7 @@ namespace drawtypes {
 
     auto pbar = factory_util::shared<progressbar>(bar, width, format);
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
-    pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
+    pbar->set_colors(conf.get_list(section, name + "-foreground", vector<rgba>{}));
 
     label_t icon_empty;
     label_t icon_fill;
@@ -118,11 +119,11 @@ namespace drawtypes {
     // but not for the empty icon we use the bar's default colors to
     // avoid color bleed
     if (icon_empty && icon_indicator) {
-      if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty()) {
-        icon_empty->m_background = color_util::hex<unsigned short int>(bar.background);
+      if (icon_indicator->m_background.has_color() && !icon_empty->m_background.has_color()) {
+        icon_empty->m_background = bar.background;
       }
-      if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty()) {
-        icon_empty->m_foreground = color_util::hex<unsigned short int>(bar.foreground);
+      if (icon_indicator->m_foreground.has_color() && !icon_empty->m_foreground.has_color()) {
+        icon_empty->m_foreground = bar.foreground;
       }
     }
 
@@ -132,6 +133,6 @@ namespace drawtypes {
 
     return pbar;
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

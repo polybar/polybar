@@ -32,6 +32,8 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 
+    static constexpr auto TYPE = "custom/ipc";
+
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
     vector<unique_ptr<hook>> m_hooks;
@@ -39,6 +41,6 @@ namespace modules {
     string m_output;
     size_t m_initial;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

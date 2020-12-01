@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cairo/cairo.h>
+
 #include <bitset>
 #include <memory>
 
@@ -128,10 +129,10 @@ class renderer
   alignment m_align;
   std::bitset<3> m_attr;
   int m_font{0};
-  unsigned int m_bg{0U};
-  unsigned int m_fg{0U};
-  unsigned int m_ol{0U};
-  unsigned int m_ul{0U};
+  rgba m_bg{};
+  rgba m_fg{};
+  rgba m_ol{};
+  rgba m_ul{};
   vector<action_block> m_actions;
 
   bool m_fixedcenter;

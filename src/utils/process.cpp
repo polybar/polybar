@@ -1,9 +1,13 @@
+#include "utils/process.hpp"
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "errors.hpp"
 #include "utils/env.hpp"
-#include "utils/process.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -21,6 +25,50 @@ namespace process_util {
    */
   bool in_forked_process(pid_t pid) {
     return pid == 0;
+  }
+
+  /**
+   * Redirects all io fds (stdin, stdout, stderr) of the current process to /dev/null.
+   */
+  void redirect_stdio_to_dev_null() {
+    auto redirect = [](int fd_to_redirect) {
+      int fd = open("/dev/null", O_WRONLY);
+      if (fd < 0 || dup2(fd, fd_to_redirect) < 0) {
+        throw system_error("Failed to redirect process output");
+      }
+      close(fd);
+    };
+
+    redirect(STDIN_FILENO);
+    redirect(STDOUT_FILENO);
+    redirect(STDERR_FILENO);
+  }
+
+  /**
+   * Forks a child process and completely detaches it.
+   *
+   * In the child process, the given lambda function is executed.
+   *
+   * Use this if you want to run a command and just forget about it.
+   *
+   * \returns The PID of the child process
+   */
+  pid_t fork_detached(std::function<void()> const& lambda) {
+    pid_t pid = fork();
+    switch (pid) {
+      case -1:
+        throw runtime_error("fork_detached: Unable to fork: " + string(strerror(errno)));
+      case 0:
+        // Child
+        setsid();
+        umask(0);
+        redirect_stdio_to_dev_null();
+        lambda();
+        _Exit(0);
+        break;
+      default:
+        return pid;
+    }
   }
 
   /**
@@ -62,14 +110,6 @@ namespace process_util {
   }
 
   /**
-   * Wait for child process
-   */
-  pid_t wait_for_completion(pid_t process_id) {
-    int status = 0;
-    return wait_for_completion(process_id, &status);
-  }
-
-  /**
    * Non-blocking wait
    *
    * \see wait_for_completion
@@ -105,6 +145,6 @@ namespace process_util {
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;
   }
-}
+}  // namespace process_util
 
 POLYBAR_NS_END

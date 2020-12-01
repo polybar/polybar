@@ -13,7 +13,6 @@
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;
@@ -22,7 +21,6 @@ using std::map;
 
 #define DEFAULT_FORMAT "format"
 
-#define DEFINE_MODULE(name, type) struct name : public type<name>
 #define CONST_MOD(name) static_cast<name const&>(*this)
 #define CAST_MOD(name) static_cast<name*>(this)
 
@@ -37,7 +35,7 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 class builder;
 class config;
@@ -60,10 +58,10 @@ namespace modules {
     vector<string> tags{};
     label_t prefix{};
     label_t suffix{};
-    string fg{};
-    string bg{};
-    string ul{};
-    string ol{};
+    rgba fg{};
+    rgba bg{};
+    rgba ul{};
+    rgba ol{};
     size_t ulsize{0};
     size_t olsize{0};
     size_t spacing{0};
@@ -101,8 +99,27 @@ namespace modules {
    public:
     virtual ~module_interface() {}
 
+    /**
+     * The type users have to specify in the module section `type` key
+     */
+    virtual string type() const = 0;
+
+    /**
+     * Module name w/o 'module/' prefix
+     */
+    virtual string name_raw() const = 0;
     virtual string name() const = 0;
     virtual bool running() const = 0;
+
+    /**
+     * Handle action, possibly with data attached
+     *
+     * Any implementation is free to ignore the data, if the action does not
+     * require additional data.
+     *
+     * \returns true if the action is supported and false otherwise
+     */
+    virtual bool input(const string& action, const string& data) = 0;
 
     virtual void start() = 0;
     virtual void stop() = 0;
@@ -119,6 +136,9 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
+    string type() const;
+
+    string name_raw() const;
     string name() const;
     bool running() const;
     void stop();
@@ -126,10 +146,16 @@ namespace modules {
     void teardown();
     string contents();
 
+    bool input(const string& action, const string& data);
+
+    static constexpr auto TYPE = "";
+
    protected:
     void broadcast();
     void idle();
     void sleep(chrono::duration<double> duration);
+    template <class Clock, class Duration>
+    void sleep_until(chrono::time_point<Clock, Duration> point);
     void wakeup();
     string get_format() const;
     string get_output();
@@ -145,7 +171,8 @@ namespace modules {
     mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 
-    string m_name;
+    const string m_name;
+    const string m_name_raw;
     unique_ptr<builder> m_builder;
     unique_ptr<module_formatter> m_formatter;
     vector<thread> m_threads;
@@ -160,6 +187,6 @@ namespace modules {
   };
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END
