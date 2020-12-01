@@ -138,7 +138,7 @@ not affect polybar's behavior. Comment lines start with either the ``;`` or the
 .. note::
 
   Inline comments are not supported. For example the following line does not end
-  with a comment, they value of ``name`` is actually set to ``value ; comment``:
+  with a comment, the value of ``name`` is actually set to ``value ; comment``:
 
   ::
 
