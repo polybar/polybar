@@ -231,13 +231,15 @@ namespace net {
 
     vector<string> suffixes{"G", "M"};
     string suffix{"K"};
+    int precision = 0;
 
     while ((speedrate /= 1000) > 999) {
       suffix = suffixes.back();
       suffixes.pop_back();
+      precision++;
     }
 
-    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
+    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(precision) << std::fixed << speedrate
                      << " " << suffix << unit;
   }
 
