@@ -35,8 +35,8 @@ class rgba {
   uint8_t blue_i() const;
 
   bool has_color() const;
-  rgba apply_alpha(rgba other) const;
-  rgba try_apply_alpha(rgba other) const;
+  rgba apply_alpha_to(rgba other) const;
+  rgba try_apply_alpha_to(rgba other) const;
 
  private:
   /**

@@ -259,7 +259,7 @@ void builder::font_close() {
  * Insert tag to alter the current background color
  */
 void builder::background(rgba color) {
-  color = m_bar.background.try_apply_alpha(color);
+  color = color.try_apply_alpha_to(m_bar.background);
 
   auto hex = color_util::simplify_hex(color);
   m_colors[syntaxtag::B] = hex;
@@ -278,7 +278,7 @@ void builder::background_close() {
  * Insert tag to alter the current foreground color
  */
 void builder::color(rgba color) {
-  color = m_bar.foreground.try_apply_alpha(color);
+  color = color.try_apply_alpha_to(m_bar.foreground);
 
   auto hex = color_util::simplify_hex(color);
   m_colors[syntaxtag::F] = hex;
