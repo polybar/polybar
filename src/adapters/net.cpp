@@ -229,15 +229,17 @@ namespace net {
     float time_diff = duration.count();
     float speedrate = bytes_diff / time_diff;
 
-    vector<string> suffixes{"G", "M"};
+    vector<pair<string,int>> units{make_pair("G", 2), make_pair("M", 1)};
     string suffix{"K"};
+    int precision = 0;
 
     while ((speedrate /= 1000) > 999) {
-      suffix = suffixes.back();
-      suffixes.pop_back();
+      suffix = units.back().first;
+      precision = units.back().second;
+      units.pop_back();
     }
 
-    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(0) << std::fixed << speedrate
+    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(precision) << std::fixed << speedrate
                      << " " << suffix << unit;
   }
 
