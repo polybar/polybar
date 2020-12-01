@@ -83,7 +83,7 @@ namespace modules {
     explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
-    void add(string name, vector<string>&& tags, vector<string>&& whitelist = {});
+    void add_optional(string name, vector<string>&& tags, vector<string>&& whitelist = {});
     bool has(const string& tag, const string& format_name);
     bool has(const string& tag);
     bool has_format(const string& format_name);

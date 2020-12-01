@@ -142,9 +142,10 @@ namespace modules {
     add_value(move(name), m_conf.get(m_modname, move(name), move(fallback)), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
   }
   	
-  void module_formatter::add(string name, vector<string>&& tags, vector<string>&& whitelist) {
-   	if (m_conf.has(m_modname, name))
+  void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
+   	if (m_conf.has(m_modname, name)) {
       add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
+   	}
   }
 
   bool module_formatter::has(const string& tag, const string& format_name) {

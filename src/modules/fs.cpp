@@ -174,8 +174,9 @@ namespace modules {
   string fs_module::get_format() const {
     if (!m_mounts[m_index]->mounted)
       return FORMAT_UNMOUNTED;
-    if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has(FORMAT_WARN))
+    if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has(FORMAT_WARN)) {
       return FORMAT_WARN;
+    }
     return FORMAT_MOUNTED;
   }
 
