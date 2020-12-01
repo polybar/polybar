@@ -84,7 +84,10 @@ class config {
   template <typename T = string>
   T get(const string& section, const string& key) const {
     auto it = m_sections.find(section);
-    if (it == m_sections.end() || it->second.find(key) == it->second.end()) {
+    if (it == m_sections.end()) {
+      throw key_error("Missing section \"" + section + "\"");
+    }
+    if (it->second.find(key) == it->second.end()) {
       throw key_error("Missing parameter \"" + section + "." + key + "\"");
     }
     return dereference<T>(section, key, it->second.at(key), convert<T>(string{it->second.at(key)}));
@@ -101,6 +104,9 @@ class config {
       T result{convert<T>(string{string_value})};
       return dereference<T>(move(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
+      return default_value;
+    } catch (const value_error& err) {
+      m_log.err("Invalid value for \"%s.%s\", using default value (reason: %s)", section, key, err.what());
       return default_value;
     }
   }
@@ -162,6 +168,9 @@ class config {
         }
       } catch (const key_error& err) {
         break;
+      } catch (const value_error& err) {
+        m_log.err("Invalid value in list \"%s.%s\", using list as-is (reason: %s)", section, key, err.what());
+        return default_value;
       }
     }
 

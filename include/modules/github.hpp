@@ -18,6 +18,8 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     string get_format() const;
 
+    static constexpr auto TYPE = "internal/github";
+
    private:
     void update_label(int);
     int get_number_of_notification();

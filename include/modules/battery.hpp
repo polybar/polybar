@@ -55,6 +55,8 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/battery";
+
    protected:
     state current_state();
     int current_percentage();
@@ -113,6 +115,6 @@ namespace modules {
     chrono::system_clock::time_point m_lastpoll;
     thread m_subthread;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

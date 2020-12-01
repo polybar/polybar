@@ -16,6 +16,8 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/memory";
+
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
     static constexpr const char* TAG_LABEL_WARN{"<label-warn>"};
@@ -45,6 +47,6 @@ namespace modules {
     ramp_t m_ramp_swapused;
     ramp_t m_ramp_swapfree;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

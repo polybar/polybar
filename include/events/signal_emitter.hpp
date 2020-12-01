@@ -34,7 +34,7 @@ class signal_emitter {
         }
       }
     } catch (const std::exception& e) {
-      logger::make().err(e.what());
+      logger::make().err("Signal receiver raised an exception: %s", e.what());
     }
 
     return false;

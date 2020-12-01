@@ -172,9 +172,9 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_keyboard && m_keyboard->size() > 1) {
-      m_builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH, "");
       m_builder->append(output);
-      m_builder->cmd_close();
+      m_builder->action_close();
     } else {
       m_builder->append(output);
     }
@@ -207,8 +207,8 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(string&& cmd) {
-    if (cmd.compare(0, strlen(EVENT_SWITCH), EVENT_SWITCH) != 0) {
+  bool xkeyboard_module::input(const string& action, const string&) {
+    if (action != EVENT_SWITCH) {
       return false;
     }
 

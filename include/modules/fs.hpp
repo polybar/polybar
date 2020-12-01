@@ -1,8 +1,8 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -42,6 +42,8 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/fs";
+
    private:
     static constexpr auto FORMAT_MOUNTED = "format-mounted";
     static constexpr auto FORMAT_WARN = "format-warn";
@@ -70,6 +72,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0_z};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

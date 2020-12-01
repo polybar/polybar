@@ -78,7 +78,7 @@ namespace modules {
 
     for (auto&& action : m_actions) {
       if (!action.second.empty()) {
-        m_builder->cmd(action.first, action.second);
+        m_builder->action(action.first, action.second);
       }
     }
 

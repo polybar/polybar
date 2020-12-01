@@ -1,12 +1,11 @@
 #pragma once
 
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class menu_module : public static_module<menu_module>, public input_handler {
+  class menu_module : public static_module<menu_module> {
    public:
     struct menu_tree_item {
       string exec;
@@ -23,15 +22,18 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     void update() {}
 
+    static constexpr auto TYPE = "custom/menu";
+
+    static constexpr auto EVENT_OPEN = "open";
+    static constexpr auto EVENT_CLOSE = "close";
+    static constexpr auto EVENT_EXEC = "exec";
+
    protected:
-    bool input(string&& cmd);
+    bool input(const string& action, const string& data);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";
     static constexpr auto TAG_MENU = "<menu>";
-
-    static constexpr auto EVENT_MENU_OPEN = "menu-open-";
-    static constexpr auto EVENT_MENU_CLOSE = "menu-close";
 
     bool m_expand_right{true};
 
@@ -43,6 +45,6 @@ namespace modules {
 
     std::atomic<int> m_level{-1};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -10,6 +10,7 @@
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
 #include "settings.hpp"
+#include "utils/actions.hpp"
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
@@ -19,8 +20,6 @@ POLYBAR_NS
 
 enum class alignment;
 class bar;
-template <output_policy>
-class command;
 class config;
 class connection;
 class inotify_watch;
@@ -29,7 +28,6 @@ class logger;
 class signal_emitter;
 namespace modules {
   struct module_interface;
-  class input_handler;
 }  // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
@@ -75,6 +73,9 @@ class controller
  private:
   size_t setup_modules(alignment align);
 
+  bool forward_action(const actions_util::action& cmd);
+  bool try_forward_legacy_action(const string& cmd);
+
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
@@ -82,7 +83,6 @@ class controller
   unique_ptr<bar> m_bar;
   unique_ptr<ipc> m_ipc;
   unique_ptr<inotify_watch> m_confwatch;
-  unique_ptr<command<output_policy::IGNORED>> m_command;
 
   array<unique_ptr<file_descriptor>, 2> m_queuefd{};
 
@@ -115,11 +115,6 @@ class controller
    * \brief Loaded modules grouped by block
    */
   modulemap_t m_blocks;
-
-  /**
-   * \brief Module input handlers
-   */
-  vector<modules::input_handler*> m_inputhandlers;
 
   /**
    * \brief Maximum number of subsequent events to swallow

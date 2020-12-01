@@ -1,7 +1,4 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD
-#error "Support has been enabled for all optional modules"
-#endif
 
 #include "modules/meta/base.hpp"
 #include "modules/meta/base.inl"
@@ -17,6 +14,13 @@ namespace modules {
     MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
+    static constexpr auto TYPE = MODULE_TYPE;                                           \
+    string type() const {                                                               \
+      return "";                                                                        \
+    }                                                                                   \
+    string name_raw() const {                                                           \
+      return "";                                                                        \
+    }                                                                                   \
     string name() const {                                                               \
       return "";                                                                        \
     }                                                                                   \
@@ -28,6 +32,9 @@ namespace modules {
     void halt(string) {}                                                                \
     string contents() {                                                                 \
       return "";                                                                        \
+    }                                                                                   \
+    bool input(const string&, const string&) {                                          \
+      return false;                                                                     \
     }                                                                                   \
   }
 
@@ -52,6 +59,6 @@ namespace modules {
 #if not ENABLE_XKEYBOARD
   DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
 #endif
-}
+}  // namespace modules
 
 POLYBAR_NS_END

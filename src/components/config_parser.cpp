@@ -1,7 +1,12 @@
 #include "components/config_parser.hpp"
 
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <fstream>
+
+#include "utils/file.hpp"
+#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -87,6 +92,14 @@ void config_parser::parse_file(const string& file, file_list path) {
 
     // We have already parsed this file in this path, so there are cyclic dependencies
     throw application_error("include-file: Dependency cycle detected:\n" + path_str);
+  }
+
+  if (!file_util::exists(file)) {
+    throw application_error("Failed to open config file " + file + ": " + strerror(errno));
+  }
+
+  if (!file_util::is_file(file)) {
+    throw application_error("Config file " + file + " is not a file");
   }
 
   m_log.trace("config_parser: Parsing %s", file);

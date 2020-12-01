@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "errors.hpp"
+#include "utils/color.hpp"
 
 POLYBAR_NS
 
@@ -29,7 +30,7 @@ class parser {
   void codeblock(string&& data, const bar_settings& bar);
   size_t text(string&& data);
 
-  static unsigned int parse_color(const string& s, unsigned int fallback = 0);
+  static rgba parse_color(const string& s, rgba fallback = rgba{0});
   static int parse_fontindex(const string& s);
   static attribute parse_attr(const char attr);
   mousebtn parse_action_btn(const string& data);
