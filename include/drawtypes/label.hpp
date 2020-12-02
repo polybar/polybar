@@ -70,6 +70,11 @@ namespace drawtypes {
     void reset_tokens(const string& tokenized);
     bool has_token(const string& token) const;
     void replace_token(const string& token, string replacement);
+    /**
+     * \brief Replace the token by the replacement strings.
+     * Note: spaces at the end are trimmed.
+     */
+    void replace_compound_token(const string& token, const std::vector<string>& replacements, const string& join);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 
