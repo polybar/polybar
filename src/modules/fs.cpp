@@ -36,9 +36,8 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
-    m_formatter->add(
-        FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
-    m_formatter->add_optional(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
+    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
+    m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
       m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
@@ -172,9 +171,10 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
-    if (!m_mounts[m_index]->mounted)
-      return FORMAT_UNMOUNTED;
-    if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has(FORMAT_WARN)) {
+    if (!m_mounts[m_index]->mounted) {
+    	return FORMAT_UNMOUNTED;
+    }
+    if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
     }
     return FORMAT_MOUNTED;
