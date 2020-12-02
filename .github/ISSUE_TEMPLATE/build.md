@@ -24,7 +24,7 @@ Put an 'x' inside the brackets ([x]) of the entry that applies and respond to th
 -->
 
 * [ ] From a release archive (Which version?)
-* [ ] By cloning this repository (What is the of `git describe --tags`?)
+* [ ] By cloning this repository (What is the output of `git describe --tags`?)
 * [ ] Some other way (How?)
 
 <!-- List the exact commands you are using to build polybar: -->
