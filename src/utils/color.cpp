@@ -140,21 +140,22 @@ bool rgba::has_color() const {
 }
 
 /**
- * Replaces the current alpha channel with the alpha channel of the other color
- *
- * Useful for ALPHA_ONLY colors
+ * Applies the alpha channel of this color to the given color.
  */
-rgba rgba::apply_alpha(rgba other) const {
-  uint32_t val = (m_value & 0x00FFFFFF) | (((uint32_t)other.alpha_i()) << 24);
+rgba rgba::apply_alpha_to(rgba other) const {
+  uint32_t val = (other.value() & 0x00FFFFFF) | (((uint32_t)alpha_i()) << 24);
   return rgba(val, m_type);
 }
 
 /**
- * Calls apply_alpha, if the given color is ALPHA_ONLY.
+ * If this is an ALPHA_ONLY color, applies this alpha channel to the other
+ * color, otherwise just returns this.
+ *
+ * \returns the new color if this is ALPHA_ONLY or a copy of this otherwise.
  */
-rgba rgba::try_apply_alpha(rgba other) const {
-  if (other.type() == ALPHA_ONLY) {
-    return apply_alpha(other);
+rgba rgba::try_apply_alpha_to(rgba other) const {
+  if (m_type == ALPHA_ONLY) {
+    return apply_alpha_to(other);
   }
 
   return *this;

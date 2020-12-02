@@ -96,14 +96,24 @@ TEST(Rgba, channel) {
   EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.green_d());
 }
 
-TEST(Rgba, applyAlpha) {
-  rgba v{0xCC123456};
-  rgba modified = v.apply_alpha(rgba{0xAA000000, rgba::ALPHA_ONLY});
+TEST(Rgba, applyAlphaTo) {
+  rgba v{0xAA000000, rgba::ALPHA_ONLY};
+  rgba modified = v.apply_alpha_to(rgba{0xCC123456, rgba::ALPHA_ONLY});
   EXPECT_EQ(0xAA123456, modified.value());
 
-  v = rgba{0x00123456};
-  modified = v.apply_alpha(rgba{0xCC999999});
+  v = rgba{0xCC999999};
+  modified = v.apply_alpha_to(rgba{0x00123456});
   EXPECT_EQ(0xCC123456, modified.value());
+}
+
+TEST(Rgba, tryApplyAlphaTo) {
+  rgba v{0xAA000000, rgba::ALPHA_ONLY};
+  rgba modified = v.try_apply_alpha_to(rgba{0xCC123456, rgba::ALPHA_ONLY});
+  EXPECT_EQ(0xAA123456, modified.value());
+
+  v = rgba{0xCC999999};
+  modified = v.try_apply_alpha_to(rgba{0x00123456});
+  EXPECT_EQ(0xCC999999, modified.value());
 }
 
 TEST(ColorUtil, simplify) {
