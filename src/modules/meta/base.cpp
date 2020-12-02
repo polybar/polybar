@@ -86,13 +86,12 @@ namespace modules {
   // }}}
   // module_formatter {{{
 
-  void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](const string& param, const auto& fallback) {
-      return m_conf.get("settings", "format-" + param, fallback);
-    };
+  void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
+    const auto formatdef = [&](
+        const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
 
     auto format = make_unique<module_format>();
-    format->value = m_conf.get(m_modname, name, move(fallback));
+    format->value = move(value);
     format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
     format->bg = m_conf.get(m_modname, name + "-background", formatdef("background", format->bg));
     format->ul = m_conf.get(m_modname, name + "-underline", formatdef("underline", format->ul));
@@ -124,7 +123,6 @@ namespace modules {
     tag_collection.insert(tag_collection.end(), whitelist.begin(), whitelist.end());
 
     size_t start, end;
-    string value{format->value};
     while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
       if (start > 0) {
         value.erase(0, start);
@@ -139,6 +137,16 @@ namespace modules {
     }
 
     m_formats.insert(make_pair(move(name), move(format)));
+  }
+
+  void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
+    add_value(move(name), m_conf.get(m_modname, move(name), move(fallback)), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
+  }
+
+  void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
+    if (m_conf.has(m_modname, name)) {
+      add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
+    }
   }
 
   bool module_formatter::has(const string& tag, const string& format_name) {
@@ -156,6 +164,10 @@ namespace modules {
       }
     }
     return false;
+  }
+
+  bool module_formatter::has_format(const string& format_name) {
+    return m_formats.find(format_name) != m_formats.end();
   }
 
   shared_ptr<module_format> module_formatter::get(const string& format_name) {

@@ -81,11 +81,15 @@ namespace modules {
     explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
+    void add_optional(string name, vector<string>&& tags, vector<string>&& whitelist = {});
     bool has(const string& tag, const string& format_name);
     bool has(const string& tag);
+    bool has_format(const string& format_name);
     shared_ptr<module_format> get(const string& format_name);
 
    protected:
+    void add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist);
+
     const config& m_conf;
     string m_modname;
     map<string, shared_ptr<module_format>> m_formats;

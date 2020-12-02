@@ -35,8 +35,6 @@ namespace modules {
     int m_tempbase = 0;
     int m_tempwarn = 0;
     int m_temp = 0;
-    // Percentage used in the ramp
-    int m_perc = 0;
 
     // Whether or not to show units with the %temperature-X% tokens
     bool m_units{true};
