@@ -145,7 +145,7 @@ namespace modules {
 
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
     if (m_conf.has(m_modname, name)) {
-    add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
+      add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
     }
   }
 
