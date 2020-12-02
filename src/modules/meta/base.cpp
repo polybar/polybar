@@ -86,7 +86,7 @@ namespace modules {
   // }}}
   // module_formatter {{{
 
-	void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
+  void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
     const auto formatdef = [&](
         const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
 
@@ -138,15 +138,15 @@ namespace modules {
 
     m_formats.insert(make_pair(move(name), move(format)));
   }
-  	
+
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
     add_value(move(name), m_conf.get(m_modname, move(name), move(fallback)), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
   }
-  	
+
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
-   	if (m_conf.has(m_modname, name)) {
-      add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
-   	}
+    if (m_conf.has(m_modname, name)) {
+    add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
+    }
   }
 
   bool module_formatter::has(const string& tag, const string& format_name) {

@@ -124,16 +124,16 @@ namespace modules {
           label->replace_token(
               "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
         };
-	if (m_labelmounted) {
-	  replace_tokens(m_labelmounted);
-	}
-	if (m_labelwarn) {
-	  replace_tokens(m_labelwarn);
-	}
-	if (m_labelunmounted) {
-    m_labelunmounted->reset_tokens();
-    m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
-	}
+        if (m_labelmounted) {
+          replace_tokens(m_labelmounted);
+        }
+        if (m_labelwarn) {
+          replace_tokens(m_labelwarn);
+        }
+        if (m_labelunmounted) {
+          m_labelunmounted->reset_tokens();
+          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
+        }
       }
     }
 
@@ -172,7 +172,7 @@ namespace modules {
    */
   string fs_module::get_format() const {
     if (!m_mounts[m_index]->mounted) {
-    	return FORMAT_UNMOUNTED;
+      return FORMAT_UNMOUNTED;
     }
     if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
