@@ -1,6 +1,6 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.4.3
+pkgver=3.5.0
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
@@ -16,7 +16,7 @@ makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "i3-wm")
 conflicts=("polybar-git")
 install="${pkgname}.install"
 source=(${url}/releases/download/${pkgver}/polybar-${pkgver}.tar)
-sha256sums=('d4ed121c1d3960493f8268f966d65a94d94c4646a4abb131687e37b63616822f')
+sha256sums=('e8c1798c195854852fc7c99703287294123381101b371f171d4aa540aeb17afd')
 
 prepare() {
   mkdir -p "${pkgname}/build"
@@ -24,7 +24,8 @@ prepare() {
 
 build() {
   cd "${pkgname}/build" || exit 1
-  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
+  # Force cmake to use system python (to detect xcbgen)
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
   cmake --build .
 }
 
