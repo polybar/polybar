@@ -16,6 +16,7 @@ namespace modules {
 
     string type;
     string fsname;
+    label_t label;
 
     uint64_t bytes_free{0ULL};
     uint64_t bytes_used{0ULL};
@@ -25,7 +26,8 @@ namespace modules {
     int percentage_free{0};
     int percentage_used{0};
 
-    explicit fs_mount(const string& mountpoint, bool mounted = false) : mountpoint(mountpoint), mounted(mounted) {}
+    explicit fs_mount(string mountpoint, label_t label = nullptr, bool mounted = false)
+        : mountpoint(move(mountpoint)), mounted(mounted), label(move(label)) {}
   };
 
   using fs_mount_t = unique_ptr<fs_mount>;
@@ -59,7 +61,12 @@ namespace modules {
     progressbar_t m_barfree;
     ramp_t m_rampcapacity;
 
+    label_t m_default_mounted_name;
+    label_t m_default_unmounted_name;
+
     vector<string> m_mountpoints;
+    vector<label_t> m_mountpoints_label_mounted{};
+    vector<label_t> m_mountpoints_label_unmounted{};
     vector<fs_mount_t> m_mounts;
     bool m_fixed{false};
     bool m_remove_unmounted{false};

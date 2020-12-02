@@ -26,7 +26,19 @@ namespace modules {
    * setting up required components
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
+    m_default_mounted_name = load_optional_label(m_conf, name(), "label-mounted-default", "%mountpoint%");
+    m_default_unmounted_name =
+        load_optional_label(m_conf, name(), "label-unmounted-default", "%mountpoint% is not mounted");
+
     m_mountpoints = m_conf.get_list(name(), "mount");
+    m_mountpoints_label_mounted.reserve(m_mountpoints.size());
+
+    for (std::size_t i = 0; i < m_mountpoints.size(); ++i) {
+      m_mountpoints_label_mounted.push_back(load_optional_label(m_conf, name(), "label-mounted-" + std::to_string(i)));
+      m_mountpoints_label_unmounted.push_back(
+          load_optional_label(m_conf, name(), "label-unmounted-" + std::to_string(i)));
+    }
+
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
@@ -78,12 +90,16 @@ namespace modules {
       }
     }
 
+    auto mounted_label_it = m_mountpoints_label_mounted.cbegin();
+    auto unmounted_label_it = m_mountpoints_label_unmounted.cbegin();
     // Get data for defined mountpoints
     for (auto&& mountpoint : m_mountpoints) {
       auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
           [&](const vector<string>& m) { return m.size() > 4 && m[4] == mountpoint; });
 
-      m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end()});
+      bool mounted = details != mountinfo.end();
+
+      m_mounts.emplace_back(new fs_mount{mountpoint, mounted ? *mounted_label_it : *unmounted_label_it, mounted});
       struct statvfs buffer {};
 
       if (!m_mounts.back()->mounted) {
@@ -102,9 +118,14 @@ namespace modules {
         mount->bytes_used = mount->bytes_total - mount->bytes_free;
         mount->bytes_avail = static_cast<uint64_t>(buffer.f_frsize) * static_cast<uint64_t>(buffer.f_bavail);
 
-        mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
-        mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_free =
+            math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
+        mount->percentage_used =
+            math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
       }
+
+      ++mounted_label_it;
+      ++unmounted_label_it;
     }
 
     if (m_remove_unmounted) {
@@ -150,6 +171,29 @@ namespace modules {
   bool fs_module::build(builder* builder, const string& tag) const {
     auto& mount = m_mounts[m_index];
 
+    auto build_mountpoint_name = [&mount](const label_t& default_label) -> string {
+      auto apply = [&mount](auto& label) -> string {
+        label->reset_tokens();
+        label->replace_token("%mountpoint%", mount->mountpoint);
+        if (mount->mounted) {
+          label->replace_token("%type%", mount->type);
+          label->replace_token("%fsname%", mount->fsname);
+          label->replace_token("%percentage_free%", to_string(mount->percentage_free));
+          label->replace_token("%percentage_used%", to_string(mount->percentage_used));
+        }
+        return label->get();
+      };
+
+      std::string name;
+      if (*mount->label) {
+        name = apply(mount->label);
+      } else if (*default_label) {
+        name = apply(default_label);
+      }
+
+      return name;
+    };
+
     if (tag == TAG_BAR_FREE) {
       builder->node(m_barfree->output(mount->percentage_free));
     } else if (tag == TAG_BAR_USED) {
@@ -158,6 +202,7 @@ namespace modules {
       builder->node(m_rampcapacity->get_by_percentage(mount->percentage_free));
     } else if (tag == TAG_LABEL_MOUNTED) {
       m_labelmounted->reset_tokens();
+      m_labelmounted->replace_token("%label%", build_mountpoint_name(m_default_mounted_name));
       m_labelmounted->replace_token("%mountpoint%", mount->mountpoint);
       m_labelmounted->replace_token("%type%", mount->type);
       m_labelmounted->replace_token("%fsname%", mount->fsname);
@@ -173,6 +218,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_UNMOUNTED) {
       m_labelunmounted->reset_tokens();
       m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
+      m_labelunmounted->replace_token("%label%", build_mountpoint_name(m_default_unmounted_name));
       builder->node(m_labelunmounted);
     } else {
       return false;
@@ -180,6 +226,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
