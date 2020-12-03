@@ -97,12 +97,13 @@ notifications:
     template:
       - " %{repository_slug}(%{branch})#%{build_number} | \"%{commit_subject}\" by %{author} | Commit #%{commit} %{result}: %{build_url}"
     use_notice: true
-    on_success: change
+    on_success: never
     on_failure: change
+    on_start: never
   webhooks:
     urls:
       # For the https://gitter.im/polybar/polybar gitter room
       - https://webhooks.gitter.im/e/10bdbe25961312646ace
-    on_success: change
+    on_success: never
     on_failure: always
     on_start: never
