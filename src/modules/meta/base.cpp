@@ -152,7 +152,7 @@ namespace modules {
   bool module_formatter::has(const string& tag, const string& format_name) {
     auto format = m_formats.find(format_name);
     if (format == m_formats.end()) {
-      throw undefined_format(format_name);
+      return false;
     }
     return format->second->value.find(tag) != string::npos;
   }
