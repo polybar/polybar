@@ -140,12 +140,14 @@ namespace modules {
   }
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    add_value(move(name), m_conf.get(m_modname, move(name), move(fallback)), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
+    string value = m_conf.get(m_modname, name, move(fallback));
+    add_value(move(name), move(value), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
   }
 
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
     if (m_conf.has(m_modname, name)) {
-      add_value(move(name), m_conf.get(m_modname, move(name)), move(tags), move(whitelist));
+      string value = m_conf.get(m_modname, name);
+      add_value(move(name), move(value), move(tags), move(whitelist));
     }
   }
 
