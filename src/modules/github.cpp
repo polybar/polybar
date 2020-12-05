@@ -23,7 +23,7 @@ namespace modules {
       m_api_url += '/';
     }
 
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 60s);
+    set_interval(60s);
     m_empty_notifications = m_conf.get(name(), "empty-notifications", m_empty_notifications);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
