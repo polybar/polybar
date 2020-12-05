@@ -7,6 +7,7 @@
 
 #include "common.hpp"
 #include "utils/color.hpp"
+#include "tags/types.hpp"
 
 POLYBAR_NS
 
@@ -29,34 +30,6 @@ struct enum_hash {
 };
 
 enum class edge { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
-
-enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
-
-enum class attribute { NONE = 0, UNDERLINE, OVERLINE };
-
-enum class syntaxtag {
-  NONE = 0,
-  A,  // mouse action
-  B,  // background color
-  F,  // foreground color
-  T,  // font index
-  O,  // pixel offset
-  R,  // flip colors
-  o,  // overline color
-  u,  // underline color
-  P,  // Polybar control tag
-};
-
-/**
- * Values for polybar control tags
- *
- * %{P...} tags are tags for internal polybar control commands, they are not
- * part of the public interface
- */
-enum class controltag {
-  NONE = 0,
-  R,  // Reset all open tags (B, F, T, o, u). Used at module edges
-};
 
 enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
 

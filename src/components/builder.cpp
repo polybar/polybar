@@ -18,7 +18,6 @@ void builder::reset() {
    * the map
    */
   m_tags.clear();
-  m_tags[syntaxtag::NONE] = 0;
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
@@ -451,8 +450,6 @@ void builder::tag_open(syntaxtag tag, const string& value) {
   m_tags[tag]++;
 
   switch (tag) {
-    case syntaxtag::NONE:
-      break;
     case syntaxtag::A:
       append("%{A" + value + "}");
       break;
@@ -534,7 +531,6 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::o:
       append("%{o-}");
       break;
-    case syntaxtag::NONE:
     case syntaxtag::R:
     case syntaxtag::P:
     case syntaxtag::O:

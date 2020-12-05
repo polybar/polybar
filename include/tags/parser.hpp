@@ -1,0 +1,172 @@
+#pragma once
+
+#include "common.hpp"
+#include "components/types.hpp"
+#include "errors.hpp"
+#include "tags/types.hpp"
+#include "utils/color.hpp"
+
+POLYBAR_NS
+
+namespace tags {
+
+  static constexpr char EOL = '\0';
+
+  DEFINE_ERROR(error);
+
+#define DEFINE_INVALID_ERROR(class_name, name)                                         \
+  class class_name : public error {                                                    \
+   public:                                                                             \
+    explicit class_name(const string& val) : error("Invalid " name " '" + val + "'") {} \
+  }
+
+  DEFINE_INVALID_ERROR(color_error, "color");
+  DEFINE_INVALID_ERROR(font_error, "font");
+  DEFINE_INVALID_ERROR(control_error, "control");
+  DEFINE_INVALID_ERROR(offset_error, "offset");
+#undef DEFINE_INVALID_ERROR
+
+  class token_error : public error {
+   public:
+    explicit token_error(char token, char expected) : token_error(string{token}, string{expected}) {}
+    explicit token_error(char token, const string& expected) : token_error(string{token}, expected) {}
+    explicit token_error(const string& token, const string& expected)
+        : error("Expected '" + expected + "' but found '" +
+                (token.size() == 1 && token.at(0) == EOL ? "<End Of Line>" : token) + "'") {}
+  };
+
+  class unrecognized_tag : public error {
+   public:
+    explicit unrecognized_tag(char tag) : error("Unrecognized formatting tag '%{" + string{tag} + "}'") {}
+  };
+
+  class unrecognized_attr : public error {
+   public:
+    explicit unrecognized_attr(char attr) : error("Unrecognized attribute '" + string{attr} + "'") {}
+  };
+
+  /**
+   * Thrown when we expect the end of a tag (either } or a space in a compound
+   * tag.
+   */
+  class tag_end_error : public error {
+   public:
+    explicit tag_end_error(char token)
+        : error("Expected the end of a tag ('}' or ' ') but found '" +
+                (token == EOL ? "<End Of Line>" : string{token}) + "'") {}
+  };
+
+  enum class color_type { RESET = 0, COLOR };
+
+  struct color_value {
+    /**
+     * ARGB color.
+     *
+     * Only used if type == COLOR
+     */
+    rgba val{};
+    color_type type;
+  };
+
+  /**
+   * Stores information about an action
+   *
+   * The actual command string is stored in element.data
+   */
+  struct action_value {
+    /**
+     * NONE is only allowed for closing tags
+     */
+    mousebtn btn;
+    bool closing;
+  };
+
+  enum class tag_type { ATTR, FORMAT, ALIGN };
+
+  union tag_subtype {
+    syntaxtag format;
+    attr_activation activation;
+    alignment align;
+  };
+
+  struct tag {
+    tag_type type;
+    tag_subtype subtype;
+    union {
+      /**
+       * Used for 'F', 'G', 'o', 'u' formatting tags.
+       */
+      color_value color;
+      /**
+       * For for 'A' tags
+       */
+      action_value action;
+      /**
+       * For for 'T' tags
+       */
+      unsigned font;
+      /**
+       * For for 'O' tags
+       */
+      int offset;
+      /**
+       * For for 'P' tags
+       */
+      controltag ctrl;
+
+      /**
+       * For attribute actions ((-|+|!)(o|u))
+       */
+      attribute attr;
+    };
+  };
+
+  struct element {
+    element(){};
+    element(const string text) : data{text}, is_tag{false} {};
+    element(tag&& tag_data) : tag_data{tag_data}, is_tag{true} {};
+
+    string data{};
+    tag tag_data{};
+    bool is_tag{false};
+  };
+
+  using format_string = vector<element>;
+
+  class parser {
+   public:
+    void set(const string&& input);
+    void reset();
+
+    format_string parse();
+
+   protected:
+    bool has_next();
+    char next();
+    char peek();
+
+    void consume(char c);
+
+    void parse_tag();
+
+    void parse_single_tag_content();
+
+    color_value parse_color();
+    unsigned parse_fontindex();
+    int parse_offset();
+    controltag parse_control();
+    std::pair<action_value, string> parse_action();
+    attribute parse_attribute();
+
+    void push_char(char c);
+    void push_text(string&& text);
+
+   private:
+    string input;
+    size_t pos = 0;
+    format_string parsed{};
+  };
+
+}  // namespace tags
+
+POLYBAR_NS_END
