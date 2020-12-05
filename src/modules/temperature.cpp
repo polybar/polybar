@@ -19,7 +19,7 @@ namespace modules {
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempbase = m_conf.get(name(), "base-temperature", 0);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
     m_units = m_conf.get(name(), "units", m_units);
 
     if (m_path.empty()) {
