@@ -24,12 +24,10 @@ class TestableTagParser : public parser {
 
   void setup_parser_test(const string& input) {
     this->set(std::move(input));
-
-    this->elements = parse();
   }
 
   void expect_done() {
-    EXPECT_EQ(current_idx, elements.size());
+    EXPECT_FALSE(has_next_element());
   }
 
   void expect_text(const string&& exp) {
@@ -127,19 +125,16 @@ class TestableTagParser : public parser {
   }
 
   void assert_has() {
-    if (elements.size() <= current_idx) {
+    if (!has_next_element()) {
       throw std::runtime_error("no next element");
     }
   }
 
   void set_current() {
     assert_has();
-    current = elements[current_idx];
-    current_idx++;
+    current = next_element();
   }
 
-  size_t current_idx = 0;
-  format_string elements;
   element current;
 };
 
@@ -418,33 +413,36 @@ TEST_P(ParseErrorTest, correctness) {
   exc exception;
   std::tie(input, exception) = GetParam();
 
+  p.setup_parser_test(input);
+  ASSERT_TRUE(p.has_next_element());
+
   switch (exception) {
     case exc::ERR:
-      EXPECT_THROW(p.setup_parser_test(input), tags::error);
+      ASSERT_THROW(p.next_element(), tags::error);
       break;
     case exc::TOKEN:
-      EXPECT_THROW(p.setup_parser_test(input), tags::token_error);
+      ASSERT_THROW(p.next_element(), tags::token_error);
       break;
     case exc::TAG:
-      EXPECT_THROW(p.setup_parser_test(input), tags::unrecognized_tag);
+      ASSERT_THROW(p.next_element(), tags::unrecognized_tag);
       break;
     case exc::TAG_END:
-      EXPECT_THROW(p.setup_parser_test(input), tags::tag_end_error);
+      ASSERT_THROW(p.next_element(), tags::tag_end_error);
       break;
     case exc::COLOR:
-      EXPECT_THROW(p.setup_parser_test(input), tags::color_error);
+      ASSERT_THROW(p.next_element(), tags::color_error);
       break;
     case exc::ATTR:
-      EXPECT_THROW(p.setup_parser_test(input), tags::unrecognized_attr);
+      ASSERT_THROW(p.next_element(), tags::unrecognized_attr);
       break;
     case exc::FONT:
-      EXPECT_THROW(p.setup_parser_test(input), tags::font_error);
+      ASSERT_THROW(p.next_element(), tags::font_error);
       break;
     case exc::CTRL:
-      EXPECT_THROW(p.setup_parser_test(input), tags::control_error);
+      ASSERT_THROW(p.next_element(), tags::control_error);
       break;
     case exc::OFFSET:
-      EXPECT_THROW(p.setup_parser_test(input), tags::offset_error);
+      ASSERT_THROW(p.next_element(), tags::offset_error);
       break;
     default:
       FAIL();

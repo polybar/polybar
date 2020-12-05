@@ -1,34 +1,95 @@
 #include "tags/parser.hpp"
 
+#include <cassert>
+
 POLYBAR_NS
 
 namespace tags {
 
-  format_string parser::parse() {
-    char c;
+  bool parser::has_next_element() {
+    return buf_pos < buf.size() || has_next();
+  }
 
-    while ((c = next())) {
-      // TODO here we could think about how to escape an action tag
-      if (c == '%' && has_next() && peek() == '{') {
-        consume('{');
-        parse_tag();
-        consume('}');
-      } else {
-        push_char(c);
-      }
+  element parser::next_element() {
+    if (!has_next_element()) {
+      throw std::runtime_error("tag parser: No next element");
+    }
+
+    if (buf_pos >= buf.size()) {
+      parse_step();
+    }
+
+    if (buf_pos >= buf.size()) {
+      throw std::runtime_error("tag parser: No next element. THIS IS A BUG. Context: '" + input + "'");
+    }
+
+    element e = buf[buf_pos];
+    buf_pos++;
+
+    if (buf_pos == buf.size()) {
+      buf.clear();
+      buf_pos = 0;
+    }
+
+    return e;
+  }
+
+  format_string parser::parse() {
+    format_string parsed;
+
+    while (has_next_element()) {
+      parsed.push_back(next_element());
     }
 
     return parsed;
   }
 
+  /**
+   * Performs a single parse step.
+   *
+   * This means it will parse text until the next tag is reached or it will
+   * parse an entire %{...} tag.
+   */
+  void parser::parse_step() {
+    char c;
+
+    /*
+     * If we have already parsed text, we can stop if we reach a tag.
+     */
+    bool text_parsed = false;
+
+    size_t start_pos = pos;
+
+    try {
+      while ((c = next())) {
+        // TODO here we could think about how to escape an action tag
+        if (c == '%' && has_next() && peek() == '{') {
+          if (text_parsed) {
+            // Put back the '%'
+            revert();
+            break;
+          }
+
+          consume('{');
+          parse_tag();
+          consume('}');
+          break;
+        } else {
+          push_char(c);
+          text_parsed = true;
+        }
+      }
+    } catch (error& e) {
+      e.context = input.substr(start_pos, pos);
+      throw e;
+    }
+  }
+
   void parser::set(const string&& input) {
     this->input = std::move(input);
     pos = 0;
-    parsed = format_string{};
-  }
-
-  void parser::reset() {
-    set(string{});
+    buf.clear();
+    buf_pos = 0;
   }
 
   bool parser::has_next() {
@@ -47,6 +108,14 @@ namespace tags {
     }
 
     return input[pos];
+  }
+
+  /**
+   * Puts back a single character in the input string.
+   */
+  void parser::revert() {
+    assert(pos > 0);
+    pos--;
   }
 
   void parser::consume(char c) {
@@ -236,10 +305,10 @@ namespace tags {
   }
 
   void parser::push_char(char c) {
-    if (!parsed.empty() && !parsed.back().is_tag) {
-      parsed.back().data += c;
+    if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
+      buf.back().data += c;
     } else {
-      parsed.emplace_back(string{c});
+      buf.emplace_back(string{c});
     }
   }
 
@@ -248,10 +317,10 @@ namespace tags {
       return;
     }
 
-    if (!parsed.empty() && !parsed.back().is_tag) {
-      parsed.back().data += text;
+    if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
+      buf.back().data += text;
     } else {
-      parsed.emplace_back(std::move(text));
+      buf.emplace_back(std::move(text));
     }
   }
 

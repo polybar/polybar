@@ -12,11 +12,19 @@ namespace tags {
 
   static constexpr char EOL = '\0';
 
-  DEFINE_ERROR(error);
+  class error : public application_error {
+   public:
+    using application_error::application_error;
+    /**
+     * Context string that contains the text region where the parser error
+     * happened.
+     */
+    string context;
+  };
 
-#define DEFINE_INVALID_ERROR(class_name, name)                                         \
-  class class_name : public error {                                                    \
-   public:                                                                             \
+#define DEFINE_INVALID_ERROR(class_name, name)                                          \
+  class class_name : public error {                                                     \
+   public:                                                                              \
     explicit class_name(const string& val) : error("Invalid " name " '" + val + "'") {} \
   }
 
@@ -115,7 +123,7 @@ namespace tags {
       controltag ctrl;
 
       /**
-       * For attribute actions ((-|+|!)(o|u))
+       * For attribute activations ((-|+|!)(o|u))
        */
       attribute attr;
     };
@@ -133,17 +141,45 @@ namespace tags {
 
   using format_string = vector<element>;
 
+  /**
+   * Recursive-descent parser for polybar's formatting tags.
+   *
+   * An input string is parsed into a list of elements, each element is either
+   * a piece of text or a single formatting tag.
+   *
+   * The elements can either be retrieved one-by-one with next_element() or all
+   * at once with parse().
+   */
   class parser {
    public:
+    /**
+     * Resets the parser state and sets the new string to parse
+     */
     void set(const string&& input);
-    void reset();
 
+    /**
+     * Whether a call to next_element() suceeds.
+     */
+    bool has_next_element();
+
+    /**
+     * Parses at least one element (if available) and returns the first parsed
+     * element.
+     */
+    element next_element();
+
+    /**
+     * Parses the remaining string and returns all parsed elements.
+     */
     format_string parse();
 
    protected:
+    void parse_step();
+
     bool has_next();
     char next();
     char peek();
+    void revert();
 
     void consume(char c);
 
@@ -164,7 +200,17 @@ namespace tags {
    private:
     string input;
     size_t pos = 0;
-    format_string parsed{};
+
+    /**
+     * Buffers elements that have been parsed but not yet returned to the user.
+     */
+    format_string buf{};
+    /**
+     * Index into buf so that we don't have to call vector.erase everytime.
+     *
+     * Only buf[buf_pos, buf.end()) contain valid elements
+     */
+    size_t buf_pos;
   };
 
 }  // namespace tags
