@@ -8,6 +8,7 @@ A fast and easy-to-use tool for creating status bars.
 
 <p align="center">
 <a href="https://github.com/polybar/polybar/releases"><img src="https://img.shields.io/github/release/polybar/polybar.svg"></a>
+<a href="https://github.com/polybar/polybar/actions?query=workflow%3A%22Release+Workflow%22"><img src="https://github.com/polybar/polybar/workflows/Release%20Workflow/badge.svg?branch=master"></a>
 <a href="https://travis-ci.com/polybar/polybar"><img src="https://travis-ci.com/polybar/polybar.svg?branch=master"></a>
 <a href="https://polybar.readthedocs.io"><img src="https://readthedocs.org/projects/polybar/badge/?version=latest"></a>
 <a href="https://gitter.im/polybar/polybar"><img src="https://badges.gitter.im/polybar/polybar.svg"></a>

@@ -171,17 +171,13 @@ After-Release Checklist
   <https://github.com/polybar/polybar/issues/1971>`_. Mention any dependency
   changes and any changes to the build workflow. Also mention any new files are
   created by the installation.
-* Create a source archive named ``polybar-<version>.tar``.
-  The repository contains a script that automates this:
-
-.. code-block:: shell
-
-  ./common/release-archive.sh <version>
-
-* Update the github release with a download section that contains a link to
-  ``polybar-<version>.tar`` and its sha256.
+* Confirm that the release archive was added to the release.
+  We have a GitHub action workflow called 'Release Workflow' that on every
+  release automatically creates a release archive, uploads it to the release,
+  and adds a 'Download' section to the release body.
+  If this fails for some reason, it should be triggered be triggered manually.
 * Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
-  ``polybar-git`` packages (push after the ``.tar`` file was created).
+  ``polybar-git`` packages (push after the release archive is uploaded).
 
 
 Deprecations
