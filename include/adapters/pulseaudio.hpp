@@ -44,6 +44,7 @@ class pulseaudio {
     void set_mute(bool mode);
     void toggle_mute();
     bool is_muted();
+    bool is_headphone();
 
   private:
     void update_volume(pa_operation *o);
@@ -64,6 +65,7 @@ class pulseaudio {
     bool muted{false};
     // default sink name
     static constexpr auto DEFAULT_SINK{"@DEFAULT_SINK@"};
+    string active_port_name;
 
     pa_context* m_context{nullptr};
     pa_threaded_mainloop* m_mainloop{nullptr};
