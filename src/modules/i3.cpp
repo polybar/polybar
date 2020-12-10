@@ -55,7 +55,7 @@ namespace modules {
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
 
     m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
+    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, "\0"s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
