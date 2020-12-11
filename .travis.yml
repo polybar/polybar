@@ -37,7 +37,7 @@ addons:
         - libiw-dev
         - libmpdclient-dev
 
-script: source ${TRAVIS_BUILD_DIR}/common/travis/build.sh
+script: source ${TRAVIS_BUILD_DIR}/common/ci/build.sh
 
 matrix:
   include:
@@ -59,7 +59,7 @@ matrix:
       addons: {apt: {packages: [*base_deps, *optional_deps]}}
 
     - compiler: gcc
-      env: BUILD_TYPE=Coverage POLYBAR_BUILD_TYPE=tests BUILD_TESTS=ON
+      env: BUILD_TYPE=Coverage POLYBAR_BUILD_TYPE=tests
       addons: {apt: {packages: [*base_deps, *optional_deps]}}
       script: make check
       after_success:
@@ -82,8 +82,8 @@ cache:
   apt: true
 
 before_script:
-  - source ${TRAVIS_BUILD_DIR}/common/travis/summary.sh
-  - source ${TRAVIS_BUILD_DIR}/common/travis/configure.sh
+  - source ${TRAVIS_BUILD_DIR}/common/ci/summary.sh
+  - source ${TRAVIS_BUILD_DIR}/common/ci/configure.sh
 
 # Only fetch the newest 5 commits instead of 50
 git:
