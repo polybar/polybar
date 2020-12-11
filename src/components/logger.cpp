@@ -13,6 +13,10 @@ POLYBAR_NS
 /**
  * Convert string
  */
+const char* logger::convert(string& arg) const {
+  return arg.c_str();
+}
+
 const char* logger::convert(const string& arg) const {
   return arg.c_str();
 }
