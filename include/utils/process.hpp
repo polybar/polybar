@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/types.h>
+
 #include "common.hpp"
 
 POLYBAR_NS
@@ -10,10 +12,13 @@ namespace process_util {
 
   void redirect_stdio_to_dev_null();
 
-  pid_t fork_detached(std::function<void()> const& lambda);
+  pid_t spawn_async(std::function<void()> const& lambda);
+  void fork_detached(std::function<void()> const& lambda);
 
   void exec(char* cmd, char** args);
   void exec_sh(const char* cmd);
+
+  int wait(pid_t pid);
 
   pid_t wait_for_completion(pid_t process_id, int* status_addr = nullptr, int waitflags = 0);
   pid_t wait_for_completion(int* status_addr, int waitflags = 0);

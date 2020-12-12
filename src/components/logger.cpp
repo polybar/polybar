@@ -1,6 +1,7 @@
+#include "components/logger.hpp"
+
 #include <unistd.h>
 
-#include "components/logger.hpp"
 #include "errors.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
@@ -12,7 +13,11 @@ POLYBAR_NS
 /**
  * Convert string
  */
-const char* logger::convert(string arg) const {  // NOLINT
+const char* logger::convert(string& arg) const {
+  return arg.c_str();
+}
+
+const char* logger::convert(const string& arg) const {
   return arg.c_str();
 }
 

@@ -48,7 +48,7 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::type() const {
-    return string(CONST_MOD(Impl).TYPE);
+    return string(module<Impl>::TYPE);
   }
 
   template <typename Impl>

@@ -16,7 +16,7 @@ namespace modules {
   template class module<memory_module>;
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
     m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
