@@ -1,6 +1,6 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.5.0
+pkgver=3.5.1
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
@@ -15,21 +15,22 @@ optdepends=("i3-wm: i3 module support"
 makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "i3-wm")
 conflicts=("polybar-git")
 install="${pkgname}.install"
-source=(${url}/releases/download/${pkgver}/polybar-${pkgver}.tar)
-sha256sums=('e8c1798c195854852fc7c99703287294123381101b371f171d4aa540aeb17afd')
+source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
+sha256sums=('d342fdb1d37a475f3460e00e82445a3f7be812961fec6e455b33277af3cda719')
+_dir="${pkgname}-${pkgver}"
 
 prepare() {
-  mkdir -p "${pkgname}/build"
+  mkdir -p "${_dir}/build"
 }
 
 build() {
-  cd "${pkgname}/build" || exit 1
+  cd "${_dir}/build" || exit 1
   # Force cmake to use system python (to detect xcbgen)
   cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
   cmake --build .
 }
 
 package() {
-  cmake --build "${pkgname}/build" --target install -- DESTDIR="${pkgdir}"
-  install -Dm644 "${pkgname}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  cmake --build "${_dir}/build" --target install -- DESTDIR="${pkgdir}"
+  install -Dm644 "${_dir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
