@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/types.h>
+
 #include "common.hpp"
 
 POLYBAR_NS
