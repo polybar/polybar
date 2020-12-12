@@ -33,7 +33,7 @@ command<output_policy::IGNORED>::~command() {
  * Execute the command
  */
 int command<output_policy::IGNORED>::exec(bool wait_for_completion) {
-  m_forkpid = process_util::fork_detached([m_cmd = m_cmd] { process_util::exec_sh(m_cmd.c_str()); });
+  m_forkpid = process_util::spawn_async([m_cmd = m_cmd] { process_util::exec_sh(m_cmd.c_str()); });
   if (wait_for_completion) {
     auto status = wait();
     m_forkpid = -1;
