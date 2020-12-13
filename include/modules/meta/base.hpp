@@ -148,8 +148,6 @@ namespace modules {
 
     bool input(const string& action, const string& data);
 
-    static constexpr auto TYPE = "";
-
    protected:
     void broadcast();
     void idle();
