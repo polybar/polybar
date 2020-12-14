@@ -1,5 +1,7 @@
 #include "utils/color.hpp"
 
+#include <algorithm>
+
 POLYBAR_NS
 
 /**
@@ -22,6 +24,11 @@ static string normalize_hex(string hex) {
   // We remove the hash because it makes processing easier
   if (hex[0] == '#') {
     hex.erase(0, 1);
+  }
+
+  // Check that only valid characters are used
+  if (!std::all_of(hex.cbegin(), hex.cend(), isxdigit)) {
+    return "";
   }
 
   if (hex.length() == 2) {
