@@ -37,6 +37,7 @@ namespace signals {
 
       explicit value_signal(void* data) : m_ptr(data) {}
       explicit value_signal(ValueType&& data) : m_ptr(&data) {}
+      explicit value_signal(ValueType& data) : m_ptr(&data) {}
 
       virtual ~value_signal() {}
 

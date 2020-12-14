@@ -77,6 +77,7 @@ namespace tags {
           }
 
           consume('{');
+          consume_space();
           parse_tag();
           break;
         } else {
@@ -130,6 +131,12 @@ namespace tags {
     }
   }
 
+  void parser::consume_space() {
+    while (peek() == ' ') {
+      next();
+    }
+  }
+
   /**
    * Parses an entire %{....} tag.
    *
@@ -155,11 +162,9 @@ namespace tags {
         /**
          * Consume whitespace between elements inside the tag
          */
-        while ((p = peek()) == ' ') {
-          consume(' ');
-        }
+        consume_space();
 
-        if (p == '}') {
+        if (peek() == '}') {
           consume('}');
           break;
         }
@@ -313,7 +318,7 @@ namespace tags {
     return ret;
   }
 
-  unsigned parser::parse_fontindex() {
+  int parser::parse_fontindex() {
     string s = get_tag_value();
 
     if (s.empty() || s == "-") {
@@ -325,14 +330,14 @@ namespace tags {
       int ret = std::stoi(s, &ptr, 10);
 
       if (ret < 0) {
-        throw font_error(s, "Font index is negative");
+        return 0;
       }
 
       if (ptr != s.size()) {
         throw font_error(s, "Font index contains non-number characters");
       }
 
-      return (unsigned)ret;
+      return ret;
     } catch (const std::exception& err) {
       throw font_error(s, err.what());
     }

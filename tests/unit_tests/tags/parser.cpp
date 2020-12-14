@@ -179,6 +179,7 @@ vector<single_color> parse_single_color_list = {
     {"%{F#abc}", syntaxtag::F, "#abc"},
     {"%{o#abcd}", syntaxtag::o, "#abcd"},
     {"%{u#FDE}", syntaxtag::u, "#FDE"},
+    {"%{    u#FDE}", syntaxtag::u, "#FDE"},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseSingleColorTest, ::testing::ValuesIn(parse_single_color_list));
@@ -301,6 +302,10 @@ TEST_F(TagParserTest, font) {
   p.expect_font_reset();
   p.expect_done();
 
+  p.setup_parser_test("%{T-123}");
+  p.expect_font_reset();
+  p.expect_done();
+
   p.setup_parser_test("%{T123}");
   p.expect_font(123);
   p.expect_done();
@@ -400,7 +405,7 @@ vector<exception_test> parse_error_test = {
     {"%{Ffoo}", exc::COLOR},
     {"%{F-abc}", exc::COLOR},
     {"%{+z}", exc::ATTR},
-    {"%{T-1}", exc::FONT},
+    {"%{T-abc}", exc::FONT},
     {"%{T12a}", exc::FONT},
     {"%{Tabc}", exc::FONT},
     {"%{?u", exc::TAG},

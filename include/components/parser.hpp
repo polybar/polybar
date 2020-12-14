@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/logger.hpp"
 #include "errors.hpp"
+#include "tags/parser.hpp"
 #include "utils/color.hpp"
 
 POLYBAR_NS
@@ -23,24 +25,17 @@ class parser {
   static make_type make();
 
  public:
-  explicit parser(signal_emitter& emitter);
+  explicit parser(signal_emitter& emitter, const logger& logger);
   void parse(const bar_settings& bar, string data);
 
  protected:
-  void codeblock(string&& data, const bar_settings& bar);
-  size_t text(string&& data);
-
-  static rgba parse_color(const string& s, rgba fallback = rgba{0});
-  static int parse_fontindex(const string& s);
-  static attribute parse_attr(const char attr);
-  mousebtn parse_action_btn(const string& data);
-  static string parse_action_cmd(string&& data);
-  static controltag parse_control(const string& data);
+  void text(string&& data);
+  void handle_action(tags::element&& e);
 
  private:
   signal_emitter& m_sig;
-  vector<int> m_actions;
-  unique_ptr<parser> m_parser;
+  vector<mousebtn> m_actions;
+  const logger& m_log;
 };
 
 POLYBAR_NS_END

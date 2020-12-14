@@ -127,7 +127,7 @@ namespace tags {
       /**
        * For for 'T' tags
        */
-      unsigned font;
+      int font;
       /**
        * For for 'O' tags
        */
@@ -197,13 +197,14 @@ namespace tags {
     void revert();
 
     void consume(char c);
+    void consume_space();
 
     void parse_tag();
 
     void parse_single_tag_content();
 
     color_value parse_color();
-    unsigned parse_fontindex();
+    int parse_fontindex();
     int parse_offset();
     controltag parse_control();
     std::pair<action_value, string> parse_action();
