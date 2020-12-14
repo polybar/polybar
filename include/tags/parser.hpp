@@ -15,23 +15,37 @@ namespace tags {
   class error : public application_error {
    public:
     using application_error::application_error;
+
+    explicit error(const string& msg) : application_error(msg), msg(msg) {}
+
     /**
      * Context string that contains the text region where the parser error
      * happened.
      */
-    string context;
+    void set_context(const string& ctxt) {
+      msg.append(" (Context: '" + ctxt + "')");
+    }
+
+    virtual const char* what() const noexcept {
+      return msg.c_str();
+    }
+
+    private:
+      string msg;
   };
 
 #define DEFINE_INVALID_ERROR(class_name, name)                                          \
   class class_name : public error {                                                     \
    public:                                                                              \
-    explicit class_name(const string& val) : error("Invalid " name " '" + val + "'") {} \
+    explicit class_name(const string& val) : error("Invalid " name ": '" + val + "'") {} \
+    explicit class_name(const string& val, const string& what) : error("Invalid " name ": '" + val + "' (reason: '" + what + "')") {} \
   }
 
   DEFINE_INVALID_ERROR(color_error, "color");
-  DEFINE_INVALID_ERROR(font_error, "font");
-  DEFINE_INVALID_ERROR(control_error, "control");
+  DEFINE_INVALID_ERROR(font_error, "font index");
+  DEFINE_INVALID_ERROR(control_error, "control tag");
   DEFINE_INVALID_ERROR(offset_error, "offset");
+  DEFINE_INVALID_ERROR(btn_error, "button id");
 #undef DEFINE_INVALID_ERROR
 
   class token_error : public error {
@@ -176,9 +190,9 @@ namespace tags {
    protected:
     void parse_step();
 
-    bool has_next();
+    bool has_next() const;
     char next();
-    char peek();
+    char peek() const;
     void revert();
 
     void consume(char c);
@@ -192,10 +206,14 @@ namespace tags {
     int parse_offset();
     controltag parse_control();
     std::pair<action_value, string> parse_action();
+    mousebtn parse_action_btn();
+    string parse_action_cmd();
     attribute parse_attribute();
 
     void push_char(char c);
     void push_text(string&& text);
+
+    string get_tag_value();
 
    private:
     string input;

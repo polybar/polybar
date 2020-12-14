@@ -231,7 +231,7 @@ vector<single_action> parse_single_action_list = {
     {"%{A7}", mousebtn::DOUBLE_MIDDLE, ""},
     {"%{A8}", mousebtn::DOUBLE_RIGHT, ""},
     {"%{A1:a\\:b:}", mousebtn::LEFT, "a:b"},
-    {"%{A1:\\:\\:\\::}", mousebtn::LEFT, "\\:\\:\\:"},
+    {"%{A1:\\:\\:\\::}", mousebtn::LEFT, ":::"},
     {"%{A1:#apps.open.0:}", mousebtn::LEFT, "#apps.open.0"},
     // https://github.com/polybar/polybar/issues/2040
     {"%{A1:cmd | awk '{ print $NF }'):}", mousebtn::LEFT, "cmd | awk '{ print $NF }')"},
@@ -311,6 +311,10 @@ TEST_F(TagParserTest, offset) {
   p.expect_offset(0);
   p.expect_done();
 
+  p.setup_parser_test("%{O0}");
+  p.expect_offset(0);
+  p.expect_done();
+
   p.setup_parser_test("%{O-112}");
   p.expect_offset(-112);
   p.expect_done();
@@ -385,7 +389,7 @@ TEST_F(TagParserTest, combinations) {
  * Since we can't directly pass typenames, we go through this enum.
  */
 enum class exc {
-  ERR, TOKEN, TAG, TAG_END, COLOR, ATTR, FONT, CTRL, OFFSET
+  ERR, TOKEN, TAG, TAG_END, COLOR, ATTR, FONT, CTRL, OFFSET, BTN
 };
 
 using exception_test = pair<string, enum exc>;
@@ -393,17 +397,22 @@ class ParseErrorTest : public TagParserTest, public ::testing::WithParamInterfac
 
 vector<exception_test> parse_error_test = {
   {"%{F-", exc::TAG_END},
-  {"%{Q", exc::TAG_END},
+  {"%{Q", exc::TAG},
   {"%{", exc::TOKEN},
   {"%{F#xyz}", exc::COLOR},
   {"%{Ffoo}", exc::COLOR},
+  {"%{F-abc}", exc::COLOR},
   {"%{+z}", exc::ATTR},
   {"%{T-1}", exc::FONT},
+  {"%{T12a}", exc::FONT},
   {"%{Tabc}", exc::FONT},
   {"%{?u", exc::TAG},
-  {"%{RR}", exc::CTRL},
+  {"%{PRabc}", exc::CTRL},
+  {"%{P}", exc::CTRL},
+  {"%{PA}", exc::CTRL},
   {"%{Oabc}", exc::OFFSET},
   {"%{A2:cmd:cmd:}", exc::TAG_END},
+  {"%{A9}", exc::BTN},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseErrorTest, ::testing::ValuesIn(parse_error_test));
@@ -444,11 +453,10 @@ TEST_P(ParseErrorTest, correctness) {
     case exc::OFFSET:
       ASSERT_THROW(p.next_element(), tags::offset_error);
       break;
+    case exc::BTN:
+      ASSERT_THROW(p.next_element(), tags::btn_error);
+      break;
     default:
       FAIL();
   }
 }
-
-/*
- * TODO test exceptions
- */

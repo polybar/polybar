@@ -31,7 +31,19 @@ struct enum_hash {
 
 enum class edge { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 
-enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
+enum class mousebtn {
+  NONE = 0,
+  LEFT,
+  MIDDLE,
+  RIGHT,
+  SCROLL_UP,
+  SCROLL_DOWN,
+  DOUBLE_LEFT,
+  DOUBLE_MIDDLE,
+  DOUBLE_RIGHT,
+  // Terminator value, do not use
+  BTN_COUNT,
+};
 
 enum class strut {
   LEFT = 0,
