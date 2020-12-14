@@ -30,15 +30,16 @@ namespace tags {
       return msg.c_str();
     }
 
-    private:
-      string msg;
+   private:
+    string msg;
   };
 
-#define DEFINE_INVALID_ERROR(class_name, name)                                          \
-  class class_name : public error {                                                     \
-   public:                                                                              \
+#define DEFINE_INVALID_ERROR(class_name, name)                                           \
+  class class_name : public error {                                                      \
+   public:                                                                               \
     explicit class_name(const string& val) : error("Invalid " name ": '" + val + "'") {} \
-    explicit class_name(const string& val, const string& what) : error("Invalid " name ": '" + val + "' (reason: '" + what + "')") {} \
+    explicit class_name(const string& val, const string& what)                           \
+        : error("Invalid " name ": '" + val + "' (reason: '" + what + "')") {}           \
   }
 
   DEFINE_INVALID_ERROR(color_error, "color");

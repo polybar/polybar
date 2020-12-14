@@ -85,7 +85,7 @@ namespace tags {
         }
       }
     } catch (error& e) {
-      e.set_context(input.substr(start_pos, pos));
+      e.set_context(input.substr(start_pos, pos - start_pos));
       throw;
     }
   }
@@ -194,6 +194,7 @@ namespace tags {
 
       e.tag_data.subtype.format = syntaxtag::o;
       buf.emplace_back(e);
+      return;
     }
 
     tag_type type;
@@ -248,6 +249,9 @@ namespace tags {
       case 'r':
         type = tag_type::ALIGN;
         break;
+
+      default:
+        throw unrecognized_tag(c);
     }
 
     tag tag_data{};
@@ -301,6 +305,9 @@ namespace tags {
       if (!c.has_color()) {
         throw color_error(s);
       }
+
+      ret.type = color_type::COLOR;
+      ret.val = c;
     }
 
     return ret;
@@ -362,7 +369,7 @@ namespace tags {
 
     switch (s[0]) {
       case 'R':
-        if (s.size()) {
+        if (s.size() != 1) {
           throw control_error(s, "Control tag R has extra data");
         }
 

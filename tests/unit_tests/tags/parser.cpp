@@ -168,17 +168,17 @@ class ParseSingleColorTest : public TagParserTest, public ::testing::WithParamIn
 
 vector<single_color> parse_single_color_list = {
     {"%{B-}", syntaxtag::B, ""},
-    {"%{F-}", syntaxtag::B, ""},
-    {"%{o-}", syntaxtag::B, ""},
-    {"%{u-}", syntaxtag::B, ""},
+    {"%{F-}", syntaxtag::F, ""},
+    {"%{o-}", syntaxtag::o, ""},
+    {"%{u-}", syntaxtag::u, ""},
     {"%{B}", syntaxtag::B, ""},
-    {"%{F}", syntaxtag::B, ""},
-    {"%{o}", syntaxtag::B, ""},
-    {"%{u}", syntaxtag::B, ""},
+    {"%{F}", syntaxtag::F, ""},
+    {"%{o}", syntaxtag::o, ""},
+    {"%{u}", syntaxtag::u, ""},
     {"%{B#f0f0f0}", syntaxtag::B, "#f0f0f0"},
-    {"%{F#abc}", syntaxtag::B, "#abc"},
-    {"%{o#abcd}", syntaxtag::B, "#abcd"},
-    {"%{u#FDE}", syntaxtag::B, "#FDE"},
+    {"%{F#abc}", syntaxtag::F, "#abc"},
+    {"%{o#abcd}", syntaxtag::o, "#abcd"},
+    {"%{u#FDE}", syntaxtag::u, "#FDE"},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseSingleColorTest, ::testing::ValuesIn(parse_single_color_list));
@@ -264,12 +264,12 @@ using single_activation = std::tuple<string, attribute, attr_activation>;
 class ParseSingleActivationTest : public TagParserTest, public ::testing::WithParamInterface<single_activation> {};
 
 vector<single_activation> parse_single_activation_list = {
-  {"%{+u}", attribute::UNDERLINE, attr_activation::ON},
-  {"%{-u}", attribute::UNDERLINE, attr_activation::OFF},
-  {"%{!u}", attribute::UNDERLINE, attr_activation::TOGGLE},
-  {"%{+o}", attribute::OVERLINE, attr_activation::ON},
-  {"%{-o}", attribute::OVERLINE, attr_activation::OFF},
-  {"%{!o}", attribute::OVERLINE, attr_activation::TOGGLE},
+    {"%{+u}", attribute::UNDERLINE, attr_activation::ON},
+    {"%{-u}", attribute::UNDERLINE, attr_activation::OFF},
+    {"%{!u}", attribute::UNDERLINE, attr_activation::TOGGLE},
+    {"%{+o}", attribute::OVERLINE, attr_activation::ON},
+    {"%{-o}", attribute::OVERLINE, attr_activation::OFF},
+    {"%{!o}", attribute::OVERLINE, attr_activation::TOGGLE},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseSingleActivationTest, ::testing::ValuesIn(parse_single_activation_list));
@@ -323,7 +323,6 @@ TEST_F(TagParserTest, offset) {
   p.expect_offset(123);
   p.expect_done();
 }
-
 
 TEST_F(TagParserTest, alignment) {
   p.setup_parser_test("%{l}");
@@ -388,31 +387,29 @@ TEST_F(TagParserTest, combinations) {
  *
  * Since we can't directly pass typenames, we go through this enum.
  */
-enum class exc {
-  ERR, TOKEN, TAG, TAG_END, COLOR, ATTR, FONT, CTRL, OFFSET, BTN
-};
+enum class exc { ERR, TOKEN, TAG, TAG_END, COLOR, ATTR, FONT, CTRL, OFFSET, BTN };
 
 using exception_test = pair<string, enum exc>;
 class ParseErrorTest : public TagParserTest, public ::testing::WithParamInterface<exception_test> {};
 
 vector<exception_test> parse_error_test = {
-  {"%{F-", exc::TAG_END},
-  {"%{Q", exc::TAG},
-  {"%{", exc::TOKEN},
-  {"%{F#xyz}", exc::COLOR},
-  {"%{Ffoo}", exc::COLOR},
-  {"%{F-abc}", exc::COLOR},
-  {"%{+z}", exc::ATTR},
-  {"%{T-1}", exc::FONT},
-  {"%{T12a}", exc::FONT},
-  {"%{Tabc}", exc::FONT},
-  {"%{?u", exc::TAG},
-  {"%{PRabc}", exc::CTRL},
-  {"%{P}", exc::CTRL},
-  {"%{PA}", exc::CTRL},
-  {"%{Oabc}", exc::OFFSET},
-  {"%{A2:cmd:cmd:}", exc::TAG_END},
-  {"%{A9}", exc::BTN},
+    {"%{F-", exc::TAG_END},
+    {"%{Q", exc::TAG},
+    {"%{", exc::TOKEN},
+    {"%{F#xyz}", exc::COLOR},
+    {"%{Ffoo}", exc::COLOR},
+    {"%{F-abc}", exc::COLOR},
+    {"%{+z}", exc::ATTR},
+    {"%{T-1}", exc::FONT},
+    {"%{T12a}", exc::FONT},
+    {"%{Tabc}", exc::FONT},
+    {"%{?u", exc::TAG},
+    {"%{PRabc}", exc::CTRL},
+    {"%{P}", exc::CTRL},
+    {"%{PA}", exc::CTRL},
+    {"%{Oabc}", exc::OFFSET},
+    {"%{A2:cmd:cmd:}", exc::TAG_END},
+    {"%{A9}", exc::BTN},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseErrorTest, ::testing::ValuesIn(parse_error_test));
