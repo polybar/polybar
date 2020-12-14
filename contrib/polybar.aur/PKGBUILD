@@ -1,6 +1,6 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.5.1
+pkgver=3.5.2
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
@@ -16,7 +16,7 @@ makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "i3-wm")
 conflicts=("polybar-git")
 install="${pkgname}.install"
 source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
-sha256sums=('d342fdb1d37a475f3460e00e82445a3f7be812961fec6e455b33277af3cda719')
+sha256sums=('e411d9c091d0d4b5e8fbb44969e45c537d8c45900ecb3e90c49a248b885fe110')
 _dir="${pkgname}-${pkgver}"
 
 prepare() {
