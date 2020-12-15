@@ -144,17 +144,40 @@ The release commit needs to update the version number in:
 
 * ``version.txt``
 
-The commit message contains the `Changelog`_ for this release.
+The release commit must also finalize the `Changelog`_ for this release.
 
 Changelog
 ~~~~~~~~~
 
-Each release should come with a changelog briefly explaining what has changed
-for the user. It should generally be separated into 'Deprecations', 'Features',
-and 'Fixes', with 'Breaking Changes' listed separately at the top.
+The ``CHANGELOG.md`` file at the root of the repo should already contain all the
+changes for the upcoming release in a format based on
+`keep a changelog <https://keepachangelog.com/en/1.0.0/>`_.
 
-See `old releases <https://github.com/polybar/polybar/releases>`_ for how to
-format the changelog.
+For each release those changes should be checked to make sure we did not miss
+anything.
+
+For all releases, a new section of the following form should be created below
+the ``Unreleased`` section:
+
+.. code-block::
+
+  ## [X.Y.Z] - YYYY-MM-DD
+
+In addition the reference link for the release should be added to the top of the
+other links at the bottom of the document:
+
+.. code-block::
+
+  [X.Y.Z]: https://github.com/polybar/polybar/releases/tag/X.Y.Z
+
+Since the release isn't published yet, this link will not exist yet.
+
+All changes from the ``Unreleased`` section that apply to this release should be
+moved into the release section.
+For regular releases this is generally the entire ``Unreleased`` while for patch
+releases it will only be a few entries.
+
+.. TODO mention link updates for the unreleased section
 
 Since major releases generally break backwards compatibility in some way, their
 changelog should also prominently feature precisely what breaking changes were
@@ -178,7 +201,6 @@ After-Release Checklist
   If this fails for some reason, it should be triggered be triggered manually.
 * Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
   ``polybar-git`` packages (push after the release archive is uploaded).
-
 
 Deprecations
 ~~~~~~~~~~~~
