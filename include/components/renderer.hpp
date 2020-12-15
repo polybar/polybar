@@ -37,7 +37,7 @@ class renderer
           signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
           signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
           signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
-          signals::parser::text, signals::parser::control> {
+          signals::parser::text, signals::parser::image, signals::parser::control> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -61,6 +61,7 @@ class renderer
   void fill_underline(double x, double w);
   void fill_borders();
   void draw_text(const string& contents);
+  void draw_image(const string& contents);
 
  protected:
   double block_x(alignment a) const;
@@ -86,7 +87,12 @@ class renderer
   bool on(const signals::parser::action_begin& evt);
   bool on(const signals::parser::action_end& evt);
   bool on(const signals::parser::text& evt);
+  bool on(const signals::parser::image& evt);
   bool on(const signals::parser::control& evt);
+
+ private:
+
+   cairo_surface_t *imageFromFile(const std::string& name);
 
  protected:
   struct reserve_area {
@@ -137,6 +143,8 @@ class renderer
 
   bool m_fixedcenter;
   string m_snapshot_dst;
+
+  std::unordered_map<std::string, cairo_surface_t*> m_cachedImageFiles;
 };
 
 POLYBAR_NS_END

@@ -59,6 +59,7 @@ namespace signals {
     struct action_begin;
     struct action_end;
     struct text;
+    struct image;
     struct control;
   }  // namespace parser
 }  // namespace signals
