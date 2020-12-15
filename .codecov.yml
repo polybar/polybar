@@ -11,8 +11,8 @@ coverage:
         target: 0
 
 ignore:
-  - "tests/*"
-  - "lib/*"
+  - "tests/**/*"
+  - "lib/**/*"
 
 comment:
   require_changes: true
