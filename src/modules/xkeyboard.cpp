@@ -190,13 +190,17 @@ namespace modules {
       builder->node(m_layout);
     } else if (tag == TAG_LABEL_INDICATOR && !m_indicators.empty()) {
       size_t n{0};
+      size_t enabled{0};
       for (auto&& indicator : m_indicators) {
+        if (!indicator.second->get().empty()) {
+          enabled++;
+        }
         if (n++) {
           builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
         }
         builder->node(indicator.second);
       }
-      return n > 0;
+      return enabled > 0 && n > 0;
     } else {
       return false;
     }
