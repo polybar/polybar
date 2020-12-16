@@ -200,8 +200,7 @@ namespace modules {
         }
         builder->node(indicator.second);
       }
-      return n > 0;
-      // return enabled > 0 && n > 0;
+      return enabled > 0 && n > 0;
     } else {
       return false;
     }
