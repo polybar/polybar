@@ -141,9 +141,6 @@ namespace modules {
         }
 
         auto indicator_on = m_keyboard->on(it);
-        if (it == keyboard::indicator::type::SCROLL_LOCK) {
-            indicator_on = true;
-        }
         auto &indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
         auto &indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
         auto &indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
