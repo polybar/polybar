@@ -141,6 +141,9 @@ namespace modules {
         }
 
         auto indicator_on = m_keyboard->on(it);
+        if (it == keyboard::indicator::type::SCROLL_LOCK) {
+            indicator_on = true;
+        }
         auto &indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
         auto &indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
         auto &indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
@@ -192,7 +195,7 @@ namespace modules {
       size_t n{0};
       size_t enabled{0};
       for (auto&& indicator : m_indicators) {
-        if (!indicator.second->get().empty()) {
+        if (!indicator.second) {
           enabled++;
         }
         if (n++) {
@@ -200,7 +203,8 @@ namespace modules {
         }
         builder->node(indicator.second);
       }
-      return enabled > 0 && n > 0;
+      return n > 0;
+      // return enabled > 0 && n > 0;
     } else {
       return false;
     }
