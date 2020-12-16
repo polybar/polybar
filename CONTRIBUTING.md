@@ -100,6 +100,27 @@ wiki for more information.
 Also don't hesitate to ask for help, testing isn't that mature in polybar yet
 and some things may be harder/impossible to test right now.
 
+### Changelog
+
+If your PR introduces notable changes to polybar, please add them to the top of
+the `Unreleased` section in the `CHANGELOG.md` file at the root of this
+repository.
+Notable changes are any user-visible changes, like bug fixes, new config
+options, changes to the build, etc., but not, for example, code cleanup that
+doesn't change polybar's behavior or minor documentation changes.
+One thing that also should not be added to the changelog are bugfixes for
+unreleased features.
+
+Also add a reference to all issues that this PR addresses in parentheses behind
+the changelog entry:
+
+```
+[`#1234`](https://github.com/polybar/polybar/issues/1234)
+```
+
+If you are unsure whether something is a notable change, just add it to the
+changelog and we can determine whether it is a notable change when reviewing.
+
 ### Documentation
 
 Right now, documentation for polybar lives in two places: The GitHub wiki and

@@ -144,17 +144,43 @@ The release commit needs to update the version number in:
 
 * ``version.txt``
 
-The commit message contains the `Changelog`_ for this release.
+The release commit must also finalize the `Changelog`_ for this release.
 
 Changelog
 ~~~~~~~~~
 
-Each release should come with a changelog briefly explaining what has changed
-for the user. It should generally be separated into 'Deprecations', 'Features',
-and 'Fixes', with 'Breaking Changes' listed separately at the top.
+The ``CHANGELOG.md`` file at the root of the repo should already contain all the
+changes for the upcoming release in a format based on
+`keep a changelog <https://keepachangelog.com/en/1.0.0/>`_.
+For each release those changes should be checked to make sure we did not miss
+anything.
 
-See `old releases <https://github.com/polybar/polybar/releases>`_ for how to
-format the changelog.
+For all releases, a new section of the following form should be created below
+the ``Unreleased`` section:
+
+.. code-block::
+
+  ## [X.Y.Z] - YYYY-MM-DD
+
+In addition, the reference link for the release should be added and the
+reference link for the unreleased section should be updated at the bottom of the
+document:
+
+.. code-block::
+
+  [Unreleased]: https://github.com/polybar/polybar/compare/X.Y.Z...HEAD
+  [X.Y.Z]: https://github.com/polybar/polybar/releases/tag/X.Y.Z
+
+Since the release tag doesn't exist yet, both of these links will be invalid
+until the release is published.
+
+All changes from the ``Unreleased`` section that apply to this release should be
+moved into the new release section.
+For regular releases this is generally the entire ``Unreleased`` section, while
+for patch releases it will only be a few entries.
+
+The contents of the release section can be copied into the draft release in
+GitHub's release tool with a heading named ``## Changelog``.
 
 Since major releases generally break backwards compatibility in some way, their
 changelog should also prominently feature precisely what breaking changes were
@@ -178,7 +204,6 @@ After-Release Checklist
   If this fails for some reason, it should be triggered be triggered manually.
 * Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
   ``polybar-git`` packages (push after the release archive is uploaded).
-
 
 Deprecations
 ~~~~~~~~~~~~
