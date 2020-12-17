@@ -362,7 +362,7 @@ void bar::parse(string&& data, bool force) {
 
   try {
     m_parser->parse(settings(), data);
-  } catch (const parser_error& err) {
+  } catch (const exception& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
 

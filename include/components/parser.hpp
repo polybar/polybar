@@ -1,23 +1,20 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/logger.hpp"
 #include "errors.hpp"
-#include "tags/parser.hpp"
-#include "utils/color.hpp"
 
 POLYBAR_NS
 
 class signal_emitter;
-enum class attribute;
-enum class controltag;
+
+namespace tags {
+  enum class attribute;
+  enum class controltag;
+}  // namespace tags
+
 enum class mousebtn;
 struct bar_settings;
-
-DEFINE_ERROR(parser_error);
-DEFINE_CHILD_ERROR(unrecognized_token, parser_error);
-DEFINE_CHILD_ERROR(unrecognized_attribute, parser_error);
-DEFINE_CHILD_ERROR(unclosed_actionblocks, parser_error);
+class logger;
 
 class parser {
  public:
@@ -30,7 +27,7 @@ class parser {
 
  protected:
   void text(string&& data);
-  void handle_action(tags::element&& e);
+  void handle_action(mousebtn btn, bool closing, const string&& cmd);
 
  private:
   signal_emitter& m_sig;

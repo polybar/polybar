@@ -6,7 +6,6 @@
 #include <unordered_map>
 
 #include "common.hpp"
-#include "tags/types.hpp"
 #include "utils/color.hpp"
 
 POLYBAR_NS

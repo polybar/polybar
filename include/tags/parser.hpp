@@ -1,10 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/types.hpp"
 #include "errors.hpp"
 #include "tags/types.hpp"
-#include "utils/color.hpp"
 
 POLYBAR_NS
 
@@ -78,82 +76,6 @@ namespace tags {
         : error("Expected the end of a tag ('}' or ' ') but found '" +
                 (token == EOL ? "<End Of Line>" : string{token}) + "'") {}
   };
-
-  enum class color_type { RESET = 0, COLOR };
-
-  struct color_value {
-    /**
-     * ARGB color.
-     *
-     * Only used if type == COLOR
-     */
-    rgba val{};
-    color_type type;
-  };
-
-  /**
-   * Stores information about an action
-   *
-   * The actual command string is stored in element.data
-   */
-  struct action_value {
-    /**
-     * NONE is only allowed for closing tags
-     */
-    mousebtn btn;
-    bool closing;
-  };
-
-  enum class tag_type { ATTR, FORMAT };
-
-  union tag_subtype {
-    syntaxtag format;
-    attr_activation activation;
-  };
-
-  struct tag {
-    tag_type type;
-    tag_subtype subtype;
-    union {
-      /**
-       * Used for 'F', 'G', 'o', 'u' formatting tags.
-       */
-      color_value color;
-      /**
-       * For for 'A' tags
-       */
-      action_value action;
-      /**
-       * For for 'T' tags
-       */
-      int font;
-      /**
-       * For for 'O' tags
-       */
-      int offset;
-      /**
-       * For for 'P' tags
-       */
-      controltag ctrl;
-
-      /**
-       * For attribute activations ((-|+|!)(o|u))
-       */
-      attribute attr;
-    };
-  };
-
-  struct element {
-    element(){};
-    element(const string text) : data{text}, is_tag{false} {};
-    element(tag&& tag_data) : tag_data{tag_data}, is_tag{true} {};
-
-    string data{};
-    tag tag_data{};
-    bool is_tag{false};
-  };
-
-  using format_string = vector<element>;
 
   /**
    * Recursive-descent parser for polybar's formatting tags.

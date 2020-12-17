@@ -9,8 +9,6 @@
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
-#include "utils/memory.hpp"
-#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -56,40 +54,40 @@ void parser::parse(const bar_settings& bar, string data) {
       switch (el.tag_data.type) {
         case tags::tag_type::FORMAT:
           switch (el.tag_data.subtype.format) {
-            case syntaxtag::A:
-              handle_action(std::move(el));
+            case tags::syntaxtag::A:
+              handle_action(el.tag_data.action.btn, el.tag_data.action.closing, std::move(el.data));
               break;
-            case syntaxtag::B:
+            case tags::syntaxtag::B:
               m_sig.emit(change_background{get_color(el.tag_data.color, bar.background)});
               break;
-            case syntaxtag::F:
+            case tags::syntaxtag::F:
               m_sig.emit(change_foreground{get_color(el.tag_data.color, bar.foreground)});
               break;
-            case syntaxtag::T:
+            case tags::syntaxtag::T:
               m_sig.emit(change_font{el.tag_data.font});
               break;
-            case syntaxtag::O:
+            case tags::syntaxtag::O:
               m_sig.emit(offset_pixel{el.tag_data.offset});
               break;
-            case syntaxtag::R:
+            case tags::syntaxtag::R:
               m_sig.emit(reverse_colors{});
               break;
-            case syntaxtag::o:
+            case tags::syntaxtag::o:
               m_sig.emit(change_overline{get_color(el.tag_data.color, bar.overline.color)});
               break;
-            case syntaxtag::u:
+            case tags::syntaxtag::u:
               m_sig.emit(change_underline{get_color(el.tag_data.color, bar.underline.color)});
               break;
-            case syntaxtag::P:
+            case tags::syntaxtag::P:
               m_sig.emit(control{el.tag_data.ctrl});
               break;
-            case syntaxtag::l:
+            case tags::syntaxtag::l:
               m_sig.emit(change_alignment{alignment::LEFT});
               break;
-            case syntaxtag::r:
+            case tags::syntaxtag::r:
               m_sig.emit(change_alignment{alignment::RIGHT});
               break;
-            case syntaxtag::c:
+            case tags::syntaxtag::c:
               m_sig.emit(change_alignment{alignment::CENTER});
               break;
             default:
@@ -98,15 +96,15 @@ void parser::parse(const bar_settings& bar, string data) {
           }
           break;
         case tags::tag_type::ATTR:
-          attribute act = el.tag_data.attr;
+          tags::attribute act = el.tag_data.attr;
           switch (el.tag_data.subtype.activation) {
-            case attr_activation::ON:
+            case tags::attr_activation::ON:
               m_sig.emit(attribute_set{act});
               break;
-            case attr_activation::OFF:
+            case tags::attr_activation::OFF:
               m_sig.emit(attribute_unset{act});
               break;
-            case attr_activation::TOGGLE:
+            case tags::attr_activation::TOGGLE:
               m_sig.emit(attribute_toggle{act});
               break;
             default:
@@ -121,7 +119,7 @@ void parser::parse(const bar_settings& bar, string data) {
   }
 
   if (!m_actions.empty()) {
-    throw unclosed_actionblocks(to_string(m_actions.size()) + " unclosed action block(s)");
+    throw runtime_error(to_string(m_actions.size()) + " unclosed action block(s)");
   }
 }
 
@@ -139,9 +137,8 @@ void parser::text(string&& data) {
   m_sig.emit(signals::parser::text{std::move(data)});
 }
 
-void parser::handle_action(tags::element&& el) {
-  mousebtn btn = el.tag_data.action.btn;
-  if (el.tag_data.action.closing) {
+void parser::handle_action(mousebtn btn, bool closing, const string&& cmd) {
+  if (closing) {
     if (btn == mousebtn::NONE) {
       if (!m_actions.empty()) {
         btn = m_actions.back();
@@ -166,7 +163,7 @@ void parser::handle_action(tags::element&& el) {
     m_sig.emit(action_end{btn});
   } else {
     m_actions.push_back(btn);
-    m_sig.emit(action_begin{action{btn, std::move(el.data)}});
+    m_sig.emit(action_begin{action{btn, std::move(cmd)}});
   }
 }
 

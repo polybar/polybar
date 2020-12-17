@@ -9,6 +9,8 @@
 #include "utils/time.hpp"
 POLYBAR_NS
 
+using namespace tags;
+
 builder::builder(const bar_settings& bar) : m_bar(bar) {
   reset();
 }

@@ -95,7 +95,7 @@ namespace modules {
       m_builder->flush();
       if (!m_cache.empty()) {
         // Add a reset tag after the module
-        m_builder->control(controltag::R);
+        m_builder->control(tags::controltag::R);
         m_cache += m_builder->flush();
       }
       m_changed = false;
