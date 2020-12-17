@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "components/config.hpp"
-#include "components/parser.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/taskqueue.hpp"
@@ -11,6 +10,7 @@
 #include "drawtypes/label.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
@@ -47,7 +47,7 @@ bar::make_type bar::make(bool only_initialize_values) {
         logger::make(),
         screen::make(),
         tray_manager::make(),
-        parser::make(),
+        tags::dispatch::make(),
         taskqueue::make(),
         only_initialize_values);
   // clang-format on
@@ -59,7 +59,7 @@ bar::make_type bar::make(bool only_initialize_values) {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser,
+    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
     unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
@@ -67,7 +67,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_log(logger)
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
-    , m_parser(forward<decltype(parser)>(parser))
+    , m_dispatch(forward<decltype(dispatch)>(dispatch))
     , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
   string bs{m_conf.section()};
 
@@ -361,7 +361,7 @@ void bar::parse(string&& data, bool force) {
   m_renderer->begin(rect);
 
   try {
-    m_parser->parse(settings(), data);
+    m_dispatch->parse(settings(), data);
   } catch (const exception& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }

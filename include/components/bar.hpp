@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdlib>
 #include <atomic>
+#include <cstdlib>
 #include <mutex>
 
 #include "common.hpp"
@@ -9,8 +9,8 @@
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/math.hpp"
 #include "settings.hpp"
+#include "utils/math.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
 
@@ -20,11 +20,14 @@ POLYBAR_NS
 class config;
 class connection;
 class logger;
-class parser;
 class renderer;
 class screen;
 class taskqueue;
 class tray_manager;
+
+namespace tags {
+  class dispatch;
+}
 // }}}
 
 /**
@@ -38,7 +41,8 @@ inline double geom_format_to_pixels(std::string str, double max) {
   if ((i = str.find(':')) != std::string::npos) {
     std::string a = str.substr(0, i - 1);
     std::string b = str.substr(i + 1);
-    return math_util::max<double>(0,math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr));
+    return math_util::max<double>(
+        0, math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr));
   } else {
     if (str.find('%') != std::string::npos) {
       return math_util::percentage_to_value<double>(strtod(str.c_str(), nullptr), max);
@@ -53,15 +57,16 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
             public signal_receiver<SIGN_PRIORITY_BAR, signals::eventqueue::start, signals::ui::tick,
                 signals::ui::shade_window, signals::ui::unshade_window, signals::ui::dim_window
 #if WITH_XCURSOR
-                , signals::ui::cursor_change
+                ,
+                signals::ui::cursor_change
 #endif
-    > {
+                > {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, unique_ptr<screen>&&,
-      unique_ptr<tray_manager>&&, unique_ptr<parser>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
+      unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
   ~bar();
 
   const bar_settings settings() const;
@@ -108,7 +113,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   unique_ptr<screen> m_screen;
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;
-  unique_ptr<parser> m_parser;
+  unique_ptr<tags::dispatch> m_dispatch;
   unique_ptr<taskqueue> m_taskqueue;
 
   bar_settings m_opts{};
