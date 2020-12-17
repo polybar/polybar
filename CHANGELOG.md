@@ -50,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trailing space after the layout label when indicators are empty and made sure right amount
   of spacing is added between the indicator labels, in the xkeyboard module.
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
-
 - Parser error if click command contained `}`
   ([`#2040`](https://github.com/polybar/polybar/issues/2040))
 
