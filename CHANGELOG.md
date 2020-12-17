@@ -36,4 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Increased precision for upload and download speeds: 0 decimal places for
     KB/s (as before), 1 for MB/s and 2 for GB/s.
 
+### Fixed
+- Trailing space after the layout label when indicators are empty and made sure right amount
+  of spacing is added between the indicator labels, in the xkeyboard module.
+  ([`#2292`](https://github.com/polybar/polybar/issues/2292))
+  
 [Unreleased]: https://github.com/polybar/polybar/compare/3.5.2...HEAD
