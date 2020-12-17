@@ -20,23 +20,17 @@ from docutils.nodes import Node
 from sphinx.domains.changeset import VersionChange
 import packaging.version
 
-def get_version():
+def get_version(root_path):
   """
-  Searches for the version.txt file and extracts the version from it
+  Reads the polybar version from the version.txt at the root of the repo.
+  """
+  path = Path(root_path) / "version.txt"
+  with open(path, "r") as f:
+    for line in f.readlines():
+      if not line.startswith("#"):
+        return packaging.version.parse(line)
 
-  Searches up the directory tree from the conf.py file because depending on the
-  build method, the conf.py file will be at a different location (because it is
-  configured by cmake)
-  """
-  current_path = Path(__file__).parent
-  while current_path != current_path.parent:
-    candidate = current_path / "version.txt"
-    if candidate.exists():
-      with open(candidate, "r") as f:
-        for line in f.readlines():
-          if not line.startswith("#"):
-            return packaging.version.parse(line)
-    current_path = current_path.parent
+  raise RuntimeError("No version found in {}".format(path))
 
 
 
@@ -61,11 +55,6 @@ else:
 # The full version, including alpha/beta/rc tags
 release = version
 
-# The version from the version.txt file. Since we are not always first
-# configured by cmake, we don't necessarily have access to the current version
-# number
-version_txt = get_version()
-
 # Set path to documentation
 if on_rtd:
   # On readthedocs conf.py is already in the doc folder
@@ -74,6 +63,11 @@ else:
   # In all other builds conf.py is configured with cmake and put into the
   # build folder.
   doc_path = '@doc_path@'
+
+# The version from the version.txt file. Since we are not always first
+# configured by cmake, we don't necessarily have access to the current version
+# number
+version_txt = get_version(Path(doc_path).absolute().parent)
 
 # -- General configuration ---------------------------------------------------
 
