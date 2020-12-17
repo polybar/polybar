@@ -19,8 +19,7 @@ namespace modules {
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
     m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
-                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE, TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
     m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
@@ -102,6 +101,7 @@ namespace modules {
 
     // replace tokens
     const auto replace_tokens = [&](label_t& label) {
+      if(!label) return;
       label->reset_tokens();
       label->replace_token("%gb_used%", string_util::filesize_gib(kb_total - kb_avail, 2, m_bar.locale));
       label->replace_token("%gb_free%", string_util::filesize_gib(kb_avail, 2, m_bar.locale));
@@ -120,14 +120,18 @@ namespace modules {
       label->replace_token("%gb_swap_free%", string_util::filesize_gib(kb_swap_free, 2, m_bar.locale));
       label->replace_token("%gb_swap_used%", string_util::filesize_gib(kb_swap_total - kb_swap_free, 2, m_bar.locale));
     };
+    const auto replace_labellist_tokens = [&](labellist_t labellist) {
+      if(!labellist) return;
+      replace_tokens(labellist->get_template());
+      labellist->apply_template();
+    };
 
-    if (m_label) {
-      replace_tokens(m_label);
-    }
-
-    if (m_labelwarn) {
-      replace_tokens(m_labelwarn);
-    }
+    replace_tokens(m_label);
+    replace_tokens(m_labelwarn);
+    replace_labellist_tokens(m_ramp_memused);
+    replace_labellist_tokens(m_ramp_memfree);
+    replace_labellist_tokens(m_ramp_swapused);
+    replace_labellist_tokens(m_ramp_swapfree);
 
     return true;
   }

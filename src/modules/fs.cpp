@@ -108,6 +108,32 @@ namespace modules {
 
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
+
+        const auto replace_tokens = [&](label_t& label) {
+          if (!label) return;
+          label->reset_tokens();
+          label->replace_token("%mountpoint%", mount->mountpoint);
+          label->replace_token("%type%", mount->type);
+          label->replace_token("%fsname%", mount->fsname);
+          label->replace_token("%percentage_free%", to_string(mount->percentage_free));
+          label->replace_token("%percentage_used%", to_string(mount->percentage_used));
+          label->replace_token(
+              "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+          label->replace_token(
+              "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+          label->replace_token(
+              "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+        };
+        replace_tokens(m_labelmounted);
+        replace_tokens(m_labelwarn);
+        if (m_labelunmounted) {
+          m_labelunmounted->reset_tokens();
+          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
+        }
+        if (m_rampcapacity) {
+          replace_tokens(m_rampcapacity->get_template());
+          m_rampcapacity->apply_template();
+        }
       }
     }
 
@@ -188,8 +214,6 @@ namespace modules {
       replace_tokens(m_labelwarn);
       builder->node(m_labelwarn);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
-      m_labelunmounted->reset_tokens();
-      m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
       builder->node(m_labelunmounted);
     } else {
       return false;

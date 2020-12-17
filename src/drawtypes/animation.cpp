@@ -6,13 +6,13 @@ POLYBAR_NS
 
 namespace drawtypes {
   void animation::add(label_t&& frame) {
-    m_frames.emplace_back(forward<decltype(frame)>(frame));
-    m_framecount = m_frames.size();
+    m_labels.emplace_back(forward<decltype(frame)>(frame));
+    m_framecount = m_labels.size();
     m_frame = m_framecount - 1;
   }
 
   label_t animation::get() const {
-    return m_frames[m_frame];
+    return m_labels[m_frame];
   }
 
   unsigned int animation::framerate() const {
@@ -20,7 +20,7 @@ namespace drawtypes {
   }
 
   animation::operator bool() const {
-    return !m_frames.empty();
+    return !m_labels.empty();
   }
 
   void animation::increment() {
@@ -36,27 +36,15 @@ namespace drawtypes {
    * from the configuration
    */
   animation_t load_animation(const config& conf, const string& section, string name, bool required) {
-    vector<label_t> vec;
-    vector<string> frames;
-
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
+    vector<label_t> vec;
+    label_t tmplate;
 
-    auto anim_defaults = load_optional_label(conf, section, name);
-
-    if (required) {
-      frames = conf.get_list(section, name);
-    } else {
-      frames = conf.get_list(section, name, {});
-    }
-
-    for (size_t i = 0; i < frames.size(); i++) {
-      vec.emplace_back(forward<label_t>(load_optional_label(conf, section, name + "-" + to_string(i), frames[i])));
-      vec.back()->copy_undefined(anim_defaults);
-    }
+    load_labellist(vec, tmplate, conf, section, name, required);
 
     auto framerate = conf.get(section, name + "-framerate", 1000);
 
-    return factory_util::shared<animation>(move(vec), framerate);
+    return factory_util::shared<animation>(move(vec), framerate, move(tmplate));
   }
 }  // namespace drawtypes
 

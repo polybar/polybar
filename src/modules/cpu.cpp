@@ -39,6 +39,9 @@ namespace modules {
     if (m_formatter->has(TAG_RAMP_LOAD)) {
       m_rampload = load_ramp(m_conf, name(), TAG_RAMP_LOAD);
     }
+    if (m_formatter->has(TAG_ANIMATION_WARN)) {
+      m_animation_warn = load_animation(m_conf, name(), TAG_ANIMATION_WARN);
+    }
     if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE)) {
       m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
     }
@@ -70,7 +73,8 @@ namespace modules {
 
     m_total = m_total / static_cast<float>(cores_n);
 
-    const auto replace_tokens = [&](label_t& label) {
+    const auto replace_tokens = [&](label_t label) {
+      if (!label) return;
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
       label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
@@ -80,13 +84,16 @@ namespace modules {
         label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
       }
     };
+    const auto replace_labellist_tokens = [&](labellist_t labellist) {
+      if(!labellist) return;
+      replace_tokens(labellist->get_template());
+      labellist->apply_template();
+    };
 
-    if (m_label) {
-      replace_tokens(m_label);
-    }
-    if (m_labelwarn) {
-      replace_tokens(m_labelwarn);
-    }
+    replace_tokens(m_label);
+    replace_tokens(m_labelwarn);
+    replace_labellist_tokens(m_rampload);
+    replace_labellist_tokens(m_animation_warn);
 
     return true;
   }
@@ -109,6 +116,8 @@ namespace modules {
       builder->node(m_barload->output(m_total));
     } else if (tag == TAG_RAMP_LOAD) {
       builder->node(m_rampload->get_by_percentage_with_borders(m_total, 0.0f, m_totalwarn));
+    } else if (tag == TAG_ANIMATION_WARN) {
+      builder->node(m_animation_warn->get());
     } else if (tag == TAG_RAMP_LOAD_PER_CORE) {
       auto i = 0;
       for (auto&& load : m_load) {
@@ -122,6 +131,13 @@ namespace modules {
       return false;
     }
     return true;
+  }
+
+  void cpu_module::start() {
+    timer_module::start();
+    if (m_animation_warn) {
+      m_subthread = thread(&cpu_module::subthread, this);
+    }
   }
 
   bool cpu_module::read_values() {
@@ -154,6 +170,33 @@ namespace modules {
     }
 
     return !m_cputimes.empty();
+  }
+
+  /**
+   * Subthread runner that emits update events to refresh animations
+   * in case they are used. Note, that it is ok to
+   * use a single thread, because the two animations are never shown at the
+   * same time.
+   */
+  void cpu_module::subthread() {
+    m_log.trace("%s: Start of subthread", name());
+
+    while (running()) {
+      auto now = chrono::steady_clock::now();
+      auto framerate = 1000U;  // milliseconds
+      auto format = get_format();
+      if (format == FORMAT_WARN && m_animation_warn) {
+        m_animation_warn->increment();
+        broadcast();
+        framerate = m_animation_warn->framerate();
+      }
+
+      // We don't count the the first part of the loop to be as close as possible to the framerate.
+      now += chrono::milliseconds(framerate);
+      this_thread::sleep_until(now);
+    }
+
+    m_log.trace("%s: End of subthread", name());
   }
 
   float cpu_module::get_load(size_t core) const {

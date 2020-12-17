@@ -152,15 +152,11 @@ namespace modules {
     watch(m_fcapnow, IN_ACCESS);
     watch(m_fstate, IN_ACCESS);
 
-    // Setup time if token is used
-    if ((m_label_charging && m_label_charging->has_token("%time%")) ||
-        (m_label_discharging && m_label_discharging->has_token("%time%")) ||
-        (m_label_low && m_label_low->has_token("%time%"))) {
-      if (!m_bar.locale.empty()) {
-        setlocale(LC_TIME, m_bar.locale.c_str());
-      }
-      m_timeformat = m_conf.get(name(), "time-format", "%H:%M:%S"s);
+    // Setup time
+    if (!m_bar.locale.empty()) {
+      setlocale(LC_TIME, m_bar.locale.c_str());
     }
+    m_timeformat = m_conf.get(name(), "time-format", "%H:%M:%S"s);
   }
 
   /**
@@ -229,16 +225,8 @@ namespace modules {
     m_state = state;
     m_percentage = percentage;
 
-    const auto label = [this] {
-      switch (m_state) {
-        case battery_module::state::FULL: return m_label_full;
-        case battery_module::state::DISCHARGING: return m_label_discharging;
-        case battery_module::state::LOW: return m_label_low;
-        default: return m_label_charging;
-      }
-    }();
-
-    if (label) {
+    const auto replace_tokens = [&](label_t& label) {
+      if (!label) return;
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
       label->replace_token("%percentage_raw%", to_string(m_percentage));
@@ -247,6 +235,25 @@ namespace modules {
       if (m_state != battery_module::state::FULL && !m_timeformat.empty()) {
         label->replace_token("%time%", current_time());
       }
+    };
+    const auto replace_labellist_tokens = [&](labellist_t labellist) {
+      if(!labellist) return;
+      replace_tokens(labellist->get_template());
+      labellist->apply_template();
+    };
+
+    replace_labellist_tokens(m_ramp_capacity);
+    if(m_state == battery_module::state::FULL) {
+      replace_tokens(m_label_full);
+    } else if (m_state == battery_module::state::DISCHARGING) {
+      replace_tokens(m_label_discharging);
+      replace_labellist_tokens(m_animation_discharging);
+    } else if (m_state == battery_module::state::LOW) {
+      replace_tokens(m_label_low);
+      replace_labellist_tokens(m_animation_low);
+    } else {
+      replace_tokens(m_label_charging);
+      replace_labellist_tokens(m_animation_charging);
     }
 
     return true;
