@@ -191,10 +191,12 @@ namespace modules {
     } else if (tag == TAG_LABEL_INDICATOR && !m_indicators.empty()) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
-        if (n++) {
-          builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        if (*indicator.second) {
+          if (n++) {
+            builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+          }
+          builder->node(indicator.second);
         }
-        builder->node(indicator.second);
       }
       return n > 0;
     } else {
