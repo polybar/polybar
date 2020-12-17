@@ -190,7 +190,7 @@ namespace tags {
      * %{U...} is a special case because it produces over and underline tags.
      */
     if (c == 'U') {
-      element e;
+      element e{};
       e.is_tag = true;
       e.tag_data.type = tag_type::FORMAT;
       e.tag_data.subtype.format = syntaxtag::u;

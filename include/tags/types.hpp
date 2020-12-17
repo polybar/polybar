@@ -104,8 +104,7 @@ namespace tags {
 
   struct element {
     element(){};
-    element(const string text) : data{text}, is_tag{false} {};
-    element(tag&& tag_data) : tag_data{tag_data}, is_tag{true} {};
+    element(const string&& text) : data{std::move(text)}, is_tag{false} {};
 
     string data{};
     tag tag_data{};
