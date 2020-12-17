@@ -192,7 +192,7 @@ namespace modules {
       size_t n{0};
       size_t enabled{0};
       for (auto&& indicator : m_indicators) {
-        if (!indicator.second) {
+        if (!*indicator.second) {
           enabled++;
         }
         if (n++) {
