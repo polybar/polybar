@@ -66,6 +66,8 @@ const string keyboard::layout_name(size_t index) const {
 
 /**
  * Get current variant name
+ * "GROUP (VARIANT)"
+ *         ^^^^^^^
  */
 const string keyboard::variant_name(size_t index) const {
   string group_name = this->group_name(index);
