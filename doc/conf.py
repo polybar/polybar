@@ -13,11 +13,31 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+from pathlib import Path
 import datetime
-import subprocess
-from docutils.nodes import Node
 from typing import List
+from docutils.nodes import Node
 from sphinx.domains.changeset import VersionChange
+import packaging.version
+
+def get_version():
+  """
+  Searches for the version.txt file and extracts the version from it
+
+  Searches up the directory tree from the conf.py file because depending on the
+  build method, the conf.py file will be at a different location (because it is
+  configured by cmake)
+  """
+  current_path = Path(__file__).parent
+  while current_path != current_path.parent:
+    candidate = current_path / "version.txt"
+    if candidate.exists():
+      with open(candidate, "r") as f:
+        for line in f.readlines():
+          if not line.startswith("#"):
+            return packaging.version.parse(line)
+    current_path = current_path.parent
+
 
 
 # -- Project information -----------------------------------------------------
@@ -40,6 +60,11 @@ else:
 
 # The full version, including alpha/beta/rc tags
 release = version
+
+# The version from the version.txt file. Since we are not always first
+# configured by cmake, we don't necessarily have access to the current version
+# number
+version_txt = get_version()
 
 # Set path to documentation
 if on_rtd:
@@ -213,12 +238,9 @@ class VersionDirective(VersionChange):
   deprecated and adds an unreleased tag to versions that are not yet released
   """
   def run(self) -> List[Node]:
-    # If the tag exists 'git rev-parse' will succeed and otherwise fail
-    completed = subprocess.run(["git", "rev-parse", self.arguments[0]],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=doc_path,
-        check=False)
+    directive_version = packaging.version.parse(self.arguments[0])
 
-    if completed.returncode != 0:
+    if directive_version > version_txt:
       self.arguments[0] += " (unreleased)"
 
     return super().run()
