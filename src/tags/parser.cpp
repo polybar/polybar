@@ -216,14 +216,14 @@ namespace tags {
       case 'O': sub.format = syntaxtag::O; break;
       case 'P': sub.format = syntaxtag::P; break;
       case 'A': sub.format = syntaxtag::A; break;
+      case 'l': sub.format = syntaxtag::l; break;
+      case 'c': sub.format = syntaxtag::c; break;
+      case 'r': sub.format = syntaxtag::r; break;
 
       case '+': sub.activation = attr_activation::ON; break;
       case '-': sub.activation = attr_activation::OFF; break;
       case '!': sub.activation = attr_activation::TOGGLE; break;
 
-      case 'l': sub.align = alignment::LEFT; break;
-      case 'c': sub.align = alignment::CENTER; break;
-      case 'r': sub.align = alignment::RIGHT; break;
         // clang-format on
 
       default:
@@ -240,6 +240,9 @@ namespace tags {
       case 'O':
       case 'P':
       case 'A':
+      case 'l':
+      case 'c':
+      case 'r':
         type = tag_type::FORMAT;
         break;
 
@@ -247,12 +250,6 @@ namespace tags {
       case '-':
       case '!':
         type = tag_type::ATTR;
-        break;
-
-      case 'l':
-      case 'c':
-      case 'r':
-        type = tag_type::ALIGN;
         break;
 
       default:

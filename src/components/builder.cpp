@@ -477,6 +477,15 @@ void builder::tag_open(syntaxtag tag, const string& value) {
     case syntaxtag::P:
       append("%{P" + value + "}");
       break;
+    case syntaxtag::l:
+      append("%{l}");
+      break;
+    case syntaxtag::c:
+      append("%{c}");
+      break;
+    case syntaxtag::r:
+      append("%{r}");
+      break;
   }
 }
 
@@ -534,6 +543,9 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::R:
     case syntaxtag::P:
     case syntaxtag::O:
+    case syntaxtag::l:
+    case syntaxtag::c:
+    case syntaxtag::r:
       break;
   }
 }

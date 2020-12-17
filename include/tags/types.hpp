@@ -4,8 +4,6 @@
 
 POLYBAR_NS
 
-enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
-
 enum class attribute { NONE = 0, UNDERLINE, OVERLINE };
 
 enum class attr_activation { NONE, ON, OFF, TOGGLE };
@@ -20,6 +18,9 @@ enum class syntaxtag {
   o,  // overline color
   u,  // underline color
   P,  // Polybar control tag
+  l,  // Left alignment
+  r,  // Right alignment
+  c,  // Center alignment
 };
 
 /**

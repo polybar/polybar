@@ -104,12 +104,11 @@ namespace tags {
     bool closing;
   };
 
-  enum class tag_type { ATTR, FORMAT, ALIGN };
+  enum class tag_type { ATTR, FORMAT };
 
   union tag_subtype {
     syntaxtag format;
     attr_activation activation;
-    alignment align;
   };
 
   struct tag {

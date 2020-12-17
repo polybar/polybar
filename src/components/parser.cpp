@@ -54,9 +54,6 @@ void parser::parse(const bar_settings& bar, string data) {
 
     if (el.is_tag) {
       switch (el.tag_data.type) {
-        case tags::tag_type::ALIGN:
-          m_sig.emit(change_alignment{el.tag_data.subtype.align});
-          break;
         case tags::tag_type::FORMAT:
           switch (el.tag_data.subtype.format) {
             case syntaxtag::A:
@@ -85,6 +82,15 @@ void parser::parse(const bar_settings& bar, string data) {
               break;
             case syntaxtag::P:
               m_sig.emit(control{el.tag_data.ctrl});
+              break;
+            case syntaxtag::l:
+              m_sig.emit(change_alignment{alignment::LEFT});
+              break;
+            case syntaxtag::r:
+              m_sig.emit(change_alignment{alignment::RIGHT});
+              break;
+            case syntaxtag::c:
+              m_sig.emit(change_alignment{alignment::CENTER});
               break;
             default:
               throw runtime_error(

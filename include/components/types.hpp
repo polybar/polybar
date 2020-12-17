@@ -31,6 +31,8 @@ struct enum_hash {
 
 enum class edge { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 
+enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
+
 enum class mousebtn {
   NONE = 0,
   LEFT,

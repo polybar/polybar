@@ -87,10 +87,9 @@ class TestableTagParser : public parser {
     EXPECT_EQ(exp, current.tag_data.ctrl);
   }
 
-  void expect_alignment(alignment exp) {
+  void expect_alignment(syntaxtag exp) {
     set_current();
-    assert_align();
-    EXPECT_EQ(exp, current.tag_data.subtype.align);
+    assert_format(exp);
   }
 
   void expect_activation(attr_activation act, attribute attr) {
@@ -106,10 +105,6 @@ class TestableTagParser : public parser {
   }
 
  private:
-  void assert_align() {
-    assert_type(tag_type::ALIGN);
-  }
-
   void assert_format(syntaxtag exp) {
     assert_type(tag_type::FORMAT);
     ASSERT_EQ(exp, current.tag_data.subtype.format);
@@ -331,15 +326,15 @@ TEST_F(TagParserTest, offset) {
 
 TEST_F(TagParserTest, alignment) {
   p.setup_parser_test("%{l}");
-  p.expect_alignment(alignment::LEFT);
+  p.expect_alignment(syntaxtag::l);
   p.expect_done();
 
   p.setup_parser_test("%{c}");
-  p.expect_alignment(alignment::CENTER);
+  p.expect_alignment(syntaxtag::c);
   p.expect_done();
 
   p.setup_parser_test("%{r}");
-  p.expect_alignment(alignment::RIGHT);
+  p.expect_alignment(syntaxtag::r);
   p.expect_done();
 }
 
@@ -376,7 +371,7 @@ TEST_F(TagParserTest, compoundTags) {
 
 TEST_F(TagParserTest, combinations) {
   p.setup_parser_test("%{r}%{u#4bffdc +u u#4bffdc} 20% abc%{-u u- PR}");
-  p.expect_alignment(alignment::RIGHT);
+  p.expect_alignment(syntaxtag::r);
   p.expect_color(syntaxtag::u, "#4bffdc");
   p.expect_activation(attr_activation::ON, attribute::UNDERLINE);
   p.expect_color(syntaxtag::u, "#4bffdc");
