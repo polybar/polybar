@@ -7,6 +7,7 @@ are awesome! :tada:
 * [Bug Reports](#bug-reports)
 * [Pull Requests](#pull-requests)
   + [Testing](#testing)
+  + [Changelog](#changelog)
   + [Documentation](#documentation)
   + [Style](#style)
 
