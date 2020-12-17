@@ -110,8 +110,6 @@ namespace modules {
     // The following mutex is here to protect the data of this modules.
     // This can't be achieved using m_buildlock since we "CRTP override" get_output().
     mutable mutex m_workspace_mutex;
-
-    event_timer m_timer{0L, 25L};
   };
 }  // namespace modules
 

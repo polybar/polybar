@@ -31,7 +31,7 @@ namespace modules {
     m_perc_used_warn = m_conf.get(name(), "warn-percentage", 90);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 30s);
+    set_interval(30s);
 
     // Add formats and elements
     m_formatter->add(
@@ -214,6 +214,8 @@ namespace modules {
       replace_tokens(m_labelwarn);
       builder->node(m_labelwarn);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
+      m_labelunmounted->reset_tokens();
+      m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
       builder->node(m_labelunmounted);
     } else {
       return false;

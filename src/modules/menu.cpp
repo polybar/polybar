@@ -140,7 +140,7 @@ namespace modules {
       m_log.info("%s: Opening menu level '%i'", name(), static_cast<int>(m_level));
 
       if (static_cast<size_t>(m_level) >= m_levels.size()) {
-        m_log.warn("%s: Cannot open unexisting menu level '%i'", name(), level);
+        m_log.warn("%s: Cannot open unexisting menu level '%s'", name(), level);
         m_level = -1;
       }
     } else if (action == EVENT_CLOSE) {

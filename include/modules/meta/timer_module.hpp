@@ -17,6 +17,20 @@ namespace modules {
     }
 
    protected:
+    /**
+     * Loads and sets the interval for this module.
+     *
+     * Will throw an exception if a non-positive (<= 0) number is given.
+     */
+    void set_interval(interval_t def) {
+      m_interval = this->m_conf.template get<decltype(m_interval)>(this->name(), "interval", def);
+
+      if (m_interval <= 0s) {
+        throw module_error(
+            this->name() + ": 'interval' must be larger than 0 (got '" + to_string(m_interval.count()) + "s')");
+      }
+    }
+
     void runner() {
       this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
 
