@@ -12,8 +12,8 @@
 using namespace polybar;
 using namespace process_util;
 
-TEST(ForkDetached, is_detached) {
-  pid_t pid = fork_detached([] { exec_sh("sleep 0.1"); });
+TEST(SpawnAsync, is_async) {
+  pid_t pid = spawn_async([] { exec_sh("sleep 0.1"); });
   int status;
 
   pid_t res = process_util::wait_for_completion_nohang(pid, &status);
@@ -23,8 +23,8 @@ TEST(ForkDetached, is_detached) {
   EXPECT_FALSE(WIFEXITED(status));
 }
 
-TEST(ForkDetached, exit_code) {
-  pid_t pid = fork_detached([] { exec_sh("exit 42"); });
+TEST(SpawnAsync, exit_code) {
+  pid_t pid = spawn_async([] { exec_sh("exit 42"); });
   int status = 0;
   pid_t res = waitpid(pid, &status, 0);
 

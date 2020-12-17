@@ -98,11 +98,13 @@ struct edge_values {
 };
 
 struct radius {
-  double top{0.0};
-  double bottom{0.0};
+  double top_left{0.0};
+  double top_right{0.0};
+  double bottom_left{0.0};
+  double bottom_right{0.0};
 
   operator bool() const {
-    return top != 0.0 || bottom != 0.0;
+    return top_left != 0.0 || top_right != 0.0 || bottom_left != 0.0 || bottom_right != 0.0;
   }
 };
 

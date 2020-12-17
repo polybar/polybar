@@ -45,15 +45,11 @@ namespace process_util {
   }
 
   /**
-   * Forks a child process and completely detaches it.
+   * Forks a child process and executes the given lambda function in it.
    *
-   * In the child process, the given lambda function is executed.
-   *
-   * Use this if you want to run a command and just forget about it.
-   *
-   * \returns The PID of the child process
+   * Processes spawned this way need to be waited on by the caller.
    */
-  pid_t fork_detached(std::function<void()> const& lambda) {
+  pid_t spawn_async(std::function<void()> const& lambda) {
     pid_t pid = fork();
     switch (pid) {
       case -1:
@@ -68,6 +64,50 @@ namespace process_util {
         break;
       default:
         return pid;
+    }
+  }
+
+  /**
+   * Forks a child process and completely detaches it.
+   *
+   * In the child process, the given lambda function is executed.
+   * We fork twice so that the first forked process can exit and it's child is
+   * reparented to the init process.
+   *
+   * Ref: https://web.archive.org/web/20120914180018/http://www.steve.org.uk/Reference/Unix/faq_2.html#SEC16
+   *
+   * Use this if you want to run a command and just forget about it.
+   *
+   * \returns The PID of the child process
+   */
+  void fork_detached(std::function<void()> const& lambda) {
+    pid_t pid = fork();
+    switch (pid) {
+      case -1:
+        throw runtime_error("fork_detached: Unable to fork: " + string(strerror(errno)));
+      case 0:
+        // Child
+        setsid();
+
+        pid = fork();
+        switch (pid) {
+          case -1:
+            throw runtime_error("fork_detached: Unable to fork: " + string(strerror(errno)));
+          case 0:
+            // Child
+            umask(0);
+            redirect_stdio_to_dev_null();
+            lambda();
+            _Exit(0);
+        }
+
+        _Exit(0);
+      default:
+        /*
+         * The first fork immediately exits and we have to collect its exit
+         * status
+         */
+        wait(pid);
     }
   }
 
@@ -90,6 +130,15 @@ namespace process_util {
       execlp(shell.c_str(), shell.c_str(), "-c", cmd, nullptr);
       throw system_error("execlp() failed");
     }
+  }
+
+  int wait(pid_t pid) {
+    int forkstatus;
+    do {
+      process_util::wait_for_completion(pid, &forkstatus, WCONTINUED | WUNTRACED);
+    } while (!WIFEXITED(forkstatus) && !WIFSIGNALED(forkstatus));
+
+    return WEXITSTATUS(forkstatus);
   }
 
   /**

@@ -126,9 +126,7 @@ namespace modules {
       return;
     }
 
-    if (m_timer.allow(evt->time)) {
-      broadcast();
-    }
+    broadcast();
   }
 
   /**
