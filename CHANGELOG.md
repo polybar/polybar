@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Breaking
+- We rewrote our tag parser. This shouldn't break anything, if you experience
+  any problems, please let us know.
+  The new parser now gives errors for certain invalid tags where the old parser
+  would just silently ignore them. Adding extra text to the end of a valid tag
+  now produces an error. For example, tags like `%{T-a}`, `%{T2abc}`, `%{rfoo}`,
+  and others will now start producing errors.
+  This does not affect you unless you are producing your own formatting tags
+  (for example in a script) and you are using one of these invalid tags.
+
 ### Added
 - Warn states for the cpu, memory, fs, and battery modules.
   ([`#570`](https://github.com/polybar/polybar/issues/570),
@@ -40,5 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trailing space after the layout label when indicators are empty and made sure right amount
   of spacing is added between the indicator labels, in the xkeyboard module.
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
-  
+
+- Parser error if click command contained `}`
+  ([`#2040`](https://github.com/polybar/polybar/issues/2040))
+
 [Unreleased]: https://github.com/polybar/polybar/compare/3.5.2...HEAD

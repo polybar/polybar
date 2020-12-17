@@ -379,11 +379,12 @@ void renderer::flush(alignment a) {
     double fsize = std::max(5.0, std::min(std::abs(overflow), 30.0));
     m_log.trace("renderer: Drawing falloff (pos=%g, size=%g, overflow=%g)", visible_width - fsize, fsize, overflow);
     m_context->save();
-    *m_context << cairo::translate{(double) m_rect.x, (double) m_rect.y};
+    *m_context << cairo::translate{(double)m_rect.x, (double)m_rect.y};
     *m_context << cairo::abspos{0.0, 0.0};
     *m_context << cairo::rect{x + visible_width - fsize, y, fsize, h};
     m_context->clip(true);
-    *m_context << cairo::linear_gradient{x + visible_width - fsize, y, x + visible_width, y, {rgba{0x00000000}, rgba{0xFF000000}}};
+    *m_context << cairo::linear_gradient{
+        x + visible_width - fsize, y, x + visible_width, y, {rgba{0x00000000}, rgba{0xFF000000}}};
     m_context->paint(0.25);
     m_context->restore();
   }
@@ -480,8 +481,7 @@ double renderer::block_x(alignment a) const {
          * The center block can be moved to the left if the right block is too large
          */
         base_pos = std::min(base_pos, max_pos - block_w(a) / 2.0);
-      }
-      else {
+      } else {
         base_pos = (min_pos + max_pos) / 2.0;
       }
 
@@ -594,7 +594,7 @@ void renderer::fill_background() {
  * Fill overline color
  */
 void renderer::fill_overline(double x, double w) {
-  if (m_bar.overline.size && m_attr.test(static_cast<int>(attribute::OVERLINE))) {
+  if (m_bar.overline.size && m_attr.test(static_cast<int>(tags::attribute::OVERLINE))) {
     m_log.trace_x("renderer: overline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_ol;
@@ -609,7 +609,7 @@ void renderer::fill_overline(double x, double w) {
  * Fill underline color
  */
 void renderer::fill_underline(double x, double w) {
-  if (m_bar.underline.size && m_attr.test(static_cast<int>(attribute::UNDERLINE))) {
+  if (m_bar.underline.size && m_attr.test(static_cast<int>(tags::attribute::UNDERLINE))) {
     m_log.trace_x("renderer: underline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_ul;
@@ -877,7 +877,7 @@ bool renderer::on(const signals::parser::control& evt) {
   auto ctrl = evt.cast();
 
   switch (ctrl) {
-    case controltag::R:
+    case tags::controltag::R:
       m_bg = m_bar.background;
       m_fg = m_bar.foreground;
       m_ul = m_bar.underline.color;
@@ -886,7 +886,7 @@ bool renderer::on(const signals::parser::control& evt) {
       m_attr.reset();
       break;
 
-    case controltag::NONE:
+    case tags::controltag::NONE:
       break;
   }
 
