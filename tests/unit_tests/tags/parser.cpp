@@ -410,6 +410,7 @@ vector<exception_test> parse_error_test = {
     {"%{Oabc}", exc::OFFSET},
     {"%{A2:cmd:cmd:}", exc::TAG_END},
     {"%{A9}", exc::BTN},
+    {"%{rQ}", exc::TAG_END},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseErrorTest, ::testing::ValuesIn(parse_error_test));
