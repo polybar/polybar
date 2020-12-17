@@ -93,6 +93,7 @@ namespace modules {
     replace_tokens(m_label);
     replace_tokens(m_labelwarn);
     replace_labellist_tokens(m_rampload);
+    replace_labellist_tokens(m_rampload_core);
     replace_labellist_tokens(m_animation_warn);
 
     return true;
