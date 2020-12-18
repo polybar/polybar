@@ -225,7 +225,7 @@ namespace modules {
     m_state = state;
     m_percentage = percentage;
 
-    const auto replace_tokens = [&](label_t& label) {
+    const auto replace_tokens = [&](const auto& label) {
       if (!label) return;
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
@@ -236,24 +236,19 @@ namespace modules {
         label->replace_token("%time%", current_time());
       }
     };
-    const auto replace_labellist_tokens = [&](labellist_t labellist) {
-      if(!labellist) return;
-      replace_tokens(labellist->get_template());
-      labellist->apply_template();
-    };
 
-    replace_labellist_tokens(m_ramp_capacity);
+    replace_tokens(m_ramp_capacity);
     if(m_state == battery_module::state::FULL) {
       replace_tokens(m_label_full);
     } else if (m_state == battery_module::state::DISCHARGING) {
       replace_tokens(m_label_discharging);
-      replace_labellist_tokens(m_animation_discharging);
+      replace_tokens(m_animation_discharging);
     } else if (m_state == battery_module::state::LOW) {
       replace_tokens(m_label_low);
-      replace_labellist_tokens(m_animation_low);
+      replace_tokens(m_animation_low);
     } else {
       replace_tokens(m_label_charging);
-      replace_labellist_tokens(m_animation_charging);
+      replace_tokens(m_animation_charging);
     }
 
     return true;

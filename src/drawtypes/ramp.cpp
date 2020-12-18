@@ -47,11 +47,10 @@ namespace drawtypes {
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
     vector<label_t> vec;
-    label_t tmplate;
 
-    load_labellist(vec, tmplate, conf, section, name, required);
+    load_labellist(vec, conf, section, name, required);
 
-    return factory_util::shared<drawtypes::ramp>(move(vec), move(tmplate));
+    return factory_util::shared<drawtypes::ramp>(move(vec));
   }
 }
 

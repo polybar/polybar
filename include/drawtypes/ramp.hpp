@@ -12,7 +12,7 @@ namespace drawtypes {
   class ramp : public labellist {
    public:
     explicit ramp() = default;
-    explicit ramp(vector<label_t>&& icons, label_t&& tmplate) : labellist(move(icons), move(tmplate)) {}
+    explicit ramp(vector<label_t>&& icons) : labellist(move(icons)) {}
 
     void add(label_t&& icon);
     label_t get(size_t index);

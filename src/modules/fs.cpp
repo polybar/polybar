@@ -108,32 +108,6 @@ namespace modules {
 
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
-
-        const auto replace_tokens = [&](label_t& label) {
-          if (!label) return;
-          label->reset_tokens();
-          label->replace_token("%mountpoint%", mount->mountpoint);
-          label->replace_token("%type%", mount->type);
-          label->replace_token("%fsname%", mount->fsname);
-          label->replace_token("%percentage_free%", to_string(mount->percentage_free));
-          label->replace_token("%percentage_used%", to_string(mount->percentage_used));
-          label->replace_token(
-              "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-          label->replace_token(
-              "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-          label->replace_token(
-              "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-        };
-        replace_tokens(m_labelmounted);
-        replace_tokens(m_labelwarn);
-        if (m_labelunmounted) {
-          m_labelunmounted->reset_tokens();
-          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
-        }
-        if (m_rampcapacity) {
-          replace_tokens(m_rampcapacity->get_template());
-          m_rampcapacity->apply_template();
-        }
       }
     }
 
@@ -186,7 +160,7 @@ namespace modules {
   bool fs_module::build(builder* builder, const string& tag) const {
     auto& mount = m_mounts[m_index];
 
-    auto replace_tokens = [&](const label_t& label) {
+    auto replace_tokens = [&](const auto& label) {
       label->reset_tokens();
       label->replace_token("%mountpoint%", mount->mountpoint);
       label->replace_token("%type%", mount->type);
@@ -206,6 +180,7 @@ namespace modules {
     } else if (tag == TAG_BAR_USED) {
       builder->node(m_barused->output(mount->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
+      replace_tokens(m_rampcapacity);
       builder->node(m_rampcapacity->get_by_percentage_with_borders(mount->percentage_free, 0, m_perc_used_warn));
     } else if (tag == TAG_LABEL_MOUNTED) {
       replace_tokens(m_labelmounted);

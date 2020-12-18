@@ -73,7 +73,7 @@ namespace modules {
 
     m_total = m_total / static_cast<float>(cores_n);
 
-    const auto replace_tokens = [&](label_t label) {
+    const auto replace_tokens = [&](const auto& label) {
       if (!label) return;
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
@@ -84,17 +84,12 @@ namespace modules {
         label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
       }
     };
-    const auto replace_labellist_tokens = [&](labellist_t labellist) {
-      if(!labellist) return;
-      replace_tokens(labellist->get_template());
-      labellist->apply_template();
-    };
 
     replace_tokens(m_label);
     replace_tokens(m_labelwarn);
-    replace_labellist_tokens(m_rampload);
-    replace_labellist_tokens(m_rampload_core);
-    replace_labellist_tokens(m_animation_warn);
+    replace_tokens(m_rampload);
+    replace_tokens(m_rampload_core);
+    replace_tokens(m_animation_warn);
 
     return true;
   }
