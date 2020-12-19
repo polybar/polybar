@@ -65,6 +65,21 @@ const string keyboard::layout_name(size_t index) const {
 }
 
 /**
+ * Get current variant name
+ * "GROUP (VARIANT)"
+ *         ^^^^^^^
+ */
+const string keyboard::variant_name(size_t index) const {
+  string group_name = this->group_name(index);
+  if (int start = group_name.find('(') + 1) {
+    int num_chars = group_name.find(')') - start;
+    return group_name.substr(start, num_chars);
+  } else {
+    return "";
+  }
+}
+
+/**
  * Get indicator name
  */
 const string keyboard::indicator_name(const indicator::type& i) const {
@@ -212,6 +227,6 @@ namespace xkb_util {
     }
     return move(name);
   }
-}
+}  // namespace xkb_util
 
 POLYBAR_NS_END

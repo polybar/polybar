@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2294`](https://github.com/polybar/polybar/issues/2294))
 - `internal/network`: `speed-unit = B/s` can be used to customize how network
   speeds are displayed.
+- `internal/xkeyboard`: `%variant%` can be used to parse the layout variant
+  ([`#316`](https://github.com/polybar/polybar/issues/316))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
