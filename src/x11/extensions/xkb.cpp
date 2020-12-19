@@ -71,9 +71,12 @@ const string keyboard::layout_name(size_t index) const {
  */
 const string keyboard::variant_name(size_t index) const {
   string group_name = this->group_name(index);
-  int start = group_name.find('(') + 1;
-  int num_chars = group_name.find(')') - start;
-  return group_name.substr(start, num_chars);
+  if (int start = group_name.find('(') + 1) {
+    int num_chars = group_name.find(')') - start;
+    return group_name.substr(start, num_chars);
+  } else {
+    return "";
+  }
 }
 
 /**
