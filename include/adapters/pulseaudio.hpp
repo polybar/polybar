@@ -2,6 +2,7 @@
 
 #include <pulse/pulseaudio.h>
 #include <queue>
+#include <atomic>
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -22,7 +23,22 @@ DEFINE_ERROR(pulseaudio_error);
 
 class pulseaudio {
   // events to add to our queue
-  enum class evtype { NEW = 0, CHANGE, REMOVE, SERVER };
+  enum class evtype {
+    NEW = 0,
+    CHANGE,
+    REMOVE,
+    SERVER,
+    /**
+     * Disconnect and reconnect to the pulseaudio daemon
+     */
+    RECONNECT,
+    /**
+     * Event that does nothing.
+     *
+     * Can be used to make sure that update_volume is called
+     */
+    NOP,
+  };
   using queue = std::queue<evtype>;
 
   public:
@@ -46,7 +62,11 @@ class pulseaudio {
     bool is_muted();
 
   private:
-    void update_volume(pa_operation *o);
+    void connect();
+    void reset();
+
+    void update_volume();
+    void throw_error(const string& msg);
     static void check_mute_callback(pa_context *context, const pa_sink_info *info, int eol, void *userdata);
     static void get_sink_volume_callback(pa_context *context, const pa_sink_info *info, int is_last, void *userdata);
     static void subscribe_callback(pa_context* context, pa_subscription_event_type_t t, uint32_t idx, void* userdata);
@@ -57,6 +77,20 @@ class pulseaudio {
     inline void wait_loop(pa_operation *op, pa_threaded_mainloop *loop);
 
     const logger& m_log;
+
+    /**
+     * Has context_state_callback signalled the mainloop
+     *
+     * The context_state_callback and connect function communicate via this variable
+     */
+    std::atomic_bool m_state_callback_signal{false};
+
+    /**
+     * Whether or not m_mainloop and m_context have been allocated
+     *
+     * This is basically a check whether or not reset can be called
+     */
+    bool m_init{false};
 
     // used for temporary callback results
     int success{0};

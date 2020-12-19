@@ -1,3 +1,4 @@
+#include "utils/string.hpp"
 #include "adapters/pulseaudio.hpp"
 #include "components/logger.hpp"
 
@@ -7,6 +8,16 @@ POLYBAR_NS
  * Construct pulseaudio object
  */
 pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume) : m_log(logger), spec_s_name(sink_name) {
+  m_max_volume = max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
+  connect();
+}
+
+void pulseaudio::connect() {
+  // Clear eventqueue
+  queue().swap(m_events);
+
+  m_init = false;
+
   m_mainloop = pa_threaded_mainloop_new();
   if (!m_mainloop) {
     throw pulseaudio_error("Could not create pulseaudio threaded mainloop.");
@@ -20,74 +31,99 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
     throw pulseaudio_error("Could not create pulseaudio context.");
   }
 
+  // From this point on, reset can be called
+  m_init = true;
+
   pa_context_set_state_callback(m_context, context_state_callback, this);
 
+  m_state_callback_signal = false;
   if (pa_context_connect(m_context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
     pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not connect pulseaudio context.");
   }
 
   if (pa_threaded_mainloop_start(m_mainloop) < 0) {
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
-    pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not start pulseaudio mainloop.");
   }
 
   m_log.trace("pulseaudio: started mainloop");
 
-  pa_threaded_mainloop_wait(m_mainloop);
+  /*
+   * Only wait for signal from the context state callback, if it has not
+   * already signalled the mainloop since pa_context_connect was called
+   */
+  if (!m_state_callback_signal) {
+    pa_threaded_mainloop_wait(m_mainloop);
+  }
+
   if (pa_context_get_state(m_context) != PA_CONTEXT_READY) {
     pa_threaded_mainloop_unlock(m_mainloop);
-    pa_threaded_mainloop_stop(m_mainloop);
-    pa_context_disconnect(m_context);
-    pa_context_unref(m_context);
-    pa_threaded_mainloop_free(m_mainloop);
+    reset();
     throw pulseaudio_error("Could not connect to pulseaudio server.");
   }
 
   pa_operation *op{nullptr};
-  if (!sink_name.empty()) {
-    op = pa_context_get_sink_info_by_name(m_context, sink_name.c_str(), sink_info_callback, this);
+  if (!spec_s_name.empty()) {
+    op = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
+    if (!op) {
+      reset();
+      throw_error("pa_context_get_sink_info_by_name failed");
+    }
     wait_loop(op, m_mainloop);
   }
   if (s_name.empty()) {
     // get the sink index
     op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
+    if (!op) {
+      reset();
+      throw_error("pa_context_get_sink_info_by_name failed");
+    }
     wait_loop(op, m_mainloop);
     m_log.notice("pulseaudio: using default sink %s", s_name);
   } else {
     m_log.trace("pulseaudio: using sink %s", s_name);
   }
 
-  m_max_volume = max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
-
   auto event_types = static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER);
   op = pa_context_subscribe(m_context, event_types, simple_callback, this);
+  if (!op) {
+    reset();
+    throw_error("pa_context_subscribe failed");
+  }
   wait_loop(op, m_mainloop);
-  if (!success)
+  if (!success) {
+    reset();
     throw pulseaudio_error("Failed to subscribe to sink.");
+  }
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
-  update_volume(op);
+
+  // Make sure there is at least one event so that the volume is updated.
+  m_events.emplace(evtype::NOP);
 
   pa_threaded_mainloop_unlock(m_mainloop);
-
 }
 
 /**
  * Deconstruct pulseaudio
  */
 pulseaudio::~pulseaudio() {
+  /*
+   * If m_init is false here, it means that connect threw and exception while
+   * reconnecting (not during construction)
+   */
+  if (m_init) {
+    reset();
+  }
+}
+
+void pulseaudio::reset() {
   pa_threaded_mainloop_stop(m_mainloop);
   pa_context_disconnect(m_context);
   pa_context_unref(m_context);
   pa_threaded_mainloop_free(m_mainloop);
-
 }
 
 /**
@@ -113,12 +149,17 @@ int pulseaudio::process_events() {
   pa_operation *o{nullptr};
   // clear the queue
   while (!m_events.empty()) {
-    switch (m_events.front()) {
+    auto ev = m_events.front();
+    m_events.pop();
+    switch (ev) {
       // try to get specified sink
       case evtype::NEW:
         // redundant if already using specified sink
         if (!spec_s_name.empty()) {
           o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
+          if (!o) {
+            throw_error("pa_context_get_sink_info_by_name failed");
+          }
           wait_loop(o, m_mainloop);
           break;
         }
@@ -132,15 +173,33 @@ int pulseaudio::process_events() {
       // get default sink
       case evtype::REMOVE:
         o = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
+        if (!o) {
+          throw_error("pa_context_get_sink_info_by_name failed");
+        }
         wait_loop(o, m_mainloop);
         if (spec_s_name != s_name)
           m_log.notice("pulseaudio: using default sink %s", s_name);
         break;
+
+      case evtype::RECONNECT:
+        // We got disconnected from pulse
+        m_log.warn("Reconnecting to PulseAudio");
+        pa_threaded_mainloop_unlock(m_mainloop);
+
+        reset();
+        connect();
+        pa_threaded_mainloop_lock(m_mainloop);
+      case evtype::NOP:
       default:
         break;
     }
-    update_volume(o);
-    m_events.pop();
+
+    // We don't want exceptions in update_volume to crash the whole module
+    try {
+      update_volume();
+    } catch (const pulseaudio_error& e) {
+      m_log.err("pulseaudio: %s", e.what());
+    }
   }
   pa_threaded_mainloop_unlock(m_mainloop);
   return ret;
@@ -169,6 +228,9 @@ void pulseaudio::set_volume(float percentage) {
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(percentage, PA_VOLUME_MUTED, PA_VOLUME_NORM);
   pa_cvolume_scale(&cv, vol);
   pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_volume_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -194,6 +256,9 @@ void pulseaudio::inc_volume(int delta_perc) {
   } else
     pa_cvolume_dec(&cv, vol);
   pa_operation *op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_volume_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to set sink volume.");
@@ -206,6 +271,9 @@ void pulseaudio::inc_volume(int delta_perc) {
 void pulseaudio::set_mute(bool mode) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_operation *op = pa_context_set_sink_mute_by_index(m_context, m_index, mode, simple_callback, this);
+  if (!op) {
+    throw_error("pa_context_set_sink_mute_by_index failed");
+  }
   wait_loop(op, m_mainloop);
   if (!success)
     throw pulseaudio_error("Failed to mute sink.");
@@ -229,9 +297,16 @@ bool pulseaudio::is_muted() {
 /**
  * Update local volume cache
  */
-void pulseaudio::update_volume(pa_operation *o) {
-  o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
+void pulseaudio::update_volume() {
+  pa_operation *o = pa_context_get_sink_info_by_index(m_context, m_index, get_sink_volume_callback, this);
+  if (!o) {
+    throw_error("pa_context_get_sink_info_by_index failed");
+  }
   wait_loop(o, m_mainloop);
+}
+
+void pulseaudio::throw_error(const string& msg) {
+  throw pulseaudio_error(sstream() << msg << ": " << pa_strerror(pa_context_errno(m_context)));
 }
 
 /**
@@ -308,8 +383,13 @@ void pulseaudio::context_state_callback(pa_context *context, void *userdata) {
   switch (pa_context_get_state(context)) {
     case PA_CONTEXT_READY:
     case PA_CONTEXT_TERMINATED:
-    case PA_CONTEXT_FAILED:
+      This->m_state_callback_signal = true;
       pa_threaded_mainloop_signal(This->m_mainloop, 0);
+      break;
+    case PA_CONTEXT_FAILED:
+      This->m_state_callback_signal = true;
+      pa_threaded_mainloop_signal(This->m_mainloop, 0);
+      This->m_events.emplace(evtype::RECONNECT);
       break;
 
     case PA_CONTEXT_UNCONNECTED:
@@ -321,8 +401,9 @@ void pulseaudio::context_state_callback(pa_context *context, void *userdata) {
 }
 
 inline void pulseaudio::wait_loop(pa_operation *op, pa_threaded_mainloop *loop) {
-  while (pa_operation_get_state(op) != PA_OPERATION_DONE)
+  while (pa_operation_get_state(op) == PA_OPERATION_RUNNING) {
     pa_threaded_mainloop_wait(loop);
+  }
   pa_operation_unref(op);
 }
 
