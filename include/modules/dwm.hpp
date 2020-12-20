@@ -3,12 +3,11 @@
 #include <dwmipcpp/connection.hpp>
 
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class dwm_module : public event_module<dwm_module>, public input_handler {
+  class dwm_module : public event_module<dwm_module> {
    public:
     explicit dwm_module(const bar_settings&, string);
 
@@ -47,13 +46,31 @@ namespace modules {
       label_t label;
     };
 
+    static constexpr auto TYPE = "internal/dwm";
+
     void stop() override;
     bool has_event();
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    /**
+     * DWM command for changing the view to a tag with the specified bit mask
+     */
+    static constexpr const char* EVENT_TAG_VIEW{"view"};
+
+    /**
+     * DWM command for toggling the selected state of a tag with the specified
+     * bit mask
+     */
+    static constexpr const char* EVENT_TAG_TOGGLE_VIEW{"toggleview"};
+
+    /**
+     * DWM command for setting the layout to a layout specified by the address
+     */
+    static constexpr const char* EVENT_LAYOUT_SET{"setlayoutsafe"};
+
    protected:
-    bool input(string&& cmd) override;
+    bool input(const string& action, const string& data) override;
 
    private:
     static constexpr const char* DEFAULT_FORMAT_TAGS{"<label-tags> <label-layout> <label-floating> <label-title>"};
@@ -84,27 +101,6 @@ namespace modules {
      * The title layout is replaced by the currently focused window title
      */
     static constexpr const char* TAG_LABEL_TITLE{"<label-title>"};
-
-    /**
-     * All input handler commands start with this
-     */
-    static constexpr const char* EVENT_PREFIX{"dwm-"};
-
-    /**
-     * DWM command for changing the view to a tag with the specified bit mask
-     */
-    static constexpr const char* CMD_TAG_VIEW{"view"};
-
-    /**
-     * DWM command for toggling the selected state of a tag with the specified
-     * bit mask
-     */
-    static constexpr const char* CMD_TAG_TOGGLE_VIEW{"toggleview"};
-
-    /**
-     * DWM command for setting the layout to a layout specified by the address
-     */
-    static constexpr const char* CMD_LAYOUT_SET{"setlayoutsafe"};
 
     /**
      * Called by has_event on layout changes. This updates the layout label
@@ -229,7 +225,7 @@ namespace modules {
      */
     const dwmipc::Layout* prev_layout(const dwmipc::Layout& layout, bool wrap) const;
 
-	 /**
+    /**
      * Get the address of the next tag in m_tags or return NULL if not applicable
      *
      * @param ignore_empty Ignore empty tags
@@ -242,26 +238,6 @@ namespace modules {
      * @param ignore_empty Ignore empty tags
      */
     const tag_t* prev_scrollable_tag(bool ignore_empty) const;
-
-    /**
-     * Check if the command matches the specified IPC command name and if so,
-     * parse and send the command to dwm
-     *
-     * @param cmd The command string given by dwm_modue::input
-     * @param ipc_cmd The name of dwm IPC command to check for
-     *
-     * @return true if the command matched, was succesfully parsed, and sent to
-     *   dwm, false otherwise
-     */
-    bool check_send_cmd(string cmd, const string& ipc_cmd);
-
-    /**
-     * Helper function to build cmd string
-     *
-     * @param ipc_cmd The dwm IPC command name
-     * @param arg The argument to the dwm command
-     */
-    static string build_cmd(const char* ipc_cmd, const string& arg);
 
     /**
      * Attempt to connect to any disconnected dwm sockets. Catch errors.
@@ -283,24 +259,24 @@ namespace modules {
      */
     bool m_layout_scroll{true};
 
-	 /**
-	  * If true, scrolling the bar cycles through the available tags
-	  */ 
+    /**
+     * If true, scrolling the bar cycles through the available tags
+     */
     bool m_tags_scroll{false};
 
-	 /**
-	  * If true, scrolling the bar cycles through the available tags backwards
-	  */ 
+    /**
+     * If true, scrolling the bar cycles through the available tags backwards
+     */
     bool m_tags_scroll_reverse{false};
 
-	 /**
-	  * If true, wrap tag when scrolling
-	  */ 
+    /**
+     * If true, wrap tag when scrolling
+     */
     bool m_tags_scroll_wrap{false};
 
-	 /**
-	  * If true, scrolling will view all tags regardless if occupied
-	  */ 
+    /**
+     * If true, scrolling will view all tags regardless if occupied
+     */
     bool m_tags_scroll_empty{false};
 
     /**

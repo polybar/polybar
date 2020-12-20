@@ -454,6 +454,15 @@ bool controller::try_forward_legacy_action(const string& cmd) {
     A_MAP("i3wm-wsprev", i3_module, EVENT_PREV),
 #endif
     // Has data
+#if ENABLE_DWM
+    // Has data
+    A_MAP("dwm-view-", dwm_module, EVENT_TAG_VIEW),
+    // Has data
+    A_MAP("dwm-toggleview-", dwm_module, EVENT_TAG_TOGGLE_VIEW),
+    // Has data
+    A_MAP("dwm-setlayoutsafe-", dwm_module, EVENT_LAYOUT_SET),
+#endif
+    // Has data
     A_MAP("menu-open-", menu_module, EVENT_OPEN),
     A_MAP("menu-close", menu_module, EVENT_CLOSE),
   };

@@ -176,10 +176,6 @@ namespace modules {
     return true;
   }
 
-  string dwm_module::build_cmd(const char* ipc_cmd, const string& arg) {
-    return EVENT_PREFIX + string(ipc_cmd) + "-" + arg;
-  }
-
   bool dwm_module::build(builder* builder, const string& tag) const {
     m_log.info("%s: Building module", name());
     if (tag == TAG_LABEL_TITLE) {
@@ -196,9 +192,9 @@ namespace modules {
       if (m_layout_click) {
         // Toggle between secondary and default layout
         auto addr = (m_current_layout == m_default_layout ? m_secondary_layout : m_default_layout)->address;
-        builder->cmd(mousebtn::LEFT, build_cmd(CMD_LAYOUT_SET, to_string(addr)));
+        builder->action(mousebtn::LEFT, *this, EVENT_LAYOUT_SET, to_string(addr));
         // Set previous layout
-        builder->cmd(mousebtn::RIGHT, build_cmd(CMD_LAYOUT_SET, "0"));
+        builder->action(mousebtn::RIGHT, *this, EVENT_LAYOUT_SET, "0");
       }
       if (m_layout_scroll) {
         auto addr_next = next_layout(*m_current_layout, m_layout_wrap)->address;
@@ -206,34 +202,34 @@ namespace modules {
         // Set address based on scroll direction
         auto scroll_down_addr = to_string(m_layout_reverse ? addr_prev : addr_next);
         auto scroll_up_addr = to_string(m_layout_reverse ? addr_next : addr_prev);
-        builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_LAYOUT_SET, scroll_down_addr));
-        builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_LAYOUT_SET, scroll_up_addr));
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_LAYOUT_SET, scroll_down_addr);
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_LAYOUT_SET, scroll_up_addr);
       }
       builder->node(m_layout_label);
       if (m_layout_scroll) {
-        builder->cmd_close();
-        builder->cmd_close();
+        builder->action_close();
+        builder->action_close();
       }
       if (m_layout_click) {
-        builder->cmd_close();
-        builder->cmd_close();
+        builder->action_close();
+        builder->action_close();
       }
     } else if (tag == TAG_LABEL_TAGS) {
       m_log.info("%s: Building tags label", name());
       int cmd_count = 0;
       if (m_tags_scroll) {
         bool ignore_empty_tags = !m_tags_scroll_empty && m_conf.get<string>(name(), "label-empty", "").empty();
-        auto next =
+        const auto* next =
             m_tags_scroll_reverse ? prev_scrollable_tag(ignore_empty_tags) : next_scrollable_tag(ignore_empty_tags);
-        auto prev =
+        const auto* prev =
             m_tags_scroll_reverse ? next_scrollable_tag(ignore_empty_tags) : prev_scrollable_tag(ignore_empty_tags);
-        if (next != NULL) {
+        if (next != nullptr) {
           ++cmd_count;
-          builder->cmd(mousebtn::SCROLL_DOWN, build_cmd(CMD_TAG_VIEW, to_string(next->bit_mask)));
+          builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_TAG_VIEW, to_string(next->bit_mask));
         }
-        if (prev != NULL) {
+        if (prev != nullptr) {
           ++cmd_count;
-          builder->cmd(mousebtn::SCROLL_UP, build_cmd(CMD_TAG_VIEW, to_string(prev->bit_mask)));
+          builder->action(mousebtn::SCROLL_UP, *this, EVENT_TAG_VIEW, to_string(prev->bit_mask));
         }
       }
 
@@ -247,17 +243,17 @@ namespace modules {
         }
 
         if (m_tags_click) {
-          builder->cmd(mousebtn::LEFT, build_cmd(CMD_TAG_VIEW, to_string(tag.bit_mask)));
-          builder->cmd(mousebtn::RIGHT, build_cmd(CMD_TAG_TOGGLE_VIEW, to_string(tag.bit_mask)));
+          builder->action(mousebtn::LEFT, *this, EVENT_TAG_VIEW, to_string(tag.bit_mask));
+          builder->action(mousebtn::RIGHT, *this, EVENT_TAG_TOGGLE_VIEW, to_string(tag.bit_mask));
           builder->node(tag.label);
-          builder->cmd_close();
-          builder->cmd_close();
+          builder->action_close();
+          builder->action_close();
         } else {
           builder->node(tag.label);
         }
       }
       for (; cmd_count; --cmd_count) {
-        builder->cmd_close();
+        builder->action_close();
       }
     } else {
       return false;
@@ -265,37 +261,21 @@ namespace modules {
     return true;
   }
 
-  bool dwm_module::check_send_cmd(string cmd, const string& ipc_cmd) {
-    // cmd = <EVENT_PREFIX><ipc_cmd>-<arg>
-    cmd.erase(0, strlen(EVENT_PREFIX));
+  bool dwm_module::input(const string& action, const string& data) {
+    m_log.info("%s: Sending workspace %s command to ipc handler", name(), action);
 
-    // cmd = <ipc_cmd>-<arg>
-    if (cmd.compare(0, ipc_cmd.size(), ipc_cmd) == 0) {
-      // Erase '<ipc_cmd>-'
-      cmd.erase(0, ipc_cmd.size() + 1);
-      m_log.info("%s: Sending workspace %s command to ipc handler", name(), ipc_cmd);
-
-      try {
-        m_ipc->run_command(ipc_cmd, (Json::UInt64)stoul(cmd));
-        return true;
-      } catch (const dwmipc::SocketClosedError& err) {
-        m_log.err("%s: Disconnected from socket: %s", name(), err.what());
-        sleep(chrono::duration<double>(1));
-        reconnect_dwm();
-      } catch (const dwmipc::IPCError& err) {
-        throw module_error(err.what());
-      }
+    try {
+      m_ipc->run_command(action, (Json::UInt64)stoul(data));
+      return true;
+    } catch (const dwmipc::SocketClosedError& err) {
+      m_log.err("%s: Disconnected from socket: %s", name(), err.what());
+      sleep(chrono::duration<double>(1));
+      reconnect_dwm();
+    } catch (const dwmipc::IPCError& err) {
+      throw module_error(err.what());
     }
+
     return false;
-  }
-
-  bool dwm_module::input(string&& cmd) {
-    if (cmd.find(EVENT_PREFIX) != 0) {
-      return false;
-    }
-
-    return check_send_cmd(cmd, CMD_TAG_VIEW) || check_send_cmd(cmd, CMD_TAG_TOGGLE_VIEW) ||
-           check_send_cmd(cmd, CMD_LAYOUT_SET);
   }
 
   dwm_module::state_t dwm_module::get_state(tag_mask_t bit_mask) const {

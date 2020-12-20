@@ -65,7 +65,7 @@ namespace {
       return new cpu_module(bar, move(module_name));
     } else if (name == date_module::TYPE) {
       return new date_module(bar, move(module_name));
-    } else if (name == "internal/dwm") {
+    } else if (name == dwm_module::TYPE) {
       return new dwm_module(bar, move(module_name));
     } else if (name == github_module::TYPE) {
       return new github_module(bar, move(module_name));
