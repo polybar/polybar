@@ -18,6 +18,7 @@ class CommandLine : public ::testing::Test {
       // clang-format off
       return command_line::options {
         command_line::option{"-f", "--flag", "Flag description"},
+        command_line::option{"-g", "--flag-second", "Flag description"},
         command_line::option{"-o", "--option", "Option description", "OPTION", {"foo", "bar", "baz"}},
       };
       // clang-format on
@@ -26,6 +27,12 @@ class CommandLine : public ::testing::Test {
     command_line::parser::make_type cli;
 };
 
+TEST_F(CommandLine, longSubstring) {
+  EXPECT_NO_THROW(cli->process_input(string_util::split("--flag-second", ' ')));
+
+  EXPECT_TRUE(cli->has("flag-second"));
+  EXPECT_FALSE(cli->has("flag"));
+}
 
 TEST_F(CommandLine, hasShort) {
   cli->process_input(string_util::split("-f", ' '));
