@@ -600,7 +600,7 @@ bool controller::process_update(bool force) {
     }
 
     for (const auto& module : block.second) {
-      if (!module->running()) {
+      if (!module->running() || !module->visible()) {
         continue;
       }
 
