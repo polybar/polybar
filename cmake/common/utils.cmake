@@ -70,6 +70,16 @@ endfunction()
 # }}}
 # find_package_impl {{{
 
+# Uses PkgConfig to search for pkg_config_name
+#
+# Defines the following variables:
+# ${find_pkg_name}_FOUND - True if the package has been found
+# ${find_pkg_name}_INCLUDE_DIR - <...>_INCLUDE_DIRS exported by pkg_check_modules
+# ${find_pkg_name}_INCLUDE_DIRS - Same as ${find_pkg_name}_INCLUDE_DIR
+# ${find_pkg_name}_LIBRARY - <...>_LIBRARIES exported by pkg_check_modules
+# ${find_pkg_name}_LIBRARIES - Same as ${find_pkg_name}_LIBRARY
+# ${find_pkg_name}_VERSION - <...>_VERSION exported by pkg_check_modules
+#
 macro(find_package_impl pkg_config_name find_pkg_name header_to_find)
   find_package(PkgConfig REQUIRED)
   include(FindPackageHandleStandardArgs)

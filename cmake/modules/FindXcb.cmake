@@ -1,3 +1,18 @@
+# Loads multiple XCB components
+# Version checks will be made against all requested components
+#
+# For each component ${comp} it does the following:
+#
+# Defines an imported target `Xcb::${comp}` if xcb-${comp} is found
+#
+# Defines the following Variables (see find_package_impl for more info):
+# Xcb_${comp}_FOUND
+# Xcb_${comp}_INCLUDE_DIR
+# Xcb_${comp}_INCLUDE_DIRS
+# Xcb_${comp}_LIBRARY
+# Xcb_${comp}_LIBRARIES
+# Xcb_${comp}_VERSION
+
 # This script only supports the following components of XCB
 set(XCB_known_components
   XCB
