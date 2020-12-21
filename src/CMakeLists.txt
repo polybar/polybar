@@ -196,6 +196,3 @@ if(BUILD_IPC_MSG)
 endif()
 
 # }}}
-
-# Export source file list so that it can be used for test compilation
-set(files ${files} PARENT_SCOPE)
