@@ -13,11 +13,8 @@ endfunction()
 # colored_option {{{
 
 function(colored_option text flag)
-  # Append version of option, if ${flag}_VERSION is set
-  set(version ${${flag}_VERSION})
-
-  if(NOT "${version}" STREQUAL "")
-    set(text "${text} (${version})")
+  if(ARGC GREATER 2 AND NOT "${${ARGV2}}" STREQUAL "")
+    set(text "${text} (${${ARGV2}})")
   endif()
 
   if(${flag})
@@ -90,6 +87,7 @@ macro(find_package_impl pkg_config_name find_pkg_name header_to_find)
   set(${find_pkg_name}_INCLUDE_DIR ${PC_${find_pkg_name}_INCLUDE_DIRS})
   set(${find_pkg_name}_INCLUDE_DIRS ${${find_pkg_name}_INCLUDE_DIR})
   set(${find_pkg_name}_LIBRARY ${PC_${find_pkg_name}_LIBRARIES})
+  set(${find_pkg_name}_VERSION ${PC_${find_pkg_name}_VERSION})
   set(${find_pkg_name}_LIBRARIES ${${find_pkg_name}_LIBRARY})
 
   find_package_handle_standard_args(${find_pkg_name}
@@ -97,7 +95,7 @@ macro(find_package_impl pkg_config_name find_pkg_name header_to_find)
     ${find_pkg_name}_INCLUDE_DIRS
     ${find_pkg_name}_LIBRARIES
     VERSION_VAR
-    PC_${find_pkg_name}_VERSION
+    ${find_pkg_name}_VERSION
   )
 
   mark_as_advanced(${find_pkg_name}_INCLUDE_DIR ${find_pkg_name}_LIBRARY)
