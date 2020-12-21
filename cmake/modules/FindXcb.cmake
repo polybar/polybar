@@ -26,6 +26,13 @@ foreach(_comp ${Xcb_FIND_COMPONENTS})
     message(FATAL_ERROR "Unknow component \"${_comp}\" of XCB")
   endif()
 
+  # Forward the different find options set for FindXcb to the individual
+  # components. This is required because find_package_handle_standard_args in
+  # find_package_impl uses these variables for version checks and other things.
+  set(Xcb_${_comp}_FIND_VERSION ${Xcb_FIND_VERSION})
+  set(Xcb_${_comp}_FIND_QUIETLY ${Xcb_FIND_QUIETLY})
+  set(Xcb_${_comp}_FIND_REQUIRED ${Xcb_FIND_REQUIRED})
+
   # Bypass developer warning that the first argument to
   # find_package_handle_standard_args (Xcb_...) does not match the name of the
   # calling package (Xcb)
