@@ -12,12 +12,8 @@ target_include_directories(moodycamel SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}
 
 set(XCB_PROTOS xproto)
 
-if(WITH_XRANDR)
-  list(APPEND XCB_PROTOS randr)
-endif()
-if(WITH_XCOMPOSITE)
-  list(APPEND XCB_PROTOS composite)
-endif()
+list(APPEND XCB_PROTOS randr)
+list(APPEND XCB_PROTOS composite)
 if(WITH_XKB)
   list(APPEND XCB_PROTOS xkb)
 endif()

@@ -36,8 +36,6 @@ set(PULSEAUDIO_SOURCES
   ${src_dir}/modules/pulseaudio.cpp
 )
 
-set(XCOMPOSITE_SOURCES ${src_dir}/x11/extensions/composite.cpp)
-
 set(XCURSOR_SOURCES ${src_dir}/x11/cursor.cpp)
 
 set(XKB_SOURCES
@@ -119,6 +117,7 @@ set(POLY_SOURCES
   ${src_dir}/x11/background_manager.cpp
   ${src_dir}/x11/connection.cpp
   ${src_dir}/x11/ewmh.cpp
+  ${src_dir}/x11/extensions/composite.cpp
   ${src_dir}/x11/extensions/randr.cpp
   ${src_dir}/x11/icccm.cpp
   ${src_dir}/x11/registry.cpp
@@ -134,7 +133,6 @@ set(POLY_SOURCES
   $<$<BOOL:${ENABLE_MPD}>:${MPD_SOURCES}>
   $<$<BOOL:${ENABLE_NETWORK}>:${NETWORK_SOURCES}>
   $<$<BOOL:${ENABLE_PULSEAUDIO}>:${PULSEAUDIO_SOURCES}>
-  $<$<BOOL:${WITH_XCOMPOSITE}>:${XCOMPOSITE_SOURCES}>
   $<$<BOOL:${WITH_XCURSOR}>:${XCURSOR_SOURCES}>
   $<$<BOOL:${WITH_XKB}>:${XKB_SOURCES}>
   $<$<BOOL:${WITH_XRM}>:${XRM_SOURCES}>
