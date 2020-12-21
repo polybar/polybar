@@ -26,6 +26,11 @@ foreach(_comp ${Xcb_FIND_COMPONENTS})
     message(FATAL_ERROR "Unknow component \"${_comp}\" of XCB")
   endif()
 
+  # Bypass developer warning that the first argument to
+  # find_package_handle_standard_args (Xcb_...) does not match the name of the
+  # calling package (Xcb)
+  # https://cmake.org/cmake/help/v3.17/module/FindPackageHandleStandardArgs.html
+  set(FPHSA_NAME_MISMATCHED TRUE)
   find_package_impl(${XCB_${_comp}_pkg_config} "Xcb_${_comp}" "${XCB_${_comp}_header}")
 
   if(Xcb_${_comp}_FOUND AND NOT TARGET Xcb::${_comp})
