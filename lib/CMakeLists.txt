@@ -46,5 +46,3 @@ if(ENABLE_I3)
 endif()
 
 # }}}
-
-set(libs ${libs} PARENT_SCOPE)
