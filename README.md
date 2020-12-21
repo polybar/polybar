@@ -16,6 +16,7 @@ A fast and easy-to-use tool for creating status bars.
 <a href="https://codecov.io/gh/polybar/polybar/branch/master"><img src="https://codecov.io/gh/polybar/polybar/branch/master/graph/badge.svg"></a>
 <a href="https://github.com/polybar/polybar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/polybar/polybar.svg"></a>
 <a href="https://www.codetriage.com/polybar/polybar"><img src="https://www.codetriage.com/polybar/polybar/badges/users.svg"></a>
+<a href="https://opencollective.com/polybar"><img src="https://opencollective.com/polybar/tiers/badge.svg"></a>
 </p>
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
@@ -40,6 +41,9 @@ You can find polybar configs for these example images (and other configs) [here]
   * [Running](#running)
 * [Community](#community)
 * [Contributors](#contributors)
+* [Donations](#donations)
+  * [Sponsors](#sponsors)
+  * [Backers](#backers)
 * [License](#license)
 
 
@@ -155,6 +159,77 @@ Want to get in touch?
 
 
 ### [All Contributors](https://github.com/polybar/polybar/graphs/contributors)
+
+## Donations
+
+Polybar accepts donations through [open collective](https://opencollective.com/polybar).
+
+[Become a backer](https://opencollective.com/polybar) and support polybar!
+### Sponsors
+
+<a href="https://opencollective.com/polybar/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/0/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/1/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/2/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/3/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/3/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/4/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/4/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/5/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/5/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/6/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/6/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/7/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/7/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/8/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/8/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/9/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/9/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/10/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/10/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/11/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/11/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/12/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/12/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/13/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/13/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/14/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/14/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/15/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/15/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/16/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/16/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/17/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/17/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/18/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/18/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/19/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/19/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/20/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/20/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/21/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/21/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/22/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/22/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/23/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/23/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/24/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/24/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/25/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/25/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/26/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/26/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/27/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/27/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/28/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/28/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/sponsor/29/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/sponsor/29/avatar.svg?requireActive=false"></a>
+
+### Backers
+
+<a href="https://opencollective.com/polybar/backer/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/0/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/1/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/2/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/3/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/3/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/4/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/4/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/5/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/5/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/6/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/6/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/7/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/7/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/8/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/8/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/9/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/9/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/10/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/10/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/11/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/11/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/12/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/12/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/13/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/13/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/14/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/14/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/15/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/15/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/16/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/16/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/17/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/17/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/18/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/18/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/19/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/19/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/20/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/20/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/21/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/21/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/22/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/22/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/23/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/23/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/24/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/24/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/25/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/25/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/26/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/26/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/27/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/27/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/28/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/28/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/polybar/backer/29/website?requireActive=false" target="_blank"><img src="https://opencollective.com/polybar/backer/29/avatar.svg?requireActive=false"></a>
 
 ## License
 

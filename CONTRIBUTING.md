@@ -10,6 +10,7 @@ are awesome! :tada:
   + [Changelog](#changelog)
   + [Documentation](#documentation)
   + [Style](#style)
+* [Donations](#donations)
 
 ## Bug Reports
 
@@ -143,3 +144,13 @@ repo.
 ### Style
 
 Please read our [style guide](https://github.com/polybar/polybar/wiki/Style-Guide).
+
+## Donations
+
+Donations support the sustained development of polybar.
+We accept donations through [our open collective page](
+https://opencollective.com/polybar).
+This can be either a one time or a recurring donation.
+
+Our [blog post](https://polybar.github.io/2020/12/21/Polybar-Funding.html) lays
+out the why and how behind our decision to accept donations.
