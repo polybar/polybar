@@ -15,8 +15,8 @@ extern const char* const APP_VERSION;
 #cmakedefine01 ENABLE_CURL
 #cmakedefine01 ENABLE_PULSEAUDIO
 
-#cmakedefine01 WITH_XRANDR
-#cmakedefine01 WITH_XCOMPOSITE
+#define WITH_XRANDR 1
+#define WITH_XCOMPOSITE 1
 #cmakedefine01 WITH_XKB
 #cmakedefine01 WITH_XRM
 #cmakedefine01 WITH_XCURSOR

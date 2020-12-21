@@ -2,12 +2,8 @@
 # Generate settings.hpp
 #
 
-if(WITH_XRANDR)
-  list(APPEND XPP_EXTENSION_LIST xpp::randr::extension)
-endif()
-if(WITH_XCOMPOSITE)
-  list(APPEND XPP_EXTENSION_LIST xpp::composite::extension)
-endif()
+list(APPEND XPP_EXTENSION_LIST xpp::randr::extension)
+list(APPEND XPP_EXTENSION_LIST xpp::composite::extension)
 if(WITH_XKB)
   list(APPEND XPP_EXTENSION_LIST xpp::xkb::extension)
 endif()
