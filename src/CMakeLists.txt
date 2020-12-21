@@ -31,7 +31,6 @@ set(NETWORK_SOURCES
   $<IF:$<BOOL:${WITH_LIBNL}>,${src_dir}/adapters/net_nl.cpp,${src_dir}/adapters/net_iw.cpp>
 )
 
-
 set(PULSEAUDIO_SOURCES
   ${src_dir}/adapters/pulseaudio.cpp
   ${src_dir}/modules/pulseaudio.cpp
@@ -55,25 +54,30 @@ configure_file(
 
 set(POLY_SOURCES
   ${CMAKE_BINARY_DIR}/generated-sources/settings.cpp
+
   ${src_dir}/cairo/utils.cpp
+
   ${src_dir}/components/bar.cpp
   ${src_dir}/components/builder.cpp
   ${src_dir}/components/command_line.cpp
   ${src_dir}/components/config.cpp
+  ${src_dir}/components/config_parser.cpp
   ${src_dir}/components/controller.cpp
   ${src_dir}/components/ipc.cpp
   ${src_dir}/components/logger.cpp
-  ${src_dir}/components/parser.cpp
   ${src_dir}/components/renderer.cpp
   ${src_dir}/components/screen.cpp
   ${src_dir}/components/taskqueue.cpp
+
   ${src_dir}/drawtypes/animation.cpp
   ${src_dir}/drawtypes/iconset.cpp
   ${src_dir}/drawtypes/label.cpp
   ${src_dir}/drawtypes/progressbar.cpp
   ${src_dir}/drawtypes/ramp.cpp
+
   ${src_dir}/events/signal_emitter.cpp
   ${src_dir}/events/signal_receiver.cpp
+
   ${src_dir}/modules/backlight.cpp
   ${src_dir}/modules/battery.cpp
   ${src_dir}/modules/bspwm.cpp
@@ -92,7 +96,13 @@ set(POLY_SOURCES
   ${src_dir}/modules/xbacklight.cpp
   ${src_dir}/modules/xwindow.cpp
   ${src_dir}/modules/xworkspaces.cpp
+
+  ${src_dir}/tags/dispatch.cpp
+  ${src_dir}/tags/parser.cpp
+
+  ${src_dir}/utils/actions.cpp
   ${src_dir}/utils/bspwm.cpp
+  ${src_dir}/utils/color.cpp
   ${src_dir}/utils/command.cpp
   ${src_dir}/utils/concurrency.cpp
   ${src_dir}/utils/env.cpp
@@ -104,6 +114,7 @@ set(POLY_SOURCES
   ${src_dir}/utils/socket.cpp
   ${src_dir}/utils/string.cpp
   ${src_dir}/utils/throttle.cpp
+
   ${src_dir}/x11/atoms.cpp
   ${src_dir}/x11/background_manager.cpp
   ${src_dir}/x11/connection.cpp
