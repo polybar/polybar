@@ -74,7 +74,7 @@ jobs:
               libjsoncpp-dev \
               libasound2-dev \
               libpulse-dev \
-              libiw-dev \
+              libnl-genl-3-dev \
               libmpdclient-dev
           fi
       - uses: actions/checkout@v2
