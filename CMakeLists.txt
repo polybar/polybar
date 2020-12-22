@@ -2,13 +2,13 @@
 # Build configuration
 #
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
+project(polybar CXX)
 
-# Enable ccache by default and as early as possible because project() performs
-# checks on the compiler
 option(ENABLE_CCACHE "Enable ccache support" ON)
 if(ENABLE_CCACHE)
   message(STATUS "Trying to enable ccache")
   find_program(BIN_CCACHE ccache)
+  mark_as_advanced(BIN_CCACHE)
 
   string(ASCII 27 esc)
   if(NOT BIN_CCACHE)
@@ -16,11 +16,9 @@ if(ENABLE_CCACHE)
   else()
     # Enable only if the binary is found
     message(STATUS "${esc}[32mUsing compiler cache ${BIN_CCACHE}${esc}[0m")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${BIN_CCACHE})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${BIN_CCACHE} CACHE STRING "")
   endif()
 endif()
-
-project(polybar CXX)
 
 # Extract version information from version.txt. The first line that looks like
 # a version string is used, so the file supports comments
