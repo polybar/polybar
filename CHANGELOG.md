@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This does not affect you unless you are producing your own formatting tags
   (for example in a script) and you are using one of these invalid tags.
 
+### Build
+- Bump the minimum cmake version to 3.5
+
 ### Added
 - Warn states for the cpu, memory, fs, and battery modules.
   ([`#570`](https://github.com/polybar/polybar/issues/570),
