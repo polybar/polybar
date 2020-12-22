@@ -1,3 +1,12 @@
+set(SPHINX_BUILD "sphinx-build" CACHE STRING "Name/Path of the sphinx-build executable to use.")
+set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
+
+find_program(BIN_SPHINX "${SPHINX_BUILD}")
+
+if(NOT BIN_SPHINX)
+  message(FATAL_ERROR "sphinx-build executable '${SPHINX_BUILD}' not found.")
+endif()
+
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
 set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
