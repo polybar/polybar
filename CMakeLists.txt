@@ -4,22 +4,6 @@
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 project(polybar CXX)
 
-option(ENABLE_CCACHE "Enable ccache support" ON)
-if(ENABLE_CCACHE)
-  message(STATUS "Trying to enable ccache")
-  find_program(BIN_CCACHE ccache)
-  mark_as_advanced(BIN_CCACHE)
-
-  string(ASCII 27 esc)
-  if(NOT BIN_CCACHE)
-    message(STATUS "${esc}[33mCouldn't locate ccache, disabling ccache...${esc}[0m")
-  else()
-    # Enable only if the binary is found
-    message(STATUS "${esc}[32mUsing compiler cache ${BIN_CCACHE}${esc}[0m")
-    set(CMAKE_CXX_COMPILER_LAUNCHER ${BIN_CCACHE} CACHE STRING "")
-  endif()
-endif()
-
 # Extract version information from version.txt. The first line that looks like
 # a version string is used, so the file supports comments
 file(STRINGS version.txt version_txt REGEX "^[0-9]+\\.[0-9]+\\.[0-9]+.*$" LIMIT_COUNT 1)
@@ -46,20 +30,26 @@ set(CMAKE_MODULE_PATH
 
 include(GNUInstallDirs)
 include(utils)
-include(01-core)
+include(00-components)
 include(02-opts)
+if (HAS_CXX_COMPILATION)
+  include(01-core)
+endif()
 include(03-libs)
 include(04-targets)
-include(05-summary)
 
 if(BUILD_DOC)
   add_subdirectory(doc)
 endif()
 add_subdirectory(contrib/bash)
 add_subdirectory(contrib/zsh)
-add_subdirectory(include)
-add_subdirectory(lib)
-add_subdirectory(src bin)
+if (BUILD_LIBPOLY)
+  add_subdirectory(include)
+  add_subdirectory(lib)
+endif()
+if (HAS_CXX_COMPILATION)
+  add_subdirectory(src bin)
+endif()
 
 # We need to enable testing in the root folder so that 'ctest' and 'make test'
 # can be run in the build directory
@@ -68,6 +58,7 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
+include(05-summary)
 
 #
 # Generate configuration file

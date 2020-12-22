@@ -6,7 +6,6 @@
 
 #include "common.hpp"
 #include "utils/file.hpp"
-#include "utils/io.hpp"
 
 using namespace polybar;
 using namespace std;

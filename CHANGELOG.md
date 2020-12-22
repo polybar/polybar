@@ -20,6 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Build
 - Bump the minimum cmake version to 3.5
+- The `BUILD_IPC_MSG` option has been renamed to `BUILD_POLYBAR_MSG`
+- Building the documentation is now enabled by default and not just when
+  `sphinx-build` is found.
+- Users can control exactly which targets should be available with the following
+  cmake options (together with their default value):
+  - `BUILD_POLYBAR=ON` - Builds the `polybar` executable
+  - `BUILD_POLYBAR_MSG=ON` - Builds the `polybar-msg` executable
+  - `BUILD_TESTS=OFF` - Builds the test suite
+  - `BUILD_DOC=ON` - Builds the documentation
+  - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
+    targets can still be enabled explicitly.
+- The documentation can no longer be built by directly configuring the `doc`
+  directory.
 
 ### Added
 - Warn states for the cpu, memory, fs, and battery modules.

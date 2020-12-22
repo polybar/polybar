@@ -13,9 +13,6 @@ have that installed.
 If you build polybar normally while having Sphinx installed during configuration, the documentation will be enabled and
 built as well. Building the documentation can be disabled by passing `-DBUILD_DOC=OFF` to `cmake`.
 
-Alternatively the documentation can be built without the rest of polybar, for that run `cmake` only on the `doc`
-directory. For example, create a `build` directory in `doc` and then run `cmake ..` in there.
-
 Once configured, all of the documentation can be generated with `make doc` or use `make doc_html` or `make doc_man` to
 only generate the html documentation or the man pages respectively.
 
