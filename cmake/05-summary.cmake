@@ -25,6 +25,8 @@ colored_option("   polybar" BUILD_POLYBAR)
 colored_option("   polybar-msg" BUILD_POLYBAR_MSG)
 colored_option("   testsuite" BUILD_TESTS)
 colored_option("   documentation" BUILD_DOC)
+colored_option("      html" BUILD_DOC_HTML)
+colored_option("      man" BUILD_DOC_MAN)
 
 if (BUILD_LIBPOLY)
   message(STATUS " Module support:")

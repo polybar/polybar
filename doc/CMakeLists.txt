@@ -15,7 +15,13 @@ set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(conf.py conf.py @ONLY)
 
 # We want to run `sphinx-build` with the following builders
-set(doc_builders "html" "man")
+if (BUILD_DOC_HTML)
+  list(APPEND doc_builders "html")
+endif()
+
+if (BUILD_DOC_MAN)
+  list(APPEND doc_builders "man")
+endif()
 
 # Name of all documentation targets
 set(doc_targets "")

@@ -16,6 +16,10 @@ option(BUILD_POLYBAR_MSG "Build polybar-msg" ${DEFAULT_ON})
 option(BUILD_TESTS "Build testsuite" OFF)
 option(BUILD_DOC "Build documentation" ${DEFAULT_ON})
 
+include(CMakeDependentOption)
+CMAKE_DEPENDENT_OPTION(BUILD_DOC_HTML "Build HTML documentation" ON "BUILD_DOC" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_DOC_MAN "Build manpages" ON "BUILD_DOC" OFF)
+
 if (BUILD_POLYBAR OR BUILD_TESTS)
   set(BUILD_LIBPOLY ON)
 else()
