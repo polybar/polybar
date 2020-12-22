@@ -149,7 +149,7 @@ set_build_opts() {
     read -r -p "$(msg "Build \"polybar-msg\" used to send ipc messages ------------------ [y/N]: ")" -n 1 p && echo
     [[ "${p^^}" != "Y" ]] && ENABLE_IPC_MSG="OFF" || ENABLE_IPC_MSG="ON"
   fi
-  
+
   if [[ -z "$JOB_COUNT" ]]; then
 	read -r -p "$(msg "Parallelize the build using make -j$(nproc) --------------------------- [y/N]: ")" -n 1 p && echo
 	[[ "${p^^}" != "Y" ]] && JOB_COUNT=1 || JOB_COUNT=$(nproc)
@@ -200,7 +200,7 @@ main() {
     -DENABLE_MPD:BOOL="${ENABLE_MPD}"         \
     -DENABLE_NETWORK:BOOL="${ENABLE_NETWORK}" \
     -DENABLE_CURL:BOOL="${ENABLE_CURL}"       \
-    -DBUILD_IPC_MSG:BOOL="${ENABLE_IPC_MSG}"   \
+    -DBUILD_POLYBAR_MSG:BOOL="${ENABLE_IPC_MSG}"   \
     .. || msg_err "Failed to generate build... read output to get a hint of what went wrong"
 
   msg "Building project"
