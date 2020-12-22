@@ -26,6 +26,21 @@ jobs:
           cmake -DDISABLE_ALL=ON -DBUILD_DOC=ON ..
           make doc
 
+  ipc:
+    runs-on: ubuntu-20.04
+    env:
+      COLOR: "ON"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      - name: Build polybar-msg
+        run: |
+          mkdir -p build
+          cd build
+          cmake -DDISABLE_ALL=ON -DBUILD_POLYBAR_MSG=ON ..
+          make polybar-msg
+
   build:
     runs-on: ubuntu-20.04
     strategy:
