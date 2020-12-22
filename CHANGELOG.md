@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BUILD_POLYBAR_MSG=ON` - Builds the `polybar-msg` executable
   - `BUILD_TESTS=OFF` - Builds the test suite
   - `BUILD_DOC=ON` - Builds the documentation
+  - `BUILD_DOC_HTML=BUILD_DOC` - Builds the html documentation (depends on `BUILD_DOC`)
+  - `BUILD_DOC_MAN=BUILD_DOC` - Builds the manpages (depends on `BUILD_DOC`)
   - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
     targets can still be enabled explicitly.
 - The documentation can no longer be built by directly configuring the `doc`
