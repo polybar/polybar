@@ -32,12 +32,8 @@ endforeach()
 set(XCB_XRM_header "xcb/xcb_xrm.h")
 set(XCB_CURSOR_header "xcb/xcb_cursor.h")
 
-cmake_policy(PUSH)
-cmake_policy(SET CMP0057 NEW)
-
 foreach(_comp ${Xcb_FIND_COMPONENTS})
   if (NOT ${_comp} IN_LIST XCB_known_components)
-    cmake_policy(POP)
     message(FATAL_ERROR "Unknow component \"${_comp}\" of XCB")
   endif()
 
@@ -58,9 +54,6 @@ foreach(_comp ${Xcb_FIND_COMPONENTS})
   if(Xcb_${_comp}_FOUND AND NOT TARGET Xcb::${_comp})
     create_imported_target("Xcb::${_comp}" "${Xcb_${_comp}_INCLUDE_DIRS}" "${Xcb_${_comp}_LIBRARIES}")
   elseif(NOT Xcb_${_comp}_FOUND AND Xcb_FIND_REQUIRED)
-    cmake_policy(POP)
     message(FATAL_ERROR "Xcb: Required component \"${_comp}\" is not found")
   endif()
 endforeach()
-
-cmake_policy(POP)

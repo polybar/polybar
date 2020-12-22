@@ -1,7 +1,7 @@
 #
 # Build configuration
 #
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 
 # Enable ccache by default and as early as possible because project() performs
 # checks on the compiler
