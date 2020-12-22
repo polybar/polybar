@@ -5,7 +5,7 @@
 get_include_dirs(includes_dir)
 get_sources_dirs(src_dir)
 
-if (BUILD_LIBPOLY)
+if(BUILD_LIBPOLY)
   # Source tree {{{
 
   set(ALSA_SOURCES
@@ -169,7 +169,7 @@ if (BUILD_LIBPOLY)
   # }}}
 
   # Target: polybar {{{
-  if (BUILD_POLYBAR)
+  if(BUILD_POLYBAR)
     add_executable(polybar main.cpp)
     target_link_libraries(polybar poly)
     set_target_properties(poly PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -194,7 +194,5 @@ if(BUILD_POLYBAR_MSG)
   install(TARGETS polybar-msg
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT runtime)
-
 endif()
-
 # }}}
