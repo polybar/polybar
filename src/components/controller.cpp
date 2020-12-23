@@ -531,15 +531,15 @@ bool controller::forward_action(const actions_util::action& action_triple) {
 }
 
 void controller::switch_module_visibility(string module_name_raw, int visible) {
-  for(auto&& mod : m_modules) {
-    if(mod->name_raw() != module_name_raw)
+  for (auto&& mod : m_modules) {
+    if (mod->name_raw() != module_name_raw)
       continue;
 
-    if(visible == 0) {
+    if (visible == 0) {
       mod->set_visible(false);
-    } else if(visible == 1) {
+    } else if (visible == 1) {
       mod->set_visible(true);
-    } else if(visible == 2) {
+    } else if (visible == 2) {
       mod->set_visible(!mod->visible());
     }
 
