@@ -62,6 +62,12 @@ namespace modules {
   }
 
   template <typename Impl>
+  bool module<Impl>::visible(bool value) {
+    m_visible = value;
+    return m_visible;
+  }
+
+  template <typename Impl>
   void module<Impl>::stop() {
     if (!static_cast<bool>(m_enabled)) {
       return;

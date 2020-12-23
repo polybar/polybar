@@ -77,6 +77,8 @@ tray-padding = 2
 cursor-click = pointer
 cursor-scroll = ns-resize
 
+enable-ipc = true
+
 [module/xwindow]
 type = internal/xwindow
 label = %title:0:30:...%

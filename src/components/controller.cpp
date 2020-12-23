@@ -530,6 +530,16 @@ bool controller::forward_action(const actions_util::action& action_triple) {
   return true;
 }
 
+void controller::switch_module_visibility(string module_name_raw, bool visible) {
+  for(auto&& mod : m_modules) {
+    if(mod->name_raw() != module_name_raw)
+      continue;
+
+    mod->visible(visible);
+    return;
+  }
+}
+
 /**
  * Process stored input data
  */
@@ -833,6 +843,8 @@ bool controller::on(const signals::ipc::command& evt) {
     return false;
   }
 
+  string hide_module{"hide."};
+
   if (command == "quit") {
     enqueue(make_quit_evt(false));
   } else if (command == "restart") {
@@ -843,6 +855,8 @@ bool controller::on(const signals::ipc::command& evt) {
     m_bar->show();
   } else if (command == "toggle") {
     m_bar->toggle();
+  } else if (command.find(hide_module) == 0) {
+    switch_module_visibility(command.substr(hide_module.length()), false);
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }

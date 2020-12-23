@@ -27,6 +27,12 @@ namespace modules {
     bool running() const {                                                              \
       return false;                                                                     \
     }                                                                                   \
+    bool visible() const {                                                              \
+      return false;                                                                     \
+    }                                                                                   \
+    bool visible(bool value) {                                                          \
+      return false;                                                                     \
+    }                                                                                   \
     void start() {}                                                                     \
     void stop() {}                                                                      \
     void halt(string) {}                                                                \
