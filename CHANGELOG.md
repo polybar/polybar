@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added .ini extension check to the default config search.
   ([`#2323`](https://github.com/polybar/polybar/issues/2323))
 - IPC commands to change visibility of modules
+  (`hide.<name>`, `show.<name>`, and `toggle.<name>`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 
 ### Changed
