@@ -201,12 +201,21 @@ namespace mpd {
     }
   }
 
-  int mpdconnection::noidle() {
+  bool mpdconnection::noidle() {
+    check_connection(m_connection.get());
+    bool success = true;
+    if (m_idle) {
+      success = mpd_send_noidle(m_connection.get());
+    }
+    return success;
+  }
+
+  int mpdconnection::recv_idle() {
     check_connection(m_connection.get());
     int flags = 0;
-    if (m_idle && mpd_send_noidle(m_connection.get())) {
-      m_idle = false;
+    if (m_idle) {
       flags = mpd_recv_idle(m_connection.get(), true);
+      m_idle = false;
       mpd_response_finish(m_connection.get());
       check_errors(m_connection.get());
     }

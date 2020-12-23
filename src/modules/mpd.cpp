@@ -193,7 +193,8 @@ namespace modules {
       m_mpd->idle();
 
       int idle_flags = 0;
-      if ((idle_flags = m_mpd->noidle()) != 0) {
+      m_mpd->noidle();
+      if ((idle_flags = m_mpd->recv_idle()) != 0) {
         // Update status on every event
         m_status->update(idle_flags, m_mpd.get());
         return true;
