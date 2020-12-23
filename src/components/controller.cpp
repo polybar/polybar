@@ -530,24 +530,23 @@ bool controller::forward_action(const actions_util::action& action_triple) {
   return true;
 }
 
-void controller::switch_module_visibility(string module_name_raw, bool visible) {
+void controller::switch_module_visibility(string module_name_raw, int visible) {
   for(auto&& mod : m_modules) {
     if(mod->name_raw() != module_name_raw)
       continue;
 
-    mod->set_visible(visible);
+    if(visible == 0) {
+      mod->set_visible(false);
+    } else if(visible == 1) {
+      mod->set_visible(true);
+    } else if(visible == 2) {
+      mod->set_visible(!mod->visible());
+    }
+
     return;
   }
-}
 
-void controller::switch_module_visibility(string module_name_raw) {
-  for(auto&& mod : m_modules) {
-    if(mod->name_raw() != module_name_raw)
-      continue;
-
-    mod->set_visible(!mod->visible());
-    return;
-  }
+  m_log.err("Module '%s' not found.", module_name_raw);
 }
 
 /**
@@ -868,11 +867,11 @@ bool controller::on(const signals::ipc::command& evt) {
   } else if (command == "toggle") {
     m_bar->toggle();
   } else if (command.find(hide_module) == 0) {
-    switch_module_visibility(command.substr(hide_module.length()), false);
+    switch_module_visibility(command.substr(hide_module.length()), 0);
   } else if (command.find(show_module) == 0) {
-    switch_module_visibility(command.substr(show_module.length()), true);
+    switch_module_visibility(command.substr(show_module.length()), 1);
   } else if (command.find(toggle_module) == 0) {
-    switch_module_visibility(command.substr(toggle_module.length()));
+    switch_module_visibility(command.substr(toggle_module.length()), 2);
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }
