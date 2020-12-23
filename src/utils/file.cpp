@@ -297,19 +297,27 @@ namespace file_util {
    * Search for polybar config and returns the path if found
    */
   string get_config_path() {
+    string prefix;
     string confpath;
+
     if (env_util::has("XDG_CONFIG_HOME")) {
-      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
+      prefix = env_util::get("XDG_CONFIG_HOME");
+    } else if (env_util::has("HOME")) {
+      prefix = env_util::get("HOME") + "/.config";
+    }
+
+    if (!prefix.empty()) {
+      confpath = prefix + "/polybar/config";
       if (exists(confpath)) {
         return confpath;
       }
-    }
-    if (env_util::has("HOME")) {
-      confpath = env_util::get("HOME") + "/.config/polybar/config";
-      if (exists(confpath)) {
-        return confpath;
+      string iniConfPath = confpath.append(".ini");
+
+      if (exists(iniConfPath)) {
+        return iniConfPath;
       }
     }
+
     return "";
   }
 
