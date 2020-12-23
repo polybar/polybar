@@ -31,6 +31,7 @@ namespace modules {
       return false;                                                                     \
     }                                                                                   \
     bool set_visible(bool value) {                                                      \
+      (void)value;                                                                      \
       return false;                                                                     \
     }                                                                                   \
     void start() {}                                                                     \
