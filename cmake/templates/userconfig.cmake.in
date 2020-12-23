@@ -4,5 +4,5 @@ if(NOT USER_CONFIG_HOME)
 endif()
 set(USER_CONFIG_HOME "${USER_CONFIG_HOME}/polybar")
 
-file(INSTALL "@CMAKE_SOURCE_DIR@/config"
+file(INSTALL "@CMAKE_BINARY_DIR@/generated-sources/config"
   DESTINATION "${USER_CONFIG_HOME}")

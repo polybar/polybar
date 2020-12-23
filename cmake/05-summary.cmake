@@ -27,6 +27,7 @@ colored_option("   testsuite" BUILD_TESTS)
 colored_option("   documentation" BUILD_DOC)
 colored_option("      html" BUILD_DOC_HTML)
 colored_option("      man" BUILD_DOC_MAN)
+colored_option("   sample config" BUILD_CONFIG)
 
 if (BUILD_LIBPOLY)
   message(STATUS " Module support:")
