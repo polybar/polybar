@@ -303,11 +303,22 @@ namespace file_util {
       if (exists(confpath)) {
         return confpath;
       }
+
+      string iniConfPath = confpath.append(".ini");
+      if (exists(iniConfPath)) {
+        return iniConfPath;
+      }
     }
+
     if (env_util::has("HOME")) {
       confpath = env_util::get("HOME") + "/.config/polybar/config";
       if (exists(confpath)) {
         return confpath;
+      }
+
+      string iniConfPath = confpath.append(".ini");
+      if (exists(iniConfPath)) {
+        return iniConfPath;
       }
     }
     return "";

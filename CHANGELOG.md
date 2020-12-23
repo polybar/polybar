@@ -24,8 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [`#956`](https://github.com/polybar/polybar/issues/956),
   [`#1871`](https://github.com/polybar/polybar/issues/1871),
   [`#2141`](https://github.com/polybar/polybar/issues/2141))
-  - `internal/battery`: `format-low`, `label-low`, `animation-low`, `low-at =
-    10`.
+  - `internal/battery`: `format-low`, `label-low`, `animation-low`, `low-at = 10`.
   - `internal/cpu`: `format-warn`, `label-warn`, `warn-percentage = 80`
   - `internal/fs`: `format-warn`, `label-warn`, `warn-percentage = 90`
   - `internal/memory`: `format-warn`, `label-warn`, `warn-percentage = 90`
@@ -35,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   speeds are displayed.
 - `internal/xkeyboard`: `%variant%` can be used to parse the layout variant
   ([`#316`](https://github.com/polybar/polybar/issues/316))
+- Added .ini extension check to the default config search.
+  ([`#2323`](https://github.com/polybar/polybar/issues/2323))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
