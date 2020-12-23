@@ -144,9 +144,11 @@ namespace modules {
 
     // rebuild entire mapping of clients to desktops
     m_clients.clear();
+    m_windows.clear();
     for (auto&& client : newclients) {
       auto desk = ewmh_util::get_desktop_from_window(client);
       m_clients[client] = desk;
+      m_windows[desk]++;
     }
 
     rebuild_urgent_hints();
@@ -270,6 +272,7 @@ namespace modules {
         d->label->reset_tokens();
         d->label->replace_token("%index%", to_string(d->index + 1));
         d->label->replace_token("%name%", m_desktop_names[d->index]);
+        d->label->replace_token("%nwin%", to_string(m_windows[d->index]));
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
