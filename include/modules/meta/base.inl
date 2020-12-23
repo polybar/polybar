@@ -62,7 +62,7 @@ namespace modules {
   }
 
   template <typename Impl>
-  bool module<Impl>::visible(bool value) {
+  bool module<Impl>::set_visible(bool value) {
     m_visible = value;
     return m_visible;
   }
