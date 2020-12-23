@@ -62,10 +62,9 @@ namespace modules {
   }
 
   template <typename Impl>
-  bool module<Impl>::set_visible(bool value) {
+  void module<Impl>::set_visible(bool value) {
     m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
     m_visible = value;
-    return m_visible;
   }
 
   template <typename Impl>

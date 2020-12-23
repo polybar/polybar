@@ -115,7 +115,7 @@ namespace modules {
     virtual string name() const = 0;
     virtual bool running() const = 0;
     virtual bool visible() const = 0;
-    virtual bool set_visible(bool value) = 0;
+    virtual void set_visible(bool value) = 0;
 
     /**
      * Handle action, possibly with data attached
@@ -149,7 +149,7 @@ namespace modules {
     bool running() const;
 
     bool visible() const;
-    bool set_visible(bool value);
+    void set_visible(bool value);
 
     void stop();
     void halt(string error_message);
