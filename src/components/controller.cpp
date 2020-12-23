@@ -546,7 +546,7 @@ void controller::switch_module_visibility(string module_name_raw, int visible) {
     return;
   }
 
-  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw, value ? "shown" : "hidden");
+  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw, visible ? "shown" : "hidden");
 }
 
 /**
