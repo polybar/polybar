@@ -31,12 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BUILD_DOC=ON` - Builds the documentation
   - `BUILD_DOC_HTML=BUILD_DOC` - Builds the html documentation (depends on `BUILD_DOC`)
   - `BUILD_DOC_MAN=BUILD_DOC` - Builds the manpages (depends on `BUILD_DOC`)
-  - `BUILD_CONFIG=ON` - Generate sample config
-  - `BUILD_SHELL=ON` - Generate shell completion files
+  - `BUILD_CONFIG=ON` - Generates sample config
+  - `BUILD_SHELL=ON` - Generates shell completion files
   - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
     targets can still be enabled explicitly.
 - The documentation can no longer be built by directly configuring the `doc`
   directory.
+- The sample config file is now placed in the `generated-sources` folder inside
+  whatever folder you invoked `cmake` from instead of in the root folder of the
+  repository.
 
 ### Added
 - Warn states for the cpu, memory, fs, and battery modules.
