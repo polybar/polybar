@@ -138,6 +138,7 @@ function(checklib flag type pkg)
     else()
       message(FATAL_ERROR "Invalid lookup type '${type}'")
     endif()
+    mark_as_advanced(${flag})
   endif()
 endfunction()
 
