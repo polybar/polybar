@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake -DDISABLE_ALL=ON -DBUILD_DOC=ON ..
+          cmake -DDISABLE_ALL=ON -DBUILD_DOC=ON -DSPHINX_FLAGS="-W" ..
           make doc
 
   ipc:
