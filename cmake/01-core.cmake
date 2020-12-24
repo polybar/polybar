@@ -16,6 +16,7 @@ option(BUILD_POLYBAR_MSG "Build polybar-msg" ${DEFAULT_ON})
 option(BUILD_TESTS "Build testsuite" OFF)
 option(BUILD_DOC "Build documentation" ${DEFAULT_ON})
 option(BUILD_CONFIG "Generate sample configuration" ${DEFAULT_ON})
+option(BUILD_SHELL "Generate shell completion files" ${DEFAULT_ON})
 
 include(CMakeDependentOption)
 CMAKE_DEPENDENT_OPTION(BUILD_DOC_HTML "Build HTML documentation" ON "BUILD_DOC" OFF)

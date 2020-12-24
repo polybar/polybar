@@ -38,8 +38,10 @@ if(BUILD_DOC)
   add_subdirectory(doc)
 endif()
 
-add_subdirectory(contrib/bash)
-add_subdirectory(contrib/zsh)
+if (BUILD_SHELL)
+  add_subdirectory(contrib/bash)
+  add_subdirectory(contrib/zsh)
+endif()
 
 # Setup everything that uses a C++ compile (polybar, polybar-msg, tests)
 if(HAS_CXX_COMPILATION)
