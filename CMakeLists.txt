@@ -22,8 +22,7 @@ else()
   set(APP_VERSION "${version_txt}")
 endif()
 
-set(CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH}
+list(APPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake
   ${PROJECT_SOURCE_DIR}/cmake/common
   ${PROJECT_SOURCE_DIR}/cmake/modules)

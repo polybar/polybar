@@ -2,9 +2,9 @@
 # Generate configuration file
 #
 
-set(MODULES_LEFT "bspwm i3")
+set(MODULES_LEFT "bspwm;i3")
 set(MODULES_CENTER "mpd")
-set(MODULES_RIGHT "filesystem backlight-acpi alsa pulseaudio xkeyboard memory cpu wlan eth battery temperature date powermenu")
+set(MODULES_RIGHT "filesystem;backlight-acpi;alsa;pulseaudio;xkeyboard;memory;cpu;wlan;eth;battery;temperature;date;powermenu")
 
 set(FONT_FIXED "fixed:pixelsize=10")
 set(FONT_UNIFONT "unifont:fontformat=truetype")
@@ -17,23 +17,27 @@ queryfont(FONT_SIJI ${FONT_SIJI} FIELDS family pixelsize)
 # Strip disabled modules {{{
 
 if(NOT ENABLE_PULSEAUDIO)
-  string(REPLACE " pulseaudio" "" MODULES_RIGHT ${MODULES_RIGHT})
+  list(REMOVE_ITEM MODULES_RIGHT "pulseaudio")
 endif()
 if(NOT ENABLE_ALSA)
-  string(REPLACE " alsa" "" MODULES_RIGHT ${MODULES_RIGHT})
+  list(REMOVE_ITEM MODULES_RIGHT "alsa")
 endif()
 if(NOT ENABLE_I3)
-  string(REPLACE " i3" "" MODULES_LEFT ${MODULES_LEFT})
+  list(REMOVE_ITEM MODULES_LEFT "i3")
 endif()
 if(NOT ENABLE_MPD)
-  string(REPLACE "mpd" "" MODULES_CENTER ${MODULES_CENTER})
+  list(REMOVE_ITEM MODULES_CENTER "mpd")
 endif()
 if(NOT ENABLE_NETWORK)
-  string(REPLACE " wlan eth" "" MODULES_RIGHT ${MODULES_RIGHT})
+  list(REMOVE_ITEM MODULES_RIGHT "wlan" "eth")
 endif()
 if(NOT WITH_XKB)
-  string(REPLACE "xkeyboard " "" MODULES_RIGHT ${MODULES_RIGHT})
+  list(REMOVE_ITEM MODULES_RIGHT "xkeyboard")
 endif()
+
+string(REPLACE ";" " " MODULES_LEFT "${MODULES_LEFT}")
+string(REPLACE ";" " " MODULES_CENTER "${MODULES_CENTER}")
+string(REPLACE ";" " " MODULES_RIGHT "${MODULES_RIGHT}")
 
 # }}}
 # Get battery/adapter name {{{
@@ -89,7 +93,6 @@ install(FILES ${CMAKE_BINARY_DIR}/generated-sources/config
   COMPONENT config)
 
 # }}}
-
 # Target: userconfig {{{
 
 configure_file(
