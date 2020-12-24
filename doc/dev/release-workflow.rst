@@ -158,7 +158,7 @@ anything.
 For all releases, a new section of the following form should be created below
 the ``Unreleased`` section:
 
-.. code-block::
+.. code-block:: md
 
   ## [X.Y.Z] - YYYY-MM-DD
 
@@ -166,7 +166,7 @@ In addition, the reference link for the release should be added and the
 reference link for the unreleased section should be updated at the bottom of the
 document:
 
-.. code-block::
+.. code-block:: md
 
   [Unreleased]: https://github.com/polybar/polybar/compare/X.Y.Z...HEAD
   [X.Y.Z]: https://github.com/polybar/polybar/releases/tag/X.Y.Z
