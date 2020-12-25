@@ -197,7 +197,7 @@ namespace mpd {
   void mpdconnection::idle() {
     check_connection(m_connection.get());
     if (!m_idle) {
-      mpd_send_idle(m_connection.get());
+      mpd_send_idle_mask(m_connection.get(), (mpd_idle)(MPD_IDLE_PLAYER | MPD_IDLE_OPTIONS));
       check_errors(m_connection.get());
       m_idle = true;
     }
