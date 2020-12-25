@@ -99,7 +99,7 @@ namespace modules {
     chrono::system_clock::time_point m_lastsync{};
     float m_synctime{1.0f};
 
-    int m_quick_attempts{0};
+    int m_connect_attempts{0};
 
     // This flag is used to let thru a broadcast once every time
     // the connection state changes

@@ -152,10 +152,10 @@ namespace modules {
 
   void mpd_module::idle() {
     if (connected()) {
-      m_quick_attempts = 0;
+      m_connect_attempts = 0;
       sleep(80ms);
     } else {
-      sleep(m_quick_attempts++ < 5 ? 0.5s : 2s);
+      sleep(++m_connect_attempts < 10 ? m_connect_attempts * 0.5s : 5s);
     }
   }
 
