@@ -160,13 +160,8 @@ namespace modules {
   }
 
   bool mpd_module::has_event() {
-    bool def = false;
-
-    if (!connected() && m_statebroadcasted == mpd::connection_state::CONNECTED) {
-      def = true;
-    } else if (connected() && m_statebroadcasted == mpd::connection_state::DISCONNECTED) {
-      def = true;
-    }
+    bool def =
+        (m_statebroadcasted == (connected() ? mpd::connection_state::DISCONNECTED : mpd::connection_state::CONNECTED));
 
     try {
       if (!m_mpd) {
