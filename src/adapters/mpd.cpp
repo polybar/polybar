@@ -1,3 +1,5 @@
+#include <poll.h>
+
 #include <cassert>
 #include <csignal>
 #include <thread>
@@ -220,6 +222,20 @@ namespace mpd {
       check_errors(m_connection.get());
     }
     return flags;
+  }
+
+  int mpdconnection::try_recv_idle(int timeout) {
+    struct pollfd pfd = {m_fd, POLLIN, 0};
+
+    int poll_ret = poll(&pfd, 1, timeout);
+
+    if (poll_ret > 0) {
+      return recv_idle();
+    } else if (poll_ret == 0) {
+      return 0;
+    } else {
+      throw mpd_exception("poll() returned error: "s + std::strerror(errno));
+    }
   }
 
   unique_ptr<mpdstatus> mpdconnection::get_status() {

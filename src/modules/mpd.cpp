@@ -189,12 +189,20 @@ namespace modules {
       m_status = m_mpd->get_status_safe();
     }
 
+    bool track_time = (m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING);
     try {
       m_mpd->idle();
 
-      int idle_flags = 0;
-      m_mpd->noidle();
-      if ((idle_flags = m_mpd->recv_idle()) != 0) {
+      int idle_flags;
+
+      if (track_time) {
+        m_mpd->noidle();
+        idle_flags = m_mpd->recv_idle();
+      } else {
+        idle_flags = m_mpd->try_recv_idle(2000);
+      }
+
+      if (idle_flags != 0) {
         // Update status on every event
         m_status->update(idle_flags, m_mpd.get());
         return true;
@@ -205,7 +213,7 @@ namespace modules {
       return def;
     }
 
-    if ((m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING)) {
+    if (track_time) {
       auto now = chrono::system_clock::now();
       auto diff = now - m_lastsync;
 
