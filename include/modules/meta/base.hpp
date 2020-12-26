@@ -45,6 +45,9 @@ class signal_emitter;
 // }}}
 
 namespace modules {
+  template <typename Impl>
+  class action_router;
+
   using namespace drawtypes;
 
   DEFINE_ERROR(module_error);
@@ -173,6 +176,8 @@ namespace modules {
     const bar_settings m_bar;
     const logger& m_log;
     const config& m_conf;
+
+    unique_ptr<action_router<Impl>> m_router;
 
     mutex m_buildlock;
     mutex m_updatelock;

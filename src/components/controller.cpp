@@ -472,8 +472,6 @@ bool controller::try_forward_legacy_action(const string& cmd) {
       for (auto&& module : m_modules) {
         if (module->type() == type) {
           auto module_name = module->name_raw();
-          // TODO make this message more descriptive and maybe link to some documentation
-          // TODO use route to string methods to print action name that should be used.
           if (data.empty()) {
             m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, module_name, action);
           } else {

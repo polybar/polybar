@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
@@ -8,6 +10,87 @@
 POLYBAR_NS
 
 namespace modules {
+
+  /**
+   * Maps action names to function pointers in this module and invokes them.
+   *
+   * Each module has one instance of this class and uses it to register action.
+   * For each action the module has to register the name, whether it can take
+   * additional data, and a pointer to the member function implementing that
+   * action.
+   *
+   * Ref: https://isocpp.org/wiki/faq/pointers-to-members
+   *
+   * The input() function in the base class uses this for invoking the actions
+   * of that module.
+   *
+   * Any module that does not reimplement that function will automatically use
+   * this class for action routing.
+   */
+  template <typename Impl>
+  class action_router {
+    typedef void (Impl::*callback)();
+    typedef void (Impl::*callback_data)(const std::string&);
+
+   public:
+    explicit action_router(Impl* This) : m_this(This) {}
+
+    void register_action(const string& name, callback func) {
+      entry e;
+      e.with_data = false;
+      e.without = func;
+      callbacks[name] = e;
+    }
+
+    void register_action_with_data(const string& name, callback_data func) {
+      entry e;
+      e.with_data = true;
+      e.with = func;
+      callbacks[name] = e;
+    }
+
+    bool has_action(const string& name) {
+      return callbacks.find(name) != callbacks.end();
+    }
+
+    /**
+     * Invokes the given action name on the passed module pointer.
+     *
+     * The action must exist.
+     */
+    void invoke(const string& name, const string& data) {
+      auto it = callbacks.find(name);
+      assert(it != callbacks.end());
+
+      entry e = it->second;
+
+      bool has_data = !data.empty();
+
+      if (has_data && !e.with_data) {
+        // TODO print error message
+      }
+
+#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
+      if (e.with_data) {
+        CALL_MEMBER_FN(*m_this, e.with)(data);
+      } else {
+        CALL_MEMBER_FN(*m_this, e.without)();
+      }
+#undef CALL_MEMBER_FN
+    }
+
+   private:
+    struct entry {
+      union {
+        callback without;
+        callback_data with;
+      };
+      bool with_data;
+    };
+    std::unordered_map<string, entry> callbacks;
+    Impl* m_this;
+  };
+
   // module<Impl> public {{{
 
   template <typename Impl>
@@ -16,6 +99,7 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
+      , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
       , m_name("module/" + name)
       , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
@@ -116,9 +200,13 @@ namespace modules {
   }
 
   template <typename Impl>
-  bool module<Impl>::input(const string&, const string&) {
-    // By default a module doesn't support inputs
-    return false;
+  bool module<Impl>::input(const string& name, const string& data) {
+    if (!m_router->has_action(name)) {
+      return false;
+    }
+
+    m_router->invoke(name, data);
+    return true;
   }
 
   // }}}

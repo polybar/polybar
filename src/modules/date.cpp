@@ -13,6 +13,8 @@ namespace modules {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
+    m_router->register_action(EVENT_TOGGLE, &date_module::toggle);
+
     m_dateformat = m_conf.get(name(), "date", ""s);
     m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
     m_timeformat = m_conf.get(name(), "time", ""s);
@@ -83,13 +85,9 @@ namespace modules {
     return true;
   }
 
-  bool date_module::input(const string& action, const string&) {
-    if (action != EVENT_TOGGLE) {
-      return false;
-    }
+  void date_module::toggle() {
     m_toggled = !m_toggled;
     wakeup();
-    return true;
   }
 }  // namespace modules
 
