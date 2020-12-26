@@ -30,9 +30,7 @@ namespace modules {
     bool visible() const {                                                              \
       return false;                                                                     \
     }                                                                                   \
-    void set_visible(bool value) {                                                      \
-      (void)value;                                                                      \
-    }                                                                                   \
+    void set_visible(bool) {}                                                           \
     void start() {}                                                                     \
     void stop() {}                                                                      \
     void halt(string) {}                                                                \
