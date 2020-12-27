@@ -156,13 +156,13 @@ namespace modules {
   }
 
   void xbacklight_module::change_value(int value_mod) {
-      m_log.info("%s: Changing value by %i%", name(), value_mod);
-      int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
+    m_log.info("%s: Changing value by %i%", name(), value_mod);
+    int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
 
-      const int values[1]{math_util::percentage_to_value<int>(rounded, m_output->backlight.max)};
+    const int values[1]{math_util::percentage_to_value<int>(rounded, m_output->backlight.max)};
 
-      m_connection.change_output_property_checked(
-          m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
+    m_connection.change_output_property_checked(
+        m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
   }
 }  // namespace modules
 

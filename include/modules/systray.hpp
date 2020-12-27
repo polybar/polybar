@@ -27,7 +27,6 @@ namespace modules {
     void action_toggle();
 
    private:
-
     static constexpr const char* TAG_LABEL_TOGGLE{"<label-toggle>"};
     static constexpr const char* TAG_TRAY_CLIENTS{"<tray-clients>"};
 
