@@ -205,7 +205,11 @@ namespace modules {
       return false;
     }
 
-    m_router->invoke(name, data);
+    try {
+      m_router->invoke(name, data);
+    } catch (const exception& err) {
+      m_log.err("%s: Failed to handle command '%s' with data '%s' (%s)", this->name(), name, data, err.what());
+    }
     return true;
   }
 
