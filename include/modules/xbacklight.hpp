@@ -37,7 +37,11 @@ namespace modules {
 
    protected:
     void handle(const evt::randr_notify& evt);
-    bool input(const string& action, const string& data);
+
+    void inc();
+    void dec();
+
+    void change_value(int value_mod);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

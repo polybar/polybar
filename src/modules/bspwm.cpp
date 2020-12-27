@@ -41,6 +41,10 @@ namespace modules {
   template class module<bspwm_module>;
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
+    m_router->register_action_with_data(EVENT_FOCUS, &bspwm_module::focus);
+    m_router->register_action(EVENT_NEXT, &bspwm_module::next);
+    m_router->register_action(EVENT_PREV, &bspwm_module::prev);
+
     auto socket_path = bspwm_util::get_socket_path();
 
     if (!file_util::exists(socket_path)) {
@@ -445,44 +449,28 @@ namespace modules {
     return false;
   }
 
-  bool bspwm_module::input(const string& action, const string& data) {
-    auto send_command = [this](string payload_cmd, string log_info) {
-      try {
-        auto ipc = bspwm_util::make_connection();
-        auto payload = bspwm_util::make_payload(payload_cmd);
-        m_log.info("%s: %s", name(), log_info);
-        ipc->send(payload->data, payload->len, 0);
-        ipc->disconnect();
-      } catch (const system_error& err) {
-        m_log.err("%s: %s", name(), err.what());
-      }
-    };
+  void bspwm_module::focus(const string& data) {
+    size_t separator{string_util::find_nth(data, 0, "+", 1)};
+    size_t monitor_n{std::strtoul(data.substr(0, separator).c_str(), nullptr, 10)};
+    string workspace_n{data.substr(separator + 1)};
 
-    if (action == EVENT_FOCUS) {
-      size_t separator{string_util::find_nth(data, 0, "+", 1)};
-      size_t monitor_n{std::strtoul(data.substr(0, separator).c_str(), nullptr, 10)};
-      string workspace_n{data.substr(separator + 1)};
-
-      if (monitor_n < m_monitors.size()) {
-        send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
-            "Sending desktop focus command to ipc handler");
-      } else {
-        m_log.err("%s: Invalid monitor index in command: %s", name(), data);
-      }
-
-      return true;
-    }
-
-    string scrolldir;
-
-    if (action == EVENT_NEXT) {
-      scrolldir = "next";
-    } else if (action == EVENT_PREV) {
-      scrolldir = "prev";
+    if (monitor_n < m_monitors.size()) {
+      send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
+          "Sending desktop focus command to ipc handler");
     } else {
-      return false;
+      m_log.err("%s: Invalid monitor index in command: %s", name(), data);
     }
+  }
+  void bspwm_module::next() {
+    focus_direction(true);
+  }
 
+  void bspwm_module::prev() {
+    focus_direction(false);
+  }
+
+  void bspwm_module::focus_direction(bool next) {
+    string scrolldir = next ? "next" : "prev";
     string modifier;
 
     if (m_pinworkspaces) {
@@ -496,8 +484,14 @@ namespace modules {
     }
 
     send_command("desktop -f " + scrolldir + modifier, "Sending desktop " + scrolldir + " command to ipc handler");
+  }
 
-    return true;
+  void bspwm_module::send_command(const string& payload_cmd, const string& log_info) {
+    auto ipc = bspwm_util::make_connection();
+    auto payload = bspwm_util::make_payload(payload_cmd);
+    m_log.info("%s: %s", name(), log_info);
+    ipc->send(payload->data, payload->len, 0);
+    ipc->disconnect();
   }
 }  // namespace modules
 

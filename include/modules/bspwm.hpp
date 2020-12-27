@@ -54,7 +54,12 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    bool input(const string& action, const string& data);
+    void focus(const string& data);
+    void next();
+    void prev();
+
+    void focus_direction(bool next);
+    void send_command(const string& payload_cmd, const string& log_info);
 
    private:
     bool handle_status(string& data);

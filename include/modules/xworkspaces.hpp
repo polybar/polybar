@@ -72,7 +72,12 @@ namespace modules {
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
 
-    bool input(const string& action, const string& data);
+    void focus(const string& data);
+    void next();
+    void prev();
+
+    void focus_direction(bool next);
+    void focus_desktop(unsigned new_desktop);
 
    private:
     static vector<string> get_desktop_names();

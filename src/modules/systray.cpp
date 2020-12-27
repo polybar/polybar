@@ -1,10 +1,10 @@
 #if DEBUG
 #include "modules/systray.hpp"
+
 #include "drawtypes/label.hpp"
+#include "modules/meta/base.inl"
 #include "x11/connection.hpp"
 #include "x11/tray_manager.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -16,6 +16,8 @@ namespace modules {
    */
   systray_module::systray_module(const bar_settings& bar, string name_)
       : static_module<systray_module>(bar, move(name_)), m_connection(connection::make()) {
+    m_router->register_action(EVENT_TOGGLE, &systray_module::toggle);
+
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_TOGGLE, {TAG_LABEL_TOGGLE, TAG_TRAY_CLIENTS});
 
@@ -53,17 +55,11 @@ namespace modules {
   /**
    * Handle input event
    */
-  bool systray_module::input(const string& action, const string&) {
-    if (action.find(EVENT_TOGGLE) != 0) {
-      return false;
-    }
-
+  void systray_module::toggle() {
     m_hidden = !m_hidden;
     broadcast();
-
-    return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
 #endif
