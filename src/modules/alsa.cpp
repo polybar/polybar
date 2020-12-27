@@ -252,7 +252,7 @@ namespace modules {
     }
   }
 
-  void action_epilogue(const vector<mixer_t> mixers) {
+  void action_epilogue(const vector<mixer_t>& mixers) {
     for (auto&& mixer : mixers) {
       if (mixer->wait(0)) {
         mixer->process_events();

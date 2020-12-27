@@ -42,7 +42,7 @@ namespace modules {
 
     void change_volume(int interval);
 
-    void action_epilogue(const vector<mixer_t> mixers);
+    void action_epilogue(const vector<mixer_t>& mixers);
 
     vector<mixer_t> get_mixers();
 
