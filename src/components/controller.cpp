@@ -692,8 +692,6 @@ bool controller::process_update(bool force) {
  * Creates module instances for all the modules in the given alignment block
  */
 size_t controller::setup_modules(alignment align) {
-  size_t count{0};
-
   string key;
 
   switch (align) {
@@ -737,13 +735,12 @@ size_t controller::setup_modules(alignment align) {
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
-      count++;
-    } catch (const runtime_error& err) {
+    } catch (const std::exception& err) {
       m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
     }
   }
 
-  return count;
+  return m_modules.size();
 }
 
 /**

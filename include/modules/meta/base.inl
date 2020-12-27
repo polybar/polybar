@@ -39,14 +39,14 @@ namespace modules {
       entry e;
       e.with_data = false;
       e.without = func;
-      callbacks[name] = e;
+      register_entry(name, e);
     }
 
     void register_action_with_data(const string& name, callback_data func) {
       entry e;
       e.with_data = true;
       e.with = func;
-      callbacks[name] = e;
+      register_entry(name, e);
     }
 
     bool has_action(const string& name) {
@@ -79,7 +79,7 @@ namespace modules {
 #undef CALL_MEMBER_FN
     }
 
-   private:
+   protected:
     struct entry {
       union {
         callback without;
@@ -87,6 +87,15 @@ namespace modules {
       };
       bool with_data;
     };
+
+    void register_entry(const string& name, const entry& e) {
+      if (has_action(name)) {
+        throw std::invalid_argument("Tried to register action '" + name + "' twice. THIS IS A BUG!");
+      }
+      callbacks[name] = e;
+    }
+
+   private:
     std::unordered_map<string, entry> callbacks;
     Impl* m_this;
   };
