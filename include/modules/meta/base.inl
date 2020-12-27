@@ -64,12 +64,6 @@ namespace modules {
 
       entry e = it->second;
 
-      bool has_data = !data.empty();
-
-      if (has_data && !e.with_data) {
-        // TODO print error message
-      }
-
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
       if (e.with_data) {
         CALL_MEMBER_FN(*m_this, e.with)(data);
