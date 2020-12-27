@@ -159,7 +159,7 @@ namespace modules {
     void teardown();
     string contents();
 
-    bool input(const string& action, const string& data);
+    bool input(const string& action, const string& data) final;
 
    protected:
     void broadcast();
