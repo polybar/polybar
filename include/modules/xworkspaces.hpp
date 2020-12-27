@@ -72,9 +72,9 @@ namespace modules {
     void rebuild_desktop_states();
     void set_desktop_urgent(xcb_window_t window);
 
-    void focus(const string& data);
-    void next();
-    void prev();
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
 
     void focus_direction(bool next);
     void focus_desktop(unsigned new_desktop);

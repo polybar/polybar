@@ -15,9 +15,9 @@ namespace modules {
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
 
-    m_router->register_action_with_data(EVENT_OPEN, &menu_module::open);
-    m_router->register_action(EVENT_CLOSE, &menu_module::close);
-    m_router->register_action_with_data(EVENT_EXEC, &menu_module::exec);
+    m_router->register_action_with_data(EVENT_OPEN, &menu_module::action_open);
+    m_router->register_action(EVENT_CLOSE, &menu_module::action_close);
+    m_router->register_action_with_data(EVENT_EXEC, &menu_module::action_exec);
 
     string default_format;
     if (m_expand_right) {
@@ -102,7 +102,7 @@ namespace modules {
     return true;
   }
 
-  void menu_module::open(const string& data) {
+  void menu_module::action_open(const string& data) {
     string level = data.empty() ? "0" : data;
     int level_num = m_level = std::strtol(level.c_str(), nullptr, 10);
     m_log.info("%s: Opening menu level '%i'", name(), static_cast<int>(level_num));
@@ -116,7 +116,7 @@ namespace modules {
     broadcast();
   }
 
-  void menu_module::close() {
+  void menu_module::action_close() {
     m_log.info("%s: Closing menu tree", name());
     if (m_level != -1) {
       m_level = -1;
@@ -124,7 +124,7 @@ namespace modules {
     }
   }
 
-  void menu_module::exec(const string& element) {
+  void menu_module::action_exec(const string& element) {
     auto sep = element.find("-");
 
     if (sep == element.npos) {

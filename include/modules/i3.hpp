@@ -58,9 +58,9 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    void focus(const string& ws);
-    void next();
-    void prev();
+    void action_focus(const string& ws);
+    void action_next();
+    void action_prev();
 
     void focus_direction(bool next);
 

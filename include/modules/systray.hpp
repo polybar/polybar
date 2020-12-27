@@ -24,7 +24,7 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "toggle";
 
    protected:
-    void toggle();
+    void action_toggle();
 
    private:
 

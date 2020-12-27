@@ -41,9 +41,9 @@ namespace modules {
   template class module<bspwm_module>;
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &bspwm_module::focus);
-    m_router->register_action(EVENT_NEXT, &bspwm_module::next);
-    m_router->register_action(EVENT_PREV, &bspwm_module::prev);
+    m_router->register_action_with_data(EVENT_FOCUS, &bspwm_module::action_focus);
+    m_router->register_action(EVENT_NEXT, &bspwm_module::action_next);
+    m_router->register_action(EVENT_PREV, &bspwm_module::action_prev);
 
     auto socket_path = bspwm_util::get_socket_path();
 
@@ -449,7 +449,7 @@ namespace modules {
     return false;
   }
 
-  void bspwm_module::focus(const string& data) {
+  void bspwm_module::action_focus(const string& data) {
     size_t separator{string_util::find_nth(data, 0, "+", 1)};
     size_t monitor_n{std::strtoul(data.substr(0, separator).c_str(), nullptr, 10)};
     string workspace_n{data.substr(separator + 1)};
@@ -461,11 +461,11 @@ namespace modules {
       m_log.err("%s: Invalid monitor index in command: %s", name(), data);
     }
   }
-  void bspwm_module::next() {
+  void bspwm_module::action_next() {
     focus_direction(true);
   }
 
-  void bspwm_module::prev() {
+  void bspwm_module::action_prev() {
     focus_direction(false);
   }
 

@@ -36,9 +36,9 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "toggle";
 
    protected:
-    void inc();
-    void dec();
-    void toggle();
+    void action_inc();
+    void action_dec();
+    void action_toggle();
 
     void change_volume(int interval);
 

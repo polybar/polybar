@@ -25,7 +25,7 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::switch_layout);
+    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
 
     // Setup extension
     // clang-format off
@@ -210,7 +210,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  void xkeyboard_module::switch_layout() {
+  void xkeyboard_module::action_switch() {
     size_t current_group = m_keyboard->current() + 1;
 
     if (current_group >= m_keyboard->size()) {

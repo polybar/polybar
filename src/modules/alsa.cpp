@@ -19,9 +19,9 @@ namespace modules {
 
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
     if (m_handle_events) {
-      m_router->register_action(EVENT_DEC, &alsa_module::dec);
-      m_router->register_action(EVENT_INC, &alsa_module::inc);
-      m_router->register_action(EVENT_TOGGLE, &alsa_module::toggle);
+      m_router->register_action(EVENT_DEC, &alsa_module::action_dec);
+      m_router->register_action(EVENT_INC, &alsa_module::action_inc);
+      m_router->register_action(EVENT_TOGGLE, &alsa_module::action_toggle);
     }
 
     // Load configuration values
@@ -223,15 +223,15 @@ namespace modules {
     return true;
   }
 
-  void alsa_module::inc() {
+  void alsa_module::action_inc() {
     change_volume(m_interval);
   }
 
-  void alsa_module::dec() {
+  void alsa_module::action_dec() {
     change_volume(-m_interval);
   }
 
-  void alsa_module::toggle() {
+  void alsa_module::action_toggle() {
     if (!m_mixer[mixer::MASTER]) {
       return;
     }

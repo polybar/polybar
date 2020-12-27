@@ -14,16 +14,16 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
-    m_router->register_action(EVENT_PLAY, &mpd_module::play);
-    m_router->register_action(EVENT_PAUSE, &mpd_module::pause);
-    m_router->register_action(EVENT_STOP, &mpd_module::stop);
-    m_router->register_action(EVENT_PREV, &mpd_module::prev);
-    m_router->register_action(EVENT_NEXT, &mpd_module::next);
-    m_router->register_action(EVENT_REPEAT, &mpd_module::repeat);
-    m_router->register_action(EVENT_SINGLE, &mpd_module::single);
-    m_router->register_action(EVENT_RANDOM, &mpd_module::random);
-    m_router->register_action(EVENT_CONSUME, &mpd_module::consume);
-    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::seek);
+    m_router->register_action(EVENT_PLAY, &mpd_module::action_play);
+    m_router->register_action(EVENT_PAUSE, &mpd_module::action_pause);
+    m_router->register_action(EVENT_STOP, &mpd_module::action_stop);
+    m_router->register_action(EVENT_PREV, &mpd_module::action_prev);
+    m_router->register_action(EVENT_NEXT, &mpd_module::action_next);
+    m_router->register_action(EVENT_REPEAT, &mpd_module::action_repeat);
+    m_router->register_action(EVENT_SINGLE, &mpd_module::action_single);
+    m_router->register_action(EVENT_RANDOM, &mpd_module::action_random);
+    m_router->register_action(EVENT_CONSUME, &mpd_module::action_consume);
+    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::action_seek);
 
     m_host = m_conf.get(name(), "host", m_host);
     m_port = m_conf.get(name(), "port", m_port);
@@ -372,14 +372,14 @@ namespace modules {
   mpd->connect();                                                                \
   auto status = mpd->get_status()
 
-  void mpd_module::play() {
+  void mpd_module::action_play() {
     MPD_CONNECT();
     if (!status->match_state(mpdstate::PLAYING)) {
       mpd->play();
     }
   }
 
-  void mpd_module::pause() {
+  void mpd_module::action_pause() {
     MPD_CONNECT();
 
     if (!status->match_state(mpdstate::PAUSED)) {
@@ -387,7 +387,7 @@ namespace modules {
     }
   }
 
-  void mpd_module::stop() {
+  void mpd_module::action_stop() {
     MPD_CONNECT();
 
     if (!status->match_state(mpdstate::STOPPED)) {
@@ -395,7 +395,7 @@ namespace modules {
     }
   }
 
-  void mpd_module::prev() {
+  void mpd_module::action_prev() {
     MPD_CONNECT();
 
     if (!status->match_state(mpdstate::STOPPED)) {
@@ -403,7 +403,7 @@ namespace modules {
     }
   }
 
-  void mpd_module::next() {
+  void mpd_module::action_next() {
     MPD_CONNECT();
 
     if (!status->match_state(mpdstate::STOPPED)) {
@@ -411,27 +411,27 @@ namespace modules {
     }
   }
 
-  void mpd_module::repeat() {
+  void mpd_module::action_repeat() {
     MPD_CONNECT();
     mpd->set_repeat(!status->repeat());
   }
 
-  void mpd_module::single() {
+  void mpd_module::action_single() {
     MPD_CONNECT();
     mpd->set_single(!status->single());
   }
 
-  void mpd_module::random() {
+  void mpd_module::action_random() {
     MPD_CONNECT();
     mpd->set_random(!status->random());
   }
 
-  void mpd_module::consume() {
+  void mpd_module::action_consume() {
     MPD_CONNECT();
     mpd->set_consume(!status->consume());
   }
 
-  void mpd_module::seek(const string& data) {
+  void mpd_module::action_seek(const string& data) {
     MPD_CONNECT();
 
     int percentage = 0;

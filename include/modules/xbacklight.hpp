@@ -38,8 +38,8 @@ namespace modules {
    protected:
     void handle(const evt::randr_notify& evt);
 
-    void inc();
-    void dec();
+    void action_inc();
+    void action_dec();
 
     void change_value(int value_mod);
 

@@ -32,8 +32,8 @@ namespace modules {
     static constexpr const char* EVENT_DEC = "dec";
 
    protected:
-    void inc();
-    void dec();
+    void action_inc();
+    void action_dec();
 
     void change_value(int value_mod);
 

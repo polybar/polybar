@@ -16,9 +16,9 @@ namespace modules {
   pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
       : event_module<pulseaudio_module>(bar, move(name_)) {
     if (m_handle_events) {
-      m_router->register_action(EVENT_DEC, &pulseaudio_module::dec);
-      m_router->register_action(EVENT_INC, &pulseaudio_module::inc);
-      m_router->register_action(EVENT_TOGGLE, &pulseaudio_module::toggle);
+      m_router->register_action(EVENT_DEC, &pulseaudio_module::action_dec);
+      m_router->register_action(EVENT_INC, &pulseaudio_module::action_inc);
+      m_router->register_action(EVENT_TOGGLE, &pulseaudio_module::action_toggle);
     }
 
     // Load configuration values
@@ -148,15 +148,15 @@ namespace modules {
     return true;
   }
 
-  void pulseaudio_module::inc() {
+  void pulseaudio_module::action_inc() {
     m_pulseaudio->inc_volume(m_interval);
   }
 
-  void pulseaudio_module::dec() {
+  void pulseaudio_module::action_dec() {
     m_pulseaudio->inc_volume(-m_interval);
   }
 
-  void pulseaudio_module::toggle() {
+  void pulseaudio_module::action_toggle() {
     m_pulseaudio->toggle_mute();
   }
 }  // namespace modules

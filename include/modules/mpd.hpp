@@ -37,17 +37,17 @@ namespace modules {
     static constexpr const char* EVENT_CONSUME = "consume";
     static constexpr const char* EVENT_SEEK = "seek";
 
-   protected:
-    void play();
-    void pause();
-    void stop();
-    void prev();
-    void next();
-    void repeat();
-    void single();
-    void random();
-    void consume();
-    void seek(const string& data);
+   private:
+    void action_play();
+    void action_pause();
+    void action_stop();
+    void action_prev();
+    void action_next();
+    void action_repeat();
+    void action_single();
+    void action_random();
+    void action_consume();
+    void action_seek(const string& data);
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};

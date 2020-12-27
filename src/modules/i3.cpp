@@ -14,9 +14,9 @@ namespace modules {
   template class module<i3_module>;
 
   i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &i3_module::focus);
-    m_router->register_action(EVENT_NEXT, &i3_module::next);
-    m_router->register_action(EVENT_PREV, &i3_module::prev);
+    m_router->register_action_with_data(EVENT_FOCUS, &i3_module::action_focus);
+    m_router->register_action(EVENT_NEXT, &i3_module::action_next);
+    m_router->register_action(EVENT_PREV, &i3_module::action_prev);
 
     auto socket_path = i3ipc::get_socketpath();
 
@@ -221,17 +221,17 @@ namespace modules {
     return true;
   }
 
-  void i3_module::focus(const string& ws) {
+  void i3_module::action_focus(const string& ws) {
     const i3_util::connection_t conn{};
     m_log.info("%s: Sending workspace focus command to ipc handler", name());
     conn.send_command(make_workspace_command(ws));
   }
 
-  void i3_module::next() {
+  void i3_module::action_next() {
     focus_direction(true);
   }
 
-  void i3_module::prev() {
+  void i3_module::action_prev() {
     focus_direction(false);
   }
 

@@ -18,8 +18,8 @@ namespace modules {
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
       : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action(EVENT_INC, &xbacklight_module::inc);
-    m_router->register_action(EVENT_DEC, &xbacklight_module::dec);
+    m_router->register_action(EVENT_INC, &xbacklight_module::action_inc);
+    m_router->register_action(EVENT_DEC, &xbacklight_module::action_dec);
 
     auto output = m_conf.get(name(), "output", m_bar.monitor->name);
 
@@ -147,11 +147,11 @@ namespace modules {
     return true;
   }
 
-  void xbacklight_module::inc() {
+  void xbacklight_module::action_inc() {
     change_value(5);
   }
 
-  void xbacklight_module::dec() {
+  void xbacklight_module::action_dec() {
     change_value(-5);
   }
 

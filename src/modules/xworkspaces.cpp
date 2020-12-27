@@ -35,9 +35,9 @@ namespace modules {
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::focus);
-    m_router->register_action(EVENT_NEXT, &xworkspaces_module::next);
-    m_router->register_action(EVENT_PREV, &xworkspaces_module::prev);
+    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::action_focus);
+    m_router->register_action(EVENT_NEXT, &xworkspaces_module::action_next);
+    m_router->register_action(EVENT_PREV, &xworkspaces_module::action_prev);
 
     // Load config values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
@@ -367,16 +367,16 @@ namespace modules {
     }
   }
 
-  void xworkspaces_module::focus(const string& data) {
+  void xworkspaces_module::action_focus(const string& data) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
     focus_desktop(std::strtoul(data.c_str(), nullptr, 10));
   }
 
-  void xworkspaces_module::next() {
+  void xworkspaces_module::action_next() {
     focus_direction(true);
   }
 
-  void xworkspaces_module::prev() {
+  void xworkspaces_module::action_prev() {
     focus_direction(false);
   }
 
