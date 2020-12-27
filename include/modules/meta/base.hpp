@@ -114,6 +114,8 @@ namespace modules {
     virtual string name_raw() const = 0;
     virtual string name() const = 0;
     virtual bool running() const = 0;
+    virtual bool visible() const = 0;
+    virtual void set_visible(bool value) = 0;
 
     /**
      * Handle action, possibly with data attached
@@ -145,6 +147,10 @@ namespace modules {
     string name_raw() const;
     string name() const;
     bool running() const;
+
+    bool visible() const;
+    void set_visible(bool value);
+
     void stop();
     void halt(string error_message);
     void teardown();
@@ -184,6 +190,7 @@ namespace modules {
 
    private:
     atomic<bool> m_enabled{true};
+    atomic<bool> m_visible{true};
     atomic<bool> m_changed{true};
     string m_cache;
   };

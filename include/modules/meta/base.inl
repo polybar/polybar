@@ -57,6 +57,18 @@ namespace modules {
   }
 
   template <typename Impl>
+  bool module<Impl>::visible() const {
+    return static_cast<bool>(m_visible);
+  }
+
+  template <typename Impl>
+  void module<Impl>::set_visible(bool value) {
+    m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
+    m_visible = value;
+    broadcast();
+  }
+
+  template <typename Impl>
   void module<Impl>::stop() {
     if (!static_cast<bool>(m_enabled)) {
       return;

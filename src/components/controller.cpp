@@ -530,6 +530,25 @@ bool controller::forward_action(const actions_util::action& action_triple) {
   return true;
 }
 
+void controller::switch_module_visibility(string module_name_raw, int visible) {
+  for (auto&& mod : m_modules) {
+    if (mod->name_raw() != module_name_raw)
+      continue;
+
+    if (visible == 0) {
+      mod->set_visible(false);
+    } else if (visible == 1) {
+      mod->set_visible(true);
+    } else if (visible == 2) {
+      mod->set_visible(!mod->visible());
+    }
+
+    return;
+  }
+
+  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw, visible ? "shown" : "hidden");
+}
+
 /**
  * Process stored input data
  */
@@ -600,7 +619,7 @@ bool controller::process_update(bool force) {
     }
 
     for (const auto& module : block.second) {
-      if (!module->running()) {
+      if (!module->running() || !module->visible()) {
         continue;
       }
 
@@ -833,6 +852,10 @@ bool controller::on(const signals::ipc::command& evt) {
     return false;
   }
 
+  string hide_module{"hide."};
+  string show_module{"show."};
+  string toggle_module{"toggle."};
+
   if (command == "quit") {
     enqueue(make_quit_evt(false));
   } else if (command == "restart") {
@@ -843,6 +866,12 @@ bool controller::on(const signals::ipc::command& evt) {
     m_bar->show();
   } else if (command == "toggle") {
     m_bar->toggle();
+  } else if (command.find(hide_module) == 0) {
+    switch_module_visibility(command.substr(hide_module.length()), 0);
+  } else if (command.find(show_module) == 0) {
+    switch_module_visibility(command.substr(show_module.length()), 1);
+  } else if (command.find(toggle_module) == 0) {
+    switch_module_visibility(command.substr(toggle_module.length()), 2);
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }
