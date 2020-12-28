@@ -24,6 +24,8 @@ namespace modules {
     void subthread_routine();
 
    private:
+    bool set_interface();
+
     static constexpr auto FORMAT_CONNECTED = "format-connected";
     static constexpr auto FORMAT_PACKETLOSS = "format-packetloss";
     static constexpr auto FORMAT_DISCONNECTED = "format-disconnected";
