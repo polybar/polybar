@@ -42,11 +42,11 @@ class config;
 class logger;
 class signal_emitter;
 
+template <typename Impl>
+class action_router;
 // }}}
 
 namespace modules {
-  template <typename Impl>
-  class action_router;
 
   using namespace drawtypes;
 
