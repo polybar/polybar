@@ -119,9 +119,8 @@ namespace modules {
       m_current_desktop_name = m_desktop_names[m_current_desktop];
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
-      if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
-        set_desktop_urgent(evt->window);
-      }
+      rebuild_urgent_hints();
+      rebuild_desktop_states();
     } else {
       return;
     }
@@ -146,7 +145,21 @@ namespace modules {
     // rebuild entire mapping of clients to desktops
     m_clients.clear();
     for (auto&& client : newclients) {
-      m_clients[client] = ewmh_util::get_desktop_from_window(client);
+      auto desk = ewmh_util::get_desktop_from_window(client);
+      m_clients[client] = desk;
+    }
+
+    rebuild_urgent_hints();
+  }
+
+  /**
+   * Goes through all clients and updates the urgent hints on the desktop they are on.
+   */
+  void xworkspaces_module::rebuild_urgent_hints() {
+    m_urgent_desktops.assign(m_desktop_names.size(), false);
+    for (auto&& client : ewmh_util::get_client_list()) {
+      auto desk = ewmh_util::get_desktop_from_window(client);
+      m_urgent_desktops[desk] = m_urgent_desktops[desk] || icccm_util::get_wm_urgency(m_connection, client);
     }
   }
 
@@ -243,11 +256,10 @@ namespace modules {
 
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        if (d->index == m_current_desktop) {
-          d->state = desktop_state::ACTIVE;
-          m_urgent_desktops.erase(m_current_desktop_name);
-        } else if (m_urgent_desktops[m_desktop_names[d->index]]) {
+        if (m_urgent_desktops[d->index]) {
           d->state = desktop_state::URGENT;
+        } else if (d->index == m_current_desktop) {
+          d->state = desktop_state::ACTIVE;
         } else if (occupied_desks.count(d->index) > 0) {
           d->state = desktop_state::OCCUPIED;
         } else {
@@ -276,31 +288,6 @@ namespace modules {
       names.insert(names.end(), to_string(i + 1));
     }
     return names;
-  }
-
-  /**
-   * Find window and set corresponding desktop to urgent
-   */
-  void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
-    auto desk = ewmh_util::get_desktop_from_window(window);
-    if (desk == m_current_desktop)
-      // ignore if current desktop is urgent
-      return;
-    for (auto&& v : m_viewports) {
-      for (auto&& d : v->desktops) {
-        if (d->index == desk && d->state != desktop_state::URGENT) {
-          d->state = desktop_state::URGENT;
-          m_urgent_desktops[m_desktop_names[d->index]] = true;
-
-          d->label = m_labels.at(d->state)->clone();
-          d->label->reset_tokens();
-          d->label->replace_token("%index%", to_string(d->index + 1));
-          d->label->replace_token("%name%", m_desktop_names[d->index]);
-          d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
-          return;
-        }
-      }
-    }
   }
 
   /**

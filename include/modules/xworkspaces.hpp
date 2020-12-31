@@ -65,12 +65,12 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    void handle(const evt::property_notify& evt) override;
+    void handle(const evt::property_notify& evt);
 
     void rebuild_clientlist();
+    void rebuild_urgent_hints();
     void rebuild_desktops();
     void rebuild_desktop_states();
-    void set_desktop_urgent(xcb_window_t window);
 
     bool input(const string& action, const string& data);
 
@@ -91,7 +91,7 @@ namespace modules {
     bool m_monitorsupport{true};
 
     vector<string> m_desktop_names;
-    std::unordered_map<string, bool> m_urgent_desktops;
+    vector<bool> m_urgent_desktops;
     unsigned int m_current_desktop;
     string m_current_desktop_name;
 
