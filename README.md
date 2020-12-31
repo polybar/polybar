@@ -19,6 +19,8 @@ A fast and easy-to-use tool for creating status bars.
 <a href="https://opencollective.com/polybar"><img src="https://opencollective.com/polybar/tiers/badge.svg"></a>
 </p>
 
+**[Documentation](https://github.com/polybar/polybar/wiki/) | [Installation](#installation) | [Support](SUPPORT.md) | [Donate](#donations)**
+
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
 Here are a few screenshots showing you what it can look like:
@@ -83,18 +85,28 @@ Read our [contributing guidelines](CONTRIBUTING.md) for how to get started with 
 
 ## Getting started
 
+### Installation
+
 <a href="https://repology.org/metapackage/polybar">
     <img src="https://repology.org/badge/vertical-allrepos/polybar.svg" alt="Packaging status" align="right">
 </a>
 
-Polybar was already packaged for the distros listed below.
-If you can't find your distro here, you will have to [build from source](https://github.com/polybar/polybar/wiki/Compiling).
+Polybar is already available in the package manager for many repositories.
+We list some of the more prominent ones here.
+Also click the [image on the
+right](https://repology.org/project/polybar/versions) to see a more complete
+list of available polybar packages.
 
 If you are using **Debian** (unstable or testing), you can install [polybar](https://tracker.debian.org/pkg/polybar) using `sudo apt install polybar`.
 If you are using **Debian** (buster/stable), you need to enable [backports](https://wiki.debian.org/Backports) and then install using `sudo apt -t buster-backports install polybar`.
 
-If you are using **Arch Linux**, you can install the AUR package [polybar-git](https://aur.archlinux.org/packages/polybar-git/) to get the latest version, or
-[polybar](https://aur.archlinux.org/packages/polybar/) for the latest stable release.
+If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install polybar
+using `sudo apt install polybar`.
+
+If you are using **Arch Linux**, you can install the AUR package
+[polybar](https://aur.archlinux.org/packages/polybar/) to get the latest
+version, or [polybar-git](https://aur.archlinux.org/packages/polybar-git/) for
+the most up-to-date (unstable) changes.
 
 If you are using **Void Linux**, you can install [polybar](https://github.com/void-linux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
 
@@ -104,7 +116,14 @@ If you are using **Slackware**, polybar is available from the [SlackBuilds](http
 
 If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
-If you are using **openSUSE**, polybar is available from [OBS](https://build.opensuse.org/package/show/X11:Utilities/polybar/) repository. Package is available for openSUSE Leap 15.1, openSUSE Leap 15.2 and Tumbleweed.
+If you are using **openSUSE Tumbleweed**, polybar is available from the
+[official
+repositories](https://build.opensuse.org/package/show/openSUSE%3AFactory/polybar)
+and can be installed via `zypper install polybar`.
+
+If you are using **openSUSE Leap**, polybar is available from
+[OBS](https://build.opensuse.org/package/show/X11:Utilities/polybar/).
+The package is available for openSUSE Leap 15.1 and above.
 
 If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x11/polybar/) can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
 
@@ -112,10 +131,7 @@ If you are using **Gentoo**, both release and git-master versions are available 
 
 If you are using **Fedora**, you can install [polybar](https://src.fedoraproject.org/rpms/polybar) using `sudo dnf install polybar`.
 
-### Installation
-
-The [compiling page](https://github.com/polybar/polybar/wiki/Compiling) on the
-wiki describes all steps necessary to build and install polybar.
+If you can't find your distro here, you will have to [build from source](https://github.com/polybar/polybar/wiki/Compiling).
 
 ### Configuration
 
@@ -123,18 +139,29 @@ Details on how to setup and configure the bar and each module have been moved to
 
 #### Install the example configuration
 Run the following inside the build directory:
+
+**WARNING:** This will overwrite your current configuration file!
+
 ~~~ sh
 $ make userconfig
 ~~~
 Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /usr/local/share/doc/polybar/config` (depending on your install parameters)
 
+**Note:** This example file is meant to showcase available modules and
+configuration options.
+Running it as-is will work but many modules will likely not start because they
+require machine-specific configuration and many of the font icons will not show
+up because they require a very specific [font
+configuration](https://github.com/polybar/polybar/wiki/Fonts).
+We encourage you to use it as a reference when building
+your own configuration.
+
 #### Launch the example bar
-  ~~~ sh
-  $ polybar example
-  ~~~
+~~~ sh
+$ polybar example
+~~~
 
 ### Running
-
 [See the wiki for details on how to run polybar](https://github.com/polybar/polybar/wiki).
 
 ## Community
