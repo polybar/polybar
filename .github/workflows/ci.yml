@@ -111,3 +111,12 @@ jobs:
           make check
           cd $POLYBAR_DIR
           bash <(curl -s https://codecov.io/bash) -F unittests -a "-ap" -Z
+      - name: Upload Logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: cmake
+          path: |
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeOutput.log
+          retention-days: 5
