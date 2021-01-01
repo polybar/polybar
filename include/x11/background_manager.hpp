@@ -96,8 +96,8 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
    */
   std::shared_ptr<bg_slice> observe(xcb_rectangle_t rect, xcb_window_t window);
 
-  void handle(const evt::property_notify& evt);
-  bool on(const signals::ui::update_geometry&);
+  void handle(const evt::property_notify& evt) override;
+  bool on(const signals::ui::update_geometry&) override;
  private:
   void activate();
   void deactivate();

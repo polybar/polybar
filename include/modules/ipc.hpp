@@ -26,7 +26,7 @@ namespace modules {
    public:
     explicit ipc_module(const bar_settings&, string);
 
-    void start();
+    void start() override;
     void update() {}
     string get_output();
     bool build(builder* builder, const string& tag) const;

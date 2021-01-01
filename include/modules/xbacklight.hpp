@@ -36,7 +36,7 @@ namespace modules {
     static constexpr const char* EVENT_DEC = "dec";
 
    protected:
-    void handle(const evt::randr_notify& evt);
+    void handle(const evt::randr_notify& evt) override;
 
     void action_inc();
     void action_dec();

@@ -42,7 +42,7 @@ class signal_receiver : public signal_receiver_interface,
                         public signal_receiver_impl<Signal>,
                         public signal_receiver_impl<Signals>... {
  public:
-  prio priority() const {
+  prio priority() const override {
     return Priority;
   }
 };

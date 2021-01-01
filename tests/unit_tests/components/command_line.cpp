@@ -6,7 +6,7 @@ using namespace polybar;
 
 class CommandLine : public ::testing::Test {
   protected:
-    virtual void SetUp() {
+    virtual void SetUp() override {
       set_cli();
     }
 

@@ -33,7 +33,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   }
 
  protected:
-  void handle(const evt::randr_screen_change_notify& evt);
+  void handle(const evt::randr_screen_change_notify& evt) override;
 
  private:
   connection& m_connection;
