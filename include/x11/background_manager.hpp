@@ -17,7 +17,7 @@ class logger;
 namespace cairo {
   class surface;
   class xcb_surface;
-}
+}  // namespace cairo
 
 class bg_slice {
  public:
@@ -65,8 +65,7 @@ class bg_slice {
  * so this class takes a rectangle that limits what part of the background is stored.
  */
 class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals::ui::update_geometry>,
-                           public xpp::event::sink<evt::property_notify>
-{
+                           public xpp::event::sink<evt::property_notify> {
  public:
   using make_type = background_manager&;
   static make_type make();
@@ -98,6 +97,7 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
 
   void handle(const evt::property_notify& evt) override;
   bool on(const signals::ui::update_geometry&) override;
+
  private:
   void activate();
   void deactivate();
@@ -119,7 +119,6 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
   void allocate_resources();
   void free_resources();
   void fetch_root_pixmap();
-
 };
 
 POLYBAR_NS_END

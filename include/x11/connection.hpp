@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xcb/xcb.h>
+
 #include <cstdlib>
 #include <xpp/core.hpp>
 #include <xpp/generic/factory.hpp>
@@ -93,7 +94,7 @@ namespace detail {
       dispatcher(error);
     }
   };
-}
+}  // namespace detail
 
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
  public:

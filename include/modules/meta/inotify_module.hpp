@@ -88,6 +88,6 @@ namespace modules {
    private:
     map<string, int> m_watchlist;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END
