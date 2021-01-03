@@ -274,6 +274,8 @@ format-underline = #0a6cf5
 
 label = %date% %time%
 
+;hidden = true
+
 [module/pulseaudio]
 type = internal/pulseaudio
 

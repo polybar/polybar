@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IPC commands to change visibility of modules
   (`hide.<name>`, `show.<name>`, and `toggle.<name>`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
+- Config option to hide a certain module
+  (`hidden = false`)
+  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))
 
