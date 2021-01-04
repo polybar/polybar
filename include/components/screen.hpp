@@ -33,7 +33,7 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   }
 
  protected:
-  void handle(const evt::randr_screen_change_notify& evt);
+  void handle(const evt::randr_screen_change_notify& evt) override;
 
  private:
   connection& m_connection;
@@ -45,7 +45,9 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   xcb_window_t m_proxy{XCB_NONE};
 
   vector<monitor_t> m_monitors;
-  struct size m_size {0U, 0U};
+  struct size m_size {
+    0U, 0U
+  };
   bool m_sigraised{false};
 
   bool have_monitors_changed() const;

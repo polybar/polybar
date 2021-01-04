@@ -22,9 +22,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Compiler flags
+include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
+check_cxx_compiler_flag("-Wsuggest-override" HAS_SUGGEST_OVERRIDE)
+if (HAS_SUGGEST_OVERRIDE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+endif()
+unset(HAS_SUGGEST_OVERRIDE)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   # Need dprintf() for FreeBSD 11.1 and older

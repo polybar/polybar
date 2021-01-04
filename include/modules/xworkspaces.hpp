@@ -65,7 +65,7 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    void handle(const evt::property_notify& evt);
+    void handle(const evt::property_notify& evt) override;
 
     void rebuild_clientlist();
     void rebuild_urgent_hints();

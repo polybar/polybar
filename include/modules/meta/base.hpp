@@ -145,21 +145,21 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
-    string type() const;
+    string type() const override;
 
-    string name_raw() const;
-    string name() const;
-    bool running() const;
+    string name_raw() const override;
+    string name() const override;
+    bool running() const override;
 
-    bool visible() const;
-    void set_visible(bool value);
+    bool visible() const override;
+    void set_visible(bool value) override;
 
-    void stop();
-    void halt(string error_message);
+    void stop() override;
+    void halt(string error_message) override;
     void teardown();
-    string contents();
+    string contents() override;
 
-    bool input(const string& action, const string& data) final;
+    bool input(const string& action, const string& data) final override;
 
    protected:
     void broadcast();

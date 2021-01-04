@@ -12,7 +12,7 @@ namespace modules {
    public:
     using module<Impl>::module;
 
-    void start() {
+    void start() override {
       this->m_mainthread = thread(&timer_module::runner, this);
     }
 

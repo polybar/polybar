@@ -1,9 +1,9 @@
 #pragma once
 
 #include <map>
-#include <unordered_map>
 #include <typeindex>
 #include <typeinfo>
+#include <unordered_map>
 
 #include "common.hpp"
 
@@ -42,7 +42,7 @@ class signal_receiver : public signal_receiver_interface,
                         public signal_receiver_impl<Signal>,
                         public signal_receiver_impl<Signals>... {
  public:
-  prio priority() const {
+  prio priority() const override {
     return Priority;
   }
 };

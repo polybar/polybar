@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xcb/xcb.h>
+
 #include <cstdlib>
 #include <xpp/core.hpp>
 #include <xpp/generic/factory.hpp>
@@ -44,7 +45,7 @@ namespace detail {
 
     virtual ~connection_base() {}
 
-    void operator()(const shared_ptr<xcb_generic_error_t>& error) const {
+    void operator()(const shared_ptr<xcb_generic_error_t>& error) const override {
       check<xpp::x::extension, Extensions...>(error);
     }
 
@@ -59,7 +60,7 @@ namespace detail {
       return make()(*this, m_root_window);
     }
 
-    shared_ptr<xcb_generic_event_t> wait_for_event() const {
+    shared_ptr<xcb_generic_event_t> wait_for_event() const override {
       try {
         return core::wait_for_event();
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
@@ -68,7 +69,7 @@ namespace detail {
       throw;  // re-throw exception
     }
 
-    shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const {
+    shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const override {
       try {
         return core::wait_for_special_event(se);
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
@@ -93,7 +94,7 @@ namespace detail {
       dispatcher(error);
     }
   };
-}
+}  // namespace detail
 
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
  public:
