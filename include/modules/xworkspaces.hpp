@@ -99,6 +99,7 @@ namespace modules {
      * Maps an xcb window to its desktop number
      */
     map<xcb_window_t, unsigned int> m_clients;
+    map<unsigned int, unsigned int> m_windows;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;
