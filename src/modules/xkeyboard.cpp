@@ -25,6 +25,8 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
+    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
+
     // Setup extension
     // clang-format off
     m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
@@ -208,11 +210,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(const string& action, const string&) {
-    if (action != EVENT_SWITCH) {
-      return false;
-    }
-
+  void xkeyboard_module::action_switch() {
     size_t current_group = m_keyboard->current() + 1;
 
     if (current_group >= m_keyboard->size()) {
@@ -224,8 +222,6 @@ namespace modules {
     m_connection.flush();
 
     update();
-
-    return true;
   }
 
   /**

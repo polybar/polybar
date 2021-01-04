@@ -472,8 +472,6 @@ bool controller::try_forward_legacy_action(const string& cmd) {
       for (auto&& module : m_modules) {
         if (module->type() == type) {
           auto module_name = module->name_raw();
-          // TODO make this message more descriptive and maybe link to some documentation
-          // TODO use route to string methods to print action name that should be used.
           if (data.empty()) {
             m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, module_name, action);
           } else {
@@ -546,7 +544,8 @@ void controller::switch_module_visibility(string module_name_raw, int visible) {
     return;
   }
 
-  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw, visible ? "shown" : "hidden");
+  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw,
+      visible ? "shown" : "hidden");
 }
 
 /**
@@ -694,8 +693,6 @@ bool controller::process_update(bool force) {
  * Creates module instances for all the modules in the given alignment block
  */
 size_t controller::setup_modules(alignment align) {
-  size_t count{0};
-
   string key;
 
   switch (align) {
@@ -739,13 +736,12 @@ size_t controller::setup_modules(alignment align) {
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
-      count++;
-    } catch (const runtime_error& err) {
+    } catch (const std::exception& err) {
       m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
     }
   }
 
-  return count;
+  return m_modules.size();
 }
 
 /**

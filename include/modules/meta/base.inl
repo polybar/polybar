@@ -1,13 +1,17 @@
+#include <cassert>
+
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "modules/meta/base.hpp"
+#include "utils/action_router.hpp"
 
 POLYBAR_NS
 
 namespace modules {
+
   // module<Impl> public {{{
 
   template <typename Impl>
@@ -16,6 +20,7 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
+      , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
       , m_name("module/" + name)
       , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
@@ -117,9 +122,17 @@ namespace modules {
   }
 
   template <typename Impl>
-  bool module<Impl>::input(const string&, const string&) {
-    // By default a module doesn't support inputs
-    return false;
+  bool module<Impl>::input(const string& name, const string& data) {
+    if (!m_router->has_action(name)) {
+      return false;
+    }
+
+    try {
+      m_router->invoke(name, data);
+    } catch (const exception& err) {
+      m_log.err("%s: Failed to handle command '%s' with data '%s' (%s)", this->name(), name, data, err.what());
+    }
+    return true;
   }
 
   // }}}

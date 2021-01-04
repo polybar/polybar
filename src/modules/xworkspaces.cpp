@@ -35,6 +35,10 @@ namespace modules {
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
+    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::action_focus);
+    m_router->register_action(EVENT_NEXT, &xworkspaces_module::action_next);
+    m_router->register_action(EVENT_PREV, &xworkspaces_module::action_prev);
+
     // Load config values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
@@ -357,12 +361,21 @@ namespace modules {
     }
   }
 
-  /**
-   * Handle user input event
-   */
-  bool xworkspaces_module::input(const string& action, const string& data) {
+  void xworkspaces_module::action_focus(const string& data) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
+    focus_desktop(std::strtoul(data.c_str(), nullptr, 10));
+  }
 
+  void xworkspaces_module::action_next() {
+    focus_direction(true);
+  }
+
+  void xworkspaces_module::action_prev() {
+    focus_direction(false);
+  }
+
+  void xworkspaces_module::focus_direction(bool next) {
+    std::lock_guard<std::mutex> lock(m_workspace_mutex);
     vector<unsigned int> indexes;
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
@@ -370,29 +383,28 @@ namespace modules {
       }
     }
 
-    std::sort(indexes.begin(), indexes.end());
-
-    unsigned int new_desktop{0};
+    unsigned new_desktop;
     unsigned int current_desktop{ewmh_util::get_current_desktop()};
 
-    if (action == EVENT_FOCUS) {
-      new_desktop = std::strtoul(data.c_str(), nullptr, 10);
-    } else if (action == EVENT_NEXT) {
+    if (next) {
       new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
       new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else if (action == EVENT_PREV) {
+    } else {
       new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
       new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
     }
 
+    focus_desktop(new_desktop);
+  }
+
+  void xworkspaces_module::focus_desktop(unsigned new_desktop) {
+    unsigned int current_desktop{ewmh_util::get_current_desktop()};
     if (new_desktop != current_desktop) {
       m_log.info("%s: Requesting change to desktop #%u", name(), new_desktop);
       ewmh_util::change_current_desktop(new_desktop);
     } else {
       m_log.info("%s: Ignoring change to current desktop", name());
     }
-
-    return true;
   }
 }  // namespace modules
 

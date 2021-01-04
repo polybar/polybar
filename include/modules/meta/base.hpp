@@ -42,9 +42,12 @@ class config;
 class logger;
 class signal_emitter;
 
+template <typename Impl>
+class action_router;
 // }}}
 
 namespace modules {
+
   using namespace drawtypes;
 
   DEFINE_ERROR(module_error);
@@ -156,7 +159,7 @@ namespace modules {
     void teardown();
     string contents();
 
-    bool input(const string& action, const string& data);
+    bool input(const string& action, const string& data) final;
 
    protected:
     void broadcast();
@@ -173,6 +176,8 @@ namespace modules {
     const bar_settings m_bar;
     const logger& m_log;
     const config& m_conf;
+
+    unique_ptr<action_router<Impl>> m_router;
 
     mutex m_buildlock;
     mutex m_updatelock;

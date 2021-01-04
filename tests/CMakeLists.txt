@@ -47,6 +47,7 @@ function(add_unit_test source_file)
 endfunction()
 
 add_unit_test(utils/actions)
+add_unit_test(utils/action_router)
 add_unit_test(utils/color)
 add_unit_test(utils/command)
 add_unit_test(utils/math)

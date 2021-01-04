@@ -72,7 +72,12 @@ namespace modules {
     void rebuild_desktops();
     void rebuild_desktop_states();
 
-    bool input(const string& action, const string& data);
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
+
+    void focus_direction(bool next);
+    void focus_desktop(unsigned new_desktop);
 
    private:
     static vector<string> get_desktop_names();
