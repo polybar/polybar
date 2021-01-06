@@ -711,6 +711,11 @@ void renderer::draw_text(const string& contents) {
   }
 }
 
+void renderer::render_offset(const tags::context&, int pixels) {
+  m_log.trace_x("renderer: offset_pixel(%f)", pixels);
+  m_blocks[m_align].x += pixels;
+}
+
 /**
  * Colorize the bounding box of created action blocks
  */
@@ -810,12 +815,6 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
 bool renderer::on(const signals::parser::reverse_colors&) {
   m_log.trace_x("renderer: reverse_colors");
   std::swap(m_fg, m_bg);
-  return true;
-}
-
-bool renderer::on(const signals::parser::offset_pixel& evt) {
-  m_log.trace_x("renderer: offset_pixel(%f)", evt.cast());
-  m_blocks[m_align].x += evt.cast();
   return true;
 }
 

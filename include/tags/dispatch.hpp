@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "components/renderer_interface.hpp"
 #include "errors.hpp"
 
 POLYBAR_NS
@@ -25,7 +26,7 @@ namespace tags {
     static make_type make();
 
     explicit dispatch(signal_emitter& emitter, const logger& logger);
-    void parse(const bar_settings& bar, string data);
+    void parse(const bar_settings& bar, renderer_interface&, string data);
 
    protected:
     void text(string&& data);
