@@ -37,7 +37,7 @@ namespace tags {
   /**
    * Process input string
    */
-  void dispatch::parse(const bar_settings& bar, string data) {
+  void dispatch::parse(const bar_settings& bar, renderer_interface& renderer, string data) {
     tags::parser p;
     p.set(std::move(data));
 
@@ -67,7 +67,7 @@ namespace tags {
                 m_sig.emit(change_font{el.tag_data.font});
                 break;
               case tags::syntaxtag::O:
-                m_sig.emit(offset_pixel{el.tag_data.offset});
+                renderer.render_offset(tags::context{}, el.tag_data.offset);
                 break;
               case tags::syntaxtag::R:
                 m_sig.emit(reverse_colors{});

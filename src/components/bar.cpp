@@ -361,7 +361,7 @@ void bar::parse(string&& data, bool force) {
   m_renderer->begin(rect);
 
   try {
-    m_dispatch->parse(settings(), data);
+    m_dispatch->parse(settings(), *m_renderer, data);
   } catch (const exception& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
