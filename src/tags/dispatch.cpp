@@ -14,14 +14,6 @@ POLYBAR_NS
 using namespace signals::parser;
 
 namespace tags {
-  static rgba get_color(tags::color_value c, rgba fallback) {
-    if (c.type == tags::color_type::RESET) {
-      return fallback;
-    } else {
-      return c.val;
-    }
-  }
-
   /**
    * Create instance
    */
@@ -41,6 +33,8 @@ namespace tags {
     tags::parser p;
     p.set(std::move(data));
 
+    context ctxt(bar);
+
     while (p.has_next_element()) {
       tags::element el;
       try {
@@ -58,36 +52,39 @@ namespace tags {
                 handle_action(el.tag_data.action.btn, el.tag_data.action.closing, std::move(el.data));
                 break;
               case tags::syntaxtag::B:
-                m_sig.emit(change_background{get_color(el.tag_data.color, bar.background)});
+                ctxt.apply_bg(el.tag_data.color);
                 break;
               case tags::syntaxtag::F:
-                m_sig.emit(change_foreground{get_color(el.tag_data.color, bar.foreground)});
+                ctxt.apply_fg(el.tag_data.color);
                 break;
               case tags::syntaxtag::T:
-                m_sig.emit(change_font{el.tag_data.font});
+                ctxt.apply_font(el.tag_data.font);
                 break;
               case tags::syntaxtag::O:
-                renderer.render_offset(tags::context{}, el.tag_data.offset);
+                renderer.render_offset(ctxt, el.tag_data.offset);
                 break;
               case tags::syntaxtag::R:
-                m_sig.emit(reverse_colors{});
+                ctxt.apply_reverse();
                 break;
               case tags::syntaxtag::o:
-                m_sig.emit(change_overline{get_color(el.tag_data.color, bar.overline.color)});
+                ctxt.apply_ol(el.tag_data.color);
                 break;
               case tags::syntaxtag::u:
-                m_sig.emit(change_underline{get_color(el.tag_data.color, bar.underline.color)});
+                ctxt.apply_ul(el.tag_data.color);
                 break;
               case tags::syntaxtag::P:
-                m_sig.emit(control{el.tag_data.ctrl});
+                handle_control(ctxt, el.tag_data.ctrl);
                 break;
               case tags::syntaxtag::l:
+                ctxt.apply_alignment(alignment::LEFT);
                 m_sig.emit(change_alignment{alignment::LEFT});
                 break;
               case tags::syntaxtag::r:
+                ctxt.apply_alignment(alignment::RIGHT);
                 m_sig.emit(change_alignment{alignment::RIGHT});
                 break;
               case tags::syntaxtag::c:
+                ctxt.apply_alignment(alignment::CENTER);
                 m_sig.emit(change_alignment{alignment::CENTER});
                 break;
               default:
@@ -96,25 +93,11 @@ namespace tags {
             }
             break;
           case tags::tag_type::ATTR:
-            tags::attribute act = el.tag_data.attr;
-            switch (el.tag_data.subtype.activation) {
-              case tags::attr_activation::ON:
-                m_sig.emit(attribute_set{act});
-                break;
-              case tags::attr_activation::OFF:
-                m_sig.emit(attribute_unset{act});
-                break;
-              case tags::attr_activation::TOGGLE:
-                m_sig.emit(attribute_toggle{act});
-                break;
-              default:
-                throw runtime_error("Unrecognized attribute activation: " +
-                                    to_string(static_cast<int>(el.tag_data.subtype.activation)));
-            }
+            ctxt.apply_attr(el.tag_data.subtype.activation, el.tag_data.attr);
             break;
         }
       } else {
-        text(std::move(el.data));
+        handle_text(renderer, ctxt, std::move(el.data));
       }
     }
 
@@ -126,7 +109,7 @@ namespace tags {
   /**
    * Process text contents
    */
-  void dispatch::text(string&& data) {
+  void dispatch::handle_text(renderer_interface& renderer, context& ctxt, string&& data) {
 #ifdef DEBUG_WHITESPACE
     string::size_type p;
     while ((p = data.find(' ')) != string::npos) {
@@ -134,7 +117,7 @@ namespace tags {
     }
 #endif
 
-    m_sig.emit(signals::parser::text{std::move(data)});
+    renderer.render_text(ctxt, std::move(data));
   }
 
   void dispatch::handle_action(mousebtn btn, bool closing, const string&& cmd) {
@@ -166,6 +149,17 @@ namespace tags {
       m_sig.emit(action_begin{action{btn, std::move(cmd)}});
     }
   }
+
+  void dispatch::handle_control(context& ctxt, controltag ctrl) {
+    switch (ctrl) {
+      case controltag::R:
+        ctxt.reset();
+        break;
+      default:
+        throw runtime_error("Unrecognized polybar control tag: " + to_string(static_cast<int>(ctrl)));
+    }
+  }
+
 }  // namespace tags
 
 POLYBAR_NS_END

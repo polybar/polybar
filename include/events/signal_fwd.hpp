@@ -45,20 +45,9 @@ namespace signals {
     struct mapped_clients;
   }
   namespace parser {
-    struct change_background;
-    struct change_foreground;
-    struct change_underline;
-    struct change_overline;
-    struct change_font;
     struct change_alignment;
-    struct reverse_colors;
-    struct attribute_set;
-    struct attribute_unset;
-    struct attribute_toggle;
     struct action_begin;
     struct action_end;
-    struct text;
-    struct control;
   }  // namespace parser
 }  // namespace signals
 

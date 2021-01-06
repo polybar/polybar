@@ -29,8 +29,9 @@ namespace tags {
     void parse(const bar_settings& bar, renderer_interface&, string data);
 
    protected:
-    void text(string&& data);
+    void handle_text(renderer_interface& renderer, context& ctxt, string&& data);
     void handle_action(mousebtn btn, bool closing, const string&& cmd);
+    void handle_control(context& ctxt, controltag ctrl);
 
    private:
     signal_emitter& m_sig;
