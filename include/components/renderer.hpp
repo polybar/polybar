@@ -32,13 +32,9 @@ struct alignment_block {
   double y;
 };
 
-class renderer
-    : public renderer_interface,
-      public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_background,
-          signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
-          signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
-          signals::parser::attribute_set, signals::parser::attribute_unset, signals::parser::attribute_toggle,
-          signals::parser::action_begin, signals::parser::action_end, signals::parser::text, signals::parser::control> {
+class renderer : public renderer_interface,
+                 public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot,
+                     signals::parser::change_alignment, signals::parser::action_begin, signals::parser::action_end> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -58,12 +54,12 @@ class renderer
   void reserve_space(edge side, unsigned int w);
 #endif
   void fill_background();
-  void fill_overline(double x, double w);
-  void fill_underline(double x, double w);
+  void fill_overline(rgba color, double x, double w);
+  void fill_underline(rgba color, double x, double w);
   void fill_borders();
-  void draw_text(const string& contents);
 
   void render_offset(const tags::context& ctxt, int pixels) override;
+  void render_text(const tags::context& ctxt, const string&&) override;
 
  protected:
   double block_x(alignment a) const;
@@ -75,20 +71,9 @@ class renderer
   void highlight_clickable_areas();
 
   bool on(const signals::ui::request_snapshot& evt) override;
-  bool on(const signals::parser::change_background& evt) override;
-  bool on(const signals::parser::change_foreground& evt) override;
-  bool on(const signals::parser::change_underline& evt) override;
-  bool on(const signals::parser::change_overline& evt) override;
-  bool on(const signals::parser::change_font& evt) override;
   bool on(const signals::parser::change_alignment& evt) override;
-  bool on(const signals::parser::reverse_colors&) override;
-  bool on(const signals::parser::attribute_set& evt) override;
-  bool on(const signals::parser::attribute_unset& evt) override;
-  bool on(const signals::parser::attribute_toggle& evt) override;
   bool on(const signals::parser::action_begin& evt) override;
   bool on(const signals::parser::action_end& evt) override;
-  bool on(const signals::parser::text& evt) override;
-  bool on(const signals::parser::control& evt) override;
 
  protected:
   struct reserve_area {
@@ -129,12 +114,6 @@ class renderer
   bool m_pseudo_transparency{false};
 
   alignment m_align;
-  std::bitset<3> m_attr;
-  int m_font{0};
-  rgba m_bg{};
-  rgba m_fg{};
-  rgba m_ol{};
-  rgba m_ul{};
   vector<action_block> m_actions;
 
   bool m_fixedcenter;

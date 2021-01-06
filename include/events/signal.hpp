@@ -132,46 +132,13 @@ namespace signals {
   }  // namespace ui_tray
 
   namespace parser {
-    struct change_background : public detail::value_signal<change_background, rgba> {
-      using base_type::base_type;
-    };
-    struct change_foreground : public detail::value_signal<change_foreground, rgba> {
-      using base_type::base_type;
-    };
-    struct change_underline : public detail::value_signal<change_underline, rgba> {
-      using base_type::base_type;
-    };
-    struct change_overline : public detail::value_signal<change_overline, rgba> {
-      using base_type::base_type;
-    };
-    struct change_font : public detail::value_signal<change_font, int> {
-      using base_type::base_type;
-    };
     struct change_alignment : public detail::value_signal<change_alignment, alignment> {
-      using base_type::base_type;
-    };
-    struct reverse_colors : public detail::base_signal<reverse_colors> {
-      using base_type::base_type;
-    };
-    struct attribute_set : public detail::value_signal<attribute_set, tags::attribute> {
-      using base_type::base_type;
-    };
-    struct attribute_unset : public detail::value_signal<attribute_unset, tags::attribute> {
-      using base_type::base_type;
-    };
-    struct attribute_toggle : public detail::value_signal<attribute_toggle, tags::attribute> {
       using base_type::base_type;
     };
     struct action_begin : public detail::value_signal<action_begin, action> {
       using base_type::base_type;
     };
     struct action_end : public detail::value_signal<action_end, mousebtn> {
-      using base_type::base_type;
-    };
-    struct text : public detail::value_signal<text, string> {
-      using base_type::base_type;
-    };
-    struct control : public detail::value_signal<control, tags::controltag> {
       using base_type::base_type;
     };
   }  // namespace parser
