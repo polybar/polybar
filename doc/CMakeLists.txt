@@ -50,7 +50,8 @@ add_custom_target(doc ALL DEPENDS ${doc_targets})
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
-  COMPONENT doc)
+  COMPONENT doc
+  PATTERN ".buildinfo" EXCLUDE)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
   DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
