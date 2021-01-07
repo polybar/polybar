@@ -664,16 +664,7 @@ bool controller::process_update(bool force) {
       block_contents += padding_right;
     }
 
-    // Strip unnecessary reset tags
-    block_contents = string_util::replace_all(block_contents, "T-}%{T", "T");
-    block_contents = string_util::replace_all(block_contents, "B-}%{B#", "B#");
-    block_contents = string_util::replace_all(block_contents, "F-}%{F#", "F#");
-    block_contents = string_util::replace_all(block_contents, "U-}%{U#", "U#");
-    block_contents = string_util::replace_all(block_contents, "u-}%{u#", "u#");
-    block_contents = string_util::replace_all(block_contents, "o-}%{o#", "o#");
-
-    // Join consecutive tags
-    contents += string_util::replace_all(block_contents, "}%{", " ");
+    contents += block_contents;
   }
 
   try {

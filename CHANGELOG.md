@@ -93,11 +93,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parser error if click command contained `}`
   ([`#2040`](https://github.com/polybar/polybar/issues/2040))
 
+## [3.5.4] - 2021-01-07
+### Fixed
+- Wrong text displayed if module text ends with `}` ([`#2331`](https://github.com/polybar/polybar/issues/2331))
+
 ## [3.5.3] - 2020-12-23
 ### Build
-- Don't use `git` when building documentation ([`#2311`](https://github.com/polybar/polybar/issues/2309))
+- Don't use `git` when building documentation ([`#2309`](https://github.com/polybar/polybar/issues/2309))
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.3...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.4...HEAD
+[3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4
 [3.5.3]: https://github.com/polybar/polybar/releases/tag/3.5.3
