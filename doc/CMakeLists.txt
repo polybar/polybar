@@ -35,6 +35,7 @@ foreach(builder ${doc_builders})
             # conf.py dir
             -c "${CMAKE_CURRENT_BINARY_DIR}"
             -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
+            -n
             ${sphinx_flags}
             # Documentation source file dir
             "${CMAKE_CURRENT_SOURCE_DIR}"
