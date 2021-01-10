@@ -25,7 +25,7 @@ namespace tags {
     using make_type = unique_ptr<dispatch>;
     static make_type make(action_context& action_ctxt);
 
-    explicit dispatch(signal_emitter& emitter, const logger& logger, action_context& action_ctxt);
+    explicit dispatch(const logger& logger, action_context& action_ctxt);
     void parse(const bar_settings& bar, renderer_interface&, const string&& data);
 
    protected:
@@ -34,7 +34,6 @@ namespace tags {
     void handle_control(controltag ctrl);
 
    private:
-    signal_emitter& m_sig;
     vector<mousebtn> m_actions;
     const logger& m_log;
 

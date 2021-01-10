@@ -130,12 +130,6 @@ namespace signals {
       using base_type::base_type;
     };
   }  // namespace ui_tray
-
-  namespace parser {
-    struct change_alignment : public detail::value_signal<change_alignment, alignment> {
-      using base_type::base_type;
-    };
-  }  // namespace parser
 }  // namespace signals
 
 POLYBAR_NS_END
