@@ -11,21 +11,18 @@
 
 POLYBAR_NS
 
-using namespace signals::parser;
-
 namespace tags {
   /**
    * Create instance
    */
   dispatch::make_type dispatch::make(action_context& action_ctxt) {
-    return factory_util::unique<dispatch>(signal_emitter::make(), logger::make(), action_ctxt);
+    return factory_util::unique<dispatch>(logger::make(), action_ctxt);
   }
 
   /**
    * Construct parser instance
    */
-  dispatch::dispatch(signal_emitter& emitter, const logger& logger, action_context& action_ctxt)
-      : m_sig(emitter), m_log(logger), m_action_ctxt(action_ctxt) {}
+  dispatch::dispatch(const logger& logger, action_context& action_ctxt) : m_log(logger), m_action_ctxt(action_ctxt) {}
 
   /**
    * Process input string
@@ -79,15 +76,15 @@ namespace tags {
                 break;
               case tags::syntaxtag::l:
                 m_ctxt->apply_alignment(alignment::LEFT);
-                m_sig.emit(change_alignment{alignment::LEFT});
+                renderer.change_alignment(*m_ctxt);
                 break;
               case tags::syntaxtag::r:
                 m_ctxt->apply_alignment(alignment::RIGHT);
-                m_sig.emit(change_alignment{alignment::RIGHT});
+                renderer.change_alignment(*m_ctxt);
                 break;
               case tags::syntaxtag::c:
                 m_ctxt->apply_alignment(alignment::CENTER);
-                m_sig.emit(change_alignment{alignment::CENTER});
+                renderer.change_alignment(*m_ctxt);
                 break;
               default:
                 throw runtime_error(
@@ -129,7 +126,6 @@ namespace tags {
       std::tie(id, btn) = m_action_ctxt.action_close(btn, m_ctxt->get_alignment());
       renderer.action_close(*m_ctxt, id);
     } else {
-      string tmp = cmd;
       action_t id = m_action_ctxt.action_open(btn, std::move(cmd), m_ctxt->get_alignment());
       renderer.action_open(*m_ctxt, btn, id);
     }

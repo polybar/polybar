@@ -44,9 +44,6 @@ namespace signals {
   namespace ui_tray {
     struct mapped_clients;
   }
-  namespace parser {
-    struct change_alignment;
-  }  // namespace parser
 }  // namespace signals
 
 POLYBAR_NS_END

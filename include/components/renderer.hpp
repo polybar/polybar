@@ -32,9 +32,8 @@ struct alignment_block {
   double y;
 };
 
-class renderer
-    : public renderer_interface,
-      public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_alignment> {
+class renderer : public renderer_interface,
+                 public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -51,6 +50,8 @@ class renderer
 
   void render_offset(const tags::context& ctxt, int pixels) override;
   void render_text(const tags::context& ctxt, const string&&) override;
+
+  void change_alignment(const tags::context& ctxt) override;
 
   void action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) override;
   void action_close(const tags::context& ctxt, tags::action_t id) override;
@@ -73,7 +74,6 @@ class renderer
   void highlight_clickable_areas();
 
   bool on(const signals::ui::request_snapshot& evt) override;
-  bool on(const signals::parser::change_alignment& evt) override;
 
  protected:
   struct reserve_area {

@@ -678,10 +678,30 @@ void renderer::render_offset(const tags::context&, int pixels) {
   m_blocks[m_align].x += pixels;
 }
 
-void renderer::action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) {
+void renderer::change_alignment(const tags::context& ctxt) {
+  auto align = ctxt.get_alignment();
+  if (align != m_align) {
+    m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
+
+    if (m_align != alignment::NONE) {
+      m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
+      m_context->pop(&m_blocks[m_align].pattern);
+    }
+
+    m_align = align;
+    m_blocks[m_align].x = 0.0;
+    m_blocks[m_align].y = 0.0;
+    m_context->push();
+    m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
+
+    fill_background();
+  }
+}
+
+void renderer::action_open(const tags::context&, mousebtn btn, tags::action_t id) {
   assert(btn != mousebtn::NONE);
   action_block block;
-  block.align = ctxt.get_alignment();
+  block.align = m_align;
   block.button = btn;
   block.start_x = m_blocks.at(block.align).x;
   m_actions[id] = block;
@@ -734,7 +754,7 @@ void renderer::highlight_clickable_areas() {
     double h = m_rect.height;
 
     m_context->save();
-    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? rgba{0xFF00FF00} :rgba{0xFFFF0000});
+    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? rgba{0xFF00FF00} : rgba{0xFFFF0000});
     *m_context << cairo::rect{x, y, w, h};
     m_context->fill();
     m_context->restore();
@@ -745,27 +765,6 @@ void renderer::highlight_clickable_areas() {
 
 bool renderer::on(const signals::ui::request_snapshot& evt) {
   m_snapshot_dst = evt.cast();
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_alignment& evt) {
-  auto align = static_cast<const alignment&>(evt.cast());
-  if (align != m_align) {
-    m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
-
-    if (m_align != alignment::NONE) {
-      m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
-      m_context->pop(&m_blocks[m_align].pattern);
-    }
-
-    m_align = align;
-    m_blocks[m_align].x = 0.0;
-    m_blocks[m_align].y = 0.0;
-    m_context->push();
-    m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
-
-    fill_background();
-  }
   return true;
 }
 
