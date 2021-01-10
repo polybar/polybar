@@ -109,21 +109,6 @@ struct action {
   string command{};
 };
 
-struct action_block {
-  mousebtn button{mousebtn::NONE};
-  alignment align{alignment::NONE};
-  double start_x{0.0};
-  double end_x{0.0};
-
-  unsigned int width() const {
-    return static_cast<unsigned int>(end_x - start_x + 0.5);
-  }
-
-  bool test(int point) const {
-    return static_cast<int>(start_x) <= point && static_cast<int>(end_x) > point;
-  }
-};
-
 struct bar_settings {
   explicit bar_settings() = default;
   bar_settings(const bar_settings& other) = default;

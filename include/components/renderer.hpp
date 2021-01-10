@@ -36,10 +36,10 @@ class renderer : public renderer_interface,
                  public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot> {
  public:
   using make_type = unique_ptr<renderer>;
-  static make_type make(const bar_settings& bar);
+  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt);
 
   explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
-      background_manager& background_manager);
+      background_manager& background_manager, tags::action_context& action_ctxt);
   ~renderer();
 
   xcb_window_t window() const;
@@ -55,9 +55,6 @@ class renderer : public renderer_interface,
 
   void action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) override;
   void action_close(const tags::context& ctxt, tags::action_t id) override;
-
-  std::map<mousebtn, tags::action_t> get_actions(int x) override;
-  tags::action_t get_action(mousebtn btn, int x) override;
 
  protected:
   void fill_background();
@@ -114,7 +111,6 @@ class renderer : public renderer_interface,
   bool m_pseudo_transparency{false};
 
   alignment m_align;
-  std::unordered_map<tags::action_t, action_block> m_actions;
 
   bool m_fixedcenter;
   string m_snapshot_dst;

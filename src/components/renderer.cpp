@@ -21,7 +21,7 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(const bar_settings& bar) {
+renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
   // clang-format off
   return factory_util::unique<renderer>(
       connection::make(),
@@ -29,7 +29,8 @@ renderer::make_type renderer::make(const bar_settings& bar) {
       config::make(),
       logger::make(),
       forward<decltype(bar)>(bar),
-      background_manager::make());
+      background_manager::make(),
+      action_ctxt);
   // clang-format on
 }
 
@@ -37,8 +38,9 @@ renderer::make_type renderer::make(const bar_settings& bar) {
  * Construct renderer instance
  */
 renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
-    const bar_settings& bar, background_manager& background)
-    : m_connection(conn)
+    const bar_settings& bar, background_manager& background, tags::action_context& action_ctxt)
+    : renderer_interface(action_ctxt)
+    , m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
@@ -203,7 +205,6 @@ void renderer::begin(xcb_rectangle_t rect) {
 
   // Reset state
   m_rect = rect;
-  m_actions.clear();
   m_align = alignment::NONE;
 
   // Clear canvas
@@ -250,8 +251,7 @@ void renderer::begin(xcb_rectangle_t rect) {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  for (auto& entry : m_actions) {
-    auto& a = entry.second;
+  for (auto& a : m_action_ctxt.get_blocks()) {
     a.start_x += block_x(a.align) + m_rect.x;
     a.end_x += block_x(a.align) + m_rect.x;
   }
@@ -700,43 +700,11 @@ void renderer::change_alignment(const tags::context& ctxt) {
 
 void renderer::action_open(const tags::context&, mousebtn btn, tags::action_t id) {
   assert(btn != mousebtn::NONE);
-  action_block block;
-  block.align = m_align;
-  block.button = btn;
-  block.start_x = m_blocks.at(block.align).x;
-  m_actions[id] = block;
+  m_action_ctxt.set_start(id, m_blocks.at(m_align).x);
 }
 
 void renderer::action_close(const tags::context&, tags::action_t id) {
-  auto& block = m_actions[id];
-  block.end_x = m_blocks.at(block.align).x;
-}
-
-std::map<mousebtn, tags::action_t> renderer::get_actions(int x) {
-  std::map<mousebtn, tags::action_t> buttons;
-
-  for (int i = static_cast<int>(mousebtn::NONE); i < static_cast<int>(mousebtn::BTN_COUNT); i++) {
-    buttons[static_cast<mousebtn>(i)] = tags::NO_ACTION;
-  }
-
-  for (auto&& entry : m_actions) {
-    tags::action_t id;
-    action_block action;
-    std::tie(id, action) = entry;
-
-    mousebtn btn = action.button;
-
-    // Higher IDs are higher in the action stack.
-    if (id > buttons[btn] && action.test(x)) {
-      buttons[action.button] = id;
-    }
-  }
-
-  return buttons;
-}
-
-tags::action_t renderer::get_action(mousebtn btn, int x) {
-  return get_actions(x)[btn];
+  m_action_ctxt.set_end(id, m_blocks.at(m_align).x);
 }
 
 /**
@@ -745,8 +713,7 @@ tags::action_t renderer::get_action(mousebtn btn, int x) {
 void renderer::highlight_clickable_areas() {
 #ifdef DEBUG_HINTS
   map<alignment, int> hint_num{};
-  for (auto&& entry : m_actions) {
-    auto&& action = entry.second;
+  for (auto&& action : m_action_ctxt.get_blocks()) {
     int n = hint_num.find(action.align)->second++;
     double x = action.start_x;
     double y = m_rect.y;
