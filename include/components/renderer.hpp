@@ -32,9 +32,9 @@ struct alignment_block {
   double y;
 };
 
-class renderer : public renderer_interface,
-                 public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot,
-                     signals::parser::change_alignment, signals::parser::action_begin, signals::parser::action_end> {
+class renderer
+    : public renderer_interface,
+      public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_alignment> {
  public:
   using make_type = unique_ptr<renderer>;
   static make_type make(const bar_settings& bar);
@@ -44,24 +44,26 @@ class renderer : public renderer_interface,
   ~renderer();
 
   xcb_window_t window() const;
-  const vector<action_block> actions() const;
 
   void begin(xcb_rectangle_t rect);
   void end();
   void flush();
 
-#if 0
-  void reserve_space(edge side, unsigned int w);
-#endif
+  void render_offset(const tags::context& ctxt, int pixels) override;
+  void render_text(const tags::context& ctxt, const string&&) override;
+
+  void action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) override;
+  void action_close(const tags::context& ctxt, tags::action_t id) override;
+
+  std::map<mousebtn, tags::action_t> get_actions(int x) override;
+  tags::action_t get_action(mousebtn btn, int x) override;
+
+ protected:
   void fill_background();
   void fill_overline(rgba color, double x, double w);
   void fill_underline(rgba color, double x, double w);
   void fill_borders();
 
-  void render_offset(const tags::context& ctxt, int pixels) override;
-  void render_text(const tags::context& ctxt, const string&&) override;
-
- protected:
   double block_x(alignment a) const;
   double block_y(alignment a) const;
   double block_w(alignment a) const;
@@ -72,8 +74,6 @@ class renderer : public renderer_interface,
 
   bool on(const signals::ui::request_snapshot& evt) override;
   bool on(const signals::parser::change_alignment& evt) override;
-  bool on(const signals::parser::action_begin& evt) override;
-  bool on(const signals::parser::action_end& evt) override;
 
  protected:
   struct reserve_area {
@@ -114,7 +114,7 @@ class renderer : public renderer_interface,
   bool m_pseudo_transparency{false};
 
   alignment m_align;
-  vector<action_block> m_actions;
+  std::unordered_map<tags::action_t, action_block> m_actions;
 
   bool m_fixedcenter;
   string m_snapshot_dst;

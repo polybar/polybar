@@ -10,6 +10,7 @@
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "settings.hpp"
+#include "tags/context.hpp"
 #include "utils/math.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
@@ -66,7 +67,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   static make_type make(bool only_initialize_values = false);
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, unique_ptr<screen>&&,
-      unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<taskqueue>&&, bool only_initialize_values);
+      unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&,
+      unique_ptr<taskqueue>&&, bool only_initialize_values);
   ~bar();
 
   const bar_settings settings() const;
@@ -114,6 +116,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;
   unique_ptr<tags::dispatch> m_dispatch;
+  unique_ptr<tags::action_context> m_action_ctxt;
   unique_ptr<taskqueue> m_taskqueue;
 
   bar_settings m_opts{};

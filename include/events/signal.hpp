@@ -135,12 +135,6 @@ namespace signals {
     struct change_alignment : public detail::value_signal<change_alignment, alignment> {
       using base_type::base_type;
     };
-    struct action_begin : public detail::value_signal<action_begin, action> {
-      using base_type::base_type;
-    };
-    struct action_end : public detail::value_signal<action_end, mousebtn> {
-      using base_type::base_type;
-    };
   }  // namespace parser
 }  // namespace signals
 
