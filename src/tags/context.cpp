@@ -137,6 +137,39 @@ namespace tags {
     return {NO_ACTION, mousebtn::NONE};
   }
 
+  void action_context::set_start(action_t id, double x) {
+    m_action_blocks[id].start_x = x;
+  }
+
+  void action_context::set_end(action_t id, double x) {
+    m_action_blocks[id].end_x = x;
+  }
+
+  std::map<mousebtn, tags::action_t> action_context::get_actions(int x) const {
+    std::map<mousebtn, tags::action_t> buttons;
+
+    for (int i = static_cast<int>(mousebtn::NONE); i < static_cast<int>(mousebtn::BTN_COUNT); i++) {
+      buttons[static_cast<mousebtn>(i)] = tags::NO_ACTION;
+    }
+
+    for (action_t id = 0; (unsigned)id < m_action_blocks.size(); id++) {
+      auto action = m_action_blocks[id];
+      mousebtn btn = action.button;
+
+      // Higher IDs are higher in the action stack.
+      if (id > buttons[btn] && action.test(x)) {
+        buttons[action.button] = id;
+      }
+    }
+
+    return buttons;
+  }
+
+  action_t action_context::has_action(mousebtn btn, int x) const {
+    // TODO optimize
+    return get_actions(x)[btn];
+  }
+
   string action_context::get_action(action_t id) const {
     assert(id >= 0 && (unsigned)id < num_actions());
 
@@ -156,6 +189,10 @@ namespace tags {
 
   size_t action_context::num_actions() const {
     return m_action_blocks.size();
+  }
+
+  std::vector<action_block>& action_context::get_blocks() {
+    return m_action_blocks;
   }
 
 }  // namespace tags

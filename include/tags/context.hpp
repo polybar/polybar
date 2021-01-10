@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "common.hpp"
 #include "components/types.hpp"
 #include "tags/types.hpp"
@@ -96,6 +98,26 @@ namespace tags {
 
   static constexpr action_t NO_ACTION = -1;
 
+  struct action_block {
+    action_block(const string&& cmd, mousebtn button, alignment align, bool is_open)
+        : cmd(std::move(cmd)), button(button), align(align), is_open(is_open){};
+
+    string cmd;
+    double start_x{0};
+    double end_x{0};
+    mousebtn button;
+    alignment align;
+    bool is_open;
+
+    unsigned int width() const {
+      return static_cast<unsigned int>(end_x - start_x + 0.5);
+    }
+
+    bool test(int point) const {
+      return static_cast<int>(start_x) <= point && static_cast<int>(end_x) > point;
+    }
+  };
+
   class action_context {
    public:
     void reset();
@@ -103,22 +125,20 @@ namespace tags {
     action_t action_open(mousebtn btn, const string&& cmd, alignment align);
     std::pair<action_t, mousebtn> action_close(mousebtn btn, alignment align);
 
+    void set_start(action_t id, double x);
+    void set_end(action_t id, double x);
+
+    std::map<mousebtn, tags::action_t> get_actions(int x) const;
+    action_t has_action(mousebtn btn, int x) const;
+
     string get_action(action_t id) const;
     bool has_double_click() const;
 
     size_t num_actions() const;
 
+    std::vector<action_block>& get_blocks();
+
    protected:
-    struct action_block {
-      action_block(const string&& cmd, mousebtn button, alignment align, bool is_open)
-          : cmd(std::move(cmd)), button(button), align(align), is_open(is_open){};
-
-      string cmd;
-      mousebtn button;
-      alignment align;
-      bool is_open;
-    };
-
     /**
      * Stores all currently known action blocks.
      *

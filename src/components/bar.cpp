@@ -649,10 +649,9 @@ void bar::handle(const evt::motion_notify& evt) {
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
-  const auto& actions = m_renderer->get_actions(m_motion_pos);
   const auto has_action = [&](const vector<mousebtn>& buttons) -> bool {
     for (auto btn : buttons) {
-      if (actions.at(btn) != tags::NO_ACTION) {
+      if (m_action_ctxt->has_action(btn, m_motion_pos) != tags::NO_ACTION) {
         return true;
       }
     }
@@ -741,7 +740,8 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_pos = evt->event_x;
 
   const auto deferred_fn = [&](size_t) {
-    tags::action_t action = m_renderer->get_action(m_buttonpress_btn, m_buttonpress_pos);
+    tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
+    ;
 
     if (action != tags::NO_ACTION) {
       m_log.trace("Found matching input area");
@@ -830,7 +830,7 @@ void bar::handle(const evt::configure_notify&) {
 
 bool bar::on(const signals::eventqueue::start&) {
   m_log.trace("bar: Create renderer");
-  m_renderer = renderer::make(m_opts);
+  m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();
 
   // Subscribe to window enter and leave events
