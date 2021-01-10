@@ -46,8 +46,6 @@ namespace signals {
   }
   namespace parser {
     struct change_alignment;
-    struct action_begin;
-    struct action_end;
   }  // namespace parser
 }  // namespace signals
 

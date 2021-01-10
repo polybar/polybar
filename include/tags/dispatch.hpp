@@ -23,20 +23,23 @@ namespace tags {
   class dispatch {
    public:
     using make_type = unique_ptr<dispatch>;
-    static make_type make();
+    static make_type make(action_context& action_ctxt);
 
-    explicit dispatch(signal_emitter& emitter, const logger& logger);
-    void parse(const bar_settings& bar, renderer_interface&, string data);
+    explicit dispatch(signal_emitter& emitter, const logger& logger, action_context& action_ctxt);
+    void parse(const bar_settings& bar, renderer_interface&, const string&& data);
 
    protected:
-    void handle_text(renderer_interface& renderer, context& ctxt, string&& data);
-    void handle_action(mousebtn btn, bool closing, const string&& cmd);
-    void handle_control(context& ctxt, controltag ctrl);
+    void handle_text(renderer_interface& renderer, string&& data);
+    void handle_action(renderer_interface& renderer, mousebtn btn, bool closing, const string&& cmd);
+    void handle_control(controltag ctrl);
 
    private:
     signal_emitter& m_sig;
     vector<mousebtn> m_actions;
     const logger& m_log;
+
+    unique_ptr<context> m_ctxt;
+    action_context& m_action_ctxt;
   };
 }  // namespace tags
 

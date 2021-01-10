@@ -1,5 +1,7 @@
 #include "components/renderer.hpp"
 
+#include <cassert>
+
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
@@ -194,13 +196,6 @@ xcb_window_t renderer::window() const {
 }
 
 /**
- * Get completed action blocks
- */
-const vector<action_block> renderer::actions() const {
-  return m_actions;
-}
-
-/**
  * Begin render routine
  */
 void renderer::begin(xcb_rectangle_t rect) {
@@ -255,7 +250,8 @@ void renderer::begin(xcb_rectangle_t rect) {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  for (auto&& a : m_actions) {
+  for (auto& entry : m_actions) {
+    auto& a = entry.second;
     a.start_x += block_x(a.align) + m_rect.x;
     a.end_x += block_x(a.align) + m_rect.x;
   }
@@ -530,40 +526,6 @@ double renderer::block_h(alignment) const {
   return m_rect.height;
 }
 
-#if 0
-void renderer::reserve_space(edge side, unsigned int w) {
-  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<int>(side), w);
-
-  m_cleararea.side = side;
-  m_cleararea.size = w;
-
-  switch (side) {
-    case edge::NONE:
-      break;
-    case edge::TOP:
-      m_rect.y += w;
-      m_rect.height -= w;
-      break;
-    case edge::BOTTOM:
-      m_rect.height -= w;
-      break;
-    case edge::LEFT:
-      m_rect.x += w;
-      m_rect.width -= w;
-      break;
-    case edge::RIGHT:
-      m_rect.width -= w;
-      break;
-    case edge::ALL:
-      m_rect.x += w;
-      m_rect.y += w;
-      m_rect.width -= w * 2;
-      m_rect.height -= w * 2;
-      break;
-  }
-}
-#endif
-
 /**
  * Fill background color
  */
@@ -716,26 +678,66 @@ void renderer::render_offset(const tags::context&, int pixels) {
   m_blocks[m_align].x += pixels;
 }
 
+void renderer::action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) {
+  assert(btn != mousebtn::NONE);
+  action_block block;
+  block.align = ctxt.get_alignment();
+  block.button = btn;
+  block.start_x = m_blocks.at(block.align).x;
+  m_actions[id] = block;
+}
+
+void renderer::action_close(const tags::context&, tags::action_t id) {
+  auto& block = m_actions[id];
+  block.end_x = m_blocks.at(block.align).x;
+}
+
+std::map<mousebtn, tags::action_t> renderer::get_actions(int x) {
+  std::map<mousebtn, tags::action_t> buttons;
+
+  for (int i = static_cast<int>(mousebtn::NONE); i < static_cast<int>(mousebtn::BTN_COUNT); i++) {
+    buttons[static_cast<mousebtn>(i)] = tags::NO_ACTION;
+  }
+
+  for (auto&& entry : m_actions) {
+    tags::action_t id;
+    action_block action;
+    std::tie(id, action) = entry;
+
+    mousebtn btn = action.button;
+
+    // Higher IDs are higher in the action stack.
+    if (id > buttons[btn] && action.test(x)) {
+      buttons[action.button] = id;
+    }
+  }
+
+  return buttons;
+}
+
+tags::action_t renderer::get_action(mousebtn btn, int x) {
+  return get_actions(x)[btn];
+}
+
 /**
  * Colorize the bounding box of created action blocks
  */
 void renderer::highlight_clickable_areas() {
 #ifdef DEBUG_HINTS
   map<alignment, int> hint_num{};
-  for (auto&& action : m_actions) {
-    if (!action.active) {
-      int n = hint_num.find(action.align)->second++;
-      double x = action.start_x;
-      double y = m_rect.y;
-      double w = action.width();
-      double h = m_rect.height;
+  for (auto&& entry : m_actions) {
+    auto&& action = entry.second;
+    int n = hint_num.find(action.align)->second++;
+    double x = action.start_x;
+    double y = m_rect.y;
+    double w = action.width();
+    double h = m_rect.height;
 
-      m_context->save();
-      *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? 0xFF00FF00 : 0xFFFF0000);
-      *m_context << cairo::rect{x, y, w, h};
-      m_context->fill();
-      m_context->restore();
-    }
+    m_context->save();
+    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? 0xFF00FF00 : 0xFFFF0000);
+    *m_context << cairo::rect{x, y, w, h};
+    m_context->fill();
+    m_context->restore();
   }
   m_surface->flush();
 #endif
@@ -763,36 +765,6 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
 
     fill_background();
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::action_begin& evt) {
-  auto a = evt.cast();
-  m_log.trace_x("renderer: action_begin(btn=%i, command=%s)", static_cast<int>(a.button), a.command);
-  action_block action{};
-  action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
-  action.align = m_align;
-  action.start_x = m_blocks.at(m_align).x;
-  action.command = a.command;
-  action.active = true;
-  m_actions.emplace_back(action);
-  return true;
-}
-
-bool renderer::on(const signals::parser::action_end& evt) {
-  auto btn = evt.cast();
-
-  /*
-   * Iterate actions in reverse and find the FIRST active action that matches
-   */
-  m_log.trace_x("renderer: action_end(btn=%i)", static_cast<int>(btn));
-  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
-    if (action->active && action->align == m_align && action->button == btn) {
-      action->end_x = m_blocks.at(action->align).x;
-      action->active = false;
-      break;
-    }
   }
   return true;
 }

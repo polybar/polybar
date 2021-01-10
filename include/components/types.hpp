@@ -109,11 +109,11 @@ struct action {
   string command{};
 };
 
-struct action_block : public action {
+struct action_block {
+  mousebtn button{mousebtn::NONE};
   alignment align{alignment::NONE};
   double start_x{0.0};
   double end_x{0.0};
-  bool active{true};
 
   unsigned int width() const {
     return static_cast<unsigned int>(end_x - start_x + 0.5);

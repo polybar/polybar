@@ -39,6 +39,8 @@ using namespace signals::ui;
  * Create instance
  */
 bar::make_type bar::make(bool only_initialize_values) {
+  auto action_ctxt = make_unique<tags::action_context>();
+
   // clang-format off
   return factory_util::unique<bar>(
         connection::make(),
@@ -47,7 +49,8 @@ bar::make_type bar::make(bool only_initialize_values) {
         logger::make(),
         screen::make(),
         tray_manager::make(),
-        tags::dispatch::make(),
+        tags::dispatch::make(*action_ctxt),
+        std::move(action_ctxt),
         taskqueue::make(),
         only_initialize_values);
   // clang-format on
@@ -60,7 +63,7 @@ bar::make_type bar::make(bool only_initialize_values) {
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
     unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
+    unique_ptr<tags::action_context>&& action_ctxt, unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
@@ -68,6 +71,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))
+    , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt))
     , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
   string bs{m_conf.section()};
 
@@ -361,7 +365,7 @@ void bar::parse(string&& data, bool force) {
   m_renderer->begin(rect);
 
   try {
-    m_dispatch->parse(settings(), *m_renderer, data);
+    m_dispatch->parse(settings(), *m_renderer, std::move(data));
   } catch (const exception& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
@@ -369,11 +373,10 @@ void bar::parse(string&& data, bool force) {
   m_renderer->end();
 
   const auto check_dblclicks = [&]() -> bool {
-    for (auto&& action : m_renderer->actions()) {
-      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
-        return true;
-      }
+    if (m_action_ctxt->has_double_click()) {
+      return true;
     }
+
     for (auto&& action : m_opts.actions) {
       if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
         return true;
@@ -646,6 +649,35 @@ void bar::handle(const evt::motion_notify& evt) {
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
+  const auto& actions = m_renderer->get_actions(m_motion_pos);
+  const auto has_action = [&](const vector<mousebtn>& buttons) -> bool {
+    for (auto btn : buttons) {
+      if (actions.at(btn) != tags::NO_ACTION) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  if (has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
+          mousebtn::DOUBLE_RIGHT})) {
+    if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
+      m_opts.cursor = m_opts.cursor_click;
+      m_sig.emit(cursor_change{string{m_opts.cursor}});
+    }
+
+    return;
+  }
+
+  if (has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
+    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
+      m_opts.cursor = m_opts.cursor_scroll;
+      m_sig.emit(cursor_change{string{m_opts.cursor}});
+    }
+    return;
+  }
+
   const auto find_click_area = [&](const action& action) {
     if (!m_opts.cursor_click.empty() &&
         !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
@@ -664,20 +696,6 @@ void bar::handle(const evt::motion_notify& evt) {
     return false;
   };
 
-  for (auto&& action : m_renderer->actions()) {
-    if (action.test(m_motion_pos)) {
-      m_log.trace("Found matching input area");
-      if (find_click_area(action))
-        return;
-    }
-  }
-  if (found_scroll) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
-    return;
-  }
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
@@ -723,18 +741,12 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_pos = evt->event_x;
 
   const auto deferred_fn = [&](size_t) {
-    /*
-     * Iterate over all defined actions in reverse order until matching action is found
-     * To properly handle nested actions we iterate in reverse because nested actions are added later than their
-     * surrounding action block
-     */
-    auto actions = m_renderer->actions();
-    for (auto action = actions.rbegin(); action != actions.rend(); action++) {
-      if (action->button == m_buttonpress_btn && !action->active && action->test(m_buttonpress_pos)) {
-        m_log.trace("Found matching input area");
-        m_sig.emit(button_press{string{action->command}});
-        return;
-      }
+    tags::action_t action = m_renderer->get_action(m_buttonpress_btn, m_buttonpress_pos);
+
+    if (action != tags::NO_ACTION) {
+      m_log.trace("Found matching input area");
+      m_sig.emit(button_press{m_action_ctxt->get_action(action)});
+      return;
     }
 
     for (auto&& action : m_opts.actions) {

@@ -44,8 +44,6 @@ namespace tags {
     alignment get_alignment() const;
 
    protected:
-    rgba get_color(color_value c, rgba fallback) const;
-
     /**
      * Background color
      */
@@ -82,6 +80,53 @@ namespace tags {
    private:
     const bar_settings& m_settings;
   };
+
+  /**
+   * An identifier for an action block.
+   *
+   * A value of NO_ACTION denotes an undefined identifier and is guaranteed to
+   * be smaller (<) than any valid identifier.
+   *
+   * If two action blocks overlap, the action with the higher identifier will
+   * be above.
+   *
+   * Except for NO_ACTION, negative values are not allowed
+   */
+  using action_t = int;
+
+  static constexpr action_t NO_ACTION = -1;
+
+  class action_context {
+   public:
+    void reset();
+
+    action_t action_open(mousebtn btn, const string&& cmd, alignment align);
+    std::pair<action_t, mousebtn> action_close(mousebtn btn, alignment align);
+
+    string get_action(action_t id) const;
+    bool has_double_click() const;
+
+    size_t num_actions() const;
+
+   protected:
+    struct action_block {
+      action_block(const string&& cmd, mousebtn button, alignment align, bool is_open)
+          : cmd(std::move(cmd)), button(button), align(align), is_open(is_open){};
+
+      string cmd;
+      mousebtn button;
+      alignment align;
+      bool is_open;
+    };
+
+    /**
+     * Stores all currently known action blocks.
+     *
+     * The action_t type is meant as an index into this vector.
+     */
+    std::vector<action_block> m_action_blocks;
+  };
+
 }  // namespace tags
 
 POLYBAR_NS_END

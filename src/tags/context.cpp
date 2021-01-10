@@ -1,8 +1,18 @@
 #include "tags/context.hpp"
 
+#include <cassert>
+
 POLYBAR_NS
 
 namespace tags {
+  static rgba get_color(color_value c, rgba fallback) {
+    if (c.type == color_type::RESET) {
+      return fallback;
+    } else {
+      return c.val;
+    }
+  }
+
   context::context(const bar_settings& settings) : m_settings(settings) {
     reset();
   }
@@ -104,13 +114,50 @@ namespace tags {
     return m_align;
   }
 
-  rgba context::get_color(color_value c, rgba fallback) const {
-    if (c.type == color_type::RESET) {
-      return fallback;
-    } else {
-      return c.val;
-    }
+  void action_context::reset() {
+    m_action_blocks.clear();
   }
+
+  action_t action_context::action_open(mousebtn btn, const string&& cmd, alignment align) {
+    action_t id = m_action_blocks.size();
+    m_action_blocks.emplace_back(std::move(cmd), btn, align, true);
+    return id;
+  }
+
+  std::pair<action_t, mousebtn> action_context::action_close(mousebtn btn, alignment align) {
+    for (auto it = m_action_blocks.rbegin(); it != m_action_blocks.rend(); it++) {
+      if (it->is_open && it->align == align && (btn == mousebtn::NONE || it->button == btn)) {
+        it->is_open = false;
+
+        // Converts a reverse iterator into an index
+        return {std::distance(m_action_blocks.begin(), it.base()) - 1, it->button};
+      }
+    }
+
+    return {NO_ACTION, mousebtn::NONE};
+  }
+
+  string action_context::get_action(action_t id) const {
+    assert(id >= 0 && (unsigned)id < num_actions());
+
+    return m_action_blocks[id].cmd;
+  }
+
+  bool action_context::has_double_click() const {
+    for (auto&& a : m_action_blocks) {
+      if (a.button == mousebtn::DOUBLE_LEFT || a.button == mousebtn::DOUBLE_MIDDLE ||
+          a.button == mousebtn::DOUBLE_RIGHT) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  size_t action_context::num_actions() const {
+    return m_action_blocks.size();
+  }
+
 }  // namespace tags
 
 POLYBAR_NS_END
