@@ -734,7 +734,7 @@ void renderer::highlight_clickable_areas() {
     double h = m_rect.height;
 
     m_context->save();
-    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? 0xFF00FF00 : 0xFFFF0000);
+    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? rgba{0xFF00FF00} :rgba{0xFFFF0000});
     *m_context << cairo::rect{x, y, w, h};
     m_context->fill();
     m_context->restore();
