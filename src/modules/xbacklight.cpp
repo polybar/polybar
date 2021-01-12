@@ -96,10 +96,14 @@ namespace modules {
     m_percentage = math_util::nearest_5(math_util::percentage<double>(bl.val, bl.min, bl.max));
 
     // Update label tokens
-    if (m_label) {
-      m_label->reset_tokens();
-      m_label->replace_token("%percentage%", to_string(m_percentage));
-    }
+    const auto replace_tokens = [&](const auto& label) {
+      if (label) {
+        label->reset_tokens();
+        label->replace_token("%percentage%", to_string(m_percentage));
+      }
+    };
+    replace_tokens(m_label);
+    replace_tokens(m_ramp);
 
     // Emit a broadcast notification so that
     // the new data will be drawn to the bar

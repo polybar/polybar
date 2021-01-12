@@ -73,10 +73,14 @@ namespace modules {
     m_max_brightness = m_max.read();
     m_percentage = static_cast<int>(m_val.read() / m_max_brightness * 100.0f + 0.5f);
 
-    if (m_label) {
-      m_label->reset_tokens();
-      m_label->replace_token("%percentage%", to_string(m_percentage));
-    }
+    const auto replace_tokens = [&](const auto& label) {
+      if (label) {
+        label->reset_tokens();
+        label->replace_token("%percentage%", to_string(m_percentage));
+      }
+    };
+    replace_tokens(m_label);
+    replace_tokens(m_ramp);
 
     return true;
   }

@@ -114,7 +114,10 @@ namespace modules {
     auto downspeed = network->downspeed(m_udspeed_minwidth, m_udspeed_unit);
 
     // Update label contents
-    const auto replace_tokens = [&](label_t& label) {
+    const auto replace_tokens = [&](const auto& label) {
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%ifname%", m_interface);
       label->replace_token("%local_ip%", network->ip());
@@ -131,15 +134,12 @@ namespace modules {
       }
     };
 
-    if (m_label[connection_state::CONNECTED]) {
-      replace_tokens(m_label[connection_state::CONNECTED]);
-    }
-    if (m_label[connection_state::PACKETLOSS]) {
-      replace_tokens(m_label[connection_state::PACKETLOSS]);
-    }
-    if (m_label[connection_state::DISCONNECTED]) {
-      replace_tokens(m_label[connection_state::DISCONNECTED]);
-    }
+    replace_tokens(m_label[connection_state::CONNECTED]);
+    replace_tokens(m_label[connection_state::PACKETLOSS]);
+    replace_tokens(m_label[connection_state::DISCONNECTED]);
+    replace_tokens(m_ramp_signal);
+    replace_tokens(m_ramp_quality);
+    replace_tokens(m_animation_packetloss);
 
     return true;
   }
