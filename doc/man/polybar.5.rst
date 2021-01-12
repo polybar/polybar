@@ -31,10 +31,8 @@ places in the following order:
 
 * If the ``-c`` or ``--config`` command line argument is specified, it will use
   the path given there.
-* If the environment variable ``XDG_CONFIG_HOME`` is set it will use
-  ``$XDG_CONFIG_HOME/polybar/config``
-* If the environment variable ``HOME`` is set it will use
-  ``$HOME/.config/polybar/config``
+* ``$XDG_CONFIG_HOME/polybar/config``
+* ``$HOME/.config/polybar/config``
 
 Syntax
 ------
@@ -140,7 +138,7 @@ not affect polybar's behavior. Comment lines start with either the ``;`` or the
 .. note::
 
   Inline comments are not supported. For example the following line does not end
-  with a comment, they value of ``name`` is actually set to ``value ; comment``:
+  with a comment, the value of ``name`` is actually set to ``value ; comment``:
 
   ::
 

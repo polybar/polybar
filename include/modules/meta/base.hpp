@@ -13,7 +13,6 @@
 #include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;
@@ -22,7 +21,6 @@ using std::map;
 
 #define DEFAULT_FORMAT "format"
 
-#define DEFINE_MODULE(name, type) struct name : public type<name>
 #define CONST_MOD(name) static_cast<name const&>(*this)
 #define CAST_MOD(name) static_cast<name*>(this)
 
@@ -60,10 +58,10 @@ namespace modules {
     vector<string> tags{};
     label_t prefix{};
     label_t suffix{};
-    string fg{};
-    string bg{};
-    string ul{};
-    string ol{};
+    rgba fg{};
+    rgba bg{};
+    rgba ul{};
+    rgba ol{};
     size_t ulsize{0};
     size_t olsize{0};
     size_t spacing{0};
@@ -83,11 +81,15 @@ namespace modules {
     explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
+    void add_optional(string name, vector<string>&& tags, vector<string>&& whitelist = {});
     bool has(const string& tag, const string& format_name);
     bool has(const string& tag);
+    bool has_format(const string& format_name);
     shared_ptr<module_format> get(const string& format_name);
 
    protected:
+    void add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist);
+
     const config& m_conf;
     string m_modname;
     map<string, shared_ptr<module_format>> m_formats;
@@ -101,8 +103,27 @@ namespace modules {
    public:
     virtual ~module_interface() {}
 
+    /**
+     * The type users have to specify in the module section `type` key
+     */
+    virtual string type() const = 0;
+
+    /**
+     * Module name w/o 'module/' prefix
+     */
+    virtual string name_raw() const = 0;
     virtual string name() const = 0;
     virtual bool running() const = 0;
+
+    /**
+     * Handle action, possibly with data attached
+     *
+     * Any implementation is free to ignore the data, if the action does not
+     * require additional data.
+     *
+     * \returns true if the action is supported and false otherwise
+     */
+    virtual bool input(const string& action, const string& data) = 0;
 
     virtual void start() = 0;
     virtual void stop() = 0;
@@ -119,12 +140,17 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
+    string type() const;
+
+    string name_raw() const;
     string name() const;
     bool running() const;
     void stop();
     void halt(string error_message);
     void teardown();
     string contents();
+
+    bool input(const string& action, const string& data);
 
    protected:
     void broadcast();
@@ -147,7 +173,8 @@ namespace modules {
     mutex m_sleeplock;
     std::condition_variable m_sleephandler;
 
-    string m_name;
+    const string m_name;
+    const string m_name_raw;
     unique_ptr<builder> m_builder;
     unique_ptr<module_formatter> m_formatter;
     vector<thread> m_threads;

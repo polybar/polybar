@@ -94,8 +94,8 @@ namespace string_util {
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth);
 
   string floating_point(double value, size_t precision, bool fixed = false, const string& locale = "");
-  string filesize_mb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
-  string filesize_gb(unsigned long long kbytes, size_t precision = 0, const string& locale = "");
+  string filesize_mib(unsigned long long kibibytes, size_t precision = 0, const string& locale = "");
+  string filesize_gib(unsigned long long kibibytes, size_t precision = 0, const string& locale = "");
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);

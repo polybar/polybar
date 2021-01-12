@@ -38,9 +38,8 @@ namespace drawtypes {
   animation_t load_animation(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
     vector<label_t> vec;
-    label_t tmplate;
 
-    load_labellist(vec, tmplate, conf, section, name, required);
+    load_labellist(vec, conf, section, name, required);
 
     auto framerate = conf.get(section, name + "-framerate", 1000);
 

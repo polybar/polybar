@@ -9,7 +9,7 @@ namespace modules {
 
   counter_module::counter_module(const bar_settings& bar, string name_)
       : timer_module<counter_module>(bar, move(name_)) {
-    m_interval = m_conf.get(name(), "interval", m_interval);
+    set_interval(1s);
     m_formatter->add(DEFAULT_FORMAT, TAG_COUNTER, {TAG_COUNTER});
   }
 
@@ -25,6 +25,6 @@ namespace modules {
     }
     return false;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

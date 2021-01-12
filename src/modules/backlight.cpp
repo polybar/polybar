@@ -88,14 +88,14 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_scroll) {
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(std::move(output));
 
-    m_builder->cmd_close();
-    m_builder->cmd_close();
+    m_builder->action_close();
+    m_builder->action_close();
 
     return m_builder->flush();
   }
@@ -113,12 +113,12 @@ namespace modules {
     return true;
   }
 
-  bool backlight_module::input(string&& cmd) {
+  bool backlight_module::input(const string& action, const string&) {
     double value_mod{0.0};
 
-    if (cmd == EVENT_SCROLLUP) {
+    if (action == EVENT_INC) {
       value_mod = 5.0;
-    } else if (cmd == EVENT_SCROLLDOWN) {
+    } else if (action == EVENT_DEC) {
       value_mod = -5.0;
     } else {
       return false;

@@ -31,13 +31,12 @@ namespace modules {
     m_perc_used_warn = m_conf.get(name(), "warn-percentage", 90);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
     m_spacing = m_conf.get(name(), "spacing", m_spacing);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 30s);
+    set_interval(30s);
 
     // Add formats and elements
     m_formatter->add(
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
-    m_formatter->add(
-        FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
+    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
@@ -86,8 +85,7 @@ namespace modules {
 
     // Get data for defined mountpoints
     for (auto&& mountpoint : m_mountpoints) {
-      auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
-          [&](const vector<string>& m) { return m.size() > 4 && m[4] == mountpoint; });
+      auto details = std::find_if(mountinfo.begin(), mountinfo.end(), [&](const vector<string>& m) { return m.size() > 4 && m[MOUNTINFO_DIR] == mountpoint; });
 
       m_mounts.emplace_back(new fs_mount{mountpoint, details != mountinfo.end()});
       struct statvfs buffer {};
@@ -173,8 +171,13 @@ namespace modules {
    * Select format based on fs state
    */
   string fs_module::get_format() const {
-    return !m_mounts[m_index]->mounted ? FORMAT_UNMOUNTED :
-        m_mounts[m_index]->percentage_used >= m_perc_used_warn ? FORMAT_WARN : FORMAT_MOUNTED;
+    if (!m_mounts[m_index]->mounted) {
+      return FORMAT_UNMOUNTED;
+    }
+    if (m_mounts[m_index]->percentage_used >= m_perc_used_warn && m_formatter->has_format(FORMAT_WARN)) {
+      return FORMAT_WARN;
+    }
+    return FORMAT_MOUNTED;
   }
 
   /**
@@ -183,15 +186,33 @@ namespace modules {
   bool fs_module::build(builder* builder, const string& tag) const {
     auto& mount = m_mounts[m_index];
 
+    auto replace_tokens = [&](const auto& label) {
+      label->reset_tokens();
+      label->replace_token("%mountpoint%", mount->mountpoint);
+      label->replace_token("%type%", mount->type);
+      label->replace_token("%fsname%", mount->fsname);
+      label->replace_token("%percentage_free%", to_string(mount->percentage_free));
+      label->replace_token("%percentage_used%", to_string(mount->percentage_used));
+      label->replace_token(
+          "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token(
+          "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token(
+          "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+    };
+
     if (tag == TAG_BAR_FREE) {
       builder->node(m_barfree->output(mount->percentage_free));
     } else if (tag == TAG_BAR_USED) {
       builder->node(m_barused->output(mount->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
+      replace_tokens(m_rampcapacity);
       builder->node(m_rampcapacity->get_by_percentage_with_borders(mount->percentage_free, 0, m_perc_used_warn));
     } else if (tag == TAG_LABEL_MOUNTED) {
+      replace_tokens(m_labelmounted);
       builder->node(m_labelmounted);
     } else if (tag == TAG_LABEL_WARN) {
+      replace_tokens(m_labelwarn);
       builder->node(m_labelwarn);
     } else if (tag == TAG_LABEL_UNMOUNTED) {
       builder->node(m_labelunmounted);

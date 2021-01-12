@@ -20,10 +20,10 @@ namespace drawtypes {
 
   class label : public non_copyable_mixin<label> {
    public:
-    string m_foreground{};
-    string m_background{};
-    string m_underline{};
-    string m_overline{};
+    rgba m_foreground{};
+    rgba m_background{};
+    rgba m_underline{};
+    rgba m_overline{};
     int m_font{0};
     side_values m_padding{0U, 0U};
     side_values m_margin{0U, 0U};
@@ -41,8 +41,8 @@ namespace drawtypes {
     bool m_ellipsis{true};
 
     explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
-    explicit label(string text, string foreground = ""s, string background = ""s, string underline = ""s,
-        string overline = ""s, int font = 0, struct side_values padding = {0U, 0U},
+    explicit label(string text, rgba foreground = rgba{}, rgba background = rgba{}, rgba underline = rgba{},
+        rgba overline = rgba{}, int font = 0, struct side_values padding = {0U, 0U},
         struct side_values margin = {0U, 0U}, int minlen = 0, size_t maxlen = 0_z,
         alignment label_alignment = alignment::LEFT, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(foreground)
@@ -69,8 +69,7 @@ namespace drawtypes {
     void reset_tokens();
     void reset_tokens(const string& tokenized);
     bool has_token(const string& token) const;
-    void replace_token(const string& token, string replacement);
-    void useas_token(const label_t& container, const string& token);
+    void replace_token(const string& token, const string& replacement);
     void replace_defined_values(const label_t& label);
     void copy_undefined(const label_t& label);
 

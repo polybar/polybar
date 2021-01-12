@@ -117,8 +117,7 @@ namespace modules {
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_CHARGING, TAG_LABEL_CHARGING});
     m_formatter->add(FORMAT_DISCHARGING, TAG_LABEL_DISCHARGING,
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
-    m_formatter->add(FORMAT_LOW, TAG_LABEL_LOW,
-        {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_LOW, TAG_LABEL_LOW});
+    m_formatter->add_optional(FORMAT_LOW, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_LOW, TAG_LABEL_LOW});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
@@ -226,8 +225,10 @@ namespace modules {
     m_state = state;
     m_percentage = percentage;
 
-    const auto replace_tokens = [&](label_t& label) {
-      if (!label) return;
+    const auto replace_tokens = [&](const auto& label) {
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
       label->replace_token("%percentage_raw%", to_string(m_percentage));
@@ -237,24 +238,19 @@ namespace modules {
         label->replace_token("%time%", current_time());
       }
     };
-    const auto replace_labellist_tokens = [&](labellist_t labellist) {
-      if(!labellist) return;
-      replace_tokens(labellist->get_template());
-      labellist->apply_template();
-    };
 
-    replace_labellist_tokens(m_ramp_capacity);
+    replace_tokens(m_ramp_capacity);
     if(m_state == battery_module::state::FULL) {
       replace_tokens(m_label_full);
     } else if (m_state == battery_module::state::DISCHARGING) {
       replace_tokens(m_label_discharging);
-      replace_labellist_tokens(m_animation_discharging);
+      replace_tokens(m_animation_discharging);
     } else if (m_state == battery_module::state::LOW) {
       replace_tokens(m_label_low);
-      replace_labellist_tokens(m_animation_low);
+      replace_tokens(m_animation_low);
     } else {
       replace_tokens(m_label_charging);
-      replace_labellist_tokens(m_animation_charging);
+      replace_tokens(m_animation_charging);
     }
 
     return true;
@@ -266,8 +262,12 @@ namespace modules {
   string battery_module::get_format() const {
     switch (m_state) {
       case battery_module::state::FULL: return FORMAT_FULL;
+      case battery_module::state::LOW:
+        if (m_formatter->has_format(FORMAT_LOW)) {
+          return FORMAT_LOW;
+        }  
+        return FORMAT_DISCHARGING;
       case battery_module::state::DISCHARGING: return FORMAT_DISCHARGING;
-      case battery_module::state::LOW: return FORMAT_LOW;
       default: return FORMAT_CHARGING;
     }
   }

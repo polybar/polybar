@@ -16,12 +16,12 @@ namespace modules {
   template class module<cpu_module>;
 
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
-    m_totalwarn = m_conf.get(name(), "warn-percentage", 80);
+    set_interval(1s);
+    m_totalwarn = m_conf.get(name(), "warn-percentage", m_totalwarn);
     m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
-    m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_ANIMATION_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
+    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
 
     // warmup cpu times
     read_values();
@@ -73,7 +73,7 @@ namespace modules {
 
     m_total = m_total / static_cast<float>(cores_n);
 
-    const auto replace_tokens = [&](label_t label) {
+    const auto replace_tokens = [&](const auto& label) {
       if (!label) return;
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
@@ -84,22 +84,18 @@ namespace modules {
         label->replace_token("%percentage-core" + to_string(i + 1) + "%", percentage_cores[i]);
       }
     };
-    const auto replace_labellist_tokens = [&](labellist_t labellist) {
-      if(!labellist) return;
-      replace_tokens(labellist->get_template());
-      labellist->apply_template();
-    };
 
     replace_tokens(m_label);
     replace_tokens(m_labelwarn);
-    replace_labellist_tokens(m_rampload);
-    replace_labellist_tokens(m_animation_warn);
+    replace_tokens(m_rampload);
+    replace_tokens(m_rampload_core);
+    replace_tokens(m_animation_warn);
 
     return true;
   }
 
   string cpu_module::get_format() const {
-    if (m_total >= m_totalwarn) {
+    if (m_total >= m_totalwarn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;

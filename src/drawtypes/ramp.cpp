@@ -29,8 +29,8 @@ namespace drawtypes {
     } else if (value >= max) {
       index = m_labels.size() - 1;
     } else {
-      value = math_util::percentage(value, min, max);
-      index = value * (m_labels.size() - 2) / 100.0f + 1;
+      float percentage = math_util::percentage(value, min, max);
+      index = percentage * (m_labels.size() - 2) / 100.0f + 1;
       index = math_util::cap<size_t>(index, 0, m_labels.size() - 1);
     }
     return m_labels[index];
@@ -47,9 +47,8 @@ namespace drawtypes {
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
     vector<label_t> vec;
-    label_t tmplate;
 
-    load_labellist(vec, tmplate, conf, section, name, required);
+    load_labellist(vec, conf, section, name, required);
 
     return factory_util::shared<drawtypes::ramp>(move(vec), move(tmplate));
   }

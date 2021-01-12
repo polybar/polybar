@@ -161,8 +161,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
   auto radius = m_conf.get<double>(bs, "radius", 0.0);
-  m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
-  m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
+  auto top = m_conf.get(bs, "radius-top", radius);
+  m_opts.radius.top_left = m_conf.get(bs, "radius-top-left", top);
+  m_opts.radius.top_right = m_conf.get(bs, "radius-top-right", top);
+  auto bottom = m_conf.get(bs, "radius-bottom", radius);
+  m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
+  m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
   auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
@@ -197,9 +201,15 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
-  const auto parse_or_throw = [&](string key, unsigned int def) -> unsigned int {
+  const auto parse_or_throw_color = [&](string key, rgba def) -> rgba {
     try {
-      return m_conf.get(bs, key, rgba{def});
+      rgba color = m_conf.get(bs, key, def);
+
+      /*
+       * These are the base colors of the bar and cannot be alpha only
+       * In that case, we just use the alpha channel on the default value.
+       */
+      return color.try_apply_alpha_to(def);
     } catch (const exception& err) {
       throw application_error(sstream() << "Failed to set " << key << " (reason: " << err.what() << ")");
     }
@@ -217,20 +227,20 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
       m_log.warn("Ignoring `%s.background` (overridden by gradient background)", bs);
     }
   } else {
-    m_opts.background = parse_or_throw("background", m_opts.background);
+    m_opts.background = parse_or_throw_color("background", m_opts.background);
   }
 
   // Load foreground
-  m_opts.foreground = parse_or_throw("foreground", m_opts.foreground);
+  m_opts.foreground = parse_or_throw_color("foreground", m_opts.foreground);
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
   auto line_size = m_conf.get(bs, "line-size", 0);
 
   m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
-  m_opts.overline.color = parse_or_throw("overline-color", line_color);
+  m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
   m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
-  m_opts.underline.color = parse_or_throw("underline-color", line_color);
+  m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
@@ -242,16 +252,16 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
   m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
-  m_opts.borders[edge::TOP].color = parse_or_throw("border-top-color", border_color);
+  m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
   m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
-  m_opts.borders[edge::BOTTOM].color = parse_or_throw("border-bottom-color", border_color);
+  m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
   m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
-  m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
+  m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
   m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
-  m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
+  m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
   auto w = m_conf.get(m_conf.section(), "width", "100%"s);

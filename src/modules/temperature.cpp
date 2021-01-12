@@ -19,7 +19,7 @@ namespace modules {
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempbase = m_conf.get(name(), "base-temperature", 0);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
     m_units = m_conf.get(name(), "units", m_units);
 
     if (m_path.empty()) {
@@ -63,7 +63,10 @@ namespace modules {
       temp_f_string += "°F";
     }
 
-    const auto replace_tokens = [&](label_t& label) {
+    const auto replace_tokens = [&](const auto& label) {
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
@@ -72,12 +75,9 @@ namespace modules {
       label->replace_token("%temperature%", temp_c_string);
     };
 
-    if (m_label[temp_state::NORMAL]) {
-      replace_tokens(m_label[temp_state::NORMAL]);
-    }
-    if (m_label[temp_state::WARN]) {
-      replace_tokens(m_label[temp_state::WARN]);
-    }
+    replace_tokens(m_label[temp_state::NORMAL]);
+    replace_tokens(m_label[temp_state::WARN]);
+    replace_tokens(m_ramp);
 
     return true;
   }

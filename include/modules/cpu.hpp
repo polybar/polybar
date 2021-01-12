@@ -1,7 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "settings.hpp"
 #include "drawtypes/animation.hpp"
 
 POLYBAR_NS
@@ -26,6 +26,8 @@ namespace modules {
     bool update();
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
+
+    static constexpr auto TYPE = "internal/cpu";
 
    protected:
     void start();
@@ -58,6 +60,6 @@ namespace modules {
     vector<float> m_load;
     thread m_subthread;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

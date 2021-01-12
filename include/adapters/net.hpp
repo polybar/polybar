@@ -82,14 +82,14 @@ namespace net {
 
     string ip() const;
     string ip6() const;
-    string downspeed(int minwidth = 3) const;
-    string upspeed(int minwidth = 3) const;
+    string downspeed(int minwidth = 3, const string& unit = "B/s") const;
+    string upspeed(int minwidth = 3, const string& unit = "B/s") const;
     void set_unknown_up(bool unknown = true);
 
    protected:
     void check_tuntap_or_bridge();
     bool test_interface() const;
-    string format_speedrate(float bytes_diff, int minwidth) const;
+    string format_speedrate(float bytes_diff, int minwidth, const string& unit) const;
     void query_ip6();
 
     const logger& m_log;

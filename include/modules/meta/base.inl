@@ -17,6 +17,7 @@ namespace modules {
       , m_log(logger::make())
       , m_conf(config::make())
       , m_name("module/" + name)
+      , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true)) {}
@@ -38,6 +39,16 @@ namespace modules {
   template <typename Impl>
   string module<Impl>::name() const {
     return m_name;
+  }
+
+  template <typename Impl>
+  string module<Impl>::name_raw() const {
+    return m_name_raw;
+  }
+
+  template <typename Impl>
+  string module<Impl>::type() const {
+    return string(Impl::TYPE);
   }
 
   template <typename Impl>
@@ -90,6 +101,12 @@ namespace modules {
       m_changed = false;
     }
     return m_cache;
+  }
+
+  template <typename Impl>
+  bool module<Impl>::input(const string&, const string&) {
+    // By default a module doesn't support inputs
+    return false;
   }
 
   // }}}

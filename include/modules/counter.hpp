@@ -12,11 +12,13 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/counter";
+
    private:
     static constexpr auto TAG_COUNTER = "<counter>";
 
     int m_counter{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

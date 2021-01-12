@@ -55,7 +55,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 #if WITH_XCURSOR
                 , signals::ui::cursor_change
 #endif
-		> {
+    > {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(bool only_initialize_values = false);

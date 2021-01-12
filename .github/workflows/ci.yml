@@ -1,0 +1,98 @@
+name: CI
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'ref'
+        required: false
+  push:
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-20.04
+    env:
+      COLOR: "ON"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      - name: Install Dependencies
+        run: sudo apt-get install -y python3-sphinx
+      - name: Build Documentation
+        run: |
+          mkdir -p doc/build
+          cd doc/build
+          cmake ..
+          make doc
+
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        cxx: [g++, clang++]
+        polybar_build_type: ["full"]
+        build_type: ["Release"]
+        include:
+          - cxx: g++
+            polybar_build_type: "tests"
+            build_type: "Coverage"
+          - cxx: g++
+            polybar_build_type: "minimal"
+            build_type: "Release"
+    env:
+      CXX: ${{ matrix.cxx }}
+      BUILD_TYPE: ${{ matrix.build_type }}
+      POLYBAR_BUILD_TYPE: ${{ matrix.polybar_build_type }}
+      POLYBAR_DIR: ${{ github.workspace }}
+      BUILD_DIR: "${{ github.workspace}}/build"
+      MAKEFLAGS: "-j4"
+      COLOR: "ON"
+    steps:
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-composite0-dev \
+            libxcb-ewmh-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-randr0-dev \
+            libxcb-util0-dev \
+            libxcb1-dev \
+            libcairo2-dev \
+            python3-xcbgen \
+            xcb-proto
+
+          if [ "$POLYBAR_BUILD_TYPE" != "minimal" ]; then
+            sudo apt-get install -y \
+              libxcb-xkb-dev \
+              libxcb-cursor-dev \
+              libxcb-xrm-dev \
+              i3-wm \
+              libcurl4-openssl-dev \
+              libjsoncpp-dev \
+              libasound2-dev \
+              libpulse-dev \
+              libiw-dev \
+              libmpdclient-dev
+          fi
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          ref: ${{ github.event.inputs.ref }}
+      - name: Summary
+        run: ./common/ci/summary.sh
+      - name: Configure
+        run: ./common/ci/configure.sh
+      - name: Build
+        run: |
+          cd $BUILD_DIR
+          make
+      - name: Tests
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        run: |
+          cd $BUILD_DIR
+          make check
+          cd $POLYBAR_DIR
+          bash <(curl -s https://codecov.io/bash) -F unittests -a "-ap" -Z
