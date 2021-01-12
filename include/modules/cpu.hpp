@@ -30,7 +30,7 @@ namespace modules {
     static constexpr auto TYPE = "internal/cpu";
 
    protected:
-    void start();
+    void start() override;
     bool read_values();
     float get_load(size_t core) const;
     void subthread();
