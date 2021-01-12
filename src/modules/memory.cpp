@@ -101,7 +101,9 @@ namespace modules {
 
     // replace tokens
     const auto replace_tokens = [&](const auto& label) {
-      if(!label) return;
+      if(!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%gb_used%", string_util::filesize_gib(kb_total - kb_avail, 2, m_bar.locale));
       label->replace_token("%gb_free%", string_util::filesize_gib(kb_avail, 2, m_bar.locale));

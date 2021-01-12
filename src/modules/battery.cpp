@@ -226,7 +226,9 @@ namespace modules {
     m_percentage = percentage;
 
     const auto replace_tokens = [&](const auto& label) {
-      if (!label) return;
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(clamp_percentage(m_percentage, m_state)));
       label->replace_token("%percentage_raw%", to_string(m_percentage));

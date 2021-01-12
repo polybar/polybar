@@ -64,7 +64,9 @@ namespace modules {
     }
 
     const auto replace_tokens = [&](const auto& label) {
-      if (!label) return;
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
