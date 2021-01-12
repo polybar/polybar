@@ -1,10 +1,14 @@
 #include "common/test.hpp"
-#include "common/config_test.hpp"
 #include "drawtypes/labellist.hpp"
 #include "utils/factory.hpp"
 
 using namespace polybar;
 using namespace polybar::drawtypes;
+
+std::string get_text(label_t label) {
+  label->reset_tokens();
+  return label->get();
+}
 
 TEST(LabelList, load) {
   logger log(loglevel::NONE);

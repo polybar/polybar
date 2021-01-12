@@ -15,8 +15,6 @@ namespace drawtypes {
       : m_labels(move(labels)) {}
     void reset_tokens();
     void replace_token(const string& token, const string& replacement);
-    label_t get_template();
-    void apply_template();
 
    protected:
     vector<label_t> m_labels;

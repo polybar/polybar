@@ -169,10 +169,7 @@ namespace modules {
   }
 
   /**
-   * Subthread runner that emits update events to refresh animations
-   * in case they are used. Note, that it is ok to
-   * use a single thread, because the two animations are never shown at the
-   * same time.
+   * Subthread runner that emits update events to refresh animations in case they are used.
    */
   void cpu_module::subthread() {
     m_log.trace("%s: Start of subthread", name());

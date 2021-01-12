@@ -1,5 +1,4 @@
 #include "common/test.hpp"
-#include "common/config_test.hpp"
 #include "drawtypes/ramp.hpp"
 #include "utils/factory.hpp"
 

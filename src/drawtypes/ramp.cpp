@@ -50,7 +50,7 @@ namespace drawtypes {
 
     load_labellist(vec, conf, section, name, required);
 
-    return factory_util::shared<drawtypes::ramp>(move(vec), move(tmplate));
+    return factory_util::shared<drawtypes::ramp>(move(vec));
   }
 }
 

@@ -109,7 +109,7 @@ namespace modules {
         mount->percentage_free = math_util::percentage<double>(mount->bytes_avail, mount->bytes_used + mount->bytes_avail);
         mount->percentage_used = math_util::percentage<double>(mount->bytes_used, mount->bytes_used + mount->bytes_avail);
 
-        const auto replace_tokens = [&](label_t& label) {
+        const auto replace_tokens = [&](const auto& label) {
           if (!label) return;
           label->reset_tokens();
           label->replace_token("%mountpoint%", mount->mountpoint);
@@ -126,14 +126,8 @@ namespace modules {
         };
         replace_tokens(m_labelmounted);
         replace_tokens(m_labelwarn);
-        if (m_labelunmounted) {
-          m_labelunmounted->reset_tokens();
-          m_labelunmounted->replace_token("%mountpoint%", mount->mountpoint);
-        }
-        if (m_rampcapacity) {
-          replace_tokens(m_rampcapacity->get_template());
-          m_rampcapacity->apply_template();
-        }
+        replace_tokens(m_labelunmounted);
+        replace_tokens(m_rampcapacity);
       }
     }
 
