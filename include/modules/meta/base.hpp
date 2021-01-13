@@ -42,9 +42,12 @@ class config;
 class logger;
 class signal_emitter;
 
+template <typename Impl>
+class action_router;
 // }}}
 
 namespace modules {
+
   using namespace drawtypes;
 
   DEFINE_ERROR(module_error);
@@ -114,6 +117,8 @@ namespace modules {
     virtual string name_raw() const = 0;
     virtual string name() const = 0;
     virtual bool running() const = 0;
+    virtual bool visible() const = 0;
+    virtual void set_visible(bool value) = 0;
 
     /**
      * Handle action, possibly with data attached
@@ -140,17 +145,21 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
-    string type() const;
+    string type() const override;
 
-    string name_raw() const;
-    string name() const;
-    bool running() const;
-    void stop();
-    void halt(string error_message);
+    string name_raw() const override;
+    string name() const override;
+    bool running() const override;
+
+    bool visible() const override;
+    void set_visible(bool value) override;
+
+    void stop() override;
+    void halt(string error_message) override;
     void teardown();
-    string contents();
+    string contents() override;
 
-    bool input(const string& action, const string& data);
+    bool input(const string& action, const string& data) final override;
 
    protected:
     void broadcast();
@@ -168,6 +177,8 @@ namespace modules {
     const logger& m_log;
     const config& m_conf;
 
+    unique_ptr<action_router<Impl>> m_router;
+
     mutex m_buildlock;
     mutex m_updatelock;
     mutex m_sleeplock;
@@ -184,6 +195,7 @@ namespace modules {
 
    private:
     atomic<bool> m_enabled{true};
+    atomic<bool> m_visible{true};
     atomic<bool> m_changed{true};
     string m_cache;
   };

@@ -3,9 +3,8 @@
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/factory.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -16,6 +15,32 @@ namespace modules {
       : timer_module<network_module>(bar, move(name_)) {
     // Load configuration values
     m_interface = m_conf.get(name(), "interface", m_interface);
+
+    if (m_interface.empty()) {
+      std::string type = m_conf.get(name(), "interface-type");
+      if (type == "wired") {
+        m_interface = net::find_wired_interface();
+        if (!m_interface.empty()) {
+          m_log.notice("%s: Discovered wired interface %s", name(), m_interface);
+        }
+      } else if (type == "wireless") {
+        m_interface = net::find_wireless_interface();
+        if (!m_interface.empty()) {
+          m_log.notice("%s: Discovered wireless interface %s", name(), m_interface);
+        }
+      } else {
+        throw module_error("Invalid interface type '" + type + "'");
+      }
+
+      if (m_interface.empty()) {
+        throw module_error("No interface found for type '" + type + "'");
+      }
+    }
+
+    if (m_interface.empty()) {
+      throw module_error("missing 'interface' or 'interface-type'");
+    }
+
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
@@ -189,6 +214,6 @@ namespace modules {
 
     m_log.trace("%s: Reached end of network subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

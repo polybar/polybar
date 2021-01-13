@@ -25,6 +25,9 @@ namespace modules {
 
   backlight_module::backlight_module(const bar_settings& bar, string name_)
       : inotify_module<backlight_module>(bar, move(name_)) {
+    m_router->register_action(EVENT_DEC, &backlight_module::action_dec);
+    m_router->register_action(EVENT_INC, &backlight_module::action_inc);
+
     auto card = m_conf.get(name(), "card");
 
     // Get flag to check if we should add scroll handlers for changing value
@@ -117,18 +120,16 @@ namespace modules {
     return true;
   }
 
-  bool backlight_module::input(const string& action, const string&) {
-    double value_mod{0.0};
+  void backlight_module::action_inc() {
+    change_value(5);
+  }
 
-    if (action == EVENT_INC) {
-      value_mod = 5.0;
-    } else if (action == EVENT_DEC) {
-      value_mod = -5.0;
-    } else {
-      return false;
-    }
+  void backlight_module::action_dec() {
+    change_value(-5);
+  }
 
-    m_log.info("%s: Changing value by %f%", name(), value_mod);
+  void backlight_module::change_value(int value_mod) {
+    m_log.info("%s: Changing value by %d%", name(), value_mod);
 
     try {
       int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
@@ -140,8 +141,6 @@ namespace modules {
           "configuration. Please read the module documentation.\n(reason: %s)",
           name(), err.what());
     }
-
-    return true;
   }
 }  // namespace modules
 

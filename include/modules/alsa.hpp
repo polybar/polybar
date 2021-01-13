@@ -36,7 +36,15 @@ namespace modules {
     static constexpr auto EVENT_TOGGLE = "toggle";
 
    protected:
-    bool input(const string& action, const string& data);
+    void action_inc();
+    void action_dec();
+    void action_toggle();
+
+    void change_volume(int interval);
+
+    void action_epilogue(const vector<mixer_t>& mixers);
+
+    vector<mixer_t> get_mixers();
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";

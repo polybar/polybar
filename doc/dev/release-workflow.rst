@@ -158,7 +158,7 @@ anything.
 For all releases, a new section of the following form should be created below
 the ``Unreleased`` section:
 
-.. code-block::
+.. code-block:: md
 
   ## [X.Y.Z] - YYYY-MM-DD
 
@@ -166,7 +166,7 @@ In addition, the reference link for the release should be added and the
 reference link for the unreleased section should be updated at the bottom of the
 document:
 
-.. code-block::
+.. code-block:: md
 
   [Unreleased]: https://github.com/polybar/polybar/compare/X.Y.Z...HEAD
   [X.Y.Z]: https://github.com/polybar/polybar/releases/tag/X.Y.Z
@@ -201,9 +201,15 @@ After-Release Checklist
   We have a GitHub action workflow called 'Release Workflow' that on every
   release automatically creates a release archive, uploads it to the release,
   and adds a 'Download' section to the release body.
-  If this fails for some reason, it should be triggered be triggered manually.
+  If this fails for some reason, it should be triggered manually.
 * Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
   ``polybar-git`` packages (push after the release archive is uploaded).
+* Close the `GitHub Milestone <https://github.com/polybar/polybar/milestones>`_
+  for the new release and move open issues (if any) to a later release.
+* Activate the version on `Read the Docs
+  <https://readthedocs.org/projects/polybar/versions/>`_ and deactivate all
+  previous versions for the same minor release (e.g. for 3.5.4, deactivate all
+  other 3.5.X versions).
 
 Deprecations
 ~~~~~~~~~~~~

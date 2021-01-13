@@ -15,25 +15,29 @@ namespace modules {
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
     static constexpr auto TYPE = MODULE_TYPE;                                           \
-    string type() const {                                                               \
+    string type() const override {                                                      \
       return "";                                                                        \
     }                                                                                   \
-    string name_raw() const {                                                           \
+    string name_raw() const override {                                                  \
       return "";                                                                        \
     }                                                                                   \
-    string name() const {                                                               \
+    string name() const override {                                                      \
       return "";                                                                        \
     }                                                                                   \
-    bool running() const {                                                              \
+    bool running() const override {                                                     \
       return false;                                                                     \
     }                                                                                   \
-    void start() {}                                                                     \
-    void stop() {}                                                                      \
-    void halt(string) {}                                                                \
-    string contents() {                                                                 \
+    bool visible() const override {                                                     \
+      return false;                                                                     \
+    }                                                                                   \
+    void set_visible(bool) override {}                                                  \
+    void start() override {}                                                            \
+    void stop() override {}                                                             \
+    void halt(string) override {}                                                       \
+    string contents() override {                                                        \
       return "";                                                                        \
     }                                                                                   \
-    bool input(const string&, const string&) {                                          \
+    bool input(const string&, const string&) override {                                 \
       return false;                                                                     \
     }                                                                                   \
   }

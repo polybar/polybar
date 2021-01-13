@@ -77,6 +77,8 @@ tray-padding = 2
 cursor-click = pointer
 cursor-scroll = ns-resize
 
+enable-ipc = true
+
 [module/xwindow]
 type = internal/xwindow
 label = %title:0:30:...%
@@ -271,6 +273,8 @@ format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #0a6cf5
 
 label = %date% %time%
+
+;hidden = true
 
 [module/pulseaudio]
 type = internal/pulseaudio

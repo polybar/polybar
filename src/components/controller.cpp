@@ -472,8 +472,6 @@ bool controller::try_forward_legacy_action(const string& cmd) {
       for (auto&& module : m_modules) {
         if (module->type() == type) {
           auto module_name = module->name_raw();
-          // TODO make this message more descriptive and maybe link to some documentation
-          // TODO use route to string methods to print action name that should be used.
           if (data.empty()) {
             m_log.warn("The action '%s' is deprecated, use '#%s.%s' instead!", cmd, module_name, action);
           } else {
@@ -528,6 +526,26 @@ bool controller::forward_action(const actions_util::action& action_triple) {
     m_log.info("Delivered action to %d module%s", num_delivered, num_delivered > 1 ? "s" : "");
   }
   return true;
+}
+
+void controller::switch_module_visibility(string module_name_raw, int visible) {
+  for (auto&& mod : m_modules) {
+    if (mod->name_raw() != module_name_raw)
+      continue;
+
+    if (visible == 0) {
+      mod->set_visible(false);
+    } else if (visible == 1) {
+      mod->set_visible(true);
+    } else if (visible == 2) {
+      mod->set_visible(!mod->visible());
+    }
+
+    return;
+  }
+
+  m_log.err("controller: Module '%s' not found for visibility change (state=%s)", module_name_raw,
+      visible ? "shown" : "hidden");
 }
 
 /**
@@ -600,7 +618,7 @@ bool controller::process_update(bool force) {
     }
 
     for (const auto& module : block.second) {
-      if (!module->running()) {
+      if (!module->running() || !module->visible()) {
         continue;
       }
 
@@ -646,16 +664,7 @@ bool controller::process_update(bool force) {
       block_contents += padding_right;
     }
 
-    // Strip unnecessary reset tags
-    block_contents = string_util::replace_all(block_contents, "T-}%{T", "T");
-    block_contents = string_util::replace_all(block_contents, "B-}%{B#", "B#");
-    block_contents = string_util::replace_all(block_contents, "F-}%{F#", "F#");
-    block_contents = string_util::replace_all(block_contents, "U-}%{U#", "U#");
-    block_contents = string_util::replace_all(block_contents, "u-}%{u#", "u#");
-    block_contents = string_util::replace_all(block_contents, "o-}%{o#", "o#");
-
-    // Join consecutive tags
-    contents += string_util::replace_all(block_contents, "}%{", " ");
+    contents += block_contents;
   }
 
   try {
@@ -675,8 +684,6 @@ bool controller::process_update(bool force) {
  * Creates module instances for all the modules in the given alignment block
  */
 size_t controller::setup_modules(alignment align) {
-  size_t count{0};
-
   string key;
 
   switch (align) {
@@ -720,13 +727,12 @@ size_t controller::setup_modules(alignment align) {
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
-      count++;
-    } catch (const runtime_error& err) {
+    } catch (const std::exception& err) {
       m_log.err("Disabling module \"%s\" (reason: %s)", module_name, err.what());
     }
   }
 
-  return count;
+  return m_modules.size();
 }
 
 /**
@@ -833,6 +839,10 @@ bool controller::on(const signals::ipc::command& evt) {
     return false;
   }
 
+  string hide_module{"hide."};
+  string show_module{"show."};
+  string toggle_module{"toggle."};
+
   if (command == "quit") {
     enqueue(make_quit_evt(false));
   } else if (command == "restart") {
@@ -843,6 +853,12 @@ bool controller::on(const signals::ipc::command& evt) {
     m_bar->show();
   } else if (command == "toggle") {
     m_bar->toggle();
+  } else if (command.find(hide_module) == 0) {
+    switch_module_visibility(command.substr(hide_module.length()), 0);
+  } else if (command.find(show_module) == 0) {
+    switch_module_visibility(command.substr(show_module.length()), 1);
+  } else if (command.find(toggle_module) == 0) {
+    switch_module_visibility(command.substr(toggle_module.length()), 2);
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
   }

@@ -41,7 +41,7 @@ namespace modules {
    public:
     explicit bspwm_module(const bar_settings&, string);
 
-    void stop();
+    void stop() override;
     bool has_event();
     bool update();
     string get_output();
@@ -54,7 +54,12 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    bool input(const string& action, const string& data);
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
+
+    void focus_direction(bool next);
+    void send_command(const string& payload_cmd, const string& log_info);
 
    private:
     bool handle_status(string& data);

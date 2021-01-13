@@ -35,6 +35,10 @@ namespace modules {
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
+    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::action_focus);
+    m_router->register_action(EVENT_NEXT, &xworkspaces_module::action_next);
+    m_router->register_action(EVENT_PREV, &xworkspaces_module::action_prev);
+
     // Load config values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
@@ -119,9 +123,8 @@ namespace modules {
       m_current_desktop_name = m_desktop_names[m_current_desktop];
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
-      if (icccm_util::get_wm_urgency(m_connection, evt->window)) {
-        set_desktop_urgent(evt->window);
-      }
+      rebuild_urgent_hints();
+      rebuild_desktop_states();
     } else {
       return;
     }
@@ -145,8 +148,24 @@ namespace modules {
 
     // rebuild entire mapping of clients to desktops
     m_clients.clear();
+    m_windows.clear();
     for (auto&& client : newclients) {
-      m_clients[client] = ewmh_util::get_desktop_from_window(client);
+      auto desk = ewmh_util::get_desktop_from_window(client);
+      m_clients[client] = desk;
+      m_windows[desk]++;
+    }
+
+    rebuild_urgent_hints();
+  }
+
+  /**
+   * Goes through all clients and updates the urgent hints on the desktop they are on.
+   */
+  void xworkspaces_module::rebuild_urgent_hints() {
+    m_urgent_desktops.assign(m_desktop_names.size(), false);
+    for (auto&& client : ewmh_util::get_client_list()) {
+      auto desk = ewmh_util::get_desktop_from_window(client);
+      m_urgent_desktops[desk] = m_urgent_desktops[desk] || icccm_util::get_wm_urgency(m_connection, client);
     }
   }
 
@@ -243,7 +262,9 @@ namespace modules {
 
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
-        if (d->index == m_current_desktop) {
+        if (m_urgent_desktops[d->index]) {
+          d->state = desktop_state::URGENT;
+        } else if (d->index == m_current_desktop) {
           d->state = desktop_state::ACTIVE;
         } else if (occupied_desks.count(d->index) > 0) {
           d->state = desktop_state::OCCUPIED;
@@ -255,6 +276,7 @@ namespace modules {
         d->label->reset_tokens();
         d->label->replace_token("%index%", to_string(d->index + 1));
         d->label->replace_token("%name%", m_desktop_names[d->index]);
+        d->label->replace_token("%nwin%", to_string(m_windows[d->index]));
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
@@ -273,30 +295,6 @@ namespace modules {
       names.insert(names.end(), to_string(i + 1));
     }
     return names;
-  }
-
-  /**
-   * Find window and set corresponding desktop to urgent
-   */
-  void xworkspaces_module::set_desktop_urgent(xcb_window_t window) {
-    auto desk = ewmh_util::get_desktop_from_window(window);
-    if (desk == m_current_desktop)
-      // ignore if current desktop is urgent
-      return;
-    for (auto&& v : m_viewports) {
-      for (auto&& d : v->desktops) {
-        if (d->index == desk && d->state != desktop_state::URGENT) {
-          d->state = desktop_state::URGENT;
-
-          d->label = m_labels.at(d->state)->clone();
-          d->label->reset_tokens();
-          d->label->replace_token("%index%", to_string(d->index + 1));
-          d->label->replace_token("%name%", m_desktop_names[d->index]);
-          d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
-          return;
-        }
-      }
-    }
   }
 
   /**
@@ -363,12 +361,21 @@ namespace modules {
     }
   }
 
-  /**
-   * Handle user input event
-   */
-  bool xworkspaces_module::input(const string& action, const string& data) {
+  void xworkspaces_module::action_focus(const string& data) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
+    focus_desktop(std::strtoul(data.c_str(), nullptr, 10));
+  }
 
+  void xworkspaces_module::action_next() {
+    focus_direction(true);
+  }
+
+  void xworkspaces_module::action_prev() {
+    focus_direction(false);
+  }
+
+  void xworkspaces_module::focus_direction(bool next) {
+    std::lock_guard<std::mutex> lock(m_workspace_mutex);
     vector<unsigned int> indexes;
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
@@ -376,29 +383,28 @@ namespace modules {
       }
     }
 
-    std::sort(indexes.begin(), indexes.end());
-
-    unsigned int new_desktop{0};
+    unsigned new_desktop;
     unsigned int current_desktop{ewmh_util::get_current_desktop()};
 
-    if (action == EVENT_FOCUS) {
-      new_desktop = std::strtoul(data.c_str(), nullptr, 10);
-    } else if (action == EVENT_NEXT) {
+    if (next) {
       new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
       new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else if (action == EVENT_PREV) {
+    } else {
       new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
       new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
     }
 
+    focus_desktop(new_desktop);
+  }
+
+  void xworkspaces_module::focus_desktop(unsigned new_desktop) {
+    unsigned int current_desktop{ewmh_util::get_current_desktop()};
     if (new_desktop != current_desktop) {
       m_log.info("%s: Requesting change to desktop #%u", name(), new_desktop);
       ewmh_util::change_current_desktop(new_desktop);
     } else {
       m_log.info("%s: Ignoring change to current desktop", name());
     }
-
-    return true;
   }
 }  // namespace modules
 

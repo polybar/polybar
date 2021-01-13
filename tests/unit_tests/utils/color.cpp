@@ -9,7 +9,10 @@ TEST(Rgba, constructor) {
 
   EXPECT_FALSE(rgba("#f").has_color());
 
-  EXPECT_EQ(rgba::ALPHA_ONLY, rgba{"#12"}.type());
+  EXPECT_FALSE(rgba("#-abc").has_color());
+  EXPECT_FALSE(rgba("#xyz").has_color());
+
+  EXPECT_EQ(rgba::type::ALPHA_ONLY, rgba{"#12"}.type());
 
   EXPECT_EQ(0xff000000, rgba{"#ff"}.value());
 
@@ -49,22 +52,22 @@ TEST(Rgba, string) {
 }
 
 TEST(Rgba, eq) {
-  rgba v(0x12, rgba::NONE);
+  rgba v(0x12, rgba::type::NONE);
 
-  EXPECT_TRUE(v == rgba(0, rgba::NONE));
-  EXPECT_TRUE(v == rgba(0x11, rgba::NONE));
+  EXPECT_TRUE(v == rgba(0, rgba::type::NONE));
+  EXPECT_TRUE(v == rgba(0x11, rgba::type::NONE));
   EXPECT_FALSE(v == rgba{0x123456});
 
   v = rgba{0xCC123456};
 
   EXPECT_TRUE(v == rgba{0xCC123456});
-  EXPECT_FALSE(v == rgba(0xCC123456, rgba::NONE));
+  EXPECT_FALSE(v == rgba(0xCC123456, rgba::type::NONE));
 
   v = rgba{"#aa"};
 
-  EXPECT_TRUE(v == rgba(0xaa000000, rgba::ALPHA_ONLY));
-  EXPECT_FALSE(v == rgba(0xaa000000, rgba::ARGB));
-  EXPECT_FALSE(v == rgba(0xab000000, rgba::ALPHA_ONLY));
+  EXPECT_TRUE(v == rgba(0xaa000000, rgba::type::ALPHA_ONLY));
+  EXPECT_FALSE(v == rgba(0xaa000000, rgba::type::ARGB));
+  EXPECT_FALSE(v == rgba(0xab000000, rgba::type::ALPHA_ONLY));
 }
 
 TEST(Rgba, hasColor) {
@@ -80,7 +83,7 @@ TEST(Rgba, hasColor) {
 
   EXPECT_TRUE(v.has_color());
 
-  v = rgba(0x1243, rgba::NONE);
+  v = rgba(0x1243, rgba::type::NONE);
 
   EXPECT_FALSE(v.has_color());
 }
@@ -97,8 +100,8 @@ TEST(Rgba, channel) {
 }
 
 TEST(Rgba, applyAlphaTo) {
-  rgba v{0xAA000000, rgba::ALPHA_ONLY};
-  rgba modified = v.apply_alpha_to(rgba{0xCC123456, rgba::ALPHA_ONLY});
+  rgba v{0xAA000000, rgba::type::ALPHA_ONLY};
+  rgba modified = v.apply_alpha_to(rgba{0xCC123456});
   EXPECT_EQ(0xAA123456, modified.value());
 
   v = rgba{0xCC999999};
@@ -107,8 +110,8 @@ TEST(Rgba, applyAlphaTo) {
 }
 
 TEST(Rgba, tryApplyAlphaTo) {
-  rgba v{0xAA000000, rgba::ALPHA_ONLY};
-  rgba modified = v.try_apply_alpha_to(rgba{0xCC123456, rgba::ALPHA_ONLY});
+  rgba v{0xAA000000, rgba::type::ALPHA_ONLY};
+  rgba modified = v.try_apply_alpha_to(rgba{0xCC123456});
   EXPECT_EQ(0xAA123456, modified.value());
 
   v = rgba{0xCC999999};

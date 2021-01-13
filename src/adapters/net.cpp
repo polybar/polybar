@@ -1,6 +1,7 @@
 #include "adapters/net.hpp"
 
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <linux/ethtool.h>
 #include <linux/if_link.h>
 #include <linux/sockios.h>
@@ -9,6 +10,9 @@
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+
+#include <iomanip>
 
 #include <iomanip>
 
@@ -21,14 +25,65 @@
 POLYBAR_NS
 
 namespace net {
+  enum class NetType {
+    WIRELESS,
+    ETHERNET,
+    OTHER,
+  };
+
+  static const string NO_IP = string("N/A");
+  static const string NET_PATH = "/sys/class/net/";
+  static const string VIRTUAL_PATH = "/sys/devices/virtual/";
+
+  static bool is_virtual(const std::string& ifname) {
+    char* target = realpath((NET_PATH + ifname).c_str(), nullptr);
+    const std::string real_path{target};
+    free(target);
+    return real_path.rfind(VIRTUAL_PATH, 0) == 0;
+  }
+
+  NetType iface_type(const std::string& ifname) {
+    if (file_util::exists(NET_PATH + ifname + "/wireless")) {
+      return NetType::WIRELESS;
+    }
+
+    if (is_virtual(ifname)) {
+      return NetType::OTHER;
+    }
+
+    return NetType::ETHERNET;
+  }
+
   /**
    * Test if interface with given name is a wireless device
    */
   bool is_wireless_interface(const string& ifname) {
-    return file_util::exists("/sys/class/net/" + ifname + "/wireless");
+    return iface_type(ifname) == NetType::WIRELESS;
   }
 
-  static const string NO_IP = string("N/A");
+  std::string find_interface(NetType type) {
+    struct ifaddrs* ifaddrs;
+    getifaddrs(&ifaddrs);
+    for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
+      const std::string name{i->ifa_name};
+      const NetType iftype = iface_type(name);
+      if (iftype != type) {
+        continue;
+      }
+      freeifaddrs(ifaddrs);
+      return name;
+    }
+    freeifaddrs(ifaddrs);
+    return "";
+  }
+
+  std::string find_wireless_interface() {
+    return find_interface(NetType::WIRELESS);
+  }
+
+  std::string find_wired_interface() {
+    return find_interface(NetType::ETHERNET);
+  }
 
   // class : network {{{
 
@@ -215,7 +270,7 @@ namespace net {
    * Test if the network interface is in a valid state
    */
   bool network::test_interface() const {
-    auto operstate = file_util::contents("/sys/class/net/" + m_interface + "/operstate");
+    auto operstate = file_util::contents(NET_PATH + m_interface + "/operstate");
     bool up = operstate.compare(0, 2, "up") == 0;
     return m_unknown_up ? (up || operstate.compare(0, 7, "unknown") == 0) : up;
   }

@@ -13,11 +13,25 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+from pathlib import Path
 import datetime
-import subprocess
-from docutils.nodes import Node
 from typing import List
+from docutils.nodes import Node
 from sphinx.domains.changeset import VersionChange
+import packaging.version
+
+def get_version(root_path):
+  """
+  Reads the polybar version from the version.txt at the root of the repo.
+  """
+  path = Path(root_path) / "version.txt"
+  with open(path, "r") as f:
+    for line in f.readlines():
+      if not line.startswith("#"):
+        return packaging.version.parse(line)
+
+  raise RuntimeError("No version found in {}".format(path))
+
 
 
 # -- Project information -----------------------------------------------------
@@ -49,6 +63,11 @@ else:
   # In all other builds conf.py is configured with cmake and put into the
   # build folder.
   doc_path = '@doc_path@'
+
+# The version from the version.txt file. Since we are not always first
+# configured by cmake, we don't necessarily have access to the current version
+# number
+version_txt = get_version(Path(doc_path).absolute().parent)
 
 # -- General configuration ---------------------------------------------------
 
@@ -213,12 +232,9 @@ class VersionDirective(VersionChange):
   deprecated and adds an unreleased tag to versions that are not yet released
   """
   def run(self) -> List[Node]:
-    # If the tag exists 'git rev-parse' will succeed and otherwise fail
-    completed = subprocess.run(["git", "rev-parse", self.arguments[0]],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=doc_path,
-        check=False)
+    directive_version = packaging.version.parse(self.arguments[0])
 
-    if completed.returncode != 0:
+    if directive_version > version_txt:
       self.arguments[0] += " (unreleased)"
 
     return super().run()

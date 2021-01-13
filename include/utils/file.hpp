@@ -67,9 +67,9 @@ class fd_streambuf : public std::streambuf {
   void close();
 
  protected:
-  int sync();
-  int overflow(int c);
-  int underflow();
+  int sync() override;
+  int overflow(int c) override;
+  int underflow() override;
 
  private:
   file_descriptor m_fd;

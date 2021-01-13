@@ -9,6 +9,8 @@
 #include "utils/time.hpp"
 POLYBAR_NS
 
+using namespace tags;
+
 builder::builder(const bar_settings& bar) : m_bar(bar) {
   reset();
 }
@@ -18,7 +20,6 @@ void builder::reset() {
    * the map
    */
   m_tags.clear();
-  m_tags[syntaxtag::NONE] = 0;
   m_tags[syntaxtag::A] = 0;
   m_tags[syntaxtag::B] = 0;
   m_tags[syntaxtag::F] = 0;
@@ -451,8 +452,6 @@ void builder::tag_open(syntaxtag tag, const string& value) {
   m_tags[tag]++;
 
   switch (tag) {
-    case syntaxtag::NONE:
-      break;
     case syntaxtag::A:
       append("%{A" + value + "}");
       break;
@@ -479,6 +478,15 @@ void builder::tag_open(syntaxtag tag, const string& value) {
       break;
     case syntaxtag::P:
       append("%{P" + value + "}");
+      break;
+    case syntaxtag::l:
+      append("%{l}");
+      break;
+    case syntaxtag::c:
+      append("%{c}");
+      break;
+    case syntaxtag::r:
+      append("%{r}");
       break;
   }
 }
@@ -534,10 +542,12 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::o:
       append("%{o-}");
       break;
-    case syntaxtag::NONE:
     case syntaxtag::R:
     case syntaxtag::P:
     case syntaxtag::O:
+    case syntaxtag::l:
+    case syntaxtag::c:
+    case syntaxtag::r:
       break;
   }
 }

@@ -32,7 +32,9 @@ places in the following order:
 * If the ``-c`` or ``--config`` command line argument is specified, it will use
   the path given there.
 * ``$XDG_CONFIG_HOME/polybar/config``
+* ``$XDG_CONFIG_HOME/polybar/config.ini``
 * ``$HOME/.config/polybar/config``
+* ``$HOME/.config/polybar/config.ini``
 
 Syntax
 ------

@@ -4,6 +4,7 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
+#include "tags/types.hpp"
 POLYBAR_NS
 
 using std::map;
@@ -47,7 +48,7 @@ class builder {
   void overline_close();
   void underline(const rgba& color = rgba{});
   void underline_close();
-  void control(controltag tag);
+  void control(tags::controltag tag);
   void action(mousebtn index, string action);
   void action(mousebtn btn, const modules::module_interface& module, string action, string data);
   void action(mousebtn index, string action, const label_t& label);
@@ -55,19 +56,18 @@ class builder {
   void action_close();
 
  protected:
-
-  void tag_open(syntaxtag tag, const string& value);
-  void tag_open(attribute attr);
-  void tag_close(syntaxtag tag);
-  void tag_close(attribute attr);
+  void tag_open(tags::syntaxtag tag, const string& value);
+  void tag_open(tags::attribute attr);
+  void tag_close(tags::syntaxtag tag);
+  void tag_close(tags::attribute attr);
 
  private:
   const bar_settings m_bar;
   string m_output;
 
-  map<syntaxtag, int> m_tags{};
-  map<syntaxtag, string> m_colors{};
-  map<attribute, bool> m_attrs{};
+  map<tags::syntaxtag, int> m_tags{};
+  map<tags::syntaxtag, string> m_colors{};
+  map<tags::attribute, bool> m_attrs{};
 
   int m_fontindex{0};
 };

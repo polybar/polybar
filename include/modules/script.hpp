@@ -12,8 +12,8 @@ namespace modules {
     explicit script_module(const bar_settings&, string);
     ~script_module() {}
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
     string get_output();
     bool build(builder* builder, const string& tag) const;

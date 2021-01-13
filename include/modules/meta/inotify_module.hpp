@@ -11,7 +11,7 @@ namespace modules {
    public:
     using module<Impl>::module;
 
-    void start() {
+    void start() override {
       this->m_mainthread = thread(&inotify_module::runner, this);
     }
 
@@ -88,6 +88,6 @@ namespace modules {
    private:
     map<string, int> m_watchlist;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

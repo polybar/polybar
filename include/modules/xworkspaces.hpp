@@ -65,14 +65,19 @@ namespace modules {
     static constexpr auto EVENT_PREV = "prev";
 
    protected:
-    void handle(const evt::property_notify& evt);
+    void handle(const evt::property_notify& evt) override;
 
     void rebuild_clientlist();
+    void rebuild_urgent_hints();
     void rebuild_desktops();
     void rebuild_desktop_states();
-    void set_desktop_urgent(xcb_window_t window);
 
-    bool input(const string& action, const string& data);
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
+
+    void focus_direction(bool next);
+    void focus_desktop(unsigned new_desktop);
 
    private:
     static vector<string> get_desktop_names();
@@ -91,6 +96,7 @@ namespace modules {
     bool m_monitorsupport{true};
 
     vector<string> m_desktop_names;
+    vector<bool> m_urgent_desktops;
     unsigned int m_current_desktop;
     string m_current_desktop_name;
 
@@ -98,6 +104,7 @@ namespace modules {
      * Maps an xcb window to its desktop number
      */
     map<xcb_window_t, unsigned int> m_clients;
+    map<unsigned int, unsigned int> m_windows;
     vector<unique_ptr<viewport>> m_viewports;
     map<desktop_state, label_t> m_labels;
     label_t m_monitorlabel;

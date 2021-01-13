@@ -29,7 +29,9 @@ namespace modules {
     static constexpr auto EVENT_EXEC = "exec";
 
    protected:
-    bool input(const string& action, const string& data);
+    void action_open(const string& data);
+    void action_close();
+    void action_exec(const string& item);
 
    private:
     static constexpr auto TAG_LABEL_TOGGLE = "<label-toggle>";

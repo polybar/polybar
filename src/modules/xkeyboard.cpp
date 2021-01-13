@@ -1,11 +1,11 @@
 #include "modules/xkeyboard.hpp"
+
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -25,7 +25,7 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
-
+    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
 
     // Setup extension
     // clang-format off
@@ -81,7 +81,7 @@ namespace modules {
       m_indicator_icons_on = factory_util::shared<iconset>();
 
       auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
-      if(icon_pair.size() == 2) {
+      if (icon_pair.size() == 2) {
         m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
         m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
       } else {
@@ -121,6 +121,7 @@ namespace modules {
     if (m_layout) {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
+      m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
 
       auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
       auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
@@ -141,9 +142,9 @@ namespace modules {
         }
 
         auto indicator_on = m_keyboard->on(it);
-        auto &indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
-        auto &indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
-        auto &indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
+        auto& indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
+        auto& indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
+        auto& indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
 
         label_t indicator;
         if (indicator_labels.find(it) != indicator_labels.end()) {
@@ -191,10 +192,12 @@ namespace modules {
     } else if (tag == TAG_LABEL_INDICATOR && !m_indicators.empty()) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
-        if (n++) {
-          builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        if (*indicator.second) {
+          if (n++) {
+            builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+          }
+          builder->node(indicator.second);
         }
-        builder->node(indicator.second);
       }
       return n > 0;
     } else {
@@ -207,11 +210,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(const string& action, const string&) {
-    if (action != EVENT_SWITCH) {
-      return false;
-    }
-
+  void xkeyboard_module::action_switch() {
     size_t current_group = m_keyboard->current() + 1;
 
     if (current_group >= m_keyboard->size()) {
@@ -223,8 +222,6 @@ namespace modules {
     m_connection.flush();
 
     update();
-
-    return true;
   }
 
   /**
@@ -285,6 +282,6 @@ namespace modules {
       update();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

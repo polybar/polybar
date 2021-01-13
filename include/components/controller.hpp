@@ -58,23 +58,25 @@ class controller
   void process_inputdata();
   bool process_update(bool force);
 
-  bool on(const signals::eventqueue::notify_change& evt);
-  bool on(const signals::eventqueue::notify_forcechange& evt);
-  bool on(const signals::eventqueue::exit_terminate& evt);
-  bool on(const signals::eventqueue::exit_reload& evt);
-  bool on(const signals::eventqueue::check_state& evt);
-  bool on(const signals::ui::ready& evt);
-  bool on(const signals::ui::button_press& evt);
-  bool on(const signals::ipc::action& evt);
-  bool on(const signals::ipc::command& evt);
-  bool on(const signals::ipc::hook& evt);
-  bool on(const signals::ui::update_background& evt);
+  bool on(const signals::eventqueue::notify_change& evt) override;
+  bool on(const signals::eventqueue::notify_forcechange& evt) override;
+  bool on(const signals::eventqueue::exit_terminate& evt) override;
+  bool on(const signals::eventqueue::exit_reload& evt) override;
+  bool on(const signals::eventqueue::check_state& evt) override;
+  bool on(const signals::ui::ready& evt) override;
+  bool on(const signals::ui::button_press& evt) override;
+  bool on(const signals::ipc::action& evt) override;
+  bool on(const signals::ipc::command& evt) override;
+  bool on(const signals::ipc::hook& evt) override;
+  bool on(const signals::ui::update_background& evt) override;
 
  private:
   size_t setup_modules(alignment align);
 
   bool forward_action(const actions_util::action& cmd);
   bool try_forward_legacy_action(const string& cmd);
+
+  void switch_module_visibility(string module_name_raw, int visible);
 
   connection& m_connection;
   signal_emitter& m_sig;

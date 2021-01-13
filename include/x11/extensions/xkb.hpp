@@ -44,7 +44,7 @@ namespace evt {
   using xkb_action_message = xpp::xkb::event::action_message<connection&>;
   using xkb_access_x_notify = xpp::xkb::event::access_x_notify<connection&>;
   using xkb_extension_device_notify = xpp::xkb::event::extension_device_notify<connection&>;
-}
+}  // namespace evt
 
 class keyboard {
  public:
@@ -62,15 +62,18 @@ class keyboard {
   };
 
   explicit keyboard(vector<layout>&& layouts_, map<indicator::type, indicator>&& indicators_, unsigned char group)
-      : layouts(forward<decltype(layouts)>(layouts_)), indicators(forward<decltype(indicators)>(indicators_)), current_group(group) {}
+      : layouts(forward<decltype(layouts)>(layouts_))
+      , indicators(forward<decltype(indicators)>(indicators_))
+      , current_group(group) {}
 
   const indicator& get(const indicator::type& i) const;
   void set(unsigned int state);
   bool on(const indicator::type&) const;
-  void current(unsigned char  group);
+  void current(unsigned char group);
   unsigned char current() const;
   const string group_name(size_t index = 0) const;
   const string layout_name(size_t index = 0) const;
+  const string variant_name(size_t index = 0) const;
   const string indicator_name(const indicator::type&) const;
   size_t size() const;
 
@@ -90,6 +93,6 @@ namespace xkb_util {
   vector<keyboard::layout> get_layouts(connection& conn, xcb_xkb_device_spec_t device);
   map<keyboard::indicator::type, keyboard::indicator> get_indicators(connection& conn, xcb_xkb_device_spec_t device);
   string parse_layout_symbol(string&& name);
-}
+}  // namespace xkb_util
 
 POLYBAR_NS_END

@@ -225,6 +225,10 @@ chrono::duration<double> config::convert(string&& value) const {
 
 template <>
 rgba config::convert(string&& value) const {
+  if (value.empty()) {
+    return rgba{};
+  }
+
   rgba ret{value};
 
   if (!ret.has_color()) {

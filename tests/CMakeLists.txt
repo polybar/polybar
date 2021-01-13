@@ -1,6 +1,3 @@
-include_directories(${dirs})
-include_directories(${CMAKE_CURRENT_LIST_DIR})
-
 # Download and unpack googletest at configure time {{{
 configure_file(
   CMakeLists.txt.in
@@ -39,6 +36,8 @@ function(add_unit_test source_file)
   set(name "unit_test.${testname}")
 
   add_executable(${name} unit_tests/${source_file}.cpp)
+  get_include_dirs(includes_dir)
+  target_include_directories(${name} PRIVATE ${includes_dir} ${CMAKE_CURRENT_LIST_DIR})
 
   # Link against gmock (this automatically links against gtest)
   target_link_libraries(${name} poly gmock_main)
@@ -49,21 +48,22 @@ endfunction()
 configure_file(test_config.ini ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 add_unit_test(utils/actions)
+add_unit_test(utils/action_router)
 add_unit_test(utils/color)
 add_unit_test(utils/command)
-add_unit_test(utils/math unit_tests)
-add_unit_test(utils/memory unit_tests)
-add_unit_test(utils/scope unit_tests)
-add_unit_test(utils/string unit_tests)
+add_unit_test(utils/math)
+add_unit_test(utils/memory)
+add_unit_test(utils/scope)
+add_unit_test(utils/string)
 add_unit_test(utils/file)
 add_unit_test(utils/process)
 add_unit_test(components/command_line)
 add_unit_test(components/bar)
-add_unit_test(components/parser)
 add_unit_test(components/config_parser)
 add_unit_test(drawtypes/label)
 add_unit_test(drawtypes/ramp)
 add_unit_test(drawtypes/iconset)
+add_unit_test(tags/parser)
 
 # Run make check to build and run all unit tests
 add_custom_target(check

@@ -34,11 +34,11 @@ namespace modules {
     bool query_keyboard();
     bool blacklisted(const string& indicator_name);
 
-    void handle(const evt::xkb_new_keyboard_notify& evt);
-    void handle(const evt::xkb_state_notify& evt);
-    void handle(const evt::xkb_indicator_state_notify& evt);
+    void handle(const evt::xkb_new_keyboard_notify& evt) override;
+    void handle(const evt::xkb_state_notify& evt) override;
+    void handle(const evt::xkb_indicator_state_notify& evt) override;
 
-    bool input(const string& action, const string& data);
+    void action_switch();
 
    private:
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};

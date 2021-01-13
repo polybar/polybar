@@ -14,6 +14,17 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
+    m_router->register_action(EVENT_PLAY, &mpd_module::action_play);
+    m_router->register_action(EVENT_PAUSE, &mpd_module::action_pause);
+    m_router->register_action(EVENT_STOP, &mpd_module::action_stop);
+    m_router->register_action(EVENT_PREV, &mpd_module::action_prev);
+    m_router->register_action(EVENT_NEXT, &mpd_module::action_next);
+    m_router->register_action(EVENT_REPEAT, &mpd_module::action_repeat);
+    m_router->register_action(EVENT_SINGLE, &mpd_module::action_single);
+    m_router->register_action(EVENT_RANDOM, &mpd_module::action_random);
+    m_router->register_action(EVENT_CONSUME, &mpd_module::action_consume);
+    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::action_seek);
+
     m_host = m_conf.get(name(), "host", m_host);
     m_port = m_conf.get(name(), "port", m_port);
     m_pass = m_conf.get(name(), "password", m_pass);
@@ -350,59 +361,93 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::input(const string& action, const string& data) {
-    m_log.info("%s: event: %s", name(), action);
+/**
+ * Small macro to create a temporary mpd connection for the action handlers.
+ *
+ * We have to create a separate mpd instance because actions run in the
+ * controller thread and the `m_mpd` pointer is used in the module thread.
+ */
+#define MPD_CONNECT()                                                            \
+  auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
+  mpd->connect();                                                                \
+  auto status = mpd->get_status()
 
-    try {
-      auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
-      mpd->connect();
-
-      auto status = mpd->get_status();
-
-      bool is_playing = status->match_state(mpdstate::PLAYING);
-      bool is_paused = status->match_state(mpdstate::PAUSED);
-      bool is_stopped = status->match_state(mpdstate::STOPPED);
-
-      if (action == EVENT_PLAY && !is_playing) {
-        mpd->play();
-      } else if (action == EVENT_PAUSE && !is_paused) {
-        mpd->pause(true);
-      } else if (action == EVENT_STOP && !is_stopped) {
-        mpd->stop();
-      } else if (action == EVENT_PREV && !is_stopped) {
-        mpd->prev();
-      } else if (action == EVENT_NEXT && !is_stopped) {
-        mpd->next();
-      } else if (action == EVENT_SINGLE) {
-        mpd->set_single(!status->single());
-      } else if (action == EVENT_REPEAT) {
-        mpd->set_repeat(!status->repeat());
-      } else if (action == EVENT_RANDOM) {
-        mpd->set_random(!status->random());
-      } else if (action == EVENT_CONSUME) {
-        mpd->set_consume(!status->consume());
-      } else if (action == EVENT_SEEK) {
-        int percentage = 0;
-        if (data.empty()) {
-          return false;
-        } else if (data[0] == '+') {
-          percentage = status->get_elapsed_percentage() + std::strtol(data.substr(1).c_str(), nullptr, 10);
-        } else if (data[0] == '-') {
-          percentage = status->get_elapsed_percentage() - std::strtol(data.substr(1).c_str(), nullptr, 10);
-        } else {
-          percentage = std::strtol(data.c_str(), nullptr, 10);
-        }
-        mpd->seek(status->get_songid(), status->get_seek_position(percentage));
-      } else {
-        return false;
-      }
-    } catch (const mpd_exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      m_mpd.reset();
+  void mpd_module::action_play() {
+    MPD_CONNECT();
+    if (!status->match_state(mpdstate::PLAYING)) {
+      mpd->play();
     }
-
-    return true;
   }
+
+  void mpd_module::action_pause() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::PAUSED)) {
+      mpd->pause(true);
+    }
+  }
+
+  void mpd_module::action_stop() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->stop();
+    }
+  }
+
+  void mpd_module::action_prev() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->prev();
+    }
+  }
+
+  void mpd_module::action_next() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->next();
+    }
+  }
+
+  void mpd_module::action_repeat() {
+    MPD_CONNECT();
+    mpd->set_repeat(!status->repeat());
+  }
+
+  void mpd_module::action_single() {
+    MPD_CONNECT();
+    mpd->set_single(!status->single());
+  }
+
+  void mpd_module::action_random() {
+    MPD_CONNECT();
+    mpd->set_random(!status->random());
+  }
+
+  void mpd_module::action_consume() {
+    MPD_CONNECT();
+    mpd->set_consume(!status->consume());
+  }
+
+  void mpd_module::action_seek(const string& data) {
+    MPD_CONNECT();
+
+    int percentage = 0;
+    if (data.empty()) {
+      return;
+    } else if (data[0] == '+') {
+      percentage = status->get_elapsed_percentage() + std::strtol(data.substr(1).c_str(), nullptr, 10);
+    } else if (data[0] == '-') {
+      percentage = status->get_elapsed_percentage() - std::strtol(data.substr(1).c_str(), nullptr, 10);
+    } else {
+      percentage = std::strtol(data.c_str(), nullptr, 10);
+    }
+    mpd->seek(status->get_songid(), status->get_seek_position(percentage));
+  }
+
+#undef MPD_CONNECT
 }  // namespace modules
 
 POLYBAR_NS_END
