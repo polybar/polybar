@@ -706,8 +706,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
   }
 }
 
-void renderer::action_open(const tags::context&, mousebtn btn, tags::action_t id) {
-  assert(btn != mousebtn::NONE);
+void renderer::action_open(const tags::context&, tags::action_t id) {
   m_action_ctxt.set_start(id, m_blocks.at(m_align).x);
 }
 

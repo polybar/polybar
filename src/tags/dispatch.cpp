@@ -127,7 +127,7 @@ namespace tags {
       renderer.action_close(*m_ctxt, id);
     } else {
       action_t id = m_action_ctxt.action_open(btn, std::move(cmd), m_ctxt->get_alignment());
-      renderer.action_open(*m_ctxt, btn, id);
+      renderer.action_open(*m_ctxt, id);
     }
   }
 
