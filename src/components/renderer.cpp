@@ -251,6 +251,14 @@ void renderer::begin(xcb_rectangle_t rect) {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
+  /*
+   * Finalize the positions of the action blocks.
+   * Up until this point, the positions were relative to the start of the
+   * alignment block the action was located in.
+   * Here we add the start position of the block as well as the start position
+   * of the bar itself (without borders or tray) to create positions relative to
+   * the bar window.
+   */
   for (auto& a : m_action_ctxt.get_blocks()) {
     a.start_x += block_x(a.align) + m_rect.x;
     a.end_x += block_x(a.align) + m_rect.x;
