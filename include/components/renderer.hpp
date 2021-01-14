@@ -53,7 +53,7 @@ class renderer : public renderer_interface,
 
   void change_alignment(const tags::context& ctxt) override;
 
-  void action_open(const tags::context& ctxt, mousebtn btn, tags::action_t id) override;
+  void action_open(const tags::context& ctxt, tags::action_t id) override;
   void action_close(const tags::context& ctxt, tags::action_t id) override;
 
  protected:
