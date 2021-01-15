@@ -165,7 +165,16 @@ namespace modules {
     m_urgent_desktops.assign(m_desktop_names.size(), false);
     for (auto&& client : ewmh_util::get_client_list()) {
       auto desk = ewmh_util::get_desktop_from_window(client);
-      m_urgent_desktops[desk] = m_urgent_desktops[desk] || icccm_util::get_wm_urgency(m_connection, client);
+      /*
+       * EWMH allows for 0xFFFFFFFF to be returned here, which means the window
+       * should appear on all desktops.
+       *
+       * We don't take those windows into account for the urgency hint because
+       * it would mark all workspaces as urgent.
+       */
+      if (desk < m_urgent_desktops.size()) {
+        m_urgent_desktops[desk] = m_urgent_desktops[desk] || icccm_util::get_wm_urgency(m_connection, client);
+      }
     }
   }
 
