@@ -1,8 +1,10 @@
+#include "components/ipc.hpp"
+
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "components/ipc.hpp"
 #include "components/logger.hpp"
+#include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "utils/factory.hpp"
