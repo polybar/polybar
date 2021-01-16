@@ -3,8 +3,6 @@
 #include "common.hpp"
 #include "components/ipc.hpp"
 #include "components/types.hpp"
-#include "tags/dispatch.hpp"
-#include "tags/types.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
