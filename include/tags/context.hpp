@@ -136,6 +136,7 @@ namespace tags {
 
     size_t num_actions() const;
 
+    // TODO provide better interface for adjusting the start positions of actions
     std::vector<action_block>& get_blocks();
 
    protected:

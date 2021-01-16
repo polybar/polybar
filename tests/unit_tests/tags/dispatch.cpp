@@ -24,15 +24,15 @@ class MockRenderer : public renderer_interface {
 
 class TestableDispatch : public dispatch {};
 
-class Dispatch : public ::testing::Test {
+class DispatchTest : public ::testing::Test {
  protected:
-  unique_ptr<action_context> action_ctxt = make_unique<action_context>();
+  unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
 
-  unique_ptr<dispatch> parser = make_unique<dispatch>(logger(loglevel::NONE), *action_ctxt);
+  unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
 };
 
-TEST_F(Dispatch, ignoreFormatting) {
-  MockRenderer r(*action_ctxt);
+TEST_F(DispatchTest, ignoreFormatting) {
+  MockRenderer r(*m_action_ctxt);
 
   {
     InSequence seq;
@@ -43,5 +43,5 @@ TEST_F(Dispatch, ignoreFormatting) {
 
   bar_settings settings;
 
-  parser->parse(settings, r, "%{O10}abc%{F-}foo");
+  m_dispatch->parse(settings, r, "%{O10}abc%{F-}foo");
 }
