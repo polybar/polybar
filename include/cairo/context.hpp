@@ -126,6 +126,24 @@ namespace cairo {
       return *this;
     }
 
+    context& operator<<(const circle_segment& segment) {
+      // cairo_arc(m_c, arc.x, arc.y, arc.radius, 0, 2 * M_PI);
+
+      double degree = M_PI / 180.0;
+
+      cairo_new_sub_path(m_c);
+
+      cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
+      cairo_line_to(m_c, segment.x, segment.y);
+
+      cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
+      cairo_line_to(m_c, segment.x, segment.y);
+
+      cairo_close_path(m_c);
+
+      return *this;
+    }
+
     context& operator<<(const textblock& t) {
       double x, y;
       position(&x, &y);
@@ -258,6 +276,15 @@ namespace cairo {
         cairo_fill_preserve(m_c);
       } else {
         cairo_fill(m_c);
+      }
+      return *this;
+    }
+
+    context& stroke(bool preserve = false) {
+      if (preserve) {
+        cairo_stroke_preserve(m_c);
+      } else {
+        cairo_stroke(m_c);
       }
       return *this;
     }
