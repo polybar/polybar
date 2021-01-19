@@ -628,40 +628,50 @@ void renderer::fill_borders() {
   m_context->save();
   *m_context << m_comp_border;
 
-  if (m_bar.borders.at(edge::TOP).size) {
-    cairo::rect top{0.0, 0.0, 0.0, 0.0};
-    top.x += m_bar.borders.at(edge::LEFT).size;
-    top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
-    top.h += m_bar.borders.at(edge::TOP).size;
-    m_log.trace_x("renderer: border T(%.0f, #%08x)", top.h, m_bar.borders.at(edge::TOP).color);
-    (*m_context << top << m_bar.borders.at(edge::TOP).color).fill();
-  }
+  if (m_bar.radius && m_bar.borders.at(edge::TOP).size) {
+    cairo::rounded_corners border;
+    border.x = 0;
+    border.y = 0;
+    border.w = m_bar.size.w;
+    border.h = m_bar.size.h;
+    border.radius = m_bar.radius;
+    (*m_context << border << m_bar.borders.at(edge::TOP).color).fill();
+  } else {
+    if (m_bar.borders.at(edge::TOP).size) {
+      cairo::rect top{0.0, 0.0, 0.0, 0.0};
+      top.x += m_bar.borders.at(edge::LEFT).size;
+      top.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
+      top.h += m_bar.borders.at(edge::TOP).size;
+      m_log.trace_x("renderer: border T(%.0f, #%08x)", top.h, m_bar.borders.at(edge::TOP).color);
+      (*m_context << top << m_bar.borders.at(edge::TOP).color).fill();
+    }
 
-  if (m_bar.borders.at(edge::BOTTOM).size) {
-    cairo::rect bottom{0.0, 0.0, 0.0, 0.0};
-    bottom.x += m_bar.borders.at(edge::LEFT).size;
-    bottom.y += m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size;
-    bottom.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
-    bottom.h += m_bar.borders.at(edge::BOTTOM).size;
-    m_log.trace_x("renderer: border B(%.0f, #%08x)", bottom.h, m_bar.borders.at(edge::BOTTOM).color);
-    (*m_context << bottom << m_bar.borders.at(edge::BOTTOM).color).fill();
-  }
+    if (m_bar.borders.at(edge::BOTTOM).size) {
+      cairo::rect bottom{0.0, 0.0, 0.0, 0.0};
+      bottom.x += m_bar.borders.at(edge::LEFT).size;
+      bottom.y += m_bar.size.h - m_bar.borders.at(edge::BOTTOM).size;
+      bottom.w += m_bar.size.w - m_bar.borders.at(edge::LEFT).size - m_bar.borders.at(edge::RIGHT).size;
+      bottom.h += m_bar.borders.at(edge::BOTTOM).size;
+      m_log.trace_x("renderer: border B(%.0f, #%08x)", bottom.h, m_bar.borders.at(edge::BOTTOM).color);
+      (*m_context << bottom << m_bar.borders.at(edge::BOTTOM).color).fill();
+    }
 
-  if (m_bar.borders.at(edge::LEFT).size) {
-    cairo::rect left{0.0, 0.0, 0.0, 0.0};
-    left.w += m_bar.borders.at(edge::LEFT).size;
-    left.h += m_bar.size.h;
-    m_log.trace_x("renderer: border L(%.0f, #%08x)", left.w, m_bar.borders.at(edge::LEFT).color);
-    (*m_context << left << m_bar.borders.at(edge::LEFT).color).fill();
-  }
+    if (m_bar.borders.at(edge::LEFT).size) {
+      cairo::rect left{0.0, 0.0, 0.0, 0.0};
+      left.w += m_bar.borders.at(edge::LEFT).size;
+      left.h += m_bar.size.h;
+      m_log.trace_x("renderer: border L(%.0f, #%08x)", left.w, m_bar.borders.at(edge::LEFT).color);
+      (*m_context << left << m_bar.borders.at(edge::LEFT).color).fill();
+    }
 
-  if (m_bar.borders.at(edge::RIGHT).size) {
-    cairo::rect right{0.0, 0.0, 0.0, 0.0};
-    right.x += m_bar.size.w - m_bar.borders.at(edge::RIGHT).size;
-    right.w += m_bar.borders.at(edge::RIGHT).size;
-    right.h += m_bar.size.h;
-    m_log.trace_x("renderer: border R(%.0f, #%08x)", right.w, m_bar.borders.at(edge::RIGHT).color);
-    (*m_context << right << m_bar.borders.at(edge::RIGHT).color).fill();
+    if (m_bar.borders.at(edge::RIGHT).size) {
+      cairo::rect right{0.0, 0.0, 0.0, 0.0};
+      right.x += m_bar.size.w - m_bar.borders.at(edge::RIGHT).size;
+      right.w += m_bar.borders.at(edge::RIGHT).size;
+      right.h += m_bar.size.h;
+      m_log.trace_x("renderer: border R(%.0f, #%08x)", right.w, m_bar.borders.at(edge::RIGHT).color);
+      (*m_context << right << m_bar.borders.at(edge::RIGHT).color).fill();
+    }
   }
 
   m_context->restore();
