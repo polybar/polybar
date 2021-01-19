@@ -644,7 +644,7 @@ void renderer::fill_borders() {
     cairo::circle_segment borderBL;
     borderBL.radius = m_bar.borders.at(edge::LEFT).size + m_bar.radius.bottom_left;
     borderBL.x = m_bar.borders.at(edge::LEFT).size + m_bar.radius.bottom_left;
-    borderBL.y = m_bar.size.h - (m_bar.borders.at(edge::LEFT).size + m_bar.radius.bottom_left);
+    borderBL.y = m_bar.size.h - (m_bar.borders.at(edge::BOTTOM).size + m_bar.radius.bottom_left);
     borderBL.angle_from = 90;
     borderBL.angle_to = 180;
     (*m_context << borderBL << m_bar.borders.at(edge::LEFT).color).fill();
@@ -654,7 +654,7 @@ void renderer::fill_borders() {
     cairo::circle_segment borderTR;
     borderTR.radius = m_bar.borders.at(edge::RIGHT).size + m_bar.radius.top_right;
     borderTR.x = m_bar.size.w - (m_bar.borders.at(edge::RIGHT).size + m_bar.radius.top_right);
-    borderTR.y = m_bar.borders.at(edge::RIGHT).size + m_bar.radius.top_right;
+    borderTR.y = m_bar.borders.at(edge::TOP).size + m_bar.radius.top_right;
     borderTR.angle_from = -90;
     borderTR.angle_to = 0;
     (*m_context << borderTR << m_bar.borders.at(edge::RIGHT).color).fill();
@@ -664,7 +664,7 @@ void renderer::fill_borders() {
     cairo::circle_segment borderBR;
     borderBR.radius = m_bar.borders.at(edge::RIGHT).size + m_bar.radius.bottom_right;
     borderBR.x = m_bar.size.w - (m_bar.borders.at(edge::RIGHT).size + m_bar.radius.bottom_right);
-    borderBR.y = m_bar.size.h - (m_bar.borders.at(edge::RIGHT).size + m_bar.radius.bottom_right);
+    borderBR.y = m_bar.size.h - (m_bar.borders.at(edge::BOTTOM).size + m_bar.radius.bottom_right);
     borderBR.angle_from = 0;
     borderBR.angle_to = 90;
     (*m_context << borderBR << m_bar.borders.at(edge::RIGHT).color).fill();
