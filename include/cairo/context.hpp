@@ -127,8 +127,6 @@ namespace cairo {
     }
 
     context& operator<<(const circle_segment& segment) {
-      // cairo_arc(m_c, arc.x, arc.y, arc.radius, 0, 2 * M_PI);
-
       double degree = M_PI / 180.0;
 
       cairo_new_sub_path(m_c);
