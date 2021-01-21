@@ -128,7 +128,22 @@ in double-quotes:
 
   name = " value "
 
-Here ``name`` has a leading and trailing whitespace.
+Here the value of the ``name`` key has a leading and trailing whitespace.
+
+To treat characters with special meaning as literal characters, you need to
+prepend them with the backslash (``\``) escape character:
+
+::
+
+  name = "value\\value\\value"
+
+Value of this key ``name`` results in ``value\value\value``.
+
+.. note::
+
+  The only character with a special meaning right now is the backslash character
+  (``\``), which serves as the escape character.
+  More will be added in the future.
 
 Empty Lines & Comments
 ^^^^^^^^^^^^^^^^^^^^^^
