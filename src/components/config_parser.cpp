@@ -257,6 +257,8 @@ std::pair<string, string> config_parser::parse_key(const string& line) {
     throw invalid_name_error("Key", key);
   }
 
+  value = parse_escaped_value(move(value), key);
+
   /*
    * Only if the string is surrounded with double quotes, do we treat them
    * not as part of the value and remove them.
@@ -292,4 +294,25 @@ bool config_parser::is_valid_name(const string& name) {
   return true;
 }
 
+string config_parser::parse_escaped_value(string&& value, const string& key) {
+  string cfg_value = value;
+  bool log = false;
+  auto backslash_pos = value.find('\\');
+  while (backslash_pos != string::npos) {
+    if (backslash_pos == value.size() - 1 || value[backslash_pos + 1] != '\\') {
+      log = true;
+    } else {
+      value = value.replace(backslash_pos, 2, "\\");
+    }
+    backslash_pos = value.find('\\', backslash_pos + 1);
+  }
+  if (log) {
+    // TODO Log filename, and line number
+    m_log.err(
+        "Value '%s' of key '%s' contains one or more unescaped backslashes, please prepend them with the backslash "
+        "escape character.",
+        cfg_value, key);
+  }
+  return move(value);
+}
 POLYBAR_NS_END

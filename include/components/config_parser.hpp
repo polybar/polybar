@@ -191,6 +191,12 @@ class config_parser {
   std::pair<string, string> parse_key(const string& line);
 
   /**
+   * \brief Parses the given value, checks if the given value contains
+   *        one or more unescaped backslashes and logs an error if yes
+   */
+  string parse_escaped_value(string&& value, const string& key);
+
+  /**
    * \brief Name of all the files the config includes values from
    *
    * The line_t struct uses indices to this vector to map lines to their

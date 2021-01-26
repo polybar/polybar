@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Breaking
+- We added the backslash escape character (\\) for configuration values. This
+  means that the literal backslash character now has special meaning in
+  configuration files, therefore if you want to use it in a value as a literal
+  backslash, you need to escape it with the backslash escape character. The
+  parser logs an error if any unescaped backslashes are found in a value. This
+  affects you only if you are using two consecutive backslashes in a value,
+  which will now be interpreted as a single literal backslash.
+  [`#2354`](https://github.com/polybar/polybar/issues/2354)
 - We rewrote our tag parser. This shouldn't break anything, if you experience
   any problems, please let us know.
   The new parser now gives errors for certain invalid tags where the old parser
@@ -42,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository.
 
 ### Added
+- The backslash escape character (\\).
+  [`#2354`](https://github.com/polybar/polybar/issues/2354)
 - Warn states for the cpu, memory, fs, and battery modules.
   ([`#570`](https://github.com/polybar/polybar/issues/570),
   [`#956`](https://github.com/polybar/polybar/issues/956),

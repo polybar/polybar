@@ -25,6 +25,9 @@ class TestableConfigParser : public config_parser {
   using config_parser::parse_line;
 
  public:
+  using config_parser::parse_escaped_value;
+
+ public:
   using config_parser::m_files;
 };
 
@@ -64,6 +67,12 @@ vector<pair<pair<string, string>, string>> parse_line_key_list = {
     {{"key", "value"}, " key = value"},
     {{"key", ""}, " key\t = \"\""},
     {{"key", "\""}, " key\t = \"\"\""},
+    {{"key", "\\"}, " key = \\"},
+    {{"key", "\\"}, " key = \\\\"},
+    {{"key", "\\val\\ue\\"}, " key = \\val\\ue\\"},
+    {{"key", "\\val\\ue\\"}, " key = \\\\val\\\\ue\\\\"},
+    {{"key", "\\val\\ue\\"}, " key = \"\\val\\ue\\\""},
+    {{"key", "\\val\\ue\\"}, " key = \"\\\\val\\\\ue\\\\\""},
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest, ::testing::ValuesIn(parse_line_invalid_list));
@@ -234,5 +243,36 @@ TEST_F(ParseHeaderTest, throwsSyntaxError) {
   EXPECT_THROW(parser->parse_header("[self]"), syntax_error);
   EXPECT_THROW(parser->parse_header("[BAR]"), syntax_error);
   EXPECT_THROW(parser->parse_header("[root]"), syntax_error);
+}
+// }}}
+
+// ParseEscapedValueTest {{{
+
+/**
+ * \brief Class for parameterized tests on parse_escaped_value
+ *
+ * The first element of the pair is the expected value and the second
+ * element is the escaped string to be parsed.
+ */
+class ParseEscapedValueTest : public ConfigParser, public ::testing::WithParamInterface<pair<string, string>> {};
+
+vector<pair<string, string>> parse_escaped_value_list = {
+    {"\\", "\\"},
+    {"\\", "\\\\"},
+    {"\\val\\ue\\", "\\val\\ue\\"},
+    {"\\val\\ue\\", "\\\\val\\\\ue\\\\"},
+    {"\"\\val\\ue\\\"", "\"\\val\\ue\\\""},
+    {"\"\\val\\ue\\\"", "\"\\\\val\\\\ue\\\\\""},
+};
+
+INSTANTIATE_TEST_SUITE_P(Inst, ParseEscapedValueTest, ::testing::ValuesIn(parse_escaped_value_list));
+
+/**
+ * Parameterized test for parse_escaped_value with valid line
+ */
+TEST_P(ParseEscapedValueTest, correctness) {
+  string value = GetParam().second;
+  value = parser->parse_escaped_value(move(value), "key");
+  EXPECT_EQ(GetParam().first, value);
 }
 // }}}
