@@ -33,8 +33,8 @@ class TestableConfigParser : public config_parser {
  */
 class ConfigParser : public ::testing::Test {
  protected:
-  unique_ptr<TestableConfigParser> parser =
-      make_unique<TestableConfigParser>(logger(loglevel::NONE), "/dev/zero", "TEST");
+  const logger l = logger(loglevel::NONE);
+  unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(l, "/dev/zero", "TEST");
 };
 
 // ParseLineTest {{{
