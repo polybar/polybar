@@ -1,7 +1,8 @@
+#include "drawtypes/progressbar.hpp"
+
 #include <utility>
 
 #include "drawtypes/label.hpp"
-#include "drawtypes/progressbar.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
@@ -12,15 +13,15 @@ namespace drawtypes {
   progressbar::progressbar(const bar_settings& bar, int width, string format)
       : m_builder(factory_util::unique<builder>(bar)), m_format(move(format)), m_width(width) {}
 
-  void progressbar::set_fill(icon_t&& fill) {
+  void progressbar::set_fill(label_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
   }
 
-  void progressbar::set_empty(icon_t&& empty) {
+  void progressbar::set_empty(label_t&& empty) {
     m_empty = forward<decltype(empty)>(empty);
   }
 
-  void progressbar::set_indicator(icon_t&& indicator) {
+  void progressbar::set_indicator(label_t&& indicator) {
     if (!m_indicator && indicator.get()) {
       m_width--;
     }
@@ -31,14 +32,10 @@ namespace drawtypes {
     m_gradient = mode;
   }
 
-  void progressbar::set_colors(vector<string>&& colors) {
+  void progressbar::set_colors(vector<rgba>&& colors) {
     m_colors = forward<decltype(colors)>(colors);
 
-    if (m_colors.empty()) {
-      m_colorstep = 1;
-    } else {
-      m_colorstep = m_width / m_colors.size();
-    }
+    m_colorstep = m_colors.empty() ? 1 : m_width / m_colors.size();
   }
 
   string progressbar::output(float percentage) {
@@ -102,31 +99,31 @@ namespace drawtypes {
 
     auto pbar = factory_util::shared<progressbar>(bar, width, format);
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
-    pbar->set_colors(conf.get_list(section, name + "-foreground", {}));
+    pbar->set_colors(conf.get_list(section, name + "-foreground", vector<rgba>{}));
 
-    icon_t icon_empty;
-    icon_t icon_fill;
-    icon_t icon_indicator;
+    label_t icon_empty;
+    label_t icon_fill;
+    label_t icon_indicator;
 
     if (format.find("%empty%") != string::npos) {
-      icon_empty = load_icon(conf, section, name + "-empty");
+      icon_empty = load_label(conf, section, name + "-empty");
     }
     if (format.find("%fill%") != string::npos) {
-      icon_fill = load_icon(conf, section, name + "-fill");
+      icon_fill = load_label(conf, section, name + "-fill");
     }
     if (format.find("%indicator%") != string::npos) {
-      icon_indicator = load_icon(conf, section, name + "-indicator");
+      icon_indicator = load_label(conf, section, name + "-indicator");
     }
 
     // If a foreground/background color is defined for the indicator
     // but not for the empty icon we use the bar's default colors to
     // avoid color bleed
     if (icon_empty && icon_indicator) {
-      if (!icon_indicator->m_background.empty() && icon_empty->m_background.empty()) {
-        icon_empty->m_background = color_util::hex<unsigned short int>(bar.background);
+      if (icon_indicator->m_background.has_color() && !icon_empty->m_background.has_color()) {
+        icon_empty->m_background = bar.background;
       }
-      if (!icon_indicator->m_foreground.empty() && icon_empty->m_foreground.empty()) {
-        icon_empty->m_foreground = color_util::hex<unsigned short int>(bar.foreground);
+      if (icon_indicator->m_foreground.has_color() && !icon_empty->m_foreground.has_color()) {
+        icon_empty->m_foreground = bar.foreground;
       }
     }
 
@@ -136,6 +133,6 @@ namespace drawtypes {
 
     return pbar;
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

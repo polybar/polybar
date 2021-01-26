@@ -77,6 +77,13 @@ namespace ewmh_util {
     return desktop;
   }
 
+  unsigned int get_number_of_desktops(int screen) {
+    auto conn = initialize().get();
+    unsigned int desktops = XCB_NONE;
+    xcb_ewmh_get_number_of_desktops_reply(conn, xcb_ewmh_get_number_of_desktops(conn, screen), &desktops, nullptr);
+    return desktops;
+  }
+
   vector<position> get_desktop_viewports(int screen) {
     auto conn = initialize().get();
     vector<position> viewports;

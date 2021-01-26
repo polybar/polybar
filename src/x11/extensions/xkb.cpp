@@ -65,6 +65,21 @@ const string keyboard::layout_name(size_t index) const {
 }
 
 /**
+ * Get current variant name
+ * "GROUP (VARIANT)"
+ *         ^^^^^^^
+ */
+const string keyboard::variant_name(size_t index) const {
+  string group_name = this->group_name(index);
+  if (int start = group_name.find('(') + 1) {
+    int num_chars = group_name.find(')') - start;
+    return group_name.substr(start, num_chars);
+  } else {
+    return "";
+  }
+}
+
+/**
  * Get indicator name
  */
 const string keyboard::indicator_name(const indicator::type& i) const {
@@ -181,6 +196,8 @@ namespace xkb_util {
         type = keyboard::indicator::type::CAPS_LOCK;
       } else if (string_util::compare(name, "num lock")) {
         type = keyboard::indicator::type::NUM_LOCK;
+      } else if (string_util::compare(name, "scroll lock")) {
+        type = keyboard::indicator::type::SCROLL_LOCK;
       } else {
         continue;
       }
@@ -208,8 +225,8 @@ namespace xkb_util {
     if (string_util::contains(LAYOUT_SYMBOL_BLACKLIST, ";" + name + ";")) {
       return "";
     }
-    return name;
+    return move(name);
   }
-}
+}  // namespace xkb_util
 
 POLYBAR_NS_END

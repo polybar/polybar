@@ -1,14 +1,16 @@
+#include "components/bar.hpp"
+
 #include <algorithm>
 
-#include "components/bar.hpp"
 #include "components/config.hpp"
-#include "components/parser.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/taskqueue.hpp"
 #include "components/types.hpp"
+#include "drawtypes/label.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
 #include "utils/factory.hpp"
@@ -45,7 +47,7 @@ bar::make_type bar::make(bool only_initialize_values) {
         logger::make(),
         screen::make(),
         tray_manager::make(),
-        parser::make(),
+        tags::dispatch::make(),
         taskqueue::make(),
         only_initialize_values);
   // clang-format on
@@ -57,7 +59,7 @@ bar::make_type bar::make(bool only_initialize_values) {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<parser>&& parser,
+    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
     unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
@@ -65,53 +67,58 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_log(logger)
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
-    , m_parser(forward<decltype(parser)>(parser))
+    , m_dispatch(forward<decltype(dispatch)>(dispatch))
     , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
   string bs{m_conf.section()};
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
-  auto monitor_strictmode = m_conf.get(bs, "monitor-strict", false);
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, monitor_strictmode);
+  m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
+  m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
+  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict, false);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
   }
 
-  if (monitor_name.empty() && !monitor_strictmode) {
-    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true);
+  // if monitor_name is not defined, first check for primary monitor
+  if (monitor_name.empty()) {
+    for (auto&& mon : monitors) {
+      if (mon->primary) {
+        monitor_name = mon->name;
+        break;
+      }
+    }
+  }
+
+  // if still not found (and not strict matching), get first connected monitor
+  if (monitor_name.empty() && !m_opts.monitor_strict) {
+    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true, false);
     if (!connected_monitors.empty()) {
       monitor_name = connected_monitors[0]->name;
       m_log.warn("No monitor specified, using \"%s\"", monitor_name);
     }
   }
 
+  // if still not found, get first monitor
   if (monitor_name.empty()) {
     monitor_name = monitors[0]->name;
     m_log.warn("No monitor specified, using \"%s\"", monitor_name);
   }
 
-  bool name_found{false};
-  bool fallback_found{monitor_name_fallback.empty()};
+  // get the monitor data based on the name
+  m_opts.monitor = randr_util::match_monitor(monitors, monitor_name, m_opts.monitor_exact);
   monitor_t fallback{};
 
-  for (auto&& monitor : monitors) {
-    if (!name_found && (name_found = monitor->match(monitor_name, monitor_strictmode))) {
-      m_opts.monitor = move(monitor);
-    } else if (!fallback_found && (fallback_found = monitor->match(monitor_name_fallback, monitor_strictmode))) {
-      fallback = move(monitor);
-    }
-
-    if (name_found && fallback_found) {
-      break;
-    }
+  if (!monitor_name_fallback.empty()) {
+    fallback = randr_util::match_monitor(monitors, monitor_name_fallback, m_opts.monitor_exact);
   }
 
   if (!m_opts.monitor) {
     if (fallback) {
       m_opts.monitor = move(fallback);
-      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, monitor_name_fallback);
+      m_log.warn("Monitor \"%s\" not found, reverting to fallback \"%s\"", monitor_name, m_opts.monitor->name);
     } else {
       throw application_error("Monitor \"" + monitor_name + "\" not found or disconnected");
     }
@@ -150,12 +157,16 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load configuration values
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
-  m_opts.separator = m_conf.get(bs, "separator", ""s);
+  m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
   auto radius = m_conf.get<double>(bs, "radius", 0.0);
-  m_opts.radius.top = m_conf.get(bs, "radius-top", radius);
-  m_opts.radius.bottom = m_conf.get(bs, "radius-bottom", radius);
+  auto top = m_conf.get(bs, "radius-top", radius);
+  m_opts.radius.top_left = m_conf.get(bs, "radius-top-left", top);
+  m_opts.radius.top_right = m_conf.get(bs, "radius-top-right", top);
+  auto bottom = m_conf.get(bs, "radius-bottom", radius);
+  m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
+  m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
   auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
@@ -190,9 +201,15 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     }
   }
 
-  const auto parse_or_throw = [&](string key, unsigned int def) -> unsigned int {
+  const auto parse_or_throw_color = [&](string key, rgba def) -> rgba {
     try {
-      return m_conf.get(bs, key, rgba{def});
+      rgba color = m_conf.get(bs, key, def);
+
+      /*
+       * These are the base colors of the bar and cannot be alpha only
+       * In that case, we just use the alpha channel on the default value.
+       */
+      return color.try_apply_alpha_to(def);
     } catch (const exception& err) {
       throw application_error(sstream() << "Failed to set " << key << " (reason: " << err.what() << ")");
     }
@@ -210,37 +227,41 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
       m_log.warn("Ignoring `%s.background` (overridden by gradient background)", bs);
     }
   } else {
-    m_opts.background = parse_or_throw("background", m_opts.background);
+    m_opts.background = parse_or_throw_color("background", m_opts.background);
   }
 
   // Load foreground
-  m_opts.foreground = parse_or_throw("foreground", m_opts.foreground);
+  m_opts.foreground = parse_or_throw_color("foreground", m_opts.foreground);
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
   auto line_size = m_conf.get(bs, "line-size", 0);
 
   m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
-  m_opts.overline.color = parse_or_throw("overline-color", line_color);
+  m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
   m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
-  m_opts.underline.color = parse_or_throw("underline-color", line_color);
+  m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", 0);
+  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
+  auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
+  auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
+  auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
-  m_opts.borders[edge::TOP].color = parse_or_throw("border-top-color", border_color);
+  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
+  m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
-  m_opts.borders[edge::BOTTOM].color = parse_or_throw("border-bottom-color", border_color);
+  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
+  m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
-  m_opts.borders[edge::LEFT].color = parse_or_throw("border-left-color", border_color);
+  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
+  m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
-  m_opts.borders[edge::RIGHT].color = parse_or_throw("border-right-color", border_color);
+  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
+  m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
   auto w = m_conf.get(m_conf.section(), "width", "100%"s);
@@ -248,18 +269,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
   auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
 
-  if ((m_opts.size.w = atoi(w.c_str())) && w.find('%') != string::npos) {
-    m_opts.size.w = math_util::percentage_to_value<int>(m_opts.size.w, m_opts.monitor->w);
-  }
-  if ((m_opts.size.h = atoi(h.c_str())) && h.find('%') != string::npos) {
-    m_opts.size.h = math_util::percentage_to_value<int>(m_opts.size.h, m_opts.monitor->h);
-  }
-  if ((m_opts.offset.x = atoi(offsetx.c_str())) != 0 && offsetx.find('%') != string::npos) {
-    m_opts.offset.x = math_util::percentage_to_value<int>(m_opts.offset.x, m_opts.monitor->w);
-  }
-  if ((m_opts.offset.y = atoi(offsety.c_str())) != 0 && offsety.find('%') != string::npos) {
-    m_opts.offset.y = math_util::percentage_to_value<int>(m_opts.offset.y, m_opts.monitor->h);
-  }
+  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w);
+  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h);
+  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w);
+  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;
@@ -277,20 +290,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
-  // m_opts.size.w = math_util::cap<int>(m_opts.size.w, 0, m_opts.monitor->w);
-  // m_opts.size.h = math_util::cap<int>(m_opts.size.h, 0, m_opts.monitor->h);
-
-  m_opts.center.y = m_opts.size.h;
-  m_opts.center.y -= m_opts.borders[edge::BOTTOM].size;
-  m_opts.center.y /= 2;
-  m_opts.center.y += m_opts.borders[edge::TOP].size;
-
-  m_opts.center.x = m_opts.size.w;
-  m_opts.center.x -= m_opts.borders[edge::RIGHT].size;
-  m_opts.center.x /= 2;
-  m_opts.center.x += m_opts.borders[edge::LEFT].size;
-
-  m_log.info("Bar geometry: %ix%i+%i+%i", m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
+  m_log.info("Bar geometry: %ix%i+%i+%i; Borders: %d,%d,%d,%d", m_opts.size.w, m_opts.size.h, m_opts.pos.x,
+      m_opts.pos.y, m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size, m_opts.borders[edge::BOTTOM].size,
+      m_opts.borders[edge::LEFT].size);
 
   m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);
@@ -318,8 +320,8 @@ const bar_settings bar::settings() const {
 /**
  * Parse input string and redraw the bar window
  *
- * @param data Input string
- * @param force Unless true, do not parse unchanged data
+ * \param data Input string
+ * \param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
   if (!m_mutex.try_lock()) {
@@ -328,18 +330,19 @@ void bar::parse(string&& data, bool force) {
 
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
+  bool unchanged = data == m_lastinput;
+
+  m_lastinput = data;
+
   if (force) {
     m_log.trace("bar: Force update");
   } else if (!m_visible) {
     return m_log.trace("bar: Ignoring update (invisible)");
   } else if (m_opts.shaded) {
     return m_log.trace("bar: Ignoring update (shaded)");
-  } else if (data == m_lastinput) {
+  } else if (unchanged) {
     return m_log.trace("bar: Ignoring update (unchanged)");
-    return;
   }
-
-  m_lastinput = data;
 
   auto rect = m_opts.inner_area();
 
@@ -358,8 +361,8 @@ void bar::parse(string&& data, bool force) {
   m_renderer->begin(rect);
 
   try {
-    m_parser->parse(settings(), data);
-  } catch (const parser_error& err) {
+    m_dispatch->parse(settings(), data);
+  } catch (const exception& err) {
     m_log.err("Failed to parse contents (reason: %s)", err.what());
   }
 
@@ -412,6 +415,11 @@ void bar::show() {
   try {
     m_log.info("Showing bar window");
     m_sig.emit(visibility_change{true});
+    /**
+     * First reconfigures the window so that WMs that discard some information
+     * when unmapping have the correct window properties (geometry etc).
+     */
+    reconfigue_window();
     m_connection.map_window_checked(m_opts.window);
     m_connection.flush();
     m_visible = true;
@@ -466,6 +474,22 @@ void bar::restack_window() {
   } else if (!wm_restack.empty()) {
     m_log.err("Failed to restack bar window");
   }
+}
+
+void bar::reconfigue_window() {
+  m_log.trace("bar: Reconfigure window");
+  restack_window();
+  reconfigure_geom();
+  reconfigure_struts();
+  reconfigure_wm_hints();
+}
+
+/**
+ * Reconfigure window geometry
+ */
+void bar::reconfigure_geom() {
+  window win{m_connection, m_opts.window};
+  win.reconfigure_geom(m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 }
 
 /**
@@ -610,21 +634,31 @@ void bar::handle(const evt::leave_notify&) {
  * Used to change the cursor depending on the module
  */
 void bar::handle(const evt::motion_notify& evt) {
+  if (!m_mutex.try_lock()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
+
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
   m_motion_pos = evt->event_x;
-  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click action
+  // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
+  // action
   bool found_scroll = false;
   const auto find_click_area = [&](const action& action) {
-    if (!m_opts.cursor_click.empty() && !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN || action.button == mousebtn::NONE)) {
+    if (!m_opts.cursor_click.empty() &&
+        !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
+            action.button == mousebtn::NONE)) {
       if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
         m_opts.cursor = m_opts.cursor_click;
         m_sig.emit(cursor_change{string{m_opts.cursor}});
       }
       return true;
-    } else if (!m_opts.cursor_scroll.empty() && (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
+    } else if (!m_opts.cursor_scroll.empty() &&
+               (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
       if (!found_scroll) {
-          found_scroll = true;
+        found_scroll = true;
       }
     }
     return false;
@@ -633,11 +667,11 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_renderer->actions()) {
     if (action.test(m_motion_pos)) {
       m_log.trace("Found matching input area");
-      if(find_click_area(action))
+      if (find_click_area(action))
         return;
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -647,11 +681,11 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if(find_click_area(action))
+      if (find_click_area(action))
         return;
     }
   }
-  if(found_scroll) {
+  if (found_scroll) {
     if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
@@ -691,7 +725,7 @@ void bar::handle(const evt::button_press& evt) {
   const auto deferred_fn = [&](size_t) {
     /*
      * Iterate over all defined actions in reverse order until matching action is found
-     * To properly handle nested actions we iterate in reverse because nested actions are added later than their 
+     * To properly handle nested actions we iterate in reverse because nested actions are added later than their
      * surrounding action block
      */
     auto actions = m_renderer->actions();
@@ -763,9 +797,6 @@ void bar::handle(const evt::expose& evt) {
  * state of the tray container even though the tray
  * window restacking failed.  Used as a fallback for
  * tedious WM's, like i3.
- *
- * - Track the root pixmap atom to update the
- * pseudo-transparent background when it changes
  */
 void bar::handle(const evt::property_notify& evt) {
 #ifdef DEBUG_LOGGER_VERBOSE
@@ -778,6 +809,13 @@ void bar::handle(const evt::property_notify& evt) {
   }
 }
 
+void bar::handle(const evt::configure_notify&) {
+  // The absolute position of the window in the root may be different after configuration is done
+  // (for example, because the parent is not positioned at 0/0 in the root window).
+  // Notify components that the geometry may have changed (used by the background manager for example).
+  m_sig.emit(signals::ui::update_geometry{});
+}
+
 bool bar::on(const signals::eventqueue::start&) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts);
@@ -788,22 +826,22 @@ bool bar::on(const signals::eventqueue::start&) {
   if (m_opts.dimvalue != 1.0) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() ) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
+  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  restack_window();
-
-  m_log.trace("bar: Reconfigure window");
-  reconfigure_struts();
-  reconfigure_wm_hints();
+  reconfigue_window();
 
   m_log.trace("bar: Map window");
   m_connection.map_window_checked(m_opts.window);
 
+  // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
+  // Notify all components that depend on the absolute bar position (such as the background manager).
+  m_sig.emit(signals::ui::update_geometry{});
+
   // Reconfigure window position after mapping (required by Openbox)
-  // Required by Openbox
   reconfigure_pos();
 
   m_log.trace("bar: Draw empty bar");
@@ -832,7 +870,8 @@ bool bar::on(const signals::ui::unshade_window&) {
   double steptime{25.0 / 2.0};
   m_anim_step = distance / steptime / 2.0;
 
-  m_taskqueue->defer_unique("window-shade", 25ms,
+  m_taskqueue->defer_unique(
+      "window-shade", 25ms,
       [&](size_t remaining) {
         if (!m_opts.shaded) {
           m_sig.emit(signals::ui::tick{});
@@ -871,7 +910,8 @@ bool bar::on(const signals::ui::shade_window&) {
   double steptime{25.0 / 2.0};
   m_anim_step = distance / steptime / 2.0;
 
-  m_taskqueue->defer_unique("window-shade", 25ms,
+  m_taskqueue->defer_unique(
+      "window-shade", 25ms,
       [&](size_t remaining) {
         if (m_opts.shaded) {
           m_sig.emit(signals::ui::tick{});
@@ -931,7 +971,7 @@ bool bar::on(const signals::ui::dim_window& sig) {
 
 #if WITH_XCURSOR
 bool bar::on(const signals::ui::cursor_change& sig) {
-  if(!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
     m_log.warn("Failed to create cursor context");
   }
   m_connection.flush();

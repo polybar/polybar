@@ -5,17 +5,35 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  void ramp::add(icon_t&& icon) {
+  void ramp::add(label_t&& icon) {
     m_icons.emplace_back(forward<decltype(icon)>(icon));
   }
 
-  icon_t ramp::get(size_t index) {
+  label_t ramp::get(size_t index) {
     return m_icons[index];
   }
 
-  icon_t ramp::get_by_percentage(float percentage) {
-    size_t index = percentage * (m_icons.size() - 1) / 100.0f + 0.5f;
+  label_t ramp::get_by_percentage(float percentage) {
+    size_t index = percentage * m_icons.size() / 100.0f;
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
+  }
+
+  label_t ramp::get_by_percentage_with_borders(int value, int min, int max) {
+    return get_by_percentage_with_borders(static_cast<float>(value), static_cast<float>(min), static_cast<float>(max));
+  }
+
+  label_t ramp::get_by_percentage_with_borders(float value, float min, float max) {
+    size_t index;
+    if (value <= min) {
+      index = 0;
+    } else if (value >= max) {
+      index = m_icons.size() - 1;
+    } else {
+      float percentage = math_util::percentage(value, min, max);
+      index = percentage * (m_icons.size() - 2) / 100.0f + 1;
+      index = math_util::cap<size_t>(index, 0, m_icons.size() - 1);
+    }
+    return m_icons[index];
   }
 
   ramp::operator bool() {
@@ -29,9 +47,9 @@ namespace drawtypes {
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    auto ramp_defaults = load_optional_icon(conf, section, name);
+    auto ramp_defaults = load_optional_label(conf, section, name);
 
-    vector<icon_t> vec;
+    vector<label_t> vec;
     vector<string> icons;
 
     if (required) {
@@ -41,7 +59,7 @@ namespace drawtypes {
     }
 
     for (size_t i = 0; i < icons.size(); i++) {
-      auto icon = load_optional_icon(conf, section, name + "-" + to_string(i), icons[i]);
+      auto icon = load_optional_label(conf, section, name + "-" + to_string(i), icons[i]);
       icon->copy_undefined(ramp_defaults);
       vec.emplace_back(move(icon));
     }

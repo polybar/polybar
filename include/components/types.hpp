@@ -6,12 +6,19 @@
 #include <unordered_map>
 
 #include "common.hpp"
+#include "utils/color.hpp"
 
 POLYBAR_NS
 
 // fwd {{{
 struct randr_output;
 using monitor_t = shared_ptr<randr_output>;
+
+namespace drawtypes {
+  class label;
+}
+
+using label_t = shared_ptr<drawtypes::label>;
 // }}}
 
 struct enum_hash {
@@ -25,21 +32,19 @@ enum class edge { NONE = 0, TOP, BOTTOM, LEFT, RIGHT, ALL };
 
 enum class alignment { NONE = 0, LEFT, CENTER, RIGHT };
 
-enum class attribute { NONE = 0, UNDERLINE, OVERLINE };
-
-enum class syntaxtag {
+enum class mousebtn {
   NONE = 0,
-  A,  // mouse action
-  B,  // background color
-  F,  // foreground color
-  T,  // font index
-  O,  // pixel offset
-  R,  // flip colors
-  o,  // overline color
-  u,  // underline color
+  LEFT,
+  MIDDLE,
+  RIGHT,
+  SCROLL_UP,
+  SCROLL_DOWN,
+  DOUBLE_LEFT,
+  DOUBLE_MIDDLE,
+  DOUBLE_RIGHT,
+  // Terminator value, do not use
+  BTN_COUNT,
 };
-
-enum class mousebtn { NONE = 0, LEFT, MIDDLE, RIGHT, SCROLL_UP, SCROLL_DOWN, DOUBLE_LEFT, DOUBLE_MIDDLE, DOUBLE_RIGHT };
 
 enum class strut {
   LEFT = 0,
@@ -83,21 +88,23 @@ struct edge_values {
 };
 
 struct radius {
-  double top{0.0};
-  double bottom{0.0};
+  double top_left{0.0};
+  double top_right{0.0};
+  double bottom_left{0.0};
+  double bottom_right{0.0};
 
   operator bool() const {
-    return top != 0.0 || bottom != 0.0;
+    return top_left != 0.0 || top_right != 0.0 || bottom_left != 0.0 || bottom_right != 0.0;
   }
 };
 
 struct border_settings {
-  unsigned int color{0xFF000000};
+  rgba color{0xFF000000};
   unsigned int size{0U};
 };
 
 struct line_settings {
-  unsigned int color{0xFF000000};
+  rgba color{0xFF000000};
   unsigned int size{0U};
 };
 
@@ -127,21 +134,22 @@ struct bar_settings {
 
   xcb_window_t window{XCB_NONE};
   monitor_t monitor{};
+  bool monitor_strict{false};
+  bool monitor_exact{true};
   edge origin{edge::TOP};
   struct size size {
     1U, 1U
   };
   position pos{0, 0};
   position offset{0, 0};
-  position center{0, 0};
   side_values padding{0U, 0U};
   side_values margin{0U, 0U};
   side_values module_margin{0U, 0U};
   edge_values strut{0U, 0U, 0U, 0U};
 
-  unsigned int background{0xFF000000};
-  unsigned int foreground{0xFFFFFFFF};
-  vector<unsigned int> background_steps;
+  rgba background{0xFF000000};
+  rgba foreground{0xFFFFFFFF};
+  vector<rgba> background_steps;
 
   line_settings underline{};
   line_settings overline{};
@@ -150,7 +158,7 @@ struct bar_settings {
 
   struct radius radius {};
   int spacing{0};
-  string separator{};
+  label_t separator{};
 
   string wmname{};
   string locale{};
@@ -173,14 +181,8 @@ struct bar_settings {
   position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
-    xcb_rectangle_t rect{0, 0, 0, 0};
-    rect.width += size.w;
-    rect.height += size.h;
+    xcb_rectangle_t rect = this->outer_area(abspos);
 
-    if (abspos) {
-      rect.x = pos.x;
-      rect.y = pos.y;
-    }
     if (borders.find(edge::TOP) != borders.end()) {
       rect.y += borders.at(edge::TOP).size;
       rect.height -= borders.at(edge::TOP).size;
@@ -195,6 +197,19 @@ struct bar_settings {
     if (borders.find(edge::RIGHT) != borders.end()) {
       rect.width -= borders.at(edge::RIGHT).size;
     }
+    return rect;
+  }
+
+  const xcb_rectangle_t outer_area(bool abspos = false) const {
+    xcb_rectangle_t rect{0, 0, 0, 0};
+    rect.width += size.w;
+    rect.height += size.h;
+
+    if (abspos) {
+      rect.x = pos.x;
+      rect.y = pos.y;
+    }
+
     return rect;
   }
 };
@@ -212,6 +227,11 @@ struct event_timer {
   bool deny(xcb_timestamp_t time) {
     return !allow(time);
   };
+};
+
+enum class output_policy {
+  REDIRECTED,
+  IGNORED,
 };
 
 POLYBAR_NS_END

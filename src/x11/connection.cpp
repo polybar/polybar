@@ -38,17 +38,8 @@ connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, d
 
 // }}}
 // Query for X extensions {{{
-#if WITH_XDAMAGE
-  damage_util::query_extension(*this);
-#endif
-#if WITH_XRENDER
-  render_util::query_extension(*this);
-#endif
 #if WITH_XRANDR
   randr_util::query_extension(*this);
-#endif
-#if WITH_XSYNC
-  sync_util::query_extension(*this);
 #endif
 #if WITH_XCOMPOSITE
   composite_util::query_extension(*this);
@@ -165,33 +156,57 @@ xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth)
   return nullptr;
 }
 
+
+xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visualid_t visual_id) {
+  xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
+  if (depth_iter.data) {
+    for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
+      for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
+        if(it.data->visual_id == visual_id) return it.data;
+      }
+    }
+  }
+  return nullptr;
+}
+
 /**
  * Query root window pixmap
  */
 bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* rect) {
-  const xcb_atom_t pixmap_properties[3]{ESETROOT_PMAP_ID, _XROOTMAP_ID, _XSETROOT_ID};
+  *pixmap = XCB_NONE; // default value if getting the root pixmap fails
+
+  /*
+   * We try multiple properties for the root pixmap here because I am not 100% sure
+   * if all programs set them the same way. We might be able to just use _XSETROOT_ID
+   * but keeping the other as fallback should not hurt (if it does, feel free to remove).
+   *
+   * see https://metacpan.org/pod/X11::Protocol::XSetRoot#ROOT-WINDOW-PROPERTIES for description of the properties
+   * the properties here are ordered by reliability:
+   *    _XSETROOT_ID: this is usually a dummy 1x1 pixmap only for resource managment, use only as last resort
+   *    ESETROOT_PMAP_ID: according to the link above, this should usually by equal to _XROOTPMAP_ID
+   *    _XROOTPMAP_ID: this appears to be the "correct" property to use? if available, use this
+   */
+  const xcb_atom_t pixmap_properties[3]{_XROOTPMAP_ID, ESETROOT_PMAP_ID, _XSETROOT_ID};
   for (auto&& property : pixmap_properties) {
     try {
       auto prop = get_property(false, screen()->root, property, XCB_ATOM_PIXMAP, 0L, 1L);
       if (prop->format == 32 && prop->value_len == 1) {
         *pixmap = *prop.value<xcb_pixmap_t>().begin();
       }
-    } catch (const exception& err) {
-      continue;
-    }
-  }
-  if (*pixmap) {
-    try {
-      auto geom = get_geometry(*pixmap);
-      *depth = geom->depth;
-      rect->width = geom->width;
-      rect->height = geom->height;
-      rect->x = geom->x;
-      rect->y = geom->y;
-      return true;
+
+      if (*pixmap) {
+        auto geom = get_geometry(*pixmap);
+        *depth = geom->depth;
+        rect->width = geom->width;
+        rect->height = geom->height;
+        rect->x = geom->x;
+        rect->y = geom->y;
+        return true;
+      }
     } catch (const exception& err) {
       *pixmap = XCB_NONE;
       *rect = xcb_rectangle_t{0, 0, 0U, 0U};
+      continue;
     }
   }
   return false;

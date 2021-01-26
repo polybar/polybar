@@ -1,6 +1,10 @@
+#include "utils/file.hpp"
+
+#include <dirent.h>
 #include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -8,7 +12,6 @@
 
 #include "errors.hpp"
 #include "utils/env.hpp"
-#include "utils/file.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -167,10 +170,27 @@ int fd_streambuf::underflow() {
 namespace file_util {
   /**
    * Checks if the given file exist
+   *
+   * May also return false if the file status  cannot be read
+   *
+   * Sets errno when returning false
    */
   bool exists(const string& filename) {
     struct stat buffer {};
     return stat(filename.c_str(), &buffer) == 0;
+  }
+
+  /**
+   * Checks if the given path exists and is a file
+   */
+  bool is_file(const string& filename) {
+    struct stat buffer {};
+
+    if (stat(filename.c_str(), &buffer) != 0) {
+      return false;
+    }
+
+    return S_ISREG(buffer.st_mode);
   }
 
   /**
@@ -199,6 +219,16 @@ namespace file_util {
       return contents;
     } catch (const std::ifstream::failure& e) {
       return "";
+    }
+  }
+
+  /**
+   * Writes the contents of the given file
+   */
+  void write_contents(const string& filename, const string& contents) {
+    std::ofstream out(filename, std::ofstream::out);
+    if (!(out << contents)) {
+      throw std::system_error(errno, std::system_category(), "failed to write to " + filename);
     }
   }
 
@@ -238,9 +268,15 @@ namespace file_util {
    */
   const string expand(const string& path) {
     string ret;
+    /*
+     * This doesn't capture all cases for absolute paths but the other cases
+     * (tilde and env variable) have the initial '/' character in their
+     * expansion already and will thus not require adding '/' to the beginning.
+     */
+    bool is_absolute = path.size() > 0 && path.at(0) == '/';
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
-      switch(section[0]) {
+      switch (section[0]) {
         case '$':
           section = env_util::get(section.substr(1));
           break;
@@ -250,10 +286,64 @@ namespace file_util {
       }
     }
     ret = string_util::join(p_exploded, "/");
-    if (ret[0] != '/')
+    // Don't add an initial slash for relative paths
+    if (ret[0] != '/' && is_absolute) {
       ret.insert(0, 1, '/');
+    }
     return ret;
   }
-}
+
+  /*
+   * Search for polybar config and returns the path if found
+   */
+  string get_config_path() {
+    string confpath;
+    if (env_util::has("XDG_CONFIG_HOME")) {
+      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+
+      string iniConfPath = confpath.append(".ini");
+      if (exists(iniConfPath)) {
+        return iniConfPath;
+      }
+    }
+
+    if (env_util::has("HOME")) {
+      confpath = env_util::get("HOME") + "/.config/polybar/config";
+      if (exists(confpath)) {
+        return confpath;
+      }
+
+      string iniConfPath = confpath.append(".ini");
+      if (exists(iniConfPath)) {
+        return iniConfPath;
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Return a list of file names in a directory.
+   */
+  vector<string> list_files(const string& dirname) {
+    vector<string> files;
+    DIR* dir;
+    if ((dir = opendir(dirname.c_str())) != NULL) {
+      struct dirent* ent;
+      while ((ent = readdir(dir)) != NULL) {
+        // Type can be unknown for filesystems that do not support d_type
+        if ((ent->d_type & DT_REG) ||
+            ((ent->d_type & DT_UNKNOWN) && strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)) {
+          files.push_back(ent->d_name);
+        }
+      }
+      closedir(dir);
+      return files;
+    }
+    throw system_error("Failed to open directory stream for " + dirname);
+  }
+}  // namespace file_util
 
 POLYBAR_NS_END

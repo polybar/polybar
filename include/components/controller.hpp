@@ -1,13 +1,16 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+
 #include <thread>
 
 #include "common.hpp"
-#include "settings.hpp"
+#include "components/types.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "events/types.hpp"
+#include "settings.hpp"
+#include "utils/actions.hpp"
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
@@ -17,7 +20,6 @@ POLYBAR_NS
 
 enum class alignment;
 class bar;
-class command;
 class config;
 class connection;
 class inotify_watch;
@@ -26,16 +28,17 @@ class logger;
 class signal_emitter;
 namespace modules {
   struct module_interface;
-  class input_handler;
-}
-using module_t = unique_ptr<modules::module_interface>;
+}  // namespace modules
+using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
 
-class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate, signals::eventqueue::exit_reload,
-                       signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state, signals::ipc::action,
-                       signals::ipc::command, signals::ipc::hook, signals::ui::ready, signals::ui::button_press> {
+class controller
+    : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate,
+          signals::eventqueue::exit_reload, signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange,
+          signals::eventqueue::check_state, signals::ipc::action, signals::ipc::command, signals::ipc::hook,
+          signals::ui::ready, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -55,18 +58,26 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void process_inputdata();
   bool process_update(bool force);
 
-  bool on(const signals::eventqueue::notify_change& evt);
-  bool on(const signals::eventqueue::notify_forcechange& evt);
-  bool on(const signals::eventqueue::exit_terminate& evt);
-  bool on(const signals::eventqueue::exit_reload& evt);
-  bool on(const signals::eventqueue::check_state& evt);
-  bool on(const signals::ui::ready& evt);
-  bool on(const signals::ui::button_press& evt);
-  bool on(const signals::ipc::action& evt);
-  bool on(const signals::ipc::command& evt);
-  bool on(const signals::ipc::hook& evt);
+  bool on(const signals::eventqueue::notify_change& evt) override;
+  bool on(const signals::eventqueue::notify_forcechange& evt) override;
+  bool on(const signals::eventqueue::exit_terminate& evt) override;
+  bool on(const signals::eventqueue::exit_reload& evt) override;
+  bool on(const signals::eventqueue::check_state& evt) override;
+  bool on(const signals::ui::ready& evt) override;
+  bool on(const signals::ui::button_press& evt) override;
+  bool on(const signals::ipc::action& evt) override;
+  bool on(const signals::ipc::command& evt) override;
+  bool on(const signals::ipc::hook& evt) override;
+  bool on(const signals::ui::update_background& evt) override;
 
  private:
+  size_t setup_modules(alignment align);
+
+  bool forward_action(const actions_util::action& cmd);
+  bool try_forward_legacy_action(const string& cmd);
+
+  void switch_module_visibility(string module_name_raw, int visible);
+
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
@@ -74,72 +85,61 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   unique_ptr<bar> m_bar;
   unique_ptr<ipc> m_ipc;
   unique_ptr<inotify_watch> m_confwatch;
-  unique_ptr<command> m_command;
 
   array<unique_ptr<file_descriptor>, 2> m_queuefd{};
 
   /**
-   * @brief State flag
+   * \brief State flag
    */
   std::atomic<bool> m_process_events{false};
 
   /**
-   * @brief Destination path of generated snapshot
+   * \brief Destination path of generated snapshot
    */
   string m_snapshot_dst;
 
   /**
-   * @brief Controls weather the output gets printed to stdout
+   * \brief Controls weather the output gets printed to stdout
    */
   bool m_writeback{false};
 
   /**
-   * @brief Internal event queue
+   * \brief Internal event queue
    */
   moodycamel::BlockingConcurrentQueue<event> m_queue;
 
   /**
-   * @brief Loaded modules
+   * \brief Loaded modules
    */
-  modulemap_t m_modules;
+  vector<module_t> m_modules;
 
   /**
-   * @brief Module input handlers
+   * \brief Loaded modules grouped by block
    */
-  vector<modules::input_handler*> m_inputhandlers;
+  modulemap_t m_blocks;
 
   /**
-   * @brief Maximum number of subsequent events to swallow
+   * \brief Maximum number of subsequent events to swallow
    */
   size_t m_swallow_limit{5U};
 
   /**
-   * @brief Time to wait for subsequent events
+   * \brief Time to wait for subsequent events
    */
   std::chrono::milliseconds m_swallow_update{10};
 
   /**
-   * @brief Time to throttle input events
-   */
-  std::chrono::milliseconds m_swallow_input{30};
-
-  /**
-   * @brief Time of last handled input event
-   */
-  std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> m_lastinput;
-
-  /**
-   * @brief Input data
+   * \brief Input data
    */
   string m_inputdata;
 
   /**
-   * @brief Thread for the eventqueue loop
+   * \brief Thread for the eventqueue loop
    */
   std::thread m_event_thread;
 
   /**
-   * @brief Misc threads
+   * \brief Misc threads
    */
   vector<std::thread> m_threads;
 };

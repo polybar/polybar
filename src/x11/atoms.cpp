@@ -33,7 +33,7 @@ xcb_atom_t _NET_SYSTEM_TRAY_COLORS;
 xcb_atom_t WM_TAKE_FOCUS;
 xcb_atom_t Backlight;
 xcb_atom_t BACKLIGHT;
-xcb_atom_t _XROOTMAP_ID;
+xcb_atom_t _XROOTPMAP_ID;
 xcb_atom_t _XSETROOT_ID;
 xcb_atom_t ESETROOT_PMAP_ID;
 xcb_atom_t _COMPTON_SHADOW;
@@ -72,7 +72,7 @@ cached_atom ATOMS[36] = {
   {"WM_TAKE_FOCUS", sizeof("WM_TAKE_FOCUS") - 1, &WM_TAKE_FOCUS},
   {"Backlight", sizeof("Backlight") - 1, &Backlight},
   {"BACKLIGHT", sizeof("BACKLIGHT") - 1, &BACKLIGHT},
-  {"_XROOTMAP_ID", sizeof("_XROOTMAP_ID") - 1, &_XROOTMAP_ID},
+  {"_XROOTPMAP_ID", sizeof("_XROOTPMAP_ID") - 1, &_XROOTPMAP_ID},
   {"_XSETROOT_ID", sizeof("_XSETROOT_ID") - 1, &_XSETROOT_ID},
   {"ESETROOT_PMAP_ID", sizeof("ESETROOT_PMAP_ID") - 1, &ESETROOT_PMAP_ID},
   {"_COMPTON_SHADOW", sizeof("_COMPTON_SHADOW") - 1, &_COMPTON_SHADOW},

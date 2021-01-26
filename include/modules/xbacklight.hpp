@@ -1,10 +1,9 @@
 #pragma once
 
 #include "components/config.hpp"
-#include "settings.hpp"
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "modules/meta/static_module.hpp"
+#include "settings.hpp"
 #include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
@@ -19,15 +18,11 @@ namespace modules {
    * module that was set up using with inotify watches listening
    * for changes to the raw file handle.
    *
-   * This module is alot faster, it's more responsive and it will
+   * This module is a lot faster, it's more responsive and it will
    * be dormant until new values are reported. Inotify watches
    * are a bit random when it comes to proc-/sysfs.
-   *
-   * TODO: Implement backlight configuring using scroll events
    */
-  class xbacklight_module : public static_module<xbacklight_module>,
-                            public event_handler<evt::randr_notify>,
-                            public input_handler {
+  class xbacklight_module : public static_module<xbacklight_module>, public event_handler<evt::randr_notify> {
    public:
     explicit xbacklight_module(const bar_settings& bar, string name_);
 
@@ -35,17 +30,23 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/xbacklight";
+
+    static constexpr const char* EVENT_INC = "inc";
+    static constexpr const char* EVENT_DEC = "dec";
+
    protected:
-    void handle(const evt::randr_notify& evt);
-    bool input(string&& cmd);
+    void handle(const evt::randr_notify& evt) override;
+
+    void action_inc();
+    void action_dec();
+
+    void change_value(int value_mod);
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
     static constexpr const char* TAG_BAR{"<bar>"};
     static constexpr const char* TAG_RAMP{"<ramp>"};
-
-    static constexpr const char* EVENT_SCROLLUP{"xbacklight+"};
-    static constexpr const char* EVENT_SCROLLDOWN{"xbacklight-"};
 
     connection& m_connection;
     monitor_t m_output;
@@ -58,6 +59,6 @@ namespace modules {
     bool m_scroll{true};
     std::atomic<int> m_percentage{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

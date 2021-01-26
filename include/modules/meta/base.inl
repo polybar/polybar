@@ -1,12 +1,17 @@
+#include <cassert>
+
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/base.hpp"
+#include "utils/action_router.hpp"
 
 POLYBAR_NS
 
 namespace modules {
+
   // module<Impl> public {{{
 
   template <typename Impl>
@@ -15,10 +20,13 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
+      , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
       , m_name("module/" + name)
+      , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
-      , m_handle_events(m_conf.get(m_name, "handle-events", true)) {}
+      , m_handle_events(m_conf.get(m_name, "handle-events", true))
+      , m_visible(!m_conf.get(m_name, "hidden", false)) {}
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
@@ -40,8 +48,30 @@ namespace modules {
   }
 
   template <typename Impl>
+  string module<Impl>::name_raw() const {
+    return m_name_raw;
+  }
+
+  template <typename Impl>
+  string module<Impl>::type() const {
+    return string(Impl::TYPE);
+  }
+
+  template <typename Impl>
   bool module<Impl>::running() const {
     return static_cast<bool>(m_enabled);
+  }
+
+  template <typename Impl>
+  bool module<Impl>::visible() const {
+    return static_cast<bool>(m_visible);
+  }
+
+  template <typename Impl>
+  void module<Impl>::set_visible(bool value) {
+    m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
+    m_visible = value;
+    broadcast();
   }
 
   template <typename Impl>
@@ -67,7 +97,7 @@ namespace modules {
   template <typename Impl>
   void module<Impl>::halt(string error_message) {
     m_log.err("%s: %s", name(), error_message);
-    m_log.warn("Stopping '%s'...", name());
+    m_log.notice("Stopping '%s'...", name());
     stop();
   }
 
@@ -79,9 +109,30 @@ namespace modules {
     if (m_changed) {
       m_log.info("%s: Rebuilding cache", name());
       m_cache = CAST_MOD(Impl)->get_output();
+      // Make sure builder is really empty
+      m_builder->flush();
+      if (!m_cache.empty()) {
+        // Add a reset tag after the module
+        m_builder->control(tags::controltag::R);
+        m_cache += m_builder->flush();
+      }
       m_changed = false;
     }
     return m_cache;
+  }
+
+  template <typename Impl>
+  bool module<Impl>::input(const string& name, const string& data) {
+    if (!m_router->has_action(name)) {
+      return false;
+    }
+
+    try {
+      m_router->invoke(name, data);
+    } catch (const exception& err) {
+      m_log.err("%s: Failed to handle command '%s' with data '%s' (%s)", this->name(), name, data, err.what());
+    }
+    return true;
   }
 
   // }}}
@@ -105,6 +156,15 @@ namespace modules {
     if (running()) {
       std::unique_lock<std::mutex> lck(m_sleeplock);
       m_sleephandler.wait_for(lck, sleep_duration);
+    }
+  }
+
+  template <typename Impl>
+  template <class Clock, class Duration>
+  void module<Impl>::sleep_until(chrono::time_point<Clock, Duration> point) {
+    if (running()) {
+      std::unique_lock<std::mutex> lck(m_sleeplock);
+      m_sleephandler.wait_until(lck, point);
     }
   }
 
@@ -172,6 +232,6 @@ namespace modules {
   }
 
   // }}}
-}
+}  // namespace modules
 
 POLYBAR_NS_END

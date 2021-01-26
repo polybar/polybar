@@ -16,10 +16,20 @@ namespace modules {
   template class module<memory_module>;
 
   memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
+    m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
+                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
+    if (m_formatter->has(TAG_LABEL)) {
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
+    }
+    if (m_formatter->has(TAG_LABEL_WARN)) {
+      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage_used%%");
+    }
     if (m_formatter->has(TAG_BAR_USED)) {
       m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
     }
@@ -32,8 +42,17 @@ namespace modules {
     if(m_formatter->has(TAG_RAMP_FREE)) {
       m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
-    if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
+    if (m_formatter->has(TAG_BAR_SWAP_USED)) {
+      m_bar_swapused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_USED);
+    }
+    if (m_formatter->has(TAG_BAR_SWAP_FREE)) {
+      m_bar_swapfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_FREE);
+    }
+    if(m_formatter->has(TAG_RAMP_SWAP_USED)) {
+      m_ramp_swapused = load_ramp(m_conf, name(), TAG_RAMP_SWAP_USED);
+    }
+    if(m_formatter->has(TAG_RAMP_SWAP_FREE)) {
+      m_ramp_swapfree = load_ramp(m_conf, name(), TAG_RAMP_SWAP_FREE);
     }
   }
 
@@ -82,27 +101,43 @@ namespace modules {
     m_perc_swap_used = 100 - m_perc_swap_free;
 
     // replace tokens
+    const auto replace_tokens = [&](label_t& label) {
+      label->reset_tokens();
+      label->replace_token("%gb_used%", string_util::filesize_gib(kb_total - kb_avail, 2, m_bar.locale));
+      label->replace_token("%gb_free%", string_util::filesize_gib(kb_avail, 2, m_bar.locale));
+      label->replace_token("%gb_total%", string_util::filesize_gib(kb_total, 2, m_bar.locale));
+      label->replace_token("%mb_used%", string_util::filesize_mib(kb_total - kb_avail, 0, m_bar.locale));
+      label->replace_token("%mb_free%", string_util::filesize_mib(kb_avail, 0, m_bar.locale));
+      label->replace_token("%mb_total%", string_util::filesize_mib(kb_total, 0, m_bar.locale));
+      label->replace_token("%percentage_used%", to_string(m_perc_memused));
+      label->replace_token("%percentage_free%", to_string(m_perc_memfree));
+      label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
+      label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
+      label->replace_token("%mb_swap_total%", string_util::filesize_mib(kb_swap_total, 0, m_bar.locale));
+      label->replace_token("%mb_swap_free%", string_util::filesize_mib(kb_swap_free, 0, m_bar.locale));
+      label->replace_token("%mb_swap_used%", string_util::filesize_mib(kb_swap_total - kb_swap_free, 0, m_bar.locale));
+      label->replace_token("%gb_swap_total%", string_util::filesize_gib(kb_swap_total, 2, m_bar.locale));
+      label->replace_token("%gb_swap_free%", string_util::filesize_gib(kb_swap_free, 2, m_bar.locale));
+      label->replace_token("%gb_swap_used%", string_util::filesize_gib(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+    };
+
     if (m_label) {
-      m_label->reset_tokens();
-      m_label->replace_token("%gb_used%", string_util::filesize_gb(kb_total - kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%gb_free%", string_util::filesize_gb(kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%gb_total%", string_util::filesize_gb(kb_total, 2, m_bar.locale));
-      m_label->replace_token("%mb_used%", string_util::filesize_mb(kb_total - kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%mb_free%", string_util::filesize_mb(kb_avail, 2, m_bar.locale));
-      m_label->replace_token("%mb_total%", string_util::filesize_mb(kb_total, 2, m_bar.locale));
-      m_label->replace_token("%percentage_used%", to_string(m_perc_memused));
-      m_label->replace_token("%percentage_free%", to_string(m_perc_memfree));
-      m_label->replace_token("%percentage_swap_used%", to_string(m_perc_swap_used));
-      m_label->replace_token("%percentage_swap_free%", to_string(m_perc_swap_free));
-      m_label->replace_token("%mb_swap_total%", string_util::filesize_mb(kb_swap_total, 2, m_bar.locale));
-      m_label->replace_token("%mb_swap_free%", string_util::filesize_mb(kb_swap_free, 2, m_bar.locale));
-      m_label->replace_token("%mb_swap_used%", string_util::filesize_mb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
-      m_label->replace_token("%gb_swap_total%", string_util::filesize_gb(kb_swap_total, 2, m_bar.locale));
-      m_label->replace_token("%gb_swap_free%", string_util::filesize_gb(kb_swap_free, 2, m_bar.locale));
-      m_label->replace_token("%gb_swap_used%", string_util::filesize_gb(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+      replace_tokens(m_label);
+    }
+
+    if (m_labelwarn) {
+      replace_tokens(m_labelwarn);
     }
 
     return true;
+  }
+  
+  string memory_module::get_format() const {
+    if (m_perc_memused>= m_perc_memused_warn && m_formatter->has_format(FORMAT_WARN)) {
+      return FORMAT_WARN;
+    } else {
+      return DEFAULT_FORMAT;
+    }
   }
 
   bool memory_module::build(builder* builder, const string& tag) const {
@@ -112,10 +147,20 @@ namespace modules {
       builder->node(m_bar_memfree->output(m_perc_memfree));
     } else if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == TAG_LABEL_WARN) {
+      builder->node(m_labelwarn);
     } else if (tag == TAG_RAMP_FREE) {
-      builder->node(m_ramp_memfree->get_by_percentage(m_perc_memfree));
+      builder->node(m_ramp_memfree->get_by_percentage_with_borders(m_perc_memfree, 0, m_perc_memused_warn));
     } else if (tag == TAG_RAMP_USED) {
-      builder->node(m_ramp_memused->get_by_percentage(m_perc_memused));
+      builder->node(m_ramp_memused->get_by_percentage_with_borders(m_perc_memused, 0, m_perc_memused_warn));
+    } else if (tag == TAG_BAR_SWAP_USED) {
+      builder->node(m_bar_swapused->output(m_perc_swap_used));
+    } else if (tag == TAG_BAR_SWAP_FREE) {
+      builder->node(m_bar_swapfree->output(m_perc_swap_free));
+    } else if (tag == TAG_RAMP_SWAP_FREE) {
+      builder->node(m_ramp_swapfree->get_by_percentage_with_borders(m_perc_swap_free, 0, m_perc_memused_warn));
+    } else if (tag == TAG_RAMP_SWAP_USED) {
+      builder->node(m_ramp_swapused->get_by_percentage_with_borders(m_perc_swap_used, 0, m_perc_memused_warn));
     } else {
       return false;
     }

@@ -22,7 +22,7 @@ namespace modules {
             if (!m_command || !m_command->is_running()) {
               string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
               m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-              m_command = command_util::make_command(exec);
+              m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
 
               try {
                 m_command->exec(false);
@@ -59,7 +59,7 @@ namespace modules {
           try {
             auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
             m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-            m_command = command_util::make_command(exec);
+            m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
             m_command->exec(true);
           } catch (const exception& err) {
             m_log.err("%s: %s", name(), err.what());
@@ -84,12 +84,15 @@ namespace modules {
     // Load configuration values
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 5s);
+    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
 
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
     m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
     m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
+    m_actions[mousebtn::DOUBLE_LEFT] = m_conf.get(name(), "double-click-left", ""s);
+    m_actions[mousebtn::DOUBLE_MIDDLE] = m_conf.get(name(), "double-click-middle", ""s);
+    m_actions[mousebtn::DOUBLE_RIGHT] = m_conf.get(name(), "double-click-right", ""s);
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
@@ -140,7 +143,7 @@ namespace modules {
   bool script_module::check_condition() {
     if (m_exec_if.empty()) {
       return true;
-    } else if (command_util::make_command(m_exec_if)->exec(true) == 0) {
+    } else if (command_util::make_command<output_policy::IGNORED>(m_exec_if)->exec(true) == 0) {
       return true;
     } else if (!m_output.empty()) {
       broadcast();
@@ -174,20 +177,24 @@ namespace modules {
     string cnt{to_string(m_counter)};
     string output{module::get_output()};
 
-    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
+    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
+                     mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
+                     mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP,
+                     mousebtn::SCROLL_DOWN}) {
 
       auto action = m_actions[btn];
 
       if (!action.empty()) {
-        m_builder->cmd(btn, string_util::replace_all(action, "%counter%", cnt));
+        auto action_replaced = string_util::replace_all(action, "%counter%", cnt);
 
         /*
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
         if(m_tail && m_command && m_command->is_running()) {
-          m_builder->cmd(btn, string_util::replace_all(action, "%pid%", to_string(m_command->get_pid())));
+          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(m_command->get_pid()));
         }
+        m_builder->action(btn, action_replaced);
       }
     }
 

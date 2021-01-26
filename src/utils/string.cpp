@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -111,6 +110,29 @@ namespace string_util {
   }
 
   /**
+   * Trims all characters that match pred from the left
+   */
+  string ltrim(string value, function<bool(char)> pred) {
+    value.erase(value.begin(), find_if(value.begin(), value.end(), not1(pred)));
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from the right
+   */
+  string rtrim(string value, function<bool(char)> pred) {
+    value.erase(find_if(value.rbegin(), value.rend(), not1(pred)).base(), value.end());
+    return value;
+  }
+
+  /**
+   * Trims all characters that match pred from both sides
+   */
+  string trim(string value, function<bool(char)> pred) {
+    return ltrim(rtrim(move(value), pred), pred);
+  }
+
+  /**
    * Remove needle from the start of the string
    */
   string ltrim(string&& value, const char& needle) {
@@ -200,27 +222,42 @@ namespace string_util {
   }
 
   /**
-   * Explode string by delim into container
-   */
-  vector<string>& split_into(const string& s, char delim, vector<string>& container) {
-    string str;
-    std::stringstream buffer(s);
-    while (getline(buffer, str, delim)) {
-      container.emplace_back(str);
-    }
-    return container;
-  }
-
-  /**
-   * Explode string by delim
+   * Explode string by delim, ignore empty tokens
    */
   vector<string> split(const string& s, char delim) {
-    vector<string> vec;
-    return split_into(s, delim, vec);
+    std::string::size_type pos = 0;
+    std::vector<std::string> result;
+
+    while ((pos = s.find_first_not_of(delim, pos)) != std::string::npos) {
+      auto nextpos = s.find_first_of(delim, pos);
+      result.emplace_back(s.substr(pos, nextpos - pos));
+      pos = nextpos;
+    }
+
+    return result;
   }
 
   /**
-   * Find the nth occurence of needle in haystack starting from pos
+   * Explode string by delim, include empty tokens
+   */
+  std::vector<std::string> tokenize(const string& str, char delimiters) {
+    std::vector<std::string> tokens;
+    std::string::size_type lastPos = 0;
+    auto pos = str.find_first_of(delimiters, lastPos);
+
+    while (pos != std::string::npos && lastPos != std::string::npos) {
+      tokens.emplace_back(str.substr(lastPos, pos - lastPos));
+
+      lastPos = pos + 1;
+      pos = str.find_first_of(delimiters, lastPos);
+    }
+
+    tokens.emplace_back(str.substr(lastPos, pos - lastPos));
+    return tokens;
+  }
+
+  /**
+   * Find the nth occurrence of needle in haystack starting from pos
    */
   size_t find_nth(const string& haystack, size_t pos, const string& needle, size_t nth) {
     size_t found_pos = haystack.find(needle, pos);
@@ -241,17 +278,17 @@ namespace string_util {
   }
 
   /**
-   * Create a MB filesize string
+   * Create a MiB filesize string
    */
-  string filesize_mb(unsigned long long kbytes, size_t precision, const string& locale) {
-    return floating_point(kbytes / 1024.0, precision, true, locale) + " MB";
+  string filesize_mib(unsigned long long kibibytes, size_t precision, const string& locale) {
+    return floating_point(kibibytes / 1024.0, precision, true, locale) + " MiB";
   }
 
   /**
-   * Create a GB filesize string
+   * Create a GiB filesize string
    */
-  string filesize_gb(unsigned long long kbytes, size_t precision, const string& locale) {
-    return floating_point(kbytes / 1024.0 / 1024.0, precision, true, locale) + " GB";
+  string filesize_gib(unsigned long long kibibytes, size_t precision, const string& locale) {
+    return floating_point(kibibytes / 1024.0 / 1024.0, precision, true, locale) + " GiB";
   }
 
   /**
@@ -275,6 +312,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}
+}  // namespace string_util
 
 POLYBAR_NS_END

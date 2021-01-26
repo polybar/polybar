@@ -11,15 +11,17 @@ namespace drawtypes {
   class ramp : public non_copyable_mixin<ramp> {
    public:
     explicit ramp() = default;
-    explicit ramp(vector<icon_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
+    explicit ramp(vector<label_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
 
-    void add(icon_t&& icon);
-    icon_t get(size_t index);
-    icon_t get_by_percentage(float percentage);
+    void add(label_t&& icon);
+    label_t get(size_t index);
+    label_t get_by_percentage(float percentage);
+    label_t get_by_percentage_with_borders(float percentage, float min, float max);
+    label_t get_by_percentage_with_borders(int percentage, int min, int max);
     operator bool();
 
    protected:
-    vector<icon_t> m_icons;
+    vector<label_t> m_icons;
   };
 
   using ramp_t = shared_ptr<ramp>;

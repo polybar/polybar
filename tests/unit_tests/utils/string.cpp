@@ -1,123 +1,150 @@
-#include <iomanip>
+#include "utils/string.hpp"
+#include "common/test.hpp"
 
-#include "utils/string.cpp"
+using namespace polybar;
 
-int main() {
-  using namespace polybar;
+TEST(String, upper) {
+  EXPECT_EQ("FOO", string_util::upper("FOO"));
+  EXPECT_EQ("FOO", string_util::upper("FoO"));
+  EXPECT_EQ("FOO", string_util::upper("FOo"));
+  EXPECT_EQ("FOO", string_util::upper("Foo"));
+}
 
-  "upper"_test = [] { expect(string_util::upper("FOO") == "FOO"); };
+TEST(String, lower) {
+  EXPECT_EQ("bar", string_util::lower("BAR"));
+}
 
-  "lower"_test = [] { expect(string_util::lower("BAR") == "bar"); };
+TEST(String, compare) {
+  EXPECT_TRUE(string_util::compare("foo", "foo"));
+  EXPECT_TRUE(string_util::compare("foo", "Foo"));
+  EXPECT_FALSE(string_util::compare("foo", "bar"));
+}
 
-  "compare"_test = [] {
-    expect(string_util::compare("foo", "foo"));
-    expect(!string_util::compare("foo", "bar"));
-  };
+TEST(String, replace) {
+  EXPECT_EQ("a.c", string_util::replace("abc", "b", "."));
+  EXPECT_EQ("a.a", string_util::replace("aaa", "a", ".", 1, 2));
+  EXPECT_EQ(".aa", string_util::replace("aaa", "a", ".", 0, 2));
+  EXPECT_EQ("Foo bxr baz", string_util::replace("Foo bar baz", "a", "x"));
+  EXPECT_EQ("foxoobar", string_util::replace("foooobar", "o", "x", 2, 3));
+  EXPECT_EQ("foooobar", string_util::replace("foooobar", "o", "x", 0, 1));
+}
 
-  "replace"_test = [] {
-    expect(string_util::replace("abc", "b", ".") == "a.c");
-    expect(string_util::replace("aaa", "a", ".", 1, 2) == "a.a");
-    expect(string_util::replace("aaa", "a", ".", 0, 2) == ".aa");
-    expect(string_util::replace("Foo bar baz", "a", "x") == "Foo bxr baz");
-    expect(string_util::replace("foooobar", "o", "x", 2, 3) == "foxoobar");
-    expect(string_util::replace("foooobar", "o", "x", 0, 1) == "foooobar");
-  };
+TEST(String, replaceAll) {
+  EXPECT_EQ("Foo bxr bxzx", string_util::replace_all("Foo bar baza", "a", "x"));
+  EXPECT_EQ("hoohoohoo", string_util::replace_all("hehehe", "he", "hoo"));
+  EXPECT_EQ("hoohehe", string_util::replace_all("hehehe", "he", "hoo", 0, 2));
+  EXPECT_EQ("hehehoo", string_util::replace_all("hehehe", "he", "hoo", 4));
+  EXPECT_EQ("hehehe", string_util::replace_all("hehehe", "he", "hoo", 0, 1));
+  EXPECT_EQ("113113113", string_util::replace_all("131313", "3", "13"));
+}
 
-  "replace_all"_test = [] {
-    expect(string_util::replace_all("Foo bar baza", "a", "x") == "Foo bxr bxzx");
-    expect(string_util::replace_all("hehehe", "he", "hoo") == "hoohoohoo");
-    expect(string_util::replace_all("hehehe", "he", "hoo", 0, 2) == "hoohehe");
-    expect(string_util::replace_all("hehehe", "he", "hoo", 4) == "hehehoo");
-    expect(string_util::replace_all("hehehe", "he", "hoo", 0, 1) == "hehehe");
-    expect(string_util::replace_all("131313", "3", "13") == "113113113");
-  };
+TEST(String, squeeze) {
+  EXPECT_EQ("Squeze", string_util::squeeze("Squeeeeeze", 'e'));
+  EXPECT_EQ("bar baz foobar", string_util::squeeze("bar  baz   foobar", ' '));
+}
 
-  "squeeze"_test = [] {
-    expect(string_util::squeeze("Squeeeeeze", 'e') == "Squeze");
-    expect(string_util::squeeze("bar  baz   foobar", ' ') == "bar baz foobar");
-  };
+TEST(String, strip) {
+  EXPECT_EQ("Strp", string_util::strip("Striip", 'i'));
+  EXPECT_EQ("test\n", string_util::strip_trailing_newline("test\n\n"));
+}
 
-  "strip"_test = [] {
-    expect(string_util::strip("Striip", 'i') == "Strp");
-    expect(string_util::strip_trailing_newline("test\n\n") == "test\n");
-  };
+TEST(String, trim) {
+  EXPECT_EQ("x x", string_util::trim("  x x "));
+  EXPECT_EQ("testxx", string_util::ltrim("xxtestxx", 'x'));
+  EXPECT_EQ("xxtest", string_util::rtrim("xxtestxx", 'x'));
+  EXPECT_EQ("test", string_util::trim("xxtestxx", 'x'));
+}
 
-  "trim"_test = [] {
-    expect(string_util::trim("  x x ") == "x x");
-    expect(string_util::ltrim("xxtestxx", 'x') == "testxx");
-    expect(string_util::rtrim("xxtestxx", 'x') == "xxtest");
-    expect(string_util::trim("xxtestxx", 'x') == "test");
-  };
+TEST(String, trimPredicate) {
+  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", isspace));
+  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", isspace));
+}
 
-  "join"_test = [] { expect(string_util::join({"A", "B", "C"}, ", ") == "A, B, C"); };
+TEST(String, join) {
+  EXPECT_EQ("A, B, C", string_util::join({"A", "B", "C"}, ", "));
+}
 
-  "split_into"_test = [] {
-    vector<string> strings;
-    string_util::split_into("A,B,C", ',', strings);
-    expect(strings.size() == size_t(3));
-    expect(strings[0] == "A");
-    expect(strings[2] == "C");
-  };
+TEST(String, split) {
+  {
+    vector<string> strings = string_util::split("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
 
-  "split"_test = [] {
-    vector<string> strings{"foo", "bar"};
-    vector<string> result{string_util::split("foo,bar", ',')};
-    expect(result.size() == strings.size());
-    expect(result[0] == strings[0]);
-    expect(result[1] == "bar");
-  };
+  {
+    vector<string> strings = string_util::split(",A,,B,,C,", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
+}
 
-  "find_nth"_test = [] {
-    expect(string_util::find_nth("foobarfoobar", 0, "f", 1) == size_t{0});
-    expect(string_util::find_nth("foobarfoobar", 0, "f", 2) == size_t{6});
-    expect(string_util::find_nth("foobarfoobar", 0, "o", 3) == size_t{7});
-  };
+TEST(String, tokenize) {
+  {
+    vector<string> strings = string_util::tokenize("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
 
-  "hash"_test = [] {
-    unsigned long hashA1{string_util::hash("foo")};
-    unsigned long hashA2{string_util::hash("foo")};
-    unsigned long hashB1{string_util::hash("Foo")};
-    unsigned long hashB2{string_util::hash("Bar")};
-    expect(hashA1 == hashA2);
-    expect(hashA1 != hashB1);
-    expect(hashA1 != hashB2);
-    expect(hashB1 != hashB2);
-  };
+  {
+    using namespace std::string_literals;
+    vector<string> strings = string_util::tokenize(",A,,B,,C,", ',');
+    vector<string> result{""s, "A"s, ""s, "B"s, ""s, "C"s, ""s};
 
-  "floating_point"_test = [] {
-    expect(string_util::floating_point(1.2599, 2) == "1.26");
-    expect(string_util::floating_point(1.7, 0) == "2");
-    expect(string_util::floating_point(1.777, 10) == "1.7770000000");
-  };
+    EXPECT_TRUE(strings == result);
+  }
+}
 
-  "filesize"_test = [] {
-    expect(string_util::filesize_mb(3 * 1024, 3) == "3.000 MB");
-    expect(string_util::filesize_mb(3 * 1024 + 200, 3) == "3.195 MB");
-    expect(string_util::filesize_mb(3 * 1024 + 400) == "3 MB");
-    expect(string_util::filesize_mb(3 * 1024 + 800) == "4 MB");
-    expect(string_util::filesize_gb(3 * 1024 * 1024 + 200 * 1024, 3) == "3.195 GB");
-    expect(string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024) == "3 GB");
-    expect(string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024) == "4 GB");
-    expect(string_util::filesize(3) == "3 B");
-    expect(string_util::filesize(3 * 1024) == "3 KB");
-    expect(string_util::filesize(3 * 1024 * 1024) == "3 MB");
-    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024) == "3 GB");
-    expect(string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024) == "3 TB");
-  };
+TEST(String, findNth) {
+  EXPECT_EQ(0, string_util::find_nth("foobarfoobar", 0, "f", 1));
+  EXPECT_EQ(6, string_util::find_nth("foobarfoobar", 0, "f", 2));
+  EXPECT_EQ(7, string_util::find_nth("foobarfoobar", 0, "o", 3));
+}
 
-  "sstream"_test = [] {
-    string s;
-    expect((s = (sstream() << "test")) == "test"s);
-    expect((s = (sstream() << std::setprecision(2) << std::fixed << 1.25)).erase(0, 2) == "25"s);
-  };
+TEST(String, hash) {
+  unsigned long hashA1{string_util::hash("foo")};
+  unsigned long hashA2{string_util::hash("foo")};
+  unsigned long hashB1{string_util::hash("Foo")};
+  unsigned long hashB2{string_util::hash("Bar")};
+  EXPECT_EQ(hashA2, hashA1);
+  EXPECT_NE(hashB1, hashA1);
+  EXPECT_NE(hashB2, hashA1);
+  EXPECT_NE(hashB2, hashB1);
+}
 
-  "operators"_test = [] {
-    string foo = "foobar";
-    expect(foo - "bar" == "foo");
-    string baz = "bazbaz";
-    expect(baz - "ba" == "bazbaz");
-    expect(baz - "bazbz" == "bazbaz");
-    string aaa = "aaa";
-    expect(aaa - "aaaaa" == "aaa");
-  };
+TEST(String, floatingPoint) {
+  EXPECT_EQ("1.26", string_util::floating_point(1.2599, 2));
+  EXPECT_EQ("2", string_util::floating_point(1.7, 0));
+  EXPECT_EQ("1.7770000000", string_util::floating_point(1.777, 10));
+}
+
+TEST(String, filesize) {
+  EXPECT_EQ("3.000 MiB", string_util::filesize_mib(3 * 1024, 3));
+  EXPECT_EQ("3.195 MiB", string_util::filesize_mib(3 * 1024 + 200, 3));
+  EXPECT_EQ("3 MiB", string_util::filesize_mib(3 * 1024 + 400));
+  EXPECT_EQ("4 MiB", string_util::filesize_mib(3 * 1024 + 800));
+  EXPECT_EQ("3.195 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 200 * 1024, 3));
+  EXPECT_EQ("3 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 400 * 1024));
+  EXPECT_EQ("4 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 800 * 1024));
+  EXPECT_EQ("3 B", string_util::filesize(3));
+  EXPECT_EQ("3 KB", string_util::filesize(3 * 1024));
+  EXPECT_EQ("3 MB", string_util::filesize(3 * 1024 * 1024));
+  EXPECT_EQ("3 GB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024));
+  EXPECT_EQ("3 TB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024));
+}
+
+TEST(String, operators) {
+  string foo = "foobar";
+  EXPECT_EQ("foo", foo - "bar");
+  string baz = "bazbaz";
+  EXPECT_EQ("bazbaz", baz - "ba");
+  EXPECT_EQ("bazbaz", baz - "baZ");
+  EXPECT_EQ("bazbaz", baz - "bazbz");
+  string aaa = "aaa";
+  EXPECT_EQ("aaa", aaa - "aaaaa");
 }

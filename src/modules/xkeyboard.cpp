@@ -1,24 +1,59 @@
 #include "modules/xkeyboard.hpp"
+
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<xkeyboard_module>;
 
+  // clang-format off
+  static const keyboard::indicator::type INDICATOR_TYPES[] {
+    keyboard::indicator::type::CAPS_LOCK,
+    keyboard::indicator::type::NUM_LOCK,
+    keyboard::indicator::type::SCROLL_LOCK
+  };
+  // clang-format on
+
   /**
    * Construct module
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
+    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
+
+    // Setup extension
+    // clang-format off
+    m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
+      XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY |
+      XCB_XKB_EVENT_TYPE_STATE_NOTIFY |
+      XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
+      XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY |
+      XCB_XKB_EVENT_TYPE_STATE_NOTIFY |
+      XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
+    // clang-format on
+
+    // Create keyboard object
+    query_keyboard();
+
     // Load config values
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
+
+    // load layout icons
+    m_layout_icons = factory_util::shared<iconset>();
+    m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
+
+    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+      auto vec = string_util::tokenize(it, ';');
+      if (vec.size() == 2) {
+        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+      }
+    }
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
@@ -26,19 +61,57 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
       m_layout = load_optional_label(m_conf, name(), TAG_LABEL_LAYOUT, "%layout%");
     }
+
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
-      m_indicator = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%");
+      m_conf.warn_deprecated(name(), "label-indicator", "label-indicator-on");
+      // load an empty label if 'label-indicator-off' is not explicitly specified so
+      // no existing user configs are broken (who expect nothing to be shown when indicator is off)
+      m_indicator_state_off = load_optional_label(m_conf, name(), "label-indicator-off"s, ""s);
+
+      if (m_conf.has(name(), "label-indicator-on"s)) {
+        m_indicator_state_on = load_optional_label(m_conf, name(), "label-indicator-on"s, "%name%"s);
+      } else {
+        // if 'label-indicator-on' is not explicitly specified, use 'label-indicator'
+        // as to not break existing user configs
+        m_indicator_state_on = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
+      }
+
+      // load indicator icons
+      m_indicator_icons_off = factory_util::shared<iconset>();
+      m_indicator_icons_on = factory_util::shared<iconset>();
+
+      auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
+      if (icon_pair.size() == 2) {
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
+      } else {
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
+      }
+
+      for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
+        auto icon_triple = string_util::tokenize(it, ';');
+        if (icon_triple.size() == 3) {
+          auto const indicator_str = string_util::lower(icon_triple[0]);
+          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(icon_triple[1]));
+          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(icon_triple[2]));
+        }
+      }
+
+      for (auto it : INDICATOR_TYPES) {
+        const auto& indicator_str = m_keyboard->indicator_name(it);
+        auto key_name = string_util::replace(string_util::lower(indicator_str), " "s, ""s);
+        const auto indicator_key_on = "label-indicator-on-"s + key_name;
+        const auto indicator_key_off = "label-indicator-off-"s + key_name;
+
+        if (m_conf.has(name(), indicator_key_on)) {
+          m_indicator_on_labels.emplace(it, load_label(m_conf, name(), indicator_key_on));
+        }
+        if (m_conf.has(name(), indicator_key_off)) {
+          m_indicator_off_labels.emplace(it, load_label(m_conf, name(), indicator_key_off));
+        }
+      }
     }
-
-    // Setup extension
-    // clang-format off
-    m_connection.xkb().select_events_checked(XCB_XKB_ID_USE_CORE_KBD,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0,
-        XCB_XKB_EVENT_TYPE_NEW_KEYBOARD_NOTIFY | XCB_XKB_EVENT_TYPE_STATE_NOTIFY | XCB_XKB_EVENT_TYPE_INDICATOR_STATE_NOTIFY, 0, 0, nullptr);
-    // clang-format on
-
-    // Create keyboard object
-    query_keyboard();
   }
 
   /**
@@ -48,27 +121,43 @@ namespace modules {
     if (m_layout) {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
-      m_layout->replace_token("%layout%", m_keyboard->layout_name(m_keyboard->current()));
+      m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
+
+      auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
+      auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
+
+      m_layout->replace_token("%icon%", icon->get());
+      m_layout->replace_token("%layout%", current_layout);
       m_layout->replace_token("%number%", to_string(m_keyboard->current()));
     }
 
-    if (m_indicator) {
+    if (m_formatter->has(TAG_LABEL_INDICATOR)) {
       m_indicators.clear();
 
-      const auto& caps = keyboard::indicator::type::CAPS_LOCK;
-      const auto& caps_str = m_keyboard->indicator_name(caps);
+      for (auto it : INDICATOR_TYPES) {
+        const auto& indicator_str = m_keyboard->indicator_name(it);
 
-      if (!blacklisted(caps_str) && m_keyboard->on(caps)) {
-        m_indicators[caps] = m_indicator->clone();
-        m_indicators[caps]->replace_token("%name%", caps_str);
-      }
+        if (blacklisted(indicator_str)) {
+          continue;
+        }
 
-      const auto& num = keyboard::indicator::type::NUM_LOCK;
-      const auto& num_str = m_keyboard->indicator_name(num);
+        auto indicator_on = m_keyboard->on(it);
+        auto& indicator_labels = indicator_on ? m_indicator_on_labels : m_indicator_off_labels;
+        auto& indicator_icons = indicator_on ? m_indicator_icons_on : m_indicator_icons_off;
+        auto& indicator_state = indicator_on ? m_indicator_state_on : m_indicator_state_off;
 
-      if (!blacklisted(num_str) && m_keyboard->on(num)) {
-        m_indicators[num] = m_indicator->clone();
-        m_indicators[num]->replace_token("%name%", num_str);
+        label_t indicator;
+        if (indicator_labels.find(it) != indicator_labels.end()) {
+          indicator = indicator_labels[it]->clone();
+        } else {
+          indicator = indicator_state->clone();
+        }
+
+        auto icon = indicator_icons->get(string_util::lower(indicator_str), DEFAULT_INDICATOR_ICON);
+
+        indicator->replace_token("%name%", indicator_str);
+        indicator->replace_token("%icon%", icon->get());
+        m_indicators.emplace(it, move(indicator));
       }
     }
 
@@ -84,9 +173,9 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_keyboard && m_keyboard->size() > 1) {
-      m_builder->cmd(mousebtn::LEFT, EVENT_SWITCH);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH, "");
       m_builder->append(output);
-      m_builder->cmd_close();
+      m_builder->action_close();
     } else {
       m_builder->append(output);
     }
@@ -103,10 +192,12 @@ namespace modules {
     } else if (tag == TAG_LABEL_INDICATOR && !m_indicators.empty()) {
       size_t n{0};
       for (auto&& indicator : m_indicators) {
-        if (n++) {
-          builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        if (*indicator.second) {
+          if (n++) {
+            builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+          }
+          builder->node(indicator.second);
         }
-        builder->node(indicator.second);
       }
       return n > 0;
     } else {
@@ -119,11 +210,7 @@ namespace modules {
   /**
    * Handle input command
    */
-  bool xkeyboard_module::input(string&& cmd) {
-    if (cmd.compare(0, strlen(EVENT_SWITCH), EVENT_SWITCH) != 0) {
-      return false;
-    }
-
+  void xkeyboard_module::action_switch() {
     size_t current_group = m_keyboard->current() + 1;
 
     if (current_group >= m_keyboard->size()) {
@@ -135,8 +222,6 @@ namespace modules {
     m_connection.flush();
 
     update();
-
-    return true;
   }
 
   /**
@@ -197,6 +282,6 @@ namespace modules {
       update();
     }
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

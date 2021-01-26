@@ -1,8 +1,14 @@
-Polybar Support
-===============
+Getting Help
+============
 
-Reading [Polybar Wiki](https://github.com/jaagr/polybar/wiki) should help you with most of the problems you encounter when using polybar. It has a page for each module, describing what it does and what configuration options it provides.
+If you need help or troubleshooting tips or just have a question:
 
-If you can't find the information you are looking for on the wiki, look through the existing [issues](https://github.com/jaagr/polybar/issues?q=is%3Aissue), to see if anyone had the same problem before.
+* If applicable, go through our [debugging guide](https://github.com/polybar/polybar/wiki/Debugging-your-Config).
+* Read the [Known Issues page](https://github.com/polybar/polybar/wiki/Known-Issues), maybe others had the same issue before.
+* Read the [Wiki page](https://github.com/polybar/polybar/wiki) for the thing you have problems with.
+* Join our Gitter room at [gitter.im/polybar/polybar](https://gitter.im/polybar/polybar)
+* Ask in our reddit community at [r/polybar](https://www.reddit.com/r/polybar)
+* Join the official IRC channel `#polybar` on the `chat.freenode.net` network. If you don't get an answer try asking on [Gitter](https://gitter.im/polybar/polybar).
+* Ask on [Unix & Linux StackExchange](https://unix.stackexchange.com/). Though not all questions may be suited over there, make sure you're [on topic](https://unix.stackexchange.com/help/on-topic).
 
-If you are still not able to resolve your problem, go ahead and open a new issue and also document what you have done up to that point to solve the problem.
+Please **do not** use the github issue tracker to ask for help or if you have a question, it is meant for bug reports and feature requests. Issues will be closed and you will be referred to the above resources.

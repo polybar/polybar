@@ -1,24 +1,34 @@
 #include "modules/pulseaudio.hpp"
+
 #include "adapters/pulseaudio.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
-
 #include "settings.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
 namespace modules {
   template class module<pulseaudio_module>;
 
-  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_) : event_module<pulseaudio_module>(bar, move(name_)) {
+  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
+      : event_module<pulseaudio_module>(bar, move(name_)) {
+    if (m_handle_events) {
+      m_router->register_action(EVENT_DEC, &pulseaudio_module::action_dec);
+      m_router->register_action(EVENT_INC, &pulseaudio_module::action_inc);
+      m_router->register_action(EVENT_TOGGLE, &pulseaudio_module::action_toggle);
+    }
+
     // Load configuration values
+    m_interval = m_conf.get(name(), "interval", m_interval);
+
     auto sink_name = m_conf.get(name(), "sink", ""s);
+    bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
+
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name));
+      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }
@@ -62,11 +72,13 @@ namespace modules {
 
     // Get volume and mute state
     m_volume = 100;
+    m_decibels = PA_DECIBEL_MININFTY;
     m_muted = false;
 
     try {
       if (m_pulseaudio) {
         m_volume = m_volume * m_pulseaudio->get_volume() / 100.0f;
+        m_decibels = m_pulseaudio->get_decibels();
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
@@ -77,11 +89,13 @@ namespace modules {
     if (m_label_volume) {
       m_label_volume->reset_tokens();
       m_label_volume->replace_token("%percentage%", to_string(m_volume));
+      m_label_volume->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     if (m_label_muted) {
       m_label_muted->reset_tokens();
       m_label_muted->replace_token("%percentage%", to_string(m_volume));
+      m_label_muted->replace_token("%decibels%", string_util::floating_point(m_decibels, 2, true));
     }
 
     return true;
@@ -98,9 +112,20 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+      auto click_middle = m_conf.get(name(), "click-middle", ""s);
+      auto click_right = m_conf.get(name(), "click-right", ""s);
+
+      if (!click_middle.empty()) {
+        m_builder->action(mousebtn::MIDDLE, click_middle);
+      }
+
+      if (!click_right.empty()) {
+        m_builder->action(mousebtn::RIGHT, click_right);
+      }
+
+      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
@@ -123,32 +148,17 @@ namespace modules {
     return true;
   }
 
-  bool pulseaudio_module::input(string&& cmd) {
-    if (!m_handle_events) {
-      return false;
-    } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
-      return false;
-    }
-
-    try {
-      if (m_pulseaudio && !m_pulseaudio->get_name().empty()) {
-        if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
-          m_pulseaudio->toggle_mute();
-        } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
-          // cap above 100 (~150)?
-          m_pulseaudio->inc_volume(5);
-        } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
-          m_pulseaudio->inc_volume(-5);
-        } else {
-          return false;
-        }
-      }
-    } catch (const exception& err) {
-      m_log.err("%s: Failed to handle command (%s)", name(), err.what());
-    }
-
-    return true;
+  void pulseaudio_module::action_inc() {
+    m_pulseaudio->inc_volume(m_interval);
   }
-}
+
+  void pulseaudio_module::action_dec() {
+    m_pulseaudio->inc_volume(-m_interval);
+  }
+
+  void pulseaudio_module::action_toggle() {
+    m_pulseaudio->toggle_mute();
+  }
+}  // namespace modules
 
 POLYBAR_NS_END

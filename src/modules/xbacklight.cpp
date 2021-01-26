@@ -1,12 +1,12 @@
 #include "modules/xbacklight.hpp"
+
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
+#include "modules/meta/base.inl"
 #include "utils/math.hpp"
 #include "x11/connection.hpp"
 #include "x11/winspec.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -18,16 +18,14 @@ namespace modules {
    */
   xbacklight_module::xbacklight_module(const bar_settings& bar, string name_)
       : static_module<xbacklight_module>(bar, move(name_)), m_connection(connection::make()) {
-    auto output = m_conf.get(name(), "output", m_bar.monitor->name);
-    auto strict = m_conf.get(name(), "monitor-strict", false);
+    m_router->register_action(EVENT_INC, &xbacklight_module::action_inc);
+    m_router->register_action(EVENT_DEC, &xbacklight_module::action_dec);
 
-    // Grab a list of all outputs and try to find the one defined in the config
-    for (auto&& mon : randr_util::get_monitors(m_connection, m_connection.root(), strict)) {
-      if (mon->match(output, strict)) {
-        m_output.swap(mon);
-        break;
-      }
-    }
+    auto output = m_conf.get(name(), "output", m_bar.monitor->name);
+
+    auto monitors = randr_util::get_monitors(m_connection, m_connection.root(), bar.monitor_strict, false);
+
+    m_output = randr_util::match_monitor(monitors, output, bar.monitor_exact);
 
     // If we didn't get a match we stop the module
     if (!m_output) {
@@ -44,7 +42,7 @@ namespace modules {
       randr_util::get_backlight_value(m_connection, m_output, backlight);
     } catch (const exception& err) {
       m_log.err("%s: Could not get data (err: %s)", name(), err.what());
-      throw module_error("Not supported for \"" + output + "\"");
+      throw module_error("Not supported for \"" + m_output->name + "\"");
     }
 
     // Create window that will proxy all RandR notify events
@@ -121,14 +119,14 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_scroll) {
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_SCROLLUP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_SCROLLDOWN);
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
 
-    m_builder->cmd_close();
-    m_builder->cmd_close();
+    m_builder->action_close();
+    m_builder->action_close();
 
     return m_builder->flush();
   }
@@ -149,34 +147,23 @@ namespace modules {
     return true;
   }
 
-  /**
-   * Process scroll events by changing backlight value
-   */
-  bool xbacklight_module::input(string&& cmd) {
-    double value_mod{0.0};
-
-    if (cmd == EVENT_SCROLLUP) {
-      value_mod = 5.0;
-      m_log.info("%s: Increasing value by %i%", name(), value_mod);
-    } else if (cmd == EVENT_SCROLLDOWN) {
-      value_mod = -5.0;
-      m_log.info("%s: Decreasing value by %i%", name(), -value_mod);
-    } else {
-      return false;
-    }
-
-    try {
-      int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
-      const int values[1]{math_util::percentage_to_value<int>(rounded, m_output->backlight.max)};
-
-      m_connection.change_output_property_checked(
-          m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
-    } catch (const exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-    }
-
-    return true;
+  void xbacklight_module::action_inc() {
+    change_value(5);
   }
-}
+
+  void xbacklight_module::action_dec() {
+    change_value(-5);
+  }
+
+  void xbacklight_module::change_value(int value_mod) {
+    m_log.info("%s: Changing value by %i%", name(), value_mod);
+    int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
+
+    const int values[1]{math_util::percentage_to_value<int>(rounded, m_output->backlight.max)};
+
+    m_connection.change_output_property_checked(
+        m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
+  }
+}  // namespace modules
 
 POLYBAR_NS_END

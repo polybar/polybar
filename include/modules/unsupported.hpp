@@ -1,7 +1,4 @@
 #pragma once
-#if ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD
-#error "Support has been enabled for all optional modules"
-#endif
 
 #include "modules/meta/base.hpp"
 #include "modules/meta/base.inl"
@@ -17,17 +14,31 @@ namespace modules {
     MODULE_NAME(const bar_settings, string) {                                           \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
-    string name() const {                                                               \
+    static constexpr auto TYPE = MODULE_TYPE;                                           \
+    string type() const override {                                                      \
       return "";                                                                        \
     }                                                                                   \
-    bool running() const {                                                              \
+    string name_raw() const override {                                                  \
+      return "";                                                                        \
+    }                                                                                   \
+    string name() const override {                                                      \
+      return "";                                                                        \
+    }                                                                                   \
+    bool running() const override {                                                     \
       return false;                                                                     \
     }                                                                                   \
-    void start() {}                                                                     \
-    void stop() {}                                                                      \
-    void halt(string) {}                                                                \
-    string contents() {                                                                 \
+    bool visible() const override {                                                     \
+      return false;                                                                     \
+    }                                                                                   \
+    void set_visible(bool) override {}                                                  \
+    void start() override {}                                                            \
+    void stop() override {}                                                             \
+    void halt(string) override {}                                                       \
+    string contents() override {                                                        \
       return "";                                                                        \
+    }                                                                                   \
+    bool input(const string&, const string&) override {                                 \
+      return false;                                                                     \
     }                                                                                   \
   }
 
@@ -52,6 +63,6 @@ namespace modules {
 #if not ENABLE_XKEYBOARD
   DEFINE_UNSUPPORTED_MODULE(xkeyboard_module, "internal/xkeyboard");
 #endif
-}
+}  // namespace modules
 
 POLYBAR_NS_END

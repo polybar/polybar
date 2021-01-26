@@ -13,18 +13,9 @@ class signal_emitter;
 /**
  * Message types
  */
-struct ipc_command {
-  static constexpr const char* prefix{"cmd:"};
-  char payload[EVENT_SIZE]{'\0'};
-};
-struct ipc_hook {
-  static constexpr const char* prefix{"hook:"};
-  char payload[EVENT_SIZE]{'\0'};
-};
-struct ipc_action {
-  static constexpr const char* prefix{"action:"};
-  char payload[EVENT_SIZE]{'\0'};
-};
+static constexpr const char* ipc_command_prefix{"cmd:"};
+static constexpr const char* ipc_hook_prefix{"hook:"};
+static constexpr const char* ipc_action_prefix{"action:"};
 
 /**
  * Component used for inter-process communication.
@@ -49,7 +40,7 @@ class ipc {
   const logger& m_log;
 
   string m_path{};
-  unique_ptr<file_descriptor> m_fd{};
+  unique_ptr<file_descriptor> m_fd;
 };
 
 POLYBAR_NS_END

@@ -1,73 +1,128 @@
-#include "common/test.hpp"
 #include "utils/color.hpp"
 
-int main() {
-  using namespace polybar;
+#include "common/test.hpp"
 
-  "rgb"_test = []{
-    unsigned int color{0x123456};
-    expect(color_util::alpha_channel<unsigned char>(color) == 0);
-    expect(color_util::red_channel<unsigned char>(color) == 0x12);
-    expect(color_util::green_channel<unsigned char>(color) == 0x34);
-    expect(color_util::green_channel<unsigned short int>(color) == 0x3434);
-    expect(color_util::blue_channel<unsigned char>(color) == 0x56);
+using namespace polybar;
 
-    expect(rgb{0xFF112233}.b == 0x33 / 255.0);
-    expect(rgb{0x88449933}.g == 0x51 / 255.0);
-    expect(rgb{0xee111111} == 0xff0f0f0f);
-    expect(rgb{0x99112233} == 0xff0a141e);
-  };
+TEST(Rgba, constructor) {
+  EXPECT_FALSE(rgba("invalid").has_color());
 
-  "rgba"_test = []{
-    unsigned int color{0xCC123456};
-    expect(color_util::alpha_channel<unsigned short int>(color) == 0xCCCC);
-    expect(color_util::red_channel<unsigned short int>(color) == 0x1212);
-    expect(color_util::red_channel<unsigned char>(color) == 0x12);
-    expect(color_util::green_channel<unsigned short int>(color) == 0x3434);
-    expect(color_util::blue_channel<unsigned short int>(color) == 0x5656);
+  EXPECT_FALSE(rgba("#f").has_color());
 
-    expect(rgba{0xCC112233}.a == 0xCC / 255.0);
-    expect(rgba{0x88449933}.g == 0x99 / 255.0);
-    expect(static_cast<unsigned int>(rgba{0xFF111111}) == 0xFF111111);
-    expect(static_cast<unsigned int>(rgba{0x00FFFFFF}) == 0x00FFFFFF);
-  };
+  EXPECT_FALSE(rgba("#-abc").has_color());
+  EXPECT_FALSE(rgba("#xyz").has_color());
 
-  "hex"_test = [] {
-    unsigned int colorA{0x123456};
-    expect(color_util::hex<unsigned char>(colorA) == "#123456"s);
-    unsigned int colorB{0xCC123456};
-    expect(color_util::hex<unsigned short int>(colorB) == "#cc123456"s);
-    unsigned int colorC{0x00ffffff};
-    expect(color_util::hex<unsigned short int>(colorC) == "#00ffffff"s);
-  };
+  EXPECT_EQ(rgba::type::ALPHA_ONLY, rgba{"#12"}.type());
 
-  "parse_hex"_test = [] {
-    expect(color_util::parse_hex("#fff") == "#ffffffff");
-    expect(color_util::parse_hex("#123") == "#ff112233");
-    expect(color_util::parse_hex("#888888") == "#ff888888");
-    expect(color_util::parse_hex("#00aa00aa") == "#00aa00aa");
-  };
+  EXPECT_EQ(0xff000000, rgba{"#ff"}.value());
 
-  "parse"_test = [] {
-    expect(color_util::parse("invalid") == 0);
-    expect(color_util::parse("#f") == 0);
-    expect(color_util::parse("#ff") == 0);
-    expect(color_util::parse("invalid", 0xFF999999) == 0xFF999999);
-    expect(color_util::parse("invalid", 0x00111111) == 0x00111111);
-    expect(color_util::parse("invalid", 0xFF000000) == 0xFF000000);
-    expect(color_util::parse("#fff") == 0xffffffff);
-    expect(color_util::parse("#890") == 0xFF889900);
-    expect(color_util::parse("#55888777") == 0x55888777);
-    expect(color_util::parse("#88aaaaaa") == 0x88aaaaaa);
-    expect(color_util::parse("#00aaaaaa") == 0x00aaaaaa);
-    expect(color_util::parse("#00FFFFFF") == 0x00FFFFFF);
-  };
+  EXPECT_EQ(0xffffffff, rgba{"#fff"}.value());
 
-  "simplify"_test = [] {
-    expect(color_util::simplify_hex("#FF111111") == "#111");
-    expect(color_util::simplify_hex("#ff223344") == "#234");
-    expect(color_util::simplify_hex("#ee223344") == "#ee223344");
-    expect(color_util::simplify_hex("#ff234567") == "#234567");
-    expect(color_util::simplify_hex("#00223344") == "#00223344");
-  };
+  EXPECT_EQ(0xFF889900, rgba{"#890"}.value());
+
+  EXPECT_EQ(0xaa889900, rgba{"#a890"}.value());
+
+  EXPECT_EQ(0x55888777, rgba{"#55888777"}.value());
+
+  EXPECT_EQ(0x88aaaaaa, rgba{"#88aaaaaa"}.value());
+
+  EXPECT_EQ(0x00aaaaaa, rgba{"#00aaaaaa"}.value());
+
+  EXPECT_EQ(0x00FFFFFF, rgba{"#00FFFFFF"}.value());
+}
+
+TEST(Rgba, parse) {
+  EXPECT_EQ(0xffffffff, rgba{"#fff"}.value());
+  EXPECT_EQ(0xffffffff, rgba{"fff"}.value());
+  EXPECT_EQ(0xff112233, rgba{"#123"}.value());
+  EXPECT_EQ(0xff112233, rgba{"123"}.value());
+  EXPECT_EQ(0xff888888, rgba{"#888888"}.value());
+  EXPECT_EQ(0xff888888, rgba{"888888"}.value());
+  EXPECT_EQ(0x00aa00aa, rgba{"#00aa00aa"}.value());
+  EXPECT_EQ(0x00aa00aa, rgba{"00aa00aa"}.value());
+  EXPECT_EQ(0x11223344, rgba{"#1234"}.value());
+  EXPECT_EQ(0x11223344, rgba{"1234"}.value());
+  EXPECT_EQ(0xaa000000, rgba{"#aa"}.value());
+  EXPECT_EQ(0xaa000000, rgba{"aa"}.value());
+}
+
+TEST(Rgba, string) {
+  EXPECT_EQ("#11223344", static_cast<string>(rgba{"#1234"}));
+  EXPECT_EQ("#12000000", static_cast<string>(rgba{"#12"}));
+}
+
+TEST(Rgba, eq) {
+  rgba v(0x12, rgba::type::NONE);
+
+  EXPECT_TRUE(v == rgba(0, rgba::type::NONE));
+  EXPECT_TRUE(v == rgba(0x11, rgba::type::NONE));
+  EXPECT_FALSE(v == rgba{0x123456});
+
+  v = rgba{0xCC123456};
+
+  EXPECT_TRUE(v == rgba{0xCC123456});
+  EXPECT_FALSE(v == rgba(0xCC123456, rgba::type::NONE));
+
+  v = rgba{"#aa"};
+
+  EXPECT_TRUE(v == rgba(0xaa000000, rgba::type::ALPHA_ONLY));
+  EXPECT_FALSE(v == rgba(0xaa000000, rgba::type::ARGB));
+  EXPECT_FALSE(v == rgba(0xab000000, rgba::type::ALPHA_ONLY));
+}
+
+TEST(Rgba, hasColor) {
+  rgba v{"#"};
+
+  EXPECT_FALSE(v.has_color());
+
+  v = rgba{"#ff"};
+
+  EXPECT_TRUE(v.has_color());
+
+  v = rgba{"#cc123456"};
+
+  EXPECT_TRUE(v.has_color());
+
+  v = rgba(0x1243, rgba::type::NONE);
+
+  EXPECT_FALSE(v.has_color());
+}
+
+TEST(Rgba, channel) {
+  rgba v{0xCC123456};
+  EXPECT_EQ(0xCC, v.alpha_i());
+  EXPECT_EQ(0x12, v.red_i());
+  EXPECT_EQ(0x34, v.green_i());
+  EXPECT_EQ(0x56, v.blue_i());
+
+  EXPECT_EQ(0xCC / 255.0, rgba{0xCC112233}.alpha_d());
+  EXPECT_EQ(0x99 / 255.0, rgba{0x88449933}.green_d());
+}
+
+TEST(Rgba, applyAlphaTo) {
+  rgba v{0xAA000000, rgba::type::ALPHA_ONLY};
+  rgba modified = v.apply_alpha_to(rgba{0xCC123456});
+  EXPECT_EQ(0xAA123456, modified.value());
+
+  v = rgba{0xCC999999};
+  modified = v.apply_alpha_to(rgba{0x00123456});
+  EXPECT_EQ(0xCC123456, modified.value());
+}
+
+TEST(Rgba, tryApplyAlphaTo) {
+  rgba v{0xAA000000, rgba::type::ALPHA_ONLY};
+  rgba modified = v.try_apply_alpha_to(rgba{0xCC123456});
+  EXPECT_EQ(0xAA123456, modified.value());
+
+  v = rgba{0xCC999999};
+  modified = v.try_apply_alpha_to(rgba{0x00123456});
+  EXPECT_EQ(0xCC999999, modified.value());
+}
+
+TEST(ColorUtil, simplify) {
+  EXPECT_EQ("#111", color_util::simplify_hex("#FF111111"));
+  EXPECT_EQ("#234", color_util::simplify_hex("#ff223344"));
+  EXPECT_EQ("#ee223344", color_util::simplify_hex("#ee223344"));
+  EXPECT_EQ("#234567", color_util::simplify_hex("#ff234567"));
+  EXPECT_EQ("#00223344", color_util::simplify_hex("#00223344"));
 }

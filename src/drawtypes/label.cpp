@@ -1,14 +1,49 @@
+#include "drawtypes/label.hpp"
+
+#include <cmath>
 #include <utility>
 
-#include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
+  /**
+   * Gets the text from the label as it should be rendered
+   *
+   * Here tokens are replaced with values and minlen and maxlen properties are applied
+   */
   string label::get() const {
-    return m_tokenized;
+    const size_t len = string_util::char_len(m_tokenized);
+    if (len >= m_minlen) {
+      string text = m_tokenized;
+      if (m_maxlen > 0 && len > m_maxlen) {
+        if (m_ellipsis) {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen - 3) + "...";
+        } else {
+          text = string_util::utf8_truncate(std::move(text), m_maxlen);
+        }
+      }
+      return text;
+    }
+
+    const size_t num_fill_chars = m_minlen - len;
+    size_t right_fill_len = 0;
+    size_t left_fill_len = 0;
+    if (m_alignment == alignment::RIGHT) {
+      left_fill_len = num_fill_chars;
+    } else if (m_alignment == alignment::LEFT) {
+      right_fill_len = num_fill_chars;
+    } else {
+      right_fill_len = std::ceil(num_fill_chars / 2.0);
+      left_fill_len = right_fill_len;
+      // The text is positioned one character to the left if we can't perfectly center it
+      if (len + left_fill_len + right_fill_len > m_minlen) {
+        --left_fill_len;
+      }
+    }
+    return string(left_fill_len, ' ') + m_tokenized + string(right_fill_len, ' ');
   }
 
   label::operator bool() {
@@ -22,7 +57,7 @@ namespace drawtypes {
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
     return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
-        m_margin, m_maxlen, m_ellipsis, move(tokens));
+        m_margin, m_minlen, m_maxlen, m_alignment, m_ellipsis, move(tokens));
   }
 
   void label::clear() {
@@ -52,7 +87,7 @@ namespace drawtypes {
         if (tok.max != 0_z && string_util::char_len(repl) > tok.max) {
           repl = string_util::utf8_truncate(std::move(repl), tok.max) + tok.suffix;
         } else if (tok.min != 0_z && repl.length() < tok.min) {
-          repl.insert(0_z, tok.min - repl.length(), ' ');
+          repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
         }
 
         /*
@@ -64,16 +99,16 @@ namespace drawtypes {
   }
 
   void label::replace_defined_values(const label_t& label) {
-    if (!label->m_foreground.empty()) {
+    if (label->m_foreground.has_color()) {
       m_foreground = label->m_foreground;
     }
-    if (!label->m_background.empty()) {
+    if (label->m_background.has_color()) {
       m_background = label->m_background;
     }
-    if (!label->m_underline.empty()) {
+    if (label->m_underline.has_color()) {
       m_underline = label->m_underline;
     }
-    if (!label->m_overline.empty()) {
+    if (label->m_overline.has_color()) {
       m_overline = label->m_overline;
     }
     if (label->m_font != 0) {
@@ -98,16 +133,16 @@ namespace drawtypes {
   }
 
   void label::copy_undefined(const label_t& label) {
-    if (m_foreground.empty() && !label->m_foreground.empty()) {
+    if (!m_foreground.has_color() && label->m_foreground.has_color()) {
       m_foreground = label->m_foreground;
     }
-    if (m_background.empty() && !label->m_background.empty()) {
+    if (!m_background.has_color() && label->m_background.has_color()) {
       m_background = label->m_background;
     }
-    if (m_underline.empty() && !label->m_underline.empty()) {
+    if (!m_underline.has_color() && label->m_underline.has_color()) {
       m_underline = label->m_underline;
     }
-    if (m_overline.empty() && !label->m_overline.empty()) {
+    if (!m_overline.has_color() && label->m_overline.has_color()) {
       m_overline = label->m_overline;
     }
     if (m_font == 0 && label->m_font != 0) {
@@ -151,12 +186,6 @@ namespace drawtypes {
       text = conf.get(section, name, move(def));
     }
 
-    size_t len{text.size()};
-
-    if (len > 2 && text[0] == '"' && text[len - 1] == '"') {
-      text = text.substr(1, len - 2);
-    }
-
     const auto get_left_right = [&](string key) {
       auto value = conf.get(section, key, 0U);
       auto left = conf.get(section, key + "-left", value);
@@ -195,6 +224,8 @@ namespace drawtypes {
 
       try {
         token.min = std::stoul(&token_str[pos + 1], nullptr, 10);
+        // When the number starts with 0 the string is 0-padded
+        token.zpad = token_str[pos + 1] == '0';
       } catch (const std::invalid_argument& err) {
         continue;
       }
@@ -220,18 +251,45 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
+    size_t minlen = conf.get(section, name + "-minlen", 0_z);
+    string alignment_conf_value = conf.get(section, name + "-alignment", "left"s);
+    alignment label_alignment;
+    if (alignment_conf_value == "right") {
+      label_alignment = alignment::RIGHT;
+    } else if (alignment_conf_value == "left") {
+      label_alignment = alignment::LEFT;
+    } else if (alignment_conf_value == "center") {
+      label_alignment = alignment::CENTER;
+    } else {
+      throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
+                                        << alignment_conf_value << ", expecting one of: right, left, center.");
+    }
+
+    size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
+    if (maxlen > 0 && maxlen < minlen) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << " which is smaller than minlen " << minlen);
+    }
+    bool ellipsis = conf.get(section, name + "-ellipsis", true);
+
+    if (ellipsis && maxlen > 0 && maxlen < 3) {
+      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+                                        << ", which is smaller than length of ellipsis (3)");
+    }
 
     // clang-format off
     return factory_util::shared<label>(text,
-        conf.get(section, name + "-foreground", ""s),
-        conf.get(section, name + "-background", ""s),
-        conf.get(section, name + "-underline", ""s),
-        conf.get(section, name + "-overline", ""s),
+        conf.get(section, name + "-foreground", rgba{}),
+        conf.get(section, name + "-background", rgba{}),
+        conf.get(section, name + "-underline", rgba{}),
+        conf.get(section, name + "-overline", rgba{}),
         conf.get(section, name + "-font", 0),
         padding,
         margin,
-        conf.get(section, name + "-maxlen", 0_z),
-        conf.get(section, name + "-ellipsis", true),
+        minlen,
+        maxlen,
+        label_alignment,
+        ellipsis,
         move(tokens));
     // clang-format on
   }
@@ -243,19 +301,6 @@ namespace drawtypes {
     return load_label(conf, move(section), move(name), false, move(def));
   }
 
-  /**
-   * Create an icon by loading values from the configuration
-   */
-  icon_t load_icon(const config& conf, string section, string name, bool required, string def) {
-    return load_label(conf, move(section), move(name), required, move(def));
-  }
-
-  /**
-   * Create an icon by loading optional values from the configuration
-   */
-  icon_t load_optional_icon(const config& conf, string section, string name, string def) {
-    return load_icon(conf, move(section), move(name), false, move(def));
-  }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

@@ -5,36 +5,30 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  void animation::add(icon_t&& frame) {
+  void animation::add(label_t&& frame) {
     m_frames.emplace_back(forward<decltype(frame)>(frame));
     m_framecount = m_frames.size();
+    m_frame = m_framecount - 1;
   }
 
-  icon_t animation::get() {
-    tick();
+  label_t animation::get() const {
     return m_frames[m_frame];
   }
 
-  int animation::framerate() {
+  unsigned int animation::framerate() const {
     return m_framerate_ms;
   }
 
-  animation::operator bool() {
+  animation::operator bool() const {
     return !m_frames.empty();
   }
 
-  void animation::tick() {
-    auto now = chrono::system_clock::now();
-    auto diff = chrono::duration_cast<chrono::milliseconds>(now - m_lastupdate);
+  void animation::increment() {
+    auto tmp = m_frame.load();
+    ++tmp;
+    tmp %= m_framecount;
 
-    if (diff.count() < m_framerate_ms) {
-      return;
-    }
-    if (++m_frame >= m_framecount) {
-      m_frame = 0;
-    }
-
-    m_lastupdate = now;
+    m_frame = tmp;
   }
 
   /**
@@ -42,12 +36,12 @@ namespace drawtypes {
    * from the configuration
    */
   animation_t load_animation(const config& conf, const string& section, string name, bool required) {
-    vector<icon_t> vec;
+    vector<label_t> vec;
     vector<string> frames;
 
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
-    auto anim_defaults = load_optional_icon(conf, section, name);
+    auto anim_defaults = load_optional_label(conf, section, name);
 
     if (required) {
       frames = conf.get_list(section, name);
@@ -56,7 +50,7 @@ namespace drawtypes {
     }
 
     for (size_t i = 0; i < frames.size(); i++) {
-      vec.emplace_back(forward<icon_t>(load_optional_icon(conf, section, name + "-" + to_string(i), frames[i])));
+      vec.emplace_back(forward<label_t>(load_optional_label(conf, section, name + "-" + to_string(i), frames[i])));
       vec.back()->copy_undefined(anim_defaults);
     }
 
@@ -64,6 +58,6 @@ namespace drawtypes {
 
     return factory_util::shared<animation>(move(vec), framerate);
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

@@ -1,16 +1,17 @@
+#include "components/config.hpp"
+
 #include <climits>
 #include <fstream>
 
 #include "cairo/utils.hpp"
-#include "components/config.hpp"
 #include "utils/color.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
-#include "utils/math.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
+
+namespace chrono = std::chrono;
 
 /**
  * Create instance
@@ -20,38 +21,9 @@ config::make_type config::make(string path, string bar) {
 }
 
 /**
- * Construct config object
- */
-config::config(const logger& logger, string&& path, string&& bar)
-    : m_log(logger), m_file(forward<string>(path)), m_barname(forward<string>(bar)) {
-  if (!file_util::exists(m_file)) {
-    throw application_error("Could not find config file: " + m_file);
-  }
-
-  m_log.info("Loading config: %s", m_file);
-
-  parse_file();
-  copy_inherited();
-
-  bool found_bar{false};
-  for (auto&& p : m_sections) {
-    if (p.first == section()) {
-      found_bar = true;
-      break;
-    }
-  }
-
-  if (!found_bar) {
-    throw application_error("Undefined bar: " + m_barname);
-  }
-
-  m_log.trace("config: Current bar section: [%s]", section());
-}
-
-/**
  * Get path of loaded file
  */
-string config::filepath() const {
+const string& config::filepath() const {
   return m_file;
 }
 
@@ -60,6 +32,28 @@ string config::filepath() const {
  */
 string config::section() const {
   return "bar/" + m_barname;
+}
+
+void config::use_xrm() {
+#if WITH_XRM
+  /*
+   * Initialize the xresource manager if there are any xrdb refs
+   * present in the configuration
+   */
+  if (!m_xrm) {
+    m_log.info("Enabling xresource manager");
+    m_xrm.reset(new xresource_manager{connection::make()});
+  }
+#endif
+}
+
+void config::set_sections(sectionmap_t sections) {
+  m_sections = move(sections);
+  copy_inherited();
+}
+
+void config::set_included(file_list included) {
+  m_included = move(included);
 }
 
 /**
@@ -75,135 +69,61 @@ void config::warn_deprecated(const string& section, const string& key, string re
 }
 
 /**
- * Parse key/value pairs from the configuration file
- */
-void config::parse_file() {
-  vector<pair<int, string>> lines;
-  vector<string> files{m_file};
-
-  std::function<void(int, string&&)> pushline = [&](int lineno, string&& line) {
-    // Ignore empty lines and comments
-    if (line.empty() || line[0] == ';' || line[0] == '#') {
-      return;
-    }
-
-    string key, value;
-    string::size_type pos;
-
-    // Filter lines by:
-    // - key/value pairs
-    // - section headers
-    if ((pos = line.find('=')) != string::npos) {
-      key = forward<string>(string_util::trim(forward<string>(line.substr(0, pos))));
-      value = forward<string>(string_util::trim(line.substr(pos + 1)));
-    } else if (line[0] != '[' || line[line.length() - 1] != ']') {
-      return;
-    }
-
-    if (key == "include-file") {
-      auto file_path = file_util::expand(value);
-      if (file_path.empty() || !file_util::exists(file_path)) {
-        throw value_error("Invalid include file \"" + file_path + "\" defined on line " + to_string(lineno));
-      }
-      if (std::find(files.begin(), files.end(), file_path) != files.end()) {
-        throw value_error("Recursive include file \"" + file_path + "\"");
-      }
-      files.push_back(file_util::expand(file_path));
-      m_log.trace("config: Including file \"%s\"", file_path);
-      for (auto&& l : string_util::split(file_util::contents(file_path), '\n')) {
-        pushline(lineno, forward<string>(l));
-      }
-      files.pop_back();
-    } else {
-      lines.emplace_back(make_pair(lineno, line));
-    }
-  };
-
-  int lineno{0};
-  string line;
-  std::ifstream in(m_file);
-  while (std::getline(in, line)) {
-    pushline(++lineno, string_util::replace_all(line, "\t", ""));
-  }
-
-  string section;
-  for (auto&& l : lines) {
-    auto& lineno = l.first;
-    auto& line = l.second;
-
-    // New section
-    if (line[0] == '[' && line[line.length() - 1] == ']') {
-      section = line.substr(1, line.length() - 2);
-      continue;
-    } else if (section.empty()) {
-      continue;
-    }
-
-    size_t equal_pos;
-
-    // Check for key-value pair equal sign
-    if ((equal_pos = line.find('=')) == string::npos) {
-      continue;
-    }
-
-    string key{forward<string>(string_util::trim(forward<string>(line.substr(0, equal_pos))))};
-    string value;
-
-    auto it = m_sections[section].find(key);
-    if (it != m_sections[section].end()) {
-      throw key_error("Duplicate key name \"" + key + "\" defined on line " + to_string(lineno));
-    }
-
-    if (equal_pos + 1 < line.size()) {
-      value = forward<string>(string_util::trim(line.substr(equal_pos + 1)));
-      size_t len{value.size()};
-      if (len > 2 && value[0] == '"' && value[len - 1] == '"') {
-        value.erase(len - 1, 1).erase(0, 1);
-      }
-    }
-
-#if WITH_XRM
-    // Initialize the xresource manage if there are any xrdb refs
-    // present in the configuration
-    if (!m_xrm && value.find("${xrdb") != string::npos) {
-      m_xrm.reset(new xresource_manager{connection::make()});
-    }
-#endif
-
-    m_sections[section].emplace_hint(it, move(key), move(value));
-  }
-}
-
-/**
  * Look for sections set up to inherit from a base section
  * and copy the missing parameters
  *
- *   [sub/seciton]
- *   inherit = base/section
+ * Multiple sections can be specified, separated by a space.
+ *
+ *   [sub/section]
+ *   inherit = section1 section2
  */
 void config::copy_inherited() {
   for (auto&& section : m_sections) {
+    std::vector<string> inherit_sections;
+
+    // Collect all sections to be inherited
     for (auto&& param : section.second) {
-      if (param.first.find("inherit") == 0) {
-        // Get name of base section
+      string key_name = param.first;
+      if (key_name == "inherit") {
         auto inherit = param.second;
-        if ((inherit = dereference<string>(section.first, param.first, inherit, inherit)).empty()) {
-          throw value_error("Invalid section \"\" defined for \"" + section.first + ".inherit\"");
+        inherit = dereference<string>(section.first, key_name, inherit, inherit);
+
+        std::vector<string> sections = string_util::split(std::move(inherit), ' ');
+
+        inherit_sections.insert(inherit_sections.end(), sections.begin(), sections.end());
+
+      } else if (key_name.find("inherit") == 0) {
+        // Legacy support for keys that just start with 'inherit'
+        m_log.warn(
+            "\"%s.%s\": Using anything other than 'inherit' for inheriting section keys is deprecated. "
+            "The 'inherit' key supports multiple section names separated by a space.",
+            section.first, key_name);
+
+        auto inherit = param.second;
+        inherit = dereference<string>(section.first, key_name, inherit, inherit);
+        if (inherit.empty() || m_sections.find(inherit) == m_sections.end()) {
+          throw value_error(
+              "Invalid section \"" + inherit + "\" defined for \"" + section.first + "." + key_name + "\"");
         }
 
-        // Find and validate base section
-        auto base_section = m_sections.find(inherit);
-        if (base_section == m_sections.end()) {
-          throw value_error("Invalid section \"" + inherit + "\" defined for \"" + section.first + ".inherit\"");
-        }
+        inherit_sections.push_back(std::move(inherit));
+      }
+    }
 
-        m_log.trace("config: Copying missing params (sub=\"%s\", base=\"%s\")", section.first, inherit);
+    for (const auto& base_name : inherit_sections) {
+      const auto base_section = m_sections.find(base_name);
+      if (base_section == m_sections.end()) {
+        throw value_error("Invalid section \"" + base_name + "\" defined for \"" + section.first + ".inherit\"");
+      }
 
-        // Iterate the base and copy the parameters
-        // that hasn't been defined for the sub-section
-        for (auto&& base_param : base_section->second) {
-          section.second.insert(make_pair(base_param.first, base_param.second));
-        }
+      m_log.trace("config: Inheriting keys from \"%s\" in \"%s\"", base_name, section.first);
+
+      /*
+       * Iterate the base and copy the parameters that haven't been defined
+       * yet.
+       */
+      for (auto&& base_param : base_section->second) {
+        section.second.emplace(base_param.first, base_param.second);
       }
     }
   }
@@ -226,29 +146,19 @@ char config::convert(string&& value) const {
 
 template <>
 int config::convert(string&& value) const {
-  return std::atoi(value.c_str());
+  return std::strtol(value.c_str(), nullptr, 10);
 }
 
 template <>
 short config::convert(string&& value) const {
-  return static_cast<short>(std::atoi(value.c_str()));
+  return static_cast<short>(std::strtol(value.c_str(), nullptr, 10));
 }
 
 template <>
 bool config::convert(string&& value) const {
   string lower{string_util::lower(forward<string>(value))};
 
-  if (lower == "true") {
-    return true;
-  } else if (lower == "yes") {
-    return true;
-  } else if (lower == "on") {
-    return true;
-  } else if (lower == "1") {
-    return true;
-  } else {
-    return false;
-  }
+  return (lower == "true" || lower == "yes" || lower == "on" || lower == "1");
 }
 
 template <>
@@ -315,7 +225,17 @@ chrono::duration<double> config::convert(string&& value) const {
 
 template <>
 rgba config::convert(string&& value) const {
-  return rgba{color_util::parse(value, 0)};
+  if (value.empty()) {
+    return rgba{};
+  }
+
+  rgba ret{value};
+
+  if (!ret.has_color()) {
+    throw value_error("\"" + value + "\" is an invalid color value.");
+  }
+
+  return ret;
 }
 
 template <>

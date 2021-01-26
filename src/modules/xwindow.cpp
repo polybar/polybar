@@ -92,7 +92,8 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%title%");
+      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label", "%title%"));
+      m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", ""));
     }
   }
 
@@ -133,12 +134,9 @@ namespace modules {
       m_active = make_unique<active_window>(m_connection, win);
     }
 
-    if (m_label) {
+    if (m_active) {
+      m_label = m_statelabels.at(state::ACTIVE)->clone();
       m_label->reset_tokens();
-      if (!m_active) {
-        m_label->replace_token("%title%", "");
-        return;
-      }
 
       if (m_pinoutput) {
         if (active_window_on_monitor(m_active->get_window())) {
@@ -151,6 +149,8 @@ namespace modules {
       } else {
         m_label->replace_token("%title%", m_active->title());
       }
+    } else {
+      m_label = m_statelabels.at(state::EMPTY)->clone();
     }
   }
 

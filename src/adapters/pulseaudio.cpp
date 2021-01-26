@@ -6,7 +6,7 @@ POLYBAR_NS
 /**
  * Construct pulseaudio object
  */
-pulseaudio::pulseaudio(const logger& logger, string&& sink_name) : m_log(logger), spec_s_name(sink_name) {
+pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume) : m_log(logger), spec_s_name(sink_name) {
   m_mainloop = pa_threaded_mainloop_new();
   if (!m_mainloop) {
     throw pulseaudio_error("Could not create pulseaudio threaded mainloop.");
@@ -56,25 +56,21 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name) : m_log(logger)
     wait_loop(op, m_mainloop);
   }
   if (s_name.empty()) {
-    op = pa_context_get_server_info(m_context, get_default_sink_callback, this);
-    if (!op) {
-      throw pulseaudio_error("Failed to get pulseaudio server info.");
-    }
-    wait_loop(op, m_mainloop);
-    if (def_s_name.empty())
-      throw pulseaudio_error("Failed to get default sink.");
     // get the sink index
-    op = pa_context_get_sink_info_by_name(m_context, def_s_name.c_str(), sink_info_callback, this);
+    op = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
     wait_loop(op, m_mainloop);
-    m_log.warn("pulseaudio: using default sink %s", s_name);
+    m_log.notice("pulseaudio: using default sink %s", s_name);
   } else {
     m_log.trace("pulseaudio: using sink %s", s_name);
   }
 
-  op = pa_context_subscribe(m_context, PA_SUBSCRIPTION_MASK_SINK, simple_callback, this);
+  m_max_volume = max_volume ? PA_VOLUME_UI_MAX : PA_VOLUME_NORM;
+
+  auto event_types = static_cast<pa_subscription_mask_t>(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SERVER);
+  op = pa_context_subscribe(m_context, event_types, simple_callback, this);
   wait_loop(op, m_mainloop);
   if (!success)
-    throw pulseaudio_error("Failed to subscribe to server.");
+    throw pulseaudio_error("Failed to subscribe to sink.");
   pa_context_set_subscribe_callback(m_context, subscribe_callback, this);
 
   update_volume(op);
@@ -124,21 +120,24 @@ int pulseaudio::process_events() {
         if (!spec_s_name.empty()) {
           o = pa_context_get_sink_info_by_name(m_context, spec_s_name.c_str(), sink_info_callback, this);
           wait_loop(o, m_mainloop);
+          break;
         }
-        break;
+        // FALLTHRU
+      case evtype::SERVER:
+        // don't fallthrough only if always using default sink
+        if (!spec_s_name.empty()) {
+          break;
+        }
+        // FALLTHRU
       // get default sink
       case evtype::REMOVE:
-        o = pa_context_get_server_info(m_context, get_default_sink_callback, this);
-        wait_loop(o, m_mainloop);
-        if (def_s_name.empty())
-          throw pulseaudio_error("Failed to get default sink.");
-        o = pa_context_get_sink_info_by_name(m_context, def_s_name.c_str(), sink_info_callback, this);
+        o = pa_context_get_sink_info_by_name(m_context, DEFAULT_SINK, sink_info_callback, this);
         wait_loop(o, m_mainloop);
         if (spec_s_name != s_name)
-          m_log.warn("pulseaudio: using default sink %s", s_name);
+          m_log.notice("pulseaudio: using default sink %s", s_name);
         break;
       default:
-	break;
+        break;
     }
     update_volume(o);
     m_events.pop();
@@ -153,6 +152,13 @@ int pulseaudio::process_events() {
 int pulseaudio::get_volume() {
   // alternatively, user pa_cvolume_avg_mask() to average selected channels
   return static_cast<int>(pa_cvolume_max(&cv) * 100.0f / PA_VOLUME_NORM + 0.5f);
+}
+
+/**
+ * Get volume in decibels
+ */
+double pulseaudio::get_decibels() {
+  return pa_sw_volume_to_dB(pa_cvolume_max(&cv));
 }
 
 /**
@@ -176,10 +182,14 @@ void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
   if (delta_perc > 0) {
-    if (pa_cvolume_max(&cv) + vol <= PA_VOLUME_UI_MAX) {
+    pa_volume_t current = pa_cvolume_max(&cv);
+    if (current + vol <= m_max_volume) {
       pa_cvolume_inc(&cv, vol);
+    } else if (current < m_max_volume) {
+      // avoid rounding errors and set to m_max_volume directly
+      pa_cvolume_scale(&cv, m_max_volume);
     } else {
-      m_log.warn("pulseaudio: maximum volume reached");
+      m_log.notice("pulseaudio: maximum volume reached");
     }
   } else
     pa_cvolume_dec(&cv, vol);
@@ -241,9 +251,14 @@ void pulseaudio::get_sink_volume_callback(pa_context *, const pa_sink_info *info
  */
 void pulseaudio::subscribe_callback(pa_context *, pa_subscription_event_type_t t, uint32_t idx, void* userdata) {
   pulseaudio *This = static_cast<pulseaudio *>(userdata);
-  if (idx == PA_INVALID_INDEX)
-    return;
   switch(t & PA_SUBSCRIPTION_EVENT_FACILITY_MASK) {
+    case PA_SUBSCRIPTION_EVENT_SERVER:
+      switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
+        case PA_SUBSCRIPTION_EVENT_CHANGE:
+          This->m_events.emplace(evtype::SERVER);
+        break;
+      }
+      break;
     case PA_SUBSCRIPTION_EVENT_SINK:
       switch(t & PA_SUBSCRIPTION_EVENT_TYPE_MASK) {
         case PA_SUBSCRIPTION_EVENT_NEW:
@@ -272,18 +287,6 @@ void pulseaudio::simple_callback(pa_context *, int success, void *userdata) {
   pa_threaded_mainloop_signal(This->m_mainloop, 0);
 }
 
-/**
- * Callback when getting default sink name
- */
-void pulseaudio::get_default_sink_callback(pa_context *, const pa_server_info *info, void *userdata) {
-  pulseaudio *This = static_cast<pulseaudio *>(userdata);
-  if (info->default_sink_name) {
-    This->def_s_name = info->default_sink_name;
-    This->s_name = info->default_sink_name;
-  } else
-    This->def_s_name = ""s;
-  pa_threaded_mainloop_signal(This->m_mainloop, 0);
-}
 
 /**
  * Callback when getting sink info & existence

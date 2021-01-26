@@ -1,33 +1,67 @@
 #
 # Build configuration
 #
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
+project(polybar CXX)
 
-project(polybar C CXX)
+# Extract version information from version.txt. The first line that looks like
+# a version string is used, so the file supports comments
+file(STRINGS version.txt version_txt REGEX "^[0-9]+\\.[0-9]+\\.[0-9]+.*$" LIMIT_COUNT 1)
 
-set(CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH}
+# If we are in a git repo we can get the version information from git describe
+execute_process(COMMAND git describe --tags --dirty=-dev
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  RESULT_VARIABLE git_result
+  OUTPUT_VARIABLE git_describe
+  OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+
+if(git_result EQUAL "0")
+  set(APP_VERSION "${git_describe}")
+else()
+  message(STATUS "Could not detect version with git, falling back to built-in version information.")
+  set(APP_VERSION "${version_txt}")
+endif()
+
+list(APPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake
   ${PROJECT_SOURCE_DIR}/cmake/common
   ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+include(GNUInstallDirs)
 include(utils)
 include(01-core)
 include(02-opts)
-include(03-libs)
 include(04-targets)
-include(05-summary)
 
-add_subdirectory(doc)
-add_subdirectory(doc/bash)
-add_subdirectory(doc/zsh)
-add_subdirectory(include)
-add_subdirectory(lib)
-add_subdirectory(man)
-add_subdirectory(src bin)
-
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-else()
-  add_subdirectory(tests EXCLUDE_FROM_ALL)
+if(BUILD_DOC)
+  add_subdirectory(doc)
 endif()
+
+if (BUILD_SHELL)
+  add_subdirectory(contrib/bash)
+  add_subdirectory(contrib/zsh)
+endif()
+
+# Setup everything that uses a C++ compiler (polybar, polybar-msg, tests)
+if(HAS_CXX_COMPILATION)
+  include(cxx)
+  if(BUILD_LIBPOLY)
+    include(libpoly)
+    add_subdirectory(lib)
+  endif()
+  add_subdirectory(include)
+  add_subdirectory(src bin)
+endif()
+
+# We need to enable testing in the root folder so that 'ctest' and 'make test'
+# can be run in the build directory
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
+if (BUILD_CONFIG)
+  add_subdirectory(config)
+endif()
+
+include(05-summary)

@@ -1,15 +1,14 @@
 #include "modules/alsa.hpp"
+
 #include "adapters/alsa/control.hpp"
 #include "adapters/alsa/generic.hpp"
 #include "adapters/alsa/mixer.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
-
 #include "settings.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -19,8 +18,15 @@ namespace modules {
   template class module<alsa_module>;
 
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
+    if (m_handle_events) {
+      m_router->register_action(EVENT_DEC, &alsa_module::action_dec);
+      m_router->register_action(EVENT_INC, &alsa_module::action_inc);
+      m_router->register_action(EVENT_TOGGLE, &alsa_module::action_toggle);
+    }
+
     // Load configuration values
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
+    m_interval = m_conf.get(name(), "interval", m_interval);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
@@ -190,9 +196,9 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      m_builder->cmd(mousebtn::LEFT, EVENT_TOGGLE_MUTE);
-      m_builder->cmd(mousebtn::SCROLL_UP, EVENT_VOLUME_UP);
-      m_builder->cmd(mousebtn::SCROLL_DOWN, EVENT_VOLUME_DOWN);
+      m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->append(output);
@@ -217,61 +223,62 @@ namespace modules {
     return true;
   }
 
-  bool alsa_module::input(string&& cmd) {
-    if (!m_handle_events) {
-      return false;
-    } else if (cmd.compare(0, 3, EVENT_PREFIX) != 0) {
-      return false;
-    } else if (!m_mixer[mixer::MASTER]) {
-      return false;
-    }
-
-    try {
-      vector<mixer_t> mixers;
-      bool headphones{m_headphones};
-
-      if (m_mixer[mixer::MASTER] && !m_mixer[mixer::MASTER]->get_name().empty()) {
-        mixers.emplace_back(new mixer_t::element_type(
-            string{m_mixer[mixer::MASTER]->get_name()}, string{m_mixer[mixer::MASTER]->get_sound_card()}));
-      }
-      if (m_mixer[mixer::HEADPHONE] && !m_mixer[mixer::HEADPHONE]->get_name().empty() && headphones) {
-        mixers.emplace_back(new mixer_t::element_type(
-            string{m_mixer[mixer::HEADPHONE]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
-      }
-      if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
-        mixers.emplace_back(new mixer_t::element_type(
-            string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
-      }
-
-      if (cmd.compare(0, strlen(EVENT_TOGGLE_MUTE), EVENT_TOGGLE_MUTE) == 0) {
-        for (auto&& mixer : mixers) {
-          mixer->set_mute(m_muted || mixers[0]->is_muted());
-        }
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_UP), EVENT_VOLUME_UP) == 0) {
-        for (auto&& mixer : mixers) {
-          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + 5, 0, 100))
-                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + 5, 0, 100));
-        }
-      } else if (cmd.compare(0, strlen(EVENT_VOLUME_DOWN), EVENT_VOLUME_DOWN) == 0) {
-        for (auto&& mixer : mixers) {
-          m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() - 5, 0, 100))
-                   : mixer->set_volume(math_util::cap<float>(mixer->get_volume() - 5, 0, 100));
-        }
-      } else {
-        return false;
-      }
-
-      for (auto&& mixer : mixers) {
-        if (mixer->wait(0)) {
-          mixer->process_events();
-        }
-      }
-    } catch (const exception& err) {
-      m_log.err("%s: Failed to handle command (%s)", name(), err.what());
-    }
-
-    return true;
+  void alsa_module::action_inc() {
+    change_volume(m_interval);
   }
-}
+
+  void alsa_module::action_dec() {
+    change_volume(-m_interval);
+  }
+
+  void alsa_module::action_toggle() {
+    if (!m_mixer[mixer::MASTER]) {
+      return;
+    }
+    auto mixers = get_mixers();
+    for (auto&& mixer : mixers) {
+      mixer->set_mute(m_muted || mixers[0]->is_muted());
+    }
+  }
+
+  void alsa_module::change_volume(int interval) {
+    if (!m_mixer[mixer::MASTER]) {
+      return;
+    }
+    auto mixers = get_mixers();
+    for (auto&& mixer : mixers) {
+      m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + interval, 0, 100))
+               : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + interval, 0, 100));
+    }
+  }
+
+  void action_epilogue(const vector<mixer_t>& mixers) {
+    for (auto&& mixer : mixers) {
+      if (mixer->wait(0)) {
+        mixer->process_events();
+      }
+    }
+  }
+
+  vector<mixer_t> alsa_module::get_mixers() {
+    vector<mixer_t> mixers;
+    bool headphones{m_headphones};
+
+    if (m_mixer[mixer::MASTER] && !m_mixer[mixer::MASTER]->get_name().empty()) {
+      mixers.emplace_back(new mixer_t::element_type(
+          string{m_mixer[mixer::MASTER]->get_name()}, string{m_mixer[mixer::MASTER]->get_sound_card()}));
+    }
+    if (m_mixer[mixer::HEADPHONE] && !m_mixer[mixer::HEADPHONE]->get_name().empty() && headphones) {
+      mixers.emplace_back(new mixer_t::element_type(
+          string{m_mixer[mixer::HEADPHONE]->get_name()}, string{m_mixer[mixer::HEADPHONE]->get_sound_card()}));
+    }
+    if (m_mixer[mixer::SPEAKER] && !m_mixer[mixer::SPEAKER]->get_name().empty() && !headphones) {
+      mixers.emplace_back(new mixer_t::element_type(
+          string{m_mixer[mixer::SPEAKER]->get_name()}, string{m_mixer[mixer::SPEAKER]->get_sound_card()}));
+    }
+
+    return mixers;
+  }
+}  // namespace modules
 
 POLYBAR_NS_END

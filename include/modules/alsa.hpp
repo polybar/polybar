@@ -1,8 +1,7 @@
 #pragma once
 
-#include "settings.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
+#include "settings.hpp"
 
 POLYBAR_NS
 
@@ -10,7 +9,7 @@ POLYBAR_NS
 namespace alsa {
   class mixer;
   class control;
-}
+}  // namespace alsa
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
@@ -19,7 +18,7 @@ namespace modules {
   using mixer_t = shared_ptr<alsa::mixer>;
   using control_t = shared_ptr<alsa::control>;
 
-  class alsa_module : public event_module<alsa_module>, public input_handler {
+  class alsa_module : public event_module<alsa_module> {
    public:
     explicit alsa_module(const bar_settings&, string);
 
@@ -30,8 +29,22 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/alsa";
+
+    static constexpr auto EVENT_INC = "inc";
+    static constexpr auto EVENT_DEC = "dec";
+    static constexpr auto EVENT_TOGGLE = "toggle";
+
    protected:
-    bool input(string&& cmd);
+    void action_inc();
+    void action_dec();
+    void action_toggle();
+
+    void change_volume(int interval);
+
+    void action_epilogue(const vector<mixer_t>& mixers);
+
+    vector<mixer_t> get_mixers();
 
    private:
     static constexpr auto FORMAT_VOLUME = "format-volume";
@@ -43,11 +56,6 @@ namespace modules {
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
 
-    static constexpr auto EVENT_PREFIX = "vol";
-    static constexpr auto EVENT_VOLUME_UP = "volup";
-    static constexpr auto EVENT_VOLUME_DOWN = "voldown";
-    static constexpr auto EVENT_TOGGLE_MUTE = "volmute";
-
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;
     ramp_t m_ramp_headphones;
@@ -58,10 +66,11 @@ namespace modules {
     map<control, control_t> m_ctrl;
     int m_headphoneid{0};
     bool m_mapped{false};
+    int m_interval{5};
     atomic<bool> m_muted{false};
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

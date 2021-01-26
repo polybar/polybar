@@ -1,21 +1,16 @@
 #include <iomanip>
 #include <iostream>
 
-#include "components/logger.cpp"
-#include "utils/command.cpp"
-#include "utils/concurrency.cpp"
-#include "utils/env.cpp"
-#include "utils/file.cpp"
-#include "utils/io.cpp"
-#include "utils/process.cpp"
-#include "utils/string.cpp"
+#include "common/test.hpp"
+#include "utils/command.hpp"
+#include "utils/file.hpp"
 
-int main() {
-  using namespace polybar;
+using namespace polybar;
 
-  "expand"_test = [] {
-    auto cmd = command_util::make_command("echo $HOME");
-    cmd->exec();
-    cmd->tail([](string home) { expect(file_util::expand("~/test") == home + "/test"); });
-  };
+TEST(File, expand) {
+  auto cmd = command_util::make_command<output_policy::REDIRECTED>("echo $HOME");
+  cmd->exec();
+  cmd->tail([](string home) {
+      EXPECT_EQ(home + "/test", file_util::expand("~/test"));
+      });
 }

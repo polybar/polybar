@@ -6,7 +6,6 @@
 
 #include "common.hpp"
 #include "utils/file.hpp"
-#include "utils/io.hpp"
 
 using namespace polybar;
 using namespace std;
@@ -15,8 +14,8 @@ using namespace std;
 #define IPC_CHANNEL_PREFIX "/tmp/polybar_mqueue."
 #endif
 
-void log(const string& msg) {
-  fprintf(stderr, "polybar-msg: %s\n", msg.c_str());
+void display(const string& msg) {
+  fprintf(stdout, "%s\n", msg.c_str());
 }
 
 void log(int exit_code, const string& msg) {
@@ -33,20 +32,12 @@ void remove_pipe(const string& handle) {
   if (unlink(handle.c_str()) == -1) {
     log(1, "Could not remove stale ipc channel: "s + strerror(errno));
   } else {
-    log("Removed stale ipc channel: " + handle);
+    display("Removed stale ipc channel: " + handle);
   }
 }
 
 bool validate_type(const string& type) {
-  if (type == "action") {
-    return true;
-  } else if (type == "cmd") {
-    return true;
-  } else if (type == "hook") {
-    return true;
-  } else {
-    return false;
-  }
+  return (type == "action" || type == "cmd" || type == "hook");
 }
 
 int main(int argc, char** argv) {
@@ -69,7 +60,7 @@ int main(int argc, char** argv) {
       log(E_INVALID_CHANNEL, "No channel available for pid " + args[1]);
     }
 
-    pid = atoi(args[1].c_str());
+    pid = strtol(args[1].c_str(), nullptr, 10);
     args.erase(args.begin());
     args.erase(args.begin());
   }
@@ -128,7 +119,7 @@ int main(int argc, char** argv) {
       file_descriptor fd(channel, O_WRONLY | O_NONBLOCK);
       string payload{ipc_type + ':' + ipc_payload};
       if (write(fd, payload.c_str(), payload.size()) != -1) {
-        log("Successfully wrote \"" + payload + "\" to \"" + channel + "\"");
+        display("Successfully wrote \"" + payload + "\" to \"" + channel + "\"");
         exit_status = 0;
       } else {
         log(E_WRITE, "Failed to write \"" + payload + "\" to \"" + channel + "\" (err: " + strerror(errno) + ")");
