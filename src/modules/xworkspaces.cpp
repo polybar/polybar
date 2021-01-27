@@ -43,6 +43,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -376,11 +377,11 @@ namespace modules {
   }
 
   void xworkspaces_module::action_next() {
-    focus_direction(true);
+    focus_direction(m_revscroll ? false : true);
   }
 
   void xworkspaces_module::action_prev() {
-    focus_direction(false);
+    focus_direction(m_revscroll ? true : false);
   }
 
   void xworkspaces_module::focus_direction(bool next) {
