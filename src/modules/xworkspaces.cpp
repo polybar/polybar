@@ -330,8 +330,8 @@ namespace modules {
     }
 
     if (m_scroll) {
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, m_revscroll ? EVENT_NEXT : EVENT_PREV, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, m_revscroll ? EVENT_PREV : EVENT_NEXT, "");
     }
 
     m_builder->append(output);
@@ -377,11 +377,11 @@ namespace modules {
   }
 
   void xworkspaces_module::action_next() {
-    focus_direction(m_revscroll ? false : true);
+    focus_direction(true);
   }
 
   void xworkspaces_module::action_prev() {
-    focus_direction(m_revscroll ? true : false);
+    focus_direction(false);
   }
 
   void xworkspaces_module::focus_direction(bool next) {
