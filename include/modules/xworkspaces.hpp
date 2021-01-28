@@ -112,6 +112,7 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_click{true};
     bool m_scroll{true};
+    bool m_revscroll{false};
     size_t m_index{0};
 
     // The following mutex is here to protect the data of this modules.

@@ -43,6 +43,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
 
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
@@ -329,8 +330,8 @@ namespace modules {
     }
 
     if (m_scroll) {
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_PREV, "");
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_NEXT, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, m_revscroll ? EVENT_NEXT : EVENT_PREV, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, m_revscroll ? EVENT_PREV : EVENT_NEXT, "");
     }
 
     m_builder->append(output);
