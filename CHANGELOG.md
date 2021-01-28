@@ -50,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository.
 
 ### Added
+- `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
+  direction when cycling through desktops.
 - The backslash escape character (\\).
   [`#2354`](https://github.com/polybar/polybar/issues/2354)
 - Warn states for the cpu, memory, fs, and battery modules.
