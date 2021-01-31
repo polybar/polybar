@@ -76,7 +76,7 @@ namespace drawtypes {
     return m_tokenized.find(token) != string::npos;
   }
 
-  void label::replace_token(const string& token, string replacement) {
+  void label::replace_token(const string& token, const string& replacement) {
     if (!has_token(token)) {
       return;
     }

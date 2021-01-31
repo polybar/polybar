@@ -172,15 +172,16 @@ namespace modules {
     }
 
     // Replace label tokens
-    if (m_label_volume) {
-      m_label_volume->reset_tokens();
-      m_label_volume->replace_token("%percentage%", to_string(m_volume));
-    }
-
-    if (m_label_muted) {
-      m_label_muted->reset_tokens();
-      m_label_muted->replace_token("%percentage%", to_string(m_volume));
-    }
+    const auto replace_tokens = [&](const auto& label) {
+      if (label) {
+        label->reset_tokens();
+        label->replace_token("%percentage%", to_string(m_volume));
+      }
+    };
+    replace_tokens(m_label_volume);
+    replace_tokens(m_label_muted);
+    replace_tokens(m_ramp_volume);
+    replace_tokens(m_ramp_headphones);
 
     return true;
   }

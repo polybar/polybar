@@ -45,6 +45,7 @@ function(add_unit_test source_file)
 
   add_dependencies(all_unit_tests ${name})
 endfunction()
+configure_file(test_config.ini ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 add_unit_test(utils/actions)
 add_unit_test(utils/action_router)

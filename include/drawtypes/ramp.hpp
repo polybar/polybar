@@ -3,15 +3,16 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "drawtypes/label.hpp"
+#include "drawtypes/labellist.hpp"
 #include "utils/mixins.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
-  class ramp : public non_copyable_mixin<ramp> {
+  class ramp : public labellist {
    public:
     explicit ramp() = default;
-    explicit ramp(vector<label_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
+    explicit ramp(vector<label_t>&& icons) : labellist(move(icons)) {}
 
     void add(label_t&& icon);
     label_t get(size_t index);
@@ -21,7 +22,6 @@ namespace drawtypes {
     operator bool();
 
    protected:
-    vector<label_t> m_icons;
   };
 
   using ramp_t = shared_ptr<ramp>;

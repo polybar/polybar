@@ -63,7 +63,10 @@ namespace modules {
       temp_f_string += "°F";
     }
 
-    const auto replace_tokens = [&](label_t& label) {
+    const auto replace_tokens = [&](const auto& label) {
+      if (!label) {
+        return;
+      }
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
@@ -72,12 +75,9 @@ namespace modules {
       label->replace_token("%temperature%", temp_c_string);
     };
 
-    if (m_label[temp_state::NORMAL]) {
-      replace_tokens(m_label[temp_state::NORMAL]);
-    }
-    if (m_label[temp_state::WARN]) {
-      replace_tokens(m_label[temp_state::WARN]);
-    }
+    replace_tokens(m_label[temp_state::NORMAL]);
+    replace_tokens(m_label[temp_state::WARN]);
+    replace_tokens(m_ramp);
 
     return true;
   }
