@@ -46,6 +46,7 @@ TEST(ActionCtxtTest, closing) {
   EXPECT_EQ(make_pair(id2, mousebtn::RIGHT), ctxt.action_close(mousebtn::NONE, alignment::CENTER, 1));
 
   EXPECT_EQ(4, ctxt.num_actions());
+  EXPECT_EQ(0, ctxt.num_unclosed());
 }
 
 TEST(ActionCtxtTest, overlapping) {
@@ -76,6 +77,7 @@ TEST(ActionCtxtTest, overlapping) {
   EXPECT_EQ(id3, actions[mousebtn::RIGHT]);
 
   EXPECT_EQ(3, ctxt.num_actions());
+  EXPECT_EQ(0, ctxt.num_unclosed());
 }
 
 TEST(ActionCtxtTest, stacking) {
@@ -109,6 +111,7 @@ TEST(ActionCtxtTest, stacking) {
   EXPECT_EQ(id1, ctxt.has_action(mousebtn::LEFT, 7));
 
   EXPECT_EQ(3, ctxt.num_actions());
+  EXPECT_EQ(0, ctxt.num_unclosed());
 }
 
 TEST(ActionCtxtTest, cmd) {
