@@ -158,8 +158,8 @@ namespace tags {
     bool has_double_click() const;
 
     size_t num_actions() const;
+    size_t num_unclosed() const;
 
-    // TODO provide better interface for adjusting the start positions of actions
     const std::vector<action_block>& get_blocks() const;
 
    protected:

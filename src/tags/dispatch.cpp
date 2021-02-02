@@ -100,14 +100,19 @@ namespace tags {
       }
     }
 
+    /*
+     * After rendering, we need to tell the action context about the position
+     * of the alignment blocks so that it can do intersection tests.
+     */
     for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
       m_action_ctxt.set_alignmnent_start(a, renderer.get_alignment_start(a));
     }
 
-    // TODO handle unclosed action tags in ctxt
-    /* if (!m_actions.empty()) { */
-    /*   throw runtime_error(to_string(m_actions.size()) + " unclosed action block(s)"); */
-    /* } */
+    auto num_unclosed = m_action_ctxt.num_unclosed();
+
+    if (num_unclosed != 0) {
+      throw runtime_error(to_string(num_unclosed) + " unclosed action block(s)");
+    }
   }
 
   /**

@@ -198,6 +198,18 @@ namespace tags {
     return m_action_blocks.size();
   }
 
+  size_t action_context::num_unclosed() const {
+    size_t num = 0;
+
+    for (const auto& a : m_action_blocks) {
+      if (a.is_open) {
+        num++;
+      }
+    }
+
+    return num;
+  }
+
   const std::vector<action_block>& action_context::get_blocks() const {
     return m_action_blocks;
   }
