@@ -53,8 +53,9 @@ class renderer : public renderer_interface,
 
   void change_alignment(const tags::context& ctxt) override;
 
-  void action_open(const tags::context& ctxt, tags::action_t id) override;
-  void action_close(const tags::context& ctxt, tags::action_t id) override;
+  double get_x(const tags::context& ctxt) const override;
+
+  double get_alignment_start(const alignment align) const override;
 
  protected:
   void fill_background();

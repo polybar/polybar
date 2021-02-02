@@ -118,19 +118,22 @@ namespace tags {
     m_action_blocks.clear();
   }
 
-  action_t action_context::action_open(mousebtn btn, const string&& cmd, alignment align) {
+  action_t action_context::action_open(mousebtn btn, const string&& cmd, alignment align, double x) {
     action_t id = m_action_blocks.size();
     m_action_blocks.emplace_back(std::move(cmd), btn, align, true);
+    set_start(id, x);
     return id;
   }
 
-  std::pair<action_t, mousebtn> action_context::action_close(mousebtn btn, alignment align) {
+  std::pair<action_t, mousebtn> action_context::action_close(mousebtn btn, alignment align, double x) {
     for (auto it = m_action_blocks.rbegin(); it != m_action_blocks.rend(); it++) {
       if (it->is_open && it->align == align && (btn == mousebtn::NONE || it->button == btn)) {
         it->is_open = false;
 
         // Converts a reverse iterator into an index
-        return {std::distance(m_action_blocks.begin(), it.base()) - 1, it->button};
+        action_t id = std::distance(m_action_blocks.begin(), it.base()) - 1;
+        set_end(id, x);
+        return {id, it->button};
       }
     }
 
@@ -145,6 +148,10 @@ namespace tags {
     m_action_blocks[id].end_x = x;
   }
 
+  void action_context::set_alignmnent_start(const alignment a, const double x) {
+    m_align_start[a] = x;
+  }
+
   std::map<mousebtn, tags::action_t> action_context::get_actions(int x) const {
     std::map<mousebtn, tags::action_t> buttons;
 
@@ -157,7 +164,7 @@ namespace tags {
       mousebtn btn = action.button;
 
       // Higher IDs are higher in the action stack.
-      if (id > buttons[btn] && action.test(x)) {
+      if (id > buttons[btn] && action.test(m_align_start.at(action.align), x)) {
         buttons[action.button] = id;
       }
     }
@@ -191,7 +198,7 @@ namespace tags {
     return m_action_blocks.size();
   }
 
-  std::vector<action_block>& action_context::get_blocks() {
+  const std::vector<action_block>& action_context::get_blocks() const {
     return m_action_blocks;
   }
 
