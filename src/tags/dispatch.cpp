@@ -100,6 +100,10 @@ namespace tags {
       }
     }
 
+    for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
+      m_action_ctxt.set_alignmnent_start(a, renderer.get_alignment_start(a));
+    }
+
     // TODO handle unclosed action tags in ctxt
     /* if (!m_actions.empty()) { */
     /*   throw runtime_error(to_string(m_actions.size()) + " unclosed action block(s)"); */
@@ -122,12 +126,9 @@ namespace tags {
 
   void dispatch::handle_action(renderer_interface& renderer, mousebtn btn, bool closing, const string&& cmd) {
     if (closing) {
-      action_t id;
-      std::tie(id, btn) = m_action_ctxt.action_close(btn, m_ctxt->get_alignment());
-      renderer.action_close(*m_ctxt, id);
+      m_action_ctxt.action_close(btn, m_ctxt->get_alignment(), renderer.get_x(*m_ctxt));
     } else {
-      action_t id = m_action_ctxt.action_open(btn, std::move(cmd), m_ctxt->get_alignment());
-      renderer.action_open(*m_ctxt, id);
+      m_action_ctxt.action_open(btn, std::move(cmd), m_ctxt->get_alignment(), renderer.get_x(*m_ctxt));
     }
   }
 

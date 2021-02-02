@@ -8,8 +8,8 @@ using namespace polybar;
 using namespace std;
 using namespace tags;
 
-using ::testing::InSequence;
 using ::testing::_;
+using ::testing::InSequence;
 
 class MockRenderer : public renderer_interface {
  public:
@@ -18,8 +18,8 @@ class MockRenderer : public renderer_interface {
   MOCK_METHOD(void, render_offset, (const context& ctxt, int pixels), (override));
   MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
-  MOCK_METHOD(void, action_open, (const context& ctxt, action_t id), (override));
-  MOCK_METHOD(void, action_close, (const context& ctxt, action_t id), (override));
+  MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
+  MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
 };
 
 class TestableDispatch : public dispatch {};

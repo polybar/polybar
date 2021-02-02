@@ -34,7 +34,6 @@ namespace tags {
     void handle_control(controltag ctrl);
 
    private:
-    vector<mousebtn> m_actions;
     const logger& m_log;
 
     unique_ptr<context> m_ctxt;

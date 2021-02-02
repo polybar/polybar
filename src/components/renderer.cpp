@@ -251,19 +251,6 @@ void renderer::begin(xcb_rectangle_t rect) {
 void renderer::end() {
   m_log.trace_x("renderer: end");
 
-  /*
-   * Finalize the positions of the action blocks.
-   * Up until this point, the positions were relative to the start of the
-   * alignment block the action was located in.
-   * Here we add the start position of the block as well as the start position
-   * of the bar itself (without borders or tray) to create positions relative to
-   * the bar window.
-   */
-  for (auto& a : m_action_ctxt.get_blocks()) {
-    a.start_x += block_x(a.align) + m_rect.x;
-    a.end_x += block_x(a.align) + m_rect.x;
-  }
-
   if (m_align != alignment::NONE) {
     m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
     m_context->pop(&m_blocks[m_align].pattern);
@@ -706,12 +693,12 @@ void renderer::change_alignment(const tags::context& ctxt) {
   }
 }
 
-void renderer::action_open(const tags::context&, tags::action_t id) {
-  m_action_ctxt.set_start(id, m_blocks.at(m_align).x);
+double renderer::get_x(const tags::context& ctxt) const {
+  return m_blocks.at(ctxt.get_alignment()).x;
 }
 
-void renderer::action_close(const tags::context&, tags::action_t id) {
-  m_action_ctxt.set_end(id, m_blocks.at(m_align).x);
+double renderer::get_alignment_start(const alignment align) const {
+  return block_x(align) + m_rect.x;
 }
 
 /**
