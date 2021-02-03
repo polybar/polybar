@@ -10,22 +10,26 @@ using namespace tags;
 TEST(ActionCtxtTest, dblClick) {
   action_context ctxt;
 
+  EXPECT_FALSE(ctxt.has_double_click());
+
   ctxt.action_open(mousebtn::DOUBLE_LEFT, "", alignment::LEFT, 0);
   ctxt.action_close(mousebtn::DOUBLE_LEFT, alignment::LEFT, 1);
 
-  ASSERT_TRUE(ctxt.has_double_click());
+  EXPECT_TRUE(ctxt.has_double_click());
 
   ctxt.reset();
 
   ctxt.action_open(mousebtn::DOUBLE_MIDDLE, "", alignment::LEFT, 0);
   ctxt.action_close(mousebtn::DOUBLE_MIDDLE, alignment::LEFT, 1);
 
-  ASSERT_TRUE(ctxt.has_double_click());
+  EXPECT_TRUE(ctxt.has_double_click());
+
+  ctxt.reset();
 
   ctxt.action_open(mousebtn::DOUBLE_RIGHT, "", alignment::LEFT, 0);
   ctxt.action_close(mousebtn::DOUBLE_RIGHT, alignment::LEFT, 1);
 
-  ASSERT_TRUE(ctxt.has_double_click());
+  EXPECT_TRUE(ctxt.has_double_click());
 }
 
 TEST(ActionCtxtTest, closing) {
@@ -41,12 +45,30 @@ TEST(ActionCtxtTest, closing) {
   EXPECT_NE(NO_ACTION, id3);
   EXPECT_NE(NO_ACTION, id4);
 
+  EXPECT_EQ(4, ctxt.num_unclosed());
   EXPECT_EQ(make_pair(id1, mousebtn::LEFT), ctxt.action_close(mousebtn::LEFT, alignment::LEFT, 1));
+  EXPECT_EQ(3, ctxt.num_unclosed());
   EXPECT_EQ(make_pair(id4, mousebtn::MIDDLE), ctxt.action_close(mousebtn::NONE, alignment::LEFT, 1));
+  EXPECT_EQ(2, ctxt.num_unclosed());
   EXPECT_EQ(make_pair(id3, mousebtn::RIGHT), ctxt.action_close(mousebtn::NONE, alignment::LEFT, 1));
+  EXPECT_EQ(1, ctxt.num_unclosed());
   EXPECT_EQ(make_pair(id2, mousebtn::RIGHT), ctxt.action_close(mousebtn::NONE, alignment::CENTER, 1));
+  EXPECT_EQ(0, ctxt.num_unclosed());
 
   EXPECT_EQ(4, ctxt.num_actions());
+}
+
+TEST(ActionCtxtTest, doubleClosing) {
+  action_context ctxt;
+
+  auto id = ctxt.action_open(mousebtn::LEFT, "", alignment::LEFT, 0);
+
+  EXPECT_NE(NO_ACTION, id);
+
+  EXPECT_EQ(1, ctxt.num_unclosed());
+  EXPECT_EQ(make_pair(id, mousebtn::LEFT), ctxt.action_close(mousebtn::LEFT, alignment::LEFT, 1));
+  EXPECT_EQ(0, ctxt.num_unclosed());
+  EXPECT_EQ(make_pair(tags::NO_ACTION, mousebtn::NONE), ctxt.action_close(mousebtn::LEFT, alignment::LEFT, 1));
   EXPECT_EQ(0, ctxt.num_unclosed());
 }
 
@@ -122,5 +144,25 @@ TEST(ActionCtxtTest, cmd) {
 
   auto id = ctxt.action_open(mousebtn::DOUBLE_RIGHT, cmd.substr(), alignment::RIGHT, 0);
 
-  ASSERT_EQ(cmd, ctxt.get_action(id));
+  EXPECT_EQ(cmd, ctxt.get_action(id));
+}
+
+TEST(ActionCtxtTest, getActionBlocks) {
+  action_context ctxt;
+
+  ctxt.action_open(mousebtn::DOUBLE_MIDDLE, "", alignment::RIGHT, 0);
+  ctxt.action_close(mousebtn::DOUBLE_MIDDLE, alignment::RIGHT, 1);
+
+  const auto& blocks = ctxt.get_blocks();
+
+  ASSERT_EQ(1, blocks.size());
+
+  const auto block = blocks[0];
+
+  EXPECT_EQ("", block.cmd);
+  EXPECT_EQ(0, block.start_x);
+  EXPECT_EQ(1, block.end_x);
+  EXPECT_FALSE(block.is_open);
+  EXPECT_EQ(mousebtn::DOUBLE_MIDDLE, block.button);
+  EXPECT_EQ(alignment::RIGHT, block.align);
 }
