@@ -96,6 +96,7 @@ if(BUILD_LIBPOLY)
     ${src_dir}/modules/xwindow.cpp
     ${src_dir}/modules/xworkspaces.cpp
 
+    ${src_dir}/tags/action_context.cpp
     ${src_dir}/tags/context.cpp
     ${src_dir}/tags/dispatch.cpp
     ${src_dir}/tags/parser.cpp
