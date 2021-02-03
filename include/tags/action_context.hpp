@@ -67,6 +67,12 @@ namespace tags {
     }
   };
 
+  /**
+   * Stores information about all action blocks on the bar.
+   *
+   * This class is used during rendering to open and close action blocks and
+   * in between render cycles to look up actions at certain positions.
+   */
   class action_context {
    public:
     void reset();
