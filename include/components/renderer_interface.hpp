@@ -2,6 +2,7 @@
 #include <map>
 
 #include "common.hpp"
+#include "tags/action_context.hpp"
 #include "tags/context.hpp"
 POLYBAR_NS
 
