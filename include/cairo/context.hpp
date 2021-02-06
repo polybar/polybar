@@ -134,9 +134,6 @@ namespace cairo {
       cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
       cairo_line_to(m_c, segment.x, segment.y);
 
-      cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
-      cairo_line_to(m_c, segment.x, segment.y);
-
       cairo_close_path(m_c);
 
       return *this;
