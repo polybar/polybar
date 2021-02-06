@@ -278,15 +278,6 @@ namespace cairo {
       return *this;
     }
 
-    context& stroke(bool preserve = false) {
-      if (preserve) {
-        cairo_stroke_preserve(m_c);
-      } else {
-        cairo_stroke(m_c);
-      }
-      return *this;
-    }
-
     context& mask(cairo_pattern_t* pattern) {
       cairo_mask(m_c, pattern);
       return *this;
