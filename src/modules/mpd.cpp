@@ -160,9 +160,6 @@ namespace modules {
   }
 
   bool mpd_module::has_event() {
-    bool def =
-        (m_statebroadcasted == (connected() ? mpd::connection_state::DISCONNECTED : mpd::connection_state::CONNECTED));
-
     try {
       if (!m_mpd) {
         m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
@@ -173,11 +170,11 @@ namespace modules {
     } catch (const mpd_exception& err) {
       m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
-      return def;
+      return true;
     }
 
-    if (!connected()) {
-      return def;
+    if (!connected() || m_statebroadcasted != mpd::connection_state::CONNECTED) {
+      return true;
     }
 
     if (!m_status) {
@@ -205,7 +202,7 @@ namespace modules {
     } catch (const mpd_exception& err) {
       m_log.err("%s: %s", name(), err.what());
       m_mpd.reset();
-      return def;
+      return false;
     }
 
     if (track_time) {
@@ -218,7 +215,7 @@ namespace modules {
       }
     }
 
-    return def;
+    return false;
   }
 
   bool mpd_module::update() {
