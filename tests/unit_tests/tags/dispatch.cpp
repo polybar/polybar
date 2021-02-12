@@ -63,28 +63,60 @@ TEST_F(DispatchTest, ignoreFormatting) {
 }
 
 TEST_F(DispatchTest, formatting) {
-  rgba bar_fg{"#000000"};
+  bar_settings settings;
+  rgba bar_fg = settings.foreground;
+  rgba bar_bg = settings.background;
+
+  rgba c1{"#ff0000"};
+  rgba c2{"#00ff00"};
+  rgba c3{"#0000ff"};
+  rgba c4{"#f0f0f0"};
 
   {
     InSequence seq;
-    EXPECT_CALL(r, render_offset(match_underline(true), 10)).Times(1);
-    EXPECT_CALL(r, render_text(match_fg(rgba{"#ff0000"}), string{"abc"})).Times(1);
+    EXPECT_CALL(r, render_offset(_, 10)).Times(1);
+    EXPECT_CALL(r, render_text(match_fg(c1), string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(bar_fg), string{"foo"})).Times(1);
     EXPECT_CALL(r, change_alignment(match_left_align)).Times(1);
-    EXPECT_CALL(r, render_text(AllOf(match_left_align, match_bg(rgba{"#00ff00"}), match_overline(true)), string{"bar"}))
-        .Times(1);
+    EXPECT_CALL(r, render_text(AllOf(match_left_align, match_bg(c2), match_fg(bar_fg)), string{"bar"})).Times(1);
+    EXPECT_CALL(r, render_text(AllOf(match_left_align, match_fg(c2), match_bg(bar_fg)), string{"123"})).Times(1);
     EXPECT_CALL(r, change_alignment(match_center_align)).Times(1);
-    EXPECT_CALL(r, render_text(AllOf(match_center_align, match_ul(rgba{"#0000ff"})), string{"baz"})).Times(1);
+    EXPECT_CALL(r, render_text(match_center_align, string{"baz"})).Times(1);
     EXPECT_CALL(r, change_alignment(match_right_align)).Times(1);
-    EXPECT_CALL(r, render_text(AllOf(match_right_align, match_ol(rgba{"#f0f0f0"}), match_font(123)), string{"def"}))
+    EXPECT_CALL(r, render_text(AllOf(match_right_align, match_font(123)), string{"def"})).Times(1);
+    EXPECT_CALL(r, render_text(AllOf(match_right_align, match_fg(bar_fg), match_bg(bar_bg)), string{"ghi"})).Times(1);
+  }
+
+  m_dispatch->parse(settings, r,
+      "%{O10}%{F#ff0000}abc%{F-}foo%{l}%{B#00ff00}bar%{R}123%{c}baz%{r}%{T123}def%{PR}"
+      "ghi");
+}
+
+TEST_F(DispatchTest, formattingAttributes) {
+  bar_settings settings;
+  rgba bar_ol = settings.overline.color;
+  rgba bar_ul = settings.underline.color;
+
+  rgba c1{"#0000ff"};
+  rgba c2{"#f0f0f0"};
+
+  {
+    InSequence seq;
+    EXPECT_CALL(
+        r, render_text(AllOf(match_ul(c1), match_ol(c2), match_overline(true), match_underline(true)), string{"123"}))
+        .Times(1);
+    EXPECT_CALL(
+        r, render_text(AllOf(match_ul(c1), match_ol(c2), match_overline(false), match_underline(false)), string{"456"}))
+        .Times(1);
+    EXPECT_CALL(
+        r, render_text(AllOf(match_ul(c1), match_ol(c2), match_overline(true), match_underline(true)), string{"789"}))
+        .Times(1);
+    EXPECT_CALL(r, render_text(AllOf(match_ul(bar_ul), match_ol(bar_ol), match_overline(false), match_underline(false)),
+                       string{"0"}))
         .Times(1);
   }
 
-  bar_settings settings;
-  settings.foreground = bar_fg;
-
-  m_dispatch->parse(settings, r,
-      "%{+u}%{O10}%{F#ff0000}abc%{F-}foo%{l}%{+o}%{B#00ff00}bar%{c}%{u#0000ff}baz%{r}%{o#f0f0f0}%{T123}def");
+  m_dispatch->parse(settings, r, "%{u#0000ff o#f0f0f0 +o +u}123%{-u -o}456%{!u !o}789%{PR}0");
 }
 
 TEST_F(DispatchTest, unclosedActions) {
