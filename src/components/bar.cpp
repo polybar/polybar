@@ -741,7 +741,6 @@ void bar::handle(const evt::button_press& evt) {
 
   const auto deferred_fn = [&](size_t) {
     tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
-    ;
 
     if (action != tags::NO_ACTION) {
       m_log.trace("Found matching input area");
