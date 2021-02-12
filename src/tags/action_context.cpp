@@ -65,7 +65,6 @@ namespace tags {
   }
 
   action_t action_context::has_action(mousebtn btn, int x) const {
-    // TODO optimize
     return get_actions(x)[btn];
   }
 
