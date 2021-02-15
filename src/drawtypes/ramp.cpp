@@ -18,6 +18,24 @@ namespace drawtypes {
     return m_icons[math_util::cap<size_t>(index, 0, m_icons.size() - 1)];
   }
 
+  label_t ramp::get_by_percentage_with_borders(int value, int min, int max) {
+    return get_by_percentage_with_borders(static_cast<float>(value), static_cast<float>(min), static_cast<float>(max));
+  }
+
+  label_t ramp::get_by_percentage_with_borders(float value, float min, float max) {
+    size_t index;
+    if (value <= min) {
+      index = 0;
+    } else if (value >= max) {
+      index = m_icons.size() - 1;
+    } else {
+      float percentage = math_util::percentage(value, min, max);
+      index = percentage * (m_icons.size() - 2) / 100.0f + 1;
+      index = math_util::cap<size_t>(index, 0, m_icons.size() - 1);
+    }
+    return m_icons[index];
+  }
+
   ramp::operator bool() {
     return !m_icons.empty();
   }

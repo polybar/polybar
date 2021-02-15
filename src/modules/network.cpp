@@ -3,9 +3,8 @@
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/factory.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -16,11 +15,38 @@ namespace modules {
       : timer_module<network_module>(bar, move(name_)) {
     // Load configuration values
     m_interface = m_conf.get(name(), "interface", m_interface);
+
+    if (m_interface.empty()) {
+      std::string type = m_conf.get(name(), "interface-type");
+      if (type == "wired") {
+        m_interface = net::find_wired_interface();
+        if (!m_interface.empty()) {
+          m_log.notice("%s: Discovered wired interface %s", name(), m_interface);
+        }
+      } else if (type == "wireless") {
+        m_interface = net::find_wireless_interface();
+        if (!m_interface.empty()) {
+          m_log.notice("%s: Discovered wireless interface %s", name(), m_interface);
+        }
+      } else {
+        throw module_error("Invalid interface type '" + type + "'");
+      }
+
+      if (m_interface.empty()) {
+        throw module_error("No interface found for type '" + type + "'");
+      }
+    }
+
+    if (m_interface.empty()) {
+      throw module_error("missing 'interface' or 'interface-type'");
+    }
+
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
     m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
+    m_udspeed_unit = m_conf.get<string>(name(), "speed-unit", m_udspeed_unit);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 
@@ -109,8 +135,8 @@ namespace modules {
       m_counter = 0;
     }
 
-    auto upspeed = network->upspeed(m_udspeed_minwidth);
-    auto downspeed = network->downspeed(m_udspeed_minwidth);
+    auto upspeed = network->upspeed(m_udspeed_minwidth, m_udspeed_unit);
+    auto downspeed = network->downspeed(m_udspeed_minwidth, m_udspeed_unit);
 
     // Update label contents
     const auto replace_tokens = [&](label_t& label) {
@@ -174,17 +200,20 @@ namespace modules {
 
   void network_module::subthread_routine() {
     const chrono::milliseconds framerate{m_animation_packetloss->framerate()};
-    const auto dur = chrono::duration<double>(framerate);
 
     while (running()) {
+      auto now = chrono::steady_clock::now();
       if (m_connected && m_packetloss) {
+        m_animation_packetloss->increment();
         broadcast();
       }
-      sleep(dur);
+
+      now += framerate;
+      this_thread::sleep_until(now);
     }
 
     m_log.trace("%s: Reached end of network subthread", name());
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

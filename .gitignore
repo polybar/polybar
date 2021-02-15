@@ -1,9 +1,10 @@
 /build
 /tags
 /compile_commands.json
-/config
 *.bak
 *.pyc
 *.swp
 *.tmp
 .tags
+
+polybar-*.tar

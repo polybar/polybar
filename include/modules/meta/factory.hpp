@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-
 #include "modules/backlight.hpp"
 #include "modules/battery.hpp"
 #include "modules/bspwm.hpp"
@@ -43,9 +42,7 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#if not(ENABLE_I3 && ENABLE_MPD && ENABLE_NETWORK && ENABLE_ALSA && ENABLE_PULSEAUDIO && ENABLE_CURL && ENABLE_XKEYBOARD)
 #include "modules/unsupported.hpp"
-#endif
 
 POLYBAR_NS
 
@@ -53,63 +50,63 @@ using namespace modules;
 
 namespace {
   module_interface* make_module(string&& name, const bar_settings& bar, string module_name, const logger& m_log) {
-    if (name == "internal/counter") {
+    if (name == counter_module::TYPE) {
       return new counter_module(bar, move(module_name));
-    } else if (name == "internal/backlight") {
+    } else if (name == backlight_module::TYPE) {
       return new backlight_module(bar, move(module_name));
-    } else if (name == "internal/battery") {
+    } else if (name == battery_module::TYPE) {
       return new battery_module(bar, move(module_name));
-    } else if (name == "internal/bspwm") {
+    } else if (name == bspwm_module::TYPE) {
       return new bspwm_module(bar, move(module_name));
-    } else if (name == "internal/cpu") {
+    } else if (name == cpu_module::TYPE) {
       return new cpu_module(bar, move(module_name));
-    } else if (name == "internal/date") {
+    } else if (name == date_module::TYPE) {
       return new date_module(bar, move(module_name));
-    } else if (name == "internal/github") {
+    } else if (name == github_module::TYPE) {
       return new github_module(bar, move(module_name));
-    } else if (name == "internal/fs") {
+    } else if (name == fs_module::TYPE) {
       return new fs_module(bar, move(module_name));
-    } else if (name == "internal/memory") {
+    } else if (name == memory_module::TYPE) {
       return new memory_module(bar, move(module_name));
-    } else if (name == "internal/i3") {
+    } else if (name == i3_module::TYPE) {
       return new i3_module(bar, move(module_name));
-    } else if (name == "internal/mpd") {
+    } else if (name == mpd_module::TYPE) {
       return new mpd_module(bar, move(module_name));
     } else if (name == "internal/volume") {
-      m_log.warn("internal/volume is deprecated, use internal/alsa instead");
+      m_log.warn("internal/volume is deprecated, use %s instead", string(alsa_module::TYPE));
       return new alsa_module(bar, move(module_name));
-    } else if (name == "internal/alsa") {
+    } else if (name == alsa_module::TYPE) {
       return new alsa_module(bar, move(module_name));
-    } else if (name == "internal/pulseaudio") {
+    } else if (name == pulseaudio_module::TYPE) {
       return new pulseaudio_module(bar, move(module_name));
-    } else if (name == "internal/network") {
+    } else if (name == network_module::TYPE) {
       return new network_module(bar, move(module_name));
 #if DEBUG
-    } else if (name == "internal/systray") {
+    } else if (name == systray_module::TYPE) {
       return new systray_module(bar, move(module_name));
 #endif
-    } else if (name == "internal/temperature") {
+    } else if (name == temperature_module::TYPE) {
       return new temperature_module(bar, move(module_name));
-    } else if (name == "internal/xbacklight") {
+    } else if (name == xbacklight_module::TYPE) {
       return new xbacklight_module(bar, move(module_name));
-    } else if (name == "internal/xkeyboard") {
+    } else if (name == xkeyboard_module::TYPE) {
       return new xkeyboard_module(bar, move(module_name));
-    } else if (name == "internal/xwindow") {
+    } else if (name == xwindow_module::TYPE) {
       return new xwindow_module(bar, move(module_name));
-    } else if (name == "internal/xworkspaces") {
+    } else if (name == xworkspaces_module::TYPE) {
       return new xworkspaces_module(bar, move(module_name));
-    } else if (name == "custom/text") {
+    } else if (name == text_module::TYPE) {
       return new text_module(bar, move(module_name));
-    } else if (name == "custom/script") {
+    } else if (name == script_module::TYPE) {
       return new script_module(bar, move(module_name));
-    } else if (name == "custom/menu") {
+    } else if (name == menu_module::TYPE) {
       return new menu_module(bar, move(module_name));
-    } else if (name == "custom/ipc") {
+    } else if (name == ipc_module::TYPE) {
       return new ipc_module(bar, move(module_name));
     } else {
       throw application_error("Unknown module: " + name);
     }
   }
-}
+}  // namespace
 
 POLYBAR_NS_END

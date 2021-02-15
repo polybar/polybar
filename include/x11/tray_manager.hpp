@@ -59,16 +59,16 @@ struct tray_settings {
   unsigned int height_fill{0U};
   unsigned int spacing{0U};
   unsigned int sibling{0U};
-  unsigned int background{0U};
+  rgba background{};
   bool transparent{false};
   bool detached{false};
 };
 
-class tray_manager
-    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
-          evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
-          evt::map_notify, evt::unmap_notify>,
-      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window, signals::ui::update_background> {
+class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
+                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
+                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
+                     public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
+                         signals::ui::update_background> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make();
@@ -120,21 +120,21 @@ class tray_manager
   void remove_client(xcb_window_t win, bool reconfigure = true);
   unsigned int mapped_clients() const;
 
-  void handle(const evt::expose& evt);
-  void handle(const evt::visibility_notify& evt);
-  void handle(const evt::client_message& evt);
-  void handle(const evt::configure_request& evt);
-  void handle(const evt::resize_request& evt);
-  void handle(const evt::selection_clear& evt);
-  void handle(const evt::property_notify& evt);
-  void handle(const evt::reparent_notify& evt);
-  void handle(const evt::destroy_notify& evt);
-  void handle(const evt::map_notify& evt);
-  void handle(const evt::unmap_notify& evt);
+  void handle(const evt::expose& evt) override;
+  void handle(const evt::visibility_notify& evt) override;
+  void handle(const evt::client_message& evt) override;
+  void handle(const evt::configure_request& evt) override;
+  void handle(const evt::resize_request& evt) override;
+  void handle(const evt::selection_clear& evt) override;
+  void handle(const evt::property_notify& evt) override;
+  void handle(const evt::reparent_notify& evt) override;
+  void handle(const evt::destroy_notify& evt) override;
+  void handle(const evt::map_notify& evt) override;
+  void handle(const evt::unmap_notify& evt) override;
 
-  bool on(const signals::ui::visibility_change& evt);
-  bool on(const signals::ui::dim_window& evt);
-  bool on(const signals::ui::update_background& evt);
+  bool on(const signals::ui::visibility_change& evt) override;
+  bool on(const signals::ui::dim_window& evt) override;
+  bool on(const signals::ui::update_background& evt) override;
 
  private:
   connection& m_connection;

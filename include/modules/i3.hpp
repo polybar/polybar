@@ -4,14 +4,13 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class i3_module : public event_module<i3_module>, public input_handler {
+  class i3_module : public event_module<i3_module> {
    public:
     enum class state {
       NONE,
@@ -47,15 +46,27 @@ namespace modules {
    public:
     explicit i3_module(const bar_settings&, string);
 
-    void stop();
+    void stop() override;
     bool has_event();
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/i3";
+
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
    protected:
-    bool input(string&& cmd);
+    void action_focus(const string& ws);
+    void action_next();
+    void action_prev();
+
+    void focus_direction(bool next);
 
    private:
+    static string make_workspace_command(const string& workspace);
+
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};
     static constexpr const char* DEFAULT_WS_ICON{"ws-icon-default"};
@@ -63,11 +74,6 @@ namespace modules {
 
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
     static constexpr const char* TAG_LABEL_MODE{"<label-mode>"};
-
-    static constexpr const char* EVENT_PREFIX{"i3wm"};
-    static constexpr const char* EVENT_CLICK{"i3wm-wsfocus-"};
-    static constexpr const char* EVENT_SCROLL_UP{"i3wm-wsnext"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"i3wm-wsprev"};
 
     map<state, label_t> m_statelabels;
     vector<unique_ptr<workspace>> m_workspaces;
@@ -87,11 +93,12 @@ namespace modules {
     bool m_wrap{true};
     bool m_indexsort{false};
     bool m_pinworkspaces{false};
+    bool m_show_urgent{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

@@ -19,7 +19,7 @@ namespace modules {
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempbase = m_conf.get(name(), "base-temperature", 0);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
     m_units = m_conf.get(name(), "units", m_units);
 
     if (m_path.empty()) {
@@ -53,7 +53,6 @@ namespace modules {
   bool temperature_module::update() {
     m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
     int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
-    m_perc = math_util::cap(math_util::percentage(m_temp, m_tempbase, m_tempwarn), 0, 100);
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
@@ -84,7 +83,7 @@ namespace modules {
   }
 
   string temperature_module::get_format() const {
-    if (m_temp > m_tempwarn) {
+    if (m_temp >= m_tempwarn) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;
@@ -97,7 +96,7 @@ namespace modules {
     } else if (tag == TAG_LABEL_WARN) {
       builder->node(m_label.at(temp_state::WARN));
     } else if (tag == TAG_RAMP) {
-      builder->node(m_ramp->get_by_percentage(m_perc));
+      builder->node(m_ramp->get_by_percentage_with_borders(m_temp, m_tempbase, m_tempwarn));
     } else {
       return false;
     }

@@ -18,6 +18,8 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/network";
+
    protected:
     void subthread_routine();
 
@@ -52,7 +54,8 @@ namespace modules {
     int m_udspeed_minwidth{0};
     bool m_accumulate{false};
     bool m_unknown_up{false};
+    string m_udspeed_unit{"B/s"};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

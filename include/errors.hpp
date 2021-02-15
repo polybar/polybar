@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <stdexcept>
 
 #include "common.hpp"
 

@@ -1,12 +1,12 @@
+#include "modules/mpd.hpp"
+
 #include <csignal>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
-#include "modules/mpd.hpp"
-#include "utils/factory.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -14,6 +14,17 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
+    m_router->register_action(EVENT_PLAY, &mpd_module::action_play);
+    m_router->register_action(EVENT_PAUSE, &mpd_module::action_pause);
+    m_router->register_action(EVENT_STOP, &mpd_module::action_stop);
+    m_router->register_action(EVENT_PREV, &mpd_module::action_prev);
+    m_router->register_action(EVENT_NEXT, &mpd_module::action_next);
+    m_router->register_action(EVENT_REPEAT, &mpd_module::action_repeat);
+    m_router->register_action(EVENT_SINGLE, &mpd_module::action_single);
+    m_router->register_action(EVENT_RANDOM, &mpd_module::action_random);
+    m_router->register_action(EVENT_CONSUME, &mpd_module::action_consume);
+    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::action_seek);
+
     m_host = m_conf.get(name(), "host", m_host);
     m_port = m_conf.get(name(), "port", m_port);
     m_pass = m_conf.get(name(), "password", m_pass);
@@ -24,8 +35,8 @@ namespace modules {
     for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
       m_formatter->add(format, format_online,
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
-              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY, TAG_ICON_PAUSE,
-              TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
+              TAG_ICON_REPEAT, TAG_ICON_REPEAT_ONE, TAG_ICON_SINGLE, TAG_ICON_PREV, TAG_ICON_STOP, TAG_ICON_PLAY,
+              TAG_ICON_PAUSE, TAG_ICON_NEXT, TAG_ICON_SEEKB, TAG_ICON_SEEKF, TAG_ICON_CONSUME});
 
       auto mod_format = m_formatter->get(format);
 
@@ -88,9 +99,7 @@ namespace modules {
 
     if (m_formatter->has(TAG_ICON_SINGLE)) {
       m_icons->add("single", load_label(m_conf, name(), TAG_ICON_SINGLE));
-    }
-    else if(m_formatter->has(TAG_ICON_REPEAT_ONE)){
-
+    } else if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
       m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
 
       m_icons->add("single", load_label(m_conf, name(), TAG_ICON_REPEAT_ONE));
@@ -109,8 +118,8 @@ namespace modules {
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
         m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_SINGLE) ||
         m_formatter->has(TAG_ICON_CONSUME)) {
-      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", ""s);
-      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", ""s);
+      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", rgba{});
+      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", rgba{});
     }
     if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE)) {
       m_label_offline = load_label(m_conf, name(), TAG_LABEL_OFFLINE);
@@ -280,8 +289,7 @@ namespace modules {
       m_icons->get("repeat")->m_foreground = m_status && m_status->repeat() ? m_toggle_on_color : m_toggle_off_color;
     }
     if (m_icons->has("single")) {
-      m_icons->get("single")->m_foreground =
-          m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
+      m_icons->get("single")->m_foreground = m_status && m_status->single() ? m_toggle_on_color : m_toggle_off_color;
     }
     if (m_icons->has("consume")) {
       m_icons->get("consume")->m_foreground = m_status && m_status->consume() ? m_toggle_on_color : m_toggle_off_color;
@@ -325,27 +333,27 @@ namespace modules {
     } else if (tag == TAG_LABEL_OFFLINE) {
       builder->node(m_label_offline);
     } else if (tag == TAG_ICON_RANDOM) {
-      builder->cmd(mousebtn::LEFT, EVENT_RANDOM, m_icons->get("random"));
+      builder->action(mousebtn::LEFT, *this, EVENT_RANDOM, "", m_icons->get("random"));
     } else if (tag == TAG_ICON_REPEAT) {
-      builder->cmd(mousebtn::LEFT, EVENT_REPEAT, m_icons->get("repeat"));
+      builder->action(mousebtn::LEFT, *this, EVENT_REPEAT, "", m_icons->get("repeat"));
     } else if (tag == TAG_ICON_REPEAT_ONE || tag == TAG_ICON_SINGLE) {
-      builder->cmd(mousebtn::LEFT, EVENT_SINGLE, m_icons->get("single"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SINGLE, "", m_icons->get("single"));
     } else if (tag == TAG_ICON_CONSUME) {
-      builder->cmd(mousebtn::LEFT, EVENT_CONSUME, m_icons->get("consume"));
+      builder->action(mousebtn::LEFT, *this, EVENT_CONSUME, "", m_icons->get("consume"));
     } else if (tag == TAG_ICON_PREV) {
-      builder->cmd(mousebtn::LEFT, EVENT_PREV, m_icons->get("prev"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PREV, "", m_icons->get("prev"));
     } else if ((tag == TAG_ICON_STOP || tag == TAG_TOGGLE_STOP) && (is_playing || is_paused)) {
-      builder->cmd(mousebtn::LEFT, EVENT_STOP, m_icons->get("stop"));
+      builder->action(mousebtn::LEFT, *this, EVENT_STOP, "", m_icons->get("stop"));
     } else if ((tag == TAG_ICON_PAUSE || tag == TAG_TOGGLE) && is_playing) {
-      builder->cmd(mousebtn::LEFT, EVENT_PAUSE, m_icons->get("pause"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PAUSE, "", m_icons->get("pause"));
     } else if ((tag == TAG_ICON_PLAY || tag == TAG_TOGGLE || tag == TAG_TOGGLE_STOP) && !is_playing) {
-      builder->cmd(mousebtn::LEFT, EVENT_PLAY, m_icons->get("play"));
+      builder->action(mousebtn::LEFT, *this, EVENT_PLAY, "", m_icons->get("play"));
     } else if (tag == TAG_ICON_NEXT) {
-      builder->cmd(mousebtn::LEFT, EVENT_NEXT, m_icons->get("next"));
+      builder->action(mousebtn::LEFT, *this, EVENT_NEXT, "", m_icons->get("next"));
     } else if (tag == TAG_ICON_SEEKB) {
-      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "-5"s, m_icons->get("seekb"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK, "-5"s, m_icons->get("seekb"));
     } else if (tag == TAG_ICON_SEEKF) {
-      builder->cmd(mousebtn::LEFT, EVENT_SEEK + "+5"s, m_icons->get("seekf"));
+      builder->action(mousebtn::LEFT, *this, EVENT_SEEK, "+5"s, m_icons->get("seekf"));
     } else {
       return false;
     }
@@ -353,64 +361,93 @@ namespace modules {
     return true;
   }
 
-  bool mpd_module::input(string&& cmd) {
-    if (cmd.compare(0, 3, "mpd") != 0) {
-      return false;
+/**
+ * Small macro to create a temporary mpd connection for the action handlers.
+ *
+ * We have to create a separate mpd instance because actions run in the
+ * controller thread and the `m_mpd` pointer is used in the module thread.
+ */
+#define MPD_CONNECT()                                                            \
+  auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
+  mpd->connect();                                                                \
+  auto status = mpd->get_status()
+
+  void mpd_module::action_play() {
+    MPD_CONNECT();
+    if (!status->match_state(mpdstate::PLAYING)) {
+      mpd->play();
     }
-
-    m_log.info("%s: event: %s", name(), cmd);
-
-    try {
-      auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
-      mpd->connect();
-
-      auto status = mpd->get_status();
-
-      bool is_playing = status->match_state(mpdstate::PLAYING);
-      bool is_paused = status->match_state(mpdstate::PAUSED);
-      bool is_stopped = status->match_state(mpdstate::STOPPED);
-
-      if (cmd == EVENT_PLAY && !is_playing) {
-        mpd->play();
-      } else if (cmd == EVENT_PAUSE && !is_paused) {
-        mpd->pause(true);
-      } else if (cmd == EVENT_STOP && !is_stopped) {
-        mpd->stop();
-      } else if (cmd == EVENT_PREV && !is_stopped) {
-        mpd->prev();
-      } else if (cmd == EVENT_NEXT && !is_stopped) {
-        mpd->next();
-      } else if (cmd == EVENT_SINGLE) {
-        mpd->set_single(!status->single());
-      } else if (cmd == EVENT_REPEAT) {
-        mpd->set_repeat(!status->repeat());
-      } else if (cmd == EVENT_RANDOM) {
-        mpd->set_random(!status->random());
-      } else if (cmd == EVENT_CONSUME) {
-        mpd->set_consume(!status->consume());
-      } else if (cmd.compare(0, strlen(EVENT_SEEK), EVENT_SEEK) == 0) {
-        auto s = cmd.substr(strlen(EVENT_SEEK));
-        int percentage = 0;
-        if (s.empty()) {
-          return false;
-        } else if (s[0] == '+') {
-          percentage = status->get_elapsed_percentage() + std::strtol(s.substr(1).c_str(), nullptr, 10);
-        } else if (s[0] == '-') {
-          percentage = status->get_elapsed_percentage() - std::strtol(s.substr(1).c_str(), nullptr, 10);
-        } else {
-          percentage = std::strtol(s.c_str(), nullptr, 10);
-        }
-        mpd->seek(status->get_songid(), status->get_seek_position(percentage));
-      } else {
-        return false;
-      }
-    } catch (const mpd_exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      m_mpd.reset();
-    }
-
-    return true;
   }
-}
+
+  void mpd_module::action_pause() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::PAUSED)) {
+      mpd->pause(true);
+    }
+  }
+
+  void mpd_module::action_stop() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->stop();
+    }
+  }
+
+  void mpd_module::action_prev() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->prev();
+    }
+  }
+
+  void mpd_module::action_next() {
+    MPD_CONNECT();
+
+    if (!status->match_state(mpdstate::STOPPED)) {
+      mpd->next();
+    }
+  }
+
+  void mpd_module::action_repeat() {
+    MPD_CONNECT();
+    mpd->set_repeat(!status->repeat());
+  }
+
+  void mpd_module::action_single() {
+    MPD_CONNECT();
+    mpd->set_single(!status->single());
+  }
+
+  void mpd_module::action_random() {
+    MPD_CONNECT();
+    mpd->set_random(!status->random());
+  }
+
+  void mpd_module::action_consume() {
+    MPD_CONNECT();
+    mpd->set_consume(!status->consume());
+  }
+
+  void mpd_module::action_seek(const string& data) {
+    MPD_CONNECT();
+
+    int percentage = 0;
+    if (data.empty()) {
+      return;
+    } else if (data[0] == '+') {
+      percentage = status->get_elapsed_percentage() + std::strtol(data.substr(1).c_str(), nullptr, 10);
+    } else if (data[0] == '-') {
+      percentage = status->get_elapsed_percentage() - std::strtol(data.substr(1).c_str(), nullptr, 10);
+    } else {
+      percentage = std::strtol(data.c_str(), nullptr, 10);
+    }
+    mpd->seek(status->get_songid(), status->get_seek_position(percentage));
+  }
+
+#undef MPD_CONNECT
+}  // namespace modules
 
 POLYBAR_NS_END

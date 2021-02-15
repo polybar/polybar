@@ -1,17 +1,12 @@
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+set(SPHINX_BUILD "sphinx-build" CACHE STRING "Name/Path of the sphinx-build executable to use.")
+set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 
-# Only used if documentation is built on its own
-project(polybar-doc NONE)
+find_program(BIN_SPHINX "${SPHINX_BUILD}")
 
-find_program(SPHINX_EXECUTABLE
-  NAMES sphinx-build
-  DOC "Sphinx Documentation Builder")
-
-if(NOT SPHINX_EXECUTABLE)
-  message_colored(FATAL_ERROR "Failed to locate sphinx-build" 31)
+if(NOT BIN_SPHINX)
+  message(FATAL_ERROR "sphinx-build executable '${SPHINX_BUILD}' not found.")
 endif()
 
-set(SPHINX_FLAGS "" CACHE STRING "Flags to pass to sphinx-build")
 separate_arguments(sphinx_flags UNIX_COMMAND "${SPHINX_FLAGS}")
 
 set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -20,7 +15,13 @@ set(doc_path "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(conf.py conf.py @ONLY)
 
 # We want to run `sphinx-build` with the following builders
-set(doc_builders "html" "man")
+if (BUILD_DOC_HTML)
+  list(APPEND doc_builders "html")
+endif()
+
+if (BUILD_DOC_MAN)
+  list(APPEND doc_builders "man")
+endif()
 
 # Name of all documentation targets
 set(doc_targets "")
@@ -29,11 +30,12 @@ foreach(builder ${doc_builders})
   set(doc_target "doc_${builder}")
   set(builder_log "builder-${builder}.log")
   add_custom_target(${doc_target}
-    COMMAND ${SPHINX_EXECUTABLE}
+    COMMAND ${BIN_SPHINX}
             -b ${builder}
             # conf.py dir
             -c "${CMAKE_CURRENT_BINARY_DIR}"
             -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
+            -n
             ${sphinx_flags}
             # Documentation source file dir
             "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -48,9 +50,18 @@ endforeach()
 add_custom_target(doc ALL DEPENDS ${doc_targets})
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
-  DESTINATION share/doc/polybar
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
+  COMPONENT doc
+  PATTERN ".buildinfo" EXCLUDE)
+
+install(FILES ${CMAKE_SOURCE_DIR}/CHANGELOG.md
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+  COMPONENT doc)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.5
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man5
   COMPONENT doc)

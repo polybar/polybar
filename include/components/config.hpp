@@ -18,18 +18,29 @@ POLYBAR_NS
 DEFINE_ERROR(value_error);
 DEFINE_ERROR(key_error);
 
+using valuemap_t = std::unordered_map<string, string>;
+using sectionmap_t = std::map<string, valuemap_t>;
+using file_list = vector<string>;
+
 class config {
  public:
-  using valuemap_t = std::unordered_map<string, string>;
-  using sectionmap_t = std::map<string, valuemap_t>;
-
   using make_type = const config&;
   static make_type make(string path = "", string bar = "");
 
-  explicit config(const logger& logger, string&& path = "", string&& bar = "");
+  explicit config(const logger& logger, string&& path = "", string&& bar = "")
+      : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
-  string filepath() const;
+  const string& filepath() const;
   string section() const;
+
+  /**
+   * \brief Instruct the config to connect to the xresource manager
+   */
+  void use_xrm();
+
+  void set_sections(sectionmap_t sections);
+
+  void set_included(file_list included);
 
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
@@ -73,7 +84,10 @@ class config {
   template <typename T = string>
   T get(const string& section, const string& key) const {
     auto it = m_sections.find(section);
-    if (it == m_sections.end() || it->second.find(key) == it->second.end()) {
+    if (it == m_sections.end()) {
+      throw key_error("Missing section \"" + section + "\"");
+    }
+    if (it->second.find(key) == it->second.end()) {
       throw key_error("Missing parameter \"" + section + "." + key + "\"");
     }
     return dereference<T>(section, key, it->second.at(key), convert<T>(string{it->second.at(key)}));
@@ -90,6 +104,9 @@ class config {
       T result{convert<T>(string{string_value})};
       return dereference<T>(move(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
+      return default_value;
+    } catch (const value_error& err) {
+      m_log.err("Invalid value for \"%s.%s\", using default value (reason: %s)", section, key, err.what());
       return default_value;
     }
   }
@@ -151,6 +168,9 @@ class config {
         }
       } catch (const key_error& err) {
         break;
+      } catch (const value_error& err) {
+        m_log.err("Invalid value in list \"%s.%s\", using list as-is (reason: %s)", section, key, err.what());
+        return default_value;
       }
     }
 
@@ -193,7 +213,6 @@ class config {
   }
 
  protected:
-  void parse_file();
   void copy_inherited();
 
   template <typename T>
@@ -268,17 +287,23 @@ class config {
   T dereference_env(string var) const {
     size_t pos;
     string env_default;
+    /*
+     * This is needed because with only the string we cannot distinguish
+     * between an empty string as default and not default
+     */
+    bool has_default = false;
 
     if ((pos = var.find(':')) != string::npos) {
       env_default = var.substr(pos + 1);
+      has_default = true;
       var.erase(pos);
     }
 
-    if (env_util::has(var.c_str())) {
-      string env_value{env_util::get(var.c_str())};
+    if (env_util::has(var)) {
+      string env_value{env_util::get(var)};
       m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
       return convert<T>(move(env_value));
-    } else if (!env_default.empty()) {
+    } else if (has_default) {
       m_log.info("Environment var ${%s} is undefined, using defined fallback value \"%s\"", var, env_default);
       return convert<T>(move(env_default));
     } else {
@@ -306,8 +331,10 @@ class config {
     }
 
     string fallback;
+    bool has_fallback = false;
     if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
+      has_fallback = true;
       var.erase(pos);
     }
 
@@ -316,8 +343,8 @@ class config {
       m_log.info("Found matching X resource \"%s\" (value=%s)", var, value);
       return convert<T>(move(value));
     } catch (const xresource_error& err) {
-      if (!fallback.empty()) {
-        m_log.warn("%s, using defined fallback value \"%s\"", err.what(), fallback);
+      if (has_fallback) {
+        m_log.info("%s, using defined fallback value \"%s\"", err.what(), fallback);
         return convert<T>(move(fallback));
       }
       throw value_error(sstream() << err.what() << " (no fallback set)");
@@ -334,8 +361,10 @@ class config {
   T dereference_file(string var) const {
     size_t pos;
     string fallback;
+    bool has_fallback = false;
     if ((pos = var.find(':')) != string::npos) {
       fallback = var.substr(pos + 1);
+      has_fallback = true;
       var.erase(pos);
     }
     var = file_util::expand(var);
@@ -343,8 +372,8 @@ class config {
     if (file_util::exists(var)) {
       m_log.info("File reference \"%s\" found", var);
       return convert<T>(string_util::trim(file_util::contents(var), '\n'));
-    } else if (!fallback.empty()) {
-      m_log.warn("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
+    } else if (has_fallback) {
+      m_log.info("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
       return convert<T>(move(fallback));
     } else {
       throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");
@@ -356,6 +385,12 @@ class config {
   string m_file;
   string m_barname;
   sectionmap_t m_sections{};
+
+  /**
+   * Absolute path of all files that were parsed in the process of parsing the
+   * config (Path of the main config file also included)
+   */
+  file_list m_included;
 #if WITH_XRM
   unique_ptr<xresource_manager> m_xrm;
 #endif

@@ -1,11 +1,13 @@
 #pragma once
 
-#include <bitset>
 #include <cairo/cairo.h>
+
+#include <bitset>
 #include <memory>
 
 #include "cairo/fwd.hpp"
 #include "common.hpp"
+#include "components/renderer_interface.hpp"
 #include "components/types.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
@@ -30,38 +32,37 @@ struct alignment_block {
   double y;
 };
 
-class renderer
-    : public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot, signals::parser::change_background,
-          signals::parser::change_foreground, signals::parser::change_underline, signals::parser::change_overline,
-          signals::parser::change_font, signals::parser::change_alignment, signals::parser::reverse_colors,
-          signals::parser::offset_pixel, signals::parser::attribute_set, signals::parser::attribute_unset,
-          signals::parser::attribute_toggle, signals::parser::action_begin, signals::parser::action_end,
-          signals::parser::text> {
+class renderer : public renderer_interface,
+                 public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot> {
  public:
   using make_type = unique_ptr<renderer>;
-  static make_type make(const bar_settings& bar);
+  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt);
 
-  explicit renderer(
-      connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar, background_manager& background_manager);
+  explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
+      background_manager& background_manager, tags::action_context& action_ctxt);
   ~renderer();
 
   xcb_window_t window() const;
-  const vector<action_block> actions() const;
 
   void begin(xcb_rectangle_t rect);
   void end();
   void flush();
 
-#if 0
-  void reserve_space(edge side, unsigned int w);
-#endif
-  void fill_background();
-  void fill_overline(double x, double w);
-  void fill_underline(double x, double w);
-  void fill_borders();
-  void draw_text(const string& contents);
+  void render_offset(const tags::context& ctxt, int pixels) override;
+  void render_text(const tags::context& ctxt, const string&&) override;
+
+  void change_alignment(const tags::context& ctxt) override;
+
+  double get_x(const tags::context& ctxt) const override;
+
+  double get_alignment_start(const alignment align) const override;
 
  protected:
+  void fill_background();
+  void fill_overline(rgba color, double x, double w);
+  void fill_underline(rgba color, double x, double w);
+  void fill_borders();
+
   double block_x(alignment a) const;
   double block_y(alignment a) const;
   double block_w(alignment a) const;
@@ -70,21 +71,7 @@ class renderer
   void flush(alignment a);
   void highlight_clickable_areas();
 
-  bool on(const signals::ui::request_snapshot& evt);
-  bool on(const signals::parser::change_background& evt);
-  bool on(const signals::parser::change_foreground& evt);
-  bool on(const signals::parser::change_underline& evt);
-  bool on(const signals::parser::change_overline& evt);
-  bool on(const signals::parser::change_font& evt);
-  bool on(const signals::parser::change_alignment& evt);
-  bool on(const signals::parser::reverse_colors&);
-  bool on(const signals::parser::offset_pixel& evt);
-  bool on(const signals::parser::attribute_set& evt);
-  bool on(const signals::parser::attribute_unset& evt);
-  bool on(const signals::parser::attribute_toggle& evt);
-  bool on(const signals::parser::action_begin& evt);
-  bool on(const signals::parser::action_end& evt);
-  bool on(const signals::parser::text& evt);
+  bool on(const signals::ui::request_snapshot& evt) override;
 
  protected:
   struct reserve_area {
@@ -125,13 +112,6 @@ class renderer
   bool m_pseudo_transparency{false};
 
   alignment m_align;
-  std::bitset<3> m_attr;
-  int m_font{0};
-  unsigned int m_bg{0U};
-  unsigned int m_fg{0U};
-  unsigned int m_ol{0U};
-  unsigned int m_ul{0U};
-  vector<action_block> m_actions;
 
   bool m_fixedcenter;
   string m_snapshot_dst;

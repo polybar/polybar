@@ -1,0 +1,103 @@
+# Workflow For Releases
+#
+# Automatically creates and uploads a complete release archive for the given
+# release.
+name: Release Workflow
+
+# Is triggered when a new release is published or by hand
+# If triggered by hand, the release tag that this should target has to be
+# specified.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release Tag'
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Version
+        if: ${{ github.event.inputs.tag }} != ''
+        run: |
+          if [ ${{  github.event_name }} == 'workflow_dispatch' ]; then
+            echo "Manual Release Triggered"
+            RELEASE_TAG=${{ github.event.inputs.tag }}
+          else
+            echo "Automatic Release Triggered"
+            RELEASE_TAG=${GITHUB_REF#refs/tags/}
+          fi
+          echo "Publishing Version $RELEASE_TAG"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "POLYBAR_DIR=polybar-$RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "POLYBAR_ARCHIVE=polybar-$RELEASE_TAG.tar.gz" >> "$GITHUB_ENV"
+
+      # Checks out the target tag
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          submodules: true
+          path: ${{ env.POLYBAR_DIR }}
+
+      - name: Create Release Archive
+        run: |
+          find "$DIR" -type d -name ".git" -exec rm -rf {} \+
+          tar czf "$ARCHIVE" "$DIR"
+          echo "SHA256SUM=$(sha256sum "$ARCHIVE" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+        env:
+          DIR: ${{ env.POLYBAR_DIR }}
+          ARCHIVE: ${{ env.POLYBAR_ARCHIVE }}
+
+      - name: Get Upload URL
+        id: get_upload_url
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ env.RELEASE_TAG }}';
+            console.log(`Getting Upload URL for '${tag}'`);
+            const release = await github.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: tag
+            });
+            core.exportVariable('UPLOAD_URL', release.data.upload_url);
+            core.exportVariable('RELEASE_ID', release.data.id);
+            core.exportVariable('RELEASE_BODY', release.data.body);
+
+      - name: Upload Release Archive
+        id: upload_archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ env.UPLOAD_URL }}
+          asset_path: "./${{ env.POLYBAR_ARCHIVE }}"
+          asset_name: ${{ env.POLYBAR_ARCHIVE }}
+          asset_content_type: application/gzip
+
+      # Adds a download section to the beginning of the release body
+      - name: Update Release Body
+        uses: actions/github-script@v3
+        env:
+          # Existing release body, fetched in the get_upload_url step.
+          RELEASE_BODY: ${{ env.RELEASE_BODY }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fname = '${{ env.POLYBAR_ARCHIVE }}'
+            const url = '${{ steps.upload_archive.outputs.browser_download_url }}'
+            const hash = '${{ env.SHA256SUM }}'
+            let body = "## Download:\n\n"
+            body += `[${fname}](${url}) (**sha256**: \`${hash}\`)\n\n`
+            body += process.env.RELEASE_BODY;
+
+            const release = await github.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: '${{ env.RELEASE_ID}}',
+              body: body
+            });

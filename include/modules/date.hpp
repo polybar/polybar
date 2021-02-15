@@ -1,28 +1,30 @@
 #pragma once
 
-#include "modules/meta/input_handler.hpp"
-#include "modules/meta/timer_module.hpp"
-
-#include <iostream>
-#include <iomanip>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+
+#include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class date_module : public timer_module<date_module>, public input_handler {
+  class date_module : public timer_module<date_module> {
    public:
     explicit date_module(const bar_settings&, string);
 
     bool update();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/date";
+
+    static constexpr auto EVENT_TOGGLE = "toggle";
+
    protected:
-    bool input(string&& cmd);
+    void action_toggle();
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto EVENT_TOGGLE = "datetoggle";
 
     // \deprecated: Use <label>
     static constexpr auto TAG_DATE = "<date>";
@@ -42,6 +44,6 @@ namespace modules {
 
     std::atomic<bool> m_toggled{false};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

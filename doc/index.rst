@@ -9,21 +9,35 @@ Polybar Documentation
 Welcome to the official polybar documentation.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Content:
+
+   user/actions
 
 .. toctree::
    :maxdepth: 1
    :caption: Manual Pages:
 
    man/polybar.1
+   man/polybar.5
+
+.. toctree::
+   :maxdepth: 1
+   :caption: For Contributors:
+
+   dev/packaging
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer Documentation:
+
+   dev/release-workflow
 
 Getting Help
 ============
 
 * `Polybar Wiki <https://github.com/polybar/polybar/wiki>`_
+* `Gitter <https://gitter.im/polybar/polybar>`_
 * `/r/polybar <https://reddit.com/r/polybar>`_ on reddit
 * ``#polybar`` on ``chat.freenode.net``
-* `Unix & Linux StackExchange <https://unix.stackexchange.com/>`_
-
 

@@ -30,18 +30,16 @@ namespace modules {
    */
   class xwindow_module : public static_module<xwindow_module>, public event_handler<evt::property_notify> {
    public:
-    enum class state {
-      NONE,
-      ACTIVE,
-      EMPTY
-    };
+    enum class state { NONE, ACTIVE, EMPTY };
     explicit xwindow_module(const bar_settings&, string);
 
     void update(bool force = false);
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/xwindow";
+
    protected:
-    void handle(const evt::property_notify& evt);
+    void handle(const evt::property_notify& evt) override;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
@@ -51,6 +49,6 @@ namespace modules {
     map<state, label_t> m_statelabels;
     label_t m_label;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

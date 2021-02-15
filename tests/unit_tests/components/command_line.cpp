@@ -1,31 +1,31 @@
-#include "common/test.hpp"
 #include "components/command_line.hpp"
+
+#include "common/test.hpp"
 #include "utils/string.hpp"
 
 using namespace polybar;
 
 class CommandLine : public ::testing::Test {
-  protected:
-    virtual void SetUp() {
-      set_cli();
-    }
+ protected:
+  virtual void SetUp() override {
+    set_cli();
+  }
 
-    virtual void set_cli() {
-      cli = command_line::parser::make("cmd", get_opts());
-    }
+  virtual void set_cli() {
+    cli = command_line::parser::make("cmd", get_opts());
+  }
 
-    command_line::options get_opts()  {
-      // clang-format off
+  command_line::options get_opts() {
+    // clang-format off
       return command_line::options {
         command_line::option{"-f", "--flag", "Flag description"},
         command_line::option{"-o", "--option", "Option description", "OPTION", {"foo", "bar", "baz"}},
       };
-      // clang-format on
-    };
+    // clang-format on
+  };
 
-    command_line::parser::make_type cli;
+  command_line::parser::make_type cli;
 };
-
 
 TEST_F(CommandLine, hasShort) {
   cli->process_input(string_util::split("-f", ' '));

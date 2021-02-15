@@ -15,7 +15,7 @@ namespace i3_util {
 
   const auto ws_numsort = [](shared_ptr<workspace_t> a, shared_ptr<workspace_t> b) { return a->num < b->num; };
 
-  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output = "");
+  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output = "", const bool show_urgent = false);
   shared_ptr<workspace_t> focused_workspace(const connection_t&);
 
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name = "");

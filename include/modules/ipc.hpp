@@ -5,8 +5,6 @@
 
 POLYBAR_NS
 
-struct ipc_hook;  // fwd
-
 namespace modules {
   /**
    * Module that allow users to configure hooks on
@@ -28,11 +26,13 @@ namespace modules {
    public:
     explicit ipc_module(const bar_settings&, string);
 
-    void start();
+    void start() override;
     void update() {}
     string get_output();
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
+
+    static constexpr auto TYPE = "custom/ipc";
 
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
@@ -41,6 +41,6 @@ namespace modules {
     string m_output;
     size_t m_initial;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

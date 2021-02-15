@@ -10,7 +10,7 @@ namespace modules {
    public:
     using module<Impl>::module;
 
-    void start() {
+    void start() override {
       this->m_mainthread = thread([&] {
         this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
         CAST_MOD(Impl)->update();
@@ -22,6 +22,6 @@ namespace modules {
       return true;
     }
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

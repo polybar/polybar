@@ -1,13 +1,12 @@
 #pragma once
 
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
 #include "utils/bspwm.hpp"
 
 POLYBAR_NS
 
 namespace modules {
-  class bspwm_module : public event_module<bspwm_module>, public input_handler {
+  class bspwm_module : public event_module<bspwm_module> {
    public:
     enum class state {
       NONE = 0U,
@@ -42,14 +41,25 @@ namespace modules {
    public:
     explicit bspwm_module(const bar_settings&, string);
 
-    void stop();
+    void stop() override;
     bool has_event();
     bool update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
+    static constexpr auto TYPE = "internal/bspwm";
+
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
    protected:
-    bool input(string&& cmd);
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
+
+    void focus_direction(bool next);
+    void send_command(const string& payload_cmd, const string& log_info);
 
    private:
     bool handle_status(string& data);
@@ -61,11 +71,6 @@ namespace modules {
     static constexpr auto TAG_LABEL_MONITOR = "<label-monitor>";
     static constexpr auto TAG_LABEL_STATE = "<label-state>";
     static constexpr auto TAG_LABEL_MODE = "<label-mode>";
-
-    static constexpr const char* EVENT_PREFIX{"bspwm-desk"};
-    static constexpr const char* EVENT_CLICK{"bspwm-deskfocus"};
-    static constexpr const char* EVENT_SCROLL_UP{"bspwm-desknext"};
-    static constexpr const char* EVENT_SCROLL_DOWN{"bspwm-deskprev"};
 
     bspwm_util::connection_t m_subscriber;
 
@@ -92,6 +97,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0U};
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

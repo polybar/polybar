@@ -1,7 +1,5 @@
-#include <iomanip>
-
-#include "common/test.hpp"
 #include "utils/string.hpp"
+#include "common/test.hpp"
 
 using namespace polybar;
 
@@ -57,24 +55,49 @@ TEST(String, trim) {
   EXPECT_EQ("test", string_util::trim("xxtestxx", 'x'));
 }
 
+TEST(String, trimPredicate) {
+  EXPECT_EQ("x\t x", string_util::trim("\t  x\t x   ", isspace));
+  EXPECT_EQ("x\t x", string_util::trim("x\t x   ", isspace));
+}
+
 TEST(String, join) {
   EXPECT_EQ("A, B, C", string_util::join({"A", "B", "C"}, ", "));
 }
 
-TEST(String, splitInto) {
-  vector<string> strings;
-  string_util::split_into("A,B,C", ',', strings);
-  EXPECT_EQ(3, strings.size());
-  EXPECT_EQ("A", strings[0]);
-  EXPECT_EQ("C", strings[2]);
+TEST(String, split) {
+  {
+    vector<string> strings = string_util::split("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
+
+  {
+    vector<string> strings = string_util::split(",A,,B,,C,", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
 }
 
-TEST(String, split) {
-  vector<string> strings{"foo", "bar"};
-  vector<string> result{string_util::split("foo,bar", ',')};
-  EXPECT_EQ(strings.size(), result.size());
-  EXPECT_EQ(strings[0], result[0]);
-  EXPECT_EQ("bar", result[1]);
+TEST(String, tokenize) {
+  {
+    vector<string> strings = string_util::tokenize("A,B,C", ',');
+    EXPECT_EQ(3, strings.size());
+    EXPECT_EQ("A", strings[0]);
+    EXPECT_EQ("B", strings[1]);
+    EXPECT_EQ("C", strings[2]);
+  }
+
+  {
+    using namespace std::string_literals;
+    vector<string> strings = string_util::tokenize(",A,,B,,C,", ',');
+    vector<string> result{""s, "A"s, ""s, "B"s, ""s, "C"s, ""s};
+
+    EXPECT_TRUE(strings == result);
+  }
 }
 
 TEST(String, findNth) {
@@ -101,13 +124,13 @@ TEST(String, floatingPoint) {
 }
 
 TEST(String, filesize) {
-  EXPECT_EQ("3.000 MB", string_util::filesize_mb(3 * 1024, 3));
-  EXPECT_EQ("3.195 MB", string_util::filesize_mb(3 * 1024 + 200, 3));
-  EXPECT_EQ("3 MB", string_util::filesize_mb(3 * 1024 + 400));
-  EXPECT_EQ("4 MB", string_util::filesize_mb(3 * 1024 + 800));
-  EXPECT_EQ("3.195 GB", string_util::filesize_gb(3 * 1024 * 1024 + 200 * 1024, 3));
-  EXPECT_EQ("3 GB", string_util::filesize_gb(3 * 1024 * 1024 + 400 * 1024));
-  EXPECT_EQ("4 GB", string_util::filesize_gb(3 * 1024 * 1024 + 800 * 1024));
+  EXPECT_EQ("3.000 MiB", string_util::filesize_mib(3 * 1024, 3));
+  EXPECT_EQ("3.195 MiB", string_util::filesize_mib(3 * 1024 + 200, 3));
+  EXPECT_EQ("3 MiB", string_util::filesize_mib(3 * 1024 + 400));
+  EXPECT_EQ("4 MiB", string_util::filesize_mib(3 * 1024 + 800));
+  EXPECT_EQ("3.195 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 200 * 1024, 3));
+  EXPECT_EQ("3 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 400 * 1024));
+  EXPECT_EQ("4 GiB", string_util::filesize_gib(3 * 1024 * 1024 + 800 * 1024));
   EXPECT_EQ("3 B", string_util::filesize(3));
   EXPECT_EQ("3 KB", string_util::filesize(3 * 1024));
   EXPECT_EQ("3 MB", string_util::filesize(3 * 1024 * 1024));

@@ -13,11 +13,8 @@ endfunction()
 # colored_option {{{
 
 function(colored_option text flag)
-  # Append version of option, if ${flag}_VERSION is set
-  set(version ${${flag}_VERSION})
-
-  if(NOT "${version}" STREQUAL "")
-    set(text "${text} (${version})")
+  if(ARGC GREATER 2 AND NOT "${${ARGV2}}" STREQUAL "")
+    set(text "${text} (${${ARGV2}})")
   endif()
 
   if(${flag})
@@ -71,31 +68,58 @@ function(queryfont output_variable fontname)
 endfunction()
 
 # }}}
-# querylib {{{
+# find_package_impl {{{
 
-function(querylib flag type pkg out_library out_include_dirs)
-  if(${flag})
-    if(${type} STREQUAL "cmake")
-      find_package(${pkg} REQUIRED)
-      string(TOUPPER ${pkg} pkg_upper)
-      list(APPEND ${out_library} ${${pkg_upper}_LIBRARY})
-      list(APPEND ${out_include_dirs} ${${pkg_upper}_INCLUDE_DIR})
-    elseif(${type} STREQUAL "pkg-config")
-      find_package(PkgConfig REQUIRED)
-      pkg_check_modules(PKG_${flag} REQUIRED ${pkg})
+# Uses PkgConfig to search for pkg_config_name
+#
+# Defines the following variables:
+# ${find_pkg_name}_FOUND - True if the package has been found
+# ${find_pkg_name}_INCLUDE_DIR - <...>_INCLUDE_DIRS exported by pkg_check_modules
+# ${find_pkg_name}_INCLUDE_DIRS - Same as ${find_pkg_name}_INCLUDE_DIR
+# ${find_pkg_name}_LIBRARY - <...>_LIBRARIES exported by pkg_check_modules
+# ${find_pkg_name}_LIBRARIES - Same as ${find_pkg_name}_LIBRARY
+# ${find_pkg_name}_VERSION - <...>_VERSION exported by pkg_check_modules
+#
+macro(find_package_impl pkg_config_name find_pkg_name header_to_find)
+  find_package(PkgConfig REQUIRED)
+  include(FindPackageHandleStandardArgs)
 
-      # Set packet version so that it can be used in the summary
-      set(${flag}_VERSION ${PKG_${flag}_VERSION} PARENT_SCOPE)
-      list(APPEND ${out_library} ${PKG_${flag}_LIBRARIES})
-      list(APPEND ${out_include_dirs} ${PKG_${flag}_INCLUDE_DIRS})
-    else()
-      message(FATAL_ERROR "Invalid lookup type '${type}'")
-    endif()
-    set(${out_library} ${${out_library}} PARENT_SCOPE)
-    set(${out_include_dirs} ${${out_include_dirs}} PARENT_SCOPE)
+  pkg_check_modules(PC_${find_pkg_name} REQUIRED ${pkg_config_name})
+
+  if (NOT ${header_to_find} STREQUAL "")
+    find_path(PC_${find_pkg_name}_INCLUDE_DIRS_
+      NAMES "${header_to_find}"
+      HINTS "${PC_${find_pkg_name}_INCLUDE_DIRS}"
+    )
+    set(PC_${find_pkg_name}_INCLUDE_DIRS ${PC_${find_pkg_name}_INCLUDE_DIRS_})
   endif()
-endfunction()
 
+  set(${find_pkg_name}_INCLUDE_DIR ${PC_${find_pkg_name}_INCLUDE_DIRS})
+  set(${find_pkg_name}_INCLUDE_DIRS ${${find_pkg_name}_INCLUDE_DIR})
+  set(${find_pkg_name}_LIBRARY ${PC_${find_pkg_name}_LIBRARIES})
+  set(${find_pkg_name}_VERSION ${PC_${find_pkg_name}_VERSION})
+  set(${find_pkg_name}_LIBRARIES ${${find_pkg_name}_LIBRARY})
+
+  find_package_handle_standard_args(${find_pkg_name}
+    REQUIRED_VARS
+    ${find_pkg_name}_INCLUDE_DIRS
+    ${find_pkg_name}_LIBRARIES
+    VERSION_VAR
+    ${find_pkg_name}_VERSION
+  )
+
+  mark_as_advanced(${find_pkg_name}_INCLUDE_DIR ${find_pkg_name}_LIBRARY)
+endmacro()
+
+# }}}
+# create_imported_target {{{
+function(create_imported_target library_name includes libraries)
+  add_library(${library_name} INTERFACE IMPORTED)
+  set_target_properties(${library_name} PROPERTIES
+    INTERFACE_LINK_LIBRARIES "${libraries}"
+  )
+  target_include_directories(${library_name} SYSTEM INTERFACE ${includes})
+endfunction()
 # }}}
 # checklib {{{
 
@@ -114,7 +138,21 @@ function(checklib flag type pkg)
     else()
       message(FATAL_ERROR "Invalid lookup type '${type}'")
     endif()
+    mark_as_advanced(${flag})
   endif()
+endfunction()
+
+function(get_include_dirs output)
+  get_filename_component(generated_sources_dir  ${CMAKE_BINARY_DIR}/generated-sources   ABSOLUTE)
+  get_filename_component(include_dir            ${CMAKE_SOURCE_DIR}/include             ABSOLUTE)
+
+  set(${output} ${include_dir} ${generated_sources_dir} PARENT_SCOPE)
+endfunction()
+
+function(get_sources_dirs output)
+  get_filename_component(src_dir                ${CMAKE_SOURCE_DIR}/src                 ABSOLUTE)
+
+  set(${output} ${src_dir} PARENT_SCOPE)
 endfunction()
 
 # }}}

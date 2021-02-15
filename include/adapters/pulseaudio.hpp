@@ -38,6 +38,7 @@ class pulseaudio {
     int process_events();
 
     int get_volume();
+    double get_decibels();
     void set_volume(float percentage);
     void inc_volume(int delta_perc);
     void set_mute(bool mode);
@@ -62,7 +63,7 @@ class pulseaudio {
     pa_cvolume cv;
     bool muted{false};
     // default sink name
-    static constexpr auto DEFAULT_SINK{"@DEFAULT_SINK@"};
+    static constexpr auto DEFAULT_SINK = "@DEFAULT_SINK@";
 
     pa_context* m_context{nullptr};
     pa_threaded_mainloop* m_mainloop{nullptr};

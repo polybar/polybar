@@ -2,17 +2,16 @@
 
 #include <chrono>
 
-#include "utils/env.hpp"
 #include "adapters/mpd.hpp"
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/input_handler.hpp"
+#include "utils/env.hpp"
 
 POLYBAR_NS
 
 using namespace mpd;
 
 namespace modules {
-  class mpd_module : public event_module<mpd_module>, public input_handler {
+  class mpd_module : public event_module<mpd_module> {
    public:
     explicit mpd_module(const bar_settings&, string);
 
@@ -25,8 +24,30 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
-   protected:
-    bool input(string&& cmd);
+    static constexpr auto TYPE = "internal/mpd";
+
+    static constexpr const char* EVENT_PLAY = "play";
+    static constexpr const char* EVENT_PAUSE = "pause";
+    static constexpr const char* EVENT_STOP = "stop";
+    static constexpr const char* EVENT_PREV = "prev";
+    static constexpr const char* EVENT_NEXT = "next";
+    static constexpr const char* EVENT_REPEAT = "repeat";
+    static constexpr const char* EVENT_SINGLE = "single";
+    static constexpr const char* EVENT_RANDOM = "random";
+    static constexpr const char* EVENT_CONSUME = "consume";
+    static constexpr const char* EVENT_SEEK = "seek";
+
+   private:
+    void action_play();
+    void action_pause();
+    void action_stop();
+    void action_prev();
+    void action_next();
+    void action_repeat();
+    void action_single();
+    void action_random();
+    void action_consume();
+    void action_seek(const string& data);
 
    private:
     static constexpr const char* FORMAT_ONLINE{"format-online"};
@@ -62,17 +83,6 @@ namespace modules {
     static constexpr const char* FORMAT_OFFLINE{"format-offline"};
     static constexpr const char* TAG_LABEL_OFFLINE{"<label-offline>"};
 
-    static constexpr const char* EVENT_PLAY{"mpdplay"};
-    static constexpr const char* EVENT_PAUSE{"mpdpause"};
-    static constexpr const char* EVENT_STOP{"mpdstop"};
-    static constexpr const char* EVENT_PREV{"mpdprev"};
-    static constexpr const char* EVENT_NEXT{"mpdnext"};
-    static constexpr const char* EVENT_REPEAT{"mpdrepeat"};
-    static constexpr const char* EVENT_SINGLE{"mpdsingle"};
-    static constexpr const char* EVENT_RANDOM{"mpdrandom"};
-    static constexpr const char* EVENT_CONSUME{"mpdconsume"};
-    static constexpr const char* EVENT_SEEK{"mpdseek"};
-
     unique_ptr<mpdconnection> m_mpd;
 
     /*
@@ -101,9 +111,9 @@ namespace modules {
     label_t m_label_time;
     label_t m_label_offline;
 
-    string m_toggle_on_color;
-    string m_toggle_off_color;
+    rgba m_toggle_on_color;
+    rgba m_toggle_off_color;
   };
-}
+}  // namespace modules
 
 POLYBAR_NS_END

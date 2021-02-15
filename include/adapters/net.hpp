@@ -1,15 +1,15 @@
 #pragma once
 
-#include <chrono>
-#include <cstdlib>
-
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
+#include <chrono>
+#include <cstdlib>
+
 #include "common.hpp"
-#include "settings.hpp"
-#include "errors.hpp"
 #include "components/logger.hpp"
+#include "errors.hpp"
+#include "settings.hpp"
 #include "utils/math.hpp"
 
 #if WITH_LIBNL
@@ -38,6 +38,8 @@ namespace net {
   DEFINE_ERROR(network_error);
 
   bool is_wireless_interface(const string& ifname);
+  std::string find_wireless_interface();
+  std::string find_wired_interface();
 
   // types {{{
 
@@ -82,14 +84,14 @@ namespace net {
 
     string ip() const;
     string ip6() const;
-    string downspeed(int minwidth = 3) const;
-    string upspeed(int minwidth = 3) const;
+    string downspeed(int minwidth = 3, const string& unit = "B/s") const;
+    string upspeed(int minwidth = 3, const string& unit = "B/s") const;
     void set_unknown_up(bool unknown = true);
 
    protected:
     void check_tuntap_or_bridge();
     bool test_interface() const;
-    string format_speedrate(float bytes_diff, int minwidth) const;
+    string format_speedrate(float bytes_diff, int minwidth, const string& unit) const;
     void query_ip6();
 
     const logger& m_log;

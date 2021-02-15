@@ -1,15 +1,17 @@
 #include "components/renderer.hpp"
+
+#include <cassert>
+
 #include "cairo/context.hpp"
 #include "components/config.hpp"
 #include "events/signal.hpp"
+#include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
-#include "utils/file.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
-#include "x11/extensions/all.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS
@@ -19,7 +21,7 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(const bar_settings& bar) {
+renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
   // clang-format off
   return factory_util::unique<renderer>(
       connection::make(),
@@ -27,22 +29,23 @@ renderer::make_type renderer::make(const bar_settings& bar) {
       config::make(),
       logger::make(),
       forward<decltype(bar)>(bar),
-      background_manager::make());
+      background_manager::make(),
+      action_ctxt);
   // clang-format on
 }
 
 /**
  * Construct renderer instance
  */
-renderer::renderer(
-    connection& conn, signal_emitter& sig, const config& conf, const logger& logger, const bar_settings& bar, background_manager& background)
-    : m_connection(conn)
+renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
+    const bar_settings& bar, background_manager& background, tags::action_context& action_ctxt)
+    : renderer_interface(action_ctxt)
+    , m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
     , m_bar(forward<const bar_settings&>(bar))
     , m_rect(m_bar.inner_area()) {
-
   m_sig.attach(this);
   m_log.trace("renderer: Get TrueColor visual");
   {
@@ -160,7 +163,7 @@ renderer::renderer(
         pattern.erase(pos);
       }
       auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
-      m_log.info("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
+      m_log.notice("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
   }
@@ -195,13 +198,6 @@ xcb_window_t renderer::window() const {
 }
 
 /**
- * Get completed action blocks
- */
-const vector<action_block> renderer::actions() const {
-  return m_actions;
-}
-
-/**
  * Begin render routine
  */
 void renderer::begin(xcb_rectangle_t rect) {
@@ -209,15 +205,7 @@ void renderer::begin(xcb_rectangle_t rect) {
 
   // Reset state
   m_rect = rect;
-  m_actions.clear();
-  m_attr.reset();
   m_align = alignment::NONE;
-
-  // Reset colors
-  m_bg = m_bar.background;
-  m_fg = m_bar.foreground;
-  m_ul = m_bar.underline.color;
-  m_ol = m_bar.overline.color;
 
   // Clear canvas
   m_context->save();
@@ -240,7 +228,7 @@ void renderer::begin(xcb_rectangle_t rect) {
         static_cast<double>(m_rect.width),
         static_cast<double>(m_rect.height), m_bar.radius};
     // clang-format on
-    *m_context << rgba{1.0, 1.0, 1.0, 1.0};
+    *m_context << rgba{0xffffffff};
     m_context->fill();
     m_context->pop(&m_cornermask);
     m_context->restore();
@@ -262,11 +250,6 @@ void renderer::begin(xcb_rectangle_t rect) {
  */
 void renderer::end() {
   m_log.trace_x("renderer: end");
-
-  for (auto&& a : m_actions) {
-    a.start_x += block_x(a.align) + m_rect.x;
-    a.end_x += block_x(a.align) + m_rect.x;
-  }
 
   if (m_align != alignment::NONE) {
     m_log.trace_x("renderer: pop(%i)", static_cast<int>(m_align));
@@ -300,13 +283,12 @@ void renderer::end() {
     fill_background();
   }
 
-
   // For pseudo-transparency, capture the contents of the rendered bar and
   // composite it against the desktop wallpaper. This way transparent parts of
   // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_context->pop(&barcontents); // corresponding push is in renderer::begin
+    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
 
     auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {
@@ -343,7 +325,7 @@ void renderer::flush(alignment a) {
   double w = static_cast<int>(block_w(a) + 0.5);
   double h = static_cast<int>(block_h(a) + 0.5);
   double xw = x + w;
-  bool fits{xw <= m_rect.x + m_rect.width};
+  bool fits{xw <= m_rect.width};
 
   m_log.trace("renderer: flush(%i geom=%gx%g+%g+%g, falloff=%i)", static_cast<int>(a), w, h, x, y, !fits);
 
@@ -361,19 +343,35 @@ void renderer::flush(alignment a) {
   *m_context << m_blocks[a].pattern;
   m_context->paint();
 
-  if (!fits) {
-    // Paint falloff gradient at the end of the visible block
-    // to indicate that the content expands past the canvas
-    double fx = w - (xw - m_rect.width);
-    double fsize = std::max(5.0, std::min(std::abs(fx), 30.0));
-    m_log.trace("renderer: Drawing falloff (pos=%g, size=%g)", fx, fsize);
-    *m_context << cairo::linear_gradient{fx - fsize, 0.0, fx, 0.0, {0x00000000, 0xFF000000}};
-    m_context->paint(0.25);
-  }
-
   *m_context << cairo::abspos{0.0, 0.0};
   m_context->destroy(&m_blocks[a].pattern);
   m_context->restore();
+
+  if (!fits) {
+    // Paint falloff gradient at the end of the visible block
+    // to indicate that the content expands past the canvas
+
+    /*
+     * How many pixels are hidden
+     */
+    double overflow = xw - m_rect.width;
+    double visible_width = w - overflow;
+
+    /*
+     * Width of the falloff gradient. Depends on how much of the block is hidden
+     */
+    double fsize = std::max(5.0, std::min(std::abs(overflow), 30.0));
+    m_log.trace("renderer: Drawing falloff (pos=%g, size=%g, overflow=%g)", visible_width - fsize, fsize, overflow);
+    m_context->save();
+    *m_context << cairo::translate{(double)m_rect.x, (double)m_rect.y};
+    *m_context << cairo::abspos{0.0, 0.0};
+    *m_context << cairo::rect{x + visible_width - fsize, y, fsize, h};
+    m_context->clip(true);
+    *m_context << cairo::linear_gradient{
+        x + visible_width - fsize, y, x + visible_width, y, {rgba{0x00000000}, rgba{0xFF000000}}};
+    m_context->paint(0.25);
+    m_context->restore();
+  }
 }
 
 /**
@@ -420,48 +418,82 @@ void renderer::flush() {
 
 /**
  * Get x position of block for given alignment
+ *
+ * The position is relative to m_rect.x (the left side of the bar w/o borders and tray)
  */
 double renderer::block_x(alignment a) const {
   switch (a) {
     case alignment::CENTER: {
-      double base_pos{0.0};
-      double min_pos{0.0};
-      if (!m_fixedcenter || m_rect.width / 2.0 + block_w(a) / 2.0 > m_rect.width - block_w(alignment::RIGHT)) {
-        base_pos = (m_rect.width - block_w(alignment::RIGHT) + block_w(alignment::LEFT)) / 2.0;
-      } else {
-        base_pos = m_rect.width / 2.0;
-      }
-      if ((min_pos = block_w(alignment::LEFT))) {
+      // The leftmost x position this block can start at
+      double min_pos = block_w(alignment::LEFT);
+
+      if (min_pos != 0) {
         min_pos += BLOCK_GAP;
       }
 
-      base_pos += (m_bar.size.w - m_rect.width) / 2.0;
-
-      int border_left = m_bar.borders.at(edge::LEFT).size;
-
+      double right_width = block_w(alignment::RIGHT);
       /*
-       * If m_rect.x is greater than the left border, then the systray is rendered on the left and we need to adjust for
-       * that.
-       * Since we cannot access any tray objects from here we need to calculate the tray size through m_rect.x
-       * m_rect.x is the x-position of the bar (without the tray or any borders), so if the tray is on the left,
-       * m_rect.x effectively is border_left + tray_width.
-       * So we can just subtract the tray_width = m_rect.x - border_left from the base_pos to correct for the tray being
-       * placed on the left
+       * The rightmost x position this block can end at
+       *
+       * We can't use block_x(alignment::RIGHT) because that would lead to infinite recursion
        */
-      if(m_rect.x > border_left) {
-        base_pos -= m_rect.x - border_left;
+      double max_pos = m_rect.width - right_width;
+
+      if (right_width != 0) {
+        max_pos -= BLOCK_GAP;
       }
 
-      base_pos -= border_left;
+      /*
+       * x position of the center of this block
+       *
+       * With fixed-center this will be the center of the bar unless it is pushed to the left by a large right block
+       * Without fixed-center this will be the middle between the end of the left and the start of the right block.
+       */
+      double base_pos{0.0};
 
+      if (m_fixedcenter) {
+        /*
+         * This is in the middle of the *bar*. Not just the middle of m_rect because this way we need to account for the
+         * tray.
+         *
+         * The resulting position is relative to the very left of the bar (including border and tray), so we need to
+         * compensate for that by subtracting m_rect.x
+         */
+        base_pos = m_bar.size.w / 2.0 - m_rect.x;
+
+        /*
+         * The center block can be moved to the left if the right block is too large
+         */
+        base_pos = std::min(base_pos, max_pos - block_w(a) / 2.0);
+      } else {
+        base_pos = (min_pos + max_pos) / 2.0;
+      }
+
+      /*
+       * The left block always has priority (even with fixed-center = true)
+       */
       return std::max(base_pos - block_w(a) / 2.0, min_pos);
     }
     case alignment::RIGHT: {
-      double gap{0.0};
-      if (block_w(alignment::LEFT) || block_w(alignment::CENTER)) {
-        gap = BLOCK_GAP;
+      /*
+       * The block immediately to the left of this block
+       *
+       * Generally the center block unless it is empty.
+       */
+      alignment left_barrier = alignment::CENTER;
+
+      if (block_w(alignment::CENTER) == 0) {
+        left_barrier = alignment::LEFT;
       }
-      return std::max(m_rect.width - block_w(a), block_x(alignment::CENTER) + gap + block_w(alignment::CENTER));
+
+      // The minimum x position this block can start at
+      double min_pos = block_x(left_barrier) + block_w(left_barrier);
+
+      if (block_w(left_barrier) != 0) {
+        min_pos += BLOCK_GAP;
+      }
+
+      return std::max(m_rect.width - block_w(a), min_pos);
     }
     default:
       return 0.0;
@@ -489,40 +521,6 @@ double renderer::block_h(alignment) const {
   return m_rect.height;
 }
 
-#if 0
-void renderer::reserve_space(edge side, unsigned int w) {
-  m_log.trace_x("renderer: reserve_space(%i, %i)", static_cast<int>(side), w);
-
-  m_cleararea.side = side;
-  m_cleararea.size = w;
-
-  switch (side) {
-    case edge::NONE:
-      break;
-    case edge::TOP:
-      m_rect.y += w;
-      m_rect.height -= w;
-      break;
-    case edge::BOTTOM:
-      m_rect.height -= w;
-      break;
-    case edge::LEFT:
-      m_rect.x += w;
-      m_rect.width -= w;
-      break;
-    case edge::RIGHT:
-      m_rect.width -= w;
-      break;
-    case edge::ALL:
-      m_rect.x += w;
-      m_rect.y += w;
-      m_rect.width -= w * 2;
-      m_rect.height -= w * 2;
-      break;
-  }
-}
-#endif
-
 /**
  * Fill background color
  */
@@ -545,12 +543,12 @@ void renderer::fill_background() {
 /**
  * Fill overline color
  */
-void renderer::fill_overline(double x, double w) {
-  if (m_bar.overline.size && m_attr.test(static_cast<int>(attribute::OVERLINE))) {
+void renderer::fill_overline(rgba color, double x, double w) {
+  if (m_bar.overline.size) {
     m_log.trace_x("renderer: overline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_ol;
-    *m_context << m_ol;
+    *m_context << color;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y), w, static_cast<double>(m_bar.overline.size)};
     m_context->fill();
     m_context->restore();
@@ -560,12 +558,12 @@ void renderer::fill_overline(double x, double w) {
 /**
  * Fill underline color
  */
-void renderer::fill_underline(double x, double w) {
-  if (m_bar.underline.size && m_attr.test(static_cast<int>(attribute::UNDERLINE))) {
+void renderer::fill_underline(rgba color, double x, double w) {
+  if (m_bar.underline.size) {
     m_log.trace_x("renderer: underline(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_ul;
-    *m_context << m_ul;
+    *m_context << color;
     *m_context << cairo::rect{x, static_cast<double>(m_rect.y + m_rect.height - m_bar.underline.size), w,
         static_cast<double>(m_bar.underline.size)};
     m_context->fill();
@@ -622,7 +620,7 @@ void renderer::fill_borders() {
 /**
  * Draw text contents
  */
-void renderer::draw_text(const string& contents) {
+void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   m_log.trace_x("renderer: text(%s)", contents.c_str());
 
   cairo::abspos origin{};
@@ -632,17 +630,19 @@ void renderer::draw_text(const string& contents) {
   cairo::textblock block{};
   block.align = m_align;
   block.contents = contents;
-  block.font = m_font;
+  block.font = ctxt.get_font();
   block.x_advance = &m_blocks[m_align].x;
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
+
+  rgba bg = ctxt.get_bg();
 
   // Only draw text background if the color differs from
   // the background color of the bar itself
   // Note: this means that if the user explicitly set text
   // background color equal to background-0 it will be ignored
-  if (m_bg != m_bar.background) {
-    block.bg = m_bg;
+  if (bg != m_bar.background) {
+    block.bg = bg;
     block.bg_operator = m_comp_bg;
     block.bg_rect.x = m_rect.x;
     block.bg_rect.y = m_rect.y;
@@ -652,94 +652,29 @@ void renderer::draw_text(const string& contents) {
   m_context->save();
   *m_context << origin;
   *m_context << m_comp_fg;
-  *m_context << m_fg;
+  *m_context << ctxt.get_fg();
   *m_context << block;
   m_context->restore();
 
   double dx = m_rect.x + m_blocks[m_align].x - origin.x;
   if (dx > 0.0) {
-    fill_underline(origin.x, dx);
-    fill_overline(origin.x, dx);
-  }
-}
+    if (ctxt.has_underline()) {
+      fill_underline(ctxt.get_ul(), origin.x, dx);
+    }
 
-/**
- * Colorize the bounding box of created action blocks
- */
-void renderer::highlight_clickable_areas() {
-#ifdef DEBUG_HINTS
-  map<alignment, int> hint_num{};
-  for (auto&& action : m_actions) {
-    if (!action.active) {
-      int n = hint_num.find(action.align)->second++;
-      double x = action.start_x;
-      double y = m_rect.y;
-      double w = action.width();
-      double h = m_rect.height;
-
-      m_context->save();
-      *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? 0xFF00FF00 : 0xFFFF0000);
-      *m_context << cairo::rect{x, y, w, h};
-      m_context->fill();
-      m_context->restore();
+    if (ctxt.has_overline()) {
+      fill_overline(ctxt.get_ol(), origin.x, dx);
     }
   }
-  m_surface->flush();
-#endif
 }
 
-bool renderer::on(const signals::ui::request_snapshot& evt) {
-  m_snapshot_dst = evt.cast();
-  return true;
+void renderer::render_offset(const tags::context&, int pixels) {
+  m_log.trace_x("renderer: offset_pixel(%f)", pixels);
+  m_blocks[m_align].x += pixels;
 }
 
-bool renderer::on(const signals::parser::change_background& evt) {
-  const unsigned int color{evt.cast()};
-  if (color != m_bg) {
-    m_log.trace_x("renderer: change_background(#%08x)", color);
-    m_bg = color;
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_foreground& evt) {
-  const unsigned int color{evt.cast()};
-  if (color != m_fg) {
-    m_log.trace_x("renderer: change_foreground(#%08x)", color);
-    m_fg = color;
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_underline& evt) {
-  const unsigned int color{evt.cast()};
-  if (color != m_ul) {
-    m_log.trace_x("renderer: change_underline(#%08x)", color);
-    m_ul = color;
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_overline& evt) {
-  const unsigned int color{evt.cast()};
-  if (color != m_ol) {
-    m_log.trace_x("renderer: change_overline(#%08x)", color);
-    m_ol = color;
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_font& evt) {
-  const int font{evt.cast()};
-  if (font != m_font) {
-    m_log.trace_x("renderer: change_font(%i)", font);
-    m_font = font;
-  }
-  return true;
-}
-
-bool renderer::on(const signals::parser::change_alignment& evt) {
-  auto align = static_cast<const alignment&>(evt.cast());
+void renderer::change_alignment(const tags::context& ctxt) {
+  auto align = ctxt.get_alignment();
   if (align != m_align) {
     m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
 
@@ -756,74 +691,41 @@ bool renderer::on(const signals::parser::change_alignment& evt) {
 
     fill_background();
   }
-  return true;
 }
 
-bool renderer::on(const signals::parser::reverse_colors&) {
-  m_log.trace_x("renderer: reverse_colors");
-  m_fg = m_fg + m_bg;
-  m_bg = m_fg - m_bg;
-  m_fg = m_fg - m_bg;
-  return true;
+double renderer::get_x(const tags::context& ctxt) const {
+  return m_blocks.at(ctxt.get_alignment()).x;
 }
 
-bool renderer::on(const signals::parser::offset_pixel& evt) {
-  m_log.trace_x("renderer: offset_pixel(%f)", evt.cast());
-  m_blocks[m_align].x += evt.cast();
-  return true;
+double renderer::get_alignment_start(const alignment align) const {
+  return block_x(align) + m_rect.x;
 }
 
-bool renderer::on(const signals::parser::attribute_set& evt) {
-  m_log.trace_x("renderer: attribute_set(%i)", static_cast<int>(evt.cast()));
-  m_attr.set(static_cast<int>(evt.cast()), true);
-  return true;
-}
+/**
+ * Colorize the bounding box of created action blocks
+ */
+void renderer::highlight_clickable_areas() {
+#ifdef DEBUG_HINTS
+  map<alignment, int> hint_num{};
+  for (auto&& action : m_action_ctxt.get_blocks()) {
+    int n = hint_num.find(action.align)->second++;
+    double x = action.start_x;
+    double y = m_rect.y;
+    double w = action.width();
+    double h = m_rect.height;
 
-bool renderer::on(const signals::parser::attribute_unset& evt) {
-  m_log.trace_x("renderer: attribute_unset(%i)", static_cast<int>(evt.cast()));
-  m_attr.set(static_cast<int>(evt.cast()), false);
-  return true;
-}
-
-bool renderer::on(const signals::parser::attribute_toggle& evt) {
-  m_log.trace_x("renderer: attribute_toggle(%i)", static_cast<int>(evt.cast()));
-  m_attr.flip(static_cast<int>(evt.cast()));
-  return true;
-}
-
-bool renderer::on(const signals::parser::action_begin& evt) {
-  auto a = evt.cast();
-  m_log.trace_x("renderer: action_begin(btn=%i, command=%s)", static_cast<int>(a.button), a.command);
-  action_block action{};
-  action.button = a.button == mousebtn::NONE ? mousebtn::LEFT : a.button;
-  action.align = m_align;
-  action.start_x = m_blocks.at(m_align).x;
-  action.command = a.command;
-  action.active = true;
-  m_actions.emplace_back(action);
-  return true;
-}
-
-bool renderer::on(const signals::parser::action_end& evt) {
-  auto btn = evt.cast();
-
-  /*
-   * Iterate actions in reverse and find the FIRST active action that matches
-   */
-  m_log.trace_x("renderer: action_end(btn=%i)", static_cast<int>(btn));
-  for (auto action = m_actions.rbegin(); action != m_actions.rend(); action++) {
-    if (action->active && action->align == m_align && action->button == btn) {
-      action->end_x = m_blocks.at(action->align).x;
-      action->active = false;
-      break;
-    }
+    m_context->save();
+    *m_context << CAIRO_OPERATOR_DIFFERENCE << (n % 2 ? rgba{0xFF00FF00} : rgba{0xFFFF0000});
+    *m_context << cairo::rect{x, y, w, h};
+    m_context->fill();
+    m_context->restore();
   }
-  return true;
+  m_surface->flush();
+#endif
 }
 
-bool renderer::on(const signals::parser::text& evt) {
-  auto text = evt.cast();
-  draw_text(text);
+bool renderer::on(const signals::ui::request_snapshot& evt) {
+  m_snapshot_dst = evt.cast();
   return true;
 }
 

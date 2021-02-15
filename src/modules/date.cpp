@@ -1,6 +1,6 @@
 #include "modules/date.hpp"
-#include "drawtypes/label.hpp"
 
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -13,6 +13,8 @@ namespace modules {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
+    m_router->register_action(EVENT_TOGGLE, &date_module::action_toggle);
+
     m_dateformat = m_conf.get(name(), "date", ""s);
     m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
     m_timeformat = m_conf.get(name(), "time", ""s);
@@ -22,7 +24,7 @@ namespace modules {
       throw module_error("No date or time format specified");
     }
 
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", 1s);
+    set_interval(1s);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_DATE});
 
@@ -72,9 +74,7 @@ namespace modules {
   bool date_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
       if (!m_dateformat_alt.empty() || !m_timeformat_alt.empty()) {
-        builder->cmd(mousebtn::LEFT, EVENT_TOGGLE);
-        builder->node(m_label);
-        builder->cmd_close();
+        builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
       } else {
         builder->node(m_label);
       }
@@ -85,14 +85,10 @@ namespace modules {
     return true;
   }
 
-  bool date_module::input(string&& cmd) {
-    if (cmd != EVENT_TOGGLE) {
-      return false;
-    }
+  void date_module::action_toggle() {
     m_toggled = !m_toggled;
     wakeup();
-    return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
