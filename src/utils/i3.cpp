@@ -16,10 +16,10 @@ namespace i3_util {
   /**
    * Get all workspaces for given output
    */
-  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output) {
+  vector<shared_ptr<workspace_t>> workspaces(const connection_t& conn, const string& output, const bool show_urgent) {
     vector<shared_ptr<workspace_t>> result;
     for (auto&& ws : conn.get_workspaces()) {
-      if (output.empty() || ws->output == output) {
+      if (output.empty() || ws->output == output || (show_urgent && ws->urgent)) {
         result.emplace_back(forward<decltype(ws)>(ws));
       }
     }
