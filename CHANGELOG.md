@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/xworkspaces`: `%nwin%` can be used to display the number of open
   windows per workspace
   ([`#604`](https://github.com/polybar/polybar/issues/604))
+- `internal/backlight`: added `use-actual-brightness` option
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
