@@ -104,6 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
 - Parser error if click command contained `}`
   ([`#2040`](https://github.com/polybar/polybar/issues/2040))
+- With amdgpu backlights, the brightness indicator was slightly behind.
+  ([`#2367](https://github.com/polybar/polybar/issues/2367))
 
 ## [3.5.4] - 2021-01-07
 ### Fixed
