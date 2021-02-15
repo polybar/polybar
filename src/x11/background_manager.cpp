@@ -189,7 +189,7 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
 }
 
 void bg_slice::free_resources() {
-  m_surface.release();
+  m_surface.reset();
 
   if(m_pixmap != XCB_NONE) {
     m_connection.free_pixmap(m_pixmap);

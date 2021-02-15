@@ -254,7 +254,7 @@ namespace modules {
       if (m_mpd) {
         auto song = m_mpd->get_song();
 
-        if (song && song.get()) {
+        if (song) {
           artist = song->get_artist();
           album_artist = song->get_album_artist();
           album = song->get_album();

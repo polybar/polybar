@@ -16,7 +16,7 @@ namespace modules {
     size_t index = 0;
 
     for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
-      m_hooks.emplace_back(new hook{name() + to_string(++index), command});
+      m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
     }
 
     if (m_hooks.empty()) {

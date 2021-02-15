@@ -48,7 +48,7 @@ class xresource_manager {
   T get(const char* name, const T& fallback) const {
     try {
       return convert<T>(require<T>(name));
-    } catch (const xresource_error) {
+    } catch (const xresource_error&) {
       return fallback;
     }
   }

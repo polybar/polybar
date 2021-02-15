@@ -168,7 +168,7 @@ namespace mpd {
   }
 
   bool mpdconnection::connected() {
-    return m_connection && m_connection != nullptr;
+    return static_cast<bool>(m_connection);
   }
 
   bool mpdconnection::retry_connection(int interval) {
