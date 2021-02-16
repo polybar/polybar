@@ -48,6 +48,7 @@ namespace modules {
     string m_path_backlight;
     float m_max_brightness;
     bool m_scroll{false};
+    bool m_use_actual_brightness{true};
 
     brightness_handle m_val;
     brightness_handle m_max;
