@@ -116,12 +116,19 @@ namespace cairo {
     }
 
     context& operator<<(const rounded_corners& c) {
-      double d = M_PI / 180.0;
       cairo_new_sub_path(m_c);
-      cairo_arc(m_c, c.x + c.w - c.radius.top_right, c.y + c.radius.top_right, c.radius.top_right, -90 * d, 0 * d);
-      cairo_arc(m_c, c.x + c.w - c.radius.bottom_right, c.y + c.h - c.radius.bottom_right, c.radius.bottom_right, 0 * d, 90 * d);
-      cairo_arc(m_c, c.x + c.radius.bottom_left, c.y + c.h - c.radius.bottom_left, c.radius.bottom_left, 90 * d, 180 * d);
-      cairo_arc(m_c, c.x + c.radius.top_left, c.y + c.radius.top_left, c.radius.top_left, 180 * d, 270 * d);
+      cairo_arc(m_c, c.x + c.w - c.radius.top_right, c.y + c.radius.top_right, c.radius.top_right, -90 * degree, 0 * degree);
+      cairo_arc(m_c, c.x + c.w - c.radius.bottom_right, c.y + c.h - c.radius.bottom_right, c.radius.bottom_right, 0 * degree, 90 * degree);
+      cairo_arc(m_c, c.x + c.radius.bottom_left, c.y + c.h - c.radius.bottom_left, c.radius.bottom_left, 90 * degree, 180 * degree);
+      cairo_arc(m_c, c.x + c.radius.top_left, c.y + c.radius.top_left, c.radius.top_left, 180 * degree, 270 * degree);
+      cairo_close_path(m_c);
+      return *this;
+    }
+
+    context& operator<<(const circle_segment& segment) {
+      cairo_new_sub_path(m_c);
+      cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
+      cairo_line_to(m_c, segment.x, segment.y);
       cairo_close_path(m_c);
       return *this;
     }
@@ -338,6 +345,9 @@ namespace cairo {
     vector<shared_ptr<font>> m_fonts;
     std::deque<pair<double, double>> m_points;
     int m_activegroups{0};
+
+    private:
+      const double degree = M_PI / 180.0;
   };
 }  // namespace cairo
 

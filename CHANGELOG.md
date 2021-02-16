@@ -65,6 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `internal/cpu`: `format-warn`, `label-warn`, `warn-percentage = 80`
   - `internal/fs`: `format-warn`, `label-warn`, `warn-percentage = 90`
   - `internal/memory`: `format-warn`, `label-warn`, `warn-percentage = 90`
+- `radius` now affects the bar border as well
+  ([`#1566`](https://github.com/polybar/polybar/issues/1566))  
 - Per-corner corner radius with `radius-{bottom,top}-{left,right}`
   ([`#2294`](https://github.com/polybar/polybar/issues/2294))
 - `internal/network`: `speed-unit = B/s` can be used to customize how network
