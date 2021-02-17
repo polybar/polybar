@@ -79,6 +79,7 @@ jobs:
             libxcb1-dev \
             libcairo2-dev \
             python3-xcbgen \
+            libuv1-dev \
             xcb-proto
 
           if [ "$POLYBAR_BUILD_TYPE" != "minimal" ]; then
