@@ -151,6 +151,7 @@ if(BUILD_LIBPOLY)
     Cairo::CairoFC
     moodycamel
     xpp
+    LibUV::LibUV
     )
 
   if (TARGET i3ipc++)

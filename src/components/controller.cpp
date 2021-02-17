@@ -1,5 +1,7 @@
 #include "components/controller.hpp"
 
+#include <uv.h>
+
 #include <csignal>
 #include <utility>
 
@@ -25,21 +27,8 @@
 
 POLYBAR_NS
 
-array<int, 2> g_eventpipe{{-1, -1}};
 sig_atomic_t g_reload{0};
 sig_atomic_t g_terminate{0};
-
-void interrupt_handler(int signum) {
-  if (g_reload || g_terminate) {
-    return;
-  }
-
-  g_terminate = 1;
-  g_reload = (signum == SIGUSR1);
-  if (write(g_eventpipe[PIPE_WRITE], &g_terminate, 1) == -1) {
-    throw system_error("Failed to write to eventpipe");
-  }
-}
 
 /**
  * Build controller instance
@@ -70,23 +59,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
   m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
 
-  if (pipe(g_eventpipe.data()) == 0) {
-    m_queuefd[PIPE_READ] = make_unique<file_descriptor>(g_eventpipe[PIPE_READ]);
-    m_queuefd[PIPE_WRITE] = make_unique<file_descriptor>(g_eventpipe[PIPE_WRITE]);
-  } else {
-    throw system_error("Failed to create event channel pipes");
-  }
-
-  m_log.trace("controller: Install signal handler");
-  struct sigaction act {};
-  memset(&act, 0, sizeof(act));
-  act.sa_handler = &interrupt_handler;
-  sigaction(SIGINT, &act, nullptr);
-  sigaction(SIGQUIT, &act, nullptr);
-  sigaction(SIGTERM, &act, nullptr);
-  sigaction(SIGUSR1, &act, nullptr);
-  sigaction(SIGALRM, &act, nullptr);
-
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
   created_modules += setup_modules(alignment::LEFT);
@@ -102,17 +74,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
  * Deconstruct controller
  */
 controller::~controller() {
-  m_log.trace("controller: Uninstall sighandler");
-  signal(SIGINT, SIG_DFL);
-  signal(SIGQUIT, SIG_DFL);
-  signal(SIGTERM, SIG_DFL);
-  signal(SIGALRM, SIG_DFL);
-
-  if (g_reload) {
-    // Cause SIGUSR1 to be ignored until registered in the new polybar process
-    signal(SIGUSR1, SIG_IGN);
-  }
-
   m_log.trace("controller: Detach signal receiver");
   m_sig.detach(this);
 
@@ -211,112 +172,101 @@ bool controller::enqueue(string&& input_data) {
   return false;
 }
 
+void controller::conn_cb(int status, int events) {
+  // TODO handle negative status
+
+  if (m_connection.connection_has_error()) {
+    g_terminate = 1;
+    g_reload = 0;
+    uv_stop(uv_default_loop());
+    return;
+  }
+
+  shared_ptr<xcb_generic_event_t> evt{};
+  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+    try {
+      m_connection.dispatch_event(evt);
+    } catch (xpp::connection_error& err) {
+      m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
+    } catch (const exception& err) {
+      m_log.err("Error in X event loop: %s", err.what());
+    }
+  }
+}
+
+void controller::ipc_cb(int status, int events) {
+  // TODO handle negative status
+  m_ipc->receive_message();
+}
+
+static void conn_cb_wrapper(uv_poll_t* handle, int status, int events) {
+  static_cast<controller*>(handle->data)->conn_cb(status, events);
+}
+
+static void ipc_cb_wrapper(uv_poll_t* handle, int status, int events) {
+  static_cast<controller*>(handle->data)->ipc_cb(status, events);
+}
+
+static void signal_cb_wrapper(uv_signal_t* handle, int signum) {
+  g_terminate = 1;
+  g_reload = (signum == SIGUSR1);
+  uv_stop(handle->loop);
+}
+
+static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int events, int status) {
+  // TODO handle error
+  std::cout << fname << std::endl;
+  g_terminate = 1;
+  g_reload = 1;
+  uv_stop(handle->loop);
+}
+
 /**
  * Read events from configured file descriptors
  */
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  int fd_connection{-1};
-  int fd_confwatch{-1};
-  int fd_ipc{-1};
+  auto loop = uv_default_loop();
 
-  vector<int> fds;
-  fds.emplace_back(*m_queuefd[PIPE_READ]);
-  fds.emplace_back((fd_connection = m_connection.get_file_descriptor()));
+  auto conn_handle = std::make_unique<uv_poll_t>();
+  uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
+  conn_handle->data = this;
+
+  uv_poll_start(conn_handle.get(), UV_READABLE, conn_cb_wrapper);
+
+  std::vector<unique_ptr<uv_signal_t>> handles;
+
+  for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
+    auto signal_handle = std::make_unique<uv_signal_t>();
+    uv_signal_init(loop, signal_handle.get());
+    signal_handle->data = this;
+
+    uv_signal_start(signal_handle.get(), signal_cb_wrapper, s);
+    handles.push_back(std::move(signal_handle));
+  }
+
+  auto conf_handle = std::unique_ptr<uv_fs_event_t>(nullptr);
 
   if (m_confwatch) {
-    m_log.trace("controller: Attach config watch");
-    m_confwatch->attach(IN_MODIFY | IN_IGNORED);
-    fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
+    conf_handle = std::make_unique<uv_fs_event_t>();
+    uv_fs_event_init(loop, conf_handle.get());
+    conf_handle->data = this;
+
+    uv_fs_event_start(conf_handle.get(), confwatch_cb_wrapper, m_confwatch->path().c_str(), 0);
   }
+
+  auto ipc_handle = std::unique_ptr<uv_poll_t>(nullptr);
 
   if (m_ipc) {
-    fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
+    ipc_handle = std::make_unique<uv_poll_t>();
+    uv_poll_init(loop, ipc_handle.get(), m_ipc->get_file_descriptor());
+    ipc_handle->data = this;
+    uv_poll_start(ipc_handle.get(), UV_READABLE, ipc_cb_wrapper);
   }
 
-  while (!g_terminate) {
-    fd_set readfds{};
-    FD_ZERO(&readfds);
-
-    int maxfd{0};
-    for (auto&& fd : fds) {
-      FD_SET(fd, &readfds);
-      maxfd = std::max(maxfd, fd);
-    }
-
-    // Wait until event is ready on one of the configured streams
-    int events = select(maxfd + 1, &readfds, nullptr, nullptr, nullptr);
-
-    // Check for errors
-    if (events == -1) {
-      /*
-       * The Interrupt errno is generated when polybar is stopped, so it
-       * shouldn't generate an error message
-       */
-      if (errno != EINTR) {
-        m_log.err("select failed in event loop: %s", strerror(errno));
-      }
-
-      break;
-    }
-
-    if (g_terminate || m_connection.connection_has_error()) {
-      break;
-    }
-
-    // Process event on the internal fd
-    if (m_queuefd[PIPE_READ] && FD_ISSET(static_cast<int>(*m_queuefd[PIPE_READ]), &readfds)) {
-      char buffer[BUFSIZ];
-      if (read(static_cast<int>(*m_queuefd[PIPE_READ]), &buffer, BUFSIZ) == -1) {
-        m_log.err("Failed to read from eventpipe (err: %s)", strerror(errno));
-      }
-    }
-
-    // Process event on the config inotify watch fd
-    unique_ptr<inotify_event> confevent;
-    if (fd_confwatch > -1 && FD_ISSET(fd_confwatch, &readfds) && (confevent = m_confwatch->await_match())) {
-      if (confevent->mask & IN_IGNORED) {
-        // IN_IGNORED: file was deleted or filesystem was unmounted
-        //
-        // This happens in some configurations of vim when a file is saved,
-        // since it is not actually issuing calls to write() but rather
-        // moves a file into the original's place after moving the original
-        // file to a different location (and subsequently deleting it).
-        //
-        // We need to re-attach the watch to the new file in this case.
-        fds.erase(
-            std::remove_if(fds.begin(), fds.end(), [fd_confwatch](int fd) { return fd == fd_confwatch; }), fds.end());
-        m_confwatch = inotify_util::make_watch(m_confwatch->path());
-        m_confwatch->attach(IN_MODIFY | IN_IGNORED);
-        fds.emplace_back((fd_confwatch = m_confwatch->get_file_descriptor()));
-      }
-      m_log.info("Configuration file changed");
-      g_terminate = 1;
-      g_reload = 1;
-    }
-
-    // Process event on the xcb connection fd
-    if (fd_connection > -1 && FD_ISSET(fd_connection, &readfds)) {
-      shared_ptr<xcb_generic_event_t> evt{};
-      while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
-        try {
-          m_connection.dispatch_event(evt);
-        } catch (xpp::connection_error& err) {
-          m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
-        } catch (const exception& err) {
-          m_log.err("Error in X event loop: %s", err.what());
-        }
-      }
-    }
-
-    // Process event on the ipc fd
-    if (fd_ipc > -1 && FD_ISSET(fd_ipc, &readfds)) {
-      m_ipc->receive_message();
-      fds.erase(std::remove_if(fds.begin(), fds.end(), [fd_ipc](int fd) { return fd == fd_ipc; }), fds.end());
-      fds.emplace_back((fd_ipc = m_ipc->get_file_descriptor()));
-    }
-  }
+  uv_run(loop, UV_RUN_DEFAULT);
+  uv_loop_close(loop);
 }
 
 /**

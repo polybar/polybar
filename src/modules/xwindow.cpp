@@ -1,10 +1,10 @@
 #include "modules/xwindow.hpp"
+
 #include "drawtypes/label.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -138,6 +138,6 @@ namespace modules {
     }
     return false;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

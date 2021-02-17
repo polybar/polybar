@@ -169,6 +169,19 @@ namespace modules {
     void sleep(chrono::duration<double> duration);
     template <class Clock, class Duration>
     void sleep_until(chrono::time_point<Clock, Duration> point);
+
+    /**
+     * Wakes up the module.
+     *
+     * It should be possible to interrupt any blocking operation inside a
+     * module using this function.
+     *
+     * In addition, after a wake up whatever was woken up should immediately
+     * check whether the module is still running.
+     *
+     * Modules that don't follow this, could stall the operation of whatever
+     * code called this function.
+     */
     void wakeup();
     string get_format() const;
     string get_output();
