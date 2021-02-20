@@ -1,5 +1,7 @@
 #pragma once
 
+#include <uv.h>
+
 #include "common.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
@@ -32,7 +34,7 @@ class ipc {
   explicit ipc(signal_emitter& emitter, const logger& logger);
   ~ipc();
 
-  void receive_message();
+  void receive_message(string buf);
   int get_file_descriptor() const;
 
  private:
