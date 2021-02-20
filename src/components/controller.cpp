@@ -8,6 +8,7 @@
 #include "components/bar.hpp"
 #include "components/builder.hpp"
 #include "components/config.hpp"
+#include "components/eventloop.hpp"
 #include "components/ipc.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
@@ -172,13 +173,13 @@ bool controller::enqueue(string&& input_data) {
   return false;
 }
 
-void controller::conn_cb(int status, int events) {
+void controller::conn_cb(int, int) {
   // TODO handle negative status
 
   if (m_connection.connection_has_error()) {
     g_terminate = 1;
     g_reload = 0;
-    uv_stop(uv_default_loop());
+    eloop.stop();
     return;
   }
 
@@ -194,31 +195,52 @@ void controller::conn_cb(int status, int events) {
   }
 }
 
-void controller::ipc_cb(int status, int events) {
-  // TODO handle negative status
-  m_ipc->receive_message();
+void controller::ipc_cb(string buf) {
+  // TODO handle messages sent in multiple parts.
+  m_ipc->receive_message(buf);
 }
 
 static void conn_cb_wrapper(uv_poll_t* handle, int status, int events) {
   static_cast<controller*>(handle->data)->conn_cb(status, events);
 }
 
-static void ipc_cb_wrapper(uv_poll_t* handle, int status, int events) {
-  static_cast<controller*>(handle->data)->ipc_cb(status, events);
-}
-
 static void signal_cb_wrapper(uv_signal_t* handle, int signum) {
   g_terminate = 1;
   g_reload = (signum == SIGUSR1);
-  uv_stop(handle->loop);
+  static_cast<eventloop*>(handle->loop->data)->stop();
 }
 
-static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int events, int status) {
+static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int, int) {
   // TODO handle error
   std::cout << fname << std::endl;
   g_terminate = 1;
   g_reload = 1;
-  uv_stop(handle->loop);
+  static_cast<eventloop*>(handle->loop->data)->stop();
+}
+
+static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
+  // TODO handle alloc error
+  buf->base = new char[BUFSIZ];
+  buf->len = BUFSIZ;
+}
+
+static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+  if (nread > 0) {
+    string payload = string(buf->base, nread);
+    logger::make().notice("Bytes read: %d: '%s'", nread, payload);
+    static_cast<controller*>(stream->data)->ipc_cb(std::move(payload));
+  } else if (nread < 0) {
+    if (nread != UV_EOF) {
+      fprintf(stderr, "Read error %s\n", uv_err_name(nread));
+      uv_close((uv_handle_t*)stream, nullptr);
+    } else {
+      uv_read_start(stream, ipc_alloc_cb, ipc_read_cb_wrapper);
+    }
+  }
+
+  if (buf->base) {
+    delete[] buf->base;
+  }
 }
 
 /**
@@ -227,7 +249,7 @@ static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int e
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  auto loop = uv_default_loop();
+  auto loop = eloop.get();
 
   auto conn_handle = std::make_unique<uv_poll_t>();
   uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
@@ -256,17 +278,17 @@ void controller::read_events() {
     uv_fs_event_start(conf_handle.get(), confwatch_cb_wrapper, m_confwatch->path().c_str(), 0);
   }
 
-  auto ipc_handle = std::unique_ptr<uv_poll_t>(nullptr);
+  auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
 
   if (m_ipc) {
-    ipc_handle = std::make_unique<uv_poll_t>();
-    uv_poll_init(loop, ipc_handle.get(), m_ipc->get_file_descriptor());
+    ipc_handle = std::make_unique<uv_pipe_t>();
+    uv_pipe_init(loop, ipc_handle.get(), false);
     ipc_handle->data = this;
-    uv_poll_start(ipc_handle.get(), UV_READABLE, ipc_cb_wrapper);
+    uv_pipe_open(ipc_handle.get(), m_ipc->get_file_descriptor());
+    uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
   }
 
-  uv_run(loop, UV_RUN_DEFAULT);
-  uv_loop_close(loop);
+  eloop.run();
 }
 
 /**
