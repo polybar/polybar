@@ -117,8 +117,8 @@ function(create_imported_target library_name includes libraries)
   add_library(${library_name} INTERFACE IMPORTED)
   set_target_properties(${library_name} PROPERTIES
     INTERFACE_LINK_LIBRARIES "${libraries}"
+    INTERFACE_INCLUDE_DIRECTORIES "${includes}"
   )
-  target_include_directories(${library_name} SYSTEM INTERFACE ${includes})
 endfunction()
 # }}}
 # checklib {{{
