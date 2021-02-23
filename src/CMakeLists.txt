@@ -151,20 +151,59 @@ if(BUILD_LIBPOLY)
     Cairo::CairoFC
     moodycamel
     xpp
-    $<$<TARGET_EXISTS:i3ipc++>:i3ipc++>
-    $<$<TARGET_EXISTS:ALSA::ALSA>:ALSA::ALSA>
-    $<$<TARGET_EXISTS:CURL::libcurl>:CURL::libcurl>
-    $<$<TARGET_EXISTS:LibMPDClient::LibMPDClient>:LibMPDClient::LibMPDClient>
-    $<$<TARGET_EXISTS:LibNlGenl3::LibNlGenl3>:LibNlGenl3::LibNlGenl3>
-    $<$<TARGET_EXISTS:Libiw::Libiw>:Libiw::Libiw>
-    $<$<TARGET_EXISTS:LibPulse::LibPulse>:LibPulse::LibPulse>
-    $<$<TARGET_EXISTS:Xcb::RANDR>:Xcb::RANDR>
-    $<$<TARGET_EXISTS:Xcb::COMPOSITE>:Xcb::COMPOSITE>
-    $<$<TARGET_EXISTS:Xcb::XKB>:Xcb::XKB>
-    $<$<TARGET_EXISTS:Xcb::CURSOR>:Xcb::CURSOR>
-    $<$<TARGET_EXISTS:Xcb::XRM>:Xcb::XRM>
-    $<$<TARGET_EXISTS:LibInotify::LibInotify>:LibInotify::LibInotify>
     )
+
+  if (TARGET i3ipc++)
+    target_link_libraries(poly PUBLIC i3ipc++)
+  endif()
+
+  if (TARGET ALSA::ALSA)
+    target_link_libraries(poly PUBLIC ALSA::ALSA)
+  endif()
+
+  if (TARGET CURL::libcurl)
+    target_link_libraries(poly PUBLIC CURL::libcurl)
+  endif()
+
+  if (TARGET LibMPDClient::LibMPDClient)
+    target_link_libraries(poly PUBLIC LibMPDClient::LibMPDClient)
+  endif()
+
+  if (TARGET LibNlGenl3::LibNlGenl3)
+    target_link_libraries(poly PUBLIC LibNlGenl3::LibNlGenl3)
+  endif()
+
+  if (TARGET Libiw::Libiw)
+    target_link_libraries(poly PUBLIC Libiw::Libiw)
+  endif()
+
+  if (TARGET LibPulse::LibPulse)
+    target_link_libraries(poly PUBLIC LibPulse::LibPulse)
+  endif()
+
+  if (TARGET Xcb::RANDR)
+    target_link_libraries(poly PUBLIC Xcb::RANDR)
+  endif()
+
+  if (TARGET Xcb::COMPOSITE)
+    target_link_libraries(poly PUBLIC Xcb::COMPOSITE)
+  endif()
+
+  if (TARGET Xcb::XKB)
+    target_link_libraries(poly PUBLIC Xcb::XKB)
+  endif()
+
+  if (TARGET Xcb::CURSOR)
+    target_link_libraries(poly PUBLIC Xcb::CURSOR)
+  endif()
+
+  if (TARGET Xcb::XRM)
+    target_link_libraries(poly PUBLIC Xcb::XRM)
+  endif()
+
+  if (TARGET LibInotify::LibInotify)
+    target_link_libraries(poly PUBLIC LibInotify::LibInotify)
+  endif()
 
   target_compile_options(poly PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
   set_target_properties(poly PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs)
