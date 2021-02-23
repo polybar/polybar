@@ -22,7 +22,7 @@ class rgba {
   bool operator==(const rgba& other) const;
 
   uint32_t value() const;
-  type type() const;
+  type get_type() const;
 
   double alpha_d() const;
   double red_d() const;

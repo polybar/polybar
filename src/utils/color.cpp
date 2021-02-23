@@ -106,7 +106,7 @@ uint32_t rgba::value() const {
   return this->m_value;
 }
 
-enum rgba::type rgba::type() const {
+enum rgba::type rgba::get_type() const {
   return m_type;
 }
 

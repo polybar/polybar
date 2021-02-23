@@ -12,7 +12,7 @@ TEST(Rgba, constructor) {
   EXPECT_FALSE(rgba("#-abc").has_color());
   EXPECT_FALSE(rgba("#xyz").has_color());
 
-  EXPECT_EQ(rgba::type::ALPHA_ONLY, rgba{"#12"}.type());
+  EXPECT_EQ(rgba::type::ALPHA_ONLY, rgba{"#12"}.get_type());
 
   EXPECT_EQ(0xff000000, rgba{"#ff"}.value());
 
