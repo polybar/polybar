@@ -340,26 +340,18 @@ namespace tags {
     }
   }
 
-  int parser::parse_offset() {
+  geometry parser::parse_offset() {
     string s = get_tag_value();
 
     if (s.empty()) {
-      return 0;
+      return GEOMETRY_ZERO_PIXEL;
     }
 
     try {
-      size_t ptr;
-      int ret = std::stoi(s, &ptr, 10);
-
-      if (ptr != s.size()) {
-        throw offset_error(s, "Offset contains non-number characters");
-      }
-
-      return ret;
+      return unit_utils::geometry_from_string(string{s});
     } catch (const std::exception& err) {
       throw offset_error(s, err.what());
     }
-    return 0;
   }
 
   controltag parser::parse_control() {

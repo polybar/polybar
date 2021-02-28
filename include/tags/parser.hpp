@@ -126,7 +126,7 @@ namespace tags {
 
     color_value parse_color();
     int parse_fontindex();
-    int parse_offset();
+    geometry parse_offset();
     controltag parse_control();
     std::pair<action_value, string> parse_action();
     mousebtn parse_action_btn();

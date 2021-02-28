@@ -46,7 +46,7 @@ namespace modules {
     progressbar_t m_barload;
     ramp_t m_rampload;
     ramp_t m_rampload_core;
-    int m_ramp_padding;
+    space_size m_ramp_padding{space_type::SPACE, 1U};
 
     vector<cpu_time_t> m_cputimes;
     vector<cpu_time_t> m_cputimes_prev;

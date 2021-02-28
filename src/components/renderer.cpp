@@ -9,6 +9,7 @@
 #include "events/signal_receiver.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
+#include "utils/unit.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
@@ -110,9 +111,9 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Allocate alignment blocks");
   {
-    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0, 0.});
   }
 
   m_log.trace("renderer: Allocate cairo components");
@@ -123,31 +124,6 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Load fonts");
   {
-    double dpi_x = 96, dpi_y = 96;
-    if (m_conf.has(m_conf.section(), "dpi")) {
-      dpi_x = dpi_y = m_conf.get<double>("dpi");
-    } else {
-      if (m_conf.has(m_conf.section(), "dpi-x")) {
-        dpi_x = m_conf.get<double>("dpi-x");
-      }
-      if (m_conf.has(m_conf.section(), "dpi-y")) {
-        dpi_y = m_conf.get<double>("dpi-y");
-      }
-    }
-
-    // dpi to be comptued
-    if (dpi_x <= 0 || dpi_y <= 0) {
-      auto screen = m_connection.screen();
-      if (dpi_x <= 0) {
-        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
-      }
-      if (dpi_y <= 0) {
-        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
-      }
-    }
-
-    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
-
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
@@ -162,7 +138,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
         offset = std::strtol(pattern.substr(pos + 1).c_str(), nullptr, 10);
         pattern.erase(pos);
       }
-      auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
+      auto font = cairo::make_font(*m_context, string{pattern}, offset, m_bar.dpi_x, m_bar.dpi_y);
       m_log.notice("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
@@ -511,7 +487,7 @@ double renderer::block_y(alignment) const {
  * Get block width for given alignment
  */
 double renderer::block_w(alignment a) const {
-  return m_blocks.at(a).x;
+  return m_blocks.at(a).width;
 }
 
 /**
@@ -746,6 +722,7 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
 
   double dx = m_rect.x + m_blocks[m_align].x - origin.x;
   if (dx > 0.0) {
+    m_blocks[m_align].width += dx;
     if (ctxt.has_underline()) {
       fill_underline(ctxt.get_ul(), origin.x, dx);
     }
@@ -756,9 +733,30 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   }
 }
 
-void renderer::render_offset(const tags::context&, int pixels) {
-  m_log.trace_x("renderer: offset_pixel(%f)", pixels);
-  m_blocks[m_align].x += pixels;
+void renderer::draw_offset(rgba color, double x, double w) {
+  if (w > 0. && color != m_bar.background) {
+    m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
+    m_context->save();
+    *m_context << m_comp_bg;
+    *m_context << color;
+    *m_context << cairo::rect{
+        m_rect.x + x, static_cast<double>(m_rect.y), w, static_cast<double>(m_rect.y + m_rect.height)};
+    m_context->fill();
+    m_context->restore();
+  }
+}
+
+void renderer::render_offset(const tags::context& ctxt, geometry offset) {
+  m_log.trace_x("renderer: offset_pixel(%f)", offset);
+
+  int offset_width = unit_utils::geometry_to_pixel(offset, m_bar.dpi_x);
+  rgba bg = ctxt.get_bg();
+  draw_offset(bg, m_blocks[m_align].x, offset_width);
+  m_blocks[m_align].x += offset_width;
+
+  if (offset_width > 0) {
+    m_blocks[m_align].width += offset_width;
+  }
 }
 
 void renderer::change_alignment(const tags::context& ctxt) {
@@ -774,6 +772,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
+    m_blocks[m_align].width = 0.;
     m_context->push();
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
 

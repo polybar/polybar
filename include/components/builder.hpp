@@ -27,8 +27,8 @@ class builder {
   void node(const label_t& label);
   void node_repeat(const string& str, size_t n);
   void node_repeat(const label_t& label, size_t n);
-  void offset(int pixels);
-  void space(size_t width);
+  void offset(geometry pixels = GEOMETRY_ZERO_PIXEL);
+  void space(space_size size);
   void space();
   void remove_trailing_space(size_t len);
   void remove_trailing_space();
@@ -55,6 +55,7 @@ class builder {
   void action(mousebtn btn, const modules::module_interface& module, string action, string data, const label_t& label);
   void action_close();
 
+  static string add_surrounding_tag(const space_size& space);
  protected:
   void tag_open(tags::syntaxtag tag, const string& value);
   void tag_open(tags::attribute attr);

@@ -573,10 +573,10 @@ void controller::process_inputdata() {
 bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
-  string padding_left(bar.padding.left, ' ');
-  string padding_right(bar.padding.right, ' ');
-  string margin_left(bar.module_margin.left, ' ');
-  string margin_right(bar.module_margin.right, ' ');
+  string padding_left = builder::add_surrounding_tag(bar.padding.left);
+  string padding_right = builder::add_surrounding_tag(bar.padding.right);
+  string margin_left = builder::add_surrounding_tag(bar.module_margin.left);
+  string margin_right = builder::add_surrounding_tag(bar.module_margin.right);
 
   builder build{bar};
   build.node(bar.separator);

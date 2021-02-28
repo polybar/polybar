@@ -25,8 +25,8 @@ namespace drawtypes {
     rgba m_underline{};
     rgba m_overline{};
     int m_font{0};
-    side_values m_padding{0U, 0U};
-    side_values m_margin{0U, 0U};
+    side_values m_padding{{space_type::SPACE, 0U}, {space_type::SPACE, 0U}};
+    side_values m_margin{{space_type::SPACE, 0U}, {space_type::SPACE, 0U}};
 
     size_t m_minlen{0};
     /*
@@ -40,15 +40,18 @@ namespace drawtypes {
     alignment m_alignment{alignment::LEFT};
     bool m_ellipsis{true};
 
-    explicit label(string text, int font) : m_font(font), m_text(text), m_tokenized(m_text) {}
+    explicit label(string text, int font) : m_font(font), m_text(move(text)), m_tokenized(m_text) {}
     explicit label(string text, rgba foreground = rgba{}, rgba background = rgba{}, rgba underline = rgba{},
-        rgba overline = rgba{}, int font = 0, struct side_values padding = {0U, 0U},
-        struct side_values margin = {0U, 0U}, int minlen = 0, size_t maxlen = 0_z,
-        alignment label_alignment = alignment::LEFT, bool ellipsis = true, vector<token>&& tokens = {})
-        : m_foreground(foreground)
-        , m_background(background)
-        , m_underline(underline)
-        , m_overline(overline)
+        rgba overline = rgba{}, int font = 0,
+        side_values padding = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}},
+        side_values margin = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}},
+        int minlen = 0, size_t maxlen = 0_z,
+        alignment label_alignment = alignment::LEFT,
+        bool ellipsis = true, vector<token>&& tokens = {})
+        : m_foreground(move(foreground))
+        , m_background(move(background))
+        , m_underline(move(underline))
+        , m_overline(move(overline))
         , m_font(font)
         , m_padding(padding)
         , m_margin(margin)
@@ -56,14 +59,14 @@ namespace drawtypes {
         , m_maxlen(maxlen)
         , m_alignment(label_alignment)
         , m_ellipsis(ellipsis)
-        , m_text(text)
+        , m_text(move(text))
         , m_tokenized(m_text)
         , m_tokens(forward<vector<token>>(tokens)) {
       assert(!m_ellipsis || (m_maxlen == 0 || m_maxlen >= 3));
     }
 
     string get() const;
-    operator bool();
+    explicit operator bool();
     label_t clone();
     void clear();
     void reset_tokens();

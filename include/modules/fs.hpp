@@ -68,7 +68,7 @@ namespace modules {
     vector<fs_mount_t> m_mounts;
     bool m_fixed{false};
     bool m_remove_unmounted{false};
-    int m_spacing{2};
+    space_size m_spacing{space_type::SPACE, 2U};
     int m_perc_used_warn{90};
 
     // used while formatting output

@@ -67,10 +67,10 @@ namespace modules {
     rgba ol{};
     size_t ulsize{0};
     size_t olsize{0};
-    size_t spacing{0};
-    size_t padding{0};
-    size_t margin{0};
-    int offset{0};
+    space_size spacing{ZERO_SPACE};
+    space_size padding{ZERO_SPACE};
+    space_size margin{ZERO_SPACE};
+    geometry offset{GEOMETRY_ZERO_PIXEL};
     int font{0};
 
     string decorate(builder* builder, string output);

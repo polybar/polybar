@@ -7,6 +7,7 @@
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
+#include "utils/unit.hpp"
 POLYBAR_NS
 
 using namespace tags;
@@ -125,7 +126,7 @@ void builder::node(const label_t& label) {
 
   auto text = label->get();
 
-  if (label->m_margin.left > 0) {
+  if (label->m_margin.left.value > 0) {
     space(label->m_margin.left);
   }
 
@@ -143,13 +144,13 @@ void builder::node(const label_t& label) {
     color(label->m_foreground);
   }
 
-  if (label->m_padding.left > 0) {
+  if (label->m_padding.left.value > 0) {
     space(label->m_padding.left);
   }
 
   node(text, label->m_font);
 
-  if (label->m_padding.right > 0) {
+  if (label->m_padding.right.value > 0) {
     space(label->m_padding.right);
   }
 
@@ -160,14 +161,14 @@ void builder::node(const label_t& label) {
     color_close();
   }
 
-  if (label->m_underline.has_color()) {
+  if (!label->m_underline.has_color() || (label->m_margin.right.value > 0 && m_tags[syntaxtag::u] > 0)) {
     underline_close();
   }
-  if (label->m_overline.has_color()) {
+  if (!label->m_overline.has_color() || (label->m_margin.right.value > 0 && m_tags[syntaxtag::o] > 0)) {
     overline_close();
   }
 
-  if (label->m_margin.right > 0) {
+  if (label->m_margin.right.value > 0) {
     space(label->m_margin.right);
   }
 }
@@ -202,25 +203,27 @@ void builder::node_repeat(const label_t& label, size_t n) {
 /**
  * Insert tag that will offset the contents by given pixels
  */
-void builder::offset(int pixels) {
-  if (pixels == 0) {
+void builder::offset(geometry pixels) {
+  if (pixels.value == 0) {
     return;
   }
-  tag_open(syntaxtag::O, to_string(pixels));
+  tag_open(syntaxtag::O, unit_utils::geometry_to_string(pixels));
 }
 
 /**
  * Insert spaces
  */
-void builder::space(size_t width) {
-  if (width) {
-    m_output.append(width, ' ');
+void builder::space(space_size size) {
+  if (size.value > 0.) {
+    m_output += add_surrounding_tag(size);
   } else {
     space();
   }
 }
 void builder::space() {
-  m_output.append(m_bar.spacing, ' ');
+  if (m_bar.spacing.value > 0) {
+    space(m_bar.spacing);
+  }
 }
 
 /**
@@ -234,7 +237,7 @@ void builder::remove_trailing_space(size_t len) {
   }
 }
 void builder::remove_trailing_space() {
-  remove_trailing_space(m_bar.spacing);
+  remove_trailing_space(static_cast<size_t>(m_bar.spacing.value));
 }
 
 /**
@@ -572,6 +575,24 @@ void builder::tag_close(attribute attr) {
       append("%{-o}");
       break;
   }
+}
+string builder::add_surrounding_tag(const space_size& space) {
+  if (space.value == 0) {
+    return "";
+  }
+
+  string out;
+  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+    out += "%{O";
+  }
+
+  out += unit_utils::space_size_to_string(space);
+
+  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+    out += '}';
+  }
+
+  return out;
 }
 
 POLYBAR_NS_END

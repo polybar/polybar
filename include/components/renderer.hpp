@@ -30,6 +30,7 @@ struct alignment_block {
   cairo_pattern_t* pattern;
   double x;
   double y;
+  double width;
 };
 
 class renderer : public renderer_interface,
@@ -48,7 +49,7 @@ class renderer : public renderer_interface,
   void end();
   void flush();
 
-  void render_offset(const tags::context& ctxt, int pixels) override;
+  void render_offset(const tags::context& ctxt, geometry offset) override;
   void render_text(const tags::context& ctxt, const string&&) override;
 
   void change_alignment(const tags::context& ctxt) override;
@@ -62,6 +63,7 @@ class renderer : public renderer_interface,
   void fill_overline(rgba color, double x, double w);
   void fill_underline(rgba color, double x, double w);
   void fill_borders();
+  void draw_offset(rgba color, double x, double w);
 
   double block_x(alignment a) const;
   double block_y(alignment a) const;

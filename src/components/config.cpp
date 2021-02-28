@@ -1,6 +1,8 @@
 #include "components/config.hpp"
+#include "components/types.hpp"
 
 #include <climits>
+#include <cmath>
 #include <fstream>
 
 #include "cairo/utils.hpp"
@@ -8,6 +10,7 @@
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
+#include "utils/unit.hpp"
 
 POLYBAR_NS
 
@@ -206,6 +209,59 @@ template <>
 unsigned long long config::convert(string&& value) const {
   unsigned long long v{std::strtoull(value.c_str(), nullptr, 10)};
   return v < ULLONG_MAX ? v : 0ULL;
+}
+
+template <>
+space_size config::convert(string&& value) const {
+  char* new_end;
+  auto size_value = std::strtof(value.c_str(), &new_end);
+
+  if (size_value < 0) {
+    throw application_error(sstream() << "Value: " << value << " must be positive ");
+  }
+
+  space_size size{space_type::SPACE, size_value};
+
+  string unit = string_util::trim(new_end);
+  if (!unit.empty()) {
+    if (unit == "px") {
+      size.type = space_type::PIXEL;
+      size.value = std::trunc(size.value);
+    } else if (unit == "pt") {
+      size.type = space_type::POINT;
+    } else {
+      size.value = std::trunc(size.value);
+    }
+  }
+
+  return size;
+}
+
+template <>
+geometry config::convert(std::string&& value) const {
+  return unit_utils::geometry_from_string(move(value));
+}
+
+/**
+ * Allows a new format for pixel sizes (like width in the bar section)
+ *
+ * The new format is X%:Z, where X is in [0, 100], and Z is any real value
+ * describing a pixel offset. The actual value is calculated by X% * max + Z
+ */
+template <>
+geometry_format_values config::convert(string&& value) const {
+  size_t i = value.find(':');
+
+  if (i == std::string::npos) {
+    if (value.find('%') != std::string::npos) {
+      return {strtod(value.c_str(), nullptr), {}};
+    } else {
+      return {0., convert<geometry>(move(value))};
+    }
+  } else {
+    std::string percentage = value.substr(0, i - 1);
+    return {strtod(percentage.c_str(), nullptr), convert<geometry>(value.substr(i + 1))};
+  }
 }
 
 template <>
