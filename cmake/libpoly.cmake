@@ -50,12 +50,10 @@ find_package(CairoFC REQUIRED)
 
 if (ENABLE_ALSA)
   find_package(ALSA REQUIRED)
-  set(ALSA_VERSION ${ALSA_VERSION_STRING})
 endif()
 
 if (ENABLE_CURL)
   find_package(CURL REQUIRED)
-  set(CURL_VERSION ${CURL_VERSION_STRING})
 endif()
 
 if (ENABLE_MPD)
