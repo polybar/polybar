@@ -34,15 +34,13 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
   }
 
   m_log.info("Created ipc channel at: %s", m_path);
-  m_fd = file_util::make_file_descriptor(m_path, O_RDONLY | O_NONBLOCK);
+  m_fd = file_util::make_file_descriptor(m_path, O_RDONLY | O_NONBLOCK, false);
 }
 
 /**
  * Deconstruct ipc handler
  */
 ipc::~ipc() {
-  m_fd.reset();
-
   if (!m_path.empty()) {
     m_log.trace("ipc: Removing file handle");
     unlink(m_path.c_str());
@@ -66,8 +64,6 @@ void ipc::receive_message(string buf) {
   } else if (!payload.empty()) {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }
-
-  /* m_fd = file_util::make_file_descriptor(m_path, O_RDONLY | O_NONBLOCK); */
 }
 
 /**

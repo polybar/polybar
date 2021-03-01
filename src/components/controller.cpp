@@ -134,7 +134,6 @@ bool controller::run(bool writeback, string snapshot_dst) {
   read_events();
 
   if (m_event_thread.joinable()) {
-    enqueue(make_quit_evt(static_cast<bool>(g_reload)));
     m_event_thread.join();
   }
 
@@ -179,7 +178,7 @@ void controller::conn_cb(int, int) {
   if (m_connection.connection_has_error()) {
     g_terminate = 1;
     g_reload = 0;
-    eloop.stop();
+    eloop->stop();
     return;
   }
 
@@ -204,10 +203,10 @@ static void conn_cb_wrapper(uv_poll_t* handle, int status, int events) {
   static_cast<controller*>(handle->data)->conn_cb(status, events);
 }
 
-static void signal_cb_wrapper(uv_signal_t* handle, int signum) {
+void controller::signal_handler(int signum) {
   g_terminate = 1;
   g_reload = (signum == SIGUSR1);
-  static_cast<eventloop*>(handle->loop->data)->stop();
+  eloop->stop();
 }
 
 static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int, int) {
@@ -249,7 +248,8 @@ static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  auto loop = eloop.get();
+  eloop = std::make_unique<eventloop>();
+  auto loop = eloop->get();
 
   auto conn_handle = std::make_unique<uv_poll_t>();
   uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
@@ -257,15 +257,8 @@ void controller::read_events() {
 
   uv_poll_start(conn_handle.get(), UV_READABLE, conn_cb_wrapper);
 
-  std::vector<unique_ptr<uv_signal_t>> handles;
-
   for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-    auto signal_handle = std::make_unique<uv_signal_t>();
-    uv_signal_init(loop, signal_handle.get());
-    signal_handle->data = this;
-
-    uv_signal_start(signal_handle.get(), signal_cb_wrapper, s);
-    handles.push_back(std::move(signal_handle));
+    eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
   }
 
   auto conf_handle = std::unique_ptr<uv_fs_event_t>(nullptr);
@@ -288,7 +281,8 @@ void controller::read_events() {
     uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
   }
 
-  eloop.run();
+  eloop->run();
+  eloop.reset();
 }
 
 /**

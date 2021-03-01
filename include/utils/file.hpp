@@ -29,7 +29,7 @@ class file_ptr {
 
 class file_descriptor {
  public:
-  explicit file_descriptor(const string& path, int flags = 0);
+  explicit file_descriptor(const string& path, int flags = 0, bool autoclose = true);
   explicit file_descriptor(int fd, bool autoclose = true);
   ~file_descriptor();
 

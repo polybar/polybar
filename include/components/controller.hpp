@@ -53,6 +53,8 @@ class controller
   bool enqueue(event&& evt);
   bool enqueue(string&& input_data);
 
+  void signal_handler(int signum);
+
   void conn_cb(int status, int events);
   void ipc_cb(string buf);
 
@@ -88,7 +90,7 @@ class controller
   unique_ptr<ipc> m_ipc;
   unique_ptr<inotify_watch> m_confwatch;
 
-  eventloop eloop;
+  std::unique_ptr<eventloop> eloop;
 
   /**
    * \brief State flag
