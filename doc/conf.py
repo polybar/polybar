@@ -15,9 +15,7 @@
 import os
 from pathlib import Path
 import datetime
-from typing import List
-from docutils.nodes import Node
-from sphinx.domains.changeset import VersionChange
+import sphinx
 import packaging.version
 
 def get_version(root_path):
@@ -31,8 +29,6 @@ def get_version(root_path):
         return packaging.version.parse(line)
 
   raise RuntimeError("No version found in {}".format(path))
-
-
 
 # -- Project information -----------------------------------------------------
 
@@ -221,20 +217,32 @@ epub_exclude_files = ['search.html']
 # The 'versionadded' and 'versionchanged' directives are overridden.
 suppress_warnings = ['app.add_directive']
 
-def setup(app):
-  app.add_directive('deprecated', VersionDirective)
-  app.add_directive('versionadded', VersionDirective)
-  app.add_directive('versionchanged', VersionDirective)
+# It is not exactly clear in which version the VersionChange class was
+# introduced, but we know it is available in at least 1.8.5.
+# This feature is mainly needed for the online docs on readthedocs for the docs
+# built from master, documentation built for proper releases should not even
+# mention unreleased changes. Because of that it's not that important that this
+# is added to local builds.
+if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5"):
 
-class VersionDirective(VersionChange):
-  """
-  Overwrites the Sphinx directive for versionchanged, versionadded, and
-  deprecated and adds an unreleased tag to versions that are not yet released
-  """
-  def run(self) -> List[Node]:
-    directive_version = packaging.version.parse(self.arguments[0])
+  from typing import List
+  from docutils.nodes import Node
+  from sphinx.domains.changeset import VersionChange
 
-    if directive_version > version_txt:
-      self.arguments[0] += " (unreleased)"
+  def setup(app):
+    app.add_directive('deprecated', VersionDirective)
+    app.add_directive('versionadded', VersionDirective)
+    app.add_directive('versionchanged', VersionDirective)
 
-    return super().run()
+  class VersionDirective(VersionChange):
+    """
+    Overwrites the Sphinx directive for versionchanged, versionadded, and
+    deprecated and adds an unreleased tag to versions that are not yet released
+    """
+    def run(self) -> List[Node]:
+      directive_version = packaging.version.parse(self.arguments[0])
+
+      if directive_version > version_txt:
+        self.arguments[0] += " (unreleased)"
+
+      return super().run()
