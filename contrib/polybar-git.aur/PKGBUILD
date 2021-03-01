@@ -13,7 +13,7 @@ optdepends=("i3-wm: i3 module support"
             "ttf-unifont: Font used in example config"
             "siji-git: Font used in example config"
             "xorg-fonts-misc: Font used in example config")
-makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "i3-wm")
+makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx" "python-packaging" "i3-wm")
 provides=("polybar")
 conflicts=("polybar")
 install="${_pkgname}.install"
