@@ -52,7 +52,7 @@ file_ptr::operator int() const {
 // }}}
 // implementation of file_descriptor {{{
 
-file_descriptor::file_descriptor(const string& path, int flags) {
+file_descriptor::file_descriptor(const string& path, int flags, bool autoclose) : m_autoclose(autoclose) {
   if ((m_fd = open(path.c_str(), flags)) == -1) {
     throw system_error("Failed to open file descriptor");
   }
