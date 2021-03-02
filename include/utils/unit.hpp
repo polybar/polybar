@@ -34,23 +34,6 @@ namespace unit_utils {
     return point_to_pixel<double, ReturnType>(size.value, dpi);
   }
 
-  inline string spacing_to_string(spacing_val size) {
-    if (size.value > 0) {
-      switch (size.type) {
-        case spacing_type::SPACE:
-          return string(static_cast<string::size_type>(size.value), ' ');
-        case spacing_type::POINT: {
-          return to_string(size.value) + "pt";
-        }
-        case spacing_type::PIXEL: {
-          return to_string(static_cast<int>(size.value)) + "px";
-        }
-      }
-    }
-
-    return {};
-  }
-
   inline extent_val parse_extent(string&& str) {
     char* new_end;
     auto size_value = std::strtof(str.c_str(), &new_end);
@@ -82,6 +65,6 @@ namespace unit_utils {
     return {};
   }
 
-}  // namespace unit_utils
+} // namespace unit_utils
 
 POLYBAR_NS_END

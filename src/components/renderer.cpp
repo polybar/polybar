@@ -264,7 +264,7 @@ void renderer::end() {
   // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
+    m_context->pop(&barcontents); // corresponding push is in renderer::begin
 
     auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {

@@ -201,22 +201,23 @@ void builder::node_repeat(const label_t& label, size_t n) {
 }
 
 /**
- * Insert tag that will offset the contents by given pixels
+ * Insert tag that will offset the contents by the given extent
  */
-void builder::offset(extent_val pixels) {
-  if (pixels.value == 0) {
+void builder::offset(extent_val extent) {
+  if (extent.value == 0) {
     return;
   }
-  tag_open(syntaxtag::O, unit_utils::extent_to_string(pixels));
+  tag_open(syntaxtag::O, unit_utils::extent_to_string(extent));
 }
 
 /**
- * Insert spaces
+ * Insert spacing
  */
 void builder::spacing(spacing_val size) {
   if (size.value > 0.) {
-    m_output += add_surrounding_tag(size);
+    m_output += get_spacing_format_string(size);
   } else {
+    // TODO remove once the deprecated spacing key in the bar section is removed
     spacing();
   }
 }
@@ -235,9 +236,6 @@ void builder::remove_trailing_space(size_t len) {
   } else if (m_output.substr(m_output.size() - len) == string(len, ' ')) {
     m_output.erase(m_output.size() - len);
   }
-}
-void builder::remove_trailing_space() {
-  remove_trailing_space(static_cast<size_t>(m_bar.spacing.value));
 }
 
 /**
@@ -576,19 +574,29 @@ void builder::tag_close(attribute attr) {
       break;
   }
 }
-string builder::add_surrounding_tag(const spacing_val& space) {
+
+string builder::get_spacing_format_string(const spacing_val& space) {
   if (space.value == 0) {
     return "";
   }
 
   string out;
-  if (space.type == spacing_type::POINT || space.type == spacing_type::PIXEL) {
+  if (space.type == spacing_type::SPACE) {
+    out += string(space.value, ' ');
+  } else {
     out += "%{O";
-  }
 
-  out += unit_utils::spacing_to_string(space);
+    switch (space.type) {
+      case spacing_type::POINT:
+        out += to_string(space.value) + "pt";
+        break;
+      case spacing_type::PIXEL:
+        out += to_string(static_cast<int>(space.value)) + "px";
+        break;
+      default:
+        break;
+    }
 
-  if (space.type == spacing_type::POINT || space.type == spacing_type::PIXEL) {
     out += '}';
   }
 
