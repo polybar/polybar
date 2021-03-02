@@ -26,7 +26,7 @@ namespace unit_utils {
   }
 
   template <typename ReturnType = int>
-  ReturnType geometry_to_pixel(geometry size, double dpi) {
+  ReturnType geometry_to_pixel(const geometry size, double dpi) {
     if (size.type == size_type::PIXEL) {
       return size.value;
     }

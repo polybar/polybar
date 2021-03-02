@@ -49,7 +49,7 @@ class renderer : public renderer_interface,
   void end();
   void flush();
 
-  void render_offset(const tags::context& ctxt, geometry offset) override;
+  void render_offset(const tags::context& ctxt, const geometry offset) override;
   void render_text(const tags::context& ctxt, const string&&) override;
 
   void change_alignment(const tags::context& ctxt) override;
