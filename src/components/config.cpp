@@ -1,11 +1,11 @@
 #include "components/config.hpp"
-#include "components/types.hpp"
 
 #include <climits>
 #include <cmath>
 #include <fstream>
 
 #include "cairo/utils.hpp"
+#include "components/types.hpp"
 #include "utils/color.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"

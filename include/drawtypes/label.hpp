@@ -42,12 +42,9 @@ namespace drawtypes {
 
     explicit label(string text, int font) : m_font(font), m_text(move(text)), m_tokenized(m_text) {}
     explicit label(string text, rgba foreground = rgba{}, rgba background = rgba{}, rgba underline = rgba{},
-        rgba overline = rgba{}, int font = 0,
-        side_values padding = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}},
-        side_values margin = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}},
-        int minlen = 0, size_t maxlen = 0_z,
-        alignment label_alignment = alignment::LEFT,
-        bool ellipsis = true, vector<token>&& tokens = {})
+        rgba overline = rgba{}, int font = 0, side_values padding = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}},
+        side_values margin = {{space_type::SPACE, 0U}, {space_type::SPACE, 0U}}, int minlen = 0, size_t maxlen = 0_z,
+        alignment label_alignment = alignment::LEFT, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(move(foreground))
         , m_background(move(background))
         , m_underline(move(underline))

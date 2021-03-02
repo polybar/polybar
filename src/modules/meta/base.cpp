@@ -87,8 +87,9 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](
-        const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
+    const auto formatdef = [&](const string& param, const auto& fallback) {
+      return m_conf.get("settings", "format-" + param, fallback);
+    };
 
     auto format = make_unique<module_format>();
     format->value = move(value);

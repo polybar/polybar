@@ -40,7 +40,6 @@ namespace modules {
     static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-coreload>";
     static constexpr auto FORMAT_WARN = "format-warn";
 
-
     label_t m_label;
     label_t m_labelwarn;
     progressbar_t m_barload;

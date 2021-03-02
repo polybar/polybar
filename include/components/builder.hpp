@@ -56,6 +56,7 @@ class builder {
   void action_close();
 
   static string add_surrounding_tag(const space_size& space);
+
  protected:
   void tag_open(tags::syntaxtag tag, const string& value);
   void tag_open(tags::attribute attr);

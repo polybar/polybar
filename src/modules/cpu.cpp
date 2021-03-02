@@ -1,14 +1,13 @@
+#include "modules/cpu.hpp"
+
 #include <fstream>
 #include <istream>
-
-#include "modules/cpu.hpp"
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -73,7 +72,8 @@ namespace modules {
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
-      label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
+      label->replace_token(
+          "%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
       label->replace_token("%percentage-cores%", string_util::join(percentage_cores, "% ") + "%");
 
       for (size_t i = 0; i < percentage_cores.size(); i++) {
@@ -98,7 +98,6 @@ namespace modules {
       return DEFAULT_FORMAT;
     }
   }
-
 
   bool cpu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
@@ -179,6 +178,6 @@ namespace modules {
 
     return math_util::cap<float>(percentage, 0, 100);
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
