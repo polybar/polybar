@@ -290,16 +290,16 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.borders[edge::TOP].size = percentage_with_offset_to_pixel(border_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.borders[edge::BOTTOM].size = percentage_with_offset_to_pixel(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.borders[edge::LEFT].size = percentage_with_offset_to_pixel(border_left, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.borders[edge::RIGHT].size = percentage_with_offset_to_pixel(border_right, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
@@ -308,10 +308,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
   auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
 
-  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w, m_opts.dpi_x);
-  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h, m_opts.dpi_y);
-  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w, m_opts.dpi_x);
-  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.size.w = percentage_with_offset_to_pixel(w, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.size.h = percentage_with_offset_to_pixel(h, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.offset.x = percentage_with_offset_to_pixel(offsetx, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.offset.y = percentage_with_offset_to_pixel(offsety, m_opts.monitor->h, m_opts.dpi_y);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;

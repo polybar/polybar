@@ -49,5 +49,5 @@ INSTANTIATE_TEST_SUITE_P(WithUnits, GeomFormatToPixelsTest, ::testing::ValuesIn(
 TEST_P(GeomFormatToPixelsTest, correctness) {
   unsigned int exp = GetParam().first;
   polybar::percentage_with_offset geometry = GetParam().second;
-  EXPECT_DOUBLE_EQ(exp, geom_format_to_pixels(geometry, 1000, 96));
+  EXPECT_DOUBLE_EQ(exp, percentage_with_offset_to_pixel(geometry, 1000, 96));
 }

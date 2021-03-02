@@ -35,7 +35,7 @@ namespace tags {
 /**
  * Converts a percentage with offset into pixels
  */
-inline unsigned int geom_format_to_pixels(percentage_with_offset g_format, double max, double dpi) {
+inline unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
   auto offset_pixel = unit_utils::extent_to_pixel(g_format.offset, dpi);
 
   return static_cast<unsigned int>(math_util::max<double>(
