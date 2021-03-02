@@ -172,7 +172,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
       }
     }
 
-    // dpi to be comptued
+    // dpi to be computed
     if (dpi_x <= 0 || dpi_y <= 0) {
       auto screen = m_connection.screen();
       if (dpi_x <= 0) {
@@ -190,18 +190,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load configuration values
-  auto parse_size_with_unit = [bs, this](string key, spacing_val default_value) {
-    try {
-      auto size = m_conf.get(bs, key, default_value);
-      size.type = spacing_type::PIXEL;
-      return size;
-    } catch (const std::exception& err) {
-      throw application_error(sstream() << "Failed to set " << bs << "." << key << " (reason: " << err.what() << ")");
-    }
-  };
 
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
-  m_opts.spacing = parse_size_with_unit("spacing", m_opts.spacing);
+  m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
   m_opts.locale = m_conf.get(bs, "locale", ""s);
 
@@ -213,13 +204,13 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
   m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
-  auto padding = parse_size_with_unit("padding", spacing_val{});
-  m_opts.padding.left = parse_size_with_unit("padding-left", padding);
-  m_opts.padding.right = parse_size_with_unit("padding-right", padding);
+  auto padding = m_conf.get(bs, "padding", ZERO_SPACING);
+  m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
+  m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
 
-  auto margin = parse_size_with_unit("module-margin", spacing_val{});
-  m_opts.module_margin.left = parse_size_with_unit("module-margin-left", margin);
-  m_opts.module_margin.right = parse_size_with_unit("module-margin-right", margin);
+  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACING);
+  m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
+  m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
 
   if (only_initialize_values) {
     return;
@@ -280,14 +271,14 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = parse_size_with_unit("line-size", spacing_val{spacing_type::PIXEL, 0U});
+  auto line_size = m_conf.get(bs, "line-size", ZERO_PX_EXTENT);
 
-  auto overline_size = parse_size_with_unit("overline-size", line_size);
-  auto underline_size = parse_size_with_unit("underline-size", line_size);
+  auto overline_size = m_conf.get(bs, "overline-size", line_size);
+  auto underline_size = m_conf.get(bs, "underline-size", line_size);
 
-  m_opts.overline.size = static_cast<unsigned int>(unit_utils::spacing_to_pixel(overline_size, m_opts.dpi_y));
+  m_opts.overline.size = static_cast<unsigned int>(unit_utils::extent_to_pixel(overline_size, m_opts.dpi_y));
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = static_cast<unsigned int>(unit_utils::spacing_to_pixel(underline_size, m_opts.dpi_y));
+  m_opts.underline.size = static_cast<unsigned int>(unit_utils::extent_to_pixel(underline_size, m_opts.dpi_y));
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
