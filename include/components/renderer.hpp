@@ -28,8 +28,17 @@ using std::map;
 
 struct alignment_block {
   cairo_pattern_t* pattern;
+  /**
+   * The x-position where the next thing will be rendered.
+   */
   double x;
   double y;
+  /**
+   * The total width of this block.
+   *
+   * This is always >= x, but may be larger because a negative offset may
+   * decrease x, but the width doesn't change.
+   */
   double width;
 };
 
@@ -69,6 +78,8 @@ class renderer : public renderer_interface,
   double block_y(alignment a) const;
   double block_w(alignment a) const;
   double block_h(alignment a) const;
+
+  void increase_x(double dx);
 
   void flush(alignment a);
   void highlight_clickable_areas();

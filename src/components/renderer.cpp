@@ -497,6 +497,14 @@ double renderer::block_h(alignment) const {
   return m_rect.height;
 }
 
+void renderer::increase_x(double dx) {
+  m_blocks[m_align].x += dx;
+  /*
+   * The width only increases when x becomes larger than the old width.
+   */
+  m_blocks[m_align].width = std::max(m_blocks[m_align].width, m_blocks[m_align].x);
+}
+
 /**
  * Fill background color
  */
@@ -691,11 +699,17 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   origin.x = m_rect.x + m_blocks[m_align].x;
   origin.y = m_rect.y + m_rect.height / 2.0;
 
+  double x_old = m_blocks[m_align].x;
+  /*
+   * This variable is increased by the text renderer
+   */
+  double x_new = x_old;
+
   cairo::textblock block{};
   block.align = m_align;
   block.contents = contents;
   block.font = ctxt.get_font();
-  block.x_advance = &m_blocks[m_align].x;
+  block.x_advance = &x_new;
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
@@ -720,9 +734,10 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   *m_context << block;
   m_context->restore();
 
-  double dx = m_rect.x + m_blocks[m_align].x - origin.x;
+  double dx = x_new - x_old;
+  increase_x(dx);
+
   if (dx > 0.0) {
-    m_blocks[m_align].width += dx;
     if (ctxt.has_underline()) {
       fill_underline(ctxt.get_ul(), origin.x, dx);
     }
@@ -734,7 +749,7 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
 }
 
 void renderer::draw_offset(rgba color, double x, double w) {
-  if (w > 0. && color != m_bar.background) {
+  if (w > 0 && color != m_bar.background) {
     m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_bg;
@@ -752,11 +767,7 @@ void renderer::render_offset(const tags::context& ctxt, const extent_val offset)
   int offset_width = unit_utils::extent_to_pixel(offset, m_bar.dpi_x);
   rgba bg = ctxt.get_bg();
   draw_offset(bg, m_blocks[m_align].x, offset_width);
-  m_blocks[m_align].x += offset_width;
-
-  if (offset_width > 0) {
-    m_blocks[m_align].width += offset_width;
-  }
+  increase_x(offset_width);
 }
 
 void renderer::change_alignment(const tags::context& ctxt) {
