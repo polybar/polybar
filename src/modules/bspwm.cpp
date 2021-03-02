@@ -388,7 +388,7 @@ namespace modules {
     string output;
     for (m_index = 0U; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
-        m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        m_builder->spacing(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
       output += this->event_module::get_output();
     }

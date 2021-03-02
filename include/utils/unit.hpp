@@ -15,10 +15,10 @@ namespace unit_utils {
   }
 
   template <typename ReturnType = int>
-  ReturnType space_type_to_pixel(space_size size, double dpi) {
-    assert(size.type != space_type::SPACE);
+  ReturnType spacing_to_pixel(spacing_val size, double dpi) {
+    assert(size.type != spacing_type::SPACE);
 
-    if (size.type == space_type::PIXEL) {
+    if (size.type == spacing_type::PIXEL) {
       return size.value;
     }
 
@@ -26,26 +26,24 @@ namespace unit_utils {
   }
 
   template <typename ReturnType = int>
-  ReturnType geometry_to_pixel(const geometry size, double dpi) {
-    if (size.type == size_type::PIXEL) {
+  ReturnType extent_to_pixel(const extent_val size, double dpi) {
+    if (size.type == extent_type::PIXEL) {
       return size.value;
     }
 
     return point_to_pixel<double, ReturnType>(size.value, dpi);
   }
 
-  inline string space_size_to_string(space_size size) {
+  inline string spacing_to_string(spacing_val size) {
     if (size.value > 0) {
       switch (size.type) {
-        case space_type::SPACE:
+        case spacing_type::SPACE:
           return string(static_cast<string::size_type>(size.value), ' ');
-        case space_type::POINT: {
-          auto str = to_string(size.value);
-          str += "pt";
-          return str;
+        case spacing_type::POINT: {
+          return to_string(size.value) + "pt";
         }
-        case space_type::PIXEL: {
-          return to_string(static_cast<int>(size.value));
+        case spacing_type::PIXEL: {
+          return to_string(static_cast<int>(size.value)) + "px";
         }
       }
     }
@@ -53,35 +51,31 @@ namespace unit_utils {
     return {};
   }
 
-  inline geometry geometry_from_string(string&& str) {
+  inline extent_val parse_extent(string&& str) {
     char* new_end;
     auto size_value = std::strtof(str.c_str(), &new_end);
 
-    geometry size{size_type::PIXEL, size_value};
+    extent_val size{extent_type::PIXEL, size_value};
 
     string unit = string_util::trim(new_end);
     if (!unit.empty()) {
       if (unit == "px") {
         size.value = std::trunc(size.value);
       } else if (unit == "pt") {
-        size.type = size_type::POINT;
+        size.type = extent_type::POINT;
       }
     }
 
     return size;
   }
 
-  inline string geometry_to_string(geometry geometry) {
-    if (geometry.value > 0) {
-      switch (geometry.type) {
-        case size_type::POINT: {
-          auto str = to_string(geometry.value);
-          str += "pt";
-          return str;
-        }
-        case size_type::PIXEL: {
-          return to_string(static_cast<int>(geometry.value));
-        }
+  inline string extent_to_string(extent_val extent) {
+    if (extent.value > 0) {
+      switch (extent.type) {
+        case extent_type::POINT:
+          return to_string(extent.value) + "pt";
+        case extent_type::PIXEL:
+          return to_string(static_cast<int>(extent.value)) + "px";
       }
     }
 

@@ -746,10 +746,10 @@ void renderer::draw_offset(rgba color, double x, double w) {
   }
 }
 
-void renderer::render_offset(const tags::context& ctxt, const geometry offset) {
+void renderer::render_offset(const tags::context& ctxt, const extent_val offset) {
   m_log.trace_x("renderer: offset_pixel(%f)", offset);
 
-  int offset_width = unit_utils::geometry_to_pixel(offset, m_bar.dpi_x);
+  int offset_width = unit_utils::extent_to_pixel(offset, m_bar.dpi_x);
   rgba bg = ctxt.get_bg();
   draw_offset(bg, m_blocks[m_align].x, offset_width);
   m_blocks[m_align].x += offset_width;

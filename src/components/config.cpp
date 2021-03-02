@@ -212,7 +212,7 @@ unsigned long long config::convert(string&& value) const {
 }
 
 template <>
-space_size config::convert(string&& value) const {
+spacing_val config::convert(string&& value) const {
   char* new_end;
   auto size_value = std::strtof(value.c_str(), &new_end);
 
@@ -220,15 +220,15 @@ space_size config::convert(string&& value) const {
     throw application_error(sstream() << "Value: " << value << " must be positive ");
   }
 
-  space_size size{space_type::SPACE, size_value};
+  spacing_val size{spacing_type::SPACE, size_value};
 
   string unit = string_util::trim(new_end);
   if (!unit.empty()) {
     if (unit == "px") {
-      size.type = space_type::PIXEL;
+      size.type = spacing_type::PIXEL;
       size.value = std::trunc(size.value);
     } else if (unit == "pt") {
-      size.type = space_type::POINT;
+      size.type = spacing_type::POINT;
     } else {
       size.value = std::trunc(size.value);
     }
@@ -238,8 +238,8 @@ space_size config::convert(string&& value) const {
 }
 
 template <>
-geometry config::convert(std::string&& value) const {
-  return unit_utils::geometry_from_string(move(value));
+extent_val config::convert(std::string&& value) const {
+  return unit_utils::parse_extent(move(value));
 }
 
 /**
@@ -249,18 +249,18 @@ geometry config::convert(std::string&& value) const {
  * describing a pixel offset. The actual value is calculated by X% * max + Z
  */
 template <>
-geometry_format_values config::convert(string&& value) const {
+percentage_with_offset config::convert(string&& value) const {
   size_t i = value.find(':');
 
   if (i == std::string::npos) {
     if (value.find('%') != std::string::npos) {
       return {strtod(value.c_str(), nullptr), {}};
     } else {
-      return {0., convert<geometry>(move(value))};
+      return {0., convert<extent_val>(move(value))};
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {strtod(percentage.c_str(), nullptr), convert<geometry>(value.substr(i + 1))};
+    return {strtod(percentage.c_str(), nullptr), convert<extent_val>(value.substr(i + 1))};
   }
 }
 

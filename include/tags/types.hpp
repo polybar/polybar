@@ -90,7 +90,7 @@ namespace tags {
       /**
        * For for 'O' tags
        */
-      geometry offset;
+      extent_val offset;
       /**
        * For for 'P' tags
        */

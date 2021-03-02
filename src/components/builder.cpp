@@ -127,7 +127,7 @@ void builder::node(const label_t& label) {
   auto text = label->get();
 
   if (label->m_margin.left.value > 0) {
-    space(label->m_margin.left);
+    spacing(label->m_margin.left);
   }
 
   if (label->m_overline.has_color()) {
@@ -145,13 +145,13 @@ void builder::node(const label_t& label) {
   }
 
   if (label->m_padding.left.value > 0) {
-    space(label->m_padding.left);
+    spacing(label->m_padding.left);
   }
 
   node(text, label->m_font);
 
   if (label->m_padding.right.value > 0) {
-    space(label->m_padding.right);
+    spacing(label->m_padding.right);
   }
 
   if (label->m_background.has_color()) {
@@ -169,7 +169,7 @@ void builder::node(const label_t& label) {
   }
 
   if (label->m_margin.right.value > 0) {
-    space(label->m_margin.right);
+    spacing(label->m_margin.right);
   }
 }
 
@@ -203,26 +203,26 @@ void builder::node_repeat(const label_t& label, size_t n) {
 /**
  * Insert tag that will offset the contents by given pixels
  */
-void builder::offset(geometry pixels) {
+void builder::offset(extent_val pixels) {
   if (pixels.value == 0) {
     return;
   }
-  tag_open(syntaxtag::O, unit_utils::geometry_to_string(pixels));
+  tag_open(syntaxtag::O, unit_utils::extent_to_string(pixels));
 }
 
 /**
  * Insert spaces
  */
-void builder::space(space_size size) {
+void builder::spacing(spacing_val size) {
   if (size.value > 0.) {
     m_output += add_surrounding_tag(size);
   } else {
-    space();
+    spacing();
   }
 }
-void builder::space() {
+void builder::spacing() {
   if (m_bar.spacing.value > 0) {
-    space(m_bar.spacing);
+    spacing(m_bar.spacing);
   }
 }
 
@@ -576,19 +576,19 @@ void builder::tag_close(attribute attr) {
       break;
   }
 }
-string builder::add_surrounding_tag(const space_size& space) {
+string builder::add_surrounding_tag(const spacing_val& space) {
   if (space.value == 0) {
     return "";
   }
 
   string out;
-  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+  if (space.type == spacing_type::POINT || space.type == spacing_type::PIXEL) {
     out += "%{O";
   }
 
-  out += unit_utils::space_size_to_string(space);
+  out += unit_utils::spacing_to_string(space);
 
-  if (space.type == space_type::POINT || space.type == space_type::PIXEL) {
+  if (space.type == spacing_type::POINT || space.type == spacing_type::PIXEL) {
     out += '}';
   }
 

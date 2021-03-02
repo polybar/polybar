@@ -77,7 +77,7 @@ namespace modules {
       // Insert separator after menu-toggle and before menu-items for expand-right=true
       if (m_expand_right && *m_labelseparator) {
         builder->node(m_labelseparator);
-        builder->space(spacing);
+        builder->spacing(spacing);
       }
       auto&& items = m_levels[m_level]->items;
       for (size_t i = 0; i < items.size(); i++) {
@@ -85,14 +85,14 @@ namespace modules {
         builder->action(
             mousebtn::LEFT, *this, string(EVENT_EXEC), to_string(m_level) + "-" + to_string(i), item->label);
         if (item != m_levels[m_level]->items.back()) {
-          builder->space(spacing);
+          builder->spacing(spacing);
           if (*m_labelseparator) {
             builder->node(m_labelseparator);
-            builder->space(spacing);
+            builder->spacing(spacing);
           }
           // Insert separator after last menu-item and before menu-toggle for expand-right=false
         } else if (!m_expand_right && *m_labelseparator) {
-          builder->space(spacing);
+          builder->spacing(spacing);
           builder->node(m_labelseparator);
         }
       }

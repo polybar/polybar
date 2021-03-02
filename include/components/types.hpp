@@ -72,32 +72,37 @@ struct size {
   unsigned int h{1U};
 };
 
-enum class space_type { SPACE, POINT, PIXEL };
+enum class spacing_type { SPACE, POINT, PIXEL };
 
-enum class size_type { POINT, PIXEL };
+enum class extent_type { POINT, PIXEL };
 
-struct space_size {
-  space_type type{space_type::SPACE};
-  float value{0.f};
+struct spacing_val {
+  spacing_type type{spacing_type::SPACE};
+  float value{0};
 };
 
-static constexpr space_size ZERO_SPACE = {space_type::SPACE, 0.};
+static constexpr spacing_val ZERO_SPACING = {spacing_type::SPACE, 0};
 
-struct geometry {
-  size_type type{size_type::PIXEL};
-  float value{0.f};
+/*
+ * Defines the signed length of something as either an amount of pixels or points.
+ *
+ * Used for widths, heights, and offsets
+ */
+struct extent_val {
+  extent_type type{extent_type::PIXEL};
+  float value{0};
 };
 
-static constexpr geometry GEOMETRY_ZERO_PIXEL = {size_type::PIXEL, 0.f};
+static constexpr extent_val ZERO_PX_EXTENT = {extent_type::PIXEL, 0};
 
 struct side_values {
-  space_size left{ZERO_SPACE};
-  space_size right{ZERO_SPACE};
+  spacing_val left{ZERO_SPACING};
+  spacing_val right{ZERO_SPACING};
 };
 
-struct geometry_format_values {
-  double percentage{0.};
-  geometry offset{GEOMETRY_ZERO_PIXEL};
+struct percentage_with_offset {
+  double percentage{0};
+  extent_val offset{ZERO_PX_EXTENT};
 };
 
 struct edge_values {
@@ -151,9 +156,9 @@ struct bar_settings {
 
   position pos{0, 0};
   position offset{0, 0};
-  side_values padding{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
-  side_values margin{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
-  side_values module_margin{{space_type::SPACE, 0_z}, {space_type::SPACE, 0_z}};
+  side_values padding{ZERO_SPACING, ZERO_SPACING};
+  side_values margin{ZERO_SPACING, ZERO_SPACING};
+  side_values module_margin{ZERO_SPACING, ZERO_SPACING};
   edge_values strut{0U, 0U, 0U, 0U};
 
   rgba background{0xFF000000};
@@ -166,7 +171,7 @@ struct bar_settings {
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
   struct radius radius {};
-  space_size spacing{space_type::SPACE, 0_z};
+  spacing_val spacing{ZERO_SPACING};
   label_t separator{};
 
   string wmname{};

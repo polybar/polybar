@@ -1,15 +1,16 @@
+#include "modules/fs.hpp"
+
 #include <sys/statvfs.h>
+
 #include <fstream>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "modules/fs.hpp"
+#include "modules/meta/base.inl"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -142,7 +143,7 @@ namespace modules {
        * are not empty and there is already other content in the module.
        */
       if (!output.empty() && !mount_output.empty()) {
-        m_builder->space(m_spacing);
+        m_builder->spacing(m_spacing);
         output += m_builder->flush();
       }
       output += mount_output;

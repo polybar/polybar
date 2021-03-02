@@ -19,7 +19,7 @@ namespace modules {
       builder->offset(offset);
     }
     if (margin.value > 0) {
-      builder->space(margin);
+      builder->spacing(margin);
     }
     if (bg.has_color()) {
       builder->background(bg);
@@ -37,7 +37,7 @@ namespace modules {
       builder->font(font);
     }
     if (padding.value > 0) {
-      builder->space(padding);
+      builder->spacing(padding);
     }
 
     builder->node(prefix);
@@ -59,7 +59,7 @@ namespace modules {
     builder->node(suffix);
 
     if (padding.value > 0) {
-      builder->space(padding);
+      builder->spacing(padding);
     }
     if (font > 0) {
       builder->font_close();
@@ -77,7 +77,7 @@ namespace modules {
       builder->background_close();
     }
     if (margin.value > 0) {
-      builder->space(margin);
+      builder->spacing(margin);
     }
 
     return builder->flush();

@@ -112,7 +112,7 @@ namespace modules {
       auto i = 0;
       for (auto&& load : m_load) {
         if (i++ > 0) {
-          builder->space(m_ramp_padding);
+          builder->spacing(m_ramp_padding);
         }
         builder->node(m_rampload_core->get_by_percentage_with_borders(load, 0.0f, m_totalwarn));
       }

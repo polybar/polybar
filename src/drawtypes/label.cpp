@@ -187,7 +187,7 @@ namespace drawtypes {
     }
 
     const auto get_left_right = [&](string&& key) {
-      const auto parse_or_throw = [&](const string& key, space_size default_value) {
+      const auto parse_or_throw = [&](const string& key, spacing_val default_value) {
         try {
           return conf.get(section, key, default_value);
         } catch (const std::exception& err) {
@@ -196,7 +196,7 @@ namespace drawtypes {
         }
       };
 
-      auto value = parse_or_throw(key, space_size{});
+      auto value = parse_or_throw(key, spacing_val{});
       auto left = parse_or_throw(key + "-left", value);
       auto right = parse_or_throw(key + "-right", value);
       return side_values{left, right};

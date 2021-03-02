@@ -190,10 +190,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load configuration values
-  auto parse_size_with_unit = [bs, this](string key, space_size default_value) {
+  auto parse_size_with_unit = [bs, this](string key, spacing_val default_value) {
     try {
       auto size = m_conf.get(bs, key, default_value);
-      size.type = space_type::PIXEL;
+      size.type = spacing_type::PIXEL;
       return size;
     } catch (const std::exception& err) {
       throw application_error(sstream() << "Failed to set " << bs << "." << key << " (reason: " << err.what() << ")");
@@ -213,11 +213,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
   m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
-  auto padding = parse_size_with_unit("padding", space_size{});
+  auto padding = parse_size_with_unit("padding", spacing_val{});
   m_opts.padding.left = parse_size_with_unit("padding-left", padding);
   m_opts.padding.right = parse_size_with_unit("padding-right", padding);
 
-  auto margin = parse_size_with_unit("module-margin", space_size{});
+  auto margin = parse_size_with_unit("module-margin", spacing_val{});
   m_opts.module_margin.left = parse_size_with_unit("module-margin-left", margin);
   m_opts.module_margin.right = parse_size_with_unit("module-margin-right", margin);
 
@@ -280,19 +280,19 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = parse_size_with_unit("line-size", space_size{space_type::PIXEL, 0U});
+  auto line_size = parse_size_with_unit("line-size", spacing_val{spacing_type::PIXEL, 0U});
 
   auto overline_size = parse_size_with_unit("overline-size", line_size);
   auto underline_size = parse_size_with_unit("underline-size", line_size);
 
-  m_opts.overline.size = static_cast<unsigned int>(unit_utils::space_type_to_pixel(overline_size, m_opts.dpi_y));
+  m_opts.overline.size = static_cast<unsigned int>(unit_utils::spacing_to_pixel(overline_size, m_opts.dpi_y));
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = static_cast<unsigned int>(unit_utils::space_type_to_pixel(underline_size, m_opts.dpi_y));
+  m_opts.underline.size = static_cast<unsigned int>(unit_utils::spacing_to_pixel(underline_size, m_opts.dpi_y));
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", geometry_format_values{});
+  auto border_size = m_conf.get(bs, "border-size", percentage_with_offset{});
   auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
   auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
   auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
@@ -312,10 +312,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
-  auto w = m_conf.get(m_conf.section(), "width", geometry_format_values{100.});
-  auto h = m_conf.get(m_conf.section(), "height", geometry_format_values{0., {size_type::PIXEL, 24}});
-  auto offsetx = m_conf.get(m_conf.section(), "offset-x", geometry_format_values{});
-  auto offsety = m_conf.get(m_conf.section(), "offset-y", geometry_format_values{});
+  auto w = m_conf.get(m_conf.section(), "width", percentage_with_offset{100.});
+  auto h = m_conf.get(m_conf.section(), "height", percentage_with_offset{0., {extent_type::PIXEL, 24}});
+  auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
+  auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
 
   m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h, m_opts.dpi_y);

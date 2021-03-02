@@ -194,7 +194,7 @@ namespace modules {
       for (auto&& indicator : m_indicators) {
         if (*indicator.second) {
           if (n++) {
-            builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+            builder->spacing(m_formatter->get(DEFAULT_FORMAT)->spacing);
           }
           builder->node(indicator.second);
         }

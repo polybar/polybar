@@ -78,14 +78,14 @@ class TestableTagParser : public parser {
   void expect_offset_pixel(int exp) {
     set_current();
     assert_format(syntaxtag::O);
-    EXPECT_EQ(size_type::PIXEL, current.tag_data.offset.type);
+    EXPECT_EQ(extent_type::PIXEL, current.tag_data.offset.type);
     EXPECT_EQ(exp, current.tag_data.offset.value);
   }
 
   void expect_offset_points(int exp) {
     set_current();
     assert_format(syntaxtag::O);
-    EXPECT_EQ(size_type::POINT, current.tag_data.offset.type);
+    EXPECT_EQ(extent_type::POINT, current.tag_data.offset.type);
     EXPECT_EQ(exp, current.tag_data.offset.value);
   }
 

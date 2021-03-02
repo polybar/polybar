@@ -210,7 +210,7 @@ namespace modules {
         continue;
       } else if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
         if (!no_tag_built)
-          m_builder->space(format->spacing);
+          m_builder->spacing(format->spacing);
         else if (fake_no_tag_built)
           no_tag_built = false;
         if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && !no_tag_built)

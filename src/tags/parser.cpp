@@ -340,15 +340,15 @@ namespace tags {
     }
   }
 
-  geometry parser::parse_offset() {
+  extent_val parser::parse_offset() {
     string s = get_tag_value();
 
     if (s.empty()) {
-      return GEOMETRY_ZERO_PIXEL;
+      return ZERO_PX_EXTENT;
     }
 
     try {
-      return unit_utils::geometry_from_string(string{s});
+      return unit_utils::parse_extent(string{s});
     } catch (const std::exception& err) {
       throw offset_error(s, err.what());
     }
