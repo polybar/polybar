@@ -2,7 +2,6 @@
 
 #include <xcb/xcb.h>
 
-#include <cassert>
 #include <string>
 #include <unordered_map>
 
@@ -81,10 +80,10 @@ struct spacing_val {
   float value{0};
 };
 
-static constexpr spacing_val ZERO_SPACING = {spacing_type::SPACE, 0};
+static constexpr spacing_val ZERO_SPACE = {spacing_type::SPACE, 0};
 
 /*
- * Defines the signed length of something as either an amount of pixels or points.
+ * Defines the signed length of something as either a number of pixels or points.
  *
  * Used for widths, heights, and offsets
  */
@@ -96,8 +95,8 @@ struct extent_val {
 static constexpr extent_val ZERO_PX_EXTENT = {extent_type::PIXEL, 0};
 
 struct side_values {
-  spacing_val left{ZERO_SPACING};
-  spacing_val right{ZERO_SPACING};
+  spacing_val left{ZERO_SPACE};
+  spacing_val right{ZERO_SPACE};
 };
 
 struct percentage_with_offset {
@@ -156,9 +155,9 @@ struct bar_settings {
 
   position pos{0, 0};
   position offset{0, 0};
-  side_values padding{ZERO_SPACING, ZERO_SPACING};
-  side_values margin{ZERO_SPACING, ZERO_SPACING};
-  side_values module_margin{ZERO_SPACING, ZERO_SPACING};
+  side_values padding{ZERO_SPACE, ZERO_SPACE};
+  side_values margin{ZERO_SPACE, ZERO_SPACE};
+  side_values module_margin{ZERO_SPACE, ZERO_SPACE};
   edge_values strut{0U, 0U, 0U, 0U};
 
   rgba background{0xFF000000};
@@ -171,7 +170,10 @@ struct bar_settings {
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
   struct radius radius {};
-  spacing_val spacing{ZERO_SPACING};
+  /**
+   * TODO deprecated
+   */
+  spacing_val spacing{ZERO_SPACE};
   label_t separator{};
 
   string wmname{};

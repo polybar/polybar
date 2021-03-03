@@ -204,11 +204,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
   m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
-  auto padding = m_conf.get(bs, "padding", ZERO_SPACING);
+  auto padding = m_conf.get(bs, "padding", ZERO_SPACE);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
   m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
 
-  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACING);
+  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACE);
   m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
   m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
 

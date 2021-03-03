@@ -25,8 +25,8 @@ namespace drawtypes {
     rgba m_underline{};
     rgba m_overline{};
     int m_font{0};
-    side_values m_padding{ZERO_SPACING, ZERO_SPACING};
-    side_values m_margin{ZERO_SPACING, ZERO_SPACING};
+    side_values m_padding{ZERO_SPACE, ZERO_SPACE};
+    side_values m_margin{ZERO_SPACE, ZERO_SPACE};
 
     size_t m_minlen{0};
     /*
@@ -42,8 +42,8 @@ namespace drawtypes {
 
     explicit label(string text, int font) : m_font(font), m_text(move(text)), m_tokenized(m_text) {}
     explicit label(string text, rgba foreground = rgba{}, rgba background = rgba{}, rgba underline = rgba{},
-        rgba overline = rgba{}, int font = 0, side_values padding = {ZERO_SPACING, ZERO_SPACING},
-        side_values margin = {ZERO_SPACING, ZERO_SPACING}, int minlen = 0, size_t maxlen = 0_z,
+        rgba overline = rgba{}, int font = 0, side_values padding = {ZERO_SPACE, ZERO_SPACE},
+        side_values margin = {ZERO_SPACE, ZERO_SPACE}, int minlen = 0, size_t maxlen = 0_z,
         alignment label_alignment = alignment::LEFT, bool ellipsis = true, vector<token>&& tokens = {})
         : m_foreground(move(foreground))
         , m_background(move(background))
@@ -81,6 +81,6 @@ namespace drawtypes {
 
   label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
   label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END
