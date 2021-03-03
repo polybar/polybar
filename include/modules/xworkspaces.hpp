@@ -71,6 +71,7 @@ namespace modules {
     void rebuild_urgent_hints();
     void rebuild_desktops();
     void rebuild_desktop_states();
+    void update_current_desktop();
 
     void action_focus(const string& data);
     void action_next();
