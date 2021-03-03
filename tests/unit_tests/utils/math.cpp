@@ -1,5 +1,6 @@
-#include "common/test.hpp"
 #include "utils/math.hpp"
+
+#include "common/test.hpp"
 
 using namespace polybar;
 
@@ -38,7 +39,7 @@ TEST(Math, percentage) {
   EXPECT_EQ(55.0f, (math_util::percentage<float, float>(5.5f, 0.0f, 10.0f)));
   EXPECT_EQ(56, (math_util::percentage<float, int>(5.55f, 0.0f, 10.0f)));
   EXPECT_EQ(43.75f, (math_util::percentage<float, float>(5.25f, 0.0f, 12.0f)));
-  EXPECT_EQ(41, (math_util::percentage<int, int>(5, 0, 12)));
+  EXPECT_EQ(42, (math_util::percentage<int, int>(5, 0, 12)));
   EXPECT_EQ(20.5f, (math_util::percentage<float, float>(20.5f, 0.0f, 100.0f)));
   EXPECT_EQ(70.0f, (math_util::percentage<float, float>(4.5f, 1.0f, 6.0f)));
   EXPECT_EQ(21, (math_util::percentage<float, int>(20.5f, 0.0f, 100.0f)));
