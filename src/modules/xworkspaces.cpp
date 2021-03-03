@@ -95,14 +95,22 @@ namespace modules {
 
     // Get desktop details
     m_desktop_names = get_desktop_names();
-    m_current_desktop = ewmh_util::get_current_desktop();
-    m_current_desktop_name = m_desktop_names[m_current_desktop];
+    update_current_desktop();
 
     rebuild_desktops();
 
     // Get _NET_CLIENT_LIST
     rebuild_clientlist();
     rebuild_desktop_states();
+  }
+
+  void xworkspaces_module::update_current_desktop() {
+    m_current_desktop = ewmh_util::get_current_desktop();
+    if (m_current_desktop < m_desktop_names.size()) {
+      m_current_desktop_name = m_desktop_names[m_current_desktop];
+    } else {
+      throw module_error("The current desktop is outside of the number of desktops reported by the WM");
+    }
   }
 
   /**
@@ -120,8 +128,7 @@ namespace modules {
       rebuild_clientlist();
       rebuild_desktop_states();
     } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
-      m_current_desktop = ewmh_util::get_current_desktop();
-      m_current_desktop_name = m_desktop_names[m_current_desktop];
+      update_current_desktop();
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
       rebuild_urgent_hints();
