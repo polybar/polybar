@@ -28,17 +28,29 @@ struct cb_helper {
   }
 };
 
-struct SignalHandle {
-  SignalHandle(uv_loop_t* loop, std::function<void(int)> fun) {
-    handle = std::make_unique<uv_signal_t>();
-    UV(uv_signal_init, loop, handle.get());
-    cb = cb_helper<uv_signal_t, int>{fun};
-
+template <typename H, typename... Args>
+struct UVHandle {
+  UVHandle(std::function<void(Args...)> fun) {
+    handle = std::make_unique<H>();
+    cb = cb_helper<H, Args...>{fun};
     handle->data = &cb;
-  };
+  }
 
-  std::unique_ptr<uv_signal_t> handle;
-  cb_helper<uv_signal_t, int> cb;
+  std::unique_ptr<H> handle;
+  cb_helper<H, Args...> cb;
+};
+
+struct SignalHandle : public UVHandle<uv_signal_t, int> {
+  SignalHandle(uv_loop_t* loop, std::function<void(int)> fun) : UVHandle(fun) {
+    UV(uv_signal_init, loop, handle.get());
+  };
+};
+
+struct PollHandle : public UVHandle<uv_poll_t, int, int> {
+  // TODO wrap callback and handle negative status
+  PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun) : UVHandle(fun) {
+    UV(uv_poll_init, loop, handle.get(), fd);
+  };
 };
 
 class eventloop {
@@ -63,6 +75,12 @@ class eventloop {
     m_sig_handles.push_back(std::move(handle));
   }
 
+  void poll_handler(int events, int fd, std::function<void(int, int)> fun) {
+    auto handle = std::make_unique<PollHandle>(get(), fd, fun);
+    UV(uv_poll_start, handle->handle.get(), events, &handle->cb.callback);
+    m_poll_handles.push_back(std::move(handle));
+  }
+
  protected:
   template <typename H, typename T, typename... Args, void (T::*F)(Args...)>
   static void generic_cb(H* handle, Args&&... args) {
@@ -73,6 +91,7 @@ class eventloop {
   std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
   vector<std::unique_ptr<SignalHandle>> m_sig_handles;
+  vector<std::unique_ptr<PollHandle>> m_poll_handles;
 };
 
 POLYBAR_NS_END
