@@ -174,7 +174,6 @@ bool controller::enqueue(string&& input_data) {
 
 void controller::conn_cb(int, int) {
   // TODO handle negative status
-
   if (m_connection.connection_has_error()) {
     g_terminate = 1;
     g_reload = 0;
@@ -199,10 +198,6 @@ void controller::ipc_cb(string buf) {
   m_ipc->receive_message(buf);
 }
 
-static void conn_cb_wrapper(uv_poll_t* handle, int status, int events) {
-  static_cast<controller*>(handle->data)->conn_cb(status, events);
-}
-
 void controller::signal_handler(int signum) {
   m_log.notice("Received signal SIG%s", sigabbrev_np(signum));
   g_terminate = 1;
@@ -210,12 +205,10 @@ void controller::signal_handler(int signum) {
   eloop->stop();
 }
 
-static void confwatch_cb_wrapper(uv_fs_event_t* handle, const char* fname, int, int) {
-  // TODO handle error
-  std::cout << fname << std::endl;
+void controller::confwatch_handler(const char*, int, int) {
   g_terminate = 1;
   g_reload = 1;
-  static_cast<eventloop*>(handle->loop->data)->stop();
+  eloop->stop();
 }
 
 static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
@@ -249,8 +242,6 @@ static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  auto conn_handle = std::make_unique<uv_poll_t>();
-  auto conf_handle = std::unique_ptr<uv_fs_event_t>(nullptr);
   auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
 
   try {
@@ -265,11 +256,8 @@ void controller::read_events() {
     }
 
     if (m_confwatch) {
-      conf_handle = std::make_unique<uv_fs_event_t>();
-      uv_fs_event_init(loop, conf_handle.get());
-      conf_handle->data = this;
-
-      uv_fs_event_start(conf_handle.get(), confwatch_cb_wrapper, m_confwatch->path().c_str(), 0);
+      eloop->fs_event_handler(m_confwatch->path(),
+          [this](const char* path, int events, int status) { confwatch_handler(path, events, status); });
     }
 
     if (m_ipc) {
