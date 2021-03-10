@@ -4,9 +4,7 @@ POLYBAR_NS
 
 eventloop::eventloop() {
   m_loop = std::make_unique<uv_loop_t>();
-  uv_loop_init(m_loop.get());
-  // TODO handle return value
-
+  UV(uv_loop_init, m_loop.get());
   m_loop->data = this;
 }
 
@@ -23,28 +21,28 @@ static void close_walk_cb(uv_handle_t* handle, void*) {
  */
 static void close_loop(uv_loop_t* loop) {
   uv_walk(loop, close_walk_cb, nullptr);
-  uv_run(loop, UV_RUN_DEFAULT);
-  // TODO handle return value
+  UV(uv_run, loop, UV_RUN_DEFAULT);
 }
 
 eventloop::~eventloop() {
   if (m_loop) {
-    close_loop(m_loop.get());
-    uv_loop_close(m_loop.get());
-    // TODO handle return value
+    try {
+      close_loop(m_loop.get());
+      UV(uv_loop_close, m_loop.get());
+    } catch (const std::exception& e) {
+      // TODO log error
+    }
 
     m_loop.reset();
   }
 }
 
 void eventloop::run() {
-  uv_run(m_loop.get(), UV_RUN_DEFAULT);
-  // TODO handle return value
+  UV(uv_run, m_loop.get(), UV_RUN_DEFAULT);
 }
 
 void eventloop::stop() {
   uv_stop(m_loop.get());
-  // TODO handle return value
 }
 
 POLYBAR_NS_END

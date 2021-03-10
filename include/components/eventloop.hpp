@@ -2,9 +2,21 @@
 
 #include <uv.h>
 
+#include <stdexcept>
+
 #include "common.hpp"
 
 POLYBAR_NS
+
+/**
+ * Runs any libuv function with an integer error code return value and throws an
+ * exception on error.
+ */
+#define UV(fun, ...)                                                              \
+  int res = fun(__VA_ARGS__);                                                     \
+  if (res < 0) {                                                                  \
+    throw std::runtime_error("libuv error for '" #fun "': "s + uv_strerror(res)); \
+  }
 
 template <class H, class... Args>
 struct cb_helper {
@@ -19,8 +31,7 @@ struct cb_helper {
 struct SignalHandle {
   SignalHandle(uv_loop_t* loop, std::function<void(int)> fun) {
     handle = std::make_unique<uv_signal_t>();
-    // TODO handle return value
-    uv_signal_init(loop, handle.get());
+    UV(uv_signal_init, loop, handle.get());
     cb = cb_helper<uv_signal_t, int>{fun};
 
     handle->data = &cb;
@@ -48,7 +59,7 @@ class eventloop {
 
   void signal_handler(int signum, std::function<void(int)> fun) {
     auto handle = std::make_unique<SignalHandle>(get(), fun);
-    uv_signal_start(handle->handle.get(), &handle->cb.callback, signum);
+    UV(uv_signal_start, handle->handle.get(), &handle->cb.callback, signum);
     m_sig_handles.push_back(std::move(handle));
   }
 
