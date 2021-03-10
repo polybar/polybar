@@ -257,10 +257,8 @@ void controller::read_events() {
     eloop = std::make_unique<eventloop>();
     auto loop = eloop->get();
 
-    uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
-    conn_handle->data = this;
-
-    uv_poll_start(conn_handle.get(), UV_READABLE, conn_cb_wrapper);
+    eloop->poll_handler(
+        UV_READABLE, m_connection.get_file_descriptor(), [this](int status, int events) { conn_cb(status, events); });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
       eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
