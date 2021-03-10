@@ -204,6 +204,7 @@ static void conn_cb_wrapper(uv_poll_t* handle, int status, int events) {
 }
 
 void controller::signal_handler(int signum) {
+  m_log.notice("Received signal SIG%s", sigabbrev_np(signum));
   g_terminate = 1;
   g_reload = (signum == SIGUSR1);
   eloop->stop();
@@ -248,40 +249,46 @@ static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf
 void controller::read_events() {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  eloop = std::make_unique<eventloop>();
-  auto loop = eloop->get();
-
   auto conn_handle = std::make_unique<uv_poll_t>();
-  uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
-  conn_handle->data = this;
-
-  uv_poll_start(conn_handle.get(), UV_READABLE, conn_cb_wrapper);
-
-  for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-    eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
-  }
-
   auto conf_handle = std::unique_ptr<uv_fs_event_t>(nullptr);
-
-  if (m_confwatch) {
-    conf_handle = std::make_unique<uv_fs_event_t>();
-    uv_fs_event_init(loop, conf_handle.get());
-    conf_handle->data = this;
-
-    uv_fs_event_start(conf_handle.get(), confwatch_cb_wrapper, m_confwatch->path().c_str(), 0);
-  }
-
   auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
 
-  if (m_ipc) {
-    ipc_handle = std::make_unique<uv_pipe_t>();
-    uv_pipe_init(loop, ipc_handle.get(), false);
-    ipc_handle->data = this;
-    uv_pipe_open(ipc_handle.get(), m_ipc->get_file_descriptor());
-    uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
+  try {
+    eloop = std::make_unique<eventloop>();
+    auto loop = eloop->get();
+
+    uv_poll_init(loop, conn_handle.get(), m_connection.get_file_descriptor());
+    conn_handle->data = this;
+
+    uv_poll_start(conn_handle.get(), UV_READABLE, conn_cb_wrapper);
+
+    for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
+      eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
+    }
+
+    if (m_confwatch) {
+      conf_handle = std::make_unique<uv_fs_event_t>();
+      uv_fs_event_init(loop, conf_handle.get());
+      conf_handle->data = this;
+
+      uv_fs_event_start(conf_handle.get(), confwatch_cb_wrapper, m_confwatch->path().c_str(), 0);
+    }
+
+    if (m_ipc) {
+      ipc_handle = std::make_unique<uv_pipe_t>();
+      uv_pipe_init(loop, ipc_handle.get(), false);
+      ipc_handle->data = this;
+      uv_pipe_open(ipc_handle.get(), m_ipc->get_file_descriptor());
+      uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
+    }
+
+    eloop->run();
+  } catch (const exception& err) {
+    m_log.err("Fatal Error in eventloop: %s", err.what());
+    g_terminate = 1;
+    eloop->stop();
   }
 
-  eloop->run();
   eloop.reset();
 }
 
