@@ -57,6 +57,7 @@ class controller
 
   void conn_cb(int status, int events);
   void ipc_cb(string buf);
+  void confwatch_handler(const char* fname, int events, int status);
 
  protected:
   void read_events();
