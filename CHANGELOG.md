@@ -90,6 +90,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   windows per workspace
   ([`#604`](https://github.com/polybar/polybar/issues/604))
 - `internal/backlight`: added `use-actual-brightness` option
+- Added `wm-restack = generic` option that lowers polybar to the bottom of the stack.
+  Fixes the issue where the bar is being drawn on top of fullscreen windows in xmonad.
+  ([`#2205`](https://github.com/polybar/polybar/issues/2205))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible

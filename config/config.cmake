@@ -63,6 +63,7 @@ tray-position = right
 tray-padding = 2
 ;tray-background = #0063ff
 
+;wm-restack = generic
 ;wm-restack = bspwm
 ;wm-restack = i3
 
