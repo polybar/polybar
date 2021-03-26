@@ -48,7 +48,6 @@ You can find polybar configs for these example images (and other configs) [here]
   * [Backers](#backers)
 * [License](#license)
 
-
 ## Introduction
 
 The main purpose of **Polybar** is to help users create awesome status bars.
