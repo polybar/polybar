@@ -587,6 +587,7 @@ void renderer::fill_borders() {
     borderTL.y = m_bar.borders.at(edge::TOP).size + m_bar.radius.top_left;
     borderTL.angle_from = 180;
     borderTL.angle_to = 270;
+    borderTL.w = m_bar.borders.at(edge::LEFT).size;
     (*m_context << borderTL << m_bar.borders.at(edge::LEFT).color).fill();
   }
 
@@ -597,6 +598,7 @@ void renderer::fill_borders() {
     borderBL.y = m_bar.size.h - (m_bar.borders.at(edge::BOTTOM).size + m_bar.radius.bottom_left);
     borderBL.angle_from = 90;
     borderBL.angle_to = 180;
+    borderBL.w = m_bar.borders.at(edge::LEFT).size;
     (*m_context << borderBL << m_bar.borders.at(edge::LEFT).color).fill();
   }
 
@@ -607,6 +609,7 @@ void renderer::fill_borders() {
     borderTR.y = m_bar.borders.at(edge::TOP).size + m_bar.radius.top_right;
     borderTR.angle_from = -90;
     borderTR.angle_to = 0;
+    borderTR.w = m_bar.borders.at(edge::RIGHT).size;
     (*m_context << borderTR << m_bar.borders.at(edge::RIGHT).color).fill();
   }
 
@@ -617,6 +620,7 @@ void renderer::fill_borders() {
     borderBR.y = m_bar.size.h - (m_bar.borders.at(edge::BOTTOM).size + m_bar.radius.bottom_right);
     borderBR.angle_from = 0;
     borderBR.angle_to = 90;
+    borderBR.w = m_bar.borders.at(edge::RIGHT).size;
     (*m_context << borderBR << m_bar.borders.at(edge::RIGHT).color).fill();
   }
 
