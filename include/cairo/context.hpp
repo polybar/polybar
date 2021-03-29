@@ -128,7 +128,21 @@ namespace cairo {
     context& operator<<(const circle_segment& segment) {
       cairo_new_sub_path(m_c);
       cairo_arc(m_c, segment.x, segment.y, segment.radius, segment.angle_from * degree, segment.angle_to * degree);
-      cairo_line_to(m_c, segment.x, segment.y);
+      switch ((int)segment.angle_to) {
+        case 0:
+          cairo_rel_line_to(m_c, -segment.w, 0);
+          break;
+        case 90:
+          cairo_rel_line_to(m_c, 0, -segment.w);
+          break;
+        case 180:
+          cairo_rel_line_to(m_c, segment.w, 0);
+          break;
+        default:
+          cairo_rel_line_to(m_c, 0, segment.w);
+          break;
+      }
+      cairo_arc_negative(m_c, segment.x, segment.y, segment.radius - segment.w, segment.angle_to * degree, segment.angle_from * degree);
       cairo_close_path(m_c);
       return *this;
     }
