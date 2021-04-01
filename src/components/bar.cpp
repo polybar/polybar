@@ -468,7 +468,7 @@ void bar::restack_window() {
       }
       restacked = true;
     } catch (const exception& err) {
-      m_log.err("Failed to restack bar window (err=%s", err.what());
+      m_log.err("Failed to restack bar window (err=%s)", err.what());
     }
   } else if (wm_restack == "bspwm") {
     restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.window);
