@@ -458,7 +458,19 @@ void bar::restack_window() {
 
   auto restacked = false;
 
-  if (wm_restack == "bspwm") {
+  if (wm_restack == "generic") {
+    try {
+      auto children = m_connection.query_tree(m_connection.screen()->root).children();
+      if (children.begin() != children.end() && *children.begin() != m_opts.window) {
+        const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
+        const unsigned int value_list[2]{*children.begin(), XCB_STACK_MODE_BELOW};
+        m_connection.configure_window_checked(m_opts.window, value_mask, value_list);
+      }
+      restacked = true;
+    } catch (const exception& err) {
+      m_log.err("Failed to restack bar window (err=%s)", err.what());
+    }
+  } else if (wm_restack == "bspwm") {
     restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.window);
 #if ENABLE_I3
   } else if (wm_restack == "i3" && m_opts.override_redirect) {
