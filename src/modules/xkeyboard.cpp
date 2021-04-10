@@ -123,7 +123,11 @@ namespace modules {
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
       m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
 
-      auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
+      auto current_layout = m_keyboard->layout_name(m_keyboard->current());
+      const auto slash_pos = current_layout.rfind('/');
+      if (slash_pos != string::npos) {
+        current_layout.erase(0, slash_pos + 1);
+      }
       auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
 
       m_layout->replace_token("%icon%", icon->get());
