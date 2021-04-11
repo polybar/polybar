@@ -196,7 +196,7 @@ namespace drawtypes {
         }
       };
 
-      auto value = parse_or_throw(key, spacing_val{});
+      auto value = parse_or_throw(key, ZERO_SPACE);
       auto left = parse_or_throw(key + "-left", value);
       auto right = parse_or_throw(key + "-right", value);
       return side_values{left, right};
