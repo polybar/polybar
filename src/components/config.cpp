@@ -260,7 +260,7 @@ percentage_with_offset config::convert(string&& value) const {
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {strtod(percentage.c_str(), nullptr), convert<extent_val>(value.substr(i + 1))};
+    return {std::stoi(percentage), convert<extent_val>(value.substr(i + 1))};
   }
 }
 
