@@ -164,7 +164,7 @@ void builder::node(const label_t& label) {
   if (label->m_underline.has_color()) {
     underline_close();
   }
-  if (!label->m_overline.has_color() || (label->m_margin.right.value > 0 && m_tags[syntaxtag::o] > 0)) {
+  if (label->m_overline.has_color()) {
     overline_close();
   }
 
