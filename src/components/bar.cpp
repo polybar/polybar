@@ -278,7 +278,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.overline.size = unit_utils::extent_to_pixel<unsigned>(overline_size, m_opts.dpi_y);
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = static_cast<unsigned int>(unit_utils::extent_to_pixel(underline_size, m_opts.dpi_y));
+  m_opts.underline.size = unit_utils::extent_to_pixel<unsigned>(underline_size, m_opts.dpi_y);
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
