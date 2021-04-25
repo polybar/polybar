@@ -1,7 +1,7 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
 pkgver=3.5.5
-pkgrel=1
+pkgrel=2
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/polybar/polybar"
@@ -26,7 +26,9 @@ prepare() {
 build() {
   cd "${_dir}/build" || exit 1
   # Force cmake to use system python (to detect xcbgen)
-  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
+  # We need to turn off _GLIBCXX_ASSERTIONS because of a bug in polybar:
+  # https://github.com/polybar/polybar/issues/2416
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-U_GLIBCXX_ASSERTIONS" -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
   cmake --build .
 }
 
