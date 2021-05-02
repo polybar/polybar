@@ -2,6 +2,8 @@
 
 #include <sys/socket.h>
 
+#include <set>
+
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
@@ -196,6 +198,8 @@ namespace modules {
 
     size_t pos;
 
+    std::set<size_t> positions;
+    size_t curr_pos;
     // Extract the string for the defined monitor
     if (m_pinworkspaces) {
       const auto needle_active = ":M" + m_bar.monitor->name + ":";
@@ -204,10 +208,27 @@ namespace modules {
       if ((pos = data.find(BSPWM_STATUS_PREFIX)) != string::npos) {
         data = data.replace(pos, prefix_len, ":");
       }
+
+      // workaround to get monitor index
+      {
+        auto f = [&positions, &data](const std::string& sub) {
+          size_t pos = data.find(sub, 0);
+          while (pos != string::npos) {
+            positions.insert(pos);
+            pos = data.find(sub, pos + 1);
+          }
+        };
+
+        f(":m");
+        f(":M");
+      }
+
       if ((pos = data.find(needle_active)) != string::npos) {
+        curr_pos = pos;
         data.erase(0, pos + 1);
       }
       if ((pos = data.find(needle_inactive)) != string::npos) {
+        curr_pos = pos;
         data.erase(0, pos + 1);
       }
       if ((pos = data.find(":m", 1)) != string::npos) {
@@ -220,6 +241,14 @@ namespace modules {
       data = data.replace(pos, prefix_len, ":");
     } else {
       return false;
+    }
+
+    auto index{1};
+
+    for (auto p : positions) {
+      if (p == curr_pos)
+        break;
+      index++;
     }
 
     m_log.info("%s: Parsing socket data: %s", name(), data);
@@ -236,6 +265,10 @@ namespace modules {
       if (tag[0] == 'm' || tag[0] == 'M') {
         m_monitors.emplace_back(factory_util::unique<bspwm_monitor>());
         m_monitors.back()->name = value;
+        m_monitors.back()->index = index;
+
+        if (not m_pinworkspaces)
+          index++;
 
         if (m_monitorlabel) {
           m_monitors.back()->label = m_monitorlabel->clone();
@@ -458,7 +491,7 @@ namespace modules {
     string workspace_n{data.substr(separator + 1)};
 
     if (monitor_n < m_monitors.size()) {
-      send_command("desktop -f " + m_monitors[monitor_n]->name + ":^" + workspace_n,
+      send_command("desktop -f ^" + std::to_string(m_monitors[monitor_n]->index) + ":^" + workspace_n,
           "Sending desktop focus command to ipc handler");
     } else {
       m_log.err("%s: Invalid monitor index in command: %s", name(), data);
@@ -496,7 +529,7 @@ namespace modules {
   void bspwm_module::send_command(const string& payload_cmd, const string& log_info) {
     auto ipc = bspwm_util::make_connection();
     auto payload = bspwm_util::make_payload(payload_cmd);
-    m_log.info("%s: %s", name(), log_info);
+    m_log.info("%s: %s PAYLOAD: %s", name(), log_info, payload_cmd);
     ipc->send(payload->data, payload->len, 0);
     ipc->disconnect();
   }
