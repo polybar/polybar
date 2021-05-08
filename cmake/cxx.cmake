@@ -81,6 +81,8 @@ elseif(CXXLIB_GCC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
 endif()
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+
 # Custom build type ; SANITIZE
 SET(CMAKE_CXX_FLAGS_SANITIZE "-O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls"
   CACHE STRING "Flags used by the C++ compiler during sanitize builds." FORCE)
