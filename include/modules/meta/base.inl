@@ -27,7 +27,7 @@ namespace modules {
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
       , m_visible(!m_conf.get(m_name, "hidden", false)) {
-        m_router->register_action(EVENT_TOGGLE_VISIBILITY, &module<Impl>::action_toggle_visible);
+        m_router->register_action(EVENT_TOGGLE_VISIBILITY, &module<Impl>::action_toggle_visibility);
         m_router->register_action(EVENT_VISIBILE, &module<Impl>::action_visible);
         m_router->register_action(EVENT_INVISIBILE, &module<Impl>::action_invisible);
       }
@@ -236,7 +236,7 @@ namespace modules {
   }
 
   template <typename Impl>
-  void module<Impl>::action_toggle_visible() {
+  void module<Impl>::action_toggle_visibility() {
     m_visible = !m_visible;
   }
 

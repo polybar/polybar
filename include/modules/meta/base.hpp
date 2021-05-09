@@ -175,7 +175,7 @@ namespace modules {
     string get_format() const;
     string get_output();
 
-    void action_toggle_visible();
+    void action_toggle_visibility();
     void action_visible();
     void action_invisible();
 
