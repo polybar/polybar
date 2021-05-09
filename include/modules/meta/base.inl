@@ -26,7 +26,9 @@ namespace modules {
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
-      , m_visible(!m_conf.get(m_name, "hidden", false)) {}
+      , m_visible(!m_conf.get(m_name, "hidden", false)) {
+        m_router->register_action(EVENT_TOGGLE_VISIBILITY, &module<Impl>::action_toggle_visible);
+      }
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
@@ -229,6 +231,11 @@ namespace modules {
     }
 
     return format->decorate(&*m_builder, m_builder->flush());
+  }
+
+  template <typename Impl>
+  void module<Impl>::action_toggle_visible() {
+    m_visible = !m_visible;
   }
 
   // }}}

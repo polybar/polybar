@@ -145,6 +145,8 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
+    static constexpr auto EVENT_TOGGLE_VISIBILITY = "toggle_visible";
+
     string type() const override;
 
     string name_raw() const override;
@@ -170,6 +172,8 @@ namespace modules {
     void wakeup();
     string get_format() const;
     string get_output();
+
+    void action_toggle_visible();
 
    protected:
     signal_emitter& m_sig;
