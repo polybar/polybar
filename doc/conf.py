@@ -185,6 +185,9 @@ man_pages = [
     ('man/polybar.5', 'polybar', 'configuration file for polybar(1)', [], 5)
 ]
 
+man_make_section_directory = False
+
+
 # -- Options for Texinfo output ----------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
