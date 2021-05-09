@@ -146,6 +146,8 @@ namespace modules {
     ~module() noexcept;
 
     static constexpr auto EVENT_TOGGLE_VISIBILITY = "toggle_visible";
+    static constexpr auto EVENT_VISIBILE = "set_visible";
+    static constexpr auto EVENT_INVISIBILE = "set_invisible";
 
     string type() const override;
 
@@ -174,6 +176,8 @@ namespace modules {
     string get_output();
 
     void action_toggle_visible();
+    void action_visible();
+    void action_invisible();
 
    protected:
     signal_emitter& m_sig;
