@@ -72,13 +72,6 @@ namespace modules {
   }
 
   template <typename Impl>
-  void module<Impl>::set_visible(bool value) {
-    m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
-    m_visible = value;
-    broadcast();
-  }
-
-  template <typename Impl>
   void module<Impl>::stop() {
     if (!static_cast<bool>(m_enabled)) {
       return;
@@ -236,18 +229,25 @@ namespace modules {
   }
 
   template <typename Impl>
+  void module<Impl>::set_visible(bool value) {
+    // m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
+    m_visible = value;
+    broadcast();
+  }
+
+  template <typename Impl>
   void module<Impl>::action_toggle_visibility() {
-    m_visible = !m_visible;
+    set_visible(!m_visible);
   }
 
   template <typename Impl>
   void module<Impl>::action_visible() {
-    m_visible = true;
+    set_visible(true);
   }
 
   template <typename Impl>
   void module<Impl>::action_invisible() {
-    m_visible = false;
+    set_visible(false);
   }
 
   // }}}

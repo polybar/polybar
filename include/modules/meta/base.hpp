@@ -118,7 +118,6 @@ namespace modules {
     virtual string name() const = 0;
     virtual bool running() const = 0;
     virtual bool visible() const = 0;
-    virtual void set_visible(bool value) = 0;
 
     /**
      * Handle action, possibly with data attached
@@ -156,7 +155,6 @@ namespace modules {
     bool running() const override;
 
     bool visible() const override;
-    void set_visible(bool value) override;
 
     void stop() override;
     void halt(string error_message) override;
@@ -174,6 +172,8 @@ namespace modules {
     void wakeup();
     string get_format() const;
     string get_output();
+
+    void set_visible(bool value);
 
     void action_toggle_visibility();
     void action_visible();
