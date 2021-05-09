@@ -81,6 +81,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config option to hide a certain module
   (`hidden = false`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
+- Actions to control visibility of modules
+  (`toggle_visibility`, `set_visible`, and `set_invisible`)
+  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))
 - `internal/network`: `interface-type` may be used in place of `interface` to
