@@ -93,6 +93,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `wm-restack = generic` option that lowers polybar to the bottom of the stack.
   Fixes the issue where the bar is being drawn on top of fullscreen windows in xmonad.
   ([`#2205`](https://github.com/polybar/polybar/issues/2205))
+- Added `occupied-scroll = true` option to bspwm module.
+  Allows scrolling only through occupied desktops only.
+  ([`#2427`](https://github.com/polybar/polybar/issues/2427))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
