@@ -50,11 +50,6 @@ namespace modules {
       throw module_error("Failed to initialize ewmh atoms");
     }
 
-    // Check if the WM supports _NET_CURRENT_DESKTOP
-    if (!ewmh_util::supports(m_ewmh->_NET_CURRENT_DESKTOP)) {
-      throw module_error("The WM does not support _NET_CURRENT_DESKTOP, aborting...");
-    }
-
     // Check if the WM supports _NET_DESKTOP_VIEWPORT
     if (!(m_monitorsupport = ewmh_util::supports(m_ewmh->_NET_DESKTOP_VIEWPORT)) && m_pinworkspaces) {
       throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
@@ -106,11 +101,6 @@ namespace modules {
 
   void xworkspaces_module::update_current_desktop() {
     m_current_desktop = ewmh_util::get_current_desktop();
-    if (m_current_desktop < m_desktop_names.size()) {
-      m_current_desktop_name = m_desktop_names[m_current_desktop];
-    } else {
-      throw module_error("The current desktop is outside of the number of desktops reported by the WM");
-    }
   }
 
   /**

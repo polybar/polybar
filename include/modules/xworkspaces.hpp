@@ -91,7 +91,6 @@ namespace modules {
     vector<string> m_desktop_names;
     vector<bool> m_urgent_desktops;
     unsigned int m_current_desktop;
-    string m_current_desktop_name;
 
     /**
      * Maps an xcb window to its desktop number
