@@ -58,6 +58,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_occscroll = m_conf.get(name(), "occupied-scroll", m_occscroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
     m_inlinemode = m_conf.get(name(), "inline-mode", m_inlinemode);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
@@ -473,8 +474,12 @@ namespace modules {
     string scrolldir = next ? "next" : "prev";
     string modifier;
 
+    if (m_occscroll) {
+      modifier += ".occupied";
+    }
+
     if (m_pinworkspaces) {
-      modifier = ".local";
+      modifier += ".local";
       for (const auto& mon : m_monitors) {
         if (m_bar.monitor->match(mon->name, false) && !mon->focused) {
           send_command("monitor -f " + mon->name, "Sending monitor focus command to ipc handler");
