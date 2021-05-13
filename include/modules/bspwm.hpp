@@ -88,7 +88,7 @@ namespace modules {
 
     bool m_click{true};
     bool m_scroll{true};
-    bool m_occscroll{true};
+    bool m_occscroll{false};
     bool m_revscroll{true};
     bool m_pinworkspaces{true};
     bool m_inlinemode{false};
