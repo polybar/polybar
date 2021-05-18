@@ -427,13 +427,21 @@ void tray_manager::refresh_window() {
     m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
   }
 
-  if (m_surface)
+  if (m_surface) {
     m_surface->flush();
+  }
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
   for (auto&& client : m_clients) {
-    client->clear_window();
+    try {
+      if (client->mapped()) {
+        client->clear_window();
+      }
+    } catch (const std::exception& e) {
+      m_log.err("Failed to clear tray client %s '%s' (%s)", m_connection.id(client->window()),
+          ewmh_util::get_wm_name(client->window()), e.what());
+    }
   }
 
   m_connection.flush();
@@ -477,8 +485,8 @@ void tray_manager::create_window() {
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
-                           |XCB_EVENT_MASK_STRUCTURE_NOTIFY
-                           |XCB_EVENT_MASK_EXPOSURE)
+        |XCB_EVENT_MASK_STRUCTURE_NOTIFY
+        |XCB_EVENT_MASK_EXPOSURE)
     << cw_params_override_redirect(true);
   // clang-format on
 
