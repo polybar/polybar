@@ -726,7 +726,7 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
  * Process client docking request
  */
 void tray_manager::process_docking_request(xcb_window_t win) {
-  m_log.info("Processing docking request from %s", m_connection.id(win));
+  m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   m_clients.emplace_back(factory_util::shared<tray_client>(m_connection, win, m_opts.width, m_opts.height));
   auto& client = m_clients.back();
@@ -734,18 +734,15 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   try {
     m_log.trace("tray: Get client _XEMBED_INFO");
     xembed::query(m_connection, win, client->xembed());
-  } catch (const application_error& err) {
-    m_log.err(err.what());
-  } catch (const xpp::x::error::window& err) {
+  } catch (const std::exception& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
     remove_client(win, true);
     return;
   }
 
   try {
-    const unsigned int mask{XCB_CW_BACK_PIXMAP | XCB_CW_EVENT_MASK};
-    const unsigned int values[]{
-        XCB_BACK_PIXMAP_PARENT_RELATIVE, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    const unsigned int mask = XCB_CW_EVENT_MASK;
+    const unsigned int values[]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
     m_log.trace("tray: Update client window");
     m_connection.change_window_attributes_checked(client->window(), mask, values);
@@ -767,8 +764,9 @@ void tray_manager::process_docking_request(xcb_window_t win) {
       m_log.trace("tray: Map client");
       m_connection.map_window_checked(client->window());
     }
-  } catch (const xpp::x::error::window& err) {
-    m_log.err("Failed to setup tray client, removing... (%s)", err.what());
+
+  } catch (const std::exception& err) {
+    m_log.err("Failed to setup tray client removing... (%s)", err.what());
     remove_client(win, false);
   }
 }
