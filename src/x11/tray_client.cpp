@@ -1,9 +1,10 @@
+#include "x11/tray_client.hpp"
+
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
-#include "x11/tray_client.hpp"
 #include "x11/xembed.hpp"
 
 POLYBAR_NS
@@ -28,11 +29,7 @@ unsigned int tray_client::height() const {
 }
 
 void tray_client::clear_window() const {
-  try {
-    m_connection.clear_area_checked(1, window(), 0, 0, width(), height());
-  } catch (const xpp::x::error::window& err) {
-    // ignore
-  }
+  m_connection.clear_area_checked(1, window(), 0, 0, width(), height());
 }
 
 /**
