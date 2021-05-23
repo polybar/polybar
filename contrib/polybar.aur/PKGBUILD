@@ -1,7 +1,7 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.5.5
-pkgrel=2
+pkgver=3.5.6
+pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
 url="https://github.com/polybar/polybar"
@@ -16,7 +16,7 @@ makedepends=("cmake" "python" "pkg-config" "python-sphinx" "python-packaging" "i
 conflicts=("polybar-git")
 install="${pkgname}.install"
 source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
-sha256sums=('7e625d3b6f7885587e70200fd81c2a5d3fb03f5649422de8e138747152ca0bb1')
+sha256sums=('dfe602fc6ac96eac2ae0f5deb2f87e0dd1f81ea5d0f04ad3b3bfd71efd5cc038')
 _dir="${pkgname}-${pkgver}"
 
 prepare() {
@@ -26,9 +26,7 @@ prepare() {
 build() {
   cd "${_dir}/build" || exit 1
   # Force cmake to use system python (to detect xcbgen)
-  # We need to turn off _GLIBCXX_ASSERTIONS because of a bug in polybar:
-  # https://github.com/polybar/polybar/issues/2416
-  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-U_GLIBCXX_ASSERTIONS" -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
+  cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
   cmake --build .
 }
 
