@@ -287,6 +287,8 @@ namespace modules {
           switch (value[0]) {
             case 0:
               break;
+            case '@':
+              break;
             case 'T':
               break;
             case '=':
