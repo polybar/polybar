@@ -120,7 +120,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reported by alsa to be off by one.
   ([`#2399`](https://github.com/polybar/polybar/issues/2399))
 - `internal/backlight`: With amdgpu backlights, the brightness indicator was slightly behind.
-  ([`#2367](https://github.com/polybar/polybar/issues/2367))
+  ([`#2367`](https://github.com/polybar/polybar/issues/2367))
+- Warning message regarding T@ in bspwm module
+  ([`#2371`](https://github.com/polybar/polybar/issues/2371))
 
 ## [3.5.6] - 2021-05-24
 ### Build
