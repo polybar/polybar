@@ -168,7 +168,7 @@ Want to get in touch?
 
 * Join our Gitter room at [gitter.im/polybar/polybar](https://gitter.im/polybar/polybar)
 * We have our own subreddit at [r/polybar](https://www.reddit.com/r/polybar).
-* Chat with us in the `#polybar` IRC channel on the `chat.freenode.net` server.
+* Chat with us in the `#polybar` IRC channel on the [`irc.libera.chat:6697`](https://libera.chat/) server.
 
 ## Contributors
 

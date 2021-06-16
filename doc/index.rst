@@ -39,5 +39,5 @@ Getting Help
 * `Polybar Wiki <https://github.com/polybar/polybar/wiki>`_
 * `Gitter <https://gitter.im/polybar/polybar>`_
 * `/r/polybar <https://reddit.com/r/polybar>`_ on reddit
-* ``#polybar`` on ``chat.freenode.net``
+* ``#polybar`` on `irc.libera.chat:6697 <https://libera.chat/>`_
 
