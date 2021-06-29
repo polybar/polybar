@@ -213,8 +213,8 @@ unsigned long long config::convert(string&& value) const {
 
 template <>
 spacing_val config::convert(string&& value) const {
-  char* new_end;
-  auto size_value = std::strtof(value.c_str(), &new_end);
+  size_t pos;
+  auto size_value = std::stof(value, &pos);
 
   if (size_value < 0) {
     throw application_error(sstream() << "Value: " << value << " must be positive ");
@@ -222,7 +222,7 @@ spacing_val config::convert(string&& value) const {
 
   spacing_val size{spacing_type::SPACE, size_value};
 
-  string unit = string_util::trim(new_end);
+  string unit = string_util::trim(value.substr(pos));
   if (!unit.empty()) {
     if (unit == "px") {
       size.type = spacing_type::PIXEL;

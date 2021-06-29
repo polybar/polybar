@@ -36,12 +36,12 @@ namespace unit_utils {
   }
 
   inline extent_val parse_extent(string&& str) {
-    char* new_end;
-    auto size_value = std::strtof(str.c_str(), &new_end);
+    size_t pos;
+    auto size_value = std::stof(str, &pos);
 
     extent_val size{extent_type::PIXEL, size_value};
 
-    string unit = string_util::trim(new_end);
+    string unit = string_util::trim(str.substr(pos));
     if (!unit.empty()) {
       if (unit == "px") {
         size.value = std::trunc(size.value);
