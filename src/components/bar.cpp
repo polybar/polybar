@@ -329,11 +329,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     throw application_error("Resulting bar height is out of bounds (" + to_string(m_opts.size.h) + ")");
   }
 
-  // clang-format off
   m_log.info("Bar geometry: %ix%i+%i+%i; Borders: %d,%d,%d,%d", m_opts.size.w, m_opts.size.h, m_opts.pos.x,
       m_opts.pos.y, m_opts.borders[edge::TOP].size, m_opts.borders[edge::RIGHT].size, m_opts.borders[edge::BOTTOM].size,
       m_opts.borders[edge::LEFT].size);
-  // clang-format on
 
   m_log.trace("bar: Attach X event sink");
   m_connection.attach_sink(this, SINK_PRIORITY_BAR);
