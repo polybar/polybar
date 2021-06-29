@@ -254,13 +254,13 @@ percentage_with_offset config::convert(string&& value) const {
 
   if (i == std::string::npos) {
     if (value.find('%') != std::string::npos) {
-      return {std::stoi(value), {}};
+      return {std::stod(value), {}};
     } else {
       return {0., convert<extent_val>(move(value))};
     }
   } else {
     std::string percentage = value.substr(0, i - 1);
-    return {std::stoi(percentage), convert<extent_val>(value.substr(i + 1))};
+    return {std::stod(percentage), convert<extent_val>(value.substr(i + 1))};
   }
 }
 
