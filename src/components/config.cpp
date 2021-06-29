@@ -220,21 +220,24 @@ spacing_val config::convert(string&& value) const {
     throw application_error(sstream() << "Value: " << value << " must be positive ");
   }
 
-  spacing_val size{spacing_type::SPACE, size_value};
+  spacing_type type;
 
   string unit = string_util::trim(value.substr(pos));
   if (!unit.empty()) {
     if (unit == "px") {
-      size.type = spacing_type::PIXEL;
-      size.value = std::trunc(size.value);
+      type = spacing_type::PIXEL;
+      size_value = std::trunc(size_value);
     } else if (unit == "pt") {
-      size.type = spacing_type::POINT;
+      type = spacing_type::POINT;
     } else {
-      size.value = std::trunc(size.value);
+      throw value_error("Unrecognized unit '" + unit + "'");
     }
+  } else {
+    type = spacing_type::SPACE;
+    size_value = std::trunc(size_value);
   }
 
-  return size;
+  return {type, size_value};
 }
 
 template <>

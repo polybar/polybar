@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <string>
+#include <stdexcept>
 
 #include "components/types.hpp"
 #include "utils/string.hpp"
@@ -39,18 +40,27 @@ namespace unit_utils {
     size_t pos;
     auto size_value = std::stof(str, &pos);
 
-    extent_val size{extent_type::PIXEL, size_value};
+    extent_type type;
 
     string unit = string_util::trim(str.substr(pos));
     if (!unit.empty()) {
       if (unit == "px") {
-        size.value = std::trunc(size.value);
+        type = extent_type::PIXEL;
       } else if (unit == "pt") {
-        size.type = extent_type::POINT;
+        type = extent_type::POINT;
+      } else {
+        throw std::runtime_error("Unrecognized unit '" + unit + "'");
       }
+    } else {
+      type = extent_type::PIXEL;
     }
 
-    return size;
+    // Pixel values should be integers
+    if (type == extent_type::PIXEL) {
+      size_value = std::trunc(size_value);
+    }
+
+    return {type, size_value};
   }
 
   inline string extent_to_string(extent_val extent) {

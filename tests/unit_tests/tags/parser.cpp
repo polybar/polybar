@@ -82,7 +82,7 @@ class TestableTagParser : public parser {
     EXPECT_EQ(exp, current.tag_data.offset.value);
   }
 
-  void expect_offset_points(int exp) {
+  void expect_offset_points(float exp) {
     set_current();
     assert_format(syntaxtag::O);
     EXPECT_EQ(extent_type::POINT, current.tag_data.offset.type);
@@ -342,6 +342,18 @@ TEST_F(TagParserTest, offset) {
   p.setup_parser_test("%{O123pt}");
   p.expect_offset_points(123);
   p.expect_done();
+
+  p.setup_parser_test("%{O1.5pt}");
+  p.expect_offset_points(1.5);
+  p.expect_done();
+
+  p.setup_parser_test("%{O1.1px}");
+  p.expect_offset_pixel(1);
+  p.expect_done();
+
+  p.setup_parser_test("%{O1.1}");
+  p.expect_offset_pixel(1);
+  p.expect_done();
 }
 
 TEST_F(TagParserTest, alignment) {
@@ -428,6 +440,7 @@ vector<exception_test> parse_error_test = {
     {"%{P}", exc::CTRL},
     {"%{PA}", exc::CTRL},
     {"%{Oabc}", exc::OFFSET},
+    {"%{O123foo}", exc::OFFSET},
     {"%{O0ptx}", exc::OFFSET},
     {"%{O0a}", exc::OFFSET},
     {"%{A2:cmd:cmd:}", exc::TAG_END},
