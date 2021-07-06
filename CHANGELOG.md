@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`hidden = false`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - Actions to control visibility of modules
-  (`toggle_visibility`, `set_visible`, and `set_invisible`)
+  (`module_toggle`, `module_show`, and `module_hide`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))

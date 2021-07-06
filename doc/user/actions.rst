@@ -121,6 +121,19 @@ Available Actions
 The following modules have actions available. Most of them are already used by
 the module by default for click and scroll events.
 
+All Modules
+^^^^^^^^^^^
+
+These actions are available to all modules and are prefixed with ``module_``.
+
+:``module_show``, ``module_hide``:
+  Shows/Hides a module. The module is still running in the background when
+  hidden, it is just not drawn. The starting state can be configured with the
+  `hidden` configuration option.
+
+:``module_toggle``:
+  Toggles the visibility of a module.
+
 internal/date
 ^^^^^^^^^^^^^
 
