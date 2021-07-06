@@ -144,9 +144,9 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
-    static constexpr auto EVENT_TOGGLE_VISIBILITY = "toggle_visible";
-    static constexpr auto EVENT_VISIBILE = "set_visible";
-    static constexpr auto EVENT_INVISIBILE = "set_invisible";
+    static constexpr auto EVENT_MODULE_TOGGLE = "module_toggle";
+    static constexpr auto EVENT_MODULE_SHOW = "module_show";
+    static constexpr auto EVENT_MODULE_HIDE = "module_hide";
 
     string type() const override;
 
@@ -175,9 +175,9 @@ namespace modules {
 
     void set_visible(bool value);
 
-    void action_toggle_visibility();
-    void action_visible();
-    void action_invisible();
+    void action_module_toggle();
+    void action_module_show();
+    void action_module_hide();
 
    protected:
     signal_emitter& m_sig;
