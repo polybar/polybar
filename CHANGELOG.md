@@ -76,11 +76,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#316`](https://github.com/polybar/polybar/issues/316))
 - Added .ini extension check to the default config search.
   ([`#2323`](https://github.com/polybar/polybar/issues/2323))
-- IPC commands to change visibility of modules
-  (`hide.<name>`, `show.<name>`, and `toggle.<name>`)
-  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - Config option to hide a certain module
   (`hidden = false`)
+  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
+- Actions to control visibility of modules
+  (`module_toggle`, `module_show`, and `module_hide`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))

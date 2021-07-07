@@ -26,7 +26,11 @@ namespace modules {
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
-      , m_visible(!m_conf.get(m_name, "hidden", false)) {}
+      , m_visible(!m_conf.get(m_name, "hidden", false)) {
+        m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
+        m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
+        m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
+      }
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
@@ -65,13 +69,6 @@ namespace modules {
   template <typename Impl>
   bool module<Impl>::visible() const {
     return static_cast<bool>(m_visible);
-  }
-
-  template <typename Impl>
-  void module<Impl>::set_visible(bool value) {
-    m_log.info("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
-    m_visible = value;
-    broadcast();
   }
 
   template <typename Impl>
@@ -229,6 +226,28 @@ namespace modules {
     }
 
     return format->decorate(&*m_builder, m_builder->flush());
+  }
+
+  template <typename Impl>
+  void module<Impl>::set_visible(bool value) {
+    m_log.notice("%s: Visibility changed (state=%s)", m_name, value ? "shown" : "hidden");
+    m_visible = value;
+    broadcast();
+  }
+
+  template <typename Impl>
+  void module<Impl>::action_module_toggle() {
+    set_visible(!m_visible);
+  }
+
+  template <typename Impl>
+  void module<Impl>::action_module_show() {
+    set_visible(true);
+  }
+
+  template <typename Impl>
+  void module<Impl>::action_module_hide() {
+    set_visible(false);
   }
 
   // }}}

@@ -76,8 +76,6 @@ class controller
   bool forward_action(const actions_util::action& cmd);
   bool try_forward_legacy_action(const string& cmd);
 
-  void switch_module_visibility(string module_name_raw, int visible);
-
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;

@@ -118,7 +118,6 @@ namespace modules {
     virtual string name() const = 0;
     virtual bool running() const = 0;
     virtual bool visible() const = 0;
-    virtual void set_visible(bool value) = 0;
 
     /**
      * Handle action, possibly with data attached
@@ -145,6 +144,10 @@ namespace modules {
     module(const bar_settings bar, string name);
     ~module() noexcept;
 
+    static constexpr auto EVENT_MODULE_TOGGLE = "module_toggle";
+    static constexpr auto EVENT_MODULE_SHOW = "module_show";
+    static constexpr auto EVENT_MODULE_HIDE = "module_hide";
+
     string type() const override;
 
     string name_raw() const override;
@@ -152,7 +155,6 @@ namespace modules {
     bool running() const override;
 
     bool visible() const override;
-    void set_visible(bool value) override;
 
     void stop() override;
     void halt(string error_message) override;
@@ -170,6 +172,12 @@ namespace modules {
     void wakeup();
     string get_format() const;
     string get_output();
+
+    void set_visible(bool value);
+
+    void action_module_toggle();
+    void action_module_show();
+    void action_module_hide();
 
    protected:
     signal_emitter& m_sig;

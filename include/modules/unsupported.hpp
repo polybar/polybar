@@ -30,7 +30,6 @@ namespace modules {
     bool visible() const override {                                                     \
       return false;                                                                     \
     }                                                                                   \
-    void set_visible(bool) override {}                                                  \
     void start() override {}                                                            \
     void stop() override {}                                                             \
     void halt(string) override {}                                                       \
