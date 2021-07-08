@@ -3,6 +3,7 @@
 #include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 
 #include "modules/meta/base.inl"
 
@@ -58,19 +59,33 @@ namespace modules {
     }
   }
 
+  xcb_window_t active_window::get_window() const {
+    return m_window;
+  }
+
   /**
    * Construct module
    */
   xwindow_module::xwindow_module(const bar_settings& bar, string name_)
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
+    // Load config values
+    if ((m_pinoutput = m_conf.get(name(), "pin-output", m_pinoutput))) {
+      m_showlast = m_conf.get(name(), "pin-show-last", m_showlast);
+    }
+
     // Initialize ewmh atoms
-    if ((ewmh_util::initialize()) == nullptr) {
+    if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
     }
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
     if (!ewmh_util::supports(_NET_ACTIVE_WINDOW)) {
       throw module_error("The WM does not list _NET_ACTIVE_WINDOW as a supported hint");
+    }
+
+    // Check if the WM supports _NET_DESKTOP_VIEWPORT
+    if (!ewmh_util::supports(m_ewmh->_NET_DESKTOP_VIEWPORT) && m_pinoutput) {
+      throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-output = true`)");
     }
 
     // Add formats and elements
@@ -122,12 +137,43 @@ namespace modules {
     if (m_active) {
       m_label = m_statelabels.at(state::ACTIVE)->clone();
       m_label->reset_tokens();
-      m_label->replace_token("%title%", m_active->title());
+
+      if (m_pinoutput) {
+        if (active_window_on_monitor(m_active->get_window())) {
+          m_label->replace_token("%title%", m_active->title());
+          m_lasttitle = m_active->title();
+          return;
+        } else {
+          m_label->replace_token("%title%", m_showlast ? m_lasttitle : "");
+        }
+      } else {
+        m_label->replace_token("%title%", m_active->title());
+      }
     } else {
       m_label = m_statelabels.at(state::EMPTY)->clone();
     }
   }
 
+  bool xwindow_module::active_window_on_monitor(xcb_window_t window) const {
+    auto desktop_names = ewmh_util::get_desktop_names();
+    auto viewports = ewmh_util::get_desktop_viewports();
+    viewports.erase(std::unique(viewports.begin(), viewports.end(), [](auto& a, auto& b) { return a == b; }), viewports.end());
+
+    unsigned int step = desktop_names.size() / viewports.size();
+    unsigned int offset{0};
+
+    for (unsigned int i = 0; i < viewports.size(); i++) {
+      if (m_bar.monitor->match(viewports[i])) {
+        for (unsigned int j = offset; j < offset + step; j++) {
+          if (ewmh_util::get_desktop_from_window(window) == j) {
+            return true;
+          }
+        }
+      }
+      offset += step;
+    }
+    return false;
+  }
   /**
    * Output content as defined in the config
    */

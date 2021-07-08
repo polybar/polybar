@@ -14,12 +14,6 @@
 
 POLYBAR_NS
 
-namespace {
-  inline bool operator==(const position& a, const position& b) {
-    return a.x + a.y == b.x + b.y;
-  }
-}  // namespace
-
 /**
  * Defines a lexicographical order on position
  */
