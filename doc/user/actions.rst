@@ -131,8 +131,12 @@ These actions are available to all modules and are prefixed with ``module_``.
   hidden, it is just not drawn. The starting state can be configured with the
   `hidden` configuration option.
 
+  .. versionadded:: 3.6.0
+
 :``module_toggle``:
   Toggles the visibility of a module.
+
+  .. versionadded:: 3.6.0
 
 internal/date
 ^^^^^^^^^^^^^
