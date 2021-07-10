@@ -136,10 +136,16 @@ namespace modules {
     string output;
 
     for (m_index = 0_z; m_index < m_mounts.size(); ++m_index) {
-      if (!output.empty()) {
+      string mount_output = timer_module::get_output();
+      /*
+       * Add spacing before the mountpoint, but only if the mountpoint contents
+       * are not empty and there is already other content in the module.
+       */
+      if (!output.empty() && !mount_output.empty()) {
         m_builder->space(m_spacing);
+        output += m_builder->flush();
       }
-      output += timer_module::get_output();
+      output += mount_output;
     }
 
     return output;
