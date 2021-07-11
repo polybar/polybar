@@ -123,7 +123,6 @@ namespace modules {
       }
 
       broadcast();
-      return;
     }
   }
 
