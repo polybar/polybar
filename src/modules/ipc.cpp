@@ -13,6 +13,8 @@ namespace modules {
    * create formatting tags
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
+    m_router->register_action_with_data(EVENT_SEND, &ipc_module::action_send);
+
     size_t index = 0;
 
     try {
@@ -125,13 +127,11 @@ namespace modules {
       broadcast();
       return;
     }
-    if (message.rfind(name() + ":", 0) == 0) {
-      m_log.info("%s: Received generic payload (%s)", name(), message);
-      string payload{message.substr(name().length() + 1)};
-      m_output.clear();
-      m_output = payload;
-      broadcast();
-    }
+  }
+
+  void ipc_module::action_send(const string& data) {
+    m_output = data;
+    broadcast();
   }
 }  // namespace modules
 
