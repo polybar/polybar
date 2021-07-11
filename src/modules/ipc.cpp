@@ -17,13 +17,11 @@ namespace modules {
 
     size_t index = 0;
 
-    try {
-      for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
-        m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
-      }
-    } catch (const key_error& err) {
-      m_log.notice("%s: no hooks defined", name());
+    for (auto&& command : m_conf.get_list<string>(name(), "hook", {})) {
+      m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
     }
+
+    m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
