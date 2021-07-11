@@ -21,47 +21,45 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+
+set(POLYBAR_FLAGS "" CACHE STRING "C++ compiler flags used for compiling polybar")
+
+list(APPEND cxx_base -Wall -Wextra -Wpedantic)
+list(APPEND cxx_debug -DDEBUG -g2)
+list(APPEND cxx_minsizerel "")
+list(APPEND cxx_sanitize -O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls)
+list(APPEND cxx_coverage --coverage)
+
+list(APPEND cxx_linker_base "")
+list(APPEND cxx_linker_minsizerel "")
+
 # Compiler flags
 include(CheckCXXCompilerFlag)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
 check_cxx_compiler_flag("-Wsuggest-override" HAS_SUGGEST_OVERRIDE)
 if (HAS_SUGGEST_OVERRIDE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  list(APPEND cxx_base -Wsuggest-override)
 endif()
 unset(HAS_SUGGEST_OVERRIDE)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   # Need dprintf() for FreeBSD 11.1 and older
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WITH_DPRINTF")
   # libinotify uses c99 extension, so suppress this error
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c99-extensions")
+  list(APPEND cxx_base -D_WITH_DPRINTF -Wno-c99-extensions)
   # Ensures that libraries from dependencies in LOCALBASE are used
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
-endif()
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=parentheses-equality")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-zero-length-array")
-endif()
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g2")
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
-  set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -fdata-sections -ffunction-sections")
-  set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS_MINSIZEREL} -Wl,--gc-sections,--icf=safe")
+  list(APPEND cxx_linker_base -L/usr/local/lib)
 endif()
 
 # Check compiler
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  list(APPEND cxx_base -Wno-error=parentheses-equality -Wno-zero-length-array)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.4.0")
     message_colored(FATAL_ERROR "Compiler not supported (Requires clang-3.4+ or gcc-5.1+)" 31)
   else()
     message_colored(STATUS "Using supported compiler ${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}" 32)
   endif()
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  list(APPEND cxx_minsizerel -fdata-sections -ffunction-sections -flto)
+  list(APPEND cxx_linker_minsizerel -Wl,--gc-sections)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.1.0")
     message_colored(FATAL_ERROR "Compiler not supported (Requires clang-3.4+ or gcc-5.1+)" 31)
   else()
@@ -74,29 +72,35 @@ endif()
 # Set compiler and linker flags for preferred C++ library
 if(CXXLIB_CLANG)
   message_colored(STATUS "Linking against libc++" 32)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++ -lc++abi")
+  list(APPEND cxx_base -stdlib=libc++)
+  list(APPEND cxx_linker_base -lc++ -lc++abi)
 elseif(CXXLIB_GCC)
   message_colored(STATUS "Linking against libstdc++" 32)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
+  list(APPEND cxx_linker_base -lstdc++)
 endif()
 
-# Custom build type ; SANITIZE
-SET(CMAKE_CXX_FLAGS_SANITIZE "-O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-  CACHE STRING "Flags used by the C++ compiler during sanitize builds." FORCE)
-SET(CMAKE_EXE_LINKER_FLAGS_SANITIZE ""
-  CACHE STRING "Flags used for linking binaries during sanitize builds." FORCE)
-SET(CMAKE_SHARED_LINKER_FLAGS_SANITIZE ""
-  CACHE STRING "Flags used by the shared libraries linker during sanitize builds." FORCE)
-MARK_AS_ADVANCED(
-  CMAKE_CXX_FLAGS_SANITIZE
-  CMAKE_EXE_LINKER_FLAGS_SANITIZE
-  CMAKE_SHARED_LINKER_FLAGS_SANITIZE)
+# Custom build type 'Coverage', inherits the debug flags
+list(APPEND cxx_coverage ${cxx_debug} ${cxx_coverage})
+SET(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_COVERAGE}")
+SET(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
+SET(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")
 
-# Custom build type ; Coverage
-SET(CMAKE_CXX_FLAGS_COVERAGE
-  "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_COVERAGE} --coverage")
-SET(CMAKE_EXE_LINKER_FLAGS_COVERAGE
-  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
-SET(CMAKE_SHARED_LINKER_FLAGS_COVERAGE
-  "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")
+list(APPEND cxx_flags ${cxx_base})
+list(APPEND cxx_linker_flags ${cxx_linker_base})
+
+if (CMAKE_BUILD_TYPE_UPPER STREQUAL "DEBUG")
+  list(APPEND cxx_flags ${cxx_debug})
+elseif (CMAKE_BUILD_TYPE_UPPER STREQUAL "MINSIZEREL")
+  list(APPEND cxx_flags ${cxx_minsizerel})
+  list(APPEND cxx_linker_flags ${cxx_linker_minsizerel})
+elseif (CMAKE_BUILD_TYPE_UPPER STREQUAL "SANITIZE")
+  list(APPEND cxx_flags ${cxx_sanitize})
+elseif (CMAKE_BUILD_TYPE_UPPER STREQUAL "COVERAGE")
+  list(APPEND cxx_flags ${cxx_coverage})
+endif()
+
+string(REPLACE " " ";" polybar_flags_list "${POLYBAR_FLAGS}")
+list(APPEND cxx_flags ${polybar_flags_list})
+
+string(REPLACE ";" " " cxx_flags_str "${cxx_flags}")
+string(REPLACE ";" " " cxx_linker_flags_str "${cxx_linker_flags}")

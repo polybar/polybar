@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The sample config file is now placed in the `generated-sources` folder inside
   whatever folder you invoked `cmake` from instead of in the root folder of the
   repository.
+- The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
 
 ### Added
 - Option to always show urgent windows in i3 module when `pin-workspace` is active

@@ -1,13 +1,12 @@
 #
 # Output build summary
 #
-
 message(STATUS " Build:")
 message_colored(STATUS "   Version: ${APP_VERSION}" "32;1")
 message_colored(STATUS "   Type: ${CMAKE_BUILD_TYPE}" "37;2")
 if (HAS_CXX_COMPILATION)
-  message_colored(STATUS "   CXX: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
-  message_colored(STATUS "   LD: ${CMAKE_LINKER} ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" "37;2")
+  message_colored(STATUS "   CXX: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${cxx_flags_str}" "37;2")
+  message_colored(STATUS "   LD: ${CMAKE_LINKER} ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${cxx_linker_flags_str}" "37;2")
 endif()
 if (BUILD_DOC)
   message_colored(STATUS "   sphinx-build: ${BIN_SPHINX} ${SPHINX_FLAGS}" "37;2")
