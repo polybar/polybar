@@ -205,7 +205,8 @@ if(BUILD_LIBPOLY)
     target_link_libraries(poly PUBLIC LibInotify::LibInotify)
   endif()
 
-  target_compile_options(poly PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+  target_compile_options(poly PUBLIC ${cxx_flags})
+  target_link_options(poly PUBLIC ${cxx_linker_flags})
   set_target_properties(poly PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs)
   # }}}
 
@@ -213,6 +214,8 @@ if(BUILD_LIBPOLY)
   if(BUILD_POLYBAR)
     add_executable(polybar main.cpp)
     target_link_libraries(polybar poly)
+    target_compile_options(polybar PUBLIC ${cxx_flags})
+    target_link_options(polybar PUBLIC ${cxx_linker_flags})
     set_target_properties(poly PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
     install(TARGETS polybar
@@ -230,7 +233,8 @@ if(BUILD_POLYBAR_MSG)
     utils/file.cpp
     utils/string.cpp)
   target_include_directories(polybar-msg PRIVATE ${includes_dir})
-  target_compile_options(polybar-msg PUBLIC $<$<CXX_COMPILER_ID:GNU>:$<$<CONFIG:MinSizeRel>:-flto>>)
+  target_compile_options(polybar-msg PUBLIC ${cxx_flags})
+  target_link_options(polybar-msg PUBLIC ${cxx_linker_flags})
 
   install(TARGETS polybar-msg
     DESTINATION ${CMAKE_INSTALL_BINDIR}

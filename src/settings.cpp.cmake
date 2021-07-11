@@ -53,8 +53,8 @@ void print_build_info(bool extended) {
     printf("\n");
     printf("Build type: @CMAKE_BUILD_TYPE@\n");
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");
-    printf("Compiler flags: @CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}\n");
-    printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@ ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}\n");
+    printf("Compiler flags: @CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} @cxx_flags_str@\n");
+    printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@ ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} @cxx_linker_flags_str@\n");
   }
 }
 // clang-format on
