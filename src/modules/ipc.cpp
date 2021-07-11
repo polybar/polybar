@@ -15,12 +15,12 @@ namespace modules {
   ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
     size_t index = 0;
 
-    for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
-      m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
-    }
-
-    if (m_hooks.empty()) {
-      throw module_error("No hooks defined");
+    try {
+      for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
+        m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
+      }
+    } catch (const key_error& err) {
+      m_log.notice("%s: no hooks defined", name());
     }
 
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
@@ -122,6 +122,14 @@ namespace modules {
         m_output.clear();
       }
 
+      broadcast();
+      return;
+    }
+    if (message.rfind(name() + ":", 0) == 0) {
+      m_log.info("%s: Received generic payload (%s)", name(), message);
+      string payload{message.substr(name().length() + 1)};
+      m_output.clear();
+      m_output = payload;
       broadcast();
     }
   }
