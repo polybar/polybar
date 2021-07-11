@@ -34,6 +34,11 @@ namespace modules {
 
     static constexpr auto TYPE = "custom/ipc";
 
+    static constexpr auto EVENT_SEND = "send";
+
+   protected:
+    void action_send(const string& data);
+
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
     vector<unique_ptr<hook>> m_hooks;

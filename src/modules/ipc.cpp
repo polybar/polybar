@@ -13,15 +13,15 @@ namespace modules {
    * create formatting tags
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
+    m_router->register_action_with_data(EVENT_SEND, &ipc_module::action_send);
+
     size_t index = 0;
 
-    for (auto&& command : m_conf.get_list<string>(name(), "hook")) {
+    for (auto&& command : m_conf.get_list<string>(name(), "hook", {})) {
       m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
     }
 
-    if (m_hooks.empty()) {
-      throw module_error("No hooks defined");
-    }
+    m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
@@ -124,6 +124,11 @@ namespace modules {
 
       broadcast();
     }
+  }
+
+  void ipc_module::action_send(const string& data) {
+    m_output = data;
+    broadcast();
   }
 }  // namespace modules
 

@@ -98,6 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `occupied-scroll = true` option to bspwm module.
   Allows scrolling only through occupied desktops only.
   ([`#2427`](https://github.com/polybar/polybar/issues/2427))
+- `custom/ipc`: `send` action to send arbitrary strings to be displayed in the module.
+  ([`#2455`](https://github.com/polybar/polybar/issues/2455))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible

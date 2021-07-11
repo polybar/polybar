@@ -258,6 +258,13 @@ custom/menu
            The data has the form ``N-M`` and the action will execute the command
            in ``menu-N-M-exec``.
 
+custom/ipc
+^^^^^^^^^^
+
+:``send``: *(Has Data)* Replace the contents of the module with the data passed in this action.
+
+  .. versionadded:: 3.6.0
+
 Deprecated Action Names
 -----------------------
 
