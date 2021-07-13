@@ -95,6 +95,7 @@ namespace modules {
     m_actions[mousebtn::DOUBLE_RIGHT] = m_conf.get(name(), "double-click-right", ""s);
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
+    m_actions[mousebtn::HOVER] = m_conf.get(name(), "hover", ""s);
 
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
@@ -180,7 +181,7 @@ namespace modules {
     for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
                      mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
                      mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP,
-                     mousebtn::SCROLL_DOWN}) {
+                     mousebtn::SCROLL_DOWN, mousebtn::HOVER}) {
 
       auto action = m_actions[btn];
 

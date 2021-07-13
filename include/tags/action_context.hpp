@@ -24,9 +24,9 @@ namespace tags {
   static constexpr action_t NO_ACTION = -1;
 
   /**
-   * Defines a clickable (or scrollable) action block.
+   * Defines a clickable, scrollable or hover-able action block.
    *
-   * An action block is an area on the bar that executes some command when clicked.
+   * An action block is an area on the bar that executes some command in response to mouse input.
    */
   struct action_block {
     action_block(const string&& cmd, mousebtn button, alignment align, bool is_open)
