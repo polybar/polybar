@@ -146,7 +146,7 @@ namespace randr_util {
         primary_name = {name_iter.begin(), name_iter.end()};
       }
 
-      for (auto&& output : conn.get_screen_resources(root).outputs()) {
+      for (auto&& output : conn.get_screen_resources_current(root).outputs()) {
         try {
           auto info = conn.get_output_info(output);
           if (info->crtc == XCB_NONE) {
