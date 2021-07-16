@@ -357,6 +357,12 @@ namespace modules {
     label_t m_title_label;
 
     /**
+     * The default value displayed when m_title_label is false
+     */
+
+    std::string m_title_label_default{"Desktop"};
+
+    /**
      * Connection to DWM
      */
     unique_ptr<dwmipc::Connection> m_ipc;

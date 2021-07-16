@@ -46,6 +46,7 @@ namespace modules {
       m_title_label = load_optional_label(m_conf, name(), "label-title", "%title%");
     }
 
+    m_title_label_default = m_conf.get(name(), "label-title-default", m_title_label_default);
     m_tags_click = m_conf.get(name(), "enable-tags-click", m_tags_click);
     m_layout_click = m_conf.get(name(), "enable-layout-click", m_layout_click);
     m_layout_scroll = m_conf.get(name(), "enable-layout-scroll", m_layout_scroll);
@@ -436,7 +437,7 @@ namespace modules {
 
   void dwm_module::update_title_label(const string& title) {
     m_title_label->reset_tokens();
-    m_title_label->replace_token("%title%", title);
+    m_title_label->replace_token("%title%", title == "" ? m_title_label_default : title );
   }
 
   void dwm_module::update_title_label() {
