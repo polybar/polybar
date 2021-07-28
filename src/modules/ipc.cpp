@@ -71,13 +71,13 @@ namespace modules {
   }
 
   string ipc_module::replace_active_hook_token(string hook_command) {
-    const char active_hook_token[] = "%active-hook%";
+    const char active_hook_token[] = "%hook%";
     const char next_hook_token[] = "%next%";
     const char prev_hook_token[] = "%prev%";
 
     string::size_type a = hook_command.find(active_hook_token);
     if(a != string::npos){
-      hook_command.replace(a, 13, to_string(get_active()));
+      hook_command.replace(a, 6, to_string(get_active()));
     }
     string::size_type n = hook_command.find(next_hook_token);
     if(n != string::npos){
