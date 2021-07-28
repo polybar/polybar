@@ -26,6 +26,9 @@ namespace modules {
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
     }
+    else{
+      active_hook = m_initial;
+    }
 
     // clang-format off
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
@@ -67,6 +70,26 @@ namespace modules {
     static_module::start();
   }
 
+  string ipc_module::replace_active_hook_token(string hook_command) {
+    const char active_hook_token[] = "%active-hook%";
+    const char next_hook_token[] = "%next%";
+    const char prev_hook_token[] = "%prev%";
+
+    string::size_type a = hook_command.find(active_hook_token);
+    if(a != string::npos){
+      hook_command.replace(a, 13, to_string(get_active()));
+    }
+    string::size_type n = hook_command.find(next_hook_token);
+    if(n != string::npos){
+      hook_command.replace(n, 6, to_string((get_active()+1)%m_hooks.size()+1));
+    }
+    string::size_type p = hook_command.find(prev_hook_token);
+    if(p != string::npos){
+      hook_command.replace(p, 6, to_string((get_active()-1)%m_hooks.size()+1));
+    }
+    return hook_command;
+  }
+
   /**
    * Wrap the output with defined mouse actions
    */
@@ -78,7 +101,7 @@ namespace modules {
 
     for (auto&& action : m_actions) {
       if (!action.second.empty()) {
-        m_builder->action(action.first, action.second);
+        m_builder->action(action.first, replace_active_hook_token(action.second));
       }
     }
 
@@ -104,7 +127,8 @@ namespace modules {
    * execute its command
    */
   void ipc_module::on_message(const string& message) {
-    for (auto&& hook : m_hooks) {
+    for (size_t i = 0; i<m_hooks.size(); i++) {
+      auto&& hook = m_hooks[i];
       if (hook->payload != message) {
         continue;
       }
@@ -114,6 +138,7 @@ namespace modules {
       try {
         // Clear the output in case the command produces no output
         m_output.clear();
+        set_active(i);
         auto command = command_util::make_command<output_policy::REDIRECTED>(hook->command);
         command->exec(false);
         command->tail([this](string line) { m_output = line; });
@@ -130,6 +155,19 @@ namespace modules {
     m_output = data;
     broadcast();
   }
-}  // namespace modules
+
+  void ipc_module::set_active(size_t current){
+    active_mutex.lock();
+    active_hook=current;
+    active_mutex.unlock();
+  }
+
+  size_t ipc_module::get_active(){
+    size_t active;
+    active_mutex.lock();
+    active=active_hook;
+    active_mutex.unlock();
+    return active;
+  }
 
 POLYBAR_NS_END

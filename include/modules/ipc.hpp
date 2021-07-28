@@ -3,6 +3,9 @@
 #include "modules/meta/static_module.hpp"
 #include "utils/command.hpp"
 
+#include <mutex>
+
+
 POLYBAR_NS
 
 namespace modules {
@@ -38,9 +41,14 @@ namespace modules {
 
    protected:
     void action_send(const string& data);
+    string replace_active_hook_token(string hook_command);
 
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
+    size_t get_active();
+    void set_active(size_t);
+    size_t active_hook;
+    mutex active_mutex;
     vector<unique_ptr<hook>> m_hooks;
     map<mousebtn, string> m_actions;
     string m_output;
