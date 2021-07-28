@@ -77,7 +77,7 @@ namespace modules {
 
     string::size_type a = hook_command.find(active_hook_token);
     if(a != string::npos){
-      hook_command.replace(a, 6, to_string(get_active()));
+      hook_command.replace(a, 6, to_string((get_active())%m_hooks.size()+1));
     }
     string::size_type n = hook_command.find(next_hook_token);
     if(n != string::npos){
