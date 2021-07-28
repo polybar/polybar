@@ -25,8 +25,7 @@ namespace modules {
 
     if ((m_initial = m_conf.get(name(), "initial", 0_z)) && m_initial > m_hooks.size()) {
       throw module_error("Initial hook out of bounds (defined: " + to_string(m_hooks.size()) + ")");
-    }
-    else{
+    } else {
       active_hook = m_initial;
     }
 
@@ -76,16 +75,16 @@ namespace modules {
     const char prev_hook_token[] = "%prev%";
 
     string::size_type a = hook_command.find(active_hook_token);
-    if(a != string::npos){
-      hook_command.replace(a, 6, to_string((get_active())%m_hooks.size()+1));
+    if (a != string::npos) {
+      hook_command.replace(a, 6, to_string((get_active()) % m_hooks.size() + 1));
     }
     string::size_type n = hook_command.find(next_hook_token);
-    if(n != string::npos){
-      hook_command.replace(n, 6, to_string((get_active()+1)%m_hooks.size()+1));
+    if (n != string::npos) {
+      hook_command.replace(n, 6, to_string((get_active() + 1) % m_hooks.size() + 1));
     }
     string::size_type p = hook_command.find(prev_hook_token);
-    if(p != string::npos){
-      hook_command.replace(p, 6, to_string((get_active()-1)%m_hooks.size()+1));
+    if (p != string::npos) {
+      hook_command.replace(p, 6, to_string((get_active() - 1) % m_hooks.size() + 1));
     }
     return hook_command;
   }
@@ -127,7 +126,7 @@ namespace modules {
    * execute its command
    */
   void ipc_module::on_message(const string& message) {
-    for (size_t i = 0; i<m_hooks.size(); i++) {
+    for (size_t i = 0; i < m_hooks.size(); i++) {
       auto&& hook = m_hooks[i];
       if (hook->payload != message) {
         continue;
@@ -156,18 +155,19 @@ namespace modules {
     broadcast();
   }
 
-  void ipc_module::set_active(size_t current){
+  void ipc_module::set_active(size_t current) {
     active_mutex.lock();
-    active_hook=current;
+    active_hook = current;
     active_mutex.unlock();
   }
 
-  size_t ipc_module::get_active(){
+  size_t ipc_module::get_active() {
     size_t active;
     active_mutex.lock();
-    active=active_hook;
+    active = active_hook;
     active_mutex.unlock();
     return active;
   }
+}
 
 POLYBAR_NS_END
