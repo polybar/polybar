@@ -35,9 +35,13 @@ namespace modules {
     static constexpr auto TYPE = "custom/ipc";
 
     static constexpr auto EVENT_SEND = "send";
+    static constexpr auto EVENT_HOOK = "hook";
+    static constexpr auto EVENT_APPEND = "append";
 
    protected:
     void action_send(const string& data);
+    void action_hook(const string& data);
+    void action_append(const string& data);
 
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
@@ -45,6 +49,7 @@ namespace modules {
     map<mousebtn, string> m_actions;
     string m_output;
     size_t m_initial;
+    void exec_hook(size_t index, callback<string> tail);
   };
 }  // namespace modules
 

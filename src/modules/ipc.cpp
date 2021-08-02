@@ -16,6 +16,8 @@ namespace modules {
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
+    m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) {action_hook(data); });
+    m_router->register_action_with_data(EVENT_APPEND, [this](const std::string& data) {action_append(data); });
 
     size_t index = 0;
 
@@ -132,6 +134,38 @@ namespace modules {
   void ipc_module::action_send(const string& data) {
     m_output = data;
     broadcast();
+  }
+
+  void ipc_module::action_hook(const string& data) {
+    try{
+      int i = std::stoi(data);
+      // Clear the output in case the command produces no output
+      m_output.clear();
+      this->exec_hook(i, [this](string line) { m_output = line; });
+    }catch(std::invalid_argument){
+      m_log.err("Failed to convert hook index to integer");
+    }
+    broadcast();
+  }
+
+  void ipc_module::action_append(const string& data) {
+    try{
+      int i = std::stoi(data);
+      this->exec_hook(i, [this](string line) { m_output += line; });
+    }catch(std::invalid_argument const&){
+      m_log.err("Failed to convert hook index to integer");
+    }
+    broadcast();
+  }
+
+  void ipc_module::exec_hook(size_t index, callback<string> tail){
+    if(index >= m_hooks.size()){
+      m_log.err("Out of range hook index: %d", index);
+      return;
+    }
+    auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks[index]->command);
+    command->exec(false);
+    command->tail(tail);
   }
 }  // namespace modules
 
