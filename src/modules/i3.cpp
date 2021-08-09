@@ -40,7 +40,7 @@ namespace modules {
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
     // Add formats and create components
-    m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE});
+    m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE, TAG_LABEL_GROUP});
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
       m_statelabels.insert(
@@ -58,6 +58,11 @@ namespace modules {
     }
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+
+    if (m_formatter->has(TAG_LABEL_GROUP)) {
+        m_labelgroupoutputs = load_optional_label(m_conf, name(), "label-group-outputs", DEFAULT_GROUP_LABEL);
+        m_labelgroupoutputs ->m_margin.left = 1;
+    }
 
     m_icons = factory_util::shared<iconset>();
     m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
@@ -142,6 +147,10 @@ namespace modules {
         sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
       }
 
+      if (m_formatter->has(TAG_LABEL_GROUP)) {
+        stable_sort(workspaces.begin(), workspaces.end(), [](auto a, auto b) { return a->output < b->output; });
+      }
+
       for (auto&& ws : workspaces) {
         state ws_state{state::NONE};
 
@@ -173,7 +182,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label), ws->output));
       }
 
       return true;
@@ -193,6 +202,7 @@ namespace modules {
       }
 
       bool first = true;
+      string last_ws_output;
       for (auto&& ws : m_workspaces) {
         /*
          * The separator should only be inserted in between the workspaces, so
@@ -202,6 +212,16 @@ namespace modules {
           first = false;
         } else if (*m_labelseparator) {
           builder->node(m_labelseparator);
+        }
+
+        if (m_formatter->has(TAG_LABEL_GROUP)) {
+          if (last_ws_output != ws->output) {
+            last_ws_output = ws->output;
+            auto label = m_labelgroupoutputs->clone();
+            label->reset_tokens();
+            label->replace_token("%output%", ws->output);
+            builder->node(label);
+          }
         }
 
         if (m_click) {
