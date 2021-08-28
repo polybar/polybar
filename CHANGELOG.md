@@ -126,6 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2367`](https://github.com/polybar/polybar/issues/2367))
 - Warning message regarding T@ in bspwm module
   ([`#2371`](https://github.com/polybar/polybar/issues/2371))
+- `polybar -m` hides physical outputs covered by monitors
+  ([`#2481`](https://github.com/polybar/polybar/issues/2481))
 
 ## [3.5.6] - 2021-05-24
 ### Build
