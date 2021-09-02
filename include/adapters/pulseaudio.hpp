@@ -27,7 +27,8 @@ class pulseaudio {
   using queue = std::queue<evtype>;
 
  public:
-  explicit pulseaudio(const logger& logger, string&& sink_name, bool m_max_volume);
+  enum class devicetype { SINK = 0, SOURCE };
+  explicit pulseaudio(const logger& logger, devicetype device_type, string&& device_name,  bool m_max_volume);
   ~pulseaudio();
 
   pulseaudio(const pulseaudio& o) = delete;
@@ -40,22 +41,28 @@ class pulseaudio {
 
   int get_volume();
   double get_decibels();
-  void set_volume(float percentage);
   void inc_volume(int delta_perc);
   void set_mute(bool mode);
   void toggle_mute();
   bool is_muted();
 
  private:
-  void update_volume(pa_operation* o);
-  static void check_mute_callback(pa_context* context, const pa_sink_info* info, int eol, void* userdata);
-  static void get_sink_volume_callback(pa_context* context, const pa_sink_info* info, int is_last, void* userdata);
+  template<typename T>
+  static void get_volume_callback(pa_context* context, const T* info, int is_last, void* userdata);
   static void subscribe_callback(pa_context* context, pa_subscription_event_type_t t, uint32_t idx, void* userdata);
   static void simple_callback(pa_context* context, int success, void* userdata);
-  static void sink_info_callback(pa_context* context, const pa_sink_info* info, int eol, void* userdata);
+  template<typename T>
+  static void info_callback(pa_context* context, const T* info, int eol, void* userdata);
   static void context_state_callback(pa_context* context, void* userdata);
 
   inline void wait_loop(pa_operation* op, pa_threaded_mainloop* loop);
+
+  /* Abstraction for sink/source */
+  const string get_device_type();
+  void device_update_info(string device_name);
+  void device_update_info();
+  void device_set_volume();
+  void device_set_mute(bool mode);
 
   const logger& m_log;
 
@@ -70,13 +77,15 @@ class pulseaudio {
   bool muted{false};
   // default sink name
   static constexpr auto DEFAULT_SINK = "@DEFAULT_SINK@";
+  static constexpr auto DEFAULT_SOURCE = "@DEFAULT_SOURCE@";
 
   pa_context* m_context{nullptr};
   pa_threaded_mainloop* m_mainloop{nullptr};
 
   queue m_events;
 
-  // specified sink name
+  // specified sink/source
+  devicetype m_device_type;
   string spec_s_name;
   string s_name;
   uint32_t m_index{0};
