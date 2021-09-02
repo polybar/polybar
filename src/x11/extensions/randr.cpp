@@ -107,56 +107,65 @@ namespace randr_util {
    */
   vector<monitor_t> get_monitors(connection& conn, xcb_window_t root, bool connected_only, bool purge_clones) {
     vector<monitor_t> monitors;
+    bool found = false;
 
-#if WITH_XRANDR_MONITORS
     if (check_monitor_support()) {
-      for (auto&& mon : conn.get_monitors(root, true).monitors()) {
+#if WITH_XRANDR_MONITORS
+      /* Use C, because XPP does not provide access to output info from monitors. */
+      xcb_generic_error_t *err;
+      auto rrmonitors =
+        xcb_randr_get_monitors_reply(
+          conn, xcb_randr_get_monitors(conn, root, true), &err);
+      if (err != NULL) {
+        free(err);
+      } else {
+        for (auto iter = xcb_randr_get_monitors_monitors_iterator(rrmonitors);
+             iter.rem;
+             xcb_randr_monitor_info_next(&iter)) {
+          auto mon = iter.data;
+          auto name = conn.get_atom_name(mon->name).name();
+
+          /* Output is only useful for some plugins. We take the first one. */
+          int randr_output_len = xcb_randr_monitor_info_outputs_length(mon);
+          auto randr_outputs = xcb_randr_monitor_info_outputs(mon);
+          auto output = (randr_output_len >= 1) ? randr_outputs[0] : XCB_NONE;
+          monitors.emplace_back(make_monitor(output, move(name), mon->width, mon->height, mon->x, mon->y, mon->primary));
+          found = true;
+        }
+        free(rrmonitors);
+      }
+#endif
+    }
+    if (!found || !purge_clones) {
+      auto primary_output = conn.get_output_primary(root).output();
+      string primary_name{};
+
+      if (primary_output != XCB_NONE) {
+        auto primary_info = conn.get_output_info(primary_output);
+        auto name_iter = primary_info.name();
+        primary_name = {name_iter.begin(), name_iter.end()};
+      }
+
+      for (auto&& output : conn.get_screen_resources(root).outputs()) {
         try {
-          auto name = conn.get_atom_name(mon.name).name();
-          monitors.emplace_back(make_monitor(XCB_NONE, move(name), mon.width, mon.height, mon.x, mon.y, mon.primary));
+          auto info = conn.get_output_info(output);
+          if (info->crtc == XCB_NONE) {
+            continue;
+          } else if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED) {
+            continue;
+          }
+
+          auto name_iter = info.name();
+          string name{name_iter.begin(), name_iter.end()};
+
+          auto crtc = conn.get_crtc_info(info->crtc);
+          auto primary = (primary_name == name);
+          if (!std::any_of(monitors.begin(), monitors.end(), [name](const auto &monitor) { return monitor->name == name; })) {
+            monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
+          }
         } catch (const exception&) {
           // silently ignore output
         }
-      }
-    }
-#endif
-    auto primary_output = conn.get_output_primary(root).output();
-    string primary_name{};
-
-    if (primary_output != XCB_NONE) {
-      auto primary_info = conn.get_output_info(primary_output);
-      auto name_iter = primary_info.name();
-      primary_name = {name_iter.begin(), name_iter.end()};
-    }
-
-    for (auto&& output : conn.get_screen_resources(root).outputs()) {
-      try {
-        auto info = conn.get_output_info(output);
-        if (info->crtc == XCB_NONE) {
-          continue;
-        } else if (connected_only && info->connection != XCB_RANDR_CONNECTION_CONNECTED) {
-          continue;
-        }
-
-        auto name_iter = info.name();
-        string name{name_iter.begin(), name_iter.end()};
-
-#if WITH_XRANDR_MONITORS
-        if (check_monitor_support()) {
-          auto mon = std::find_if(
-              monitors.begin(), monitors.end(), [&name](const monitor_t& mon) { return mon->name == name; });
-          if (mon != monitors.end()) {
-            (*mon)->output = output;
-            continue;
-          }
-        }
-#endif
-
-        auto crtc = conn.get_crtc_info(info->crtc);
-        auto primary = (primary_name == name);
-        monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
-      } catch (const exception&) {
-        // silently ignore output
       }
     }
 
@@ -168,8 +177,6 @@ namespace randr_util {
 
         for (auto& inner : monitors) {
           if (outer == inner || inner->w == 0) {
-            continue;
-          } else if (check_monitor_support() && (inner->output == XCB_NONE || outer->output == XCB_NONE)) {
             continue;
           }
 
