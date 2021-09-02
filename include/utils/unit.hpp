@@ -2,8 +2,8 @@
 
 #include <cassert>
 #include <cmath>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 #include "components/types.hpp"
 #include "utils/string.hpp"
@@ -64,13 +64,11 @@ namespace unit_utils {
   }
 
   inline string extent_to_string(extent_val extent) {
-    if (extent.value > 0) {
-      switch (extent.type) {
-        case extent_type::POINT:
-          return to_string(extent.value) + "pt";
-        case extent_type::PIXEL:
-          return to_string(static_cast<int>(extent.value)) + "px";
-      }
+    switch (extent.type) {
+      case extent_type::POINT:
+        return to_string(extent.value) + "pt";
+      case extent_type::PIXEL:
+        return to_string(static_cast<int>(extent.value)) + "px";
     }
 
     return {};
