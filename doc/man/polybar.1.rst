@@ -43,14 +43,14 @@ OPTIONS
    Print the value of the specified parameter *PARAM* in bar section and exit
 .. option:: -m, --list-monitors
 
-   Print list of available monitors and exit
-
-   If some monitors are cloned, this will exclude all but one of them
+   | Print list of available monitors and exit.
+   | If some monitors are cloned, this will exclude all but one of them.
+   | If polybar was compiled with RandR monitor support, only monitors are listed and not physical outputs.
 .. option:: -M, --list-all-monitors
 
-   Print list of available monitors and exit
-
-   This will also include all cloned monitors.
+   | Print list of all available monitors and exit.
+   | This includes cloned monitors as well as both physical outputs and RandR monitors (if supported).
+   | Only the names listed here can be used as monitor names in polybar.
 .. option:: -w, --print-wmname
 
    Print the generated *WM_NAME* and exit
