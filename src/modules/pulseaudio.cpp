@@ -98,7 +98,7 @@ namespace modules {
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
-      m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
+      m_log.err("%s: Failed to query pulseaudio (%s)", name(), err.what());
     }
 
     // Replace label tokens
@@ -122,6 +122,17 @@ namespace modules {
   }
 
   string pulseaudio_module::get_output() {
+    // Exclude monitors and auto_null
+    if (!m_pulseaudio) {
+      return ""s;
+    }
+    auto s_name = m_pulseaudio->get_name();
+    if (s_name.empty() ||
+        s_name == "auto_null" ||
+        (s_name.size() >= 8 && s_name.compare(s_name.size() - 8, s_name.size(), ".monitor") == 0)) {
+      return ""s;
+    }
+
     // Get the module output early so that
     // the format prefix/suffix also gets wrapper
     // with the cmd handlers
