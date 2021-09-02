@@ -217,8 +217,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load values used to adjust the struts atom
-  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0U);
-  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0U);
+  auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
+  auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
+  m_opts.strut.top = percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom = percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
