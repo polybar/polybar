@@ -124,7 +124,7 @@ namespace modules {
       label->replace_token("%total%", string_util::filesize_gib_mib(kb_total, 2, m_bar.locale));
       label->replace_token("%swap_total%", string_util::filesize_gib_mib(kb_swap_total, 2, m_bar.locale));
       label->replace_token("%swap_free%", string_util::filesize_gib_mib(kb_swap_free, 2, m_bar.locale));
-      label->replace_token("%swap_used%", string_util::filesize_gib_mib(kb_swap_total, 2, m_bar.locale));
+      label->replace_token("%swap_used%", string_util::filesize_gib_mib(kb_swap_total - kb_swap_free, 2, m_bar.locale));
     };
 
     if (m_label) {
