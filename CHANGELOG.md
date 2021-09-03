@@ -52,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
 
 ### Added
+- `module/memory`: Display MiB instead of GiB when GiB value is less than 1GiB
+  ([`2472`](https://github.com/polybar/polybar/issues/2472))
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
   ([`2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
