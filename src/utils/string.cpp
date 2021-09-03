@@ -294,7 +294,7 @@ namespace string_util {
   /**
    * Create a GiB string, if the value in GiB is >= 1.0. Otherwise, create a MiB string.
    */
-  string filesize_gib_mib(unsigned long long kibibytes, size_t precision, const string locale) {
+  string filesize_gib_mib(unsigned long long kibibytes, size_t precision, const string& locale) {
     if(kibibytes / 1024.0 / 1024.0 < 1.0) {
       return filesize_mib(kibibytes, precision, locale);
     } else {
