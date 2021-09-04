@@ -128,6 +128,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2371`](https://github.com/polybar/polybar/issues/2371))
 - `polybar -m` used to show both physical outputs and randr monitors, even if the outputs were covered by monitors.
   ([`#2481`](https://github.com/polybar/polybar/issues/2481))
+- `internal/xworkspaces`: Broken scroll-wrapping and order of workspaces when scrolling
+  ([`#2491`](https://github.com/polybar/polybar/issues/2491))
+
 
 ## [3.5.6] - 2021-05-24
 ### Build
