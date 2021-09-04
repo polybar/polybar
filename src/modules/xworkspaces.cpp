@@ -391,27 +391,42 @@ namespace modules {
     focus_direction(false);
   }
 
+  /**
+   * Focuses either the next or previous desktop.
+   *
+   * Will wrap around at the ends and go in the order the desktops are displayed.
+   */
   void xworkspaces_module::focus_direction(bool next) {
     std::lock_guard<std::mutex> lock(m_workspace_mutex);
-    vector<unsigned int> indexes;
+
+    unsigned int current_desktop{ewmh_util::get_current_desktop()};
+    int current_index = -1;
+
+    /*
+     * Desktop indices in the order they are displayed.
+     */
+    vector<unsigned int> indices;
+
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
-        indexes.emplace_back(desktop->index);
+
+        if (current_desktop == desktop->index) {
+          current_index = indices.size();
+        }
+
+        indices.emplace_back(desktop->index);
       }
     }
 
-    unsigned new_desktop;
-    unsigned int current_desktop{ewmh_util::get_current_desktop()};
-
-    if (next) {
-      new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
-      new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else {
-      new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
-      new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
+    if (current_index == -1) {
+      m_log.err("%s: Current desktop (%u) not found in list of desktops", name(), current_desktop);
+      return;
     }
 
-    focus_desktop(new_desktop);
+    int offset = next? 1 : -1;
+
+    int new_index = (current_index + offset + indices.size()) % indices.size();
+    focus_desktop(indices.at(new_index));
   }
 
   void xworkspaces_module::focus_desktop(unsigned new_desktop) {
