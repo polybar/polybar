@@ -52,7 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
 
 ### Added
-- `module/memory`: Display MiB instead of GiB when GiB value is less than 1GiB
+- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`, 
+  `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
+  when below or above 1GiB.
   ([`2472`](https://github.com/polybar/polybar/issues/2472))
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
   ([`2374`](https://github.com/polybar/polybar/issues/2374))

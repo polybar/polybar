@@ -1,5 +1,5 @@
 #include <fstream>
- #include <iomanip>
+#include <iomanip>
 #include <istream>
 
 #include "drawtypes/label.hpp"
