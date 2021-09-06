@@ -14,7 +14,7 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)), m_initial(0) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
@@ -29,16 +29,16 @@ namespace modules {
 
     m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
-    m_initial = m_conf.get(name(), "initial", 0_z);
-    if (m_conf.has(name(), "initial") && m_initial != 0) {
-      if (m_initial <= m_hooks.size()) {
-        m_current_hook = m_initial - 1;
-      } else {
-        throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " +
-                           to_string(m_hooks.size()) + ")");
+    // Negative initial values should always be -1
+    m_initial = std::max(-1, m_conf.get(name(), "initial", 0) - 1);
+    if (has_initial()) {
+      if ((size_t)m_initial >= m_hooks.size()) {
+        throw module_error("Initial hook out of bounds: '" + to_string(m_initial + 1) +
+                           "'. Defined hooks go from 1 to " + to_string(m_hooks.size()) + ")");
       }
+      m_current_hook = m_initial;
     } else {
-      m_current_hook = m_hooks.size();
+      m_current_hook = -1;
     }
 
     // clang-format off
@@ -74,9 +74,10 @@ namespace modules {
       update();
       broadcast();
     });
+  }
 
-    if (m_initial != 0) {
-      // TODO do this in a thread.
+  void ipc_module::update() {
+    if (has_hook()) {
       exec_hook();
     }
   }
@@ -116,14 +117,15 @@ namespace modules {
    * Map received message hook to the ones
    * configured from the user config and
    * execute its command
+   *
+   * This code path is deprecated, all messages to ipc modules should go through actions.
    */
   void ipc_module::on_message(const string& message) {
     for (size_t i = 0; i < m_hooks.size(); i++) {
       const auto& hook = m_hooks[i];
       if (hook->payload == message) {
         m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
-        m_current_hook = i;
-        this->exec_hook();
+        set_hook(i);
         break;
       }
     }
@@ -139,11 +141,10 @@ namespace modules {
       int hook = std::stoi(data);
 
       if (hook < 0 || (size_t)hook >= m_hooks.size()) {
-        m_log.err("%s: Hook action received with an out of bounds hook '%s'. Defined hooks goes from 0 to %zu.", name(),
+        m_log.err("%s: Hook action received with an out of bounds hook '%s'. Defined hooks go from 0 to %zu.", name(),
             data, m_hooks.size() - 1);
       } else {
-        m_current_hook = hook;
-        this->exec_hook();
+        set_hook(hook);
       }
     } catch (const std::invalid_argument& err) {
       m_log.err(
@@ -153,32 +154,57 @@ namespace modules {
   }
 
   void ipc_module::action_next() {
-    // this is the case where initial is not defined on first 'next'
-    if (m_current_hook == m_hooks.size()) {
-      m_current_hook = 0;
-    } else {
-      m_current_hook = (m_current_hook + 1) % m_hooks.size();
-    }
-    this->exec_hook();
+    hook_offset(1);
   }
 
   void ipc_module::action_prev() {
-    if (m_current_hook == 0) {
-      m_current_hook = m_hooks.size();
-    }
-    m_current_hook--;
-    this->exec_hook();
+    hook_offset(-1);
   }
 
   void ipc_module::action_reset() {
-    if (m_initial != 0) {
-      m_current_hook = m_initial - 1;
-      this->exec_hook();
+    if (has_initial()) {
+      set_hook(m_initial);
     } else {
-      m_current_hook = m_hooks.size();
+      m_current_hook = -1;
       m_output.clear();
       broadcast();
     }
+  }
+
+  /**
+   * Changes the current hook by the given offset.
+   *
+   * Also deals with the case where the there is no active hook, in which case a positive offset starts from -1 and a
+   * negative from 0. This ensures that 'next' executes the first and 'prev' the last hook if no hook is set.
+   */
+  void ipc_module::hook_offset(int offset) {
+    int start_hook;
+
+    if (has_hook()) {
+      start_hook = m_current_hook;
+    } else {
+      if (offset > 0) {
+        start_hook = -1;
+      } else {
+        start_hook = 0;
+      }
+    }
+
+    set_hook((start_hook + offset + m_hooks.size()) % m_hooks.size());
+  }
+
+  bool ipc_module::has_initial() const {
+    return m_initial >= 0;
+  }
+
+  bool ipc_module::has_hook() const {
+    return m_current_hook >= 0;
+  }
+
+  void ipc_module::set_hook(int h) {
+    assert(h >= 0 && (size_t) h < m_hooks.size());
+    m_current_hook = h;
+    exec_hook();
   }
 
   void ipc_module::exec_hook() {
