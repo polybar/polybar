@@ -4,12 +4,12 @@
 
 #include "common.hpp"
 #include "utils/concurrency.hpp"
+#include "x11/xembed.hpp"
 
 POLYBAR_NS
 
 // fwd declarations
 class connection;
-struct xembed_data;
 
 class tray_client {
  public:
@@ -28,7 +28,10 @@ class tray_client {
   void mapped(bool state);
 
   xcb_window_t window() const;
-  xembed_data* xembed() const;
+
+  void query_xembed();
+  bool is_xembed_supported() const;
+  const xembed::info& get_xembed() const;
 
   void ensure_state() const;
   void reconfigure(int x, int y) const;
@@ -38,7 +41,18 @@ class tray_client {
   connection& m_connection;
   xcb_window_t m_window{0};
 
-  shared_ptr<xembed_data> m_xembed;
+  /**
+   * Whether the client window supports XEMBED.
+   *
+   * A tray client can still work when it doesn't support XEMBED.
+   */
+  bool m_xembed_supported{false};
+
+  /**
+   * _XEMBED_INFO of the client window
+   */
+  xembed::info m_xembed;
+
   bool m_mapped{false};
 
   unsigned int m_width;

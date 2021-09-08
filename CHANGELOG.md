@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- The tray mistakenly removed tray icons that did not support XEMBED
+  ([`#2479`](https://github.com/polybar/polybar/issues/2479),
+  [`#2442`](https://github.com/polybar/polybar/issues/2442))
+
 ## [3.5.6] - 2021-05-24
 ### Build
 - Support building documentation on sphinx 4.0 ([`#2424`](https://github.com/polybar/polybar/issues/2424))
