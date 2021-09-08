@@ -5,16 +5,11 @@
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
-#include "x11/xembed.hpp"
 
 POLYBAR_NS
 
 tray_client::tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h)
-    : m_connection(conn), m_window(win), m_width(w), m_height(h) {
-  m_xembed = memory_util::make_malloc_ptr<xembed_data>();
-  m_xembed->version = XEMBED_VERSION;
-  m_xembed->flags = XEMBED_MAPPED;
-}
+    : m_connection(conn), m_window(win), m_width(w), m_height(h) {}
 
 tray_client::~tray_client() {
   xembed::unembed(m_connection, window(), m_connection.root());
@@ -60,20 +55,31 @@ xcb_window_t tray_client::window() const {
   return m_window;
 }
 
-/**
- * Get xembed data pointer
- */
-xembed_data* tray_client::xembed() const {
-  return m_xembed.get();
+void tray_client::query_xembed() {
+  m_xembed_supported = xembed::query(m_connection, m_window, m_xembed);
+}
+
+bool tray_client::is_xembed_supported() const {
+  return m_xembed_supported;
+}
+
+const xembed::info& tray_client::get_xembed() const {
+  return m_xembed;
 }
 
 /**
  * Make sure that the window mapping state is correct
  */
 void tray_client::ensure_state() const {
-  if (!mapped() && ((xembed()->flags & XEMBED_MAPPED) == XEMBED_MAPPED)) {
+  bool should_be_mapped = true;
+
+  if (is_xembed_supported()) {
+    should_be_mapped = m_xembed.is_mapped();
+  }
+
+  if (!mapped() && should_be_mapped) {
     m_connection.map_window_checked(window());
-  } else if (mapped() && ((xembed()->flags & XEMBED_MAPPED) != XEMBED_MAPPED)) {
+  } else if (mapped() && !should_be_mapped) {
     m_connection.unmap_window_checked(window());
   }
 }
