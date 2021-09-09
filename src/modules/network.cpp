@@ -38,7 +38,11 @@ namespace modules {
     }
 
     if (m_interface.empty()) {
-      throw module_error("missing 'interface' or 'interface-type'");
+      throw module_error("Missing 'interface' or 'interface-type'");
+    }
+
+    if (!net::is_interface_valid(m_interface)) {
+      throw module_error("Invalid network interface \"" + m_interface + "\"");
     }
 
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);

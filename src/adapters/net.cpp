@@ -12,8 +12,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include <iomanip>
-
+#include <cassert>
 #include <iomanip>
 
 #include "common.hpp"
@@ -37,6 +36,11 @@ namespace net {
 
   static bool is_virtual(const std::string& ifname) {
     char* target = realpath((NET_PATH + ifname).c_str(), nullptr);
+
+    if (!target) {
+      throw system_error("realpath");
+    }
+
     const std::string real_path{target};
     free(target);
     return real_path.rfind(VIRTUAL_PATH, 0) == 0;
@@ -52,6 +56,10 @@ namespace net {
     }
 
     return NetType::ETHERNET;
+  }
+
+  bool is_interface_valid(const string& ifname) {
+    return if_nametoindex(ifname.c_str()) != 0;
   }
 
   /**
@@ -91,9 +99,7 @@ namespace net {
    * Construct network interface
    */
   network::network(string interface) : m_log(logger::make()), m_interface(move(interface)) {
-    if (if_nametoindex(m_interface.c_str()) == 0) {
-      throw network_error("Invalid network interface \"" + m_interface + "\"");
-    }
+    assert(is_virtual(interface));
 
     m_socketfd = file_util::make_file_descriptor(socket(AF_INET, SOCK_DGRAM, 0));
     if (!*m_socketfd) {
@@ -284,7 +290,7 @@ namespace net {
     float time_diff = duration.count();
     float speedrate = bytes_diff / time_diff;
 
-    vector<pair<string,int>> units{make_pair("G", 2), make_pair("M", 1)};
+    vector<pair<string, int>> units{make_pair("G", 2), make_pair("M", 1)};
     string suffix{"K"};
     int precision = 0;
 
@@ -294,8 +300,8 @@ namespace net {
       units.pop_back();
     }
 
-    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(precision) << std::fixed << speedrate
-                     << " " << suffix << unit;
+    return sstream() << std::setw(minwidth) << std::setfill(' ') << std::setprecision(precision) << std::fixed
+                     << speedrate << " " << suffix << unit;
   }
 
   // }}}

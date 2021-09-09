@@ -37,6 +37,7 @@ class file_descriptor;
 namespace net {
   DEFINE_ERROR(network_error);
 
+  bool is_interface_valid(const string& ifname);
   bool is_wireless_interface(const string& ifname);
   std::string find_wireless_interface();
   std::string find_wired_interface();
