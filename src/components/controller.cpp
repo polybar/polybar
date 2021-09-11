@@ -29,11 +29,6 @@
 POLYBAR_NS
 
 sig_atomic_t g_reload{0};
-sig_atomic_t g_terminate{0};
-
-// TODO pass this information in a better way
-sig_atomic_t g_update{0};
-sig_atomic_t g_force_update{0};
 
 /**
  * Build controller instance
@@ -138,36 +133,38 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
  * Enqueue input data
  */
 void controller::trigger_action(string&& input_data) {
-  if (!m_inputdata.empty()) {
-    m_log.trace("controller: Swallowing input event (pending data)");
-  } else {
-    m_inputdata = forward<string>(input_data);
+  std::unique_lock<std::mutex> guard(m_notification_mutex);
+
+  if (m_notifications.inputdata.empty()) {
+    m_notifications.inputdata = std::forward<string>(input_data);
+    // TODO create function for this
     UV(uv_async_send, m_notifier.get());
+  } else {
+    m_log.trace("controller: Swallowing input event (pending data)");
   }
 }
 
 void controller::trigger_quit(bool reload) {
-  g_terminate = 1;
-  g_reload = reload;
+  std::unique_lock<std::mutex> guard(m_notification_mutex);
+  m_notifications.quit = true;
+  m_notifications.reload = m_notifications.reload || reload;
   // TODO create function for this
   UV(uv_async_send, m_notifier.get());
 }
 
 void controller::trigger_update(bool force) {
-  if (force) {
-    g_force_update = 1;
-  } else {
-    g_update = 1;
-  }
+  std::unique_lock<std::mutex> guard(m_notification_mutex);
+  m_notifications.update = true;
+  m_notifications.force_update = m_notifications.force_update || force;
 
   // TODO this isn't really safe
   if (m_notifier) {
+    // TODO create function for this
     UV(uv_async_send, m_notifier.get());
   }
 }
 
 void controller::stop(bool reload) {
-  g_terminate = 1;
   g_reload = reload;
   eloop->stop();
 }
@@ -220,23 +217,27 @@ void controller::confwatch_handler(const char* filename, int, int) {
 }
 
 void controller::notifier_handler() {
-  if (g_terminate) {
+  notifications_t data{};
+
+  {
+    std::unique_lock<std::mutex> guard(m_notification_mutex);
+    std::swap(m_notifications, data);
+  }
+
+  if (data.quit) {
+    // TODO store this in the instance
+    g_reload = data.reload;
     eloop->stop();
     return;
   }
 
-  if (!m_inputdata.empty()) {
-    process_inputdata();
+  if (!data.inputdata.empty()) {
+    process_inputdata(std::move(data.inputdata));
   }
 
-  if (g_force_update) {
-    process_update(true);
-  } else if (g_update) {
-    process_update(false);
+  if (data.update) {
+    process_update(data.force_update);
   }
-
-  g_update = 0;
-  g_force_update = 0;
 }
 
 static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
@@ -484,14 +485,7 @@ bool controller::forward_action(const actions_util::action& action_triple) {
 /**
  * Process stored input data
  */
-void controller::process_inputdata() {
-  if (m_inputdata.empty()) {
-    return;
-  }
-
-  const string cmd = std::move(m_inputdata);
-  m_inputdata = string{};
-
+void controller::process_inputdata(string&& cmd) {
   m_log.trace("controller: Processing inputdata: %s", cmd);
 
   // Every command that starts with '#' is considered an action string.
