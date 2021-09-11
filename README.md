@@ -96,8 +96,10 @@ Also click the [image on the
 right](https://repology.org/project/polybar/versions) to see a more complete
 list of available polybar packages.
 
-If you are using **Debian** (unstable or testing), you can install [polybar](https://tracker.debian.org/pkg/polybar) using `sudo apt install polybar`.
-If you are using **Debian** (buster/stable), you need to enable [backports](https://wiki.debian.org/Backports) and then install using `sudo apt -t buster-backports install polybar`.
+If you are using **Debian** (bullseye/11/stable) or later, you can install [polybar](https://tracker.debian.org/pkg/polybar)
+using `sudo apt install polybar`. Newer releases of polybar are sometimes provided in the [backports](https://wiki.debian.org/Backports)
+repository for stable users, you need to enable [backports](https://wiki.debian.org/Backports) and then install using
+`sudo apt -t buster-backports install polybar`.
 
 If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install polybar
 using `sudo apt install polybar`.
