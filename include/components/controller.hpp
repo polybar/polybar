@@ -42,13 +42,12 @@ class controller
           signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
+  static make_type make(unique_ptr<ipc>&& ipc);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<bar>&&, unique_ptr<ipc>&&,
-      unique_ptr<inotify_watch>&&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<bar>&&, unique_ptr<ipc>&&);
   ~controller();
 
-  bool run(bool writeback, string snapshot_dst);
+  bool run(bool writeback, string snapshot_dst, bool confwatch);
 
   void trigger_action(string&& input_data);
   void trigger_quit(bool reload);
@@ -64,7 +63,7 @@ class controller
   void notifier_handler();
 
  protected:
-  void read_events();
+  void read_events(bool confwatch);
   void process_inputdata();
   bool process_update(bool force);
 
@@ -91,7 +90,6 @@ class controller
   const config& m_conf;
   unique_ptr<bar> m_bar;
   unique_ptr<ipc> m_ipc;
-  unique_ptr<inotify_watch> m_confwatch;
 
   std::unique_ptr<eventloop> eloop;
 
