@@ -9,7 +9,6 @@ POLYBAR_NS
 enum class event_type {
   NONE = 0,
   UPDATE,
-  QUIT,
 };
 
 struct event {
@@ -26,17 +25,10 @@ namespace {
   }
 
   /**
-   * Create QUIT event
+   * Create NONE event
    */
   inline event make_none_evt() {
     return event{static_cast<int>(event_type::NONE)};
-  }
-
-  /**
-   * Create QUIT event
-   */
-  inline event make_quit_evt(bool reload = false) {
-    return event{static_cast<int>(event_type::QUIT), reload};
   }
 
   /**

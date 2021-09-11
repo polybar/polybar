@@ -147,7 +147,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
  * Enqueue event
  */
 bool controller::enqueue(event&& evt) {
-  if (!m_process_events && evt.type != event_type::QUIT) {
+  if (!m_process_events) {
     return false;
   }
   if (!m_queue.enqueue(forward<decltype(evt)>(evt))) {
@@ -160,14 +160,19 @@ bool controller::enqueue(event&& evt) {
 /**
  * Enqueue input data
  */
-bool controller::trigger_action(string&& input_data) {
+void controller::trigger_action(string&& input_data) {
   if (!m_inputdata.empty()) {
     m_log.trace("controller: Swallowing input event (pending data)");
   } else {
     m_inputdata = forward<string>(input_data);
     UV(uv_async_send, m_notifier.get());
   }
-  return false;
+}
+
+void controller::trigger_quit(bool reload) {
+  g_terminate = 1;
+  g_reload = reload;
+  UV(uv_async_send, m_notifier.get());
 }
 
 void controller::stop(bool reload) {
@@ -224,6 +229,11 @@ void controller::confwatch_handler(const char* filename, int, int) {
 }
 
 void controller::notifier_handler() {
+  if (g_terminate) {
+    eloop->stop();
+    return;
+  }
+
   if (!m_inputdata.empty()) {
     process_inputdata();
   }
@@ -325,22 +335,13 @@ void controller::process_eventqueue() {
 
     if (g_terminate) {
       break;
-    } else if (evt.type == event_type::QUIT) {
-      if (evt.flag) {
-        on(signals::eventqueue::exit_reload{});
-      } else {
-        on(signals::eventqueue::exit_terminate{});
-      }
     } else if (evt.type == event_type::UPDATE && evt.flag) {
       process_update(true);
     } else {
       event next{};
       size_t swallowed{0};
       while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_update)) {
-        if (next.type == event_type::QUIT) {
-          evt = next;
-          break;
-        } else if (evt.type != next.type) {
+        if (evt.type != next.type) {
           enqueue(move(next));
           break;
         } else {
@@ -351,12 +352,6 @@ void controller::process_eventqueue() {
 
       if (evt.type == event_type::UPDATE) {
         process_update(evt.flag);
-      } else if (evt.type == event_type::QUIT) {
-        if (evt.flag) {
-          on(signals::eventqueue::exit_reload{});
-        } else {
-          on(signals::eventqueue::exit_terminate{});
-        }
       } else {
         m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
@@ -712,7 +707,7 @@ bool controller::on(const signals::eventqueue::notify_forcechange&) {
  * Process eventqueue terminate event
  */
 bool controller::on(const signals::eventqueue::exit_terminate&) {
-  raise(SIGALRM);
+  trigger_quit(false);
   return true;
 }
 
@@ -720,7 +715,7 @@ bool controller::on(const signals::eventqueue::exit_terminate&) {
  * Process eventqueue reload event
  */
 bool controller::on(const signals::eventqueue::exit_reload&) {
-  raise(SIGUSR1);
+  trigger_quit(true);
   return true;
 }
 
@@ -799,9 +794,9 @@ bool controller::on(const signals::ipc::command& evt) {
   }
 
   if (command == "quit") {
-    enqueue(make_quit_evt(false));
+    trigger_quit(false);
   } else if (command == "restart") {
-    enqueue(make_quit_evt(true));
+    trigger_quit(true);
   } else if (command == "hide") {
     m_bar->hide();
   } else if (command == "show") {
