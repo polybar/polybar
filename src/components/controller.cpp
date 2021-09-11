@@ -218,7 +218,7 @@ void controller::ipc_cb(string buf) {
 }
 
 void controller::signal_handler(int signum) {
-  m_log.notice("Received signal SIG%s", sigabbrev_np(signum));
+  m_log.notice("Received signal(%d): %s", signum, strsignal(signum));
   stop(signum == SIGUSR1);
 }
 
