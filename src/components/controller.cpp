@@ -153,14 +153,13 @@ void controller::trigger_update(bool force) {
   m_notifications.update = true;
   m_notifications.force_update = m_notifications.force_update || force;
 
-  // TODO this isn't really safe
-  if (m_notifier) {
-    trigger_notification();
-  }
+  trigger_notification();
 }
 
 void controller::trigger_notification() {
-  UV(uv_async_send, m_notifier.get());
+  if (m_eloop_ready) {
+    UV(uv_async_send, m_notifier.get());
+  }
 }
 
 void controller::stop(bool reload) {
@@ -285,8 +284,6 @@ void controller::read_events(bool confwatch) {
     m_bar->start();
   }
 
-  process_update(true);
-
   auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
   auto screenshot_timer_handle = std::unique_ptr<uv_timer_t>(nullptr);
 
@@ -325,6 +322,13 @@ void controller::read_events(bool confwatch) {
       // Trigger a screenshot after 3 seconds
       UV(uv_timer_start, screenshot_timer_handle.get(), screenshot_cb_wrapper, 3000, 0);
     }
+
+    m_eloop_ready.store(true);
+
+    /*
+     * Immediately trigger and update so that the bar displays something.
+     */
+    trigger_update(true);
 
     eloop->run();
   } catch (const exception& err) {
