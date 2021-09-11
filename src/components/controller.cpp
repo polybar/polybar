@@ -134,6 +134,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
   read_events();
 
   if (m_event_thread.joinable()) {
+    m_log.info("Joining event thread");
     m_event_thread.join();
   }
 
@@ -153,9 +154,6 @@ bool controller::enqueue(event&& evt) {
     m_log.warn("Failed to enqueue event");
     return false;
   }
-  // if (write(g_eventpipe[PIPE_WRITE], " ", 1) == -1) {
-  //   m_log.err("Failed to write to eventpipe (reason: %s)", strerror(errno));
-  // }
   return true;
 }
 
@@ -172,23 +170,40 @@ bool controller::enqueue(string&& input_data) {
   return false;
 }
 
-void controller::conn_cb(int, int) {
-  // TODO handle negative status
-  if (m_connection.connection_has_error()) {
-    g_terminate = 1;
-    g_reload = 0;
-    eloop->stop();
+void controller::stop(bool reload) {
+  g_terminate = 1;
+  g_reload = reload;
+  eloop->stop();
+}
+
+void controller::conn_cb(int status, int) {
+  if (status < 0) {
+    // TODO Should we stop polling here?
+    m_log.err("libuv error while polling X connection: %s", uv_strerror(status));
+    return;
+  }
+
+  int xcb_error = m_connection.connection_has_error();
+  if ((xcb_error = m_connection.connection_has_error()) > 0) {
+    m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
+    stop(false);
     return;
   }
 
   shared_ptr<xcb_generic_event_t> evt{};
-  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+  if ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
     try {
       m_connection.dispatch_event(evt);
     } catch (xpp::connection_error& err) {
       m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
     } catch (const exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
+    }
+  } else {
+    if ((xcb_error = m_connection.connection_has_error()) > 0) {
+      m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
+      stop(false);
+      return;
     }
   }
 }
@@ -200,19 +215,15 @@ void controller::ipc_cb(string buf) {
 
 void controller::signal_handler(int signum) {
   m_log.notice("Received signal SIG%s", sigabbrev_np(signum));
-  g_terminate = 1;
-  g_reload = (signum == SIGUSR1);
-  eloop->stop();
+  stop(signum == SIGUSR1);
 }
 
-void controller::confwatch_handler(const char*, int, int) {
-  g_terminate = 1;
-  g_reload = 1;
-  eloop->stop();
+void controller::confwatch_handler(const char* filename, int, int) {
+  m_log.notice("Watched config file changed %s", filename);
+  stop(true);
 }
 
 static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
-  // TODO handle alloc error
   buf->base = new char[BUFSIZ];
   buf->len = BUFSIZ;
 }
@@ -271,9 +282,13 @@ void controller::read_events() {
     eloop->run();
   } catch (const exception& err) {
     m_log.err("Fatal Error in eventloop: %s", err.what());
-    g_terminate = 1;
-    eloop->stop();
+    stop(false);
   }
+
+  // Notify event queue so that it stops
+  enqueue(make_none_evt());
+
+  m_log.info("Eventloop finished");
 
   eloop.reset();
 }

@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
   // against pid if one was defined
   for (auto&& channel : pipes) {
     try {
-      file_descriptor fd(channel, O_WRONLY | O_NONBLOCK);
+      file_descriptor fd(channel, O_WRONLY | O_NONBLOCK, true);
       string payload{ipc_type + ':' + ipc_payload};
       if (write(fd, payload.c_str(), payload.size()) != -1) {
         display("Successfully wrote \"" + payload + "\" to \"" + channel + "\"");

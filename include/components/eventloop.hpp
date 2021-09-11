@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "common.hpp"
+#include "components/logger.hpp"
 
 POLYBAR_NS
 
@@ -12,11 +13,13 @@ POLYBAR_NS
  * Runs any libuv function with an integer error code return value and throws an
  * exception on error.
  */
-#define UV(fun, ...)                                                              \
-  int res = fun(__VA_ARGS__);                                                     \
-  if (res < 0) {                                                                  \
-    throw std::runtime_error("libuv error for '" #fun "': "s + uv_strerror(res)); \
-  }
+#define UV(fun, ...)                                                                \
+  do {                                                                              \
+    int res = fun(__VA_ARGS__);                                                     \
+    if (res < 0) {                                                                  \
+      throw std::runtime_error("libuv error for '" #fun "': "s + uv_strerror(res)); \
+    }                                                                               \
+  } while (0);
 
 template <class H, class... Args>
 struct cb_helper {
@@ -51,7 +54,7 @@ struct SignalHandle : public UVHandle<uv_signal_t, int> {
 };
 
 struct PollHandle : public UVHandle<uv_poll_t, int, int> {
-  // TODO wrap callback and handle negative status
+  // TODO wrap callback and handle status
   PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun) : UVHandle(fun) {
     UV(uv_poll_init, loop, handle.get(), fd);
   }
