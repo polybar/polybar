@@ -38,23 +38,22 @@ sig_atomic_t g_force_update{0};
 /**
  * Build controller instance
  */
-controller::make_type controller::make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch) {
+controller::make_type controller::make(unique_ptr<ipc>&& ipc) {
   return factory_util::unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
-      bar::make(), forward<decltype(ipc)>(ipc), forward<decltype(config_watch)>(config_watch));
+      bar::make(), forward<decltype(ipc)>(ipc));
 }
 
 /**
  * Construct controller
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& confwatch)
+    unique_ptr<bar>&& bar, unique_ptr<ipc>&& ipc)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
     , m_bar(forward<decltype(bar)>(bar))
-    , m_ipc(forward<decltype(ipc)>(ipc))
-    , m_confwatch(forward<decltype(confwatch)>(confwatch)) {
+    , m_ipc(forward<decltype(ipc)>(ipc)) {
   if (m_conf.has("settings", "throttle-input-for")) {
     m_log.warn(
         "The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please "
@@ -101,7 +100,7 @@ controller::~controller() {
 /**
  * Run the main loop
  */
-bool controller::run(bool writeback, string snapshot_dst) {
+bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
   m_log.info("Starting application");
   m_log.trace("controller: Main thread id = %i", concurrency_util::thread_id(this_thread::get_id()));
 
@@ -135,7 +134,7 @@ bool controller::run(bool writeback, string snapshot_dst) {
 
   m_connection.flush();
 
-  read_events();
+  read_events(confwatch);
 
   m_log.notice("Termination signal received, shutting down...");
 
@@ -271,14 +270,14 @@ static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf
   }
 }
 
-static void notifier_cb_wrapper(uv_async_t *handle) {
+static void notifier_cb_wrapper(uv_async_t* handle) {
   static_cast<controller*>(handle->data)->notifier_handler();
 }
 
 /**
  * Read events from configured file descriptors
  */
-void controller::read_events() {
+void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   if (!m_writeback) {
@@ -303,8 +302,8 @@ void controller::read_events() {
       eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
     }
 
-    if (m_confwatch) {
-      eloop->fs_event_handler(m_confwatch->path(),
+    if (confwatch) {
+      eloop->fs_event_handler(m_conf.filepath(),
           [this](const char* path, int events, int status) { confwatch_handler(path, events, status); });
     }
 
