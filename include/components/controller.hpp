@@ -10,7 +10,6 @@
 #include "components/types.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "events/types.hpp"
 #include "settings.hpp"
 #include "utils/actions.hpp"
 #include "utils/file.hpp"
@@ -51,9 +50,9 @@ class controller
 
   bool run(bool writeback, string snapshot_dst);
 
-  bool enqueue(event&& evt);
   void trigger_action(string&& input_data);
   void trigger_quit(bool reload);
+  void trigger_update(bool force);
 
   void stop(bool reload);
 
@@ -66,7 +65,6 @@ class controller
 
  protected:
   void read_events();
-  void process_eventqueue();
   void process_inputdata();
   bool process_update(bool force);
 
@@ -122,11 +120,6 @@ class controller
   bool m_writeback{false};
 
   /**
-   * \brief Internal event queue
-   */
-  moodycamel::BlockingConcurrentQueue<event> m_queue;
-
-  /**
    * \brief Loaded modules
    */
   vector<module_t> m_modules;
@@ -150,11 +143,6 @@ class controller
    * \brief Input data
    */
   string m_inputdata;
-
-  /**
-   * \brief Thread for the eventqueue loop
-   */
-  std::thread m_event_thread;
 
   /**
    * \brief Misc threads
