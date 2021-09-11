@@ -64,7 +64,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
 
  protected:
   void read_events(bool confwatch);
-  void process_inputdata();
+  void process_inputdata(string&& cmd);
   bool process_update(bool force);
 
   bool on(const signals::eventqueue::notify_change& evt) override;
@@ -78,6 +78,16 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   bool on(const signals::ui::update_background& evt) override;
 
  private:
+  struct notifications_t {
+    bool quit;
+    bool reload;
+    bool update;
+    bool force_update;
+    string inputdata;
+
+    notifications_t() : quit(false), reload(false), update(false), force_update(false), inputdata(string{}) {}
+  };
+
   size_t setup_modules(alignment align);
 
   bool forward_action(const actions_util::action& cmd);
@@ -101,6 +111,20 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   std::unique_ptr<uv_async_t> m_notifier{nullptr};
 
   /**
+   * Notification data for the controller.
+   *
+   * Triggers, potentially from other threads, update this structure and notify the controller through m_notifier.
+   */
+  notifications_t m_notifications{};
+
+  /**
+   * \brief Protected m_notifications.
+   *
+   * All accesses to m_notifications must hold this mutex.
+   */
+  std::mutex m_notification_mutex{};
+
+  /**
    * \brief Destination path of generated snapshot
    */
   string m_snapshot_dst;
@@ -119,11 +143,6 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * \brief Loaded modules grouped by block
    */
   modulemap_t m_blocks;
-
-  /**
-   * \brief Input data
-   */
-  string m_inputdata;
 };
 
 POLYBAR_NS_END
