@@ -4,6 +4,7 @@
 #include <uv.h>
 
 #include <thread>
+#include <mutex>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
