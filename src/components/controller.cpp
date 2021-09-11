@@ -678,14 +678,6 @@ bool controller::on(const signals::eventqueue::notify_forcechange&) {
 }
 
 /**
- * Process eventqueue terminate event
- */
-bool controller::on(const signals::eventqueue::exit_terminate&) {
-  trigger_quit(false);
-  return true;
-}
-
-/**
  * Process eventqueue reload event
  */
 bool controller::on(const signals::eventqueue::exit_reload&) {
@@ -703,7 +695,7 @@ bool controller::on(const signals::eventqueue::check_state&) {
     }
   }
   m_log.warn("No running modules...");
-  on(signals::eventqueue::exit_terminate{});
+  trigger_quit(false);
   return true;
 }
 

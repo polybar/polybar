@@ -16,7 +16,6 @@ namespace signals {
 
   namespace eventqueue {
     struct start;
-    struct exit_terminate;
     struct exit_reload;
     struct notify_change;
     struct notify_forcechange;

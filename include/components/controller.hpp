@@ -36,10 +36,10 @@ using modulemap_t = std::map<alignment, vector<module_t>>;
 // }}}
 
 class controller
-    : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_terminate,
-          signals::eventqueue::exit_reload, signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange,
-          signals::eventqueue::check_state, signals::ipc::action, signals::ipc::command, signals::ipc::hook,
-          signals::ui::ready, signals::ui::button_press, signals::ui::update_background> {
+    : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_reload,
+          signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state,
+          signals::ipc::action, signals::ipc::command, signals::ipc::hook, signals::ui::ready,
+          signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc, unique_ptr<inotify_watch>&& config_watch);
@@ -70,7 +70,6 @@ class controller
 
   bool on(const signals::eventqueue::notify_change& evt) override;
   bool on(const signals::eventqueue::notify_forcechange& evt) override;
-  bool on(const signals::eventqueue::exit_terminate& evt) override;
   bool on(const signals::eventqueue::exit_reload& evt) override;
   bool on(const signals::eventqueue::check_state& evt) override;
   bool on(const signals::ui::ready& evt) override;
