@@ -357,8 +357,6 @@ void controller::process_eventqueue() {
         } else {
           on(signals::eventqueue::exit_terminate{});
         }
-      } else if (evt.type == event_type::CHECK) {
-        on(signals::eventqueue::check_state{});
       } else {
         m_log.warn("Unknown event type for enqueued event (%d)", evt.type);
       }
