@@ -31,16 +31,21 @@ struct cb_helper {
   }
 };
 
-template <typename H, typename... Args>
-struct UVHandle {
-  UVHandle(std::function<void(Args...)> fun) {
+template <typename H, typename I, typename... Args>
+struct UVHandleGeneric {
+  UVHandleGeneric(std::function<void(Args...)> fun) {
     handle = std::make_unique<H>();
-    cb = cb_helper<H, Args...>{fun};
+    cb = cb_helper<I, Args...>{fun};
     handle->data = &cb;
   }
 
   std::unique_ptr<H> handle;
-  cb_helper<H, Args...> cb;
+  cb_helper<I, Args...> cb;
+};
+
+template <typename H, typename... Args>
+struct UVHandle : public UVHandleGeneric<H, H, Args...> {
+  UVHandle(std::function<void(Args...)> fun) : UVHandleGeneric<H, H, Args...>(fun) {}
 };
 
 struct SignalHandle : public UVHandle<uv_signal_t, int> {
@@ -72,6 +77,47 @@ struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
 
   void start(const string& path) {
     UV(uv_fs_event_start, handle.get(), &cb.callback, path.c_str(), 0);
+  }
+};
+
+struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
+  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun)
+      : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) {
+        if (nread > 0) {
+          string payload = string(buf->base, nread);
+          logger::make().notice("Bytes read: %d: '%s'", nread, payload);
+          fun(std::move(payload));
+        } else if (nread < 0) {
+          if (nread != UV_EOF) {
+            logger::make().err("Read error: %s", uv_err_name(nread));
+            uv_close((uv_handle_t*)handle.get(), nullptr);
+          } else {
+            UV(
+                uv_read_start, (uv_stream_t*)handle.get(),
+                [](uv_handle_t*, size_t, uv_buf_t* buf) {
+                  buf->base = new char[BUFSIZ];
+                  buf->len = BUFSIZ;
+                },
+                &cb.callback);
+          }
+        }
+
+        if (buf->base) {
+          delete[] buf->base;
+        }
+      }) {
+    UV(uv_pipe_init, loop, handle.get(), false);
+  }
+
+  void start(int fd) {
+    UV(uv_pipe_open, handle.get(), fd);
+    UV(
+        uv_read_start, (uv_stream_t*)handle.get(),
+        [](uv_handle_t*, size_t, uv_buf_t* buf) {
+          buf->base = new char[BUFSIZ];
+          buf->len = BUFSIZ;
+        },
+        &cb.callback);
   }
 };
 
