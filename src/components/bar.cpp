@@ -839,7 +839,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-bool bar::on(const signals::eventqueue::start&) {
+void bar::start() {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();
@@ -871,15 +871,10 @@ bool bar::on(const signals::eventqueue::start&) {
   m_renderer->begin(m_opts.inner_area());
   m_renderer->end();
 
-  m_sig.emit(signals::ui::ready{});
-
-  // TODO: tray manager could run this internally on ready event
   m_log.trace("bar: Setup tray manager");
   m_tray->setup(static_cast<const bar_settings&>(m_opts));
 
   broadcast_visibility();
-
-  return true;
 }
 
 bool bar::on(const signals::ui::unshade_window&) {

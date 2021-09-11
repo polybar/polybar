@@ -61,8 +61,8 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   }
 
   // TODO deprecate both
-  m_swallow_limit = m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", m_swallow_limit);
-  m_swallow_update = m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", m_swallow_update);
+  m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", 0);
+  m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", 0);
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
@@ -87,13 +87,6 @@ controller::~controller() {
     auto module_name = module->name();
     auto cleanup_ms = time_util::measure([&module] { module->stop(); });
     m_log.info("Deconstruction of %s took %lu ms.", module_name, cleanup_ms);
-  }
-
-  m_log.trace("controller: Joining threads");
-  for (auto&& t : m_threads) {
-    if (t.joinable()) {
-      t.join();
-    }
   }
 }
 
@@ -274,6 +267,15 @@ static void notifier_cb_wrapper(uv_async_t* handle) {
   static_cast<controller*>(handle->data)->notifier_handler();
 }
 
+void controller::screenshot_handler() {
+  m_sig.emit(signals::ui::request_snapshot{move(m_snapshot_dst)});
+  trigger_update(true);
+}
+
+static void screenshot_cb_wrapper(uv_timer_t* handle) {
+  static_cast<controller*>(handle->data)->screenshot_handler();
+}
+
 /**
  * Read events from configured file descriptors
  */
@@ -281,15 +283,13 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   if (!m_writeback) {
-    m_sig.emit(signals::eventqueue::start{});
-  } else {
-    // bypass the start eventqueue signal
-    m_sig.emit(signals::ui::ready{});
+    m_bar->start();
   }
 
   process_update(true);
 
   auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
+  auto screenshot_timer_handle = std::unique_ptr<uv_timer_t>(nullptr);
 
   try {
     eloop = std::make_unique<eventloop>();
@@ -309,15 +309,23 @@ void controller::read_events(bool confwatch) {
 
     if (m_ipc) {
       ipc_handle = std::make_unique<uv_pipe_t>();
-      uv_pipe_init(loop, ipc_handle.get(), false);
+      UV(uv_pipe_init, loop, ipc_handle.get(), false);
       ipc_handle->data = this;
-      uv_pipe_open(ipc_handle.get(), m_ipc->get_file_descriptor());
-      uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
+      UV(uv_pipe_open, ipc_handle.get(), m_ipc->get_file_descriptor());
+      UV(uv_read_start, (uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
     }
 
     m_notifier = std::make_unique<uv_async_t>();
-    uv_async_init(loop, m_notifier.get(), notifier_cb_wrapper);
+    UV(uv_async_init, loop, m_notifier.get(), notifier_cb_wrapper);
     m_notifier->data = this;
+
+    if (!m_snapshot_dst.empty()) {
+      screenshot_timer_handle = std::make_unique<uv_timer_t>();
+      UV(uv_timer_init, loop, screenshot_timer_handle.get());
+      screenshot_timer_handle->data = this;
+      // Trigger a screenshot after 3 seconds
+      UV(uv_timer_start, screenshot_timer_handle.get(), screenshot_cb_wrapper, 3000, 0);
+    }
 
     eloop->run();
   } catch (const exception& err) {
@@ -696,24 +704,6 @@ bool controller::on(const signals::eventqueue::check_state&) {
   m_log.warn("No running modules...");
   trigger_quit(false);
   return true;
-}
-
-/**
- * Process ui ready event
- */
-bool controller::on(const signals::ui::ready&) {
-  trigger_update(true);
-
-  if (!m_snapshot_dst.empty()) {
-    m_threads.emplace_back(thread([&] {
-      this_thread::sleep_for(3s);
-      m_sig.emit(signals::ui::request_snapshot{move(m_snapshot_dst)});
-      trigger_update(true);
-    }));
-  }
-
-  // let the event bubble
-  return false;
 }
 
 /**

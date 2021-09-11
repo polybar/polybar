@@ -35,11 +35,10 @@ using modulemap_t = std::map<alignment, vector<module_t>>;
 
 // }}}
 
-class controller
-    : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_reload,
-          signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange, signals::eventqueue::check_state,
-          signals::ipc::action, signals::ipc::command, signals::ipc::hook, signals::ui::ready,
-          signals::ui::button_press, signals::ui::update_background> {
+class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_reload,
+                       signals::eventqueue::notify_change, signals::eventqueue::notify_forcechange,
+                       signals::eventqueue::check_state, signals::ipc::action, signals::ipc::command,
+                       signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
   static make_type make(unique_ptr<ipc>&& ipc);
@@ -61,6 +60,7 @@ class controller
   void ipc_cb(string buf);
   void confwatch_handler(const char* fname, int events, int status);
   void notifier_handler();
+  void screenshot_handler();
 
  protected:
   void read_events(bool confwatch);
@@ -71,7 +71,6 @@ class controller
   bool on(const signals::eventqueue::notify_forcechange& evt) override;
   bool on(const signals::eventqueue::exit_reload& evt) override;
   bool on(const signals::eventqueue::check_state& evt) override;
-  bool on(const signals::ui::ready& evt) override;
   bool on(const signals::ui::button_press& evt) override;
   bool on(const signals::ipc::action& evt) override;
   bool on(const signals::ipc::command& evt) override;
@@ -122,24 +121,9 @@ class controller
   modulemap_t m_blocks;
 
   /**
-   * \brief Maximum number of subsequent events to swallow
-   */
-  size_t m_swallow_limit{5U};
-
-  /**
-   * \brief Time to wait for subsequent events
-   */
-  std::chrono::milliseconds m_swallow_update{10};
-
-  /**
    * \brief Input data
    */
   string m_inputdata;
-
-  /**
-   * \brief Misc threads
-   */
-  vector<std::thread> m_threads;
 };
 
 POLYBAR_NS_END
