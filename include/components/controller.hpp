@@ -104,11 +104,6 @@ class controller
   std::unique_ptr<uv_async_t> m_notifier{nullptr};
 
   /**
-   * \brief State flag
-   */
-  std::atomic<bool> m_process_events{false};
-
-  /**
    * \brief Destination path of generated snapshot
    */
   string m_snapshot_dst;

@@ -703,7 +703,6 @@ bool controller::on(const signals::eventqueue::check_state&) {
  * Process ui ready event
  */
 bool controller::on(const signals::ui::ready&) {
-  m_process_events = true;
   trigger_update(true);
 
   if (!m_snapshot_dst.empty()) {
