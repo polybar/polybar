@@ -28,8 +28,6 @@
 
 POLYBAR_NS
 
-sig_atomic_t g_reload{0};
-
 /**
  * Build controller instance
  */
@@ -126,7 +124,7 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
 
   m_log.notice("Termination signal received, shutting down...");
 
-  return !g_reload;
+  return !m_reload;
 }
 
 /**
@@ -137,8 +135,7 @@ void controller::trigger_action(string&& input_data) {
 
   if (m_notifications.inputdata.empty()) {
     m_notifications.inputdata = std::forward<string>(input_data);
-    // TODO create function for this
-    UV(uv_async_send, m_notifier.get());
+    trigger_notification();
   } else {
     m_log.trace("controller: Swallowing input event (pending data)");
   }
@@ -148,8 +145,7 @@ void controller::trigger_quit(bool reload) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
   m_notifications.quit = true;
   m_notifications.reload = m_notifications.reload || reload;
-  // TODO create function for this
-  UV(uv_async_send, m_notifier.get());
+  trigger_notification();
 }
 
 void controller::trigger_update(bool force) {
@@ -159,13 +155,16 @@ void controller::trigger_update(bool force) {
 
   // TODO this isn't really safe
   if (m_notifier) {
-    // TODO create function for this
-    UV(uv_async_send, m_notifier.get());
+    trigger_notification();
   }
 }
 
+void controller::trigger_notification() {
+  UV(uv_async_send, m_notifier.get());
+}
+
 void controller::stop(bool reload) {
-  g_reload = reload;
+  update_reload(reload);
   eloop->stop();
 }
 
@@ -225,8 +224,7 @@ void controller::notifier_handler() {
   }
 
   if (data.quit) {
-    // TODO store this in the instance
-    g_reload = data.reload;
+    update_reload(data.reload);
     eloop->stop();
     return;
   }
@@ -605,6 +603,10 @@ bool controller::process_update(bool force) {
   }
 
   return true;
+}
+
+void controller::update_reload(bool reload) {
+  m_reload = m_reload || reload;
 }
 
 /**

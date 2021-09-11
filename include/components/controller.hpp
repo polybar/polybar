@@ -63,9 +63,12 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void screenshot_handler();
 
  protected:
+  void trigger_notification();
   void read_events(bool confwatch);
   void process_inputdata(string&& cmd);
   bool process_update(bool force);
+
+  void update_reload(bool reload);
 
   bool on(const signals::eventqueue::notify_change& evt) override;
   bool on(const signals::eventqueue::notify_forcechange& evt) override;
@@ -143,6 +146,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * \brief Loaded modules grouped by block
    */
   modulemap_t m_blocks;
+
+  /**
+   * \brief Flag to trigger reload after shutdown
+   */
+  bool m_reload{false};
 };
 
 POLYBAR_NS_END
