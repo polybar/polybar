@@ -160,12 +160,12 @@ bool controller::enqueue(event&& evt) {
 /**
  * Enqueue input data
  */
-bool controller::enqueue(string&& input_data) {
+bool controller::trigger_action(string&& input_data) {
   if (!m_inputdata.empty()) {
     m_log.trace("controller: Swallowing input event (pending data)");
   } else {
     m_inputdata = forward<string>(input_data);
-    return enqueue(make_input_evt());
+    UV(uv_async_send, m_notifier.get());
   }
   return false;
 }
@@ -223,6 +223,12 @@ void controller::confwatch_handler(const char* filename, int, int) {
   stop(true);
 }
 
+void controller::notifier_handler() {
+  if (!m_inputdata.empty()) {
+    process_inputdata();
+  }
+}
+
 static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
   buf->base = new char[BUFSIZ];
   buf->len = BUFSIZ;
@@ -245,6 +251,10 @@ static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf
   if (buf->base) {
     delete[] buf->base;
   }
+}
+
+static void notifier_cb_wrapper(uv_async_t *handle) {
+  static_cast<controller*>(handle->data)->notifier_handler();
 }
 
 /**
@@ -278,6 +288,10 @@ void controller::read_events() {
       uv_pipe_open(ipc_handle.get(), m_ipc->get_file_descriptor());
       uv_read_start((uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
     }
+
+    m_notifier = std::make_unique<uv_async_t>();
+    uv_async_init(loop, m_notifier.get(), notifier_cb_wrapper);
+    m_notifier->data = this;
 
     eloop->run();
   } catch (const exception& err) {
@@ -317,8 +331,6 @@ void controller::process_eventqueue() {
       } else {
         on(signals::eventqueue::exit_terminate{});
       }
-    } else if (evt.type == event_type::INPUT) {
-      process_inputdata();
     } else if (evt.type == event_type::UPDATE && evt.flag) {
       process_update(true);
     } else {
@@ -326,9 +338,6 @@ void controller::process_eventqueue() {
       size_t swallowed{0};
       while (swallowed++ < m_swallow_limit && m_queue.wait_dequeue_timed(next, m_swallow_update)) {
         if (next.type == event_type::QUIT) {
-          evt = next;
-          break;
-        } else if (next.type == event_type::INPUT) {
           evt = next;
           break;
         } else if (evt.type != next.type) {
@@ -342,8 +351,6 @@ void controller::process_eventqueue() {
 
       if (evt.type == event_type::UPDATE) {
         process_update(evt.flag);
-      } else if (evt.type == event_type::INPUT) {
-        process_inputdata();
       } else if (evt.type == event_type::QUIT) {
         if (evt.flag) {
           on(signals::eventqueue::exit_reload{});
@@ -763,7 +770,7 @@ bool controller::on(const signals::ui::button_press& evt) {
     return false;
   }
 
-  enqueue(move(input));
+  trigger_action(move(input));
   return true;
 }
 
@@ -779,7 +786,7 @@ bool controller::on(const signals::ipc::action& evt) {
   }
 
   m_log.info("Enqueuing ipc action: %s", action);
-  enqueue(move(action));
+  trigger_action(move(action));
   return true;
 }
 

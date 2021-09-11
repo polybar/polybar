@@ -10,7 +10,6 @@ enum class event_type {
   NONE = 0,
   UPDATE,
   CHECK,
-  INPUT,
   QUIT,
 };
 
@@ -46,13 +45,6 @@ namespace {
    */
   inline event make_update_evt(bool force = false) {
     return event{static_cast<int>(event_type::UPDATE), force};
-  }
-
-  /**
-   * Create INPUT event
-   */
-  inline event make_input_evt() {
-    return event{static_cast<int>(event_type::INPUT)};
   }
 
   /**
