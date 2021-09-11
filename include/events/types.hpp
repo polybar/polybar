@@ -30,6 +30,13 @@ namespace {
   /**
    * Create QUIT event
    */
+  inline event make_none_evt() {
+    return event{static_cast<int>(event_type::NONE)};
+  }
+
+  /**
+   * Create QUIT event
+   */
   inline event make_quit_evt(bool reload = false) {
     return event{static_cast<int>(event_type::QUIT), reload};
   }
