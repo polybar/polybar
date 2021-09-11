@@ -1,6 +1,7 @@
 #pragma once
 
 #include <moodycamel/blockingconcurrentqueue.h>
+#include <uv.h>
 
 #include <thread>
 
@@ -51,7 +52,7 @@ class controller
   bool run(bool writeback, string snapshot_dst);
 
   bool enqueue(event&& evt);
-  bool enqueue(string&& input_data);
+  bool trigger_action(string&& input_data);
 
   void stop(bool reload);
 
@@ -60,6 +61,7 @@ class controller
   void conn_cb(int status, int events);
   void ipc_cb(string buf);
   void confwatch_handler(const char* fname, int events, int status);
+  void notifier_handler();
 
  protected:
   void read_events();
@@ -94,6 +96,14 @@ class controller
   unique_ptr<inotify_watch> m_confwatch;
 
   std::unique_ptr<eventloop> eloop;
+
+  /**
+   * \brief Async handle to notify the eventloop
+   *
+   * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
+   * E.g. click actions.
+   */
+  std::unique_ptr<uv_async_t> m_notifier{nullptr};
 
   /**
    * \brief State flag
