@@ -50,9 +50,6 @@ namespace signals {
   }  // namespace detail
 
   namespace eventqueue {
-    struct start : public detail::base_signal<start> {
-      using base_type::base_type;
-    };
     struct exit_reload : public detail::base_signal<exit_reload> {
       using base_type::base_type;
     };
@@ -80,9 +77,6 @@ namespace signals {
   }  // namespace ipc
 
   namespace ui {
-    struct ready : public detail::base_signal<ready> {
-      using base_type::base_type;
-    };
     struct changed : public detail::base_signal<changed> {
       using base_type::base_type;
     };
