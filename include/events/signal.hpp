@@ -53,9 +53,6 @@ namespace signals {
     struct start : public detail::base_signal<start> {
       using base_type::base_type;
     };
-    struct exit_terminate : public detail::base_signal<exit_terminate> {
-      using base_type::base_type;
-    };
     struct exit_reload : public detail::base_signal<exit_reload> {
       using base_type::base_type;
     };

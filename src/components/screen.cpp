@@ -89,7 +89,7 @@ screen::~screen() {
 /**
  * Handle XCB_RANDR_SCREEN_CHANGE_NOTIFY events
  *
- * If any of the monitors have changed we raise USR1 to trigger a reload
+ * If any of the monitors have changed we trigger a reload
  */
 void screen::handle(const evt::randr_screen_change_notify& evt) {
   if (m_sigraised || evt->request_window != m_proxy) {
