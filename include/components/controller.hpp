@@ -106,6 +106,11 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   std::unique_ptr<eventloop> eloop;
 
   /**
+   * Once this is set to true, 'eloop' and any uv handles can be used.
+   */
+  std::atomic_bool m_eloop_ready{false};
+
+  /**
    * \brief Async handle to notify the eventloop
    *
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
