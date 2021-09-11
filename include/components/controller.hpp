@@ -52,7 +52,8 @@ class controller
   bool run(bool writeback, string snapshot_dst);
 
   bool enqueue(event&& evt);
-  bool trigger_action(string&& input_data);
+  void trigger_action(string&& input_data);
+  void trigger_quit(bool reload);
 
   void stop(bool reload);
 
