@@ -158,7 +158,7 @@ void controller::trigger_update(bool force) {
 
 void controller::trigger_notification() {
   if (m_eloop_ready) {
-    UV(uv_async_send, m_notifier.get());
+    m_notifier->send();
   }
 }
 
@@ -237,10 +237,6 @@ void controller::notifier_handler() {
   }
 }
 
-static void notifier_cb_wrapper(uv_async_t* handle) {
-  static_cast<controller*>(handle->data)->notifier_handler();
-}
-
 void controller::screenshot_handler() {
   m_sig.emit(signals::ui::request_snapshot{move(m_snapshot_dst)});
   trigger_update(true);
@@ -280,9 +276,7 @@ void controller::read_events(bool confwatch) {
       ipc_handle->start(m_ipc->get_file_descriptor());
     }
 
-    m_notifier = std::make_unique<uv_async_t>();
-    UV(uv_async_init, loop, m_notifier.get(), notifier_cb_wrapper);
-    m_notifier->data = this;
+    m_notifier = std::make_unique<AsyncHandle>(loop, [this]() { notifier_handler(); });
 
     if (!m_snapshot_dst.empty()) {
       screenshot_timer_handle = std::make_unique<TimerHandle>(loop, [this]() { screenshot_handler(); });

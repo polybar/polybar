@@ -138,6 +138,16 @@ struct TimerHandle : public UVHandle<uv_timer_t> {
   }
 };
 
+struct AsyncHandle : public UVHandle<uv_async_t> {
+  AsyncHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
+    UV(uv_async_init, loop, handle.get(), &cb.callback);
+  }
+
+  void send() {
+    UV(uv_async_send, handle.get());
+  }
+};
+
 class eventloop {
  public:
   eventloop();
