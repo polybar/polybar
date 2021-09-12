@@ -13,12 +13,13 @@ POLYBAR_NS
  * Runs any libuv function with an integer error code return value and throws an
  * exception on error.
  */
-#define UV(fun, ...)                                                                \
-  do {                                                                              \
-    int res = fun(__VA_ARGS__);                                                     \
-    if (res < 0) {                                                                  \
-      throw std::runtime_error("libuv error for '" #fun "': "s + uv_strerror(res)); \
-    }                                                                               \
+#define UV(fun, ...)                                                                                        \
+  do {                                                                                                      \
+    int res = fun(__VA_ARGS__);                                                                             \
+    if (res < 0) {                                                                                          \
+      throw std::runtime_error(                                                                             \
+          __FILE__ ":"s + std::to_string(__LINE__) + ": libuv error for '" #fun "': "s + uv_strerror(res)); \
+    }                                                                                                       \
   } while (0);
 
 template <class H, class... Args>
@@ -31,6 +32,10 @@ struct cb_helper {
   }
 };
 
+/**
+ * \tparam H Type of the handle
+ * \tparam I Type of the handle passed to the callback. Often the same as H, but not always (e.g. uv_read_start)
+ */
 template <typename H, typename I, typename... Args>
 struct UVHandleGeneric {
   UVHandleGeneric(std::function<void(Args...)> fun) {
@@ -81,43 +86,45 @@ struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
-  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun)
-      : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) {
-        if (nread > 0) {
-          string payload = string(buf->base, nread);
-          logger::make().notice("Bytes read: %d: '%s'", nread, payload);
-          fun(std::move(payload));
-        } else if (nread < 0) {
-          if (nread != UV_EOF) {
-            logger::make().err("Read error: %s", uv_err_name(nread));
-            uv_close((uv_handle_t*)handle.get(), nullptr);
-          } else {
-            UV(
-                uv_read_start, (uv_stream_t*)handle.get(),
-                [](uv_handle_t*, size_t, uv_buf_t* buf) {
-                  buf->base = new char[BUFSIZ];
-                  buf->len = BUFSIZ;
-                },
-                &cb.callback);
-          }
-        }
+  std::function<void(const string)> func;
 
-        if (buf->base) {
-          delete[] buf->base;
-        }
-      }) {
+  int fd;
+
+  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun)
+      : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); }), func(fun) {
     UV(uv_pipe_init, loop, handle.get(), false);
   }
 
   void start(int fd) {
+    this->fd = fd;
     UV(uv_pipe_open, handle.get(), fd);
-    UV(
-        uv_read_start, (uv_stream_t*)handle.get(),
-        [](uv_handle_t*, size_t, uv_buf_t* buf) {
-          buf->base = new char[BUFSIZ];
-          buf->len = BUFSIZ;
-        },
-        &cb.callback);
+    UV(uv_read_start, (uv_stream_t*)handle.get(), alloc_cb, &cb.callback);
+  }
+
+  static void alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
+    buf->base = new char[BUFSIZ];
+    buf->len = BUFSIZ;
+  }
+
+  void read_cb(ssize_t nread, const uv_buf_t* buf) {
+    auto log = logger::make();
+    if (nread > 0) {
+      string payload = string(buf->base, nread);
+      log.notice("Bytes read: %d: '%s'", nread, payload);
+      func(payload);
+    } else if (nread < 0) {
+      if (nread != UV_EOF) {
+        log.err("Read error: %s", uv_err_name(nread));
+        uv_close((uv_handle_t*)handle.get(), nullptr);
+      } else {
+        // TODO this causes constant EOFs
+        start(this->fd);
+      }
+    }
+
+    if (buf->base) {
+      delete[] buf->base;
+    }
   }
 };
 

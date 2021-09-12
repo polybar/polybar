@@ -30,7 +30,7 @@ eventloop::~eventloop() {
       close_loop(m_loop.get());
       UV(uv_loop_close, m_loop.get());
     } catch (const std::exception& e) {
-      // TODO log error
+      logger::make().err("%s", e.what());
     }
 
     m_loop.reset();
