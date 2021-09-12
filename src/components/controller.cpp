@@ -195,11 +195,6 @@ void controller::conn_cb(int status, int) {
   }
 }
 
-void controller::ipc_cb(string buf) {
-  // TODO handle messages sent in multiple parts.
-  m_ipc->receive_message(buf);
-}
-
 void controller::signal_handler(int signum) {
   m_log.notice("Received signal(%d): %s", signum, strsignal(signum));
   stop(signum == SIGUSR1);
@@ -264,7 +259,9 @@ void controller::read_events(bool confwatch) {
     }
 
     if (m_ipc) {
-      eloop->pipe_handle(m_ipc->get_file_descriptor(), [this](const string payload) { ipc_cb(payload); });
+      eloop->pipe_handle(
+          m_ipc->get_file_descriptor(), [this](const string payload) { m_ipc->receive_data(payload); },
+          [this]() { m_ipc->receive_eof(); });
     }
 
     if (!m_snapshot_dst.empty()) {

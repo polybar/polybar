@@ -57,7 +57,6 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void signal_handler(int signum);
 
   void conn_cb(int status, int events);
-  void ipc_cb(string buf);
   void confwatch_handler(const char* fname, int events, int status);
   void notifier_handler();
   void screenshot_handler();

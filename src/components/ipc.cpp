@@ -33,8 +33,11 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
     throw system_error("Failed to create ipc channel");
   }
 
+  if ((m_fd = open(m_path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
+    throw system_error("Failed to open pipe '" + m_path + "'");
+  }
+
   m_log.info("Created ipc channel at: %s", m_path);
-  m_fd = file_util::make_file_descriptor(m_path, O_RDONLY | O_NONBLOCK, false);
 }
 
 /**
@@ -48,12 +51,23 @@ ipc::~ipc() {
 }
 
 /**
- * Receive available ipc messages and delegate valid events
+ * Receive parts of an IPC message
  */
-void ipc::receive_message(string buf) {
-  m_log.info("Receiving ipc message");
+void ipc::receive_data(string buf) {
+  m_buffer += buf;
+}
 
-  string payload{string_util::trim(std::move(buf), '\n')};
+/**
+ * Called once the end of the message arrives.
+ */
+void ipc::receive_eof() {
+  if (m_buffer.empty()) {
+    return;
+  }
+
+  string payload{string_util::trim(std::move(m_buffer), '\n')};
+
+  m_buffer = std::string();
 
   if (payload.find(ipc_command_prefix) == 0) {
     m_sig.emit(signals::ipc::command{payload.substr(strlen(ipc_command_prefix))});
@@ -61,7 +75,7 @@ void ipc::receive_message(string buf) {
     m_sig.emit(signals::ipc::hook{payload.substr(strlen(ipc_hook_prefix))});
   } else if (payload.find(ipc_action_prefix) == 0) {
     m_sig.emit(signals::ipc::action{payload.substr(strlen(ipc_action_prefix))});
-  } else if (!payload.empty()) {
+  } else {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }
 }
@@ -70,7 +84,7 @@ void ipc::receive_message(string buf) {
  * Get the file descriptor to the ipc channel
  */
 int ipc::get_file_descriptor() const {
-  return *m_fd;
+  return m_fd;
 }
 
 POLYBAR_NS_END
