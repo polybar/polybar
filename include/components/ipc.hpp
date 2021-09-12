@@ -34,7 +34,8 @@ class ipc {
   explicit ipc(signal_emitter& emitter, const logger& logger);
   ~ipc();
 
-  void receive_message(string buf);
+  void receive_data(string buf);
+  void receive_eof();
   int get_file_descriptor() const;
 
  private:
@@ -42,7 +43,12 @@ class ipc {
   const logger& m_log;
 
   string m_path{};
-  unique_ptr<file_descriptor> m_fd;
+  int m_fd;
+
+  /**
+   * Buffer for the currently received IPC message.
+   */
+  string m_buffer{};
 };
 
 POLYBAR_NS_END

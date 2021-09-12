@@ -73,8 +73,8 @@ void FSEventHandle::start(const string& path) {
 // }}}
 
 // PipeHandle {{{
-PipeHandle::PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun)
-    : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); }), func(fun) {
+PipeHandle::PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb)
+    : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); }), func(fun), eof_cb(eof_cb) {
   UV(uv_pipe_init, loop, handle, false);
 }
 
@@ -97,6 +97,7 @@ void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
       log.err("Read error: %s", uv_err_name(nread));
       uv_close((uv_handle_t*)handle, nullptr);
     } else {
+      eof_cb();
       // TODO this causes constant EOFs
       start(this->fd);
     }
@@ -191,8 +192,8 @@ void eventloop::fs_event_handler(const string& path, std::function<void(const ch
   m_fs_event_handles.back()->start(path);
 }
 
-void eventloop::pipe_handle(int fd, std::function<void(const string)> fun) {
-  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun));
+void eventloop::pipe_handle(int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb) {
+  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun, eof_cb));
   m_pipe_handles.back()->start(fd);
 }
 
