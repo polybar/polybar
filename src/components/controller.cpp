@@ -237,30 +237,6 @@ void controller::notifier_handler() {
   }
 }
 
-static void ipc_alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
-  buf->base = new char[BUFSIZ];
-  buf->len = BUFSIZ;
-}
-
-static void ipc_read_cb_wrapper(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-  if (nread > 0) {
-    string payload = string(buf->base, nread);
-    logger::make().notice("Bytes read: %d: '%s'", nread, payload);
-    static_cast<controller*>(stream->data)->ipc_cb(std::move(payload));
-  } else if (nread < 0) {
-    if (nread != UV_EOF) {
-      fprintf(stderr, "Read error %s\n", uv_err_name(nread));
-      uv_close((uv_handle_t*)stream, nullptr);
-    } else {
-      uv_read_start(stream, ipc_alloc_cb, ipc_read_cb_wrapper);
-    }
-  }
-
-  if (buf->base) {
-    delete[] buf->base;
-  }
-}
-
 static void notifier_cb_wrapper(uv_async_t* handle) {
   static_cast<controller*>(handle->data)->notifier_handler();
 }
@@ -284,7 +260,7 @@ void controller::read_events(bool confwatch) {
     m_bar->start();
   }
 
-  auto ipc_handle = std::unique_ptr<uv_pipe_t>(nullptr);
+  auto ipc_handle = std::unique_ptr<PipeHandle>(nullptr);
   auto screenshot_timer_handle = std::unique_ptr<uv_timer_t>(nullptr);
 
   try {
@@ -304,11 +280,8 @@ void controller::read_events(bool confwatch) {
     }
 
     if (m_ipc) {
-      ipc_handle = std::make_unique<uv_pipe_t>();
-      UV(uv_pipe_init, loop, ipc_handle.get(), false);
-      ipc_handle->data = this;
-      UV(uv_pipe_open, ipc_handle.get(), m_ipc->get_file_descriptor());
-      UV(uv_read_start, (uv_stream_t*)ipc_handle.get(), ipc_alloc_cb, ipc_read_cb_wrapper);
+      ipc_handle = std::make_unique<PipeHandle>(loop, [this](const string payload) { ipc_cb(payload); });
+      ipc_handle->start(m_ipc->get_file_descriptor());
     }
 
     m_notifier = std::make_unique<uv_async_t>();

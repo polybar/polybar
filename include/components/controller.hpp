@@ -3,8 +3,8 @@
 #include <moodycamel/blockingconcurrentqueue.h>
 #include <uv.h>
 
-#include <thread>
 #include <mutex>
+#include <thread>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
