@@ -148,6 +148,14 @@ struct AsyncHandle : public UVHandle<uv_async_t> {
   }
 };
 
+using SignalHandle_t = std::unique_ptr<SignalHandle>;
+using PollHandle_t = std::unique_ptr<PollHandle>;
+using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
+using PipeHandle_t = std::unique_ptr<PipeHandle>;
+using TimerHandle_t = std::unique_ptr<TimerHandle>;
+// shared_ptr because we need a reference outside to call send
+using AsyncHandle_t = std::shared_ptr<AsyncHandle>;
+
 class eventloop {
  public:
   eventloop();
@@ -157,43 +165,51 @@ class eventloop {
 
   void stop();
 
-  /**
-   * TODO make protected
-   */
-  uv_loop_t* get() const {
-    return m_loop.get();
-  }
-
   void signal_handler(int signum, std::function<void(int)> fun) {
-    auto handle = std::make_unique<SignalHandle>(get(), fun);
-    handle->start(signum);
-    m_sig_handles.push_back(std::move(handle));
+    m_sig_handles.emplace_back(std::make_unique<SignalHandle>(get(), fun));
+    m_sig_handles.back()->start(signum);
   }
 
   void poll_handler(int events, int fd, std::function<void(int, int)> fun) {
-    auto handle = std::make_unique<PollHandle>(get(), fd, fun);
-    handle->start(events);
-    m_poll_handles.push_back(std::move(handle));
+    m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun));
+    m_poll_handles.back()->start(events);
   }
 
   void fs_event_handler(const string& path, std::function<void(const char*, int, int)> fun) {
-    auto handle = std::make_unique<FSEventHandle>(get(), fun);
-    handle->start(path);
-    m_fs_event_handles.push_back(std::move(handle));
+    m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun));
+    m_fs_event_handles.back()->start(path);
+  }
+
+  void pipe_handle(int fd, std::function<void(const string)> fun) {
+    m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun));
+    m_pipe_handles.back()->start(fd);
+  }
+
+  void timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun) {
+    m_timer_handles.emplace_back(std::make_unique<TimerHandle>(get(), fun));
+    // Trigger a single screenshot after 3 seconds
+    m_timer_handles.back()->start(timeout, repeat);
+  }
+
+  AsyncHandle_t async_handle(std::function<void(void)> fun) {
+    m_async_handles.emplace_back(std::make_shared<AsyncHandle>(get(), fun));
+    return m_async_handles.back();
   }
 
  protected:
-  template <typename H, typename T, typename... Args, void (T::*F)(Args...)>
-  static void generic_cb(H* handle, Args&&... args) {
-    (static_cast<T*>(handle->data).*F)(std::forward<Args>(args)...);
+  uv_loop_t* get() const {
+    return m_loop.get();
   }
 
  private:
   std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
-  vector<std::unique_ptr<SignalHandle>> m_sig_handles;
-  vector<std::unique_ptr<PollHandle>> m_poll_handles;
-  vector<std::unique_ptr<FSEventHandle>> m_fs_event_handles;
+  vector<SignalHandle_t> m_sig_handles;
+  vector<PollHandle_t> m_poll_handles;
+  vector<FSEventHandle_t> m_fs_event_handles;
+  vector<PipeHandle_t> m_pipe_handles;
+  vector<TimerHandle_t> m_timer_handles;
+  vector<AsyncHandle_t> m_async_handles;
 };
 
 POLYBAR_NS_END
