@@ -51,8 +51,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository.
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
 
+### Deprecated
+- `[settings]`: `throttle-output` and `throttle-output-for` have been removed.
+  The new event loop already does a similar thing where it coalesces update
+  triggers if they happen directly after one another, leading to only a single
+  bar update.
+
 ### Added
-- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`, 
+- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
   `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
   when below or above 1GiB.
   ([`2472`](https://github.com/polybar/polybar/issues/2472))
