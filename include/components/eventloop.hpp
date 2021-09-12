@@ -128,6 +128,16 @@ struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, cons
   }
 };
 
+struct TimerHandle : public UVHandle<uv_timer_t> {
+  TimerHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
+    UV(uv_timer_init, loop, handle.get());
+  }
+
+  void start(uint64_t timeout, uint64_t repeat) {
+    UV(uv_timer_start, handle.get(), &cb.callback, timeout, repeat);
+  }
+};
+
 class eventloop {
  public:
   eventloop();

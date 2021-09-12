@@ -246,10 +246,6 @@ void controller::screenshot_handler() {
   trigger_update(true);
 }
 
-static void screenshot_cb_wrapper(uv_timer_t* handle) {
-  static_cast<controller*>(handle->data)->screenshot_handler();
-}
-
 /**
  * Read events from configured file descriptors
  */
@@ -261,7 +257,7 @@ void controller::read_events(bool confwatch) {
   }
 
   auto ipc_handle = std::unique_ptr<PipeHandle>(nullptr);
-  auto screenshot_timer_handle = std::unique_ptr<uv_timer_t>(nullptr);
+  auto screenshot_timer_handle = std::unique_ptr<TimerHandle>(nullptr);
 
   try {
     eloop = std::make_unique<eventloop>();
@@ -289,11 +285,9 @@ void controller::read_events(bool confwatch) {
     m_notifier->data = this;
 
     if (!m_snapshot_dst.empty()) {
-      screenshot_timer_handle = std::make_unique<uv_timer_t>();
-      UV(uv_timer_init, loop, screenshot_timer_handle.get());
-      screenshot_timer_handle->data = this;
-      // Trigger a screenshot after 3 seconds
-      UV(uv_timer_start, screenshot_timer_handle.get(), screenshot_cb_wrapper, 3000, 0);
+      screenshot_timer_handle = std::make_unique<TimerHandle>(loop, [this]() { screenshot_handler(); });
+      // Trigger a single screenshot after 3 seconds
+      screenshot_timer_handle->start(3000, 0);
     }
 
     m_eloop_ready.store(true);
