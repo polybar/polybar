@@ -22,15 +22,7 @@ POLYBAR_NS
     }                                                                                                       \
   } while (0);
 
-template <class H, class... Args>
-struct cb_helper {
-  std::function<void(Args...)> func;
-
-  static void callback(H* context, Args... args) {
-    const auto unpackedThis = static_cast<const cb_helper*>(context->data);
-    return unpackedThis->func(std::forward<Args>(args)...);
-  }
-};
+void close_callback(uv_handle_t*);
 
 /**
  * \tparam H Type of the handle
@@ -39,13 +31,31 @@ struct cb_helper {
 template <typename H, typename I, typename... Args>
 struct UVHandleGeneric {
   UVHandleGeneric(std::function<void(Args...)> fun) {
-    handle = std::make_unique<H>();
-    cb = cb_helper<I, Args...>{fun};
-    handle->data = &cb;
+    handle = new H;
+    handle->data = this;
+    this->func = fun;
   }
 
-  std::unique_ptr<H> handle;
-  cb_helper<I, Args...> cb;
+  ~UVHandleGeneric() {
+    if (handle && !uv_is_closing((uv_handle_t*)handle)) {
+      uv_close((uv_handle_t*)handle, close_callback);
+    }
+  }
+
+  void close() {
+    if (handle) {
+      delete handle;
+      handle = nullptr;
+    }
+  }
+
+  static void callback(I* context, Args... args) {
+    const auto unpackedThis = static_cast<const UVHandleGeneric*>(context->data);
+    return unpackedThis->func(std::forward<Args>(args)...);
+  }
+
+  H* handle;
+  std::function<void(Args...)> func;
 };
 
 template <typename H, typename... Args>
@@ -54,98 +64,37 @@ struct UVHandle : public UVHandleGeneric<H, H, Args...> {
 };
 
 struct SignalHandle : public UVHandle<uv_signal_t, int> {
-  SignalHandle(uv_loop_t* loop, std::function<void(int)> fun) : UVHandle(fun) {
-    UV(uv_signal_init, loop, handle.get());
-  }
-
-  void start(int signum) {
-    UV(uv_signal_start, handle.get(), cb.callback, signum);
-  }
+  SignalHandle(uv_loop_t* loop, std::function<void(int)> fun);
+  void start(int signum);
 };
 
 struct PollHandle : public UVHandle<uv_poll_t, int, int> {
-  // TODO wrap callback and handle status
-  PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun) : UVHandle(fun) {
-    UV(uv_poll_init, loop, handle.get(), fd);
-  }
-
-  void start(int events) {
-    UV(uv_poll_start, handle.get(), events, &cb.callback);
-  }
+  PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun);
+  void start(int events);
 };
 
 struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
-  // TODO wrap callback and handle status
-  FSEventHandle(uv_loop_t* loop, std::function<void(const char*, int, int)> fun) : UVHandle(fun) {
-    UV(uv_fs_event_init, loop, handle.get());
-  }
-
-  void start(const string& path) {
-    UV(uv_fs_event_start, handle.get(), &cb.callback, path.c_str(), 0);
-  }
+  FSEventHandle(uv_loop_t* loop, std::function<void(const char*, int, int)> fun);
+  void start(const string& path);
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
+  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun);
+  void start(int fd);
+  void read_cb(ssize_t nread, const uv_buf_t* buf);
+
   std::function<void(const string)> func;
-
   int fd;
-
-  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun)
-      : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); }), func(fun) {
-    UV(uv_pipe_init, loop, handle.get(), false);
-  }
-
-  void start(int fd) {
-    this->fd = fd;
-    UV(uv_pipe_open, handle.get(), fd);
-    UV(uv_read_start, (uv_stream_t*)handle.get(), alloc_cb, &cb.callback);
-  }
-
-  static void alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
-    buf->base = new char[BUFSIZ];
-    buf->len = BUFSIZ;
-  }
-
-  void read_cb(ssize_t nread, const uv_buf_t* buf) {
-    auto log = logger::make();
-    if (nread > 0) {
-      string payload = string(buf->base, nread);
-      log.notice("Bytes read: %d: '%s'", nread, payload);
-      func(payload);
-    } else if (nread < 0) {
-      if (nread != UV_EOF) {
-        log.err("Read error: %s", uv_err_name(nread));
-        uv_close((uv_handle_t*)handle.get(), nullptr);
-      } else {
-        // TODO this causes constant EOFs
-        start(this->fd);
-      }
-    }
-
-    if (buf->base) {
-      delete[] buf->base;
-    }
-  }
 };
 
 struct TimerHandle : public UVHandle<uv_timer_t> {
-  TimerHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
-    UV(uv_timer_init, loop, handle.get());
-  }
-
-  void start(uint64_t timeout, uint64_t repeat) {
-    UV(uv_timer_start, handle.get(), &cb.callback, timeout, repeat);
-  }
+  TimerHandle(uv_loop_t* loop, std::function<void(void)> fun);
+  void start(uint64_t timeout, uint64_t repeat);
 };
 
 struct AsyncHandle : public UVHandle<uv_async_t> {
-  AsyncHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
-    UV(uv_async_init, loop, handle.get(), &cb.callback);
-  }
-
-  void send() {
-    UV(uv_async_send, handle.get());
-  }
+  AsyncHandle(uv_loop_t* loop, std::function<void(void)> fun);
+  void send();
 };
 
 using SignalHandle_t = std::unique_ptr<SignalHandle>;
@@ -160,46 +109,17 @@ class eventloop {
  public:
   eventloop();
   ~eventloop();
-
   void run();
-
   void stop();
-
-  void signal_handler(int signum, std::function<void(int)> fun) {
-    m_sig_handles.emplace_back(std::make_unique<SignalHandle>(get(), fun));
-    m_sig_handles.back()->start(signum);
-  }
-
-  void poll_handler(int events, int fd, std::function<void(int, int)> fun) {
-    m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun));
-    m_poll_handles.back()->start(events);
-  }
-
-  void fs_event_handler(const string& path, std::function<void(const char*, int, int)> fun) {
-    m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun));
-    m_fs_event_handles.back()->start(path);
-  }
-
-  void pipe_handle(int fd, std::function<void(const string)> fun) {
-    m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun));
-    m_pipe_handles.back()->start(fd);
-  }
-
-  void timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun) {
-    m_timer_handles.emplace_back(std::make_unique<TimerHandle>(get(), fun));
-    // Trigger a single screenshot after 3 seconds
-    m_timer_handles.back()->start(timeout, repeat);
-  }
-
-  AsyncHandle_t async_handle(std::function<void(void)> fun) {
-    m_async_handles.emplace_back(std::make_shared<AsyncHandle>(get(), fun));
-    return m_async_handles.back();
-  }
+  void signal_handler(int signum, std::function<void(int)> fun);
+  void poll_handler(int events, int fd, std::function<void(int, int)> fun);
+  void fs_event_handler(const string& path, std::function<void(const char*, int, int)> fun);
+  void pipe_handle(int fd, std::function<void(const string)> fun);
+  void timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun);
+  AsyncHandle_t async_handle(std::function<void(void)> fun);
 
  protected:
-  uv_loop_t* get() const {
-    return m_loop.get();
-  }
+  uv_loop_t* get() const;
 
  private:
   std::unique_ptr<uv_loop_t> m_loop{nullptr};
