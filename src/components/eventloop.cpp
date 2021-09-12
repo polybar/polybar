@@ -1,5 +1,7 @@
 #include "components/eventloop.hpp"
 
+#include <cassert>
+
 POLYBAR_NS
 
 /**

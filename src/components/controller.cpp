@@ -47,15 +47,11 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
     , m_conf(config)
     , m_bar(forward<decltype(bar)>(bar))
     , m_ipc(forward<decltype(ipc)>(ipc)) {
-  if (m_conf.has("settings", "throttle-input-for")) {
-    m_log.warn(
-        "The config parameter 'settings.throttle-input-for' is deprecated, it will be removed in the future. Please "
-        "remove it from your config");
-  }
-
-  // TODO deprecate both
-  m_conf.deprecated("settings", "eventqueue-swallow", "throttle-output", 0);
-  m_conf.deprecated("settings", "eventqueue-swallow-time", "throttle-output-for", 0);
+  m_conf.ignore_key("settings", "throttle-input-for");
+  m_conf.ignore_key("settings", "throttle-output");
+  m_conf.ignore_key("settings", "throttle-output-for");
+  m_conf.ignore_key("settings", "eventqueue-swallow");
+  m_conf.ignore_key("settings", "eventqueue-swallow-time");
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
