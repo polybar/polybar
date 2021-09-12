@@ -252,12 +252,8 @@ void controller::read_events(bool confwatch) {
     m_bar->start();
   }
 
-  auto ipc_handle = std::unique_ptr<PipeHandle>(nullptr);
-  auto screenshot_timer_handle = std::unique_ptr<TimerHandle>(nullptr);
-
   try {
     eloop = std::make_unique<eventloop>();
-    auto loop = eloop->get();
 
     eloop->poll_handler(
         UV_READABLE, m_connection.get_file_descriptor(), [this](int status, int events) { conn_cb(status, events); });
@@ -272,17 +268,15 @@ void controller::read_events(bool confwatch) {
     }
 
     if (m_ipc) {
-      ipc_handle = std::make_unique<PipeHandle>(loop, [this](const string payload) { ipc_cb(payload); });
-      ipc_handle->start(m_ipc->get_file_descriptor());
+      eloop->pipe_handle(m_ipc->get_file_descriptor(), [this](const string payload) { ipc_cb(payload); });
     }
-
-    m_notifier = std::make_unique<AsyncHandle>(loop, [this]() { notifier_handler(); });
 
     if (!m_snapshot_dst.empty()) {
-      screenshot_timer_handle = std::make_unique<TimerHandle>(loop, [this]() { screenshot_handler(); });
       // Trigger a single screenshot after 3 seconds
-      screenshot_timer_handle->start(3000, 0);
+      eloop->timer_handle(3000, 0, [this]() { screenshot_handler(); });
     }
+
+    m_notifier = eloop->async_handle([this]() { notifier_handler(); });
 
     m_eloop_ready.store(true);
 
