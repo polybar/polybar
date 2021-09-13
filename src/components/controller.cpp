@@ -165,27 +165,29 @@ void controller::stop(bool reload) {
 
 void controller::conn_cb(uv_poll_event) {
   int xcb_error = m_connection.connection_has_error();
-  if ((xcb_error = m_connection.connection_has_error()) > 0) {
+  if ((xcb_error = m_connection.connection_has_error()) != 0) {
     m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
     stop(false);
     return;
   }
 
   shared_ptr<xcb_generic_event_t> evt{};
-  if ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
     try {
       m_connection.dispatch_event(evt);
     } catch (xpp::connection_error& err) {
       m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
+      stop(false);
     } catch (const exception& err) {
       m_log.err("Error in X event loop: %s", err.what());
-    }
-  } else {
-    if ((xcb_error = m_connection.connection_has_error()) > 0) {
-      m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
       stop(false);
-      return;
     }
+  }
+
+  if ((xcb_error = m_connection.connection_has_error()) != 0) {
+    m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
+    stop(false);
+    return;
   }
 }
 
