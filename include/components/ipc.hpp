@@ -26,16 +26,16 @@ class ipc {
   explicit ipc(signal_emitter& emitter, const logger& logger);
   ~ipc();
 
+  string get_path() const;
+
   void receive_data(string buf);
   void receive_eof();
-  int get_file_descriptor() const;
 
  private:
   signal_emitter& m_sig;
   const logger& m_log;
 
   string m_path{};
-  int m_fd;
 
   /**
    * Buffer for the currently received IPC message.

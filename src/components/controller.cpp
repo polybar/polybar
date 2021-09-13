@@ -260,7 +260,7 @@ void controller::read_events(bool confwatch) {
 
     if (m_ipc) {
       eloop->pipe_handle(
-          m_ipc->get_file_descriptor(), [this](const string payload) { m_ipc->receive_data(payload); },
+          m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
           [this]() { m_ipc->receive_eof(); },
           [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
     }

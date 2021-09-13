@@ -39,11 +39,6 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
   if (mkfifo(m_path.c_str(), 0666) == -1) {
     throw system_error("Failed to create ipc channel");
   }
-
-  if ((m_fd = open(m_path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
-    throw system_error("Failed to open pipe '" + m_path + "'");
-  }
-
   m_log.info("Created ipc channel at: %s", m_path);
 }
 
@@ -51,10 +46,12 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
  * Deconstruct ipc handler
  */
 ipc::~ipc() {
-  if (!m_path.empty()) {
-    m_log.trace("ipc: Removing file handle");
-    unlink(m_path.c_str());
-  }
+  m_log.trace("ipc: Removing file handle at: %s", m_path);
+  unlink(m_path.c_str());
+}
+
+string ipc::get_path() const {
+  return m_path;
 }
 
 /**
@@ -85,13 +82,6 @@ void ipc::receive_eof() {
   } else {
     m_log.warn("Received unknown ipc message: (payload=%s)", payload);
   }
-}
-
-/**
- * Get the file descriptor to the ipc channel
- */
-int ipc::get_file_descriptor() const {
-  return m_fd;
 }
 
 POLYBAR_NS_END

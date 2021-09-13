@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "errors.hpp"
+
 POLYBAR_NS
 
 /**
@@ -95,37 +97,54 @@ void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
 // }}}
 
 // PipeHandle {{{
-PipeHandle::PipeHandle(
-    uv_loop_t* loop, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb)
+PipeHandle::PipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun,
+    function<void(void)> eof_cb, function<void(int)> err_cb)
     : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
     , func(fun)
     , eof_cb(eof_cb)
-    , err_cb(err_cb) {
+    , err_cb(err_cb)
+    , path(path) {
   UV(uv_pipe_init, loop, handle, false);
 }
 
-void PipeHandle::start(int fd) {
-  this->fd = fd;
+void PipeHandle::start() {
+  if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
+    throw system_error("Failed to open pipe '" + path + "'");
+  }
   UV(uv_pipe_open, handle, fd);
   UV(uv_read_start, (uv_stream_t*)handle, alloc_cb, callback);
 }
 
 void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
+  /*
+   * Wrap pointer so that it gets automatically freed once the function returns (even with exceptions)
+   */
+  auto buf_ptr = unique_ptr<char>(buf->base);
   if (nread > 0) {
-    func(string(buf->base, nread));
+    func(string(buf_ptr.get(), nread));
   } else if (nread < 0) {
     if (nread != UV_EOF) {
       close();
       err_cb(nread);
     } else {
       eof_cb();
-      // TODO this causes constant EOFs
-      start(this->fd);
-    }
-  }
 
-  if (buf->base) {
-    delete[] buf->base;
+      /*
+       * This is a special case.
+       *
+       * Once we read EOF, we no longer receive events for the fd, so we close the entire handle and restart it with a
+       * new fd.
+       *
+       * We reuse the memory for the underlying uv handle
+       */
+      if (!uv_is_closing((uv_handle_t*)handle)) {
+        uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) {
+          PipeHandle* This = static_cast<PipeHandle*>(handle->data);
+          UV(uv_pipe_init, This->loop(), This->handle, false);
+          This->start();
+        });
+      }
+    }
   }
 }
 // }}}
@@ -215,9 +234,9 @@ void eventloop::fs_event_handle(
 }
 
 void eventloop::pipe_handle(
-    int fd, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb) {
-  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun, eof_cb, err_cb));
-  m_pipe_handles.back()->start(fd);
+    const string& path, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb) {
+  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), path, fun, eof_cb, err_cb));
+  m_pipe_handles.back()->start();
 }
 
 void eventloop::timer_handle(uint64_t timeout, uint64_t repeat, function<void(void)> fun) {
