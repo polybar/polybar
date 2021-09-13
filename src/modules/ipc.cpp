@@ -38,18 +38,15 @@ namespace modules {
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_RIGHT, m_conf.get(name(), "double-click-right", ""s)));
     // clang-format on
 
-    const auto pid_token = [](string& s) {
-      string::size_type p = s.find("%pid%");
-      if (p != string::npos) {
-        s.replace(p, 5, to_string(getpid()));
-      }
+    const auto pid_token = [](const string& s) {
+      return string_util::replace_all(s, "%pid%", to_string(getpid()));
     };
 
     for (auto& action : m_actions) {
-      pid_token(action.second);
+      action.second = pid_token(action.second);
     }
     for (auto& hook : m_hooks) {
-      pid_token(hook->command);
+      hook->command = pid_token(hook->command);
     }
 
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
