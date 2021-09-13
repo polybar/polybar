@@ -37,12 +37,16 @@ struct UVHandleGeneric {
   }
 
   ~UVHandleGeneric() {
+    close();
+  }
+
+  void close() {
     if (handle && !uv_is_closing((uv_handle_t*)handle)) {
       uv_close((uv_handle_t*)handle, close_callback);
     }
   }
 
-  void close() {
+  void cleanup_resources() {
     if (handle) {
       delete handle;
       handle = nullptr;
@@ -69,13 +73,21 @@ struct SignalHandle : public UVHandle<uv_signal_t, int> {
 };
 
 struct PollHandle : public UVHandle<uv_poll_t, int, int> {
-  PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun);
+  PollHandle(uv_loop_t* loop, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb);
   void start(int events);
+  void poll_cb(int status, int events);
+
+  std::function<void(uv_poll_event)> func;
+  std::function<void(int)> err_cb;
 };
 
 struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
-  FSEventHandle(uv_loop_t* loop, std::function<void(const char*, int, int)> fun);
+  FSEventHandle(uv_loop_t* loop, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb);
   void start(const string& path);
+  void fs_event_cb(const char* path, int events, int status);
+
+  std::function<void(const char*, uv_fs_event)> func;
+  std::function<void(int)> err_cb;
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
@@ -113,8 +125,9 @@ class eventloop {
   void run();
   void stop();
   void signal_handler(int signum, std::function<void(int)> fun);
-  void poll_handler(int events, int fd, std::function<void(int, int)> fun);
-  void fs_event_handler(const string& path, std::function<void(const char*, int, int)> fun);
+  void poll_handler(int events, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb);
+  void fs_event_handler(
+      const string& path, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb);
   void pipe_handle(int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb);
   void timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun);
   AsyncHandle_t async_handle(std::function<void(void)> fun);

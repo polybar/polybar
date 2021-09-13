@@ -14,6 +14,13 @@
 POLYBAR_NS
 
 /**
+ * Message types
+ */
+static constexpr const char* ipc_command_prefix{"cmd:"};
+static constexpr const char* ipc_hook_prefix{"hook:"};
+static constexpr const char* ipc_action_prefix{"action:"};
+
+/**
  * Create instance
  */
 ipc::make_type ipc::make() {

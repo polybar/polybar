@@ -13,22 +13,22 @@ POLYBAR_NS
 void close_callback(uv_handle_t* handle) {
   switch (handle->type) {
     case UV_ASYNC:
-      static_cast<AsyncHandle*>(handle->data)->close();
+      static_cast<AsyncHandle*>(handle->data)->cleanup_resources();
       break;
     case UV_FS_EVENT:
-      static_cast<FSEventHandle*>(handle->data)->close();
+      static_cast<FSEventHandle*>(handle->data)->cleanup_resources();
       break;
     case UV_POLL:
-      static_cast<PollHandle*>(handle->data)->close();
+      static_cast<PollHandle*>(handle->data)->cleanup_resources();
       break;
     case UV_TIMER:
-      static_cast<TimerHandle*>(handle->data)->close();
+      static_cast<TimerHandle*>(handle->data)->cleanup_resources();
       break;
     case UV_SIGNAL:
-      static_cast<SignalHandle*>(handle->data)->close();
+      static_cast<SignalHandle*>(handle->data)->cleanup_resources();
       break;
     case UV_NAMED_PIPE:
-      static_cast<PipeHandle*>(handle->data)->close();
+      static_cast<PipeHandle*>(handle->data)->cleanup_resources();
       break;
     default:
       assert(false);
@@ -51,24 +51,47 @@ void SignalHandle::start(int signum) {
 // }}}
 
 // PollHandle {{{
-// TODO wrap callback and handle status
-PollHandle::PollHandle(uv_loop_t* loop, int fd, std::function<void(int, int)> fun) : UVHandle(fun) {
+PollHandle::PollHandle(uv_loop_t* loop, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb)
+    : UVHandle([this](int status, int events) { poll_cb(status, events); }), func(fun), err_cb(err_cb) {
   UV(uv_poll_init, loop, handle, fd);
 }
 
 void PollHandle::start(int events) {
   UV(uv_poll_start, handle, events, callback);
 }
+
+void PollHandle::poll_cb(int status, int events) {
+  if (status < 0) {
+    close();
+    err_cb(status);
+    return;
+  }
+
+  func((uv_poll_event)events);
+}
 // }}}
 
 // FSEventHandle {{{
-// TODO wrap callback and handle status
-FSEventHandle::FSEventHandle(uv_loop_t* loop, std::function<void(const char*, int, int)> fun) : UVHandle(fun) {
+FSEventHandle::FSEventHandle(
+    uv_loop_t* loop, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb)
+    : UVHandle([this](const char* path, int events, int status) { fs_event_cb(path, events, status); })
+    , func(fun)
+    , err_cb(err_cb) {
   UV(uv_fs_event_init, loop, handle);
 }
 
 void FSEventHandle::start(const string& path) {
   UV(uv_fs_event_start, handle, callback, path.c_str(), 0);
+}
+
+void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
+  if (status < 0) {
+    close();
+    err_cb(status);
+    return;
+  }
+
+  func(path, (uv_fs_event)events);
 }
 // }}}
 
@@ -182,13 +205,15 @@ void eventloop::signal_handler(int signum, std::function<void(int)> fun) {
   m_sig_handles.back()->start(signum);
 }
 
-void eventloop::poll_handler(int events, int fd, std::function<void(int, int)> fun) {
-  m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun));
+void eventloop::poll_handler(
+    int events, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb) {
+  m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun, err_cb));
   m_poll_handles.back()->start(events);
 }
 
-void eventloop::fs_event_handler(const string& path, std::function<void(const char*, int, int)> fun) {
-  m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun));
+void eventloop::fs_event_handler(
+    const string& path, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb) {
+  m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun, err_cb));
   m_fs_event_handles.back()->start(path);
 }
 

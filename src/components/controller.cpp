@@ -130,7 +130,7 @@ void controller::trigger_action(string&& input_data) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
 
   if (m_notifications.inputdata.empty()) {
-    m_notifications.inputdata = std::forward<string>(input_data);
+    m_notifications.inputdata = std::move(input_data);
     trigger_notification();
   } else {
     m_log.trace("controller: Swallowing input event (pending data)");
@@ -163,13 +163,7 @@ void controller::stop(bool reload) {
   eloop->stop();
 }
 
-void controller::conn_cb(int status, int) {
-  if (status < 0) {
-    // TODO Should we stop polling here?
-    m_log.err("libuv error while polling X connection: %s", uv_strerror(status));
-    return;
-  }
-
+void controller::conn_cb(uv_poll_event) {
   int xcb_error = m_connection.connection_has_error();
   if ((xcb_error = m_connection.connection_has_error()) > 0) {
     m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
@@ -200,7 +194,7 @@ void controller::signal_handler(int signum) {
   stop(signum == SIGUSR1);
 }
 
-void controller::confwatch_handler(const char* filename, int, int) {
+void controller::confwatch_handler(const char* filename, uv_fs_event) {
   m_log.notice("Watched config file changed %s", filename);
   stop(true);
 }
@@ -247,15 +241,19 @@ void controller::read_events(bool confwatch) {
     eloop = std::make_unique<eventloop>();
 
     eloop->poll_handler(
-        UV_READABLE, m_connection.get_file_descriptor(), [this](int status, int events) { conn_cb(status, events); });
+        UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
+        [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
       eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
     }
 
     if (confwatch) {
-      eloop->fs_event_handler(m_conf.filepath(),
-          [this](const char* path, int events, int status) { confwatch_handler(path, events, status); });
+      eloop->fs_event_handler(
+          m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
+          [this](int status) {
+            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(status));
+          });
     }
 
     if (m_ipc) {
