@@ -242,16 +242,16 @@ void controller::read_events(bool confwatch) {
   try {
     eloop = std::make_unique<eventloop>();
 
-    eloop->poll_handler(
+    eloop->poll_handle(
         UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
         [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      eloop->signal_handler(s, [this](int signum) { signal_handler(signum); });
+      eloop->signal_handle(s, [this](int signum) { signal_handler(signum); });
     }
 
     if (confwatch) {
-      eloop->fs_event_handler(
+      eloop->fs_event_handle(
           m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
           [this](int status) {
             m_log.err("libuv error while watching config file for changes: %s", uv_strerror(status));
