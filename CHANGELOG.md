@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The tray mistakenly removed tray icons that did not support XEMBED
   ([`#2479`](https://github.com/polybar/polybar/issues/2479),
   [`#2442`](https://github.com/polybar/polybar/issues/2442))
+- `custom/ipc`: Only the first appearance of the `%pid%` token was replaced
+  ([`#2500`](https://github.com/polybar/polybar/issues/2500))
 
 ## [3.5.6] - 2021-05-24
 ### Build
