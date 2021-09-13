@@ -41,7 +41,7 @@ static void alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
 }
 
 // SignalHandle {{{
-SignalHandle::SignalHandle(uv_loop_t* loop, std::function<void(int)> fun) : UVHandle(fun) {
+SignalHandle::SignalHandle(uv_loop_t* loop, function<void(int)> fun) : UVHandle(fun) {
   UV(uv_signal_init, loop, handle);
 }
 
@@ -51,7 +51,7 @@ void SignalHandle::start(int signum) {
 // }}}
 
 // PollHandle {{{
-PollHandle::PollHandle(uv_loop_t* loop, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb)
+PollHandle::PollHandle(uv_loop_t* loop, int fd, function<void(uv_poll_event)> fun, function<void(int)> err_cb)
     : UVHandle([this](int status, int events) { poll_cb(status, events); }), func(fun), err_cb(err_cb) {
   UV(uv_poll_init, loop, handle, fd);
 }
@@ -72,8 +72,7 @@ void PollHandle::poll_cb(int status, int events) {
 // }}}
 
 // FSEventHandle {{{
-FSEventHandle::FSEventHandle(
-    uv_loop_t* loop, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb)
+FSEventHandle::FSEventHandle(uv_loop_t* loop, function<void(const char*, uv_fs_event)> fun, function<void(int)> err_cb)
     : UVHandle([this](const char* path, int events, int status) { fs_event_cb(path, events, status); })
     , func(fun)
     , err_cb(err_cb) {
@@ -96,8 +95,8 @@ void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
 // }}}
 
 // PipeHandle {{{
-PipeHandle::PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb,
-    std::function<void(int)> err_cb)
+PipeHandle::PipeHandle(
+    uv_loop_t* loop, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb)
     : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
     , func(fun)
     , eof_cb(eof_cb)
@@ -132,7 +131,7 @@ void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
 // }}}
 
 // TimerHandle {{{
-TimerHandle::TimerHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
+TimerHandle::TimerHandle(uv_loop_t* loop, function<void(void)> fun) : UVHandle(fun) {
   UV(uv_timer_init, loop, handle);
 }
 
@@ -142,7 +141,7 @@ void TimerHandle::start(uint64_t timeout, uint64_t repeat) {
 // }}}
 
 // AsyncHandle {{{
-AsyncHandle::AsyncHandle(uv_loop_t* loop, std::function<void(void)> fun) : UVHandle(fun) {
+AsyncHandle::AsyncHandle(uv_loop_t* loop, function<void(void)> fun) : UVHandle(fun) {
   UV(uv_async_init, loop, handle, callback);
 }
 
@@ -199,35 +198,34 @@ uv_loop_t* eventloop::get() const {
   return m_loop.get();
 }
 
-void eventloop::signal_handler(int signum, std::function<void(int)> fun) {
+void eventloop::signal_handle(int signum, function<void(int)> fun) {
   m_sig_handles.emplace_back(std::make_unique<SignalHandle>(get(), fun));
   m_sig_handles.back()->start(signum);
 }
 
-void eventloop::poll_handler(
-    int events, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb) {
+void eventloop::poll_handle(int events, int fd, function<void(uv_poll_event)> fun, function<void(int)> err_cb) {
   m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun, err_cb));
   m_poll_handles.back()->start(events);
 }
 
-void eventloop::fs_event_handler(
-    const string& path, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb) {
+void eventloop::fs_event_handle(
+    const string& path, function<void(const char*, uv_fs_event)> fun, function<void(int)> err_cb) {
   m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun, err_cb));
   m_fs_event_handles.back()->start(path);
 }
 
 void eventloop::pipe_handle(
-    int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb, std::function<void(int)> err_cb) {
+    int fd, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb) {
   m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun, eof_cb, err_cb));
   m_pipe_handles.back()->start(fd);
 }
 
-void eventloop::timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun) {
+void eventloop::timer_handle(uint64_t timeout, uint64_t repeat, function<void(void)> fun) {
   m_timer_handles.emplace_back(std::make_unique<TimerHandle>(get(), fun));
   m_timer_handles.back()->start(timeout, repeat);
 }
 
-AsyncHandle_t eventloop::async_handle(std::function<void(void)> fun) {
+AsyncHandle_t eventloop::async_handle(function<void(void)> fun) {
   m_async_handles.emplace_back(std::make_shared<AsyncHandle>(get(), fun));
   return m_async_handles.back();
 }
