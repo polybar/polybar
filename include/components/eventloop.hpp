@@ -91,12 +91,14 @@ struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
-  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb);
+  PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb,
+      std::function<void(int)> err_cb);
   void start(int fd);
   void read_cb(ssize_t nread, const uv_buf_t* buf);
 
   std::function<void(const string)> func;
   std::function<void(void)> eof_cb;
+  std::function<void(int)> err_cb;
   int fd;
 };
 
@@ -128,7 +130,8 @@ class eventloop {
   void poll_handler(int events, int fd, std::function<void(uv_poll_event)> fun, std::function<void(int)> err_cb);
   void fs_event_handler(
       const string& path, std::function<void(const char*, uv_fs_event)> fun, std::function<void(int)> err_cb);
-  void pipe_handle(int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb);
+  void pipe_handle(
+      int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb, std::function<void(int)> err_cb);
   void timer_handle(uint64_t timeout, uint64_t repeat, std::function<void(void)> fun);
   AsyncHandle_t async_handle(std::function<void(void)> fun);
 

@@ -96,8 +96,12 @@ void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
 // }}}
 
 // PipeHandle {{{
-PipeHandle::PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb)
-    : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); }), func(fun), eof_cb(eof_cb) {
+PipeHandle::PipeHandle(uv_loop_t* loop, std::function<void(const string)> fun, std::function<void(void)> eof_cb,
+    std::function<void(int)> err_cb)
+    : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
+    , func(fun)
+    , eof_cb(eof_cb)
+    , err_cb(err_cb) {
   UV(uv_pipe_init, loop, handle, false);
 }
 
@@ -108,17 +112,12 @@ void PipeHandle::start(int fd) {
 }
 
 void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
-  auto log = logger::make();
   if (nread > 0) {
-    string payload = string(buf->base, nread);
-    // TODO lower logging level
-    log.notice("Bytes read: %d: '%s'", nread, payload);
-    func(payload);
+    func(string(buf->base, nread));
   } else if (nread < 0) {
     if (nread != UV_EOF) {
-      // TODO maybe handle this differently. exception?
-      log.err("Read error: %s", uv_err_name(nread));
-      uv_close((uv_handle_t*)handle, nullptr);
+      close();
+      err_cb(nread);
     } else {
       eof_cb();
       // TODO this causes constant EOFs
@@ -217,8 +216,9 @@ void eventloop::fs_event_handler(
   m_fs_event_handles.back()->start(path);
 }
 
-void eventloop::pipe_handle(int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb) {
-  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun, eof_cb));
+void eventloop::pipe_handle(
+    int fd, std::function<void(const string)> fun, std::function<void(void)> eof_cb, std::function<void(int)> err_cb) {
+  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), fun, eof_cb, err_cb));
   m_pipe_handles.back()->start(fd);
 }
 
