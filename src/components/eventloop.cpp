@@ -4,6 +4,10 @@
 
 #include "errors.hpp"
 
+#if !(UV_VERSION_MAJOR == 1 && UV_VERSION_MINOR >= 3)
+#error "Polybar requires libuv 1.x and at least version 1.3"
+#endif
+
 POLYBAR_NS
 
 /**

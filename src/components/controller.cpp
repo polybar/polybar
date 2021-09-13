@@ -253,8 +253,8 @@ void controller::read_events(bool confwatch) {
     if (confwatch) {
       eloop->fs_event_handle(
           m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
-          [this](int status) {
-            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(status));
+          [this](int err) {
+            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err));
           });
     }
 
