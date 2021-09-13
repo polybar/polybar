@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (for example in a script) and you are using one of these invalid tags.
 
 ### Build
+- New dependency: [libuv](https://github.com/libuv/libuv). At least version 1.3
+  is required.
 - Bump the minimum cmake version to 3.5
 - The `BUILD_IPC_MSG` option has been renamed to `BUILD_POLYBAR_MSG`
 - Building the documentation is now enabled by default and not just when
@@ -112,6 +114,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2455`](https://github.com/polybar/polybar/issues/2455))
 
 ### Changed
+- We rewrote polybar's main event loop. This shouldn't change any behavior for
+  the user, but be on the lookout for X events, click events, or ipc messages
+  not arriving and the bar not shutting down/restarting properly and let us
+  know if you find any issues.
 - Slight changes to the value ranges the different ramp levels are responsible
   for in the cpu, memory, fs, and battery modules. The first and last level are
   only used for everything at or below and at and above the edges of the value
