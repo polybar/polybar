@@ -40,6 +40,10 @@ struct UVHandleGeneric {
     close();
   }
 
+  uv_loop_t* loop() const {
+    return handle->loop;
+  }
+
   void close() {
     if (handle && !uv_is_closing((uv_handle_t*)handle)) {
       uv_close((uv_handle_t*)handle, close_callback);
@@ -91,15 +95,16 @@ struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
-  PipeHandle(
-      uv_loop_t* loop, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
-  void start(int fd);
+  PipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun, function<void(void)> eof_cb,
+      function<void(int)> err_cb);
+  void start();
   void read_cb(ssize_t nread, const uv_buf_t* buf);
 
   function<void(const string)> func;
   function<void(void)> eof_cb;
   function<void(int)> err_cb;
   int fd;
+  string path;
 };
 
 struct TimerHandle : public UVHandle<uv_timer_t> {
@@ -129,7 +134,8 @@ class eventloop {
   void signal_handle(int signum, function<void(int)> fun);
   void poll_handle(int events, int fd, function<void(uv_poll_event)> fun, function<void(int)> err_cb);
   void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, function<void(int)> err_cb);
-  void pipe_handle(int fd, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
+  void pipe_handle(
+      const string& path, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
   void timer_handle(uint64_t timeout, uint64_t repeat, function<void(void)> fun);
   AsyncHandle_t async_handle(function<void(void)> fun);
 
