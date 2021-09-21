@@ -3,7 +3,6 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 

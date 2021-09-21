@@ -7,7 +7,6 @@
 #include "settings.hpp"
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

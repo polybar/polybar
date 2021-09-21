@@ -1,5 +1,7 @@
 #include "modules/ipc.hpp"
 
+#include <unistd.h>
+
 #include "components/ipc.hpp"
 #include "modules/meta/base.inl"
 
@@ -38,9 +40,7 @@ namespace modules {
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_RIGHT, m_conf.get(name(), "double-click-right", ""s)));
     // clang-format on
 
-    const auto pid_token = [](const string& s) {
-      return string_util::replace_all(s, "%pid%", to_string(getpid()));
-    };
+    const auto pid_token = [](const string& s) { return string_util::replace_all(s, "%pid%", to_string(getpid())); };
 
     for (auto& action : m_actions) {
       action.second = pid_token(action.second);

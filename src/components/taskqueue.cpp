@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "utils/factory.hpp"
-
 POLYBAR_NS
 
 taskqueue::make_type taskqueue::make() {

@@ -1,7 +1,6 @@
 #include "drawtypes/ramp.hpp"
 
 #include "common/test.hpp"
-#include "utils/factory.hpp"
 
 using namespace polybar::drawtypes;
 using namespace polybar;

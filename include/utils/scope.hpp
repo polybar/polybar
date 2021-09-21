@@ -4,7 +4,6 @@
 
 #include "common.hpp"
 #include "components/logger.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

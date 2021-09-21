@@ -6,7 +6,6 @@
 #include <cstdio>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

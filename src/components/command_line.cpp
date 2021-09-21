@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "utils/factory.hpp"
-
 POLYBAR_NS
 
 namespace command_line {
