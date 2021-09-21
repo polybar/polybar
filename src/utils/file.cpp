@@ -17,40 +17,6 @@
 
 POLYBAR_NS
 
-// implementation of file_ptr {{{
-
-file_ptr::file_ptr(const string& path, const string& mode) : m_path(string(path)), m_mode(string(mode)) {
-  m_ptr = fopen(m_path.c_str(), m_mode.c_str());
-}
-
-file_ptr::~file_ptr() {
-  if (m_ptr != nullptr) {
-    fclose(m_ptr);
-  }
-}
-
-file_ptr::operator bool() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator bool() const {
-  return m_ptr != nullptr;
-}
-
-file_ptr::operator FILE*() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator FILE*() const {
-  return m_ptr;
-}
-
-file_ptr::operator int() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator int() const {
-  return fileno(*this);
-}
-
-// }}}
 // implementation of file_descriptor {{{
 
 file_descriptor::file_descriptor(const string& path, int flags, bool autoclose) : m_autoclose(autoclose) {

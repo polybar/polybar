@@ -6,26 +6,6 @@
 
 POLYBAR_NS
 
-class file_ptr {
- public:
-  explicit file_ptr(const string& path, const string& mode = "a+");
-  ~file_ptr();
-
-  explicit operator bool();
-  operator bool() const;
-
-  explicit operator FILE*();
-  operator FILE*() const;
-
-  explicit operator int();
-  operator int() const;
-
- private:
-  FILE* m_ptr = nullptr;
-  string m_path;
-  string m_mode;
-};
-
 class file_descriptor {
  public:
   explicit file_descriptor(const string& path, int flags = 0, bool autoclose = true);
