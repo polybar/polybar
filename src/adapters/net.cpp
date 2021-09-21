@@ -99,7 +99,7 @@ namespace net {
    * Construct network interface
    */
   network::network(string interface) : m_log(logger::make()), m_interface(move(interface)) {
-    assert(is_virtual(interface));
+    assert(is_interface_valid(m_interface));
 
     m_socketfd = file_util::make_file_descriptor(socket(AF_INET, SOCK_DGRAM, 0));
     if (!*m_socketfd) {
