@@ -3,7 +3,6 @@
 // TODO: move to functional.hpp
 
 #include "common.hpp"
-
 #include "components/logger.hpp"
 #include "utils/factory.hpp"
 
@@ -37,8 +36,8 @@ namespace scope_util {
    */
   template <typename Fn = function<void()>, typename... Args>
   decltype(auto) make_exit_handler(Fn&& fn, Args&&... args) {
-    return factory_util::unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
+    return std::make_unique<on_exit<Args...>>(forward<Fn>(fn), forward<Args>(args)...);
   }
-}
+}  // namespace scope_util
 
 POLYBAR_NS_END

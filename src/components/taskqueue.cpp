@@ -1,12 +1,13 @@
+#include "components/taskqueue.hpp"
+
 #include <algorithm>
 
-#include "components/taskqueue.hpp"
 #include "utils/factory.hpp"
 
 POLYBAR_NS
 
 taskqueue::make_type taskqueue::make() {
-  return factory_util::unique<taskqueue>();
+  return std::make_unique<taskqueue>();
 }
 
 taskqueue::taskqueue() {

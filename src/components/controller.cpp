@@ -32,7 +32,7 @@ POLYBAR_NS
  * Build controller instance
  */
 controller::make_type controller::make(unique_ptr<ipc>&& ipc) {
-  return factory_util::unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
+  return std::make_unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
       bar::make(), forward<decltype(ipc)>(ipc));
 }
 

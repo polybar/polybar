@@ -45,13 +45,13 @@ namespace modules {
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
 
     // load layout icons
-    m_layout_icons = factory_util::shared<iconset>();
+    m_layout_icons = std::make_shared<iconset>();
     m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
 
     for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
       auto vec = string_util::tokenize(it, ';');
       if (vec.size() == 2) {
-        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+        m_layout_icons->add(vec[0], std::make_shared<label>(vec[1]));
       }
     }
 
@@ -77,24 +77,24 @@ namespace modules {
       }
 
       // load indicator icons
-      m_indicator_icons_off = factory_util::shared<iconset>();
-      m_indicator_icons_on = factory_util::shared<iconset>();
+      m_indicator_icons_off = std::make_shared<iconset>();
+      m_indicator_icons_on = std::make_shared<iconset>();
 
       auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
       if (icon_pair.size() == 2) {
-        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
-        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[0]));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[1]));
       } else {
-        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
-        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(""s));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(""s));
       }
 
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
         auto icon_triple = string_util::tokenize(it, ';');
         if (icon_triple.size() == 3) {
           auto const indicator_str = string_util::lower(icon_triple[0]);
-          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(icon_triple[1]));
-          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(icon_triple[2]));
+          m_indicator_icons_off->add(indicator_str, std::make_shared<label>(icon_triple[1]));
+          m_indicator_icons_on->add(indicator_str, std::make_shared<label>(icon_triple[2]));
         }
       }
 
@@ -232,7 +232,7 @@ namespace modules {
       auto layouts = xkb_util::get_layouts(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto indicators = xkb_util::get_indicators(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto current_group = xkb_util::get_current_group(m_connection, XCB_XKB_ID_USE_CORE_KBD);
-      m_keyboard = factory_util::unique<keyboard>(move(layouts), move(indicators), current_group);
+      m_keyboard = std::make_unique<keyboard>(move(layouts), move(indicators), current_group);
       return true;
     } catch (const exception& err) {
       throw module_error("Failed to query keyboard, err: " + string{err.what()});

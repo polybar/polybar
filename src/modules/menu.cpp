@@ -49,7 +49,7 @@ namespace modules {
       }
 
       m_log.trace("%s: Creating menu level %i", name(), m_levels.size());
-      m_levels.emplace_back(factory_util::unique<menu_tree>());
+      m_levels.emplace_back(std::make_unique<menu_tree>());
 
       while (true) {
         string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
@@ -59,7 +59,7 @@ namespace modules {
         }
 
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
-        auto item = factory_util::unique<menu_tree_item>();
+        auto item = std::make_unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
         item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE, ""));
         m_levels.back()->items.emplace_back(move(item));

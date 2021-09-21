@@ -24,7 +24,7 @@ static constexpr const char* ipc_action_prefix{"action:"};
  * Create instance
  */
 ipc::make_type ipc::make() {
-  return factory_util::unique<ipc>(signal_emitter::make(), logger::make());
+  return std::make_unique<ipc>(signal_emitter::make(), logger::make());
 }
 
 /**
