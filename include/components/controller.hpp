@@ -1,7 +1,5 @@
 #pragma once
 
-#include <moodycamel/blockingconcurrentqueue.h>
-
 #include <atomic>
 #include <mutex>
 #include <thread>

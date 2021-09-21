@@ -2,12 +2,6 @@
 # Configure libs
 #
 
-# Library: concurrentqueue {{{
-
-add_library(moodycamel INTERFACE)
-target_include_directories(moodycamel SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
-
-# }}}
 # Library: xpp {{{
 
 set(XCB_PROTOS xproto)

@@ -149,7 +149,6 @@ if(BUILD_LIBPOLY)
   target_link_libraries(poly PUBLIC
     Threads::Threads
     Cairo::CairoFC
-    moodycamel
     xpp
     LibUV::LibUV
     )
