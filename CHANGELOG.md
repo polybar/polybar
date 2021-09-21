@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (for example in a script) and you are using one of these invalid tags.
 
 ### Build
+- New dependency: [libuv](https://github.com/libuv/libuv). At least version 1.3
+  is required.
 - Bump the minimum cmake version to 3.5
 - The `BUILD_IPC_MSG` option has been renamed to `BUILD_POLYBAR_MSG`
 - Building the documentation is now enabled by default and not just when
@@ -50,6 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whatever folder you invoked `cmake` from instead of in the root folder of the
   repository.
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
+
+### Deprecated
+- `[settings]`: `throttle-output` and `throttle-output-for` have been removed.
+  The new event loop already does a similar thing where it coalesces update
+  triggers if they happen directly after one another, leading to only a single
+  bar update.
 
 ### Added
 - `drawtypes/ramp`: Add support for ramp weights.
@@ -108,6 +116,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2455`](https://github.com/polybar/polybar/issues/2455))
 
 ### Changed
+- We rewrote polybar's main event loop. This shouldn't change any behavior for
+  the user, but be on the lookout for X events, click events, or ipc messages
+  not arriving and the bar not shutting down/restarting properly and let us
+  know if you find any issues.
 - Slight changes to the value ranges the different ramp levels are responsible
   for in the cpu, memory, fs, and battery modules. The first and last level are
   only used for everything at or below and at and above the edges of the value
@@ -137,6 +149,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/xworkspaces`: Broken scroll-wrapping and order of workspaces when scrolling
   ([`#2491`](https://github.com/polybar/polybar/issues/2491))
 
+## [3.5.7] - 2021-09-21
+### Fixed
+- The tray mistakenly removed tray icons that did not support XEMBED
+  ([`#2479`](https://github.com/polybar/polybar/issues/2479),
+  [`#2442`](https://github.com/polybar/polybar/issues/2442))
+- `custom/ipc`: Only the first appearance of the `%pid%` token was replaced
+  ([`#2500`](https://github.com/polybar/polybar/issues/2500))
 
 ## [3.5.6] - 2021-05-24
 ### Build
@@ -159,7 +178,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.6...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.7...HEAD
+[3.5.7]: https://github.com/polybar/polybar/releases/tag/3.5.7
 [3.5.6]: https://github.com/polybar/polybar/releases/tag/3.5.6
 [3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.5
 [3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4

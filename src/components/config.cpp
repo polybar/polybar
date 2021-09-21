@@ -56,6 +56,15 @@ void config::set_included(file_list included) {
   m_included = move(included);
 }
 
+void config::ignore_key(const string& section, const string& key) const {
+  if (has(section, key)) {
+    m_log.warn(
+        "The config parameter '%s.%s' is deprecated, it will be removed in the future. Please remove it from your "
+        "config",
+        section, key);
+  }
+}
+
 /**
  * Print a deprecation warning if the given parameter is set
  */

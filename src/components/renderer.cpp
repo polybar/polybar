@@ -408,7 +408,7 @@ void renderer::flush() {
   if (!m_snapshot_dst.empty()) {
     try {
       m_surface->write_png(m_snapshot_dst);
-      m_log.info("Successfully wrote %s", m_snapshot_dst);
+      m_log.notice("Successfully wrote %s", m_snapshot_dst);
     } catch (const exception& err) {
       m_log.err("Failed to write snapshot (err: %s)", err.what());
     }

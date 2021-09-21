@@ -135,18 +135,14 @@ int main(int argc, char** argv) {
     // Create controller and run application
     //==================================================
     unique_ptr<ipc> ipc{};
-    unique_ptr<inotify_watch> config_watch{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
       ipc = ipc::make();
     }
-    if (cli->has("reload")) {
-      config_watch = inotify_util::make_watch(conf.filepath());
-    }
 
-    auto ctrl = controller::make(move(ipc), move(config_watch));
+    auto ctrl = controller::make(move(ipc));
 
-    if (!ctrl->run(cli->has("stdout"), cli->get("png"))) {
+    if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;
     }
   } catch (const exception& err) {

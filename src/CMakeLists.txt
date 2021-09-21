@@ -67,6 +67,7 @@ if(BUILD_LIBPOLY)
     ${src_dir}/components/renderer.cpp
     ${src_dir}/components/screen.cpp
     ${src_dir}/components/taskqueue.cpp
+    ${src_dir}/components/eventloop.cpp
 
     ${src_dir}/drawtypes/animation.cpp
     ${src_dir}/drawtypes/iconset.cpp
@@ -151,6 +152,7 @@ if(BUILD_LIBPOLY)
     Cairo::CairoFC
     moodycamel
     xpp
+    LibUV::LibUV
     )
 
   if (TARGET i3ipc++)

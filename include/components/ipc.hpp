@@ -1,21 +1,15 @@
 #pragma once
 
+#include <uv.h>
+
 #include "common.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
 
 POLYBAR_NS
 
-class file_descriptor;
-class logger;
 class signal_emitter;
-
-/**
- * Message types
- */
-static constexpr const char* ipc_command_prefix{"cmd:"};
-static constexpr const char* ipc_hook_prefix{"hook:"};
-static constexpr const char* ipc_action_prefix{"action:"};
+class logger;
 
 /**
  * Component used for inter-process communication.
@@ -32,15 +26,21 @@ class ipc {
   explicit ipc(signal_emitter& emitter, const logger& logger);
   ~ipc();
 
-  void receive_message();
-  int get_file_descriptor() const;
+  string get_path() const;
+
+  void receive_data(string buf);
+  void receive_eof();
 
  private:
   signal_emitter& m_sig;
   const logger& m_log;
 
   string m_path{};
-  unique_ptr<file_descriptor> m_fd;
+
+  /**
+   * Buffer for the currently received IPC message.
+   */
+  string m_buffer{};
 };
 
 POLYBAR_NS_END

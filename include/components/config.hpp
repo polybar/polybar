@@ -182,6 +182,8 @@ class config {
     return default_value;
   }
 
+  void ignore_key(const string& section, const string& key) const;
+
   /**
    * Attempt to load value using the deprecated key name. If successful show a
    * warning message. If it fails load the value using the new key and given

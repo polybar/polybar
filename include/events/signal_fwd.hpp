@@ -15,8 +15,6 @@ namespace signals {
   }
 
   namespace eventqueue {
-    struct start;
-    struct exit_terminate;
     struct exit_reload;
     struct notify_change;
     struct notify_forcechange;
@@ -28,7 +26,6 @@ namespace signals {
     struct action;
   }  // namespace ipc
   namespace ui {
-    struct ready;
     struct changed;
     struct tick;
     struct button_press;

@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "events/types.hpp"
 #include "x11/extensions/fwd.hpp"
 #include "x11/types.hpp"
 
