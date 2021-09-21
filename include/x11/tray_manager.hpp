@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <memory>
 
@@ -31,6 +32,7 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
+using std::atomic;
 
 // fwd declarations
 class connection;
