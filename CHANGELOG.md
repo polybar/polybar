@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [3.5.7] - 2021-09-21
 ### Fixed
 - The tray mistakenly removed tray icons that did not support XEMBED
   ([`#2479`](https://github.com/polybar/polybar/issues/2479),
@@ -37,8 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.6...HEAD
-[3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.6
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.7...HEAD
+[3.5.7]: https://github.com/polybar/polybar/releases/tag/3.5.7
+[3.5.6]: https://github.com/polybar/polybar/releases/tag/3.5.6
 [3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.5
 [3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4
 [3.5.3]: https://github.com/polybar/polybar/releases/tag/3.5.3
