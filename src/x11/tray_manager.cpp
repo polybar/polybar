@@ -48,7 +48,7 @@ POLYBAR_NS
  * Create instance
  */
 tray_manager::make_type tray_manager::make() {
-  return factory_util::unique<tray_manager>(
+  return std::make_unique<tray_manager>(
       connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
 }
 
@@ -533,10 +533,10 @@ void tray_manager::create_bg(bool realloc) {
     m_gc = 0;
   }
 
-  if(realloc && m_surface) {
+  if (realloc && m_surface) {
     m_surface.reset();
   }
-  if(realloc && m_context) {
+  if (realloc && m_context) {
     m_context.reset();
   }
 
@@ -742,7 +742,7 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
 void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
-  m_clients.emplace_back(factory_util::shared<tray_client>(m_connection, win, m_opts.width, m_opts.height));
+  m_clients.emplace_back(std::make_shared<tray_client>(m_connection, win, m_opts.width, m_opts.height));
   auto& client = m_clients.back();
 
   try {
@@ -758,7 +758,6 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client->get_xembed().get_version(),
         client->get_xembed().get_flags(), client->get_xembed().is_mapped() ? "true" : "false");
   }
-
 
   try {
     const unsigned int mask = XCB_CW_EVENT_MASK;

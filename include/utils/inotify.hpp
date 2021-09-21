@@ -2,6 +2,7 @@
 
 #include <poll.h>
 #include <sys/inotify.h>
+
 #include <cstdio>
 
 #include "common.hpp"
@@ -40,8 +41,8 @@ class inotify_watch {
 namespace inotify_util {
   template <typename... Args>
   decltype(auto) make_watch(Args&&... args) {
-    return factory_util::unique<inotify_watch>(forward<Args>(args)...);
+    return std::make_unique<inotify_watch>(forward<Args>(args)...);
   }
-}
+}  // namespace inotify_util
 
 POLYBAR_NS_END

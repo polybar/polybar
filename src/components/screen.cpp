@@ -23,7 +23,7 @@ using namespace signals::eventqueue;
  * Create instance
  */
 screen::make_type screen::make() {
-  return factory_util::unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config::make());
+  return std::make_unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config::make());
 }
 
 /**

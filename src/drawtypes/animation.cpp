@@ -1,4 +1,5 @@
 #include "drawtypes/animation.hpp"
+
 #include "drawtypes/label.hpp"
 #include "utils/factory.hpp"
 
@@ -56,7 +57,7 @@ namespace drawtypes {
 
     auto framerate = conf.get(section, name + "-framerate", 1000);
 
-    return factory_util::shared<animation>(move(vec), framerate);
+    return std::make_shared<animation>(move(vec), framerate);
   }
 }  // namespace drawtypes
 
