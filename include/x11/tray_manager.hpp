@@ -34,7 +34,6 @@ using namespace std::chrono_literals;
 
 // fwd declarations
 class connection;
-struct xembed_data;
 class background_manager;
 class bg_slice;
 
