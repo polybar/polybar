@@ -13,7 +13,6 @@
 #include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"

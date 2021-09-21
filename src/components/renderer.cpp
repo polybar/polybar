@@ -7,7 +7,6 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"

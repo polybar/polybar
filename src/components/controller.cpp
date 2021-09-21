@@ -18,7 +18,6 @@
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/actions.hpp"
-#include "utils/factory.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"

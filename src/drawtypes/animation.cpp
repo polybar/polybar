@@ -1,7 +1,6 @@
 #include "drawtypes/animation.hpp"
 
 #include "drawtypes/label.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

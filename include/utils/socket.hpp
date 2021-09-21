@@ -3,7 +3,6 @@
 #include <poll.h>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

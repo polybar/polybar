@@ -4,7 +4,6 @@
 #include "events/signal.hpp"
 #include "modules/meta/base.inl"
 #include "utils/actions.hpp"
-#include "utils/factory.hpp"
 #include "utils/scope.hpp"
 
 POLYBAR_NS

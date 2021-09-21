@@ -1,6 +1,5 @@
 #include "drawtypes/ramp.hpp"
 
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS

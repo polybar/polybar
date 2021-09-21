@@ -2,12 +2,12 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
-#include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 

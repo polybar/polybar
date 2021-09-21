@@ -3,7 +3,6 @@
 #include <cmath>
 #include <utility>
 
-#include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS

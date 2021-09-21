@@ -6,7 +6,6 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 

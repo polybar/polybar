@@ -6,7 +6,6 @@
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
-#include "utils/factory.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
