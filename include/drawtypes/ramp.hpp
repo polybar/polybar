@@ -14,6 +14,7 @@ namespace drawtypes {
     explicit ramp(vector<label_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
 
     void add(label_t&& icon);
+    void add(label_t&& icon, unsigned weight);
     label_t get(size_t index);
     label_t get_by_percentage(float percentage);
     label_t get_by_percentage_with_borders(float percentage, float min, float max);
