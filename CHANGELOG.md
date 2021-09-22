@@ -60,7 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bar update.
 
 ### Added
-- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
+- `drawtypes/ramp`: Add support for ramp weights.
+   ([1750](https://github.com/polybar/polybar/issues/1750))
+- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`, 
   `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
   when below or above 1GiB.
   ([`2472`](https://github.com/polybar/polybar/issues/2472))
