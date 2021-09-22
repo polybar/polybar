@@ -6,7 +6,6 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -67,7 +66,7 @@ namespace modules {
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
 
-    m_icons = factory_util::shared<iconset>();
+    m_icons = std::make_shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
       m_icons->add("play", load_label(m_conf, name(), TAG_ICON_PLAY));
@@ -133,7 +132,7 @@ namespace modules {
     m_lastsync = chrono::system_clock::now();
 
     try {
-      m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+      m_mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       m_mpd->connect();
       m_status = m_mpd->get_status();
     } catch (const mpd_exception& err) {
@@ -170,7 +169,7 @@ namespace modules {
 
     try {
       if (!m_mpd) {
-        m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+        m_mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       }
       if (!connected()) {
         m_mpd->connect();
@@ -367,9 +366,9 @@ namespace modules {
  * We have to create a separate mpd instance because actions run in the
  * controller thread and the `m_mpd` pointer is used in the module thread.
  */
-#define MPD_CONNECT()                                                            \
-  auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
-  mpd->connect();                                                                \
+#define MPD_CONNECT()                                                        \
+  auto mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
+  mpd->connect();                                                            \
   auto status = mpd->get_status()
 
   void mpd_module::action_play() {

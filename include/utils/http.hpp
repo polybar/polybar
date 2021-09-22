@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -23,7 +22,7 @@ class http_downloader {
 namespace http_util {
   template <typename... Args>
   decltype(auto) make_downloader(Args&&... args) {
-    return factory_util::unique<http_downloader>(forward<Args>(args)...);
+    return std::make_unique<http_downloader>(forward<Args>(args)...);
   }
 }  // namespace http_util
 

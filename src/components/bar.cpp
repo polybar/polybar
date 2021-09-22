@@ -13,7 +13,6 @@
 #include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
@@ -42,7 +41,7 @@ bar::make_type bar::make(bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
-  return factory_util::unique<bar>(
+  return std::make_unique<bar>(
         connection::make(),
         signal_emitter::make(),
         config::make(),

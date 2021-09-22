@@ -7,7 +7,6 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
@@ -23,7 +22,7 @@ static constexpr double BLOCK_GAP{20.0};
  */
 renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
   // clang-format off
-  return factory_util::unique<renderer>(
+  return std::make_unique<renderer>(
       connection::make(),
       signal_emitter::make(),
       config::make(),

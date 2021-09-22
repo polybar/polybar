@@ -2,12 +2,12 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
-#include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -24,7 +24,7 @@ static constexpr const char* ipc_action_prefix{"action:"};
  * Create instance
  */
 ipc::make_type ipc::make() {
-  return factory_util::unique<ipc>(signal_emitter::make(), logger::make());
+  return std::make_unique<ipc>(signal_emitter::make(), logger::make());
 }
 
 /**

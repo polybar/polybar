@@ -115,7 +115,6 @@ if(BUILD_LIBPOLY)
     ${src_dir}/utils/process.cpp
     ${src_dir}/utils/socket.cpp
     ${src_dir}/utils/string.cpp
-    ${src_dir}/utils/throttle.cpp
 
     ${src_dir}/x11/atoms.cpp
     ${src_dir}/x11/background_manager.cpp
@@ -150,7 +149,6 @@ if(BUILD_LIBPOLY)
   target_link_libraries(poly PUBLIC
     Threads::Threads
     Cairo::CairoFC
-    moodycamel
     xpp
     LibUV::LibUV
     )

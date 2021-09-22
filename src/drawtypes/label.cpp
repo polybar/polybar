@@ -3,7 +3,6 @@
 #include <cmath>
 #include <utility>
 
-#include "utils/factory.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -56,7 +55,7 @@ namespace drawtypes {
       std::back_insert_iterator<decltype(tokens)> back_it(tokens);
       std::copy(m_tokens.begin(), m_tokens.end(), back_it);
     }
-    return factory_util::shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
+    return std::make_shared<label>(m_text, m_foreground, m_background, m_underline, m_overline, m_font, m_padding,
         m_margin, m_minlen, m_maxlen, m_alignment, m_ellipsis, move(tokens));
   }
 
@@ -278,7 +277,7 @@ namespace drawtypes {
     }
 
     // clang-format off
-    return factory_util::shared<label>(text,
+    return std::make_shared<label>(text,
         conf.get(section, name + "-foreground", rgba{}),
         conf.get(section, name + "-background", rgba{}),
         conf.get(section, name + "-underline", rgba{}),

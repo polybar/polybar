@@ -3,29 +3,8 @@
 #include <streambuf>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
-
-class file_ptr {
- public:
-  explicit file_ptr(const string& path, const string& mode = "a+");
-  ~file_ptr();
-
-  explicit operator bool();
-  operator bool() const;
-
-  explicit operator FILE*();
-  operator FILE*() const;
-
-  explicit operator int();
-  operator int() const;
-
- private:
-  FILE* m_ptr = nullptr;
-  string m_path;
-  string m_mode;
-};
 
 class file_descriptor {
  public:
@@ -114,7 +93,7 @@ namespace file_util {
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {
-    return factory_util::unique<file_descriptor>(forward<Args>(args)...);
+    return std::make_unique<file_descriptor>(forward<Args>(args)...);
   }
 }  // namespace file_util
 

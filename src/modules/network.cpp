@@ -4,7 +4,6 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -92,10 +91,10 @@ namespace modules {
 
     // Get an intstance of the network interface
     if (net::is_wireless_interface(m_interface)) {
-      m_wireless = factory_util::unique<net::wireless_network>(m_interface);
+      m_wireless = std::make_unique<net::wireless_network>(m_interface);
       m_wireless->set_unknown_up(m_unknown_up);
     } else {
-      m_wired = factory_util::unique<net::wired_network>(m_interface);
+      m_wired = std::make_unique<net::wired_network>(m_interface);
       m_wired->set_unknown_up(m_unknown_up);
     };
 

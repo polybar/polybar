@@ -7,7 +7,6 @@
 #include "settings.hpp"
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -16,7 +15,7 @@ namespace tags {
    * Create instance
    */
   dispatch::make_type dispatch::make(action_context& action_ctxt) {
-    return factory_util::unique<dispatch>(logger::make(), action_ctxt);
+    return std::make_unique<dispatch>(logger::make(), action_ctxt);
   }
 
   /**

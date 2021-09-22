@@ -6,7 +6,6 @@
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
-#include "utils/factory.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
@@ -77,7 +76,7 @@ class command<output_policy::IGNORED> {
   string m_cmd;
 
   pid_t m_forkpid{};
-  int m_forkstatus = - 1;
+  int m_forkstatus = -1;
 };
 
 template <>
@@ -114,7 +113,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 namespace command_util {
   template <output_policy OutputType, typename... Args>
   unique_ptr<command<OutputType>> make_command(Args&&... args) {
-    return factory_util::unique<command<OutputType>>(logger::make(), forward<Args>(args)...);
+    return std::make_unique<command<OutputType>>(logger::make(), forward<Args>(args)...);
   }
 }  // namespace command_util
 

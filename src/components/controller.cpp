@@ -18,7 +18,6 @@
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
 #include "utils/actions.hpp"
-#include "utils/factory.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "utils/string.hpp"
@@ -32,7 +31,7 @@ POLYBAR_NS
  * Build controller instance
  */
 controller::make_type controller::make(unique_ptr<ipc>&& ipc) {
-  return factory_util::unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
+  return std::make_unique<controller>(connection::make(), signal_emitter::make(), logger::make(), config::make(),
       bar::make(), forward<decltype(ipc)>(ipc));
 }
 

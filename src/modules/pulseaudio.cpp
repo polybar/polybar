@@ -28,7 +28,7 @@ namespace modules {
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
 
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
+      m_pulseaudio = std::make_unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }

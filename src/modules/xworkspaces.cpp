@@ -7,7 +7,6 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
@@ -80,13 +79,13 @@ namespace modules {
       // clang-format on
     }
 
-    m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
+    m_icons = std::make_shared<iconset>();
+    m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+        m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       }
     }
 
@@ -409,7 +408,6 @@ namespace modules {
 
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
-
         if (current_desktop == desktop->index) {
           current_index = indices.size();
         }
@@ -423,7 +421,7 @@ namespace modules {
       return;
     }
 
-    int offset = next? 1 : -1;
+    int offset = next ? 1 : -1;
 
     int new_index = (current_index + offset + indices.size()) % indices.size();
     focus_desktop(indices.at(new_index));
