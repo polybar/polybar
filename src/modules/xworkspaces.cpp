@@ -10,6 +10,7 @@
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/icccm.hpp"
 
 POLYBAR_NS
 
@@ -116,8 +117,6 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
-
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
@@ -322,8 +321,6 @@ namespace modules {
    * Generate module output
    */
   string xworkspaces_module::get_output() {
-    std::unique_lock<std::mutex> lock(m_workspace_mutex);
-
     // Get the module output early so that
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
@@ -378,7 +375,6 @@ namespace modules {
   }
 
   void xworkspaces_module::action_focus(const string& data) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
     focus_desktop(std::strtoul(data.c_str(), nullptr, 10));
   }
 
@@ -396,8 +392,6 @@ namespace modules {
    * Will wrap around at the ends and go in the order the desktops are displayed.
    */
   void xworkspaces_module::focus_direction(bool next) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
-
     unsigned int current_desktop{ewmh_util::get_current_desktop()};
     int current_index = -1;
 

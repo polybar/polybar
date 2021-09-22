@@ -11,11 +11,8 @@ namespace modules {
     using module<Impl>::module;
 
     void start() override {
-      this->m_mainthread = thread([&] {
-        this->m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
-        CAST_MOD(Impl)->update();
-        CAST_MOD(Impl)->broadcast();
-      });
+      CAST_MOD(Impl)->update();
+      CAST_MOD(Impl)->broadcast();
     }
 
     bool build(builder*, string) const {

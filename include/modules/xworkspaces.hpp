@@ -1,16 +1,8 @@
 #pragma once
 
-#include <bitset>
-#include <mutex>
-#include <set>
-
-#include "components/config.hpp"
-#include "components/types.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/ewmh.hpp"
-#include "x11/icccm.hpp"
-#include "x11/window.hpp"
 
 POLYBAR_NS
 
@@ -115,10 +107,6 @@ namespace modules {
     bool m_scroll{true};
     bool m_revscroll{false};
     size_t m_index{0};
-
-    // The following mutex is here to protect the data of this modules.
-    // This can't be achieved using m_buildlock since we "CRTP override" get_output().
-    mutable mutex m_workspace_mutex;
   };
 }  // namespace modules
 

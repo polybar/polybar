@@ -57,6 +57,7 @@ namespace modules {
    */
   void ipc_module::start() {
     if (m_initial) {
+      // TODO do this in a thread.
       auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks.at(m_initial - 1)->command);
       command->exec(false);
       command->tail([this](string line) { m_output = line; });
