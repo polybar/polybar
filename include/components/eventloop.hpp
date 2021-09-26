@@ -3,6 +3,7 @@
 #include <uv.h>
 
 #include <stdexcept>
+#include <unordered_set>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -124,6 +125,15 @@ struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, cons
    * Called if an error occurs.
    */
   function<void(int)> err_cb;
+};
+
+struct SocketHandle : public PipeHandle {
+  SocketHandle(uv_loop_t* loop, const string& sock_path, function<void(const string)> fun, function<void(void)> eof_cb,
+      function<void(int)> err_cb);
+
+  void start();
+
+  std::unordered_set<shared_ptr<PipeHandle>> clients;
 };
 
 struct NamedPipeHandle : public PipeHandle {
