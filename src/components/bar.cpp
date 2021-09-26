@@ -729,9 +729,11 @@ void bar::handle(const evt::button_press& evt) {
 
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
+  // TODO remove this state. Pass as argument to deferred_fn
   m_buttonpress_btn = static_cast<mousebtn>(evt->detail);
   m_buttonpress_pos = evt->event_x;
 
+  // TODO make this a private method in bar
   const auto deferred_fn = [&](size_t) {
     tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
 
@@ -751,13 +753,18 @@ void bar::handle(const evt::button_press& evt) {
     m_log.info("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
   };
 
+  // TODO Accept TimerHandle, mouse btn, and mouse position. (Determine dbl click btn from single click mouse btn)
   const auto check_double = [&](string&& id, mousebtn&& btn) {
+    // TODO replace with !TimerHandle#is_active
     if (!m_taskqueue->exist(id)) {
+      // TODO replace m_doubleclick with a single offset field (make configurable). Event part no longer needed
       m_doubleclick.event = evt->time;
+      // TODO replace with TimerHandle#start(m_doubleclick.offset, 0, [...]() { stop timer; deferred_fn() });
       m_taskqueue->defer(id, taskqueue::deferred::duration{m_doubleclick.offset}, deferred_fn);
     } else if (m_doubleclick.deny(evt->time)) {
       m_doubleclick.event = 0;
       m_buttonpress_btn = btn;
+      // TODO replace with deferred_fn()
       m_taskqueue->defer_unique(id, 0ms, deferred_fn);
     }
   };
