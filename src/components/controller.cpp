@@ -254,7 +254,7 @@ void controller::read_events(bool confwatch) {
     }
 
     if (m_ipc) {
-      m_loop->pipe_handle(
+      m_loop->named_pipe_handle(
           m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
           [this]() { m_ipc->receive_eof(); },
           [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
@@ -464,6 +464,7 @@ void controller::process_inputdata(string&& cmd) {
     m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 }
+
 /**
  * Process eventqueue update event
  */

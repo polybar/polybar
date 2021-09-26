@@ -101,22 +101,13 @@ void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
 // }}}
 
 // PipeHandle {{{
-PipeHandle::PipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun,
-    function<void(void)> eof_cb, function<void(int)> err_cb)
-    : UVHandleGeneric([&](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
+PipeHandle::PipeHandle(
+    uv_loop_t* loop, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb)
+    : UVHandleGeneric([this](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
     , func(fun)
     , eof_cb(eof_cb)
-    , err_cb(err_cb)
-    , path(path) {
+    , err_cb(err_cb) {
   UV(uv_pipe_init, loop, handle, false);
-}
-
-void PipeHandle::start() {
-  if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
-    throw system_error("Failed to open pipe '" + path + "'");
-  }
-  UV(uv_pipe_open, handle, fd);
-  UV(uv_read_start, (uv_stream_t*)handle, alloc_cb, callback);
 }
 
 void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
@@ -131,25 +122,52 @@ void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
       close();
       err_cb(nread);
     } else {
-      eof_cb();
-
       /*
-       * This is a special case.
-       *
-       * Once we read EOF, we no longer receive events for the fd, so we close the entire handle and restart it with a
-       * new fd.
-       *
-       * We reuse the memory for the underlying uv handle
+       * The EOF callback is called in the close callback
+       * (or directly here if the handle is already closing).
        */
-      if (!is_closing()) {
-        uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) {
-          PipeHandle* This = static_cast<PipeHandle*>(handle->data);
-          UV(uv_pipe_init, This->loop(), This->handle, false);
-          This->start();
-        });
+      if (!uv_is_closing((uv_handle_t*)handle)) {
+        uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { static_cast<PipeHandle*>(handle->data)->eof_cb(); });
+      } else {
+        eof_cb();
       }
     }
   }
+}
+// }}}
+
+// NamedPipeHandle {{{
+NamedPipeHandle::NamedPipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun,
+    function<void(void)> eof_cb, function<void(int)> err_cb)
+    : PipeHandle(
+          loop, fun,
+          [this]() {
+            this->eof_cb();
+            close_cb();
+          },
+          err_cb)
+    , eof_cb(eof_cb)
+    , path(path) {}
+
+void NamedPipeHandle::start() {
+  if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
+    throw system_error("Failed to open pipe '" + path + "'");
+  }
+  UV(uv_pipe_open, handle, fd);
+  UV(uv_read_start, (uv_stream_t*)handle, alloc_cb, callback);
+}
+
+/*
+ * This is a special case.
+ *
+ * Once we read EOF, we no longer receive events for the fd, so we close the
+ * entire handle and restart it with a new fd.
+ *
+ * We reuse the memory for the underlying uv handle
+ */
+void NamedPipeHandle::close_cb(void) {
+  UV(uv_pipe_init, this->loop(), this->handle, false);
+  this->start();
 }
 // }}}
 
@@ -245,10 +263,10 @@ void eventloop::fs_event_handle(
   m_fs_event_handles.back()->start(path);
 }
 
-void eventloop::pipe_handle(
+void eventloop::named_pipe_handle(
     const string& path, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb) {
-  m_pipe_handles.emplace_back(std::make_unique<PipeHandle>(get(), path, fun, eof_cb, err_cb));
-  m_pipe_handles.back()->start();
+  m_named_pipe_handles.emplace_back(std::make_unique<NamedPipeHandle>(get(), path, fun, eof_cb, err_cb));
+  m_named_pipe_handles.back()->start();
 }
 
 TimerHandle_t eventloop::timer_handle(function<void(void)> fun) {

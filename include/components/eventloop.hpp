@@ -103,14 +103,38 @@ struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
 };
 
 struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
-  PipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun, function<void(void)> eof_cb,
-      function<void(int)> err_cb);
+  PipeHandle(
+      uv_loop_t* loop, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
+
   void start();
   void read_cb(ssize_t nread, const uv_buf_t* buf);
 
+  /**
+   * Callback for receiving data
+   */
   function<void(const string)> func;
+  /**
+   * Callback for receiving EOF.
+   *
+   * Called after the associated handle has been closed.
+   */
   function<void(void)> eof_cb;
+
+  /**
+   * Called if an error occurs.
+   */
   function<void(int)> err_cb;
+};
+
+struct NamedPipeHandle : public PipeHandle {
+  NamedPipeHandle(uv_loop_t* loop, const string& path, function<void(const string)> fun, function<void(void)> eof_cb,
+      function<void(int)> err_cb);
+
+  void start();
+  void close_cb(void);
+
+  function<void(void)> eof_cb;
+
   int fd;
   string path;
 };
@@ -129,7 +153,7 @@ struct AsyncHandle : public UVHandle<uv_async_t> {
 using SignalHandle_t = std::unique_ptr<SignalHandle>;
 using PollHandle_t = std::unique_ptr<PollHandle>;
 using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
-using PipeHandle_t = std::unique_ptr<PipeHandle>;
+using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
 // shared_ptr because we also return the pointer in order to call methods on it
 using TimerHandle_t = std::shared_ptr<TimerHandle>;
 using AsyncHandle_t = std::shared_ptr<AsyncHandle>;
@@ -143,7 +167,7 @@ class eventloop {
   void signal_handle(int signum, function<void(int)> fun);
   void poll_handle(int events, int fd, function<void(uv_poll_event)> fun, function<void(int)> err_cb);
   void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, function<void(int)> err_cb);
-  void pipe_handle(
+  void named_pipe_handle(
       const string& path, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
   TimerHandle_t timer_handle(function<void(void)> fun);
   AsyncHandle_t async_handle(function<void(void)> fun);
@@ -157,7 +181,7 @@ class eventloop {
   vector<SignalHandle_t> m_sig_handles;
   vector<PollHandle_t> m_poll_handles;
   vector<FSEventHandle_t> m_fs_event_handles;
-  vector<PipeHandle_t> m_pipe_handles;
+  vector<NamedPipeHandle_t> m_named_pipe_handles;
   vector<TimerHandle_t> m_timer_handles;
   vector<AsyncHandle_t> m_async_handles;
 };
