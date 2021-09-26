@@ -80,9 +80,6 @@ namespace signals {
     struct changed : public detail::base_signal<changed> {
       using base_type::base_type;
     };
-    struct tick : public detail::base_signal<tick> {
-      using base_type::base_type;
-    };
     struct button_press : public detail::value_signal<button_press, string> {
       using base_type::base_type;
     };
@@ -93,12 +90,6 @@ namespace signals {
       using base_type::base_type;
     };
     struct dim_window : public detail::value_signal<dim_window, double> {
-      using base_type::base_type;
-    };
-    struct shade_window : public detail::base_signal<shade_window> {
-      using base_type::base_type;
-    };
-    struct unshade_window : public detail::base_signal<unshade_window> {
       using base_type::base_type;
     };
     struct request_snapshot : public detail::value_signal<request_snapshot, string> {

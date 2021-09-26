@@ -381,25 +381,6 @@ void renderer::flush() {
 
   highlight_clickable_areas();
 
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_bar.shaded && m_bar.origin == edge::TOP) {
-    m_log.trace_x(
-        "renderer: copy pixmap (shaded=1, geom=%dx%d+%d+%d)", m_rect.width, m_rect.height, m_rect.x, m_rect.y);
-    auto geom = m_connection.get_geometry(m_window);
-    auto x1 = 0;
-    auto y1 = m_rect.height - m_bar.shade_size.h - m_rect.y - geom->height;
-    auto x2 = m_rect.x;
-    auto y2 = m_rect.y;
-    auto w = m_rect.width;
-    auto h = m_rect.height - m_bar.shade_size.h + geom->height;
-    m_connection.copy_area(m_pixmap, m_window, m_gcontext, x1, y1, x2, y2, w, h);
-    m_connection.flush();
-    return;
-  }
-#endif
-#endif
-
   m_surface->flush();
   m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();

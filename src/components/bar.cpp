@@ -341,8 +341,6 @@ void bar::parse(string&& data, bool force) {
     m_log.trace("bar: Force update");
   } else if (!m_visible) {
     return m_log.trace("bar: Ignoring update (invisible)");
-  } else if (m_opts.shaded) {
-    return m_log.trace("bar: Ignoring update (shaded)");
   } else if (unchanged) {
     return m_log.trace("bar: Ignoring update (unchanged)");
   }
@@ -601,14 +599,6 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::unshade_window{}); });
-    return;
-  }
-#endif
-#endif
   if (m_opts.dimmed) {
     m_taskqueue->defer_unique("window-dim", 25ms, [&](size_t) {
       m_opts.dimmed = false;
@@ -626,14 +616,6 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::shade_window{}); });
-    return;
-  }
-#endif
-#endif
   if (!m_opts.dimmed) {
     m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
       m_opts.dimmed = true;
@@ -874,110 +856,6 @@ void bar::start() {
   m_tray->setup(static_cast<const bar_settings&>(m_opts));
 
   broadcast_visibility();
-}
-
-bool bar::on(const signals::ui::unshade_window&) {
-  m_opts.shaded = false;
-  m_opts.shade_size.w = m_opts.size.w;
-  m_opts.shade_size.h = m_opts.size.h;
-  m_opts.shade_pos.x = m_opts.pos.x;
-  m_opts.shade_pos.y = m_opts.pos.y;
-
-  double distance{static_cast<double>(m_opts.shade_size.h - m_connection.get_geometry(m_opts.window)->height)};
-  double steptime{25.0 / 2.0};
-  m_anim_step = distance / steptime / 2.0;
-
-  m_taskqueue->defer_unique(
-      "window-shade", 25ms,
-      [&](size_t remaining) {
-        if (!m_opts.shaded) {
-          m_sig.emit(signals::ui::tick{});
-        }
-        if (!remaining) {
-          m_renderer->flush();
-        }
-        if (m_opts.dimmed) {
-          m_opts.dimmed = false;
-          m_sig.emit(dim_window{1.0});
-        }
-      },
-      taskqueue::deferred::duration{25ms}, 10U);
-
-  return true;
-}
-
-bool bar::on(const signals::ui::shade_window&) {
-  taskqueue::deferred::duration offset{2000ms};
-
-  if (!m_opts.shaded && m_opts.shade_size.h != m_opts.size.h) {
-    offset = taskqueue::deferred::duration{25ms};
-  }
-
-  m_opts.shaded = true;
-  m_opts.shade_size.h = 5;
-  m_opts.shade_size.w = m_opts.size.w;
-  m_opts.shade_pos.x = m_opts.pos.x;
-  m_opts.shade_pos.y = m_opts.pos.y;
-
-  if (m_opts.origin == edge::BOTTOM) {
-    m_opts.shade_pos.y = m_opts.pos.y + m_opts.size.h - m_opts.shade_size.h;
-  }
-
-  double distance{static_cast<double>(m_connection.get_geometry(m_opts.window)->height - m_opts.shade_size.h)};
-  double steptime{25.0 / 2.0};
-  m_anim_step = distance / steptime / 2.0;
-
-  m_taskqueue->defer_unique(
-      "window-shade", 25ms,
-      [&](size_t remaining) {
-        if (m_opts.shaded) {
-          m_sig.emit(signals::ui::tick{});
-        }
-        if (!remaining) {
-          m_renderer->flush();
-        }
-        if (!m_opts.dimmed) {
-          m_opts.dimmed = true;
-          m_sig.emit(dim_window{double{m_opts.dimvalue}});
-        }
-      },
-      move(offset), 10U);
-
-  return true;
-}
-
-bool bar::on(const signals::ui::tick&) {
-  auto geom = m_connection.get_geometry(m_opts.window);
-  if (geom->y == m_opts.shade_pos.y && geom->height == m_opts.shade_size.h) {
-    return false;
-  }
-
-  unsigned int mask{0};
-  unsigned int values[7]{0};
-  xcb_params_configure_window_t params{};
-
-  if (m_opts.shade_size.h > geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height + m_anim_step));
-    params.height = std::max(1U, std::min(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
-  } else if (m_opts.shade_size.h < geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height - m_anim_step));
-    params.height = std::max(1U, std::max(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
-  }
-
-  if (m_opts.shade_pos.y > geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y + m_anim_step));
-    params.y = std::min(params.y, static_cast<int>(m_opts.shade_pos.y));
-  } else if (m_opts.shade_pos.y < geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y - m_anim_step));
-    params.y = std::max(params.y, static_cast<int>(m_opts.shade_pos.y));
-  }
-
-  connection::pack_values(mask, &params, values);
-
-  m_connection.configure_window(m_opts.window, mask, values);
-  m_connection.flush();
-
-  return false;
 }
 
 bool bar::on(const signals::ui::dim_window& sig) {

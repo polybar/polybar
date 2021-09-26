@@ -55,8 +55,7 @@ inline double geom_format_to_pixels(std::string str, double max) {
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message, evt::configure_notify>,
-            public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::tick, signals::ui::shade_window,
-                signals::ui::unshade_window, signals::ui::dim_window
+            public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::dim_window
 #if WITH_XCURSOR
                 ,
                 signals::ui::cursor_change
@@ -100,9 +99,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void handle(const evt::property_notify& evt) override;
   void handle(const evt::configure_notify& evt) override;
 
-  bool on(const signals::ui::unshade_window&) override;
-  bool on(const signals::ui::shade_window&) override;
-  bool on(const signals::ui::tick&) override;
   bool on(const signals::ui::dim_window&) override;
 #if WITH_XCURSOR
   bool on(const signals::ui::cursor_change&) override;
