@@ -234,10 +234,6 @@ void controller::screenshot_handler() {
 void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  if (!m_writeback) {
-    m_bar->start();
-  }
-
   try {
     eloop = std::make_unique<eventloop>();
 
@@ -264,12 +260,16 @@ void controller::read_events(bool confwatch) {
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      eloop->timer_handle(3000, 0, [this]() { screenshot_handler(); });
+      eloop->timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
     }
 
     m_notifier = eloop->async_handle([this]() { notifier_handler(); });
 
     m_eloop_ready.store(true);
+
+    if (!m_writeback) {
+      m_bar->start();
+    }
 
     /*
      * Immediately trigger and update so that the bar displays something.
