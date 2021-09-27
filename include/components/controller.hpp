@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <thread>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"

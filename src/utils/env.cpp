@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cstring>
-#include <thread>
 #include <utility>
 
 #include "utils/env.hpp"
