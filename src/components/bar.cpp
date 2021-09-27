@@ -181,6 +181,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
   m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
 
+  m_opts.double_click_interval = m_conf.get(bs, "double-click-interval", m_opts.double_click_interval);
+
   if (only_initialize_values) {
     return;
   }
@@ -732,7 +734,7 @@ void bar::handle(const evt::button_press& evt) {
 
   const auto check_double = [this](TimerHandle_t handle, mousebtn btn, int pos) {
     if (!handle->is_active()) {
-      handle->start(m_doubleclick_offset, 0, [=]() { trigger_click(btn, pos); });
+      handle->start(m_opts.double_click_interval, 0, [=]() { trigger_click(btn, pos); });
     } else {
       handle->stop();
       trigger_click(mousebtn_get_double(btn), pos);

@@ -159,6 +159,8 @@ struct bar_settings {
 
   bool override_redirect{false};
 
+  int double_click_interval{400};
+
   string cursor{};
   string cursor_click{};
   string cursor_scroll{};

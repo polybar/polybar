@@ -114,6 +114,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2427`](https://github.com/polybar/polybar/issues/2427))
 - `custom/ipc`: `send` action to send arbitrary strings to be displayed in the module.
   ([`#2455`](https://github.com/polybar/polybar/issues/2455))
+- Added `double-click-interval` setting to the bar section to control the time
+  interval in which a double-click is recognized. Defaults to 400 (ms)
+  ([`#1441`](https://github.com/polybar/polybar/issues/1441))
 
 ### Changed
 - We rewrote polybar's main event loop. This shouldn't change any behavior for
@@ -132,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     KB/s (as before), 1 for MB/s and 2 for GB/s.
 - Clicks arriving in close succession, no longer get dropped. Before polybar
   would drop any click that arrived within 5ms of the previous one.
+- Increased the double click interval from 150ms to 400ms.
 
 ### Fixed
 - Trailing space after the layout label when indicators are empty and made sure right amount
