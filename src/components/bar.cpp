@@ -615,13 +615,15 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
-  if (m_opts.dimmed) {
-    m_taskqueue->defer_unique("window-dim", 25ms, [&](size_t) {
-      m_opts.dimmed = false;
-      m_sig.emit(dim_window{1.0});
-    });
-  } else if (m_taskqueue->exist("window-dim")) {
-    m_taskqueue->purge("window-dim");
+  if (m_opts.dimvalue < 1.0) {
+    if (m_opts.dimmed) {
+      m_dim_timer->start(25, 0, [this]() {
+        m_opts.dimmed = false;
+        m_sig.emit(dim_window{1.0});
+      });
+    } else if (m_dim_timer->is_active()) {
+      m_dim_timer->stop();
+    }
   }
 }
 
@@ -632,11 +634,13 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
-  if (!m_opts.dimmed) {
-    m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
-      m_opts.dimmed = true;
-      m_sig.emit(dim_window{double(m_opts.dimvalue)});
-    });
+  if (m_opts.dimvalue < 1.0) {
+    if (!m_opts.dimmed) {
+      m_dim_timer->start(3000, 0, [this]() {
+        m_opts.dimmed = true;
+        m_sig.emit(dim_window{double(m_opts.dimvalue)});
+      });
+    }
   }
 }
 

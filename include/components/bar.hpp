@@ -132,6 +132,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   TimerHandle_t m_leftclick_timer{m_loop.timer_handle(nullptr)};
   TimerHandle_t m_middleclick_timer{m_loop.timer_handle(nullptr)};
   TimerHandle_t m_rightclick_timer{m_loop.timer_handle(nullptr)};
+  TimerHandle_t m_dim_timer{m_loop.timer_handle(nullptr)};
 
   bool m_visible{true};
 };
