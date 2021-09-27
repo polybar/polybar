@@ -311,7 +311,6 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
  * Cleanup signal handlers and destroy the bar window
  */
 bar::~bar() {
-  std::lock_guard<std::mutex> guard(m_mutex);
   m_connection.detach_sink(this, SINK_PRIORITY_BAR);
   m_sig.detach(this);
 }
@@ -330,12 +329,6 @@ const bar_settings bar::settings() const {
  * \param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   bool unchanged = data == m_lastinput;
 
   m_lastinput = data;
@@ -633,12 +626,6 @@ void bar::handle(const evt::leave_notify&) {
  * Used to change the cursor depending on the module
  */
 void bar::handle(const evt::motion_notify& evt) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
   m_motion_pos = evt->event_x;
@@ -720,12 +707,6 @@ void bar::handle(const evt::motion_notify& evt) {
  * Used to map mouse clicks to bar actions
  */
 void bar::handle(const evt::button_press& evt) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   if (m_buttonpress.deny(evt->time)) {
     return m_log.trace_x("bar: Ignoring button press (throttled)...");
   }

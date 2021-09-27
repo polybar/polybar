@@ -121,8 +121,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   bar_settings m_opts{};
 
   string m_lastinput{};
-  std::mutex m_mutex{};
-  std::atomic<bool> m_dblclicks{false};
+  bool m_dblclicks{false};
 
   mousebtn m_buttonpress_btn{mousebtn::NONE};
   int m_buttonpress_pos{0};
