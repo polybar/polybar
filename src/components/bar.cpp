@@ -612,15 +612,13 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
-  if (m_opts.dimvalue < 1.0) {
-    if (m_opts.dimmed) {
-      m_dim_timer->start(25, 0, [this]() {
-        m_opts.dimmed = false;
-        m_sig.emit(dim_window{1.0});
-      });
-    } else if (m_dim_timer->is_active()) {
-      m_dim_timer->stop();
-    }
+  if (m_opts.dimmed) {
+    m_dim_timer->start(25, 0, [this]() {
+      m_opts.dimmed = false;
+      m_sig.emit(dim_window{1.0});
+    });
+  } else if (m_dim_timer->is_active()) {
+    m_dim_timer->stop();
   }
 }
 
@@ -631,6 +629,7 @@ void bar::handle(const evt::enter_notify&) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::leave_notify&) {
+  // Only trigger dimming, if the dim-value is not fully opaque.
   if (m_opts.dimvalue < 1.0) {
     if (!m_opts.dimmed) {
       m_dim_timer->start(3000, 0, [this]() {
@@ -733,6 +732,11 @@ void bar::handle(const evt::button_press& evt) {
   mousebtn btn = static_cast<mousebtn>(evt->detail);
   int pos = evt->event_x;
 
+  /*
+   * For possible double-clicks we need to delay the triggering of the click by
+   * the configured interval and if in that time another click arrives, we
+   * need to trigger a double click.
+   */
   const auto check_double = [this](TimerHandle_t handle, mousebtn btn, int pos) {
     if (!handle->is_active()) {
       handle->start(m_opts.double_click_interval, 0, [=]() { trigger_click(btn, pos); });

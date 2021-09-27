@@ -59,6 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   triggers if they happen directly after one another, leading to only a single
   bar update.
 
+### Removed
+- `DEBUG_SHADED` cmake variable and its associated functionality.
+
 ### Added
 - `drawtypes/ramp`: Add support for ramp weights.
    ([1750](https://github.com/polybar/polybar/issues/1750))
