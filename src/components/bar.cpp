@@ -725,10 +725,6 @@ void bar::handle(const evt::motion_notify& evt) {
  * Used to map mouse clicks to bar actions
  */
 void bar::handle(const evt::button_press& evt) {
-  if (m_buttonpress.deny(evt->time)) {
-    return m_log.trace_x("bar: Ignoring button press (throttled)...");
-  }
-
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
   mousebtn btn = static_cast<mousebtn>(evt->detail);

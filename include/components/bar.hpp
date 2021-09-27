@@ -133,8 +133,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   TimerHandle_t m_middleclick_timer{m_loop.timer_handle(nullptr)};
   TimerHandle_t m_rightclick_timer{m_loop.timer_handle(nullptr)};
 
-  event_timer m_buttonpress{0L, 5L};
-
   // TODO make configurable
   int m_doubleclick_offset{150};
 

@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `drawtypes/ramp`: Add support for ramp weights.
    ([1750](https://github.com/polybar/polybar/issues/1750))
-- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`, 
+- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
   `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
   when below or above 1GiB.
   ([`2472`](https://github.com/polybar/polybar/issues/2472))
@@ -130,6 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/network`:
   - Increased precision for upload and download speeds: 0 decimal places for
     KB/s (as before), 1 for MB/s and 2 for GB/s.
+- Clicks arriving in close succession, no longer get dropped. Before polybar
+  would drop any click that arrived within 5ms of the previous one.
 
 ### Fixed
 - Trailing space after the layout label when indicators are empty and made sure right amount
