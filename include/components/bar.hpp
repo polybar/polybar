@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
+#include "components/eventloop.hpp"
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
@@ -25,7 +26,6 @@ class renderer;
 class screen;
 class taskqueue;
 class tray_manager;
-class eventloop;
 
 namespace tags {
   class dispatch;
@@ -128,6 +128,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 #if WITH_XCURSOR
   int m_motion_pos{0};
 #endif
+
+  TimerHandle_t m_leftclick_timer{m_loop.timer_handle(nullptr)};
+  TimerHandle_t m_middleclick_timer{m_loop.timer_handle(nullptr)};
+  TimerHandle_t m_rightclick_timer{m_loop.timer_handle(nullptr)};
 
   event_timer m_buttonpress{0L, 5L};
   event_timer m_doubleclick{0L, 150L};

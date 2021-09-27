@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "components/config.hpp"
-#include "components/eventloop.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/taskqueue.hpp"
@@ -718,7 +717,7 @@ void bar::handle(const evt::button_press& evt) {
   m_buttonpress_pos = evt->event_x;
 
   // TODO make this a private method in bar
-  const auto deferred_fn = [&](size_t) {
+  const auto deferred_fn = [&]() {
     tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
 
     if (action != tags::NO_ACTION) {
@@ -738,33 +737,29 @@ void bar::handle(const evt::button_press& evt) {
   };
 
   // TODO Accept TimerHandle, mouse btn, and mouse position. (Determine dbl click btn from single click mouse btn)
-  const auto check_double = [&](string&& id, mousebtn&& btn) {
-    // TODO replace with !TimerHandle#is_active
-    if (!m_taskqueue->exist(id)) {
+  const auto check_double = [=](TimerHandle_t handle, mousebtn&& btn) {
+    if (!handle->is_active()) {
       // TODO replace m_doubleclick with a single offset field (make configurable). Event part no longer needed
-      m_doubleclick.event = evt->time;
-      // TODO replace with TimerHandle#start(m_doubleclick.offset, 0, [...]() { stop timer; deferred_fn() });
-      m_taskqueue->defer(id, taskqueue::deferred::duration{m_doubleclick.offset}, deferred_fn);
-    } else if (m_doubleclick.deny(evt->time)) {
-      m_doubleclick.event = 0;
+      handle->start(m_doubleclick.offset, 0, [=]() { deferred_fn(); });
+    } else {
       m_buttonpress_btn = btn;
-      // TODO replace with deferred_fn()
-      m_taskqueue->defer_unique(id, 0ms, deferred_fn);
+      handle->stop();
+      deferred_fn();
     }
   };
 
   // If there are no double click handlers defined we can
   // just by-pass the click timer handling
   if (!m_dblclicks) {
-    deferred_fn(0);
+    deferred_fn();
   } else if (evt->detail == static_cast<int>(mousebtn::LEFT)) {
-    check_double("buttonpress-left", mousebtn::DOUBLE_LEFT);
+    check_double(m_leftclick_timer, mousebtn::DOUBLE_LEFT);
   } else if (evt->detail == static_cast<int>(mousebtn::MIDDLE)) {
-    check_double("buttonpress-middle", mousebtn::DOUBLE_MIDDLE);
+    check_double(m_middleclick_timer, mousebtn::DOUBLE_MIDDLE);
   } else if (evt->detail == static_cast<int>(mousebtn::RIGHT)) {
-    check_double("buttonpress-right", mousebtn::DOUBLE_RIGHT);
+    check_double(m_rightclick_timer, mousebtn::DOUBLE_RIGHT);
   } else {
-    deferred_fn(0);
+    deferred_fn();
   }
 }
 
