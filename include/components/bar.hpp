@@ -25,6 +25,7 @@ class renderer;
 class screen;
 class taskqueue;
 class tray_manager;
+class eventloop;
 
 namespace tags {
   class dispatch;
@@ -63,9 +64,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
                 > {
  public:
   using make_type = unique_ptr<bar>;
-  static make_type make(bool only_initialize_values = false);
+  static make_type make(eventloop&, bool only_initialize_values = false);
 
-  explicit bar(connection&, signal_emitter&, const config&, const logger&, unique_ptr<screen>&&,
+  explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop&, unique_ptr<screen>&&,
       unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&,
       unique_ptr<taskqueue>&&, bool only_initialize_values);
   ~bar();
@@ -109,6 +110,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   signal_emitter& m_sig;
   const config& m_conf;
   const logger& m_log;
+  eventloop& m_loop;
   unique_ptr<screen> m_screen;
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;

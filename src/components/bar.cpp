@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "components/config.hpp"
+#include "components/eventloop.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/taskqueue.hpp"
@@ -37,7 +38,7 @@ using namespace signals::ui;
 /**
  * Create instance
  */
-bar::make_type bar::make(bool only_initialize_values) {
+bar::make_type bar::make(eventloop& loop, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
@@ -46,6 +47,7 @@ bar::make_type bar::make(bool only_initialize_values) {
         signal_emitter::make(),
         config::make(),
         logger::make(),
+        loop,
         screen::make(),
         tray_manager::make(),
         tags::dispatch::make(*action_ctxt),
@@ -60,13 +62,14 @@ bar::make_type bar::make(bool only_initialize_values) {
  *
  * TODO: Break out all tray handling
  */
-bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
+bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, eventloop& loop,
     unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
     unique_ptr<tags::action_context>&& action_ctxt, unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
     , m_log(logger)
+    , m_loop(loop)
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))

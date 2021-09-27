@@ -127,7 +127,8 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      printf("%s\n", bar::make(true)->settings().wmname.c_str());
+      eventloop loop{};
+      printf("%s\n", bar::make(loop, true)->settings().wmname.c_str());
       return EXIT_SUCCESS;
     }
 
