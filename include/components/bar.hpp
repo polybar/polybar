@@ -24,7 +24,6 @@ class connection;
 class logger;
 class renderer;
 class screen;
-class taskqueue;
 class tray_manager;
 
 namespace tags {
@@ -68,7 +67,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop&, unique_ptr<screen>&&,
       unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&,
-      unique_ptr<taskqueue>&&, bool only_initialize_values);
+      bool only_initialize_values);
   ~bar();
 
   const bar_settings settings() const;
@@ -118,7 +117,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   unique_ptr<renderer> m_renderer;
   unique_ptr<tags::dispatch> m_dispatch;
   unique_ptr<tags::action_context> m_action_ctxt;
-  unique_ptr<taskqueue> m_taskqueue;
 
   bar_settings m_opts{};
 

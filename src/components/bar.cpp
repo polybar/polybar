@@ -5,7 +5,6 @@
 #include "components/config.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
-#include "components/taskqueue.hpp"
 #include "components/types.hpp"
 #include "drawtypes/label.hpp"
 #include "events/signal.hpp"
@@ -51,7 +50,6 @@ bar::make_type bar::make(eventloop& loop, bool only_initialize_values) {
         tray_manager::make(),
         tags::dispatch::make(*action_ctxt),
         std::move(action_ctxt),
-        taskqueue::make(),
         only_initialize_values);
   // clang-format on
 }
@@ -63,7 +61,7 @@ bar::make_type bar::make(eventloop& loop, bool only_initialize_values) {
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, eventloop& loop,
     unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<tags::action_context>&& action_ctxt, unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
+    unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
@@ -72,8 +70,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_screen(forward<decltype(screen)>(screen))
     , m_tray(forward<decltype(tray_manager)>(tray_manager))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))
-    , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt))
-    , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
+    , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
   string bs{m_conf.section()};
 
   // Get available RandR outputs
