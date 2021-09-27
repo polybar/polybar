@@ -141,7 +141,7 @@ void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
        *
        * We reuse the memory for the underlying uv handle
        */
-      if (!uv_is_closing((uv_handle_t*)handle)) {
+      if (!is_closing()) {
         uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) {
           PipeHandle* This = static_cast<PipeHandle*>(handle->data);
           UV(uv_pipe_init, This->loop(), This->handle, false);
@@ -158,8 +158,16 @@ TimerHandle::TimerHandle(uv_loop_t* loop, function<void(void)> fun) : UVHandle(f
   UV(uv_timer_init, loop, handle);
 }
 
-void TimerHandle::start(uint64_t timeout, uint64_t repeat) {
+void TimerHandle::start(uint64_t timeout, uint64_t repeat, function<void(void)> new_cb) {
+  if (new_cb) {
+    this->func = new_cb;
+  }
+
   UV(uv_timer_start, handle, callback, timeout, repeat);
+}
+
+void TimerHandle::stop() {
+  UV(uv_timer_stop, handle);
 }
 // }}}
 
@@ -243,9 +251,9 @@ void eventloop::pipe_handle(
   m_pipe_handles.back()->start();
 }
 
-void eventloop::timer_handle(uint64_t timeout, uint64_t repeat, function<void(void)> fun) {
-  m_timer_handles.emplace_back(std::make_unique<TimerHandle>(get(), fun));
-  m_timer_handles.back()->start(timeout, repeat);
+TimerHandle_t eventloop::timer_handle(function<void(void)> fun) {
+  m_timer_handles.emplace_back(std::make_shared<TimerHandle>(get(), fun));
+  return m_timer_handles.back();
 }
 
 AsyncHandle_t eventloop::async_handle(function<void(void)> fun) {

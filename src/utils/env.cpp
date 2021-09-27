@@ -1,9 +1,8 @@
+#include "utils/env.hpp"
+
 #include <cstdlib>
 #include <cstring>
-#include <thread>
 #include <utility>
-
-#include "utils/env.hpp"
 
 POLYBAR_NS
 
@@ -17,6 +16,6 @@ namespace env_util {
     const char* value{std::getenv(var.c_str())};
     return value != nullptr ? value : move(fallback);
   }
-}
+}  // namespace env_util
 
 POLYBAR_NS_END

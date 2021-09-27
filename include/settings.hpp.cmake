@@ -41,7 +41,6 @@ extern const char* const APP_VERSION;
 #cmakedefine DEBUG_LOGGER_VERBOSE
 #cmakedefine DEBUG_HINTS
 #cmakedefine DEBUG_WHITESPACE
-#cmakedefine DEBUG_SHADED
 #cmakedefine DEBUG_FONTCONFIG
 #endif
 

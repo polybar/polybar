@@ -45,9 +45,17 @@ struct UVHandleGeneric {
   }
 
   void close() {
-    if (handle && !uv_is_closing((uv_handle_t*)handle)) {
+    if (!is_closing()) {
       uv_close((uv_handle_t*)handle, close_callback);
     }
+  }
+
+  bool is_closing() {
+    return !handle || uv_is_closing((uv_handle_t*)handle);
+  }
+
+  bool is_active() {
+    return uv_is_active((uv_handle_t*)handle) != 0;
   }
 
   void cleanup_resources() {
@@ -109,7 +117,8 @@ struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, cons
 
 struct TimerHandle : public UVHandle<uv_timer_t> {
   TimerHandle(uv_loop_t* loop, function<void(void)> fun);
-  void start(uint64_t timeout, uint64_t repeat);
+  void start(uint64_t timeout, uint64_t repeat, function<void(void)> new_cb = function<void(void)>(nullptr));
+  void stop();
 };
 
 struct AsyncHandle : public UVHandle<uv_async_t> {
@@ -121,8 +130,8 @@ using SignalHandle_t = std::unique_ptr<SignalHandle>;
 using PollHandle_t = std::unique_ptr<PollHandle>;
 using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
 using PipeHandle_t = std::unique_ptr<PipeHandle>;
-using TimerHandle_t = std::unique_ptr<TimerHandle>;
-// shared_ptr because we need a reference outside to call send
+// shared_ptr because we also return the pointer in order to call methods on it
+using TimerHandle_t = std::shared_ptr<TimerHandle>;
 using AsyncHandle_t = std::shared_ptr<AsyncHandle>;
 
 class eventloop {
@@ -136,7 +145,7 @@ class eventloop {
   void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, function<void(int)> err_cb);
   void pipe_handle(
       const string& path, function<void(const string)> fun, function<void(void)> eof_cb, function<void(int)> err_cb);
-  void timer_handle(uint64_t timeout, uint64_t repeat, function<void(void)> fun);
+  TimerHandle_t timer_handle(function<void(void)> fun);
   AsyncHandle_t async_handle(function<void(void)> fun);
 
  protected:
