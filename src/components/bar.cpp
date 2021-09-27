@@ -568,6 +568,25 @@ void bar::broadcast_visibility() {
   }
 }
 
+void bar::trigger_click(mousebtn btn, int pos) {
+  tags::action_t action = m_action_ctxt->has_action(btn, pos);
+
+  if (action != tags::NO_ACTION) {
+    m_log.trace("Found matching input area");
+    m_sig.emit(button_press{m_action_ctxt->get_action(action)});
+    return;
+  }
+
+  for (auto&& action : m_opts.actions) {
+    if (action.button == btn && !action.command.empty()) {
+      m_log.trace("Found matching fallback handler");
+      m_sig.emit(button_press{string{action.command}});
+      return;
+    }
+  }
+  m_log.info("No matching input area found (btn=%i)", static_cast<int>(btn));
+}
+
 /**
  * Event handler for XCB_DESTROY_NOTIFY events
  */
@@ -712,54 +731,30 @@ void bar::handle(const evt::button_press& evt) {
 
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
-  // TODO remove this state. Pass as argument to deferred_fn
-  m_buttonpress_btn = static_cast<mousebtn>(evt->detail);
-  m_buttonpress_pos = evt->event_x;
+  mousebtn btn = static_cast<mousebtn>(evt->detail);
+  int pos = evt->event_x;
 
-  // TODO make this a private method in bar
-  const auto deferred_fn = [&]() {
-    tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
-
-    if (action != tags::NO_ACTION) {
-      m_log.trace("Found matching input area");
-      m_sig.emit(button_press{m_action_ctxt->get_action(action)});
-      return;
-    }
-
-    for (auto&& action : m_opts.actions) {
-      if (action.button == m_buttonpress_btn && !action.command.empty()) {
-        m_log.trace("Found matching fallback handler");
-        m_sig.emit(button_press{string{action.command}});
-        return;
-      }
-    }
-    m_log.info("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
-  };
-
-  // TODO Accept TimerHandle, mouse btn, and mouse position. (Determine dbl click btn from single click mouse btn)
-  const auto check_double = [=](TimerHandle_t handle, mousebtn&& btn) {
+  const auto check_double = [this](TimerHandle_t handle, mousebtn btn, int pos) {
     if (!handle->is_active()) {
-      // TODO replace m_doubleclick with a single offset field (make configurable). Event part no longer needed
-      handle->start(m_doubleclick.offset, 0, [=]() { deferred_fn(); });
+      handle->start(m_doubleclick_offset, 0, [=]() { trigger_click(btn, pos); });
     } else {
-      m_buttonpress_btn = btn;
       handle->stop();
-      deferred_fn();
+      trigger_click(mousebtn_get_double(btn), pos);
     }
   };
 
   // If there are no double click handlers defined we can
   // just by-pass the click timer handling
   if (!m_dblclicks) {
-    deferred_fn();
-  } else if (evt->detail == static_cast<int>(mousebtn::LEFT)) {
-    check_double(m_leftclick_timer, mousebtn::DOUBLE_LEFT);
-  } else if (evt->detail == static_cast<int>(mousebtn::MIDDLE)) {
-    check_double(m_middleclick_timer, mousebtn::DOUBLE_MIDDLE);
-  } else if (evt->detail == static_cast<int>(mousebtn::RIGHT)) {
-    check_double(m_rightclick_timer, mousebtn::DOUBLE_RIGHT);
+    trigger_click(btn, pos);
+  } else if (btn == mousebtn::LEFT) {
+    check_double(m_leftclick_timer, btn, pos);
+  } else if (btn == mousebtn::MIDDLE) {
+    check_double(m_middleclick_timer, btn, pos);
+  } else if (btn == mousebtn::RIGHT) {
+    check_double(m_rightclick_timer, btn, pos);
   } else {
-    deferred_fn();
+    trigger_click(btn, pos);
   }
 }
 

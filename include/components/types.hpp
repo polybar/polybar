@@ -46,6 +46,19 @@ enum class mousebtn {
   BTN_COUNT,
 };
 
+static inline mousebtn mousebtn_get_double(mousebtn btn) {
+  switch (btn) {
+    case mousebtn::LEFT:
+      return mousebtn::DOUBLE_LEFT;
+    case mousebtn::MIDDLE:
+      return mousebtn::DOUBLE_MIDDLE;
+    case mousebtn::RIGHT:
+      return mousebtn::DOUBLE_RIGHT;
+    default:
+      return mousebtn::NONE;
+  }
+}
+
 enum class strut {
   LEFT = 0,
   RIGHT,

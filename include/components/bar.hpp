@@ -5,8 +5,8 @@
 #include <mutex>
 
 #include "common.hpp"
-#include "components/types.hpp"
 #include "components/eventloop.hpp"
+#include "components/types.hpp"
 #include "errors.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
@@ -90,6 +90,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
+  void trigger_click(mousebtn btn, int pos);
+
   void handle(const evt::client_message& evt) override;
   void handle(const evt::destroy_notify& evt) override;
   void handle(const evt::enter_notify& evt) override;
@@ -123,8 +125,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_lastinput{};
   bool m_dblclicks{false};
 
-  mousebtn m_buttonpress_btn{mousebtn::NONE};
-  int m_buttonpress_pos{0};
 #if WITH_XCURSOR
   int m_motion_pos{0};
 #endif
@@ -134,7 +134,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   TimerHandle_t m_rightclick_timer{m_loop.timer_handle(nullptr)};
 
   event_timer m_buttonpress{0L, 5L};
-  event_timer m_doubleclick{0L, 150L};
+
+  // TODO make configurable
+  int m_doubleclick_offset{150};
 
   double m_anim_step{0.0};
 
