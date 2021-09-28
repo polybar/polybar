@@ -32,3 +32,13 @@ TEST(SpawnAsync, exit_code) {
 
   EXPECT_EQ(WEXITSTATUS(status), 42);
 }
+
+TEST(SpawnAsync, env) {
+  pid_t pid = spawn_async([] { exec_sh("exit $EXIT", {{"EXIT", "45"}}); });
+  int status = 0;
+  pid_t res = waitpid(pid, &status, 0);
+
+  EXPECT_EQ(res, pid);
+
+  EXPECT_EQ(WEXITSTATUS(status), 45);
+}

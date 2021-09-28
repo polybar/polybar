@@ -124,9 +124,14 @@ namespace process_util {
   /**
    * Execute command using shell
    */
-  void exec_sh(const char* cmd) {
+  void exec_sh(const char* cmd, const vector<pair<string, string>>& env) {
     if (cmd != nullptr) {
       static const string shell{env_util::get("POLYBAR_SHELL", "/bin/sh")};
+
+      for (const auto& kv_pair : env) {
+        setenv(kv_pair.first.data(), kv_pair.second.data(), 1);
+      }
+
       execlp(shell.c_str(), shell.c_str(), "-c", cmd, nullptr);
       throw system_error("execlp() failed");
     }
