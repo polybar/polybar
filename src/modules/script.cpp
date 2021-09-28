@@ -1,4 +1,5 @@
 #include "modules/script.hpp"
+
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
@@ -13,7 +14,6 @@ namespace modules {
    */
   script_module::script_module(const bar_settings& bar, string name_)
       : module<script_module>(bar, move(name_)), m_handler([&]() -> function<chrono::duration<double>()> {
-
         m_tail = m_conf.get(name(), "tail", false);
         // Handler for continuous tail commands {{{
 
@@ -25,7 +25,7 @@ namespace modules {
               m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
 
               try {
-                m_command->exec(false);
+                m_command->exec(false, m_env);
               } catch (const exception& err) {
                 m_log.err("%s: %s", name(), err.what());
                 throw module_error("Failed to execute command, stopping module...");
@@ -60,7 +60,7 @@ namespace modules {
             auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
             m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
             m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
-            m_command->exec(true);
+            m_command->exec(true, m_env);
           } catch (const exception& err) {
             m_log.err("%s: %s", name(), err.what());
             throw module_error("Failed to execute command, stopping module...");
@@ -85,6 +85,8 @@ namespace modules {
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
+
+    m_env = m_conf.get_with_prefix(name(), "env-");
 
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
@@ -156,7 +158,7 @@ namespace modules {
   /**
    * Process mutex wrapped script handler
    */
-  chrono::duration<double> script_module::process(const decltype(m_handler) & handler) const {
+  chrono::duration<double> script_module::process(const decltype(m_handler)& handler) const {
     std::lock_guard<decltype(handler)> guard(handler);
     return handler();
   }
@@ -191,7 +193,7 @@ namespace modules {
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
-        if(m_tail && m_command && m_command->is_running()) {
+        if (m_tail && m_command && m_command->is_running()) {
           action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(m_command->get_pid()));
         }
         m_builder->action(btn, action_replaced);
@@ -215,6 +217,6 @@ namespace modules {
 
     return true;
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END
