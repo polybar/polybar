@@ -55,7 +55,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The sample config file has been removed.
 - Polybar now ships a default config that is installed to
   `/etc/polybar/config.ini`, it lives in `doc/config.ini`.
+  It will also be placed in the `examples` directory in the documentation folder.
   [`#2405`](https://github.com/polybar/polybar/issues/2405)
+- The `userconfig` target has been removed, you can no longer use `make
+  userconfig`. As an alternative, you can copy the default config from
+  `/etc/polybar/config.ini`.
 
 ### Deprecated
 - `[settings]`: `throttle-output` and `throttle-output-for` have been removed.
