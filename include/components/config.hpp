@@ -117,18 +117,19 @@ class config {
    * Eg: if you have in config `env-FOO = bar`,
    *    get_with_prefix(section, "env-") will return [{"FOO", "bar"}]
    */
-  vector<pair<string, string>> get_with_prefix(const string& section, const string& key_prefix) const {
+  template <typename T = string>
+  vector<pair<string, T>> get_with_prefix(const string& section, const string& key_prefix) const {
     auto it = m_sections.find(section);
     if (it == m_sections.end()) {
       throw key_error("Missing section \"" + section + "\"");
     }
 
-    vector<pair<string, string>> list;
+    vector<pair<string, T>> list;
     for (const auto& kv_pair : it->second) {
       const auto& key = kv_pair.first;
 
       if (key.substr(0, key_prefix.size()) == key_prefix) {
-        const auto& val = kv_pair.second;
+        const T& val = get<T>(section, key);
         list.emplace_back(key.substr(key_prefix.size()), val);
       }
     }
