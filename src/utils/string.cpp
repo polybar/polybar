@@ -15,6 +15,14 @@ namespace string_util {
     return haystack.find(needle) != string::npos;
   }
 
+  bool ends_with(const string& haystack, const string& suffix) {
+    if (haystack.length() < suffix.length()) {
+      return false;
+    }
+
+    return haystack.compare(haystack.length() - suffix.length(), suffix.length(), suffix) == 0;
+  }
+
   /**
    * Check if haystack contains needle ignoring case
    */

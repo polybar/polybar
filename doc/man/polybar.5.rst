@@ -35,6 +35,9 @@ places in the following order:
 * ``$XDG_CONFIG_HOME/polybar/config.ini``
 * ``$HOME/.config/polybar/config``
 * ``$HOME/.config/polybar/config.ini``
+* ``$XDG_CONFIG_DIRS/polybar/config.ini``
+* ``/etc/xdg/polybar/config.ini`` (only if ``XDG_CONFIG_DIRS`` is not set)
+* ``/etc/polybar/config.ini``
 
 Syntax
 ------
