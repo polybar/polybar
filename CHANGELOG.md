@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   triggers if they happen directly after one another, leading to only a single
   bar update.
 - When not specifying the config file with `--config`, naming your config file
-  'config' is deprecated. Rename your config file to `config.ini`.
+  `config` is deprecated. Rename your config file to `config.ini`.
 
 ### Removed
 - `DEBUG_SHADED` cmake variable and its associated functionality.
