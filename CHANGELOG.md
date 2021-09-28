@@ -60,6 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bar update.
 
 ### Added
+- `custom/script`: Implement `env-*` config option.
+   ([2090](https://github.com/polybar/polybar/issues/2090))
 - `drawtypes/ramp`: Add support for ramp weights.
    ([1750](https://github.com/polybar/polybar/issues/1750))
 - `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`, 
