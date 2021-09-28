@@ -112,6 +112,31 @@ class config {
   }
 
   /**
+   * Get list of key-value pairs starting with a prefix by section.
+   *
+   * Eg: if you have in config `env-FOO = bar`,
+   *    get_with_prefix(section, "env-") will return [{"FOO", "bar"}]
+   */
+  vector<pair<string, string>> get_with_prefix(const string& section, const string& key_prefix) const {
+    auto it = m_sections.find(section);
+    if (it == m_sections.end()) {
+      throw key_error("Missing section \"" + section + "\"");
+    }
+
+    vector<pair<string, string>> list;
+    for (const auto& kv_pair : it->second) {
+      const auto& key = kv_pair.first;
+
+      if (key.substr(0, key_prefix.size()) == key_prefix) {
+        const auto& val = kv_pair.second;
+        list.emplace_back(key.substr(key_prefix.size()), val);
+      }
+    }
+
+    return list;
+  }
+
+  /**
    * Get list of values for the current bar by name
    */
   template <typename T = string>
