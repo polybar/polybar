@@ -31,6 +31,8 @@ namespace modules {
 
     unique_ptr<command<output_policy::REDIRECTED>> m_command;
 
+    vector<pair<string, string>> m_env;
+
     bool m_tail;
 
     string m_exec;
