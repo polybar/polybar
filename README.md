@@ -23,14 +23,8 @@ A fast and easy-to-use tool for creating status bars.
 
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
-Here are a few screenshots showing you what it can look like:
 
-[![sample screenshot](https://i.imgur.com/xvlw9iHt.png)](https://i.imgur.com/xvlw9iH.png)
-[![sample screenshot](https://i.imgur.com/cYQOuRrt.png)](https://i.imgur.com/cYQOuRr.png)
-[![sample screenshot](https://i.imgur.com/A6spiZZt.png)](https://i.imgur.com/A6spiZZ.png)
-[![sample screenshot](https://i.imgur.com/TY5a5r9t.png)](https://i.imgur.com/TY5a5r9.png)
-
-You can find polybar configs for these example images (and other configs) [here](https://github.com/jaagr/dots/tree/master/.local/etc/themer/themes).
+![sample screenshot](doc/_static/default.png)
 
 ## Table of Contents
 
@@ -139,14 +133,13 @@ If you can't find your distro here, you will have to [build from source](https:/
 Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/polybar/polybar/wiki/Configuration).
 
 #### Install the example configuration
-Run the following inside the build directory:
 
-**WARNING:** This will overwrite your current configuration file!
+For a normal installation, polybar will install the example config to
+`/usr/share/doc/polybar/config` or ` /usr/local/share/doc/polybar/config`
+(depending on your install parameters)
 
-~~~ sh
-$ make userconfig
-~~~
-Or you can copy the example config from `/usr/share/doc/polybar/config` or ` /usr/local/share/doc/polybar/config` (depending on your install parameters)
+From there you can copy it to `~/.config/polybar/config` to get started (make
+sure to backup any existing config file there).
 
 **Note:** This example file is meant to showcase available modules and
 configuration options.

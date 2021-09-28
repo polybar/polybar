@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BUILD_DOC=ON` - Builds the documentation
   - `BUILD_DOC_HTML=BUILD_DOC` - Builds the html documentation (depends on `BUILD_DOC`)
   - `BUILD_DOC_MAN=BUILD_DOC` - Builds the manpages (depends on `BUILD_DOC`)
-  - `BUILD_CONFIG=ON` - Generates sample config
+  - `BUILD_CONFIG=ON` - Generates the default config
   - `BUILD_SHELL=ON` - Generates shell completion files
   - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
     targets can still be enabled explicitly.
