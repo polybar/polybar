@@ -128,7 +128,7 @@ command<output_policy::REDIRECTED>::~command() {
 /**
  * Execute the command
  */
-int command<output_policy::REDIRECTED>::exec(bool wait_for_completion) {
+int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const vector<pair<string, string>>& env) {
   if ((m_forkpid = fork()) == -1) {
     throw system_error("Failed to fork process");
   }
@@ -159,7 +159,7 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion) {
     }
 
     setpgid(m_forkpid, 0);
-    process_util::exec_sh(m_cmd.c_str());
+    process_util::exec_sh(m_cmd.c_str(), env);
   } else {
     // Close file descriptors that won't be used by the parent
     if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1) {

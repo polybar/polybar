@@ -88,7 +88,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 
   command& operator=(const command&) = delete;
 
-  int exec(bool wait_for_completion = true);
+  int exec(bool wait_for_completion = true, const vector<pair<string, string>>& env = {});
   using command<output_policy::IGNORED>::terminate;
   using command<output_policy::IGNORED>::is_running;
   using command<output_policy::IGNORED>::wait;
