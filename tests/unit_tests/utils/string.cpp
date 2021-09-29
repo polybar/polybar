@@ -20,6 +20,25 @@ TEST(String, compare) {
   EXPECT_FALSE(string_util::compare("foo", "bar"));
 }
 
+TEST(String, contains) {
+  EXPECT_TRUE(string_util::contains("fooooobar", "foo"));
+  EXPECT_TRUE(string_util::contains("barrrrrrfoo", "foo"));
+  EXPECT_TRUE(string_util::contains("barrfoobazzz", "foo"));
+  EXPECT_FALSE(string_util::contains("foo", "Foo"));
+  EXPECT_FALSE(string_util::contains("foo", "bar"));
+}
+
+TEST(String, contains_nocase) {
+  EXPECT_TRUE(string_util::contains_nocase("fooooobar", "foo"));
+  EXPECT_TRUE(string_util::contains_nocase("barrrrrrfoo", "foo"));
+  EXPECT_TRUE(string_util::contains_nocase("barrfoobazzz", "foo"));
+  EXPECT_TRUE(string_util::contains_nocase("fooooobar", "fOO"));
+  EXPECT_TRUE(string_util::contains_nocase("barrrrrrfoo", "FOo"));
+  EXPECT_TRUE(string_util::contains_nocase("barrfoobazzz", "FoO"));
+  EXPECT_TRUE(string_util::contains_nocase("foo", "Foo"));
+  EXPECT_FALSE(string_util::contains_nocase("foo", "bar"));
+}
+
 TEST(String, replace) {
   EXPECT_EQ("a.c", string_util::replace("abc", "b", "."));
   EXPECT_EQ("a.a", string_util::replace("aaa", "a", ".", 1, 2));

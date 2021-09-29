@@ -62,6 +62,7 @@ namespace string_util {
   using hash_type = unsigned long;
 
   bool contains(const string& haystack, const string& needle);
+  bool contains_nocase(const string& haystack, const string& needle);
   string upper(const string& s);
   string lower(const string& s);
   bool compare(const string& s1, const string& s2);

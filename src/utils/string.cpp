@@ -16,6 +16,13 @@ namespace string_util {
   }
 
   /**
+   * Check if haystack contains needle ignoring case
+   */
+  bool contains_nocase(const string& haystack, const string& needle) {
+    return lower(haystack).find(lower(needle)) != string::npos;
+  }
+
+  /**
    * Convert string to uppercase
    */
   string upper(const string& s) {
