@@ -6,84 +6,11 @@
 POLYBAR_NS
 
 namespace modules {
-  template class module<script_module>;
-
-  /**
-   * Construct script module by loading configuration values
-   * and setting up formatting objects
-   */
-  script_module::script_module(const bar_settings& bar, string name_)
-      : module<script_module>(bar, move(name_)), m_handler([&]() -> function<chrono::duration<double>()> {
-        m_tail = m_conf.get(name(), "tail", false);
-        // Handler for continuous tail commands {{{
-
-        if (m_tail) {
-          return [&] {
-            if (!m_command || !m_command->is_running()) {
-              string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
-              m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-              m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
-
-              try {
-                m_command->exec(false, m_env);
-              } catch (const exception& err) {
-                m_log.err("%s: %s", name(), err.what());
-                throw module_error("Failed to execute command, stopping module...");
-              }
-            }
-
-            int fd = m_command->get_stdout(PIPE_READ);
-            while (!m_stopping && fd != -1 && m_command->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
-              if (!io_util::poll_read(fd, 25)) {
-                continue;
-              } else if ((m_output = m_command->readline()) != m_prev) {
-                m_prev = m_output;
-                broadcast();
-              }
-            }
-
-            if (m_stopping) {
-              return chrono::duration<double>{0};
-            } else if (m_command && !m_command->is_running()) {
-              return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
-            } else {
-              return m_interval;
-            }
-          };
-        }
-
-        // }}}
-        // Handler for basic shell commands {{{
-
-        return [&] {
-          try {
-            auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-            m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-            m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
-            m_command->exec(true, m_env);
-          } catch (const exception& err) {
-            m_log.err("%s: %s", name(), err.what());
-            throw module_error("Failed to execute command, stopping module...");
-          }
-
-          int fd = m_command->get_stdout(PIPE_READ);
-          if (fd != -1 && io_util::poll_read(fd) && (m_output = m_command->readline()) != m_prev) {
-            broadcast();
-            m_prev = m_output;
-          } else if (m_command->get_exit_status() != 0) {
-            m_output.clear();
-            m_prev.clear();
-            broadcast();
-          }
-
-          return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
-        };
-
-        // }}}
-      }()) {
+  script_module::script_module(const bar_settings& bar, string name_) : module<script_module>(bar, move(name_)) {
     // Load configuration values
     m_exec = m_conf.get(name(), "exec", m_exec);
     m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
+    m_tail = m_conf.get(name(), "tail", false);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
 
     m_env = m_conf.get_with_prefix(name(), "env-");
@@ -113,7 +40,7 @@ namespace modules {
       try {
         while (running() && !m_stopping) {
           if (check_condition()) {
-            sleep(process(m_handler));
+            sleep(process());
           } else if (m_interval > 1s) {
             sleep(m_interval);
           } else {
@@ -133,7 +60,7 @@ namespace modules {
     m_stopping = true;
     wakeup();
 
-    std::lock_guard<decltype(m_handler)> guard(m_handler);
+    std::lock_guard<mutex> guard(m_handler);
 
     m_command.reset();
     module::stop();
@@ -158,9 +85,70 @@ namespace modules {
   /**
    * Process mutex wrapped script handler
    */
-  chrono::duration<double> script_module::process(const decltype(m_handler)& handler) const {
-    std::lock_guard<decltype(handler)> guard(handler);
-    return handler();
+  script_module::interval script_module::process() {
+    std::lock_guard<mutex> guard(m_handler);
+
+    if (m_tail) {
+      return run_tail();
+    } else {
+      return run();
+    }
+  }
+
+  script_module::interval script_module::run() {
+    try {
+      auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+      m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
+      m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
+      m_command->exec(true, m_env);
+    } catch (const exception& err) {
+      m_log.err("%s: %s", name(), err.what());
+      throw module_error("Failed to execute command, stopping module...");
+    }
+
+    int fd = m_command->get_stdout(PIPE_READ);
+    if (fd != -1 && io_util::poll_read(fd) && (m_output = m_command->readline()) != m_prev) {
+      broadcast();
+      m_prev = m_output;
+    } else if (m_command->get_exit_status() != 0) {
+      m_output.clear();
+      m_prev.clear();
+      broadcast();
+    }
+    return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
+  }
+
+  script_module::interval script_module::run_tail() {
+    if (!m_command || !m_command->is_running()) {
+      string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
+      m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
+      m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
+
+      try {
+        m_command->exec(false, m_env);
+      } catch (const exception& err) {
+        m_log.err("%s: %s", name(), err.what());
+        throw module_error("Failed to execute command, stopping module...");
+      }
+    }
+
+    int fd = m_command->get_stdout(PIPE_READ);
+    while (!m_stopping && fd != -1 && m_command->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+      if (!io_util::poll_read(fd, 25)) {
+        continue;
+      } else if ((m_output = m_command->readline()) != m_prev) {
+        m_prev = m_output;
+        broadcast();
+      }
+    }
+
+    if (m_stopping) {
+      return interval{0};
+    } else if (m_command && !m_command->is_running()) {
+      return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
+    } else {
+      return m_interval;
+    }
   }
 
   /**
@@ -179,11 +167,8 @@ namespace modules {
     string cnt{to_string(m_counter)};
     string output{module::get_output()};
 
-    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
-                     mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
-                     mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP,
-                     mousebtn::SCROLL_DOWN}) {
-
+    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
+             mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
       auto action = m_actions[btn];
 
       if (!action.empty()) {
