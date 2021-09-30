@@ -45,7 +45,7 @@ namespace modules {
 
     vector<unique_ptr<menu_tree>> m_levels;
 
-    std::atomic<int> m_level{-1};
+    int m_level{-1};
   };
 }  // namespace modules
 
