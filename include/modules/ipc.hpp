@@ -12,7 +12,7 @@ namespace modules {
    * shell script and the resulting output will be used
    * as the module content.
    */
-  class ipc_module : public static_module<ipc_module> {
+  class ipc_module : public module<ipc_module> {
    public:
     /**
      * Hook structure that will be fired

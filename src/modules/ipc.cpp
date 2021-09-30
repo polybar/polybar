@@ -14,7 +14,7 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_) : static_module<ipc_module>(bar, move(name_)) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
     m_router->register_action_with_data(EVENT_SEND, &ipc_module::action_send);
 
     size_t index = 0;
@@ -56,13 +56,18 @@ namespace modules {
    * Start module and run first defined hook if configured to
    */
   void ipc_module::start() {
+    m_mainthread = thread([&] {
+      m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+      update();
+      broadcast();
+    });
+
     if (m_initial) {
       // TODO do this in a thread.
       auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks.at(m_initial - 1)->command);
       command->exec(false);
       command->tail([this](string line) { m_output = line; });
     }
-    static_module::start();
   }
 
   /**
