@@ -6,15 +6,13 @@
 POLYBAR_NS
 
 namespace modules {
-  script_module::script_module(const bar_settings& bar, string name_) : module<script_module>(bar, move(name_)) {
-    // Load configuration values
-    m_exec = m_conf.get(name(), "exec", m_exec);
-    m_exec_if = m_conf.get(name(), "exec-if", m_exec_if);
-    m_tail = m_conf.get(name(), "tail", false);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "interval", m_tail ? 0s : 5s);
-
-    m_env = m_conf.get_with_prefix(name(), "env-");
-
+  script_module::script_module(const bar_settings& bar, string name_)
+      : module<script_module>(bar, move(name_))
+      , m_tail(m_conf.get(name(), "tail", false))
+      , m_interval(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
+      , m_env(m_conf.get_with_prefix(name(), "env-"))
+      , m_runner([this]() { broadcast(); }, m_conf.get(name(), "exec", ""s), m_conf.get(name(), "exec-if", ""s), m_tail,
+            m_interval, m_env) {
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
     m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
@@ -39,12 +37,12 @@ namespace modules {
     m_mainthread = thread([&] {
       try {
         while (running() && !m_stopping) {
-          if (check_condition()) {
-            sleep(process());
-          } else if (m_interval > 1s) {
-            sleep(m_interval);
+          if (m_runner.check_condition()) {
+            sleep(m_runner.process());
           } else {
-            sleep(1s);
+            m_runner.clear_output();
+            broadcast();
+            sleep(std::max(m_interval, interval(1s)));
           }
         }
       } catch (const exception& err) {
@@ -58,113 +56,27 @@ namespace modules {
    */
   void script_module::stop() {
     m_stopping = true;
+    m_runner.stop();
     wakeup();
 
-    std::lock_guard<mutex> guard(m_handler);
-
-    m_command.reset();
     module::stop();
-  }
-
-  /**
-   * Check if defined condition is met
-   */
-  bool script_module::check_condition() {
-    if (m_exec_if.empty()) {
-      return true;
-    } else if (command_util::make_command<output_policy::IGNORED>(m_exec_if)->exec(true) == 0) {
-      return true;
-    } else if (!m_output.empty()) {
-      broadcast();
-      m_output.clear();
-      m_prev.clear();
-    }
-    return false;
-  }
-
-  /**
-   * Process mutex wrapped script handler
-   */
-  script_module::interval script_module::process() {
-    std::lock_guard<mutex> guard(m_handler);
-
-    if (m_tail) {
-      return run_tail();
-    } else {
-      return run();
-    }
-  }
-
-  script_module::interval script_module::run() {
-    try {
-      auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
-      m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-      m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
-      m_command->exec(true, m_env);
-    } catch (const exception& err) {
-      m_log.err("%s: %s", name(), err.what());
-      throw module_error("Failed to execute command, stopping module...");
-    }
-
-    int fd = m_command->get_stdout(PIPE_READ);
-    if (fd != -1 && io_util::poll_read(fd) && (m_output = m_command->readline()) != m_prev) {
-      broadcast();
-      m_prev = m_output;
-    } else if (m_command->get_exit_status() != 0) {
-      m_output.clear();
-      m_prev.clear();
-      broadcast();
-    }
-    return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
-  }
-
-  script_module::interval script_module::run_tail() {
-    if (!m_command || !m_command->is_running()) {
-      string exec{string_util::replace_all(m_exec, "%counter%", to_string(++m_counter))};
-      m_log.info("%s: Invoking shell command: \"%s\"", name(), exec);
-      m_command = command_util::make_command<output_policy::REDIRECTED>(exec);
-
-      try {
-        m_command->exec(false, m_env);
-      } catch (const exception& err) {
-        m_log.err("%s: %s", name(), err.what());
-        throw module_error("Failed to execute command, stopping module...");
-      }
-    }
-
-    int fd = m_command->get_stdout(PIPE_READ);
-    while (!m_stopping && fd != -1 && m_command->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
-      if (!io_util::poll_read(fd, 25)) {
-        continue;
-      } else if ((m_output = m_command->readline()) != m_prev) {
-        m_prev = m_output;
-        broadcast();
-      }
-    }
-
-    if (m_stopping) {
-      return interval{0};
-    } else if (m_command && !m_command->is_running()) {
-      return std::max(m_command->get_exit_status() == 0 ? m_interval : 1s, m_interval);
-    } else {
-      return m_interval;
-    }
   }
 
   /**
    * Generate module output
    */
   string script_module::get_output() {
-    if (m_output.empty()) {
+    auto script_output = m_runner.get_output();
+    if (script_output.empty()) {
       return "";
     }
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%output%", m_output);
+      m_label->replace_token("%output%", script_output);
     }
 
-    string cnt{to_string(m_counter)};
+    string cnt{to_string(m_runner.get_counter())};
     string output{module::get_output()};
 
     for (const auto& a : m_actions) {
@@ -178,8 +90,9 @@ namespace modules {
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
-        if (m_tail && m_command && m_command->is_running()) {
-          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(m_command->get_pid()));
+        int pid = m_runner.get_pid();
+        if (pid != -1) {
+          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(pid));
         }
         m_builder->action(btn, action_replaced);
       }

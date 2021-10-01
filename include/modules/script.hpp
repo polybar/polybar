@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 
+#include "adapters/script_runner.hpp"
 #include "modules/meta/base.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
@@ -34,25 +35,15 @@ namespace modules {
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
 
-    mutex m_handler;
+    const bool m_tail;
+    const interval m_interval{0};
+    const vector<pair<string, string>> m_env;
 
-    unique_ptr<command<output_policy::REDIRECTED>> m_command;
+    script_runner m_runner;
 
-    vector<pair<string, string>> m_env;
-
-    bool m_tail;
-
-    string m_exec;
-    string m_exec_if;
-
-    interval m_interval{0};
     map<mousebtn, string> m_actions;
 
     label_t m_label;
-    string m_output;
-    string m_prev;
-    int m_counter{0};
-
     std::atomic_bool m_stopping{false};
   };
 }  // namespace modules

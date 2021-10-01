@@ -54,6 +54,8 @@ if(BUILD_LIBPOLY)
   set(POLY_SOURCES
     ${CMAKE_BINARY_DIR}/generated-sources/settings.cpp
 
+    ${src_dir}/adapters/script_runner.cpp
+
     ${src_dir}/cairo/utils.cpp
 
     ${src_dir}/components/bar.cpp
