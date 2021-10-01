@@ -96,6 +96,7 @@ namespace modules {
     bool m_show_urgent{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
+    map<string, map<state, label_t> > m_monitor_statelabels;
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
