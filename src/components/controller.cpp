@@ -128,15 +128,9 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
  */
 void controller::trigger_action(string&& input_data) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
-
-  if (m_notifications.inputdata.empty()) {
-    //m_notifications.inputdata = std::move(input_data);
-    m_notifications.inputdata.push(std::move(input_data));
-    trigger_notification();
-  } else {
-    m_notifications.inputdata.push(std::move(input_data));
-    m_log.trace("controller: Queueing input event (pending data)");
-  }
+  m_notifications.inputdata.push(std::move(input_data));
+  m_log.trace("controller: Queueing input event (pending data)");
+  trigger_notification();
 }
 
 void controller::trigger_quit(bool reload) {
@@ -218,7 +212,7 @@ void controller::notifier_handler() {
   }
 
   if (!data.inputdata.empty()) {
-    process_inputdata(std::move(data.inputdata.back()));
+    process_inputdata(std::move(data.inputdata.front()));
   }
 
   if (data.update) {
