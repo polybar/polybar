@@ -13,6 +13,7 @@
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
+
 POLYBAR_NS
 
 // fwd decl {{{
@@ -83,9 +84,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
     bool reload;
     bool update;
     bool force_update;
-    string inputdata;
+    queue<string> inputdata;
 
-    notifications_t() : quit(false), reload(false), update(false), force_update(false), inputdata(string{}) {}
+    notifications_t() : quit(false), reload(false), update(false), force_update(false), inputdata(queue<string>{}) {}
   };
 
   size_t setup_modules(alignment align);

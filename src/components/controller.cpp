@@ -130,10 +130,12 @@ void controller::trigger_action(string&& input_data) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
 
   if (m_notifications.inputdata.empty()) {
-    m_notifications.inputdata = std::move(input_data);
+    //m_notifications.inputdata = std::move(input_data);
+    m_notifications.inputdata.push(std::move(input_data));
     trigger_notification();
   } else {
-    m_log.trace("controller: Swallowing input event (pending data)");
+    m_notifications.inputdata.push(std::move(input_data));
+    m_log.trace("controller: Queueing input event (pending data)");
   }
 }
 
@@ -216,12 +218,13 @@ void controller::notifier_handler() {
   }
 
   if (!data.inputdata.empty()) {
-    process_inputdata(std::move(data.inputdata));
+    process_inputdata(std::move(data.inputdata.back()));
   }
 
   if (data.update) {
     process_update(data.force_update);
   }
+
 }
 
 void controller::screenshot_handler() {
@@ -233,58 +236,58 @@ void controller::screenshot_handler() {
  * Read events from configured file descriptors
  */
 void controller::read_events(bool confwatch) {
-  m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
+    m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  try {
-    m_loop->poll_handle(
-        UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
+    try {
+        m_loop->poll_handle(
+                    UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
         [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
 
-    for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      m_loop->signal_handle(s, [this](int signum) { signal_handler(signum); });
-    }
+        for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
+            m_loop->signal_handle(s, [this](int signum) { signal_handler(signum); });
+        }
 
-    if (confwatch) {
-      m_loop->fs_event_handle(
-          m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
-          [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
-    }
+        if (confwatch) {
+            m_loop->fs_event_handle(
+                        m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
+            [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
+        }
 
-    if (m_ipc) {
-      m_loop->pipe_handle(
-          m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
-          [this]() { m_ipc->receive_eof(); },
-          [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
-    }
+        if (m_ipc) {
+            m_loop->pipe_handle(
+                        m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
+            [this]() { m_ipc->receive_eof(); },
+            [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
+        }
 
-    if (!m_snapshot_dst.empty()) {
-      // Trigger a single screenshot after 3 seconds
-      m_loop->timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
-    }
+        if (!m_snapshot_dst.empty()) {
+            // Trigger a single screenshot after 3 seconds
+            m_loop->timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
+        }
 
-    m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
+        m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
 
-    m_loop_ready = true;
+        m_loop_ready = true;
 
-    if (!m_writeback) {
-      m_bar->start();
-    }
+        if (!m_writeback) {
+            m_bar->start();
+        }
 
-    /*
+        /*
      * Immediately trigger and update so that the bar displays something.
      */
-    trigger_update(true);
+        trigger_update(true);
 
-    m_loop->run();
-  } catch (const exception& err) {
-    m_log.err("Fatal Error in eventloop: %s", err.what());
-    stop(false);
-  }
+        m_loop->run();
+    } catch (const exception& err) {
+        m_log.err("Fatal Error in eventloop: %s", err.what());
+        stop(false);
+    }
 
-  m_log.info("Eventloop finished");
+    m_log.info("Eventloop finished");
 
-  m_loop_ready = false;
-  m_loop.reset();
+    m_loop_ready = false;
+    m_loop.reset();
 }
 
 /**
@@ -461,7 +464,6 @@ void controller::process_inputdata(string&& cmd) {
     m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 }
-
 /**
  * Process eventqueue update event
  */
