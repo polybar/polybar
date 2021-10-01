@@ -167,9 +167,9 @@ namespace modules {
     string cnt{to_string(m_counter)};
     string output{module::get_output()};
 
-    for (auto btn : {mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
-             mousebtn::DOUBLE_RIGHT, mousebtn::SCROLL_UP, mousebtn::SCROLL_DOWN}) {
-      auto action = m_actions[btn];
+    for (const auto& a : m_actions) {
+      auto btn = a.first;
+      auto action = a.second;
 
       if (!action.empty()) {
         auto action_replaced = string_util::replace_all(action, "%counter%", cnt);
