@@ -1,7 +1,8 @@
 #include "utils/command.hpp"
-#include "common/test.hpp"
 
 #include <unistd.h>
+
+#include "common/test.hpp"
 
 using namespace polybar;
 
@@ -41,17 +42,6 @@ TEST(Command, output) {
   cmd->exec(false);
   cmd->tail([&str](string&& string) { str = string; });
   cmd->wait();
-
-  EXPECT_EQ(str, "polybar");
-}
-
-TEST(Command, readline) {
-  auto cmd = command_util::make_command<output_policy::REDIRECTED>("read text;echo $text");
-
-  string str;
-  cmd->exec(false);
-  cmd->writeline("polybar");
-  cmd->tail([&str](string&& string) { str = string; });
 
   EXPECT_EQ(str, "polybar");
 }

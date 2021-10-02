@@ -6,11 +6,12 @@
 #include <csignal>
 #include <cstdlib>
 #include <utility>
-#include <utils/string.hpp>
 
 #include "errors.hpp"
+#include "utils/file.hpp"
 #include "utils/io.hpp"
 #include "utils/process.hpp"
+#include "utils/string.hpp"
 
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
@@ -184,23 +185,20 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const vec
  * end until the stream is closed
  */
 void command<output_policy::REDIRECTED>::tail(callback<string> cb) {
-  io_util::tail(m_stdout[PIPE_READ], cb);
-}
-
-/**
- * Write line to command input channel
- */
-int command<output_policy::REDIRECTED>::writeline(string data) {
-  std::lock_guard<std::mutex> lck(m_pipelock);
-  return static_cast<int>(io_util::writeline(m_stdin[PIPE_WRITE], data));
+  io_util::tail(get_stdout(PIPE_READ), cb);
 }
 
 /**
  * Read a line from the commands output stream
  */
 string command<output_policy::REDIRECTED>::readline() {
-  std::lock_guard<std::mutex> lck(m_pipelock);
-  return io_util::readline(m_stdout[PIPE_READ]);
+  if (!m_stdout_reader) {
+    m_stdout_reader = make_unique<fd_stream<std::istream>>(get_stdout(PIPE_READ), false);
+  }
+
+  string s;
+  std::getline(*m_stdout_reader, s);
+  return s;
 }
 
 /**

@@ -90,8 +90,8 @@ void fd_streambuf::open(int fd) {
     close();
   }
   m_fd = fd;
-  setg(m_in, m_in, m_in);
-  setp(m_out, m_out + bufsize - 1);
+  setg(m_in, m_in + BUFSIZE_IN, m_in + BUFSIZE_IN);
+  setp(m_out, m_out + BUFSIZE_OUT - 1);
 }
 
 void fd_streambuf::close() {
@@ -123,13 +123,18 @@ int fd_streambuf::overflow(int c) {
 }
 
 int fd_streambuf::underflow() {
-  if (gptr() == egptr()) {
-    std::streamsize pback(std::min(gptr() - eback(), std::ptrdiff_t(16 - sizeof(int))));
-    std::copy(egptr() - pback, egptr(), eback());
-    int bytes(read(m_fd, eback() + pback, bufsize));
-    setg(eback(), eback() + pback, eback() + pback + std::max(0, bytes));
+  if (gptr() >= egptr()) {
+    int bytes = ::read(m_fd, m_in, BUFSIZE_IN);
+
+    if (bytes <= 0) {
+      setg(eback(), egptr(), egptr());
+      return traits_type::eof();
+    }
+
+    setg(m_in, m_in, m_in + bytes);
   }
-  return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
+
+  return traits_type::to_int_type(*gptr());
 }
 
 // }}}
