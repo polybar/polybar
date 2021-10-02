@@ -99,10 +99,10 @@ elseif (CMAKE_BUILD_TYPE_UPPER STREQUAL "COVERAGE")
   list(APPEND cxx_flags ${cxx_coverage})
 endif()
 
-list(APPEND cxx_linker_flags ${cxx_flags})
-
 string(REPLACE " " ";" polybar_flags_list "${POLYBAR_FLAGS}")
 list(APPEND cxx_flags ${polybar_flags_list})
+
+list(APPEND cxx_linker_flags ${cxx_flags})
 
 string(REPLACE ";" " " cxx_flags_str "${cxx_flags}")
 string(REPLACE ";" " " cxx_linker_flags_str "${cxx_linker_flags}")
