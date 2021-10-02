@@ -263,10 +263,10 @@ void controller::read_events(bool confwatch) {
         }
 
         m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
-        m_loop->timer_handle([this]() {
+       /* m_loop->timer_handle([this]() {
             trigger_action("notify-send A");
             trigger_action("notify-send B");
-        })->start(500,0);
+        })->start(500,0); */
 
         m_loop_ready = true;
 
