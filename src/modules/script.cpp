@@ -44,7 +44,7 @@ namespace modules {
             sleep_time = std::max(m_interval, script_runner::interval(1s));
           }
 
-          if (m_stopping) {
+          if (m_runner.is_stopping()) {
             break;
           }
 
@@ -60,7 +60,6 @@ namespace modules {
    * Stop the module worker by terminating any running commands
    */
   void script_module::stop() {
-    m_stopping = true;
     m_runner.stop();
     wakeup();
 

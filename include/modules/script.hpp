@@ -37,7 +37,6 @@ namespace modules {
     map<mousebtn, string> m_actions;
 
     label_t m_label;
-    std::atomic_bool m_stopping{false};
   };
 }  // namespace modules
 

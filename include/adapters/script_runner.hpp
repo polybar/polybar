@@ -15,7 +15,7 @@ class script_runner {
   script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
       interval interval, const vector<pair<string, string>>& env);
 
-  bool check_condition();
+  bool check_condition() const;
   interval process();
 
   void clear_output();
@@ -26,6 +26,8 @@ class script_runner {
   int get_counter() const;
 
   string get_output();
+
+  bool is_stopping() const;
 
  protected:
   bool set_output(const string&&);

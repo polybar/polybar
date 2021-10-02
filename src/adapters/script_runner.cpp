@@ -24,7 +24,7 @@ script_runner::script_runner(std::function<void(void)> on_update, const string& 
 /**
  * Check if defined condition is met
  */
-bool script_runner::check_condition() {
+bool script_runner::check_condition() const {
   if (m_exec_if.empty()) {
     return true;
   }
@@ -63,6 +63,10 @@ int script_runner::get_counter() const {
 string script_runner::get_output() {
   std::lock_guard<std::mutex> guard(m_output_lock);
   return m_output;
+}
+
+bool script_runner::is_stopping() const {
+  return m_stopping;
 }
 
 /**
