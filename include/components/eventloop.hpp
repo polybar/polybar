@@ -70,7 +70,7 @@ struct UVHandleGeneric {
     return unpackedThis->func(std::forward<Args>(args)...);
   }
 
-  H* handle;
+  H* handle{nullptr};
   function<void(Args...)> func;
 };
 

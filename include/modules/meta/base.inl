@@ -20,6 +20,8 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
+      // TODO this cast is illegal because 'this' is not yet of type Impl but only of type module<Impl>
+      // Change action router to use lambdas
       , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
       , m_name("module/" + name)
       , m_name_raw(name)
@@ -27,22 +29,21 @@ namespace modules {
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
       , m_visible(!m_conf.get(m_name, "hidden", false)) {
-        m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
-        m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
-        m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
-      }
+    m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
+    m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
+    m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
+  }
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
     m_log.trace("%s: Deconstructing", name());
 
-    for (auto&& thread_ : m_threads) {
-      if (thread_.joinable()) {
-        thread_.join();
-      }
-    }
-    if (m_mainthread.joinable()) {
-      m_mainthread.join();
+    if (running()) {
+      /*
+       * We can't stop in the destructor because we have to call the subclasses which at this point already have been
+       * destructed.
+       */
+      m_log.err("%s: Module was not stopped before deconstructing.", name());
     }
   }
 
@@ -86,6 +87,15 @@ namespace modules {
     {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
+
+      for (auto&& thread_ : m_threads) {
+        if (thread_.joinable()) {
+          thread_.join();
+        }
+      }
+      if (m_mainthread.joinable()) {
+        m_mainthread.join();
+      }
 
       m_sig.emit(signals::eventqueue::check_state{});
     }
