@@ -80,7 +80,7 @@ controller::~controller() {
 }
 
 /**
- * Run the main loop
+ * Run the main loopParameters
  */
 bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
   m_log.info("Starting application");
@@ -128,8 +128,8 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
  */
 void controller::trigger_action(string&& input_data) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
+  m_log.trace("controller: Queueing input event %s %d", input_data,input_data.size());
   m_notifications.inputdata.push(std::move(input_data));
-  m_log.trace("controller: Queueing input event (pending data)");
   trigger_notification();
 }
 
@@ -211,8 +211,11 @@ void controller::notifier_handler() {
     return;
   }
 
-  if (!data.inputdata.empty()) {
-    process_inputdata(std::move(data.inputdata.front()));
+  while(!data.inputdata.empty()) {
+    m_log.trace("controller: Dequeueing inputdata : %s ",data.inputdata.front());
+    auto inputdata = data.inputdata.front();
+    data.inputdata.pop();
+    process_inputdata(std::move(inputdata));
   }
 
   if (data.update) {
@@ -260,6 +263,10 @@ void controller::read_events(bool confwatch) {
         }
 
         m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
+        m_loop->timer_handle([this]() {
+            trigger_action("notify-send A");
+            trigger_action("notify-send B");
+        })->start(500,0);
 
         m_loop_ready = true;
 

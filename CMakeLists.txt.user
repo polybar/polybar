@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 5.0.1, 2021-10-01T21:07:50. -->
+<!-- Written by QtCreator 5.0.1, 2021-10-02T17:15:12. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -208,11 +208,13 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">polybar</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.polybar</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">polybar</value>
+    <value type="QString" key="RunConfiguration.Arguments">--config=~/.config/polybar/config example 5&gt;&amp;1 | tee -a /tmp/mypolybar5.log</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
+    <value type="bool" key="RunConfiguration.UseTerminal">true</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/madhavpcm/Dev/polybar/build-polybar-Desktop-Debug/bin</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.1">
