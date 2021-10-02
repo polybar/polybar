@@ -36,13 +36,12 @@ namespace modules {
   module<Impl>::~module() noexcept {
     m_log.trace("%s: Deconstructing", name());
 
-    for (auto&& thread_ : m_threads) {
-      if (thread_.joinable()) {
-        thread_.join();
-      }
-    }
-    if (m_mainthread.joinable()) {
-      m_mainthread.join();
+    if (running()) {
+      /*
+       * We can't stop in the destructor because we have to call the subclasses which at this point already have been
+       * destructed.
+       */
+      m_log.err("%s: Module was not stopped before deconstructing.", name());
     }
   }
 
@@ -86,6 +85,15 @@ namespace modules {
     {
       CAST_MOD(Impl)->wakeup();
       CAST_MOD(Impl)->teardown();
+
+      for (auto&& thread_ : m_threads) {
+        if (thread_.joinable()) {
+          thread_.join();
+        }
+      }
+      if (m_mainthread.joinable()) {
+        m_mainthread.join();
+      }
 
       m_sig.emit(signals::eventqueue::check_state{});
     }
