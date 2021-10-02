@@ -13,7 +13,6 @@ POLYBAR_NS
 namespace modules {
   class script_module : public module<script_module> {
    public:
-    using interval = chrono::duration<double>;
     explicit script_module(const bar_settings&, string);
 
     void start() override;
@@ -25,18 +24,13 @@ namespace modules {
     static constexpr auto TYPE = "custom/script";
 
    protected:
-    interval process();
     bool check_condition();
-
-    interval run();
-    interval run_tail();
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
 
     const bool m_tail;
-    const interval m_interval{0};
-    const vector<pair<string, string>> m_env;
+    const script_runner::interval m_interval{0};
 
     script_runner m_runner;
 

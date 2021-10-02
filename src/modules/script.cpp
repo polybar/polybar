@@ -10,9 +10,8 @@ namespace modules {
       : module<script_module>(bar, move(name_))
       , m_tail(m_conf.get(name(), "tail", false))
       , m_interval(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
-      , m_env(m_conf.get_with_prefix(name(), "env-"))
       , m_runner([this]() { broadcast(); }, m_conf.get(name(), "exec", ""s), m_conf.get(name(), "exec-if", ""s), m_tail,
-            m_interval, m_env) {
+            m_interval, m_conf.get_with_prefix(name(), "env-")) {
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
     m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
@@ -36,13 +35,20 @@ namespace modules {
   void script_module::start() {
     m_mainthread = thread([&] {
       try {
-        while (running() && !m_stopping) {
+        while (running()) {
+          script_runner::interval sleep_time;
           if (m_runner.check_condition()) {
-            sleep(m_runner.process());
+            sleep_time = m_runner.process();
           } else {
             m_runner.clear_output();
-            sleep(std::max(m_interval, interval(1s)));
+            sleep_time = std::max(m_interval, script_runner::interval(1s));
           }
+
+          if (m_stopping) {
+            break;
+          }
+
+          sleep(sleep_time);
         }
       } catch (const exception& err) {
         halt(err.what());

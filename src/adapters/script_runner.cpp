@@ -1,5 +1,6 @@
 #include "adapters/script_runner.hpp"
 
+#include <cassert>
 #include <functional>
 
 #include "modules/meta/base.hpp"
@@ -94,13 +95,18 @@ script_runner::interval script_runner::run() {
 
   int status = cmd->get_exit_status();
   int fd = cmd->get_stdout(PIPE_READ);
-  bool changed = fd != -1 && io_util::poll_read(fd) && set_output(cmd->readline());
+  assert(fd != -1);
+  bool changed = io_util::poll_read(fd) && set_output(cmd->readline());
 
   if (!changed && status != 0) {
     clear_output();
   }
 
-  return std::max(status == 0 ? m_interval : 1s, m_interval);
+  if (status == 0) {
+    return m_interval;
+  } else {
+    return std::max(m_interval, interval{1s});
+  }
 }
 
 // TODO
@@ -125,28 +131,32 @@ script_runner::interval script_runner::run_tail() {
   try {
     cmd->exec(false, m_env);
   } catch (const exception& err) {
-    m_log.err("script_runner: %s", err.what());
-    throw modules::module_error("Failed to execute command, stopping module...");
+    throw modules::module_error("Failed to execute command: " + string(err.what()));
   }
 
   AfterReturn pid_guard([this]() { m_pid = -1; });
   m_pid = cmd->get_pid();
 
   int fd = cmd->get_stdout(PIPE_READ);
-  while (!m_stopping && fd != -1 && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
-    if (!io_util::poll_read(fd, 25)) {
-      continue;
-    } else {
+  assert(fd != -1);
+
+  while (!m_stopping && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+    if (io_util::poll_read(fd, 25)) {
       set_output(cmd->readline());
     }
   }
 
   if (m_stopping) {
-    return interval{0};
-  } else if (!cmd->is_running()) {
-    return std::max(cmd->get_exit_status() == 0 ? m_interval : 1s, m_interval);
-  } else {
+    cmd->terminate();
+    return 0s;
+  }
+
+  bool exit_status = cmd->wait();
+
+  if (exit_status == 0) {
     return m_interval;
+  } else {
+    return std::max(m_interval, interval{1s});
   }
 }
 
