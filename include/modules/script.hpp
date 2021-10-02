@@ -1,8 +1,5 @@
 #pragma once
 
-#include <atomic>
-#include <mutex>
-
 #include "adapters/script_runner.hpp"
 #include "modules/meta/base.hpp"
 #include "utils/command.hpp"
