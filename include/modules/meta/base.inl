@@ -20,6 +20,8 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
+      // TODO this cast is illegal because 'this' is not yet of type Impl but only of type module<Impl>
+      // Change action router to use lambdas
       , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
       , m_name("module/" + name)
       , m_name_raw(name)
