@@ -6,6 +6,7 @@
 #include "modules/meta/base.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
+#include "utils/scope.hpp"
 #include "utils/string.hpp"
 
 POLYBAR_NS
@@ -109,20 +110,6 @@ script_runner::interval script_runner::run() {
   }
 }
 
-// TODO
-class AfterReturn {
- public:
-  AfterReturn(std::function<void(void)> f) : m_f(f){};
-  ~AfterReturn() {
-    if (m_f) {
-      m_f();
-    }
-  }
-
- private:
-  std::function<void(void)> m_f;
-};
-
 script_runner::interval script_runner::run_tail() {
   auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
   m_log.info("script_runner: Invoking shell command: \"%s\"", exec);
@@ -134,7 +121,7 @@ script_runner::interval script_runner::run_tail() {
     throw modules::module_error("Failed to execute command: " + string(err.what()));
   }
 
-  AfterReturn pid_guard([this]() { m_pid = -1; });
+  auto pid_guard = scope_util::make_exit_handler([this]() { m_pid = -1; });
   m_pid = cmd->get_pid();
 
   int fd = cmd->get_stdout(PIPE_READ);
