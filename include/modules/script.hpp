@@ -15,7 +15,6 @@ namespace modules {
    public:
     using interval = chrono::duration<double>;
     explicit script_module(const bar_settings&, string);
-    ~script_module() {}
 
     void start() override;
     void stop() override;

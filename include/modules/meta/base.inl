@@ -27,10 +27,10 @@ namespace modules {
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
       , m_visible(!m_conf.get(m_name, "hidden", false)) {
-        m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
-        m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
-        m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
-      }
+    m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
+    m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
+    m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
+  }
 
   template <typename Impl>
   module<Impl>::~module() noexcept {

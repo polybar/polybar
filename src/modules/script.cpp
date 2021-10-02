@@ -41,7 +41,6 @@ namespace modules {
             sleep(m_runner.process());
           } else {
             m_runner.clear_output();
-            broadcast();
             sleep(std::max(m_interval, interval(1s)));
           }
         }

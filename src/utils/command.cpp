@@ -24,9 +24,7 @@ POLYBAR_NS
 command<output_policy::IGNORED>::command(const logger& logger, string cmd) : m_log(logger), m_cmd(move(cmd)) {}
 
 command<output_policy::IGNORED>::~command() {
-  if (is_running()) {
-    terminate();
-  }
+  terminate();
 }
 
 /**

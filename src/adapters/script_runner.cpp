@@ -43,9 +43,7 @@ script_runner::interval script_runner::process() {
 }
 
 void script_runner::clear_output() {
-  std::lock_guard<std::mutex> guard(m_output_lock);
-  m_output.clear();
-  m_prev.clear();
+  set_output("");
 }
 
 void script_runner::stop() {
@@ -65,10 +63,21 @@ string script_runner::get_output() {
   return m_output;
 }
 
-const string& script_runner::set_output(const string&& new_output) {
+/**
+ * Updates the current output.
+ *
+ * Returns true if the output changed.
+ */
+bool script_runner::set_output(const string&& new_output) {
   std::lock_guard<std::mutex> guard(m_output_lock);
-  m_output = std::move(new_output);
-  return m_output;
+
+  if (m_output != new_output) {
+    m_output = std::move(new_output);
+    m_on_update();
+    return true;
+  }
+
+  return false;
 }
 
 script_runner::interval script_runner::run() {
@@ -83,15 +92,15 @@ script_runner::interval script_runner::run() {
     throw modules::module_error("Failed to execute command, stopping module...");
   }
 
+  int status = cmd->get_exit_status();
   int fd = cmd->get_stdout(PIPE_READ);
-  if (fd != -1 && io_util::poll_read(fd) && set_output(cmd->readline()) != m_prev) {
-    m_on_update();
-    m_prev = get_output();
-  } else if (cmd->get_exit_status() != 0) {
+  bool changed = fd != -1 && io_util::poll_read(fd) && set_output(cmd->readline());
+
+  if (!changed && status != 0) {
     clear_output();
-    m_on_update();
   }
-  return std::max(cmd->get_exit_status() == 0 ? m_interval : 1s, m_interval);
+
+  return std::max(status == 0 ? m_interval : 1s, m_interval);
 }
 
 // TODO
@@ -127,15 +136,14 @@ script_runner::interval script_runner::run_tail() {
   while (!m_stopping && fd != -1 && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
     if (!io_util::poll_read(fd, 25)) {
       continue;
-    } else if (set_output(cmd->readline()) != m_prev) {
-      m_prev = get_output();
-      m_on_update();
+    } else {
+      set_output(cmd->readline());
     }
   }
 
   if (m_stopping) {
     return interval{0};
-  } else if (cmd && !cmd->is_running()) {
+  } else if (!cmd->is_running()) {
     return std::max(cmd->get_exit_status() == 0 ? m_interval : 1s, m_interval);
   } else {
     return m_interval;

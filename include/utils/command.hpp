@@ -75,8 +75,8 @@ class command<output_policy::IGNORED> {
 
   string m_cmd;
 
-  pid_t m_forkpid{};
-  int m_forkstatus = -1;
+  pid_t m_forkpid{-1};
+  int m_forkstatus{-1};
 };
 
 template <>
@@ -104,8 +104,8 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
   int get_stdin(int c);
 
  protected:
-  int m_stdout[2]{};
-  int m_stdin[2]{};
+  int m_stdout[2]{0, 0};
+  int m_stdin[2]{0, 0};
 
   std::mutex m_pipelock{};
 };

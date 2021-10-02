@@ -28,7 +28,7 @@ class script_runner {
   string get_output();
 
  protected:
-  const string& set_output(const string&&);
+  bool set_output(const string&&);
 
   interval run_tail();
   interval run();
@@ -46,7 +46,6 @@ class script_runner {
 
   std::mutex m_output_lock;
   string m_output;
-  string m_prev;
 
   std::atomic_int m_counter{0};
   std::atomic_bool m_stopping{false};
