@@ -13,16 +13,16 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
-    m_router->register_action(EVENT_PLAY, &mpd_module::action_play);
-    m_router->register_action(EVENT_PAUSE, &mpd_module::action_pause);
-    m_router->register_action(EVENT_STOP, &mpd_module::action_stop);
-    m_router->register_action(EVENT_PREV, &mpd_module::action_prev);
-    m_router->register_action(EVENT_NEXT, &mpd_module::action_next);
-    m_router->register_action(EVENT_REPEAT, &mpd_module::action_repeat);
-    m_router->register_action(EVENT_SINGLE, &mpd_module::action_single);
-    m_router->register_action(EVENT_RANDOM, &mpd_module::action_random);
-    m_router->register_action(EVENT_CONSUME, &mpd_module::action_consume);
-    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::action_seek);
+    m_router->register_action(EVENT_PLAY, [this]() { action_play(); });
+    m_router->register_action(EVENT_PAUSE, [this]() { action_pause(); });
+    m_router->register_action(EVENT_STOP, [this]() { action_stop(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_REPEAT, [this]() { action_repeat(); });
+    m_router->register_action(EVENT_SINGLE, [this]() { action_single(); });
+    m_router->register_action(EVENT_RANDOM, [this]() { action_random(); });
+    m_router->register_action(EVENT_CONSUME, [this]() { action_consume(); });
+    m_router->register_action_with_data(EVENT_SEEK, [this](const std::string& data) { action_seek(data); });
 
     m_host = m_conf.get(name(), "host", m_host);
     m_port = m_conf.get(name(), "port", m_port);

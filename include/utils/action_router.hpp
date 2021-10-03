@@ -9,14 +9,11 @@
 POLYBAR_NS
 
 /**
- * Maps action names to function pointers in this module and invokes them.
+ * Maps action names to lambdas and invokes them.
  *
  * Each module has one instance of this class and uses it to register action.
  * For each action the module has to register the name, whether it can take
- * additional data, and a pointer to the member function implementing that
- * action.
- *
- * Ref: https://isocpp.org/wiki/faq/pointers-to-members
+ * additional data, and a callback that is called whenever the action is triggered.
  *
  * The input() function in the base class uses this for invoking the actions
  * of that module.
@@ -24,51 +21,15 @@ POLYBAR_NS
  * Any module that does not reimplement that function will automatically use
  * this class for action routing.
  */
-template <typename Impl>
 class action_router {
-  typedef void (Impl::*callback)();
-  typedef void (Impl::*callback_data)(const std::string&);
+  using callback = std::function<void(void)>;
+  using callback_data = std::function<void(const std::string&)>;
 
  public:
-  explicit action_router(Impl* This) : m_this(This) {}
-
-  void register_action(const string& name, callback func) {
-    entry e;
-    e.with_data = false;
-    e.without = func;
-    register_entry(name, e);
-  }
-
-  void register_action_with_data(const string& name, callback_data func) {
-    entry e;
-    e.with_data = true;
-    e.with = func;
-    register_entry(name, e);
-  }
-
-  bool has_action(const string& name) {
-    return callbacks.find(name) != callbacks.end();
-  }
-
-  /**
-   * Invokes the given action name on the passed module pointer.
-   *
-   * The action must exist.
-   */
-  void invoke(const string& name, const string& data) {
-    auto it = callbacks.find(name);
-    assert(it != callbacks.end());
-
-    entry e = it->second;
-
-#define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
-    if (e.with_data) {
-      CALL_MEMBER_FN(*m_this, e.with)(data);
-    } else {
-      CALL_MEMBER_FN(*m_this, e.without)();
-    }
-#undef CALL_MEMBER_FN
-  }
+  void register_action(const string& name, callback func);
+  void register_action_with_data(const string& name, callback_data func);
+  bool has_action(const string& name);
+  void invoke(const string& name, const string& data);
 
  protected:
   struct entry {
@@ -77,18 +38,23 @@ class action_router {
       callback_data with;
     };
     bool with_data;
+
+    entry(callback func);
+    entry(callback_data func);
+    ~entry();
   };
 
-  void register_entry(const string& name, const entry& e) {
+  template <typename F>
+  void register_entry(const string& name, const F& e) {
     if (has_action(name)) {
       throw std::invalid_argument("Tried to register action '" + name + "' twice. THIS IS A BUG!");
     }
-    callbacks[name] = e;
+
+    callbacks.emplace(name, std::move(e));
   }
 
  private:
   std::unordered_map<string, entry> callbacks;
-  Impl* m_this;
 };
 
 POLYBAR_NS_END

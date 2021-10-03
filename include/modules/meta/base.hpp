@@ -44,7 +44,6 @@ class config;
 class logger;
 class signal_emitter;
 
-template <typename Impl>
 class action_router;
 // }}}
 
@@ -200,7 +199,7 @@ namespace modules {
     const logger& m_log;
     const config& m_conf;
 
-    unique_ptr<action_router<Impl>> m_router;
+    unique_ptr<action_router> m_router;
 
     mutex m_buildlock;
     mutex m_updatelock;

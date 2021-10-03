@@ -15,7 +15,7 @@ namespace modules {
    * create formatting tags
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_SEND, &ipc_module::action_send);
+    m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
 
     size_t index = 0;
 

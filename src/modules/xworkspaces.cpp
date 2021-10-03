@@ -35,9 +35,9 @@ namespace modules {
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &xworkspaces_module::action_next);
-    m_router->register_action(EVENT_PREV, &xworkspaces_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     // Load config values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);

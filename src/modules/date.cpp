@@ -13,7 +13,7 @@ namespace modules {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
-    m_router->register_action(EVENT_TOGGLE, &date_module::action_toggle);
+    m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
 
     m_dateformat = m_conf.get(name(), "date", ""s);
     m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
