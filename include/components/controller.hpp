@@ -14,9 +14,10 @@
 #include "utils/file.hpp"
 #include "x11/types.hpp"
 
-
 POLYBAR_NS
+
 using std::queue;
+
 // fwd decl {{{
 
 enum class alignment;

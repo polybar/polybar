@@ -128,7 +128,7 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
  */
 void controller::trigger_action(string&& input_data) {
   std::unique_lock<std::mutex> guard(m_notification_mutex);
-  m_log.trace("controller: Queueing input event %s", input_data);
+  m_log.trace("controller: Queueing input event '%s'", input_data);
   m_notifications.inputdata.push(std::move(input_data));
   trigger_notification();
 }
@@ -214,7 +214,7 @@ void controller::notifier_handler() {
   while (!data.inputdata.empty()) {
     auto inputdata = data.inputdata.front();
     data.inputdata.pop();
-    m_log.trace("controller: Dequeueing inputdata : %s ", inputdata);
+    m_log.trace("controller: Dequeueing inputdata: '%s'", inputdata);
     process_inputdata(std::move(inputdata));
   }
 
