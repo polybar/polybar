@@ -85,6 +85,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest, ::testing::ValuesIn(parse_l
 
 TEST_P(ParseLineInValidTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   parser->parse_line(line, GetParam());
 
   EXPECT_FALSE(line.useful);
@@ -94,6 +96,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseLineHeaderTest, ::testing::ValuesIn(parse_li
 
 TEST_P(ParseLineHeaderTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   parser->parse_line(line, GetParam().second);
 
   EXPECT_TRUE(line.useful);
@@ -106,6 +110,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseLineKeyTest, ::testing::ValuesIn(parse_line_
 
 TEST_P(ParseLineKeyTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   parser->parse_line(line, GetParam().second);
 
   EXPECT_TRUE(line.useful);
@@ -206,6 +212,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseKeyTest, ::testing::ValuesIn(parse_key_list)
  */
 TEST_P(ParseKeyTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   EXPECT_EQ(GetParam().first, parser->parse_key(line, GetParam().second));
 }
 
@@ -246,6 +254,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseHeaderTest, ::testing::ValuesIn(parse_header
  */
 TEST_P(ParseHeaderTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   EXPECT_EQ(GetParam().first, parser->parse_header(line, GetParam().second));
 }
 
@@ -295,6 +305,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseEscapedValueTest, ::testing::ValuesIn(parse_
  */
 TEST_P(ParseEscapedValueTest, correctness) {
   line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   string value = GetParam().second;
   value = parser->parse_escaped_value(line, move(value), "key");
   EXPECT_EQ(GetParam().first, value);
