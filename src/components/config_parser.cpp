@@ -136,19 +136,9 @@ void config_parser::parse_file(const string& file, file_list path) {
   while (std::getline(in, line_str)) {
     line_no++;
     line_t line;
-    try {
-      line = parse_line(line_str);
-
-      // parse_line doesn't set these
-      line.file_index = file_index;
-      line.line_no = line_no;
-    } catch (syntax_error& err) {
-      /*
-       * Exceptions thrown by parse_line doesn't have the line
-       * numbers and files set, so we have to add them here
-       */
-      throw syntax_error(err.get_msg(), m_files[file_index], line_no);
-    }
+    line.file_index = file_index;
+    line.line_no = line_no;
+    parse_line(line, line_str);
 
     // Skip useless lines (comments, empty lines)
     if (!line.useful) {
@@ -170,39 +160,36 @@ void config_parser::parse_file(const string& file, file_list path) {
   }
 }
 
-line_t config_parser::parse_line(const string& line) {
-  if (string_util::contains(line, "\ufeff")) {
+void config_parser::parse_line(line_t& line, const string& line_str) {
+  if (string_util::contains(line_str, "\ufeff")) {
     throw syntax_error(
-        "This config file uses UTF-8 with BOM, which is not supported. Please use plain UTF-8 without BOM.");
+        "This config file uses UTF-8 with BOM, which is not supported. Please use plain UTF-8 without BOM.",
+        m_files[line.file_index], line.line_no);
   }
 
-  string line_trimmed = string_util::trim(line, isspace);
+  string line_trimmed = string_util::trim(line_str, isspace);
   line_type type = get_line_type(line_trimmed);
 
-  line_t result = {};
-
   if (type == line_type::EMPTY || type == line_type::COMMENT) {
-    result.useful = false;
-    return result;
+    line.useful = false;
+    return;
   }
 
   if (type == line_type::UNKNOWN) {
-    throw syntax_error("Unknown line type: " + line_trimmed);
+    throw syntax_error("Unknown line type: " + line_trimmed, m_files[line.file_index], line.line_no);
   }
 
-  result.useful = true;
+  line.useful = true;
 
   if (type == line_type::HEADER) {
-    result.is_header = true;
-    result.header = parse_header(line_trimmed);
+    line.is_header = true;
+    line.header = parse_header(line, line_trimmed);
   } else if (type == line_type::KEY) {
-    result.is_header = false;
-    auto key_value = parse_key(line_trimmed);
-    result.key = key_value.first;
-    result.value = key_value.second;
+    line.is_header = false;
+    auto key_value = parse_key(line, line_trimmed);
+    line.key = key_value.first;
+    line.value = key_value.second;
   }
-
-  return result;
 }
 
 line_type config_parser::get_line_type(const string& line) {
@@ -228,36 +215,37 @@ line_type config_parser::get_line_type(const string& line) {
   }
 }
 
-string config_parser::parse_header(const string& line) {
-  if (line.back() != ']') {
-    throw syntax_error("Missing ']' in header '" + line + "'");
+string config_parser::parse_header(const line_t& line, const string& line_str) {
+  if (line_str.back() != ']') {
+    throw syntax_error("Missing ']' in header '" + line_str + "'", m_files[line.file_index], line.line_no);
   }
 
   // Stripping square brackets
-  string header = line.substr(1, line.size() - 2);
+  string header = line_str.substr(1, line_str.size() - 2);
 
   if (!is_valid_name(header)) {
-    throw invalid_name_error("Section", header);
+    throw invalid_name_error("Section", header, m_files[line.file_index], line.line_no);
   }
 
   if (m_reserved_section_names.find(header) != m_reserved_section_names.end()) {
-    throw syntax_error("'" + header + "' is reserved and cannot be used as a section name");
+    throw syntax_error(
+        "'" + header + "' is reserved and cannot be used as a section name", m_files[line.file_index], line.line_no);
   }
 
   return header;
 }
 
-std::pair<string, string> config_parser::parse_key(const string& line) {
-  size_t pos = line.find_first_of('=');
+std::pair<string, string> config_parser::parse_key(const line_t& line, const string& line_str) {
+  size_t pos = line_str.find_first_of('=');
 
-  string key = string_util::trim(line.substr(0, pos), isspace);
-  string value = string_util::trim(line.substr(pos + 1), isspace);
+  string key = string_util::trim(line_str.substr(0, pos), isspace);
+  string value = string_util::trim(line_str.substr(pos + 1), isspace);
 
   if (!is_valid_name(key)) {
-    throw invalid_name_error("Key", key);
+    throw invalid_name_error("Key", key, m_files[line.file_index], line.line_no);
   }
 
-  value = parse_escaped_value(move(value), key);
+  value = parse_escaped_value(line, move(value), key);
 
   /*
    * Only if the string is surrounded with double quotes, do we treat them
@@ -294,7 +282,7 @@ bool config_parser::is_valid_name(const string& name) {
   return true;
 }
 
-string config_parser::parse_escaped_value(string&& value, const string& key) {
+string config_parser::parse_escaped_value(const line_t& line, string&& value, const string& key) {
   string cfg_value = value;
   bool log = false;
   auto backslash_pos = value.find('\\');
@@ -307,11 +295,11 @@ string config_parser::parse_escaped_value(string&& value, const string& key) {
     backslash_pos = value.find('\\', backslash_pos + 1);
   }
   if (log) {
-    // TODO Log filename, and line number
     m_log.err(
-        "Value '%s' of key '%s' contains one or more unescaped backslashes, please prepend them with the backslash "
+        "%s:%d: Value '%s' of key '%s' contains one or more unescaped backslashes, please prepend them with the "
+        "backslash "
         "escape character.",
-        cfg_value, key);
+        m_files[line.file_index], line.line_no, cfg_value, key);
   }
   return move(value);
 }

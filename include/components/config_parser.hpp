@@ -40,6 +40,9 @@ class invalid_name_error : public syntax_error {
    */
   invalid_name_error(const string& type, const string& name)
       : syntax_error(type + " name '" + name + "' is empty or contains forbidden characters.") {}
+
+  invalid_name_error(const string& type, const string& name, const string& file, int line_no)
+      : syntax_error(type + " name '" + name + "' is empty or contains forbidden characters.", file, line_no) {}
 };
 
 /**
@@ -122,7 +125,7 @@ class config_parser {
   void parse_file(const string& file, file_list path);
 
   /**
-   * \brief Parses the given line string to create a line_t struct
+   * \brief Parses the given line string to the given line_t struct
    *
    * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file)
    * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
@@ -155,7 +158,7 @@ class config_parser {
    *         doesn't know about those. Whoever calls parse_line needs to
    *         catch those exceptions and set the file path and line number
    */
-  line_t parse_line(const string& line);
+  void parse_line(line_t& line, const string& line_str);
 
   /**
    * \brief Determines the type of a line read from a config file
@@ -178,7 +181,7 @@ class config_parser {
    * \throws syntax_error if the line doesn't end with ']' or the header name
    *         contains forbidden characters
    */
-  string parse_header(const string& line);
+  string parse_header(const line_t& line, const string& line_str);
 
   /**
    * \brief Parses a line containing a key-value pair and returns the key name
@@ -188,13 +191,13 @@ class config_parser {
    *
    * \throws syntax_error if the key contains forbidden characters
    */
-  std::pair<string, string> parse_key(const string& line);
+  std::pair<string, string> parse_key(const line_t& line, const string& line_str);
 
   /**
    * \brief Parses the given value, checks if the given value contains
    *        one or more unescaped backslashes and logs an error if yes
    */
-  string parse_escaped_value(string&& value, const string& key);
+  string parse_escaped_value(const line_t& line, string&& value, const string& key);
 
   /**
    * \brief Name of all the files the config includes values from
