@@ -13,9 +13,9 @@ namespace modules {
   template class module<i3_module>;
 
   i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &i3_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &i3_module::action_next);
-    m_router->register_action(EVENT_PREV, &i3_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     auto socket_path = i3ipc::get_socketpath();
 

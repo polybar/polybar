@@ -25,8 +25,8 @@ namespace modules {
 
   backlight_module::backlight_module(const bar_settings& bar, string name_)
       : inotify_module<backlight_module>(bar, move(name_)) {
-    m_router->register_action(EVENT_DEC, &backlight_module::action_dec);
-    m_router->register_action(EVENT_INC, &backlight_module::action_inc);
+    m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
+    m_router->register_action(EVENT_INC, [this]() { action_inc(); });
 
     auto card = m_conf.get(name(), "card");
 

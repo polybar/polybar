@@ -143,6 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased the double click interval from 150ms to 400ms.
 
 ### Fixed
+- `custom/script`: Concurrency issues with fast-updating tailed scripts.
+  ([`#1978`](https://github.com/polybar/polybar/issues/1978))
 - Trailing space after the layout label when indicators are empty and made sure right amount
   of spacing is added between the indicator labels, in the xkeyboard module.
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
