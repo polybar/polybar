@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <queue>
 #include <functional>
 
 #include "settings.hpp"
