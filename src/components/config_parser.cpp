@@ -224,7 +224,7 @@ string config_parser::parse_header(const line_t& line, const string& line_str) {
   string header = line_str.substr(1, line_str.size() - 2);
 
   if (!is_valid_name(header)) {
-    throw invalid_name_error("Section", header);
+    throw invalid_name_error("Section", header, m_files[line.file_index], line.line_no);
   }
 
   if (m_reserved_section_names.find(header) != m_reserved_section_names.end()) {
@@ -242,7 +242,7 @@ std::pair<string, string> config_parser::parse_key(const line_t& line, const str
   string value = string_util::trim(line_str.substr(pos + 1), isspace);
 
   if (!is_valid_name(key)) {
-    throw invalid_name_error("Key", key);
+    throw invalid_name_error("Key", key, m_files[line.file_index], line.line_no);
   }
 
   value = parse_escaped_value(line, move(value), key);

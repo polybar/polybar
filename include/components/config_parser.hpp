@@ -40,6 +40,9 @@ class invalid_name_error : public syntax_error {
    */
   invalid_name_error(const string& type, const string& name)
       : syntax_error(type + " name '" + name + "' is empty or contains forbidden characters.") {}
+
+  invalid_name_error(const string& type, const string& name, const string& file, int line_no)
+      : syntax_error(type + " name '" + name + "' is empty or contains forbidden characters.", file, line_no) {}
 };
 
 /**
