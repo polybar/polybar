@@ -141,6 +141,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clicks arriving in close succession, no longer get dropped. Before polybar
   would drop any click that arrived within 5ms of the previous one.
 - Increased the double click interval from 150ms to 400ms.
+- Stop ignoring actions if they arrive while the previous one hasn't been processed yet.
+  ([`#2469`](https://github.com/polybar/polybar/issues/2469))
 
 ### Fixed
 - `custom/script`: Concurrency issues with fast-updating tailed scripts.

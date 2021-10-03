@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <queue>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
@@ -14,6 +15,8 @@
 #include "x11/types.hpp"
 
 POLYBAR_NS
+
+using std::queue;
 
 // fwd decl {{{
 
@@ -30,7 +33,6 @@ namespace modules {
 }  // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
-
 // }}}
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_reload,
@@ -83,9 +85,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
     bool reload;
     bool update;
     bool force_update;
-    string inputdata;
+    queue<string> inputdata;
 
-    notifications_t() : quit(false), reload(false), update(false), force_update(false), inputdata(string{}) {}
+    notifications_t() : quit(false), reload(false), update(false), force_update(false), inputdata(queue<string>{}) {}
   };
 
   size_t setup_modules(alignment align);
