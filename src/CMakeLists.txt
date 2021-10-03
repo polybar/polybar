@@ -70,6 +70,7 @@ if(BUILD_LIBPOLY)
 
     ${src_dir}/drawtypes/animation.cpp
     ${src_dir}/drawtypes/iconset.cpp
+    ${src_dir}/drawtypes/layouticonset.cpp
     ${src_dir}/drawtypes/label.cpp
     ${src_dir}/drawtypes/progressbar.cpp
     ${src_dir}/drawtypes/ramp.cpp

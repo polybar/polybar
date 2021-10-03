@@ -44,15 +44,7 @@ namespace modules {
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
 
     // load layout icons
-    m_layout_icons = std::make_shared<iconset>();
-    m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
-
-    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
-      auto vec = string_util::tokenize(it, ';');
-      if (vec.size() == 2) {
-        m_layout_icons->add(vec[0], std::make_shared<label>(vec[1]));
-      }
-    }
+    parse_icons();
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
@@ -123,7 +115,9 @@ namespace modules {
       m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
 
       auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
-      auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
+      auto const current_variant = m_keyboard->variant_name(m_keyboard->current());
+
+      auto icon = m_layout_icons->get(current_layout, current_variant);
 
       m_layout->replace_token("%icon%", icon->get());
       m_layout->replace_token("%layout%", current_layout);
@@ -279,6 +273,55 @@ namespace modules {
     if (m_keyboard && m_xkb_indicator_notify.allow(evt->time)) {
       m_keyboard->set(m_connection.xkb().get_state(XCB_XKB_ID_USE_CORE_KBD)->lockedMods);
       update();
+    }
+  }
+
+  void xkeyboard_module::parse_icons() {
+    m_layout_icons = make_shared<layouticonset>(load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
+
+    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+      auto vec = string_util::tokenize(it, ';');
+
+      size_t size = vec.size();
+      if (size != 2 && size != 3) {
+        m_log.warn("%s: malformed layout-icon '%s'", name(), it);
+        continue;
+      }
+
+      const string& layout = vec[0];
+      if (layout.empty()) {
+        m_log.warn("%s: layout-icon '%s' is invalid: there must always be a layout in icon declaration", name(), it);
+        continue;
+      }
+
+      if (size == 2) {
+        if (layout == drawtypes::layouticonset::VARIANT_ANY) {
+          throw module_error(
+              "Using '" + it + "' for layout-icon means declaring a default icon, use 'layout-icon-default' instead");
+        }
+
+        define_layout_icon(it, layout, drawtypes::layouticonset::VARIANT_ANY, std::make_shared<label>(vec[1]));
+      } else {
+        const string& variant = vec[1];
+        if (layout == drawtypes::layouticonset::VARIANT_ANY && variant == drawtypes::layouticonset::VARIANT_ANY) {
+          throw module_error(
+              "Using '" + it + "' for layout-icon means declaring a default icon, use 'layout-icon-default' instead");
+        }
+        if (variant.empty()) {
+          define_layout_icon(it, layout, drawtypes::layouticonset::VARIANT_NONE, std::make_shared<label>(vec[2]));
+        } else {
+          define_layout_icon(it, layout, variant, std::make_shared<label>(vec[2]));
+        }
+      }
+    }
+  }
+
+  void xkeyboard_module::define_layout_icon(
+      const string& entry, const string& layout, const string& variant, label_t&& icon) {
+    if (m_layout_icons->contains(layout, variant)) {
+      m_log.warn("%s: an entry is already defined for '%s;%s' => ignoring '%s'", name(), layout, variant, entry);
+    } else {
+      m_layout_icons->add(layout, variant, std::forward<label_t>(icon));
     }
   }
 }  // namespace modules
