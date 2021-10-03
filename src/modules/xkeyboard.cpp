@@ -284,42 +284,45 @@ namespace modules {
 
       size_t size = vec.size();
       if (size != 2 && size != 3) {
-        m_log.warn("%s: malformed layout-icon '%s'", name(), it);
+        m_log.warn("%s: Malformed layout-icon '%s'", name(), it);
         continue;
       }
 
       const string& layout = vec[0];
       if (layout.empty()) {
-        m_log.warn("%s: layout-icon '%s' is invalid: there must always be a layout in icon declaration", name(), it);
+        m_log.warn("%s: layout-icon '%s' is invalid: there must always be a layout defined", name(), it);
         continue;
       }
 
-      if (size == 2) {
-        if (layout == drawtypes::layouticonset::VARIANT_ANY) {
-          throw module_error(
-              "Using '" + it + "' for layout-icon means declaring a default icon, use 'layout-icon-default' instead");
-        }
+      string variant;
+      string icon;
 
-        define_layout_icon(it, layout, drawtypes::layouticonset::VARIANT_ANY, std::make_shared<label>(vec[1]));
+      if (size == 2) {
+        variant = layouticonset::VARIANT_ANY;
+        icon = vec[1];
       } else {
-        const string& variant = vec[1];
-        if (layout == drawtypes::layouticonset::VARIANT_ANY && variant == drawtypes::layouticonset::VARIANT_ANY) {
-          throw module_error(
-              "Using '" + it + "' for layout-icon means declaring a default icon, use 'layout-icon-default' instead");
-        }
+        variant = vec[1];
+        icon = vec[2];
+
         if (variant.empty()) {
-          define_layout_icon(it, layout, drawtypes::layouticonset::VARIANT_NONE, std::make_shared<label>(vec[2]));
-        } else {
-          define_layout_icon(it, layout, variant, std::make_shared<label>(vec[2]));
+          variant = layouticonset::VARIANT_NONE;
         }
       }
+
+      if (layout == layouticonset::VARIANT_ANY && variant == layouticonset::VARIANT_ANY) {
+        m_log.warn("%s: Using '%s' for layout-icon means declaring a default icon, use 'layout-icon-default' instead",
+            name(), it);
+      }
+
+      define_layout_icon(it, layout, variant, std::make_shared<label>(icon));
     }
   }
 
   void xkeyboard_module::define_layout_icon(
       const string& entry, const string& layout, const string& variant, label_t&& icon) {
     if (m_layout_icons->contains(layout, variant)) {
-      m_log.warn("%s: an entry is already defined for '%s;%s' => ignoring '%s'", name(), layout, variant, entry);
+      m_log.warn(
+          "%s: An equivalent matching is already defined for '%s;%s' => ignoring '%s'", name(), layout, variant, entry);
     } else {
       m_layout_icons->add(layout, variant, std::forward<label_t>(icon));
     }

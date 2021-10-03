@@ -1,4 +1,5 @@
 #include "utils/string.hpp"
+
 #include "common/test.hpp"
 
 using namespace polybar;

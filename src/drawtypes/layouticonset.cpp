@@ -3,8 +3,7 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  layouticonset::layouticonset(label_t&& default_icon) : m_default_icon(default_icon) {
-  }
+  layouticonset::layouticonset(label_t&& default_icon) : m_default_icon(default_icon) {}
 
   void layouticonset::add(const string& layout, const string& variant, label_t&& icon) {
     m_layout_icons.push_back(std::make_tuple(layout, variant, icon));
