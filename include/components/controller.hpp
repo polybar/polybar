@@ -31,7 +31,7 @@ namespace modules {
 }  // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
-
+using std::queue;
 // }}}
 
 class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eventqueue::exit_reload,
