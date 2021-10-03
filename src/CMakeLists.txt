@@ -104,6 +104,7 @@ if(BUILD_LIBPOLY)
     ${src_dir}/tags/parser.cpp
 
     ${src_dir}/utils/actions.cpp
+    ${src_dir}/utils/action_router.cpp
     ${src_dir}/utils/bspwm.cpp
     ${src_dir}/utils/color.cpp
     ${src_dir}/utils/command.cpp

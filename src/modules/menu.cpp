@@ -14,9 +14,9 @@ namespace modules {
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
 
-    m_router->register_action_with_data(EVENT_OPEN, &menu_module::action_open);
-    m_router->register_action(EVENT_CLOSE, &menu_module::action_close);
-    m_router->register_action_with_data(EVENT_EXEC, &menu_module::action_exec);
+    m_router->register_action_with_data(EVENT_OPEN, [this](const std::string& data) { action_open(data); });
+    m_router->register_action(EVENT_CLOSE, [this]() { action_close(); });
+    m_router->register_action_with_data(EVENT_EXEC, [this](const std::string& data) { action_exec(data); });
 
     string default_format;
     if (m_expand_right) {

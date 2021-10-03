@@ -40,9 +40,9 @@ namespace modules {
   template class module<bspwm_module>;
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &bspwm_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &bspwm_module::action_next);
-    m_router->register_action(EVENT_PREV, &bspwm_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     auto socket_path = bspwm_util::get_socket_path();
 

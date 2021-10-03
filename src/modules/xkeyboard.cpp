@@ -24,7 +24,7 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
+    m_router->register_action(EVENT_SWITCH, [this]() { action_switch(); });
 
     // Setup extension
     // clang-format off
