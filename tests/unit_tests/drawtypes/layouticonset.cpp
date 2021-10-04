@@ -32,7 +32,7 @@ TEST(LayoutIconSet, get) {
   EXPECT_EQ("us--icon", layout_icons->get("us", "undefined_variant")->get());
   EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "colemak")->get());
   EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "COLEMAK")->get());
-  EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK in it's description")->get());
+  EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK in its description")->get());
 
   // us;;icon => layout 'us' with no variant
   EXPECT_TRUE(layout_icons->add("us", "", make_shared<label>("us-no_variant-icon")));
@@ -41,7 +41,7 @@ TEST(LayoutIconSet, get) {
   EXPECT_EQ("us--icon", layout_icons->get("us", "undefined_variant")->get());
   EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "colemak")->get());
   EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "COLEMAK")->get());
-  EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK in it's description")->get());
+  EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK in its description")->get());
 
   // _;dvorak;icon => any layout with 'dvorak' variant
   EXPECT_TRUE(layout_icons->add(layouticonset::VARIANT_ANY, "dvorak", make_shared<label>("any_layout-dvorak-icon")));
@@ -58,6 +58,12 @@ TEST(LayoutIconSet, get) {
   EXPECT_TRUE(layout_icons->add(layouticonset::VARIANT_ANY, "", make_shared<label>("any_layout-no_variant-icon")));
   EXPECT_EQ("any_layout-no_variant-icon", layout_icons->get("fr", "")->get());
   EXPECT_EQ("us-no_variant-icon", layout_icons->get("us", "")->get());
+
+  EXPECT_TRUE(layout_icons->add("us", "variant2", make_shared<label>("us-variant2-icon")));
+  EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK & variant2 in its description")->get());
+
+  EXPECT_TRUE(layout_icons->add(layouticonset::VARIANT_ANY, "variant2", make_shared<label>("any_layout-variant2-icon")));
+  EXPECT_EQ("any_layout-dvorak-icon", layout_icons->get("some layout", "a variant containing dvorak & variant2 in its description")->get());
 
   // us;_;icon => layout 'us' with any variant
   layouticonset_t layout_icons2 = make_shared<layouticonset>(make_shared<label>("default-icon"));

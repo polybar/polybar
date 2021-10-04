@@ -21,13 +21,18 @@ namespace drawtypes {
     //     4. any layout for icon and perfect match on variant (ex: _;Colemak;<icon>)
     //     5. any layout for icon and case insensitive search on variant (ex: _;coLEmAk;<icon>)
     //     6. no match at all => default icon if defined
-    bool layout_ivariant_matched = false;
-    bool layout_anyvariant_matched = false;
-    bool layout_novariant_matched = false;
-    bool anylayout_variant_matched = false;
 
-    // case 6: initializing with default
-    auto icon = m_default_icon;
+    // Case 2:  Perfect layout + case insensitive variant match
+    bool layout_ivariant_matched = false;
+    // Case 3: Perfect layout + wildcard variant match
+    bool layout_anyvariant_matched = false;
+    // Case 4: Wildcard layout + perfect variant match
+    bool anylayout_variant_matched = false;
+    // Case 5: Wildcard layout + case insensitive variant match
+    bool anylayout_ivariant_matched = false;
+
+    // Case 6: initializing with default
+    label_t icon = m_default_icon;
     for (auto it : m_layout_icons) {
       const string& icon_layout = std::get<0>(it);
       const string& icon_variant = std::get<1>(it);
@@ -38,22 +43,26 @@ namespace drawtypes {
 
       if (icon_layout == layout) {
         if (icon_variant == variant) {
-          // perfect match, we can break
+          // Case 1: perfect match, we can break
           icon = icon_label;
           break;
-        } else if (variant_match_ignoring_case) {
+        } else if (variant_match_ignoring_case && !layout_ivariant_matched) {
+          // Case 2
           layout_ivariant_matched = true;
           icon = icon_label;
-        } else if (!layout_ivariant_matched && icon_variant == VARIANT_ANY) {
+        } else if (icon_variant == VARIANT_ANY && !layout_ivariant_matched) {
+          // Case 3
           layout_anyvariant_matched = true;
           icon = icon_label;
         }
-      } else if (!(layout_ivariant_matched || layout_anyvariant_matched || layout_novariant_matched) &&
-                 icon_layout == VARIANT_ANY) {
+      } else if (icon_layout == VARIANT_ANY && !layout_ivariant_matched && !layout_anyvariant_matched) {
         if (icon_variant == variant) {
+          // Case 4
           anylayout_variant_matched = true;
           icon = icon_label;
-        } else if (!anylayout_variant_matched && variant_match_ignoring_case) {
+        } else if (variant_match_ignoring_case && !anylayout_variant_matched && !anylayout_ivariant_matched) {
+          // Case 5
+          anylayout_ivariant_matched = true;
           icon = icon_label;
         }
       }
