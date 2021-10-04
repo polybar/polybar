@@ -33,7 +33,7 @@ namespace drawtypes {
           // perfect match, we can break
           icon = icon_label;
           break;
-        } else if (icon_variant != VARIANT_ANY && string_util::contains_nocase(variant, icon_variant)) {
+        } else if (icon_variant != VARIANT_ANY && string_util::contains_ignore_case(variant, icon_variant)) {
           layout_ivariant_matched = true;
           icon = icon_label;
         } else if (!layout_ivariant_matched) {
@@ -51,7 +51,7 @@ namespace drawtypes {
           nolayout_variant_matched = true;
           icon = icon_label;
         } else if (!nolayout_variant_matched && icon_variant != VARIANT_ANY &&
-                   string_util::contains_nocase(variant, icon_variant)) {
+                   string_util::contains_ignore_case(variant, icon_variant)) {
           icon = icon_label;
         }
       }
