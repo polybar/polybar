@@ -134,7 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2414`](https://github.com/polybar/polybar/issues/2414))
 
 ### Changed
-- Polybar now also reads `config.ini` when sarching for config files.
+- Polybar now also reads `config.ini` when searching for config files.
   ([`#2323`](https://github.com/polybar/polybar/issues/2323))
 - Polybar additionally searches in `XDG_CONFIG_DIRS/polybar` (or
   `/etc/xdg/polybar` if it is not set) and `/etc/polybar` for config files
