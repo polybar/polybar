@@ -14,14 +14,15 @@ namespace drawtypes {
     //     1. perfect match on layout and perfect match on variant (ex: us;Colemak;<icon>)
     //     2. perfect match on layout and case insensitive search on variant (ex: us;coLEmAk;<icon>)
     //     3. perfect match on layout and the any variant '_' (ex: us;<icon> or us;_;<icon>)
-    //     4. no layout for icon and perfect match on variant (ex: _;Colemak;<icon>)
-    //     5. no layout for icon and case insensitive search on variant (ex: _;coLEmAk;<icon>)
+    //     4. any layout for icon and perfect match on variant (ex: _;Colemak;<icon>)
+    //     5. any layout for icon and case insensitive search on variant (ex: _;coLEmAk;<icon>)
     //     6. no match at all => default icon if defined
     bool layout_ivariant_matched = false;
-    bool layout_wildcardvariant_matched = false;
+    bool layout_anyvariant_matched = false;
     bool layout_novariant_matched = false;
-    bool nolayout_variant_matched = false;
+    bool anylayout_variant_matched = false;
 
+    // case 6: initializing with default
     auto icon = m_default_icon;
     for (auto it : m_layout_icons) {
       const string& icon_layout = std::get<0>(it);
@@ -36,21 +37,16 @@ namespace drawtypes {
         } else if (icon_variant != VARIANT_ANY && string_util::contains_ignore_case(variant, icon_variant)) {
           layout_ivariant_matched = true;
           icon = icon_label;
-        } else if (!layout_ivariant_matched) {
-          if (icon_variant == VARIANT_ANY) {
-            layout_wildcardvariant_matched = true;
-            icon = icon_label;
-          } else if (!layout_wildcardvariant_matched && icon_variant == VARIANT_NONE && variant.empty()) {
-            layout_novariant_matched = true;
-            icon = icon_label;
-          }
+        } else if (!layout_ivariant_matched && icon_variant == VARIANT_ANY) {
+          layout_anyvariant_matched = true;
+          icon = icon_label;
         }
-      } else if (!(layout_ivariant_matched || layout_wildcardvariant_matched || layout_novariant_matched) &&
+      } else if (!(layout_ivariant_matched || layout_anyvariant_matched || layout_novariant_matched) &&
                  icon_layout == VARIANT_ANY) {
         if (icon_variant == variant || (icon_variant == VARIANT_NONE && variant.empty())) {
-          nolayout_variant_matched = true;
+          anylayout_variant_matched = true;
           icon = icon_label;
-        } else if (!nolayout_variant_matched && icon_variant != VARIANT_ANY &&
+        } else if (!anylayout_variant_matched && icon_variant != VARIANT_ANY &&
                    string_util::contains_ignore_case(variant, icon_variant)) {
           icon = icon_label;
         }
