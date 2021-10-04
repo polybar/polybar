@@ -59,7 +59,7 @@ bool command<output_policy::IGNORED>::is_running() {
 }
 
 /**
- * Wait for the child processs to finish
+ * Wait for the child process to finish
  */
 int command<output_policy::IGNORED>::wait() {
   do {

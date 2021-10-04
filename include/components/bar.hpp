@@ -82,7 +82,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
  protected:
   void restack_window();
-  void reconfigue_window();
+  void reconfigure_window();
   void reconfigure_geom();
   void reconfigure_pos();
   void reconfigure_struts();

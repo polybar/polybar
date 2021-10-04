@@ -40,7 +40,7 @@ namespace tags {
     m_action_blocks[id].end_x = x;
   }
 
-  void action_context::set_alignmnent_start(const alignment a, const double x) {
+  void action_context::set_alignment_start(const alignment a, const double x) {
     m_align_start[a] = x;
   }
 

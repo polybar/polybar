@@ -45,7 +45,7 @@ namespace string_util {
   }
 
   /**
-   * Replace first occurence of needle in haystack
+   * Replace first occurrence of needle in haystack
    */
   string replace(const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {
     string str(haystack);
@@ -61,7 +61,7 @@ namespace string_util {
   }
 
   /**
-   * Replace all occurences of needle in haystack
+   * Replace all occurrences of needle in haystack
    */
   string replace_all(
       const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {

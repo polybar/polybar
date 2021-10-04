@@ -104,7 +104,7 @@ namespace tags {
      * of the alignment blocks so that it can do intersection tests.
      */
     for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
-      m_action_ctxt.set_alignmnent_start(a, renderer.get_alignment_start(a));
+      m_action_ctxt.set_alignment_start(a, renderer.get_alignment_start(a));
     }
 
     auto num_unclosed = m_action_ctxt.num_unclosed();
