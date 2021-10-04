@@ -289,26 +289,19 @@ namespace modules {
       }
 
       const string& layout = vec[0];
+
       if (layout.empty()) {
         m_log.warn("%s: layout-icon '%s' is invalid: there must always be a layout defined", name(), it);
         continue;
       }
 
-      string variant;
-      string icon;
-
-      if (size == 2) {
-        variant = layouticonset::VARIANT_ANY;
-        icon = vec[1];
-      } else {
-        variant = vec[1];
-        icon = vec[2];
-      }
+      const string& variant = size == 2 ? layouticonset::VARIANT_ANY : vec[1];
+      const string& icon = vec.back();
 
       if (layout == layouticonset::VARIANT_ANY && variant == layouticonset::VARIANT_ANY) {
         m_log.warn("%s: Using '%s' for layout-icon means declaring a default icon, use 'layout-icon-default' instead",
             name(), it);
-            continue;
+        continue;
       }
 
       define_layout_icon(it, layout, variant, std::make_shared<label>(icon));
