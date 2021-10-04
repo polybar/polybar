@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 
       if (string_util::ends_with(confpath, "config")) {
         logger::make().warn(
-            "Naming your config file 'config' is deprecated (when not using the --config flag), the expected name is "
+            "Naming your config file 'config' is deprecated when using the --config flag, the expected name is "
             "'config.ini'.",
             confpath);
       }
