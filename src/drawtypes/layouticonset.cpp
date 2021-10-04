@@ -33,13 +33,15 @@ namespace drawtypes {
       const string& icon_variant = std::get<1>(it);
       label_t icon_label = std::get<2>(it);
 
+      bool variant_match_ignoring_case = icon_variant != VARIANT_ANY && !icon_variant.empty() &&
+                                         string_util::contains_ignore_case(variant, icon_variant);
+
       if (icon_layout == layout) {
         if (icon_variant == variant) {
           // perfect match, we can break
           icon = icon_label;
           break;
-        } else if (icon_variant != VARIANT_ANY && !icon_variant.empty() &&
-                   string_util::contains_ignore_case(variant, icon_variant)) {
+        } else if (variant_match_ignoring_case) {
           layout_ivariant_matched = true;
           icon = icon_label;
         } else if (!layout_ivariant_matched && icon_variant == VARIANT_ANY) {
@@ -51,8 +53,7 @@ namespace drawtypes {
         if (icon_variant == variant) {
           anylayout_variant_matched = true;
           icon = icon_label;
-        } else if (!anylayout_variant_matched && icon_variant != VARIANT_ANY && !icon_variant.empty() &&
-                   string_util::contains_ignore_case(variant, icon_variant)) {
+        } else if (!anylayout_variant_matched && variant_match_ignoring_case) {
           icon = icon_label;
         }
       }
