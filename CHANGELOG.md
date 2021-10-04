@@ -120,6 +120,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `double-click-interval` setting to the bar section to control the time
   interval in which a double-click is recognized. Defaults to 400 (ms)
   ([`#1441`](https://github.com/polybar/polybar/issues/1441))
+- `internal/xkeyboard`: Allow configuring icons using variant
+  ([`#2414`](https://github.com/polybar/polybar/issues/2414))
 
 ### Changed
 - We rewrote polybar's main event loop. This shouldn't change any behavior for
