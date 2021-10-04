@@ -20,7 +20,6 @@ namespace drawtypes {
     label_t get(const string& layout, const string& variant) const;
     bool contains(const string& layout, const string& variant) const;
 
-    static constexpr const char* VARIANT_NONE = "variant-none";
     static constexpr const char* VARIANT_ANY = "_";
 
    protected:

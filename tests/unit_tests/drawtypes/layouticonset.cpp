@@ -35,7 +35,7 @@ TEST(LayoutIconSet, get) {
   EXPECT_EQ("us-colemak-icon", layout_icons->get("us", "a variant containing CoLeMaK in it's description")->get());
 
   // us;;icon => layout 'us' with no variant
-  layout_icons->add("us", layouticonset::VARIANT_NONE, make_shared<label>("us-no_variant-icon"));
+  layout_icons->add("us", "", make_shared<label>("us-no_variant-icon"));
 
   EXPECT_EQ("us-no_variant-icon", layout_icons->get("us", "")->get());
   EXPECT_EQ("us--icon", layout_icons->get("us", "undefined_variant")->get());
@@ -55,8 +55,7 @@ TEST(LayoutIconSet, get) {
   EXPECT_EQ("us-dvorak-icon", layout_icons->get("us", "dvorak")->get());
 
   // _;;icon => any layout with no variant
-  layout_icons->add(
-      layouticonset::VARIANT_ANY, layouticonset::VARIANT_NONE, make_shared<label>("any_layout-no_variant-icon"));
+  layout_icons->add(layouticonset::VARIANT_ANY, "", make_shared<label>("any_layout-no_variant-icon"));
   EXPECT_EQ("any_layout-no_variant-icon", layout_icons->get("fr", "")->get());
   EXPECT_EQ("us-no_variant-icon", layout_icons->get("us", "")->get());
 

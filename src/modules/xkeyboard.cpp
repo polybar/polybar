@@ -303,10 +303,6 @@ namespace modules {
       } else {
         variant = vec[1];
         icon = vec[2];
-
-        if (variant.empty()) {
-          variant = layouticonset::VARIANT_NONE;
-        }
       }
 
       if (layout == layouticonset::VARIANT_ANY && variant == layouticonset::VARIANT_ANY) {
