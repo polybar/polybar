@@ -413,7 +413,7 @@ void bar::show() {
      * First reconfigures the window so that WMs that discard some information
      * when unmapping have the correct window properties (geometry etc).
      */
-    reconfigue_window();
+    reconfigure_window();
     m_connection.map_window_checked(m_opts.window);
     m_connection.flush();
     m_visible = true;
@@ -482,7 +482,7 @@ void bar::restack_window() {
   }
 }
 
-void bar::reconfigue_window() {
+void bar::reconfigure_window() {
   m_log.trace("bar: Reconfigure window");
   restack_window();
   reconfigure_geom();
@@ -820,7 +820,7 @@ void bar::start() {
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  reconfigue_window();
+  reconfigure_window();
 
   m_log.trace("bar: Map window");
   m_connection.map_window_checked(m_opts.window);

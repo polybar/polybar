@@ -134,7 +134,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
       }
     }
 
-    // dpi to be comptued
+    // dpi to be computed
     if (dpi_x <= 0 || dpi_y <= 0) {
       auto screen = m_connection.screen();
       if (dpi_x <= 0) {
