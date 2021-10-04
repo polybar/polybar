@@ -38,6 +38,8 @@ TEST(String, contains_nocase) {
   EXPECT_TRUE(string_util::contains_nocase("barrfoobazzz", "FoO"));
   EXPECT_TRUE(string_util::contains_nocase("foo", "Foo"));
   EXPECT_FALSE(string_util::contains_nocase("foo", "bar"));
+  EXPECT_TRUE(string_util::contains_nocase("foo", ""));
+  EXPECT_FALSE(string_util::contains_nocase("", "bar"));
 }
 
 TEST(String, replace) {
