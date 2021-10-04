@@ -308,6 +308,7 @@ namespace modules {
       if (layout == layouticonset::VARIANT_ANY && variant == layouticonset::VARIANT_ANY) {
         m_log.warn("%s: Using '%s' for layout-icon means declaring a default icon, use 'layout-icon-default' instead",
             name(), it);
+            continue;
       }
 
       define_layout_icon(it, layout, variant, std::make_shared<label>(icon));
