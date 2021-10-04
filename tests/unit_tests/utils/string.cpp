@@ -29,17 +29,17 @@ TEST(String, contains) {
   EXPECT_FALSE(string_util::contains("foo", "bar"));
 }
 
-TEST(String, contains_nocase) {
-  EXPECT_TRUE(string_util::contains_nocase("fooooobar", "foo"));
-  EXPECT_TRUE(string_util::contains_nocase("barrrrrrfoo", "foo"));
-  EXPECT_TRUE(string_util::contains_nocase("barrfoobazzz", "foo"));
-  EXPECT_TRUE(string_util::contains_nocase("fooooobar", "fOO"));
-  EXPECT_TRUE(string_util::contains_nocase("barrrrrrfoo", "FOo"));
-  EXPECT_TRUE(string_util::contains_nocase("barrfoobazzz", "FoO"));
-  EXPECT_TRUE(string_util::contains_nocase("foo", "Foo"));
-  EXPECT_FALSE(string_util::contains_nocase("foo", "bar"));
-  EXPECT_TRUE(string_util::contains_nocase("foo", ""));
-  EXPECT_FALSE(string_util::contains_nocase("", "bar"));
+TEST(String, contains_ignore_case) {
+  EXPECT_TRUE(string_util::contains_ignore_case("fooooobar", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrrrrrfoo", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrfoobazzz", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("fooooobar", "fOO"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrrrrrfoo", "FOo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrfoobazzz", "FoO"));
+  EXPECT_TRUE(string_util::contains_ignore_case("foo", "Foo"));
+  EXPECT_FALSE(string_util::contains_ignore_case("foo", "bar"));
+  EXPECT_TRUE(string_util::contains_ignore_case("foo", ""));
+  EXPECT_FALSE(string_util::contains_ignore_case("", "bar"));
 }
 
 TEST(String, replace) {

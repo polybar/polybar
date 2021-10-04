@@ -18,7 +18,7 @@ namespace string_util {
   /**
    * Check if haystack contains needle ignoring case
    */
-  bool contains_nocase(const string& haystack, const string& needle) {
+  bool contains_ignore_case(const string& haystack, const string& needle) {
     return lower(haystack).find(lower(needle)) != string::npos;
   }
 
