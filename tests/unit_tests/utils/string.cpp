@@ -4,6 +4,23 @@
 
 using namespace polybar;
 
+TEST(String, contains) {
+  EXPECT_TRUE(string_util::contains("foo", "foo"));
+  EXPECT_TRUE(string_util::contains("foobar", "foo"));
+  EXPECT_TRUE(string_util::contains("foobar", "bar"));
+  EXPECT_FALSE(string_util::contains("foobar", "baz"));
+  EXPECT_FALSE(string_util::contains("foobAr", "bar"));
+}
+
+TEST(String, ends_with) {
+  EXPECT_TRUE(string_util::ends_with("foo", "foo"));
+  EXPECT_TRUE(string_util::ends_with("foobar", "bar"));
+  EXPECT_TRUE(string_util::ends_with("foobar", ""));
+  EXPECT_FALSE(string_util::ends_with("foo", "bar"));
+  EXPECT_FALSE(string_util::ends_with("foo", "Foo"));
+  EXPECT_FALSE(string_util::ends_with("", "Foo"));
+}
+
 TEST(String, upper) {
   EXPECT_EQ("FOO", string_util::upper("FOO"));
   EXPECT_EQ("FOO", string_util::upper("FoO"));
