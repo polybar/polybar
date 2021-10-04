@@ -22,51 +22,65 @@ namespace drawtypes {
     //     5. any layout for icon and case insensitive search on variant (ex: _;coLEmAk;<icon>)
     //     6. no match at all => default icon if defined
 
-    // Case 2:  Perfect layout + case insensitive variant match
-    bool layout_ivariant_matched = false;
-    // Case 3: Perfect layout + wildcard variant match
-    bool layout_anyvariant_matched = false;
-    // Case 4: Wildcard layout + perfect variant match
-    bool anylayout_variant_matched = false;
-    // Case 5: Wildcard layout + case insensitive variant match
-    bool anylayout_ivariant_matched = false;
+    /*
+     * The minimal case that was matched.
+     * Once a case is matched, this is updated and no case with the same or higher number can be matched again.
+     */
+    int min_case = 6;
 
     // Case 6: initializing with default
     label_t icon = m_default_icon;
+
     for (auto it : m_layout_icons) {
       const string& icon_layout = std::get<0>(it);
       const string& icon_variant = std::get<1>(it);
       label_t icon_label = std::get<2>(it);
 
-      bool variant_match_ignoring_case = icon_variant != VARIANT_ANY && !icon_variant.empty() &&
-                                         string_util::contains_ignore_case(variant, icon_variant);
+      bool is_variant_match = icon_variant == variant;
+
+      bool is_variant_any = icon_variant == VARIANT_ANY;
+
+      bool is_variant_match_fuzzy =
+          !is_variant_any && !icon_variant.empty() && string_util::contains_ignore_case(variant, icon_variant);
+
+      // Which of the 6 match cases is matched here.
+      int current_case = 6;
 
       if (icon_layout == layout) {
-        if (icon_variant == variant) {
-          // Case 1: perfect match, we can break
-          icon = icon_label;
-          break;
-        } else if (variant_match_ignoring_case && !layout_ivariant_matched) {
+        if (is_variant_match) {
+          // Case 1
+          current_case = 1;
+        } else if (is_variant_match_fuzzy) {
           // Case 2
-          layout_ivariant_matched = true;
-          icon = icon_label;
-        } else if (icon_variant == VARIANT_ANY && !layout_ivariant_matched) {
+          current_case = 2;
+        } else if (is_variant_any) {
           // Case 3
-          layout_anyvariant_matched = true;
-          icon = icon_label;
+          current_case = 3;
         }
-      } else if (icon_layout == VARIANT_ANY && !layout_ivariant_matched && !layout_anyvariant_matched) {
-        if (icon_variant == variant) {
+      } else if (icon_layout == VARIANT_ANY) {
+        if (is_variant_match) {
           // Case 4
-          anylayout_variant_matched = true;
-          icon = icon_label;
-        } else if (variant_match_ignoring_case && !anylayout_variant_matched && !anylayout_ivariant_matched) {
+          current_case = 4;
+        } else if (is_variant_match_fuzzy) {
           // Case 5
-          anylayout_ivariant_matched = true;
-          icon = icon_label;
+          current_case = 5;
         }
       }
+
+      /*
+       * We matched with a higher priority than before -> update icon.
+       */
+      if (current_case < min_case) {
+        icon = icon_label;
+        min_case = current_case;
+      }
+
+      if (current_case == 1) {
+        // Case 1: perfect match, we can break early
+        break;
+      }
     }
+
     return icon;
   }
 
