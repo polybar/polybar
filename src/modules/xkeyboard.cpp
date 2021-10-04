@@ -319,8 +319,10 @@ namespace modules {
     if (m_layout_icons->contains(layout, variant)) {
       m_log.warn(
           "%s: An equivalent matching is already defined for '%s;%s' => ignoring '%s'", name(), layout, variant, entry);
-    } else {
-      m_layout_icons->add(layout, variant, std::forward<label_t>(icon));
+    } else if (!m_layout_icons->add(layout, variant, std::forward<label_t>(icon))) {
+      m_log.err(
+          "%s: '%s' cannot be added to internal structure. This case should never happen and must be reported as a bug",
+          name(), entry);
     }
   }
 }  // namespace modules

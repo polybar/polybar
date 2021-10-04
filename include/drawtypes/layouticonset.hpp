@@ -16,7 +16,7 @@ namespace drawtypes {
    public:
     explicit layouticonset(label_t&& default_icon);
 
-    void add(const string& layout, const string& variant, label_t&& icon);
+    bool add(const string& layout, const string& variant, label_t&& icon);
     label_t get(const string& layout, const string& variant) const;
     bool contains(const string& layout, const string& variant) const;
 

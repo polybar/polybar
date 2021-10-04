@@ -5,8 +5,12 @@ POLYBAR_NS
 namespace drawtypes {
   layouticonset::layouticonset(label_t&& default_icon) : m_default_icon(default_icon) {}
 
-  void layouticonset::add(const string& layout, const string& variant, label_t&& icon) {
-    m_layout_icons.push_back(std::make_tuple(layout, variant, icon));
+  bool layouticonset::add(const string& layout, const string& variant, label_t&& icon) {
+    if (layout == VARIANT_ANY && variant == VARIANT_ANY) {
+      return false;
+    }
+    m_layout_icons.emplace_back(layout, variant, icon);
+    return true;
   }
 
   label_t layouticonset::get(const string& layout, const string& variant) const {
