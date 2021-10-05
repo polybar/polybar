@@ -63,6 +63,7 @@ namespace string_util {
 
   bool contains(const string& haystack, const string& needle);
   bool contains_ignore_case(const string& haystack, const string& needle);
+  bool ends_with(const string& haystack, const string& suffix);
   string upper(const string& s);
   string lower(const string& s);
   bool compare(const string& s1, const string& s2);

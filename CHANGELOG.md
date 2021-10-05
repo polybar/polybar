@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BUILD_DOC=ON` - Builds the documentation
   - `BUILD_DOC_HTML=BUILD_DOC` - Builds the html documentation (depends on `BUILD_DOC`)
   - `BUILD_DOC_MAN=BUILD_DOC` - Builds the manpages (depends on `BUILD_DOC`)
-  - `BUILD_CONFIG=ON` - Generates sample config
+  - `BUILD_CONFIG=ON` - Generates the default config
   - `BUILD_SHELL=ON` - Generates shell completion files
   - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
     targets can still be enabled explicitly.
@@ -52,12 +52,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whatever folder you invoked `cmake` from instead of in the root folder of the
   repository.
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
+- The sample config file has been removed.
+- Polybar now ships a default config that is installed to
+  `/etc/polybar/config.ini`, it lives in `doc/config.ini`.
+  It will also be placed in the `examples` directory in the documentation folder.
+  [`#2405`](https://github.com/polybar/polybar/issues/2405)
+- The `userconfig` target has been removed, you can no longer use `make
+  userconfig`. As an alternative, you can copy the default config from
+  `/etc/polybar/config.ini`.
 
 ### Deprecated
 - `[settings]`: `throttle-output` and `throttle-output-for` have been removed.
   The new event loop already does a similar thing where it coalesces update
   triggers if they happen directly after one another, leading to only a single
   bar update.
+- When not specifying the config file with `--config`, naming your config file
+  `config` is deprecated. Rename your config file to `config.ini`.
 
 ### Removed
 - `DEBUG_SHADED` cmake variable and its associated functionality.
@@ -94,8 +104,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   speeds are displayed.
 - `internal/xkeyboard`: `%variant%` can be used to parse the layout variant
   ([`#316`](https://github.com/polybar/polybar/issues/316))
-- Added .ini extension check to the default config search.
-  ([`#2323`](https://github.com/polybar/polybar/issues/2323))
 - Config option to hide a certain module
   (`hidden = false`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
@@ -126,6 +134,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2414`](https://github.com/polybar/polybar/issues/2414))
 
 ### Changed
+- Polybar now also reads `config.ini` when searching for config files.
+  ([`#2323`](https://github.com/polybar/polybar/issues/2323))
+- Polybar additionally searches in `XDG_CONFIG_DIRS/polybar` (or
+  `/etc/xdg/polybar` if it is not set) and `/etc/polybar` for config files
+  (only `config.ini`).
+  ([`#2016`](https://github.com/polybar/polybar/issues/2016))
 - We rewrote polybar's main event loop. This shouldn't change any behavior for
   the user, but be on the lookout for X events, click events, or ipc messages
   not arriving and the bar not shutting down/restarting properly and let us

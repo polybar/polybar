@@ -32,9 +32,13 @@ OPTIONS
 
    Specify the path to the configuration file. By default, the configuration file is loaded from:
 
-   |
-   | **$XDG_CONFIG_HOME/polybar/config**
-   | **$HOME/.config/polybar/config**
+   * ``$XDG_CONFIG_HOME/polybar/config``
+   * ``$XDG_CONFIG_HOME/polybar/config.ini``
+   * ``$HOME/.config/polybar/config``
+   * ``$HOME/.config/polybar/config.ini``
+   * ``$XDG_CONFIG_DIRS/polybar/config.ini``
+   * ``/etc/xdg/polybar/config.ini`` (only if ``XDG_CONFIG_DIRS`` is not set)
+   * ``/etc/polybar/config.ini``
 .. option:: -r, --reload
 
    Reload the application when the config file has been modified

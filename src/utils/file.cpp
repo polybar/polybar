@@ -269,30 +269,47 @@ namespace file_util {
    * Search for polybar config and returns the path if found
    */
   string get_config_path() {
-    string confpath;
-    if (env_util::has("XDG_CONFIG_HOME")) {
-      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
-      if (exists(confpath)) {
-        return confpath;
-      }
+    const static string suffix = "/polybar/config";
 
-      string iniConfPath = confpath.append(".ini");
-      if (exists(iniConfPath)) {
-        return iniConfPath;
-      }
+    vector<string> possible_paths;
+
+    if (env_util::has("XDG_CONFIG_HOME")) {
+      auto path = env_util::get("XDG_CONFIG_HOME") + suffix;
+
+      possible_paths.push_back(path);
+      possible_paths.push_back(path + ".ini");
     }
 
     if (env_util::has("HOME")) {
-      confpath = env_util::get("HOME") + "/.config/polybar/config";
-      if (exists(confpath)) {
-        return confpath;
-      }
+      auto path = env_util::get("HOME") + "/.config" + suffix;
 
-      string iniConfPath = confpath.append(".ini");
-      if (exists(iniConfPath)) {
-        return iniConfPath;
+      possible_paths.push_back(path);
+      possible_paths.push_back(path + ".ini");
+    }
+
+    vector<string> xdg_config_dirs;
+
+    /*
+     *Ref: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+     */
+    if (env_util::has("XDG_CONFIG_DIRS")) {
+      xdg_config_dirs = string_util::split(env_util::get("XDG_CONFIG_DIRS"), ':');
+    } else {
+      xdg_config_dirs.push_back("/etc/xdg");
+    }
+
+    for (const string& xdg_config_dir : xdg_config_dirs) {
+      possible_paths.push_back(xdg_config_dir + suffix + ".ini");
+    }
+
+    possible_paths.push_back("/etc" + suffix + ".ini");
+
+    for (const string& p : possible_paths) {
+      if (exists(p)) {
+        return p;
       }
     }
+
     return "";
   }
 
