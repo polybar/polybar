@@ -1,4 +1,5 @@
 #include "utils/string.hpp"
+
 #include "common/test.hpp"
 
 using namespace polybar;
@@ -18,6 +19,27 @@ TEST(String, compare) {
   EXPECT_TRUE(string_util::compare("foo", "foo"));
   EXPECT_TRUE(string_util::compare("foo", "Foo"));
   EXPECT_FALSE(string_util::compare("foo", "bar"));
+}
+
+TEST(String, contains) {
+  EXPECT_TRUE(string_util::contains("fooooobar", "foo"));
+  EXPECT_TRUE(string_util::contains("barrrrrrfoo", "foo"));
+  EXPECT_TRUE(string_util::contains("barrfoobazzz", "foo"));
+  EXPECT_FALSE(string_util::contains("foo", "Foo"));
+  EXPECT_FALSE(string_util::contains("foo", "bar"));
+}
+
+TEST(String, contains_ignore_case) {
+  EXPECT_TRUE(string_util::contains_ignore_case("fooooobar", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrrrrrfoo", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrfoobazzz", "foo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("fooooobar", "fOO"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrrrrrfoo", "FOo"));
+  EXPECT_TRUE(string_util::contains_ignore_case("barrfoobazzz", "FoO"));
+  EXPECT_TRUE(string_util::contains_ignore_case("foo", "Foo"));
+  EXPECT_FALSE(string_util::contains_ignore_case("foo", "bar"));
+  EXPECT_TRUE(string_util::contains_ignore_case("foo", ""));
+  EXPECT_FALSE(string_util::contains_ignore_case("", "bar"));
 }
 
 TEST(String, replace) {

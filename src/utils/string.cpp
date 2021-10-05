@@ -1,9 +1,9 @@
+#include "utils/string.hpp"
+
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <utility>
-
-#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -13,6 +13,13 @@ namespace string_util {
    */
   bool contains(const string& haystack, const string& needle) {
     return haystack.find(needle) != string::npos;
+  }
+
+  /**
+   * Check if haystack contains needle ignoring case
+   */
+  bool contains_ignore_case(const string& haystack, const string& needle) {
+    return lower(haystack).find(lower(needle)) != string::npos;
   }
 
   /**
@@ -294,8 +301,9 @@ namespace string_util {
   /**
    * Create a GiB string, if the value in GiB is >= 1.0. Otherwise, create a MiB string.
    */
-  string filesize_gib_mib(unsigned long long kibibytes, size_t precision_mib, size_t precision_gib, const string& locale) {
-    if(kibibytes < 1024 * 1024) {
+  string filesize_gib_mib(
+      unsigned long long kibibytes, size_t precision_mib, size_t precision_gib, const string& locale) {
+    if (kibibytes < 1024 * 1024) {
       return filesize_mib(kibibytes, precision_mib, locale);
     } else {
       return filesize_gib(kibibytes, precision_gib, locale);
