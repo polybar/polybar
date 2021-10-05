@@ -4,14 +4,6 @@
 
 using namespace polybar;
 
-TEST(String, contains) {
-  EXPECT_TRUE(string_util::contains("foo", "foo"));
-  EXPECT_TRUE(string_util::contains("foobar", "foo"));
-  EXPECT_TRUE(string_util::contains("foobar", "bar"));
-  EXPECT_FALSE(string_util::contains("foobar", "baz"));
-  EXPECT_FALSE(string_util::contains("foobAr", "bar"));
-}
-
 TEST(String, ends_with) {
   EXPECT_TRUE(string_util::ends_with("foo", "foo"));
   EXPECT_TRUE(string_util::ends_with("foobar", "bar"));
@@ -42,8 +34,13 @@ TEST(String, contains) {
   EXPECT_TRUE(string_util::contains("fooooobar", "foo"));
   EXPECT_TRUE(string_util::contains("barrrrrrfoo", "foo"));
   EXPECT_TRUE(string_util::contains("barrfoobazzz", "foo"));
+  EXPECT_TRUE(string_util::contains("foo", "foo"));
+  EXPECT_TRUE(string_util::contains("foobar", "foo"));
+  EXPECT_TRUE(string_util::contains("foobar", "bar"));
   EXPECT_FALSE(string_util::contains("foo", "Foo"));
   EXPECT_FALSE(string_util::contains("foo", "bar"));
+  EXPECT_FALSE(string_util::contains("foobar", "baz"));
+  EXPECT_FALSE(string_util::contains("foobAr", "bar"));
 }
 
 TEST(String, contains_ignore_case) {
