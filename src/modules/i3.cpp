@@ -50,6 +50,20 @@ namespace modules {
           make_pair(state::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
       m_statelabels.insert(
           make_pair(state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+
+      vector<string> monitors_focused = m_conf.get_list(name(), "label-monitors", vector<string>());
+      for (auto it = monitors_focused.begin(); it != monitors_focused.end(); it++) {
+        map<state, label_t> monitor_statelabels;
+            monitor_statelabels.insert(
+                make_pair(state::FOCUSED, load_optional_label(m_conf, name(), "label-" + *it + "-focused", DEFAULT_WS_LABEL)));
+            monitor_statelabels.insert(
+                make_pair(state::UNFOCUSED, load_optional_label(m_conf, name(), "label-" + *it + "-unfocused", DEFAULT_WS_LABEL)));
+            monitor_statelabels.insert(
+                make_pair(state::VISIBLE, load_optional_label(m_conf, name(), "label-" + *it + "-visible", DEFAULT_WS_LABEL)));
+            monitor_statelabels.insert(
+                make_pair(state::URGENT, load_optional_label(m_conf, name(), "label-" + *it + "-urgent", DEFAULT_WS_LABEL)));
+        m_monitor_statelabels.insert(make_pair(*it, monitor_statelabels));
+      }
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
@@ -166,6 +180,10 @@ namespace modules {
 
         auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
         auto label = m_statelabels.find(ws_state)->second->clone();
+        auto monitor_statelabels = m_monitor_statelabels.find(ws->output);
+        if (monitor_statelabels != m_monitor_statelabels.end()) {
+          label->replace_defined_values(monitor_statelabels->second.find(ws_state)->second);
+        }
 
         label->reset_tokens();
         label->replace_token("%output%", ws->output);
