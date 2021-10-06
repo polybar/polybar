@@ -26,10 +26,12 @@ config::make_type config_parser::parse() {
         if (m_barname.empty()) {
           m_barname = it.first.substr(strlen(config::BAR_PREFIX));
         } else {
-          throw application_error("no barname was given as parameter and many bars are defined in the configuration file. Either give a parameter or use a configuration file with only one bar");
+          throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " + string_util::join(get_bars(sections), ", "));
         }
       }
     }
+  } else if (sections.find("bar/" + m_barname) == sections.end()) {
+    throw application_error("Undefined bar: " + m_barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
   }
 
   /*
@@ -87,6 +89,21 @@ sectionmap_t config_parser::create_sectionmap() {
 
   return sections;
 }
+
+/**
+ * Get the bars declared
+ */
+vector<string> config_parser::get_bars(const sectionmap_t& sections) const {
+  vector<string> bars;
+  bars.resize(sections.size());
+  for (const auto& it : sections) {
+    if (it.first.find(config::BAR_PREFIX) == 0) {
+      bars.push_back(it.first.substr(strlen(config::BAR_PREFIX)));
+    }
+  }
+  return bars;
+}
+
 
 void config_parser::parse_file(const string& file, file_list path) {
   if (std::find(path.begin(), path.end(), file) != path.end()) {
