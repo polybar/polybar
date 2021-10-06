@@ -36,12 +36,16 @@ namespace modules {
 
     static constexpr auto EVENT_SEND = "send";
     static constexpr auto EVENT_HOOK = "hook";
-    static constexpr auto EVENT_APPEND = "append";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+    static constexpr auto EVENT_RESET = "reset";
 
    protected:
     void action_send(const string& data);
     void action_hook(const string& data);
-    void action_append(const string& data);
+    void action_next();
+    void action_prev();
+    void action_reset();
 
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
@@ -49,7 +53,8 @@ namespace modules {
     map<mousebtn, string> m_actions;
     string m_output;
     size_t m_initial;
-    void exec_hook(size_t index, callback<string> tail);
+    ssize_t m_current_hook;
+    void exec_hook();
   };
 }  // namespace modules
 
