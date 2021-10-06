@@ -98,10 +98,7 @@ int main(int argc, char** argv) {
     string confpath;
 
     // Make sure a bar name is passed in
-    if (!cli->has(0)) {
-      cli->usage();
-      return EXIT_FAILURE;
-    } else if (cli->has(1)) {
+    if (cli->has(1)) {
       fprintf(stderr, "Unrecognized argument \"%s\"\n", cli->get(1).c_str());
       cli->usage();
       return EXIT_FAILURE;
@@ -123,7 +120,12 @@ int main(int argc, char** argv) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config_parser parser{logger, move(confpath), cli->get(0)};
+    string barname;
+    if (cli->has(0)) {
+      barname = cli->get(0);
+    }
+
+    config_parser parser{logger, move(confpath), move(barname)};
     config::make_type conf = parser.parse();
 
     //==================================================

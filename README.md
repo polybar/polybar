@@ -152,7 +152,7 @@ your own configuration.
 
 #### Launch the example bar
 ~~~ sh
-$ polybar example
+$ polybar
 ~~~
 
 ### Running

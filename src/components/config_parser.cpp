@@ -20,8 +20,16 @@ config::make_type config_parser::parse() {
 
   sectionmap_t sections = create_sectionmap();
 
-  if (sections.find("bar/" + m_barname) == sections.end()) {
-    throw application_error("Undefined bar: " + m_barname);
+  if (m_barname.empty()) {
+    for (auto& it : sections) {
+      if (it.first.find(config::BAR_PREFIX) == 0) {
+        if (m_barname.empty()) {
+          m_barname = it.first.substr(strlen(config::BAR_PREFIX));
+        } else {
+          throw application_error("no barname was given as parameter and many bars are defined in the configuration file. Either give a parameter or use a configuration file with only one bar");
+        }
+      }
+    }
   }
 
   /*

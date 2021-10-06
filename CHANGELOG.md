@@ -159,6 +159,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased the double click interval from 150ms to 400ms.
 - Stop ignoring actions if they arrive while the previous one hasn't been processed yet.
   ([`#2469`](https://github.com/polybar/polybar/issues/2469))
+- Polybar can now be run without passing the bar name as argument given that 
+  the configuration file only defines one bar
+  ([`#2525`](https://github.com/polybar/polybar/issues/2525))
 
 ### Fixed
 - `custom/script`: Concurrency issues with fast-updating tailed scripts.
