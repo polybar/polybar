@@ -20,18 +20,23 @@ config::make_type config_parser::parse() {
 
   sectionmap_t sections = create_sectionmap();
 
+  vector<string> bars = get_bars(sections);
   if (m_barname.empty()) {
-    for (auto& it : sections) {
-      if (it.first.find(config::BAR_PREFIX) == 0) {
-        if (m_barname.empty()) {
-          m_barname = it.first.substr(strlen(config::BAR_PREFIX));
-        } else {
-          throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " + string_util::join(get_bars(sections), ", "));
-        }
-      }
+    if (bars.size() == 1) {
+      m_barname = bars[0];
+    } else if (bars.empty()) {
+      throw application_error("The config file contains no bar.");
+    } else {
+      throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " +
+                              string_util::join(bars, ", "));
     }
   } else if (sections.find("bar/" + m_barname) == sections.end()) {
-    throw application_error("Undefined bar: " + m_barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
+    if (bars.empty()) {
+      throw application_error("Undefined bar: " + m_barname + ". The config file contains no bar.");
+    } else {
+      throw application_error(
+          "Undefined bar: " + m_barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
+    }
   }
 
   /*
@@ -95,7 +100,6 @@ sectionmap_t config_parser::create_sectionmap() {
  */
 vector<string> config_parser::get_bars(const sectionmap_t& sections) const {
   vector<string> bars;
-  bars.resize(sections.size());
   for (const auto& it : sections) {
     if (it.first.find(config::BAR_PREFIX) == 0) {
       bars.push_back(it.first.substr(strlen(config::BAR_PREFIX)));
@@ -103,7 +107,6 @@ vector<string> config_parser::get_bars(const sectionmap_t& sections) const {
   }
   return bars;
 }
-
 
 void config_parser::parse_file(const string& file, file_list path) {
   if (std::find(path.begin(), path.end(), file) != path.end()) {
