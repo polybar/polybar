@@ -33,6 +33,8 @@ class config {
   const string& filepath() const;
   string section() const;
 
+  static constexpr const char* BAR_PREFIX = "bar/";
+
   /**
    * \brief Instruct the config to connect to the xresource manager
    */

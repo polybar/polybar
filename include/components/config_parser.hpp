@@ -215,6 +215,8 @@ class config_parser {
    */
   bool is_valid_name(const string& name);
 
+  vector<string> get_bars(const sectionmap_t& sections) const;
+
   /**
    * \brief Whether or not an xresource manager should be used
    *

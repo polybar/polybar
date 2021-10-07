@@ -31,7 +31,7 @@ const string& config::filepath() const {
  * Get the section name of the bar in use
  */
 string config::section() const {
-  return "bar/" + m_barname;
+  return BAR_PREFIX + m_barname;
 }
 
 void config::use_xrm() {
