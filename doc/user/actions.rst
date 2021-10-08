@@ -262,9 +262,9 @@ custom/ipc
 ^^^^^^^^^^
 
 :``send``: *(Has Data)* Replace the contents of the module with the data passed in this action.
-:``hook``: *(Has Data)* Trig a hook.
+:``hook``: *(Has Data)* Trigger the given hook.
 
-           The data is the 1-based index number of the hook to trig.
+           The data is the 0-based index of the hook to trigger.
 :``next``: Switches to the next hook and wrap around when the last hook was displayed.
 :``prev``: Switches to the previous hook and wrap around when the first hook was displayed.
 :``reset``: Reset the module to its startup state: either empty or according to the ``initial`` setting.

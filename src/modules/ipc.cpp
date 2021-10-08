@@ -136,11 +136,11 @@ namespace modules {
     try {
       int hook = std::stoi(data);
 
-      if (hook <= 0 || (size_t)hook > m_hooks.size()) {
+      if (hook < 0 || (size_t)hook >= m_hooks.size()) {
         throw module_error("Hook action received with an out of bounds hook '" + to_string(hook) +
-                           "'. Defined hooks goes from 1 to " + to_string(m_hooks.size()) + ")");
+                           "'. Defined hooks goes from 0 to " + to_string(m_hooks.size() - 1) + ")");
       }
-      m_current_hook = hook - 1;
+      m_current_hook = hook;
       this->exec_hook();
     } catch (const std::invalid_argument& err) {
       m_log.err("Failed to convert hook index to integer err: %s", err.what());
