@@ -136,7 +136,7 @@ namespace modules {
     try {
       int hook = std::stoi(data);
 
-      if (hook <= 0 || hook > m_hooks.size()) {
+      if (hook <= 0 || (size_t)hook > m_hooks.size()) {
         throw module_error("Hook action received with an out of bounds hook '" + to_string(hook) +
                            "'. Defined hooks goes from 1 to " + to_string(m_hooks.size()) + ")");
       }
