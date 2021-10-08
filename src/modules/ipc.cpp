@@ -14,7 +14,8 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)), m_current_hook(-1) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_)
+      : module<ipc_module>(bar, move(name_)), m_current_hook(-1) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
@@ -33,7 +34,8 @@ namespace modules {
     if (m_initial > 0 && m_initial <= m_hooks.size()) {
       m_current_hook = m_initial - 1;
     } else {
-      throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " + to_string(m_hooks.size()) + ")");
+      throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " +
+                         to_string(m_hooks.size()) + ")");
     }
 
     // clang-format off
@@ -117,7 +119,6 @@ namespace modules {
     for (size_t i = 0; i < m_hooks.size(); i++) {
       const auto& hook = m_hooks[i];
       if (hook->payload == message) {
-
         m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
         m_current_hook = i;
         this->exec_hook();
@@ -132,15 +133,16 @@ namespace modules {
   }
 
   void ipc_module::action_hook(const string& data) {
-    try{
+    try {
       int hook = std::stoi(data);
 
       if (hook <= 0 || hook > m_hooks.size()) {
-        throw module_error("Hook action received with an out of bounds hook '" + to_string(hook) + "'. Defined hooks goes from 1 to " + to_string(m_hooks.size()) + ")");
+        throw module_error("Hook action received with an out of bounds hook '" + to_string(hook) +
+                           "'. Defined hooks goes from 1 to " + to_string(m_hooks.size()) + ")");
       }
       m_current_hook = hook - 1;
       this->exec_hook();
-    }catch(const std::invalid_argument& err) {
+    } catch (const std::invalid_argument& err) {
       m_log.err("Failed to convert hook index to integer err: %s", err.what());
     }
   }
@@ -168,7 +170,7 @@ namespace modules {
     }
   }
 
-  void ipc_module::exec_hook(){
+  void ipc_module::exec_hook() {
     // Clear the output in case the command produces no output
     m_output.clear();
 
