@@ -15,7 +15,7 @@ namespace modules {
    * create formatting tags
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_)
-      : module<ipc_module>(bar, move(name_)), m_current_hook(-1) {
+      : module<ipc_module>(bar, move(name_)) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
@@ -30,13 +30,16 @@ namespace modules {
 
     m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
-    m_initial = m_conf.get(name(), "initial", 0_z);
-    if (m_initial > 0 && m_initial <= m_hooks.size()) {
-      m_current_hook = m_initial - 1;
+    if (m_conf.has(name(), "initial")) {
+      m_initial = m_conf.get<size_t>(name(), "initial");
+      if (m_initial >= m_hooks.size()) {
+        throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 0 to " +
+                          to_string(m_hooks.size() - 1) + ")");
+      }
     } else {
-      throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " +
-                         to_string(m_hooks.size()) + ")");
+      m_initial = m_hooks.size();
     }
+    m_current_hook = m_initial;
 
     // clang-format off
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
@@ -71,12 +74,11 @@ namespace modules {
       broadcast();
     });
 
-    if (m_initial) {
+    if (m_current_hook != m_hooks.size()) {
       // TODO do this in a thread.
-      auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks.at(m_initial - 1)->command);
-      command->exec(false);
-      command->tail([this](string line) { m_output = line; });
+      exec_hook();
     }
+
   }
 
   /**
@@ -122,7 +124,7 @@ namespace modules {
         m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
         m_current_hook = i;
         this->exec_hook();
-        break;
+        return;
       }
     }
   }
@@ -148,7 +150,11 @@ namespace modules {
   }
 
   void ipc_module::action_next() {
-    m_current_hook = (m_current_hook + 1) % m_hooks.size();
+    if (m_current_hook == m_hooks.size()) {
+      m_current_hook = 0;
+    } else {
+      m_current_hook = (m_current_hook + 1) % m_hooks.size();
+    }
     this->exec_hook();
   }
 
@@ -161,10 +167,11 @@ namespace modules {
   }
 
   void ipc_module::action_reset() {
-    if (m_initial != 0) {
-      m_current_hook = m_initial - 1;
+    if (m_initial != m_hooks.size()) {
+      m_current_hook = m_initial;
       this->exec_hook();
     } else {
+      m_current_hook = m_hooks.size();
       m_output.clear();
       broadcast();
     }
@@ -180,7 +187,6 @@ namespace modules {
       command->tail([this](string line) { m_output = line; });
     } catch (const exception& err) {
       m_log.err("%s: Failed to execute hook command (err: %s)", name(), err.what());
-      m_output.clear();
     }
 
     broadcast();

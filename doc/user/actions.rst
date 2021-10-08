@@ -261,6 +261,8 @@ custom/menu
 custom/ipc
 ^^^^^^^^^^
 
+.. versionadded:: 3.6.0
+
 :``send``: *(Has Data)* Replace the contents of the module with the data passed in this action.
 :``hook``: *(Has Data)* Trigger the given hook.
 
@@ -269,7 +271,6 @@ custom/ipc
 :``prev``: Switches to the previous hook and wrap around when the first hook was displayed.
 :``reset``: Reset the module to its startup state: either empty or according to the ``initial`` setting.
 
-  .. versionadded:: 3.6.0
 
 Deprecated Action Names
 -----------------------

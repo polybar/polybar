@@ -53,7 +53,7 @@ namespace modules {
     map<mousebtn, string> m_actions;
     string m_output;
     size_t m_initial;
-    ssize_t m_current_hook;
+    size_t m_current_hook;
     void exec_hook();
   };
 }  // namespace modules
