@@ -14,8 +14,7 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_)
-      : module<ipc_module>(bar, move(name_)) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)), m_initial(0) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
@@ -31,15 +30,16 @@ namespace modules {
     m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
     if (m_conf.has(name(), "initial")) {
-      m_initial = m_conf.get<size_t>(name(), "initial");
-      if (m_initial >= m_hooks.size()) {
-        throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 0 to " +
-                          to_string(m_hooks.size() - 1) + ")");
+      m_initial = m_conf.get(name(), "initial", 0_z);
+      if (m_initial > 0 && m_initial <= m_hooks.size()) {
+        m_current_hook = m_initial - 1;
+      } else {
+        throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " +
+                           to_string(m_hooks.size()) + ")");
       }
     } else {
-      m_initial = m_hooks.size();
+      m_current_hook = m_hooks.size();
     }
-    m_current_hook = m_initial;
 
     // clang-format off
     m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
@@ -74,11 +74,10 @@ namespace modules {
       broadcast();
     });
 
-    if (m_current_hook != m_hooks.size()) {
+    if (m_initial != 0) {
       // TODO do this in a thread.
       exec_hook();
     }
-
   }
 
   /**
@@ -124,7 +123,7 @@ namespace modules {
         m_log.info("%s: Found matching hook (%s)", name(), hook->payload);
         m_current_hook = i;
         this->exec_hook();
-        return;
+        break;
       }
     }
   }
@@ -139,17 +138,21 @@ namespace modules {
       int hook = std::stoi(data);
 
       if (hook < 0 || (size_t)hook >= m_hooks.size()) {
-        throw module_error("Hook action received with an out of bounds hook '" + to_string(hook) +
-                           "'. Defined hooks goes from 0 to " + to_string(m_hooks.size() - 1) + ")");
+        m_log.err("%s: Hook action received with an out of bounds hook '%s'. Defined hooks goes from 0 to %zu.", name(),
+            data, m_hooks.size() - 1);
+      } else {
+        m_current_hook = hook;
+        this->exec_hook();
       }
-      m_current_hook = hook;
-      this->exec_hook();
     } catch (const std::invalid_argument& err) {
-      m_log.err("Failed to convert hook index to integer err: %s", err.what());
+      m_log.err(
+          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to %zu.",
+          name(), data, m_hooks.size() - 1);
     }
   }
 
   void ipc_module::action_next() {
+    // this is the case where initial is not defined on first 'next'
     if (m_current_hook == m_hooks.size()) {
       m_current_hook = 0;
     } else {
@@ -167,8 +170,8 @@ namespace modules {
   }
 
   void ipc_module::action_reset() {
-    if (m_initial != m_hooks.size()) {
-      m_current_hook = m_initial;
+    if (m_initial != 0) {
+      m_current_hook = m_initial - 1;
       this->exec_hook();
     } else {
       m_current_hook = m_hooks.size();
@@ -187,6 +190,7 @@ namespace modules {
       command->tail([this](string line) { m_output = line; });
     } catch (const exception& err) {
       m_log.err("%s: Failed to execute hook command (err: %s)", name(), err.what());
+      m_output.clear();
     }
 
     broadcast();
