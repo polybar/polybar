@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and others will now start producing errors.
   This does not affect you unless you are producing your own formatting tags
   (for example in a script) and you are using one of these invalid tags.
+- We updated the hook index handling of the ipc module to be 0-based. This means
+  that now when you're refering to a hook index, you have to use the index
+  defined in the configuration file without adding 1. Places where you would have
+  refered to a hook index are:
+  - the definition of `initial` in the configuration file
+  - when sending messages to the ipc module either with `echo` or `polybar-msg`.
+    For example when defining `click-*` mouse actions in the configuration file.
 
 ### Build
 - New dependency: [libuv](https://github.com/libuv/libuv). At least version 1.3
