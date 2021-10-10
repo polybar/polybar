@@ -29,9 +29,9 @@ namespace modules {
 
     m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
-    if (m_conf.has(name(), "initial")) {
-      m_initial = m_conf.get(name(), "initial", 0_z);
-      if (m_initial > 0 && m_initial <= m_hooks.size()) {
+    m_initial = m_conf.get(name(), "initial", 0_z);
+    if (m_conf.has(name(), "initial") && m_initial != 0) {
+      if (m_initial <= m_hooks.size()) {
         m_current_hook = m_initial - 1;
       } else {
         throw module_error("Initial hook out of bounds '" + to_string(m_initial) + "'. Defined hooks goes from 1 to " +
