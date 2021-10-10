@@ -15,7 +15,7 @@ are awesome! :tada:
 ## Bug Reports
 
 Bugs should be reported at the polybar issue tracker, using the [bug report
-template](https://github.com/polybar/polybar/issues/new?template=bug_report.md).
+template](https://github.com/polybar/polybar/issues/new?template=bug_report.yml).
 Make sure you fill out all the required sections.
 
 Before opening a bug report, please search our [issue
