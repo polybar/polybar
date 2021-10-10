@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-
+labels: feature, needs confirmation
 ---
 
 ## Is your feature request related to a problem? Please describe.
