@@ -41,9 +41,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
                        signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(unique_ptr<ipc>&& ipc);
+  static make_type make(unique_ptr<ipc>&&, eventloop&);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<ipc>&&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<ipc>&&, eventloop&);
   ~controller();
 
   bool run(bool writeback, string snapshot_dst, bool confwatch);
@@ -99,14 +99,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   signal_emitter& m_sig;
   const logger& m_log;
   const config& m_conf;
-  unique_ptr<eventloop> m_loop;
+  eventloop& m_loop;
   unique_ptr<bar> m_bar;
   unique_ptr<ipc> m_ipc;
-
-  /**
-   * Once this is set to true, 'm_loop' and any uv handles can be used.
-   */
-  std::atomic_bool m_loop_ready{false};
 
   /**
    * \brief Async handle to notify the eventloop

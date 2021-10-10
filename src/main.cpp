@@ -58,6 +58,8 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
 
+    unique_ptr<eventloop> loop = make_unique<eventloop>();
+
     //==================================================
     // Connect to X server
     //==================================================
@@ -135,8 +137,7 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      eventloop loop{};
-      printf("%s\n", bar::make(loop, true)->settings().wmname.c_str());
+      printf("%s\n", bar::make(*loop, true)->settings().wmname.c_str());
       return EXIT_SUCCESS;
     }
 
@@ -149,7 +150,7 @@ int main(int argc, char** argv) {
       ipc = ipc::make();
     }
 
-    auto ctrl = controller::make(move(ipc));
+    auto ctrl = controller::make(move(ipc), *loop);
 
     if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;

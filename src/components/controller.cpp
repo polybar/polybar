@@ -30,28 +30,30 @@ POLYBAR_NS
 /**
  * Build controller instance
  */
-controller::make_type controller::make(unique_ptr<ipc>&& ipc) {
+controller::make_type controller::make(unique_ptr<ipc>&& ipc, eventloop& loop) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config::make(), forward<decltype(ipc)>(ipc));
+      connection::make(), signal_emitter::make(), logger::make(), config::make(), forward<decltype(ipc)>(ipc), loop);
 }
 
 /**
  * Construct controller
  */
-controller::controller(
-    connection& conn, signal_emitter& emitter, const logger& logger, const config& config, unique_ptr<ipc>&& ipc)
+controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
+    unique_ptr<ipc>&& ipc, eventloop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
-    , m_loop(make_unique<eventloop>())
-    , m_bar(bar::make(*m_loop))
+    , m_loop(loop)
+    , m_bar(bar::make(m_loop))
     , m_ipc(forward<decltype(ipc)>(ipc)) {
   m_conf.ignore_key("settings", "throttle-input-for");
   m_conf.ignore_key("settings", "throttle-output");
   m_conf.ignore_key("settings", "throttle-output-for");
   m_conf.ignore_key("settings", "eventqueue-swallow");
   m_conf.ignore_key("settings", "eventqueue-swallow-time");
+
+  m_notifier = m_loop.async_handle([this]() { notifier_handler(); });
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
@@ -153,14 +155,12 @@ void controller::trigger_update(bool force) {
 }
 
 void controller::trigger_notification() {
-  if (m_loop_ready) {
-    m_notifier->send();
-  }
+  m_notifier->send();
 }
 
 void controller::stop(bool reload) {
   update_reload(reload);
-  m_loop->stop();
+  m_loop.stop();
 }
 
 void controller::conn_cb(uv_poll_event) {
@@ -210,8 +210,7 @@ void controller::notifier_handler() {
   }
 
   if (data.quit) {
-    update_reload(data.reload);
-    m_loop->stop();
+    stop(data.reload);
     return;
   }
 
@@ -239,22 +238,22 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    m_loop->poll_handle(
+    m_loop.poll_handle(
         UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
         [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      m_loop->signal_handle(s, [this](int signum) { signal_handler(signum); });
+      m_loop.signal_handle(s, [this](int signum) { signal_handler(signum); });
     }
 
     if (confwatch) {
-      m_loop->fs_event_handle(
+      m_loop.fs_event_handle(
           m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
           [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
     }
 
     if (m_ipc) {
-      m_loop->named_pipe_handle(
+      m_loop.named_pipe_handle(
           m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
           [this]() { m_ipc->receive_eof(); },
           [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
@@ -262,12 +261,8 @@ void controller::read_events(bool confwatch) {
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      m_loop->timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
+      m_loop.timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
     }
-
-    m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
-
-    m_loop_ready = true;
 
     if (!m_writeback) {
       m_bar->start();
@@ -278,16 +273,13 @@ void controller::read_events(bool confwatch) {
      */
     trigger_update(true);
 
-    m_loop->run();
+    m_loop.run();
   } catch (const exception& err) {
     m_log.err("Fatal Error in eventloop: %s", err.what());
     stop(false);
   }
 
   m_log.info("Eventloop finished");
-
-  m_loop_ready = false;
-  m_loop.reset();
 }
 
 /**
