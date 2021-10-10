@@ -132,6 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#1441`](https://github.com/polybar/polybar/issues/1441))
 - `internal/xkeyboard`: Allow configuring icons using variant
   ([`#2414`](https://github.com/polybar/polybar/issues/2414))
+- `custom/ipc`: Add `hook`, `next`, `prev`, `reset` actions to the ipc module
+  ([`#2464`](https://github.com/polybar/polybar/issues/2464))
 
 ### Changed
 - Polybar now also reads `config.ini` when searching for config files.
