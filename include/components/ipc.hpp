@@ -27,22 +27,24 @@ class ipc {
   explicit ipc(signal_emitter& emitter, const logger& logger, eventloop& loop);
   ~ipc();
 
-  string get_path() const;
-
-  void receive_data(string buf);
-  void receive_eof();
+ protected:
+  void trigger_ipc(const string& msg);
 
  private:
   signal_emitter& m_sig;
   const logger& m_log;
   eventloop& m_loop;
 
-  string m_path{};
+  // Named pipe properties (deprecated)
+
+  string m_pipe_path{};
 
   /**
-   * Buffer for the currently received IPC message.
+   * Buffer for the currently received IPC message over the named pipe
    */
-  string m_buffer{};
+  string m_pipe_buffer{};
+  void receive_data(string buf);
+  void receive_eof();
 };
 
 POLYBAR_NS_END
