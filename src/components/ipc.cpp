@@ -24,14 +24,15 @@ static constexpr const char* ipc_action_prefix{"action:"};
 /**
  * Create instance
  */
-ipc::make_type ipc::make(eventloop& loop) {
+ipc::make_type ipc::make(eventloop::eventloop& loop) {
   return std::make_unique<ipc>(signal_emitter::make(), logger::make(), loop);
 }
 
 /**
  * Construct ipc handler
  */
-ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop& loop) : m_sig(emitter), m_log(logger), m_loop(loop) {
+ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop)
+    : m_sig(emitter), m_log(logger), m_loop(loop) {
   m_pipe_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
   if (file_util::exists(m_pipe_path) && unlink(m_pipe_path.c_str()) == -1) {
@@ -43,7 +44,8 @@ ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop& loop) : m_sig
   m_log.info("Created ipc channel at: %s", m_pipe_path);
 
   m_loop.named_pipe_handle(
-      m_pipe_path, [this](const string payload) { receive_data(payload); }, [this]() { receive_eof(); },
+      m_pipe_path, [this](const char* buf, size_t size) { receive_data(string(buf, size)); },
+      [this]() { receive_eof(); },
       [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
 }
 

@@ -40,9 +40,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
                        signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(bool has_ipc, eventloop&);
+  static make_type make(bool has_ipc, eventloop::eventloop&);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config&, bool has_ipc, eventloop&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, bool has_ipc, eventloop::eventloop&);
   ~controller();
 
   bool run(bool writeback, string snapshot_dst, bool confwatch);
@@ -98,7 +98,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   signal_emitter& m_sig;
   const logger& m_log;
   const config& m_conf;
-  eventloop& m_loop;
+  eventloop::eventloop& m_loop;
   unique_ptr<bar> m_bar;
   bool m_has_ipc;
 
@@ -108,7 +108,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
    * E.g. click actions.
    */
-  AsyncHandle_t m_notifier{nullptr};
+  eventloop::AsyncHandle_t m_notifier{nullptr};
 
   /**
    * Notification data for the controller.

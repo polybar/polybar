@@ -36,7 +36,7 @@ using namespace signals::ui;
 /**
  * Create instance
  */
-bar::make_type bar::make(eventloop& loop, bool only_initialize_values) {
+bar::make_type bar::make(eventloop::eventloop& loop, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
@@ -59,9 +59,9 @@ bar::make_type bar::make(eventloop& loop, bool only_initialize_values) {
  *
  * TODO: Break out all tray handling
  */
-bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, eventloop& loop,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
+bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
+    eventloop::eventloop& loop, unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager,
+    unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
@@ -737,7 +737,7 @@ void bar::handle(const evt::button_press& evt) {
    * the configured interval and if in that time another click arrives, we
    * need to trigger a double click.
    */
-  const auto check_double = [this](TimerHandle_t handle, mousebtn btn, int pos) {
+  const auto check_double = [this](eventloop::TimerHandle_t handle, mousebtn btn, int pos) {
     if (!handle->is_active()) {
       handle->start(m_opts.double_click_interval, 0, [=]() { trigger_click(btn, pos); });
     } else {

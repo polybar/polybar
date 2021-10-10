@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
 
-    unique_ptr<eventloop> loop = make_unique<eventloop>();
+    unique_ptr<eventloop::eventloop> loop = make_unique<eventloop::eventloop>();
 
     //==================================================
     // Connect to X server

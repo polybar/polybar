@@ -30,7 +30,7 @@ POLYBAR_NS
 /**
  * Build controller instance
  */
-controller::make_type controller::make(bool has_ipc, eventloop& loop) {
+controller::make_type controller::make(bool has_ipc, eventloop::eventloop& loop) {
   return std::make_unique<controller>(
       connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
 }
@@ -39,7 +39,7 @@ controller::make_type controller::make(bool has_ipc, eventloop& loop) {
  * Construct controller
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    bool has_ipc, eventloop& loop)
+    bool has_ipc, eventloop::eventloop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)

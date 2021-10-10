@@ -22,9 +22,9 @@ class logger;
 class ipc {
  public:
   using make_type = unique_ptr<ipc>;
-  static make_type make(eventloop& loop);
+  static make_type make(eventloop::eventloop& loop);
 
-  explicit ipc(signal_emitter& emitter, const logger& logger, eventloop& loop);
+  explicit ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop);
   ~ipc();
 
  protected:
@@ -33,7 +33,7 @@ class ipc {
  private:
   signal_emitter& m_sig;
   const logger& m_log;
-  eventloop& m_loop;
+  eventloop::eventloop& m_loop;
 
   // Named pipe properties (deprecated)
 
