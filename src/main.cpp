@@ -144,10 +144,10 @@ int main(int argc, char** argv) {
     //==================================================
     // Create controller and run application
     //==================================================
-    unique_ptr<ipc> ipc{};
+    unique_ptr<ipc::ipc> ipc{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
-      ipc = ipc::make(*loop);
+      ipc = ipc::ipc::make(*loop);
     }
 
     auto ctrl = controller::make((bool)ipc, *loop);

@@ -14,6 +14,8 @@
 
 POLYBAR_NS
 
+namespace ipc {
+
 /**
  * Message types
  */
@@ -47,6 +49,11 @@ ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& lo
       m_pipe_path, [this](const char* buf, size_t size) { receive_data(string(buf, size)); },
       [this]() { receive_eof(); },
       [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
+
+  // TODO socket path
+  socket = m_loop.socket_handle(
+      "test.sock", 4, [this]() { on_connection(); },
+      [this](int err) { m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(err)); });
 }
 
 /**
@@ -71,6 +78,17 @@ void ipc::trigger_ipc(const string& msg) {
   }
 }
 
+void ipc::on_connection() {
+  // TODO
+  m_log.notice("New connection");
+  auto ipc_client = make_shared<client>(logger::make(), *socket, m_loop.pipe_handle());
+  clients.insert(ipc_client);
+  ipc_client->start();
+
+  // TODO
+  m_log.notice("%d open clients", clients.size());
+}
+
 /**
  * Receive parts of an IPC message
  */
@@ -90,6 +108,7 @@ void ipc::receive_eof() {
 
   trigger_ipc(string_util::trim(std::move(m_pipe_buffer), '\n'));
   m_pipe_buffer.clear();
+}
 }
 
 POLYBAR_NS_END

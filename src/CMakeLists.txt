@@ -65,6 +65,7 @@ if(BUILD_LIBPOLY)
     ${src_dir}/components/config_parser.cpp
     ${src_dir}/components/controller.cpp
     ${src_dir}/components/ipc.cpp
+    ${src_dir}/components/ipc_client.cpp
     ${src_dir}/components/logger.cpp
     ${src_dir}/components/renderer.cpp
     ${src_dir}/components/screen.cpp
