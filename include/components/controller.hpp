@@ -25,7 +25,6 @@ class bar;
 class config;
 class connection;
 class inotify_watch;
-class ipc;
 class logger;
 class signal_emitter;
 namespace modules {
@@ -41,9 +40,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
                        signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(unique_ptr<ipc>&&, eventloop&);
+  static make_type make(bool has_ipc, eventloop&);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<ipc>&&, eventloop&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, bool has_ipc, eventloop&);
   ~controller();
 
   bool run(bool writeback, string snapshot_dst, bool confwatch);
@@ -101,7 +100,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   const config& m_conf;
   eventloop& m_loop;
   unique_ptr<bar> m_bar;
-  unique_ptr<ipc> m_ipc;
+  bool m_has_ipc;
 
   /**
    * \brief Async handle to notify the eventloop

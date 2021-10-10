@@ -147,10 +147,10 @@ int main(int argc, char** argv) {
     unique_ptr<ipc> ipc{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
-      ipc = ipc::make();
+      ipc = ipc::make(*loop);
     }
 
-    auto ctrl = controller::make(move(ipc), *loop);
+    auto ctrl = controller::make((bool)ipc, *loop);
 
     if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;

@@ -30,23 +30,23 @@ POLYBAR_NS
 /**
  * Build controller instance
  */
-controller::make_type controller::make(unique_ptr<ipc>&& ipc, eventloop& loop) {
+controller::make_type controller::make(bool has_ipc, eventloop& loop) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config::make(), forward<decltype(ipc)>(ipc), loop);
+      connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
 }
 
 /**
  * Construct controller
  */
 controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    unique_ptr<ipc>&& ipc, eventloop& loop)
+    bool has_ipc, eventloop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
     , m_loop(loop)
     , m_bar(bar::make(m_loop))
-    , m_ipc(forward<decltype(ipc)>(ipc)) {
+    , m_has_ipc(has_ipc) {
   m_conf.ignore_key("settings", "throttle-input-for");
   m_conf.ignore_key("settings", "throttle-output");
   m_conf.ignore_key("settings", "throttle-output-for");
@@ -250,13 +250,6 @@ void controller::read_events(bool confwatch) {
       m_loop.fs_event_handle(
           m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
           [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
-    }
-
-    if (m_ipc) {
-      m_loop.named_pipe_handle(
-          m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
-          [this]() { m_ipc->receive_eof(); },
-          [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
     }
 
     if (!m_snapshot_dst.empty()) {
@@ -591,7 +584,7 @@ size_t controller::setup_modules(alignment align) {
     try {
       auto type = m_conf.get("module/" + module_name, "type");
 
-      if (type == ipc_module::TYPE && !m_ipc) {
+      if (type == ipc_module::TYPE && !m_has_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");
       }
 

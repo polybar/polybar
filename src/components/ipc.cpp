@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "components/eventloop.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
@@ -23,14 +24,14 @@ static constexpr const char* ipc_action_prefix{"action:"};
 /**
  * Create instance
  */
-ipc::make_type ipc::make() {
-  return std::make_unique<ipc>(signal_emitter::make(), logger::make());
+ipc::make_type ipc::make(eventloop& loop) {
+  return std::make_unique<ipc>(signal_emitter::make(), logger::make(), loop);
 }
 
 /**
  * Construct ipc handler
  */
-ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(logger) {
+ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop& loop) : m_sig(emitter), m_log(logger), m_loop(loop) {
   m_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
   if (file_util::exists(m_path) && unlink(m_path.c_str()) == -1) {
@@ -40,6 +41,10 @@ ipc::ipc(signal_emitter& emitter, const logger& logger) : m_sig(emitter), m_log(
     throw system_error("Failed to create ipc channel");
   }
   m_log.info("Created ipc channel at: %s", m_path);
+
+  m_loop.named_pipe_handle(
+      get_path(), [this](const string payload) { receive_data(payload); }, [this]() { receive_eof(); },
+      [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
 }
 
 /**

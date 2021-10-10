@@ -3,6 +3,7 @@
 #include <uv.h>
 
 #include "common.hpp"
+#include "components/eventloop.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
 
@@ -21,9 +22,9 @@ class logger;
 class ipc {
  public:
   using make_type = unique_ptr<ipc>;
-  static make_type make();
+  static make_type make(eventloop& loop);
 
-  explicit ipc(signal_emitter& emitter, const logger& logger);
+  explicit ipc(signal_emitter& emitter, const logger& logger, eventloop& loop);
   ~ipc();
 
   string get_path() const;
@@ -34,6 +35,7 @@ class ipc {
  private:
   signal_emitter& m_sig;
   const logger& m_log;
+  eventloop& m_loop;
 
   string m_path{};
 
