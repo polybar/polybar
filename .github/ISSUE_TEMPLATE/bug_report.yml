@@ -33,7 +33,7 @@ body:
     id: config
     attributes:
       label: Minimal config
-      description: Any steps to take and commands to run to reproduce this issue.
+      description: A minimal but complete config with which the problem occurs.
       render: dosini
       placeholder: |
         [bar/example]
