@@ -35,6 +35,7 @@ namespace ipc {
     void trigger_ipc(const string& msg);
 
     void on_connection();
+    void remove_client(std::weak_ptr<eventloop::PipeHandle>);
 
    private:
     signal_emitter& m_sig;
@@ -42,7 +43,7 @@ namespace ipc {
     eventloop::eventloop& m_loop;
 
     eventloop::SocketHandle_t socket;
-    std::set<std::pair<shared_ptr<client>, eventloop::PipeHandle_t>> clients;
+    std::map<eventloop::PipeHandle_t, shared_ptr<client>> clients;
 
     // Named pipe properties (deprecated)
 

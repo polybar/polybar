@@ -83,30 +83,37 @@ namespace ipc {
     m_log.notice("New connection");
     auto ipc_client = make_shared<client>(logger::make());
     auto client_pipe = m_loop.pipe_handle();
-    clients.emplace(ipc_client, client_pipe);
+    clients.emplace(client_pipe, ipc_client);
 
     socket->accept(*client_pipe);
 
+    /*
+     * We need a weak_ptr here because otherwise, client_pipe would hold a
+     * lambda that captures itself which could never get deleted.
+     */
+    auto weak_pipe = std::weak_ptr<eventloop::PipeHandle>(client_pipe);
+
     client_pipe->start(
-        [ipc_client, client_pipe](const char* data, size_t size) {
+        [this, ipc_client, weak_pipe](const char* data, size_t size) {
           bool success = ipc_client->on_read(data, size);
           if (!success) {
-            // TODO close pipe and remove client
-            client_pipe->close();
+            remove_client(weak_pipe);
           }
         },
-        [this, client_pipe]() {
-          // TODO close pipe and remove client
-          client_pipe->close();
-        },
-        [this, client_pipe](int err) {
-          // TODO close pipe and remove client
-          m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(err));
-          client_pipe->close();
+        [this, weak_pipe]() { remove_client(weak_pipe); },
+        [this, weak_pipe](int err) {
+          m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(err));
+          remove_client(weak_pipe);
         });
 
     // TODO
     m_log.notice("%d open clients", clients.size());
+  }
+
+  void ipc::remove_client(std::weak_ptr<eventloop::PipeHandle> pipe) {
+    auto shared = pipe.lock();
+    shared->close();
+    clients.erase(shared);
   }
 
   /**

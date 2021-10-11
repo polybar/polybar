@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/ipc.hpp"
 #include "components/types.hpp"
 #include "utils/functional.hpp"
 
