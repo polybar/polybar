@@ -161,7 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased the double click interval from 150ms to 400ms.
 - Stop ignoring actions if they arrive while the previous one hasn't been processed yet.
   ([`#2469`](https://github.com/polybar/polybar/issues/2469))
-- Polybar can now be run without passing the bar name as argument given that 
+- Polybar can now be run without passing the bar name as argument given that
   the configuration file only defines one bar
   ([`#2525`](https://github.com/polybar/polybar/issues/2525))
 
@@ -182,8 +182,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2371`](https://github.com/polybar/polybar/issues/2371))
 - `polybar -m` used to show both physical outputs and randr monitors, even if the outputs were covered by monitors.
   ([`#2481`](https://github.com/polybar/polybar/issues/2481))
-- `internal/xworkspaces`: Broken scroll-wrapping and order of workspaces when scrolling
-  ([`#2491`](https://github.com/polybar/polybar/issues/2491))
+- `internal/xworkspaces`:
+  - Broken scroll-wrapping and order of workspaces when scrolling
+    ([`#2491`](https://github.com/polybar/polybar/issues/2491))
+  - Module would error if WM was not full started up.
+    ([`#1915`](https://github.com/polybar/polybar/issues/1915))
 
 ## [3.5.7] - 2021-09-21
 ### Fixed
