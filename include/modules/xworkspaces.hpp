@@ -86,7 +86,6 @@ namespace modules {
     ewmh_connection_t m_ewmh;
 
     vector<monitor_t> m_monitors;
-    bool m_monitorsupport{true};
 
     vector<string> m_desktop_names;
     vector<bool> m_urgent_desktops;

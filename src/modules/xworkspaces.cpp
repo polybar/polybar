@@ -50,11 +50,6 @@ namespace modules {
       throw module_error("Failed to initialize ewmh atoms");
     }
 
-    // Check if the WM supports _NET_DESKTOP_VIEWPORT
-    if (!(m_monitorsupport = ewmh_util::supports(m_ewmh->_NET_DESKTOP_VIEWPORT)) && m_pinworkspaces) {
-      throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
-    }
-
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
 
@@ -194,10 +189,7 @@ namespace modules {
      * We use this to map workspaces to viewports, desktop i is at position
      * ws_positions[i].
      */
-    vector<position> ws_positions;
-    if (m_monitorsupport) {
-      ws_positions = ewmh_util::get_desktop_viewports();
-    }
+    vector<position> ws_positions = ewmh_util::get_desktop_viewports();
 
     /*
      * Not all desktops were assigned a viewport, add (0, 0) for all missing
