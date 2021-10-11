@@ -7,25 +7,10 @@ POLYBAR_NS
 
 namespace ipc {
 
-  client::client(const logger& logger, eventloop::SocketHandle& socket, eventloop::PipeHandle_t pipe)
-      : m_log(logger), server(socket), client_pipe(pipe) {}
+  client::client(const logger& logger) : m_log(logger) {}
 
-  void client::start() {
-    server.accept(*client_pipe);
-
-    client_pipe->start([this](const char* data, size_t size) { on_read(data, size); }, [this]() { on_eof(); },
-        [this](int err) {
-          state = client_state::ERR;
-          m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(err));
-          stop();
-        });
-  }
-
-  void client::on_read(const char* data, size_t size) {
-    if (state != client_state::WAIT && state != client_state::READ) {
-      return;
-    }
-
+  bool client::on_read(const char* data, size_t size) {
+    // TODO
     m_log.notice("Received %d bytes", size);
 
     size_t buf_pos = 0;
@@ -36,8 +21,7 @@ namespace ipc {
         ssize_t num_read = process_header_data(data + buf_pos, remain);
 
         if (num_read < 0) {
-          stop();
-          return;
+          return false;
         }
 
         assert(num_read > 0);
@@ -50,8 +34,7 @@ namespace ipc {
         ssize_t num_read = process_msg_data(data + buf_pos, remain);
 
         if (num_read < 0) {
-          stop();
-          return;
+          return false;
         }
 
         assert(num_read > 0);
@@ -61,6 +44,8 @@ namespace ipc {
         remain -= num_read;
       }
     }
+
+    return true;
   }
 
   /**
@@ -135,17 +120,6 @@ namespace ipc {
     }
 
     return num_read;
-  }
-
-  void client::on_eof() {
-    state = client_state::DONE;
-    m_log.notice("Received EOF");
-    stop();
-  }
-
-  void client::stop() {
-    client_pipe->close();
-    // TODO remove pipe
   }
 }  // namespace ipc
 POLYBAR_NS_END
