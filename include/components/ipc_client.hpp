@@ -15,6 +15,7 @@ namespace ipc {
     client(const logger&);
 
     bool on_read(const char* buf, size_t size);
+    void close();
 
    protected:
     ssize_t process_header_data(const char*, size_t size);
@@ -32,6 +33,7 @@ namespace ipc {
       WAIT,
       // Waiting for message data
       READ,
+      CLOSED,
     } state{client_state::WAIT};
     const logger& m_log;
   };

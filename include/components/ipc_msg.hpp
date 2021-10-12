@@ -17,7 +17,7 @@ namespace ipc {
 
   union header {
     struct header_data {
-      char magic[MAGIC_SIZE];
+      uint8_t magic[MAGIC_SIZE];
       /**
        * Version number of the message format.
        */
@@ -27,7 +27,7 @@ namespace ipc {
        */
       uint32_t size;
     } __attribute__((packed)) s;
-    char d[sizeof(header_data)];
+    uint8_t d[sizeof(header_data)];
   };
 
   static constexpr size_t HEADER_SIZE = sizeof(header);

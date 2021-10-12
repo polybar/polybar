@@ -10,6 +10,10 @@ namespace ipc {
   client::client(const logger& logger) : m_log(logger) {}
 
   bool client::on_read(const char* data, size_t size) {
+    if (state == client_state::CLOSED) {
+      return false;
+    }
+
     // TODO
     m_log.notice("Received %d bytes", size);
 
@@ -21,6 +25,7 @@ namespace ipc {
         ssize_t num_read = process_header_data(data + buf_pos, remain);
 
         if (num_read < 0) {
+          close();
           return false;
         }
 
@@ -34,6 +39,7 @@ namespace ipc {
         ssize_t num_read = process_msg_data(data + buf_pos, remain);
 
         if (num_read < 0) {
+          close();
           return false;
         }
 
@@ -46,6 +52,10 @@ namespace ipc {
     }
 
     return true;
+  }
+
+  void client::close() {
+    state = client_state::CLOSED;
   }
 
   /**
