@@ -1,8 +1,9 @@
 #include "components/ipc.hpp"
 
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include <cassert>
 
 #include "components/eventloop.hpp"
 #include "components/logger.hpp"
@@ -81,11 +82,7 @@ namespace ipc {
   void ipc::on_connection() {
     // TODO
     m_log.notice("New connection");
-    auto ipc_client = make_shared<client>(logger::make());
     auto client_pipe = m_loop.pipe_handle();
-    clients.emplace(client_pipe, ipc_client);
-
-    socket->accept(*client_pipe);
 
     /*
      * We need a weak_ptr here because otherwise, client_pipe would hold a
@@ -93,9 +90,21 @@ namespace ipc {
      */
     auto weak_pipe = std::weak_ptr<eventloop::PipeHandle>(client_pipe);
 
+    auto ipc_client = make_shared<client>(logger::make(), [this](uint8_t version, const vector<uint8_t>& msg) {
+      // Right now, the ipc_client only accepts a single version
+      assert(version == VERSION);
+      string str;
+      str.insert(str.end(), msg.begin(), msg.end());
+      trigger_ipc(str);
+      // TODO writeback success/error message
+    });
+
+    clients.emplace(client_pipe, ipc_client);
+    socket->accept(*client_pipe);
+
     client_pipe->start(
         [this, ipc_client, weak_pipe](const char* data, size_t size) {
-          bool success = ipc_client->on_read(data, size);
+          bool success = ipc_client->on_read((const uint8_t*)data, size);
           if (!success) {
             remove_client(weak_pipe);
           }

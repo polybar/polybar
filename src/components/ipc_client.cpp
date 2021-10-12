@@ -7,9 +7,9 @@ POLYBAR_NS
 
 namespace ipc {
 
-  client::client(const logger& logger) : m_log(logger) {}
+  client::client(const logger& logger, cb callback) : callback(callback), m_log(logger) {}
 
-  bool client::on_read(const char* data, size_t size) {
+  bool client::on_read(const uint8_t* data, size_t size) {
     if (state == client_state::CLOSED) {
       return false;
     }
@@ -63,13 +63,13 @@ namespace ipc {
    *
    * \return Number of bytes processed. -1 for errors
    */
-  ssize_t client::process_header_data(const char* data, size_t size) {
+  ssize_t client::process_header_data(const uint8_t* data, size_t size) {
     assert(state == client_state::WAIT);
     assert(to_read_header > 0);
 
     size_t num_read = std::min(size, to_read_header);
 
-    memcpy(&header.d[HEADER_SIZE - to_read_header], data, num_read);
+    memcpy(header.d + HEADER_SIZE - to_read_header, data, num_read);
     to_read_header -= num_read;
 
     if (to_read_header == 0) {
@@ -102,28 +102,20 @@ namespace ipc {
    *
    * \return Number of bytes processed. -1 for errors
    */
-  ssize_t client::process_msg_data(const char* data, size_t size) {
+  ssize_t client::process_msg_data(const uint8_t* data, size_t size) {
     assert(state == client_state::READ);
 
     size_t num_read = std::min(size, to_read_buf);
 
     buf.reserve(buf.size() + num_read);
     for (size_t i = 0; i < num_read; i++) {
-      buf.push_back((uint8_t)data[i]);
+      buf.push_back(data[i]);
     }
     to_read_buf -= num_read;
 
-    // TODO dispatch message
-    string msg;
-    msg.reserve(buf.size());
-
-    for (uint8_t e : buf) {
-      msg.push_back((char)e);
-    }
-
-    m_log.notice("Received ipc message: '%s'", msg);
-
     if (to_read_buf == 0) {
+      callback(header.s.version, buf);
+
       state = client_state::WAIT;
       to_read_header = HEADER_SIZE;
       buf.clear();

@@ -46,9 +46,7 @@ namespace ipc {
     std::map<eventloop::PipeHandle_t, shared_ptr<client>> clients;
 
     // Named pipe properties (deprecated)
-
     string m_pipe_path{};
-
     /**
      * Buffer for the currently received IPC message over the named pipe
      */

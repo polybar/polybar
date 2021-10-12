@@ -7,12 +7,14 @@
 #include "common/test.hpp"
 #include "components/ipc_msg.hpp"
 #include "components/logger.hpp"
+#include "gmock/gmock.h"
 
 using namespace polybar;
+using ::testing::InSequence;
 
-static std::vector<char> get_msg(const string& magic, uint32_t version, const std::string& msg) {
+static std::vector<uint8_t> get_msg(const string& magic, uint32_t version, const std::string& msg) {
   assert(magic.size() == ipc::MAGIC_SIZE);
-  std::vector<char> data(ipc::HEADER_SIZE);
+  std::vector<uint8_t> data(ipc::HEADER_SIZE);
   ipc::header* header = (ipc::header*)data.data();
   std::memcpy(header->s.magic, magic.data(), ipc::MAGIC_SIZE);
   header->s.version = version;
@@ -28,12 +30,19 @@ static auto MSG_WRONG1 = get_msg("0000000", ipc::VERSION, "");
 static auto MSG_WRONG2 = get_msg(ipc::MAGIC, 120, "");
 static auto MSG_WRONG3 = get_msg("0000000", 120, "");
 
+class MockCallback {
+ public:
+  MOCK_METHOD(void, cb, (uint8_t version, const vector<uint8_t>&));
+};
+
 class IpcClientTest : public ::testing::Test {
  protected:
-  ipc::client client{logger::make()};
+  MockCallback cb;
+  ipc::client client{logger::make(), [this](uint8_t version, const vector<uint8_t>& data) { cb.cb(version, data); }};
 };
 
 TEST_F(IpcClientTest, single_msg) {
+  EXPECT_CALL(cb, cb(0, vector<uint8_t>(MSG1.begin() + ipc::HEADER_SIZE, MSG1.end()))).Times(1);
   EXPECT_TRUE(client.on_read(MSG1.data(), MSG1.size()));
 }
 
@@ -56,13 +65,20 @@ TEST_F(IpcClientTest, single_msg_wrong3) {
 }
 
 TEST_F(IpcClientTest, byte_by_byte) {
-  for (const char c : MSG1) {
+  EXPECT_CALL(cb, cb(0, vector<uint8_t>(MSG1.begin() + ipc::HEADER_SIZE, MSG1.end()))).Times(1);
+  for (const uint8_t c : MSG1) {
     EXPECT_TRUE(client.on_read(&c, 1));
   }
 }
 
 TEST_F(IpcClientTest, multiple) {
-  for (int i = 0; i < 10; i++) {
+  const static int NUM_ITER = 10;
+  {
+    InSequence seq;
+    EXPECT_CALL(cb, cb(0, vector<uint8_t>(MSG1.begin() + ipc::HEADER_SIZE, MSG1.end()))).Times(NUM_ITER);
+  }
+
+  for (int i = 0; i < NUM_ITER; i++) {
     EXPECT_TRUE(client.on_read(MSG1.data(), MSG1.size()));
   }
 }
