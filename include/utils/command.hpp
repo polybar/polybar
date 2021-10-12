@@ -4,12 +4,10 @@
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
+#include "utils/file.hpp"
 #include "utils/functional.hpp"
 
 POLYBAR_NS
-
-template <typename T>
-class fd_stream;
 
 DEFINE_ERROR(command_error);
 
