@@ -9,7 +9,7 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  class progressbar : public non_copyable_mixin<progressbar> {
+  class progressbar : public non_copyable_mixin {
    public:
     explicit progressbar(const bar_settings& bar, int width, string format);
 

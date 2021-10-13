@@ -12,7 +12,7 @@ using std::tuple;
 POLYBAR_NS
 
 namespace drawtypes {
-  class layouticonset : public non_copyable_mixin<layouticonset> {
+  class layouticonset : public non_copyable_mixin {
    public:
     explicit layouticonset(label_t&& default_icon);
 

@@ -8,7 +8,7 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  class ramp : public non_copyable_mixin<ramp> {
+  class ramp : public non_copyable_mixin {
    public:
     explicit ramp() = default;
     explicit ramp(vector<label_t>&& icons) : m_icons(forward<decltype(icons)>(icons)) {}
@@ -28,6 +28,6 @@ namespace drawtypes {
   using ramp_t = shared_ptr<ramp>;
 
   ramp_t load_ramp(const config& conf, const string& section, string name, bool required = true);
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END
