@@ -196,30 +196,28 @@ namespace eventloop {
   // }}}
 
   // TimerHandle {{{
-  TimerHandle::TimerHandle(uv_loop_t* loop, cb_void fun) : UVHandle(fun) {
-    UV(uv_timer_init, loop, handle);
+  void TimerHandle::init() {
+    UV(uv_timer_init, loop(), get());
   }
 
-  void TimerHandle::start(uint64_t timeout, uint64_t repeat, cb_void new_cb) {
-    if (new_cb) {
-      this->func = new_cb;
-    }
-
-    UV(uv_timer_start, handle, callback, timeout, repeat);
+  void TimerHandle::start(uint64_t timeout, uint64_t repeat, cb user_cb) {
+    this->callback = user_cb;
+    UV(uv_timer_start, get(), void_event_cb<&TimerHandle::callback>, timeout, repeat);
   }
 
   void TimerHandle::stop() {
-    UV(uv_timer_stop, handle);
+    UV(uv_timer_stop, get());
   }
   // }}}
 
   // AsyncHandle {{{
-  AsyncHandle::AsyncHandle(uv_loop_t* loop, cb_void fun) : UVHandle(fun) {
-    UV(uv_async_init, loop, handle, callback);
+  void AsyncHandle::init(cb user_cb) {
+    this->callback = user_cb;
+    UV(uv_async_init, loop(), get(), void_event_cb<&AsyncHandle::callback>);
   }
 
   void AsyncHandle::send() {
-    UV(uv_async_send, handle);
+    UV(uv_async_send, get());
   }
   // }}}
 
@@ -301,16 +299,6 @@ namespace eventloop {
   void eventloop::named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb) {
     m_named_pipe_handles.emplace_back(std::make_unique<NamedPipeHandle>(get(), path, fun, eof_cb, err_cb));
     m_named_pipe_handles.back()->start();
-  }
-
-  TimerHandle_t eventloop::timer_handle(cb_void fun) {
-    m_timer_handles.emplace_back(std::make_shared<TimerHandle>(get(), fun));
-    return m_timer_handles.back();
-  }
-
-  AsyncHandle_t eventloop::async_handle(cb_void fun) {
-    m_async_handles.emplace_back(std::make_shared<AsyncHandle>(get(), fun));
-    return m_async_handles.back();
   }
 
   SocketHandle_t eventloop::socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb) {

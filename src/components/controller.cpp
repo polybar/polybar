@@ -53,8 +53,6 @@ controller::controller(connection& conn, signal_emitter& emitter, const logger& 
   m_conf.ignore_key("settings", "eventqueue-swallow");
   m_conf.ignore_key("settings", "eventqueue-swallow-time");
 
-  m_notifier = m_loop.async_handle([this]() { notifier_handler(); });
-
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
   created_modules += setup_modules(alignment::LEFT);
@@ -155,7 +153,7 @@ void controller::trigger_update(bool force) {
 }
 
 void controller::trigger_notification() {
-  m_notifier->send();
+  m_notifier.send();
 }
 
 void controller::stop(bool reload) {
@@ -261,7 +259,8 @@ void controller::read_events(bool confwatch) {
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      m_loop.timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
+      auto& timer_handle = m_loop.handle<eventloop::TimerHandle>();
+      timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
     }
 
     if (!m_writeback) {

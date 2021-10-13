@@ -65,6 +65,15 @@ namespace eventloop {
       (This.*Member)(Event{std::forward<Args>(args)...});
     }
 
+    /**
+     * Same as event_cb except that no event is constructed.
+     */
+    template <std::function<void(void)> Self::*Member>
+    static void void_event_cb(H* handle) {
+      Self& This = *static_cast<Self*>(handle->data);
+      (This.*Member)();
+    }
+
     static Self& cast(H* handle) {
       return *static_cast<Self*>(handle->data);
     }
@@ -160,6 +169,31 @@ namespace eventloop {
     cb_error err_cb;
   };
 
+  class TimerHandle : public Handle<TimerHandle, uv_timer_t> {
+   public:
+    using Handle::Handle;
+    using cb = std::function<void(void)>;
+
+    void init();
+    void start(uint64_t timeout, uint64_t repeat, cb user_cb);
+    void stop();
+
+   private:
+    cb callback;
+  };
+
+  class AsyncHandle : public Handle<AsyncHandle, uv_async_t> {
+   public:
+    using Handle::Handle;
+    using cb = std::function<void(void)>;
+
+    void init(cb user_cb);
+    void send();
+
+   private:
+    cb callback;
+  };
+
   /**
    * \tparam H Type of the handle
    * \tparam I Type of the handle passed to the callback. Often the same as H, but not always (e.g. uv_read_start)
@@ -211,11 +245,6 @@ namespace eventloop {
     function<void(Args...)> func;
   };
 
-  template <typename H, typename... Args>
-  struct UVHandle : public UVHandleGeneric<H, H, Args...> {
-    UVHandle(function<void(Args...)> fun) : UVHandleGeneric<H, H, Args...>(fun) {}
-  };
-
   struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
     PipeHandle(uv_loop_t* loop, cb_read fun = cb_read{nullptr}, cb_void eof_cb = cb_void{nullptr},
         cb_status err_cb = cb_status{nullptr});
@@ -252,17 +281,6 @@ namespace eventloop {
     string path;
   };
 
-  struct TimerHandle : public UVHandle<uv_timer_t> {
-    TimerHandle(uv_loop_t* loop, cb_void fun);
-    void start(uint64_t timeout, uint64_t repeat, cb_void new_cb = cb_void{nullptr});
-    void stop();
-  };
-
-  struct AsyncHandle : public UVHandle<uv_async_t> {
-    AsyncHandle(uv_loop_t* loop, cb_void fun);
-    void send();
-  };
-
   struct SocketHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, int> {
     SocketHandle(uv_loop_t* loop, const string& sock_path, cb_void connection_cb, cb_status err_cb);
 
@@ -284,8 +302,6 @@ namespace eventloop {
   using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
   // shared_ptr because we also return the pointer in order to call methods on it
   using PipeHandle_t = std::shared_ptr<PipeHandle>;
-  using TimerHandle_t = std::shared_ptr<TimerHandle>;
-  using AsyncHandle_t = std::shared_ptr<AsyncHandle>;
   using SocketHandle_t = std::shared_ptr<SocketHandle>;
 
   class eventloop {
@@ -294,11 +310,7 @@ namespace eventloop {
     ~eventloop();
     void run();
     void stop();
-    void signal_handle(int signum, SignalHandle::cb fun);
-    void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, cb_status err_cb);
     void named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb);
-    TimerHandle_t timer_handle(cb_void fun);
-    AsyncHandle_t async_handle(cb_void fun);
     SocketHandle_t socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb);
     PipeHandle_t pipe_handle();
 
@@ -318,8 +330,6 @@ namespace eventloop {
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
     vector<NamedPipeHandle_t> m_named_pipe_handles;
-    vector<TimerHandle_t> m_timer_handles;
-    vector<AsyncHandle_t> m_async_handles;
     vector<SocketHandle_t> m_socket_handles;
   };
 
