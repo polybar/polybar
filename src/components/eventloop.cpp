@@ -73,23 +73,25 @@ namespace eventloop {
   // }}}
 
   // PollHandle {{{
-  PollHandle::PollHandle(uv_loop_t* loop, int fd, function<void(uv_poll_event)> fun, cb_status err_cb)
-      : UVHandle([this](int status, int events) { poll_cb(status, events); }), func(fun), err_cb(err_cb) {
-    UV(uv_poll_init, loop, handle, fd);
+  void PollHandle::init(int fd) {
+    UV(uv_poll_init, loop(), get(), fd);
   }
 
-  void PollHandle::start(int events) {
-    UV(uv_poll_start, handle, events, callback);
+  void PollHandle::start(int events, cb user_cb, cb_error err_cb) {
+    this->callback = user_cb;
+    this->err_cb = err_cb;
+    UV(uv_poll_start, get(), events, &poll_callback);
   }
 
-  void PollHandle::poll_cb(int status, int events) {
+  void PollHandle::poll_callback(uv_poll_t* handle, int status, int events) {
+    auto& self = cast(handle);
     if (status < 0) {
-      close();
-      err_cb(status);
+      self.close();
+      self.err_cb(ErrorEvent{status});
       return;
     }
 
-    func((uv_poll_event)events);
+    self.callback(PollEvent{(uv_poll_event)events});
   }
   // }}}
 
@@ -293,11 +295,6 @@ namespace eventloop {
 
   uv_loop_t* eventloop::get() const {
     return m_loop.get();
-  }
-
-  void eventloop::poll_handle(int events, int fd, function<void(uv_poll_event)> fun, cb_status err_cb) {
-    m_poll_handles.emplace_back(std::make_unique<PollHandle>(get(), fd, fun, err_cb));
-    m_poll_handles.back()->start(events);
   }
 
   void eventloop::fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, cb_status err_cb) {

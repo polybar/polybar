@@ -163,7 +163,7 @@ void controller::stop(bool reload) {
   m_loop.stop();
 }
 
-void controller::conn_cb(uv_poll_event) {
+void controller::conn_cb() {
   int xcb_error = m_connection.connection_has_error();
   if ((xcb_error = m_connection.connection_has_error()) != 0) {
     m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
@@ -238,9 +238,12 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    m_loop.poll_handle(
-        UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
-        [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
+    auto& poll_handle = m_loop.handle<eventloop::PollHandle>(m_connection.get_file_descriptor());
+    poll_handle.start(
+        UV_READABLE, [this](const auto&) { conn_cb(); },
+        [](const auto& e) {
+          throw runtime_error("libuv error while polling X connection: "s + uv_strerror(e.status));
+        });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
       auto& signal_handle = m_loop.handle<eventloop::SignalHandle>();

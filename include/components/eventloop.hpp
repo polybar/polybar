@@ -65,6 +65,10 @@ namespace eventloop {
       (This.*Member)(Event{std::forward<Args>(args)...});
     }
 
+    static Self& cast(H* handle) {
+      return *static_cast<Self*>(handle->data);
+    }
+
     H* get() {
       return &uv_handle;
     }
@@ -97,6 +101,12 @@ namespace eventloop {
     std::unique_ptr<Self> lifetime_extender;
   };
 
+  struct ErrorEvent {
+    int status;
+  };
+
+  using cb_error = std::function<void(const ErrorEvent&)>;
+
   struct SignalEvent {
     int signum;
   };
@@ -111,6 +121,23 @@ namespace eventloop {
 
    private:
     cb callback;
+  };
+
+  struct PollEvent {
+    uv_poll_event event;
+  };
+
+  class PollHandle : public Handle<PollHandle, uv_poll_t> {
+   public:
+    using Handle::Handle;
+    using cb = std::function<void(const PollEvent&)>;
+
+    void init(int fd);
+    void start(int events, cb user_cb, cb_error err_cb);
+    static void poll_callback(uv_poll_t* handle, int status, int events);
+
+    cb callback;
+    cb_error err_cb;
   };
 
   /**
@@ -167,15 +194,6 @@ namespace eventloop {
   template <typename H, typename... Args>
   struct UVHandle : public UVHandleGeneric<H, H, Args...> {
     UVHandle(function<void(Args...)> fun) : UVHandleGeneric<H, H, Args...>(fun) {}
-  };
-
-  struct PollHandle : public UVHandle<uv_poll_t, int, int> {
-    PollHandle(uv_loop_t* loop, int fd, function<void(uv_poll_event)> fun, cb_status err_cb);
-    void start(int events);
-    void poll_cb(int status, int events);
-
-    function<void(uv_poll_event)> func;
-    cb_status err_cb;
   };
 
   struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
@@ -252,7 +270,6 @@ namespace eventloop {
     cb_status err_cb;
   };
 
-  using PollHandle_t = std::unique_ptr<PollHandle>;
   using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
   using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
   // shared_ptr because we also return the pointer in order to call methods on it
@@ -268,7 +285,6 @@ namespace eventloop {
     void run();
     void stop();
     void signal_handle(int signum, SignalHandle::cb fun);
-    void poll_handle(int events, int fd, function<void(uv_poll_event)> fun, cb_status err_cb);
     void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, cb_status err_cb);
     void named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb);
     TimerHandle_t timer_handle(cb_void fun);
@@ -276,11 +292,11 @@ namespace eventloop {
     SocketHandle_t socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb);
     PipeHandle_t pipe_handle();
 
-    template <typename H>
-    H& handle() {
+    template <typename H, typename... Args>
+    H& handle(Args... args) {
       auto ptr = make_unique<H>(get());
       H& ref = *ptr;
-      ref.init();
+      ref.init(std::forward<Args>(args)...);
       ref.leak(std::move(ptr));
       return ref;
     }
@@ -291,7 +307,6 @@ namespace eventloop {
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
-    vector<PollHandle_t> m_poll_handles;
     vector<FSEventHandle_t> m_fs_event_handles;
     vector<NamedPipeHandle_t> m_named_pipe_handles;
     vector<TimerHandle_t> m_timer_handles;
