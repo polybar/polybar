@@ -196,7 +196,7 @@ void controller::signal_handler(int signum) {
   stop(signum == SIGUSR1);
 }
 
-void controller::confwatch_handler(const char* filename, uv_fs_event) {
+void controller::confwatch_handler(const char* filename) {
   m_log.notice("Watched config file changed %s", filename);
   stop(true);
 }
@@ -251,9 +251,12 @@ void controller::read_events(bool confwatch) {
     }
 
     if (confwatch) {
-      m_loop.fs_event_handle(
-          m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
-          [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
+      auto& fs_event_handle = m_loop.handle<eventloop::FSEventHandle>();
+      fs_event_handle.start(
+          m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
+          [this](const auto& e) {
+            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
+          });
     }
 
     if (!m_snapshot_dst.empty()) {

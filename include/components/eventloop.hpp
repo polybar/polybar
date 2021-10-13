@@ -134,8 +134,28 @@ namespace eventloop {
 
     void init(int fd);
     void start(int events, cb user_cb, cb_error err_cb);
-    static void poll_callback(uv_poll_t* handle, int status, int events);
+    static void poll_callback(uv_poll_t*, int status, int events);
 
+   private:
+    cb callback;
+    cb_error err_cb;
+  };
+
+  struct FSEvent {
+    const char* path;
+    uv_fs_event event;
+  };
+
+  class FSEventHandle : public Handle<FSEventHandle, uv_fs_event_t> {
+   public:
+    using Handle::Handle;
+    using cb = std::function<void(const FSEvent&)>;
+
+    void init();
+    void start(const string& path, int flags, cb user_cb, cb_error err_cb);
+    static void fs_event_callback(uv_fs_event_t*, const char* path, int events, int status);
+
+   private:
     cb callback;
     cb_error err_cb;
   };
@@ -194,15 +214,6 @@ namespace eventloop {
   template <typename H, typename... Args>
   struct UVHandle : public UVHandleGeneric<H, H, Args...> {
     UVHandle(function<void(Args...)> fun) : UVHandleGeneric<H, H, Args...>(fun) {}
-  };
-
-  struct FSEventHandle : public UVHandle<uv_fs_event_t, const char*, int, int> {
-    FSEventHandle(uv_loop_t* loop, function<void(const char*, uv_fs_event)> fun, cb_status err_cb);
-    void start(const string& path);
-    void fs_event_cb(const char* path, int events, int status);
-
-    function<void(const char*, uv_fs_event)> func;
-    cb_status err_cb;
   };
 
   struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
@@ -270,7 +281,6 @@ namespace eventloop {
     cb_status err_cb;
   };
 
-  using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
   using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
   // shared_ptr because we also return the pointer in order to call methods on it
   using PipeHandle_t = std::shared_ptr<PipeHandle>;
@@ -307,7 +317,6 @@ namespace eventloop {
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
-    vector<FSEventHandle_t> m_fs_event_handles;
     vector<NamedPipeHandle_t> m_named_pipe_handles;
     vector<TimerHandle_t> m_timer_handles;
     vector<AsyncHandle_t> m_async_handles;

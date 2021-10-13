@@ -96,26 +96,27 @@ namespace eventloop {
   // }}}
 
   // FSEventHandle {{{
-  FSEventHandle::FSEventHandle(uv_loop_t* loop, function<void(const char*, uv_fs_event)> fun, cb_status err_cb)
-      : UVHandle([this](const char* path, int events, int status) { fs_event_cb(path, events, status); })
-      , func(fun)
-      , err_cb(err_cb) {
-    UV(uv_fs_event_init, loop, handle);
+  void FSEventHandle::init() {
+    UV(uv_fs_event_init, loop(), get());
   }
 
-  void FSEventHandle::start(const string& path) {
-    UV(uv_fs_event_start, handle, callback, path.c_str(), 0);
+  void FSEventHandle::start(const string& path, int flags, cb user_cb, cb_error err_cb) {
+    this->callback = user_cb;
+    this->err_cb = err_cb;
+    UV(uv_fs_event_start, get(), fs_event_callback, path.c_str(), flags);
   }
 
-  void FSEventHandle::fs_event_cb(const char* path, int events, int status) {
+  void FSEventHandle::fs_event_callback(uv_fs_event_t* handle, const char* path, int events, int status) {
+    auto& self = cast(handle);
     if (status < 0) {
-      close();
-      err_cb(status);
+      self.close();
+      self.err_cb(ErrorEvent{status});
       return;
     }
 
-    func(path, (uv_fs_event)events);
+    self.callback(FSEvent{path, (uv_fs_event)events});
   }
+
   // }}}
 
   // PipeHandle {{{
@@ -295,11 +296,6 @@ namespace eventloop {
 
   uv_loop_t* eventloop::get() const {
     return m_loop.get();
-  }
-
-  void eventloop::fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, cb_status err_cb) {
-    m_fs_event_handles.emplace_back(std::make_unique<FSEventHandle>(get(), fun, err_cb));
-    m_fs_event_handles.back()->start(path);
   }
 
   void eventloop::named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb) {

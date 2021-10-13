@@ -56,7 +56,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void signal_handler(int signum);
 
   void conn_cb();
-  void confwatch_handler(const char* fname, uv_fs_event events);
+  void confwatch_handler(const char* fname);
   void notifier_handler();
   void screenshot_handler();
 
