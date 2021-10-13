@@ -3,10 +3,10 @@
 #include <uv.h>
 
 #include <stdexcept>
-#include <unordered_set>
 
 #include "common.hpp"
 #include "components/logger.hpp"
+#include "utils/mixins.hpp"
 
 POLYBAR_NS
 
@@ -21,7 +21,97 @@ namespace eventloop {
 
   using cb_void = function<void(void)>;
 
-  void close_callback(uv_handle_t*);
+  template <typename Self, typename H>
+  class Handle : public non_copyable_mixin {
+   public:
+    Handle(uv_loop_t* l) : uv_loop(l) {
+      get()->data = this;
+    }
+
+    void leak(std::unique_ptr<Self> h) {
+      lifetime_extender = std::move(h);
+    }
+
+    void unleak() {
+      lifetime_extender.reset();
+    }
+
+    void close() {
+      if (!is_closing()) {
+        uv_close((uv_handle_t*)get(), [](uv_handle_t* handle) { close_callback(*static_cast<Self*>(handle->data)); });
+      }
+    }
+
+    bool is_closing() const {
+      return uv_is_closing((const uv_handle_t*)get());
+    }
+
+    bool is_active() {
+      return uv_is_active((const uv_handle_t*)get()) != 0;
+    }
+
+   protected:
+    /**
+     * Generic callback function that can be used for all uv handle callbacks.
+     *
+     * \tparam Event Event class/struct. Must have a constructor that takes all arguments passed to the uv callback,
+     * except for the handle argument.
+     * \tparam Member Pointer to class member where callback function is stored
+     * \tparam Args Additional arguments in the uv callback. Inferred by the compiler
+     */
+    template <typename Event, std::function<void(const Event&)> Self::*Member, typename... Args>
+    static void event_cb(H* handle, Args... args) {
+      Self& This = *static_cast<Self*>(handle->data);
+      (This.*Member)(Event{std::forward<Args>(args)...});
+    }
+
+    H* get() {
+      return &uv_handle;
+    }
+
+    const H* get() const {
+      return &uv_handle;
+    }
+
+    uv_loop_t* loop() const {
+      return uv_loop;
+    }
+
+    // TODO allow user callback
+    static void close_callback(Self& self) {
+      self.unleak();
+    }
+
+   private:
+    H uv_handle;
+    uv_loop_t* uv_loop;
+
+    /**
+     * The handle stores the unique_ptr to itself so that it effectively leaks memory.
+     *
+     * This saves us from having to guarantee that the handle's lifetime extends to at least after it is closed.
+     *
+     * Once the handle is closed, either explicitly or by walking all handles when the loop shuts down, this reference
+     * is reset and the object is explicitly destroyed.
+     */
+    std::unique_ptr<Self> lifetime_extender;
+  };
+
+  struct SignalEvent {
+    int signum;
+  };
+
+  class SignalHandle : public Handle<SignalHandle, uv_signal_t> {
+   public:
+    using Handle::Handle;
+    using cb = std::function<void(const SignalEvent&)>;
+
+    void init();
+    void start(int signum, cb user_cb);
+
+   private:
+    cb callback;
+  };
 
   /**
    * \tparam H Type of the handle
@@ -45,7 +135,8 @@ namespace eventloop {
 
     void close() {
       if (!is_closing()) {
-        uv_close((uv_handle_t*)handle, close_callback);
+        uv_close((uv_handle_t*)handle,
+            [](uv_handle_t* handle) { cleanup_resources(*static_cast<UVHandleGeneric*>(handle->data)); });
       }
     }
 
@@ -57,10 +148,10 @@ namespace eventloop {
       return uv_is_active((uv_handle_t*)handle) != 0;
     }
 
-    void cleanup_resources() {
-      if (handle) {
-        delete handle;
-        handle = nullptr;
+    static void cleanup_resources(UVHandleGeneric& self) {
+      if (self.handle) {
+        delete self.handle;
+        self.handle = nullptr;
       }
     }
 
@@ -76,11 +167,6 @@ namespace eventloop {
   template <typename H, typename... Args>
   struct UVHandle : public UVHandleGeneric<H, H, Args...> {
     UVHandle(function<void(Args...)> fun) : UVHandleGeneric<H, H, Args...>(fun) {}
-  };
-
-  struct SignalHandle : public UVHandle<uv_signal_t, int> {
-    SignalHandle(uv_loop_t* loop, function<void(int)> fun);
-    void start(int signum);
   };
 
   struct PollHandle : public UVHandle<uv_poll_t, int, int> {
@@ -166,7 +252,6 @@ namespace eventloop {
     cb_status err_cb;
   };
 
-  using SignalHandle_t = std::unique_ptr<SignalHandle>;
   using PollHandle_t = std::unique_ptr<PollHandle>;
   using FSEventHandle_t = std::unique_ptr<FSEventHandle>;
   using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
@@ -182,7 +267,7 @@ namespace eventloop {
     ~eventloop();
     void run();
     void stop();
-    void signal_handle(int signum, function<void(int)> fun);
+    void signal_handle(int signum, SignalHandle::cb fun);
     void poll_handle(int events, int fd, function<void(uv_poll_event)> fun, cb_status err_cb);
     void fs_event_handle(const string& path, function<void(const char*, uv_fs_event)> fun, cb_status err_cb);
     void named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb);
@@ -191,13 +276,21 @@ namespace eventloop {
     SocketHandle_t socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb);
     PipeHandle_t pipe_handle();
 
+    template <typename H>
+    H& handle() {
+      auto ptr = make_unique<H>(get());
+      H& ref = *ptr;
+      ref.init();
+      ref.leak(std::move(ptr));
+      return ref;
+    }
+
    protected:
     uv_loop_t* get() const;
 
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
-    vector<SignalHandle_t> m_sig_handles;
     vector<PollHandle_t> m_poll_handles;
     vector<FSEventHandle_t> m_fs_event_handles;
     vector<NamedPipeHandle_t> m_named_pipe_handles;

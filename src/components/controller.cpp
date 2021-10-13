@@ -243,7 +243,8 @@ void controller::read_events(bool confwatch) {
         [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      m_loop.signal_handle(s, [this](int signum) { signal_handler(signum); });
+      auto& signal_handle = m_loop.handle<eventloop::SignalHandle>();
+      signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
     }
 
     if (confwatch) {

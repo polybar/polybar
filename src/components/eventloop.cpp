@@ -31,25 +31,25 @@ namespace eventloop {
    * We have to have distinct cases for all types because we can't just cast to `UVHandleGeneric` without template
    * arguments.
    */
-  void close_callback(uv_handle_t* handle) {
+  void close_handle(uv_handle_t* handle) {
     switch (handle->type) {
       case UV_ASYNC:
-        static_cast<AsyncHandle*>(handle->data)->cleanup_resources();
+        static_cast<AsyncHandle*>(handle->data)->close();
         break;
       case UV_FS_EVENT:
-        static_cast<FSEventHandle*>(handle->data)->cleanup_resources();
+        static_cast<FSEventHandle*>(handle->data)->close();
         break;
       case UV_POLL:
-        static_cast<PollHandle*>(handle->data)->cleanup_resources();
+        static_cast<PollHandle*>(handle->data)->close();
         break;
       case UV_TIMER:
-        static_cast<TimerHandle*>(handle->data)->cleanup_resources();
+        static_cast<TimerHandle*>(handle->data)->close();
         break;
       case UV_SIGNAL:
-        static_cast<SignalHandle*>(handle->data)->cleanup_resources();
+        static_cast<SignalHandle*>(handle->data)->close();
         break;
       case UV_NAMED_PIPE:
-        static_cast<PipeHandle*>(handle->data)->cleanup_resources();
+        static_cast<PipeHandle*>(handle->data)->close();
         break;
       default:
         assert(false);
@@ -62,12 +62,13 @@ namespace eventloop {
   }
 
   // SignalHandle {{{
-  SignalHandle::SignalHandle(uv_loop_t* loop, function<void(int)> fun) : UVHandle(fun) {
-    UV(uv_signal_init, loop, handle);
+  void SignalHandle::init() {
+    UV(uv_signal_init, loop(), get());
   }
 
-  void SignalHandle::start(int signum) {
-    UV(uv_signal_start, handle, callback, signum);
+  void SignalHandle::start(int signum, cb user_cb) {
+    this->callback = user_cb;
+    UV(uv_signal_start, get(), event_cb<SignalEvent, &SignalHandle::callback>, signum);
   }
   // }}}
 
@@ -249,7 +250,7 @@ namespace eventloop {
   // eventloop {{{
   static void close_walk_cb(uv_handle_t* handle, void*) {
     if (!uv_is_closing(handle)) {
-      uv_close(handle, close_callback);
+      close_handle(handle);
     }
   }
 
@@ -292,11 +293,6 @@ namespace eventloop {
 
   uv_loop_t* eventloop::get() const {
     return m_loop.get();
-  }
-
-  void eventloop::signal_handle(int signum, function<void(int)> fun) {
-    m_sig_handles.emplace_back(std::make_unique<SignalHandle>(get(), fun));
-    m_sig_handles.back()->start(signum);
   }
 
   void eventloop::poll_handle(int events, int fd, function<void(uv_poll_event)> fun, cb_status err_cb) {
