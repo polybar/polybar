@@ -348,7 +348,9 @@ namespace file_util {
       return string{};
     }();
 
-    chdir(dirname.data());
+    if (chdir(dirname.data()) < 0) {
+      // do nothing because we are probably in the right cwd.
+    }
   }
 }  // namespace file_util
 
