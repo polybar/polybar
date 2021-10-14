@@ -56,7 +56,10 @@ namespace ipc {
     socket.bind("test.sock");
     socket.listen(
         4, [this]() { on_connection(); },
-        [this](const auto& e) { m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(e.status)); });
+        [this](const auto& e) {
+          m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(e.status));
+          socket.close();
+        });
   }
 
   /**
@@ -110,6 +113,7 @@ namespace ipc {
         [this, &client_pipe, ipc_client](const auto& e) {
           m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
           remove_client(client_pipe, ipc_client);
+          client_pipe.close();
         });
 
     // TODO
@@ -125,8 +129,9 @@ namespace ipc {
     pipe_handle.open(fd);
     pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
         [&ipc]() mutable { ipc.receive_eof(); },
-        [&ipc](const auto& e) mutable {
+        [this, &ipc](const auto& e) mutable {
           ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
+          pipe_handle.close();
         });
   }
 

@@ -242,8 +242,6 @@ namespace eventloop {
       if (status == 0) {
         self.connection_callback();
       } else {
-        // TODO don't close
-        self.close();
         self.connection_err_cb(ErrorEvent{status});
       }
     }
@@ -270,8 +268,6 @@ namespace eventloop {
         self.read_callback(ReadEvent{buf->base, (size_t)nread});
       } else if (nread < 0) {
         if (nread != UV_EOF) {
-          // TODO don't close
-          self.close();
           self.read_err_cb(ErrorEvent{(int)nread});
         } else {
           self.read_eof_cb();
