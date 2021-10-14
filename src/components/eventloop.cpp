@@ -12,19 +12,6 @@ POLYBAR_NS
 
 namespace eventloop {
 
-/**
- * Runs any libuv function with an integer error code return value and throws an
- * exception on error.
- */
-#define UV(fun, ...)                                                                                        \
-  do {                                                                                                      \
-    int res = fun(__VA_ARGS__);                                                                             \
-    if (res < 0) {                                                                                          \
-      throw std::runtime_error(                                                                             \
-          __FILE__ ":"s + std::to_string(__LINE__) + ": libuv error for '" #fun "': "s + uv_strerror(res)); \
-    }                                                                                                       \
-  } while (0);
-
   /**
    * Closes the given wrapper.
    *
@@ -54,11 +41,6 @@ namespace eventloop {
       default:
         assert(false);
     }
-  }
-
-  static void alloc_cb(uv_handle_t*, size_t, uv_buf_t* buf) {
-    buf->base = new char[BUFSIZ];
-    buf->len = BUFSIZ;
   }
 
   // SignalHandle {{{
@@ -128,39 +110,8 @@ namespace eventloop {
     UV(uv_pipe_open, get(), fd);
   }
 
-  void PipeHandle::read_start(cb_read fun, cb_void eof_cb, cb_error err_cb) {
-    this->read_callback = fun;
-    this->read_eof_cb = eof_cb;
-    this->read_err_cb = err_cb;
-    UV(uv_read_start, (uv_stream_t*)get(), alloc_cb, read_cb);
-  }
-
-  void PipeHandle::read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-    auto& self = cast((uv_pipe_t*)handle);
-    /*
-     * Wrap pointer so that it gets automatically freed once the function returns (even with exceptions)
-     */
-    auto buf_ptr = unique_ptr<char[]>(buf->base);
-    if (nread > 0) {
-      self.read_callback(ReadEvent{buf->base, (size_t)nread});
-    } else if (nread < 0) {
-      if (nread != UV_EOF) {
-        self.close();
-        self.read_err_cb(ErrorEvent{(int)nread});
-      } else {
-        /*
-         * The EOF callback is called in the close callback
-         * (or directly here if the handle is already closing).
-         *
-         * TODO how to handle this for sockets connections?
-         */
-        if (!uv_is_closing((uv_handle_t*)handle)) {
-          uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { cast((uv_pipe_t*)handle).read_eof_cb(); });
-        } else {
-          self.read_eof_cb();
-        }
-      }
-    }
+  void PipeHandle::bind(const string& path) {
+    UV(uv_pipe_bind, get(), path.c_str());
   }
   // }}}
 
@@ -187,34 +138,6 @@ namespace eventloop {
 
   void AsyncHandle::send() {
     UV(uv_async_send, get());
-  }
-  // }}}
-
-  // SocketHandle {{{
-  SocketHandle::SocketHandle(
-      uv_loop_t* loop, const string& sock_path, cb_void connection_cb, std::function<void(int)> err_cb)
-      : UVHandleGeneric([this](int status) { on_connection(status); })
-      , path(sock_path)
-      , connection_cb(connection_cb)
-      , err_cb(err_cb) {
-    UV(uv_pipe_init, loop, handle, 0);
-    UV(uv_pipe_bind, handle, sock_path.c_str());
-  }
-
-  void SocketHandle::listen(int backlog) {
-    UV(uv_listen, (uv_stream_t*)handle, backlog, callback);
-  }
-
-  void SocketHandle::on_connection(int status) {
-    if (status < 0) {
-      err_cb(status);
-    } else {
-      connection_cb();
-    }
-  }
-
-  void SocketHandle::accept(PipeHandle& pipe) {
-    UV(uv_accept, (uv_stream_t*)handle, (uv_stream_t*)pipe.raw());
   }
   // }}}
 
@@ -264,14 +187,6 @@ namespace eventloop {
 
   uv_loop_t* eventloop::get() const {
     return m_loop.get();
-  }
-
-  SocketHandle_t eventloop::socket_handle(
-      const string& path, int backlog, cb_void connection_cb, std::function<void(int)> err_cb) {
-    m_socket_handles.emplace_back(std::make_shared<SocketHandle>(get(), path, connection_cb, err_cb));
-    SocketHandle_t h = m_socket_handles.back();
-    h->listen(backlog);
-    return h;
   }
   // }}}
 

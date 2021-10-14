@@ -35,7 +35,7 @@ namespace ipc {
    * Construct ipc handler
    */
   ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop)
-      : m_sig(emitter), m_log(logger), m_loop(loop) {
+      : m_sig(emitter), m_log(logger), m_loop(loop), socket(loop.handle<eventloop::PipeHandle>()) {
     m_pipe_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
     if (file_util::exists(m_pipe_path) && unlink(m_pipe_path.c_str()) == -1) {
@@ -57,9 +57,10 @@ namespace ipc {
         [this](const auto& e) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status)); });
 
     // TODO socket path
-    socket = m_loop.socket_handle(
-        "test.sock", 4, [this]() { on_connection(); },
-        [this](int err) { m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(err)); });
+    socket.bind("test.sock");
+    socket.listen(
+        4, [this]() { on_connection(); },
+        [this](const auto& e) { m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(e.status)); });
   }
 
   /**
@@ -100,17 +101,17 @@ namespace ipc {
     });
 
     clients.emplace(ipc_client);
-    socket->accept(client_pipe);
+    socket.accept(client_pipe);
 
     client_pipe.read_start(
-        [&](const auto& e) {
+        [this, &client_pipe, ipc_client](const auto& e) {
           bool success = ipc_client->on_read((const uint8_t*)e.data, e.len);
           if (!success) {
             remove_client(client_pipe, ipc_client);
           }
         },
-        [&]() { remove_client(client_pipe, ipc_client); },
-        [&](const auto& e) {
+        [this, &client_pipe, ipc_client]() { remove_client(client_pipe, ipc_client); },
+        [this, &client_pipe, ipc_client](const auto& e) {
           m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
           remove_client(client_pipe, ipc_client);
         });

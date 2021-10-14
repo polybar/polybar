@@ -11,6 +11,19 @@
 POLYBAR_NS
 
 namespace eventloop {
+/**
+ * Runs any libuv function with an integer error code return value and throws an
+ * exception on error.
+ */
+#define UV(fun, ...)                                                                                        \
+  do {                                                                                                      \
+    int res = fun(__VA_ARGS__);                                                                             \
+    if (res < 0) {                                                                                          \
+      throw std::runtime_error(                                                                             \
+          __FILE__ ":"s + std::to_string(__LINE__) + ": libuv error for '" #fun "': "s + uv_strerror(res)); \
+    }                                                                                                       \
+  } while (0);
+
   using cb_void = function<void(void)>;
 
   template <typename Event>
@@ -46,11 +59,11 @@ namespace eventloop {
     }
 
     bool is_closing() const {
-      return uv_is_closing((const uv_handle_t*)get());
+      return uv_is_closing(this->template get<uv_handle_t>());
     }
 
     bool is_active() {
-      return uv_is_active((const uv_handle_t*)get()) != 0;
+      return uv_is_active(this->template get<uv_handle_t>()) != 0;
     }
 
    protected:
@@ -81,12 +94,14 @@ namespace eventloop {
       return *static_cast<Self*>(handle->data);
     }
 
-    H* get() {
-      return &uv_handle;
+    template <typename T = H>
+    T* get() {
+      return reinterpret_cast<T*>(&uv_handle);
     }
 
-    const H* get() const {
-      return &uv_handle;
+    template <typename T = H>
+    const T* get() const {
+      return reinterpret_cast<const T*>(&uv_handle);
     }
 
     uv_loop_t* loop() const {
@@ -96,6 +111,11 @@ namespace eventloop {
     // TODO allow user callback
     static void close_callback(Self& self) {
       self.unleak();
+    }
+
+    static void alloc_callback(uv_handle_t*, size_t, uv_buf_t* buf) {
+      buf->base = new char[BUFSIZ];
+      buf->len = BUFSIZ;
     }
 
    private:
@@ -202,16 +222,71 @@ namespace eventloop {
     size_t len;
   };
 
-  class PipeHandle : public Handle<PipeHandle, uv_pipe_t> {
+  template <typename Self, typename H>
+  class StreamHandle : public Handle<Self, H> {
    public:
-    using Handle::Handle;
+    using Handle<Self, H>::Handle;
     using cb_read = cb_event<ReadEvent>;
     using cb_read_eof = cb_void;
+    using cb_connection = cb_void;
 
-    void init(bool ipc = false);
-    void open(int fd);
-    void read_start(cb_read user_cb, cb_read_eof eof_cb, cb_error err_cb);
-    static void read_cb(uv_stream_t*, ssize_t nread, const uv_buf_t* buf);
+    void listen(int backlog, cb_connection user_cb, cb_error err_cb) {
+      this->connection_callback = user_cb;
+      this->connection_err_cb = err_cb;
+      UV(uv_listen, this->template get<uv_stream_t>(), backlog, connection_cb);
+    };
+
+    static void connection_cb(uv_stream_t* server, int status) {
+      auto& self = Self::cast((H*)server);
+
+      if (status == 0) {
+        self.connection_callback();
+      } else {
+        self.close();
+        self.connection_err_cb(ErrorEvent{status});
+      }
+    }
+
+    template <typename ClientSelf, typename ClientH>
+    void accept(StreamHandle<ClientSelf, ClientH>& client) {
+      UV(uv_accept, this->template get<uv_stream_t>(), client.template get<uv_stream_t>());
+    }
+
+    void read_start(cb_read fun, cb_void eof_cb, cb_error err_cb) {
+      this->read_callback = fun;
+      this->read_eof_cb = eof_cb;
+      this->read_err_cb = err_cb;
+      UV(uv_read_start, this->template get<uv_stream_t>(), &this->alloc_callback, read_cb);
+    };
+
+    static void read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+      auto& self = Self::cast((H*)handle);
+      /*
+       * Wrap pointer so that it gets automatically freed once the function returns (even with exceptions)
+       */
+      auto buf_ptr = unique_ptr<char[]>(buf->base);
+      if (nread > 0) {
+        self.read_callback(ReadEvent{buf->base, (size_t)nread});
+      } else if (nread < 0) {
+        if (nread != UV_EOF) {
+          self.close();
+          self.read_err_cb(ErrorEvent{(int)nread});
+        } else {
+          /*
+           * The EOF callback is called in the close callback
+           * (or directly here if the handle is already closing).
+           *
+           * TODO how to handle this for sockets connections?
+           */
+          // if (!uv_is_closing((uv_handle_t*)handle)) {
+          //   uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { Self::cast((H*)handle).read_eof_cb(); });
+          // } else {
+          //   self.read_eof_cb();
+          // }
+          self.read_eof_cb();
+        }
+      }
+    };
 
    private:
     /**
@@ -230,6 +305,21 @@ namespace eventloop {
      * Called if an error occurs.
      */
     cb_error read_err_cb;
+
+    cb_connection connection_callback;
+    cb_error connection_err_cb;
+  };
+
+  class PipeHandle : public StreamHandle<PipeHandle, uv_pipe_t> {
+   public:
+    using StreamHandle::StreamHandle;
+
+    void init(bool ipc = false);
+    void open(int fd);
+
+    void bind(const string& path);
+
+   private:
   };
 
   /**
@@ -283,36 +373,12 @@ namespace eventloop {
     function<void(Args...)> func;
   };
 
-  struct SocketHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, int> {
-    SocketHandle(uv_loop_t* loop, const string& sock_path, cb_void connection_cb, std::function<void(int)> err_cb);
-
-    void listen(int backlog);
-
-    void on_connection(int status);
-
-    void accept(PipeHandle& pipe);
-
-    string path;
-
-    cb_void connection_cb;
-    /**
-     * Called if an error occurs.
-     */
-    std::function<void(int)> err_cb;
-  };
-
-  // shared_ptr because we also return the pointer in order to call methods on it
-  using PipeHandle_t = std::shared_ptr<PipeHandle>;
-  using SocketHandle_t = std::shared_ptr<SocketHandle>;
-
   class eventloop {
    public:
     eventloop();
     ~eventloop();
     void run();
     void stop();
-    SocketHandle_t socket_handle(
-        const string& path, int backlog, cb_void connection_cb, std::function<void(int)> err_cb);
 
     template <typename H, typename... Args>
     H& handle(Args... args) {
@@ -328,8 +394,6 @@ namespace eventloop {
 
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
-
-    vector<SocketHandle_t> m_socket_handles;
   };
 
 };  // namespace eventloop

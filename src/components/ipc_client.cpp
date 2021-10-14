@@ -15,7 +15,7 @@ namespace ipc {
     }
 
     // TODO
-    m_log.notice("Received %d bytes", size);
+    m_log.notice("Received %zd bytes", size);
 
     size_t buf_pos = 0;
     size_t remain = size;

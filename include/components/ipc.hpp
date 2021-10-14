@@ -42,7 +42,7 @@ namespace ipc {
     const logger& m_log;
     eventloop::eventloop& m_loop;
 
-    eventloop::SocketHandle_t socket;
+    eventloop::PipeHandle& socket;
     std::set<shared_ptr<client>> clients;
 
     // Named pipe properties (deprecated)
