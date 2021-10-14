@@ -91,6 +91,7 @@ namespace file_util {
   const string expand(const string& path);
   string get_config_path();
   vector<string> list_files(const string& dirname);
+  void change_dir(const string& path);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

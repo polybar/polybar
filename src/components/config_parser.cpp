@@ -16,6 +16,8 @@ config_parser::config_parser(const logger& logger, string&& file, string&& bar)
 config::make_type config_parser::parse() {
   m_log.notice("Parsing config file: %s", m_config);
 
+  file_util::change_dir(m_config);
+
   parse_file(m_config, {});
 
   sectionmap_t sections = create_sectionmap();

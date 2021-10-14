@@ -333,6 +333,23 @@ namespace file_util {
     }
     throw system_error("Failed to open directory stream for " + dirname);
   }
+
+  /**
+   * Changes to the parent directory of the given path.
+   * FIXME: Maybe use a better name.
+   */
+  void change_dir(const string& path) {
+    const auto dirname = [&]() {
+      const auto pos = path.find_last_of('/');
+      if (pos != string::npos) {
+        return path.substr(0, pos + 1);
+      }
+
+      return string{};
+    }();
+
+    chdir(dirname.data());
+  }
 }  // namespace file_util
 
 POLYBAR_NS_END
