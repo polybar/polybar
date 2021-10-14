@@ -11,15 +11,10 @@
 POLYBAR_NS
 
 namespace eventloop {
-
-  using cb_status = std::function<void(int)>;
-
-  /**
-   * Callback variant for uv_read_cb in the successful case.
-   */
-  using cb_read = function<void(const char*, size_t)>;
-
   using cb_void = function<void(void)>;
+
+  template <typename Event>
+  using cb_event = std::function<void(const Event&)>;
 
   template <typename Self, typename H>
   class Handle : public non_copyable_mixin {
@@ -34,6 +29,14 @@ namespace eventloop {
 
     void unleak() {
       lifetime_extender.reset();
+    }
+
+    H* raw() {
+      return get();
+    }
+
+    const H* raw() const {
+      return get();
     }
 
     void close() {
@@ -59,7 +62,7 @@ namespace eventloop {
      * \tparam Member Pointer to class member where callback function is stored
      * \tparam Args Additional arguments in the uv callback. Inferred by the compiler
      */
-    template <typename Event, std::function<void(const Event&)> Self::*Member, typename... Args>
+    template <typename Event, cb_event<Event> Self::*Member, typename... Args>
     static void event_cb(H* handle, Args... args) {
       Self& This = *static_cast<Self*>(handle->data);
       (This.*Member)(Event{std::forward<Args>(args)...});
@@ -68,7 +71,7 @@ namespace eventloop {
     /**
      * Same as event_cb except that no event is constructed.
      */
-    template <std::function<void(void)> Self::*Member>
+    template <cb_void Self::*Member>
     static void void_event_cb(H* handle) {
       Self& This = *static_cast<Self*>(handle->data);
       (This.*Member)();
@@ -114,7 +117,7 @@ namespace eventloop {
     int status;
   };
 
-  using cb_error = std::function<void(const ErrorEvent&)>;
+  using cb_error = cb_event<ErrorEvent>;
 
   struct SignalEvent {
     int signum;
@@ -123,7 +126,7 @@ namespace eventloop {
   class SignalHandle : public Handle<SignalHandle, uv_signal_t> {
    public:
     using Handle::Handle;
-    using cb = std::function<void(const SignalEvent&)>;
+    using cb = cb_event<SignalEvent>;
 
     void init();
     void start(int signum, cb user_cb);
@@ -139,7 +142,7 @@ namespace eventloop {
   class PollHandle : public Handle<PollHandle, uv_poll_t> {
    public:
     using Handle::Handle;
-    using cb = std::function<void(const PollEvent&)>;
+    using cb = cb_event<PollEvent>;
 
     void init(int fd);
     void start(int events, cb user_cb, cb_error err_cb);
@@ -158,7 +161,7 @@ namespace eventloop {
   class FSEventHandle : public Handle<FSEventHandle, uv_fs_event_t> {
    public:
     using Handle::Handle;
-    using cb = std::function<void(const FSEvent&)>;
+    using cb = cb_event<FSEvent>;
 
     void init();
     void start(const string& path, int flags, cb user_cb, cb_error err_cb);
@@ -172,7 +175,7 @@ namespace eventloop {
   class TimerHandle : public Handle<TimerHandle, uv_timer_t> {
    public:
     using Handle::Handle;
-    using cb = std::function<void(void)>;
+    using cb = cb_void;
 
     void init();
     void start(uint64_t timeout, uint64_t repeat, cb user_cb);
@@ -185,13 +188,48 @@ namespace eventloop {
   class AsyncHandle : public Handle<AsyncHandle, uv_async_t> {
    public:
     using Handle::Handle;
-    using cb = std::function<void(void)>;
+    using cb = cb_void;
 
     void init(cb user_cb);
     void send();
 
    private:
     cb callback;
+  };
+
+  struct ReadEvent {
+    const char* data;
+    size_t len;
+  };
+
+  class PipeHandle : public Handle<PipeHandle, uv_pipe_t> {
+   public:
+    using Handle::Handle;
+    using cb_read = cb_event<ReadEvent>;
+    using cb_read_eof = cb_void;
+
+    void init(bool ipc = false);
+    void open(int fd);
+    void read_start(cb_read user_cb, cb_read_eof eof_cb, cb_error err_cb);
+    static void read_cb(uv_stream_t*, ssize_t nread, const uv_buf_t* buf);
+
+   private:
+    /**
+     * Callback for receiving data
+     */
+    cb_read read_callback;
+
+    /**
+     * Callback for receiving EOF.
+     *
+     * Called after the associated handle has been closed.
+     */
+    cb_read_eof read_eof_cb;
+
+    /**
+     * Called if an error occurs.
+     */
+    cb_error read_err_cb;
   };
 
   /**
@@ -245,44 +283,8 @@ namespace eventloop {
     function<void(Args...)> func;
   };
 
-  struct PipeHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, ssize_t, const uv_buf_t*> {
-    PipeHandle(uv_loop_t* loop, cb_read fun = cb_read{nullptr}, cb_void eof_cb = cb_void{nullptr},
-        cb_status err_cb = cb_status{nullptr});
-
-    void start(cb_read fun, cb_void eof_cb, cb_status err_cb);
-    void read_cb(ssize_t nread, const uv_buf_t* buf);
-
-    /**
-     * Callback for receiving data
-     */
-    cb_read func;
-    /**
-     * Callback for receiving EOF.
-     *
-     * Called after the associated handle has been closed.
-     */
-    cb_void eof_cb;
-
-    /**
-     * Called if an error occurs.
-     */
-    cb_status err_cb;
-  };
-
-  struct NamedPipeHandle : public PipeHandle {
-    NamedPipeHandle(uv_loop_t* loop, const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb);
-
-    void start();
-    void close_cb(void);
-
-    cb_void eof_cb;
-
-    int fd;
-    string path;
-  };
-
   struct SocketHandle : public UVHandleGeneric<uv_pipe_t, uv_stream_t, int> {
-    SocketHandle(uv_loop_t* loop, const string& sock_path, cb_void connection_cb, cb_status err_cb);
+    SocketHandle(uv_loop_t* loop, const string& sock_path, cb_void connection_cb, std::function<void(int)> err_cb);
 
     void listen(int backlog);
 
@@ -296,10 +298,9 @@ namespace eventloop {
     /**
      * Called if an error occurs.
      */
-    cb_status err_cb;
+    std::function<void(int)> err_cb;
   };
 
-  using NamedPipeHandle_t = std::unique_ptr<NamedPipeHandle>;
   // shared_ptr because we also return the pointer in order to call methods on it
   using PipeHandle_t = std::shared_ptr<PipeHandle>;
   using SocketHandle_t = std::shared_ptr<SocketHandle>;
@@ -310,9 +311,8 @@ namespace eventloop {
     ~eventloop();
     void run();
     void stop();
-    void named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb);
-    SocketHandle_t socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb);
-    PipeHandle_t pipe_handle();
+    SocketHandle_t socket_handle(
+        const string& path, int backlog, cb_void connection_cb, std::function<void(int)> err_cb);
 
     template <typename H, typename... Args>
     H& handle(Args... args) {
@@ -329,7 +329,6 @@ namespace eventloop {
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
 
-    vector<NamedPipeHandle_t> m_named_pipe_handles;
     vector<SocketHandle_t> m_socket_handles;
   };
 

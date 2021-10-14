@@ -46,10 +46,15 @@ namespace ipc {
     }
     m_log.info("Created ipc channel at: %s", m_pipe_path);
 
-    m_loop.named_pipe_handle(
-        m_pipe_path, [this](const char* buf, size_t size) { receive_data(string(buf, size)); },
-        [this]() { receive_eof(); },
-        [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
+    int fd;
+    if ((fd = open(m_pipe_path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
+      throw system_error("Failed to open pipe '" + m_pipe_path + "'");
+    }
+
+    auto& pipe_handle = m_loop.handle<eventloop::PipeHandle>();
+    pipe_handle.open(fd);
+    pipe_handle.read_start([this](const auto& e) { receive_data(string(e.data, e.len)); }, [this]() { receive_eof(); },
+        [this](const auto& e) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status)); });
 
     // TODO socket path
     socket = m_loop.socket_handle(
@@ -82,13 +87,8 @@ namespace ipc {
   void ipc::on_connection() {
     // TODO
     m_log.notice("New connection");
-    auto client_pipe = m_loop.pipe_handle();
-
-    /*
-     * We need a weak_ptr here because otherwise, client_pipe would hold a
-     * lambda that captures itself which could never get deleted.
-     */
-    auto weak_pipe = std::weak_ptr<eventloop::PipeHandle>(client_pipe);
+    // TODO create ipc::connection class that stores pipe and a decoder class
+    auto& client_pipe = m_loop.handle<eventloop::PipeHandle>();
 
     auto ipc_client = make_shared<client>(logger::make(), [this](uint8_t version, const vector<uint8_t>& msg) {
       // Right now, the ipc_client only accepts a single version
@@ -99,30 +99,29 @@ namespace ipc {
       // TODO writeback success/error message
     });
 
-    clients.emplace(client_pipe, ipc_client);
-    socket->accept(*client_pipe);
+    clients.emplace(ipc_client);
+    socket->accept(client_pipe);
 
-    client_pipe->start(
-        [this, ipc_client, weak_pipe](const char* data, size_t size) {
-          bool success = ipc_client->on_read((const uint8_t*)data, size);
+    client_pipe.read_start(
+        [&](const auto& e) {
+          bool success = ipc_client->on_read((const uint8_t*)e.data, e.len);
           if (!success) {
-            remove_client(weak_pipe);
+            remove_client(client_pipe, ipc_client);
           }
         },
-        [this, weak_pipe]() { remove_client(weak_pipe); },
-        [this, weak_pipe](int err) {
-          m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(err));
-          remove_client(weak_pipe);
+        [&]() { remove_client(client_pipe, ipc_client); },
+        [&](const auto& e) {
+          m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
+          remove_client(client_pipe, ipc_client);
         });
 
     // TODO
     m_log.notice("%d open clients", clients.size());
   }
 
-  void ipc::remove_client(std::weak_ptr<eventloop::PipeHandle> pipe) {
-    auto shared = pipe.lock();
-    shared->close();
-    clients.erase(shared);
+  void ipc::remove_client(eventloop::PipeHandle& pipe, std::shared_ptr<client> client) {
+    pipe.close();
+    clients.erase(client);
   }
 
   /**

@@ -120,78 +120,47 @@ namespace eventloop {
   // }}}
 
   // PipeHandle {{{
-  PipeHandle::PipeHandle(uv_loop_t* loop, cb_read fun, cb_void eof_cb, cb_status err_cb)
-      : UVHandleGeneric([this](ssize_t nread, const uv_buf_t* buf) { read_cb(nread, buf); })
-      , func(fun)
-      , eof_cb(eof_cb)
-      , err_cb(err_cb) {
-    UV(uv_pipe_init, loop, handle, false);
+  void PipeHandle::init(bool ipc) {
+    UV(uv_pipe_init, loop(), get(), ipc);
   }
 
-  void PipeHandle::start(cb_read fun, cb_void eof_cb, cb_status err_cb) {
-    this->func = fun;
-    this->eof_cb = eof_cb;
-    this->err_cb = err_cb;
-    UV(uv_read_start, (uv_stream_t*)handle, alloc_cb, callback);
+  void PipeHandle::open(int fd) {
+    UV(uv_pipe_open, get(), fd);
   }
 
-  void PipeHandle::read_cb(ssize_t nread, const uv_buf_t* buf) {
+  void PipeHandle::read_start(cb_read fun, cb_void eof_cb, cb_error err_cb) {
+    this->read_callback = fun;
+    this->read_eof_cb = eof_cb;
+    this->read_err_cb = err_cb;
+    UV(uv_read_start, (uv_stream_t*)get(), alloc_cb, read_cb);
+  }
+
+  void PipeHandle::read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+    auto& self = cast((uv_pipe_t*)handle);
     /*
      * Wrap pointer so that it gets automatically freed once the function returns (even with exceptions)
      */
     auto buf_ptr = unique_ptr<char[]>(buf->base);
     if (nread > 0) {
-      func(buf->base, nread);
+      self.read_callback(ReadEvent{buf->base, (size_t)nread});
     } else if (nread < 0) {
       if (nread != UV_EOF) {
-        close();
-        err_cb(nread);
+        self.close();
+        self.read_err_cb(ErrorEvent{(int)nread});
       } else {
         /*
          * The EOF callback is called in the close callback
          * (or directly here if the handle is already closing).
+         *
+         * TODO how to handle this for sockets connections?
          */
         if (!uv_is_closing((uv_handle_t*)handle)) {
-          uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { static_cast<PipeHandle*>(handle->data)->eof_cb(); });
+          uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { cast((uv_pipe_t*)handle).read_eof_cb(); });
         } else {
-          eof_cb();
+          self.read_eof_cb();
         }
       }
     }
-  }
-  // }}}
-
-  // NamedPipeHandle {{{
-  NamedPipeHandle::NamedPipeHandle(uv_loop_t* loop, const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb)
-      : PipeHandle(
-            loop, fun,
-            [this]() {
-              this->eof_cb();
-              close_cb();
-            },
-            err_cb)
-      , eof_cb(eof_cb)
-      , path(path) {}
-
-  void NamedPipeHandle::start() {
-    if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
-      throw system_error("Failed to open pipe '" + path + "'");
-    }
-    UV(uv_pipe_open, handle, fd);
-    UV(uv_read_start, (uv_stream_t*)handle, alloc_cb, callback);
-  }
-
-  /*
-   * This is a special case.
-   *
-   * Once we read EOF, we no longer receive events for the fd, so we close the
-   * entire handle and restart it with a new fd.
-   *
-   * We reuse the memory for the underlying uv handle
-   */
-  void NamedPipeHandle::close_cb(void) {
-    UV(uv_pipe_init, this->loop(), this->handle, false);
-    this->start();
   }
   // }}}
 
@@ -222,7 +191,8 @@ namespace eventloop {
   // }}}
 
   // SocketHandle {{{
-  SocketHandle::SocketHandle(uv_loop_t* loop, const string& sock_path, cb_void connection_cb, cb_status err_cb)
+  SocketHandle::SocketHandle(
+      uv_loop_t* loop, const string& sock_path, cb_void connection_cb, std::function<void(int)> err_cb)
       : UVHandleGeneric([this](int status) { on_connection(status); })
       , path(sock_path)
       , connection_cb(connection_cb)
@@ -244,7 +214,7 @@ namespace eventloop {
   }
 
   void SocketHandle::accept(PipeHandle& pipe) {
-    UV(uv_accept, (uv_stream_t*)handle, (uv_stream_t*)pipe.handle);
+    UV(uv_accept, (uv_stream_t*)handle, (uv_stream_t*)pipe.raw());
   }
   // }}}
 
@@ -296,20 +266,12 @@ namespace eventloop {
     return m_loop.get();
   }
 
-  void eventloop::named_pipe_handle(const string& path, cb_read fun, cb_void eof_cb, cb_status err_cb) {
-    m_named_pipe_handles.emplace_back(std::make_unique<NamedPipeHandle>(get(), path, fun, eof_cb, err_cb));
-    m_named_pipe_handles.back()->start();
-  }
-
-  SocketHandle_t eventloop::socket_handle(const string& path, int backlog, cb_void connection_cb, cb_status err_cb) {
+  SocketHandle_t eventloop::socket_handle(
+      const string& path, int backlog, cb_void connection_cb, std::function<void(int)> err_cb) {
     m_socket_handles.emplace_back(std::make_shared<SocketHandle>(get(), path, connection_cb, err_cb));
     SocketHandle_t h = m_socket_handles.back();
     h->listen(backlog);
     return h;
-  }
-
-  PipeHandle_t eventloop::pipe_handle() {
-    return std::make_shared<PipeHandle>(get());
   }
   // }}}
 
