@@ -242,6 +242,7 @@ namespace eventloop {
       if (status == 0) {
         self.connection_callback();
       } else {
+        // TODO don't close
         self.close();
         self.connection_err_cb(ErrorEvent{status});
       }
@@ -269,20 +270,10 @@ namespace eventloop {
         self.read_callback(ReadEvent{buf->base, (size_t)nread});
       } else if (nread < 0) {
         if (nread != UV_EOF) {
+          // TODO don't close
           self.close();
           self.read_err_cb(ErrorEvent{(int)nread});
         } else {
-          /*
-           * The EOF callback is called in the close callback
-           * (or directly here if the handle is already closing).
-           *
-           * TODO how to handle this for sockets connections?
-           */
-          // if (!uv_is_closing((uv_handle_t*)handle)) {
-          //   uv_close((uv_handle_t*)handle, [](uv_handle_t* handle) { Self::cast((H*)handle).read_eof_cb(); });
-          // } else {
-          //   self.read_eof_cb();
-          // }
           self.read_eof_cb();
         }
       }

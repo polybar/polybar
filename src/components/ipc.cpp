@@ -46,15 +46,11 @@ namespace ipc {
     }
     m_log.info("Created ipc channel at: %s", m_pipe_path);
 
-    int fd;
     if ((fd = open(m_pipe_path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
       throw system_error("Failed to open pipe '" + m_pipe_path + "'");
     }
 
-    auto& pipe_handle = m_loop.handle<eventloop::PipeHandle>();
-    pipe_handle.open(fd);
-    pipe_handle.read_start([this](const auto& e) { receive_data(string(e.data, e.len)); }, [this]() { receive_eof(); },
-        [this](const auto& e) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status)); });
+    ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
 
     // TODO socket path
     socket.bind("test.sock");
@@ -125,6 +121,15 @@ namespace ipc {
     clients.erase(client);
   }
 
+  ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, int fd) : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
+    pipe_handle.open(fd);
+    pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
+        [&ipc]() mutable { ipc.receive_eof(); },
+        [&ipc](const auto& e) mutable {
+          ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
+        });
+  }
+
   /**
    * Receive parts of an IPC message
    */
@@ -138,6 +143,8 @@ namespace ipc {
    * Called once the end of the message arrives.
    */
   void ipc::receive_eof() {
+    ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
+
     if (m_pipe_buffer.empty()) {
       return;
     }

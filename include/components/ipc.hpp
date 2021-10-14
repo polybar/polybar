@@ -46,6 +46,15 @@ namespace ipc {
     std::set<shared_ptr<client>> clients;
 
     // Named pipe properties (deprecated)
+
+    struct fifo {
+      fifo(eventloop::eventloop& loop, ipc& ipc, int fd);
+      eventloop::PipeHandle& pipe_handle;
+    };
+
+    unique_ptr<fifo> ipc_pipe;
+
+    int fd{-1};
     string m_pipe_path{};
     /**
      * Buffer for the currently received IPC message over the named pipe
