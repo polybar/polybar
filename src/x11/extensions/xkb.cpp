@@ -114,13 +114,7 @@ namespace xkb_util {
    * Get current group number
    */
   unsigned char get_current_group(connection& conn, xcb_xkb_device_spec_t device) {
-    unsigned char result{0};
-    auto reply = xcb_xkb_get_state_reply(conn, xcb_xkb_get_state(conn, device), nullptr);
-    if (reply != nullptr) {
-      result = reply->group;
-      free(reply);
-    }
-    return result;
+    return conn.xkb().get_state(device)->group;
   }
 
   /**
@@ -130,24 +124,14 @@ namespace xkb_util {
     vector<keyboard::layout> results;
 
     unsigned int mask{XCB_XKB_NAME_DETAIL_GROUP_NAMES | XCB_XKB_NAME_DETAIL_SYMBOLS};
-    auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
-
-    if (reply == nullptr) {
-      return results;
-    }
+    auto reply = conn.xkb().get_names(device, mask);
 
     xcb_xkb_get_names_value_list_t values{};
-    void* buffer = xcb_xkb_get_names_value_list(reply);
+    void* buffer = xcb_xkb_get_names_value_list(reply.get().get());
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
-    using get_atom_name_reply = xpp::x::reply::checked::get_atom_name<connection&>;
-    vector<get_atom_name_reply> replies;
-    for (int i = 0; i < xcb_xkb_get_names_value_list_groups_length(reply, &values); i++) {
-      replies.emplace_back(xpp::x::get_atom_name(conn, values.groups[i]));
-    }
-
-    for (const auto& reply : replies) {
+    for (int i = 0; i < xcb_xkb_get_names_value_list_groups_length(reply.get().get(), &values); i++) {
       vector<string> sym_names;
 
       for (auto&& sym : string_util::split(conn.get_atom_name(values.symbolsName).name(), '+')) {
@@ -156,10 +140,9 @@ namespace xkb_util {
         }
       }
 
-      results.emplace_back(keyboard::layout{static_cast<get_atom_name_reply>(reply).name(), sym_names});
+      const auto& name = conn.get_atom_name(values.groups[i]).name();
+      results.emplace_back(keyboard::layout{name, sym_names});
     }
-
-    free(reply);
 
     return results;
   }
@@ -171,25 +154,17 @@ namespace xkb_util {
     map<keyboard::indicator::type, keyboard::indicator> results;
 
     unsigned int mask{XCB_XKB_NAME_DETAIL_INDICATOR_NAMES};
-    auto reply = xcb_xkb_get_names_reply(conn, xcb_xkb_get_names(conn, device, mask), nullptr);
-
-    if (reply == nullptr) {
-      return results;
-    }
+    auto reply = conn.xkb().get_names(device, mask);
 
     xcb_xkb_get_names_value_list_t values{};
-    void* buffer = xcb_xkb_get_names_value_list(reply);
+    void* buffer = xcb_xkb_get_names_value_list(reply.get().get());
     xcb_xkb_get_names_value_list_unpack(buffer, reply->nTypes, reply->indicators, reply->virtualMods, reply->groupNames,
         reply->nKeys, reply->nKeyAliases, reply->nRadioGroups, reply->which, &values);
 
-    using get_atom_name_reply = xpp::x::reply::checked::get_atom_name<connection&>;
-    map<xcb_atom_t, get_atom_name_reply> entries;
-    for (int i = 0; i < xcb_xkb_get_names_value_list_indicator_names_length(reply, &values); i++) {
-      entries.emplace(values.indicatorNames[i], xpp::x::get_atom_name(conn, values.indicatorNames[i]));
-    }
+    for (int i = 0; i < xcb_xkb_get_names_value_list_indicator_names_length(reply.get().get(), &values); i++) {
+      auto indicatorName = values.indicatorNames[i];
 
-    for (const auto& entry : entries) {
-      auto name = static_cast<get_atom_name_reply>(entry.second).name();
+      auto name = conn.get_atom_name(indicatorName).name();
       auto type = keyboard::indicator::type::NONE;
 
       if (string_util::compare(name, "caps lock")) {
@@ -202,14 +177,12 @@ namespace xkb_util {
         continue;
       }
 
-      auto data = conn.xkb().get_named_indicator(device, 0, 0, entry.first);
+      auto data = conn.xkb().get_named_indicator(device, 0, 0, indicatorName);
       auto mask = (*conn.xkb().get_indicator_map(device, 1 << data->ndx).maps().begin()).mods;
       auto enabled = static_cast<bool>(data->on);
 
-      results.emplace(type, keyboard::indicator{entry.first, mask, name, enabled});
+      results.emplace(type, keyboard::indicator{indicatorName, mask, name, enabled});
     }
-
-    free(reply);
 
     return results;
   }
