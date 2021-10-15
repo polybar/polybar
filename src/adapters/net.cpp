@@ -63,6 +63,31 @@ namespace net {
   }
 
   /**
+   * Returns the canonical name of the given interface and whether that differs
+   * from the given name.
+   *
+   * The canonical name is the name that has an entry in `/sys/class/net`.
+   *
+   * This resolves any altnames that were defined (see man ip-link).
+   */
+  std::pair<string, bool> get_canonical_interface(const string& ifname) {
+    int idx = if_nametoindex(ifname.c_str());
+
+    if (idx == 0) {
+      throw system_error("if_nameindex(" + ifname + ")");
+    }
+
+    char canonical[IF_NAMESIZE];
+    if (!if_indextoname(idx, canonical)) {
+      throw system_error("if_indextoname(" + to_string(idx) + ")");
+    }
+
+    string str{canonical};
+
+    return {str, str != ifname};
+  }
+
+  /**
    * Test if interface with given name is a wireless device
    */
   bool is_wireless_interface(const string& ifname) {

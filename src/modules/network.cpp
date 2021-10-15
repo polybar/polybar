@@ -44,6 +44,14 @@ namespace modules {
       throw module_error("Invalid network interface \"" + m_interface + "\"");
     }
 
+    auto canonical = net::get_canonical_interface(m_interface);
+
+    if (canonical.second) {
+      m_log.info(
+          "%s: Replacing given interface '%s' with its canonical name '%s'", name(), m_interface, canonical.first);
+      m_interface = canonical.first;
+    }
+
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
