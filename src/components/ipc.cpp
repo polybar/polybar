@@ -73,6 +73,7 @@ namespace ipc {
   }
 
   void ipc::trigger_ipc(const string& msg) {
+    m_log.info("Received ipc message: '%s'", msg);
     if (msg.find(ipc_command_prefix) == 0) {
       m_sig.emit(signals::ipc::command{msg.substr(strlen(ipc_command_prefix))});
     } else if (msg.find(ipc_hook_prefix) == 0) {
@@ -85,12 +86,7 @@ namespace ipc {
   }
 
   void ipc::on_connection() {
-    // TODO
-    m_log.notice("New connection");
-    // TODO create ipc::connection class that stores pipe and a decoder class
-    auto& client_pipe = m_loop.handle<eventloop::PipeHandle>();
-
-    auto ipc_client = make_shared<client>(logger::make(), [this](uint8_t version, const vector<uint8_t>& msg) {
+    auto connection = make_shared<ipc::connection>(m_loop, [this](uint8_t version, const vector<uint8_t>& msg) {
       // Right now, the ipc_client only accepts a single version
       assert(version == VERSION);
       string str;
@@ -99,31 +95,32 @@ namespace ipc {
       // TODO writeback success/error message
     });
 
-    clients.emplace(ipc_client);
-    socket.accept(client_pipe);
+    connections.emplace(connection);
+    m_log.info("ipc: New connection (%d clients)", connections.size());
 
-    client_pipe.read_start(
-        [this, &client_pipe, ipc_client](const auto& e) {
-          bool success = ipc_client->on_read((const uint8_t*)e.data, e.len);
+    socket.accept(connection->client_pipe);
+
+    connection->client_pipe.read_start(
+        [this, connection](const auto& e) {
+          bool success = connection->decoder.on_read((const uint8_t*)e.data, e.len);
           if (!success) {
-            remove_client(client_pipe, ipc_client);
+            remove_client(connection);
           }
         },
-        [this, &client_pipe, ipc_client]() { remove_client(client_pipe, ipc_client); },
-        [this, &client_pipe, ipc_client](const auto& e) {
+        [this, connection]() { remove_client(connection); },
+        [this, connection](const auto& e) {
           m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
-          remove_client(client_pipe, ipc_client);
-          client_pipe.close();
+          remove_client(connection);
         });
-
-    // TODO
-    m_log.notice("%d open clients", clients.size());
   }
 
-  void ipc::remove_client(eventloop::PipeHandle& pipe, std::shared_ptr<client> client) {
-    pipe.close();
-    clients.erase(client);
+  void ipc::remove_client(shared_ptr<connection> conn) {
+    conn->client_pipe.close();
+    connections.erase(conn);
   }
+
+  ipc::connection::connection(eventloop::eventloop& loop, client::cb msg_callback)
+      : client_pipe(loop.handle<eventloop::PipeHandle>()), decoder(logger::make(), msg_callback) {}
 
   ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, int fd) : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
     pipe_handle.open(fd);

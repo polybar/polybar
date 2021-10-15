@@ -35,7 +35,6 @@ namespace ipc {
     void trigger_ipc(const string& msg);
 
     void on_connection();
-    void remove_client(eventloop::PipeHandle& pipe, std::shared_ptr<client> client);
 
    private:
     signal_emitter& m_sig;
@@ -43,10 +42,18 @@ namespace ipc {
     eventloop::eventloop& m_loop;
 
     eventloop::PipeHandle& socket;
-    std::set<shared_ptr<client>> clients;
+
+    class connection : public non_movable_mixin {
+     public:
+      connection(eventloop::eventloop& loop, client::cb msg_callback);
+      eventloop::PipeHandle& client_pipe;
+      client decoder;
+    };
+
+    void remove_client(shared_ptr<connection> conn);
+    std::set<shared_ptr<connection>> connections;
 
     // Named pipe properties (deprecated)
-
     struct fifo {
       fifo(eventloop::eventloop& loop, ipc& ipc, int fd);
       eventloop::PipeHandle& pipe_handle;
