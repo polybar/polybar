@@ -187,6 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ([`#2491`](https://github.com/polybar/polybar/issues/2491))
   - Module would error if WM was not full started up.
     ([`#1915`](https://github.com/polybar/polybar/issues/1915))
+- `internal/network`: The module now properly supports 'altnames' for
+  interfaces.
 
 ## [3.5.7] - 2021-09-21
 ### Fixed
