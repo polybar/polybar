@@ -14,8 +14,7 @@ namespace ipc {
       return false;
     }
 
-    // TODO
-    m_log.notice("Received %zd bytes", size);
+    m_log.trace("ipc: Received %zd bytes", size);
 
     size_t buf_pos = 0;
     size_t remain = size;
@@ -73,21 +72,19 @@ namespace ipc {
     to_read_header -= num_read;
 
     if (to_read_header == 0) {
+      uint8_t version = header.s.version;
+      uint32_t msg_size = header.s.size;
+
+      m_log.trace("Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC_SIZE, header.s.magic, version, msg_size);
+
       if (memcmp(header.s.magic, MAGIC, MAGIC_SIZE) != 0) {
         m_log.err("ipc: Invalid magic header, expected '%s', got '%.*s'", MAGIC, MAGIC_SIZE, header.s.magic);
         return -1;
       }
-
-      uint8_t version = header.s.version;
-      uint32_t msg_size = header.s.size;
-
       if (version != VERSION) {
         m_log.err("ipc: Unsupported message format version %d", version);
         return -1;
       }
-
-      // TODO
-      m_log.notice("Message size: %d", msg_size);
 
       assert(buf.empty());
       state = client_state::READ;
