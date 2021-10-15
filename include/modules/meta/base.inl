@@ -66,6 +66,11 @@ namespace modules {
   }
 
   template <class Impl>
+  void module<Impl>::start() {
+    m_enabled = true;
+  }
+
+  template <class Impl>
   void module<Impl>::join() {
     for (auto&& thread_ : m_threads) {
       if (thread_.joinable()) {

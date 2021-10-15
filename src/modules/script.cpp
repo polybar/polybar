@@ -33,6 +33,7 @@ namespace modules {
    * Start the module worker
    */
   void script_module::start() {
+    this->module::start();
     m_mainthread = thread([&] {
       try {
         while (running()) {

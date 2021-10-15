@@ -11,6 +11,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() override {
+      this->module<Impl>::start();
       CAST_MOD(Impl)->update();
       CAST_MOD(Impl)->broadcast();
     }
