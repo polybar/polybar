@@ -68,6 +68,7 @@ namespace modules {
    * Start module and run first defined hook if configured to
    */
   void ipc_module::start() {
+    this->module::start();
     m_mainthread = thread([&] {
       m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
       update();

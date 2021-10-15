@@ -158,6 +158,7 @@ namespace modules {
 
     bool visible() const override;
 
+    void start() override;
     void join() final override;
     void stop() override;
     void halt(string error_message) override;
@@ -218,7 +219,7 @@ namespace modules {
     bool m_handle_events{true};
 
    private:
-    atomic<bool> m_enabled{true};
+    atomic<bool> m_enabled{false};
     atomic<bool> m_visible{true};
     atomic<bool> m_changed{true};
     string m_cache;
