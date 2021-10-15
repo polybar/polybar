@@ -31,6 +31,8 @@ namespace ipc {
     explicit ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop);
     ~ipc();
 
+    static string get_socket_path(int pid);
+
    protected:
     void trigger_ipc(const string& msg);
 

@@ -10,6 +10,7 @@
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -41,7 +42,7 @@ namespace ipc {
     if (file_util::exists(m_pipe_path) && unlink(m_pipe_path.c_str()) == -1) {
       throw system_error("Failed to remove ipc channel");
     }
-    if (mkfifo(m_pipe_path.c_str(), 0666) == -1) {
+    if (mkfifo(m_pipe_path.c_str(), 0600) == -1) {
       throw system_error("Failed to create ipc channel");
     }
     m_log.info("Created ipc channel at: %s", m_pipe_path);
@@ -52,8 +53,10 @@ namespace ipc {
 
     ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
 
-    // TODO socket path
-    socket.bind("test.sock");
+    string sock_path = get_socket_path(getpid());
+
+    m_log.info("Opening ipc socket at '%s'", sock_path);
+    socket.bind(sock_path);
     socket.listen(
         4, [this]() { on_connection(); },
         [this](const auto& e) {
@@ -70,6 +73,18 @@ namespace ipc {
     if (unlink(m_pipe_path.c_str()) == -1) {
       m_log.err("Failed to delete ipc named pipe: %s", strerror(errno));
     }
+  }
+
+  static string get_socket_base_path() {
+    return env_util::get("XDG_RUNTIME_DIR", "/tmp");
+  }
+
+  string ipc::get_socket_path(int pid) {
+    string base_path = get_socket_base_path() + "/polybar";
+    if (mkdir(base_path.c_str(), 0700) == -1) {
+      throw system_error("Failed to create ipc socket folders");
+    }
+    return base_path + "/ipc." + to_string(pid) + ".sock";
   }
 
   void ipc::trigger_ipc(const string& msg) {

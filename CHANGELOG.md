@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and others will now start producing errors.
   This does not affect you unless you are producing your own formatting tags
   (for example in a script) and you are using one of these invalid tags.
+- For security reasons, the named pipe at `/tmp/polybar_mqueue.<PID>` had its
+  permission bits changed from `666` to `600` to prevent sending ipc messages
+  to polybar processes running under a different user.
 
 ### Build
 - New dependency: [libuv](https://github.com/libuv/libuv). At least version 1.3
@@ -68,6 +71,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bar update.
 - When not specifying the config file with `--config`, naming your config file
   `config` is deprecated. Rename your config file to `config.ini`.
+- Directly ipc messages to `/tmp/polybar_mqueue.<PID>` is deprecated, users
+  should always use `polybar-msg`. As a consequence the message format used for
+  IPC is deprecated as well.
 
 ### Removed
 - `DEBUG_SHADED` cmake variable and its associated functionality.

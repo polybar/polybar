@@ -15,13 +15,13 @@ namespace eventloop {
  * Runs any libuv function with an integer error code return value and throws an
  * exception on error.
  */
-#define UV(fun, ...)                                                                                        \
-  do {                                                                                                      \
-    int res = fun(__VA_ARGS__);                                                                             \
-    if (res < 0) {                                                                                          \
-      throw std::runtime_error(                                                                             \
-          __FILE__ ":"s + std::to_string(__LINE__) + ": libuv error for '" #fun "': "s + uv_strerror(res)); \
-    }                                                                                                       \
+#define UV(fun, ...)                                                                                    \
+  do {                                                                                                  \
+    int res = fun(__VA_ARGS__);                                                                         \
+    if (res < 0) {                                                                                      \
+      throw std::runtime_error(__FILE__ ":"s + std::to_string(__LINE__) +                               \
+                               ": libuv error for '" #fun "(" #__VA_ARGS__ ")': "s + uv_strerror(res)); \
+    }                                                                                                   \
   } while (0);
 
   using cb_void = function<void(void)>;
@@ -108,7 +108,6 @@ namespace eventloop {
       return uv_loop;
     }
 
-    // TODO allow user callback
     static void close_callback(Self& self) {
       self.unleak();
     }
