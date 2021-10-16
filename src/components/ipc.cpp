@@ -81,7 +81,7 @@ namespace ipc {
 
   string ipc::get_socket_path(int pid) {
     string base_path = get_socket_base_path() + "/polybar";
-    if (mkdir(base_path.c_str(), 0700) == -1) {
+    if (!file_util::exists(base_path) && mkdir(base_path.c_str(), 0700) == -1) {
       throw system_error("Failed to create ipc socket folders");
     }
     return base_path + "/ipc." + to_string(pid) + ".sock";
