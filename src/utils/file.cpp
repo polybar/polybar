@@ -238,14 +238,13 @@ namespace file_util {
   /**
    * Path expansion
    */
-  const string expand(const string& path) {
-    string ret;
+  string expand(const string& path, const string& relative_to) {
     /*
      * This doesn't capture all cases for absolute paths but the other cases
      * (tilde and env variable) have the initial '/' character in their
      * expansion already and will thus not require adding '/' to the beginning.
      */
-    bool is_absolute = path.size() > 0 && path.at(0) == '/';
+    bool is_absolute = !path.empty() && path.at(0) == '/';
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
       switch (section[0]) {
@@ -257,10 +256,14 @@ namespace file_util {
           break;
       }
     }
-    ret = string_util::join(p_exploded, "/");
+    string ret = string_util::join(p_exploded, "/");
     // Don't add an initial slash for relative paths
     if (ret[0] != '/' && is_absolute) {
       ret.insert(0, 1, '/');
+    }
+
+    if (!is_absolute && !relative_to.empty()) {
+      return dirname(relative_to) + "/" + ret;
     }
     return ret;
   }
@@ -339,18 +342,20 @@ namespace file_util {
    * FIXME: Maybe use a better name.
    */
   void change_dir(const string& path) {
-    const auto dirname = [&]() {
-      const auto pos = path.find_last_of('/');
-      if (pos != string::npos) {
-        return path.substr(0, pos + 1);
-      }
+    const auto dir_name = dirname(path);
 
-      return string{};
-    }();
-
-    if (chdir(dirname.data()) < 0) {
+    if (chdir(dir_name.data()) < 0) {
       // do nothing because we are probably in the right cwd.
     }
+  }
+
+  string dirname(const string& path) {
+    const auto pos = path.find_last_of('/');
+    if (pos != string::npos) {
+      return path.substr(0, pos + 1);
+    }
+
+    return string{};
   }
 }  // namespace file_util
 
