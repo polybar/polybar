@@ -382,6 +382,6 @@ namespace eventloop {
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
   };
 
-};  // namespace eventloop
+}  // namespace eventloop
 
 POLYBAR_NS_END

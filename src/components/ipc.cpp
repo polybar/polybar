@@ -101,9 +101,7 @@ namespace ipc {
   }
 
   void ipc::on_connection() {
-    auto connection = make_shared<ipc::connection>(m_loop, [this](uint8_t version, const vector<uint8_t>& msg) {
-      // Right now, the ipc_client only accepts a single version
-      assert(version == VERSION);
+    auto connection = make_shared<ipc::connection>(m_loop, [this](uint8_t, const vector<uint8_t>& msg) {
       string str;
       str.insert(str.end(), msg.begin(), msg.end());
       trigger_ipc(str);
