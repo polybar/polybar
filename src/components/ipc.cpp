@@ -101,12 +101,15 @@ namespace ipc {
   }
 
   void ipc::on_connection() {
-    auto connection = make_shared<ipc::connection>(m_loop, [this](uint8_t, const vector<uint8_t>& msg) {
-      string str;
-      str.insert(str.end(), msg.begin(), msg.end());
-      trigger_ipc(str);
-      // TODO writeback success/error message
-    });
+    shared_ptr<ipc::connection> connection =
+        make_shared<ipc::connection>(m_loop, [this](ipc::connection& c, uint8_t, const vector<uint8_t>& msg) {
+          string str;
+          str.insert(str.end(), msg.begin(), msg.end());
+          // TODO should return an error code
+          trigger_ipc(str);
+          // TODO writeback success/error message
+          c.client_pipe.write((char*)"SUCCESS", 7);
+        });
 
     connections.emplace(connection);
     m_log.info("ipc: New connection (%d clients)", connections.size());
@@ -117,12 +120,14 @@ namespace ipc {
         [this, connection](const auto& e) {
           bool success = connection->decoder.on_read((const uint8_t*)e.data, e.len);
           if (!success) {
+            // TODO write back some error message
             remove_client(connection);
           }
         },
         [this, connection]() { remove_client(connection); },
         [this, connection](const auto& e) {
           m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
+          // TODO write back some error message
           remove_client(connection);
         });
   }
@@ -132,8 +137,10 @@ namespace ipc {
     connections.erase(conn);
   }
 
-  ipc::connection::connection(eventloop::eventloop& loop, client::cb msg_callback)
-      : client_pipe(loop.handle<eventloop::PipeHandle>()), decoder(logger::make(), msg_callback) {}
+  ipc::connection::connection(eventloop::eventloop& loop, cb msg_callback)
+      : client_pipe(loop.handle<eventloop::PipeHandle>())
+      , decoder(logger::make(),
+            [this, msg_callback](uint8_t version, const auto& msg) { msg_callback(*this, version, msg); }) {}
 
   ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, int fd) : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
     pipe_handle.open(fd);

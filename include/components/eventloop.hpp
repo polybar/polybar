@@ -29,6 +29,26 @@ namespace eventloop {
   template <typename Event>
   using cb_event = std::function<void(const Event&)>;
 
+  class WriteRequest : public non_copyable_mixin {
+   public:
+    static WriteRequest* create() {
+      WriteRequest* req = new WriteRequest();
+      req->get()->data = req;
+      return req;
+    };
+
+    uv_write_t* get() {
+      return &req;
+    }
+
+    void release() {
+      delete this;
+    }
+
+   private:
+    uv_write_t req;
+  };
+
   template <typename Self, typename H>
   class Handle : public non_copyable_mixin {
    public:
@@ -272,6 +292,18 @@ namespace eventloop {
           self.read_eof_cb();
         }
       }
+    };
+
+    void write(char* data, size_t len) {
+      WriteRequest* req = WriteRequest::create();
+
+      uv_buf_t buf{data, len};
+
+      UV(uv_write, req->get(), this->template get<uv_stream_t>(), &buf, 1, [](uv_write_t* req, int status) {
+        UV((int), status);
+        WriteRequest& r = *static_cast<WriteRequest*>(req->data);
+        r.release();
+      });
     };
 
    private:
