@@ -95,6 +95,10 @@ jobs:
               libnl-genl-3-dev \
               libmpdclient-dev
           fi
+
+          if [ "$POLYBAR_BUILD_TYPE" = "tests" ]; then
+            sudo apt-get install -y lcov
+          fi
       - uses: actions/checkout@v2
         with:
           submodules: true
@@ -107,16 +111,27 @@ jobs:
         run: |
           cd $BUILD_DIR
           make
+      - name: Collect initial coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        run: |
+          lcov --capture --initial --no-external --directory . -o cov_base.info --rc lcov_branch_coverage=1
       - name: Tests
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
           cd $BUILD_DIR
           make check
+      - name: Collect coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        run: |
+          lcov --capture --no-external --directory . -o cov_tests.info --rc lcov_branch_coverage=1
+          lcov --add-tracefile cov_base.info --add-tracefile cov_tests.info -o cov_total.info --rc lcov_branch_coverage=1
+          lcov --remove cov_total.info ${PWD}'/build/*' ${PWD}'/tests/*' ${PWD}'/lib/*' -o cov.info --rc lcov_branch_coverage=1
       - name: Upload Coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
         uses: codecov/codecov-action@v2
         with:
           flags: unittests
+          files: ./cov.info
           fail_ci_if_error: true
       - name: Upload Logs
         if: failure()
