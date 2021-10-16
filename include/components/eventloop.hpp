@@ -308,57 +308,6 @@ namespace eventloop {
    private:
   };
 
-  /**
-   * \tparam H Type of the handle
-   * \tparam I Type of the handle passed to the callback. Often the same as H, but not always (e.g. uv_read_start)
-   */
-  template <typename H, typename I, typename... Args>
-  struct UVHandleGeneric {
-    UVHandleGeneric(function<void(Args...)> fun) {
-      handle = new H;
-      handle->data = this;
-      this->func = fun;
-    }
-
-    ~UVHandleGeneric() {
-      close();
-    }
-
-    uv_loop_t* loop() const {
-      return handle->loop;
-    }
-
-    void close() {
-      if (!is_closing()) {
-        uv_close((uv_handle_t*)handle,
-            [](uv_handle_t* handle) { cleanup_resources(*static_cast<UVHandleGeneric*>(handle->data)); });
-      }
-    }
-
-    bool is_closing() const {
-      return !handle || uv_is_closing((const uv_handle_t*)handle);
-    }
-
-    bool is_active() {
-      return uv_is_active((uv_handle_t*)handle) != 0;
-    }
-
-    static void cleanup_resources(UVHandleGeneric& self) {
-      if (self.handle) {
-        delete self.handle;
-        self.handle = nullptr;
-      }
-    }
-
-    static void callback(I* context, Args... args) {
-      const auto unpackedThis = static_cast<const UVHandleGeneric*>(context->data);
-      return unpackedThis->func(std::forward<Args>(args)...);
-    }
-
-    H* handle{nullptr};
-    function<void(Args...)> func;
-  };
-
   class eventloop {
    public:
     eventloop();

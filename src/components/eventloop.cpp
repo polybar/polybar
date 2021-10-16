@@ -15,7 +15,7 @@ namespace eventloop {
   /**
    * Closes the given wrapper.
    *
-   * We have to have distinct cases for all types because we can't just cast to `UVHandleGeneric` without template
+   * We have to have distinct cases for all types because we can't just cast to `Handle` without template
    * arguments.
    */
   void close_handle(uv_handle_t* handle) {
