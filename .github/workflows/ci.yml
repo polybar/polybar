@@ -112,8 +112,12 @@ jobs:
         run: |
           cd $BUILD_DIR
           make check
-          cd $POLYBAR_DIR
-          bash <(curl -s https://codecov.io/bash) -F unittests -a "-ap" -Z
+      - name: Upload Coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        uses: codecov/codecov-action@v2
+        with:
+          flags: unittests
+          fail_ci_if_error: true
       - name: Upload Logs
         if: failure()
         uses: actions/upload-artifact@v2
