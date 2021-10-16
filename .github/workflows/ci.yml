@@ -114,7 +114,7 @@ jobs:
       - name: Collect initial coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
-          lcov --capture --initial --no-external --directory . -o cov_base.info --rc lcov_branch_coverage=1
+          lcov --capture --initial --no-external --directory . -o cov_base.info
       - name: Tests
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
@@ -123,9 +123,9 @@ jobs:
       - name: Collect coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
-          lcov --capture --no-external --directory . -o cov_tests.info --rc lcov_branch_coverage=1
-          lcov --add-tracefile cov_base.info --add-tracefile cov_tests.info -o cov_total.info --rc lcov_branch_coverage=1
-          lcov --remove cov_total.info ${PWD}'/build/*' ${PWD}'/tests/*' ${PWD}'/lib/*' -o cov.info --rc lcov_branch_coverage=1
+          lcov --capture --no-external --directory . -o cov_tests.info
+          lcov --add-tracefile cov_base.info --add-tracefile cov_tests.info -o cov_total.info
+          lcov --remove cov_total.info ${PWD}'/build/*' ${PWD}'/tests/*' ${PWD}'/lib/*' -o cov.info
       - name: Upload Coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
         uses: codecov/codecov-action@v2
