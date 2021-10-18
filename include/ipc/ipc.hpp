@@ -58,13 +58,13 @@ namespace ipc {
 
     // Named pipe properties (deprecated)
     struct fifo {
-      fifo(eventloop::eventloop& loop, ipc& ipc, int fd);
+      fifo(eventloop::eventloop& loop, ipc& ipc, const string& path);
+      ~fifo();
       eventloop::PipeHandle& pipe_handle;
     };
 
     unique_ptr<fifo> ipc_pipe;
 
-    int fd{-1};
     string m_pipe_path{};
     /**
      * Buffer for the currently received IPC message over the named pipe

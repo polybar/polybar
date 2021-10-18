@@ -48,11 +48,7 @@ namespace ipc {
     }
     m_log.info("Created ipc channel at: %s", m_pipe_path);
 
-    if ((fd = open(m_pipe_path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
-      throw system_error("Failed to open pipe '" + m_pipe_path + "'");
-    }
-
-    ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
+    ipc_pipe = make_unique<fifo>(m_loop, *this, m_pipe_path);
 
     ensure_runtime_path();
     string sock_path = get_socket_path(getpid());
@@ -139,14 +135,24 @@ namespace ipc {
       , decoder(logger::make(),
             [this, msg_callback](uint8_t version, const auto& msg) { msg_callback(*this, version, msg); }) {}
 
-  ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, int fd) : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
+  ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, const string& path)
+      : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
+    int fd;
+    if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
+      throw system_error("Failed to open pipe '" + path + "'");
+    }
+
     pipe_handle.open(fd);
     pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
-        [&ipc]() mutable { ipc.receive_eof(); },
+        [&ipc]() { ipc.receive_eof(); },
         [this, &ipc](const auto& e) mutable {
           ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
           pipe_handle.close();
         });
+  }
+
+  ipc::fifo::~fifo() {
+    pipe_handle.close();
   }
 
   /**
@@ -162,7 +168,7 @@ namespace ipc {
    * Called once the end of the message arrives.
    */
   void ipc::receive_eof() {
-    ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
+    ipc_pipe = make_unique<fifo>(m_loop, *this, m_pipe_path);
 
     if (m_pipe_buffer.empty()) {
       return;
