@@ -113,6 +113,24 @@ namespace eventloop {
   void PipeHandle::bind(const string& path) {
     UV(uv_pipe_bind, get(), path.c_str());
   }
+
+  void PipeHandle::connect(const string& name, cb_connect user_cb, cb_error err_cb) {
+    this->connect_callback = user_cb;
+    this->connect_err_cb = err_cb;
+    uv_pipe_connect(new uv_connect_t(), get(), name.c_str(), connect_cb);
+  }
+
+  void PipeHandle::connect_cb(uv_connect_t* req, int status) {
+    auto& self = PipeHandle::cast((uv_pipe_t*)req->handle);
+
+    if (status < 0) {
+      self.connect_err_cb(ErrorEvent{status});
+    } else {
+      self.connect_callback();
+    }
+
+    delete req;
+  }
   // }}}
 
   // TimerHandle {{{

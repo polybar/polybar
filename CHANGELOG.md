@@ -71,9 +71,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bar update.
 - When not specifying the config file with `--config`, naming your config file
   `config` is deprecated. Rename your config file to `config.ini`.
-- Directly ipc messages to `/tmp/polybar_mqueue.<PID>` is deprecated, users
-  should always use `polybar-msg`. As a consequence the message format used for
-  IPC is deprecated as well.
+- Directly writing ipc messages to `/tmp/polybar_mqueue.<PID>` is deprecated,
+  users should always use `polybar-msg`. As a consequence the message format
+  used for IPC is deprecated as well.
 
 ### Removed
 - `DEBUG_SHADED` cmake variable and its associated functionality.

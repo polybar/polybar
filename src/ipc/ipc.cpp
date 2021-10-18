@@ -10,6 +10,7 @@
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "ipc/util.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
@@ -53,6 +54,7 @@ namespace ipc {
 
     ipc_pipe = make_unique<fifo>(m_loop, *this, fd);
 
+    ensure_runtime_path();
     string sock_path = get_socket_path(getpid());
 
     m_log.info("Opening ipc socket at '%s'", sock_path);
@@ -78,16 +80,8 @@ namespace ipc {
     // TODO delete runtime directory
   }
 
-  static string get_socket_base_path() {
-    return env_util::get("XDG_RUNTIME_DIR", "/tmp");
-  }
-
   string ipc::get_socket_path(int pid) {
-    string base_path = get_socket_base_path() + "/polybar";
-    if (!file_util::exists(base_path) && mkdir(base_path.c_str(), 0700) == -1) {
-      throw system_error("Failed to create ipc socket folders");
-    }
-    return base_path + "/ipc." + to_string(pid) + ".sock";
+    return ensure_runtime_path() + "/ipc." + to_string(pid) + ".sock";
   }
 
   void ipc::trigger_ipc(const string& msg) {
@@ -111,7 +105,7 @@ namespace ipc {
           // TODO should return an error code
           trigger_ipc(str);
           // TODO writeback success/error message
-          c.client_pipe.write((char*)"SUCCESS", 7);
+          // c.client_pipe.write("SUCCESS");
         });
 
     connections.emplace(connection);

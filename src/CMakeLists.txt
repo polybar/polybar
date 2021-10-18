@@ -81,6 +81,7 @@ if(BUILD_LIBPOLY)
 
     ${src_dir}/ipc/ipc.cpp
     ${src_dir}/ipc/client.cpp
+    ${src_dir}/ipc/util.cpp
 
     ${src_dir}/modules/backlight.cpp
     ${src_dir}/modules/battery.cpp
@@ -230,11 +231,8 @@ endif()
 
 # Target: polybar-msg {{{
 if(BUILD_POLYBAR_MSG)
-  add_executable(polybar-msg
-    ipc.cpp
-    utils/env.cpp
-    utils/file.cpp
-    utils/string.cpp)
+  add_executable(polybar-msg ipc.cpp)
+  target_link_libraries(polybar-msg poly)
   target_include_directories(polybar-msg PRIVATE ${includes_dir})
   target_compile_options(polybar-msg PUBLIC ${cxx_flags})
 

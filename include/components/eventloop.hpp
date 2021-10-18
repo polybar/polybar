@@ -294,16 +294,21 @@ namespace eventloop {
       }
     };
 
-    void write(char* data, size_t len) {
+    void write(const uint8_t* data, size_t len) {
       WriteRequest* req = WriteRequest::create();
 
-      uv_buf_t buf{data, len};
+      uv_buf_t buf{(char*)data, len};
 
       UV(uv_write, req->get(), this->template get<uv_stream_t>(), &buf, 1, [](uv_write_t* req, int status) {
         UV((int), status);
         WriteRequest& r = *static_cast<WriteRequest*>(req->data);
         r.release();
       });
+    }
+
+    // TODO add callback
+    void write(std::string msg) {
+      write((const uint8_t*)msg.data(), msg.size());
     };
 
    private:
@@ -331,13 +336,20 @@ namespace eventloop {
   class PipeHandle : public StreamHandle<PipeHandle, uv_pipe_t> {
    public:
     using StreamHandle::StreamHandle;
+    using cb_connect = cb_void;
 
     void init(bool ipc = false);
     void open(int fd);
 
     void bind(const string& path);
 
+    void connect(const string& name, cb_connect user_cb, cb_error err_cb);
+
    private:
+    static void connect_cb(uv_connect_t* req, int status);
+
+    cb_error connect_err_cb;
+    cb_connect connect_callback;
   };
 
   class eventloop {
