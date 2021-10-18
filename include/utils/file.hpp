@@ -91,7 +91,6 @@ namespace file_util {
   string expand(const string& path, const string& relative_to = {});
   string get_config_path();
   vector<string> list_files(const string& dirname);
-  void change_dir(const string& path);
   string dirname(const string& path);
 
   template <typename... Args>

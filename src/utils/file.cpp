@@ -337,18 +337,6 @@ namespace file_util {
     throw system_error("Failed to open directory stream for " + dirname);
   }
 
-  /**
-   * Changes to the parent directory of the given path.
-   * FIXME: Maybe use a better name.
-   */
-  void change_dir(const string& path) {
-    const auto dir_name = dirname(path);
-
-    if (chdir(dir_name.data()) < 0) {
-      // do nothing because we are probably in the right cwd.
-    }
-  }
-
   string dirname(const string& path) {
     const auto pos = path.find_last_of('/');
     if (pos != string::npos) {
