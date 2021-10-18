@@ -6,7 +6,7 @@
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
-#include "components/ipc_client.hpp"
+#include "ipc/client.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
 

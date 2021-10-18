@@ -1,4 +1,4 @@
-#include "components/ipc.hpp"
+#include "ipc/ipc.hpp"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -73,6 +73,9 @@ namespace ipc {
     if (unlink(m_pipe_path.c_str()) == -1) {
       m_log.err("Failed to delete ipc named pipe: %s", strerror(errno));
     }
+
+    socket.close();
+    // TODO delete runtime directory
   }
 
   static string get_socket_base_path() {

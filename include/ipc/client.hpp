@@ -3,8 +3,8 @@
 #include <queue>
 
 #include "common.hpp"
-#include "components/ipc_msg.hpp"
 #include "components/logger.hpp"
+#include "ipc/msg.hpp"
 
 POLYBAR_NS
 

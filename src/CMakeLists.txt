@@ -64,8 +64,6 @@ if(BUILD_LIBPOLY)
     ${src_dir}/components/config.cpp
     ${src_dir}/components/config_parser.cpp
     ${src_dir}/components/controller.cpp
-    ${src_dir}/components/ipc.cpp
-    ${src_dir}/components/ipc_client.cpp
     ${src_dir}/components/logger.cpp
     ${src_dir}/components/renderer.cpp
     ${src_dir}/components/screen.cpp
@@ -80,6 +78,9 @@ if(BUILD_LIBPOLY)
 
     ${src_dir}/events/signal_emitter.cpp
     ${src_dir}/events/signal_receiver.cpp
+
+    ${src_dir}/ipc/ipc.cpp
+    ${src_dir}/ipc/client.cpp
 
     ${src_dir}/modules/backlight.cpp
     ${src_dir}/modules/battery.cpp

@@ -1,4 +1,4 @@
-#include "components/ipc_client.hpp"
+#include "ipc/client.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -75,7 +75,8 @@ namespace ipc {
       uint8_t version = header.s.version;
       uint32_t msg_size = header.s.size;
 
-      m_log.trace("Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC_SIZE, header.s.magic, version, msg_size);
+      m_log.trace(
+          "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC_SIZE, header.s.magic, version, msg_size);
 
       if (memcmp(header.s.magic, MAGIC, MAGIC_SIZE) != 0) {
         m_log.err("ipc: Invalid magic header, expected '%s', got '%.*s'", MAGIC, MAGIC_SIZE, header.s.magic);

@@ -9,7 +9,6 @@
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
-#include "components/ipc.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"

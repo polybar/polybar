@@ -2,7 +2,6 @@
 
 #include <unistd.h>
 
-#include "components/ipc.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS

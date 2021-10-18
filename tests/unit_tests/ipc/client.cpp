@@ -1,13 +1,13 @@
-#include "components/ipc_client.hpp"
+#include "ipc/client.hpp"
 
 #include <cstring>
 #include <string>
 #include <vector>
 
 #include "common/test.hpp"
-#include "components/ipc_msg.hpp"
 #include "components/logger.hpp"
 #include "gmock/gmock.h"
+#include "ipc/msg.hpp"
 
 using namespace polybar;
 using ::testing::InSequence;

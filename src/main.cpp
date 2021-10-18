@@ -3,7 +3,7 @@
 #include "components/config.hpp"
 #include "components/config_parser.hpp"
 #include "components/controller.hpp"
-#include "components/ipc.hpp"
+#include "ipc/ipc.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
