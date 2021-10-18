@@ -1,6 +1,5 @@
 #include "modules/ipc.hpp"
 
-#include <dbg.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -145,6 +144,29 @@ int main(int argc, char** argv) {
           "Warning: Using IPC hook commands is deprecated, use the hook action on the ipc module: %s %s \"%s\"\n", exec,
           ipc_type.c_str(), ipc_payload.c_str());
     }
+  }
+
+  if (ipc_type == "action") {
+    /**
+     * Alternatively polybar-msg action <module name> <action> <data>
+     * is also accepted
+     */
+    if (!args.empty()) {
+      string name = ipc_payload;
+      string action = args.front();
+      args.pop_front();
+      string data = "";
+      if (!args.empty()) {
+        data = args.front();
+        args.pop_front();
+      }
+
+      ipc_payload = actions_util::get_action_string(name, action, data);
+    }
+  }
+
+  if (!args.empty()) {
+    error(1, "Too many arguments");
   }
 
   int exit_status = 127;
