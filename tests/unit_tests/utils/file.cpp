@@ -17,4 +17,5 @@ TEST(File, expand) {
 TEST(File, expand_relative) {
   EXPECT_EQ(file_util::expand("../test", "/scratch/polybar"), "/scratch/polybar/../test");
   EXPECT_EQ(file_util::expand("modules/battery", "/scratch/polybar"), "/scratch/polybar/modules/battery");
+  EXPECT_EQ(file_util::expand("/tmp/foo", "/scratch"), "/tmp/foo");
 }
