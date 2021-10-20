@@ -88,9 +88,10 @@ namespace file_util {
   void write_contents(const string& filename, const string& contents);
   bool is_fifo(const string& filename);
   vector<string> glob(string pattern);
-  const string expand(const string& path);
+  string expand(const string& path, const string& relative_to = {});
   string get_config_path();
   vector<string> list_files(const string& dirname);
+  string dirname(const string& path);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {

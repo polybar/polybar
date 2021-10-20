@@ -161,6 +161,8 @@ void config_parser::parse_file(const string& file, file_list path) {
     throw application_error("Failed to open config file " + file + ": " + strerror(errno));
   }
 
+  auto dirname = file_util::dirname(file);
+
   while (std::getline(in, line_str)) {
     line_no++;
     line_t line;
@@ -174,9 +176,9 @@ void config_parser::parse_file(const string& file, file_list path) {
     }
 
     if (!line.is_header && line.key == "include-file") {
-      parse_file(file_util::expand(line.value), path);
+      parse_file(file_util::expand(line.value, dirname), path);
     } else if (!line.is_header && line.key == "include-directory") {
-      const string expanded_path = file_util::expand(line.value);
+      const string expanded_path = file_util::expand(line.value, dirname);
       vector<string> file_list = file_util::list_files(expanded_path);
       sort(file_list.begin(), file_list.end());
       for (const auto& filename : file_list) {
