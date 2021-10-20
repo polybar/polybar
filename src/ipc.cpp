@@ -22,7 +22,7 @@ static constexpr int E_NO_CHANNELS{2};
 static constexpr int E_MESSAGE_TYPE{3};
 static constexpr int E_INVALID_PID{4};
 static constexpr int E_INVALID_CHANNEL{5};
-static constexpr int E_WRITE{6};
+// static constexpr int E_WRITE{6};
 static constexpr int E_EXCEPTION{7};
 
 static const char* exec = nullptr;

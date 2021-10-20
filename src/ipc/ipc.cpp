@@ -95,7 +95,7 @@ namespace ipc {
 
   void ipc::on_connection() {
     shared_ptr<ipc::connection> connection =
-        make_shared<ipc::connection>(m_loop, [this](ipc::connection& c, uint8_t, const vector<uint8_t>& msg) {
+        make_shared<ipc::connection>(m_loop, [this](ipc::connection&, uint8_t, const vector<uint8_t>& msg) {
           string str;
           str.insert(str.end(), msg.begin(), msg.end());
           // TODO should return an error code
