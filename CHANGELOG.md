@@ -164,6 +164,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Polybar can now be run without passing the bar name as argument given that
   the configuration file only defines one bar
   ([`#2525`](https://github.com/polybar/polybar/issues/2525))
+- `include-directory` and `include-file` now support relative paths. The paths
+  are relative to the folder of the file where those directives appear.
+  ([`#2523`](https://github.com/polybar/polybar/issues/2523))
 
 ### Fixed
 - `custom/script`: Concurrency issues with fast-updating tailed scripts.
