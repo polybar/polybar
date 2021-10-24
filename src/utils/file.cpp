@@ -166,6 +166,19 @@ namespace file_util {
   }
 
   /**
+   * Checks if the given path exists and is a file
+   */
+  bool is_dir(const string& filename) {
+    struct stat buffer {};
+
+    if (stat(filename.c_str(), &buffer) != 0) {
+      return false;
+    }
+
+    return S_ISDIR(buffer.st_mode);
+  }
+
+  /**
    * Picks the first existing file out of given entries
    */
   string pick(const vector<string>& filenames) {

@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
 - `custom/script`: Implement `env-*` config option.
    ([2090](https://github.com/polybar/polybar/issues/2090))
 - `drawtypes/ramp`: Add support for ramp weights.
