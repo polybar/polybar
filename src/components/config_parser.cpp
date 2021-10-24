@@ -126,8 +126,8 @@ void config_parser::parse_file(const string& file, file_list path) {
     throw application_error("Failed to open config file " + file + ": " + strerror(errno));
   }
 
-  if (!file_util::is_file(file)) {
-    throw application_error("Config file " + file + " is not a file");
+  if (file_util::is_dir(file)) {
+    throw application_error("Config file " + file + " is a directory");
   }
 
   m_log.trace("config_parser: Parsing %s", file);
