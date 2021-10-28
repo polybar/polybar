@@ -56,24 +56,53 @@ bool validate_type(const string& type) {
 static vector<string> get_sockets() {
   auto sockets = file_util::glob(ipc::get_glob_socket_path());
 
-  sockets.erase(std::remove_if(sockets.begin(), sockets.end(),
-                    [](const auto& path) {
-                      int pid = ipc::get_pid_from_socket(path);
+  auto new_end = std::remove_if(sockets.begin(), sockets.end(), [](const auto& path) {
+    int pid = ipc::get_pid_from_socket(path);
 
-                      if (pid <= 0) {
-                        return false;
-                      }
+    if (pid <= 0) {
+      return false;
+    }
 
-                      if (!file_util::exists("/proc/" + to_string(pid))) {
-                        remove_socket(path);
-                        return true;
-                      }
+    if (!file_util::exists("/proc/" + to_string(pid))) {
+      remove_socket(path);
+      return true;
+    }
 
-                      return false;
-                    }),
-      sockets.end());
+    return false;
+  });
+
+  sockets.erase(new_end, sockets.end());
 
   return sockets;
+}
+
+static void on_write(eventloop::PipeHandle& conn) {
+  // TODO listen to response
+  conn.read_start([&](const auto& e) { printf("READ: %.*s\n", (int)e.len, e.data); },
+      [&]() {
+        // TODO handle EOF
+      },
+      [&](const auto& e) {
+        // TODO handle error
+      });
+}
+
+static void on_connection(eventloop::PipeHandle& conn, const string& payload) {
+  size_t total_size = ipc::HEADER_SIZE + payload.size();
+
+  auto data = std::make_unique<uint8_t[]>(total_size);
+  ipc::header* header = (ipc::header*)data.get();
+  memcpy(header->s.magic, ipc::MAGIC, ipc::MAGIC_SIZE);
+  header->s.version = ipc::VERSION;
+  header->s.size = payload.size();
+
+  memcpy(data.get() + ipc::HEADER_SIZE, payload.data(), payload.size());
+  conn.write(
+      data.get(), total_size, [&]() { on_write(conn); },
+      [&](const auto& e) {
+        // TODO handle error
+        UV((int), e.status);
+      });
 }
 
 int main(int argc, char** argv) {
@@ -82,7 +111,8 @@ int main(int argc, char** argv) {
 
   string socket_path;
 
-  auto help = find_if(args.begin(), args.end(), [](string a) { return a == "-h" || a == "--help"; }) != args.end();
+  auto help =
+      find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
   if (help || args.size() < 2) {
     usage("<command=(action|cmd|hook)> <payload> [...]");
   } else if (!validate_type(args[0])) {
@@ -177,23 +207,12 @@ int main(int argc, char** argv) {
     try {
       auto& conn = loop.handle<eventloop::PipeHandle>();
 
+      string payload{ipc_type + ':' + ipc_payload};
+
       conn.connect(
           channel,
           [&]() {
-            string payload{ipc_type + ':' + ipc_payload};
-
-            size_t total_size = ipc::HEADER_SIZE + payload.size();
-
-            auto data = std::make_unique<uint8_t[]>(total_size);
-            ipc::header* header = (ipc::header*)data.get();
-            memcpy(header->s.magic, ipc::MAGIC, ipc::MAGIC_SIZE);
-            header->s.version = ipc::VERSION;
-            header->s.size = payload.size();
-
-            memcpy(data.get() + ipc::HEADER_SIZE, payload.data(), payload.size());
-            // TODO listen to response in write callback
-            conn.write(data.get(), total_size);
-
+            on_connection(conn, payload);
             exit_status = 0;
           },
           [&](const auto& e) {

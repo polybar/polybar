@@ -29,26 +29,6 @@ namespace eventloop {
   template <typename Event>
   using cb_event = std::function<void(const Event&)>;
 
-  class WriteRequest : public non_copyable_mixin {
-   public:
-    static WriteRequest* create() {
-      WriteRequest* req = new WriteRequest();
-      req->get()->data = req;
-      return req;
-    };
-
-    uv_write_t* get() {
-      return &req;
-    }
-
-    void release() {
-      delete this;
-    }
-
-   private:
-    uv_write_t req;
-  };
-
   template <typename Self, typename H>
   class Handle : public non_copyable_mixin {
    public:
@@ -157,6 +137,46 @@ namespace eventloop {
   };
 
   using cb_error = cb_event<ErrorEvent>;
+
+  // TODO generify for other requests
+  class WriteRequest : public non_copyable_mixin {
+   public:
+    using cb_write = cb_void;
+
+    WriteRequest(cb_write user_cb, cb_error err_cb) : write_callback(user_cb), write_err_cb(err_cb){};
+
+    static WriteRequest* create(cb_write user_cb, cb_error err_cb) {
+      WriteRequest* r = new WriteRequest(user_cb, err_cb);
+      r->get()->data = r;
+      return r;
+    };
+
+    uv_write_t* get() {
+      return &req;
+    }
+
+    void trigger(int status) {
+      if (status < 0) {
+        if (write_err_cb) {
+          write_err_cb(ErrorEvent{status});
+        }
+      } else {
+        if (write_callback) {
+          write_callback();
+        }
+      }
+    }
+
+    void release() {
+      delete this;
+    }
+
+   private:
+    uv_write_t req;
+
+    cb_write write_callback;
+    cb_error write_err_cb;
+  };
 
   struct SignalEvent {
     int signum;
@@ -294,22 +314,17 @@ namespace eventloop {
       }
     };
 
-    void write(const uint8_t* data, size_t len) {
-      WriteRequest* req = WriteRequest::create();
+    void write(const uint8_t* data, size_t len, WriteRequest::cb_write user_cb = {}, cb_error err_cb = {}) {
+      WriteRequest* req = WriteRequest::create(user_cb, err_cb);
 
       uv_buf_t buf{(char*)data, len};
 
       UV(uv_write, req->get(), this->template get<uv_stream_t>(), &buf, 1, [](uv_write_t* req, int status) {
-        UV((int), status);
         WriteRequest& r = *static_cast<WriteRequest*>(req->data);
+        r.trigger(status);
         r.release();
       });
     }
-
-    // TODO add callback
-    void write(std::string msg) {
-      write((const uint8_t*)msg.data(), msg.size());
-    };
 
    private:
     /**
