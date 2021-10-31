@@ -109,13 +109,12 @@ int main(int argc, char** argv) {
     } else {
       confpath = file_util::get_config_path();
 
-      if (string_util::ends_with(confpath, "config")) {
+      if (string_util::ends_with(confpath, "/config")) {
         logger::make().warn(
-            "Naming your config file 'config' is deprecated when using the --config flag, the expected name is "
-            "'config.ini'.",
-            confpath);
+            "Naming your configuration file 'config' is deprecated, the expected name is 'config.ini'.");
       }
     }
+
     if (confpath.empty()) {
       throw application_error("Define configuration using --config=PATH");
     }
