@@ -90,6 +90,9 @@ namespace modules {
     // the format prefix/suffix also gets wrapper
     // with the cmd handlers
     string output{module::get_output()};
+    if (output.empty()) {
+      return "";
+    }
 
     for (auto&& action : m_actions) {
       if (!action.second.empty()) {
