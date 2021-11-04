@@ -169,8 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are relative to the folder of the file where those directives appear.
   ([`#2523`](https://github.com/polybar/polybar/issues/2523))
 - `custom/ipc`: Empty output strings are no longer formatted. This prevents
-  extraneous spaces and separators from appearing in the bar when an ipc
-  module's output is empty.
+  extraneous spaces and separators from appearing in the bar when the output of
+  an ipc module is empty.
 
 ### Fixed
 - `custom/script`: Concurrency issues with fast-updating tailed scripts.
