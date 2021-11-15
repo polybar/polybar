@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
   auto help =
       find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
   if (help || args.size() < 2) {
-    usage("<command=(action|cmd|hook)> <payload> [...]");
+    usage("<command=(action|cmd)> <payload> [...]");
   } else if (!validate_type(args[0])) {
     error(E_MESSAGE_TYPE, "\"" + args[0] + "\" is not a valid type.");
   }
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
 
       conn.connect(
           channel,
-          [&]() {
+          [&, payload]() {
             on_connection(conn, payload);
             exit_status = 0;
           },
