@@ -13,6 +13,7 @@ Welcome to the official polybar documentation.
    :caption: Content:
 
    user/actions
+   user/ipc
 
 .. toctree::
    :maxdepth: 1

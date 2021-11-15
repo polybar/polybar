@@ -258,6 +258,9 @@ custom/menu
            The data has the form ``N-M`` and the action will execute the command
            in ``menu-N-M-exec``.
 
+
+.. _actions-ipc:
+
 custom/ipc
 ^^^^^^^^^^
 
