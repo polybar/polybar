@@ -61,6 +61,7 @@ struct tray_settings {
   unsigned int spacing{0U};
   unsigned int sibling{0U};
   rgba background{};
+  rgba foreground{};
   bool transparent{false};
   bool detached{false};
 };
