@@ -133,8 +133,9 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
   }
 
-  // Set user-defined background color
+  // Set user-defined foreground and background colors.
   m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
+  m_opts.foreground = conf.get(bs, "tray-foreground", bar_opts.foreground);
 
   if (m_opts.background.alpha_i() != 255) {
     m_log.trace("tray: enable transparency");
@@ -650,17 +651,21 @@ void tray_manager::set_wm_hints() {
  * Set color atom used by clients when determing icon theme
  */
 void tray_manager::set_tray_colors() {
-  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.background);
+  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.foreground);
 
-  auto r = m_opts.background.red_i();
-  auto g = m_opts.background.green_i();
-  auto b = m_opts.background.blue_i();
+  auto r = m_opts.foreground.red_i();
+  auto g = m_opts.foreground.green_i();
+  auto b = m_opts.foreground.blue_i();
 
-  const unsigned int colors[12] = {
-      r, g, b,  // normal
-      r, g, b,  // error
-      r, g, b,  // warning
-      r, g, b,  // success
+  const uint16_t r16 = (r << 8) | r;
+  const uint16_t g16 = (g << 8) | g;
+  const uint16_t b16 = (b << 8) | b;
+
+  const uint32_t colors[12] = {
+      r16, g16, b16,  // normal
+      r16, g16, b16,  // error
+      r16, g16, b16,  // warning
+      r16, g16, b16,  // success
   };
 
   m_connection.change_property(
