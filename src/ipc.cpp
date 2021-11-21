@@ -24,6 +24,8 @@ static constexpr int E_INVALID_PID{4};
 static constexpr int E_INVALID_CHANNEL{5};
 // static constexpr int E_WRITE{6};
 static constexpr int E_EXCEPTION{7};
+static constexpr int E_USAGE{127};
+static constexpr int E_FAILURE{127};
 
 static const char* exec = nullptr;
 
@@ -38,7 +40,7 @@ void error(int exit_code, const string& msg) {
 
 void usage(const string& parameters) {
   fprintf(stderr, "Usage: polybar-msg [-p pid] %s\n", parameters.c_str());
-  exit(127);
+  exit(E_USAGE);
 }
 
 void remove_socket(const string& handle) {
@@ -90,59 +92,26 @@ static void on_write(eventloop::PipeHandle& conn) {
 static void on_connection(eventloop::PipeHandle& conn, const string& payload) {
   size_t total_size = ipc::HEADER_SIZE + payload.size();
 
-  auto data = std::make_unique<uint8_t[]>(total_size);
-  ipc::header* header = (ipc::header*)data.get();
+  std::vector<uint8_t> data(total_size);
+  auto* header = (ipc::header*)data.data();
   memcpy(header->s.magic, ipc::MAGIC, ipc::MAGIC_SIZE);
   header->s.version = ipc::VERSION;
   header->s.size = payload.size();
 
-  memcpy(data.get() + ipc::HEADER_SIZE, payload.data(), payload.size());
+  memcpy(data.data() + ipc::HEADER_SIZE, payload.data(), payload.size());
   conn.write(
-      data.get(), total_size, [&]() { on_write(conn); },
+      data.data(), total_size, [&]() { on_write(conn); },
       [&](const auto& e) {
         // TODO handle error
         UV((int), e.status);
       });
 }
 
-int main(int argc, char** argv) {
-  exec = argv[0];
-  deque<string> args{argv + 1, argv + argc};
+static string get_ipc_msg(const string& type, const string& payload) {
+  return type + ':' + payload;
+}
 
-  string socket_path;
-
-  auto help =
-      find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
-  if (help || args.size() < 2) {
-    usage("<command=(action|cmd)> <payload> [...]");
-  } else if (!validate_type(args[0])) {
-    error(E_MESSAGE_TYPE, "\"" + args[0] + "\" is not a valid type.");
-  }
-
-  /* If -p <pid> is passed, check if the process is running and that
-   * a valid channel socket is available
-   */
-  if (args.size() >= 2 && args[0].compare(0, 2, "-p") == 0) {
-    auto& pid_string = args[0];
-    socket_path = ipc::get_socket_path(pid_string);
-    if (!file_util::exists("/proc/" + pid_string)) {
-      error(E_INVALID_PID, "No process with pid " + pid_string);
-    } else if (!file_util::exists(socket_path)) {
-      error(E_INVALID_CHANNEL, "No channel available for pid " + pid_string);
-    }
-
-    args.pop_front();
-    args.pop_front();
-  }
-
-  // If no pid was given, search for all open sockets.
-  auto sockets = socket_path.empty() ? get_sockets() : vector<string>{socket_path};
-
-  // Get availble channel sockets
-  if (sockets.empty()) {
-    error(E_NO_CHANNELS, "No active ipc channels");
-  }
-
+static string parse_message(deque<string> args) {
   // Validate args
   string ipc_type{args.front()};
   args.pop_front();
@@ -185,7 +154,7 @@ int main(int argc, char** argv) {
       string name = ipc_payload;
       string action = args.front();
       args.pop_front();
-      string data = "";
+      string data{};
       if (!args.empty()) {
         data = args.front();
         args.pop_front();
@@ -199,15 +168,56 @@ int main(int argc, char** argv) {
     error(1, "Too many arguments");
   }
 
-  int exit_status = 127;
+  return get_ipc_msg(ipc_type, ipc_payload);
+}
+
+int main(int argc, char** argv) {
+  exec = argv[0];
+  deque<string> args{argv + 1, argv + argc};
+
+  string socket_path;
+
+  auto help =
+      find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
+  if (help || args.size() < 2) {
+    usage("<command=(action|cmd)> <payload> [...]");
+  } else if (!validate_type(args[0])) {
+    error(E_MESSAGE_TYPE, "\"" + args[0] + "\" is not a valid type.");
+  }
+
+  /* If -p <pid> is passed, check if the process is running and that
+   * a valid channel socket is available
+   */
+  if (args.size() >= 2 && args[0].compare(0, 2, "-p") == 0) {
+    auto& pid_string = args[0];
+    socket_path = ipc::get_socket_path(pid_string);
+    if (!file_util::exists("/proc/" + pid_string)) {
+      error(E_INVALID_PID, "No process with pid " + pid_string);
+    } else if (!file_util::exists(socket_path)) {
+      error(E_INVALID_CHANNEL, "No channel available for pid " + pid_string);
+    }
+
+    args.pop_front();
+    args.pop_front();
+  }
+
+  // If no pid was given, search for all open sockets.
+  auto sockets = socket_path.empty() ? get_sockets() : vector<string>{socket_path};
+
+  // Get availble channel sockets
+  if (sockets.empty()) {
+    error(E_NO_CHANNELS, "No active ipc channels");
+  }
+
+  string payload = parse_message(args);
+
+  int exit_status = E_FAILURE;
 
   eventloop::eventloop loop;
 
   for (auto&& channel : sockets) {
     try {
       auto& conn = loop.handle<eventloop::PipeHandle>();
-
-      string payload{ipc_type + ':' + ipc_payload};
 
       conn.connect(
           channel,
