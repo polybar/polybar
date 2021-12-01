@@ -174,6 +174,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/ipc`: Empty output strings are no longer formatted. This prevents
   extraneous spaces and separators from appearing in the bar when the output of
   an ipc module is empty.
+  - `internal/battery`: Get battery status before adapter
+  ([`#2363`](https://github.com/polybar/polybar/issues/2363))
 
 ### Fixed
 - `custom/script`: Concurrency issues with fast-updating tailed scripts.
