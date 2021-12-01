@@ -97,12 +97,23 @@ namespace net {
   std::string find_interface(NetType type) {
     struct ifaddrs* ifaddrs;
     getifaddrs(&ifaddrs);
+
+    struct ifaddrs* candidate_if = nullptr;
+
     for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
       const std::string name{i->ifa_name};
       const NetType iftype = iface_type(name);
       if (iftype != type) {
         continue;
       }
+      if (candidate_if == nullptr) {
+        candidate_if = i;
+      } else if (((candidate_if->ifa_flags & IFF_RUNNING) == 0) && ((i->ifa_flags & IFF_RUNNING) > 0)) {
+        candidate_if = i;
+      }
+    }
+    if (candidate_if) {
+      const std::string name{candidate_if->ifa_name};
       freeifaddrs(ifaddrs);
       return name;
     }
