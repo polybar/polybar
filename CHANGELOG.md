@@ -73,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- Right and middle click events for alsa module.
+  ([2566](https://github.com/polybar/polybar/issues/2566))
 - Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
 - `custom/script`: Implement `env-*` config option.
    ([2090](https://github.com/polybar/polybar/issues/2090))
