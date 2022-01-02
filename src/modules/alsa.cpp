@@ -196,6 +196,17 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
+      auto click_middle = m_conf.get(name(), "click-middle", ""s);
+      auto click_right = m_conf.get(name(), "click-right", ""s);
+
+      if (!click_middle.empty()) {
+        m_builder->action(mousebtn::MIDDLE, click_middle);
+      }
+
+      if (!click_right.empty()) {
+        m_builder->action(mousebtn::RIGHT, click_right);
+      }
+
       m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
       m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
       m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
