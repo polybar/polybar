@@ -131,13 +131,6 @@ namespace net {
     if (!*m_socketfd) {
       throw network_error("Failed to open socket");
     }
-    
-    m_status.mac = file_util::contents(NET_PATH + m_interface + "/address");
-    if (m_status.mac == "") {
-      throw system_error("No MAC address located");
-    }
-
-
 
     check_tuntap_or_bridge();
   }
@@ -167,6 +160,11 @@ namespace net {
         if (!accumulate || (ifa->ifa_data == nullptr && ifa->ifa_addr->sa_family != AF_PACKET)) {
           continue;
         }
+      }
+
+      m_status.mac = string_util::trim(file_util::contents(NET_PATH + m_interface + "/address"), isspace);
+      if (m_status.mac == "") {
+        m_status.mac = NO_MAC;
       }
 
       struct sockaddr_in6* sa6;
