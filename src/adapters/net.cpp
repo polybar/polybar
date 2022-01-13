@@ -131,6 +131,13 @@ namespace net {
     if (!*m_socketfd) {
       throw network_error("Failed to open socket");
     }
+    
+    m_status.mac = file_util::contents(NET_PATH + m_interface + "/address");
+    if (m_status.mac == "") {
+      throw system_error("No MAC address located");
+    }
+
+
 
     check_tuntap_or_bridge();
   }
@@ -145,7 +152,6 @@ namespace net {
     m_status.current.time = std::chrono::system_clock::now();
     m_status.ip = NO_IP;
     m_status.ip6 = NO_IP;
-    m_status.mac = NO_MAC;
 
     struct ifaddrs* ifaddr;
     if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
@@ -162,8 +168,6 @@ namespace net {
           continue;
         }
       }
-    
-      m_status.mac = file_util::contents(NET_PATH + m_interface + "/address");
 
       struct sockaddr_in6* sa6;
 
