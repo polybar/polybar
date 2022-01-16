@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -89,14 +90,15 @@ static void on_write(eventloop::PipeHandle& conn) {
       });
 }
 
-static void on_connection(eventloop::PipeHandle& conn, const string& payload) {
+static void on_connection(eventloop::PipeHandle& conn, const ipc::type_t type, const string& payload) {
   size_t total_size = ipc::HEADER_SIZE + payload.size();
 
   std::vector<uint8_t> data(total_size);
   auto* header = (ipc::header*)data.data();
-  memcpy(header->s.magic, ipc::MAGIC, ipc::MAGIC_SIZE);
+  std::copy(ipc::MAGIC.begin(), ipc::MAGIC.end(), header->s.magic);
   header->s.version = ipc::VERSION;
   header->s.size = payload.size();
+  header->s.type = type;
 
   memcpy(data.data() + ipc::HEADER_SIZE, payload.data(), payload.size());
   conn.write(
@@ -107,16 +109,18 @@ static void on_connection(eventloop::PipeHandle& conn, const string& payload) {
       });
 }
 
-static string get_ipc_msg(const string& type, const string& payload) {
-  return type + ':' + payload;
-}
-
-static string parse_message(deque<string> args) {
+static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
   // Validate args
-  string ipc_type{args.front()};
+  const string ipc_type{args.front()};
   args.pop_front();
   string ipc_payload{args.front()};
   args.pop_front();
+
+  if (!validate_type(ipc_type)) {
+    error(E_MESSAGE_TYPE, "\"" + ipc_type + "\" is not a valid message type.");
+  }
+
+  ipc::type_t type = ipc::TYPE_ERR;
 
   /*
    * Check hook specific args
@@ -135,7 +139,7 @@ static string parse_message(deque<string> args) {
       int hook_index = std::stoi(args.front()) - 1;
       args.pop_front();
 
-      ipc_type = "action";
+      type = to_integral(ipc::v0::ipc_type::ACTION);
       ipc_payload =
           actions_util::get_action_string(ipc_payload, polybar::modules::ipc_module::EVENT_HOOK, to_string(hook_index));
 
@@ -160,15 +164,21 @@ static string parse_message(deque<string> args) {
         args.pop_front();
       }
 
+      type = to_integral(ipc::v0::ipc_type::ACTION);
       ipc_payload = actions_util::get_action_string(name, action, data);
     }
+  }
+
+  if (ipc_type == "cmd") {
+    type = to_integral(ipc::v0::ipc_type::CMD);
   }
 
   if (!args.empty()) {
     error(1, "Too many arguments");
   }
 
-  return get_ipc_msg(ipc_type, ipc_payload);
+  assert(type != ipc::TYPE_ERR);
+  return {type, ipc_payload};
 }
 
 int main(int argc, char** argv) {
@@ -181,15 +191,13 @@ int main(int argc, char** argv) {
       find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
   if (help || args.size() < 2) {
     usage("<command=(action|cmd)> <payload> [...]");
-  } else if (!validate_type(args[0])) {
-    error(E_MESSAGE_TYPE, "\"" + args[0] + "\" is not a valid type.");
   }
 
   /* If -p <pid> is passed, check if the process is running and that
    * a valid channel socket is available
    */
   if (args.size() >= 2 && args[0].compare(0, 2, "-p") == 0) {
-    auto& pid_string = args[0];
+    auto& pid_string = args[1];
     socket_path = ipc::get_socket_path(pid_string);
     if (!file_util::exists("/proc/" + pid_string)) {
       error(E_INVALID_PID, "No process with pid " + pid_string);
@@ -209,7 +217,9 @@ int main(int argc, char** argv) {
     error(E_NO_CHANNELS, "No active ipc channels");
   }
 
-  string payload = parse_message(args);
+  string payload;
+  ipc::type_t type;
+  std::tie(type, payload) = parse_message(args);
 
   int exit_status = E_FAILURE;
 
@@ -222,7 +232,7 @@ int main(int argc, char** argv) {
       conn.connect(
           channel,
           [&, payload]() {
-            on_connection(conn, payload);
+            on_connection(conn, type, payload);
             exit_status = 0;
           },
           [&](const auto& e) {

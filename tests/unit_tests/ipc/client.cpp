@@ -12,11 +12,10 @@
 using namespace polybar;
 using ::testing::InSequence;
 
-static std::vector<uint8_t> get_msg(const string& magic, uint32_t version, const std::string& msg) {
-  assert(magic.size() == ipc::MAGIC_SIZE);
+static std::vector<uint8_t> get_msg(decltype(ipc::MAGIC) magic, uint32_t version, const std::string& msg) {
   std::vector<uint8_t> data(ipc::HEADER_SIZE);
   ipc::header* header = (ipc::header*)data.data();
-  std::memcpy(header->s.magic, magic.data(), ipc::MAGIC_SIZE);
+  std::copy(magic.begin(), magic.end(), header->s.magic);
   header->s.version = version;
   header->s.size = msg.size();
 
@@ -25,10 +24,12 @@ static std::vector<uint8_t> get_msg(const string& magic, uint32_t version, const
   return data;
 }
 
+static decltype(ipc::MAGIC) MAGIC_WRONG = {'0', '0', '0', '0', '0', '0', '0'};
+
 static auto MSG1 = get_msg(ipc::MAGIC, ipc::VERSION, "foobar");
-static auto MSG_WRONG1 = get_msg("0000000", ipc::VERSION, "");
+static auto MSG_WRONG1 = get_msg(MAGIC_WRONG, ipc::VERSION, "");
 static auto MSG_WRONG2 = get_msg(ipc::MAGIC, 120, "");
-static auto MSG_WRONG3 = get_msg("0000000", 120, "");
+static auto MSG_WRONG3 = get_msg(MAGIC_WRONG, 120, "");
 
 class MockCallback {
  public:

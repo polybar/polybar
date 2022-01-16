@@ -34,7 +34,8 @@ namespace ipc {
     static string get_socket_path(int pid);
 
    protected:
-    void trigger_ipc(const string& msg);
+    void trigger_ipc(v0::ipc_type type, const string& msg);
+    void trigger_legacy_ipc(const string& msg);
 
     void on_connection();
 
@@ -47,7 +48,7 @@ namespace ipc {
 
     class connection : public non_movable_mixin {
      public:
-      using cb = std::function<void(connection&, uint8_t, const std::vector<uint8_t>&)>;
+      using cb = std::function<void(connection&, uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
       connection(eventloop::eventloop& loop, cb msg_callback);
       eventloop::PipeHandle& client_pipe;
       client decoder;

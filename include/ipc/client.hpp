@@ -14,9 +14,9 @@ namespace ipc {
    public:
     /**
      * Callback is called whenever a full message is received.
-     * Both the message version and the data is passed.
+     * The message version, message type, and the data is passed.
      */
-    using cb = std::function<void(uint8_t, const std::vector<uint8_t>&)>;
+    using cb = std::function<void(uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
     client(const logger&, cb callback);
 
     bool on_read(const uint8_t* buf, size_t size);
@@ -28,6 +28,8 @@ namespace ipc {
 
     ipc::header header;
     size_t to_read_header{ipc::HEADER_SIZE};
+
+    v0::ipc_type ipc_type;
 
     std::vector<uint8_t> buf;
     size_t to_read_buf{0};

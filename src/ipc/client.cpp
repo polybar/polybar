@@ -68,24 +68,36 @@ namespace ipc {
 
     size_t num_read = std::min(size, to_read_header);
 
-    memcpy(header.d + HEADER_SIZE - to_read_header, data, num_read);
+    std::copy(data, data + num_read, header.d + HEADER_SIZE - to_read_header);
     to_read_header -= num_read;
 
     if (to_read_header == 0) {
       uint8_t version = header.s.version;
       uint32_t msg_size = header.s.size;
+      type_t type = header.s.type;
 
       m_log.trace(
-          "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC_SIZE, header.s.magic, version, msg_size);
+          "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC.size(), header.s.magic, version, msg_size);
 
-      if (memcmp(header.s.magic, MAGIC, MAGIC_SIZE) != 0) {
-        m_log.err("ipc: Invalid magic header, expected '%s', got '%.*s'", MAGIC, MAGIC_SIZE, header.s.magic);
+      if (memcmp(header.s.magic, MAGIC.data(), MAGIC.size()) != 0) {
+        // TODO return error message back to sender
+        m_log.err("ipc: Invalid magic header, expected '%*.s', got '%.*s'", MAGIC.size(),
+            reinterpret_cast<const char*>(MAGIC.data()), MAGIC.size(), header.s.magic);
         return -1;
       }
       if (version != VERSION) {
+        // TODO return error message back to sender
         m_log.err("ipc: Unsupported message format version %d", version);
         return -1;
       }
+
+      if (type != to_integral(v0::ipc_type::ACTION) && type != to_integral(v0::ipc_type::CMD)) {
+        // TODO return error message back to sender
+        m_log.err("ipc: Unsupported message type %d", type);
+        return -1;
+      }
+
+      ipc_type = static_cast<v0::ipc_type>(type);
 
       assert(buf.empty());
       state = client_state::READ;
@@ -112,7 +124,7 @@ namespace ipc {
     to_read_buf -= num_read;
 
     if (to_read_buf == 0) {
-      callback(header.s.version, buf);
+      callback(header.s.version, ipc_type, buf);
 
       state = client_state::WAIT;
       to_read_header = HEADER_SIZE;

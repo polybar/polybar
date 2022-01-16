@@ -34,17 +34,17 @@ namespace signals {
       using base_type = value_signal<Derived, ValueType>;
 
       explicit value_signal(void* data) : m_ptr(data) {}
-      explicit value_signal(ValueType&& data) : m_ptr(&data) {}
-      explicit value_signal(ValueType& data) : m_ptr(&data) {}
+      explicit value_signal(const ValueType&& data) : m_ptr(&data) {}
+      explicit value_signal(const ValueType& data) : m_ptr(&data) {}
 
       virtual ~value_signal() {}
 
-      inline ValueType cast() const {
-        return *static_cast<ValueType*>(m_ptr);
+      inline const ValueType cast() const {
+        return *static_cast<const ValueType*>(m_ptr);
       }
 
      private:
-      void* m_ptr;
+      const void* m_ptr;
     };
   }  // namespace detail
 

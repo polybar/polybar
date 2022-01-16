@@ -80,7 +80,21 @@ namespace ipc {
     return ensure_runtime_path() + "/ipc." + to_string(pid) + ".sock";
   }
 
-  void ipc::trigger_ipc(const string& msg) {
+  void ipc::trigger_ipc(v0::ipc_type type, const string& msg) {
+    switch (type) {
+      case v0::ipc_type::CMD:
+        m_log.info("Received ipc command: '%s'", msg);
+        // TODO should return an error
+        m_sig.emit(signals::ipc::command{msg});
+        break;
+      case v0::ipc_type::ACTION:
+        m_log.info("Received ipc action: '%s'", msg);
+        m_sig.emit(signals::ipc::action{msg});
+        break;
+    }
+  }
+
+  void ipc::trigger_legacy_ipc(const string& msg) {
     m_log.info("Received ipc message: '%s'", msg);
     if (msg.find(ipc_command_prefix) == 0) {
       m_sig.emit(signals::ipc::command{msg.substr(strlen(ipc_command_prefix))});
@@ -94,14 +108,13 @@ namespace ipc {
   }
 
   void ipc::on_connection() {
-    shared_ptr<ipc::connection> connection =
-        make_shared<ipc::connection>(m_loop, [this](ipc::connection& c, uint8_t, const vector<uint8_t>& msg) {
+    shared_ptr<ipc::connection> connection = make_shared<ipc::connection>(
+        m_loop, [this](ipc::connection& c, uint8_t, v0::ipc_type type, const vector<uint8_t>& msg) {
           string str;
           str.insert(str.end(), msg.begin(), msg.end());
           // TODO should return an error code
-          trigger_ipc(str);
+          trigger_ipc(type, str);
           // TODO writeback success/error message
-          // c.client_pipe.write("SUCCESS");
           c.client_pipe.write((const uint8_t*)"SUCCESS", 7);
         });
 
@@ -133,8 +146,9 @@ namespace ipc {
 
   ipc::connection::connection(eventloop::eventloop& loop, cb msg_callback)
       : client_pipe(loop.handle<eventloop::PipeHandle>())
-      , decoder(logger::make(),
-            [this, msg_callback](uint8_t version, const auto& msg) { msg_callback(*this, version, msg); }) {}
+      , decoder(logger::make(), [this, msg_callback](uint8_t version, auto type, const auto& msg) {
+        msg_callback(*this, version, type, msg);
+      }) {}
 
   ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, const string& path)
       : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
@@ -175,7 +189,7 @@ namespace ipc {
       return;
     }
 
-    trigger_ipc(string_util::trim(std::move(m_pipe_buffer), '\n'));
+    trigger_legacy_ipc(string_util::trim(std::move(m_pipe_buffer), '\n'));
     m_pipe_buffer.clear();
   }
 }  // namespace ipc
