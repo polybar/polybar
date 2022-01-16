@@ -25,6 +25,7 @@ static constexpr int E_INVALID_PID{4};
 static constexpr int E_INVALID_CHANNEL{5};
 // static constexpr int E_WRITE{6};
 static constexpr int E_EXCEPTION{7};
+static constexpr int E_UV{8};
 static constexpr int E_USAGE{127};
 static constexpr int E_FAILURE{127};
 
@@ -36,7 +37,13 @@ void display(const string& msg) {
 
 void error(int exit_code, const string& msg) {
   fprintf(stderr, "%s: %s\n", exec, msg.c_str());
+  // TODO stop using exit. Throw exceptions
   exit(exit_code);
+}
+
+void uv_error(int status, const string& msg) {
+  fprintf(stderr, "%s: %s (%s)\n", exec, msg.c_str(), uv_strerror(status));
+  exit(E_UV);
 }
 
 void usage(const string& parameters) {
@@ -81,13 +88,15 @@ static vector<string> get_sockets() {
 
 static void on_write(eventloop::PipeHandle& conn) {
   // TODO listen to response
-  conn.read_start([&](const auto& e) { printf("READ: %.*s\n", (int)e.len, e.data); },
-      [&]() {
-        // TODO handle EOF
-        conn.close();
+  conn.read_start(
+      [&](const auto& e) {
+        // TODO also print PID
+        printf("READ: %.*s\n", (int)e.len, e.data);
       },
-      [&](const auto&) {
-        // TODO handle error
+      [&]() { conn.close(); },
+      [&](const auto& e) {
+        conn.close();
+        uv_error(e.status, "There was an error while reading to polybar's response");
       });
 }
 
@@ -105,8 +114,8 @@ static void on_connection(eventloop::PipeHandle& conn, const ipc::type_t type, c
   conn.write(
       data.data(), total_size, [&]() { on_write(conn); },
       [&](const auto& e) {
-        // TODO handle error
-        UV((int), e.status);
+        conn.close();
+        uv_error(e.status, "There was an error while sending the IPC message.");
       });
 }
 

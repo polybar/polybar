@@ -108,41 +108,45 @@ namespace ipc {
   }
 
   void ipc::on_connection() {
-    shared_ptr<ipc::connection> connection = make_shared<ipc::connection>(
+    auto connection = make_unique<ipc::connection>(
         m_loop, [this](ipc::connection& c, uint8_t, v0::ipc_type type, const vector<uint8_t>& msg) {
           string str;
           str.insert(str.end(), msg.begin(), msg.end());
           // TODO should return an error code
           trigger_ipc(type, str);
-          // TODO writeback success/error message
-          c.client_pipe.write((const uint8_t*)"SUCCESS", 7);
+          // TODO use message format for response
+          c.client_pipe.write((const uint8_t*)"SUCCESS", 7, [this, &c]() { remove_client(c); },
+              [this, &c](const auto& e) {
+                m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
+                remove_client(c);
+              });
           c.client_pipe.close();
         });
 
-    connections.emplace(connection);
-    m_log.info("ipc: New connection (%d clients)", connections.size());
+    auto& c = *connection;
+    socket.accept(c.client_pipe);
 
-    socket.accept(connection->client_pipe);
-
-    connection->client_pipe.read_start(
-        [this, connection](const auto& e) {
-          bool success = connection->decoder.on_read((const uint8_t*)e.data, e.len);
+    c.client_pipe.read_start(
+        [this, &c](const auto& e) {
+          bool success = c.decoder.on_read((const uint8_t*)e.data, e.len);
           if (!success) {
             // TODO write back some error message
-            remove_client(connection);
+            remove_client(c);
           }
         },
-        [this, connection]() { remove_client(connection); },
-        [this, connection](const auto& e) {
+        [this, &c]() { remove_client(c); },
+        [this, &c](const auto& e) {
           m_log.err("ipc: libuv error while listening to IPC socket: %s", uv_strerror(e.status));
-          // TODO write back some error message
-          remove_client(connection);
+          remove_client(c);
         });
+
+    connections.emplace(std::move(connection));
+    m_log.info("ipc: New connection (%d clients)", connections.size());
   }
 
-  void ipc::remove_client(shared_ptr<connection> conn) {
-    conn->client_pipe.close();
-    connections.erase(conn);
+  void ipc::remove_client(connection& conn) {
+    conn.client_pipe.close();
+    connections.erase(connections.find(conn));
   }
 
   ipc::connection::connection(eventloop::eventloop& loop, cb msg_callback)

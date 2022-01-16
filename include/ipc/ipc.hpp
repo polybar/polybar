@@ -54,8 +54,27 @@ namespace ipc {
       client decoder;
     };
 
-    void remove_client(shared_ptr<connection> conn);
-    std::set<shared_ptr<connection>> connections;
+    void remove_client(connection& conn);
+
+    /**
+     * Custom transparent comparator so that we can lookup and erase connections from their reference.
+     */
+    struct connection_cmp {
+      using is_transparent = std::true_type;
+      bool operator()(const unique_ptr<connection>& a, const unique_ptr<connection>& b) const {
+        return a.get() < b.get();
+      }
+
+      bool operator()(const connection& a, const unique_ptr<connection>& b) const {
+        return &a < b.get();
+      }
+
+      bool operator()(const unique_ptr<connection>& a, const connection& b) const {
+        return a.get() < &b;
+      }
+    };
+
+    std::set<unique_ptr<connection>, connection_cmp> connections;
 
     // Named pipe properties (deprecated)
     struct fifo {
