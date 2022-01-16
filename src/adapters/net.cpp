@@ -151,6 +151,11 @@ namespace net {
       return false;
     }
 
+    m_status.mac = string_util::trim(file_util::contents(NET_PATH + m_interface + "/address"), isspace);
+    if (m_status.mac == "") {
+      m_status.mac = NO_MAC;
+    }
+
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
       if (ifa->ifa_addr == nullptr) {
         continue;
@@ -160,11 +165,6 @@ namespace net {
         if (!accumulate || (ifa->ifa_data == nullptr && ifa->ifa_addr->sa_family != AF_PACKET)) {
           continue;
         }
-      }
-
-      m_status.mac = string_util::trim(file_util::contents(NET_PATH + m_interface + "/address"), isspace);
-      if (m_status.mac == "") {
-        m_status.mac = NO_MAC;
       }
 
       struct sockaddr_in6* sa6;
