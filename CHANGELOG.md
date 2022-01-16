@@ -73,19 +73,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
-- `internal/network`: New token `%mac%`
-   ([2569](https://github.com/polybar/polybar/pull/2569))
+- `internal/network`: New token `%mac%` shows MAC address of selected interface
+   ([`#2568`](https://github.com/polybar/polybar/issues/2568))
 - Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
 - `custom/script`: Implement `env-*` config option.
-   ([2090](https://github.com/polybar/polybar/issues/2090))
+   ([`#2090`](https://github.com/polybar/polybar/issues/2090))
 - `drawtypes/ramp`: Add support for ramp weights.
-   ([1750](https://github.com/polybar/polybar/issues/1750))
+   ([`#1750`](https://github.com/polybar/polybar/issues/1750))
 - `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
   `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
   when below or above 1GiB.
-  ([`2472`](https://github.com/polybar/polybar/issues/2472))
+  ([`#2472`](https://github.com/polybar/polybar/issues/2472))
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
-  ([`2374`](https://github.com/polybar/polybar/issues/2374))
+  ([`#2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
   direction when cycling through desktops.
 - The backslash escape character (\\).
