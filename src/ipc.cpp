@@ -84,8 +84,9 @@ static void on_write(eventloop::PipeHandle& conn) {
   conn.read_start([&](const auto& e) { printf("READ: %.*s\n", (int)e.len, e.data); },
       [&]() {
         // TODO handle EOF
+        conn.close();
       },
-      [&](const auto& e) {
+      [&](const auto&) {
         // TODO handle error
       });
 }

@@ -116,6 +116,7 @@ namespace ipc {
           trigger_ipc(type, str);
           // TODO writeback success/error message
           c.client_pipe.write((const uint8_t*)"SUCCESS", 7);
+          c.client_pipe.close();
         });
 
     connections.emplace(connection);
