@@ -201,6 +201,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ([`#1915`](https://github.com/polybar/polybar/issues/1915))
 - `internal/network`: The module now properly supports 'altnames' for
   interfaces.
+- `internal/battery`: More accurate battery state
+([`#2563`](https://github.com/polybar/polybar/issues/2563))
 - Some modules stop updating when system time moves backwards. ([`#857`](https://github.com/polybar/polybar/issues/857), [`#1932`](https://github.com/polybar/polybar/issues/1932))
 
 ## [3.5.7] - 2021-09-21
