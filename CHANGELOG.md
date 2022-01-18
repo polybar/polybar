@@ -73,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- Right and middle click events for alsa module.
+  ([`#2566`](https://github.com/polybar/polybar/issues/2566))
 - `internal/network`: New token `%mac%` shows MAC address of selected interface
    ([`#2568`](https://github.com/polybar/polybar/issues/2568))
 - Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
