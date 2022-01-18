@@ -75,17 +75,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Right and middle click events for alsa module.
   ([2566](https://github.com/polybar/polybar/issues/2566))
+- `internal/network`: New token `%mac%` shows MAC address of selected interface
+   ([`#2568`](https://github.com/polybar/polybar/issues/2568))
 - Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
 - `custom/script`: Implement `env-*` config option.
-   ([2090](https://github.com/polybar/polybar/issues/2090))
+   ([`#2090`](https://github.com/polybar/polybar/issues/2090))
 - `drawtypes/ramp`: Add support for ramp weights.
-   ([1750](https://github.com/polybar/polybar/issues/1750))
+   ([`#1750`](https://github.com/polybar/polybar/issues/1750))
 - `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
   `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
   when below or above 1GiB.
-  ([`2472`](https://github.com/polybar/polybar/issues/2472))
+  ([`#2472`](https://github.com/polybar/polybar/issues/2472))
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
-  ([`2374`](https://github.com/polybar/polybar/issues/2374))
+  ([`#2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
   direction when cycling through desktops.
 - The backslash escape character (\\).
@@ -201,6 +203,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ([`#1915`](https://github.com/polybar/polybar/issues/1915))
 - `internal/network`: The module now properly supports 'altnames' for
   interfaces.
+- `internal/battery`: More accurate battery state
+([`#2563`](https://github.com/polybar/polybar/issues/2563))
+- Some modules stop updating when system time moves backwards. ([`#857`](https://github.com/polybar/polybar/issues/857), [`#1932`](https://github.com/polybar/polybar/issues/1932))
 
 ## [3.5.7] - 2021-09-21
 ### Fixed

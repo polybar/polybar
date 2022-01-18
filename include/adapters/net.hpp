@@ -62,12 +62,13 @@ namespace net {
   struct link_activity {
     bytes_t transmitted{0};
     bytes_t received{0};
-    std::chrono::system_clock::time_point time;
+    std::chrono::steady_clock::time_point time;
   };
 
   struct link_status {
     string ip;
     string ip6;
+    string mac;
     link_activity previous{};
     link_activity current{};
   };
@@ -86,6 +87,7 @@ namespace net {
 
     string ip() const;
     string ip6() const;
+    string mac() const;
     string downspeed(int minwidth = 3, const string& unit = "B/s") const;
     string upspeed(int minwidth = 3, const string& unit = "B/s") const;
     void set_unknown_up(bool unknown = true);

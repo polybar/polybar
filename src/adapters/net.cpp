@@ -31,6 +31,7 @@ namespace net {
   };
 
   static const string NO_IP = string("N/A");
+  static const string NO_MAC = string("N/A");
   static const string NET_PATH = "/sys/class/net/";
   static const string VIRTUAL_PATH = "/sys/devices/virtual/";
 
@@ -141,13 +142,18 @@ namespace net {
     m_status.previous = m_status.current;
     m_status.current.transmitted = 0;
     m_status.current.received = 0;
-    m_status.current.time = std::chrono::system_clock::now();
+    m_status.current.time = std::chrono::steady_clock::now();
     m_status.ip = NO_IP;
     m_status.ip6 = NO_IP;
 
     struct ifaddrs* ifaddr;
     if (getifaddrs(&ifaddr) == -1 || ifaddr == nullptr) {
       return false;
+    }
+
+    m_status.mac = string_util::trim(file_util::contents(NET_PATH + m_interface + "/address"), isspace);
+    if (m_status.mac == "") {
+      m_status.mac = NO_MAC;
     }
 
     for (auto ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
@@ -227,6 +233,12 @@ namespace net {
    */
   string network::ip() const {
     return m_status.ip;
+  }
+  /**
+   * Get interface mac address
+   */
+  string network::mac() const {
+    return m_status.mac;
   }
 
   /**
