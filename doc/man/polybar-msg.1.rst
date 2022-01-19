@@ -27,6 +27,10 @@ OPTIONS
 
 .. program:: polybar-msg
 
+.. option:: -h, --help
+
+   Display help text and exit
+
 .. option:: -p PID
 
    Send message only to **polybar** process running under the given process ID.

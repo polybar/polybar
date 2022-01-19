@@ -19,41 +19,29 @@
 using namespace polybar;
 using namespace std;
 
-static constexpr int E_NO_CHANNELS{2};
-static constexpr int E_MESSAGE_TYPE{3};
-static constexpr int E_INVALID_PID{4};
-static constexpr int E_INVALID_CHANNEL{5};
-// static constexpr int E_WRITE{6};
-static constexpr int E_EXCEPTION{7};
-static constexpr int E_UV{8};
-static constexpr int E_USAGE{127};
-static constexpr int E_FAILURE{127};
-
 static const char* exec = nullptr;
+static constexpr auto USAGE = "<command=(action|cmd)> <payload> [...]";
+static constexpr auto USAGE_HOOK = "hook <module-name> <hook-index>";
 
 void display(const string& msg) {
   fprintf(stdout, "%s\n", msg.c_str());
 }
 
-void error(int exit_code, const string& msg) {
-  fprintf(stderr, "%s: %s\n", exec, msg.c_str());
-  // TODO stop using exit. Throw exceptions
-  exit(exit_code);
+void error(const string& msg) {
+  throw std::runtime_error(msg);
 }
 
 void uv_error(int status, const string& msg) {
-  fprintf(stderr, "%s: %s (%s)\n", exec, msg.c_str(), uv_strerror(status));
-  exit(E_UV);
+  throw std::runtime_error(msg + "(" + uv_strerror(status) + ")");
 }
 
 void usage(const string& parameters) {
-  fprintf(stderr, "Usage: polybar-msg [-p pid] %s\n", parameters.c_str());
-  exit(E_USAGE);
+  fprintf(stderr, "Usage: %s [-p pid] %s\n", exec, parameters.c_str());
 }
 
 void remove_socket(const string& handle) {
   if (unlink(handle.c_str()) == -1) {
-    error(1, "Could not remove stale ipc channel: "s + strerror(errno));
+    error("Could not remove stale ipc channel: "s + strerror(errno));
   } else {
     display("Removed stale ipc channel: " + handle);
   }
@@ -127,7 +115,7 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
   args.pop_front();
 
   if (!validate_type(ipc_type)) {
-    error(E_MESSAGE_TYPE, "\"" + ipc_type + "\" is not a valid message type.");
+    error("\"" + ipc_type + "\" is not a valid message type.");
   }
 
   ipc::type_t type = ipc::TYPE_ERR;
@@ -139,7 +127,8 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
    */
   if (ipc_type == "hook") {
     if (args.size() != 1) {
-      usage("hook <module-name> <hook-index>");
+      usage(USAGE_HOOK);
+      throw std::runtime_error("Mismatched number of arguments for hook, expected 1, got "s + to_string(args.size()));
     } else {
       if (ipc_payload.find("module/") == 0) {
         ipc_payload.erase(0, strlen("module/"));
@@ -184,23 +173,23 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
   }
 
   if (!args.empty()) {
-    error(1, "Too many arguments");
+    error("Too many arguments");
   }
 
   assert(type != ipc::TYPE_ERR);
   return {type, ipc_payload};
 }
 
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
   exec = argv[0];
   deque<string> args{argv + 1, argv + argc};
 
   string socket_path;
 
-  auto help =
-      find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; }) != args.end();
-  if (help || args.size() < 2) {
-    usage("<command=(action|cmd)> <payload> [...]");
+  auto help_pos = find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; });
+  if (help_pos != args.end()) {
+    usage(USAGE);
+    return EXIT_SUCCESS;
   }
 
   /* If -p <pid> is passed, check if the process is running and that
@@ -210,9 +199,9 @@ int main(int argc, char** argv) {
     auto& pid_string = args[1];
     socket_path = ipc::get_socket_path(pid_string);
     if (!file_util::exists("/proc/" + pid_string)) {
-      error(E_INVALID_PID, "No process with pid " + pid_string);
+      error("No process with pid " + pid_string);
     } else if (!file_util::exists(socket_path)) {
-      error(E_INVALID_CHANNEL, "No channel available for pid " + pid_string);
+      error("No channel available for pid " + pid_string);
     }
 
     args.pop_front();
@@ -224,41 +213,48 @@ int main(int argc, char** argv) {
 
   // Get availble channel sockets
   if (sockets.empty()) {
-    error(E_NO_CHANNELS, "No active ipc channels");
+    error("No active ipc channels");
+  }
+
+  if (args.size() < 2) {
+    usage(USAGE);
+    return EXIT_FAILURE;
   }
 
   string payload;
   ipc::type_t type;
   std::tie(type, payload) = parse_message(args);
 
-  int exit_status = E_FAILURE;
+  bool success = true;
 
   eventloop::eventloop loop;
 
   for (auto&& channel : sockets) {
-    try {
-      auto& conn = loop.handle<eventloop::PipeHandle>();
+    auto& conn = loop.handle<eventloop::PipeHandle>();
 
-      conn.connect(
-          channel,
-          [&, payload]() {
-            on_connection(conn, type, payload);
-            exit_status = 0;
-          },
-          [&](const auto& e) {
-            fprintf(stderr, "Failed to connect to '%s' (err: '%s')\n", channel.c_str(), uv_strerror(e.status));
-          });
-    } catch (const exception& err) {
-      error(E_EXCEPTION, err.what());
-    }
+    conn.connect(
+        channel, [&, payload]() { on_connection(conn, type, payload); },
+        [&](const auto& e) {
+          fprintf(stderr, "%s: Failed to connect to '%s' (err: '%s')\n", exec, channel.c_str(), uv_strerror(e.status));
+          success = false;
+        });
   }
 
   try {
     loop.run();
   } catch (const exception& e) {
-    fprintf(stderr, "Uncaught exception in eventloop: %s", e.what());
-    return EXIT_FAILURE;
+    throw std::runtime_error("Uncaught exception in eventloop: "s + e.what());
   }
 
-  return exit_status;
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int main(int argc, char** argv) {
+  exec = argv[0];
+  try {
+    return run(argc, argv);
+  } catch (const std::exception& e) {
+    fprintf(stderr, "%s: %s\n", exec, e.what());
+    return EXIT_FAILURE;
+  }
 }
