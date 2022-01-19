@@ -160,6 +160,7 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
   }
 
   if (ipc_type == "action") {
+    type = to_integral(ipc::v0::ipc_type::ACTION);
     /**
      * Alternatively polybar-msg action <module name> <action> <data>
      * is also accepted
@@ -174,7 +175,6 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
         args.pop_front();
       }
 
-      type = to_integral(ipc::v0::ipc_type::ACTION);
       ipc_payload = actions_util::get_action_string(name, action, data);
     }
   }
