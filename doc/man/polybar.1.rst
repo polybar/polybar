@@ -77,13 +77,16 @@ Report issues on GitHub <https://github.com/polybar/polybar>
 
 SEE ALSO
 --------
-| Full documentation at: <https://github.com/polybar/polybar>
-| Project wiki: <https://github.com/polybar/polybar/wiki>
-
 .. only:: man
 
-  :manpage:`polybar(5)`
+  :manpage:`polybar-msg`\(1),
+  :manpage:`polybar`\(5)
+
 
 .. only:: not man
 
+  :doc:`polybar-msg.1`,
   :doc:`polybar.5`
+
+| Full documentation at: <https://github.com/polybar/polybar>
+| Project wiki: <https://github.com/polybar/polybar/wiki>

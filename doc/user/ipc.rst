@@ -13,11 +13,12 @@ messages to polybar.
 .. note:: Starting with version 3.6.0, the underlying IPC mechanism has been
           completely changed.
 
-          Not using ``polybar-msg`` and the hook messages have been deprecated.
+          Writing directly to the named pipe to send IPC messages has been
+          deprecated, ``polybar-msg`` should be used exclusively
           Everything you could do by directly writing to the named pipe, you
           can also do using ``polybar-msg``.
-          Hook messages are replaced by actions on the
-          :ref:`ipc module <actions-ipc>`.
+          In addition, hook messages are also deprecated; they are replaced by
+          actions on the :ref:`ipc module <actions-ipc>`.
 
           Unless noted otherwise, everything in this guide is still valid for
           older versions.
@@ -43,6 +44,9 @@ The ``<type>`` argument is either :ref:`action <ipc-actions>` or
 :ref:`cmd <ipc-commands>`.
 The allowed values for ``<payload>`` depend on the type.
 
+Message Types
+-------------
+
 .. _ipc-commands:
 
 Commands
@@ -57,9 +61,6 @@ Available values for ``<payload>`` are:
 * ``hide``: Hides the bar
 * ``show``: Makes the bar visible again, if it was hidden
 * ``toggle``: Toggles between the hidden and visible state.
-
-Message Types
--------------
 
 .. _ipc-actions:
 

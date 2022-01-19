@@ -182,6 +182,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1),
+    ('man/polybar-msg.1', 'polybar-msg', 'Send IPC messages to polybar', [], 1),
     ('man/polybar.5', 'polybar', 'configuration file for polybar(1)', [], 5)
 ]
 

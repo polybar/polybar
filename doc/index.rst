@@ -20,6 +20,7 @@ Welcome to the official polybar documentation.
    :caption: Manual Pages:
 
    man/polybar.1
+   man/polybar-msg.1
    man/polybar.5
 
 .. toctree::

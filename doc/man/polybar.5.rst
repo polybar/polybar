@@ -169,8 +169,11 @@ SEE ALSO
 
 .. only:: man
 
-  :manpage:`polybar(1)`
+  :manpage:`polybar`\(1),
+  :manpage:`polybar-msg`\(1)
+
 
 .. only:: not man
 
-  :doc:`polybar.1`
+  :doc:`polybar.1`,
+  :doc:`polybar-msg.1`
