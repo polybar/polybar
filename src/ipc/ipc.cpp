@@ -54,6 +54,7 @@ namespace ipc {
     string sock_path = get_socket_path(getpid());
 
     m_log.info("Opening ipc socket at '%s'", sock_path);
+    m_log.notice("Listening for IPC messages (PID: %d)", getpid());
     socket.bind(sock_path);
     socket.listen(
         4, [this]() { on_connection(); },
