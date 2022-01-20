@@ -244,11 +244,13 @@ int run(int argc, char** argv) {
             case ipc::TYPE_OK:
               printf("Successfully wrote '%s' to PID %d\n", payload.c_str(), pid);
               break;
-            case ipc::TYPE_ERR:
-              fprintf(stderr, "%s: Failed to write '%s' to PID %d (reason: %*s)\n", exec, payload.c_str(), pid,
-                  static_cast<int>(response.size()), reinterpret_cast<const char*>(response.data()));
+            case ipc::TYPE_ERR: {
+              string err_str{response.begin(), response.end()};
+              fprintf(stderr, "%s: Failed to write '%s' to PID %d (reason: %s)\n", exec, payload.c_str(), pid,
+                  err_str.c_str());
               success = false;
               break;
+            }
             default:
               fprintf(stderr, "%s: Got back unrecognized message type %d from PID %d\n", exec, type, pid);
               success = false;

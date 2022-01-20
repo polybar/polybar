@@ -204,7 +204,7 @@ namespace modules {
   }
 
   void ipc_module::set_hook(int h) {
-    assert(h >= 0 && (size_t) h < m_hooks.size());
+    assert(h >= 0 && (size_t)h < m_hooks.size());
     m_current_hook = h;
     exec_hook();
   }

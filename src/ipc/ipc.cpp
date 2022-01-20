@@ -112,21 +112,24 @@ namespace ipc {
   void ipc::on_connection() {
     auto connection = make_unique<ipc::connection>(
         m_loop, [this](ipc::connection& c, uint8_t, type_t type, const vector<uint8_t>& msg) {
-          // TODO handle other types.
-          auto ipc_type = static_cast<v0::ipc_type>(type);
-          string str;
-          str.insert(str.end(), msg.begin(), msg.end());
-          // TODO should return an error code
-          trigger_ipc(ipc_type, str);
+          vector<uint8_t> response;
 
-          const auto encoded = encode(TYPE_OK);
+          if (type == to_integral(v0::ipc_type::ACTION) || type == to_integral(v0::ipc_type::CMD)) {
+            auto ipc_type = static_cast<v0::ipc_type>(type);
+            string str;
+            str.insert(str.end(), msg.begin(), msg.end());
+            // TODO should return an error code
+            trigger_ipc(ipc_type, str);
+            response = encode(TYPE_OK);
+          } else {
+            response = encode(TYPE_ERR, "Unrecognized IPC message type " + to_string(type));
+          }
           c.client_pipe.write(
-              encoded, [this, &c]() { remove_client(c); },
+              response, [this, &c]() { remove_client(c); },
               [this, &c](const auto& e) {
                 m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
                 remove_client(c);
               });
-          c.client_pipe.close();
         });
 
     auto& c = *connection;

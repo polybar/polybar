@@ -6,7 +6,7 @@
 POLYBAR_NS
 
 namespace ipc {
-  template<typename V>
+  template <typename V>
   vector<uint8_t> encode(const type_t type, const V& payload) {
     size_t total_size = HEADER_SIZE + payload.size();
     std::vector<uint8_t> data(total_size);
