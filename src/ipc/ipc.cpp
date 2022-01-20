@@ -129,8 +129,10 @@ namespace ipc {
 
     c.client_pipe.read_start(
         [this, &c](const auto& e) {
-          bool success = c.decoder.on_read((const uint8_t*)e.data, e.len);
-          if (!success) {
+          try {
+            c.decoder.on_read((const uint8_t*)e.data, e.len);
+          } catch (const client::error& e) {
+            m_log.err("ipc: %s", e.what());
             // TODO write back some error message
             remove_client(c);
           }

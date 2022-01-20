@@ -6,14 +6,22 @@
 POLYBAR_NS
 
 namespace ipc {
-
   client::client(const logger& logger, cb callback) : callback(callback), m_log(logger) {}
 
-  bool client::on_read(const uint8_t* data, size_t size) {
+  void client::on_read(const uint8_t* data, size_t size) {
     if (state == client_state::CLOSED) {
-      return false;
+      throw error("Decoder is closed");
     }
 
+    try {
+      process_data(data, size);
+    } catch (const error& e) {
+      close();
+      throw;
+    }
+  }
+
+  void client::process_data(const uint8_t* data, size_t size) {
     m_log.trace("ipc: Received %zd bytes", size);
 
     size_t buf_pos = 0;
@@ -22,12 +30,6 @@ namespace ipc {
     while (remain > 0) {
       if (state == client_state::WAIT) {
         ssize_t num_read = process_header_data(data + buf_pos, remain);
-
-        if (num_read < 0) {
-          close();
-          return false;
-        }
-
         assert(num_read > 0);
         assert(remain >= (size_t)num_read);
 
@@ -36,12 +38,6 @@ namespace ipc {
       } else {
         assert(to_read_header == 0);
         ssize_t num_read = process_msg_data(data + buf_pos, remain);
-
-        if (num_read < 0) {
-          close();
-          return false;
-        }
-
         assert(num_read > 0);
         assert(remain >= (size_t)num_read);
 
@@ -49,11 +45,9 @@ namespace ipc {
         remain -= num_read;
       }
     }
-
-    return true;
   }
 
-  void client::close() {
+  void client::close() noexcept {
     state = client_state::CLOSED;
   }
 
@@ -80,21 +74,15 @@ namespace ipc {
           "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC.size(), header.s.magic, version, msg_size);
 
       if (memcmp(header.s.magic, MAGIC.data(), MAGIC.size()) != 0) {
-        // TODO return error message back to sender
-        m_log.err("ipc: Invalid magic header, expected '%*.s', got '%.*s'", MAGIC.size(),
-            reinterpret_cast<const char*>(MAGIC.data()), MAGIC.size(), header.s.magic);
-        return -1;
+        throw error("Invalid magic header, expected '" + MAGIC_STR + "', got '" +
+                    string(reinterpret_cast<const char*>(header.s.magic), MAGIC.size()));
       }
       if (version != VERSION) {
-        // TODO return error message back to sender
-        m_log.err("ipc: Unsupported message format version %d", version);
-        return -1;
+        throw error("Unsupported message format version " + to_string(version));
       }
 
       if (type != to_integral(v0::ipc_type::ACTION) && type != to_integral(v0::ipc_type::CMD)) {
-        // TODO return error message back to sender
-        m_log.err("ipc: Unsupported message type %d", type);
-        return -1;
+        throw error("Unsupported message type " + to_string(type));
       }
 
       ipc_type = static_cast<v0::ipc_type>(type);

@@ -47,36 +47,36 @@ class IpcClientTest : public ::testing::Test {
 
 TEST_F(IpcClientTest, single_msg) {
   EXPECT_CALL(cb, cb(0, v0::ipc_type::ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end()))).Times(1);
-  EXPECT_TRUE(cl.on_read(MSG1.data(), MSG1.size()));
+  EXPECT_NO_THROW(cl.on_read(MSG1.data(), MSG1.size()));
 }
 
 TEST_F(IpcClientTest, single_msg_wrong1) {
-  EXPECT_FALSE(cl.on_read(MSG_WRONG1.data(), MSG_WRONG1.size()));
+  EXPECT_THROW(cl.on_read(MSG_WRONG1.data(), MSG_WRONG1.size()), client::error);
   // After an error, any further read fails
-  EXPECT_FALSE(cl.on_read(MSG1.data(), MSG1.size()));
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
 }
 
 TEST_F(IpcClientTest, single_msg_wrong2) {
-  EXPECT_FALSE(cl.on_read(MSG_WRONG2.data(), MSG_WRONG2.size()));
+  EXPECT_THROW(cl.on_read(MSG_WRONG2.data(), MSG_WRONG2.size()), client::error);
   // After an error, any further read fails
-  EXPECT_FALSE(cl.on_read(MSG1.data(), MSG1.size()));
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
 }
 
 TEST_F(IpcClientTest, single_msg_wrong3) {
-  EXPECT_FALSE(cl.on_read(MSG_WRONG3.data(), MSG_WRONG3.size()));
+  EXPECT_THROW(cl.on_read(MSG_WRONG3.data(), MSG_WRONG3.size()), client::error);
   // After an error, any further read fails
-  EXPECT_FALSE(cl.on_read(MSG1.data(), MSG1.size()));
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
 }
 
 TEST_F(IpcClientTest, byte_by_byte) {
   EXPECT_CALL(cb, cb(0, v0::ipc_type::ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end()))).Times(1);
   for (const uint8_t c : MSG1) {
-    EXPECT_TRUE(cl.on_read(&c, 1));
+    EXPECT_NO_THROW(cl.on_read(&c, 1));
   }
 }
 
 TEST_F(IpcClientTest, multiple) {
-  const static int NUM_ITER = 10;
+  static constexpr int NUM_ITER = 10;
   {
     InSequence seq;
     EXPECT_CALL(cb, cb(0, v0::ipc_type::ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end())))
@@ -84,6 +84,6 @@ TEST_F(IpcClientTest, multiple) {
   }
 
   for (int i = 0; i < NUM_ITER; i++) {
-    EXPECT_TRUE(cl.on_read(MSG1.data(), MSG1.size()));
+    EXPECT_NO_THROW(cl.on_read(MSG1.data(), MSG1.size()));
   }
 }

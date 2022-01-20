@@ -16,6 +16,7 @@ namespace ipc {
    * THIS MUST NEVER CHANGE.
    */
   static constexpr std::array<uint8_t, 7> MAGIC = {'p', 'o', 'l', 'y', 'i', 'p', 'c'};
+  static const string MAGIC_STR = string(reinterpret_cast<const char*>(MAGIC.data()), MAGIC.size());
 
   static constexpr uint8_t VERSION = 0;
 
