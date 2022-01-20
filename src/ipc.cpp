@@ -74,21 +74,15 @@ static vector<string> get_sockets() {
   return sockets;
 }
 
-static void on_write(eventloop::PipeHandle& conn) {
-  // TODO listen to response
-  conn.read_start(
-      [&](const auto& e) {
-        // TODO also print PID
-        printf("READ: %.*s\n", (int)e.len, e.data);
-      },
-      [&]() { conn.close(); },
+static void on_write(eventloop::PipeHandle& conn, int pid) {
+  conn.read_start([&](const auto& e) { printf("%d: %.*s\n", pid, (int)e.len, e.data); }, [&]() { conn.close(); },
       [&](const auto& e) {
         conn.close();
         uv_error(e.status, "There was an error while reading polybar's response");
       });
 }
 
-static void on_connection(eventloop::PipeHandle& conn, const ipc::type_t type, const string& payload) {
+static void on_connection(eventloop::PipeHandle& conn, int pid, const ipc::type_t type, const string& payload) {
   size_t total_size = ipc::HEADER_SIZE + payload.size();
 
   std::vector<uint8_t> data(total_size);
@@ -100,7 +94,7 @@ static void on_connection(eventloop::PipeHandle& conn, const ipc::type_t type, c
 
   memcpy(data.data() + ipc::HEADER_SIZE, payload.data(), payload.size());
   conn.write(
-      data.data(), total_size, [&]() { on_write(conn); },
+      data.data(), total_size, [&]() { on_write(conn, pid); },
       [&](const auto& e) {
         conn.close();
         uv_error(e.status, "There was an error while sending the IPC message.");
@@ -236,7 +230,7 @@ int run(int argc, char** argv) {
     assert(pid > 0);
 
     conn.connect(
-        channel, [&, payload]() { on_connection(conn, type, payload); },
+        channel, [&, payload, pid]() { on_connection(conn, pid, type, payload); },
         [&](const auto& e) {
           fprintf(stderr, "%s: Failed to connect to '%s' (err: '%s')\n", exec, channel.c_str(), uv_strerror(e.status));
           success = false;
