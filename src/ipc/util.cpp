@@ -50,7 +50,11 @@ namespace ipc {
       return -1;
     }
 
-    return std::stoi(stripped.substr(p + 1));
+    try {
+      return std::stoi(stripped.substr(p + 1));
+    } catch (...) {
+      return -1;
+    }
   }
 }  // namespace ipc
 

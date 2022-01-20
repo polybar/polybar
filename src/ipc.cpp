@@ -58,7 +58,7 @@ static vector<string> get_sockets() {
     int pid = ipc::get_pid_from_socket(path);
 
     if (pid <= 0) {
-      return false;
+      return true;
     }
 
     if (!file_util::exists("/proc/" + to_string(pid))) {
@@ -84,7 +84,7 @@ static void on_write(eventloop::PipeHandle& conn) {
       [&]() { conn.close(); },
       [&](const auto& e) {
         conn.close();
-        uv_error(e.status, "There was an error while reading to polybar's response");
+        uv_error(e.status, "There was an error while reading polybar's response");
       });
 }
 
@@ -231,6 +231,9 @@ int run(int argc, char** argv) {
 
   for (auto&& channel : sockets) {
     auto& conn = loop.handle<eventloop::PipeHandle>();
+
+    int pid = ipc::get_pid_from_socket(channel);
+    assert(pid > 0);
 
     conn.connect(
         channel, [&, payload]() { on_connection(conn, type, payload); },
