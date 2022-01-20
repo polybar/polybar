@@ -1,4 +1,4 @@
-#include "ipc/client.hpp"
+#include "ipc/decoder.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -6,9 +6,9 @@
 POLYBAR_NS
 
 namespace ipc {
-  client::client(const logger& logger, cb callback) : callback(callback), m_log(logger) {}
+  decoder::decoder(const logger& logger, cb callback) : callback(callback), m_log(logger) {}
 
-  void client::on_read(const uint8_t* data, size_t size) {
+  void decoder::on_read(const uint8_t* data, size_t size) {
     if (state == client_state::CLOSED) {
       throw error("Decoder is closed");
     }
@@ -21,7 +21,7 @@ namespace ipc {
     }
   }
 
-  void client::process_data(const uint8_t* data, size_t size) {
+  void decoder::process_data(const uint8_t* data, size_t size) {
     m_log.trace("ipc: Received %zd bytes", size);
 
     size_t buf_pos = 0;
@@ -47,7 +47,7 @@ namespace ipc {
     }
   }
 
-  void client::close() noexcept {
+  void decoder::close() noexcept {
     state = client_state::CLOSED;
   }
 
@@ -56,7 +56,7 @@ namespace ipc {
    *
    * \return Number of bytes processed. -1 for errors
    */
-  ssize_t client::process_header_data(const uint8_t* data, size_t size) {
+  ssize_t decoder::process_header_data(const uint8_t* data, size_t size) {
     assert(state == client_state::WAIT);
     assert(to_read_header > 0);
 
@@ -100,7 +100,7 @@ namespace ipc {
    *
    * \return Number of bytes processed. -1 for errors
    */
-  ssize_t client::process_msg_data(const uint8_t* data, size_t size) {
+  ssize_t decoder::process_msg_data(const uint8_t* data, size_t size) {
     assert(state == client_state::READ);
 
     size_t num_read = std::min(size, to_read_buf);

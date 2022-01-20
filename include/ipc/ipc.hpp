@@ -6,7 +6,7 @@
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
-#include "ipc/client.hpp"
+#include "ipc/decoder.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
 
@@ -51,7 +51,7 @@ namespace ipc {
       using cb = std::function<void(connection&, uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
       connection(eventloop::eventloop& loop, cb msg_callback);
       eventloop::PipeHandle& client_pipe;
-      client decoder;
+      decoder dec;
     };
 
     void remove_client(connection& conn);

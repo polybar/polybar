@@ -1,4 +1,4 @@
-#include "ipc/client.hpp"
+#include "ipc/decoder.hpp"
 
 #include <cstring>
 #include <string>
@@ -39,43 +39,43 @@ class MockCallback {
   MOCK_METHOD(void, cb, (uint8_t version, v0::ipc_type, const vector<uint8_t>&));
 };
 
-class IpcClientTest : public ::testing::Test {
+class DecoderTest : public ::testing::Test {
  protected:
   MockCallback cb;
-  client cl{logger::make(), [this](uint8_t version, auto type, const auto& data) { cb.cb(version, type, data); }};
+  decoder cl{logger::make(), [this](uint8_t version, auto type, const auto& data) { cb.cb(version, type, data); }};
 };
 
-TEST_F(IpcClientTest, single_msg) {
+TEST_F(DecoderTest, single_msg) {
   EXPECT_CALL(cb, cb(0, v0::ipc_type::ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end()))).Times(1);
   EXPECT_NO_THROW(cl.on_read(MSG1.data(), MSG1.size()));
 }
 
-TEST_F(IpcClientTest, single_msg_wrong1) {
-  EXPECT_THROW(cl.on_read(MSG_WRONG1.data(), MSG_WRONG1.size()), client::error);
+TEST_F(DecoderTest, single_msg_wrong1) {
+  EXPECT_THROW(cl.on_read(MSG_WRONG1.data(), MSG_WRONG1.size()), decoder::error);
   // After an error, any further read fails
-  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), decoder::error);
 }
 
-TEST_F(IpcClientTest, single_msg_wrong2) {
-  EXPECT_THROW(cl.on_read(MSG_WRONG2.data(), MSG_WRONG2.size()), client::error);
+TEST_F(DecoderTest, single_msg_wrong2) {
+  EXPECT_THROW(cl.on_read(MSG_WRONG2.data(), MSG_WRONG2.size()), decoder::error);
   // After an error, any further read fails
-  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), decoder::error);
 }
 
-TEST_F(IpcClientTest, single_msg_wrong3) {
-  EXPECT_THROW(cl.on_read(MSG_WRONG3.data(), MSG_WRONG3.size()), client::error);
+TEST_F(DecoderTest, single_msg_wrong3) {
+  EXPECT_THROW(cl.on_read(MSG_WRONG3.data(), MSG_WRONG3.size()), decoder::error);
   // After an error, any further read fails
-  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), client::error);
+  EXPECT_THROW(cl.on_read(MSG1.data(), MSG1.size()), decoder::error);
 }
 
-TEST_F(IpcClientTest, byte_by_byte) {
+TEST_F(DecoderTest, byte_by_byte) {
   EXPECT_CALL(cb, cb(0, v0::ipc_type::ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end()))).Times(1);
   for (const uint8_t c : MSG1) {
     EXPECT_NO_THROW(cl.on_read(&c, 1));
   }
 }
 
-TEST_F(IpcClientTest, multiple) {
+TEST_F(DecoderTest, multiple) {
   static constexpr int NUM_ITER = 10;
   {
     InSequence seq;

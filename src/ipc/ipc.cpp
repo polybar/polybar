@@ -130,8 +130,8 @@ namespace ipc {
     c.client_pipe.read_start(
         [this, &c](const auto& e) {
           try {
-            c.decoder.on_read((const uint8_t*)e.data, e.len);
-          } catch (const client::error& e) {
+            c.dec.on_read((const uint8_t*)e.data, e.len);
+          } catch (const decoder::error& e) {
             m_log.err("ipc: %s", e.what());
             // TODO write back some error message
             remove_client(c);
@@ -154,7 +154,7 @@ namespace ipc {
 
   ipc::connection::connection(eventloop::eventloop& loop, cb msg_callback)
       : client_pipe(loop.handle<eventloop::PipeHandle>())
-      , decoder(logger::make(), [this, msg_callback](uint8_t version, auto type, const auto& msg) {
+      , dec(logger::make(), [this, msg_callback](uint8_t version, auto type, const auto& msg) {
         msg_callback(*this, version, type, msg);
       }) {}
 

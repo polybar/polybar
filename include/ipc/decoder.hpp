@@ -14,7 +14,7 @@ namespace ipc {
   /**
    * Decoder for the IPC message format.
    */
-  class client {
+  class decoder {
    public:
     DEFINE_ERROR(error);
     /**
@@ -22,7 +22,7 @@ namespace ipc {
      * The message version, message type, and the data is passed.
      */
     using cb = std::function<void(uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
-    client(const logger&, cb callback);
+    decoder(const logger&, cb callback);
 
     /**
      * Call this function whenever new data arrives.
