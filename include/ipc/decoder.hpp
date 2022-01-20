@@ -1,7 +1,5 @@
 #pragma once
 
-#include <queue>
-
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
@@ -21,7 +19,7 @@ namespace ipc {
      * Callback is called whenever a full message is received.
      * The message version, message type, and the data is passed.
      */
-    using cb = std::function<void(uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
+    using cb = std::function<void(uint8_t, type_t, const std::vector<uint8_t>&)>;
     decoder(const logger&, cb callback);
 
     /**
@@ -41,8 +39,6 @@ namespace ipc {
     ipc::header header;
     size_t to_read_header{ipc::HEADER_SIZE};
 
-    v0::ipc_type ipc_type;
-
     std::vector<uint8_t> buf;
     size_t to_read_buf{0};
 
@@ -50,12 +46,12 @@ namespace ipc {
 
    private:
     enum class client_state {
-      // Waiting for new message (header does not contain full header)
-      WAIT,
+      // Waiting for header data (header does not contain full header)
+      HEADER,
       // Waiting for message data (header contains valid header)
-      READ,
+      PAYLOAD,
       CLOSED,
-    } state{client_state::WAIT};
+    } state{client_state::HEADER};
     const logger& m_log;
   };
 

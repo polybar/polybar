@@ -314,10 +314,10 @@ namespace eventloop {
       }
     };
 
-    void write(const uint8_t* data, size_t len, WriteRequest::cb_write user_cb = {}, cb_error err_cb = {}) {
+    void write(const vector<uint8_t>& data, WriteRequest::cb_write user_cb = {}, cb_error err_cb = {}) {
       WriteRequest* req = WriteRequest::create(user_cb, err_cb);
 
-      uv_buf_t buf{(char*)data, len};
+      uv_buf_t buf{(char*)data.data(), data.size()};
 
       UV(uv_write, req->get(), this->template get<uv_stream_t>(), &buf, 1, [](uv_write_t* req, int status) {
         WriteRequest& r = *static_cast<WriteRequest*>(req->data);

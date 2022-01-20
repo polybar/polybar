@@ -48,7 +48,7 @@ namespace ipc {
 
     class connection : public non_movable_mixin {
      public:
-      using cb = std::function<void(connection&, uint8_t, v0::ipc_type, const std::vector<uint8_t>&)>;
+      using cb = std::function<void(connection&, uint8_t, type_t, const std::vector<uint8_t>&)>;
       connection(eventloop::eventloop& loop, cb msg_callback);
       eventloop::PipeHandle& client_pipe;
       decoder dec;

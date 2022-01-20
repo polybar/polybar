@@ -1,5 +1,3 @@
-#include "modules/ipc.hpp"
-
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -11,8 +9,10 @@
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
+#include "ipc/encoder.hpp"
 #include "ipc/msg.hpp"
 #include "ipc/util.hpp"
+#include "modules/ipc.hpp"
 #include "utils/actions.hpp"
 #include "utils/file.hpp"
 
@@ -83,18 +83,9 @@ static void on_write(eventloop::PipeHandle& conn, int pid) {
 }
 
 static void on_connection(eventloop::PipeHandle& conn, int pid, const ipc::type_t type, const string& payload) {
-  size_t total_size = ipc::HEADER_SIZE + payload.size();
-
-  std::vector<uint8_t> data(total_size);
-  auto* header = (ipc::header*)data.data();
-  std::copy(ipc::MAGIC.begin(), ipc::MAGIC.end(), header->s.magic);
-  header->s.version = ipc::VERSION;
-  header->s.size = payload.size();
-  header->s.type = type;
-
-  memcpy(data.data() + ipc::HEADER_SIZE, payload.data(), payload.size());
+  const auto data = ipc::encode(type, vector<uint8_t>(payload.begin(), payload.end()));
   conn.write(
-      data.data(), total_size, [&]() { on_write(conn, pid); },
+      data, [&]() { on_write(conn, pid); },
       [&](const auto& e) {
         conn.close();
         uv_error(e.status, "There was an error while sending the IPC message.");

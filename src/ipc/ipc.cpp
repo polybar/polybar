@@ -110,13 +110,16 @@ namespace ipc {
 
   void ipc::on_connection() {
     auto connection = make_unique<ipc::connection>(
-        m_loop, [this](ipc::connection& c, uint8_t, v0::ipc_type type, const vector<uint8_t>& msg) {
+        m_loop, [this](ipc::connection& c, uint8_t, type_t type, const vector<uint8_t>& msg) {
+          // TODO handle other types.
+          auto ipc_type = static_cast<v0::ipc_type>(type);
           string str;
           str.insert(str.end(), msg.begin(), msg.end());
           // TODO should return an error code
-          trigger_ipc(type, str);
+          trigger_ipc(ipc_type, str);
           // TODO use message format for response
-          c.client_pipe.write((const uint8_t*)"SUCCESS", 7, [this, &c]() { remove_client(c); },
+          c.client_pipe.write(
+              {'S', 'U', 'C', 'C', 'E', 'S', 'S'}, [this, &c]() { remove_client(c); },
               [this, &c](const auto& e) {
                 m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
                 remove_client(c);

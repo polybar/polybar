@@ -80,6 +80,7 @@ set(POLY_SOURCES
 
   ${src_dir}/ipc/ipc.cpp
   ${src_dir}/ipc/decoder.cpp
+  ${src_dir}/ipc/encoder.cpp
   ${src_dir}/ipc/util.cpp
 
   ${src_dir}/modules/backlight.cpp

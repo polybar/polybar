@@ -28,13 +28,24 @@ namespace ipc {
     size_t remain = size;
 
     while (remain > 0) {
-      if (state == client_state::WAIT) {
+      if (state == client_state::HEADER) {
         ssize_t num_read = process_header_data(data + buf_pos, remain);
         assert(num_read > 0);
         assert(remain >= (size_t)num_read);
 
         buf_pos += num_read;
         remain -= num_read;
+
+        /*
+         * If an empty message arrives, we need to explicitly trigger this because there is no further data that would
+         * call process_msg_data.
+         */
+        if (remain == 0 && state == client_state::PAYLOAD && to_read_buf == 0) {
+          ssize_t num_read_data = process_msg_data(data + buf_pos, remain);
+          assert(num_read_data == 0);
+          (void)num_read_data;
+        }
+
       } else {
         assert(to_read_header == 0);
         ssize_t num_read = process_msg_data(data + buf_pos, remain);
@@ -57,7 +68,7 @@ namespace ipc {
    * \return Number of bytes processed. -1 for errors
    */
   ssize_t decoder::process_header_data(const uint8_t* data, size_t size) {
-    assert(state == client_state::WAIT);
+    assert(state == client_state::HEADER);
     assert(to_read_header > 0);
 
     size_t num_read = std::min(size, to_read_header);
@@ -68,7 +79,6 @@ namespace ipc {
     if (to_read_header == 0) {
       uint8_t version = header.s.version;
       uint32_t msg_size = header.s.size;
-      type_t type = header.s.type;
 
       m_log.trace(
           "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC.size(), header.s.magic, version, msg_size);
@@ -81,14 +91,8 @@ namespace ipc {
         throw error("Unsupported message format version " + to_string(version));
       }
 
-      if (type != to_integral(v0::ipc_type::ACTION) && type != to_integral(v0::ipc_type::CMD)) {
-        throw error("Unsupported message type " + to_string(type));
-      }
-
-      ipc_type = static_cast<v0::ipc_type>(type);
-
       assert(buf.empty());
-      state = client_state::READ;
+      state = client_state::PAYLOAD;
       to_read_buf = msg_size;
     }
 
@@ -101,7 +105,7 @@ namespace ipc {
    * \return Number of bytes processed. -1 for errors
    */
   ssize_t decoder::process_msg_data(const uint8_t* data, size_t size) {
-    assert(state == client_state::READ);
+    assert(state == client_state::PAYLOAD);
 
     size_t num_read = std::min(size, to_read_buf);
 
@@ -112,9 +116,9 @@ namespace ipc {
     to_read_buf -= num_read;
 
     if (to_read_buf == 0) {
-      callback(header.s.version, ipc_type, buf);
+      callback(header.s.version, header.s.type, buf);
 
-      state = client_state::WAIT;
+      state = client_state::HEADER;
       to_read_header = HEADER_SIZE;
       buf.clear();
     }
