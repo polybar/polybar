@@ -30,6 +30,7 @@ namespace ipc {
      */
     void on_read(const uint8_t* buf, size_t size);
     void close() noexcept;
+    bool closed() const;
 
    protected:
     void process_data(const uint8_t*, size_t size);
@@ -45,13 +46,13 @@ namespace ipc {
     cb callback;
 
    private:
-    enum class client_state {
+    enum class state {
       // Waiting for header data (header does not contain full header)
       HEADER,
       // Waiting for message data (header contains valid header)
       PAYLOAD,
       CLOSED,
-    } state{client_state::HEADER};
+    } state{state::HEADER};
     const logger& m_log;
   };
 

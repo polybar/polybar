@@ -36,23 +36,22 @@ INSTANTIATE_TEST_SUITE_P(Inst, EncoderTest, ::testing::ValuesIn(encoder_list));
 
 TEST_P(EncoderTest, simple) {
   auto param = GetParam();
-  vector<uint8_t> payload(param.begin(), param.end());
-  const auto encoded = encode(TYPE_ERR, payload);
+  const auto encoded = encode(TYPE_ERR, param);
   const header* h = reinterpret_cast<const header*>(encoded.data());
 
   EXPECT_EQ(std::memcmp(h->s.magic, MAGIC.data(), MAGIC.size()), 0);
   EXPECT_EQ(h->s.version, 0);
   EXPECT_EQ(h->s.size, param.size());
   EXPECT_EQ(h->s.type, TYPE_ERR);
-  if (!payload.empty()) {
-    EXPECT_EQ(std::memcmp(encoded.data() + HEADER_SIZE, payload.data(), payload.size()), 0);
+  if (!param.empty()) {
+    EXPECT_EQ(std::memcmp(encoded.data() + HEADER_SIZE, param.data(), param.size()), 0);
   }
 }
 
 TEST_P(EncoderTest, roundtrip) {
   auto param = GetParam();
   auto payload = vector<uint8_t>(param.begin(), param.end());
-  const auto encoded = encode(TYPE_ERR, payload);
+  const auto encoded = encode(TYPE_ERR, param);
 
   EXPECT_CALL(cb, cb(0, TYPE_ERR, payload)).Times(1);
   EXPECT_NO_THROW(dec.on_read(encoded.data(), encoded.size()));

@@ -10,6 +10,7 @@
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "ipc/encoder.hpp"
 #include "ipc/util.hpp"
 #include "utils/env.hpp"
 #include "utils/file.hpp"
@@ -117,9 +118,10 @@ namespace ipc {
           str.insert(str.end(), msg.begin(), msg.end());
           // TODO should return an error code
           trigger_ipc(ipc_type, str);
-          // TODO use message format for response
+
+          const auto encoded = encode(TYPE_OK);
           c.client_pipe.write(
-              {'S', 'U', 'C', 'C', 'E', 'S', 'S'}, [this, &c]() { remove_client(c); },
+              encoded, [this, &c]() { remove_client(c); },
               [this, &c](const auto& e) {
                 m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
                 remove_client(c);
@@ -135,7 +137,7 @@ namespace ipc {
           try {
             c.dec.on_read((const uint8_t*)e.data, e.len);
           } catch (const decoder::error& e) {
-            m_log.err("ipc: %s", e.what());
+            m_log.err("ipc: Failed to decode IPC message (reason: %s)", e.what());
             // TODO write back some error message
             remove_client(c);
           }

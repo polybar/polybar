@@ -9,6 +9,7 @@
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
+#include "ipc/decoder.hpp"
 #include "ipc/encoder.hpp"
 #include "ipc/msg.hpp"
 #include "ipc/util.hpp"
@@ -35,8 +36,8 @@ void uv_error(int status, const string& msg) {
   throw std::runtime_error(msg + "(" + uv_strerror(status) + ")");
 }
 
-void usage(const string& parameters) {
-  fprintf(stderr, "Usage: %s [-p pid] %s\n", exec, parameters.c_str());
+void usage(FILE* f, const string& parameters) {
+  fprintf(f, "Usage: %s [-p pid] %s\n", exec, parameters.c_str());
 }
 
 void remove_socket(const string& handle) {
@@ -74,18 +75,29 @@ static vector<string> get_sockets() {
   return sockets;
 }
 
-static void on_write(eventloop::PipeHandle& conn, int pid) {
-  conn.read_start([&](const auto& e) { printf("%d: %.*s\n", pid, (int)e.len, e.data); }, [&]() { conn.close(); },
+static void on_write(eventloop::PipeHandle& conn, ipc::decoder& dec) {
+  conn.read_start(
+      [&](const auto& e) {
+        try {
+          if (!dec.closed()) {
+            dec.on_read(reinterpret_cast<const uint8_t*>(e.data), e.len);
+          }
+        } catch (const ipc::decoder::error& e) {
+          conn.close();
+        }
+      },
+      [&]() { conn.close(); },
       [&](const auto& e) {
         conn.close();
         uv_error(e.status, "There was an error while reading polybar's response");
       });
 }
 
-static void on_connection(eventloop::PipeHandle& conn, int pid, const ipc::type_t type, const string& payload) {
-  const auto data = ipc::encode(type, vector<uint8_t>(payload.begin(), payload.end()));
+static void on_connection(
+    eventloop::PipeHandle& conn, ipc::decoder& dec, const ipc::type_t type, const string& payload) {
+  const auto data = ipc::encode(type, payload);
   conn.write(
-      data, [&]() { on_write(conn, pid); },
+      data, [&]() { on_write(conn, dec); },
       [&](const auto& e) {
         conn.close();
         uv_error(e.status, "There was an error while sending the IPC message.");
@@ -112,7 +124,7 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
    */
   if (ipc_type == "hook") {
     if (args.size() != 1) {
-      usage(USAGE_HOOK);
+      usage(stderr, USAGE_HOOK);
       throw std::runtime_error("Mismatched number of arguments for hook, expected 1, got "s + to_string(args.size()));
     } else {
       if (ipc_payload.find("module/") == 0) {
@@ -166,14 +178,13 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
 }
 
 int run(int argc, char** argv) {
-  exec = argv[0];
   deque<string> args{argv + 1, argv + argc};
 
   string socket_path;
 
   auto help_pos = find_if(args.begin(), args.end(), [](const string& a) { return a == "-h" || a == "--help"; });
   if (help_pos != args.end()) {
-    usage(USAGE);
+    usage(stdout, USAGE);
     return EXIT_SUCCESS;
   }
 
@@ -202,7 +213,7 @@ int run(int argc, char** argv) {
   }
 
   if (args.size() < 2) {
-    usage(USAGE);
+    usage(stderr, USAGE);
     return EXIT_FAILURE;
   }
 
@@ -214,14 +225,45 @@ int run(int argc, char** argv) {
 
   eventloop::eventloop loop;
 
+  logger null_logger{loglevel::NONE};
+
+  /*
+   * Store all decoreds in vector so that they're alive for the whole eventloop.
+   */
+  vector<ipc::decoder> decoders;
+
   for (auto&& channel : sockets) {
     auto& conn = loop.handle<eventloop::PipeHandle>();
 
     int pid = ipc::get_pid_from_socket(channel);
     assert(pid > 0);
 
+    decoders.emplace_back(
+        null_logger, [pid, channel, payload, &success](uint8_t, ipc::type_t type, const auto& response) {
+          switch (type) {
+            case ipc::TYPE_OK:
+              printf("Successfully wrote '%s' to PID %d\n", payload.c_str(), pid);
+              break;
+            case ipc::TYPE_ERR:
+              fprintf(stderr, "%s: Failed to write '%s' to PID %d (reason: %*s)\n", exec, payload.c_str(), pid,
+                  static_cast<int>(response.size()), reinterpret_cast<const char*>(response.data()));
+              success = false;
+              break;
+            default:
+              fprintf(stderr, "%s: Got back unrecognized message type %d from PID %d\n", exec, type, pid);
+              success = false;
+              break;
+          }
+        });
+
+    /*
+     * Index to decoder is captured because reference can be invalidated due to the vector being modified.
+     */
+    int idx = decoders.size() - 1;
+
     conn.connect(
-        channel, [&, payload, pid]() { on_connection(conn, pid, type, payload); },
+        channel,
+        [&conn, &decoders, type, payload, channel, idx]() { on_connection(conn, decoders[idx], type, payload); },
         [&](const auto& e) {
           fprintf(stderr, "%s: Failed to connect to '%s' (err: '%s')\n", exec, channel.c_str(), uv_strerror(e.status));
           success = false;

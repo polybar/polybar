@@ -9,7 +9,7 @@ namespace ipc {
   decoder::decoder(const logger& logger, cb callback) : callback(callback), m_log(logger) {}
 
   void decoder::on_read(const uint8_t* data, size_t size) {
-    if (state == client_state::CLOSED) {
+    if (state == state::CLOSED) {
       throw error("Decoder is closed");
     }
 
@@ -28,7 +28,7 @@ namespace ipc {
     size_t remain = size;
 
     while (remain > 0) {
-      if (state == client_state::HEADER) {
+      if (state == state::HEADER) {
         ssize_t num_read = process_header_data(data + buf_pos, remain);
         assert(num_read > 0);
         assert(remain >= (size_t)num_read);
@@ -40,7 +40,7 @@ namespace ipc {
          * If an empty message arrives, we need to explicitly trigger this because there is no further data that would
          * call process_msg_data.
          */
-        if (remain == 0 && state == client_state::PAYLOAD && to_read_buf == 0) {
+        if (remain == 0 && state == state::PAYLOAD && to_read_buf == 0) {
           ssize_t num_read_data = process_msg_data(data + buf_pos, remain);
           assert(num_read_data == 0);
           (void)num_read_data;
@@ -59,7 +59,11 @@ namespace ipc {
   }
 
   void decoder::close() noexcept {
-    state = client_state::CLOSED;
+    state = state::CLOSED;
+  }
+
+  bool decoder::closed() const {
+    return state == state::CLOSED;
   }
 
   /**
@@ -68,7 +72,7 @@ namespace ipc {
    * \return Number of bytes processed. -1 for errors
    */
   ssize_t decoder::process_header_data(const uint8_t* data, size_t size) {
-    assert(state == client_state::HEADER);
+    assert(state == state::HEADER);
     assert(to_read_header > 0);
 
     size_t num_read = std::min(size, to_read_header);
@@ -85,14 +89,14 @@ namespace ipc {
 
       if (memcmp(header.s.magic, MAGIC.data(), MAGIC.size()) != 0) {
         throw error("Invalid magic header, expected '" + MAGIC_STR + "', got '" +
-                    string(reinterpret_cast<const char*>(header.s.magic), MAGIC.size()));
+                    string(reinterpret_cast<const char*>(header.s.magic), MAGIC.size()) + "'");
       }
       if (version != VERSION) {
         throw error("Unsupported message format version " + to_string(version));
       }
 
       assert(buf.empty());
-      state = client_state::PAYLOAD;
+      state = state::PAYLOAD;
       to_read_buf = msg_size;
     }
 
@@ -105,7 +109,7 @@ namespace ipc {
    * \return Number of bytes processed. -1 for errors
    */
   ssize_t decoder::process_msg_data(const uint8_t* data, size_t size) {
-    assert(state == client_state::PAYLOAD);
+    assert(state == state::PAYLOAD);
 
     size_t num_read = std::min(size, to_read_buf);
 
@@ -118,7 +122,7 @@ namespace ipc {
     if (to_read_buf == 0) {
       callback(header.s.version, header.s.type, buf);
 
-      state = client_state::HEADER;
+      state = state::HEADER;
       to_read_header = HEADER_SIZE;
       buf.clear();
     }
