@@ -229,7 +229,7 @@ endif()
 
 # Target: polybar-msg {{{
 if(BUILD_POLYBAR_MSG)
-  add_executable(polybar-msg ipc.cpp)
+  add_executable(polybar-msg polybar-msg.cpp)
   target_link_libraries(polybar-msg poly)
   target_include_directories(polybar-msg PRIVATE ${includes_dir})
   target_compile_options(polybar-msg PUBLIC ${cxx_flags})
