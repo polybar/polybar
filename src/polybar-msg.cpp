@@ -221,6 +221,8 @@ int run(int argc, char** argv) {
   ipc::type_t type;
   std::tie(type, payload) = parse_message(args);
 
+  const string type_str = type == to_integral(ipc::v0::ipc_type::ACTION) ? "action" : "command";
+
   bool success = true;
 
   eventloop::eventloop loop;
@@ -239,15 +241,15 @@ int run(int argc, char** argv) {
     assert(pid > 0);
 
     decoders.emplace_back(
-        null_logger, [pid, channel, payload, &success](uint8_t, ipc::type_t type, const auto& response) {
+        null_logger, [pid, channel, &type_str, &payload, &success](uint8_t, ipc::type_t type, const auto& response) {
           switch (type) {
             case ipc::TYPE_OK:
-              printf("Successfully wrote '%s' to PID %d\n", payload.c_str(), pid);
+              printf("Successfully wrote %s '%s' to PID %d\n", type_str.c_str(), payload.c_str(), pid);
               break;
             case ipc::TYPE_ERR: {
               string err_str{response.begin(), response.end()};
-              fprintf(stderr, "%s: Failed to write '%s' to PID %d (reason: %s)\n", exec, payload.c_str(), pid,
-                  err_str.c_str());
+              fprintf(stderr, "%s: Failed to write %s '%s' to PID %d (reason: %s)\n", exec, type_str.c_str(),
+                  payload.c_str(), pid, err_str.c_str());
               success = false;
               break;
             }

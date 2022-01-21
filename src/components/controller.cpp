@@ -698,6 +698,7 @@ bool controller::on(const signals::ipc::command& evt) {
     m_bar->toggle();
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
+    return false;
   }
 
   return true;

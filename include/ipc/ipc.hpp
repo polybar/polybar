@@ -34,7 +34,7 @@ namespace ipc {
     static string get_socket_path(int pid);
 
    protected:
-    void trigger_ipc(v0::ipc_type type, const string& msg);
+    bool trigger_ipc(v0::ipc_type type, const string& msg);
     void trigger_legacy_ipc(const string& msg);
 
     void on_connection();

@@ -82,18 +82,18 @@ namespace ipc {
     return ensure_runtime_path() + "/ipc." + to_string(pid) + ".sock";
   }
 
-  void ipc::trigger_ipc(v0::ipc_type type, const string& msg) {
+  bool ipc::trigger_ipc(v0::ipc_type type, const string& msg) {
     switch (type) {
       case v0::ipc_type::CMD:
         m_log.info("Received ipc command: '%s'", msg);
-        // TODO should return an error
-        m_sig.emit(signals::ipc::command{msg});
-        break;
+        return m_sig.emit(signals::ipc::command{msg});
       case v0::ipc_type::ACTION:
         m_log.info("Received ipc action: '%s'", msg);
-        m_sig.emit(signals::ipc::action{msg});
-        break;
+        return m_sig.emit(signals::ipc::action{msg});
     }
+
+    assert(false);
+    return false;
   }
 
   void ipc::trigger_legacy_ipc(const string& msg) {
@@ -118,9 +118,11 @@ namespace ipc {
             auto ipc_type = static_cast<v0::ipc_type>(type);
             string str;
             str.insert(str.end(), msg.begin(), msg.end());
-            // TODO should return an error code
-            trigger_ipc(ipc_type, str);
-            response = encode(TYPE_OK);
+            if (trigger_ipc(ipc_type, str)) {
+              response = encode(TYPE_OK);
+            } else {
+              response = encode(TYPE_ERR, "Error while executing ipc message, see polybar log for details.");
+            }
           } else {
             response = encode(TYPE_ERR, "Unrecognized IPC message type " + to_string(type));
           }
@@ -141,8 +143,13 @@ namespace ipc {
             c.dec.on_read((const uint8_t*)e.data, e.len);
           } catch (const decoder::error& e) {
             m_log.err("ipc: Failed to decode IPC message (reason: %s)", e.what());
-            // TODO write back some error message
-            remove_client(c);
+
+            c.client_pipe.write(
+                encode(TYPE_ERR, "Invalid binary message format: "s + e.what()), [this, &c]() { remove_client(c); },
+                [this, &c](const auto& e) {
+                  m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
+                  remove_client(c);
+                });
           }
         },
         [this, &c]() { remove_client(c); },
