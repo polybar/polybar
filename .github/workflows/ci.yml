@@ -33,8 +33,24 @@ jobs:
     env:
       COLOR: "ON"
     steps:
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-composite0-dev \
+            libxcb-ewmh-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-randr0-dev \
+            libxcb-util0-dev \
+            libxcb1-dev \
+            libcairo2-dev \
+            python3-xcbgen \
+            libuv1-dev \
+            xcb-proto
       - uses: actions/checkout@v2
         with:
+          submodules: true
           ref: ${{ github.event.inputs.ref }}
       - name: Build polybar-msg
         run: |

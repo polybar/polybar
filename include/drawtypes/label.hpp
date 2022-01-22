@@ -18,7 +18,7 @@ namespace drawtypes {
     bool zpad{false};
   };
 
-  class label : public non_copyable_mixin<label> {
+  class label : public non_copyable_mixin {
    public:
     rgba m_foreground{};
     rgba m_background{};

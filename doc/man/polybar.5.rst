@@ -164,13 +164,21 @@ not affect polybar's behavior. Comment lines start with either the ``;`` or the
 
     name = value ; comment
 
+AUTHORS
+-------
+| Polybar was created by Michael Carlberg and is currently maintained by Patrick Ziegler.
+| Contributors can be listed on GitHub.
+
 SEE ALSO
 --------
 
 .. only:: man
 
-  :manpage:`polybar(1)`
+  :manpage:`polybar`\(1),
+  :manpage:`polybar-msg`\(1)
+
 
 .. only:: not man
 
-  :doc:`polybar.1`
+  :doc:`polybar.1`,
+  :doc:`polybar-msg.1`

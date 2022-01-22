@@ -9,7 +9,6 @@
 #include "components/builder.hpp"
 #include "components/config.hpp"
 #include "components/eventloop.hpp"
-#include "components/ipc.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
@@ -30,23 +29,23 @@ POLYBAR_NS
 /**
  * Build controller instance
  */
-controller::make_type controller::make(unique_ptr<ipc>&& ipc) {
+controller::make_type controller::make(bool has_ipc, eventloop::eventloop& loop) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config::make(), forward<decltype(ipc)>(ipc));
+      connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
 }
 
 /**
  * Construct controller
  */
-controller::controller(
-    connection& conn, signal_emitter& emitter, const logger& logger, const config& config, unique_ptr<ipc>&& ipc)
+controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
+    bool has_ipc, eventloop::eventloop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
     , m_conf(config)
-    , m_loop(make_unique<eventloop>())
-    , m_bar(bar::make(*m_loop))
-    , m_ipc(forward<decltype(ipc)>(ipc)) {
+    , m_loop(loop)
+    , m_bar(bar::make(m_loop))
+    , m_has_ipc(has_ipc) {
   m_conf.ignore_key("settings", "throttle-input-for");
   m_conf.ignore_key("settings", "throttle-output");
   m_conf.ignore_key("settings", "throttle-output-for");
@@ -153,17 +152,15 @@ void controller::trigger_update(bool force) {
 }
 
 void controller::trigger_notification() {
-  if (m_loop_ready) {
-    m_notifier->send();
-  }
+  m_notifier.send();
 }
 
 void controller::stop(bool reload) {
   update_reload(reload);
-  m_loop->stop();
+  m_loop.stop();
 }
 
-void controller::conn_cb(uv_poll_event) {
+void controller::conn_cb() {
   int xcb_error = m_connection.connection_has_error();
   if ((xcb_error = m_connection.connection_has_error()) != 0) {
     m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(xcb_error));
@@ -196,7 +193,7 @@ void controller::signal_handler(int signum) {
   stop(signum == SIGUSR1);
 }
 
-void controller::confwatch_handler(const char* filename, uv_fs_event) {
+void controller::confwatch_handler(const char* filename) {
   m_log.notice("Watched config file changed %s", filename);
   stop(true);
 }
@@ -210,8 +207,7 @@ void controller::notifier_handler() {
   }
 
   if (data.quit) {
-    update_reload(data.reload);
-    m_loop->stop();
+    stop(data.reload);
     return;
   }
 
@@ -239,35 +235,32 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    m_loop->poll_handle(
-        UV_READABLE, m_connection.get_file_descriptor(), [this](uv_poll_event events) { conn_cb(events); },
-        [](int status) { throw runtime_error("libuv error while polling X connection: "s + uv_strerror(status)); });
+    auto& poll_handle = m_loop.handle<eventloop::PollHandle>(m_connection.get_file_descriptor());
+    poll_handle.start(
+        UV_READABLE, [this](const auto&) { conn_cb(); },
+        [](const auto& e) {
+          throw runtime_error("libuv error while polling X connection: "s + uv_strerror(e.status));
+        });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      m_loop->signal_handle(s, [this](int signum) { signal_handler(signum); });
+      auto& signal_handle = m_loop.handle<eventloop::SignalHandle>();
+      signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
     }
 
     if (confwatch) {
-      m_loop->fs_event_handle(
-          m_conf.filepath(), [this](const char* path, uv_fs_event events) { confwatch_handler(path, events); },
-          [this](int err) { m_log.err("libuv error while watching config file for changes: %s", uv_strerror(err)); });
-    }
-
-    if (m_ipc) {
-      m_loop->pipe_handle(
-          m_ipc->get_path(), [this](const string payload) { m_ipc->receive_data(payload); },
-          [this]() { m_ipc->receive_eof(); },
-          [this](int err) { m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(err)); });
+      auto& fs_event_handle = m_loop.handle<eventloop::FSEventHandle>();
+      fs_event_handle.start(
+          m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
+          [this](const auto& e) {
+            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
+          });
     }
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      m_loop->timer_handle([this]() { screenshot_handler(); })->start(3000, 0);
+      auto& timer_handle = m_loop.handle<eventloop::TimerHandle>();
+      timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
     }
-
-    m_notifier = m_loop->async_handle([this]() { notifier_handler(); });
-
-    m_loop_ready = true;
 
     if (!m_writeback) {
       m_bar->start();
@@ -278,16 +271,13 @@ void controller::read_events(bool confwatch) {
      */
     trigger_update(true);
 
-    m_loop->run();
+    m_loop.run();
   } catch (const exception& err) {
     m_log.err("Fatal Error in eventloop: %s", err.what());
     stop(false);
   }
 
   m_log.info("Eventloop finished");
-
-  m_loop_ready = false;
-  m_loop.reset();
 }
 
 /**
@@ -464,6 +454,7 @@ void controller::process_inputdata(string&& cmd) {
     m_log.err("controller: Error while forwarding input to shell -> %s", err.what());
   }
 }
+
 /**
  * Process eventqueue update event
  */
@@ -598,7 +589,7 @@ size_t controller::setup_modules(alignment align) {
     try {
       auto type = m_conf.get("module/" + module_name, "type");
 
-      if (type == ipc_module::TYPE && !m_ipc) {
+      if (type == ipc_module::TYPE && !m_has_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");
       }
 
@@ -707,6 +698,7 @@ bool controller::on(const signals::ipc::command& evt) {
     m_bar->toggle();
   } else {
     m_log.warn("\"%s\" is not a valid ipc command", command);
+    return false;
   }
 
   return true;

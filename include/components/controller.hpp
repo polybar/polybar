@@ -25,7 +25,6 @@ class bar;
 class config;
 class connection;
 class inotify_watch;
-class ipc;
 class logger;
 class signal_emitter;
 namespace modules {
@@ -41,9 +40,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
                        signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(unique_ptr<ipc>&& ipc);
+  static make_type make(bool has_ipc, eventloop::eventloop&);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config&, unique_ptr<ipc>&&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, bool has_ipc, eventloop::eventloop&);
   ~controller();
 
   bool run(bool writeback, string snapshot_dst, bool confwatch);
@@ -56,8 +55,8 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
 
   void signal_handler(int signum);
 
-  void conn_cb(uv_poll_event events);
-  void confwatch_handler(const char* fname, uv_fs_event events);
+  void conn_cb();
+  void confwatch_handler(const char* fname);
   void notifier_handler();
   void screenshot_handler();
 
@@ -99,14 +98,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   signal_emitter& m_sig;
   const logger& m_log;
   const config& m_conf;
-  unique_ptr<eventloop> m_loop;
+  eventloop::eventloop& m_loop;
   unique_ptr<bar> m_bar;
-  unique_ptr<ipc> m_ipc;
-
-  /**
-   * Once this is set to true, 'm_loop' and any uv handles can be used.
-   */
-  std::atomic_bool m_loop_ready{false};
+  bool m_has_ipc;
 
   /**
    * \brief Async handle to notify the eventloop
@@ -114,7 +108,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
    * E.g. click actions.
    */
-  AsyncHandle_t m_notifier{nullptr};
+  eventloop::AsyncHandle& m_notifier{m_loop.handle<eventloop::AsyncHandle>([this]() { notifier_handler(); })};
 
   /**
    * Notification data for the controller.

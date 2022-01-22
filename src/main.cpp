@@ -3,7 +3,7 @@
 #include "components/config.hpp"
 #include "components/config_parser.hpp"
 #include "components/controller.hpp"
-#include "components/ipc.hpp"
+#include "ipc/ipc.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
@@ -57,6 +57,8 @@ int main(int argc, char** argv) {
       print_build_info(version_details(args));
       return EXIT_SUCCESS;
     }
+
+    eventloop::eventloop loop{};
 
     //==================================================
     // Connect to X server
@@ -135,7 +137,6 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      eventloop loop{};
       printf("%s\n", bar::make(loop, true)->settings().wmname.c_str());
       return EXIT_SUCCESS;
     }
@@ -143,13 +144,13 @@ int main(int argc, char** argv) {
     //==================================================
     // Create controller and run application
     //==================================================
-    unique_ptr<ipc> ipc{};
+    unique_ptr<ipc::ipc> ipc{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
-      ipc = ipc::make();
+      ipc = ipc::ipc::make(loop);
     }
 
-    auto ctrl = controller::make(move(ipc));
+    auto ctrl = controller::make((bool)ipc, loop);
 
     if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;

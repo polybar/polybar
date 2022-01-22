@@ -9,7 +9,7 @@
 POLYBAR_NS
 
 namespace drawtypes {
-  class iconset : public non_copyable_mixin<iconset> {
+  class iconset : public non_copyable_mixin {
    public:
     void add(string id, label_t&& icon);
     bool has(const string& id);
@@ -21,6 +21,6 @@ namespace drawtypes {
   };
 
   using iconset_t = shared_ptr<iconset>;
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

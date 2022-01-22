@@ -63,9 +63,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
                 > {
  public:
   using make_type = unique_ptr<bar>;
-  static make_type make(eventloop&, bool only_initialize_values = false);
+  static make_type make(eventloop::eventloop&, bool only_initialize_values = false);
 
-  explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop&, unique_ptr<screen>&&,
+  explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop::eventloop&, unique_ptr<screen>&&,
       unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&,
       bool only_initialize_values);
   ~bar();
@@ -111,7 +111,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   signal_emitter& m_sig;
   const config& m_conf;
   const logger& m_log;
-  eventloop& m_loop;
+  eventloop::eventloop& m_loop;
   unique_ptr<screen> m_screen;
   unique_ptr<tray_manager> m_tray;
   unique_ptr<renderer> m_renderer;
@@ -127,10 +127,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   int m_motion_pos{0};
 #endif
 
-  TimerHandle_t m_leftclick_timer{m_loop.timer_handle(nullptr)};
-  TimerHandle_t m_middleclick_timer{m_loop.timer_handle(nullptr)};
-  TimerHandle_t m_rightclick_timer{m_loop.timer_handle(nullptr)};
-  TimerHandle_t m_dim_timer{m_loop.timer_handle(nullptr)};
+  eventloop::TimerHandle& m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::TimerHandle& m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::TimerHandle& m_rightclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::TimerHandle& m_dim_timer{m_loop.handle<eventloop::TimerHandle>()};
 
   bool m_visible{true};
 };
