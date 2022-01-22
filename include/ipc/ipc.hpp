@@ -23,7 +23,7 @@ namespace ipc {
    * running process which will allow messages and
    * events to be sent to the process externally.
    */
-  class ipc {
+  class ipc : non_copyable_mixin, non_movable_mixin {
    public:
     using make_type = unique_ptr<ipc>;
     static make_type make(eventloop::eventloop& loop);

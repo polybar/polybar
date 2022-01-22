@@ -146,6 +146,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new `tray-foreground` setting to give hints to tray icons about what
   color they should be.
   ([#2235](https://github.com/polybar/polybar/issues/2235))
+- `polybar-msg`: For module actions, you can now also specify the module name,
+  action name, and optional data as separate arguments.
 
 ### Changed
 - Polybar now also reads `config.ini` when searching for config files.

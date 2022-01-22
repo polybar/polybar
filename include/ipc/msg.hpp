@@ -43,7 +43,7 @@ namespace ipc {
        * Type of the message that follows.
        *
        * Meaning of the values depend on version.
-       * Only TYPE_OK(0) indicate success and TYPE_ERR (255) always indicates an error, in which case the entire message
+       * Only TYPE_OK(0) indicate success and TYPE_ERR(255) always indicates an error, in which case the entire message
        * is a string.
        */
       type_t type;

@@ -25,7 +25,7 @@ namespace ipc {
     /**
      * Call this function whenever new data arrives.
      *
-     * Will throw client::error in case of error.
+     * Will throw deocder::error in case of error.
      * If an error is thrown, this instance is closed and this function may not be called again.
      */
     void on_read(const uint8_t* buf, size_t size);
