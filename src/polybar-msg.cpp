@@ -234,8 +234,6 @@ int run(int argc, char** argv) {
   vector<ipc::decoder> decoders;
 
   for (auto&& channel : sockets) {
-    auto& conn = loop.handle<PipeHandle>();
-
     int pid = ipc::get_pid_from_socket(channel);
     assert(pid > 0);
 
@@ -264,6 +262,7 @@ int run(int argc, char** argv) {
      */
     int idx = decoders.size() - 1;
 
+    auto& conn = loop.handle<PipeHandle>();
     conn.connect(
         channel,
         [&conn, &decoders, type, payload, channel, idx]() { on_connection(conn, decoders[idx], type, payload); },

@@ -50,6 +50,7 @@ namespace ipc {
      public:
       using cb = std::function<void(connection&, uint8_t, type_t, const std::vector<uint8_t>&)>;
       connection(eventloop::loop& loop, cb msg_callback);
+      ~connection();
       eventloop::PipeHandle& client_pipe;
       decoder dec;
     };

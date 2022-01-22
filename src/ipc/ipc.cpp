@@ -74,8 +74,6 @@ namespace ipc {
     if (unlink(m_pipe_path.c_str()) == -1) {
       m_log.err("Failed to delete ipc named pipe: %s", strerror(errno));
     }
-
-    socket.close();
   }
 
   string ipc::get_socket_path(int pid) {
@@ -163,7 +161,6 @@ namespace ipc {
   }
 
   void ipc::remove_client(connection& conn) {
-    conn.client_pipe.close();
     connections.erase(connections.find(conn));
   }
 
@@ -172,6 +169,10 @@ namespace ipc {
       , dec(logger::make(), [this, msg_callback](uint8_t version, auto type, const auto& msg) {
         msg_callback(*this, version, type, msg);
       }) {}
+
+  ipc::connection::~connection() {
+    client_pipe.close();
+  }
 
   ipc::fifo::fifo(loop& loop, ipc& ipc, const string& path) : pipe_handle(loop.handle<PipeHandle>()) {
     int fd;
@@ -182,9 +183,9 @@ namespace ipc {
     pipe_handle.open(fd);
     pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
         [&ipc]() { ipc.receive_eof(); },
-        [this, &ipc](const auto& e) mutable {
+        [&ipc](const auto& e) mutable {
           ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
-          pipe_handle.close();
+          ipc.ipc_pipe.reset();
         });
   }
 

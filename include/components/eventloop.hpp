@@ -53,6 +53,11 @@ namespace eventloop {
       return get();
     }
 
+    /**
+     * Close this handle and free associated memory.
+     *
+     * After this function returns, any reference to this object should be considered invalid.
+     */
     void close() {
       if (!is_closing()) {
         uv_close((uv_handle_t*)get(), [](uv_handle_t* handle) { close_callback(*static_cast<Self*>(handle->data)); });
