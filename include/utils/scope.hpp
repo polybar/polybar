@@ -1,9 +1,6 @@
 #pragma once
 
-// TODO: move to functional.hpp
-
 #include "common.hpp"
-#include "components/logger.hpp"
 
 POLYBAR_NS
 
