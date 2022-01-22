@@ -74,6 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Directly writing ipc messages to `/tmp/polybar_mqueue.<PID>` is deprecated,
   users should always use `polybar-msg`. As a consequence the message format
   used for IPC is deprecated as well.
+- `polybar-msg hook` is deprecated in favor of using the hook action.
+  `polybar-msg` will tell you the correct command to use.
 
 ### Removed
 - `DEBUG_SHADED` cmake variable and its associated functionality.
