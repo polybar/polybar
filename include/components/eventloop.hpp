@@ -36,8 +36,9 @@ namespace eventloop {
       get()->data = this;
     }
 
-    void leak(std::unique_ptr<Self> h) {
+    Self& leak(std::unique_ptr<Self> h) {
       lifetime_extender = std::move(h);
+      return *lifetime_extender;
     }
 
     void unleak() {
@@ -138,23 +139,28 @@ namespace eventloop {
 
   using cb_error = cb_event<ErrorEvent>;
 
-  // TODO generify for other requests
   class WriteRequest : public non_copyable_mixin {
    public:
     using cb_write = cb_void;
 
-    WriteRequest(cb_write user_cb, cb_error err_cb) : write_callback(user_cb), write_err_cb(err_cb){};
+    WriteRequest(cb_write user_cb, cb_error err_cb) : write_callback(user_cb), write_err_cb(err_cb) {
+      get()->data = this;
+    };
 
-    static WriteRequest* create(cb_write user_cb, cb_error err_cb) {
-      WriteRequest* r = new WriteRequest(user_cb, err_cb);
-      r->get()->data = r;
-      return r;
+    static WriteRequest& create(cb_write user_cb, cb_error err_cb) {
+      auto r = std::make_unique<WriteRequest>(user_cb, err_cb);
+      return r->leak(std::move(r));
     };
 
     uv_write_t* get() {
       return &req;
     }
 
+    /**
+     * Trigger the write callback.
+     *
+     * After that, this object is destroyed.
+     */
     void trigger(int status) {
       if (status < 0) {
         if (write_err_cb) {
@@ -165,10 +171,18 @@ namespace eventloop {
           write_callback();
         }
       }
+
+      unleak();
     }
 
-    void release() {
-      delete this;
+   protected:
+    WriteRequest& leak(std::unique_ptr<WriteRequest> h) {
+      lifetime_extender = std::move(h);
+      return *lifetime_extender;
+    }
+
+    void unleak() {
+      lifetime_extender.reset();
     }
 
    private:
@@ -176,6 +190,13 @@ namespace eventloop {
 
     cb_write write_callback;
     cb_error write_err_cb;
+
+    /**
+     * The handle stores the unique_ptr to itself so that it effectively leaks memory.
+     *
+     * This means that each instance manages its own lifetime.
+     */
+    std::unique_ptr<WriteRequest> lifetime_extender;
   };
 
   struct SignalEvent {
@@ -315,15 +336,12 @@ namespace eventloop {
     };
 
     void write(const vector<uint8_t>& data, WriteRequest::cb_write user_cb = {}, cb_error err_cb = {}) {
-      WriteRequest* req = WriteRequest::create(user_cb, err_cb);
+      WriteRequest& req = WriteRequest::create(user_cb, err_cb);
 
       uv_buf_t buf{(char*)data.data(), data.size()};
 
-      UV(uv_write, req->get(), this->template get<uv_stream_t>(), &buf, 1, [](uv_write_t* req, int status) {
-        WriteRequest& r = *static_cast<WriteRequest*>(req->data);
-        r.trigger(status);
-        r.release();
-      });
+      UV(uv_write, req.get(), this->template get<uv_stream_t>(), &buf, 1,
+          [](uv_write_t* r, int status) { static_cast<WriteRequest*>(r->data)->trigger(status); });
     }
 
    private:
@@ -377,10 +395,8 @@ namespace eventloop {
     template <typename H, typename... Args>
     H& handle(Args... args) {
       auto ptr = make_unique<H>(get());
-      H& ref = *ptr;
-      ref.init(std::forward<Args>(args)...);
-      ref.leak(std::move(ptr));
-      return ref;
+      ptr->init(std::forward<Args>(args)...);
+      return ptr->leak(std::move(ptr));
     }
 
    protected:
