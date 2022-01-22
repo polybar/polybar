@@ -48,9 +48,9 @@ EXAMPLES
   Hide the module named *mymodule*.
   The first variant specifies the module and action names separately, the second uses an action string.
 
-AUTHOR
-------
-| Michael Carlberg <c@rlberg.se>
+AUTHORS
+-------
+| Polybar was created by Michael Carlberg and is currently maintained by Patrick Ziegler.
 | Contributors can be listed on GitHub.
 
 REPORTING BUGS

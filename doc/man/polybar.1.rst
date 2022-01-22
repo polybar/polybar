@@ -66,9 +66,9 @@ OPTIONS
 
    Save png snapshot to *FILE* after running for 3 seconds
 
-AUTHOR
-------
-| Michael Carlberg <c@rlberg.se>
+AUTHORS
+-------
+| Polybar was created by Michael Carlberg and is currently maintained by Patrick Ziegler.
 | Contributors can be listed on GitHub.
 
 REPORTING BUGS
