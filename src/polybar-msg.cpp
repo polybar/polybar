@@ -17,8 +17,9 @@
 #include "utils/actions.hpp"
 #include "utils/file.hpp"
 
-using namespace polybar;
 using namespace std;
+using namespace polybar;
+using namespace eventloop;
 
 static const char* exec = nullptr;
 static constexpr auto USAGE = "<command=(action|cmd)> <payload> [...]";
@@ -75,7 +76,7 @@ static vector<string> get_sockets() {
   return sockets;
 }
 
-static void on_write(eventloop::PipeHandle& conn, ipc::decoder& dec) {
+static void on_write(PipeHandle& conn, ipc::decoder& dec) {
   conn.read_start(
       [&](const auto& e) {
         try {
@@ -93,8 +94,7 @@ static void on_write(eventloop::PipeHandle& conn, ipc::decoder& dec) {
       });
 }
 
-static void on_connection(
-    eventloop::PipeHandle& conn, ipc::decoder& dec, const ipc::type_t type, const string& payload) {
+static void on_connection(PipeHandle& conn, ipc::decoder& dec, const ipc::type_t type, const string& payload) {
   const auto data = ipc::encode(type, payload);
   conn.write(
       data, [&]() { on_write(conn, dec); },
@@ -220,12 +220,11 @@ int run(int argc, char** argv) {
   string payload;
   ipc::type_t type;
   std::tie(type, payload) = parse_message(args);
-
-  const string type_str = type == to_integral(ipc::v0::ipc_type::ACTION) ? "action" : "command";
+  string type_str = type == to_integral(ipc::v0::ipc_type::ACTION) ? "action" : "command";
 
   bool success = true;
 
-  eventloop::eventloop loop;
+  loop loop;
 
   logger null_logger{loglevel::NONE};
 
@@ -235,13 +234,11 @@ int run(int argc, char** argv) {
   vector<ipc::decoder> decoders;
 
   for (auto&& channel : sockets) {
-    auto& conn = loop.handle<eventloop::PipeHandle>();
-
     int pid = ipc::get_pid_from_socket(channel);
     assert(pid > 0);
 
     decoders.emplace_back(
-        null_logger, [pid, channel, &type_str, &payload, &success](uint8_t, ipc::type_t type, const auto& response) {
+        null_logger, [pid, channel, &payload, &type_str, &success](uint8_t, ipc::type_t type, const auto& response) {
           switch (type) {
             case ipc::TYPE_OK:
               printf("Successfully wrote %s '%s' to PID %d\n", type_str.c_str(), payload.c_str(), pid);
@@ -265,6 +262,7 @@ int run(int argc, char** argv) {
      */
     int idx = decoders.size() - 1;
 
+    auto& conn = loop.handle<PipeHandle>();
     conn.connect(
         channel,
         [&conn, &decoders, type, payload, channel, idx]() { on_connection(conn, decoders[idx], type, payload); },

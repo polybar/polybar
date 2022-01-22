@@ -18,6 +18,8 @@
 
 POLYBAR_NS
 
+using namespace eventloop;
+
 namespace ipc {
 
   /**
@@ -30,15 +32,15 @@ namespace ipc {
   /**
    * Create instance
    */
-  ipc::make_type ipc::make(eventloop::eventloop& loop) {
+  ipc::make_type ipc::make(loop& loop) {
     return std::make_unique<ipc>(signal_emitter::make(), logger::make(), loop);
   }
 
   /**
    * Construct ipc handler
    */
-  ipc::ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop)
-      : m_sig(emitter), m_log(logger), m_loop(loop), socket(loop.handle<eventloop::PipeHandle>()) {
+  ipc::ipc(signal_emitter& emitter, const logger& logger, loop& loop)
+      : m_sig(emitter), m_log(logger), m_loop(loop), socket(loop.handle<PipeHandle>()) {
     m_pipe_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
     if (file_util::exists(m_pipe_path) && unlink(m_pipe_path.c_str()) == -1) {
@@ -72,8 +74,6 @@ namespace ipc {
     if (unlink(m_pipe_path.c_str()) == -1) {
       m_log.err("Failed to delete ipc named pipe: %s", strerror(errno));
     }
-
-    socket.close();
   }
 
   string ipc::get_socket_path(int pid) {
@@ -161,18 +161,20 @@ namespace ipc {
   }
 
   void ipc::remove_client(connection& conn) {
-    conn.client_pipe.close();
     connections.erase(connections.find(conn));
   }
 
-  ipc::connection::connection(eventloop::eventloop& loop, cb msg_callback)
-      : client_pipe(loop.handle<eventloop::PipeHandle>())
+  ipc::connection::connection(loop& loop, cb msg_callback)
+      : client_pipe(loop.handle<PipeHandle>())
       , dec(logger::make(), [this, msg_callback](uint8_t version, auto type, const auto& msg) {
         msg_callback(*this, version, type, msg);
       }) {}
 
-  ipc::fifo::fifo(eventloop::eventloop& loop, ipc& ipc, const string& path)
-      : pipe_handle(loop.handle<eventloop::PipeHandle>()) {
+  ipc::connection::~connection() {
+    client_pipe.close();
+  }
+
+  ipc::fifo::fifo(loop& loop, ipc& ipc, const string& path) : pipe_handle(loop.handle<PipeHandle>()) {
     int fd;
     if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
       throw system_error("Failed to open pipe '" + path + "'");
@@ -181,9 +183,9 @@ namespace ipc {
     pipe_handle.open(fd);
     pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
         [&ipc]() { ipc.receive_eof(); },
-        [this, &ipc](const auto& e) mutable {
+        [&ipc](const auto& e) mutable {
           ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
-          pipe_handle.close();
+          ipc.ipc_pipe.reset();
         });
   }
 

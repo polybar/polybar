@@ -26,10 +26,12 @@
 
 POLYBAR_NS
 
+using namespace eventloop;
+
 /**
  * Build controller instance
  */
-controller::make_type controller::make(bool has_ipc, eventloop::eventloop& loop) {
+controller::make_type controller::make(bool has_ipc, loop& loop) {
   return std::make_unique<controller>(
       connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
 }
@@ -37,8 +39,8 @@ controller::make_type controller::make(bool has_ipc, eventloop::eventloop& loop)
 /**
  * Construct controller
  */
-controller::controller(connection& conn, signal_emitter& emitter, const logger& logger, const config& config,
-    bool has_ipc, eventloop::eventloop& loop)
+controller::controller(
+    connection& conn, signal_emitter& emitter, const logger& logger, const config& config, bool has_ipc, loop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
@@ -235,30 +237,32 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    auto& poll_handle = m_loop.handle<eventloop::PollHandle>(m_connection.get_file_descriptor());
+    auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
     poll_handle.start(
         UV_READABLE, [this](const auto&) { conn_cb(); },
-        [](const auto& e) {
-          throw runtime_error("libuv error while polling X connection: "s + uv_strerror(e.status));
+        [this](const auto& e) {
+          m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
+          stop(false);
         });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      auto& signal_handle = m_loop.handle<eventloop::SignalHandle>();
+      auto& signal_handle = m_loop.handle<SignalHandle>();
       signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
     }
 
     if (confwatch) {
-      auto& fs_event_handle = m_loop.handle<eventloop::FSEventHandle>();
+      auto& fs_event_handle = m_loop.handle<FSEventHandle>();
       fs_event_handle.start(
           m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
-          [this](const auto& e) {
+          [this, &fs_event_handle](const auto& e) {
             m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
+            fs_event_handle.close();
           });
     }
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      auto& timer_handle = m_loop.handle<eventloop::TimerHandle>();
+      auto& timer_handle = m_loop.handle<TimerHandle>();
       timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
     }
 

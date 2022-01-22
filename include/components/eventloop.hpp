@@ -30,7 +30,7 @@ namespace eventloop {
   using cb_event = std::function<void(const Event&)>;
 
   template <typename Self, typename H>
-  class Handle : public non_copyable_mixin {
+  class Handle : public non_copyable_mixin, public non_movable_mixin {
    public:
     Handle(uv_loop_t* l) : uv_loop(l) {
       get()->data = this;
@@ -53,6 +53,11 @@ namespace eventloop {
       return get();
     }
 
+    /**
+     * Close this handle and free associated memory.
+     *
+     * After this function returns, any reference to this object should be considered invalid.
+     */
     void close() {
       if (!is_closing()) {
         uv_close((uv_handle_t*)get(), [](uv_handle_t* handle) { close_callback(*static_cast<Self*>(handle->data)); });
@@ -385,10 +390,10 @@ namespace eventloop {
     cb_connect connect_callback;
   };
 
-  class eventloop {
+  class loop : public non_copyable_mixin, public non_movable_mixin {
    public:
-    eventloop();
-    ~eventloop();
+    loop();
+    ~loop();
     void run();
     void stop();
 

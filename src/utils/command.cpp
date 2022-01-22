@@ -184,7 +184,7 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const vec
  * \note: This is a blocking call and will not
  * end until the stream is closed
  */
-void command<output_policy::REDIRECTED>::tail(callback<string> cb) {
+void command<output_policy::REDIRECTED>::tail(std::function<void(string)> cb) {
   io_util::tail(get_stdout(PIPE_READ), cb);
 }
 

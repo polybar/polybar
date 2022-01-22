@@ -5,7 +5,6 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/file.hpp"
-#include "utils/functional.hpp"
 
 POLYBAR_NS
 
@@ -86,7 +85,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
   using command<output_policy::IGNORED>::get_pid;
   using command<output_policy::IGNORED>::get_exit_status;
 
-  void tail(callback<string> cb);
+  void tail(std::function<void(string)> cb);
   string readline();
 
   int get_stdout(int c);

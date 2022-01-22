@@ -11,7 +11,6 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
-#include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
 POLYBAR_NS

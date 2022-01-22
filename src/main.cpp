@@ -10,6 +10,7 @@
 #include "x11/connection.hpp"
 
 using namespace polybar;
+using namespace eventloop;
 
 int main(int argc, char** argv) {
   // clang-format off
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
 
-    eventloop::eventloop loop{};
+    loop loop{};
 
     //==================================================
     // Connect to X server
