@@ -240,8 +240,9 @@ void controller::read_events(bool confwatch) {
     auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
     poll_handle.start(
         UV_READABLE, [this](const auto&) { conn_cb(); },
-        [](const auto& e) {
-          throw runtime_error("libuv error while polling X connection: "s + uv_strerror(e.status));
+        [this](const auto& e) {
+          m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
+          stop(false);
         });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
@@ -253,8 +254,9 @@ void controller::read_events(bool confwatch) {
       auto& fs_event_handle = m_loop.handle<FSEventHandle>();
       fs_event_handle.start(
           m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
-          [this](const auto& e) {
+          [this, &fs_event_handle](const auto& e) {
             m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
+            fs_event_handle.close();
           });
     }
 

@@ -68,7 +68,6 @@ namespace eventloop {
   void PollHandle::poll_callback(uv_poll_t* handle, int status, int events) {
     auto& self = cast(handle);
     if (status < 0) {
-      self.close();
       self.err_cb(ErrorEvent{status});
       return;
     }
@@ -91,7 +90,6 @@ namespace eventloop {
   void FSEventHandle::fs_event_callback(uv_fs_event_t* handle, const char* path, int events, int status) {
     auto& self = cast(handle);
     if (status < 0) {
-      self.close();
       self.err_cb(ErrorEvent{status});
       return;
     }
