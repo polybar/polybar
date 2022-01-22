@@ -47,11 +47,10 @@ namespace ipc {
     if (mkfifo(m_pipe_path.c_str(), 0600) == -1) {
       throw system_error("Failed to create ipc channel");
     }
-    m_log.info("Created ipc channel at: %s", m_pipe_path);
+    m_log.info("Created legacy ipc fifo at '%s'", m_pipe_path);
 
     ipc_pipe = make_unique<fifo>(m_loop, *this, m_pipe_path);
 
-    ensure_runtime_path();
     string sock_path = get_socket_path(getpid());
 
     m_log.info("Opening ipc socket at '%s'", sock_path);
@@ -75,7 +74,6 @@ namespace ipc {
     }
 
     socket.close();
-    // TODO delete runtime directory
   }
 
   string ipc::get_socket_path(int pid) {
