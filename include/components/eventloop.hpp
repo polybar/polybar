@@ -385,10 +385,10 @@ namespace eventloop {
     cb_connect connect_callback;
   };
 
-  class eventloop {
+  class loop {
    public:
-    eventloop();
-    ~eventloop();
+    loop();
+    ~loop();
     void run();
     void stop();
 

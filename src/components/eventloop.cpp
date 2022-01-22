@@ -176,13 +176,13 @@ namespace eventloop {
     UV(uv_run, loop, UV_RUN_DEFAULT);
   }
 
-  eventloop::eventloop() {
+  loop::loop() {
     m_loop = std::make_unique<uv_loop_t>();
     UV(uv_loop_init, m_loop.get());
     m_loop->data = this;
   }
 
-  eventloop::~eventloop() {
+  loop::~loop() {
     if (m_loop) {
       try {
         close_loop(m_loop.get());
@@ -195,15 +195,15 @@ namespace eventloop {
     }
   }
 
-  void eventloop::run() {
+  void loop::run() {
     UV(uv_run, m_loop.get(), UV_RUN_DEFAULT);
   }
 
-  void eventloop::stop() {
+  void loop::stop() {
     uv_stop(m_loop.get());
   }
 
-  uv_loop_t* eventloop::get() const {
+  uv_loop_t* loop::get() const {
     return m_loop.get();
   }
   // }}}

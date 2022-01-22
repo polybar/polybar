@@ -26,9 +26,9 @@ namespace ipc {
   class ipc : non_copyable_mixin, non_movable_mixin {
    public:
     using make_type = unique_ptr<ipc>;
-    static make_type make(eventloop::eventloop& loop);
+    static make_type make(eventloop::loop& loop);
 
-    explicit ipc(signal_emitter& emitter, const logger& logger, eventloop::eventloop& loop);
+    explicit ipc(signal_emitter& emitter, const logger& logger, eventloop::loop& loop);
     ~ipc();
 
     static string get_socket_path(int pid);
@@ -42,14 +42,14 @@ namespace ipc {
    private:
     signal_emitter& m_sig;
     const logger& m_log;
-    eventloop::eventloop& m_loop;
+    eventloop::loop& m_loop;
 
     eventloop::PipeHandle& socket;
 
     class connection : public non_movable_mixin {
      public:
       using cb = std::function<void(connection&, uint8_t, type_t, const std::vector<uint8_t>&)>;
-      connection(eventloop::eventloop& loop, cb msg_callback);
+      connection(eventloop::loop& loop, cb msg_callback);
       eventloop::PipeHandle& client_pipe;
       decoder dec;
     };
@@ -78,7 +78,7 @@ namespace ipc {
 
     // Named pipe properties (deprecated)
     struct fifo {
-      fifo(eventloop::eventloop& loop, ipc& ipc, const string& path);
+      fifo(eventloop::loop& loop, ipc& ipc, const string& path);
       ~fifo();
       eventloop::PipeHandle& pipe_handle;
     };
