@@ -23,7 +23,7 @@ namespace ipc {
    * running process which will allow messages and
    * events to be sent to the process externally.
    */
-  class ipc : non_copyable_mixin, non_movable_mixin {
+  class ipc : public non_copyable_mixin, public non_movable_mixin {
    public:
     using make_type = unique_ptr<ipc>;
     static make_type make(eventloop::loop& loop);
@@ -46,7 +46,7 @@ namespace ipc {
 
     eventloop::PipeHandle& socket;
 
-    class connection : public non_movable_mixin {
+    class connection : public non_copyable_mixin, public non_movable_mixin {
      public:
       using cb = std::function<void(connection&, uint8_t, type_t, const std::vector<uint8_t>&)>;
       connection(eventloop::loop& loop, cb msg_callback);

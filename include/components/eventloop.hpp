@@ -30,7 +30,7 @@ namespace eventloop {
   using cb_event = std::function<void(const Event&)>;
 
   template <typename Self, typename H>
-  class Handle : public non_copyable_mixin {
+  class Handle : public non_copyable_mixin, public non_movable_mixin {
    public:
     Handle(uv_loop_t* l) : uv_loop(l) {
       get()->data = this;
@@ -385,7 +385,7 @@ namespace eventloop {
     cb_connect connect_callback;
   };
 
-  class loop {
+  class loop : public non_copyable_mixin, public non_movable_mixin {
    public:
     loop();
     ~loop();
