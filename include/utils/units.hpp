@@ -15,6 +15,7 @@ namespace units_utils {
 
   int extent_to_pixel(const extent_val size, double dpi);
 
+  extent_type parse_extent_unit(const string& str);
   extent_val parse_extent(string&& str);
 
   string extent_to_string(extent_val extent);

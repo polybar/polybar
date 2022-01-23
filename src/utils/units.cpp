@@ -8,6 +8,11 @@ POLYBAR_NS
 
 namespace units_utils {
 
+  /**
+   * Converts points to pixels under the given DPI (PPI).
+   *
+   * 1 pt = 1/72in, so point / 72 * DPI = #pixels
+   */
   int point_to_pixel(double point, double dpi) {
     return dpi * point / 72.0;
   }
@@ -30,24 +35,26 @@ namespace units_utils {
         std::max<double>(0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
   }
 
+  extent_type parse_extent_unit(const string& str) {
+    if (!str.empty()) {
+      if (str == "px") {
+        return extent_type::PIXEL;
+      } else if (str == "pt") {
+        return extent_type::POINT;
+      } else {
+        throw std::runtime_error("Unrecognized unit '" + str + "'");
+      }
+    } else {
+      return extent_type::PIXEL;
+    }
+  }
+
   extent_val parse_extent(string&& str) {
     size_t pos;
     auto size_value = std::stof(str, &pos);
 
-    extent_type type;
-
     string unit = string_util::trim(str.substr(pos));
-    if (!unit.empty()) {
-      if (unit == "px") {
-        type = extent_type::PIXEL;
-      } else if (unit == "pt") {
-        type = extent_type::POINT;
-      } else {
-        throw std::runtime_error("Unrecognized unit '" + unit + "'");
-      }
-    } else {
-      type = extent_type::PIXEL;
-    }
+    extent_type type = parse_extent_unit(unit);
 
     // Pixel values should be integers
     if (type == extent_type::PIXEL) {
@@ -58,14 +65,18 @@ namespace units_utils {
   }
 
   string extent_to_string(extent_val extent) {
+    std::stringstream ss;
+
     switch (extent.type) {
       case extent_type::POINT:
-        return to_string(extent.value) + "pt";
+        ss << extent.value << "pt";
+        break;
       case extent_type::PIXEL:
-        return to_string(static_cast<int>(extent.value)) + "px";
+        ss << static_cast<int>(extent.value) << "px";
+        break;
     }
 
-    return {};
+    return ss.str();
   }
 
 } // namespace units_utils

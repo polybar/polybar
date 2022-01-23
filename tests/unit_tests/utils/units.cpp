@@ -4,6 +4,7 @@
 #include "utils/units.hpp"
 
 using namespace polybar;
+using namespace units_utils;
 
 /**
  * \brief Class for parameterized tests on geom_format_to_pixels
@@ -53,5 +54,71 @@ static constexpr int DPI = 96;
 TEST_P(GeomFormatToPixelsTest, correctness) {
   unsigned exp = GetParam().first;
   percentage_with_offset geometry = GetParam().second;
-  EXPECT_DOUBLE_EQ(exp, units_utils::percentage_with_offset_to_pixel(geometry, MAX_WIDTH, DPI));
+  EXPECT_DOUBLE_EQ(exp, percentage_with_offset_to_pixel(geometry, MAX_WIDTH, DPI));
+}
+
+TEST(UnitsUtils, point_to_pixel) {
+  EXPECT_EQ(72, point_to_pixel(72, 72));
+  EXPECT_EQ(96, point_to_pixel(72, 96));
+  EXPECT_EQ(48, point_to_pixel(36, 96));
+  EXPECT_EQ(-48, point_to_pixel(-36, 96));
+}
+
+TEST(UnitsUtils, extent_to_pixel) {
+  EXPECT_EQ(100, extent_to_pixel({extent_type::PIXEL, 100}, 0));
+  EXPECT_EQ(48, extent_to_pixel({extent_type::POINT, 36}, 96));
+
+  EXPECT_EQ(-100, extent_to_pixel({extent_type::PIXEL, -100}, 0));
+  EXPECT_EQ(-48, extent_to_pixel({extent_type::POINT, -36}, 96));
+}
+
+TEST(UnitsUtils, percentage_with_offset_to_pixel) {
+  EXPECT_EQ(1100, percentage_with_offset_to_pixel({100, {extent_type::PIXEL, 100}}, 1000, 0));
+  EXPECT_EQ(1048, percentage_with_offset_to_pixel({100, {extent_type::POINT, 36}}, 1000, 96));
+
+  EXPECT_EQ(900, percentage_with_offset_to_pixel({100, {extent_type::PIXEL, -100}}, 1000, 0));
+  EXPECT_EQ(952, percentage_with_offset_to_pixel({100, {extent_type::POINT, -36}}, 1000, 96));
+
+  EXPECT_EQ(0, percentage_with_offset_to_pixel({0, {extent_type::PIXEL, -100}}, 1000, 0));
+  EXPECT_EQ(100, percentage_with_offset_to_pixel({0, {extent_type::PIXEL, 100}}, 1000, 0));
+}
+
+TEST(UnitsUtils, parse_extent_unit) {
+  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit("px"));
+  EXPECT_EQ(extent_type::POINT, parse_extent_unit("pt"));
+
+  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit("px"));
+  EXPECT_EQ(extent_type::POINT, parse_extent_unit("pt"));
+
+  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit(""));
+  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit(""));
+
+  EXPECT_THROW(parse_extent_unit("foo"), std::runtime_error);
+}
+
+namespace polybar {
+  bool operator==(const extent_val lhs, const extent_val rhs) {
+    return lhs.type == rhs.type && lhs.value == rhs.value;
+  }
+} // namespace polybar
+
+TEST(UnitsUtils, parse_extent) {
+  EXPECT_EQ((extent_val{extent_type::PIXEL, 100}), parse_extent("100px"));
+  EXPECT_EQ((extent_val{extent_type::POINT, 36}), parse_extent("36pt"));
+
+  EXPECT_EQ((extent_val{extent_type::PIXEL, -100}), parse_extent("-100px"));
+  EXPECT_EQ((extent_val{extent_type::POINT, -36}), parse_extent("-36pt"));
+
+  EXPECT_EQ((extent_val{extent_type::PIXEL, 100}), parse_extent("100"));
+  EXPECT_EQ((extent_val{extent_type::PIXEL, -100}), parse_extent("-100"));
+
+  EXPECT_THROW(parse_extent("100foo"), std::runtime_error);
+}
+
+TEST(UnitsUtils, extent_to_string) {
+  EXPECT_EQ("100px", extent_to_string({extent_type::PIXEL, 100}));
+  EXPECT_EQ("36pt", extent_to_string({extent_type::POINT, 36}));
+
+  EXPECT_EQ("-100px", extent_to_string({extent_type::PIXEL, -100}));
+  EXPECT_EQ("-36pt", extent_to_string({extent_type::POINT, -36}));
 }
