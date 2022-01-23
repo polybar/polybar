@@ -1,42 +1,36 @@
-#pragma once
+#include "utils/units.hpp"
 
-#include <cassert>
-#include <cmath>
-#include <stdexcept>
-#include <string>
-
+#include "common.hpp"
 #include "components/types.hpp"
-#include "utils/string.hpp"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
-namespace unit_utils {
-  template <typename ValueType, typename ReturnType = long unsigned int>
-  ReturnType point_to_pixel(ValueType point, ValueType dpi) {
-    return static_cast<ReturnType>(dpi * point / ValueType(72));
+namespace units_utils {
+
+  int point_to_pixel(double point, double dpi) {
+    return dpi * point / 72.0;
   }
 
-  template <typename ReturnType = int>
-  ReturnType spacing_to_pixel(spacing_val size, double dpi) {
-    assert(size.type != spacing_type::SPACE);
-
-    if (size.type == spacing_type::PIXEL) {
-      return size.value;
-    }
-
-    return point_to_pixel<double, ReturnType>(size.value, dpi);
-  }
-
-  template <typename ReturnType = int>
-  ReturnType extent_to_pixel(const extent_val size, double dpi) {
+  int extent_to_pixel(const extent_val size, double dpi) {
     if (size.type == extent_type::PIXEL) {
       return size.value;
     }
 
-    return point_to_pixel<double, ReturnType>(size.value, dpi);
+    return point_to_pixel(size.value, dpi);
   }
 
-  inline extent_val parse_extent(string&& str) {
+  /**
+   * Converts a percentage with offset into pixels
+   */
+  unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
+    auto offset_pixel = extent_to_pixel(g_format.offset, dpi);
+
+    return static_cast<unsigned int>(math_util::max<double>(
+        0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
+  }
+
+  extent_val parse_extent(string&& str) {
     size_t pos;
     auto size_value = std::stof(str, &pos);
 
@@ -63,7 +57,7 @@ namespace unit_utils {
     return {type, size_value};
   }
 
-  inline string extent_to_string(extent_val extent) {
+  string extent_to_string(extent_val extent) {
     switch (extent.type) {
       case extent_type::POINT:
         return to_string(extent.value) + "pt";
@@ -74,6 +68,6 @@ namespace unit_utils {
     return {};
   }
 
-} // namespace unit_utils
+} // namespace units_utils
 
 POLYBAR_NS_END

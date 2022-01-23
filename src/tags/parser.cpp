@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cctype>
 
+#include "utils/units.hpp"
+
 POLYBAR_NS
 
 namespace tags {
@@ -348,7 +350,7 @@ namespace tags {
     }
 
     try {
-      return unit_utils::parse_extent(string{s});
+      return units_utils::parse_extent(string{s});
     } catch (const std::exception& err) {
       throw offset_error(s, err.what());
     }
@@ -500,6 +502,6 @@ namespace tags {
 
     return s;
   }
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

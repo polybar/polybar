@@ -7,7 +7,8 @@
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
-#include "utils/unit.hpp"
+#include "utils/units.hpp"
+
 POLYBAR_NS
 
 using namespace tags;
@@ -207,7 +208,7 @@ void builder::offset(extent_val extent) {
   if (extent.value == 0) {
     return;
   }
-  tag_open(syntaxtag::O, unit_utils::extent_to_string(extent));
+  tag_open(syntaxtag::O, units_utils::extent_to_string(extent));
 }
 
 /**

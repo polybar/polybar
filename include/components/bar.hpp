@@ -13,7 +13,6 @@
 #include "settings.hpp"
 #include "tags/action_context.hpp"
 #include "utils/math.hpp"
-#include "utils/unit.hpp"
 #include "x11/types.hpp"
 #include "x11/window.hpp"
 
@@ -31,17 +30,6 @@ namespace tags {
   class dispatch;
 }
 // }}}
-
-/**
- * Converts a percentage with offset into pixels
- * TODO: move to units.hpp (or .cpp) 
- */
-inline unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
-  auto offset_pixel = unit_utils::extent_to_pixel(g_format.offset, dpi);
-
-  return static_cast<unsigned int>(math_util::max<double>(
-      0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
-}
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message, evt::configure_notify>,

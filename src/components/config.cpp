@@ -10,7 +10,7 @@
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
-#include "utils/unit.hpp"
+#include "utils/units.hpp"
 
 POLYBAR_NS
 
@@ -251,7 +251,7 @@ spacing_val config::convert(string&& value) const {
 
 template <>
 extent_val config::convert(std::string&& value) const {
-  return unit_utils::parse_extent(move(value));
+  return units_utils::parse_extent(move(value));
 }
 
 /**
