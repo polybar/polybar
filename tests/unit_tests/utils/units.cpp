@@ -1,4 +1,4 @@
-#include "components/bar.hpp"
+#include "utils/units.hpp"
 
 #include "common/test.hpp"
 #include "utils/units.hpp"
@@ -9,12 +9,12 @@ using namespace polybar;
  * \brief Class for parameterized tests on geom_format_to_pixels
  *
  * The first element in the tuple is the expected return value, the second
- * value is the format string. The max value is always 1000
+ * value represents the format string. The max value is always 1000 and dpi is always 96
  */
 class GeomFormatToPixelsTest : public ::testing::Test,
-                               public ::testing::WithParamInterface<pair<unsigned int, percentage_with_offset>> {};
+                               public ::testing::WithParamInterface<pair<unsigned, percentage_with_offset>> {};
 
-vector<pair<unsigned int, percentage_with_offset>> to_pixels_no_offset_list = {
+vector<pair<unsigned, percentage_with_offset>> to_pixels_no_offset_list = {
     {1000, percentage_with_offset{100.}},
     {0, percentage_with_offset{0.}},
     {1000, percentage_with_offset{150.}},
@@ -24,7 +24,7 @@ vector<pair<unsigned int, percentage_with_offset>> to_pixels_no_offset_list = {
     {1, percentage_with_offset{0., extent_val{extent_type::PIXEL, 1}}},
 };
 
-vector<pair<unsigned int, percentage_with_offset>> to_pixels_with_offset_list = {
+vector<pair<unsigned, percentage_with_offset>> to_pixels_with_offset_list = {
     {1000, percentage_with_offset{100., ZERO_PX_EXTENT}},
     {1010, percentage_with_offset{100., extent_val{extent_type::PIXEL, 10}}},
     {990, percentage_with_offset{100., extent_val{extent_type::PIXEL, -10}}},
@@ -33,7 +33,7 @@ vector<pair<unsigned int, percentage_with_offset>> to_pixels_with_offset_list = 
     {0, percentage_with_offset{1., extent_val{extent_type::PIXEL, -100}}},
 };
 
-vector<pair<unsigned int, percentage_with_offset>> to_pixels_with_units_list = {
+vector<pair<unsigned, percentage_with_offset>> to_pixels_with_units_list = {
     {1013, percentage_with_offset{100., extent_val{extent_type::POINT, 10}}},
     {987, percentage_with_offset{100., extent_val{extent_type::POINT, -10}}},
     {1003, percentage_with_offset{99., extent_val{extent_type::POINT, 10}}},
@@ -47,8 +47,11 @@ INSTANTIATE_TEST_SUITE_P(WithOffset, GeomFormatToPixelsTest, ::testing::ValuesIn
 
 INSTANTIATE_TEST_SUITE_P(WithUnits, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_with_units_list));
 
+static constexpr int MAX_WIDTH = 1000;
+static constexpr int DPI = 96;
+
 TEST_P(GeomFormatToPixelsTest, correctness) {
-  unsigned int exp = GetParam().first;
-  polybar::percentage_with_offset geometry = GetParam().second;
-  EXPECT_DOUBLE_EQ(exp, units_utils::percentage_with_offset_to_pixel(geometry, 1000, 96));
+  unsigned exp = GetParam().first;
+  percentage_with_offset geometry = GetParam().second;
+  EXPECT_DOUBLE_EQ(exp, units_utils::percentage_with_offset_to_pixel(geometry, MAX_WIDTH, DPI));
 }
