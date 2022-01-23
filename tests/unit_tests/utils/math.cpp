@@ -4,18 +4,6 @@
 
 using namespace polybar;
 
-TEST(Math, min) {
-  EXPECT_EQ(2, math_util::min<int>(2, 5));
-  EXPECT_EQ(-50, math_util::min<int>(-8, -50));
-  EXPECT_EQ(0, math_util::min<unsigned char>(0, -5));
-}
-
-TEST(Math, max) {
-  EXPECT_EQ(5, math_util::max<int>(2, 5));
-  EXPECT_EQ(-8, math_util::max<int>(-8, -50));
-  EXPECT_EQ(251, math_util::max<unsigned char>(0, (1 << 8) - 5));
-}
-
 TEST(Math, cap) {
   EXPECT_EQ(8, math_util::cap<int>(8, 0, 10));
   EXPECT_EQ(0, math_util::cap<int>(-8, 0, 10));
