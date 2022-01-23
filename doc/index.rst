@@ -13,12 +13,14 @@ Welcome to the official polybar documentation.
    :caption: Content:
 
    user/actions
+   user/ipc
 
 .. toctree::
    :maxdepth: 1
    :caption: Manual Pages:
 
    man/polybar.1
+   man/polybar-msg.1
    man/polybar.5
 
 .. toctree::

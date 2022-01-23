@@ -3,7 +3,6 @@
 #include <poll.h>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -41,8 +40,8 @@ namespace socket_util {
    * \endcode
    */
   inline unique_ptr<unix_connection> make_unix_connection(string&& path) {
-    return factory_util::unique<unix_connection>(forward<string>(path));
+    return std::make_unique<unix_connection>(forward<string>(path));
   }
-}
+}  // namespace socket_util
 
 POLYBAR_NS_END

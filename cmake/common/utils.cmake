@@ -26,48 +26,6 @@ endfunction()
 
 # }}}
 
-# queryfont {{{
-
-function(queryfont output_variable fontname)
-  set(multi_value_args FIELDS)
-  cmake_parse_arguments(ARG "" "" "${multi_value_args}" ${ARGN})
-
-  find_program(BIN_FCLIST fc-list)
-  if(NOT BIN_FCLIST)
-    message_colored(WARNING "Failed to locate `fc-list`" "33;1")
-    return()
-  endif()
-
-  string(REPLACE ";" " " FIELDS "${ARG_FIELDS}")
-  if(NOT FIELDS)
-    set(FIELDS family)
-  endif()
-
-  execute_process(
-    COMMAND sh -c "${BIN_FCLIST} : ${FIELDS}"
-    RESULT_VARIABLE status
-    OUTPUT_VARIABLE output
-    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-  STRING(REGEX REPLACE ";" "\\\\;" output "${output}")
-  STRING(REGEX REPLACE "\n" ";" output "${output}")
-  STRING(TOLOWER "${output}" output)
-
-  foreach(match LISTS ${output})
-    if(${match} MATCHES ".*${fontname}.*$")
-      list(APPEND matches ${match})
-    endif()
-  endforeach()
-
-  if(matches)
-    list(GET matches 0 fst_match)
-    set(${output_variable} "${fst_match}" PARENT_SCOPE)
-    message(STATUS "Found font: ${fst_match}")
-  else()
-    message_colored(STATUS "Font not found: ${fontname}" "33;1")
-  endif()
-endfunction()
-
-# }}}
 # find_package_impl {{{
 
 # Uses PkgConfig to search for pkg_config_name

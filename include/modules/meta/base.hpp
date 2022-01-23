@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <map>
@@ -10,13 +11,13 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
-#include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
 POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
+using std::atomic;
 using std::map;
 
 #define DEFAULT_FORMAT "format"
@@ -42,7 +43,6 @@ class config;
 class logger;
 class signal_emitter;
 
-template <typename Impl>
 class action_router;
 // }}}
 
@@ -130,6 +130,7 @@ namespace modules {
     virtual bool input(const string& action, const string& data) = 0;
 
     virtual void start() = 0;
+    virtual void join() = 0;
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
@@ -156,6 +157,8 @@ namespace modules {
 
     bool visible() const override;
 
+    void start() override;
+    void join() final override;
     void stop() override;
     void halt(string error_message) override;
     void teardown();
@@ -169,6 +172,19 @@ namespace modules {
     void sleep(chrono::duration<double> duration);
     template <class Clock, class Duration>
     void sleep_until(chrono::time_point<Clock, Duration> point);
+
+    /**
+     * Wakes up the module.
+     *
+     * It should be possible to interrupt any blocking operation inside a
+     * module using this function.
+     *
+     * In addition, after a wake up whatever was woken up should immediately
+     * check whether the module is still running.
+     *
+     * Modules that don't follow this, could stall the operation of whatever
+     * code called this function.
+     */
     void wakeup();
     string get_format() const;
     string get_output();
@@ -185,7 +201,7 @@ namespace modules {
     const logger& m_log;
     const config& m_conf;
 
-    unique_ptr<action_router<Impl>> m_router;
+    unique_ptr<action_router> m_router;
 
     mutex m_buildlock;
     mutex m_updatelock;
@@ -202,7 +218,7 @@ namespace modules {
     bool m_handle_events{true};
 
    private:
-    atomic<bool> m_enabled{true};
+    atomic<bool> m_enabled{false};
     atomic<bool> m_visible{true};
     atomic<bool> m_changed{true};
     string m_cache;

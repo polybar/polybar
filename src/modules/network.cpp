@@ -4,7 +4,6 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -38,7 +37,19 @@ namespace modules {
     }
 
     if (m_interface.empty()) {
-      throw module_error("missing 'interface' or 'interface-type'");
+      throw module_error("Missing 'interface' or 'interface-type'");
+    }
+
+    if (!net::is_interface_valid(m_interface)) {
+      throw module_error("Invalid network interface \"" + m_interface + "\"");
+    }
+
+    auto canonical = net::get_canonical_interface(m_interface);
+
+    if (canonical.second) {
+      m_log.info(
+          "%s: Replacing given interface '%s' with its canonical name '%s'", name(), m_interface, canonical.first);
+      m_interface = canonical.first;
     }
 
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
@@ -88,10 +99,10 @@ namespace modules {
 
     // Get an intstance of the network interface
     if (net::is_wireless_interface(m_interface)) {
-      m_wireless = factory_util::unique<net::wireless_network>(m_interface);
+      m_wireless = std::make_unique<net::wireless_network>(m_interface);
       m_wireless->set_unknown_up(m_unknown_up);
     } else {
-      m_wired = factory_util::unique<net::wired_network>(m_interface);
+      m_wired = std::make_unique<net::wired_network>(m_interface);
       m_wired->set_unknown_up(m_unknown_up);
     };
 
@@ -143,6 +154,7 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%ifname%", m_interface);
       label->replace_token("%local_ip%", network->ip());
+      label->replace_token("%mac%", network->mac());
       label->replace_token("%local_ip6%", network->ip6());
       label->replace_token("%upspeed%", upspeed);
       label->replace_token("%downspeed%", downspeed);

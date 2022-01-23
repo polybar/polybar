@@ -29,17 +29,17 @@ namespace modules {
     m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_lowat = math_util::max(m_conf.get(name(), "low-at", m_lowat), 0);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
-    m_lastpoll = chrono::system_clock::now();
+    m_lastpoll = chrono::steady_clock::now();
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
     auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
     // Make state reader
-    if (file_util::exists((m_fstate = path_adapter + "online"))) {
+    if (file_util::exists((m_fstate = path_battery + "status"))) {
+          m_state_reader =
+              make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
+    } else if (file_util::exists((m_fstate = path_adapter + "online"))) {
       m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
-    } else if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
     } else {
       throw module_error("No suitable way to get current charge state");
     }
@@ -195,7 +195,7 @@ namespace modules {
    */
   void battery_module::idle() {
     if (m_interval.count() > 0) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
@@ -214,7 +214,7 @@ namespace modules {
     auto percentage = current_percentage();
 
     // Reset timer to avoid unnecessary polling
-    m_lastpoll = chrono::system_clock::now();
+    m_lastpoll = chrono::steady_clock::now();
 
     if (event != nullptr) {
       m_log.trace("%s: Inotify event reported for %s", name(), event->filename);
@@ -261,7 +261,7 @@ namespace modules {
       case battery_module::state::LOW:
         if (m_formatter->has_format(FORMAT_LOW)) {
           return FORMAT_LOW;
-        }  
+        }
         return FORMAT_DISCHARGING;
       case battery_module::state::DISCHARGING: return FORMAT_DISCHARGING;
       default: return FORMAT_CHARGING;

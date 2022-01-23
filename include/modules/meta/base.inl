@@ -20,29 +20,28 @@ namespace modules {
       , m_bar(bar)
       , m_log(logger::make())
       , m_conf(config::make())
-      , m_router(make_unique<action_router<Impl>>(CAST_MOD(Impl)))
+      , m_router(make_unique<action_router>())
       , m_name("module/" + name)
       , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, m_name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
       , m_visible(!m_conf.get(m_name, "hidden", false)) {
-        m_router->register_action(EVENT_MODULE_TOGGLE, &module<Impl>::action_module_toggle);
-        m_router->register_action(EVENT_MODULE_SHOW, &module<Impl>::action_module_show);
-        m_router->register_action(EVENT_MODULE_HIDE, &module<Impl>::action_module_hide);
-      }
+    m_router->register_action(EVENT_MODULE_TOGGLE, [this]() { action_module_toggle(); });
+    m_router->register_action(EVENT_MODULE_SHOW, [this]() { action_module_show(); });
+    m_router->register_action(EVENT_MODULE_HIDE, [this]() { action_module_hide(); });
+  }
 
   template <typename Impl>
   module<Impl>::~module() noexcept {
     m_log.trace("%s: Deconstructing", name());
 
-    for (auto&& thread_ : m_threads) {
-      if (thread_.joinable()) {
-        thread_.join();
-      }
-    }
-    if (m_mainthread.joinable()) {
-      m_mainthread.join();
+    if (running()) {
+      /*
+       * We can't stop in the destructor because we have to call the subclasses which at this point already have been
+       * destructed.
+       */
+      m_log.err("%s: Module was not stopped before deconstructing.", name());
     }
   }
 
@@ -64,6 +63,23 @@ namespace modules {
   template <typename Impl>
   bool module<Impl>::running() const {
     return static_cast<bool>(m_enabled);
+  }
+
+  template <class Impl>
+  void module<Impl>::start() {
+    m_enabled = true;
+  }
+
+  template <class Impl>
+  void module<Impl>::join() {
+    for (auto&& thread_ : m_threads) {
+      if (thread_.joinable()) {
+        thread_.join();
+      }
+    }
+    if (m_mainthread.joinable()) {
+      m_mainthread.join();
+    }
   }
 
   template <typename Impl>

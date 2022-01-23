@@ -33,6 +33,8 @@ class config {
   const string& filepath() const;
   string section() const;
 
+  static constexpr const char* BAR_PREFIX = "bar/";
+
   /**
    * \brief Instruct the config to connect to the xresource manager
    */
@@ -112,6 +114,32 @@ class config {
   }
 
   /**
+   * Get list of key-value pairs starting with a prefix by section.
+   *
+   * Eg: if you have in config `env-FOO = bar`,
+   *    get_with_prefix(section, "env-") will return [{"FOO", "bar"}]
+   */
+  template <typename T = string>
+  vector<pair<string, T>> get_with_prefix(const string& section, const string& key_prefix) const {
+    auto it = m_sections.find(section);
+    if (it == m_sections.end()) {
+      throw key_error("Missing section \"" + section + "\"");
+    }
+
+    vector<pair<string, T>> list;
+    for (const auto& kv_pair : it->second) {
+      const auto& key = kv_pair.first;
+
+      if (key.substr(0, key_prefix.size()) == key_prefix) {
+        const T& val = get<T>(section, key);
+        list.emplace_back(key.substr(key_prefix.size()), val);
+      }
+    }
+
+    return list;
+  }
+
+  /**
    * Get list of values for the current bar by name
    */
   template <typename T = string>
@@ -181,6 +209,8 @@ class config {
 
     return default_value;
   }
+
+  void ignore_key(const string& section, const string& key) const;
 
   /**
    * Attempt to load value using the deprecated key name. If successful show a

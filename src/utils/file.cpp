@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -16,43 +17,9 @@
 
 POLYBAR_NS
 
-// implementation of file_ptr {{{
-
-file_ptr::file_ptr(const string& path, const string& mode) : m_path(string(path)), m_mode(string(mode)) {
-  m_ptr = fopen(m_path.c_str(), m_mode.c_str());
-}
-
-file_ptr::~file_ptr() {
-  if (m_ptr != nullptr) {
-    fclose(m_ptr);
-  }
-}
-
-file_ptr::operator bool() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator bool() const {
-  return m_ptr != nullptr;
-}
-
-file_ptr::operator FILE*() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator FILE*() const {
-  return m_ptr;
-}
-
-file_ptr::operator int() {
-  return static_cast<const file_ptr&>(*this);
-}
-file_ptr::operator int() const {
-  return fileno(*this);
-}
-
-// }}}
 // implementation of file_descriptor {{{
 
-file_descriptor::file_descriptor(const string& path, int flags) {
+file_descriptor::file_descriptor(const string& path, int flags, bool autoclose) : m_autoclose(autoclose) {
   if ((m_fd = open(path.c_str(), flags)) == -1) {
     throw system_error("Failed to open file descriptor");
   }
@@ -123,8 +90,8 @@ void fd_streambuf::open(int fd) {
     close();
   }
   m_fd = fd;
-  setg(m_in, m_in, m_in);
-  setp(m_out, m_out + bufsize - 1);
+  setg(m_in, m_in + BUFSIZE_IN, m_in + BUFSIZE_IN);
+  setp(m_out, m_out + BUFSIZE_OUT - 1);
 }
 
 void fd_streambuf::close() {
@@ -156,13 +123,18 @@ int fd_streambuf::overflow(int c) {
 }
 
 int fd_streambuf::underflow() {
-  if (gptr() == egptr()) {
-    std::streamsize pback(std::min(gptr() - eback(), std::ptrdiff_t(16 - sizeof(int))));
-    std::copy(egptr() - pback, egptr(), eback());
-    int bytes(read(m_fd, eback() + pback, bufsize));
-    setg(eback(), eback() + pback, eback() + pback + std::max(0, bytes));
+  if (gptr() >= egptr()) {
+    int bytes = ::read(m_fd, m_in, BUFSIZE_IN);
+
+    if (bytes <= 0) {
+      setg(eback(), egptr(), egptr());
+      return traits_type::eof();
+    }
+
+    setg(m_in, m_in, m_in + bytes);
   }
-  return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
+
+  return traits_type::to_int_type(*gptr());
 }
 
 // }}}
@@ -191,6 +163,19 @@ namespace file_util {
     }
 
     return S_ISREG(buffer.st_mode);
+  }
+
+  /**
+   * Checks if the given path exists and is a file
+   */
+  bool is_dir(const string& filename) {
+    struct stat buffer {};
+
+    if (stat(filename.c_str(), &buffer) != 0) {
+      return false;
+    }
+
+    return S_ISDIR(buffer.st_mode);
   }
 
   /**
@@ -265,15 +250,16 @@ namespace file_util {
 
   /**
    * Path expansion
+   *
+   * `relative_to` must be a directory
    */
-  const string expand(const string& path) {
-    string ret;
+  string expand(const string& path, const string& relative_to) {
     /*
      * This doesn't capture all cases for absolute paths but the other cases
      * (tilde and env variable) have the initial '/' character in their
      * expansion already and will thus not require adding '/' to the beginning.
      */
-    bool is_absolute = path.size() > 0 && path.at(0) == '/';
+    bool is_absolute = !path.empty() && (path.at(0) == '/');
     vector<string> p_exploded = string_util::split(path, '/');
     for (auto& section : p_exploded) {
       switch (section[0]) {
@@ -285,10 +271,16 @@ namespace file_util {
           break;
       }
     }
-    ret = string_util::join(p_exploded, "/");
+    string ret = string_util::join(p_exploded, "/");
     // Don't add an initial slash for relative paths
     if (ret[0] != '/' && is_absolute) {
       ret.insert(0, 1, '/');
+    }
+
+    is_absolute = !ret.empty() && (ret.at(0) == '/');
+
+    if (!is_absolute && !relative_to.empty()) {
+      return relative_to + "/" + ret;
     }
     return ret;
   }
@@ -297,30 +289,47 @@ namespace file_util {
    * Search for polybar config and returns the path if found
    */
   string get_config_path() {
-    string confpath;
-    if (env_util::has("XDG_CONFIG_HOME")) {
-      confpath = env_util::get("XDG_CONFIG_HOME") + "/polybar/config";
-      if (exists(confpath)) {
-        return confpath;
-      }
+    const static string suffix = "/polybar/config";
 
-      string iniConfPath = confpath.append(".ini");
-      if (exists(iniConfPath)) {
-        return iniConfPath;
-      }
+    vector<string> possible_paths;
+
+    if (env_util::has("XDG_CONFIG_HOME")) {
+      auto path = env_util::get("XDG_CONFIG_HOME") + suffix;
+
+      possible_paths.push_back(path);
+      possible_paths.push_back(path + ".ini");
     }
 
     if (env_util::has("HOME")) {
-      confpath = env_util::get("HOME") + "/.config/polybar/config";
-      if (exists(confpath)) {
-        return confpath;
-      }
+      auto path = env_util::get("HOME") + "/.config" + suffix;
 
-      string iniConfPath = confpath.append(".ini");
-      if (exists(iniConfPath)) {
-        return iniConfPath;
+      possible_paths.push_back(path);
+      possible_paths.push_back(path + ".ini");
+    }
+
+    vector<string> xdg_config_dirs;
+
+    /*
+     *Ref: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+     */
+    if (env_util::has("XDG_CONFIG_DIRS")) {
+      xdg_config_dirs = string_util::split(env_util::get("XDG_CONFIG_DIRS"), ':');
+    } else {
+      xdg_config_dirs.push_back("/etc/xdg");
+    }
+
+    for (const string& xdg_config_dir : xdg_config_dirs) {
+      possible_paths.push_back(xdg_config_dir + suffix + ".ini");
+    }
+
+    possible_paths.push_back("/etc" + suffix + ".ini");
+
+    for (const string& p : possible_paths) {
+      if (exists(p)) {
+        return p;
       }
     }
+
     return "";
   }
 
@@ -343,6 +352,15 @@ namespace file_util {
       return files;
     }
     throw system_error("Failed to open directory stream for " + dirname);
+  }
+
+  string dirname(const string& path) {
+    const auto pos = path.find_last_of('/');
+    if (pos != string::npos) {
+      return path.substr(0, pos + 1);
+    }
+
+    return string{};
   }
 }  // namespace file_util
 

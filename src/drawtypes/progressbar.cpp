@@ -4,14 +4,13 @@
 
 #include "drawtypes/label.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
 
 namespace drawtypes {
   progressbar::progressbar(const bar_settings& bar, int width, string format)
-      : m_builder(factory_util::unique<builder>(bar)), m_format(move(format)), m_width(width) {}
+      : m_builder(std::make_unique<builder>(bar)), m_format(move(format)), m_width(width) {}
 
   void progressbar::set_fill(label_t&& fill) {
     m_fill = forward<decltype(fill)>(fill);
@@ -97,7 +96,7 @@ namespace drawtypes {
       throw application_error("Invalid width defined at [" + section + "." + name + "]");
     }
 
-    auto pbar = factory_util::shared<progressbar>(bar, width, format);
+    auto pbar = std::make_shared<progressbar>(bar, width, format);
     pbar->set_gradient(conf.get(section, name + "-gradient", true));
     pbar->set_colors(conf.get_list(section, name + "-foreground", vector<rgba>{}));
 

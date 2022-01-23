@@ -3,13 +3,14 @@
 #include "components/config.hpp"
 #include "components/config_parser.hpp"
 #include "components/controller.hpp"
-#include "components/ipc.hpp"
+#include "ipc/ipc.hpp"
 #include "utils/env.hpp"
 #include "utils/inotify.hpp"
 #include "utils/process.hpp"
 #include "x11/connection.hpp"
 
 using namespace polybar;
+using namespace eventloop;
 
 int main(int argc, char** argv) {
   // clang-format off
@@ -58,6 +59,8 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
 
+    loop loop{};
+
     //==================================================
     // Connect to X server
     //==================================================
@@ -81,8 +84,8 @@ int main(int argc, char** argv) {
       bool purge_clones = !cli->has("list-all-monitors");
       auto monitors = randr_util::get_monitors(conn, conn.root(), true, purge_clones);
       for (auto&& mon : monitors) {
-        if (WITH_XRANDR_MONITORS && mon->output == XCB_NONE) {
-          printf("%s: %ix%i+%i+%i (XRandR monitor%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
+        if (mon->output == XCB_NONE) {
+          printf("%s: %ix%i+%i+%i (no output%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
               mon->primary ? ", primary" : "");
         } else {
           printf("%s: %ix%i+%i+%i%s\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,
@@ -98,10 +101,7 @@ int main(int argc, char** argv) {
     string confpath;
 
     // Make sure a bar name is passed in
-    if (!cli->has(0)) {
-      cli->usage();
-      return EXIT_FAILURE;
-    } else if (cli->has(1)) {
+    if (cli->has(1)) {
       fprintf(stderr, "Unrecognized argument \"%s\"\n", cli->get(1).c_str());
       cli->usage();
       return EXIT_FAILURE;
@@ -111,12 +111,23 @@ int main(int argc, char** argv) {
       confpath = cli->get("config");
     } else {
       confpath = file_util::get_config_path();
+
+      if (string_util::ends_with(confpath, "/config")) {
+        logger::make().warn(
+            "Naming your configuration file 'config' is deprecated, the expected name is 'config.ini'.");
+      }
     }
+
     if (confpath.empty()) {
       throw application_error("Define configuration using --config=PATH");
     }
 
-    config_parser parser{logger, move(confpath), cli->get(0)};
+    string barname;
+    if (cli->has(0)) {
+      barname = cli->get(0);
+    }
+
+    config_parser parser{logger, move(confpath), move(barname)};
     config::make_type conf = parser.parse();
 
     //==================================================
@@ -127,26 +138,22 @@ int main(int argc, char** argv) {
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
-      printf("%s\n", bar::make(true)->settings().wmname.c_str());
+      printf("%s\n", bar::make(loop, true)->settings().wmname.c_str());
       return EXIT_SUCCESS;
     }
 
     //==================================================
     // Create controller and run application
     //==================================================
-    unique_ptr<ipc> ipc{};
-    unique_ptr<inotify_watch> config_watch{};
+    unique_ptr<ipc::ipc> ipc{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
-      ipc = ipc::make();
-    }
-    if (cli->has("reload")) {
-      config_watch = inotify_util::make_watch(conf.filepath());
+      ipc = ipc::ipc::make(loop);
     }
 
-    auto ctrl = controller::make(move(ipc), move(config_watch));
+    auto ctrl = controller::make((bool)ipc, loop);
 
-    if (!ctrl->run(cli->has("stdout"), cli->get("png"))) {
+    if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;
     }
   } catch (const exception& err) {

@@ -62,6 +62,8 @@ namespace string_util {
   using hash_type = unsigned long;
 
   bool contains(const string& haystack, const string& needle);
+  bool contains_ignore_case(const string& haystack, const string& needle);
+  bool ends_with(const string& haystack, const string& suffix);
   string upper(const string& s);
   string lower(const string& s);
   bool compare(const string& s1, const string& s2);
@@ -96,6 +98,8 @@ namespace string_util {
   string floating_point(double value, size_t precision, bool fixed = false, const string& locale = "");
   string filesize_mib(unsigned long long kibibytes, size_t precision = 0, const string& locale = "");
   string filesize_gib(unsigned long long kibibytes, size_t precision = 0, const string& locale = "");
+  string filesize_gib_mib(
+      unsigned long long kibibytes, size_t precision_mib = 0, size_t precision_gib = 0, const string& locale = "");
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);

@@ -34,7 +34,7 @@ const string& config::filepath() const {
  * Get the section name of the bar in use
  */
 string config::section() const {
-  return "bar/" + m_barname;
+  return BAR_PREFIX + m_barname;
 }
 
 void config::use_xrm() {
@@ -57,6 +57,15 @@ void config::set_sections(sectionmap_t sections) {
 
 void config::set_included(file_list included) {
   m_included = move(included);
+}
+
+void config::ignore_key(const string& section, const string& key) const {
+  if (has(section, key)) {
+    m_log.warn(
+        "The config parameter '%s.%s' is deprecated, it will be removed in the future. Please remove it from your "
+        "config",
+        section, key);
+  }
 }
 
 /**

@@ -1,9 +1,9 @@
+#include "utils/string.hpp"
+
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <utility>
-
-#include "utils/string.hpp"
 
 POLYBAR_NS
 
@@ -13,6 +13,21 @@ namespace string_util {
    */
   bool contains(const string& haystack, const string& needle) {
     return haystack.find(needle) != string::npos;
+  }
+
+  bool ends_with(const string& haystack, const string& suffix) {
+    if (haystack.length() < suffix.length()) {
+      return false;
+    }
+
+    return haystack.compare(haystack.length() - suffix.length(), suffix.length(), suffix) == 0;
+  }
+
+  /**
+   * Check if haystack contains needle ignoring case
+   */
+  bool contains_ignore_case(const string& haystack, const string& needle) {
+    return lower(haystack).find(lower(needle)) != string::npos;
   }
 
   /**
@@ -45,7 +60,7 @@ namespace string_util {
   }
 
   /**
-   * Replace first occurence of needle in haystack
+   * Replace first occurrence of needle in haystack
    */
   string replace(const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {
     string str(haystack);
@@ -61,7 +76,7 @@ namespace string_util {
   }
 
   /**
-   * Replace all occurences of needle in haystack
+   * Replace all occurrences of needle in haystack
    */
   string replace_all(
       const string& haystack, const string& needle, const string& replacement, size_t start, size_t end) {
@@ -289,6 +304,18 @@ namespace string_util {
    */
   string filesize_gib(unsigned long long kibibytes, size_t precision, const string& locale) {
     return floating_point(kibibytes / 1024.0 / 1024.0, precision, true, locale) + " GiB";
+  }
+
+  /**
+   * Create a GiB string, if the value in GiB is >= 1.0. Otherwise, create a MiB string.
+   */
+  string filesize_gib_mib(
+      unsigned long long kibibytes, size_t precision_mib, size_t precision_gib, const string& locale) {
+    if (kibibytes < 1024 * 1024) {
+      return filesize_mib(kibibytes, precision_mib, locale);
+    } else {
+      return filesize_gib(kibibytes, precision_gib, locale);
+    }
   }
 
   /**

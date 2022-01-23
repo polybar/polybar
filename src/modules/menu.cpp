@@ -4,7 +4,6 @@
 #include "events/signal.hpp"
 #include "modules/meta/base.inl"
 #include "utils/actions.hpp"
-#include "utils/factory.hpp"
 #include "utils/scope.hpp"
 
 POLYBAR_NS
@@ -15,9 +14,9 @@ namespace modules {
   menu_module::menu_module(const bar_settings& bar, string name_) : static_module<menu_module>(bar, move(name_)) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
 
-    m_router->register_action_with_data(EVENT_OPEN, &menu_module::action_open);
-    m_router->register_action(EVENT_CLOSE, &menu_module::action_close);
-    m_router->register_action_with_data(EVENT_EXEC, &menu_module::action_exec);
+    m_router->register_action_with_data(EVENT_OPEN, [this](const std::string& data) { action_open(data); });
+    m_router->register_action(EVENT_CLOSE, [this]() { action_close(); });
+    m_router->register_action_with_data(EVENT_EXEC, [this](const std::string& data) { action_exec(data); });
 
     string default_format;
     if (m_expand_right) {
@@ -49,7 +48,7 @@ namespace modules {
       }
 
       m_log.trace("%s: Creating menu level %i", name(), m_levels.size());
-      m_levels.emplace_back(factory_util::unique<menu_tree>());
+      m_levels.emplace_back(std::make_unique<menu_tree>());
 
       while (true) {
         string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
@@ -59,7 +58,7 @@ namespace modules {
         }
 
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
-        auto item = factory_util::unique<menu_tree_item>();
+        auto item = std::make_unique<menu_tree_item>();
         item->label = load_label(m_conf, name(), item_param);
         item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE, ""));
         m_levels.back()->items.emplace_back(move(item));

@@ -8,7 +8,6 @@
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
 
@@ -86,7 +85,8 @@ namespace modules {
 
     // Get data for defined mountpoints
     for (auto&& mountpoint : m_mountpoints) {
-      auto details = std::find_if(mountinfo.begin(), mountinfo.end(), [&](const vector<string>& m) { return m.size() > 4 && m[MOUNTINFO_DIR] == mountpoint; });
+      auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
+          [&](const vector<string>& m) { return m.size() > 4 && m[MOUNTINFO_DIR] == mountpoint; });
 
       m_mounts.emplace_back(std::make_unique<fs_mount>(mountpoint, details != mountinfo.end()));
       struct statvfs buffer {};
@@ -180,10 +180,8 @@ namespace modules {
       label->replace_token("%percentage_used%", to_string(mount->percentage_used));
       label->replace_token(
           "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      label->replace_token(
-          "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      label->replace_token(
-          "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token("%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token("%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
     };
 
     if (tag == TAG_BAR_FREE) {

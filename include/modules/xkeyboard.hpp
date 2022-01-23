@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "components/config.hpp"
 #include "components/types.hpp"
+#include "drawtypes/layouticonset.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/extensions/xkb.hpp"
@@ -40,6 +41,9 @@ namespace modules {
 
     void action_switch();
 
+    void define_layout_icon(const string& entry, const string& layout, const string& variant, label_t&& icon);
+    void parse_icons();
+
    private:
     static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
     static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
@@ -61,7 +65,7 @@ namespace modules {
     map<keyboard::indicator::type, label_t> m_indicator_off_labels;
 
     vector<string> m_blacklist;
-    iconset_t m_layout_icons;
+    layouticonset_t m_layout_icons;
     iconset_t m_indicator_icons_on;
     iconset_t m_indicator_icons_off;
   };

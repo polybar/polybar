@@ -119,6 +119,12 @@ namespace modules {
       label->replace_token("%gb_swap_total%", string_util::filesize_gib(kb_swap_total, 2, m_bar.locale));
       label->replace_token("%gb_swap_free%", string_util::filesize_gib(kb_swap_free, 2, m_bar.locale));
       label->replace_token("%gb_swap_used%", string_util::filesize_gib(kb_swap_total - kb_swap_free, 2, m_bar.locale));
+      label->replace_token("%used%", string_util::filesize_gib_mib(kb_total - kb_avail, 0, 2, m_bar.locale));
+      label->replace_token("%free%", string_util::filesize_gib_mib(kb_avail, 0, 2, m_bar.locale));
+      label->replace_token("%total%", string_util::filesize_gib_mib(kb_total, 0, 2, m_bar.locale));
+      label->replace_token("%swap_total%", string_util::filesize_gib_mib(kb_swap_total, 0, 2, m_bar.locale));
+      label->replace_token("%swap_free%", string_util::filesize_gib_mib(kb_swap_free, 0, 2, m_bar.locale));
+      label->replace_token("%swap_used%", string_util::filesize_gib_mib(kb_swap_total - kb_swap_free, 0, 2, m_bar.locale));
     };
 
     if (m_label) {
@@ -131,7 +137,7 @@ namespace modules {
 
     return true;
   }
-  
+
   string memory_module::get_format() const {
     if (m_perc_memused>= m_perc_memused_warn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;

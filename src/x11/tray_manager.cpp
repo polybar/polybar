@@ -21,6 +21,12 @@
 #include "x11/winspec.hpp"
 #include "x11/xembed.hpp"
 
+/*
+ * Tray implementation according to the System Tray Protocol.
+ *
+ * Ref: https://specifications.freedesktop.org/systemtray-spec/systemtray-spec-latest.html
+ */
+
 // ====================================================================================================
 //
 // TODO: 32-bit visual
@@ -42,7 +48,7 @@ POLYBAR_NS
  * Create instance
  */
 tray_manager::make_type tray_manager::make() {
-  return factory_util::unique<tray_manager>(
+  return std::make_unique<tray_manager>(
       connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
 }
 
@@ -127,8 +133,9 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
   }
 
-  // Set user-defined background color
+  // Set user-defined foreground and background colors.
   m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
+  m_opts.foreground = conf.get(bs, "tray-foreground", bar_opts.foreground);
 
   if (m_opts.background.alpha_i() != 255) {
     m_log.trace("tray: enable transparency");
@@ -527,10 +534,10 @@ void tray_manager::create_bg(bool realloc) {
     m_gc = 0;
   }
 
-  if(realloc && m_surface) {
+  if (realloc && m_surface) {
     m_surface.reset();
   }
-  if(realloc && m_context) {
+  if (realloc && m_context) {
     m_context.reset();
   }
 
@@ -644,17 +651,21 @@ void tray_manager::set_wm_hints() {
  * Set color atom used by clients when determing icon theme
  */
 void tray_manager::set_tray_colors() {
-  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.background);
+  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.foreground);
 
-  auto r = m_opts.background.red_i();
-  auto g = m_opts.background.green_i();
-  auto b = m_opts.background.blue_i();
+  auto r = m_opts.foreground.red_i();
+  auto g = m_opts.foreground.green_i();
+  auto b = m_opts.foreground.blue_i();
 
-  const unsigned int colors[12] = {
-      r, g, b,  // normal
-      r, g, b,  // error
-      r, g, b,  // warning
-      r, g, b,  // success
+  const uint16_t r16 = (r << 8) | r;
+  const uint16_t g16 = (g << 8) | g;
+  const uint16_t b16 = (b << 8) | b;
+
+  const uint32_t colors[12] = {
+      r16, g16, b16,  // normal
+      r16, g16, b16,  // error
+      r16, g16, b16,  // warning
+      r16, g16, b16,  // success
   };
 
   m_connection.change_property(
@@ -736,16 +747,21 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
 void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
-  m_clients.emplace_back(factory_util::shared<tray_client>(m_connection, win, m_opts.width, m_opts.height));
+  m_clients.emplace_back(std::make_shared<tray_client>(m_connection, win, m_opts.width, m_opts.height));
   auto& client = m_clients.back();
 
   try {
-    m_log.trace("tray: Get client _XEMBED_INFO");
-    xembed::query(m_connection, win, client->xembed());
-  } catch (const std::exception& err) {
+    client->query_xembed();
+  } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
     remove_client(win, true);
     return;
+  }
+
+  m_log.trace("tray: xembed = %s", client->is_xembed_supported() ? "true" : "false");
+  if (client->is_xembed_supported()) {
+    m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client->get_xembed().get_version(),
+        client->get_xembed().get_flags(), client->get_xembed().is_mapped() ? "true" : "false");
   }
 
   try {
@@ -765,10 +781,12 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     m_connection.reparent_window_checked(
         client->window(), m_tray, calculate_client_x(client->window()), calculate_client_y());
 
-    m_log.trace("tray: Send embbeded notification to client");
-    xembed::notify_embedded(m_connection, client->window(), m_tray, client->xembed()->version);
+    if (client->is_xembed_supported()) {
+      m_log.trace("tray: Send embbeded notification to client");
+      xembed::notify_embedded(m_connection, client->window(), m_tray, client->get_xembed().get_version());
+    }
 
-    if (client->xembed()->flags & XEMBED_MAPPED) {
+    if (!client->is_xembed_supported() || client->get_xembed().is_mapped()) {
       m_log.trace("tray: Map client");
       m_connection.map_window_checked(client->window());
     }
@@ -1019,7 +1037,6 @@ void tray_manager::handle(const evt::property_notify& evt) {
 
   m_log.trace("tray: _XEMBED_INFO: %s", m_connection.id(evt->window));
 
-  auto xd = client->xembed();
   auto win = client->window();
 
   if (evt->state == XCB_PROPERTY_NEW_VALUE) {
@@ -1027,20 +1044,17 @@ void tray_manager::handle(const evt::property_notify& evt) {
   }
 
   try {
-    m_log.trace("tray: Get client _XEMBED_INFO");
-    xembed::query(m_connection, win, xd);
-  } catch (const application_error& err) {
-    m_log.err(err.what());
-    return;
+    client->query_xembed();
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
     remove_client(win, true);
     return;
   }
 
-  m_log.trace("tray: _XEMBED_INFO[0]=%u _XEMBED_INFO[1]=%u", xd->version, xd->flags);
+  m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client->get_xembed().get_version(),
+      client->get_xembed().get_flags(), client->get_xembed().is_mapped() ? "true" : "false");
 
-  if ((client->xembed()->flags & XEMBED_MAPPED) & XEMBED_MAPPED) {
+  if (client->get_xembed().is_mapped()) {
     reconfigure();
   }
 }

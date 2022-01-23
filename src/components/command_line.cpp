@@ -1,7 +1,6 @@
-#include <algorithm>
-
 #include "components/command_line.hpp"
-#include "utils/factory.hpp"
+
+#include <algorithm>
 
 POLYBAR_NS
 
@@ -10,7 +9,7 @@ namespace command_line {
    * Create instance
    */
   parser::make_type parser::make(string&& scriptname, const options&& opts) {
-    return factory_util::unique<parser>("Usage: " + scriptname + " [OPTION]... BAR", forward<decltype(opts)>(opts));
+    return std::make_unique<parser>("Usage: " + scriptname + " [OPTION]... [BAR]", forward<decltype(opts)>(opts));
   }
 
   /**
@@ -199,6 +198,6 @@ namespace command_line {
       throw argument_error("Unrecognized option " + input);
     }
   }
-}
+}  // namespace command_line
 
 POLYBAR_NS_END

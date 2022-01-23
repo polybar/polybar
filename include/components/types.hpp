@@ -46,6 +46,19 @@ enum class mousebtn {
   BTN_COUNT,
 };
 
+static inline mousebtn mousebtn_get_double(mousebtn btn) {
+  switch (btn) {
+    case mousebtn::LEFT:
+      return mousebtn::DOUBLE_LEFT;
+    case mousebtn::MIDDLE:
+      return mousebtn::DOUBLE_MIDDLE;
+    case mousebtn::RIGHT:
+      return mousebtn::DOUBLE_RIGHT;
+    default:
+      return mousebtn::NONE;
+  }
+}
+
 enum class strut {
   LEFT = 0,
   RIGHT,
@@ -181,6 +194,8 @@ struct bar_settings {
 
   bool override_redirect{false};
 
+  int double_click_interval{400};
+
   string cursor{};
   string cursor_click{};
   string cursor_scroll{};
@@ -189,12 +204,6 @@ struct bar_settings {
 
   bool dimmed{false};
   double dimvalue{1.0};
-
-  bool shaded{false};
-  struct size shade_size {
-    1U, 1U
-  };
-  position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect = this->outer_area(abspos);

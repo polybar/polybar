@@ -7,10 +7,10 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/icccm.hpp"
 
 POLYBAR_NS
 
@@ -35,9 +35,9 @@ namespace modules {
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
       : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action_with_data(EVENT_FOCUS, &xworkspaces_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &xworkspaces_module::action_next);
-    m_router->register_action(EVENT_PREV, &xworkspaces_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     // Load config values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
@@ -48,16 +48,6 @@ namespace modules {
     // Initialize ewmh atoms
     if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
       throw module_error("Failed to initialize ewmh atoms");
-    }
-
-    // Check if the WM supports _NET_CURRENT_DESKTOP
-    if (!ewmh_util::supports(m_ewmh->_NET_CURRENT_DESKTOP)) {
-      throw module_error("The WM does not support _NET_CURRENT_DESKTOP, aborting...");
-    }
-
-    // Check if the WM supports _NET_DESKTOP_VIEWPORT
-    if (!(m_monitorsupport = ewmh_util::supports(m_ewmh->_NET_DESKTOP_VIEWPORT)) && m_pinworkspaces) {
-      throw module_error("The WM does not support _NET_DESKTOP_VIEWPORT (required when `pin-workspaces = true`)");
     }
 
     // Add formats and elements
@@ -80,13 +70,13 @@ namespace modules {
       // clang-format on
     }
 
-    m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
+    m_icons = std::make_shared<iconset>();
+    m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
     for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+        m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       }
     }
 
@@ -106,19 +96,12 @@ namespace modules {
 
   void xworkspaces_module::update_current_desktop() {
     m_current_desktop = ewmh_util::get_current_desktop();
-    if (m_current_desktop < m_desktop_names.size()) {
-      m_current_desktop_name = m_desktop_names[m_current_desktop];
-    } else {
-      throw module_error("The current desktop is outside of the number of desktops reported by the WM");
-    }
   }
 
   /**
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
-
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
@@ -206,10 +189,7 @@ namespace modules {
      * We use this to map workspaces to viewports, desktop i is at position
      * ws_positions[i].
      */
-    vector<position> ws_positions;
-    if (m_monitorsupport) {
-      ws_positions = ewmh_util::get_desktop_viewports();
-    }
+    vector<position> ws_positions = ewmh_util::get_desktop_viewports();
 
     /*
      * Not all desktops were assigned a viewport, add (0, 0) for all missing
@@ -323,8 +303,6 @@ namespace modules {
    * Generate module output
    */
   string xworkspaces_module::get_output() {
-    std::unique_lock<std::mutex> lock(m_workspace_mutex);
-
     // Get the module output early so that
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
@@ -379,7 +357,6 @@ namespace modules {
   }
 
   void xworkspaces_module::action_focus(const string& data) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
     focus_desktop(std::strtoul(data.c_str(), nullptr, 10));
   }
 
@@ -391,27 +368,39 @@ namespace modules {
     focus_direction(false);
   }
 
+  /**
+   * Focuses either the next or previous desktop.
+   *
+   * Will wrap around at the ends and go in the order the desktops are displayed.
+   */
   void xworkspaces_module::focus_direction(bool next) {
-    std::lock_guard<std::mutex> lock(m_workspace_mutex);
-    vector<unsigned int> indexes;
+    unsigned int current_desktop{ewmh_util::get_current_desktop()};
+    int current_index = -1;
+
+    /*
+     * Desktop indices in the order they are displayed.
+     */
+    vector<unsigned int> indices;
+
     for (auto&& viewport : m_viewports) {
       for (auto&& desktop : viewport->desktops) {
-        indexes.emplace_back(desktop->index);
+        if (current_desktop == desktop->index) {
+          current_index = indices.size();
+        }
+
+        indices.emplace_back(desktop->index);
       }
     }
 
-    unsigned new_desktop;
-    unsigned int current_desktop{ewmh_util::get_current_desktop()};
-
-    if (next) {
-      new_desktop = math_util::min<unsigned int>(indexes.back(), current_desktop + 1);
-      new_desktop = new_desktop == current_desktop ? indexes.front() : new_desktop;
-    } else {
-      new_desktop = math_util::max<unsigned int>(indexes.front(), current_desktop - 1);
-      new_desktop = new_desktop == current_desktop ? indexes.back() : new_desktop;
+    if (current_index == -1) {
+      m_log.err("%s: Current desktop (%u) not found in list of desktops", name(), current_desktop);
+      return;
     }
 
-    focus_desktop(new_desktop);
+    int offset = next ? 1 : -1;
+
+    int new_index = (current_index + offset + indices.size()) % indices.size();
+    focus_desktop(indices.at(new_index));
   }
 
   void xworkspaces_module::focus_desktop(unsigned new_desktop) {

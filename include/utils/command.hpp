@@ -1,13 +1,10 @@
 #pragma once
 
-#include <mutex>
-
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
-#include "utils/factory.hpp"
-#include "utils/functional.hpp"
+#include "utils/file.hpp"
 
 POLYBAR_NS
 
@@ -28,15 +25,6 @@ DEFINE_ERROR(command_error);
  *   auto cmd = command_util::make_command<output_policy::REDIRECTED>("cat /etc/rc.local");
  *   cmd->exec();
  *   cmd->tail([](string s) { std::cout << s << std::endl; });
- * \endcode
- *
- * \code cpp
- *   auto cmd = command_util::make_command<output_policy::REDIRECTED>(
- *    "while read -r line; do echo data from parent process: $line; done");
- *   cmd->exec(false);
- *   cmd->writeline("Test");
- *   cout << cmd->readline();
- *   cmd->wait();
  * \endcode
  *
  * \code cpp
@@ -76,8 +64,8 @@ class command<output_policy::IGNORED> {
 
   string m_cmd;
 
-  pid_t m_forkpid{};
-  int m_forkstatus = - 1;
+  pid_t m_forkpid{-1};
+  int m_forkstatus{-1};
 };
 
 template <>
@@ -89,7 +77,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 
   command& operator=(const command&) = delete;
 
-  int exec(bool wait_for_completion = true);
+  int exec(bool wait_for_completion = true, const vector<pair<string, string>>& env = {});
   using command<output_policy::IGNORED>::terminate;
   using command<output_policy::IGNORED>::is_running;
   using command<output_policy::IGNORED>::wait;
@@ -97,24 +85,23 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
   using command<output_policy::IGNORED>::get_pid;
   using command<output_policy::IGNORED>::get_exit_status;
 
-  void tail(callback<string> cb);
-  int writeline(string data);
+  void tail(std::function<void(string)> cb);
   string readline();
 
   int get_stdout(int c);
   int get_stdin(int c);
 
  protected:
-  int m_stdout[2]{};
-  int m_stdin[2]{};
+  int m_stdout[2]{0, 0};
+  int m_stdin[2]{0, 0};
 
-  std::mutex m_pipelock{};
+  unique_ptr<fd_stream<std::istream>> m_stdout_reader{nullptr};
 };
 
 namespace command_util {
   template <output_policy OutputType, typename... Args>
   unique_ptr<command<OutputType>> make_command(Args&&... args) {
-    return factory_util::unique<command<OutputType>>(logger::make(), forward<Args>(args)...);
+    return std::make_unique<command<OutputType>>(logger::make(), forward<Args>(args)...);
   }
 }  // namespace command_util
 

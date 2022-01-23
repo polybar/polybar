@@ -3,33 +3,12 @@
 #include <streambuf>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
-class file_ptr {
- public:
-  explicit file_ptr(const string& path, const string& mode = "a+");
-  ~file_ptr();
-
-  explicit operator bool();
-  operator bool() const;
-
-  explicit operator FILE*();
-  operator FILE*() const;
-
-  explicit operator int();
-  operator int() const;
-
- private:
-  FILE* m_ptr = nullptr;
-  string m_path;
-  string m_mode;
-};
-
 class file_descriptor {
  public:
-  explicit file_descriptor(const string& path, int flags = 0);
+  explicit file_descriptor(const string& path, int flags = 0, bool autoclose = true);
   explicit file_descriptor(int fd, bool autoclose = true);
   ~file_descriptor();
 
@@ -55,8 +34,8 @@ class fd_streambuf : public std::streambuf {
 
   template <typename... Args>
   explicit fd_streambuf(Args&&... args) : m_fd(forward<Args>(args)...) {
-    setg(m_in, m_in, m_in);
-    setp(m_out, m_out + bufsize - 1);
+    setg(m_in, m_in + BUFSIZE_IN, m_in + BUFSIZE_IN);
+    setp(m_out, m_out + BUFSIZE_OUT - 1);
   }
   ~fd_streambuf();
 
@@ -72,10 +51,11 @@ class fd_streambuf : public std::streambuf {
   int underflow() override;
 
  private:
+  static constexpr int BUFSIZE_OUT = 1024;
+  static constexpr int BUFSIZE_IN = 1024;
   file_descriptor m_fd;
-  enum { bufsize = 1024 };
-  char m_out[bufsize];
-  char m_in[bufsize - 1];
+  char m_out[BUFSIZE_OUT];
+  char m_in[BUFSIZE_IN];
 };
 
 template <typename StreamType>
@@ -103,18 +83,20 @@ class fd_stream : public StreamType {
 namespace file_util {
   bool exists(const string& filename);
   bool is_file(const string& filename);
+  bool is_dir(const string& filename);
   string pick(const vector<string>& filenames);
   string contents(const string& filename);
   void write_contents(const string& filename, const string& contents);
   bool is_fifo(const string& filename);
   vector<string> glob(string pattern);
-  const string expand(const string& path);
+  string expand(const string& path, const string& relative_to = {});
   string get_config_path();
   vector<string> list_files(const string& dirname);
+  string dirname(const string& path);
 
   template <typename... Args>
   decltype(auto) make_file_descriptor(Args&&... args) {
-    return factory_util::unique<file_descriptor>(forward<Args>(args)...);
+    return std::make_unique<file_descriptor>(forward<Args>(args)...);
   }
 }  // namespace file_util
 

@@ -26,8 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and others will now start producing errors.
   This does not affect you unless you are producing your own formatting tags
   (for example in a script) and you are using one of these invalid tags.
+- For security reasons, the named pipe at `/tmp/polybar_mqueue.<PID>` had its
+  permission bits changed from `666` to `600` to prevent sending ipc messages
+  to polybar processes running under a different user.
 
 ### Build
+- New dependency: [libuv](https://github.com/libuv/libuv). At least version 1.3
+  is required.
 - Bump the minimum cmake version to 3.5
 - The `BUILD_IPC_MSG` option has been renamed to `BUILD_POLYBAR_MSG`
 - Building the documentation is now enabled by default and not just when
@@ -40,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BUILD_DOC=ON` - Builds the documentation
   - `BUILD_DOC_HTML=BUILD_DOC` - Builds the html documentation (depends on `BUILD_DOC`)
   - `BUILD_DOC_MAN=BUILD_DOC` - Builds the manpages (depends on `BUILD_DOC`)
-  - `BUILD_CONFIG=ON` - Generates sample config
+  - `BUILD_CONFIG=ON` - Generates the default config
   - `BUILD_SHELL=ON` - Generates shell completion files
   - `DISABLE_ALL=OFF` - Disables all above targets by default. Individual
     targets can still be enabled explicitly.
@@ -50,10 +55,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   whatever folder you invoked `cmake` from instead of in the root folder of the
   repository.
 - The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
+- The sample config file has been removed.
+- Polybar now ships a default config that is installed to
+  `/etc/polybar/config.ini`, it lives in `doc/config.ini`.
+  It will also be placed in the `examples` directory in the documentation folder.
+  [`#2405`](https://github.com/polybar/polybar/issues/2405)
+- The `userconfig` target has been removed, you can no longer use `make
+  userconfig`. As an alternative, you can copy the default config from
+  `/etc/polybar/config.ini`.
+
+### Deprecated
+- `[settings]`: `throttle-output` and `throttle-output-for` have been removed.
+  The new event loop already does a similar thing where it coalesces update
+  triggers if they happen directly after one another, leading to only a single
+  bar update.
+- When not specifying the config file with `--config`, naming your config file
+  `config` is deprecated. Rename your config file to `config.ini`.
+- Directly writing ipc messages to `/tmp/polybar_mqueue.<PID>` is deprecated,
+  users should always use `polybar-msg`. As a consequence the message format
+  used for IPC is deprecated as well.
+- `polybar-msg hook` is deprecated in favor of using the hook action.
+  `polybar-msg` will tell you the correct command to use.
+
+### Removed
+- `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- Right and middle click events for alsa module.
+  ([`#2566`](https://github.com/polybar/polybar/issues/2566))
+- `internal/network`: New token `%mac%` shows MAC address of selected interface
+   ([`#2568`](https://github.com/polybar/polybar/issues/2568))
+- Polybar can now read config files from stdin: `polybar -c /dev/stdin`.
+- `custom/script`: Implement `env-*` config option.
+   ([`#2090`](https://github.com/polybar/polybar/issues/2090))
+- `drawtypes/ramp`: Add support for ramp weights.
+   ([`#1750`](https://github.com/polybar/polybar/issues/1750))
+- `internal/memory`: New tokens `%used%`, `%free%`, `%total%`, `%swap_total%`,
+  `%swap_free%`, and `%swap_used%` that automatically switch between MiB and GiB
+  when below or above 1GiB.
+  ([`#2472`](https://github.com/polybar/polybar/issues/2472))
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
-  ([`2374`](https://github.com/polybar/polybar/issues/2374))
+  ([`#2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
   direction when cycling through desktops.
 - The backslash escape character (\\).
@@ -75,8 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   speeds are displayed.
 - `internal/xkeyboard`: `%variant%` can be used to parse the layout variant
   ([`#316`](https://github.com/polybar/polybar/issues/316))
-- Added .ini extension check to the default config search.
-  ([`#2323`](https://github.com/polybar/polybar/issues/2323))
 - Config option to hide a certain module
   (`hidden = false`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
@@ -100,8 +140,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2427`](https://github.com/polybar/polybar/issues/2427))
 - `custom/ipc`: `send` action to send arbitrary strings to be displayed in the module.
   ([`#2455`](https://github.com/polybar/polybar/issues/2455))
+- Added `double-click-interval` setting to the bar section to control the time
+  interval in which a double-click is recognized. Defaults to 400 (ms)
+  ([`#1441`](https://github.com/polybar/polybar/issues/1441))
+- `internal/xkeyboard`: Allow configuring icons using variant
+  ([`#2414`](https://github.com/polybar/polybar/issues/2414))
+- `custom/ipc`: Add `hook`, `next`, `prev`, `reset` actions to the ipc module
+  ([`#2464`](https://github.com/polybar/polybar/issues/2464))
+- Added a new `tray-foreground` setting to give hints to tray icons about what
+  color they should be.
+  ([#2235](https://github.com/polybar/polybar/issues/2235))
+- `polybar-msg`: For module actions, you can now also specify the module name,
+  action name, and optional data as separate arguments.
 
 ### Changed
+- Polybar now also reads `config.ini` when searching for config files.
+  ([`#2323`](https://github.com/polybar/polybar/issues/2323))
+- Polybar additionally searches in `XDG_CONFIG_DIRS/polybar` (or
+  `/etc/xdg/polybar` if it is not set) and `/etc/polybar` for config files
+  (only `config.ini`).
+  ([`#2016`](https://github.com/polybar/polybar/issues/2016))
+- We rewrote polybar's main event loop. This shouldn't change any behavior for
+  the user, but be on the lookout for X events, click events, or ipc messages
+  not arriving and the bar not shutting down/restarting properly and let us
+  know if you find any issues.
 - Slight changes to the value ranges the different ramp levels are responsible
   for in the cpu, memory, fs, and battery modules. The first and last level are
   only used for everything at or below and at and above the edges of the value
@@ -112,8 +174,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/network`:
   - Increased precision for upload and download speeds: 0 decimal places for
     KB/s (as before), 1 for MB/s and 2 for GB/s.
+- Clicks arriving in close succession, no longer get dropped. Before polybar
+  would drop any click that arrived within 5ms of the previous one.
+- Increased the double click interval from 150ms to 400ms.
+- Stop ignoring actions if they arrive while the previous one hasn't been processed yet.
+  ([`#2469`](https://github.com/polybar/polybar/issues/2469))
+- Polybar can now be run without passing the bar name as argument given that
+  the configuration file only defines one bar
+  ([`#2525`](https://github.com/polybar/polybar/issues/2525))
+- `include-directory` and `include-file` now support relative paths. The paths
+  are relative to the folder of the file where those directives appear.
+  ([`#2523`](https://github.com/polybar/polybar/issues/2523))
+- `custom/ipc`: Empty output strings are no longer formatted. This prevents
+  extraneous spaces and separators from appearing in the bar when the output of
+  an ipc module is empty.
 
 ### Fixed
+- `custom/script`: Concurrency issues with fast-updating tailed scripts.
+  ([`#1978`](https://github.com/polybar/polybar/issues/1978))
 - Trailing space after the layout label when indicators are empty and made sure right amount
   of spacing is added between the indicator labels, in the xkeyboard module.
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
@@ -126,6 +204,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2367`](https://github.com/polybar/polybar/issues/2367))
 - Warning message regarding T@ in bspwm module
   ([`#2371`](https://github.com/polybar/polybar/issues/2371))
+- `polybar -m` used to show both physical outputs and randr monitors, even if the outputs were covered by monitors.
+  ([`#2481`](https://github.com/polybar/polybar/issues/2481))
+- `internal/xworkspaces`:
+  - Broken scroll-wrapping and order of workspaces when scrolling
+    ([`#2491`](https://github.com/polybar/polybar/issues/2491))
+  - Module would error if WM was not full started up.
+    ([`#1915`](https://github.com/polybar/polybar/issues/1915))
+- `internal/network`: The module now properly supports 'altnames' for
+  interfaces.
+- `internal/battery`: More accurate battery state
+([`#2563`](https://github.com/polybar/polybar/issues/2563))
+- Some modules stop updating when system time moves backwards. ([`#857`](https://github.com/polybar/polybar/issues/857), [`#1932`](https://github.com/polybar/polybar/issues/1932))
+
+## [3.5.7] - 2021-09-21
+### Fixed
+- The tray mistakenly removed tray icons that did not support XEMBED
+  ([`#2479`](https://github.com/polybar/polybar/issues/2479),
+  [`#2442`](https://github.com/polybar/polybar/issues/2442))
+- `custom/ipc`: Only the first appearance of the `%pid%` token was replaced
+  ([`#2500`](https://github.com/polybar/polybar/issues/2500))
 
 ## [3.5.6] - 2021-05-24
 ### Build
@@ -148,7 +246,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.6...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.7...HEAD
+[3.5.7]: https://github.com/polybar/polybar/releases/tag/3.5.7
 [3.5.6]: https://github.com/polybar/polybar/releases/tag/3.5.6
 [3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.5
 [3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4

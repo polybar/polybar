@@ -19,9 +19,9 @@ namespace modules {
 
   alsa_module::alsa_module(const bar_settings& bar, string name_) : event_module<alsa_module>(bar, move(name_)) {
     if (m_handle_events) {
-      m_router->register_action(EVENT_DEC, &alsa_module::action_dec);
-      m_router->register_action(EVENT_INC, &alsa_module::action_inc);
-      m_router->register_action(EVENT_TOGGLE, &alsa_module::action_toggle);
+      m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
+      m_router->register_action(EVENT_INC, [this]() { action_inc(); });
+      m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
     }
 
     // Load configuration values
@@ -196,6 +196,17 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
+      auto click_middle = m_conf.get(name(), "click-middle", ""s);
+      auto click_right = m_conf.get(name(), "click-right", ""s);
+
+      if (!click_middle.empty()) {
+        m_builder->action(mousebtn::MIDDLE, click_middle);
+      }
+
+      if (!click_right.empty()) {
+        m_builder->action(mousebtn::RIGHT, click_right);
+      }
+
       m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
       m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
       m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");

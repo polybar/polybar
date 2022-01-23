@@ -112,13 +112,13 @@ namespace net {
       return;
     }
 
-    // Check if the link quality has been uodated
+    // Check if the link quality has been updated
     if (stats.qual.updated & IW_QUAL_QUAL_UPDATED) {
       m_linkquality.val = stats.qual.qual;
       m_linkquality.max = range.max_qual.qual;
     }
 
-    // Check if the signal strength has been uodated
+    // Check if the signal strength has been updated
     if (stats.qual.updated & IW_QUAL_LEVEL_UPDATED) {
       m_signalstrength.val = stats.qual.level;
       m_signalstrength.max = range.max_qual.level;

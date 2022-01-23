@@ -16,9 +16,9 @@ namespace modules {
   pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_)
       : event_module<pulseaudio_module>(bar, move(name_)) {
     if (m_handle_events) {
-      m_router->register_action(EVENT_DEC, &pulseaudio_module::action_dec);
-      m_router->register_action(EVENT_INC, &pulseaudio_module::action_inc);
-      m_router->register_action(EVENT_TOGGLE, &pulseaudio_module::action_toggle);
+      m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
+      m_router->register_action(EVENT_INC, [this]() { action_inc(); });
+      m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
     }
 
     // Load configuration values
@@ -28,7 +28,7 @@ namespace modules {
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
 
     try {
-      m_pulseaudio = factory_util::unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
+      m_pulseaudio = std::make_unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "adapters/script_runner.hpp"
 #include "modules/meta/base.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
@@ -10,7 +11,6 @@ namespace modules {
   class script_module : public module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);
-    ~script_module() {}
 
     void start() override;
     void stop() override;
@@ -21,30 +21,19 @@ namespace modules {
     static constexpr auto TYPE = "custom/script";
 
    protected:
-    chrono::duration<double> process(const mutex_wrapper<function<chrono::duration<double>()>>& handler) const;
     bool check_condition();
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
 
-    mutex_wrapper<function<chrono::duration<double>()>> m_handler;
+    const bool m_tail;
+    const script_runner::interval m_interval{0};
 
-    unique_ptr<command<output_policy::REDIRECTED>> m_command;
+    script_runner m_runner;
 
-    bool m_tail;
-
-    string m_exec;
-    string m_exec_if;
-
-    chrono::duration<double> m_interval{0};
     map<mousebtn, string> m_actions;
 
     label_t m_label;
-    string m_output;
-    string m_prev;
-    int m_counter{0};
-
-    bool m_stopping{false};
   };
 }  // namespace modules
 

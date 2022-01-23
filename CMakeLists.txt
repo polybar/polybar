@@ -60,8 +60,11 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-if (BUILD_CONFIG)
-  add_subdirectory(config)
+
+if(BUILD_CONFIG)
+  install(FILES ${CMAKE_SOURCE_DIR}/doc/config.ini
+    DESTINATION /etc/${PROJECT_NAME}
+    COMPONENT config)
 endif()
 
 include(05-summary)

@@ -12,6 +12,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() override {
+      this->module<Impl>::start();
       this->m_mainthread = thread(&inotify_module::runner, this);
     }
 

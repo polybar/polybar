@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <memory>
 
@@ -31,10 +32,10 @@ POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
+using std::atomic;
 
 // fwd declarations
 class connection;
-struct xembed_data;
 class background_manager;
 class bg_slice;
 
@@ -60,6 +61,7 @@ struct tray_settings {
   unsigned int spacing{0U};
   unsigned int sibling{0U};
   rgba background{};
+  rgba foreground{};
   bool transparent{false};
   bool detached{false};
 };

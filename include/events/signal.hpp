@@ -1,9 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/ipc.hpp"
 #include "components/types.hpp"
-#include "utils/functional.hpp"
 
 POLYBAR_NS
 
@@ -35,27 +33,21 @@ namespace signals {
       using base_type = value_signal<Derived, ValueType>;
 
       explicit value_signal(void* data) : m_ptr(data) {}
-      explicit value_signal(ValueType&& data) : m_ptr(&data) {}
-      explicit value_signal(ValueType& data) : m_ptr(&data) {}
+      explicit value_signal(const ValueType&& data) : m_ptr(&data) {}
+      explicit value_signal(const ValueType& data) : m_ptr(&data) {}
 
       virtual ~value_signal() {}
 
-      inline ValueType cast() const {
-        return *static_cast<ValueType*>(m_ptr);
+      inline const ValueType cast() const {
+        return *static_cast<const ValueType*>(m_ptr);
       }
 
      private:
-      void* m_ptr;
+      const void* m_ptr;
     };
   }  // namespace detail
 
   namespace eventqueue {
-    struct start : public detail::base_signal<start> {
-      using base_type::base_type;
-    };
-    struct exit_terminate : public detail::base_signal<exit_terminate> {
-      using base_type::base_type;
-    };
     struct exit_reload : public detail::base_signal<exit_reload> {
       using base_type::base_type;
     };
@@ -83,13 +75,7 @@ namespace signals {
   }  // namespace ipc
 
   namespace ui {
-    struct ready : public detail::base_signal<ready> {
-      using base_type::base_type;
-    };
     struct changed : public detail::base_signal<changed> {
-      using base_type::base_type;
-    };
-    struct tick : public detail::base_signal<tick> {
       using base_type::base_type;
     };
     struct button_press : public detail::value_signal<button_press, string> {
@@ -102,12 +88,6 @@ namespace signals {
       using base_type::base_type;
     };
     struct dim_window : public detail::value_signal<dim_window, double> {
-      using base_type::base_type;
-    };
-    struct shade_window : public detail::base_signal<shade_window> {
-      using base_type::base_type;
-    };
-    struct unshade_window : public detail::base_signal<unshade_window> {
       using base_type::base_type;
     };
     struct request_snapshot : public detail::value_signal<request_snapshot, string> {

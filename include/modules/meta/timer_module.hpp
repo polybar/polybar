@@ -13,6 +13,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() override {
+      this->module<Impl>::start();
       this->m_mainthread = thread(&timer_module::runner, this);
     }
 
@@ -49,7 +50,7 @@ namespace modules {
             CAST_MOD(Impl)->broadcast();
           }
           // wait until next full interval to avoid drifting clocks
-          using clock = chrono::system_clock;
+          using clock = chrono::steady_clock;
           using sys_duration_t = clock::time_point::duration;
 
           auto sys_interval = chrono::duration_cast<sys_duration_t>(m_interval);

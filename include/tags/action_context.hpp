@@ -80,7 +80,7 @@ namespace tags {
     action_t action_open(mousebtn btn, const string&& cmd, alignment align, double x);
     std::pair<action_t, mousebtn> action_close(mousebtn btn, alignment align, double x);
 
-    void set_alignmnent_start(const alignment a, const double x);
+    void set_alignment_start(const alignment a, const double x);
 
     std::map<mousebtn, tags::action_t> get_actions(int x) const;
     action_t has_action(mousebtn btn, int x) const;

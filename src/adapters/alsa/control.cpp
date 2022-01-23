@@ -36,7 +36,7 @@ namespace alsa {
     snd_ctl_elem_info_set_id(m_info, m_id);
 
     if ((err = snd_ctl_elem_info(m_ctl, m_info)) == -1) {
-      throw_exception<control_error>("Could not get control datal", err);
+      throw_exception<control_error>("Could not get control data", err);
     }
 
     snd_ctl_elem_info_get_id(m_info, m_id);
