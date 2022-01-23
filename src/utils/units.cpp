@@ -26,8 +26,8 @@ namespace units_utils {
   unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
     auto offset_pixel = extent_to_pixel(g_format.offset, dpi);
 
-    return static_cast<unsigned int>(math_util::max<double>(
-        0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
+    return static_cast<unsigned int>(
+        std::max<double>(0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
   }
 
   extent_val parse_extent(string&& str) {
