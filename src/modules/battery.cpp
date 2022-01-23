@@ -26,8 +26,8 @@ namespace modules {
   battery_module::battery_module(const bar_settings& bar, string name_)
       : inotify_module<battery_module>(bar, move(name_)) {
     // Load configuration values
-    m_fullat = math_util::min(m_conf.get(name(), "full-at", m_fullat), 100);
-    m_lowat = math_util::max(m_conf.get(name(), "low-at", m_lowat), 0);
+    m_fullat = std::min(m_conf.get(name(), "full-at", m_fullat), 100);
+    m_lowat = std::max(m_conf.get(name(), "low-at", m_lowat), 0);
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
     m_lastpoll = chrono::steady_clock::now();
 
