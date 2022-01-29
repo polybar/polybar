@@ -33,8 +33,8 @@ void error(const string& msg) {
   throw std::runtime_error(msg);
 }
 
-void uv_error(int status, const string& msg) {
-  throw std::runtime_error(msg + " (" + uv_strerror(status) + ")");
+void uv_error(int status, int pid, const string& msg) {
+  fprintf(stderr, "%s: %s (PID: %d)\n", msg.c_str(), uv_strerror(status), pid);
 }
 
 void usage(FILE* f, const string& parameters) {
@@ -76,7 +76,7 @@ static vector<string> get_sockets() {
   return sockets;
 }
 
-static void on_write(PipeHandle& conn, ipc::decoder& dec) {
+static void on_write(PipeHandle& conn, ipc::decoder& dec, int pid) {
   conn.read_start(
       [&](const auto& e) {
         try {
@@ -88,19 +88,19 @@ static void on_write(PipeHandle& conn, ipc::decoder& dec) {
         }
       },
       [&]() { conn.close(); },
-      [&](const auto& e) {
+      [&, pid](const auto& e) {
         conn.close();
-        uv_error(e.status, "There was an error while reading polybar's response");
+        uv_error(e.status, pid, "There was an error while reading polybar's response");
       });
 }
 
-static void on_connection(PipeHandle& conn, ipc::decoder& dec, const ipc::type_t type, const string& payload) {
+static void on_connection(PipeHandle& conn, ipc::decoder& dec, int pid, const ipc::type_t type, const string& payload) {
   const auto data = ipc::encode(type, payload);
   conn.write(
-      data, [&]() { on_write(conn, dec); },
-      [&](const auto& e) {
+      data, [&, pid]() { on_write(conn, dec, pid); },
+      [&, pid](const auto& e) {
         conn.close();
-        uv_error(e.status, "There was an error while sending the IPC message.");
+        uv_error(e.status, pid, "There was an error while sending the IPC message.");
       });
 }
 
@@ -229,7 +229,7 @@ int run(int argc, char** argv) {
   logger null_logger{loglevel::NONE};
 
   /*
-   * Store all decoreds in vector so that they're alive for the whole eventloop.
+   * Store all decoders in vector so that they're alive for the whole eventloop.
    */
   vector<ipc::decoder> decoders;
 
@@ -265,7 +265,9 @@ int run(int argc, char** argv) {
     auto& conn = loop.handle<PipeHandle>();
     conn.connect(
         channel,
-        [&conn, &decoders, type, payload, channel, idx]() { on_connection(conn, decoders[idx], type, payload); },
+        [&conn, &decoders, pid, type, payload, channel, idx]() {
+          on_connection(conn, decoders[idx], pid, type, payload);
+        },
         [&](const auto& e) {
           fprintf(stderr, "%s: Failed to connect to '%s' (err: '%s')\n", exec, channel.c_str(), uv_strerror(e.status));
           success = false;
