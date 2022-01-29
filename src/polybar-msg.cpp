@@ -34,7 +34,7 @@ void error(const string& msg) {
 }
 
 void uv_error(int status, const string& msg) {
-  throw std::runtime_error(msg + "(" + uv_strerror(status) + ")");
+  throw std::runtime_error(msg + " (" + uv_strerror(status) + ")");
 }
 
 void usage(FILE* f, const string& parameters) {
