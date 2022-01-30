@@ -11,7 +11,7 @@ foreach(file ${files})
   message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
   if(EXISTS "$ENV{DESTDIR}${file}")
     execute_process(COMMAND "@CMAKE_COMMAND@"
-      -E remove "$ENV{DESTDIR}${file}"
+      -E rm "$ENV{DESTDIR}${file}"
       OUTPUT_VARIABLE rm_out
       RESULT_VARIABLE rm_retval)
     if(NOT ${rm_retval} EQUAL 0)
