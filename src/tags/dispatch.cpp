@@ -41,6 +41,8 @@ namespace tags {
         m_log.err("Parser error (reason: %s)", e.what());
         continue;
       }
+     if(el.tag_data.subtype.format!=tags::syntaxtag::l)
+       m_log.info("element data: %s | alignment start: %f | get_ex: %f | total: %f",el.data,renderer.get_alignment_start(m_ctxt->get_alignment()),renderer.get_x(*m_ctxt),renderer.get_alignment_start(m_ctxt->get_alignment())+renderer.get_x(*m_ctxt));
 
       alignment old_alignment = m_ctxt->get_alignment();
       double old_x = old_alignment == alignment::NONE ? 0 : renderer.get_x(*m_ctxt);
@@ -157,6 +159,7 @@ namespace tags {
       case controltag::R:
         m_ctxt->apply_reset();
         break;
+
       default:
         throw runtime_error("Unrecognized polybar control tag: " + to_string(static_cast<int>(ctrl)));
     }
