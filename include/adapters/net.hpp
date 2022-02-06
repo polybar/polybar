@@ -90,6 +90,7 @@ namespace net {
     string mac() const;
     string downspeed(int minwidth = 3, const string& unit = "B/s") const;
     string upspeed(int minwidth = 3, const string& unit = "B/s") const;
+    string netspeed(int minwidth = 3, const string& unit = "B/s") const;
     void set_unknown_up(bool unknown = true);
 
    protected:
