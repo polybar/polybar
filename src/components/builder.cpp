@@ -98,12 +98,12 @@ void builder::append(const string& text) {
  *
  * This will also parse raw syntax tags
  */
-void builder::node(string str) {
+void builder::node(const string& str) {
   if (str.empty()) {
     return;
   }
 
-  append(move(str));
+  append(str);
 }
 
 /**
@@ -111,9 +111,9 @@ void builder::node(string str) {
  *
  * \see builder::node
  */
-void builder::node(string str, int font_index) {
+void builder::node(const string& str, int font_index) {
   font(font_index);
-  node(move(str));
+  node(str);
   font_close();
 }
 
@@ -223,17 +223,6 @@ void builder::spacing(spacing_val size) {
 
   if (size) {
     m_output += get_spacing_format_string(size);
-  }
-}
-
-/**
- * Remove trailing space
- */
-void builder::remove_trailing_space(size_t len) {
-  if (len == 0_z || len > m_output.size()) {
-    return;
-  } else if (m_output.substr(m_output.size() - len) == string(len, ' ')) {
-    m_output.erase(m_output.size() - len);
   }
 }
 

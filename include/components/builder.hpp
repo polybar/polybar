@@ -22,14 +22,13 @@ class builder {
   void reset();
   string flush();
   void append(const string& text);
-  void node(string str);
-  void node(string str, int font_index);
+  void node(const string& str);
+  void node(const string& str, int font_index);
   void node(const label_t& label);
   void node_repeat(const string& str, size_t n);
   void node_repeat(const label_t& label, size_t n);
   void offset(extent_val pixels = ZERO_PX_EXTENT);
   void spacing(spacing_val size);
-  void remove_trailing_space(size_t len);
   void font(int index);
   void font_close();
   void background(rgba color);

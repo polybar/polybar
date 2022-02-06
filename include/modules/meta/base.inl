@@ -198,15 +198,22 @@ namespace modules {
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
 
+    /*
+     * Builder for building individual tags isolated, so that we can
+     */
+    builder tag_builder(m_bar);
+
     // Whether any tags have been processed yet
     bool has_tags = false;
-
-    auto mingap = std::max(1.f, format->spacing.value);
 
     // Cursor pointing into 'value'
     size_t cursor = 0;
     const string& value{format->value};
 
+    /*
+     * Search for all tags in the format definition. A tag is enclosed in '<' and '>'.
+     * Each tag is given to the module to produce some output for it. All other text is added as-is.
+     */
     while (cursor < value.size()) {
       // Check if there are any tags left
 
@@ -231,38 +238,34 @@ namespace modules {
          */
         string non_tag = value.substr(cursor, start - cursor);
         if (!has_tags) {
-          // If no module tag has been built we do not want to add
-          // whitespace defined between the format tags, but we do still
-          // want to output other non-tag content
+          /*
+           * If no module tag has been built we do not want to add
+           * whitespace defined between the format tags, but we do still
+           * want to output other non-tag content
+           */
           auto trimmed = string_util::ltrim(move(non_tag), ' ');
           if (!trimmed.empty()) {
-            m_builder->node(move(trimmed));
+            m_builder->node(trimmed);
           }
         } else {
           m_builder->node(non_tag);
         }
       }
 
-      if (has_tags) {
-        // format-spacing is added between all tags
-        m_builder->spacing(format->spacing);
-      }
-
       string tag = value.substr(start, end - start + 1);
-      /*
-       * TODO bspwm, xkeyboard, xworkspaces return false here if the tag is valid, but it doesn't produce text (only in
-       * some cases). All other modules only return false if the tag is not supported.
-       *
-       * The function should return true iff the tag is supported. In that case we can stop removing trailing whitespace
-       * and treat the "tag" as regular text.
-       */
-      bool tag_built = CONST_MOD(Impl).build(m_builder.get(), tag);
-      if (!tag_built && has_tags) {
-        m_builder->remove_trailing_space(mingap);
-      }
+      bool tag_built = CONST_MOD(Impl).build(&tag_builder, tag);
+      string tag_content = tag_builder.flush();
+
       if (tag_built) {
+        if (has_tags) {
+          // format-spacing is added between all tags
+          m_builder->spacing(format->spacing);
+        }
+
+        m_builder->append(tag_content);
         has_tags = true;
       }
+
       cursor = end + 1;
     }
 
