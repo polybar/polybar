@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "components/types.hpp"
+#include "errors.hpp"
 #include "utils/math.hpp"
 
 POLYBAR_NS
@@ -59,7 +60,7 @@ namespace units_utils {
     }
   }
 
-  extent_val parse_extent(string&& str) {
+  extent_val parse_extent(const string& str) {
     size_t pos;
     auto size_value = std::stof(str, &pos);
 
@@ -87,6 +88,48 @@ namespace units_utils {
     }
 
     return ss.str();
+  }
+
+  spacing_type parse_spacing_unit(const string& str) {
+    if (!str.empty()) {
+      if (str == "px") {
+        return spacing_type::PIXEL;
+      } else if (str == "pt") {
+        return spacing_type::POINT;
+      } else {
+        throw std::runtime_error("Unrecognized unit '" + str + "'");
+      }
+    } else {
+      return spacing_type::SPACE;
+    }
+  }
+
+  spacing_val parse_spacing(const string& str) {
+    size_t pos;
+    auto size_value = std::stof(str, &pos);
+
+    if (size_value < 0) {
+      throw runtime_error(sstream() << "value '" << str << "' must not be negative");
+    }
+
+    spacing_type type;
+
+    string unit = string_util::trim(str.substr(pos));
+    if (!unit.empty()) {
+      if (unit == "px") {
+        type = spacing_type::PIXEL;
+        size_value = std::trunc(size_value);
+      } else if (unit == "pt") {
+        type = spacing_type::POINT;
+      } else {
+        throw runtime_error("Unrecognized unit '" + unit + "'");
+      }
+    } else {
+      type = spacing_type::SPACE;
+      size_value = std::trunc(size_value);
+    }
+
+    return {type, size_value};
   }
 
 } // namespace units_utils

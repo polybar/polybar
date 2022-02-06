@@ -6,6 +6,17 @@
 using namespace polybar;
 using namespace units_utils;
 
+
+namespace polybar {
+  bool operator==(const extent_val lhs, const extent_val rhs) {
+    return lhs.type == rhs.type && lhs.value == rhs.value;
+  }
+
+  bool operator==(const spacing_val lhs, const spacing_val rhs) {
+    return lhs.type == rhs.type && lhs.value == rhs.value;
+  }
+} // namespace polybar
+
 /**
  * \brief Class for parameterized tests on geom_format_to_pixels
  *
@@ -87,20 +98,10 @@ TEST(UnitsUtils, parse_extent_unit) {
   EXPECT_EQ(extent_type::PIXEL, parse_extent_unit("px"));
   EXPECT_EQ(extent_type::POINT, parse_extent_unit("pt"));
 
-  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit("px"));
-  EXPECT_EQ(extent_type::POINT, parse_extent_unit("pt"));
-
-  EXPECT_EQ(extent_type::PIXEL, parse_extent_unit(""));
   EXPECT_EQ(extent_type::PIXEL, parse_extent_unit(""));
 
   EXPECT_THROW(parse_extent_unit("foo"), std::runtime_error);
 }
-
-namespace polybar {
-  bool operator==(const extent_val lhs, const extent_val rhs) {
-    return lhs.type == rhs.type && lhs.value == rhs.value;
-  }
-} // namespace polybar
 
 TEST(UnitsUtils, parse_extent) {
   EXPECT_EQ((extent_val{extent_type::PIXEL, 100}), parse_extent("100px"));
@@ -121,4 +122,25 @@ TEST(UnitsUtils, extent_to_string) {
 
   EXPECT_EQ("-100px", extent_to_string({extent_type::PIXEL, -100}));
   EXPECT_EQ("-36pt", extent_to_string({extent_type::POINT, -36}));
+}
+
+TEST(UnitsUtils, parse_spacing_unit) {
+  EXPECT_EQ(spacing_type::PIXEL, parse_spacing_unit("px"));
+  EXPECT_EQ(spacing_type::POINT, parse_spacing_unit("pt"));
+
+  EXPECT_EQ(spacing_type::SPACE, parse_spacing_unit(""));
+
+  EXPECT_THROW(parse_spacing_unit("foo"), std::runtime_error);
+}
+
+TEST(UnitsUtils, parse_spacing) {
+  EXPECT_EQ((spacing_val{spacing_type::PIXEL, 100}), parse_spacing("100px"));
+  EXPECT_EQ((spacing_val{spacing_type::POINT, 36}), parse_spacing("36pt"));
+
+  EXPECT_EQ((spacing_val{spacing_type::SPACE, 100}), parse_spacing("100"));
+
+  EXPECT_THROW(parse_spacing("-100px"), std::runtime_error);
+  EXPECT_THROW(parse_spacing("-36pt"), std::runtime_error);
+  EXPECT_THROW(parse_spacing("-100"), std::runtime_error);
+  EXPECT_THROW(parse_spacing("100foo"), std::runtime_error);
 }

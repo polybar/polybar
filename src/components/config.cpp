@@ -222,36 +222,12 @@ unsigned long long config::convert(string&& value) const {
 
 template <>
 spacing_val config::convert(string&& value) const {
-  size_t pos;
-  auto size_value = std::stof(value, &pos);
-
-  if (size_value < 0) {
-    throw application_error(sstream() << "Value: " << value << " must be positive ");
-  }
-
-  spacing_type type;
-
-  string unit = string_util::trim(value.substr(pos));
-  if (!unit.empty()) {
-    if (unit == "px") {
-      type = spacing_type::PIXEL;
-      size_value = std::trunc(size_value);
-    } else if (unit == "pt") {
-      type = spacing_type::POINT;
-    } else {
-      throw value_error("Unrecognized unit '" + unit + "'");
-    }
-  } else {
-    type = spacing_type::SPACE;
-    size_value = std::trunc(size_value);
-  }
-
-  return {type, size_value};
+  return units_utils::parse_spacing(value);
 }
 
 template <>
 extent_val config::convert(std::string&& value) const {
-  return units_utils::parse_extent(move(value));
+  return units_utils::parse_extent(value);
 }
 
 /**

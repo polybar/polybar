@@ -575,22 +575,23 @@ void builder::tag_close(attribute attr) {
 }
 
 string builder::get_spacing_format_string(const spacing_val& space) {
-  if (space.value == 0) {
+  float value = space.value;
+  if (value == 0) {
     return "";
   }
 
   string out;
   if (space.type == spacing_type::SPACE) {
-    out += string(space.value, ' ');
+    out += string(value, ' ');
   } else {
     out += "%{O";
 
     switch (space.type) {
       case spacing_type::POINT:
-        out += to_string(space.value) + "pt";
+        out += to_string(value) + "pt";
         break;
       case spacing_type::PIXEL:
-        out += to_string(static_cast<int>(space.value)) + "px";
+        out += to_string(static_cast<int>(value)) + "px";
         break;
       default:
         break;

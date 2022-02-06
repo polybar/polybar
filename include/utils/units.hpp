@@ -17,11 +17,14 @@ namespace units_utils {
   unsigned extent_to_pixel_nonnegative(const extent_val size, double dpi);
 
   extent_type parse_extent_unit(const string& str);
-  extent_val parse_extent(string&& str);
+  extent_val parse_extent(const string& str);
 
   string extent_to_string(extent_val extent);
 
   unsigned percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi);
+
+  spacing_type parse_spacing_unit(const string& str);
+  spacing_val parse_spacing(const string& str);
 
 } // namespace units_utils
 
