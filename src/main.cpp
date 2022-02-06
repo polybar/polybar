@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
       reload = true;
     }
   } catch (const exception& err) {
-    logger.err(err.what());
+    logger.err("Uncaught exception, shutting down: %s", err.what());
     exit_code = EXIT_FAILURE;
   }
 
