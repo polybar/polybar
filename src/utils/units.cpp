@@ -17,6 +17,9 @@ namespace units_utils {
     return dpi * point / 72.0;
   }
 
+  /**
+   * Converts an extent value to a pixel value according to the given DPI (if needed).
+   */
   int extent_to_pixel(const extent_val size, double dpi) {
     if (size.type == extent_type::PIXEL) {
       return size.value;
@@ -26,10 +29,17 @@ namespace units_utils {
   }
 
   /**
+   * Same as extent_to_pixel but is capped below at 0 pixels.
+   */
+  unsigned extent_to_pixel_nonnegative(const extent_val size, double dpi) {
+    return std::max(0, extent_to_pixel(size, dpi));
+  }
+
+  /**
    * Converts a percentage with offset into pixels
    */
   unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
-    auto offset_pixel = extent_to_pixel(g_format.offset, dpi);
+    int offset_pixel = extent_to_pixel(g_format.offset, dpi);
 
     return static_cast<unsigned int>(
         std::max<double>(0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));

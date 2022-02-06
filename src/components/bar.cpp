@@ -280,9 +280,9 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto overline_size = m_conf.get(bs, "overline-size", line_size);
   auto underline_size = m_conf.get(bs, "underline-size", line_size);
 
-  m_opts.overline.size = units_utils::extent_to_pixel(overline_size, m_opts.dpi_y);
+  m_opts.overline.size = units_utils::extent_to_pixel_nonnegative(overline_size, m_opts.dpi_y);
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = units_utils::extent_to_pixel(underline_size, m_opts.dpi_y);
+  m_opts.underline.size = units_utils::extent_to_pixel_nonnegative(underline_size, m_opts.dpi_y);
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings

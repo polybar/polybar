@@ -29,7 +29,6 @@ class builder {
   void node_repeat(const label_t& label, size_t n);
   void offset(extent_val pixels = ZERO_PX_EXTENT);
   void spacing(spacing_val size);
-  void spacing();
   void remove_trailing_space(size_t len);
   void font(int index);
   void font_close();

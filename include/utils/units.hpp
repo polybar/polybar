@@ -14,6 +14,7 @@ namespace units_utils {
   int point_to_pixel(double point, double dpi);
 
   int extent_to_pixel(const extent_val size, double dpi);
+  unsigned extent_to_pixel_nonnegative(const extent_val size, double dpi);
 
   extent_type parse_extent_unit(const string& str);
   extent_val parse_extent(string&& str);

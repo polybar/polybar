@@ -113,16 +113,16 @@ namespace drawtypes {
     if (label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (label->m_padding.left.value != 0U) {
+    if (label->m_padding.left) {
       m_padding.left = label->m_padding.left;
     }
-    if (label->m_padding.right.value != 0U) {
+    if (label->m_padding.right) {
       m_padding.right = label->m_padding.right;
     }
-    if (label->m_margin.left.value != 0U) {
+    if (label->m_margin.left) {
       m_margin.left = label->m_margin.left;
     }
-    if (label->m_margin.right.value != 0U) {
+    if (label->m_margin.right) {
       m_margin.right = label->m_margin.right;
     }
     if (label->m_maxlen != 0_z) {
@@ -147,16 +147,16 @@ namespace drawtypes {
     if (m_font == 0 && label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (m_padding.left.value == 0U && label->m_padding.left.value != 0U) {
+    if (!m_padding.left && label->m_padding.left) {
       m_padding.left = label->m_padding.left;
     }
-    if (m_padding.right.value == 0U && label->m_padding.right.value != 0U) {
+    if (!m_padding.right && label->m_padding.right) {
       m_padding.right = label->m_padding.right;
     }
-    if (m_margin.left.value == 0U && label->m_margin.left.value != 0U) {
+    if (!m_margin.left && label->m_margin.left) {
       m_margin.left = label->m_margin.left;
     }
-    if (m_margin.right.value == 0U && label->m_margin.right.value != 0U) {
+    if (!m_margin.right && label->m_margin.right) {
       m_margin.right = label->m_margin.right;
     }
     if (m_maxlen == 0_z && label->m_maxlen != 0_z) {
@@ -311,6 +311,6 @@ namespace drawtypes {
     return load_label(conf, section, move(name), false, move(def));
   }
 
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

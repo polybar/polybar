@@ -65,11 +65,11 @@ TEST(UnitsUtils, point_to_pixel) {
 }
 
 TEST(UnitsUtils, extent_to_pixel) {
-  EXPECT_EQ(100, extent_to_pixel({extent_type::PIXEL, 100}, 0));
-  EXPECT_EQ(48, extent_to_pixel({extent_type::POINT, 36}, 96));
+  EXPECT_EQ(100, extent_to_pixel_nonnegative({extent_type::PIXEL, 100}, 0));
+  EXPECT_EQ(48, extent_to_pixel_nonnegative({extent_type::POINT, 36}, 96));
 
-  EXPECT_EQ(-100, extent_to_pixel({extent_type::PIXEL, -100}, 0));
-  EXPECT_EQ(-48, extent_to_pixel({extent_type::POINT, -36}, 96));
+  EXPECT_EQ(0, extent_to_pixel_nonnegative({extent_type::PIXEL, -100}, 0));
+  EXPECT_EQ(0, extent_to_pixel_nonnegative({extent_type::POINT, -36}, 96));
 }
 
 TEST(UnitsUtils, percentage_with_offset_to_pixel) {

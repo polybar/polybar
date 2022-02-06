@@ -98,8 +98,16 @@ bool rgba::operator==(const rgba& other) const {
   }
 }
 
+bool rgba::operator!=(const rgba& other) const {
+  return !(*this == other);
+}
+
 rgba::operator uint32_t() const {
   return m_value;
+}
+
+rgba::operator bool() const {
+  return has_color();
 }
 
 uint32_t rgba::value() const {

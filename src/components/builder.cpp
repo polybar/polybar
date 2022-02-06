@@ -127,7 +127,7 @@ void builder::node(const label_t& label) {
 
   auto text = label->get();
 
-  if (label->m_margin.left.value > 0) {
+  if (label->m_margin.left) {
     spacing(label->m_margin.left);
   }
 
@@ -145,13 +145,13 @@ void builder::node(const label_t& label) {
     color(label->m_foreground);
   }
 
-  if (label->m_padding.left.value > 0) {
+  if (label->m_padding.left) {
     spacing(label->m_padding.left);
   }
 
   node(text, label->m_font);
 
-  if (label->m_padding.right.value > 0) {
+  if (label->m_padding.right) {
     spacing(label->m_padding.right);
   }
 
@@ -169,7 +169,7 @@ void builder::node(const label_t& label) {
     overline_close();
   }
 
-  if (label->m_margin.right.value > 0) {
+  if (label->m_margin.right) {
     spacing(label->m_margin.right);
   }
 }
@@ -205,7 +205,7 @@ void builder::node_repeat(const label_t& label, size_t n) {
  * Insert tag that will offset the contents by the given extent
  */
 void builder::offset(extent_val extent) {
-  if (extent.value == 0) {
+  if (extent) {
     return;
   }
   tag_open(syntaxtag::O, units_utils::extent_to_string(extent));
@@ -215,16 +215,14 @@ void builder::offset(extent_val extent) {
  * Insert spacing
  */
 void builder::spacing(spacing_val size) {
-  if (size.value > 0.) {
-    m_output += get_spacing_format_string(size);
-  } else {
+  if (!size && m_bar.spacing) {
     // TODO remove once the deprecated spacing key in the bar section is removed
-    spacing();
+    // The spacing in the bar section acts as a fallback for all spacing value
+    size = m_bar.spacing;
   }
-}
-void builder::spacing() {
-  if (m_bar.spacing.value > 0) {
-    spacing(m_bar.spacing);
+
+  if (size) {
+    m_output += get_spacing_format_string(size);
   }
 }
 

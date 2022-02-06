@@ -15,10 +15,10 @@ namespace modules {
       builder->flush();
       return "";
     }
-    if (offset.value != 0) {
+    if (offset) {
       builder->offset(offset);
     }
-    if (margin.value > 0) {
+    if (margin) {
       builder->spacing(margin);
     }
     if (bg.has_color()) {
@@ -36,7 +36,7 @@ namespace modules {
     if (font > 0) {
       builder->font(font);
     }
-    if (padding.value > 0) {
+    if (padding) {
       builder->spacing(padding);
     }
 
@@ -58,7 +58,7 @@ namespace modules {
     builder->append(move(output));
     builder->node(suffix);
 
-    if (padding.value > 0) {
+    if (padding) {
       builder->spacing(padding);
     }
     if (font > 0) {
@@ -76,7 +76,7 @@ namespace modules {
     if (bg.has_color()) {
       builder->background_close();
     }
-    if (margin.value > 0) {
+    if (margin) {
       builder->spacing(margin);
     }
 

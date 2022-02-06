@@ -90,7 +90,18 @@ enum class extent_type { POINT, PIXEL };
 
 struct spacing_val {
   spacing_type type{spacing_type::SPACE};
+  /**
+   * Numerical spacing value. Is truncated to an integer for pixels and spaces.
+   * Must be non-negative.
+   */
   float value{0};
+
+  /**
+   * Any non-positive number is interpreted as no spacing.
+   */
+  operator bool() const {
+    return value > 0;
+  }
 };
 
 static constexpr spacing_val ZERO_SPACE = {spacing_type::SPACE, 0};
@@ -103,6 +114,10 @@ static constexpr spacing_val ZERO_SPACE = {spacing_type::SPACE, 0};
 struct extent_val {
   extent_type type{extent_type::PIXEL};
   float value{0};
+
+  operator bool() const {
+    return value != 0;
+  }
 };
 
 static constexpr extent_val ZERO_PX_EXTENT = {extent_type::PIXEL, 0};
