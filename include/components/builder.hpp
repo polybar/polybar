@@ -21,7 +21,7 @@ class builder {
 
   void reset();
   string flush();
-  void append(string text);
+  void append(const string& text);
   void node(string str);
   void node(string str, int font_index);
   void node(const label_t& label);

@@ -88,9 +88,9 @@ string builder::flush() {
 /**
  * Insert raw text string
  */
-void builder::append(string text) {
+void builder::append(const string& text) {
   m_output.reserve(text.size());
-  m_output += move(text);
+  m_output += text;
 }
 
 /**

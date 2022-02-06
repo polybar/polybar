@@ -197,48 +197,77 @@ namespace modules {
     std::lock_guard<std::mutex> guard(m_buildlock);
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
-    bool no_tag_built{true};
-    bool fake_no_tag_built{false};
-    bool tag_built{false};
+
+    // Whether any tags have been processed yet
+    bool has_tags = false;
+
     auto mingap = std::max(1.f, format->spacing.value);
-    size_t start, end;
-    string value{format->value};
-    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
-      if (start > 0) {
-        if (no_tag_built) {
+
+    // Cursor pointing into 'value'
+    size_t cursor = 0;
+    const string& value{format->value};
+
+    while (cursor < value.size()) {
+      // Check if there are any tags left
+
+      // Start index of next tag
+      size_t start = value.find('<', cursor);
+
+      if (start == string::npos) {
+        break;
+      }
+
+      // End index (inclusive) of next tag
+      size_t end = value.find('>', start + 1);
+
+      if (end == string::npos) {
+        break;
+      }
+
+      // There is some non-tag text
+      if (start > cursor) {
+        /*
+         * Produce anything between the previous and current tag as regular text.
+         */
+        string non_tag = value.substr(cursor, start - cursor);
+        if (!has_tags) {
           // If no module tag has been built we do not want to add
           // whitespace defined between the format tags, but we do still
           // want to output other non-tag content
-          auto trimmed = string_util::ltrim(value.substr(0, start), ' ');
+          auto trimmed = string_util::ltrim(move(non_tag), ' ');
           if (!trimmed.empty()) {
-            fake_no_tag_built = false;
             m_builder->node(move(trimmed));
           }
         } else {
-          m_builder->node(value.substr(0, start));
+          m_builder->node(non_tag);
         }
-        value.erase(0, start);
-        end -= start;
-        start = 0;
       }
-      string tag{value.substr(start, end + 1)};
-      if (tag.empty()) {
-        continue;
-      } else if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
-        if (!no_tag_built)
-          m_builder->spacing(format->spacing);
-        else if (fake_no_tag_built)
-          no_tag_built = false;
-        if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && !no_tag_built)
-          m_builder->remove_trailing_space(mingap);
-        if (tag_built)
-          no_tag_built = false;
+
+      if (has_tags) {
+        // format-spacing is added between all tags
+        m_builder->spacing(format->spacing);
       }
-      value.erase(0, tag.size());
+
+      string tag = value.substr(start, end - start + 1);
+      /*
+       * TODO bspwm, xkeyboard, xworkspaces return false here if the tag is valid, but it doesn't produce text (only in
+       * some cases). All other modules only return false if the tag is not supported.
+       *
+       * The function should return true iff the tag is supported. In that case we can stop removing trailing whitespace
+       * and treat the "tag" as regular text.
+       */
+      bool tag_built = CONST_MOD(Impl).build(m_builder.get(), tag);
+      if (!tag_built && has_tags) {
+        m_builder->remove_trailing_space(mingap);
+      }
+      if (tag_built) {
+        has_tags = true;
+      }
+      cursor = end + 1;
     }
 
-    if (!value.empty()) {
-      m_builder->append(value);
+    if (cursor < value.size()) {
+      m_builder->append(value.substr(cursor));
     }
 
     return format->decorate(&*m_builder, m_builder->flush());
@@ -267,6 +296,6 @@ namespace modules {
   }
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
