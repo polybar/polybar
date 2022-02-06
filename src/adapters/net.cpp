@@ -274,6 +274,15 @@ namespace net {
     float bytes_diff = m_status.current.transmitted - m_status.previous.transmitted;
     return format_speedrate(bytes_diff, minwidth, unit);
   }
+  
+  /**
+   * Get total net speed rate
+   */
+  string network::netspeed(int minwidth, const string& unit) const {
+    float bytes_diff = m_status.current.received - m_status.previous.received
+                     + m_status.current.transmitted - m_status.previous.transmitted;
+    return format_speedrate(bytes_diff, minwidth, unit);
+  }
 
   /**
    * Set if unknown counts as up
