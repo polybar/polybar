@@ -301,6 +301,9 @@ void builder::control(controltag tag) {
     case controltag::R:
       str = "R";
       break;
+    case controltag::t:
+      str = "t";
+      break;
     default:
       throw runtime_error("Invalid controltag: " + to_string(to_integral(tag)));
   }

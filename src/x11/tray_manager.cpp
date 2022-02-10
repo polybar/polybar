@@ -83,6 +83,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.align = alignment::RIGHT;
   } else if (position == "center") {
     m_opts.align = alignment::CENTER;
+  } else if(position == "adaptive"){
+    m_opts.adaptive = true;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   } else {
@@ -379,6 +381,8 @@ void tray_manager::reconfigure_clients() {
       remove_client(client, false);
     }
   }
+
+  m_sig.emit(signals::ui_tray::tray_width_change{calculate_w()});
 }
 
 /**
@@ -795,7 +799,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  * Calculate x position of tray window
  */
 int tray_manager::calculate_x(unsigned int width, bool abspos) const {
-  auto x = abspos ? m_opts.orig_x : m_opts.rel_x;
+  auto x = abspos || m_opts.adaptive? m_opts.orig_x : m_opts.rel_x;
   if (m_opts.align == alignment::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
   } else if (m_opts.align == alignment::CENTER) {
@@ -1159,6 +1163,14 @@ bool tray_manager::on(const signals::ui::update_background&) {
   redraw_window(true);
 
   return false;
+}
+
+bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
+  unsigned int xPos{evt.cast()};
+  m_opts.orig_x = xPos;
+  reconfigure_window();
+
+  return true;
 }
 
 POLYBAR_NS_END
