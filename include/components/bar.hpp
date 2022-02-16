@@ -1,8 +1,6 @@
 #pragma once
 
-#include <atomic>
 #include <cstdlib>
-#include <mutex>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
