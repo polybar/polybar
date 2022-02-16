@@ -1,4 +1,5 @@
 #include "tags/dispatch.hpp"
+#include "events/signal_emitter.hpp"
 
 #include "common/test.hpp"
 #include "components/logger.hpp"
@@ -7,6 +8,7 @@
 using namespace polybar;
 using namespace std;
 using namespace tags;
+using namespace signals;
 
 using ::testing::_;
 using ::testing::AllOf;
@@ -108,7 +110,7 @@ class DispatchTest : public ::testing::Test {
  protected:
   unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
 
-  unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
+  unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt,signal_emitter::make());
 
   ::testing::NiceMock<MockRenderer> r{*m_action_ctxt};
   void SetUp() override {
