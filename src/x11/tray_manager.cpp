@@ -83,7 +83,7 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.align = alignment::RIGHT;
   } else if (position == "center") {
     m_opts.align = alignment::CENTER;
-  } else if(position == "adaptive"){
+  } else if (position == "adaptive") {
     m_opts.adaptive = true;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
@@ -799,7 +799,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  * Calculate x position of tray window
  */
 int tray_manager::calculate_x(unsigned int width, bool abspos) const {
-  auto x = abspos || m_opts.adaptive? m_opts.orig_x : m_opts.rel_x;
+  auto x = abspos || m_opts.adaptive ? m_opts.orig_x : m_opts.rel_x;
   if (m_opts.align == alignment::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
   } else if (m_opts.align == alignment::CENTER) {

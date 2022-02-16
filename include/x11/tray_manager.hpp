@@ -68,7 +68,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                          evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
                          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
-                         signals::ui::update_background,signals::ui_tray::tray_pos_change> {
+                         signals::ui::update_background, signals::ui_tray::tray_pos_change> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make();

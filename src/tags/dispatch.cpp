@@ -15,13 +15,14 @@ namespace tags {
    * Create instance
    */
   dispatch::make_type dispatch::make(action_context& action_ctxt) {
-   return std::make_unique<dispatch>(logger::make(), action_ctxt, signal_emitter::make());
+    return std::make_unique<dispatch>(logger::make(), action_ctxt, signal_emitter::make());
   }
 
   /**
    * Construct parser instance
    */
-  dispatch::dispatch(const logger& logger, action_context& action_ctxt, signal_emitter& signal_emitter) : m_log(logger), m_action_ctxt(action_ctxt), m_sig(signal_emitter) {}
+  dispatch::dispatch(const logger& logger, action_context& action_ctxt, signal_emitter& signal_emitter)
+      : m_log(logger), m_action_ctxt(action_ctxt), m_sig(signal_emitter) {}
 
   /**
    * Process input string
@@ -74,7 +75,7 @@ namespace tags {
                 m_ctxt->apply_ul(el.tag_data.color);
                 break;
               case tags::syntaxtag::P:
-                handle_control(el.tag_data.ctrl,renderer);
+                handle_control(el.tag_data.ctrl, renderer);
                 break;
               case tags::syntaxtag::l:
                 handle_alignment(renderer, alignment::LEFT);
@@ -152,14 +153,17 @@ namespace tags {
     renderer.change_alignment(*m_ctxt);
   }
 
-  void dispatch::handle_control(controltag ctrl,renderer_interface& renderer) {
+  void dispatch::handle_control(controltag ctrl, renderer_interface& renderer) {
     switch (ctrl) {
       case controltag::R:
         m_ctxt->apply_reset();
         break;
       case controltag::t:
-        m_sig.emit(signals::ui_tray::tray_pos_change{renderer.get_alignment_start(m_ctxt->get_alignment())+renderer.get_x(*m_ctxt)});
-        m_log.info("Tray position debug: alignment start: %f | get_ex: %f | total: %f",renderer.get_alignment_start(m_ctxt->get_alignment()),renderer.get_x(*m_ctxt),renderer.get_alignment_start(m_ctxt->get_alignment())+renderer.get_x(*m_ctxt));
+        m_sig.emit(signals::ui_tray::tray_pos_change{
+            renderer.get_alignment_start(m_ctxt->get_alignment()) + renderer.get_x(*m_ctxt)});
+        m_log.info("Tray position debug: alignment start: %f | get_ex: %f | total: %f",
+            renderer.get_alignment_start(m_ctxt->get_alignment()), renderer.get_x(*m_ctxt),
+            renderer.get_alignment_start(m_ctxt->get_alignment()) + renderer.get_x(*m_ctxt));
         break;
       default:
         throw runtime_error("Unrecognized polybar control tag: " + to_string(static_cast<int>(ctrl)));

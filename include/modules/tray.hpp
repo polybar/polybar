@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common.hpp"
-#include "modules/meta/event_module.hpp"
 #include "components/bar.hpp"
+#include "modules/meta/event_module.hpp"
 
 POLYBAR_NS
 namespace modules {
-  class tray_module : public event_module<tray_module>, signal_receiver<SIGN_PRIORITY_TRAY,signals::ui_tray::tray_width_change>{
+  class tray_module : public event_module<tray_module>,
+                      signal_receiver<SIGN_PRIORITY_TRAY, signals::ui_tray::tray_width_change> {
    public:
     explicit tray_module(const bar_settings& bar_settings, string name_);
     string get_output();

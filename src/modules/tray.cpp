@@ -3,14 +3,15 @@
 //
 
 #include "modules/tray.hpp"
+
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
-namespace modules{
+namespace modules {
   template class module<tray_module>;
 
   tray_module::tray_module(const bar_settings& bar_settings, string name_)
-      :  event_module<tray_module>(bar_settings, move(name_)) {
+      : event_module<tray_module>(bar_settings, move(name_)) {
     m_formatter->add(DEFAULT_FORMAT, "", {});
   }
 
@@ -37,7 +38,7 @@ namespace modules{
     return true;
   }
   bool tray_module::on(const signals::ui_tray::tray_width_change& evt) {
-    toUpdate= true;
+    toUpdate = true;
     width = evt.cast();
     return true;
   }
@@ -45,5 +46,5 @@ namespace modules{
     return true;
   }
 
-}
+}  // namespace modules
 POLYBAR_NS_END
