@@ -215,7 +215,6 @@ namespace tags {
       case 'o': sub.format = syntaxtag::o; break;
       case 'T': sub.format = syntaxtag::T; break;
       case 'R': sub.format = syntaxtag::R; break;
-      case 't': sub.format = syntaxtag::R; break;
       case 'O': sub.format = syntaxtag::O; break;
       case 'P': sub.format = syntaxtag::P; break;
       case 'A': sub.format = syntaxtag::A; break;

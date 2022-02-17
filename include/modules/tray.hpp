@@ -2,28 +2,27 @@
 
 #include "common.hpp"
 #include "components/bar.hpp"
-#include "modules/meta/event_module.hpp"
+#include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
 namespace modules {
-  class tray_module : public event_module<tray_module>,
-                      signal_receiver<SIGN_PRIORITY_TRAY, signals::ui_tray::tray_width_change> {
+  class tray_module : public static_module<tray_module>,
+                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui_tray::tray_width_change> {
    public:
     explicit tray_module(const bar_settings& bar_settings, string name_);
-    string get_output();
     string get_format() const;
 
-    bool has_event();
-    bool update();
     bool build(builder* builder, const string& tag) const;
+    void update() {}
 
     bool on(const signals::ui_tray::tray_width_change& evt) override;
 
     static constexpr auto TYPE = "internal/tray";
 
    private:
-    int width;
-    bool toUpdate;
+    static constexpr const char* TAG_TRAY{"<tray>"};
+
+    int m_width{0};
   };
 }  // namespace modules
 POLYBAR_NS_END
