@@ -231,30 +231,39 @@ namespace modules {
         break;
       }
 
+      // Potential regular text that appears before the tag.
+      string non_tag;
+
       // There is some non-tag text
       if (start > cursor) {
         /*
          * Produce anything between the previous and current tag as regular text.
          */
-        string non_tag = value.substr(cursor, start - cursor);
+        non_tag = value.substr(cursor, start - cursor);
         if (!has_tags) {
           /*
            * If no module tag has been built we do not want to add
            * whitespace defined between the format tags, but we do still
            * want to output other non-tag content
            */
-          auto trimmed = string_util::ltrim(move(non_tag), ' ');
-          if (!trimmed.empty()) {
-            m_builder->node(trimmed);
-          }
-        } else {
-          m_builder->node(non_tag);
+          non_tag = string_util::ltrim(move(non_tag), ' ');
         }
       }
 
       string tag = value.substr(start, end - start + 1);
       bool tag_built = CONST_MOD(Impl).build(&tag_builder, tag);
       string tag_content = tag_builder.flush();
+
+      /*
+       * Remove exactly one space between two tags if the second tag was not built.
+       */
+      if (!tag_built && has_tags && !format->spacing) {
+        if (!non_tag.empty() && non_tag.back() == ' ') {
+          non_tag.erase(non_tag.size() - 1);
+        }
+      }
+
+      m_builder->node(non_tag);
 
       if (tag_built) {
         if (has_tags) {
