@@ -12,8 +12,8 @@ POLYBAR_NS
 class script_runner {
  public:
   using interval = std::chrono::duration<double>;
-  script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
-      interval interval, const vector<pair<string, string>>& env);
+  script_runner(std::function<void(void)> on_update, string exec, string exec_if, bool tail, interval interval,
+      const vector<pair<string, string>>& env);
 
   bool check_condition() const;
   interval process();
@@ -24,13 +24,14 @@ class script_runner {
 
   int get_pid() const;
   int get_counter() const;
+  int get_exit_status() const;
 
   string get_output();
 
   bool is_stopping() const;
 
  protected:
-  bool set_output(const string&&);
+  bool set_output(string&&);
 
   interval run_tail();
   interval run();
@@ -52,6 +53,7 @@ class script_runner {
   std::atomic_int m_counter{0};
   std::atomic_bool m_stopping{false};
   std::atomic_int m_pid{-1};
+  std::atomic_int m_exit_status{0};
 };
 
 POLYBAR_NS_END

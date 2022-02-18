@@ -10,6 +10,7 @@ namespace modules {
       : module<script_module>(bar, move(name_))
       , m_tail(m_conf.get(name(), "tail", false))
       , m_interval(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
+      , m_has_format_fail(m_conf.has(name(), FORMAT_FAIL))
       , m_runner([this]() { broadcast(); }, m_conf.get(name(), "exec", ""s), m_conf.get(name(), "exec-if", ""s), m_tail,
             m_interval, m_conf.get_with_prefix(name(), "env-")) {
     // Load configured click handlers
@@ -25,7 +26,12 @@ namespace modules {
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), "label", "%output%");
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
+    }
+
+    m_formatter->add(FORMAT_FAIL, TAG_LABEL_FAIL, {TAG_LABEL_FAIL});
+    if (m_formatter->has(TAG_LABEL_FAIL)) {
+      m_label_fail = load_optional_label(m_conf, name(), TAG_LABEL_FAIL, "%output%");
     }
   }
 
@@ -70,6 +76,13 @@ namespace modules {
   /**
    * Generate module output
    */
+  string script_module::get_format() const {
+    if (m_runner.get_exit_status() != 0 && m_has_format_fail) {
+      return FORMAT_FAIL;
+    }
+    return DEFAULT_FORMAT;
+  }
+
   string script_module::get_output() {
     auto script_output = m_runner.get_output();
     if (script_output.empty()) {
@@ -79,6 +92,11 @@ namespace modules {
     if (m_label) {
       m_label->reset_tokens();
       m_label->replace_token("%output%", script_output);
+    }
+
+    if (m_label_fail) {
+      m_label_fail->reset_tokens();
+      m_label_fail->replace_token("%output%", script_output);
     }
 
     string cnt{to_string(m_runner.get_counter())};
@@ -114,6 +132,8 @@ namespace modules {
   bool script_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
       builder->node(m_label);
+    } else if (tag == TAG_LABEL_FAIL) {
+      builder->node(m_label_fail);
     } else {
       return false;
     }
