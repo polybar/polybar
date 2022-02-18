@@ -37,8 +37,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   static make_type make(eventloop::loop&, bool only_initialize_values = false);
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop::loop&, unique_ptr<screen>&&,
-      unique_ptr<tray_manager>&&, unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&,
-      bool only_initialize_values);
+      unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&, bool only_initialize_values);
   ~bar();
 
   const bar_settings& settings() const;

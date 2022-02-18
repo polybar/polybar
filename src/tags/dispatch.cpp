@@ -7,6 +7,7 @@
 #include "settings.hpp"
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
+#include "components/renderer.hpp"
 
 POLYBAR_NS
 
@@ -115,6 +116,8 @@ namespace tags {
       m_action_ctxt.set_alignment_start(a, renderer.get_alignment_start(a));
     }
 
+    dynamic_cast<class renderer&>(renderer).apply_tray_position(m_ctxt->m_relative_tray_position);
+
     auto num_unclosed = m_action_ctxt.num_unclosed();
 
     if (num_unclosed != 0) {
@@ -159,11 +162,7 @@ namespace tags {
         m_ctxt->apply_reset();
         break;
       case controltag::t:
-        m_sig.emit(signals::ui_tray::tray_pos_change{
-            renderer.get_alignment_start(m_ctxt->get_alignment()) + renderer.get_x(*m_ctxt)});
-        m_log.info("Tray position debug: alignment start: %f | get_ex: %f | total: %f",
-            renderer.get_alignment_start(m_ctxt->get_alignment()), renderer.get_x(*m_ctxt),
-            renderer.get_alignment_start(m_ctxt->get_alignment()) + renderer.get_x(*m_ctxt));
+        m_ctxt->store_tray_position(renderer.get_x(*m_ctxt));
         break;
       default:
         throw runtime_error("Unrecognized polybar control tag: " + to_string(static_cast<int>(ctrl)));

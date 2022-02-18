@@ -48,13 +48,14 @@ POLYBAR_NS
 /**
  * Create instance
  */
-tray_manager::make_type tray_manager::make() {
+tray_manager::make_type tray_manager::make(const bar_settings& settings) {
   return std::make_unique<tray_manager>(
-      connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
+      connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), settings);
 }
 
-tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back) {
+tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
+    const bar_settings& settings)
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back), m_bar_opts(settings) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -1166,8 +1167,7 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-  unsigned int xPos{evt.cast()};
-  m_opts.orig_x = xPos;
+  m_opts.orig_x = static_cast<int>(m_bar_opts.inner_area(true).x) + evt.cast();
   reconfigure_window();
 
   return true;

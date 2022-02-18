@@ -33,6 +33,7 @@ namespace tags {
     void apply_alignment(alignment align);
     void apply_attr(attr_activation act, attribute attr);
     void apply_reset();
+    void store_tray_position(int x_pos);
 
     rgba get_bg() const;
     rgba get_fg() const;
@@ -42,6 +43,8 @@ namespace tags {
     bool has_overline() const;
     bool has_underline() const;
     alignment get_alignment() const;
+
+    std::pair<alignment, int> m_relative_tray_position;
 
    protected:
     /**

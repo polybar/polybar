@@ -71,9 +71,10 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                          signals::ui::update_background, signals::ui_tray::tray_pos_change> {
  public:
   using make_type = unique_ptr<tray_manager>;
-  static make_type make();
+  static make_type make(const bar_settings& settings);
 
-  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back);
+  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
+      const bar_settings& settings);
 
   ~tray_manager();
 
@@ -169,6 +170,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   mutex m_mtx{};
 
   bool m_firstactivation{true};
+
+  const bar_settings& m_bar_opts;
 };
 
 POLYBAR_NS_END
