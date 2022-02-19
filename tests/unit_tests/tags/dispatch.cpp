@@ -72,6 +72,7 @@ class MockRenderer : public renderer_interface {
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
   MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
   MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
+  MOCK_METHOD(void, apply_tray_position, (pair<alignment, int> relative_position), ());
 
   void DelegateToFake() {
     ON_CALL(*this, render_offset).WillByDefault([this](const context& ctxt, const extent_val offset) {
