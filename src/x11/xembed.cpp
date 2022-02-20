@@ -26,7 +26,7 @@ namespace xembed {
   /**
    * Query _XEMBED_INFO for the given window
    *
-   * \return Whether valid XEMBED info was found
+   * @return Whether valid XEMBED info was found
    */
   bool query(connection& conn, xcb_window_t win, info& data) {
     auto info = conn.get_property(false, win, _XEMBED_INFO, _XEMBED_INFO, 0L, 2);

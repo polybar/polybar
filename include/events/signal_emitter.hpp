@@ -7,7 +7,7 @@
 POLYBAR_NS
 
 /**
- * \brief Holds all signal receivers attached to the emitter
+ * @brief Holds all signal receivers attached to the emitter
  */
 extern signal_receivers_t g_signal_receivers;
 

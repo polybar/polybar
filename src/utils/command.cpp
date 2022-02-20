@@ -181,7 +181,7 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const vec
 /**
  * Tail command output
  *
- * \note: This is a blocking call and will not
+ * @note: This is a blocking call and will not
  * end until the stream is closed
  */
 void command<output_policy::REDIRECTED>::tail(std::function<void(string)> cb) {

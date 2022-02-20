@@ -366,8 +366,8 @@ const bar_settings bar::settings() const {
 /**
  * Parse input string and redraw the bar window
  *
- * \param data Input string
- * \param force Unless true, do not parse unchanged data
+ * @param data Input string
+ * @param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
   bool unchanged = data == m_lastinput;

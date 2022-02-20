@@ -21,23 +21,23 @@ DEFINE_ERROR(command_error);
  *
  * Example usage:
  *
- * \code cpp
+ * @code cpp
  *   auto cmd = command_util::make_command<output_policy::REDIRECTED>("cat /etc/rc.local");
  *   cmd->exec();
  *   cmd->tail([](string s) { std::cout << s << std::endl; });
- * \endcode
+ * @endcode
  *
- * \code cpp
+ * @code cpp
  *   auto cmd = command_util::make_command<output_policy::REDIRECTED>("for i in 1 2 3; do echo $i; done");
  *   cmd->exec();
  *   cout << cmd->readline(); // 1
  *   cout << cmd->readline() << cmd->readline(); // 23
- * \endcode
+ * @endcode
  *
- * \code cpp
+ * @code cpp
  *   auto cmd = command_util::make_command<output_policy::IGNORED>("ping kernel.org");
  *   int status = cmd->exec();
- * \endcode
+ * @endcode
  */
 template <output_policy>
 class command;

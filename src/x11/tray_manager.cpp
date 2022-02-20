@@ -969,7 +969,7 @@ void tray_manager::handle(const evt::configure_request& evt) {
 }
 
 /**
- * \see tray_manager::handle(const evt::configure_request&);
+ * @see tray_manager::handle(const evt::configure_request&);
  */
 void tray_manager::handle(const evt::resize_request& evt) {
   if (m_activated && is_embedded(evt->window)) {

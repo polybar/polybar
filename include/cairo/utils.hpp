@@ -10,7 +10,7 @@ POLYBAR_NS
 namespace cairo {
   namespace utils {
     /**
-     * \brief RAII wrapper used acquire cairo_device_t
+     * @brief RAII wrapper used acquire cairo_device_t
      */
     class device_lock {
      public:
@@ -24,7 +24,7 @@ namespace cairo {
     };
 
     /**
-     * \brief RAII wrapper used to access the underlying
+     * @brief RAII wrapper used to access the underlying
      * FT_Face of a scaled font face
      */
     class ft_face_lock {
@@ -39,7 +39,7 @@ namespace cairo {
     };
 
     /**
-     * \brief Unicode character containing converted codepoint
+     * @brief Unicode character containing converted codepoint
      * and details on where its position in the source string
      */
     struct unicode_character {
@@ -51,17 +51,17 @@ namespace cairo {
     using unicode_charlist = std::list<unicode_character>;
 
     /**
-     * \see <cairo/cairo.h>
+     * @see <cairo/cairo.h>
      */
     cairo_operator_t str2operator(const string& mode, cairo_operator_t fallback);
 
     /**
-     * \brief Create a UCS-4 codepoint from a utf-8 encoded string
+     * @brief Create a UCS-4 codepoint from a utf-8 encoded string
      */
     bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list);
 
     /**
-     * \brief Convert a UCS-4 codepoint to a utf-8 encoded string
+     * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
      */
     size_t ucs4_to_utf8(char* utf8, unsigned int ucs);
   }

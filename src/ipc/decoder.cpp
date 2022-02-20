@@ -69,8 +69,8 @@ namespace ipc {
   /**
    * If we are waiting for header data, read as many bytes as possible from the given buffer.
    *
-   * \return Number of bytes processed.
-   * \throws decoder::error on message errors
+   * @return Number of bytes processed.
+   * @throws decoder::error on message errors
    */
   ssize_t decoder::process_header_data(const uint8_t* data, size_t size) {
     assert(state == state::HEADER);
@@ -107,8 +107,8 @@ namespace ipc {
   /**
    * If we are waiting for message data, read as many bytes as possible from the given buffer.
    *
-   * \return Number of bytes processed.
-   * \throws decoder::error on message errors
+   * @return Number of bytes processed.
+   * @throws decoder::error on message errors
    */
   ssize_t decoder::process_msg_data(const uint8_t* data, size_t size) {
     assert(state == state::PAYLOAD);
