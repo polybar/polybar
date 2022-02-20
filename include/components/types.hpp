@@ -184,7 +184,6 @@ struct bar_settings {
   position pos{0, 0};
   position offset{0, 0};
   side_values padding{ZERO_SPACE, ZERO_SPACE};
-  side_values margin{ZERO_SPACE, ZERO_SPACE};
   side_values module_margin{ZERO_SPACE, ZERO_SPACE};
   edge_values strut{0U, 0U, 0U, 0U};
 
