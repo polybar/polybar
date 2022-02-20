@@ -465,10 +465,10 @@ void controller::process_inputdata(string&& cmd) {
 bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
-  string padding_left(bar.padding.left, ' ');
-  string padding_right(bar.padding.right, ' ');
-  string margin_left(bar.module_margin.left, ' ');
-  string margin_right(bar.module_margin.right, ' ');
+  string padding_left = builder::get_spacing_format_string(bar.padding.left);
+  string padding_right = builder::get_spacing_format_string(bar.padding.right);
+  string margin_left = builder::get_spacing_format_string(bar.module_margin.left);
+  string margin_right = builder::get_spacing_format_string(bar.module_margin.right);
 
   builder build{bar};
   build.node(bar.separator);

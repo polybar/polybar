@@ -8,6 +8,7 @@
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/math.hpp"
+#include "utils/units.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
@@ -109,9 +110,9 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Allocate alignment blocks");
   {
-    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0, 0.});
   }
 
   m_log.trace("renderer: Allocate cairo components");
@@ -122,31 +123,6 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Load fonts");
   {
-    double dpi_x = 96, dpi_y = 96;
-    if (m_conf.has(m_conf.section(), "dpi")) {
-      dpi_x = dpi_y = m_conf.get<double>("dpi");
-    } else {
-      if (m_conf.has(m_conf.section(), "dpi-x")) {
-        dpi_x = m_conf.get<double>("dpi-x");
-      }
-      if (m_conf.has(m_conf.section(), "dpi-y")) {
-        dpi_y = m_conf.get<double>("dpi-y");
-      }
-    }
-
-    // dpi to be computed
-    if (dpi_x <= 0 || dpi_y <= 0) {
-      auto screen = m_connection.screen();
-      if (dpi_x <= 0) {
-        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
-      }
-      if (dpi_y <= 0) {
-        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
-      }
-    }
-
-    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
-
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
@@ -161,7 +137,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
         offset = std::strtol(pattern.substr(pos + 1).c_str(), nullptr, 10);
         pattern.erase(pos);
       }
-      auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
+      auto font = cairo::make_font(*m_context, string{pattern}, offset, m_bar.dpi_x, m_bar.dpi_y);
       m_log.notice("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
@@ -287,7 +263,7 @@ void renderer::end() {
   // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
+    m_context->pop(&barcontents); // corresponding push is in renderer::begin
 
     auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {
@@ -491,7 +467,7 @@ double renderer::block_y(alignment) const {
  * Get block width for given alignment
  */
 double renderer::block_w(alignment a) const {
-  return m_blocks.at(a).x;
+  return m_blocks.at(a).width;
 }
 
 /**
@@ -499,6 +475,14 @@ double renderer::block_w(alignment a) const {
  */
 double renderer::block_h(alignment) const {
   return m_rect.height;
+}
+
+void renderer::increase_x(double dx) {
+  m_blocks[m_align].x += dx;
+  /*
+   * The width only increases when x becomes larger than the old width.
+   */
+  m_blocks[m_align].width = std::max(m_blocks[m_align].width, m_blocks[m_align].x);
 }
 
 /**
@@ -695,11 +679,17 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   origin.x = m_rect.x + m_blocks[m_align].x;
   origin.y = m_rect.y + m_rect.height / 2.0;
 
+  double x_old = m_blocks[m_align].x;
+  /*
+   * This variable is increased by the text renderer
+   */
+  double x_new = x_old;
+
   cairo::textblock block{};
   block.align = m_align;
   block.contents = contents;
   block.font = ctxt.get_font();
-  block.x_advance = &m_blocks[m_align].x;
+  block.x_advance = &x_new;
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
@@ -724,7 +714,9 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   *m_context << block;
   m_context->restore();
 
-  double dx = m_rect.x + m_blocks[m_align].x - origin.x;
+  double dx = x_new - x_old;
+  increase_x(dx);
+
   if (dx > 0.0) {
     if (ctxt.has_underline()) {
       fill_underline(ctxt.get_ul(), origin.x, dx);
@@ -736,9 +728,26 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   }
 }
 
-void renderer::render_offset(const tags::context&, int pixels) {
-  m_log.trace_x("renderer: offset_pixel(%f)", pixels);
-  m_blocks[m_align].x += pixels;
+void renderer::draw_offset(rgba color, double x, double w) {
+  if (w > 0 && color != m_bar.background) {
+    m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
+    m_context->save();
+    *m_context << m_comp_bg;
+    *m_context << color;
+    *m_context << cairo::rect{
+        m_rect.x + x, static_cast<double>(m_rect.y), w, static_cast<double>(m_rect.y + m_rect.height)};
+    m_context->fill();
+    m_context->restore();
+  }
+}
+
+void renderer::render_offset(const tags::context& ctxt, const extent_val offset) {
+  m_log.trace_x("renderer: offset_pixel(%f)", offset);
+
+  int offset_width = units_utils::extent_to_pixel(offset, m_bar.dpi_x);
+  rgba bg = ctxt.get_bg();
+  draw_offset(bg, m_blocks[m_align].x, offset_width);
+  increase_x(offset_width);
 }
 
 void renderer::change_alignment(const tags::context& ctxt) {
@@ -754,6 +763,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
+    m_blocks[m_align].width = 0.;
     m_context->push();
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
 

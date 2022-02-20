@@ -121,6 +121,7 @@ set(POLY_SOURCES
   ${src_dir}/utils/process.cpp
   ${src_dir}/utils/socket.cpp
   ${src_dir}/utils/string.cpp
+  ${src_dir}/utils/units.cpp
 
   ${src_dir}/x11/atoms.cpp
   ${src_dir}/x11/background_manager.cpp

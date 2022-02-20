@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cctype>
 
+#include "utils/units.hpp"
+
 POLYBAR_NS
 
 namespace tags {
@@ -340,26 +342,18 @@ namespace tags {
     }
   }
 
-  int parser::parse_offset() {
+  extent_val parser::parse_offset() {
     string s = get_tag_value();
 
     if (s.empty()) {
-      return 0;
+      return ZERO_PX_EXTENT;
     }
 
     try {
-      size_t ptr;
-      int ret = std::stoi(s, &ptr, 10);
-
-      if (ptr != s.size()) {
-        throw offset_error(s, "Offset contains non-number characters");
-      }
-
-      return ret;
+      return units_utils::parse_extent(string{s});
     } catch (const std::exception& err) {
       throw offset_error(s, err.what());
     }
-    return 0;
   }
 
   controltag parser::parse_control() {
@@ -508,6 +502,6 @@ namespace tags {
 
     return s;
   }
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

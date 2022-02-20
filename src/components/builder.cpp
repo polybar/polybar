@@ -7,6 +7,8 @@
 #include "utils/color.hpp"
 #include "utils/string.hpp"
 #include "utils/time.hpp"
+#include "utils/units.hpp"
+
 POLYBAR_NS
 
 using namespace tags;
@@ -86,9 +88,9 @@ string builder::flush() {
 /**
  * Insert raw text string
  */
-void builder::append(string text) {
+void builder::append(const string& text) {
   m_output.reserve(text.size());
-  m_output += move(text);
+  m_output += text;
 }
 
 /**
@@ -96,12 +98,12 @@ void builder::append(string text) {
  *
  * This will also parse raw syntax tags
  */
-void builder::node(string str) {
+void builder::node(const string& str) {
   if (str.empty()) {
     return;
   }
 
-  append(move(str));
+  append(str);
 }
 
 /**
@@ -109,9 +111,9 @@ void builder::node(string str) {
  *
  * \see builder::node
  */
-void builder::node(string str, int font_index) {
+void builder::node(const string& str, int font_index) {
   font(font_index);
-  node(move(str));
+  node(str);
   font_close();
 }
 
@@ -125,8 +127,8 @@ void builder::node(const label_t& label) {
 
   auto text = label->get();
 
-  if (label->m_margin.left > 0) {
-    space(label->m_margin.left);
+  if (label->m_margin.left) {
+    spacing(label->m_margin.left);
   }
 
   if (label->m_overline.has_color()) {
@@ -143,14 +145,14 @@ void builder::node(const label_t& label) {
     color(label->m_foreground);
   }
 
-  if (label->m_padding.left > 0) {
-    space(label->m_padding.left);
+  if (label->m_padding.left) {
+    spacing(label->m_padding.left);
   }
 
   node(text, label->m_font);
 
-  if (label->m_padding.right > 0) {
-    space(label->m_padding.right);
+  if (label->m_padding.right) {
+    spacing(label->m_padding.right);
   }
 
   if (label->m_background.has_color()) {
@@ -167,8 +169,8 @@ void builder::node(const label_t& label) {
     overline_close();
   }
 
-  if (label->m_margin.right > 0) {
-    space(label->m_margin.right);
+  if (label->m_margin.right) {
+    spacing(label->m_margin.right);
   }
 }
 
@@ -200,41 +202,28 @@ void builder::node_repeat(const label_t& label, size_t n) {
 }
 
 /**
- * Insert tag that will offset the contents by given pixels
+ * Insert tag that will offset the contents by the given extent
  */
-void builder::offset(int pixels) {
-  if (pixels == 0) {
+void builder::offset(extent_val extent) {
+  if (extent) {
     return;
   }
-  tag_open(syntaxtag::O, to_string(pixels));
+  tag_open(syntaxtag::O, units_utils::extent_to_string(extent));
 }
 
 /**
- * Insert spaces
+ * Insert spacing
  */
-void builder::space(size_t width) {
-  if (width) {
-    m_output.append(width, ' ');
-  } else {
-    space();
+void builder::spacing(spacing_val size) {
+  if (!size && m_bar.spacing) {
+    // TODO remove once the deprecated spacing key in the bar section is removed
+    // The spacing in the bar section acts as a fallback for all spacing value
+    size = m_bar.spacing;
   }
-}
-void builder::space() {
-  m_output.append(m_bar.spacing, ' ');
-}
 
-/**
- * Remove trailing space
- */
-void builder::remove_trailing_space(size_t len) {
-  if (len == 0_z || len > m_output.size()) {
-    return;
-  } else if (m_output.substr(m_output.size() - len) == string(len, ' ')) {
-    m_output.erase(m_output.size() - len);
+  if (size) {
+    m_output += get_spacing_format_string(size);
   }
-}
-void builder::remove_trailing_space() {
-  remove_trailing_space(m_bar.spacing);
 }
 
 /**
@@ -572,6 +561,35 @@ void builder::tag_close(attribute attr) {
       append("%{-o}");
       break;
   }
+}
+
+string builder::get_spacing_format_string(const spacing_val& space) {
+  float value = space.value;
+  if (value == 0) {
+    return "";
+  }
+
+  string out;
+  if (space.type == spacing_type::SPACE) {
+    out += string(value, ' ');
+  } else {
+    out += "%{O";
+
+    switch (space.type) {
+      case spacing_type::POINT:
+        out += to_string(value) + "pt";
+        break;
+      case spacing_type::PIXEL:
+        out += to_string(static_cast<int>(value)) + "px";
+        break;
+      default:
+        break;
+    }
+
+    out += '}';
+  }
+
+  return out;
 }
 
 POLYBAR_NS_END

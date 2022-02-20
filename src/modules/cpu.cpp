@@ -1,14 +1,13 @@
+#include "modules/cpu.hpp"
+
 #include <fstream>
 #include <istream>
-
-#include "modules/cpu.hpp"
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -18,7 +17,7 @@ namespace modules {
   cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
     set_interval(1s);
     m_totalwarn = m_conf.get(name(), "warn-percentage", m_totalwarn);
-    m_ramp_padding = m_conf.get<decltype(m_ramp_padding)>(name(), "ramp-coreload-spacing", 1);
+    m_ramp_padding = m_conf.get(name(), "ramp-coreload-spacing", m_ramp_padding);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
     m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
@@ -73,7 +72,8 @@ namespace modules {
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
       label->replace_token("%percentage%", to_string(static_cast<int>(m_total + 0.5)));
-      label->replace_token("%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
+      label->replace_token(
+          "%percentage-sum%", to_string(static_cast<int>(m_total * static_cast<float>(cores_n) + 0.5)));
       label->replace_token("%percentage-cores%", string_util::join(percentage_cores, "% ") + "%");
 
       for (size_t i = 0; i < percentage_cores.size(); i++) {
@@ -99,7 +99,6 @@ namespace modules {
     }
   }
 
-
   bool cpu_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
       builder->node(m_label);
@@ -113,7 +112,7 @@ namespace modules {
       auto i = 0;
       for (auto&& load : m_load) {
         if (i++ > 0) {
-          builder->space(m_ramp_padding);
+          builder->spacing(m_ramp_padding);
         }
         builder->node(m_rampload_core->get_by_percentage_with_borders(load, 0.0f, m_totalwarn));
       }
@@ -179,6 +178,6 @@ namespace modules {
 
     return math_util::cap<float>(percentage, 0, 100);
   }
-}
+}  // namespace modules
 
 POLYBAR_NS_END

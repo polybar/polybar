@@ -81,6 +81,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- Support `px` and `pt` units everyhwere where before only a number of spaces
+  or pixels could be specified.
+  ([`#2578`](https://github.com/polybar/polybar/pull/2578))
 - Right and middle click events for alsa module.
   ([`#2566`](https://github.com/polybar/polybar/issues/2566))
 - `internal/network`: New token `%mac%` shows MAC address of selected interface
@@ -111,7 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `internal/memory`: `format-warn`, `label-warn`, `warn-percentage = 90`
 - `radius` now affects the bar border as well
   ([`#1566`](https://github.com/polybar/polybar/issues/1566))
-- Per-corner corner radius with `radius-{bottom,top}-{left,right}`
+- Per-corner radius with `radius-{bottom,top}-{left,right}`
   ([`#2294`](https://github.com/polybar/polybar/issues/2294))
 - `internal/network`: `speed-unit = B/s` can be used to customize how network
   speeds are displayed.

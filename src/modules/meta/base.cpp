@@ -15,11 +15,11 @@ namespace modules {
       builder->flush();
       return "";
     }
-    if (offset != 0) {
+    if (offset) {
       builder->offset(offset);
     }
-    if (margin > 0) {
-      builder->space(margin);
+    if (margin) {
+      builder->spacing(margin);
     }
     if (bg.has_color()) {
       builder->background(bg);
@@ -36,8 +36,8 @@ namespace modules {
     if (font > 0) {
       builder->font(font);
     }
-    if (padding > 0) {
-      builder->space(padding);
+    if (padding) {
+      builder->spacing(padding);
     }
 
     builder->node(prefix);
@@ -58,8 +58,8 @@ namespace modules {
     builder->append(move(output));
     builder->node(suffix);
 
-    if (padding > 0) {
-      builder->space(padding);
+    if (padding) {
+      builder->spacing(padding);
     }
     if (font > 0) {
       builder->font_close();
@@ -76,8 +76,8 @@ namespace modules {
     if (bg.has_color()) {
       builder->background_close();
     }
-    if (margin > 0) {
-      builder->space(margin);
+    if (margin) {
+      builder->spacing(margin);
     }
 
     return builder->flush();
@@ -87,8 +87,9 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](
-        const string& param, const auto& fallback) { return m_conf.get("settings", "format-" + param, fallback); };
+    const auto formatdef = [&](const string& param, const auto& fallback) {
+      return m_conf.get("settings", "format-" + param, fallback);
+    };
 
     auto format = make_unique<module_format>();
     format->value = move(value);

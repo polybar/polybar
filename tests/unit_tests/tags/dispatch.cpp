@@ -15,11 +15,17 @@ using ::testing::Property;
 using ::testing::Return;
 using ::testing::Truly;
 
+namespace polybar {
+  inline bool operator==(const extent_val& a, const extent_val& b) {
+    return a.type == b.type && a.value == b.value;
+  }
+}  // namespace polybar
+
 class MockRenderer : public renderer_interface {
  public:
   MockRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt){};
 
-  MOCK_METHOD(void, render_offset, (const context& ctxt, int pixels), (override));
+  MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
   MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
   MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
@@ -53,7 +59,7 @@ class DispatchTest : public ::testing::Test {
 TEST_F(DispatchTest, ignoreFormatting) {
   {
     InSequence seq;
-    EXPECT_CALL(r, render_offset(_, 10)).Times(1);
+    EXPECT_CALL(r, render_offset(_, extent_val{extent_type::PIXEL, 10})).Times(1);
     EXPECT_CALL(r, render_text(_, string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(_, string{"foo"})).Times(1);
   }
@@ -74,7 +80,7 @@ TEST_F(DispatchTest, formatting) {
 
   {
     InSequence seq;
-    EXPECT_CALL(r, render_offset(_, 10)).Times(1);
+    EXPECT_CALL(r, render_offset(_, extent_val{extent_type::PIXEL, 10})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(c1), string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(bar_fg), string{"foo"})).Times(1);
     EXPECT_CALL(r, change_alignment(match_left_align)).Times(1);

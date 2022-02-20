@@ -113,16 +113,16 @@ namespace drawtypes {
     if (label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (label->m_padding.left != 0U) {
+    if (label->m_padding.left) {
       m_padding.left = label->m_padding.left;
     }
-    if (label->m_padding.right != 0U) {
+    if (label->m_padding.right) {
       m_padding.right = label->m_padding.right;
     }
-    if (label->m_margin.left != 0U) {
+    if (label->m_margin.left) {
       m_margin.left = label->m_margin.left;
     }
-    if (label->m_margin.right != 0U) {
+    if (label->m_margin.right) {
       m_margin.right = label->m_margin.right;
     }
     if (label->m_maxlen != 0_z) {
@@ -147,16 +147,16 @@ namespace drawtypes {
     if (m_font == 0 && label->m_font != 0) {
       m_font = label->m_font;
     }
-    if (m_padding.left == 0U && label->m_padding.left != 0U) {
+    if (!m_padding.left && label->m_padding.left) {
       m_padding.left = label->m_padding.left;
     }
-    if (m_padding.right == 0U && label->m_padding.right != 0U) {
+    if (!m_padding.right && label->m_padding.right) {
       m_padding.right = label->m_padding.right;
     }
-    if (m_margin.left == 0U && label->m_margin.left != 0U) {
+    if (!m_margin.left && label->m_margin.left) {
       m_margin.left = label->m_margin.left;
     }
-    if (m_margin.right == 0U && label->m_margin.right != 0U) {
+    if (!m_margin.right && label->m_margin.right) {
       m_margin.right = label->m_margin.right;
     }
     if (m_maxlen == 0_z && label->m_maxlen != 0_z) {
@@ -182,14 +182,23 @@ namespace drawtypes {
     if (required) {
       text = conf.get(section, name);
     } else {
-      text = conf.get(section, name, move(def));
+      text = conf.get(section, name, def);
     }
 
-    const auto get_left_right = [&](string key) {
-      auto value = conf.get(section, key, 0U);
-      auto left = conf.get(section, key + "-left", value);
-      auto right = conf.get(section, key + "-right", value);
-      return side_values{static_cast<unsigned short int>(left), static_cast<unsigned short int>(right)};
+    const auto get_left_right = [&](string&& key) {
+      const auto parse_or_throw = [&](const string& key, spacing_val default_value) {
+        try {
+          return conf.get(section, key, default_value);
+        } catch (const std::exception& err) {
+          throw application_error(
+              sstream() << "Failed to set " << section << "." << key << " (reason: " << err.what() << ")");
+        }
+      };
+
+      auto value = parse_or_throw(key, ZERO_SPACE);
+      auto left = parse_or_throw(key + "-left", value);
+      auto right = parse_or_throw(key + "-right", value);
+      return side_values{left, right};
     };
 
     padding = get_left_right(name + "-padding");
@@ -271,10 +280,12 @@ namespace drawtypes {
     }
     bool ellipsis = conf.get(section, name + "-ellipsis", true);
 
+    // clang-format off
     if (ellipsis && maxlen > 0 && maxlen < 3) {
       throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
                                         << ", which is smaller than length of ellipsis (3)");
     }
+    // clang-format on
 
     // clang-format off
     return std::make_shared<label>(text,
@@ -297,9 +308,9 @@ namespace drawtypes {
    * Create a label by loading optional values from the configuration
    */
   label_t load_optional_label(const config& conf, string section, string name, string def) {
-    return load_label(conf, move(section), move(name), false, move(def));
+    return load_label(conf, section, move(name), false, move(def));
   }
 
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

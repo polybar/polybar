@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <mutex>
 #include <queue>
 
@@ -29,7 +28,7 @@ class logger;
 class signal_emitter;
 namespace modules {
   struct module_interface;
-}  // namespace modules
+} // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 // }}}
