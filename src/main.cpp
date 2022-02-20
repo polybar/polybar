@@ -148,7 +148,12 @@ int main(int argc, char** argv) {
     unique_ptr<ipc::ipc> ipc{};
 
     if (conf.get(conf.section(), "enable-ipc", false)) {
-      ipc = ipc::ipc::make(loop);
+      try {
+        ipc = ipc::ipc::make(loop);
+      } catch (const std::exception& e) {
+        ipc.reset();
+        logger.err("Disabling IPC channels due to error: %s", e.what());
+      }
     }
 
     auto ctrl = controller::make((bool)ipc, loop);

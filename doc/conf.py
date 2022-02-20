@@ -26,7 +26,9 @@ def get_version(root_path):
   with open(path, "r") as f:
     for line in f.readlines():
       if not line.startswith("#"):
-        return packaging.version.parse(line)
+        # NB: we can't parse it yet since sphinx could import
+        # pkg_resources later on and it could patch packaging.version
+        return line
 
   raise RuntimeError("No version found in {}".format(path))
 
@@ -245,8 +247,9 @@ if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5
     """
     def run(self) -> List[Node]:
       directive_version = packaging.version.parse(self.arguments[0])
+      parsed_version_txt = packaging.version.parse(version_txt)
 
-      if directive_version > version_txt:
+      if directive_version > parsed_version_txt:
         self.arguments[0] += " (unreleased)"
 
       return super().run()

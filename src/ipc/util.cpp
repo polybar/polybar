@@ -20,7 +20,10 @@ namespace ipc {
   string ensure_runtime_path() {
     string runtime_path = get_runtime_path();
     if (!file_util::exists(runtime_path) && mkdir(runtime_path.c_str(), 0700) == -1) {
-      throw system_error("Failed to create ipc socket folders");
+      // It's possible the folder was created in the meantime, we have to check again.
+      if (!file_util::exists(runtime_path)) {
+        throw system_error("Failed to create ipc socket folders");
+      }
     }
 
     return runtime_path;
