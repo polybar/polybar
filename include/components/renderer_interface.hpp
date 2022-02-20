@@ -33,6 +33,8 @@ class renderer_interface {
    */
   virtual double get_alignment_start(const alignment align) const = 0;
 
+  virtual void apply_tray_position(std::pair<alignment, int> relative_position) = 0;
+
  protected:
   /**
    * Stores information about actions in the current render cycle.

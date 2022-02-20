@@ -67,7 +67,7 @@ class renderer : public renderer_interface,
 
   double get_alignment_start(const alignment align) const override;
 
-  void apply_tray_position(std::pair<alignment, int> relative_position);
+  void apply_tray_position(std::pair<alignment, int> relative_position) override;
 
  protected:
   void fill_background();

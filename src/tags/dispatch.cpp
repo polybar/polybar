@@ -115,8 +115,9 @@ namespace tags {
     for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
       m_action_ctxt.set_alignment_start(a, renderer.get_alignment_start(a));
     }
-
-    dynamic_cast<class renderer&>(renderer).apply_tray_position(m_ctxt->m_relative_tray_position);
+    if (m_ctxt->m_relative_tray_position != std::pair<alignment, int>()) {
+        renderer.apply_tray_position(m_ctxt->m_relative_tray_position);
+    }
 
     auto num_unclosed = m_action_ctxt.num_unclosed();
 
