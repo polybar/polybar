@@ -36,7 +36,7 @@ class config {
   static constexpr const char* BAR_PREFIX = "bar/";
 
   /**
-   * \brief Instruct the config to connect to the xresource manager
+   * @brief Instruct the config to connect to the xresource manager
    */
   void use_xrm();
 
@@ -229,7 +229,7 @@ class config {
   }
 
   /**
-   * \see deprecated<T>
+   * @see deprecated<T>
    */
   template <typename T = string>
   T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {

@@ -114,10 +114,10 @@ namespace bspwm_util {
    * Create an ipc socket connection
    *
    * Example usage:
-   * \code cpp
+   * @code cpp
    *   auto ipc = make_connection();
    *   ipc->send(make_payload("desktop -f eDP-1:^1"));
-   * \endcode
+   * @endcode
    */
   connection_t make_connection() {
     return socket_util::make_unix_connection(get_socket_path());
@@ -128,7 +128,7 @@ namespace bspwm_util {
    * on the bspwm socket
    *
    * Example usage:
-   * \code cpp
+   * @code cpp
    *   auto ipc = make_subscriber();
    *
    *   while (!ipc->poll(POLLHUP, 0)) {
@@ -136,7 +136,7 @@ namespace bspwm_util {
    *     auto data = ipc->receive(BUFSIZ-1, bytes_received, 0);
    *     std::cout << data << std::endl;
    *   }
-   * \endcode
+   * @endcode
    */
   connection_t make_subscriber() {
     auto conn = make_connection();

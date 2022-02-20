@@ -12,7 +12,7 @@ POLYBAR_NS
 DEFINE_ERROR(parser_error);
 
 /**
- * \brief Exception object for syntax errors
+ * @brief Exception object for syntax errors
  *
  * Contains filepath and line number where syntax error was found
  */
@@ -46,12 +46,12 @@ class invalid_name_error : public syntax_error {
 };
 
 /**
- * \brief All different types a line in a config can be
+ * @brief All different types a line in a config can be
  */
 enum class line_type { KEY, HEADER, COMMENT, EMPTY, UNKNOWN };
 
 /**
- * \brief Storage for a single config line
+ * @brief Storage for a single config line
  *
  * More sanitized than the actual string of the comment line, with information
  * about line type and structure
@@ -98,23 +98,23 @@ class config_parser {
   config_parser(logger&& logger, string&& file, string&& bar) = delete;
 
   /**
-   * \brief Performs the parsing of the main config file m_file
+   * @brief Performs the parsing of the main config file m_file
    *
-   * \returns config class instance populated with the parsed config
+   * @returns config class instance populated with the parsed config
    *
-   * \throws syntax_error If there was any kind of syntax error
-   * \throws parser_error If aynthing else went wrong
+   * @throws syntax_error If there was any kind of syntax error
+   * @throws parser_error If aynthing else went wrong
    */
   config::make_type parse();
 
  protected:
   /**
-   * \brief Converts the `lines` vector to a proper sectionmap
+   * @brief Converts the `lines` vector to a proper sectionmap
    */
   sectionmap_t create_sectionmap();
 
   /**
-   * \brief Parses the given file, extracts key-value pairs and section
+   * @brief Parses the given file, extracts key-value pairs and section
    *        headers and adds them onto the `lines` vector
    *
    * This method directly resolves `include-file` directives and checks for
@@ -125,7 +125,7 @@ class config_parser {
   void parse_file(const string& file, file_list path);
 
   /**
-   * \brief Parses the given line string to the given line_t struct
+   * @brief Parses the given line string to the given line_t struct
    *
    * We use the INI file syntax (https://en.wikipedia.org/wiki/INI_file)
    * Whitespaces (tested with isspace()) at the beginning and end of a line are ignored
@@ -153,7 +153,7 @@ class config_parser {
    *
    * sections are defined as [section], everything inside the square brackets is part of the name
    *
-   * \throws syntax_error if the line isn't well formed. The syntax error
+   * @throws syntax_error if the line isn't well formed. The syntax error
    *         does not contain the filename or line numbers because parse_line
    *         doesn't know about those. Whoever calls parse_line needs to
    *         catch those exceptions and set the file path and line number
@@ -161,7 +161,7 @@ class config_parser {
   void parse_line(line_t& line, const string& line_str);
 
   /**
-   * \brief Determines the type of a line read from a config file
+   * @brief Determines the type of a line read from a config file
    *
    * Expects that line is trimmed
    * This mainly looks at the first character and doesn't check if the line is
@@ -174,33 +174,33 @@ class config_parser {
   static line_type get_line_type(const string& line);
 
   /**
-   * \brief Parse a line containing a section header and returns the header name
+   * @brief Parse a line containing a section header and returns the header name
    *
    * Only assumes that the line starts with '[' and is trimmed
    *
-   * \throws syntax_error if the line doesn't end with ']' or the header name
+   * @throws syntax_error if the line doesn't end with ']' or the header name
    *         contains forbidden characters
    */
   string parse_header(const line_t& line, const string& line_str);
 
   /**
-   * \brief Parses a line containing a key-value pair and returns the key name
+   * @brief Parses a line containing a key-value pair and returns the key name
    *        and the value string inside an std::pair
    *
    * Only assumes that the line contains '=' at least once and is trimmed
    *
-   * \throws syntax_error if the key contains forbidden characters
+   * @throws syntax_error if the key contains forbidden characters
    */
   std::pair<string, string> parse_key(const line_t& line, const string& line_str);
 
   /**
-   * \brief Parses the given value, checks if the given value contains
+   * @brief Parses the given value, checks if the given value contains
    *        one or more unescaped backslashes and logs an error if yes
    */
   string parse_escaped_value(const line_t& line, string&& value, const string& key);
 
   /**
-   * \brief Name of all the files the config includes values from
+   * @brief Name of all the files the config includes values from
    *
    * The line_t struct uses indices to this vector to map lines to their
    * original files. This allows us to point the user to the exact location
@@ -210,7 +210,7 @@ class config_parser {
 
  private:
   /**
-   * \brief Checks if the given name doesn't contain any spaces or characters
+   * @brief Checks if the given name doesn't contain any spaces or characters
    *        in config_parser::m_forbidden_chars
    */
   bool is_valid_name(const string& name);
@@ -218,7 +218,7 @@ class config_parser {
   vector<string> get_bars(const sectionmap_t& sections) const;
 
   /**
-   * \brief Whether or not an xresource manager should be used
+   * @brief Whether or not an xresource manager should be used
    *
    * Is set to true if any ${xrdb...} references are found
    */
@@ -227,7 +227,7 @@ class config_parser {
   const logger& m_log;
 
   /**
-   * \brief Absolute path to the main config file
+   * @brief Absolute path to the main config file
    */
   string m_config;
 
@@ -237,7 +237,7 @@ class config_parser {
   string m_barname;
 
   /**
-   * \brief List of all the lines in the config (with included files)
+   * @brief List of all the lines in the config (with included files)
    *
    * The order here matters, as we have not yet associated key-value pairs
    * with sections
@@ -245,12 +245,12 @@ class config_parser {
   vector<line_t> m_lines;
 
   /**
-   * \brief None of these characters can be used in the key and section names
+   * @brief None of these characters can be used in the key and section names
    */
   const string m_forbidden_chars{"\"'=;#[](){}:.$\\%"};
 
   /**
-   * \brief List of names that cannot be used as section names
+   * @brief List of names that cannot be used as section names
    *
    * These strings have a special meaning inside references and so the
    * section [self] could never be referenced.

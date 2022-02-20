@@ -117,7 +117,7 @@ struct cw_flush {
  * Create X window
  *
  * Example usage:
- * \code cpp
+ * @code cpp
  *   auto win = winspec(m_connection)
  *     << cw_size(100, 200)
  *     << cw_pos(10, -20)
@@ -125,7 +125,7 @@ struct cw_flush {
  *     << cw_class(XCB_WINDOW_CLASS_INPUT_ONLY)
  *     << cw_parent(0x000110a);
  *     << cw_flush(false);
- * \endcode
+ * @endcode
  */
 class winspec {
  public:

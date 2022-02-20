@@ -109,7 +109,7 @@ void builder::node(const string& str) {
 /**
  * Insert text node with specific font index
  *
- * \see builder::node
+ * @see builder::node
  */
 void builder::node(const string& str, int font_index) {
   font(font_index);

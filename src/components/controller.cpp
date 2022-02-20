@@ -288,7 +288,7 @@ void controller::read_events(bool confwatch) {
  * Tries to match the given command to a legacy action string and sends the
  * appropriate new action (and data) to the right module if possible.
  *
- * \returns true iff the given command matches a legacy action string and was
+ * @returns true iff the given command matches a legacy action string and was
  *          successfully forwarded to a module
  */
 bool controller::try_forward_legacy_action(const string& cmd) {

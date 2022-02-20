@@ -46,7 +46,7 @@ namespace cairo {
     // }}}
 
     /**
-     * \see <cairo/cairo.h>
+     * @see <cairo/cairo.h>
      */
     cairo_operator_t str2operator(const string& mode, cairo_operator_t fallback) {
       if (mode.empty()) {
@@ -89,7 +89,7 @@ namespace cairo {
     }
 
     /**
-     * \brief Create a UCS-4 codepoint from a utf-8 encoded string
+     * @brief Create a UCS-4 codepoint from a utf-8 encoded string
      */
     bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list) {
       if (!src) {
@@ -130,7 +130,7 @@ namespace cairo {
     }
 
     /**
-     * \brief Convert a UCS-4 codepoint to a utf-8 encoded string
+     * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
      */
     size_t ucs4_to_utf8(char* utf8, unsigned int ucs) {
       if (ucs <= 0x7f) {

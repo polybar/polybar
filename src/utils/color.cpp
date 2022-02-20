@@ -13,7 +13,7 @@ POLYBAR_NS
  * Colors without alpha channel will get an alpha channel of FF
  * The input does not have to start with '#'
  *
- * \returns Empty string for malformed input, either AA for the alpha only
+ * @returns Empty string for malformed input, either AA for the alpha only
  * input or an 8 character string of the expanded form AARRGGBB
  */
 static string normalize_hex(string hex) {
@@ -166,7 +166,7 @@ rgba rgba::apply_alpha_to(rgba other) const {
  * If this is an ALPHA_ONLY color, applies this alpha channel to the other
  * color, otherwise just returns this.
  *
- * \returns the new color if this is ALPHA_ONLY or a copy of this otherwise.
+ * @returns the new color if this is ALPHA_ONLY or a copy of this otherwise.
  */
 rgba rgba::try_apply_alpha_to(rgba other) const {
   if (m_type == type::ALPHA_ONLY) {
