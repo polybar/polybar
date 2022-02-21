@@ -13,6 +13,8 @@ namespace icccm_util {
   void set_wm_name(xcb_connection_t* c, xcb_window_t w, const char* wmname, size_t l, const char* wmclass, size_t l2);
   void set_wm_protocols(xcb_connection_t* c, xcb_window_t w, vector<xcb_atom_t> flags);
   bool get_wm_urgency(xcb_connection_t* c, xcb_window_t w);
+
+  void set_wm_size_hints(xcb_connection_t* c, xcb_window_t w, int x, int y, int width, int height);
 }
 
 POLYBAR_NS_END

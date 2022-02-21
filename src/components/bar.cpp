@@ -593,6 +593,8 @@ void bar::reconfigure_wm_hints() {
 
   m_log.trace("bar: Set window _NET_WM_PID");
   ewmh_util::set_wm_pid(win);
+
+  icccm_util::set_wm_size_hints(m_connection, win, m_opts.pos.x, m_opts.pos.y, m_opts.size.w, m_opts.size.h);
 }
 
 /**
@@ -871,9 +873,6 @@ void bar::start() {
   // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
   // Notify all components that depend on the absolute bar position (such as the background manager).
   m_sig.emit(signals::ui::update_geometry{});
-
-  // Reconfigure window position after mapping (required by Openbox)
-  reconfigure_pos();
 
   m_log.trace("bar: Draw empty bar");
   m_renderer->begin(m_opts.inner_area());
