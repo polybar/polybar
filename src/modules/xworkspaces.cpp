@@ -73,11 +73,16 @@ namespace modules {
     m_icons = std::make_shared<iconset>();
     m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
+    int i = 0;
     for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
+      } else {
+        m_log.err("%s: Ignoring icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
       }
+
+      i++;
     }
 
     // Get list of monitors
