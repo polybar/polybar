@@ -222,6 +222,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/battery`: More accurate battery state
 ([`#2563`](https://github.com/polybar/polybar/issues/2563))
 - Some modules stop updating when system time moves backwards. ([`#857`](https://github.com/polybar/polybar/issues/857), [`#1932`](https://github.com/polybar/polybar/issues/1932))
+- Broken positioning in Openbox when the bar is hidden and shown again
+  ([`#2021`](https://github.com/polybar/polybar/issues/2021))
 
 ## [3.5.7] - 2021-09-21
 ### Fixed
