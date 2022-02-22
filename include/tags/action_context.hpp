@@ -40,6 +40,8 @@ namespace tags {
 
     /**
      * End position of the action block (exclusive), relative to the alignment.
+     *
+     * May be incrementally updated while the action block is still open
      */
     double end_x{0};
     mousebtn button;
@@ -80,6 +82,20 @@ namespace tags {
     action_t action_open(mousebtn btn, const string&& cmd, alignment align, double x);
     std::pair<action_t, mousebtn> action_close(mousebtn btn, alignment align, double x);
 
+    /**
+     * Compensate for the current position moving backwards in the renderer.
+     *
+     * This can happen if negative offsets are used.
+     *
+     * The policy is that an action block's start is the smallest x position observed while the block is open.
+     * And its end is the largest x position observed while it is open.
+     *
+     * @param a The current alignment
+     * @param old_x The x position before the backwards move
+     * @param new_x The x position after the backwards move new_x < old_x
+     */
+    void compensate_for_negative_move(alignment a, double old_x, double new_x);
+
     void set_alignment_start(const alignment a, const double x);
 
     std::map<mousebtn, tags::action_t> get_actions(int x) const;
@@ -115,6 +131,6 @@ namespace tags {
         {alignment::NONE, 0}, {alignment::LEFT, 0}, {alignment::CENTER, 0}, {alignment::RIGHT, 0}};
   };
 
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END
