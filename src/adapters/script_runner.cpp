@@ -11,7 +11,7 @@
 
 POLYBAR_NS
 
-script_runner::script_runner(std::function<void(void)> on_update, string exec, string exec_if, bool tail,
+script_runner::script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
     interval interval, const vector<pair<string, string>>& env)
     : m_log(logger::make())
     , m_on_update(std::move(on_update))

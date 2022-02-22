@@ -32,7 +32,6 @@ namespace modules {
 
     const bool m_tail;
     const script_runner::interval m_interval{0};
-    const bool m_has_format_fail;
 
     script_runner m_runner;
 

@@ -12,8 +12,8 @@ POLYBAR_NS
 class script_runner {
  public:
   using interval = std::chrono::duration<double>;
-  script_runner(std::function<void(void)> on_update, string exec, string exec_if, bool tail, interval interval,
-      const vector<pair<string, string>>& env);
+  script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
+      interval interval, const vector<pair<string, string>>& env);
 
   bool check_condition() const;
   interval process();
