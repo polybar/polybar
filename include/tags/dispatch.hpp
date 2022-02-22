@@ -31,6 +31,7 @@ namespace tags {
    protected:
     void handle_text(renderer_interface& renderer, string&& data);
     void handle_action(renderer_interface& renderer, mousebtn btn, bool closing, const string&& cmd);
+    void handle_offset(renderer_interface& renderer, extent_val offset);
     void handle_control(controltag ctrl);
 
    private:
@@ -39,6 +40,6 @@ namespace tags {
     unique_ptr<context> m_ctxt;
     action_context& m_action_ctxt;
   };
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

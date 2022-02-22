@@ -224,6 +224,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some modules stop updating when system time moves backwards. ([`#857`](https://github.com/polybar/polybar/issues/857), [`#1932`](https://github.com/polybar/polybar/issues/1932))
 - Broken positioning in Openbox when the bar is hidden and shown again
   ([`#2021`](https://github.com/polybar/polybar/issues/2021))
+- Handling of action blocks that contain negative offsets
+  ([`#1814`](https://github.com/polybar/polybar/issues/1814))
 
 ## [3.5.7] - 2021-09-21
 ### Fixed
