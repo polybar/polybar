@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEBUG_SHADED` cmake variable and its associated functionality.
 
 ### Added
+- `custom/script`: Add formatting for script failure (`format-fail`, `label-fail`) ([`#2588`](https://github.com/polybar/polybar/issues/2588))
 - Support `px` and `pt` units everyhwere where before only a number of spaces
   or pixels could be specified.
   ([`#2578`](https://github.com/polybar/polybar/pull/2578))
