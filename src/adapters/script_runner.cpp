@@ -14,9 +14,9 @@ POLYBAR_NS
 script_runner::script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
     interval interval, const vector<pair<string, string>>& env)
     : m_log(logger::make())
-    , m_on_update(std::move(on_update))
-    , m_exec(std::move(exec))
-    , m_exec_if(std::move(exec_if))
+    , m_on_update(on_update)
+    , m_exec(exec)
+    , m_exec_if(exec_if)
     , m_tail(tail)
     , m_interval(interval)
     , m_env(env) {}
