@@ -36,7 +36,7 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}  // namespace drawtypes
+} // namespace drawtypes
 
 class builder;
 class config;
@@ -67,10 +67,10 @@ namespace modules {
     rgba ol{};
     size_t ulsize{0};
     size_t olsize{0};
-    size_t spacing{0};
-    size_t padding{0};
-    size_t margin{0};
-    int offset{0};
+    spacing_val spacing{ZERO_SPACE};
+    spacing_val padding{ZERO_SPACE};
+    spacing_val margin{ZERO_SPACE};
+    extent_val offset{ZERO_PX_EXTENT};
     int font{0};
 
     string decorate(builder* builder, string output);
@@ -125,7 +125,7 @@ namespace modules {
      * Any implementation is free to ignore the data, if the action does not
      * require additional data.
      *
-     * \returns true if the action is supported and false otherwise
+     * @returns true if the action is supported and false otherwise
      */
     virtual bool input(const string& action, const string& data) = 0;
 
@@ -225,6 +225,6 @@ namespace modules {
   };
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -21,7 +21,7 @@ POLYBAR_NS
 
 namespace cairo {
   /**
-   * \brief Cairo context
+   * @brief Cairo context
    */
   class context {
    public:

@@ -134,11 +134,16 @@ namespace modules {
     m_icons = std::make_shared<iconset>();
     m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
+    int i = 0;
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
+      } else {
+        m_log.err("%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
       }
+
+      i++;
     }
   }
 
@@ -387,7 +392,7 @@ namespace modules {
     string output;
     for (m_index = 0U; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
-        m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        m_builder->spacing(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
       output += this->event_module::get_output();
     }

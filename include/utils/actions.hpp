@@ -20,11 +20,11 @@ namespace actions_util {
    *
    * Only call this function with an action string that begins with '#'.
    *
-   * \returns a triple (name, action, data)
+   * @returns a triple (name, action, data)
    *          If no data exists, the third string will be empty.
    *          This means "#name.action." and "#name.action" will be produce the
    *          same result.
-   * \throws runtime_error If the action string is malformed
+   * @throws runtime_error If the action string is malformed
    */
   action parse_action_string(string action);
 }  // namespace actions_util

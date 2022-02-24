@@ -60,6 +60,10 @@ int script_runner::get_counter() const {
   return m_counter;
 }
 
+int script_runner::get_exit_status() const {
+  return m_exit_status;
+}
+
 string script_runner::get_output() {
   std::lock_guard<std::mutex> guard(m_output_lock);
   return m_output;
@@ -74,7 +78,7 @@ bool script_runner::is_stopping() const {
  *
  * Returns true if the output changed.
  */
-bool script_runner::set_output(const string&& new_output) {
+bool script_runner::set_output(string&& new_output) {
   std::lock_guard<std::mutex> guard(m_output_lock);
 
   if (m_output != new_output) {
@@ -98,16 +102,16 @@ script_runner::interval script_runner::run() {
     throw modules::module_error("Failed to execute command, stopping module...");
   }
 
-  int status = cmd->get_exit_status();
+  m_exit_status = cmd->get_exit_status();
   int fd = cmd->get_stdout(PIPE_READ);
   assert(fd != -1);
   bool changed = io_util::poll_read(fd) && set_output(cmd->readline());
 
-  if (!changed && status != 0) {
+  if (!changed && m_exit_status != 0) {
     clear_output();
   }
 
-  if (status == 0) {
+  if (m_exit_status == 0) {
     return m_interval;
   } else {
     return std::max(m_interval, interval{1s});
@@ -142,7 +146,7 @@ script_runner::interval script_runner::run_tail() {
     return 0s;
   }
 
-  bool exit_status = cmd->wait();
+  auto exit_status = cmd->wait();
 
   if (exit_status == 0) {
     return m_interval;

@@ -16,6 +16,8 @@ namespace modules {
     void stop() override;
 
     string get_output();
+    string get_format() const;
+
     bool build(builder* builder, const string& tag) const;
 
     static constexpr auto TYPE = "custom/script";
@@ -24,7 +26,9 @@ namespace modules {
     bool check_condition();
 
    private:
-    static constexpr const char* TAG_LABEL{"<label>"};
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_LABEL_FAIL = "<label-fail>";
+    static constexpr auto FORMAT_FAIL = "format-fail";
 
     const bool m_tail;
     const script_runner::interval m_interval{0};
@@ -34,6 +38,7 @@ namespace modules {
     map<mousebtn, string> m_actions;
 
     label_t m_label;
+    label_t m_label_fail;
   };
 }  // namespace modules
 

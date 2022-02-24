@@ -42,6 +42,9 @@ namespace tags {
         continue;
       }
 
+      alignment old_alignment = m_ctxt->get_alignment();
+      double old_x = old_alignment == alignment::NONE ? 0 : renderer.get_x(*m_ctxt);
+
       if (el.is_tag) {
         switch (el.tag_data.type) {
           case tags::tag_type::FORMAT:
@@ -59,7 +62,7 @@ namespace tags {
                 m_ctxt->apply_font(el.tag_data.font);
                 break;
               case tags::syntaxtag::O:
-                renderer.render_offset(*m_ctxt, el.tag_data.offset);
+                handle_offset(renderer, el.tag_data.offset);
                 break;
               case tags::syntaxtag::R:
                 m_ctxt->apply_reverse();
@@ -96,6 +99,13 @@ namespace tags {
         }
       } else {
         handle_text(renderer, std::move(el.data));
+      }
+
+      if (old_alignment == m_ctxt->get_alignment()) {
+        double new_x = renderer.get_x(*m_ctxt);
+        if (new_x < old_x) {
+          m_action_ctxt.compensate_for_negative_move(old_alignment, old_x, new_x);
+        }
       }
     }
 
@@ -136,6 +146,10 @@ namespace tags {
     }
   }
 
+  void dispatch::handle_offset(renderer_interface& renderer, extent_val offset) {
+    renderer.render_offset(*m_ctxt, offset);
+  }
+
   void dispatch::handle_control(controltag ctrl) {
     switch (ctrl) {
       case controltag::R:
@@ -146,6 +160,6 @@ namespace tags {
     }
   }
 
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <atomic>
 #include <mutex>
 #include <queue>
 
@@ -29,7 +28,7 @@ class logger;
 class signal_emitter;
 namespace modules {
   struct module_interface;
-}  // namespace modules
+} // namespace modules
 using module_t = shared_ptr<modules::module_interface>;
 using modulemap_t = std::map<alignment, vector<module_t>>;
 // }}}
@@ -103,7 +102,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   bool m_has_ipc;
 
   /**
-   * \brief Async handle to notify the eventloop
+   * @brief Async handle to notify the eventloop
    *
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
    * E.g. click actions.
@@ -118,34 +117,34 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   notifications_t m_notifications{};
 
   /**
-   * \brief Protected m_notifications.
+   * @brief Protected m_notifications.
    *
    * All accesses to m_notifications must hold this mutex.
    */
   std::mutex m_notification_mutex{};
 
   /**
-   * \brief Destination path of generated snapshot
+   * @brief Destination path of generated snapshot
    */
   string m_snapshot_dst;
 
   /**
-   * \brief Controls weather the output gets printed to stdout
+   * @brief Controls weather the output gets printed to stdout
    */
   bool m_writeback{false};
 
   /**
-   * \brief Loaded modules
+   * @brief Loaded modules
    */
   vector<module_t> m_modules;
 
   /**
-   * \brief Loaded modules grouped by block
+   * @brief Loaded modules grouped by block
    */
   modulemap_t m_blocks;
 
   /**
-   * \brief Flag to trigger reload after shutdown
+   * @brief Flag to trigger reload after shutdown
    */
   bool m_reload{false};
 };

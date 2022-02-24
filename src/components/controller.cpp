@@ -288,7 +288,7 @@ void controller::read_events(bool confwatch) {
  * Tries to match the given command to a legacy action string and sends the
  * appropriate new action (and data) to the right module if possible.
  *
- * \returns true iff the given command matches a legacy action string and was
+ * @returns true iff the given command matches a legacy action string and was
  *          successfully forwarded to a module
  */
 bool controller::try_forward_legacy_action(const string& cmd) {
@@ -465,10 +465,10 @@ void controller::process_inputdata(string&& cmd) {
 bool controller::process_update(bool force) {
   const bar_settings& bar{m_bar->settings()};
   string contents;
-  string padding_left(bar.padding.left, ' ');
-  string padding_right(bar.padding.right, ' ');
-  string margin_left(bar.module_margin.left, ' ');
-  string margin_right(bar.module_margin.right, ' ');
+  string padding_left = builder::get_spacing_format_string(bar.padding.left);
+  string padding_right = builder::get_spacing_format_string(bar.padding.right);
+  string margin_left = builder::get_spacing_format_string(bar.module_margin.left);
+  string margin_right = builder::get_spacing_format_string(bar.module_margin.right);
 
   builder build{bar};
   build.node(bar.separator);

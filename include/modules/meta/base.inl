@@ -197,48 +197,89 @@ namespace modules {
     std::lock_guard<std::mutex> guard(m_buildlock);
     auto format_name = CONST_MOD(Impl).get_format();
     auto format = m_formatter->get(format_name);
-    bool no_tag_built{true};
-    bool fake_no_tag_built{false};
-    bool tag_built{false};
-    auto mingap = std::max(1_z, format->spacing);
-    size_t start, end;
-    string value{format->value};
-    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
-      if (start > 0) {
-        if (no_tag_built) {
-          // If no module tag has been built we do not want to add
-          // whitespace defined between the format tags, but we do still
-          // want to output other non-tag content
-          auto trimmed = string_util::ltrim(value.substr(0, start), ' ');
-          if (!trimmed.empty()) {
-            fake_no_tag_built = false;
-            m_builder->node(move(trimmed));
-          }
-        } else {
-          m_builder->node(value.substr(0, start));
+
+    /*
+     * Builder for building individual tags isolated, so that we can
+     */
+    builder tag_builder(m_bar);
+
+    // Whether any tags have been processed yet
+    bool has_tags = false;
+
+    // Cursor pointing into 'value'
+    size_t cursor = 0;
+    const string& value{format->value};
+
+    /*
+     * Search for all tags in the format definition. A tag is enclosed in '<' and '>'.
+     * Each tag is given to the module to produce some output for it. All other text is added as-is.
+     */
+    while (cursor < value.size()) {
+      // Check if there are any tags left
+
+      // Start index of next tag
+      size_t start = value.find('<', cursor);
+
+      if (start == string::npos) {
+        break;
+      }
+
+      // End index (inclusive) of next tag
+      size_t end = value.find('>', start + 1);
+
+      if (end == string::npos) {
+        break;
+      }
+
+      // Potential regular text that appears before the tag.
+      string non_tag;
+
+      // There is some non-tag text
+      if (start > cursor) {
+        /*
+         * Produce anything between the previous and current tag as regular text.
+         */
+        non_tag = value.substr(cursor, start - cursor);
+        if (!has_tags) {
+          /*
+           * If no module tag has been built we do not want to add
+           * whitespace defined between the format tags, but we do still
+           * want to output other non-tag content
+           */
+          non_tag = string_util::ltrim(move(non_tag), ' ');
         }
-        value.erase(0, start);
-        end -= start;
-        start = 0;
       }
-      string tag{value.substr(start, end + 1)};
-      if (tag.empty()) {
-        continue;
-      } else if (tag[0] == '<' && tag[tag.size() - 1] == '>') {
-        if (!no_tag_built)
-          m_builder->space(format->spacing);
-        else if (fake_no_tag_built)
-          no_tag_built = false;
-        if (!(tag_built = CONST_MOD(Impl).build(m_builder.get(), tag)) && !no_tag_built)
-          m_builder->remove_trailing_space(mingap);
-        if (tag_built)
-          no_tag_built = false;
+
+      string tag = value.substr(start, end - start + 1);
+      bool tag_built = CONST_MOD(Impl).build(&tag_builder, tag);
+      string tag_content = tag_builder.flush();
+
+      /*
+       * Remove exactly one space between two tags if the second tag was not built.
+       */
+      if (!tag_built && has_tags && !format->spacing) {
+        if (!non_tag.empty() && non_tag.back() == ' ') {
+          non_tag.erase(non_tag.size() - 1);
+        }
       }
-      value.erase(0, tag.size());
+
+      m_builder->node(non_tag);
+
+      if (tag_built) {
+        if (has_tags) {
+          // format-spacing is added between all tags
+          m_builder->spacing(format->spacing);
+        }
+
+        m_builder->append(tag_content);
+        has_tags = true;
+      }
+
+      cursor = end + 1;
     }
 
-    if (!value.empty()) {
-      m_builder->append(value);
+    if (cursor < value.size()) {
+      m_builder->append(value.substr(cursor));
     }
 
     return format->decorate(&*m_builder, m_builder->flush());
@@ -267,6 +308,6 @@ namespace modules {
   }
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -14,6 +14,7 @@
 #include "utils/math.hpp"
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
+#include "utils/units.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
@@ -146,30 +147,23 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   m_opts.spacing += conf.get<unsigned int>(bs, "tray-padding", 0);
 
   // Add user-defiend offset
-  auto offset_x_def = conf.get(bs, "tray-offset-x", ""s);
-  auto offset_y_def = conf.get(bs, "tray-offset-y", ""s);
+  auto offset_x = conf.get(bs, "tray-offset-x", percentage_with_offset{});
+  auto offset_y = conf.get(bs, "tray-offset-y", percentage_with_offset{});
 
-  auto offset_x = strtol(offset_x_def.c_str(), nullptr, 10);
-  auto offset_y = strtol(offset_y_def.c_str(), nullptr, 10);
+  int max_x;
+  int max_y;
 
-  if (offset_x != 0 && offset_x_def.find('%') != string::npos) {
-    if (m_opts.detached) {
-      offset_x = math_util::signed_percentage_to_value<int>(offset_x, bar_opts.monitor->w);
-    } else {
-      offset_x = math_util::signed_percentage_to_value<int>(offset_x, inner_area.width);
-    }
+  if (m_opts.detached) {
+    max_x = bar_opts.monitor->w;
+    max_y = bar_opts.monitor->h;
+  } else {
+    max_x = inner_area.width;
+    max_y = inner_area.height;
   }
 
-  if (offset_y != 0 && offset_y_def.find('%') != string::npos) {
-    if (m_opts.detached) {
-      offset_y = math_util::signed_percentage_to_value<int>(offset_y, bar_opts.monitor->h);
-    } else {
-      offset_y = math_util::signed_percentage_to_value<int>(offset_y, inner_area.height);
-    }
-  }
-
-  m_opts.orig_x += offset_x;
-  m_opts.orig_y += offset_y;
+  m_opts.orig_x += units_utils::percentage_with_offset_to_pixel(offset_x, max_x, bar_opts.dpi_x);
+  m_opts.orig_y += units_utils::percentage_with_offset_to_pixel(offset_y, max_y, bar_opts.dpi_y);
+  ;
   m_opts.rel_x = m_opts.orig_x - bar_opts.pos.x;
   m_opts.rel_y = m_opts.orig_y - bar_opts.pos.y;
 
@@ -662,10 +656,10 @@ void tray_manager::set_tray_colors() {
   const uint16_t b16 = (b << 8) | b;
 
   const uint32_t colors[12] = {
-      r16, g16, b16,  // normal
-      r16, g16, b16,  // error
-      r16, g16, b16,  // warning
-      r16, g16, b16,  // success
+      r16, g16, b16, // normal
+      r16, g16, b16, // error
+      r16, g16, b16, // warning
+      r16, g16, b16, // success
   };
 
   m_connection.change_property(
@@ -975,7 +969,7 @@ void tray_manager::handle(const evt::configure_request& evt) {
 }
 
 /**
- * \see tray_manager::handle(const evt::configure_request&);
+ * @see tray_manager::handle(const evt::configure_request&);
  */
 void tray_manager::handle(const evt::resize_request& evt) {
   if (m_activated && is_embedded(evt->window)) {

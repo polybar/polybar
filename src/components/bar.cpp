@@ -14,6 +14,7 @@
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
+#include "utils/units.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/ewmh.hpp"
@@ -157,7 +158,39 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
+  // Configure DPI
+  {
+    double dpi_x = 96, dpi_y = 96;
+    if (m_conf.has(m_conf.section(), "dpi")) {
+      dpi_x = dpi_y = m_conf.get<double>("dpi");
+    } else {
+      if (m_conf.has(m_conf.section(), "dpi-x")) {
+        dpi_x = m_conf.get<double>("dpi-x");
+      }
+      if (m_conf.has(m_conf.section(), "dpi-y")) {
+        dpi_y = m_conf.get<double>("dpi-y");
+      }
+    }
+
+    // dpi to be computed
+    if (dpi_x <= 0 || dpi_y <= 0) {
+      auto screen = m_connection.screen();
+      if (dpi_x <= 0) {
+        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
+      }
+      if (dpi_y <= 0) {
+        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
+      }
+    }
+
+    m_opts.dpi_x = dpi_x;
+    m_opts.dpi_y = dpi_y;
+
+    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
+  }
+
   // Load configuration values
+
   m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
@@ -171,11 +204,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
   m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
-  auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
+  auto padding = m_conf.get(bs, "padding", ZERO_SPACE);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
   m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
 
-  auto margin = m_conf.get<unsigned int>(bs, "module-margin", 0U);
+  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACE);
   m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
   m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
 
@@ -186,8 +219,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load values used to adjust the struts atom
-  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0);
-  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0);
+  auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
+  auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
+  m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -240,44 +275,51 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = m_conf.get(bs, "line-size", 0);
+  auto line_size = m_conf.get(bs, "line-size", ZERO_PX_EXTENT);
 
-  m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
+  auto overline_size = m_conf.get(bs, "overline-size", line_size);
+  auto underline_size = m_conf.get(bs, "underline-size", line_size);
+
+  m_opts.overline.size = units_utils::extent_to_pixel_nonnegative(overline_size, m_opts.dpi_y);
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
+  m_opts.underline.size = units_utils::extent_to_pixel_nonnegative(underline_size, m_opts.dpi_y);
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_size = m_conf.get(bs, "border-size", percentage_with_offset{});
   auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
   auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
   auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
   auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
+  m_opts.borders[edge::TOP].size =
+      units_utils::percentage_with_offset_to_pixel(border_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
+  m_opts.borders[edge::BOTTOM].size =
+      units_utils::percentage_with_offset_to_pixel(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
+  m_opts.borders[edge::LEFT].size =
+      units_utils::percentage_with_offset_to_pixel(border_left, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
+  m_opts.borders[edge::RIGHT].size =
+      units_utils::percentage_with_offset_to_pixel(border_right, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
-  auto w = m_conf.get(m_conf.section(), "width", "100%"s);
-  auto h = m_conf.get(m_conf.section(), "height", "24"s);
-  auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
-  auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
+  auto w = m_conf.get(m_conf.section(), "width", percentage_with_offset{100.});
+  auto h = m_conf.get(m_conf.section(), "height", percentage_with_offset{0., {extent_type::PIXEL, 24}});
+  auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
+  auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
 
-  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w);
-  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h);
-  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w);
-  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h);
+  m_opts.size.w = units_utils::percentage_with_offset_to_pixel(w, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.size.h = units_utils::percentage_with_offset_to_pixel(h, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.offset.x = units_utils::percentage_with_offset_to_pixel(offsetx, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.offset.y = units_utils::percentage_with_offset_to_pixel(offsety, m_opts.monitor->h, m_opts.dpi_y);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;
@@ -324,8 +366,8 @@ const bar_settings bar::settings() const {
 /**
  * Parse input string and redraw the bar window
  *
- * \param data Input string
- * \param force Unless true, do not parse unchanged data
+ * @param data Input string
+ * @param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
   bool unchanged = data == m_lastinput;
@@ -551,6 +593,8 @@ void bar::reconfigure_wm_hints() {
 
   m_log.trace("bar: Set window _NET_WM_PID");
   ewmh_util::set_wm_pid(win);
+
+  icccm_util::set_wm_size_hints(m_connection, win, m_opts.pos.x, m_opts.pos.y, m_opts.size.w, m_opts.size.h);
 }
 
 /**
@@ -829,9 +873,6 @@ void bar::start() {
   // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
   // Notify all components that depend on the absolute bar position (such as the background manager).
   m_sig.emit(signals::ui::update_geometry{});
-
-  // Reconfigure window position after mapping (required by Openbox)
-  reconfigure_pos();
 
   m_log.trace("bar: Draw empty bar");
   m_renderer->begin(m_opts.inner_area());

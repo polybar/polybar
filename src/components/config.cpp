@@ -1,13 +1,16 @@
 #include "components/config.hpp"
 
 #include <climits>
+#include <cmath>
 #include <fstream>
 
 #include "cairo/utils.hpp"
+#include "components/types.hpp"
 #include "utils/color.hpp"
 #include "utils/env.hpp"
 #include "utils/factory.hpp"
 #include "utils/string.hpp"
+#include "utils/units.hpp"
 
 POLYBAR_NS
 
@@ -215,6 +218,38 @@ template <>
 unsigned long long config::convert(string&& value) const {
   unsigned long long v{std::strtoull(value.c_str(), nullptr, 10)};
   return v < ULLONG_MAX ? v : 0ULL;
+}
+
+template <>
+spacing_val config::convert(string&& value) const {
+  return units_utils::parse_spacing(value);
+}
+
+template <>
+extent_val config::convert(std::string&& value) const {
+  return units_utils::parse_extent(value);
+}
+
+/**
+ * Allows a new format for pixel sizes (like width in the bar section)
+ *
+ * The new format is X%:Z, where X is in [0, 100], and Z is any real value
+ * describing a pixel offset. The actual value is calculated by X% * max + Z
+ */
+template <>
+percentage_with_offset config::convert(string&& value) const {
+  size_t i = value.find(':');
+
+  if (i == std::string::npos) {
+    if (value.find('%') != std::string::npos) {
+      return {std::stod(value), {}};
+    } else {
+      return {0., convert<extent_val>(move(value))};
+    }
+  } else {
+    std::string percentage = value.substr(0, i - 1);
+    return {std::stod(percentage), convert<extent_val>(value.substr(i + 1))};
+  }
 }
 
 template <>

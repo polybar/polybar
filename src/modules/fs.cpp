@@ -143,7 +143,7 @@ namespace modules {
        * are not empty and there is already other content in the module.
        */
       if (!output.empty() && !mount_output.empty()) {
-        m_builder->space(m_spacing);
+        m_builder->spacing(m_spacing);
         output += m_builder->flush();
       }
       output += mount_output;

@@ -76,10 +76,10 @@ namespace eventloop {
     /**
      * Generic callback function that can be used for all uv handle callbacks.
      *
-     * \tparam Event Event class/struct. Must have a constructor that takes all arguments passed to the uv callback,
+     * @tparam Event Event class/struct. Must have a constructor that takes all arguments passed to the uv callback,
      * except for the handle argument.
-     * \tparam Member Pointer to class member where callback function is stored
-     * \tparam Args Additional arguments in the uv callback. Inferred by the compiler
+     * @tparam Member Pointer to class member where callback function is stored
+     * @tparam Args Additional arguments in the uv callback. Inferred by the compiler
      */
     template <typename Event, cb_event<Event> Self::*Member, typename... Args>
     static void event_cb(H* handle, Args... args) {

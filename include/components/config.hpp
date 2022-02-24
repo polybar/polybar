@@ -36,7 +36,7 @@ class config {
   static constexpr const char* BAR_PREFIX = "bar/";
 
   /**
-   * \brief Instruct the config to connect to the xresource manager
+   * @brief Instruct the config to connect to the xresource manager
    */
   void use_xrm();
 
@@ -107,7 +107,7 @@ class config {
       return dereference<T>(move(section), move(key), move(string_value), move(result));
     } catch (const key_error& err) {
       return default_value;
-    } catch (const value_error& err) {
+    } catch (const std::exception& err) {
       m_log.err("Invalid value for \"%s.%s\", using default value (reason: %s)", section, key, err.what());
       return default_value;
     }
@@ -196,7 +196,7 @@ class config {
         }
       } catch (const key_error& err) {
         break;
-      } catch (const value_error& err) {
+      } catch (const std::exception& err) {
         m_log.err("Invalid value in list \"%s.%s\", using list as-is (reason: %s)", section, key, err.what());
         return default_value;
       }
@@ -229,7 +229,7 @@ class config {
   }
 
   /**
-   * \see deprecated<T>
+   * @see deprecated<T>
    */
   template <typename T = string>
   T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {

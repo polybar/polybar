@@ -1,8 +1,6 @@
 #pragma once
 
-#include <atomic>
 #include <cstdlib>
-#include <mutex>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
@@ -30,28 +28,6 @@ namespace tags {
   class dispatch;
 }
 // }}}
-
-/**
- * Allows a new format for pixel sizes (like width in the bar section)
- *
- * The new format is X%:Z, where X is in [0, 100], and Z is any real value
- * describing a pixel offset. The actual value is calculated by X% * max + Z
- */
-inline double geom_format_to_pixels(std::string str, double max) {
-  size_t i;
-  if ((i = str.find(':')) != std::string::npos) {
-    std::string a = str.substr(0, i - 1);
-    std::string b = str.substr(i + 1);
-    return std::max<double>(
-        0, math_util::percentage_to_value<double>(strtod(a.c_str(), nullptr), max) + strtod(b.c_str(), nullptr));
-  } else {
-    if (str.find('%') != std::string::npos) {
-      return math_util::percentage_to_value<double>(strtod(str.c_str(), nullptr), max);
-    } else {
-      return strtod(str.c_str(), nullptr);
-    }
-  }
-}
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message, evt::configure_notify>,

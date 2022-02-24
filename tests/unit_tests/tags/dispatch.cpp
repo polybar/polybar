@@ -15,11 +15,17 @@ using ::testing::Property;
 using ::testing::Return;
 using ::testing::Truly;
 
+namespace polybar {
+  inline bool operator==(const extent_val& a, const extent_val& b) {
+    return a.type == b.type && a.value == b.value;
+  }
+} // namespace polybar
+
 class MockRenderer : public renderer_interface {
  public:
   MockRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt){};
 
-  MOCK_METHOD(void, render_offset, (const context& ctxt, int pixels), (override));
+  MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
   MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
   MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
@@ -53,7 +59,7 @@ class DispatchTest : public ::testing::Test {
 TEST_F(DispatchTest, ignoreFormatting) {
   {
     InSequence seq;
-    EXPECT_CALL(r, render_offset(_, 10)).Times(1);
+    EXPECT_CALL(r, render_offset(_, extent_val{extent_type::PIXEL, 10})).Times(1);
     EXPECT_CALL(r, render_text(_, string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(_, string{"foo"})).Times(1);
   }
@@ -74,7 +80,7 @@ TEST_F(DispatchTest, formatting) {
 
   {
     InSequence seq;
-    EXPECT_CALL(r, render_offset(_, 10)).Times(1);
+    EXPECT_CALL(r, render_offset(_, extent_val{extent_type::PIXEL, 10})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(c1), string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(bar_fg), string{"foo"})).Times(1);
     EXPECT_CALL(r, change_alignment(match_left_align)).Times(1);
@@ -129,7 +135,19 @@ TEST_F(DispatchTest, unclosedActions) {
 TEST_F(DispatchTest, actions) {
   {
     InSequence seq;
+    // Called for 'foo'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
     EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    // Called for '%{A1:cmd:}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    // Called for 'bar'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
+    // Called for '%{A}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
     EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
   }
 
@@ -144,6 +162,126 @@ TEST_F(DispatchTest, actions) {
 
   EXPECT_EQ(3, blk.start_x);
   EXPECT_EQ(6, blk.end_x);
+  EXPECT_EQ(alignment::LEFT, blk.align);
+  EXPECT_EQ(mousebtn::LEFT, blk.button);
+  EXPECT_EQ("cmd", blk.cmd);
+}
+
+TEST_F(DispatchTest, actionOffsetStart) {
+  {
+    InSequence seq;
+    // Called for 'a'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{A1:cmd:}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{O-1}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
+    // Called for 'bar'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    // Called for '%{A}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
+  }
+
+  bar_settings settings;
+  m_dispatch->parse(settings, r, "%{l}a%{A1:cmd:}%{O-1}bar%{A}");
+
+  const auto& actions = m_action_ctxt->get_blocks();
+
+  ASSERT_EQ(1, actions.size());
+
+  const auto& blk = actions[0];
+
+  EXPECT_EQ(0, blk.start_x);
+  EXPECT_EQ(3, blk.end_x);
+  EXPECT_EQ(alignment::LEFT, blk.align);
+  EXPECT_EQ(mousebtn::LEFT, blk.button);
+  EXPECT_EQ("cmd", blk.cmd);
+}
+
+TEST_F(DispatchTest, actionOffsetEnd) {
+  {
+    InSequence seq;
+    // Called for 'a'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{A1:cmd:}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for 'bar'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
+    // Called for '%{O-3}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{A}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+  }
+
+  bar_settings settings;
+  m_dispatch->parse(settings, r, "%{l}a%{A1:cmd:}bar%{O-3}%{A}");
+
+  const auto& actions = m_action_ctxt->get_blocks();
+
+  ASSERT_EQ(1, actions.size());
+
+  const auto& blk = actions[0];
+
+  EXPECT_EQ(1, blk.start_x);
+  EXPECT_EQ(4, blk.end_x);
+  EXPECT_EQ(alignment::LEFT, blk.align);
+  EXPECT_EQ(mousebtn::LEFT, blk.button);
+  EXPECT_EQ("cmd", blk.cmd);
+}
+
+TEST_F(DispatchTest, actionOffsetBefore) {
+  {
+    InSequence seq;
+    // Called for 'a'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{O100}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(101));
+    // Called for '%{O-100}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(101));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{A1:cmd:}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for 'bar'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
+    // Called for '%{O-3}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    // Called for '%{A}'
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
+  }
+
+  bar_settings settings;
+  m_dispatch->parse(settings, r, "%{l}%{O100 O-100}a%{A1:cmd:}bar%{O-3}%{A}");
+
+  const auto& actions = m_action_ctxt->get_blocks();
+
+  ASSERT_EQ(1, actions.size());
+
+  const auto& blk = actions[0];
+
+  EXPECT_EQ(1, blk.start_x);
+  EXPECT_EQ(4, blk.end_x);
   EXPECT_EQ(alignment::LEFT, blk.align);
   EXPECT_EQ(mousebtn::LEFT, blk.button);
   EXPECT_EQ("cmd", blk.cmd);

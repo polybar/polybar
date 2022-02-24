@@ -19,7 +19,9 @@ class rgba {
 
   operator string() const;
   operator uint32_t() const;
+  operator bool() const;
   bool operator==(const rgba& other) const;
+  bool operator!=(const rgba& other) const;
 
   uint32_t value() const;
   type get_type() const;

@@ -16,12 +16,12 @@ POLYBAR_NS
 
 namespace cairo {
   /**
-   * \brief Global pointer to the Freetype library handler
+   * @brief Global pointer to the Freetype library handler
    */
   static FT_Library g_ftlib;
 
   /**
-   * \brief Abstract font face
+   * @brief Abstract font face
    */
   class font {
    public:
@@ -52,7 +52,7 @@ namespace cairo {
   };
 
   /**
-   * \brief Font based on fontconfig/freetype
+   * @brief Font based on fontconfig/freetype
    */
   class font_fc : public font {
    public:
