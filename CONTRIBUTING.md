@@ -59,6 +59,7 @@ unless someone else has already claimed them:
 * [confirmed](https://github.com/polybar/polybar/labels/confirmed)
 * [good first issue](https://github.com/polybar/polybar/labels/good%20first%20issue)
 * [help wanted](https://github.com/polybar/polybar/labels/help%20wanted)
+* [hacktoberfest](https://github.com/polybar/polybar/labels/Hacktoberfest) (can also be worked on outside of October :wink:)
 
 For anything else, it's a good idea to first comment under the issue to ask
 whether it is something that can/should be worked on right now.
@@ -104,21 +105,30 @@ and some things may be harder/impossible to test right now.
 
 ### Changelog
 
-If your PR introduces notable changes to polybar, please add them to the top of
-the `Unreleased` section in the `CHANGELOG.md` file at the root of this
-repository.
+We use the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format for
+keeping track of changes in a release.
+
+If your PR introduces notable changes to polybar, please add them the correct
+subsection in the `Unreleased` section in the `CHANGELOG.md` file at the root
+of this repository.
 Notable changes are any user-visible changes, like bug fixes, new config
 options, changes to the build, etc., but not, for example, code cleanup that
 doesn't change polybar's behavior or minor documentation changes.
 One thing that also should not be added to the changelog are bugfixes for
 unreleased features.
 
-Also add a reference to all issues that this PR addresses in parentheses behind
-the changelog entry:
+An entry in the changelog should include a link to the issue(s) that the PR
+addresses, to the PR itself, and to your username:
 
 ```
-[`#1234`](https://github.com/polybar/polybar/issues/1234)
+- A short description of the change
+  ([`#XYZ`](https://github.com/polybar/polybar/issues/XYZ),
+  [`#UVW`](https://github.com/polybar/polybar/pull/UVW))
+  by [@yourname](https://github.com/yourname).
 ```
+
+You will first need to open the PR before you can link to it though :wink:.
+
 
 If you are unsure whether something is a notable change, just add it to the
 changelog and we can determine whether it is a notable change when reviewing.
