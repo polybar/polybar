@@ -114,6 +114,7 @@ as follows:
 * A draft PR is opened for the release branch. This PR MUST NOT be merged in
   GitHub's interface, it is only here for review, merging happens at the
   commandline.
+* A `draft release`_ is created in GitHub's release publishing tools
 * After approval, the GitHub release publishing tool is used to publish the
   release and tag the tip of the release branch (the release commit).
 * After the tag is created, the release branch is manually merged into
@@ -186,6 +187,20 @@ Since major releases generally break backwards compatibility in some way, their
 changelog should also prominently feature precisely what breaking changes were
 introduced. If suitable, maybe even separate documentation dedicated to the
 migration should be written.
+
+Draft Release
+~~~~~~~~~~~~~
+
+On `GitHub <https://github.com/polybar/polybar/releases/new>`_ a new release
+should be drafted.
+The release targets the tip of the release branch (the release commit), the
+name of the release and the tag is simply the release number.
+
+The content of the release message should contain the changelog copied from
+``CHANGELOG.md`` under the heading ``## Changelog``.
+In addition using GitHub's "Auto-generate release notes" feature, the list of
+new contributors should be generated and put at the end of the release notes.
+The generated list of PRs can be removed.
 
 After-Release Checklist
 ~~~~~~~~~~~~~~~~~~~~~~~
