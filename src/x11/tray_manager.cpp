@@ -110,14 +110,14 @@ void tray_manager::setup() {
 
   m_opts.width_max = m_bar_opts.size.w;
   m_opts.width = m_opts.height;
-  m_opts.orig_y = m_bar_opts.pos.y + m_bar_opts.borders.at(edge::TOP).size;
+  m_opts.orig_y = m_bar_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
   auto scale = conf.get(bs, "tray-scale", 1.0);
   m_opts.width *= scale;
   m_opts.height_fill *= scale;
 
-  auto inner_area = m_bar_opts.inner_area(true);
+  auto inner_area = m_bar_opts.inner_area();
 
   switch (m_opts.align) {
     case alignment::NONE:
@@ -167,8 +167,7 @@ void tray_manager::setup() {
   m_opts.orig_x += units_utils::percentage_with_offset_to_pixel(offset_x, max_x, m_bar_opts.dpi_x);
   m_opts.orig_y += units_utils::percentage_with_offset_to_pixel(offset_y, max_y, m_bar_opts.dpi_y);
 
-  // Put the tray next to the bar in the window stack
-  m_opts.sibling = m_bar_opts.window;
+  m_opts.bar_window = bar_opts.window;
 
   // Activate the tray manager
   query_atom();
@@ -199,7 +198,6 @@ void tray_manager::activate() {
   try {
     create_window();
     create_bg();
-    restack_window();
     set_wm_hints();
     set_tray_colors();
   } catch (const exception& err) {
@@ -484,7 +482,8 @@ void tray_manager::create_window() {
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
         |XCB_EVENT_MASK_STRUCTURE_NOTIFY
         |XCB_EVENT_MASK_EXPOSURE)
-    << cw_params_override_redirect(true);
+    << cw_params_override_redirect(true)
+    << cw_parent(m_opts.bar_window);
   // clang-format on
 
   if (!m_opts.transparent) {
@@ -522,7 +521,8 @@ void tray_manager::create_bg() {
   if (!m_pixmap) {
     try {
       m_pixmap = m_connection.generate_id();
-      m_connection.create_pixmap_checked(m_connection.screen()->root_depth, m_pixmap, m_tray, w, h);
+      // TODO get depth from bar window
+      m_connection.create_pixmap_checked(32, m_pixmap, m_tray, w, h);
     } catch (const exception& err) {
       return m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
     }
@@ -562,32 +562,6 @@ void tray_manager::create_bg() {
     m_connection.change_window_attributes_checked(m_tray, XCB_CW_BACK_PIXMAP, &m_pixmap);
   } catch (const exception& err) {
     m_log.err("Failed to set tray window back pixmap (%s)", err.what());
-  }
-}
-
-/**
- * Put tray window above the defined sibling in the window stack
- */
-void tray_manager::restack_window() {
-  if (m_opts.sibling == XCB_NONE) {
-    return;
-  }
-
-  try {
-    m_log.trace("tray: Restacking tray window");
-
-    unsigned int mask = 0;
-    unsigned int values[7];
-    xcb_params_configure_window_t params{};
-
-    XCB_AUX_ADD_PARAM(&mask, &params, sibling, m_opts.sibling);
-    XCB_AUX_ADD_PARAM(&mask, &params, stack_mode, XCB_STACK_MODE_ABOVE);
-
-    connection::pack_values(mask, &params, values);
-    m_connection.configure_window_checked(m_tray, mask, values);
-  } catch (const exception& err) {
-    auto id = m_connection.id(m_opts.sibling);
-    m_log.err("tray: Failed to put tray above %s in the stack (%s)", id, err.what());
   }
 }
 
@@ -752,6 +726,9 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     m_log.trace("tray: Add client window to the save set");
     m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client->window());
 
+    // TODO properly support tray icon backgrounds
+    auto p = XCB_BACK_PIXMAP_NONE;
+    m_connection.change_window_attributes_checked(client->window(), XCB_CW_BACK_PIXMAP, &p);
     m_log.trace("tray: Reparent client");
     m_connection.reparent_window_checked(
         client->window(), m_tray, calculate_client_x(client->window()), calculate_client_y());

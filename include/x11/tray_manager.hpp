@@ -52,12 +52,13 @@ struct tray_settings {
   unsigned int height{0U};
   unsigned int height_fill{0U};
   unsigned int spacing{0U};
-  unsigned int sibling{0U};
   rgba background{};
   rgba foreground{};
   bool transparent{false};
   bool detached{false};
   bool adaptive{false};
+
+  xcb_window_t bar_window;
 };
 
 class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
@@ -92,7 +93,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void query_atom();
   void create_window();
   void create_bg();
-  void restack_window();
   void set_wm_hints();
   void set_tray_colors();
 
