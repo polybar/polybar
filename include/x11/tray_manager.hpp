@@ -42,14 +42,10 @@ class bg_slice;
 struct tray_settings {
   alignment align{alignment::NONE};
   bool running{false};
-  int rel_x{0};
-  int rel_y{0};
+
   int orig_x{0};
   int orig_y{0};
-  int configured_x{0};
-  int configured_y{0};
   unsigned int configured_w{0U};
-  unsigned int configured_h{0U};
   unsigned int configured_slots{0U};
   unsigned int width{0U};
   unsigned int width_max{0U};
@@ -95,7 +91,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void query_atom();
   void create_window();
-  void create_bg(bool realloc = false);
+  void create_bg();
   void restack_window();
   void set_wm_hints();
   void set_tray_colors();
@@ -108,7 +104,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void process_docking_request(xcb_window_t win);
 
   int calculate_x(unsigned width) const;
-  int calculate_y(bool abspos = true) const;
+  int calculate_y() const;
 
   unsigned short int calculate_w() const;
   unsigned short int calculate_h() const;
@@ -148,14 +144,12 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   vector<shared_ptr<tray_client>> m_clients;
 
   tray_settings m_opts{};
+  const bar_settings& m_bar_opts;
 
   xcb_gcontext_t m_gc{0};
   xcb_pixmap_t m_pixmap{0};
   unique_ptr<cairo::surface> m_surface;
   unique_ptr<cairo::context> m_context;
-
-  unsigned int m_prevwidth{0U};
-  unsigned int m_prevheight{0U};
 
   xcb_atom_t m_atom{0};
   xcb_window_t m_tray{0};
@@ -171,8 +165,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   mutex m_mtx{};
 
   bool m_firstactivation{true};
-
-  const bar_settings& m_bar_opts;
 };
 
 POLYBAR_NS_END

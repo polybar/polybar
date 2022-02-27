@@ -166,9 +166,6 @@ void tray_manager::setup() {
 
   m_opts.orig_x += units_utils::percentage_with_offset_to_pixel(offset_x, max_x, m_bar_opts.dpi_x);
   m_opts.orig_y += units_utils::percentage_with_offset_to_pixel(offset_y, max_y, m_bar_opts.dpi_y);
-  ;
-  m_opts.rel_x = m_opts.orig_x - m_bar_opts.pos.x;
-  m_opts.rel_y = m_opts.orig_y - m_bar_opts.pos.y;
 
   // Put the tray next to the bar in the window stack
   m_opts.sibling = m_bar_opts.window;
@@ -263,18 +260,13 @@ void tray_manager::deactivate(bool clear_selection) {
     m_connection.free_pixmap(m_pixmap);
   }
   if (m_gc) {
-    m_connection.free_gc(m_pixmap);
+    m_connection.free_gc(m_gc);
   }
 
   m_tray = 0;
   m_pixmap = 0;
   m_gc = 0;
-  m_prevwidth = 0;
-  m_prevheight = 0;
-  m_opts.configured_x = 0;
-  m_opts.configured_y = 0;
   m_opts.configured_w = 0;
-  m_opts.configured_h = 0;
   m_opts.configured_slots = 0;
   m_acquired_selection = false;
   m_mapped = false;
@@ -359,7 +351,6 @@ void tray_manager::reconfigure_window() {
   }
 
   m_opts.configured_w = width;
-  m_opts.configured_x = x;
 }
 
 /**
@@ -485,7 +476,7 @@ void tray_manager::create_window() {
   m_log.trace("tray: Create tray window");
 
   // clang-format off
-  auto win = winspec(m_connection, m_tray)
+  auto win = winspec(m_connection)
     << cw_size(calculate_w(), calculate_h())
     << cw_pos(calculate_x(calculate_w()), calculate_y())
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
@@ -517,27 +508,12 @@ void tray_manager::create_window() {
 /**
  * Create tray window background components
  */
-void tray_manager::create_bg(bool realloc) {
+void tray_manager::create_bg() {
   if (!m_opts.transparent) {
     return;
   }
-  if (!realloc && m_pixmap && m_gc && m_surface && m_context) {
+  if (m_pixmap && m_gc && m_surface && m_context) {
     return;
-  }
-  if (realloc && m_pixmap) {
-    m_connection.free_pixmap(m_pixmap);
-    m_pixmap = 0;
-  }
-  if (realloc && m_gc) {
-    m_connection.free_gc(m_gc);
-    m_gc = 0;
-  }
-
-  if (realloc && m_surface) {
-    m_surface.reset();
-  }
-  if (realloc && m_context) {
-    m_context.reset();
   }
 
   auto w = m_opts.width_max;
@@ -812,8 +788,8 @@ int tray_manager::calculate_x(unsigned int width) const {
 /**
  * Calculate y position of tray window
  */
-int tray_manager::calculate_y(bool abspos) const {
-  return abspos ? m_opts.orig_y : m_opts.rel_y;
+int tray_manager::calculate_y() const {
+  return m_opts.orig_y;
 }
 
 /**
@@ -944,10 +920,10 @@ void tray_manager::handle(const evt::client_message& evt) {
     m_log.trace("tray: Received client_message");
 
     if (SYSTEM_TRAY_REQUEST_DOCK == evt->data.data32[1]) {
-      if (!is_embedded(evt->data.data32[2])) {
-        process_docking_request(evt->data.data32[2]);
+      xcb_window_t win = evt->data.data32[2];
+      if (!is_embedded(win)) {
+        process_docking_request(win);
       } else {
-        auto win = evt->data.data32[2];
         m_log.warn("Tray client %s already embedded, ignoring request...", m_connection.id(win));
       }
     }
