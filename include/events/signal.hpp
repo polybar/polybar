@@ -101,9 +101,6 @@ namespace signals {
   } // namespace ui
 
   namespace ui_tray {
-    struct mapped_clients : public detail::value_signal<mapped_clients, unsigned int> {
-      using base_type::base_type;
-    };
     struct tray_width_change : public detail::value_signal<tray_width_change, unsigned int> {
       using base_type::base_type;
     };

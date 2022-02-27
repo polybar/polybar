@@ -43,14 +43,41 @@ struct tray_settings {
   alignment align{alignment::NONE};
   bool running{false};
 
-  int orig_x{0};
-  int orig_y{0};
-  unsigned int configured_w{0U};
-  unsigned int configured_slots{0U};
-  unsigned int width{0U};
+  /**
+   * Tray window position.
+   *
+   * Relative to the bar window
+   * TODO make relative to inner area
+   */
+  position pos{0, 0};
+
+  /**
+   * Tray offset in pixels.
+   */
+  position offset{0, 0};
+
+  /**
+   * Current dimensions of the tray window.
+   */
+  size win_size{0, 0};
+
+  /**
+   * Dimensions for client windows.
+   */
+  size client_size{0, 0};
+
+  /**
+   * Number of clients currently mapped.
+   */
+  int num_clients{0};
+
+  // This is the width of the bar window
+  // TODO directly read from bar_settings
   unsigned int width_max{0U};
-  unsigned int height{0U};
-  unsigned int height_fill{0U};
+
+  /**
+   * Number of pixels added between tray icons
+   */
   unsigned int spacing{0U};
   rgba background{};
   rgba foreground{};
@@ -116,7 +143,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
   void remove_client(shared_ptr<tray_client>& client, bool reconfigure = true);
   void remove_client(xcb_window_t win, bool reconfigure = true);
-  unsigned int mapped_clients() const;
+  int mapped_clients() const;
+  bool has_mapped_clients() const;
 
   void handle(const evt::expose& evt) override;
   void handle(const evt::visibility_notify& evt) override;

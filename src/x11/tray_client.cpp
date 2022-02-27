@@ -8,19 +8,18 @@
 
 POLYBAR_NS
 
-tray_client::tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h)
-    : m_connection(conn), m_window(win), m_width(w), m_height(h) {}
+tray_client::tray_client(connection& conn, xcb_window_t win, size s) : m_connection(conn), m_window(win), m_size(s) {}
 
 tray_client::~tray_client() {
   xembed::unembed(m_connection, window(), m_connection.root());
 }
 
 unsigned int tray_client::width() const {
-  return m_width;
+  return m_size.w;
 }
 
 unsigned int tray_client::height() const {
-  return m_height;
+  return m_size.h;
 }
 
 void tray_client::clear_window() const {
@@ -92,8 +91,8 @@ void tray_client::reconfigure(int x, int y) const {
   unsigned int configure_values[7];
   xcb_params_configure_window_t configure_params{};
 
-  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_width);
-  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, height, m_height);
+  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_size.w);
+  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, height, m_size.h);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, x, x);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, y);
 
@@ -113,8 +112,8 @@ void tray_client::configure_notify(int x, int y) const {
   notify.above_sibling = 0;
   notify.x = x;
   notify.y = y;
-  notify.width = m_width;
-  notify.height = m_height;
+  notify.width = m_size.w;
+  notify.height = m_size.h;
   notify.border_width = 0;
 
   unsigned int mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};

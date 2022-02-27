@@ -13,7 +13,7 @@ class connection;
 
 class tray_client {
  public:
-  explicit tray_client(connection& conn, xcb_window_t win, unsigned int w, unsigned int h);
+  explicit tray_client(connection& conn, xcb_window_t win, size s);
   tray_client(const tray_client& c) = delete;
   tray_client& operator=(tray_client& c) = delete;
 
@@ -55,8 +55,7 @@ class tray_client {
 
   bool m_mapped{false};
 
-  unsigned int m_width;
-  unsigned int m_height;
+  size m_size;
 };
 
 POLYBAR_NS_END
