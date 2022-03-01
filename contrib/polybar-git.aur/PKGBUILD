@@ -1,7 +1,7 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 _pkgname=polybar
 pkgname="${_pkgname}-git"
-pkgver=3.5.7
+pkgver=3.6.0
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 arch=("i686" "x86_64")
@@ -10,15 +10,11 @@ license=("MIT")
 depends=("libuv" "cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm"
          "xcb-util-cursor" "alsa-lib" "libpulse" "libmpdclient" "libnl"
          "jsoncpp" "curl")
-optdepends=("i3-wm: i3 module support"
-            "ttf-unifont: Font used in example config"
-            "siji-git: Font used in example config"
-            "xorg-fonts-misc: Font used in example config")
+optdepends=("i3-wm: i3 module support")
 makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx"
              "python-packaging" "i3-wm")
 provides=("polybar")
 conflicts=("polybar")
-install="${_pkgname}.install"
 source=("${_pkgname}::git+${url}.git")
 sha256sums=("SKIP")
 
