@@ -3,15 +3,15 @@ pkgname=polybar
 pkgver=3.6.0
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
-arch=("i686" "x86_64")
+# aarch64 is not officially supported by polybar, it is only listed here for convenience
+arch=("i686" "x86_64" "aarch64")
 url="https://github.com/polybar/polybar"
 license=("MIT")
 depends=("libuv" "cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm"
          "xcb-util-cursor" "alsa-lib" "libpulse" "libmpdclient" "libnl"
          "jsoncpp" "curl")
 optdepends=("i3-wm: i3 module support")
-makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx"
-             "python-packaging" "i3-wm")
+makedepends=("cmake" "python" "pkg-config" "python-sphinx" "python-packaging" "i3-wm")
 conflicts=("polybar-git")
 source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
 sha256sums=('563473d5ae2b83d4dba6372f85cbcfd8d5a271b4cf3345ff57acff9c81e1b065')
