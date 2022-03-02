@@ -3,6 +3,7 @@
 #include <sys/statvfs.h>
 
 #include <fstream>
+#include <utility>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
@@ -206,6 +207,6 @@ namespace modules {
 
     return true;
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

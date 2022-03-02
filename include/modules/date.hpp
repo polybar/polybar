@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -44,6 +45,6 @@ namespace modules {
 
     std::atomic<bool> m_toggled{false};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

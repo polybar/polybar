@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "modules/meta/timer_module.hpp"
 #include "settings.hpp"
 #include "utils/http.hpp"
@@ -37,6 +39,6 @@ namespace modules {
     bool m_empty_notifications{false};
     std::atomic<bool> m_offline{false};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

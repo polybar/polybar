@@ -2,6 +2,8 @@
 
 #include "common.hpp"
 
+#include <array>
+
 POLYBAR_NS
 
 /**
