@@ -40,9 +40,6 @@ class background_manager;
 class bg_slice;
 
 struct tray_settings {
-  tray_settings() = default;
-  tray_settings& operator=(const tray_settings& o) = default;
-
   alignment align{alignment::NONE};
   bool running{false};
   int rel_x{0};
