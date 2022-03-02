@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-
 #include "components/config.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "settings.hpp"
@@ -74,6 +72,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0_z};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Build
-- Compiler warning in clang-13 ([`#2613`](https://github.com/polybar/polybar/pull/2613))
+- Fixed compiler warning in Clang 13 ([`#2613`](https://github.com/polybar/polybar/pull/2613))
+- Fixed compiler error in GCC 12 ([`#2616`](https://github.com/polybar/polybar/pull/2616), [`#2614`](https://github.com/polybar/polybar/issues/2614))
 
 ## [3.6.0] - 2022-03-01
 ### Breaking
