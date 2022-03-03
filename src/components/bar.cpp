@@ -221,8 +221,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load values used to adjust the struts atom
   auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
   auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
-  m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
-  m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.top =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -295,19 +297,19 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
   m_opts.borders[edge::TOP].size =
-      units_utils::percentage_with_offset_to_pixel(border_top, m_opts.monitor->h, m_opts.dpi_y);
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
   m_opts.borders[edge::BOTTOM].size =
-      units_utils::percentage_with_offset_to_pixel(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
   m_opts.borders[edge::LEFT].size =
-      units_utils::percentage_with_offset_to_pixel(border_left, m_opts.monitor->w, m_opts.dpi_x);
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_left, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
   m_opts.borders[edge::RIGHT].size =
-      units_utils::percentage_with_offset_to_pixel(border_right, m_opts.monitor->w, m_opts.dpi_x);
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_right, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
@@ -316,8 +318,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
   auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
 
-  m_opts.size.w = units_utils::percentage_with_offset_to_pixel(w, m_opts.monitor->w, m_opts.dpi_x);
-  m_opts.size.h = units_utils::percentage_with_offset_to_pixel(h, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.size.w = units_utils::percentage_with_offset_to_pixel_nonnegative(w, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.size.h = units_utils::percentage_with_offset_to_pixel_nonnegative(h, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.offset.x = units_utils::percentage_with_offset_to_pixel(offsetx, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.offset.y = units_utils::percentage_with_offset_to_pixel(offsety, m_opts.monitor->h, m_opts.dpi_y);
 
