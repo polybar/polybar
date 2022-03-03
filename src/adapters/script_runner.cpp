@@ -96,16 +96,35 @@ script_runner::interval script_runner::run() {
   auto cmd = command_util::make_command<output_policy::REDIRECTED>(exec);
 
   try {
-    cmd->exec(true, m_env);
+    cmd->exec(false, m_env);
   } catch (const exception& err) {
     m_log.err("script_runner: %s", err.what());
     throw modules::module_error("Failed to execute command, stopping module...");
   }
 
-  m_exit_status = cmd->get_exit_status();
   int fd = cmd->get_stdout(PIPE_READ);
   assert(fd != -1);
-  bool changed = io_util::poll_read(fd) && set_output(cmd->readline());
+
+  bool changed = false;
+
+  bool got_output = false;
+  while (!m_stopping && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+    /**
+     * For non-tailed scripts, we only use the first line. However, to ensure interruptability when the module shuts
+     * down, we still need to continue polling.
+     */
+    if (io_util::poll_read(fd, 25) && !got_output) {
+      changed = set_output(cmd->readline());
+      got_output = true;
+    }
+  }
+
+  if (m_stopping) {
+    cmd->terminate();
+    return 0s;
+  }
+
+  m_exit_status = cmd->wait();
 
   if (!changed && m_exit_status != 0) {
     clear_output();
