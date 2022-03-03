@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed installation of docs when some are not generated (man, html...) ([`#2612`](https://github.com/polybar/polybar/pull/2612))
 - Fix `LDFLAGS` not being respected ([`#2619`](https://github.com/polybar/polybar/pull/2619))
 
+### Fixed
+- `tray-offset-x`, `tray-offset-y`, `offset-x`, and `offset-y` were mistakenly capped below at 0 ([`#2620`](https://github.com/polybar/polybar/pull/2620))
+
 ## [3.6.0] - 2022-03-01
 ### Breaking
 - We added the backslash escape character (\\) for configuration values. This means that the literal backslash character now has special meaning in configuration files, therefore if you want to use it in a value as a literal backslash, you need to escape it with the backslash escape character. The parser logs an error if any unescaped backslashes are found in a value. This affects you only if you are using two consecutive backslashes in a config value, which will now be interpreted as a single literal backslash. ([`#2354`](https://github.com/polybar/polybar/issues/2354))

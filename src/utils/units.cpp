@@ -39,11 +39,14 @@ namespace units_utils {
   /**
    * Converts a percentage with offset into pixels
    */
-  unsigned int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
+  int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi) {
     int offset_pixel = extent_to_pixel(g_format.offset, dpi);
 
-    return static_cast<unsigned int>(
-        std::max<double>(0, math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel));
+    return static_cast<int>(math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel);
+  }
+
+  unsigned percentage_with_offset_to_pixel_nonnegative(percentage_with_offset g_format, double max, double dpi) {
+    return std::max<int>(0, percentage_with_offset_to_pixel(g_format, max, dpi));
   }
 
   extent_type parse_extent_unit(const string& str) {
