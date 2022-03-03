@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Build
 - Fixed compiler warning in Clang 13 ([`#2613`](https://github.com/polybar/polybar/pull/2613))
 - Fixed compiler error in GCC 12 ([`#2616`](https://github.com/polybar/polybar/pull/2616), [`#2614`](https://github.com/polybar/polybar/issues/2614))
-- Fixed installation of docs when some are not generated (man, html...) ([`#2612`](https://github.com/polybar/polybar/pull/2612)
+- Fixed installation of docs when some are not generated (man, html...) ([`#2612`](https://github.com/polybar/polybar/pull/2612))
+- Fix `LDFLAGS` not being respected ([`#2619`](https://github.com/polybar/polybar/pull/2619))
 
 ## [3.6.0] - 2022-03-01
 ### Breaking
