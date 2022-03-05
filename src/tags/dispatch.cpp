@@ -77,16 +77,13 @@ namespace tags {
                 handle_control(el.tag_data.ctrl);
                 break;
               case tags::syntaxtag::l:
-                m_ctxt->apply_alignment(alignment::LEFT);
-                renderer.change_alignment(*m_ctxt);
+                handle_alignment(renderer, alignment::LEFT);
                 break;
               case tags::syntaxtag::r:
-                m_ctxt->apply_alignment(alignment::RIGHT);
-                renderer.change_alignment(*m_ctxt);
+                handle_alignment(renderer, alignment::RIGHT);
                 break;
               case tags::syntaxtag::c:
-                m_ctxt->apply_alignment(alignment::CENTER);
-                renderer.change_alignment(*m_ctxt);
+                handle_alignment(renderer, alignment::CENTER);
                 break;
               default:
                 throw runtime_error(
@@ -148,6 +145,11 @@ namespace tags {
 
   void dispatch::handle_offset(renderer_interface& renderer, extent_val offset) {
     renderer.render_offset(*m_ctxt, offset);
+  }
+
+  void dispatch::handle_alignment(renderer_interface& renderer, alignment a) {
+    m_ctxt->apply_alignment(a);
+    renderer.change_alignment(*m_ctxt);
   }
 
   void dispatch::handle_control(controltag ctrl) {
