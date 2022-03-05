@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `tray-offset-x`, `tray-offset-y`, `offset-x`, and `offset-y` were mistakenly capped below at 0 ([`#2620`](https://github.com/polybar/polybar/pull/2620))
 - `custom/script`: Polybar shutdown being stalled by hanging script ([`#2621`](https://github.com/polybar/polybar/pull/2621))
+- `polybar-msg`: Wrong hint when using deprecated `hook` ([`#2624`](https://github.com/polybar/polybar/pull/2624))
 
 ## [3.6.0] - 2022-03-01
 ### Breaking

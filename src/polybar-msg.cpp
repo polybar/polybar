@@ -141,7 +141,7 @@ static std::pair<ipc::type_t, string> parse_message(deque<string> args) {
 
       fprintf(stderr,
           "Warning: Using IPC hook commands is deprecated, use the hook action on the ipc module: %s %s \"%s\"\n", exec,
-          ipc_type.c_str(), ipc_payload.c_str());
+          "action", ipc_payload.c_str());
     }
   }
 
