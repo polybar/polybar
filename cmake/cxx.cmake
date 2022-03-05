@@ -108,4 +108,4 @@ string(REPLACE ";" " " cxx_flags_str "${cxx_flags}")
 string(REPLACE ";" " " cxx_linker_flags_str "${cxx_linker_flags}")
 
 # TODO use target_link_options once min cmake version is >= 3.13
-set(CMAKE_EXE_LINKER_FLAGS "${cxx_linker_flags_str}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${cxx_linker_flags_str}")

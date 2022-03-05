@@ -8,7 +8,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 Polybar aims to help users build beautiful and highly customizable status bars for their desktop environment, without the need of having a black belt in shell scripting.
-If the *BAR* argument is not provided and the configuration file only contains one bar definition, Polybar will display this bar.
+If the *BAR* argument is not provided and the configuration file only contains one bar definition, polybar will display this bar.
 
 OPTIONS
 -------

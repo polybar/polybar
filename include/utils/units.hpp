@@ -21,7 +21,8 @@ namespace units_utils {
 
   string extent_to_string(extent_val extent);
 
-  unsigned percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi);
+  int percentage_with_offset_to_pixel(percentage_with_offset g_format, double max, double dpi);
+  unsigned percentage_with_offset_to_pixel_nonnegative(percentage_with_offset g_format, double max, double dpi);
 
   spacing_type parse_spacing_unit(const string& str);
   spacing_val parse_spacing(const string& str);

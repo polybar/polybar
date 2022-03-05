@@ -24,7 +24,7 @@ A fast and easy-to-use tool for creating status bars.
 **Polybar** aims to help users build beautiful and highly customizable status bars
 for their desktop environment, without the need of having a black belt in shell scripting.
 
-![sample screenshot](doc/_static/default.png)
+![default configuration screenshot](doc/_static/default.png)
 
 ## Table of Contents
 
@@ -33,8 +33,7 @@ for their desktop environment, without the need of having a black belt in shell 
 * [Contributing](#contributing)
 * [Getting started](#getting-started)
   * [Installation](#installation)
-  * [Configuration](#configuration)
-  * [Running](#running)
+  * [First Steps](#first-steps)
 * [Community](#community)
 * [Contributors](#contributors)
 * [Donations](#donations)
@@ -128,35 +127,8 @@ If you are using **Fedora**, you can install [polybar](https://src.fedoraproject
 
 If you can't find your distro here, you will have to [build from source](https://github.com/polybar/polybar/wiki/Compiling).
 
-### Configuration
-
-Details on how to setup and configure the bar and each module have been moved to [the wiki](https://github.com/polybar/polybar/wiki/Configuration).
-
-#### Install the example configuration
-
-For a normal installation, polybar will install the example config to
-`/usr/share/doc/polybar/config` or ` /usr/local/share/doc/polybar/config`
-(depending on your install parameters)
-
-From there you can copy it to `~/.config/polybar/config` to get started (make
-sure to backup any existing config file there).
-
-**Note:** This example file is meant to showcase available modules and
-configuration options.
-Running it as-is will work but many modules will likely not start because they
-require machine-specific configuration and many of the font icons will not show
-up because they require a very specific [font
-configuration](https://github.com/polybar/polybar/wiki/Fonts).
-We encourage you to use it as a reference when building
-your own configuration.
-
-#### Launch the example bar
-~~~ sh
-$ polybar example
-~~~
-
-### Running
-[See the wiki for details on how to run polybar](https://github.com/polybar/polybar/wiki).
+### First Steps
+[See the wiki for details on how to run and configure polybar](https://github.com/polybar/polybar/wiki).
 
 ## Community
 Want to get in touch?

@@ -6,7 +6,6 @@
 using namespace polybar;
 using namespace units_utils;
 
-
 namespace polybar {
   bool operator==(const extent_val lhs, const extent_val rhs) {
     return lhs.type == rhs.type && lhs.value == rhs.value;
@@ -24,9 +23,9 @@ namespace polybar {
  * value represents the format string. The max value is always 1000 and dpi is always 96
  */
 class GeomFormatToPixelsTest : public ::testing::Test,
-                               public ::testing::WithParamInterface<pair<unsigned, percentage_with_offset>> {};
+                               public ::testing::WithParamInterface<pair<int, percentage_with_offset>> {};
 
-vector<pair<unsigned, percentage_with_offset>> to_pixels_no_offset_list = {
+vector<pair<int, percentage_with_offset>> to_pixels_no_offset_list = {
     {1000, percentage_with_offset{100.}},
     {0, percentage_with_offset{0.}},
     {1000, percentage_with_offset{150.}},
@@ -36,34 +35,33 @@ vector<pair<unsigned, percentage_with_offset>> to_pixels_no_offset_list = {
     {1, percentage_with_offset{0., extent_val{extent_type::PIXEL, 1}}},
 };
 
-vector<pair<unsigned, percentage_with_offset>> to_pixels_with_offset_list = {
+vector<pair<int, percentage_with_offset>> to_pixels_with_pixels_list = {
     {1000, percentage_with_offset{100., ZERO_PX_EXTENT}},
     {1010, percentage_with_offset{100., extent_val{extent_type::PIXEL, 10}}},
     {990, percentage_with_offset{100., extent_val{extent_type::PIXEL, -10}}},
     {10, percentage_with_offset{0., extent_val{extent_type::PIXEL, 10}}},
     {1000, percentage_with_offset{99., extent_val{extent_type::PIXEL, 10}}},
-    {0, percentage_with_offset{1., extent_val{extent_type::PIXEL, -100}}},
+    {-90, percentage_with_offset{1., extent_val{extent_type::PIXEL, -100}}},
 };
 
-vector<pair<unsigned, percentage_with_offset>> to_pixels_with_units_list = {
+vector<pair<int, percentage_with_offset>> to_pixels_with_points_list = {
     {1013, percentage_with_offset{100., extent_val{extent_type::POINT, 10}}},
     {987, percentage_with_offset{100., extent_val{extent_type::POINT, -10}}},
     {1003, percentage_with_offset{99., extent_val{extent_type::POINT, 10}}},
     {13, percentage_with_offset{0., extent_val{extent_type::POINT, 10}}},
-    {0, percentage_with_offset{0, extent_val{extent_type::POINT, -10}}},
 };
 
 INSTANTIATE_TEST_SUITE_P(NoOffset, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_no_offset_list));
 
-INSTANTIATE_TEST_SUITE_P(WithOffset, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_with_offset_list));
+INSTANTIATE_TEST_SUITE_P(WithPixels, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_with_pixels_list));
 
-INSTANTIATE_TEST_SUITE_P(WithUnits, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_with_units_list));
+INSTANTIATE_TEST_SUITE_P(WithPoints, GeomFormatToPixelsTest, ::testing::ValuesIn(to_pixels_with_points_list));
 
 static constexpr int MAX_WIDTH = 1000;
 static constexpr int DPI = 96;
 
 TEST_P(GeomFormatToPixelsTest, correctness) {
-  unsigned exp = GetParam().first;
+  int exp = GetParam().first;
   percentage_with_offset geometry = GetParam().second;
   EXPECT_DOUBLE_EQ(exp, percentage_with_offset_to_pixel(geometry, MAX_WIDTH, DPI));
 }
@@ -81,17 +79,6 @@ TEST(UnitsUtils, extent_to_pixel) {
 
   EXPECT_EQ(0, extent_to_pixel_nonnegative({extent_type::PIXEL, -100}, 0));
   EXPECT_EQ(0, extent_to_pixel_nonnegative({extent_type::POINT, -36}, 96));
-}
-
-TEST(UnitsUtils, percentage_with_offset_to_pixel) {
-  EXPECT_EQ(1100, percentage_with_offset_to_pixel({100, {extent_type::PIXEL, 100}}, 1000, 0));
-  EXPECT_EQ(1048, percentage_with_offset_to_pixel({100, {extent_type::POINT, 36}}, 1000, 96));
-
-  EXPECT_EQ(900, percentage_with_offset_to_pixel({100, {extent_type::PIXEL, -100}}, 1000, 0));
-  EXPECT_EQ(952, percentage_with_offset_to_pixel({100, {extent_type::POINT, -36}}, 1000, 96));
-
-  EXPECT_EQ(0, percentage_with_offset_to_pixel({0, {extent_type::PIXEL, -100}}, 1000, 0));
-  EXPECT_EQ(100, percentage_with_offset_to_pixel({0, {extent_type::PIXEL, 100}}, 1000, 0));
 }
 
 TEST(UnitsUtils, parse_extent_unit) {
