@@ -32,6 +32,7 @@ namespace tags {
     void handle_text(renderer_interface& renderer, string&& data);
     void handle_action(renderer_interface& renderer, mousebtn btn, bool closing, const string&& cmd);
     void handle_offset(renderer_interface& renderer, extent_val offset);
+    void handle_alignment(renderer_interface& renderer, alignment a);
     void handle_control(controltag ctrl);
 
    private:

@@ -21,15 +21,69 @@ namespace polybar {
   }
 } // namespace polybar
 
+/**
+ * Fake renderer that just tracks the current x-position per alignment.
+ *
+ * Each text character and point is treated as a single pixel.
+ */
+class FakeRenderer : public renderer_interface {
+ public:
+  FakeRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt){};
+
+  void render_offset(const tags::context& ctxt, const extent_val offset) override {
+    block_x[ctxt.get_alignment()] += offset.value;
+  };
+
+  void render_text(const tags::context& ctxt, const string&& str) override {
+    block_x[ctxt.get_alignment()] += str.size();
+  };
+
+  void change_alignment(const tags::context&) override{};
+
+  double get_x(const tags::context& ctxt) const override {
+    return block_x.at(ctxt.get_alignment());
+  };
+
+  double get_alignment_start(const alignment) const override {
+    return 0;
+  };
+
+ private:
+  map<alignment, int> block_x = {
+      {alignment::LEFT, 0},
+      {alignment::CENTER, 0},
+      {alignment::RIGHT, 0},
+  };
+};
+
 class MockRenderer : public renderer_interface {
  public:
-  MockRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt){};
+  MockRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt), fake(action_ctxt){};
 
   MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
   MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
   MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
   MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
+
+  void DelegateToFake() {
+    ON_CALL(*this, render_offset).WillByDefault([this](const context& ctxt, const extent_val offset) {
+      fake.render_offset(ctxt, offset);
+    });
+
+    ON_CALL(*this, render_text).WillByDefault([this](const context& ctxt, const string&& str) {
+      fake.render_text(ctxt, std::forward<const string>(str));
+    });
+
+    ON_CALL(*this, get_x).WillByDefault([this](const context& ctxt) { return fake.get_x(ctxt); });
+
+    ON_CALL(*this, get_alignment_start).WillByDefault([this](const alignment a) {
+      return fake.get_alignment_start(a);
+    });
+  }
+
+ private:
+  FakeRenderer fake;
 };
 
 static auto match_fg = [](rgba c) { return Property("get_fg", &context::get_fg, c); };
@@ -45,15 +99,16 @@ static auto match_left_align = match_align(alignment::LEFT);
 static auto match_center_align = match_align(alignment::CENTER);
 static auto match_right_align = match_align(alignment::RIGHT);
 
-class TestableDispatch : public dispatch {};
-
 class DispatchTest : public ::testing::Test {
  protected:
   unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
 
   unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
 
-  MockRenderer r{*m_action_ctxt};
+  ::testing::NiceMock<MockRenderer> r{*m_action_ctxt};
+  void SetUp() override {
+    r.DelegateToFake();
+  }
 };
 
 TEST_F(DispatchTest, ignoreFormatting) {
@@ -122,35 +177,17 @@ TEST_F(DispatchTest, formattingAttributes) {
         .Times(1);
   }
 
-  m_dispatch->parse(settings, r, "%{u#0000ff o#f0f0f0 +o +u}123%{-u -o}456%{!u !o}789%{PR}0");
+  m_dispatch->parse(settings, r, "%{l}%{u#0000ff o#f0f0f0 +o +u}123%{-u -o}456%{!u !o}789%{PR}0");
 }
 
 TEST_F(DispatchTest, unclosedActions) {
   { InSequence seq; }
 
   bar_settings settings;
-  EXPECT_THROW(m_dispatch->parse(settings, r, "%{A1:cmd:}foo"), runtime_error);
+  EXPECT_THROW(m_dispatch->parse(settings, r, "%{l}%{A1:cmd:}foo"), runtime_error);
 }
 
 TEST_F(DispatchTest, actions) {
-  {
-    InSequence seq;
-    // Called for 'foo'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    // Called for '%{A1:cmd:}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    // Called for 'bar'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
-    // Called for '%{A}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(6));
-  }
-
   bar_settings settings;
   m_dispatch->parse(settings, r, "%{l}foo%{A1:cmd:}bar%{A}");
 
@@ -168,27 +205,6 @@ TEST_F(DispatchTest, actions) {
 }
 
 TEST_F(DispatchTest, actionOffsetStart) {
-  {
-    InSequence seq;
-    // Called for 'a'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{A1:cmd:}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{O-1}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    // Called for 'bar'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    // Called for '%{A}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(3));
-  }
-
   bar_settings settings;
   m_dispatch->parse(settings, r, "%{l}a%{A1:cmd:}%{O-1}bar%{A}");
 
@@ -206,27 +222,6 @@ TEST_F(DispatchTest, actionOffsetStart) {
 }
 
 TEST_F(DispatchTest, actionOffsetEnd) {
-  {
-    InSequence seq;
-    // Called for 'a'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{A1:cmd:}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for 'bar'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
-    // Called for '%{O-3}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{A}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-  }
-
   bar_settings settings;
   m_dispatch->parse(settings, r, "%{l}a%{A1:cmd:}bar%{O-3}%{A}");
 
@@ -244,33 +239,6 @@ TEST_F(DispatchTest, actionOffsetEnd) {
 }
 
 TEST_F(DispatchTest, actionOffsetBefore) {
-  {
-    InSequence seq;
-    // Called for 'a'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(0));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{O100}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(101));
-    // Called for '%{O-100}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(101));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{A1:cmd:}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for 'bar'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
-    // Called for '%{O-3}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(4));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    // Called for '%{A}'
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-    EXPECT_CALL(r, get_x(_)).WillOnce(Return(1));
-  }
-
   bar_settings settings;
   m_dispatch->parse(settings, r, "%{l}%{O100 O-100}a%{A1:cmd:}bar%{O-3}%{A}");
 
