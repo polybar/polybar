@@ -40,6 +40,19 @@ enabled.
 .. note:: IPC messages are only sent to polybar instances running under the
           same user as ``polybar-msg`` is running as.
 
+          Concretely, ``polybar`` and ``polybar-msg`` use the
+          ``$XDG_RUNTIME_DIR`` environment variable in accordance with the `XDG
+          Base Directory Specification`_ to determine where to find the socket
+          to communicate.
+
+          If ``polybar`` and ``polybar-msg`` don't have the same value for
+          ``$XDG_RUNTIME_DIR``, they will likely not be able to communicate.
+          The variable may not be set if you use ``su`` or ``sudo`` to execute
+          ``polybar-msg`` as a different user, often a full user session is
+          required.
+
+          .. _XDG Base Directory Specification: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
 The ``<type>`` argument is either :ref:`action <ipc-actions>` or
 :ref:`cmd <ipc-commands>`.
 The allowed values for ``<payload>`` depend on the type.
