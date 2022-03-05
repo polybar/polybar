@@ -31,16 +31,21 @@ class FakeRenderer : public renderer_interface {
   FakeRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt){};
 
   void render_offset(const tags::context& ctxt, const extent_val offset) override {
+    EXPECT_NE(alignment::NONE, ctxt.get_alignment());
     block_x[ctxt.get_alignment()] += offset.value;
   };
 
   void render_text(const tags::context& ctxt, const string&& str) override {
+    EXPECT_NE(alignment::NONE, ctxt.get_alignment());
     block_x[ctxt.get_alignment()] += str.size();
   };
 
-  void change_alignment(const tags::context&) override{};
+  void change_alignment(const tags::context& ctxt) override {
+    EXPECT_NE(alignment::NONE, ctxt.get_alignment());
+  };
 
   double get_x(const tags::context& ctxt) const override {
+    EXPECT_NE(alignment::NONE, ctxt.get_alignment());
     return block_x.at(ctxt.get_alignment());
   };
 
@@ -120,7 +125,7 @@ TEST_F(DispatchTest, ignoreFormatting) {
   }
 
   bar_settings settings;
-  m_dispatch->parse(settings, r, "%{O10}%{F#ff0000}abc%{F-}foo");
+  m_dispatch->parse(settings, r, "%{l}%{O10}%{F#ff0000}abc%{F-}foo");
 }
 
 TEST_F(DispatchTest, formatting) {
@@ -135,6 +140,7 @@ TEST_F(DispatchTest, formatting) {
 
   {
     InSequence seq;
+    EXPECT_CALL(r, change_alignment(match_left_align)).Times(1);
     EXPECT_CALL(r, render_offset(_, extent_val{extent_type::PIXEL, 10})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(c1), string{"abc"})).Times(1);
     EXPECT_CALL(r, render_text(match_fg(bar_fg), string{"foo"})).Times(1);
@@ -149,7 +155,7 @@ TEST_F(DispatchTest, formatting) {
   }
 
   m_dispatch->parse(settings, r,
-      "%{O10}%{F#ff0000}abc%{F-}foo%{l}%{B#00ff00}bar%{R}123%{c}baz%{r}%{T123}def%{PR}"
+      "%{l}%{O10}%{F#ff0000}abc%{F-}foo%{l}%{B#00ff00}bar%{R}123%{c}baz%{r}%{T123}def%{PR}"
       "ghi");
 }
 
