@@ -673,6 +673,7 @@ void renderer::fill_borders() {
  * Draw text contents
  */
 void renderer::render_text(const tags::context& ctxt, const string&& contents) {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   m_log.trace_x("renderer: text(%s)", contents.c_str());
 
   cairo::abspos origin{};
@@ -742,6 +743,7 @@ void renderer::draw_offset(rgba color, double x, double w) {
 }
 
 void renderer::render_offset(const tags::context& ctxt, const extent_val offset) {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   m_log.trace_x("renderer: offset_pixel(%f)", offset);
 
   int offset_width = units_utils::extent_to_pixel(offset, m_bar.dpi_x);
@@ -752,6 +754,7 @@ void renderer::render_offset(const tags::context& ctxt, const extent_val offset)
 
 void renderer::change_alignment(const tags::context& ctxt) {
   auto align = ctxt.get_alignment();
+  assert(align != alignment::NONE);
   if (align != m_align) {
     m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
 
@@ -772,6 +775,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
 }
 
 double renderer::get_x(const tags::context& ctxt) const {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   return m_blocks.at(ctxt.get_alignment()).x;
 }
 
