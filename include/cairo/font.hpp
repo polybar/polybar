@@ -307,7 +307,7 @@ namespace cairo {
       throw application_error("Could not load FreeType");
     }
 
-    static auto fc_cleanup = scope_util::make_exit_handler([] {
+    static scope_util::on_exit fc_cleanup([] {
       FT_Done_FreeType(g_ftlib);
       FcFini();
     });
@@ -336,6 +336,6 @@ namespace cairo {
 
     return make_shared<font_fc>(cairo, match, offset, dpi_x, dpi_y);
   }
-}  // namespace cairo
+} // namespace cairo
 
 POLYBAR_NS_END
