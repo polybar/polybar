@@ -13,7 +13,7 @@ class script_runner {
  public:
   using interval = std::chrono::duration<double>;
   script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
-      interval interval, const vector<pair<string, string>>& env);
+      interval interval_success, interval interval_fail, const vector<pair<string, string>>& env);
 
   bool check_condition() const;
   interval process();
@@ -44,7 +44,8 @@ class script_runner {
   const string m_exec;
   const string m_exec_if;
   const bool m_tail;
-  const interval m_interval;
+  const interval m_interval_success;
+  const interval m_interval_fail;
   const vector<pair<string, string>> m_env;
 
   std::mutex m_output_lock;

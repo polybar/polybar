@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `polybar-msg hook` is deprecated in favor of using the hook action. `polybar-msg` will tell you the correct command to use.
 
 ### Added
+- Add repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606))
 - Support `px` and `pt` units everyhwere where before only a number of spaces or pixels could be specified. ([`#2578`](https://github.com/polybar/polybar/pull/2578), [`#1651`](https://github.com/polybar/polybar/issues/1651), [`#951`](https://github.com/polybar/polybar/issues/951))
 - `internal/alsa`: Right and middle click settings. ([`#2566`](https://github.com/polybar/polybar/issues/2566), [`#2573`](https://github.com/polybar/polybar/pull/2573))
 - `internal/network`:
