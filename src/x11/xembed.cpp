@@ -1,4 +1,5 @@
 #include "x11/xembed.hpp"
+
 #include "errors.hpp"
 #include "x11/atoms.hpp"
 
@@ -46,11 +47,11 @@ namespace xembed {
    */
   void send_message(connection& conn, xcb_window_t target, long message, long d1, long d2, long d3) {
     auto msg = conn.make_client_message(_XEMBED, target);
-    msg->data.data32[0] = XCB_CURRENT_TIME;
-    msg->data.data32[1] = message;
-    msg->data.data32[2] = d1;
-    msg->data.data32[3] = d2;
-    msg->data.data32[4] = d3;
+    msg.data.data32[0] = XCB_CURRENT_TIME;
+    msg.data.data32[1] = message;
+    msg.data.data32[2] = d1;
+    msg.data.data32[3] = d2;
+    msg.data.data32[4] = d3;
     conn.send_client_message(msg, target);
   }
 
@@ -59,8 +60,8 @@ namespace xembed {
    */
   void send_focus_event(connection& conn, xcb_window_t target) {
     auto msg = conn.make_client_message(WM_PROTOCOLS, target);
-    msg->data.data32[0] = WM_TAKE_FOCUS;
-    msg->data.data32[1] = XCB_CURRENT_TIME;
+    msg.data.data32[0] = WM_TAKE_FOCUS;
+    msg.data.data32[1] = XCB_CURRENT_TIME;
     conn.send_client_message(msg, target);
   }
 
@@ -110,6 +111,6 @@ namespace xembed {
       // invalid window
     }
   }
-}
+} // namespace xembed
 
 POLYBAR_NS_END

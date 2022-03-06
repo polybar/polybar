@@ -63,9 +63,7 @@ namespace modules {
   xwindow_module::xwindow_module(const bar_settings& bar, string name_)
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
     // Initialize ewmh atoms
-    if ((ewmh_util::initialize()) == nullptr) {
-      throw module_error("Failed to initialize ewmh atoms");
-    }
+    ewmh_util::initialize();
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
     if (!ewmh_util::supports(_NET_ACTIVE_WINDOW)) {
@@ -133,6 +131,6 @@ namespace modules {
     }
     return false;
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

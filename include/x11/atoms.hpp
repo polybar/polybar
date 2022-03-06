@@ -2,13 +2,15 @@
 
 #include <xcb/xcb_atom.h>
 
+#include <array>
+#include <string>
+
 struct cached_atom {
-  const char* name;
-  size_t len;
-  xcb_atom_t* atom;
+  const std::string name;
+  xcb_atom_t& atom;
 };
 
-extern cached_atom ATOMS[36];
+extern std::array<cached_atom, 36> ATOMS;
 
 extern xcb_atom_t _NET_SUPPORTED;
 extern xcb_atom_t _NET_CURRENT_DESKTOP;

@@ -702,9 +702,9 @@ void tray_manager::notify_clients() {
   if (m_activated) {
     m_log.info("Notifying pending tray clients");
     auto message = m_connection.make_client_message(MANAGER, m_connection.root());
-    message->data.data32[0] = XCB_CURRENT_TIME;
-    message->data.data32[1] = m_atom;
-    message->data.data32[2] = m_tray;
+    message.data.data32[0] = XCB_CURRENT_TIME;
+    message.data.data32[1] = m_atom;
+    message.data.data32[2] = m_tray;
     m_connection.send_client_message(message, m_connection.root());
   }
 }
