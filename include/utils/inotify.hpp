@@ -10,6 +10,7 @@
 POLYBAR_NS
 
 struct inotify_event {
+  bool is_valid = false;
   string filename;
   bool is_dir;
   int wd = 0;
@@ -25,8 +26,7 @@ class inotify_watch {
   void attach(int mask = IN_MODIFY);
   void remove(bool force = false);
   bool poll(int wait_ms = 1000) const;
-  unique_ptr<inotify_event> get_event() const;
-  unique_ptr<inotify_event> await_match() const;
+  inotify_event get_event() const;
   const string path() const;
   int get_file_descriptor() const;
 
@@ -36,12 +36,5 @@ class inotify_watch {
   int m_wd{-1};
   int m_mask{0};
 };
-
-namespace inotify_util {
-  template <typename... Args>
-  decltype(auto) make_watch(Args&&... args) {
-    return std::make_unique<inotify_watch>(forward<Args>(args)...);
-  }
-}  // namespace inotify_util
 
 POLYBAR_NS_END

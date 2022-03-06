@@ -156,8 +156,9 @@ xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visua
   if (depth_iter.data) {
     for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
       for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
-        if (it.data->visual_id == visual_id)
+        if (it.data->visual_id == visual_id) {
           return it.data;
+        }
       }
     }
   }

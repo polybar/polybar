@@ -114,7 +114,6 @@ set(POLY_SOURCES
   ${src_dir}/utils/command.cpp
   ${src_dir}/utils/concurrency.cpp
   ${src_dir}/utils/env.cpp
-  ${src_dir}/utils/factory.cpp
   ${src_dir}/utils/file.cpp
   ${src_dir}/utils/inotify.cpp
   ${src_dir}/utils/io.cpp

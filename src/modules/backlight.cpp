@@ -71,9 +71,9 @@ namespace modules {
     sleep(75ms);
   }
 
-  bool backlight_module::on_event(inotify_event* event) {
-    if (event != nullptr) {
-      m_log.trace("%s: %s", name(), event->filename);
+  bool backlight_module::on_event(const inotify_event& event) {
+    if (event.is_valid) {
+      m_log.trace("%s: %s", name(), event.filename);
     }
 
     m_max_brightness = m_max.read();
@@ -141,6 +141,6 @@ namespace modules {
           name(), err.what());
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
