@@ -173,14 +173,3 @@ TEST(String, filesize) {
   EXPECT_EQ("3 GB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024));
   EXPECT_EQ("3 TB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024));
 }
-
-TEST(String, operators) {
-  string foo = "foobar";
-  EXPECT_EQ("foo", foo - "bar");
-  string baz = "bazbaz";
-  EXPECT_EQ("bazbaz", baz - "ba");
-  EXPECT_EQ("bazbaz", baz - "baZ");
-  EXPECT_EQ("bazbaz", baz - "bazbz");
-  string aaa = "aaa";
-  EXPECT_EQ("aaa", aaa - "aaaaa");
-}

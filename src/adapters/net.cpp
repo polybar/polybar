@@ -232,8 +232,8 @@ namespace net {
   bool network::ping() const {
     try {
       auto exec = "ping -c 2 -W 2 -I " + m_interface + " " + string(CONNECTION_TEST_IP);
-      auto ping = command_util::make_command<output_policy::IGNORED>(exec);
-      return ping && ping->exec(true) == EXIT_SUCCESS;
+      command<output_policy::IGNORED> ping(m_log, exec);
+      return ping.exec(true) == EXIT_SUCCESS;
     } catch (const std::exception& err) {
       return false;
     }
@@ -274,13 +274,13 @@ namespace net {
     float bytes_diff = m_status.current.transmitted - m_status.previous.transmitted;
     return format_speedrate(bytes_diff, minwidth, unit);
   }
-  
+
   /**
    * Get total net speed rate
    */
   string network::netspeed(int minwidth, const string& unit) const {
-    float bytes_diff = m_status.current.received - m_status.previous.received
-                     + m_status.current.transmitted - m_status.previous.transmitted;
+    float bytes_diff = m_status.current.received - m_status.previous.received + m_status.current.transmitted -
+                       m_status.previous.transmitted;
     return format_speedrate(bytes_diff, minwidth, unit);
   }
 
@@ -435,6 +435,6 @@ namespace net {
 
   // }}}
 
-}  // namespace net
+} // namespace net
 
 POLYBAR_NS_END

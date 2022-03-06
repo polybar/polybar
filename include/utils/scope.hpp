@@ -26,7 +26,7 @@ namespace scope_util {
     }
 
    protected:
-    function<void()> m_callback;
+    function<void(void)> m_callback;
   };
 } // namespace scope_util
 

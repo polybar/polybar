@@ -6,28 +6,6 @@
 
 POLYBAR_NS
 
-namespace {
-  /**
-   * Overload that allows sub-string removal at the end of given string
-   */
-  inline string& operator-(string& a, const string& b) {
-    if (a.size() >= b.size() && a.substr(a.size() - b.size()) == b) {
-      return a.erase(a.size() - b.size());
-    } else {
-      return a;
-    }
-  }
-
-  /**
-   * Overload that allows sub-string removal at the end of given string
-   */
-  inline void operator-=(string& a, const string& b) {
-    if (a.size() >= b.size() && a.substr(a.size() - b.size()) == b) {
-      a.erase(a.size() - b.size());
-    }
-  }
-}  // namespace
-
 class sstream {
  public:
   sstream() : m_stream() {}
@@ -103,6 +81,6 @@ namespace string_util {
   string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
 
   hash_type hash(const string& src);
-}  // namespace string_util
+} // namespace string_util
 
 POLYBAR_NS_END

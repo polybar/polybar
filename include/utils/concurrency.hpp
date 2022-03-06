@@ -14,6 +14,9 @@ namespace this_thread = std::this_thread;
 using std::mutex;
 using std::thread;
 
+/**
+ * Types wrapped in this type can be used as locks (e.g. for lock_guard).
+ */
 template <typename T>
 class mutex_wrapper : public T {
  public:

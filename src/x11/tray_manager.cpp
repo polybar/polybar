@@ -866,7 +866,7 @@ bool tray_manager::is_embedded(const xcb_window_t& win) const {
 shared_ptr<tray_client> tray_manager::find_client(const xcb_window_t& win) const {
   for (auto&& client : m_clients) {
     if (client->match(win)) {
-      return shared_ptr<tray_client>{client.get(), factory_util::null_deleter};
+      return client;
     }
   }
   return nullptr;

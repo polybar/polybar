@@ -29,8 +29,8 @@ bool script_runner::check_condition() const {
     return true;
   }
 
-  auto exec_if_cmd = command_util::make_command<output_policy::IGNORED>(m_exec_if);
-  return exec_if_cmd->exec(true) == 0;
+  command<output_policy::IGNORED> exec_if_cmd(m_log, m_exec_if);
+  return exec_if_cmd.exec(true) == 0;
 }
 
 /**
@@ -93,38 +93,38 @@ bool script_runner::set_output(string&& new_output) {
 script_runner::interval script_runner::run() {
   auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
   m_log.info("script_runner: Invoking shell command: \"%s\"", exec);
-  auto cmd = command_util::make_command<output_policy::REDIRECTED>(exec);
+  command<output_policy::REDIRECTED> cmd(m_log, exec);
 
   try {
-    cmd->exec(false, m_env);
+    cmd.exec(false, m_env);
   } catch (const exception& err) {
     m_log.err("script_runner: %s", err.what());
     throw modules::module_error("Failed to execute command, stopping module...");
   }
 
-  int fd = cmd->get_stdout(PIPE_READ);
+  int fd = cmd.get_stdout(PIPE_READ);
   assert(fd != -1);
 
   bool changed = false;
 
   bool got_output = false;
-  while (!m_stopping && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+  while (!m_stopping && cmd.is_running() && !io_util::poll(fd, POLLHUP, 0)) {
     /**
      * For non-tailed scripts, we only use the first line. However, to ensure interruptability when the module shuts
      * down, we still need to continue polling.
      */
     if (io_util::poll_read(fd, 25) && !got_output) {
-      changed = set_output(cmd->readline());
+      changed = set_output(cmd.readline());
       got_output = true;
     }
   }
 
   if (m_stopping) {
-    cmd->terminate();
+    cmd.terminate();
     return 0s;
   }
 
-  m_exit_status = cmd->wait();
+  m_exit_status = cmd.wait();
 
   if (!changed && m_exit_status != 0) {
     clear_output();
@@ -140,32 +140,32 @@ script_runner::interval script_runner::run() {
 script_runner::interval script_runner::run_tail() {
   auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
   m_log.info("script_runner: Invoking shell command: \"%s\"", exec);
-  auto cmd = command_util::make_command<output_policy::REDIRECTED>(exec);
+  command<output_policy::REDIRECTED> cmd(m_log, exec);
 
   try {
-    cmd->exec(false, m_env);
+    cmd.exec(false, m_env);
   } catch (const exception& err) {
     throw modules::module_error("Failed to execute command: " + string(err.what()));
   }
 
   scope_util::on_exit pid_guard([this]() { m_pid = -1; });
-  m_pid = cmd->get_pid();
+  m_pid = cmd.get_pid();
 
-  int fd = cmd->get_stdout(PIPE_READ);
+  int fd = cmd.get_stdout(PIPE_READ);
   assert(fd != -1);
 
-  while (!m_stopping && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
+  while (!m_stopping && cmd.is_running() && !io_util::poll(fd, POLLHUP, 0)) {
     if (io_util::poll_read(fd, 25)) {
-      set_output(cmd->readline());
+      set_output(cmd.readline());
     }
   }
 
   if (m_stopping) {
-    cmd->terminate();
+    cmd.terminate();
     return 0s;
   }
 
-  auto exit_status = cmd->wait();
+  auto exit_status = cmd.wait();
 
   if (exit_status == 0) {
     return m_interval;

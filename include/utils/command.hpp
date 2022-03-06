@@ -10,32 +10,37 @@ POLYBAR_NS
 
 DEFINE_ERROR(command_error);
 
+enum class output_policy {
+  REDIRECTED,
+  IGNORED,
+};
+
 /**
  * Wrapper used to execute command in a subprocess.
  * In-/output streams are opened to enable ipc.
- * If the command is created using command_util::make_command<output_policy::REDIRECTED>, the child streams are
+ * If the command is created using command<output_policy::REDIRECTED>, the child streams are
  * redirected and you can read the program output or write into the program input.
  *
- * If the command is created using command_util::make_command<output_policy::IGNORED>, the output is not redirected and
+ * If the command is created using command<output_policy::IGNORED>, the output is not redirected and
  * you can't communicate with the child program.
  *
  * Example usage:
  *
  * @code cpp
- *   auto cmd = command_util::make_command<output_policy::REDIRECTED>("cat /etc/rc.local");
+ *   command<output_policy::REDIRECTED>auto(m_log, "cat /etc/rc.local");
  *   cmd->exec();
  *   cmd->tail([](string s) { std::cout << s << std::endl; });
  * @endcode
  *
  * @code cpp
- *   auto cmd = command_util::make_command<output_policy::REDIRECTED>("for i in 1 2 3; do echo $i; done");
+ *   command<output_policy::REDIRECTED>auto(m_log, "for i in 1 2 3; do echo $i; done");
  *   cmd->exec();
  *   cout << cmd->readline(); // 1
  *   cout << cmd->readline() << cmd->readline(); // 23
  * @endcode
  *
  * @code cpp
- *   auto cmd = command_util::make_command<output_policy::IGNORED>("ping kernel.org");
+ *   command<output_policy::IGNORED>auto(m_log, "ping kernel.org");
  *   int status = cmd->exec();
  * @endcode
  */
@@ -97,12 +102,5 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 
   unique_ptr<fd_stream<std::istream>> m_stdout_reader{nullptr};
 };
-
-namespace command_util {
-  template <output_policy OutputType, typename... Args>
-  unique_ptr<command<OutputType>> make_command(Args&&... args) {
-    return std::make_unique<command<OutputType>>(logger::make(), forward<Args>(args)...);
-  }
-}  // namespace command_util
 
 POLYBAR_NS_END

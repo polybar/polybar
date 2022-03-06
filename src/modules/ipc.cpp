@@ -214,9 +214,9 @@ namespace modules {
     m_output.clear();
 
     try {
-      auto command = command_util::make_command<output_policy::REDIRECTED>(m_hooks[m_current_hook]->command);
-      command->exec(false);
-      command->tail([this](string line) { m_output = line; });
+      command<output_policy::REDIRECTED> cmd(m_log, m_hooks[m_current_hook]->command);
+      cmd.exec(false);
+      cmd.tail([this](string line) { m_output = line; });
     } catch (const exception& err) {
       m_log.err("%s: Failed to execute hook command (err: %s)", name(), err.what());
       m_output.clear();
@@ -224,6 +224,6 @@ namespace modules {
 
     broadcast();
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -70,12 +70,14 @@ bool inotify_watch::poll(int wait_ms) const {
 /**
  * Get the latest inotify event
  */
-unique_ptr<inotify_event> inotify_watch::get_event() const {
-  auto event = std::make_unique<inotify_event>();
+inotify_event inotify_watch::get_event() const {
+  inotify_event event;
 
   if (m_fd == -1 || m_wd == -1) {
     return event;
   }
+
+  event.is_valid = true;
 
   char buffer[1024];
   auto bytes = read(m_fd, buffer, 1024);
@@ -84,24 +86,16 @@ unique_ptr<inotify_event> inotify_watch::get_event() const {
   while (len < bytes) {
     auto* e = reinterpret_cast<::inotify_event*>(&buffer[len]);
 
-    event->filename = e->len ? e->name : m_path;
-    event->wd = e->wd;
-    event->cookie = e->cookie;
-    event->is_dir = e->mask & IN_ISDIR;
-    event->mask |= e->mask;
+    event.filename = e->len ? e->name : m_path;
+    event.wd = e->wd;
+    event.cookie = e->cookie;
+    event.is_dir = e->mask & IN_ISDIR;
+    event.mask |= e->mask;
 
     len += sizeof(*e) + e->len;
   }
 
   return event;
-}
-
-/**
- * Wait for matching event
- */
-unique_ptr<inotify_event> inotify_watch::await_match() const {
-  auto event = get_event();
-  return event->mask & m_mask ? std::move(event) : nullptr;
 }
 
 /**

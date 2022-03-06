@@ -14,8 +14,7 @@ namespace modules {
   /**
    * Construct module
    */
-  github_module::github_module(const bar_settings& bar, string name_)
-      : timer_module<github_module>(bar, move(name_)), m_http(http_util::make_downloader()) {
+  github_module::github_module(const bar_settings& bar, string name_) : timer_module<github_module>(bar, move(name_)) {
     m_accesstoken = m_conf.get(name(), "token");
     m_user = m_conf.get(name(), "user", ""s);
     m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);
@@ -55,12 +54,12 @@ namespace modules {
   string github_module::request() {
     string content;
     if (m_user.empty()) {
-      content = m_http->get(m_api_url + "notifications?access_token=" + m_accesstoken);
+      content = m_http.get(m_api_url + "notifications?access_token=" + m_accesstoken);
     } else {
-      content = m_http->get(m_api_url + "notifications", m_user, m_accesstoken);
+      content = m_http.get(m_api_url + "notifications", m_user, m_accesstoken);
     }
 
-    long response_code{m_http->response_code()};
+    long response_code{m_http.response_code()};
     switch (response_code) {
       case 200:
         break;
@@ -130,6 +129,6 @@ namespace modules {
 
     return false;
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
