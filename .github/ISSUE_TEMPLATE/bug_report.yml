@@ -103,7 +103,7 @@ body:
     id: context
     attributes:
       label: Additional Context / Screenshots
-      description: If applicaple, add screenshots and additional context to explain your problem
+      description: If applicable, add screenshots and additional context to explain your problem
     validations:
       required: false
   - type: markdown
