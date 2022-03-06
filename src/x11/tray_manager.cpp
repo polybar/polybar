@@ -336,14 +336,14 @@ void tray_manager::reconfigure_window() {
     auto x = calculate_x(width);
     m_log.trace("tray: New window values, width=%d, x=%d", width, x);
 
-    unsigned int mask = 0;
-    unsigned int values[7];
+    uint32_t mask = 0;
+    std::array<uint32_t, 32> values{};
     xcb_params_configure_window_t params{};
 
     XCB_AUX_ADD_PARAM(&mask, &params, width, width);
     XCB_AUX_ADD_PARAM(&mask, &params, x, x);
     connection::pack_values(mask, &params, values);
-    m_connection.configure_window_checked(m_tray, mask, values);
+    m_connection.configure_window_checked(m_tray, mask, values.data());
   }
 }
 
@@ -527,12 +527,12 @@ void tray_manager::create_bg() {
   if (!m_gc) {
     try {
       xcb_params_gc_t params{};
-      unsigned int mask = 0;
-      unsigned int values[32];
+      uint32_t mask = 0;
+      std::array<uint32_t, 32> values{};
       XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
       connection::pack_values(mask, &params, values);
       m_gc = m_connection.generate_id();
-      m_connection.create_gc_checked(m_gc, m_pixmap, mask, values);
+      m_connection.create_gc_checked(m_gc, m_pixmap, mask, values.data());
     } catch (const exception& err) {
       return m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
     }

@@ -172,10 +172,15 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
   if(m_gcontext == XCB_NONE) {
     log.trace("background_manager: Allocating graphics context");
     auto black_pixel = m_connection.screen()->black_pixel;
-    unsigned int mask = XCB_GC_GRAPHICS_EXPOSURES | XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
-    unsigned int value_list[3] = {black_pixel, black_pixel, 0};
+    uint32_t mask = 0;
+    xcb_params_gc_t params{};
+    std::array<uint32_t, 32> value_list{};
+    XCB_AUX_ADD_PARAM(&mask, &params, foreground, black_pixel);
+    XCB_AUX_ADD_PARAM(&mask, &params, background, black_pixel);
+    XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
+    m_connection.pack_values(mask, &params, value_list);
     m_gcontext = m_connection.generate_id();
-    m_connection.create_gc(m_gcontext, m_pixmap, mask, value_list);
+    m_connection.create_gc(m_gcontext, m_pixmap, mask, value_list.data());
   }
 
   if(!m_surface) {

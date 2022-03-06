@@ -110,10 +110,7 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
     return o;
   }
 
-  static void pack_values(unsigned int mask, const unsigned int* src, unsigned int* dest);
-  static void pack_values(unsigned int mask, const xcb_params_cw_t* src, unsigned int* dest);
-  static void pack_values(unsigned int mask, const xcb_params_gc_t* src, unsigned int* dest);
-  static void pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest);
+  static void pack_values(uint32_t mask, const void* src, std::array<uint32_t, 32>& dest);
 
   xcb_screen_t* screen(bool realloc = false);
 

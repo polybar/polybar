@@ -50,21 +50,26 @@ connection::~connection() {
   disconnect();
 }
 
-void connection::pack_values(unsigned int mask, const unsigned int* src, unsigned int* dest) {
-  for (; mask; mask >>= 1, src++) {
-    if (mask & 1) {
-      *dest++ = *src;
+/**
+ * Packs data in src into the dest array.
+ *
+ * Each value in src is transferred into dest, if the corresponding bit in the
+ * mask is set.
+ *
+ * Required if parameters were set using XCB_AUX_ADD_PARAM but a value_list is needed in the function call.
+ *
+ * @param mask bitmask specifying which entries in src are selected
+ * @param src Array of 32-bit integers. Must have at least as many entries as the highest bit set in mask
+ * @param dest Entries from src are packed into this array
+ */
+void connection::pack_values(uint32_t mask, const void* src, std::array<uint32_t, 32>& dest) {
+  size_t dest_i = 0;
+  for (size_t i = 0; i < dest.size() && mask; i++, mask >>= 1) {
+    if (mask & 0x1) {
+      dest[dest_i] = reinterpret_cast<const uint32_t*>(src)[i];
+      dest_i++;
     }
   }
-}
-void connection::pack_values(unsigned int mask, const xcb_params_cw_t* src, unsigned int* dest) {
-  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
-}
-void connection::pack_values(unsigned int mask, const xcb_params_gc_t* src, unsigned int* dest) {
-  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
-}
-void connection::pack_values(unsigned int mask, const xcb_params_configure_window_t* src, unsigned int* dest) {
-  pack_values(mask, reinterpret_cast<const unsigned int*>(src), dest);
 }
 
 /**

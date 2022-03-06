@@ -1,5 +1,6 @@
-#include "x11/connection.hpp"
 #include "x11/winspec.hpp"
+
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 
@@ -14,7 +15,7 @@ winspec::operator xcb_rectangle_t() const {
 }
 
 xcb_window_t winspec::operator<<(const cw_flush& f) {
-  unsigned int values[16]{0};
+  std::array<uint32_t, 32> values{};
 
   if (m_window == XCB_NONE) {
     m_window = m_connection.generate_id();
@@ -34,10 +35,10 @@ xcb_window_t winspec::operator<<(const cw_flush& f) {
 
   if (f.checked) {
     m_connection.create_window_checked(
-        m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
+        m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values.data());
   } else {
     m_connection.create_window(
-        m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values);
+        m_depth, m_window, m_parent, m_x, m_y, m_width, m_height, m_border, m_class, m_visual, m_mask, values.data());
   }
 
   return m_window;

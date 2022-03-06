@@ -1,6 +1,6 @@
 #pragma once
 
-#include <xcb/xcb_aux.h>
+#include <xcb/xcb.h>
 
 #include "common.hpp"
 #include "components/types.hpp"
@@ -173,7 +173,7 @@ class winspec {
   unsigned short int m_width{1U};
   unsigned short int m_height{1U};
   unsigned short int m_border{0};
-  unsigned int m_mask{0};
+  uint32_t m_mask{0};
   xcb_params_cw_t m_params{};
 };
 

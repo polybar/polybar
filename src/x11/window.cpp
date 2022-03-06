@@ -12,8 +12,8 @@ POLYBAR_NS
  * Reconfigure the window geometry
  */
 window window::reconfigure_geom(unsigned short int w, unsigned short int h, short int x, short int y) {
-  unsigned int mask{0};
-  unsigned int values[7]{0};
+  uint32_t mask{0};
+  std::array<uint32_t, 32> values{};
 
   xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, width, w);
@@ -22,7 +22,7 @@ window window::reconfigure_geom(unsigned short int w, unsigned short int h, shor
   XCB_AUX_ADD_PARAM(&mask, &params, y, y);
 
   connection::pack_values(mask, &params, values);
-  configure_checked(mask, values);
+  configure_checked(mask, values.data());
 
   return *this;
 }
@@ -31,15 +31,15 @@ window window::reconfigure_geom(unsigned short int w, unsigned short int h, shor
  * Reconfigure the window position
  */
 window window::reconfigure_pos(short int x, short int y) {
-  unsigned int mask{0};
-  unsigned int values[2]{0};
+  uint32_t mask{0};
+  std::array<uint32_t, 32> values{};
 
   xcb_params_configure_window_t params{};
   XCB_AUX_ADD_PARAM(&mask, &params, x, x);
   XCB_AUX_ADD_PARAM(&mask, &params, y, y);
 
   connection::pack_values(mask, &params, values);
-  configure_checked(mask, values);
+  configure_checked(mask, values.data());
 
   return *this;
 }

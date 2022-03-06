@@ -87,8 +87,8 @@ void tray_client::ensure_state() const {
  * Configure window size
  */
 void tray_client::reconfigure(int x, int y) const {
-  unsigned int configure_mask = 0;
-  unsigned int configure_values[7];
+  uint32_t configure_mask = 0;
+  std::array<uint32_t, 32> configure_values{};
   xcb_params_configure_window_t configure_params{};
 
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_size.w);
@@ -97,7 +97,7 @@ void tray_client::reconfigure(int x, int y) const {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, y);
 
   connection::pack_values(configure_mask, &configure_params, configure_values);
-  m_connection.configure_window_checked(window(), configure_mask, configure_values);
+  m_connection.configure_window_checked(window(), configure_mask, configure_values.data());
 }
 
 /**
