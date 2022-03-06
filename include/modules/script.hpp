@@ -31,7 +31,9 @@ namespace modules {
     static constexpr auto FORMAT_FAIL = "format-fail";
 
     const bool m_tail;
-    const script_runner::interval m_interval{0};
+    const script_runner::interval m_interval_success{0};
+    const script_runner::interval m_interval_fail{0};
+    const script_runner::interval m_interval_if{0};
 
     script_runner m_runner;
 

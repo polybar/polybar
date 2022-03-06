@@ -12,13 +12,14 @@
 POLYBAR_NS
 
 script_runner::script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
-    interval interval, const vector<pair<string, string>>& env)
+    interval interval_success, interval interval_fail, const vector<pair<string, string>>& env)
     : m_log(logger::make())
     , m_on_update(on_update)
     , m_exec(exec)
     , m_exec_if(exec_if)
     , m_tail(tail)
-    , m_interval(interval)
+    , m_interval_success(interval_success)
+    , m_interval_fail(interval_fail)
     , m_env(env) {}
 
 /**
@@ -60,7 +61,7 @@ int script_runner::get_counter() const {
   return m_counter;
 }
 
-int script_runner::get_exit_status() const {
+int script_runner::get_exit_status() const { 
   return m_exit_status;
 }
 
@@ -131,9 +132,9 @@ script_runner::interval script_runner::run() {
   }
 
   if (m_exit_status == 0) {
-    return m_interval;
+    return m_interval_success;
   } else {
-    return std::max(m_interval, interval{1s});
+    return std::max(m_interval_fail, interval{1s});
   }
 }
 
@@ -168,9 +169,9 @@ script_runner::interval script_runner::run_tail() {
   auto exit_status = cmd.wait();
 
   if (exit_status == 0) {
-    return m_interval;
+    return m_interval_success;
   } else {
-    return std::max(m_interval, interval{1s});
+    return std::max(m_interval_fail, interval{1s});
   }
 }
 
