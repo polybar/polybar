@@ -4,15 +4,25 @@
 
 #include "common.hpp"
 #include "utils/memory.hpp"
+#include "utils/mixins.hpp"
 
 POLYBAR_NS
 
 struct position;
 
-using ewmh_connection_t = malloc_ptr_t<xcb_ewmh_connection_t>;
-
 namespace ewmh_util {
-  ewmh_connection_t initialize();
+  class ewmh_connection : public non_copyable_mixin, public non_movable_mixin {
+   public:
+    ewmh_connection();
+    ~ewmh_connection();
+
+    xcb_ewmh_connection_t* get();
+
+   private:
+    xcb_ewmh_connection_t c;
+  };
+
+  ewmh_connection& initialize();
 
   bool supports(xcb_atom_t atom, int screen = 0);
 
@@ -42,6 +52,6 @@ namespace ewmh_util {
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values);
 
   vector<xcb_window_t> get_client_list(int screen = 0);
-}
+} // namespace ewmh_util
 
 POLYBAR_NS_END

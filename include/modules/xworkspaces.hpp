@@ -83,7 +83,7 @@ namespace modules {
     static constexpr const char* TAG_LABEL_STATE{"<label-state>"};
 
     connection& m_connection;
-    ewmh_connection_t m_ewmh;
+    ewmh_util::ewmh_connection& m_ewmh;
 
     vector<monitor_t> m_monitors;
 
@@ -106,6 +106,6 @@ namespace modules {
     bool m_revscroll{false};
     size_t m_index{0};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

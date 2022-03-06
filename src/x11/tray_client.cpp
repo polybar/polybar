@@ -105,20 +105,20 @@ void tray_client::reconfigure(int x, int y) const {
  * Respond to client resize requests
  */
 void tray_client::configure_notify(int x, int y) const {
-  auto notify = memory_util::make_malloc_ptr<xcb_configure_notify_event_t, 32_z>();
-  notify->response_type = XCB_CONFIGURE_NOTIFY;
-  notify->event = m_window;
-  notify->window = m_window;
-  notify->override_redirect = false;
-  notify->above_sibling = 0;
-  notify->x = x;
-  notify->y = y;
-  notify->width = m_width;
-  notify->height = m_height;
-  notify->border_width = 0;
+  xcb_configure_notify_event_t notify;
+  notify.response_type = XCB_CONFIGURE_NOTIFY;
+  notify.event = m_window;
+  notify.window = m_window;
+  notify.override_redirect = false;
+  notify.above_sibling = 0;
+  notify.x = x;
+  notify.y = y;
+  notify.width = m_width;
+  notify.height = m_height;
+  notify.border_width = 0;
 
   unsigned int mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-  m_connection.send_event_checked(false, m_window, mask, reinterpret_cast<const char*>(notify.get()));
+  m_connection.send_event_checked(false, m_window, mask, reinterpret_cast<const char*>(&notify));
 }
 
 POLYBAR_NS_END

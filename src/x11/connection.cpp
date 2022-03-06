@@ -1,3 +1,5 @@
+#include "x11/connection.hpp"
+
 #include <algorithm>
 #include <iomanip>
 
@@ -6,7 +8,6 @@
 #include "utils/memory.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
-#include "x11/connection.hpp"
 
 POLYBAR_NS
 
@@ -19,25 +20,21 @@ connection::make_type connection::make(xcb_connection_t* conn, int default_scree
 }
 
 connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, default_screen) {
-  // Preload required xcb atoms {{{
-
-  vector<xcb_intern_atom_cookie_t> cookies(memory_util::countof(ATOMS));
-  xcb_intern_atom_reply_t* reply{nullptr};
+  // Preload required xcb atoms
+  vector<xcb_intern_atom_cookie_t> cookies(ATOMS.size());
 
   for (size_t i = 0; i < cookies.size(); i++) {
-    cookies[i] = xcb_intern_atom_unchecked(*this, false, ATOMS[i].len, ATOMS[i].name);
+    cookies[i] = xcb_intern_atom_unchecked(*this, false, ATOMS[i].name.size(), ATOMS[i].name.data());
   }
 
   for (size_t i = 0; i < cookies.size(); i++) {
-    if ((reply = xcb_intern_atom_reply(*this, cookies[i], nullptr)) != nullptr) {
-      *ATOMS[i].atom = reply->atom;
+    malloc_unique_ptr<xcb_intern_atom_reply_t> reply(xcb_intern_atom_reply(*this, cookies[i], nullptr), free);
+    if (reply) {
+      ATOMS[i].atom = reply->atom;
     }
-
-    free(reply);
   }
 
-// }}}
-// Query for X extensions {{{
+// Query for X extensions
 #if WITH_XRANDR
   randr_util::query_extension(*this);
 #endif
@@ -47,7 +44,6 @@ connection::connection(xcb_connection_t* c, int default_screen) : base_type(c, d
 #if WITH_XKB
   xkb_util::query_extension(*this);
 #endif
-  // }}}
 }
 
 connection::~connection() {
@@ -108,20 +104,19 @@ void connection::clear_event_mask(xcb_window_t win) {
 /**
  * Creates an instance of shared_ptr<xcb_client_message_event_t>
  */
-shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_t type, xcb_window_t target) const {
-  auto client_message = memory_util::make_malloc_ptr<xcb_client_message_event_t, 32_z>();
+xcb_client_message_event_t connection::make_client_message(xcb_atom_t type, xcb_window_t target) const {
+  xcb_client_message_event_t client_message;
+  client_message.response_type = XCB_CLIENT_MESSAGE;
+  client_message.format = 32;
+  client_message.type = type;
+  client_message.window = target;
 
-  client_message->response_type = XCB_CLIENT_MESSAGE;
-  client_message->format = 32;
-  client_message->type = type;
-  client_message->window = target;
-
-  client_message->sequence = 0;
-  client_message->data.data32[0] = 0;
-  client_message->data.data32[1] = 0;
-  client_message->data.data32[2] = 0;
-  client_message->data.data32[3] = 0;
-  client_message->data.data32[4] = 0;
+  client_message.sequence = 0;
+  client_message.data.data32[0] = 0;
+  client_message.data.data32[1] = 0;
+  client_message.data.data32[2] = 0;
+  client_message.data.data32[3] = 0;
+  client_message.data.data32[4] = 0;
 
   return client_message;
 }
@@ -129,9 +124,9 @@ shared_ptr<xcb_client_message_event_t> connection::make_client_message(xcb_atom_
 /**
  * Send client message event
  */
-void connection::send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
-    unsigned int event_mask, bool propagate) const {
-  send_event(propagate, target, event_mask, reinterpret_cast<const char*>(&*message));
+void connection::send_client_message(
+    const xcb_client_message_event_t& message, xcb_window_t target, unsigned int event_mask, bool propagate) const {
+  send_event(propagate, target, event_mask, reinterpret_cast<const char*>(&message));
   flush();
 }
 
@@ -156,13 +151,13 @@ xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth)
   return nullptr;
 }
 
-
 xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visualid_t visual_id) {
   xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
   if (depth_iter.data) {
     for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
       for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
-        if(it.data->visual_id == visual_id) return it.data;
+        if (it.data->visual_id == visual_id)
+          return it.data;
       }
     }
   }

@@ -66,7 +66,7 @@ namespace detail {
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
         check<xpp::x::extension, Extensions...>(error);
       }
-      throw;  // re-throw exception
+      throw; // re-throw exception
     }
 
     shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const override {
@@ -75,7 +75,7 @@ namespace detail {
       } catch (const shared_ptr<xcb_generic_error_t>& error) {
         check<xpp::x::extension, Extensions...>(error);
       }
-      throw;  // re-throw exception
+      throw; // re-throw exception
     }
 
    private:
@@ -94,7 +94,7 @@ namespace detail {
       dispatcher(error);
     }
   };
-}  // namespace detail
+} // namespace detail
 
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
  public:
@@ -122,8 +122,8 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   void ensure_event_mask(xcb_window_t win, unsigned int event);
   void clear_event_mask(xcb_window_t win);
 
-  shared_ptr<xcb_client_message_event_t> make_client_message(xcb_atom_t type, xcb_window_t target) const;
-  void send_client_message(const shared_ptr<xcb_client_message_event_t>& message, xcb_window_t target,
+  xcb_client_message_event_t make_client_message(xcb_atom_t type, xcb_window_t target) const;
+  void send_client_message(const xcb_client_message_event_t& message, xcb_window_t target,
       unsigned int event_mask = 0xFFFFFF, bool propagate = false) const;
 
   xcb_visualtype_t* visual_type(xcb_screen_t* screen, int match_depth = 32);

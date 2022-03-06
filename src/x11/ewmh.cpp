@@ -1,22 +1,31 @@
+#include "x11/ewmh.hpp"
+
 #include <unistd.h>
 
 #include "components/types.hpp"
 #include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-#include "x11/ewmh.hpp"
 
 POLYBAR_NS
 
 namespace ewmh_util {
-  ewmh_connection_t g_connection{nullptr};
-  ewmh_connection_t initialize() {
-    if (!g_connection) {
-      g_connection = memory_util::make_malloc_ptr<xcb_ewmh_connection_t>(
-          [=](xcb_ewmh_connection_t* c) { xcb_ewmh_connection_wipe(c); });
-      xcb_ewmh_init_atoms_replies(&*g_connection, xcb_ewmh_init_atoms(connection::make(), &*g_connection), nullptr);
-    }
-    return g_connection;
+
+  ewmh_connection::ewmh_connection() {
+    xcb_ewmh_init_atoms_replies(&c, xcb_ewmh_init_atoms(connection::make(), &c), nullptr);
+  }
+
+  ewmh_connection::~ewmh_connection() {
+    xcb_ewmh_connection_wipe(&c);
+  }
+
+  xcb_ewmh_connection_t* ewmh_connection::get() {
+    return &c;
+  }
+
+  ewmh_connection& initialize() {
+    static ewmh_connection c;
+    return c;
   }
 
   bool supports(xcb_atom_t atom, int screen) {
@@ -180,6 +189,6 @@ namespace ewmh_util {
     }
     return {};
   }
-}
+} // namespace ewmh_util
 
 POLYBAR_NS_END

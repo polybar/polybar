@@ -18,7 +18,7 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-}  // namespace
+} // namespace
 
 /**
  * Defines a lexicographical order on position
@@ -34,7 +34,9 @@ namespace modules {
    * Construct module
    */
   xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
-      : static_module<xworkspaces_module>(bar, move(name_)), m_connection(connection::make()) {
+      : static_module<xworkspaces_module>(bar, move(name_))
+      , m_connection(connection::make())
+      , m_ewmh(ewmh_util::initialize()) {
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
@@ -44,11 +46,6 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
-
-    // Initialize ewmh atoms
-    if ((m_ewmh = ewmh_util::initialize()) == nullptr) {
-      throw module_error("Failed to initialize ewmh atoms");
-    }
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
@@ -79,7 +76,8 @@ namespace modules {
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       } else {
-        m_log.err("%s: Ignoring icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
+        m_log.err(
+            "%s: Ignoring icon-%d because it has %s semicolons", name(), i, vec.size() > 2 ? "too many" : "too few");
       }
 
       i++;
@@ -107,15 +105,15 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
+    if (evt->atom == m_ewmh.get()->_NET_CLIENT_LIST || evt->atom == m_ewmh.get()->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
-    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
+    } else if (evt->atom == m_ewmh.get()->_NET_DESKTOP_NAMES || evt->atom == m_ewmh.get()->_NET_NUMBER_OF_DESKTOPS) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_clientlist();
       rebuild_desktop_states();
-    } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
+    } else if (evt->atom == m_ewmh.get()->_NET_CURRENT_DESKTOP) {
       update_current_desktop();
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
@@ -417,6 +415,6 @@ namespace modules {
       m_log.info("%s: Ignoring change to current desktop", name());
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

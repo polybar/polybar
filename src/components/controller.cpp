@@ -170,8 +170,8 @@ void controller::conn_cb() {
     return;
   }
 
-  shared_ptr<xcb_generic_event_t> evt{};
-  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+  malloc_ptr_t<xcb_generic_event_t> evt{};
+  while ((evt = malloc_ptr_t<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
     try {
       m_connection.dispatch_event(evt);
     } catch (xpp::connection_error& err) {
