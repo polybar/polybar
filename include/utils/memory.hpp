@@ -7,9 +7,6 @@
 POLYBAR_NS
 
 template <typename T>
-using malloc_ptr_t = shared_ptr<T>;
-
-template <typename T>
 using malloc_unique_ptr = unique_ptr<T, decltype(free)*>;
 
 POLYBAR_NS_END

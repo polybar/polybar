@@ -148,7 +148,7 @@ script_runner::interval script_runner::run_tail() {
     throw modules::module_error("Failed to execute command: " + string(err.what()));
   }
 
-  auto pid_guard = scope_util::make_exit_handler([this]() { m_pid = -1; });
+  scope_util::on_exit pid_guard([this]() { m_pid = -1; });
   m_pid = cmd->get_pid();
 
   int fd = cmd->get_stdout(PIPE_READ);
