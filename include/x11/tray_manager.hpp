@@ -113,9 +113,9 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
  protected:
   void reconfigure_window();
   void reconfigure_clients();
-  void reconfigure_bg(bool realloc = false);
+  void reconfigure_bg();
   void refresh_window();
-  void redraw_window(bool realloc_bg = false);
+  void redraw_window();
 
   void query_atom();
   void create_window();

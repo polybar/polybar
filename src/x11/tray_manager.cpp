@@ -374,12 +374,12 @@ void tray_manager::reconfigure_clients() {
 /**
  * Reconfigure root pixmap
  */
-void tray_manager::reconfigure_bg(bool realloc) {
+void tray_manager::reconfigure_bg() {
   if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
     return;
   };
 
-  m_log.trace("tray: Reconfigure bg (realloc=%i)", realloc);
+  m_log.trace("tray: Reconfigure bg");
 
   if (!m_context) {
     return m_log.err("tray: no context for drawing the background");
@@ -447,9 +447,9 @@ void tray_manager::refresh_window() {
 /**
  * Redraw window
  */
-void tray_manager::redraw_window(bool realloc_bg) {
+void tray_manager::redraw_window() {
   m_log.info("Redraw tray container (id=%s)", m_connection.id(m_tray));
-  reconfigure_bg(realloc_bg);
+  reconfigure_bg();
   refresh_window();
 }
 
@@ -981,7 +981,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
 
   // React an wallpaper change, if bar has transparency
   if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
-    redraw_window(true);
+    redraw_window();
     return;
   }
 
@@ -1117,7 +1117,7 @@ bool tray_manager::on(const signals::ui::dim_window& evt) {
 }
 
 bool tray_manager::on(const signals::ui::update_background&) {
-  redraw_window(true);
+  redraw_window();
 
   return false;
 }
