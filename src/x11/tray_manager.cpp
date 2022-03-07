@@ -727,15 +727,15 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     m_log.trace("tray: Configure client size");
     client.reconfigure(0, 0);
 
-    m_log.trace("tray: Add client window to the save set");
-    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.window());
-
     // TODO properly support tray icon backgrounds
     auto p = XCB_BACK_PIXMAP_NONE;
     m_connection.change_window_attributes_checked(client.window(), XCB_CW_BACK_PIXMAP, &p);
     m_log.trace("tray: Reparent client");
     m_connection.reparent_window_checked(
         client.window(), m_tray, calculate_client_x(client.window()), calculate_client_y());
+
+    m_log.trace("tray: Add client window to the save set");
+    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.window());
 
     if (client.is_xembed_supported()) {
       m_log.trace("tray: Send embbeded notification to client");
