@@ -140,13 +140,16 @@ Want to get in touch?
 
 ## Contributors
 
+### Maintainers
+* Patrick Ziegler [**@patrick96**](https://github.com/patrick96)
+
 ### Owner
 * Michael Carlberg [**@jaagr**](https://github.com/jaagr/)
 
-### Maintainers
+### Former Maintainers
+* [**@Lomadriel**](https://github.com/Lomadriel)
 * [**@NBonaparte**](https://github.com/NBonaparte)
 * Chase Geigle [**@skystrife**](https://github.com/skystrife)
-* Patrick Ziegler [**@patrick96**](https://github.com/patrick96)
 
 ### Logo Design by
 * [**@Tobaloidee**](https://github.com/Tobaloidee)
