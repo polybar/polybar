@@ -33,7 +33,7 @@ body:
     id: config
     attributes:
       label: Minimal config
-      description: A minimal but complete config with which the problem occurs.
+      description: A minimal but **complete** config with which the problem occurs.
       render: dosini
       placeholder: |
         [bar/example]
