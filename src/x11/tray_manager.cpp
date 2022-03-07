@@ -48,14 +48,14 @@ POLYBAR_NS
 /**
  * Create instance
  */
-tray_manager::make_type tray_manager::make(const bar_settings& settings) {
+tray_manager::make_type tray_manager::make(const bar_settings& bar_opts) {
   return std::make_unique<tray_manager>(
-      connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), settings);
+      connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), bar_opts);
 }
 
 tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
-    const bar_settings& settings)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back), m_bar_opts(settings) {
+    const bar_settings& bar_opts)
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back), m_bar_opts(bar_opts) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -248,19 +248,22 @@ void tray_manager::deactivate(bool clear_selection) {
   if (m_tray) {
     m_log.trace("tray: Destroy window");
     m_connection.destroy_window(m_tray);
-  }
-  m_context.reset();
-  m_surface.reset();
-  if (m_pixmap) {
-    m_connection.free_pixmap(m_pixmap);
-  }
-  if (m_gc) {
-    m_connection.free_gc(m_gc);
+    m_tray = 0;
   }
 
-  m_tray = 0;
-  m_pixmap = 0;
-  m_gc = 0;
+  m_context.reset();
+  m_surface.reset();
+
+  if (m_pixmap) {
+    m_connection.free_pixmap(m_pixmap);
+    m_pixmap = 0;
+  }
+
+  if (m_gc) {
+    m_connection.free_gc(m_gc);
+    m_gc = 0;
+  }
+
   m_opts.win_size.w = 0;
   m_opts.num_clients = 0;
   m_acquired_selection = false;
@@ -516,9 +519,9 @@ void tray_manager::create_bg() {
 
   if (!m_pixmap) {
     try {
+      auto depth = m_connection.get_geometry(m_bar_opts.window)->depth;
       m_pixmap = m_connection.generate_id();
-      // TODO get depth from bar window
-      m_connection.create_pixmap_checked(32, m_pixmap, m_tray, w, h);
+      m_connection.create_pixmap_checked(depth, m_pixmap, m_tray, w, h);
     } catch (const exception& err) {
       return m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
     }

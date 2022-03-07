@@ -95,10 +95,10 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                          signals::ui::update_background, signals::ui_tray::tray_pos_change> {
  public:
   using make_type = unique_ptr<tray_manager>;
-  static make_type make(const bar_settings& settings);
+  static make_type make(const bar_settings& bar_opts);
 
   explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
-      const bar_settings& settings);
+      const bar_settings& bar_opts);
 
   ~tray_manager();
 

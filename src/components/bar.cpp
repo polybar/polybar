@@ -61,8 +61,8 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
-    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
-    bool only_initialize_values)
+    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch,
+    unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
