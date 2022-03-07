@@ -1013,13 +1013,15 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
     return;
-  } else if (evt->atom == _XROOTPMAP_ID) {
+  } 
+  
+  // React an wallpaper change, if bar has transparency
+  if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
     redraw_window(true);
-  } else if (evt->atom == _XSETROOT_ID) {
-    redraw_window(true);
-  } else if (evt->atom == ESETROOT_PMAP_ID) {
-    redraw_window(true);
-  } else if (evt->atom != _XEMBED_INFO) {
+    return;
+  } 
+  
+  if (evt->atom != _XEMBED_INFO) {
     return;
   }
 
