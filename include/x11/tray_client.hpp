@@ -11,13 +11,13 @@ POLYBAR_NS
 // fwd declarations
 class connection;
 
-class tray_client {
+class tray_client : public non_copyable_mixin {
  public:
   explicit tray_client(connection& conn, xcb_window_t win, size s);
-  tray_client(const tray_client& c) = delete;
-  tray_client& operator=(tray_client& c) = delete;
-
   ~tray_client();
+
+  tray_client(tray_client&&);
+  tray_client& operator=(tray_client&&);
 
   unsigned int width() const;
   unsigned int height() const;
@@ -39,7 +39,7 @@ class tray_client {
 
  protected:
   connection& m_connection;
-  xcb_window_t m_window{0};
+  xcb_window_t m_window{XCB_NONE};
 
   /**
    * Whether the client window supports XEMBED.

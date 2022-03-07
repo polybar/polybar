@@ -140,8 +140,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   int calculate_client_y();
 
   bool is_embedded(const xcb_window_t& win) const;
-  shared_ptr<tray_client> find_client(const xcb_window_t& win) const;
-  void remove_client(shared_ptr<tray_client>& client, bool reconfigure = true);
+  tray_client* find_client(const xcb_window_t& win);
+  void remove_client(const tray_client& client, bool reconfigure = true);
   void remove_client(xcb_window_t win, bool reconfigure = true);
   int mapped_clients() const;
   bool has_mapped_clients() const;
@@ -169,7 +169,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   const logger& m_log;
   background_manager& m_background_manager;
   std::shared_ptr<bg_slice> m_bg_slice;
-  vector<shared_ptr<tray_client>> m_clients;
+  vector<tray_client> m_clients;
 
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
@@ -190,7 +190,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   thread m_delaythread;
 
-  mutex m_mtx{};
+  mutable mutex m_mtx{};
 
   bool m_firstactivation{true};
 };

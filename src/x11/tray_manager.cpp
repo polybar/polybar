@@ -359,15 +359,14 @@ void tray_manager::reconfigure_clients() {
   int x = m_opts.spacing;
 
   for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
-    auto client = *it;
-
     try {
-      client->ensure_state();
-      client->reconfigure(x, calculate_client_y());
+      it->ensure_state();
+      it->reconfigure(x, calculate_client_y());
 
       x += m_opts.client_size.w + m_opts.spacing;
     } catch (const xpp::x::error::window& err) {
-      remove_client(client, false);
+      // TODO print error
+      remove_client(*it, false);
     }
   }
 
@@ -427,14 +426,14 @@ void tray_manager::refresh_window() {
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
-  for (auto&& client : m_clients) {
+  for (auto& client : m_clients) {
     try {
-      if (client->mapped()) {
-        client->clear_window();
+      if (client.mapped()) {
+        client.clear_window();
       }
     } catch (const std::exception& e) {
-      m_log.err("Failed to clear tray client %s '%s' (%s)", m_connection.id(client->window()),
-          ewmh_util::get_wm_name(client->window()), e.what());
+      m_log.err("Failed to clear tray client %s '%s' (%s)", m_connection.id(client.window()),
+          ewmh_util::get_wm_name(client.window()), e.what());
     }
   }
 
@@ -519,6 +518,11 @@ void tray_manager::create_bg() {
 
   if (!m_pixmap) {
     try {
+      /*
+       * Use depths of bar window.
+       *
+       * TODO store depth determined in renderer somehwere and use that everywhere.
+       */
       auto depth = m_connection.get_geometry(m_bar_opts.window)->depth;
       m_pixmap = m_connection.generate_id();
       m_connection.create_pixmap_checked(depth, m_pixmap, m_tray, w, h);
@@ -695,57 +699,60 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
 void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
-  m_clients.emplace_back(std::make_shared<tray_client>(m_connection, win, m_opts.client_size));
-  auto& client = m_clients.back();
+  tray_client client(m_connection, win, m_opts.client_size);
+
+  auto geom = m_connection.get_geometry(win);
+  m_log.trace("tray: depth: %u, width: %u, height: %u", geom->depth, geom->width, geom->height);
 
   try {
-    client->query_xembed();
+    client.query_xembed();
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
-    remove_client(win, true);
     return;
   }
 
-  m_log.trace("tray: xembed = %s", client->is_xembed_supported() ? "true" : "false");
-  if (client->is_xembed_supported()) {
-    m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client->get_xembed().get_version(),
-        client->get_xembed().get_flags(), client->get_xembed().is_mapped() ? "true" : "false");
+  m_log.trace("tray: xembed = %s", client.is_xembed_supported() ? "true" : "false");
+  if (client.is_xembed_supported()) {
+    m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client.get_xembed().get_version(),
+        client.get_xembed().get_flags(), client.get_xembed().is_mapped() ? "true" : "false");
   }
 
   try {
-    const unsigned int mask = XCB_CW_EVENT_MASK;
-    const unsigned int values[]{XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    const uint32_t mask = XCB_CW_EVENT_MASK;
+    const uint32_t value = XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
     m_log.trace("tray: Update client window");
-    m_connection.change_window_attributes_checked(client->window(), mask, values);
+    m_connection.change_window_attributes_checked(client.window(), mask, &value);
 
     m_log.trace("tray: Configure client size");
-    client->reconfigure(0, 0);
+    client.reconfigure(0, 0);
 
     m_log.trace("tray: Add client window to the save set");
-    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client->window());
+    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.window());
 
     // TODO properly support tray icon backgrounds
     auto p = XCB_BACK_PIXMAP_NONE;
-    m_connection.change_window_attributes_checked(client->window(), XCB_CW_BACK_PIXMAP, &p);
+    m_connection.change_window_attributes_checked(client.window(), XCB_CW_BACK_PIXMAP, &p);
     m_log.trace("tray: Reparent client");
     m_connection.reparent_window_checked(
-        client->window(), m_tray, calculate_client_x(client->window()), calculate_client_y());
+        client.window(), m_tray, calculate_client_x(client.window()), calculate_client_y());
 
-    if (client->is_xembed_supported()) {
+    if (client.is_xembed_supported()) {
       m_log.trace("tray: Send embbeded notification to client");
-      xembed::notify_embedded(m_connection, client->window(), m_tray, client->get_xembed().get_version());
+      xembed::notify_embedded(m_connection, client.window(), m_tray, client.get_xembed().get_version());
     }
 
-    if (!client->is_xembed_supported() || client->get_xembed().is_mapped()) {
+    if (!client.is_xembed_supported() || client.get_xembed().is_mapped()) {
       m_log.trace("tray: Map client");
-      m_connection.map_window_checked(client->window());
+      m_connection.map_window_checked(client.window());
     }
-
   } catch (const std::exception& err) {
-    m_log.err("Failed to setup tray client removing... (%s)", err.what());
-    remove_client(win, false);
+    m_log.err("Failed to setup tray client '%s' (%s) removing... (%s)", ewmh_util::get_wm_name(win),
+        m_connection.id(win), err.what());
+    return;
   }
+
+  m_clients.emplace_back(std::move(client));
 }
 
 /**
@@ -774,8 +781,8 @@ int tray_manager::calculate_y() const {
 unsigned short int tray_manager::calculate_w() const {
   unsigned int width = m_opts.spacing;
   unsigned int count{0};
-  for (auto&& client : m_clients) {
-    if (client->mapped()) {
+  for (auto& client : m_clients) {
+    if (client.mapped()) {
       count++;
       width += m_opts.spacing + m_opts.client_size.w;
     }
@@ -795,7 +802,7 @@ unsigned short int tray_manager::calculate_h() const {
  */
 int tray_manager::calculate_client_x(const xcb_window_t& win) {
   for (unsigned int i = 0; i < m_clients.size(); i++) {
-    if (m_clients[i]->match(win)) {
+    if (m_clients[i].match(win)) {
       return m_opts.spacing + m_opts.client_size.w * i;
     }
   }
@@ -813,17 +820,17 @@ int tray_manager::calculate_client_y() {
  * Check if the given window is embedded
  */
 bool tray_manager::is_embedded(const xcb_window_t& win) const {
-  return m_clients.end() != std::find_if(m_clients.begin(), m_clients.end(),
-                                [win](shared_ptr<tray_client> client) { return client->match(win); });
+  return m_clients.end() !=
+         std::find_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client.match(win); });
 }
 
 /**
  * Find tray client by window
  */
-shared_ptr<tray_client> tray_manager::find_client(const xcb_window_t& win) const {
-  for (auto&& client : m_clients) {
-    if (client->match(win)) {
-      return client;
+tray_client* tray_manager::find_client(const xcb_window_t& win) {
+  for (auto& client : m_clients) {
+    if (client.match(win)) {
+      return &client;
     }
   }
   return nullptr;
@@ -832,16 +839,16 @@ shared_ptr<tray_client> tray_manager::find_client(const xcb_window_t& win) const
 /**
  * Remove tray client
  */
-void tray_manager::remove_client(shared_ptr<tray_client>& client, bool reconfigure) {
-  remove_client(client->window(), reconfigure);
+void tray_manager::remove_client(const tray_client& client, bool reconfigure) {
+  remove_client(client.window(), reconfigure);
 }
 
 /**
  * Remove tray client by window
  */
 void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
-  m_clients.erase(std::remove_if(
-      m_clients.begin(), m_clients.end(), [win](shared_ptr<tray_client> client) { return client->match(win); }));
+  m_clients.erase(
+      std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client.match(win); }));
 
   if (reconfigure) {
     tray_manager::reconfigure();
@@ -852,25 +859,11 @@ void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
  * Get number of mapped clients
  */
 int tray_manager::mapped_clients() const {
-  int mapped_clients = 0;
-
-  for (auto&& client : m_clients) {
-    if (client->mapped()) {
-      mapped_clients++;
-    }
-  }
-
-  return mapped_clients;
+  return std::count_if(m_clients.begin(), m_clients.end(), [](const auto& c) { return c.mapped(); });
 }
 
 bool tray_manager::has_mapped_clients() const {
-  for (auto&& client : m_clients) {
-    if (client->mapped()) {
-      return true;
-    }
-  }
-
-  return false;
+  return std::find_if(m_clients.begin(), m_clients.end(), [](const auto& c) { return c.mapped(); }) != m_clients.end();
 }
 
 /**

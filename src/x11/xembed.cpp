@@ -1,7 +1,10 @@
 #include "x11/xembed.hpp"
 
+#include <cassert>
+
 #include "errors.hpp"
 #include "x11/atoms.hpp"
+#include "x11/ewmh.hpp"
 
 POLYBAR_NS
 
@@ -104,11 +107,14 @@ namespace xembed {
    * Unembed given window
    */
   void unembed(connection& conn, xcb_window_t win, xcb_window_t root) {
+    assert(win != XCB_NONE);
     try {
       conn.unmap_window_checked(win);
       conn.reparent_window_checked(win, root, 0, 0);
     } catch (const xpp::x::error::window& err) {
       // invalid window
+      // TODO
+      logger::make().err("tray: Failed to unembed window '%s' (%s)", ewmh_util::get_wm_name(win), conn.id(win));
     }
   }
 } // namespace xembed

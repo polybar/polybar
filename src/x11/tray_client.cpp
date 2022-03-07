@@ -11,7 +11,20 @@ POLYBAR_NS
 tray_client::tray_client(connection& conn, xcb_window_t win, size s) : m_connection(conn), m_window(win), m_size(s) {}
 
 tray_client::~tray_client() {
-  xembed::unembed(m_connection, window(), m_connection.root());
+  if (m_window != XCB_NONE) {
+    xembed::unembed(m_connection, m_window, m_connection.root());
+  }
+}
+
+tray_client::tray_client(tray_client&& c) : m_connection(c.m_connection), m_size(c.m_size) {
+  std::swap(m_window, c.m_window);
+}
+
+tray_client& tray_client::operator=(tray_client&& c) {
+  m_connection = c.m_connection;
+  std::swap(m_window, c.m_window);
+  std::swap(m_size, c.m_size);
+  return *this;
 }
 
 unsigned int tray_client::width() const {
@@ -95,7 +108,6 @@ void tray_client::reconfigure(int x, int y) const {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, height, m_size.h);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, x, x);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, y);
-
   connection::pack_values(configure_mask, &configure_params, configure_values);
   m_connection.configure_window_checked(window(), configure_mask, configure_values.data());
 }
