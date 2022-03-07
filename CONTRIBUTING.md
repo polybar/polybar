@@ -53,7 +53,8 @@ PR being rejected because the feature you implemented was not actually something
 we want in polybar.
 
 Issues with any of the following labels are generally safe to start working on,
-unless someone else has already claimed them:
+unless they also have the `needs confirmation` label or someone else has
+already claimed them:
 
 * [bug](https://github.com/polybar/polybar/labels/bug)
 * [confirmed](https://github.com/polybar/polybar/labels/confirmed)
