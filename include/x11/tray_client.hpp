@@ -13,7 +13,7 @@ class connection;
 
 class tray_client : public non_copyable_mixin {
  public:
-  explicit tray_client(connection& conn, xcb_window_t win, size s);
+  explicit tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s);
   ~tray_client();
 
   tray_client(tray_client&&);
@@ -27,7 +27,8 @@ class tray_client : public non_copyable_mixin {
   bool mapped() const;
   void mapped(bool state);
 
-  xcb_window_t window() const;
+  xcb_window_t embedder() const;
+  xcb_window_t client() const;
 
   void query_xembed();
   bool is_xembed_supported() const;
@@ -38,8 +39,27 @@ class tray_client : public non_copyable_mixin {
   void configure_notify(int x, int y) const;
 
  protected:
+  const logger& m_log;
+
   connection& m_connection;
-  xcb_window_t m_window{XCB_NONE};
+
+  /**
+   * Embedder window.
+   *
+   * The docking client window is reparented to this window.
+   * This window is itself a child of the main tray window.
+   *
+   * This class owns this window and is responsible for creating/destroying it.
+   */
+  xcb_window_t m_wrapper{XCB_NONE};
+
+  /**
+   * Client window.
+   *
+   * The window itself is owned by the application providing it.
+   * This class is responsible for correctly mapping and reparenting it in accordance with the XEMBED protocol.
+   */
+  xcb_window_t m_client{XCB_NONE};
 
   /**
    * Whether the client window supports XEMBED.
@@ -50,9 +70,12 @@ class tray_client : public non_copyable_mixin {
 
   /**
    * _XEMBED_INFO of the client window
+   *
+   * Only valid if m_xembed_supported == true
    */
   xembed::info m_xembed;
 
+  // TODO
   bool m_mapped{false};
 
   size m_size;

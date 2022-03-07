@@ -61,8 +61,8 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
-    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
+    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
+    bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
@@ -393,7 +393,7 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().num_clients > 0 && !m_tray->settings().adaptive) {
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 && !m_tray->settings().adaptive) {
     auto trayalign = m_tray->settings().align;
     auto traywidth = m_tray->settings().win_size.w;
     if (trayalign == alignment::LEFT) {

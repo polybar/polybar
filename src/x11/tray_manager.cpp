@@ -265,7 +265,7 @@ void tray_manager::deactivate(bool clear_selection) {
   }
 
   m_opts.win_size.w = 0;
-  m_opts.num_clients = 0;
+  m_opts.num_mapped_clients = 0;
   m_acquired_selection = false;
   m_mapped = false;
 
@@ -299,7 +299,7 @@ void tray_manager::reconfigure() {
       m_log.err("Failed to reconfigure tray background (%s)", err.what());
     }
 
-    m_opts.num_clients = mapped_clients();
+    m_opts.num_mapped_clients = mapped_clients();
     guard.unlock();
     refresh_window();
     m_connection.flush();
@@ -432,8 +432,8 @@ void tray_manager::refresh_window() {
         client.clear_window();
       }
     } catch (const std::exception& e) {
-      m_log.err("Failed to clear tray client %s '%s' (%s)", m_connection.id(client.window()),
-          ewmh_util::get_wm_name(client.window()), e.what());
+      m_log.err("Failed to clear tray client %s '%s' (%s)", ewmh_util::get_wm_name(client.client()),
+          m_connection.id(client.client()), e.what());
     }
   }
 
@@ -480,7 +480,8 @@ void tray_manager::create_window() {
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
         |XCB_EVENT_MASK_STRUCTURE_NOTIFY
         |XCB_EVENT_MASK_EXPOSURE)
-    << cw_params_override_redirect(true)
+    // TODO
+    // << cw_params_override_redirect(true)
     << cw_parent(m_opts.bar_window);
   // clang-format on
 
@@ -699,10 +700,7 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
 void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
-  tray_client client(m_connection, win, m_opts.client_size);
-
-  auto geom = m_connection.get_geometry(win);
-  m_log.trace("tray: depth: %u, width: %u, height: %u", geom->depth, geom->width, geom->height);
+  tray_client client(m_log, m_connection, m_tray, win, m_opts.client_size);
 
   try {
     client.query_xembed();
@@ -722,29 +720,31 @@ void tray_manager::process_docking_request(xcb_window_t win) {
     const uint32_t value = XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
     m_log.trace("tray: Update client window");
-    m_connection.change_window_attributes_checked(client.window(), mask, &value);
+    m_connection.change_window_attributes_checked(client.client(), mask, &value);
 
     m_log.trace("tray: Configure client size");
     client.reconfigure(0, 0);
 
-    // TODO properly support tray icon backgrounds
-    auto p = XCB_BACK_PIXMAP_NONE;
-    m_connection.change_window_attributes_checked(client.window(), XCB_CW_BACK_PIXMAP, &p);
+    // TODO put this into tray_client class
     m_log.trace("tray: Reparent client");
     m_connection.reparent_window_checked(
-        client.window(), m_tray, calculate_client_x(client.window()), calculate_client_y());
+        client.client(), client.embedder(), calculate_client_x(client.client()), calculate_client_y());
 
     m_log.trace("tray: Add client window to the save set");
-    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.window());
+    // TODO move this into tray_client
+    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.client());
 
     if (client.is_xembed_supported()) {
       m_log.trace("tray: Send embbeded notification to client");
-      xembed::notify_embedded(m_connection, client.window(), m_tray, client.get_xembed().get_version());
+      // TODO move this into tray_client
+      xembed::notify_embedded(m_connection, client.client(), client.embedder(), client.get_xembed().get_version());
     }
 
     if (!client.is_xembed_supported() || client.get_xembed().is_mapped()) {
       m_log.trace("tray: Map client");
-      m_connection.map_window_checked(client.window());
+      // TODO move this into tray_client
+      m_connection.map_window_checked(client.client());
+      m_connection.map_window_checked(client.embedder());
     }
   } catch (const std::exception& err) {
     m_log.err("Failed to setup tray client '%s' (%s) removing... (%s)", ewmh_util::get_wm_name(win),
@@ -840,7 +840,7 @@ tray_client* tray_manager::find_client(const xcb_window_t& win) {
  * Remove tray client
  */
 void tray_manager::remove_client(const tray_client& client, bool reconfigure) {
-  remove_client(client.window(), reconfigure);
+  remove_client(client.client(), reconfigure);
 }
 
 /**
@@ -993,8 +993,6 @@ void tray_manager::handle(const evt::property_notify& evt) {
 
   m_log.trace("tray: _XEMBED_INFO: %s", m_connection.id(evt->window));
 
-  auto win = client->window();
-
   if (evt->state == XCB_PROPERTY_NEW_VALUE) {
     m_log.trace("tray: _XEMBED_INFO value has changed");
   }
@@ -1003,7 +1001,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
     client->query_xembed();
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
-    remove_client(win, true);
+    remove_client(*client, true);
     return;
   }
 
@@ -1019,9 +1017,19 @@ void tray_manager::handle(const evt::property_notify& evt) {
  * Event callback : XCB_REPARENT_NOTIFY
  */
 void tray_manager::handle(const evt::reparent_notify& evt) {
-  if (m_activated && is_embedded(evt->window) && evt->parent != m_tray) {
+  if (!m_activated) {
+    return;
+  }
+
+  auto client = find_client(evt->window);
+
+  if (!client) {
+    return;
+  }
+
+  if (evt->parent != client->embedder()) {
     m_log.trace("tray: Received reparent_notify for client, remove...");
-    remove_client(evt->window);
+    remove_client(*client);
   }
 }
 
@@ -1054,7 +1062,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
     find_client(evt->window)->mapped(true);
-    if (mapped_clients() > m_opts.num_clients) {
+    if (mapped_clients() > m_opts.num_mapped_clients) {
       reconfigure();
     }
   }

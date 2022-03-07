@@ -69,7 +69,7 @@ struct tray_settings {
   /**
    * Number of clients currently mapped.
    */
-  int num_clients{0};
+  int num_mapped_clients{0};
 
   // This is the width of the bar window
   // TODO directly read from bar_settings

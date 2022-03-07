@@ -48,7 +48,7 @@ namespace xembed {
   /**
    * Send _XEMBED messages
    */
-  void send_message(connection& conn, xcb_window_t target, long message, long d1, long d2, long d3) {
+  void send_message(connection& conn, xcb_window_t target, uint32_t message, uint32_t d1, uint32_t d2, uint32_t d3) {
     auto msg = conn.make_client_message(_XEMBED, target);
     msg.data.data32[0] = XCB_CURRENT_TIME;
     msg.data.data32[1] = message;
@@ -92,7 +92,7 @@ namespace xembed {
   /**
    * Send window focused notification
    */
-  void notify_focused(connection& conn, xcb_window_t win, long focus_type) {
+  void notify_focused(connection& conn, xcb_window_t win, uint32_t focus_type) {
     send_message(conn, win, XEMBED_FOCUS_IN, focus_type, 0, 0);
   }
 

@@ -34,11 +34,15 @@ class logger {
 
   explicit logger(loglevel level);
 
+  const logger& operator=(const logger&) const {
+    return *this;
+  }
+
   static loglevel parse_verbosity(const string& name, loglevel fallback = loglevel::NONE);
 
   void verbosity(loglevel level);
 
-#ifdef DEBUG_LOGGER  // {{{
+#ifdef DEBUG_LOGGER // {{{
   template <typename... Args>
   void trace(const string& message, Args&&... args) const {
     output(loglevel::TRACE, message, std::forward<Args>(args)...);
@@ -57,7 +61,7 @@ class logger {
   void trace(Args&&...) const {}
   template <typename... Args>
   void trace_x(Args&&...) const {}
-#endif  // }}}
+#endif // }}}
 
   /**
    * Output an info message
@@ -118,21 +122,21 @@ class logger {
       return;
     }
 
-#if defined(__clang__)  // {{{
+#if defined(__clang__) // {{{
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
 #elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
-#endif  // }}}
+#endif // }}}
 
     dprintf(m_fd, (m_prefixes.at(level) + format + m_suffixes.at(level) + "\n").c_str(), convert(values)...);
 
-#if defined(__clang__)  // {{{
+#if defined(__clang__) // {{{
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
-#endif  // }}}
+#endif // }}}
   }
 
  private:
