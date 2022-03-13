@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="banner.png" alt="Polybar">
+  <img src="doc/_static/banner.png" alt="Polybar">
 </p>
 
 <p align="center">
