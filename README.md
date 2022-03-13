@@ -102,6 +102,8 @@ If you are using **Arch Linux**, you can install the AUR package
 version, or [polybar-git](https://aur.archlinux.org/packages/polybar-git/) for
 the most up-to-date (unstable) changes.
 
+If you are using **Manjaro**, you can install [polybar](https://software.manjaro.org/package/polybar) to get the latest stable release using `sudo pacman -S polybar`.
+
 If you are using **Void Linux**, you can install [polybar](https://github.com/void-linux/void-packages/blob/master/srcpkgs/polybar/template) using `xbps-install -S polybar`.
 
 If you are using **NixOS**, polybar is available in both the stable and unstable channels and can be installed with the command `nix-env -iA nixos.polybar`.
