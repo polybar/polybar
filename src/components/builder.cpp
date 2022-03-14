@@ -31,19 +31,12 @@ void builder::reset() {
   m_tags[syntaxtag::u] = 0;
   m_tags[syntaxtag::P] = 0;
 
-  m_colors.clear();
-  m_colors[syntaxtag::B] = string();
-  m_colors[syntaxtag::F] = string();
-  m_colors[syntaxtag::o] = string();
-  m_colors[syntaxtag::u] = string();
-
   m_attrs.clear();
   m_attrs[attribute::NONE] = false;
   m_attrs[attribute::UNDERLINE] = false;
   m_attrs[attribute::OVERLINE] = false;
 
   m_output.clear();
-  m_fontindex = 1;
 }
 
 /**
@@ -52,33 +45,20 @@ void builder::reset() {
  * This will also close any unclosed tags
  */
 string builder::flush() {
-  if (m_tags[syntaxtag::B]) {
-    background_close();
-  }
-  if (m_tags[syntaxtag::F]) {
-    color_close();
-  }
-  if (m_tags[syntaxtag::T]) {
-    font_close();
-  }
-  if (m_tags[syntaxtag::o]) {
-    overline_color_close();
-  }
-  if (m_tags[syntaxtag::u]) {
-    underline_color_close();
-  }
-  if (m_attrs[attribute::UNDERLINE]) {
-    underline_close();
-  }
-  if (m_attrs[attribute::OVERLINE]) {
-    overline_close();
-  }
+  background_close();
+  color_close();
+  font_close();
+  overline_color_close();
+  underline_color_close();
+  underline_close();
+  overline_close();
 
   while (m_tags[syntaxtag::A]) {
     action_close();
   }
 
-  string output{m_output};
+  string output{};
+  std::swap(m_output, output);
 
   reset();
 
@@ -175,18 +155,6 @@ void builder::node(const label_t& label) {
 }
 
 /**
- * Repeat text string n times
- */
-void builder::node_repeat(const string& str, size_t n) {
-  string text;
-  text.reserve(str.size() * n);
-  while (n--) {
-    text += str;
-  }
-  node(text);
-}
-
-/**
  * Repeat label contents n times
  */
 void builder::node_repeat(const label_t& label, size_t n) {
@@ -233,7 +201,6 @@ void builder::font(int index) {
   if (index == 0) {
     return;
   }
-  m_fontindex = index;
   tag_open(syntaxtag::T, to_string(index));
 }
 
@@ -241,7 +208,6 @@ void builder::font(int index) {
  * Insert tag to reset the font index
  */
 void builder::font_close() {
-  m_fontindex = 1;
   tag_close(syntaxtag::T);
 }
 
@@ -252,7 +218,6 @@ void builder::background(rgba color) {
   color = color.try_apply_alpha_to(m_bar.background);
 
   auto hex = color_util::simplify_hex(color);
-  m_colors[syntaxtag::B] = hex;
   tag_open(syntaxtag::B, hex);
 }
 
@@ -260,7 +225,6 @@ void builder::background(rgba color) {
  * Insert tag to reset the background color
  */
 void builder::background_close() {
-  m_colors[syntaxtag::B].clear();
   tag_close(syntaxtag::B);
 }
 
@@ -271,7 +235,6 @@ void builder::color(rgba color) {
   color = color.try_apply_alpha_to(m_bar.foreground);
 
   auto hex = color_util::simplify_hex(color);
-  m_colors[syntaxtag::F] = hex;
   tag_open(syntaxtag::F, hex);
 }
 
@@ -279,24 +242,7 @@ void builder::color(rgba color) {
  * Insert tag to reset the foreground color
  */
 void builder::color_close() {
-  m_colors[syntaxtag::F].clear();
   tag_close(syntaxtag::F);
-}
-
-/**
- * Insert tag to alter the current overline/underline color
- */
-void builder::line_color(const rgba& color) {
-  overline_color(color);
-  underline_color(color);
-}
-
-/**
- * Close overline/underline color tag
- */
-void builder::line_color_close() {
-  overline_color_close();
-  underline_color_close();
 }
 
 /**
@@ -304,7 +250,6 @@ void builder::line_color_close() {
  */
 void builder::overline_color(rgba color) {
   auto hex = color_util::simplify_hex(color);
-  m_colors[syntaxtag::o] = hex;
   tag_open(syntaxtag::o, hex);
   tag_open(attribute::OVERLINE);
 }
@@ -313,7 +258,6 @@ void builder::overline_color(rgba color) {
  * Close underline color tag
  */
 void builder::overline_color_close() {
-  m_colors[syntaxtag::o].clear();
   tag_close(syntaxtag::o);
 }
 
@@ -322,7 +266,6 @@ void builder::overline_color_close() {
  */
 void builder::underline_color(rgba color) {
   auto hex = color_util::simplify_hex(color);
-  m_colors[syntaxtag::u] = hex;
   tag_open(syntaxtag::u, hex);
   tag_open(attribute::UNDERLINE);
 }
@@ -332,7 +275,6 @@ void builder::underline_color(rgba color) {
  */
 void builder::underline_color_close() {
   tag_close(syntaxtag::u);
-  m_colors[syntaxtag::u].clear();
 }
 
 /**
@@ -415,7 +357,7 @@ void builder::action(mousebtn index, string action_name, const label_t& label) {
   if (label && *label) {
     action(index, action_name);
     node(label);
-    tag_close(syntaxtag::A);
+    action_close();
   }
 }
 
@@ -531,13 +473,8 @@ void builder::tag_close(syntaxtag tag) {
     case syntaxtag::o:
       append("%{o-}");
       break;
-    case syntaxtag::R:
-    case syntaxtag::P:
-    case syntaxtag::O:
-    case syntaxtag::l:
-    case syntaxtag::c:
-    case syntaxtag::r:
-      break;
+    default:
+      throw runtime_error("Cannot close syntaxtag: " + to_string(to_integral(tag)));
   }
 }
 

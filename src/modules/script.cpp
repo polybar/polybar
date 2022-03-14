@@ -120,7 +120,7 @@ namespace modules {
       }
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     return m_builder->flush();
   }
@@ -139,6 +139,6 @@ namespace modules {
 
     return true;
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

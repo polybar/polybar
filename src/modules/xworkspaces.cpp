@@ -18,7 +18,7 @@ namespace {
   inline bool operator==(const position& a, const position& b) {
     return a.x + a.y == b.x + b.y;
   }
-}  // namespace
+} // namespace
 
 /**
  * Defines a lexicographical order on position
@@ -79,7 +79,8 @@ namespace modules {
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       } else {
-        m_log.err("%s: Ignoring icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
+        m_log.err(
+            "%s: Ignoring icon-%d because it has %s semicolons", name(), i, vec.size() > 2 ? "too many" : "too few");
       }
 
       i++;
@@ -324,7 +325,7 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_UP, *this, m_revscroll ? EVENT_PREV : EVENT_NEXT, "");
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     m_builder->action_close();
     m_builder->action_close();
@@ -417,6 +418,6 @@ namespace modules {
       m_log.info("%s: Ignoring change to current desktop", name());
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
