@@ -246,28 +246,10 @@ void builder::color_close() {
 }
 
 /**
- * Insert tag to alter the current overline color
- */
-void builder::overline_color(rgba color) {
-  auto hex = color_util::simplify_hex(color);
-  tag_open(syntaxtag::o, hex);
-  tag_open(attribute::OVERLINE);
-}
-
-/**
  * Close underline color tag
  */
 void builder::overline_color_close() {
   tag_close(syntaxtag::o);
-}
-
-/**
- * Insert tag to alter the current underline color
- */
-void builder::underline_color(rgba color) {
-  auto hex = color_util::simplify_hex(color);
-  tag_open(syntaxtag::u, hex);
-  tag_open(attribute::UNDERLINE);
 }
 
 /**
@@ -278,12 +260,12 @@ void builder::underline_color_close() {
 }
 
 /**
- * Insert tag to enable the overline attribute
+ * Insert tag to enable the overline attribute with the given color
  */
 void builder::overline(const rgba& color) {
   if (color.has_color()) {
-    overline_color(color);
-  } else {
+    auto hex = color_util::simplify_hex(color);
+    tag_open(syntaxtag::o, hex);
     tag_open(attribute::OVERLINE);
   }
 }
@@ -296,12 +278,12 @@ void builder::overline_close() {
 }
 
 /**
- * Insert tag to enable the underline attribute
+ * Insert tag to enable the underline attribute with the given color
  */
 void builder::underline(const rgba& color) {
   if (color.has_color()) {
-    underline_color(color);
-  } else {
+    auto hex = color_util::simplify_hex(color);
+    tag_open(syntaxtag::u, hex);
     tag_open(attribute::UNDERLINE);
   }
 }
