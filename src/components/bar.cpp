@@ -191,7 +191,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load configuration values
 
-  m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
+  m_opts.bottom = m_conf.get(bs, "bottom", m_opts.bottom);
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
   m_opts.locale = m_conf.get(bs, "locale", ""s);
@@ -221,10 +221,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load values used to adjust the struts atom
   auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
   auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
-  m_opts.strut.top =
-      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_top, m_opts.monitor->h, m_opts.dpi_y);
-  m_opts.strut.bottom =
-      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -329,7 +327,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.size.h += m_opts.borders[edge::TOP].size;
   m_opts.size.h += m_opts.borders[edge::BOTTOM].size;
 
-  if (m_opts.origin == edge::BOTTOM) {
+  if (m_opts.bottom) {
     m_opts.pos.y = m_opts.monitor->y + m_opts.monitor->h - m_opts.size.h - m_opts.offset.y;
   }
 
@@ -556,23 +554,41 @@ void bar::reconfigure_pos() {
  */
 void bar::reconfigure_struts() {
   auto geom = m_connection.get_geometry(m_screen->root());
-  auto w = m_opts.size.w + m_opts.offset.x;
-  auto h = m_opts.size.h + m_opts.offset.y;
+  int h = m_opts.size.h + m_opts.offset.y;
 
-  if (m_opts.origin == edge::BOTTOM) {
+  // Apply user-defined margins
+  if (m_opts.bottom) {
     h += m_opts.strut.top;
   } else {
     h += m_opts.strut.bottom;
   }
 
-  if (m_opts.origin == edge::BOTTOM && m_opts.monitor->y + m_opts.monitor->h < geom->height) {
-    h += geom->height - (m_opts.monitor->y + m_opts.monitor->h);
-  } else if (m_opts.origin != edge::BOTTOM) {
-    h += m_opts.monitor->y;
+  h = std::max(h, 0);
+
+  int correction = 0;
+
+  // Only apply correction if any space is requested
+  if (h > 0) {
+    /*
+     * Strut coordinates have to be relative to root window and not any monitor.
+     * If any monitor is not aligned at the top or bottom
+     */
+    if (m_opts.bottom) {
+      /*
+       * For bottom-algined bars, the correction is the number of pixels between
+       * the root window's bottom edge and the monitor's bottom edge
+       */
+      correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+    } else {
+      // For top-aligned bars, we simply add the monitor's y-position
+      correction = m_opts.monitor->y;
+    }
+
+    correction = std::max(correction, 0);
   }
 
   window win{m_connection, m_opts.window};
-  win.reconfigure_struts(w, h, m_opts.pos.x, m_opts.origin == edge::BOTTOM);
+  win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
 }
 
 /**

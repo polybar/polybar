@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
+- Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
 
 ## [3.6.1] - 2022-03-05
 ### Build
