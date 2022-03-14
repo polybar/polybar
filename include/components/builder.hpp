@@ -31,8 +31,8 @@ class builder {
   void font_close();
   void background(rgba color);
   void background_close();
-  void color(rgba color);
-  void color_close();
+  void foreground(rgba color);
+  void foreground_close();
   void overline(const rgba& color);
   void overline_close();
   void underline(const rgba& color);
@@ -44,7 +44,7 @@ class builder {
   void action(mousebtn btn, const modules::module_interface& module, string action, string data, const label_t& label);
   void action_close();
 
-  static string get_spacing_format_string(const spacing_val& space);
+  static string get_spacing_format_string(spacing_val space);
 
  protected:
   void append(const string& text);
@@ -58,7 +58,7 @@ class builder {
   void tag_close(tags::attribute attr);
 
  private:
-  const bar_settings m_bar;
+  const bar_settings& m_bar;
   string m_output;
 
   map<tags::syntaxtag, int> m_tags{};

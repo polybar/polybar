@@ -361,7 +361,7 @@ bar::~bar() {
 /**
  * Get the bar settings container
  */
-const bar_settings bar::settings() const {
+const bar_settings& bar::settings() const {
   return m_opts;
 }
 

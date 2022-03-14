@@ -27,6 +27,8 @@ namespace units_utils {
   spacing_type parse_spacing_unit(const string& str);
   spacing_val parse_spacing(const string& str);
 
+  extent_val spacing_to_extent(spacing_val spacing);
+
 } // namespace units_utils
 
 POLYBAR_NS_END
