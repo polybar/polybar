@@ -55,7 +55,7 @@ namespace modules {
       builder->overline(ol);
     }
 
-    builder->append(move(output));
+    builder->node(output);
     builder->node(suffix);
 
     if (padding) {
@@ -182,6 +182,6 @@ namespace modules {
   }
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

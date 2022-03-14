@@ -123,7 +123,7 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     m_builder->action_close();
     m_builder->action_close();
@@ -164,6 +164,6 @@ namespace modules {
     m_connection.change_output_property_checked(
         m_output->output, m_output->backlight.atom, XCB_ATOM_INTEGER, 32, XCB_PROP_MODE_REPLACE, 1, values);
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

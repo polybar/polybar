@@ -45,7 +45,7 @@ namespace modules {
     if (tag == TAG_LABEL_TOGGLE) {
       builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
     } else if (tag == TAG_TRAY_CLIENTS && !m_hidden) {
-      builder->append(TRAY_PLACEHOLDER);
+      builder->node(TRAY_PLACEHOLDER);
     } else {
       return false;
     }
@@ -59,7 +59,7 @@ namespace modules {
     m_hidden = !m_hidden;
     broadcast();
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
 #endif

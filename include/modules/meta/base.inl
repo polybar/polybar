@@ -271,7 +271,7 @@ namespace modules {
           m_builder->spacing(format->spacing);
         }
 
-        m_builder->append(tag_content);
+        m_builder->node(tag_content);
         has_tags = true;
       }
 
@@ -279,7 +279,7 @@ namespace modules {
     }
 
     if (cursor < value.size()) {
-      m_builder->append(value.substr(cursor));
+      m_builder->node(value.substr(cursor));
     }
 
     return format->decorate(&*m_builder, m_builder->flush());

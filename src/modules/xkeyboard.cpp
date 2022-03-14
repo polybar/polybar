@@ -167,10 +167,10 @@ namespace modules {
 
     if (m_keyboard && m_keyboard->size() > 1) {
       m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH, "");
-      m_builder->append(output);
+      m_builder->node(output);
       m_builder->action_close();
     } else {
-      m_builder->append(output);
+      m_builder->node(output);
     }
 
     return m_builder->flush();
@@ -319,6 +319,6 @@ namespace modules {
           name(), entry);
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

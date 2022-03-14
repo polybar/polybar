@@ -21,11 +21,9 @@ class builder {
 
   void reset();
   string flush();
-  void append(const string& text);
   void node(const string& str);
   void node(const string& str, int font_index);
   void node(const label_t& label);
-  void node_repeat(const string& str, size_t n);
   void node_repeat(const label_t& label, size_t n);
   void offset(extent_val pixels = ZERO_PX_EXTENT);
   void spacing(spacing_val size);
@@ -35,12 +33,6 @@ class builder {
   void background_close();
   void color(rgba color);
   void color_close();
-  void line_color(const rgba& color);
-  void line_color_close();
-  void overline_color(rgba color);
-  void overline_color_close();
-  void underline_color(rgba color);
-  void underline_color_close();
   void overline(const rgba& color = rgba{});
   void overline_close();
   void underline(const rgba& color = rgba{});
@@ -55,6 +47,13 @@ class builder {
   static string get_spacing_format_string(const spacing_val& space);
 
  protected:
+  void append(const string& text);
+
+  void overline_color(rgba color);
+  void overline_color_close();
+  void underline_color(rgba color);
+  void underline_color_close();
+
   void tag_open(tags::syntaxtag tag, const string& value);
   void tag_open(tags::attribute attr);
   void tag_close(tags::syntaxtag tag);
@@ -65,10 +64,7 @@ class builder {
   string m_output;
 
   map<tags::syntaxtag, int> m_tags{};
-  map<tags::syntaxtag, string> m_colors{};
   map<tags::attribute, bool> m_attrs{};
-
-  int m_fontindex{0};
 };
 
 POLYBAR_NS_END

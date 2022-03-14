@@ -47,10 +47,10 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_DOWN, scroll_down);
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     return m_builder->flush();
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
