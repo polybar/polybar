@@ -33,9 +33,9 @@ class builder {
   void background_close();
   void color(rgba color);
   void color_close();
-  void overline(const rgba& color = rgba{});
+  void overline(const rgba& color);
   void overline_close();
-  void underline(const rgba& color = rgba{});
+  void underline(const rgba& color);
   void underline_close();
   void control(tags::controltag tag);
   void action(mousebtn index, string action);
@@ -49,9 +49,7 @@ class builder {
  protected:
   void append(const string& text);
 
-  void overline_color(rgba color);
   void overline_color_close();
-  void underline_color(rgba color);
   void underline_color_close();
 
   void tag_open(tags::syntaxtag tag, const string& value);
