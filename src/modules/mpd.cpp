@@ -310,7 +310,7 @@ namespace modules {
   }
 
   string mpd_module::get_output() {
-    if (m_status && m_status->get_queuelen() == 0) {
+    if (m_status && (m_status->get_queuelen() == 0 || m_status->get_songid() == -1)) {
       m_log.info("%s: Hiding module since queue is empty", name());
       return "";
     } else {
