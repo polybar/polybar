@@ -46,7 +46,7 @@ void builder::reset() {
  */
 string builder::flush() {
   background_close();
-  color_close();
+  foreground_close();
   font_close();
   overline_color_close();
   underline_color_close();
@@ -122,7 +122,7 @@ void builder::node(const label_t& label) {
     background(label->m_background);
   }
   if (label->m_foreground.has_color()) {
-    color(label->m_foreground);
+    foreground(label->m_foreground);
   }
 
   if (label->m_padding.left) {
@@ -139,7 +139,7 @@ void builder::node(const label_t& label) {
     background_close();
   }
   if (label->m_foreground.has_color()) {
-    color_close();
+    foreground_close();
   }
 
   if (label->m_underline.has_color()) {
@@ -164,6 +164,7 @@ void builder::node_repeat(const label_t& label, size_t n) {
   while (n--) {
     text += label_text;
   }
+
   label_t tmp{new label_t::element_type{text}};
   tmp->replace_defined_values(label);
   node(tmp);
@@ -173,7 +174,7 @@ void builder::node_repeat(const label_t& label, size_t n) {
  * Insert tag that will offset the contents by the given extent
  */
 void builder::offset(extent_val extent) {
-  if (extent) {
+  if (!extent) {
     return;
   }
   tag_open(syntaxtag::O, units_utils::extent_to_string(extent));
@@ -231,7 +232,7 @@ void builder::background_close() {
 /**
  * Insert tag to alter the current foreground color
  */
-void builder::color(rgba color) {
+void builder::foreground(rgba color) {
   color = color.try_apply_alpha_to(m_bar.foreground);
 
   auto hex = color_util::simplify_hex(color);
@@ -241,7 +242,7 @@ void builder::color(rgba color) {
 /**
  * Insert tag to reset the foreground color
  */
-void builder::color_close() {
+void builder::foreground_close() {
   tag_close(syntaxtag::F);
 }
 
@@ -305,7 +306,7 @@ void builder::control(controltag tag) {
       str = "R";
       break;
     default:
-      break;
+      throw runtime_error("Invalid controltag: " + to_string(to_integral(tag)));
   }
 
   if (!str.empty()) {
@@ -321,7 +322,7 @@ void builder::control(controltag tag) {
 void builder::action(mousebtn index, string action) {
   if (!action.empty()) {
     action = string_util::replace_all(action, ":", "\\:");
-    tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
+    tag_open(syntaxtag::A, to_string(to_integral(index)) + ":" + action + ":");
   }
 }
 
@@ -401,6 +402,8 @@ void builder::tag_open(syntaxtag tag, const string& value) {
     case syntaxtag::r:
       append("%{r}");
       break;
+    default:
+      throw runtime_error("Invalid tag: " + to_string(to_integral(tag)));
   }
 }
 
@@ -415,14 +418,14 @@ void builder::tag_open(attribute attr) {
   m_attrs[attr] = true;
 
   switch (attr) {
-    case attribute::NONE:
-      break;
     case attribute::UNDERLINE:
       append("%{+u}");
       break;
     case attribute::OVERLINE:
       append("%{+o}");
       break;
+    default:
+      throw runtime_error("Invalid attribute: " + to_string(to_integral(attr)));
   }
 }
 
@@ -471,44 +474,28 @@ void builder::tag_close(attribute attr) {
   m_attrs[attr] = false;
 
   switch (attr) {
-    case attribute::NONE:
-      break;
     case attribute::UNDERLINE:
       append("%{-u}");
       break;
     case attribute::OVERLINE:
       append("%{-o}");
       break;
+    default:
+      throw runtime_error("Invalid attribute: " + to_string(to_integral(attr)));
   }
 }
 
-string builder::get_spacing_format_string(const spacing_val& space) {
+string builder::get_spacing_format_string(spacing_val space) {
   float value = space.value;
   if (value == 0) {
     return "";
   }
 
-  string out;
   if (space.type == spacing_type::SPACE) {
-    out += string(value, ' ');
+    return string(value, ' ');
   } else {
-    out += "%{O";
-
-    switch (space.type) {
-      case spacing_type::POINT:
-        out += to_string(value) + "pt";
-        break;
-      case spacing_type::PIXEL:
-        out += to_string(static_cast<int>(value)) + "px";
-        break;
-      default:
-        break;
-    }
-
-    out += '}';
+    return "%{O" + units_utils::extent_to_string(units_utils::spacing_to_extent(space)) + "}";
   }
-
-  return out;
 }
 
 POLYBAR_NS_END

@@ -135,6 +135,23 @@ namespace units_utils {
     return {type, size_value};
   }
 
+  extent_val spacing_to_extent(spacing_val spacing) {
+    extent_type t;
+
+    switch (spacing.type) {
+      case spacing_type::POINT:
+        t = extent_type::POINT;
+        break;
+      case spacing_type::PIXEL:
+        t = extent_type::PIXEL;
+        break;
+      default:
+        throw std::runtime_error("spacing_to_extent: Illegal type: " + to_string(to_integral(spacing.type)));
+    }
+
+    return {t, spacing.value};
+  }
+
 } // namespace units_utils
 
 POLYBAR_NS_END

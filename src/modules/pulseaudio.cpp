@@ -58,8 +58,9 @@ namespace modules {
   bool pulseaudio_module::has_event() {
     // Poll for mixer and control events
     try {
-      if (m_pulseaudio->wait())
+      if (m_pulseaudio->wait()) {
         return true;
+      }
     } catch (const pulseaudio_error& e) {
       m_log.err("%s: %s", name(), e.what());
     }

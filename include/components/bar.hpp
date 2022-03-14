@@ -46,7 +46,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       bool only_initialize_values);
   ~bar();
 
-  const bar_settings settings() const;
+  const bar_settings& settings() const;
 
   void start();
 
