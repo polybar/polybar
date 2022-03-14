@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_set>
 
 #include "common.hpp"
 #include "components/types.hpp"
@@ -62,7 +63,7 @@ class builder {
   string m_output;
 
   map<tags::syntaxtag, int> m_tags{};
-  map<tags::attribute, bool> m_attrs{};
+  std::unordered_set<tags::attribute> m_attrs{};
 };
 
 POLYBAR_NS_END
