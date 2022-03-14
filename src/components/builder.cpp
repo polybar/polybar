@@ -32,10 +32,6 @@ void builder::reset() {
   m_tags[syntaxtag::P] = 0;
 
   m_attrs.clear();
-  m_attrs[attribute::NONE] = false;
-  m_attrs[attribute::UNDERLINE] = false;
-  m_attrs[attribute::OVERLINE] = false;
-
   m_output.clear();
 }
 
@@ -411,11 +407,12 @@ void builder::tag_open(syntaxtag tag, const string& value) {
  * Insert directive to use given attribute unless already set
  */
 void builder::tag_open(attribute attr) {
-  if (m_attrs[attr]) {
+  // Don't emit activation tag if the attribute is already activated
+  if (m_attrs.count(attr) != 0) {
     return;
   }
 
-  m_attrs[attr] = true;
+  m_attrs.insert(attr);
 
   switch (attr) {
     case attribute::UNDERLINE:
@@ -467,11 +464,10 @@ void builder::tag_close(syntaxtag tag) {
  * Insert directive to remove given attribute if set
  */
 void builder::tag_close(attribute attr) {
-  if (!m_attrs[attr]) {
+  // Don't close activation tag if it wasn't activated
+  if (m_attrs.erase(attr) == 0) {
     return;
   }
-
-  m_attrs[attr] = false;
 
   switch (attr) {
     case attribute::UNDERLINE:
