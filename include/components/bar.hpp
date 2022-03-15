@@ -65,6 +65,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
+  void map_window();
+
   void trigger_click(mousebtn btn, int pos);
 
   void handle(const evt::client_message& evt) override;

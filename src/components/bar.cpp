@@ -452,14 +452,8 @@ void bar::show() {
   try {
     m_log.info("Showing bar window");
     m_sig.emit(visibility_change{true});
-    /**
-     * First reconfigures the window so that WMs that discard some information
-     * when unmapping have the correct window properties (geometry etc).
-     */
-    reconfigure_window();
-    m_connection.map_window_checked(m_opts.window);
+    map_window();
     m_connection.flush();
-    m_visible = true;
     parse(string{m_lastinput}, true);
   } catch (const exception& err) {
     m_log.err("Failed to map bar window (err=%s", err.what());
@@ -628,6 +622,25 @@ void bar::broadcast_visibility() {
   } else {
     m_sig.emit(visibility_change{true});
   }
+}
+
+void bar::map_window() {
+  /**
+   * First reconfigures the window so that WMs that discard some information
+   * when unmapping have the correct window properties (geometry etc).
+   */
+  reconfigure_window();
+
+  m_log.trace("bar: Map window");
+  m_connection.map_window_checked(m_opts.window);
+
+  /*
+   * Required by AwesomeWM. AwesomeWM does not seem to respect polybar's position if WM_NORMAL_HINTS are set before
+   * mapping. Additionally updating the window position after mapping seems to fix that.
+   */
+  reconfigure_pos();
+
+  m_visible = true;
 }
 
 void bar::trigger_click(mousebtn btn, int pos) {
@@ -883,10 +896,8 @@ void bar::start() {
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  reconfigure_window();
 
-  m_log.trace("bar: Map window");
-  m_connection.map_window_checked(m_opts.window);
+  map_window();
 
   // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
   // Notify all components that depend on the absolute bar position (such as the background manager).
