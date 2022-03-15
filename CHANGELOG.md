@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
 - Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
+- Positioning in awesomeWM ([`#2651`](https://github.com/polybar/polybar/pull/2651))
 
 ## [3.6.1] - 2022-03-05
 ### Build
@@ -166,8 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.1...HEAD
-[3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
+[Unreleased]: https://github.com/polybar/polybar/compare/3.6.0...HEAD
 [3.6.0]: https://github.com/polybar/polybar/releases/tag/3.6.0
 [3.5.7]: https://github.com/polybar/polybar/releases/tag/3.5.7
 [3.5.6]: https://github.com/polybar/polybar/releases/tag/3.5.6
