@@ -24,14 +24,6 @@ class screen : public xpp::event::sink<evt::randr_screen_change_notify> {
   explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
   ~screen();
 
-  struct size size() const {
-    return m_size;
-  }
-
-  xcb_window_t root() const {
-    return m_root;
-  }
-
  protected:
   void handle(const evt::randr_screen_change_notify& evt) override;
 

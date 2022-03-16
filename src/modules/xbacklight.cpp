@@ -23,7 +23,7 @@ namespace modules {
 
     auto output = m_conf.get(name(), "output", m_bar.monitor->name);
 
-    auto monitors = randr_util::get_monitors(m_connection, m_connection.root(), bar.monitor_strict, false);
+    auto monitors = randr_util::get_monitors(m_connection, bar.monitor_strict, false);
 
     m_output = randr_util::match_monitor(monitors, output, bar.monitor_exact);
 

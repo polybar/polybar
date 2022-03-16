@@ -1,9 +1,11 @@
+#include "utils/i3.hpp"
+
 #include <xcb/xcb.h>
+
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
 #include "settings.hpp"
-#include "utils/i3.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/connection.hpp"
@@ -42,7 +44,7 @@ namespace i3_util {
    * Get main root window
    */
   xcb_window_t root_window(connection& conn) {
-    auto children = conn.query_tree(conn.screen()->root).children();
+    auto children = conn.query_tree(conn.root()).children();
     const auto wm_name = [&](xcb_connection_t* conn, xcb_window_t win) -> string {
       string title;
       if (!(title = ewmh_util::get_wm_name(win)).empty()) {
@@ -78,6 +80,6 @@ namespace i3_util {
     }
     return false;
   }
-}
+} // namespace i3_util
 
 POLYBAR_NS_END

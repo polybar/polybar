@@ -21,7 +21,7 @@ xcb_window_t winspec::operator<<(const cw_flush& f) {
     m_window = m_connection.generate_id();
   }
   if (m_parent == XCB_NONE) {
-    m_parent = m_connection.screen()->root;
+    m_parent = m_connection.root();
   }
 
   if (m_width <= 0) {

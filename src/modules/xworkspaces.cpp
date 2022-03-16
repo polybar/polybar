@@ -84,7 +84,7 @@ namespace modules {
     }
 
     // Get list of monitors
-    m_monitors = randr_util::get_monitors(m_connection, m_connection.root(), false);
+    m_monitors = randr_util::get_monitors(m_connection, false);
 
     // Get desktop details
     m_desktop_names = get_desktop_names();

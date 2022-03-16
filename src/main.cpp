@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     //==================================================
     if (cli->has("list-monitors") || cli->has("list-all-monitors")) {
       bool purge_clones = !cli->has("list-all-monitors");
-      auto monitors = randr_util::get_monitors(conn, conn.root(), true, purge_clones);
+      auto monitors = randr_util::get_monitors(conn, true, purge_clones);
       for (auto&& mon : monitors) {
         if (mon->output == XCB_NONE) {
           printf("%s: %ix%i+%i+%i (no output%s)\n", mon->name.c_str(), mon->w, mon->h, mon->x, mon->y,

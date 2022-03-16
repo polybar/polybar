@@ -40,7 +40,7 @@ namespace detail {
         , Extensions(m_c.get())...
         , Extensions::error_dispatcher(static_cast<Extensions&>(*this).get())... {
       core::m_screen = s;
-      m_root_window = screen_of_display(default_screen())->root;
+      m_root_window = screen_of_display(s)->root;
     }
 
     virtual ~connection_base() {}
@@ -54,10 +54,8 @@ namespace detail {
       return static_cast<const Extension&>(*this);
     }
 
-    template <typename WindowType = xcb_window_t>
-    WindowType root() const {
-      using make = xpp::generic::factory::make<connection_base, xcb_window_t, WindowType>;
-      return make()(*this, m_root_window);
+    xcb_window_t root() const {
+      return m_root_window;
     }
 
     shared_ptr<xcb_generic_event_t> wait_for_event() const override {

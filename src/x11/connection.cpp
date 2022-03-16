@@ -169,7 +169,7 @@ bool connection::root_pixmap(xcb_pixmap_t* pixmap, int* depth, xcb_rectangle_t* 
   const xcb_atom_t pixmap_properties[3]{_XROOTPMAP_ID, ESETROOT_PMAP_ID, _XSETROOT_ID};
   for (auto&& property : pixmap_properties) {
     try {
-      auto prop = get_property(false, screen()->root, property, XCB_ATOM_PIXMAP, 0L, 1L);
+      auto prop = get_property(false, root(), property, XCB_ATOM_PIXMAP, 0L, 1L);
       if (prop->format == 32 && prop->value_len == 1) {
         *pixmap = *prop.value<xcb_pixmap_t>().begin();
       }

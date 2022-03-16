@@ -1,7 +1,8 @@
+#include "utils/bspwm.hpp"
+
 #include <sys/un.h>
 
 #include "errors.hpp"
-#include "utils/bspwm.hpp"
 #include "utils/env.hpp"
 #include "x11/connection.hpp"
 
@@ -13,7 +14,7 @@ namespace bspwm_util {
    */
   vector<xcb_window_t> root_windows(connection& conn) {
     vector<xcb_window_t> roots;
-    auto children = conn.query_tree(conn.screen()->root).children();
+    auto children = conn.query_tree(conn.root()).children();
 
     for (auto it = children.begin(); it != children.end(); it++) {
       xcb_icccm_get_wm_class_reply_t reply{};
@@ -146,6 +147,6 @@ namespace bspwm_util {
     }
     return conn;
   }
-}
+} // namespace bspwm_util
 
 POLYBAR_NS_END

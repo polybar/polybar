@@ -96,8 +96,8 @@ void background_manager::fetch_root_pixmap() {
       }
 
       // fill the slice
-      auto translated = m_connection.translate_coordinates(
-          slice->m_window, m_connection.screen()->root, slice->m_rect.x, slice->m_rect.y);
+      auto translated =
+          m_connection.translate_coordinates(slice->m_window, m_connection.root(), slice->m_rect.x, slice->m_rect.y);
       auto src_x = math_util::cap(translated->dst_x, pixmap_geom.x, int16_t(pixmap_geom.x + pixmap_geom.width));
       auto src_y = math_util::cap(translated->dst_y, pixmap_geom.y, int16_t(pixmap_geom.y + pixmap_geom.height));
       auto w = math_util::cap(slice->m_rect.width, uint16_t(0), uint16_t(pixmap_geom.width - (src_x - pixmap_geom.x)));

@@ -61,7 +61,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Allocate colormap");
   m_colormap = m_connection.generate_id();
-  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_connection.screen()->root, m_visual->visual_id);
+  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_connection.root(), m_visual->visual_id);
 
   m_log.trace("renderer: Allocate output window");
   // clang-format off

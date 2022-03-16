@@ -80,7 +80,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
   m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
   m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
-  auto monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, m_opts.monitor_strict, false);
+  auto monitors = randr_util::get_monitors(m_connection, m_opts.monitor_strict, false);
 
   if (monitors.empty()) {
     throw application_error("No monitors found");
@@ -98,7 +98,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // if still not found (and not strict matching), get first connected monitor
   if (monitor_name.empty() && !m_opts.monitor_strict) {
-    auto connected_monitors = randr_util::get_monitors(m_connection, m_connection.screen()->root, true, false);
+    auto connected_monitors = randr_util::get_monitors(m_connection, true, false);
     if (!connected_monitors.empty()) {
       monitor_name = connected_monitors[0]->name;
       m_log.warn("No monitor specified, using \"%s\"", monitor_name);
@@ -497,7 +497,7 @@ void bar::restack_window() {
 
   if (wm_restack == "generic") {
     try {
-      auto children = m_connection.query_tree(m_connection.screen()->root).children();
+      auto children = m_connection.query_tree(m_connection.root()).children();
       if (children.begin() != children.end() && *children.begin() != m_opts.window) {
         const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
         const unsigned int value_list[2]{*children.begin(), XCB_STACK_MODE_BELOW};
@@ -556,7 +556,7 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
-  auto geom = m_connection.get_geometry(m_screen->root());
+  auto geom = m_connection.get_geometry(m_connection.root());
   int h = m_opts.size.h + m_opts.offset.y;
 
   // Apply user-defined margins
