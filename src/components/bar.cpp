@@ -441,7 +441,7 @@ void bar::hide() {
   try {
     m_log.info("Hiding bar window");
     m_sig.emit(visibility_change{false});
-    m_connection.unmap_window_checked(m_opts.window);
+    m_connection.unmap_window_checked(m_opts.x_data.window);
     m_connection.flush();
     m_visible = false;
   } catch (const exception& err) {
@@ -498,20 +498,20 @@ void bar::restack_window() {
   if (wm_restack == "generic") {
     try {
       auto children = m_connection.query_tree(m_connection.root()).children();
-      if (children.begin() != children.end() && *children.begin() != m_opts.window) {
+      if (children.begin() != children.end() && *children.begin() != m_opts.x_data.window) {
         const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
         const unsigned int value_list[2]{*children.begin(), XCB_STACK_MODE_BELOW};
-        m_connection.configure_window_checked(m_opts.window, value_mask, value_list);
+        m_connection.configure_window_checked(m_opts.x_data.window, value_mask, value_list);
       }
       restacked = true;
     } catch (const exception& err) {
       m_log.err("Failed to restack bar window (err=%s)", err.what());
     }
   } else if (wm_restack == "bspwm") {
-    restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.window);
+    restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.x_data.window);
 #if ENABLE_I3
   } else if (wm_restack == "i3" && m_opts.override_redirect) {
-    restacked = i3_util::restack_to_root(m_connection, m_opts.window);
+    restacked = i3_util::restack_to_root(m_connection, m_opts.x_data.window);
   } else if (wm_restack == "i3" && !m_opts.override_redirect) {
     m_log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
     wm_restack.clear();
@@ -540,7 +540,7 @@ void bar::reconfigure_window() {
  * Reconfigure window geometry
  */
 void bar::reconfigure_geom() {
-  window win{m_connection, m_opts.window};
+  window win{m_connection, m_opts.x_data.window};
   win.reconfigure_geom(m_opts.size.w, m_opts.size.h, m_opts.pos.x, m_opts.pos.y);
 }
 
@@ -548,7 +548,7 @@ void bar::reconfigure_geom() {
  * Reconfigure window position
  */
 void bar::reconfigure_pos() {
-  window win{m_connection, m_opts.window};
+  window win{m_connection, m_opts.x_data.window};
   win.reconfigure_pos(m_opts.pos.x, m_opts.pos.y);
 }
 
@@ -590,7 +590,7 @@ void bar::reconfigure_struts() {
     correction = std::max(correction, 0);
   }
 
-  window win{m_connection, m_opts.window};
+  window win{m_connection, m_opts.x_data.window};
   win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
 }
 
@@ -598,7 +598,7 @@ void bar::reconfigure_struts() {
  * Reconfigure window wm hint values
  */
 void bar::reconfigure_wm_hints() {
-  const auto& win = m_opts.window;
+  const auto& win = m_opts.x_data.window;
 
   m_log.trace("bar: Set window WM_NAME");
   icccm_util::set_wm_name(m_connection, win, m_opts.wmname.c_str(), m_opts.wmname.size(), "polybar\0Polybar", 15_z);
@@ -622,7 +622,7 @@ void bar::reconfigure_wm_hints() {
  * Broadcast current map state
  */
 void bar::broadcast_visibility() {
-  auto attr = m_connection.get_window_attributes(m_opts.window);
+  auto attr = m_connection.get_window_attributes(m_opts.x_data.window);
 
   if (attr->map_state == XCB_MAP_STATE_UNVIEWABLE) {
     m_sig.emit(visibility_change{false});
@@ -641,7 +641,7 @@ void bar::map_window() {
   reconfigure_window();
 
   m_log.trace("bar: Map window");
-  m_connection.map_window_checked(m_opts.window);
+  m_connection.map_window_checked(m_opts.x_data.window);
 
   /*
    * Required by AwesomeWM. AwesomeWM does not seem to respect polybar's position if WM_NORMAL_HINTS are set before
@@ -675,7 +675,7 @@ void bar::trigger_click(mousebtn btn, int pos) {
  * Event handler for XCB_DESTROY_NOTIFY events
  */
 void bar::handle(const evt::client_message& evt) {
-  if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_opts.window) {
+  if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_opts.x_data.window) {
     m_log.err("Bar window has been destroyed, shutting down...");
     m_connection.disconnect();
   }
@@ -685,7 +685,7 @@ void bar::handle(const evt::client_message& evt) {
  * Event handler for XCB_DESTROY_NOTIFY events
  */
 void bar::handle(const evt::destroy_notify& evt) {
-  if (evt->window == m_opts.window) {
+  if (evt->window == m_opts.x_data.window) {
     m_connection.disconnect();
   }
 }
@@ -839,7 +839,7 @@ void bar::handle(const evt::button_press& evt) {
  * Used to redraw the bar
  */
 void bar::handle(const evt::expose& evt) {
-  if (evt->window == m_opts.window && evt->count == 0) {
+  if (evt->window == m_opts.x_data.window && evt->count == 0) {
     if (m_tray->settings().running) {
       broadcast_visibility();
     }
@@ -864,7 +864,7 @@ void bar::handle(const evt::property_notify& evt) {
   m_log.trace_x("bar: property_notify(%s)", atom_name);
 #endif
 
-  if (evt->window == m_opts.window && evt->atom == WM_STATE) {
+  if (evt->window == m_opts.x_data.window && evt->atom == WM_STATE) {
     broadcast_visibility();
   }
 }
@@ -879,19 +879,22 @@ void bar::handle(const evt::configure_notify&) {
 void bar::start() {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
-  m_opts.window = m_renderer->window();
+
+  m_opts.x_data.window = m_renderer->window();
+  m_opts.x_data.visual = m_renderer->visual();
+  m_opts.x_data.depth = m_renderer->depth();
 
   // Subscribe to window enter and leave events
   // if we should dim the window
   if (m_opts.dimvalue != 1.0) {
-    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
+    m_connection.ensure_event_mask(m_opts.x_data.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
   if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
-    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
+    m_connection.ensure_event_mask(m_opts.x_data.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
-  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
+  m_connection.ensure_event_mask(m_opts.x_data.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
-  m_log.info("Bar window: %s", m_connection.id(m_opts.window));
+  m_log.info("Bar window: %s", m_connection.id(m_opts.x_data.window));
 
   map_window();
 
@@ -911,7 +914,7 @@ void bar::start() {
 
 bool bar::on(const signals::ui::dim_window& sig) {
   m_opts.dimmed = sig.cast() != 1.0;
-  ewmh_util::set_wm_window_opacity(m_opts.window, sig.cast() * 0xFFFFFFFF);
+  ewmh_util::set_wm_window_opacity(m_opts.x_data.window, sig.cast() * 0xFFFFFFFF);
   return false;
 }
 
@@ -923,7 +926,7 @@ void bar::change_cursor(const string& name) {
   }
   m_cursor = name;
 
-  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.x_data.window, name)) {
     m_log.warn("Failed to create cursor context for cursor name '%s'", name);
   }
   m_connection.flush();

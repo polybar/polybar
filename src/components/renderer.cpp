@@ -57,7 +57,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
     throw application_error("Could not find a 24 or 32-bit TrueColor visual");
   }
 
-  m_log.info("renderer: Using %d-bit visual", m_depth);
+  m_log.info("renderer: Using %d-bit TrueColor visual", m_depth);
 
   m_log.trace("renderer: Allocate colormap");
   m_colormap = m_connection.generate_id();
@@ -158,10 +158,24 @@ renderer::~renderer() {
 }
 
 /**
- * Get output window
+ * Get bar window
  */
 xcb_window_t renderer::window() const {
   return m_window;
+}
+
+/**
+ * Get the bar window visual
+ */
+xcb_visualtype_t* renderer::visual() const {
+  return m_visual;
+}
+
+/**
+ * Get the bar window depth
+ */
+int renderer::depth() const {
+  return m_depth;
 }
 
 /**

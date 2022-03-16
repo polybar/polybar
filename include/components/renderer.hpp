@@ -53,6 +53,8 @@ class renderer : public renderer_interface,
   ~renderer();
 
   xcb_window_t window() const;
+  xcb_visualtype_t* visual() const;
+  int depth() const;
 
   void begin(xcb_rectangle_t rect);
   void end();
@@ -104,7 +106,7 @@ class renderer : public renderer_interface,
 
   int m_depth{-1};
   xcb_window_t m_window;
-  xcb_colormap_t m_colormap;
+  xcb_colormap_t m_colormap{XCB_NONE};
   xcb_visualtype_t* m_visual;
   xcb_gcontext_t m_gcontext;
   xcb_pixmap_t m_pixmap;

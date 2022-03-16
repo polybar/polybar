@@ -164,7 +164,7 @@ void tray_manager::setup() {
   m_opts.pos.x += m_opts.offset.x;
   m_opts.pos.y += m_opts.offset.y;
 
-  m_opts.bar_window = m_bar_opts.window;
+  m_opts.bar_window = m_bar_opts.x_data.window;
 
   // Activate the tray manager
   query_atom();
@@ -522,12 +522,9 @@ void tray_manager::create_bg() {
     try {
       /*
        * Use depths of bar window.
-       *
-       * TODO store depth determined in renderer somehwere and use that everywhere.
        */
-      auto depth = m_connection.get_geometry(m_bar_opts.window)->depth;
       m_pixmap = m_connection.generate_id();
-      m_connection.create_pixmap_checked(depth, m_pixmap, m_tray, w, h);
+      m_connection.create_pixmap_checked(m_bar_opts.x_data.depth, m_pixmap, m_tray, w, h);
     } catch (const exception& err) {
       return m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
     }
