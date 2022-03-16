@@ -81,6 +81,8 @@ string connection::id(xcb_window_t w) const {
 
 /**
  * Get pointer to the default xcb screen
+ *
+ * TODO remove realloc param. Create explicit realloc function
  */
 xcb_screen_t* connection::screen(bool realloc) {
   if (m_screen == nullptr || realloc) {
@@ -139,35 +141,12 @@ void connection::send_client_message(
  * Try to get a visual type for the given screen that
  * matches the given depth
  */
-xcb_visualtype_t* connection::visual_type(xcb_screen_t* screen, int match_depth) {
-  xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
-  if (depth_iter.data) {
-    for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
-      if (match_depth == 0 || match_depth == depth_iter.data->depth) {
-        for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
-          return it.data;
-        }
-      }
-    }
-    if (match_depth > 0) {
-      return visual_type(screen, 0);
-    }
-  }
-  return nullptr;
+xcb_visualtype_t* connection::visual_type(xcb_visual_class_t class_, int match_depth) {
+  return xcb_aux_find_visual_by_attrs(screen(), class_, match_depth);
 }
 
-xcb_visualtype_t* connection::visual_type_for_id(xcb_screen_t* screen, xcb_visualid_t visual_id) {
-  xcb_depth_iterator_t depth_iter = xcb_screen_allowed_depths_iterator(screen);
-  if (depth_iter.data) {
-    for (; depth_iter.rem; xcb_depth_next(&depth_iter)) {
-      for (auto it = xcb_depth_visuals_iterator(depth_iter.data); it.rem; xcb_visualtype_next(&it)) {
-        if (it.data->visual_id == visual_id) {
-          return it.data;
-        }
-      }
-    }
-  }
-  return nullptr;
+xcb_visualtype_t* connection::visual_type_for_id(xcb_visualid_t visual_id) {
+  return xcb_aux_find_visual_by_id(screen(), visual_id);
 }
 
 /**

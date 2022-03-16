@@ -548,8 +548,7 @@ void tray_manager::create_bg() {
   }
 
   if (!m_surface) {
-    xcb_visualtype_t* visual =
-        m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
+    xcb_visualtype_t* visual = m_connection.visual_type_for_id(m_connection.screen()->root_visual);
     if (!visual) {
       return m_log.err("Failed to get root visual for tray background");
     }

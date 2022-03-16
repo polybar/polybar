@@ -1,13 +1,14 @@
-#include "cairo/surface.hpp"
+#include "x11/background_manager.hpp"
+
 #include "cairo/context.hpp"
-#include "events/signal.hpp"
+#include "cairo/surface.hpp"
 #include "components/config.hpp"
 #include "components/logger.hpp"
-#include "x11/atoms.hpp"
-#include "x11/connection.hpp"
-#include "x11/background_manager.hpp"
+#include "events/signal.hpp"
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
+#include "x11/atoms.hpp"
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 
@@ -15,11 +16,8 @@ background_manager& background_manager::make() {
   return *factory_util::singleton<background_manager>(connection::make(), signal_emitter::make(), logger::make());
 }
 
-background_manager::background_manager(
-    connection& conn, signal_emitter& sig, const logger& log)
-  : m_connection(conn)
-  , m_sig(sig)
-  , m_log(log) {
+background_manager::background_manager(connection& conn, signal_emitter& sig, const logger& log)
+    : m_connection(conn), m_sig(sig), m_log(log) {
   m_sig.attach(this);
 }
 
@@ -34,7 +32,7 @@ std::shared_ptr<bg_slice> background_manager::observe(xcb_rectangle_t rect, xcb_
   auto slice = std::shared_ptr<bg_slice>(new bg_slice(m_connection, m_log, rect, window, m_visual));
 
   // make sure that we receive a notification when the background changes
-  if(!m_attached) {
+  if (!m_attached) {
     m_connection.ensure_event_mask(m_connection.root(), XCB_EVENT_MASK_PROPERTY_CHANGE);
     m_connection.flush();
     m_connection.attach_sink(this, SINK_PRIORITY_SCREEN);
@@ -52,18 +50,17 @@ std::shared_ptr<bg_slice> background_manager::observe(xcb_rectangle_t rect, xcb_
 }
 
 void background_manager::deactivate() {
-  if(m_attached) {
+  if (m_attached) {
     m_connection.detach_sink(this, SINK_PRIORITY_SCREEN);
     m_attached = false;
   }
   free_resources();
 }
 
-
 void background_manager::activate() {
-  if(!m_visual) {
+  if (!m_visual) {
     m_log.trace("background_manager: Finding root visual");
-    m_visual = m_connection.visual_type_for_id(m_connection.screen(), m_connection.screen()->root_visual);
+    m_visual = m_connection.visual_type_for_id(m_connection.screen()->root_visual);
     m_log.trace("background_manager: Got root visual with depth %d", m_connection.screen()->root_depth);
   }
 }
@@ -83,14 +80,15 @@ void background_manager::fetch_root_pixmap() {
     if (!m_connection.root_pixmap(&pixmap, &pixmap_depth, &pixmap_geom)) {
       return m_log.warn("background_manager: Failed to get root pixmap, default to black (is there a wallpaper?)");
     };
-    m_log.trace("background_manager: root pixmap (%d:%d) %dx%d+%d+%d", pixmap, pixmap_depth,
-                pixmap_geom.width, pixmap_geom.height, pixmap_geom.x, pixmap_geom.y);
+    m_log.trace("background_manager: root pixmap (%d:%d) %dx%d+%d+%d", pixmap, pixmap_depth, pixmap_geom.width,
+        pixmap_geom.height, pixmap_geom.x, pixmap_geom.y);
 
     if (pixmap_depth == 1 && pixmap_geom.width == 1 && pixmap_geom.height == 1) {
-      return m_log.err("background_manager: Cannot find root pixmap, try a different tool to set the desktop background");
+      return m_log.err(
+          "background_manager: Cannot find root pixmap, try a different tool to set the desktop background");
     }
 
-    for (auto it = m_slices.begin(); it != m_slices.end(); ) {
+    for (auto it = m_slices.begin(); it != m_slices.end();) {
       auto slice = it->lock();
       if (!slice) {
         it = m_slices.erase(it);
@@ -98,12 +96,15 @@ void background_manager::fetch_root_pixmap() {
       }
 
       // fill the slice
-      auto translated = m_connection.translate_coordinates(slice->m_window, m_connection.screen()->root, slice->m_rect.x, slice->m_rect.y);
+      auto translated = m_connection.translate_coordinates(
+          slice->m_window, m_connection.screen()->root, slice->m_rect.x, slice->m_rect.y);
       auto src_x = math_util::cap(translated->dst_x, pixmap_geom.x, int16_t(pixmap_geom.x + pixmap_geom.width));
       auto src_y = math_util::cap(translated->dst_y, pixmap_geom.y, int16_t(pixmap_geom.y + pixmap_geom.height));
       auto w = math_util::cap(slice->m_rect.width, uint16_t(0), uint16_t(pixmap_geom.width - (src_x - pixmap_geom.x)));
-      auto h = math_util::cap(slice->m_rect.height, uint16_t(0), uint16_t(pixmap_geom.height - (src_y - pixmap_geom.y)));
-      m_log.trace("background_manager: Copying from root pixmap (%d:%d) %dx%d+%d+%d", pixmap, pixmap_depth, w, h, src_x, src_y);
+      auto h =
+          math_util::cap(slice->m_rect.height, uint16_t(0), uint16_t(pixmap_geom.height - (src_y - pixmap_geom.y)));
+      m_log.trace(
+          "background_manager: Copying from root pixmap (%d:%d) %dx%d+%d+%d", pixmap, pixmap_depth, w, h, src_x, src_y);
       m_connection.copy_area_checked(pixmap, slice->m_pixmap, slice->m_gcontext, src_x, src_y, 0, 0, w, h);
 
       it++;
@@ -115,16 +116,15 @@ void background_manager::fetch_root_pixmap() {
       deactivate();
     }
 
-  } catch(const exception& err) {
+  } catch (const exception& err) {
     m_log.err("background_manager: Failed to copy slice of root pixmap (%s)", err.what());
     throw;
   }
-
 }
 
 void background_manager::handle(const evt::property_notify& evt) {
   // if there are no slices to observe, don't do anything
-  if(m_slices.empty()) {
+  if (m_slices.empty()) {
     return;
   }
 
@@ -136,7 +136,7 @@ void background_manager::handle(const evt::property_notify& evt) {
 
 bool background_manager::on(const signals::ui::update_geometry&) {
   // if there are no slices to observe, don't do anything
-  if(m_slices.empty()) {
+  if (m_slices.empty()) {
     return false;
   }
 
@@ -145,14 +145,12 @@ bool background_manager::on(const signals::ui::update_geometry&) {
   return false;
 }
 
-
-bg_slice::bg_slice(connection& conn, const logger& log, xcb_rectangle_t rect, xcb_window_t window, xcb_visualtype_t* visual)
-  : m_connection(conn)
-  , m_rect(rect)
-  , m_window(window) {
+bg_slice::bg_slice(
+    connection& conn, const logger& log, xcb_rectangle_t rect, xcb_window_t window, xcb_visualtype_t* visual)
+    : m_connection(conn), m_rect(rect), m_window(window) {
   try {
     allocate_resources(log, visual);
-  } catch(...) {
+  } catch (...) {
     free_resources();
     throw;
   }
@@ -163,13 +161,13 @@ bg_slice::~bg_slice() {
 }
 
 void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
-  if(m_pixmap == XCB_NONE) {
+  if (m_pixmap == XCB_NONE) {
     log.trace("background_manager: Allocating pixmap");
     m_pixmap = m_connection.generate_id();
     m_connection.create_pixmap(m_connection.screen()->root_depth, m_pixmap, m_window, m_rect.width, m_rect.height);
   }
 
-  if(m_gcontext == XCB_NONE) {
+  if (m_gcontext == XCB_NONE) {
     log.trace("background_manager: Allocating graphics context");
     auto black_pixel = m_connection.screen()->black_pixel;
     uint32_t mask = 0;
@@ -183,7 +181,7 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
     m_connection.create_gc(m_gcontext, m_pixmap, mask, value_list.data());
   }
 
-  if(!m_surface) {
+  if (!m_surface) {
     log.trace("background_manager: Allocating cairo surface");
     m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, m_rect.width, m_rect.height);
   }
@@ -196,12 +194,12 @@ void bg_slice::allocate_resources(const logger& log, xcb_visualtype_t* visual) {
 void bg_slice::free_resources() {
   m_surface.reset();
 
-  if(m_pixmap != XCB_NONE) {
+  if (m_pixmap != XCB_NONE) {
     m_connection.free_pixmap(m_pixmap);
     m_pixmap = XCB_NONE;
   }
 
-  if(m_gcontext != XCB_NONE) {
+  if (m_gcontext != XCB_NONE) {
     m_connection.free_gc(m_gcontext);
     m_gcontext = XCB_NONE;
   }

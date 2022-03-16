@@ -102,7 +102,7 @@ class renderer : public renderer_interface,
   const bar_settings& m_bar;
   std::shared_ptr<bg_slice> m_background;
 
-  int m_depth{32};
+  int m_depth{-1};
   xcb_window_t m_window;
   xcb_colormap_t m_colormap;
   xcb_visualtype_t* m_visual;

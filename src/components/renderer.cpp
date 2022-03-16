@@ -47,48 +47,40 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
     , m_bar(forward<const bar_settings&>(bar))
     , m_rect(m_bar.inner_area()) {
   m_sig.attach(this);
-  m_log.trace("renderer: Get TrueColor visual");
-  {
-    if ((m_visual = m_connection.visual_type(m_connection.screen(), 32)) == nullptr) {
-      m_log.err("No 32-bit TrueColor visual found...");
 
-      if ((m_visual = m_connection.visual_type(m_connection.screen(), 24)) == nullptr) {
-        m_log.err("No 24-bit TrueColor visual found...");
-      } else {
-        m_depth = 24;
-      }
-    }
-    if (m_visual == nullptr) {
-      throw application_error("No matching TrueColor");
-    }
+  m_log.trace("renderer: Get TrueColor visual");
+  if ((m_visual = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 32)) != nullptr) {
+    m_depth = 32;
+  } else if ((m_visual = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 24)) != nullptr) {
+    m_depth = 24;
+  } else {
+    throw application_error("Could not find a 24 or 32-bit TrueColor visual");
   }
+
+  m_log.info("renderer: Using %d-bit visual", m_depth);
 
   m_log.trace("renderer: Allocate colormap");
-  {
-    m_colormap = m_connection.generate_id();
-    m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_connection.screen()->root, m_visual->visual_id);
-  }
+  m_colormap = m_connection.generate_id();
+  m_connection.create_colormap(XCB_COLORMAP_ALLOC_NONE, m_colormap, m_connection.screen()->root, m_visual->visual_id);
 
   m_log.trace("renderer: Allocate output window");
-  {
-    // clang-format off
-    m_window = winspec(m_connection)
-      << cw_size(m_bar.size)
-      << cw_pos(m_bar.pos)
-      << cw_depth(m_depth)
-      << cw_visual(m_visual->visual_id)
-      << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
-      << cw_params_back_pixel(0)
-      << cw_params_border_pixel(0)
-      << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
-      << cw_params_colormap(m_colormap)
-      << cw_params_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE
-                             |XCB_EVENT_MASK_EXPOSURE
-                             |XCB_EVENT_MASK_BUTTON_PRESS)
-      << cw_params_override_redirect(m_bar.override_redirect)
-      << cw_flush(true);
-    // clang-format on
-  }
+  // clang-format off
+  m_window = winspec(m_connection)
+    << cw_size(m_bar.size)
+    << cw_pos(m_bar.pos)
+    << cw_depth(m_depth)
+    << cw_visual(m_visual->visual_id)
+    << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
+    << cw_params_back_pixel(0)
+    << cw_params_border_pixel(0)
+    << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
+    << cw_params_colormap(m_colormap)
+    << cw_params_event_mask(XCB_EVENT_MASK_PROPERTY_CHANGE
+                           |XCB_EVENT_MASK_EXPOSURE
+                           |XCB_EVENT_MASK_BUTTON_PRESS)
+    << cw_params_override_redirect(m_bar.override_redirect)
+    << cw_flush(true);
+  // clang-format on
 
   m_log.trace("renderer: Allocate window pixmaps");
   {
