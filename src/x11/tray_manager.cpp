@@ -475,13 +475,14 @@ void tray_manager::create_window() {
   auto win = winspec(m_connection)
     << cw_size(calculate_w(), calculate_h())
     << cw_pos(calculate_x(calculate_w()), calculate_y())
+    << cw_depth(XCB_COPY_FROM_PARENT)
+    << cw_visual(XCB_COPY_FROM_PARENT)
+    << cw_params_colormap(XCB_COPY_FROM_PARENT)
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
         |XCB_EVENT_MASK_STRUCTURE_NOTIFY
         |XCB_EVENT_MASK_EXPOSURE)
-    // TODO
-    // << cw_params_override_redirect(true)
     << cw_parent(m_opts.bar_window);
   // clang-format on
 
@@ -700,22 +701,22 @@ void tray_manager::track_selection_owner(xcb_window_t owner) {
 void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
-  tray_client client(m_log, m_connection, m_tray, win, m_opts.client_size);
-
   try {
-    client.query_xembed();
-  } catch (const xpp::x::error::window& err) {
-    m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
-    return;
-  }
+    tray_client client(m_log, m_connection, m_tray, win, m_opts.client_size);
 
-  m_log.trace("tray: xembed = %s", client.is_xembed_supported() ? "true" : "false");
-  if (client.is_xembed_supported()) {
-    m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client.get_xembed().get_version(),
-        client.get_xembed().get_flags(), client.get_xembed().is_mapped() ? "true" : "false");
-  }
+    try {
+      client.query_xembed();
+    } catch (const xpp::x::error::window& err) {
+      m_log.err("Failed to query _XEMBED_INFO, removing client... (%s)", err.what());
+      return;
+    }
 
-  try {
+    m_log.trace("tray: xembed = %s", client.is_xembed_supported() ? "true" : "false");
+    if (client.is_xembed_supported()) {
+      m_log.trace("tray: version = 0x%x, flags = 0x%x, XEMBED_MAPPED = %s", client.get_xembed().get_version(),
+          client.get_xembed().get_flags(), client.get_xembed().is_mapped() ? "true" : "false");
+    }
+
     const uint32_t mask = XCB_CW_EVENT_MASK;
     const uint32_t value = XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
@@ -746,13 +747,13 @@ void tray_manager::process_docking_request(xcb_window_t win) {
       m_connection.map_window_checked(client.client());
       m_connection.map_window_checked(client.embedder());
     }
+
+    m_clients.emplace_back(std::move(client));
   } catch (const std::exception& err) {
     m_log.err("Failed to setup tray client '%s' (%s) removing... (%s)", ewmh_util::get_wm_name(win),
         m_connection.id(win), err.what());
     return;
   }
-
-  m_clients.emplace_back(std::move(client));
 }
 
 /**
@@ -976,7 +977,8 @@ void tray_manager::handle(const evt::property_notify& evt) {
   }
 
   // React an wallpaper change, if bar has transparency
-  if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
+  if (m_opts.transparent &&
+      (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
     redraw_window();
     return;
   }

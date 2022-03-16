@@ -9,33 +9,41 @@
 
 POLYBAR_NS
 
-// TODO create wrapper window
 tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s)
     : m_log(log), m_connection(conn), m_client(win), m_size(s) {
   auto geom = conn.get_geometry(win);
   auto attrs = conn.get_window_attributes(win);
-  int depth = geom->depth;
-  xcb_visualid_t visual = attrs->visual;
-  m_log.trace("tray(%s): depth: %u, width: %u, height: %u, visual: 0x%x", conn.id(win), depth, geom->width, geom->height, visual);
+  int client_depth = geom->depth;
+  auto client_visual = attrs->visual;
+  auto client_colormap = attrs->colormap;
 
+  m_log.trace("tray(%s): depth: %u, width: %u, height: %u", conn.id(win), client_depth, geom->width, geom->height);
+
+  /*
+   * Create embedder window for tray icon
+   *
+   * The embedder window inherits the depth, visual and color map from the icon window in order for reparenting to
+   * always work, even if the icon window uses ParentRelative for some of its pixmaps (back pixmap or border pixmap).
+   */
   // clang-format off
   m_wrapper = winspec(conn)
     << cw_size(s.h, s.w)
     << cw_pos(0, 0)
-    // TODO fix BadMatch error for redshift-gtk window
-    // << cw_depth(depth)
-    // << cw_visual(visual)
+    << cw_depth(client_depth)
+    << cw_visual(client_visual)
     << cw_parent(tray)
+    << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     // TODO add proper pixmap
     << cw_params_back_pixmap(XCB_PIXMAP_NONE)
-    // << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
+    // The X server requires the border pixel to be defined if the depth doesn't match the parent window
+    << cw_params_border_pixel(conn.screen()->black_pixel)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
+    << cw_params_save_under(true)
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
         | XCB_EVENT_MASK_PROPERTY_CHANGE
         | XCB_EVENT_MASK_STRUCTURE_NOTIFY
         | XCB_EVENT_MASK_EXPOSURE)
-    // << cw_flush(false);
-    // TODO Make unchecked
+    << cw_params_colormap(client_colormap)
     << cw_flush(true);
   // clang-format on
 }
