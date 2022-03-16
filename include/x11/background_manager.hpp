@@ -16,7 +16,7 @@ class logger;
 namespace cairo {
   class surface;
   class xcb_surface;
-}  // namespace cairo
+} // namespace cairo
 
 class bg_slice {
  public:
@@ -31,7 +31,7 @@ class bg_slice {
    *
    * This function is fast, since the current desktop background is cached.
    */
-  cairo::surface* get_surface() const {
+  cairo::xcb_surface* get_surface() const {
     return m_surface.get();
   }
 

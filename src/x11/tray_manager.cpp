@@ -387,7 +387,7 @@ void tray_manager::reconfigure_bg() {
     return m_log.err("tray: no context for drawing the background");
   }
 
-  cairo::surface* surface = m_bg_slice->get_surface();
+  cairo::xcb_surface* surface = m_bg_slice->get_surface();
   if (!surface) {
     return m_log.err("tray: no root surface");
   }

@@ -238,45 +238,45 @@ void controller::screenshot_handler() {
 void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
-  try {
-    auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
-    poll_handle.start(
-        UV_READABLE, [this](const auto&) { conn_cb(); },
-        [this](const auto& e) {
-          m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
-          stop(false);
+  if (!m_writeback) {
+    m_bar->start();
+  }
+
+  auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
+  poll_handle.start(
+      UV_READABLE, [this](const auto&) { conn_cb(); },
+      [this](const auto& e) {
+        m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
+        stop(false);
+      });
+
+  for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
+    auto& signal_handle = m_loop.handle<SignalHandle>();
+    signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
+  }
+
+  if (confwatch) {
+    auto& fs_event_handle = m_loop.handle<FSEventHandle>();
+    fs_event_handle.start(
+        m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
+        [this, &fs_event_handle](const auto& e) {
+          m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
+          fs_event_handle.close();
         });
+  }
 
-    for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      auto& signal_handle = m_loop.handle<SignalHandle>();
-      signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
-    }
+  if (!m_snapshot_dst.empty()) {
+    // Trigger a single screenshot after 3 seconds
+    auto& timer_handle = m_loop.handle<TimerHandle>();
+    timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
+  }
 
-    if (confwatch) {
-      auto& fs_event_handle = m_loop.handle<FSEventHandle>();
-      fs_event_handle.start(
-          m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
-          [this, &fs_event_handle](const auto& e) {
-            m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
-            fs_event_handle.close();
-          });
-    }
+  /*
+   * Immediately trigger and update so that the bar displays something.
+   */
+  trigger_update(true);
 
-    if (!m_snapshot_dst.empty()) {
-      // Trigger a single screenshot after 3 seconds
-      auto& timer_handle = m_loop.handle<TimerHandle>();
-      timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
-    }
-
-    if (!m_writeback) {
-      m_bar->start();
-    }
-
-    /*
-     * Immediately trigger and update so that the bar displays something.
-     */
-    trigger_update(true);
-
+  try {
     m_loop.run();
   } catch (const exception& err) {
     m_log.err("Fatal Error in eventloop: %s", err.what());
