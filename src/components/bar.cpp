@@ -141,16 +141,25 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
 
-  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
-  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
 #if WITH_XCURSOR
+  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
   if (!m_opts.cursor_click.empty() && !cursor_util::valid(m_opts.cursor_click)) {
     m_log.warn("Ignoring unsupported cursor-click option '%s'", m_opts.cursor_click);
     m_opts.cursor_click.clear();
   }
+
+  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
   if (!m_opts.cursor_scroll.empty() && !cursor_util::valid(m_opts.cursor_scroll)) {
     m_log.warn("Ignoring unsupported cursor-scroll option '%s'", m_opts.cursor_scroll);
     m_opts.cursor_scroll.clear();
+  }
+#else
+  if (m_conf.has(bs, "cursor-click")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-click option");
+  }
+
+  if (m_conf.has(bs, "cursor-scroll")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-scroll option");
   }
 #endif
 
@@ -724,13 +733,13 @@ void bar::handle(const evt::leave_notify&) {
 void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
-  m_motion_pos = evt->event_x;
+  int motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
   const auto has_action = [&](const vector<mousebtn>& buttons) -> bool {
     for (auto btn : buttons) {
-      if (m_action_ctxt->has_action(btn, m_motion_pos) != tags::NO_ACTION) {
+      if (m_action_ctxt->has_action(btn, motion_pos) != tags::NO_ACTION) {
         return true;
       }
     }
@@ -740,7 +749,7 @@ void bar::handle(const evt::motion_notify& evt) {
 
   if (has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
           mousebtn::DOUBLE_RIGHT})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
+    if (m_opts.cursor != m_opts.cursor_click) {
       m_opts.cursor = m_opts.cursor_click;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
     }
@@ -749,7 +758,7 @@ void bar::handle(const evt::motion_notify& evt) {
   }
 
   if (has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
+    if (m_opts.cursor != m_opts.cursor_scroll) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
     }
@@ -760,7 +769,7 @@ void bar::handle(const evt::motion_notify& evt) {
     if (!m_opts.cursor_click.empty() &&
         !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
             action.button == mousebtn::NONE)) {
-      if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
+      if (m_opts.cursor != m_opts.cursor_click) {
         m_opts.cursor = m_opts.cursor_click;
         m_sig.emit(cursor_change{string{m_opts.cursor}});
       }
@@ -781,14 +790,16 @@ void bar::handle(const evt::motion_notify& evt) {
         return;
     }
   }
+
   if (found_scroll) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
+    if (m_opts.cursor != m_opts.cursor_scroll) {
       m_opts.cursor = m_opts.cursor_scroll;
       m_sig.emit(cursor_change{string{m_opts.cursor}});
     }
     return;
   }
-  if (!string_util::compare(m_opts.cursor, "default")) {
+
+  if (m_opts.cursor != "default") {
     m_log.trace("No matching cursor area found");
     m_opts.cursor = "default";
     m_sig.emit(cursor_change{string{m_opts.cursor}});
