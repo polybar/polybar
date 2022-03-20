@@ -212,11 +212,6 @@ struct bar_settings {
   int double_click_interval{400};
 
   /**
-   * Name of currently active cursor
-   */
-  string cursor{};
-
-  /**
    * Name of cursor to use for clickable areas
    */
   string cursor_click{};
