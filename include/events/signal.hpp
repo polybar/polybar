@@ -45,7 +45,7 @@ namespace signals {
      private:
       const void* m_ptr;
     };
-  }  // namespace detail
+  } // namespace detail
 
   namespace eventqueue {
     struct exit_reload : public detail::base_signal<exit_reload> {
@@ -60,7 +60,7 @@ namespace signals {
     struct check_state : public detail::base_signal<check_state> {
       using base_type::base_type;
     };
-  }  // namespace eventqueue
+  } // namespace eventqueue
 
   namespace ipc {
     struct command : public detail::value_signal<command, string> {
@@ -72,16 +72,13 @@ namespace signals {
     struct action : public detail::value_signal<action, string> {
       using base_type::base_type;
     };
-  }  // namespace ipc
+  } // namespace ipc
 
   namespace ui {
     struct changed : public detail::base_signal<changed> {
       using base_type::base_type;
     };
     struct button_press : public detail::value_signal<button_press, string> {
-      using base_type::base_type;
-    };
-    struct cursor_change : public detail::value_signal<cursor_change, string> {
       using base_type::base_type;
     };
     struct visibility_change : public detail::value_signal<visibility_change, bool> {
@@ -101,13 +98,13 @@ namespace signals {
     struct update_geometry : public detail::base_signal<update_geometry> {
       using base_type::base_type;
     };
-  }  // namespace ui
+  } // namespace ui
 
   namespace ui_tray {
     struct mapped_clients : public detail::value_signal<mapped_clients, unsigned int> {
       using base_type::base_type;
     };
-  }  // namespace ui_tray
-}  // namespace signals
+  } // namespace ui_tray
+} // namespace signals
 
 POLYBAR_NS_END
