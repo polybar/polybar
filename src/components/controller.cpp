@@ -178,7 +178,8 @@ void controller::conn_cb() {
       m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
       stop(false);
     } catch (const exception& err) {
-      m_log.err("Error in X event loop: %s", err.what());
+      // IDs for events are defined in xproto.h
+      m_log.err("Error in X event loop while handling event %d: %s", evt->response_type, err.what());
       stop(false);
     }
   }
