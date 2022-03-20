@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
 - Positioning in awesomeWM ([`#2651`](https://github.com/polybar/polybar/pull/2651))
 - `internal/xworkspaces`: The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
+- Mouseover error when only one cursor is defined ([`#2656`](https://github.com/polybar/polybar/pull/2656))
 
 ## [3.6.1] - 2022-03-05
 ### Build
