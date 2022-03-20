@@ -924,7 +924,7 @@ void bar::change_cursor(const string& name) {
 
   m_opts.cursor = name;
   if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
-    m_log.warn("Failed to create cursor context");
+    m_log.warn("Failed to create cursor context for cursor name '%s'", name);
   }
   m_connection.flush();
 }
