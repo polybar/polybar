@@ -8,6 +8,10 @@ namespace cursor_util {
   }
 
   bool set_cursor(xcb_connection_t *c, xcb_screen_t *screen, xcb_window_t w, string name) {
+    if (!valid(name)) {
+      throw std::runtime_error("Tried to set cursor to invalid name: '" + name + "'");
+    }
+
     xcb_cursor_t cursor = XCB_CURSOR_NONE;
     xcb_cursor_context_t *ctx;
 

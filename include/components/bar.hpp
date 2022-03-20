@@ -101,10 +101,6 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_lastinput{};
   bool m_dblclicks{false};
 
-#if WITH_XCURSOR
-  int m_motion_pos{0};
-#endif
-
   eventloop::TimerHandle& m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
   eventloop::TimerHandle& m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};
   eventloop::TimerHandle& m_rightclick_timer{m_loop.handle<eventloop::TimerHandle>()};
