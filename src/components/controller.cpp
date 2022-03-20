@@ -180,7 +180,6 @@ void controller::conn_cb() {
     } catch (const exception& err) {
       // IDs for events are defined in xproto.h
       m_log.err("Error in X event loop while handling event %d: %s", evt->response_type, err.what());
-      stop(false);
     }
   }
 
