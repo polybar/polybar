@@ -918,11 +918,11 @@ bool bar::on(const signals::ui::dim_window& sig) {
 #if WITH_XCURSOR
 void bar::change_cursor(const string& name) {
   // This is already the same cursor, no need to update
-  if (m_opts.cursor == name) {
+  if (m_cursor == name) {
     return;
   }
+  m_cursor = name;
 
-  m_opts.cursor = name;
   if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
     m_log.warn("Failed to create cursor context for cursor name '%s'", name);
   }

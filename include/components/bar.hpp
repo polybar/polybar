@@ -99,6 +99,11 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   bar_settings m_opts{};
 
+  /**
+   * Name of currently active cursor
+   */
+  string m_cursor{};
+
   string m_lastinput{};
   bool m_dblclicks{false};
 
