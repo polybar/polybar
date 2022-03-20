@@ -138,8 +138,18 @@ namespace modules {
 
     for (auto&& client : newclients) {
       if (m_clients.count(client) == 0) {
-        // new client: listen for changes (wm_hint or desktop)
-        m_connection.ensure_event_mask(client, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        try {
+          // new client: listen for changes (wm_hint or desktop)
+          m_connection.ensure_event_mask(client, XCB_EVENT_MASK_PROPERTY_CHANGE);
+        } catch (const xpp::x::error::window& e) {
+          /*
+           * The "new client" may have already disappeared between reading the
+           * client list and setting the event mask.
+           * This is not a severe issue and it will eventually correct itself
+           * when a new _NET_CLIENT_LIST value is set.
+           */
+          m_log.info("%s: New client window no longer exists, ignoring...");
+        }
       }
     }
 
