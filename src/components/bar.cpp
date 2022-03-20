@@ -43,16 +43,16 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
 
   // clang-format off
   return std::make_unique<bar>(
-        connection::make(),
-        signal_emitter::make(),
-        config::make(),
-        logger::make(),
-        loop,
-        screen::make(),
-        tray_manager::make(),
-        tags::dispatch::make(*action_ctxt),
-        std::move(action_ctxt),
-        only_initialize_values);
+      connection::make(),
+      signal_emitter::make(),
+      config::make(),
+      logger::make(),
+      loop,
+      screen::make(),
+      tray_manager::make(),
+      tags::dispatch::make(*action_ctxt),
+      std::move(action_ctxt),
+      only_initialize_values);
   // clang-format on
 }
 
@@ -747,21 +747,14 @@ void bar::handle(const evt::motion_notify& evt) {
     return false;
   };
 
-  if (has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
-          mousebtn::DOUBLE_RIGHT})) {
-    if (m_opts.cursor != m_opts.cursor_click) {
-      m_opts.cursor = m_opts.cursor_click;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
-
+  if (!m_opts.cursor_click.empty() && has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
+                                          mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE, mousebtn::DOUBLE_RIGHT})) {
+    change_cursor(m_opts.cursor_click);
     return;
   }
 
-  if (has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
-    if (m_opts.cursor != m_opts.cursor_scroll) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+  if (!m_opts.cursor_scroll.empty() && has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
 
@@ -769,10 +762,7 @@ void bar::handle(const evt::motion_notify& evt) {
     if (!m_opts.cursor_click.empty() &&
         !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
             action.button == mousebtn::NONE)) {
-      if (m_opts.cursor != m_opts.cursor_click) {
-        m_opts.cursor = m_opts.cursor_click;
-        m_sig.emit(cursor_change{string{m_opts.cursor}});
-      }
+      change_cursor(m_opts.cursor_click);
       return true;
     } else if (!m_opts.cursor_scroll.empty() &&
                (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
@@ -786,25 +776,20 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if (find_click_area(action))
+      if (find_click_area(action)) {
         return;
+      }
     }
   }
 
   if (found_scroll) {
-    if (m_opts.cursor != m_opts.cursor_scroll) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
 
-  if (m_opts.cursor != "default") {
-    m_log.trace("No matching cursor area found");
-    m_opts.cursor = "default";
-    m_sig.emit(cursor_change{string{m_opts.cursor}});
-    return;
-  }
+  m_log.trace("No matching cursor area found");
+  change_cursor("default");
+  return;
 #endif
 }
 
@@ -931,12 +916,17 @@ bool bar::on(const signals::ui::dim_window& sig) {
 }
 
 #if WITH_XCURSOR
-bool bar::on(const signals::ui::cursor_change& sig) {
-  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
+void bar::change_cursor(const string& name) {
+  // This is already the same cursor, no need to update
+  if (m_opts.cursor == name) {
+    return;
+  }
+
+  m_opts.cursor = name;
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
     m_log.warn("Failed to create cursor context");
   }
   m_connection.flush();
-  return false;
 }
 #endif
 
