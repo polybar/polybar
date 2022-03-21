@@ -105,15 +105,15 @@ namespace modules {
    * Handler for XCB_PROPERTY_NOTIFY events
    */
   void xworkspaces_module::handle(const evt::property_notify& evt) {
-    if (evt->atom == m_ewmh.get()->_NET_CLIENT_LIST || evt->atom == m_ewmh.get()->_NET_WM_DESKTOP) {
+    if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
-    } else if (evt->atom == m_ewmh.get()->_NET_DESKTOP_NAMES || evt->atom == m_ewmh.get()->_NET_NUMBER_OF_DESKTOPS) {
+    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_clientlist();
       rebuild_desktop_states();
-    } else if (evt->atom == m_ewmh.get()->_NET_CURRENT_DESKTOP) {
+    } else if (evt->atom == m_ewmh->_NET_CURRENT_DESKTOP) {
       update_current_desktop();
       rebuild_desktop_states();
     } else if (evt->atom == WM_HINTS) {
@@ -158,7 +158,7 @@ namespace modules {
   void xworkspaces_module::rebuild_urgent_hints() {
     m_urgent_desktops.assign(m_desktop_names.size(), false);
     for (auto&& client : ewmh_util::get_client_list()) {
-      auto desk = ewmh_util::get_desktop_from_window(client);
+      uint32_t desk = ewmh_util::get_desktop_from_window(client);
       /*
        * EWMH allows for 0xFFFFFFFF to be returned here, which means the window
        * should appear on all desktops.

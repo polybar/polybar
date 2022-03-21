@@ -16,7 +16,8 @@ namespace ewmh_util {
     ewmh_connection();
     ~ewmh_connection();
 
-    xcb_ewmh_connection_t* get();
+    xcb_ewmh_connection_t* operator->();
+    operator xcb_ewmh_connection_t*();
 
    private:
     xcb_ewmh_connection_t c;
