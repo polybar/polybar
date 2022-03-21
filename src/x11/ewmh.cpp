@@ -19,7 +19,11 @@ namespace ewmh_util {
     xcb_ewmh_connection_wipe(&c);
   }
 
-  xcb_ewmh_connection_t* ewmh_connection::get() {
+  xcb_ewmh_connection_t* ewmh_connection::operator->() {
+    return &c;
+  }
+
+  ewmh_connection::operator xcb_ewmh_connection_t*() {
     return &c;
   }
 
@@ -29,7 +33,7 @@ namespace ewmh_util {
   }
 
   bool supports(xcb_atom_t atom, int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_atoms_reply_t reply{};
     if (xcb_ewmh_get_supported_reply(conn, xcb_ewmh_get_supported(conn, screen), &reply, nullptr)) {
       for (size_t n = 0; n < reply.atoms_len; n++) {
@@ -44,7 +48,7 @@ namespace ewmh_util {
   }
 
   string get_wm_name(xcb_window_t win) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_name_reply(conn, xcb_ewmh_get_wm_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
@@ -53,7 +57,7 @@ namespace ewmh_util {
   }
 
   string get_visible_name(xcb_window_t win) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_visible_name_reply(conn, xcb_ewmh_get_wm_visible_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
@@ -62,7 +66,7 @@ namespace ewmh_util {
   }
 
   string get_icon_name(xcb_window_t win) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_utf8_strings_reply_t utf8_reply{};
     if (xcb_ewmh_get_wm_icon_name_reply(conn, xcb_ewmh_get_wm_icon_name(conn, win), &utf8_reply, nullptr)) {
       return get_reply_string(&utf8_reply);
@@ -80,21 +84,21 @@ namespace ewmh_util {
   }
 
   unsigned int get_current_desktop(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     unsigned int desktop = XCB_NONE;
     xcb_ewmh_get_current_desktop_reply(conn, xcb_ewmh_get_current_desktop(conn, screen), &desktop, nullptr);
     return desktop;
   }
 
   unsigned int get_number_of_desktops(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     unsigned int desktops = XCB_NONE;
     xcb_ewmh_get_number_of_desktops_reply(conn, xcb_ewmh_get_number_of_desktops(conn, screen), &desktops, nullptr);
     return desktops;
   }
 
   vector<position> get_desktop_viewports(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     vector<position> viewports;
     xcb_ewmh_get_desktop_viewport_reply_t reply{};
     if (xcb_ewmh_get_desktop_viewport_reply(conn, xcb_ewmh_get_desktop_viewport(conn, screen), &reply, nullptr)) {
@@ -107,7 +111,7 @@ namespace ewmh_util {
   }
 
   vector<string> get_desktop_names(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_utf8_strings_reply_t reply{};
     if (xcb_ewmh_get_desktop_names_reply(conn, xcb_ewmh_get_desktop_names(conn, screen), &reply, nullptr)) {
       return string_util::split(string(reply.strings, reply.strings_len), '\0');
@@ -116,39 +120,39 @@ namespace ewmh_util {
   }
 
   xcb_window_t get_active_window(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     unsigned int win = XCB_NONE;
     xcb_ewmh_get_active_window_reply(conn, xcb_ewmh_get_active_window(conn, screen), &win, nullptr);
     return win;
   }
 
   void change_current_desktop(unsigned int desktop) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_request_change_current_desktop(conn, 0, desktop, XCB_CURRENT_TIME);
     xcb_flush(conn->connection);
   }
 
   unsigned int get_desktop_from_window(xcb_window_t window) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     unsigned int desktop = XCB_NONE;
     xcb_ewmh_get_wm_desktop_reply(conn, xcb_ewmh_get_wm_desktop(conn, window), &desktop, nullptr);
     return desktop;
   }
 
   void set_wm_window_type(xcb_window_t win, vector<xcb_atom_t> types) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_set_wm_window_type(conn, win, types.size(), types.data());
     xcb_flush(conn->connection);
   }
 
   void set_wm_state(xcb_window_t win, vector<xcb_atom_t> states) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_set_wm_state(conn, win, states.size(), states.data());
     xcb_flush(conn->connection);
   }
 
   vector<xcb_atom_t> get_wm_state(xcb_window_t win) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_atoms_reply_t reply;
     if (xcb_ewmh_get_wm_state_reply(conn, xcb_ewmh_get_wm_state(conn, win), &reply, nullptr)) {
       return {reply.atoms, reply.atoms + reply.atoms_len};
@@ -157,32 +161,32 @@ namespace ewmh_util {
   }
 
   void set_wm_pid(xcb_window_t win) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_set_wm_pid(conn, win, getpid());
     xcb_flush(conn->connection);
   }
 
   void set_wm_pid(xcb_window_t win, unsigned int pid) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_set_wm_pid(conn, win, pid);
     xcb_flush(conn->connection);
   }
 
   void set_wm_desktop(xcb_window_t win, unsigned int desktop) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_set_wm_desktop(conn, win, desktop);
     xcb_flush(conn->connection);
   }
 
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_change_property(
         conn->connection, XCB_PROP_MODE_REPLACE, win, _NET_WM_WINDOW_OPACITY, XCB_ATOM_CARDINAL, 32, 1, &values);
     xcb_flush(conn->connection);
   }
 
   vector<xcb_window_t> get_client_list(int screen) {
-    auto conn = initialize().get();
+    auto& conn = initialize();
     xcb_ewmh_get_windows_reply_t reply;
     if (xcb_ewmh_get_client_list_reply(conn, xcb_ewmh_get_client_list(conn, screen), &reply, nullptr)) {
       return {reply.windows, reply.windows + reply.windows_len};
