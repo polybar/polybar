@@ -171,7 +171,7 @@ namespace modules {
   void xworkspaces_module::rebuild_urgent_hints() {
     m_urgent_desktops.assign(m_desktop_names.size(), false);
     for (auto&& client : ewmh_util::get_client_list()) {
-      auto desk = ewmh_util::get_desktop_from_window(client);
+      uint32_t desk = ewmh_util::get_desktop_from_window(client);
       /*
        * EWMH allows for 0xFFFFFFFF to be returned here, which means the window
        * should appear on all desktops.
@@ -198,8 +198,8 @@ namespace modules {
      *
      * For WMs that don't support that hint, we store an empty vector
      *
-     * If the length of the vector is less than _NET_NUMBER_OF_DESKTOPS
-     * all desktops which aren't explicitly assigned a postion will be
+     * The vector will be padded/reduced to _NET_NUMBER_OF_DESKTOPS.
+     * All desktops which aren't explicitly assigned a postion will be
      * assigned (0, 0)
      *
      * We use this to map workspaces to viewports, desktop i is at position
@@ -207,15 +207,30 @@ namespace modules {
      */
     vector<position> ws_positions = ewmh_util::get_desktop_viewports();
 
+    auto num_desktops = m_desktop_names.size();
+
     /*
      * Not all desktops were assigned a viewport, add (0, 0) for all missing
      * desktops.
      */
-    if (ws_positions.size() < m_desktop_names.size()) {
-      auto num_insert = m_desktop_names.size() - ws_positions.size();
-      ws_positions.reserve(num_insert);
+    if (ws_positions.size() < num_desktops) {
+      auto num_insert = num_desktops - ws_positions.size();
+      ws_positions.reserve(num_desktops);
       std::fill_n(std::back_inserter(ws_positions), num_insert, position{0, 0});
     }
+
+    /*
+     * If there are too many workspace positions, trim to fit the number of desktops.
+     */
+    if (ws_positions.size() > num_desktops) {
+      ws_positions.erase(ws_positions.begin() + num_desktops, ws_positions.end());
+    }
+
+    /*
+     * There must be as many workspace positions as desktops because the indices
+     * into ws_positions are also used to index into m_desktop_names.
+     */
+    assert(ws_positions.size() == num_desktops);
 
     /*
      * The list of viewports is the set of unique positions in ws_positions
@@ -252,6 +267,10 @@ namespace modules {
           return label;
         }();
 
+        /*
+         * Search for all desktops on this viewport and store them in the
+         * desktop list of the viewport.
+         */
         for (size_t i = 0; i < ws_positions.size(); i++) {
           auto&& ws_pos = ws_positions[i];
           if (ws_pos == viewport_pos) {
