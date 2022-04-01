@@ -26,6 +26,13 @@ namespace modules {
     bool check_condition();
 
    private:
+    string get_script_output() const;
+    int get_exit_status() const;
+    int get_counter() const;
+    int get_pid() const;
+
+    void handle_runner_update(const script_runner::data&);
+
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_LABEL_FAIL = "<label-fail>";
     static constexpr auto FORMAT_FAIL = "format-fail";
@@ -39,7 +46,10 @@ namespace modules {
 
     label_t m_label;
     label_t m_label_fail;
+
+    script_runner::data m_data;
+    mutable std::mutex m_data_mutex;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
