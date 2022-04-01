@@ -106,8 +106,6 @@ script_runner::interval script_runner::run() {
   int fd = cmd.get_stdout(PIPE_READ);
   assert(fd != -1);
 
-  bool changed = false;
-
   bool got_output = false;
   while (!m_stopping && cmd.is_running() && !io_util::poll(fd, POLLHUP, 0)) {
     /**
@@ -115,7 +113,7 @@ script_runner::interval script_runner::run() {
      * down, we still need to continue polling.
      */
     if (io_util::poll_read(fd, 25) && !got_output) {
-      changed = set_output(cmd.readline());
+      set_output(cmd.readline());
       got_output = true;
     }
   }
@@ -126,10 +124,6 @@ script_runner::interval script_runner::run() {
   }
 
   m_exit_status = cmd.wait();
-
-  if (!changed && m_exit_status != 0) {
-    clear_output();
-  }
 
   if (m_exit_status == 0) {
     return m_interval_success;

@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Breaking
+- `custom/script` now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
 
 ## [3.6.1] - 2022-03-05
 ### Build
