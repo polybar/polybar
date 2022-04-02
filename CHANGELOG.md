@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/script` now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
 
 ### Added
-- pulseaudio: Added `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
+- `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 
 ## [3.6.1] - 2022-03-05
 ### Build
