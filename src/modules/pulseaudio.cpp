@@ -26,6 +26,7 @@ namespace modules {
 
     auto sink_name = m_conf.get(name(), "sink", ""s);
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
+    m_reverse_scroll = m_conf.get(name(), "reverse-scroll", false);
 
     try {
       m_pulseaudio = std::make_unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
@@ -124,8 +125,13 @@ namespace modules {
       }
 
       m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+      if (!m_reverse_scroll) {
+        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+      } else {
+        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_DEC, "");
+        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_INC, "");
+      }
     }
 
     m_builder->append(output);
