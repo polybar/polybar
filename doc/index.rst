@@ -33,6 +33,7 @@ Welcome to the official polybar documentation.
    :maxdepth: 1
    :caption: Developer Documentation:
 
+   dev/style-guide
    dev/release-workflow
 
 Getting Help
