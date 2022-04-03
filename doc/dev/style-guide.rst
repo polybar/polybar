@@ -11,7 +11,7 @@ We use ``clang-format`` for code formatting, the style rules are defined in
 ``.clang-format``, before submitting a PR, make sure to run the following command
 on all the C++ files you changed:
 
-.. code-block:: bash
+.. code-block:: shell
 
   clang-format -style=file -i <FILES>
 

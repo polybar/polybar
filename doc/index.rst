@@ -34,6 +34,7 @@ Welcome to the official polybar documentation.
    :caption: Developer Documentation:
 
    dev/style-guide
+   dev/testing
    dev/release-workflow
 
 Getting Help
