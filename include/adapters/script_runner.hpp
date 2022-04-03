@@ -52,7 +52,7 @@ class script_runner {
   const vector<pair<string, string>> m_env;
 
   data m_data;
-  bool m_stopping{false};
+  std::atomic_bool m_stopping{false};
 };
 
 POLYBAR_NS_END
