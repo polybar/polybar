@@ -43,16 +43,16 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
 
   // clang-format off
   return std::make_unique<bar>(
-        connection::make(),
-        signal_emitter::make(),
-        config::make(),
-        logger::make(),
-        loop,
-        screen::make(),
-        tray_manager::make(),
-        tags::dispatch::make(*action_ctxt),
-        std::move(action_ctxt),
-        only_initialize_values);
+      connection::make(),
+      signal_emitter::make(),
+      config::make(),
+      logger::make(),
+      loop,
+      screen::make(),
+      tray_manager::make(),
+      tags::dispatch::make(*action_ctxt),
+      std::move(action_ctxt),
+      only_initialize_values);
   // clang-format on
 }
 
@@ -141,16 +141,25 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
 
-  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
-  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
 #if WITH_XCURSOR
+  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
   if (!m_opts.cursor_click.empty() && !cursor_util::valid(m_opts.cursor_click)) {
     m_log.warn("Ignoring unsupported cursor-click option '%s'", m_opts.cursor_click);
     m_opts.cursor_click.clear();
   }
+
+  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
   if (!m_opts.cursor_scroll.empty() && !cursor_util::valid(m_opts.cursor_scroll)) {
     m_log.warn("Ignoring unsupported cursor-scroll option '%s'", m_opts.cursor_scroll);
     m_opts.cursor_scroll.clear();
+  }
+#else
+  if (m_conf.has(bs, "cursor-click")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-click option");
+  }
+
+  if (m_conf.has(bs, "cursor-scroll")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-scroll option");
   }
 #endif
 
@@ -191,7 +200,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load configuration values
 
-  m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
+  m_opts.bottom = m_conf.get(bs, "bottom", m_opts.bottom);
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
   m_opts.locale = m_conf.get(bs, "locale", ""s);
@@ -221,10 +230,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load values used to adjust the struts atom
   auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
   auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
-  m_opts.strut.top =
-      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_top, m_opts.monitor->h, m_opts.dpi_y);
-  m_opts.strut.bottom =
-      units_utils::percentage_with_offset_to_pixel_nonnegative(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -329,7 +336,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.size.h += m_opts.borders[edge::TOP].size;
   m_opts.size.h += m_opts.borders[edge::BOTTOM].size;
 
-  if (m_opts.origin == edge::BOTTOM) {
+  if (m_opts.bottom) {
     m_opts.pos.y = m_opts.monitor->y + m_opts.monitor->h - m_opts.size.h - m_opts.offset.y;
   }
 
@@ -361,7 +368,7 @@ bar::~bar() {
 /**
  * Get the bar settings container
  */
-const bar_settings bar::settings() const {
+const bar_settings& bar::settings() const {
   return m_opts;
 }
 
@@ -454,14 +461,8 @@ void bar::show() {
   try {
     m_log.info("Showing bar window");
     m_sig.emit(visibility_change{true});
-    /**
-     * First reconfigures the window so that WMs that discard some information
-     * when unmapping have the correct window properties (geometry etc).
-     */
-    reconfigure_window();
-    m_connection.map_window_checked(m_opts.window);
+    map_window();
     m_connection.flush();
-    m_visible = true;
     parse(string{m_lastinput}, true);
   } catch (const exception& err) {
     m_log.err("Failed to map bar window (err=%s", err.what());
@@ -556,23 +557,41 @@ void bar::reconfigure_pos() {
  */
 void bar::reconfigure_struts() {
   auto geom = m_connection.get_geometry(m_screen->root());
-  auto w = m_opts.size.w + m_opts.offset.x;
-  auto h = m_opts.size.h + m_opts.offset.y;
+  int h = m_opts.size.h + m_opts.offset.y;
 
-  if (m_opts.origin == edge::BOTTOM) {
+  // Apply user-defined margins
+  if (m_opts.bottom) {
     h += m_opts.strut.top;
   } else {
     h += m_opts.strut.bottom;
   }
 
-  if (m_opts.origin == edge::BOTTOM && m_opts.monitor->y + m_opts.monitor->h < geom->height) {
-    h += geom->height - (m_opts.monitor->y + m_opts.monitor->h);
-  } else if (m_opts.origin != edge::BOTTOM) {
-    h += m_opts.monitor->y;
+  h = std::max(h, 0);
+
+  int correction = 0;
+
+  // Only apply correction if any space is requested
+  if (h > 0) {
+    /*
+     * Strut coordinates have to be relative to root window and not any monitor.
+     * If any monitor is not aligned at the top or bottom
+     */
+    if (m_opts.bottom) {
+      /*
+       * For bottom-algined bars, the correction is the number of pixels between
+       * the root window's bottom edge and the monitor's bottom edge
+       */
+      correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+    } else {
+      // For top-aligned bars, we simply add the monitor's y-position
+      correction = m_opts.monitor->y;
+    }
+
+    correction = std::max(correction, 0);
   }
 
   window win{m_connection, m_opts.window};
-  win.reconfigure_struts(w, h, m_opts.pos.x, m_opts.origin == edge::BOTTOM);
+  win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
 }
 
 /**
@@ -612,6 +631,25 @@ void bar::broadcast_visibility() {
   } else {
     m_sig.emit(visibility_change{true});
   }
+}
+
+void bar::map_window() {
+  /**
+   * First reconfigures the window so that WMs that discard some information
+   * when unmapping have the correct window properties (geometry etc).
+   */
+  reconfigure_window();
+
+  m_log.trace("bar: Map window");
+  m_connection.map_window_checked(m_opts.window);
+
+  /*
+   * Required by AwesomeWM. AwesomeWM does not seem to respect polybar's position if WM_NORMAL_HINTS are set before
+   * mapping. Additionally updating the window position after mapping seems to fix that.
+   */
+  reconfigure_pos();
+
+  m_visible = true;
 }
 
 void bar::trigger_click(mousebtn btn, int pos) {
@@ -695,13 +733,13 @@ void bar::handle(const evt::leave_notify&) {
 void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 #if WITH_XCURSOR
-  m_motion_pos = evt->event_x;
+  int motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
   const auto has_action = [&](const vector<mousebtn>& buttons) -> bool {
     for (auto btn : buttons) {
-      if (m_action_ctxt->has_action(btn, m_motion_pos) != tags::NO_ACTION) {
+      if (m_action_ctxt->has_action(btn, motion_pos) != tags::NO_ACTION) {
         return true;
       }
     }
@@ -709,21 +747,14 @@ void bar::handle(const evt::motion_notify& evt) {
     return false;
   };
 
-  if (has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
-          mousebtn::DOUBLE_RIGHT})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
-      m_opts.cursor = m_opts.cursor_click;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
-
+  if (!m_opts.cursor_click.empty() && has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
+                                          mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE, mousebtn::DOUBLE_RIGHT})) {
+    change_cursor(m_opts.cursor_click);
     return;
   }
 
-  if (has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+  if (!m_opts.cursor_scroll.empty() && has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
 
@@ -731,10 +762,7 @@ void bar::handle(const evt::motion_notify& evt) {
     if (!m_opts.cursor_click.empty() &&
         !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
             action.button == mousebtn::NONE)) {
-      if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
-        m_opts.cursor = m_opts.cursor_click;
-        m_sig.emit(cursor_change{string{m_opts.cursor}});
-      }
+      change_cursor(m_opts.cursor_click);
       return true;
     } else if (!m_opts.cursor_scroll.empty() &&
                (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
@@ -748,23 +776,20 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if (find_click_area(action))
+      if (find_click_area(action)) {
         return;
+      }
     }
   }
+
   if (found_scroll) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
-  if (!string_util::compare(m_opts.cursor, "default")) {
-    m_log.trace("No matching cursor area found");
-    m_opts.cursor = "default";
-    m_sig.emit(cursor_change{string{m_opts.cursor}});
-    return;
-  }
+
+  m_log.trace("No matching cursor area found");
+  change_cursor("default");
+  return;
 #endif
 }
 
@@ -867,10 +892,8 @@ void bar::start() {
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  reconfigure_window();
 
-  m_log.trace("bar: Map window");
-  m_connection.map_window_checked(m_opts.window);
+  map_window();
 
   // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
   // Notify all components that depend on the absolute bar position (such as the background manager).
@@ -893,12 +916,17 @@ bool bar::on(const signals::ui::dim_window& sig) {
 }
 
 #if WITH_XCURSOR
-bool bar::on(const signals::ui::cursor_change& sig) {
-  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
-    m_log.warn("Failed to create cursor context");
+void bar::change_cursor(const string& name) {
+  // This is already the same cursor, no need to update
+  if (m_cursor == name) {
+    return;
+  }
+  m_cursor = name;
+
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
+    m_log.warn("Failed to create cursor context for cursor name '%s'", name);
   }
   m_connection.flush();
-  return false;
 }
 #endif
 

@@ -15,7 +15,7 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings bar, string name)
+  module<Impl>::module(const bar_settings& bar, string name)
       : m_sig(signal_emitter::make())
       , m_bar(bar)
       , m_log(logger::make())
@@ -271,7 +271,7 @@ namespace modules {
           m_builder->spacing(format->spacing);
         }
 
-        m_builder->append(tag_content);
+        m_builder->node(tag_content);
         has_tags = true;
       }
 
@@ -279,7 +279,7 @@ namespace modules {
     }
 
     if (cursor < value.size()) {
-      m_builder->append(value.substr(cursor));
+      m_builder->node(value.substr(cursor));
     }
 
     return format->decorate(&*m_builder, m_builder->flush());

@@ -99,7 +99,7 @@ namespace modules {
       }
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
     return m_builder->flush();
   }
 

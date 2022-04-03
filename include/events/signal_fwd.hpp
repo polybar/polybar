@@ -19,25 +19,24 @@ namespace signals {
     struct notify_change;
     struct notify_forcechange;
     struct check_state;
-  }  // namespace eventqueue
+  } // namespace eventqueue
   namespace ipc {
     struct command;
     struct hook;
     struct action;
-  }  // namespace ipc
+  } // namespace ipc
   namespace ui {
     struct changed;
     struct button_press;
-    struct cursor_change;
     struct visibility_change;
     struct dim_window;
     struct request_snapshot;
     struct update_background;
     struct update_geometry;
-  }  // namespace ui
+  } // namespace ui
   namespace ui_tray {
     struct mapped_clients;
   }
-}  // namespace signals
+} // namespace signals
 
 POLYBAR_NS_END

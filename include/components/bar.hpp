@@ -31,12 +31,7 @@ namespace tags {
 
 class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::property_notify, evt::enter_notify,
                 evt::leave_notify, evt::motion_notify, evt::destroy_notify, evt::client_message, evt::configure_notify>,
-            public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::dim_window
-#if WITH_XCURSOR
-                ,
-                signals::ui::cursor_change
-#endif
-                > {
+            public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
   static make_type make(eventloop::loop&, bool only_initialize_values = false);
@@ -46,7 +41,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
       bool only_initialize_values);
   ~bar();
 
-  const bar_settings settings() const;
+  const bar_settings& settings() const;
 
   void start();
 
@@ -65,6 +60,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void reconfigure_wm_hints();
   void broadcast_visibility();
 
+  void map_window();
+
   void trigger_click(mousebtn btn, int pos);
 
   void handle(const evt::client_message& evt) override;
@@ -78,8 +75,14 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   void handle(const evt::configure_notify& evt) override;
 
   bool on(const signals::ui::dim_window&) override;
+
 #if WITH_XCURSOR
-  bool on(const signals::ui::cursor_change&) override;
+  /**
+   * Change cursor to the given cursor name.
+   *
+   * The cursor name must be valid (cursor_util::valid)
+   */
+  void change_cursor(const string& name);
 #endif
 
  private:
@@ -96,12 +99,13 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   bar_settings m_opts{};
 
+  /**
+   * Name of currently active cursor
+   */
+  string m_cursor{};
+
   string m_lastinput{};
   bool m_dblclicks{false};
-
-#if WITH_XCURSOR
-  int m_motion_pos{0};
-#endif
 
   eventloop::TimerHandle& m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
   eventloop::TimerHandle& m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};

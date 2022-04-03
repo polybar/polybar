@@ -63,6 +63,8 @@ controller::controller(
   if (!created_modules) {
     throw application_error("No modules created");
   }
+
+  m_log.notice("Loaded %zd modules", created_modules);
 }
 
 /**
@@ -178,8 +180,8 @@ void controller::conn_cb() {
       m_log.err("X connection error, terminating... (what: %s)", m_connection.error_str(err.code()));
       stop(false);
     } catch (const exception& err) {
-      m_log.err("Error in X event loop: %s", err.what());
-      stop(false);
+      // IDs for events are defined in xproto.h
+      m_log.err("Error in X event loop while handling event %d: %s", evt->response_type, err.what());
     }
   }
 
@@ -597,6 +599,7 @@ size_t controller::setup_modules(alignment align) {
         throw application_error("Inter-process messaging needs to be enabled");
       }
 
+      m_log.notice("Loading module '%s' of type '%s'", module_name, type);
       auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
       module_t module = shared_ptr<modules::module_interface>(ptr);
       ptr = nullptr;
@@ -608,7 +611,7 @@ size_t controller::setup_modules(alignment align) {
     }
   }
 
-  return m_modules.size();
+  return m_blocks[align].size();
 }
 
 /**

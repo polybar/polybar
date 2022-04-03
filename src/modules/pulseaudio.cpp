@@ -59,8 +59,9 @@ namespace modules {
   bool pulseaudio_module::has_event() {
     // Poll for mixer and control events
     try {
-      if (m_pulseaudio->wait())
+      if (m_pulseaudio->wait()) {
         return true;
+      }
     } catch (const pulseaudio_error& e) {
       m_log.err("%s: %s", name(), e.what());
     }
@@ -134,7 +135,7 @@ namespace modules {
       }
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     return m_builder->flush();
   }
@@ -165,6 +166,6 @@ namespace modules {
   void pulseaudio_module::action_toggle() {
     m_pulseaudio->toggle_mute();
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

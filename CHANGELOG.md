@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
 
+## [3.6.2] - 2022-04-03
+### Fixed
+- `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
+- Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
+- Positioning in awesomeWM ([`#2651`](https://github.com/polybar/polybar/pull/2651))
+- `internal/xworkspaces`: The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
+- Mouseover error when only one cursor is defined ([`#2656`](https://github.com/polybar/polybar/pull/2656))
+- `custom/script`: Timing inconsistencies ([`#2650`](https://github.com/polybar/polybar/issues/2650), first described at [`#2630`](https://github.com/polybar/polybar/pull/2630))
+
 ## [3.6.1] - 2022-03-05
 ### Build
 - Fixed compiler warning in Clang 13 ([`#2613`](https://github.com/polybar/polybar/pull/2613))
@@ -170,7 +179,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.1...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.6.2...HEAD
+[3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2
 [3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
 [3.6.0]: https://github.com/polybar/polybar/releases/tag/3.6.0
 [3.5.7]: https://github.com/polybar/polybar/releases/tag/3.5.7

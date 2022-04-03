@@ -25,7 +25,7 @@ namespace modules {
       builder->background(bg);
     }
     if (fg.has_color()) {
-      builder->color(fg);
+      builder->foreground(fg);
     }
     if (ul.has_color()) {
       builder->underline(ul);
@@ -46,7 +46,7 @@ namespace modules {
       builder->background(bg);
     }
     if (fg.has_color()) {
-      builder->color(fg);
+      builder->foreground(fg);
     }
     if (ul.has_color()) {
       builder->underline(ul);
@@ -55,7 +55,7 @@ namespace modules {
       builder->overline(ol);
     }
 
-    builder->append(move(output));
+    builder->node(output);
     builder->node(suffix);
 
     if (padding) {
@@ -71,7 +71,7 @@ namespace modules {
       builder->underline_close();
     }
     if (fg.has_color()) {
-      builder->color_close();
+      builder->foreground_close();
     }
     if (bg.has_color()) {
       builder->background_close();
@@ -182,6 +182,6 @@ namespace modules {
   }
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

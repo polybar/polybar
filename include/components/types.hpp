@@ -59,6 +59,11 @@ static inline mousebtn mousebtn_get_double(mousebtn btn) {
   }
 }
 
+/**
+ * Order of values for _NET_WM_STRUT_PARTIAL
+ *
+ * https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html#idm45381391268672
+ */
 enum class strut {
   LEFT = 0,
   RIGHT,
@@ -132,13 +137,6 @@ struct percentage_with_offset {
   extent_val offset{ZERO_PX_EXTENT};
 };
 
-struct edge_values {
-  unsigned int left{0U};
-  unsigned int right{0U};
-  unsigned int top{0U};
-  unsigned int bottom{0U};
-};
-
 struct radius {
   double top_left{0.0};
   double top_right{0.0};
@@ -173,7 +171,7 @@ struct bar_settings {
   monitor_t monitor{};
   bool monitor_strict{false};
   bool monitor_exact{true};
-  edge origin{edge::TOP};
+  bool bottom{false};
   struct size size {
     1U, 1U
   };
@@ -185,7 +183,10 @@ struct bar_settings {
   position offset{0, 0};
   side_values padding{ZERO_SPACE, ZERO_SPACE};
   side_values module_margin{ZERO_SPACE, ZERO_SPACE};
-  edge_values strut{0U, 0U, 0U, 0U};
+  struct {
+    int top;
+    int bottom;
+  } strut{0, 0};
 
   rgba background{0xFF000000};
   rgba foreground{0xFFFFFFFF};
@@ -210,8 +211,14 @@ struct bar_settings {
 
   int double_click_interval{400};
 
-  string cursor{};
+  /**
+   * Name of cursor to use for clickable areas
+   */
   string cursor_click{};
+
+  /**
+   * Name of cursor to use for scrollable areas
+   */
   string cursor_scroll{};
 
   vector<action> actions{};

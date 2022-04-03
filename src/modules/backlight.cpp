@@ -98,7 +98,7 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
-    m_builder->append(std::move(output));
+    m_builder->node(output);
 
     m_builder->action_close();
     m_builder->action_close();

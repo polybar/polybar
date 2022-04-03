@@ -45,6 +45,9 @@ namespace units_utils {
     return static_cast<int>(math_util::percentage_to_value<double, double>(g_format.percentage, max) + offset_pixel);
   }
 
+  /**
+   * Same as percentage_with_offset_to_pixel but capped below at 0 pixels
+   */
   unsigned percentage_with_offset_to_pixel_nonnegative(percentage_with_offset g_format, double max, double dpi) {
     return std::max<int>(0, percentage_with_offset_to_pixel(g_format, max, dpi));
   }
@@ -133,6 +136,28 @@ namespace units_utils {
     }
 
     return {type, size_value};
+  }
+
+  /**
+   * Creates an extent from a spacing value.
+   *
+   * @param spacing Value to convert, must not be SPACE
+   */
+  extent_val spacing_to_extent(spacing_val spacing) {
+    extent_type t;
+
+    switch (spacing.type) {
+      case spacing_type::POINT:
+        t = extent_type::POINT;
+        break;
+      case spacing_type::PIXEL:
+        t = extent_type::PIXEL;
+        break;
+      default:
+        throw std::runtime_error("spacing_to_extent: Illegal type: " + to_string(to_integral(spacing.type)));
+    }
+
+    return {t, spacing.value};
   }
 
 } // namespace units_utils
