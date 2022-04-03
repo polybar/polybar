@@ -11,7 +11,7 @@
 
 POLYBAR_NS
 
-script_runner::script_runner(std::function<void(void)> on_update, const string& exec, const string& exec_if, bool tail,
+script_runner::script_runner(on_update on_update, const string& exec, const string& exec_if, bool tail,
     interval interval, const vector<pair<string, string>>& env)
     : m_log(logger::make())
     , m_on_update(on_update)
@@ -52,23 +52,6 @@ void script_runner::stop() {
   m_stopping = true;
 }
 
-int script_runner::get_pid() const {
-  return m_pid;
-}
-
-int script_runner::get_counter() const {
-  return m_counter;
-}
-
-int script_runner::get_exit_status() const {
-  return m_exit_status;
-}
-
-string script_runner::get_output() {
-  std::lock_guard<std::mutex> guard(m_output_lock);
-  return m_output;
-}
-
 bool script_runner::is_stopping() const {
   return m_stopping;
 }
@@ -79,19 +62,28 @@ bool script_runner::is_stopping() const {
  * Returns true if the output changed.
  */
 bool script_runner::set_output(string&& new_output) {
-  std::lock_guard<std::mutex> guard(m_output_lock);
-
-  if (m_output != new_output) {
-    m_output = std::move(new_output);
-    m_on_update();
+  if (m_data.output != new_output) {
+    m_data.output = std::move(new_output);
     return true;
   }
 
   return false;
 }
 
+/**
+ * Updates the current exit status
+ *
+ * Returns true if the exit status changed.
+ */
+bool script_runner::set_exit_status(int new_status) {
+  auto changed = (m_data.exit_status != new_status);
+  m_data.exit_status = new_status;
+
+  return changed;
+}
+
 script_runner::interval script_runner::run() {
-  auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+  auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_data.counter));
   m_log.info("script_runner: Invoking shell command: \"%s\"", exec);
   auto cmd = command_util::make_command<output_policy::REDIRECTED>(exec);
 
@@ -124,13 +116,17 @@ script_runner::interval script_runner::run() {
     return 0s;
   }
 
-  m_exit_status = cmd->wait();
+  auto exit_status_changed = set_exit_status(cmd->wait());
 
-  if (!changed && m_exit_status != 0) {
+  if (!changed && m_data.exit_status != 0) {
     clear_output();
   }
 
-  if (m_exit_status == 0) {
+  if (changed || exit_status_changed) {
+    m_on_update(m_data);
+  }
+
+  if (m_data.exit_status == 0) {
     return m_interval;
   } else {
     return std::max(m_interval, interval{1s});
@@ -138,7 +134,7 @@ script_runner::interval script_runner::run() {
 }
 
 script_runner::interval script_runner::run_tail() {
-  auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_counter));
+  auto exec = string_util::replace_all(m_exec, "%counter%", to_string(++m_data.counter));
   m_log.info("script_runner: Invoking shell command: \"%s\"", exec);
   auto cmd = command_util::make_command<output_policy::REDIRECTED>(exec);
 
@@ -148,15 +144,23 @@ script_runner::interval script_runner::run_tail() {
     throw modules::module_error("Failed to execute command: " + string(err.what()));
   }
 
-  auto pid_guard = scope_util::make_exit_handler([this]() { m_pid = -1; });
-  m_pid = cmd->get_pid();
+  auto pid_guard = scope_util::make_exit_handler([this]() {
+    m_data.pid = -1;
+    m_on_update(m_data);
+  });
+
+  m_data.pid = cmd->get_pid();
 
   int fd = cmd->get_stdout(PIPE_READ);
   assert(fd != -1);
 
   while (!m_stopping && cmd->is_running() && !io_util::poll(fd, POLLHUP, 0)) {
     if (io_util::poll_read(fd, 25)) {
-      set_output(cmd->readline());
+      auto changed = set_output(cmd->readline());
+
+      if (changed) {
+        m_on_update(m_data);
+      }
     }
   }
 

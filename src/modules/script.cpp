@@ -10,8 +10,8 @@ namespace modules {
       : module<script_module>(bar, move(name_))
       , m_tail(m_conf.get(name(), "tail", false))
       , m_interval(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
-      , m_runner([this]() { broadcast(); }, m_conf.get(name(), "exec", ""s), m_conf.get(name(), "exec-if", ""s), m_tail,
-            m_interval, m_conf.get_with_prefix(name(), "env-")) {
+      , m_runner([this](const auto& data) { handle_runner_update(data); }, m_conf.get(name(), "exec", ""s),
+            m_conf.get(name(), "exec-if", ""s), m_tail, m_interval, m_conf.get_with_prefix(name(), "env-")) {
     // Load configured click handlers
     m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
     m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
@@ -76,29 +76,35 @@ namespace modules {
    * Generate module output
    */
   string script_module::get_format() const {
-    if (m_runner.get_exit_status() != 0 && m_conf.has(name(), FORMAT_FAIL)) {
+    if (m_exit_status != 0 && m_conf.has(name(), FORMAT_FAIL)) {
       return FORMAT_FAIL;
     }
     return DEFAULT_FORMAT;
   }
 
   string script_module::get_output() {
-    auto script_output = m_runner.get_output();
-    if (script_output.empty()) {
+    auto data = [this]{
+      std::lock_guard<std::mutex> lk(m_data_mutex);
+      return m_data;
+    }();
+
+    m_exit_status = data.exit_status;
+
+    if (data.output.empty()) {
       return "";
     }
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%output%", script_output);
+      m_label->replace_token("%output%", data.output);
     }
 
     if (m_label_fail) {
       m_label_fail->reset_tokens();
-      m_label_fail->replace_token("%output%", script_output);
+      m_label_fail->replace_token("%output%", data.output);
     }
 
-    string cnt{to_string(m_runner.get_counter())};
+    string cnt{to_string(data.counter)};
     string output{module::get_output()};
 
     for (const auto& a : m_actions) {
@@ -112,9 +118,8 @@ namespace modules {
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
-        int pid = m_runner.get_pid();
-        if (pid != -1) {
-          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(pid));
+        if (data.pid != -1) {
+          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(data.pid));
         }
         m_builder->action(btn, action_replaced);
       }
@@ -138,6 +143,15 @@ namespace modules {
     }
 
     return true;
+  }
+
+  void script_module::handle_runner_update(const script_runner::data& data) {
+    {
+      std::lock_guard<std::mutex> lk(m_data_mutex);
+      m_data = data;
+    }
+
+    broadcast();
   }
 } // namespace modules
 
