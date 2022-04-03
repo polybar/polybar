@@ -99,8 +99,9 @@ If possible, you should also add tests for the things you write.
 However, this is not always possible, for example when working on modules.
 But at least isolated components should be tested.
 
-See the [testing page](https://github.com/polybar/polybar/wiki/Testing) on the
-wiki for more information.
+See the [testing
+page](https://polybar.readthedocs.io/en/latest/dev/testing.html) in the
+documentation.
 Also don't hesitate to ask for help, testing isn't that mature in polybar yet
 and some things may be harder/impossible to test right now.
 
@@ -154,7 +155,8 @@ repo.
 
 ### Style
 
-Please read our [style guide](https://github.com/polybar/polybar/wiki/Style-Guide).
+Please read our [style
+guide](https://polybar.readthedocs.io/en/latest/dev/style-guide.html).
 
 ## Donations
 
