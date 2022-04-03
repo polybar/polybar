@@ -32,3 +32,10 @@ symlinking the ``compile_commands.json`` into the repo root directory:
 .. code-block:: shell
 
   ln -s build/compile_commands.json .
+
+Distro-Specific Setup
+---------------------
+
+The wiki contains user-contributed `setup tips
+<https://github.com/polybar/polybar/wiki/Distro-Specific-Setup>`_ for some
+distros.
