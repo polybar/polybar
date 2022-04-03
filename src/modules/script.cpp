@@ -76,29 +76,35 @@ namespace modules {
    * Generate module output
    */
   string script_module::get_format() const {
-    if (get_exit_status() != 0 && m_conf.has(name(), FORMAT_FAIL)) {
+    if (m_exit_status != 0 && m_conf.has(name(), FORMAT_FAIL)) {
       return FORMAT_FAIL;
     }
     return DEFAULT_FORMAT;
   }
 
   string script_module::get_output() {
-    auto script_output = get_script_output();
-    if (script_output.empty()) {
+    auto data = [this]{
+      std::lock_guard<std::mutex> lk(m_data_mutex);
+      return m_data;
+    }();
+
+    m_exit_status = data.exit_status;
+
+    if (data.output.empty()) {
       return "";
     }
 
     if (m_label) {
       m_label->reset_tokens();
-      m_label->replace_token("%output%", script_output);
+      m_label->replace_token("%output%", data.output);
     }
 
     if (m_label_fail) {
       m_label_fail->reset_tokens();
-      m_label_fail->replace_token("%output%", script_output);
+      m_label_fail->replace_token("%output%", data.output);
     }
 
-    string cnt{to_string(get_counter())};
+    string cnt{to_string(data.counter)};
     string output{module::get_output()};
 
     for (const auto& a : m_actions) {
@@ -112,9 +118,8 @@ namespace modules {
          * The pid token is only for tailed commands.
          * If the command is not specified or running, replacement is unnecessary as well
          */
-        int pid = get_pid();
-        if (pid != -1) {
-          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(pid));
+        if (data.pid != -1) {
+          action_replaced = string_util::replace_all(action_replaced, "%pid%", to_string(data.pid));
         }
         m_builder->action(btn, action_replaced);
       }
@@ -138,26 +143,6 @@ namespace modules {
     }
 
     return true;
-  }
-
-  string script_module::get_script_output() const {
-    std::lock_guard<std::mutex> lk(m_data_mutex);
-    return m_data.output;
-  }
-
-  int script_module::get_exit_status() const {
-    std::lock_guard<std::mutex> lk(m_data_mutex);
-    return m_data.exit_status;
-  }
-
-  int script_module::get_counter() const {
-    std::lock_guard<std::mutex> lk(m_data_mutex);
-    return m_data.counter;
-  }
-
-  int script_module::get_pid() const {
-    std::lock_guard<std::mutex> lk(m_data_mutex);
-    return m_data.pid;
   }
 
   void script_module::handle_runner_update(const script_runner::data& data) {
