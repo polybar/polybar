@@ -9,6 +9,6 @@
 # CURL_VERSION
 find_package_impl("libcurl" "CURL" "curl/curl.h")
 
-if (CURL_FOUND AND NOT TARGET CURL::libcurl)
+if(CURL_FOUND AND NOT TARGET CURL::libcurl)
   create_imported_target("CURL::libcurl" "${CURL_INCLUDE_DIR}" "${CURL_LIBRARY}")
-endif ()
+endif()

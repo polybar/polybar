@@ -7,9 +7,9 @@ option(DISABLE_ALL "Set this to ON disable all targets. Individual targets can b
 # by default to OFF
 if (DISABLE_ALL)
   set(DEFAULT_ON OFF)
-else ()
+else()
   set(DEFAULT_ON ON)
-endif ()
+endif()
 
 option(BUILD_POLYBAR "Build the main polybar executable" ${DEFAULT_ON})
 option(BUILD_POLYBAR_MSG "Build polybar-msg" ${DEFAULT_ON})
@@ -24,22 +24,22 @@ CMAKE_DEPENDENT_OPTION(BUILD_DOC_MAN "Build manpages" ON "BUILD_DOC" OFF)
 
 if (BUILD_POLYBAR OR BUILD_TESTS OR BUILD_POLYBAR_MSG)
   set(BUILD_LIBPOLY ON)
-else ()
+else()
   set(BUILD_LIBPOLY OFF)
-endif ()
+endif()
 
 if (BUILD_POLYBAR OR BUILD_POLYBAR_MSG OR BUILD_TESTS)
   set(HAS_CXX_COMPILATION ON)
-else ()
+else()
   set(HAS_CXX_COMPILATION OFF)
-endif ()
+endif()
 
 # Export compile commands used for custom targets
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set default build type if not specified
-if (NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
   message_colored(STATUS "No build type specified; using ${CMAKE_BUILD_TYPE}" 33)
-endif ()
+endif()
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
