@@ -46,6 +46,7 @@ script_runner::interval script_runner::process() {
 
 void script_runner::clear_output() {
   set_output("");
+  m_on_update(m_data);
 }
 
 void script_runner::stop() {
