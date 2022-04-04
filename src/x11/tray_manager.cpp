@@ -800,14 +800,14 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  * Calculate x position of tray window
  */
 int tray_manager::calculate_x(unsigned int width) const {
-    auto x = m_opts.orig_x;
-    if (m_opts.align == alignment::RIGHT) {
-        x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
-    } else if (m_opts.align == alignment::CENTER) {
-        x -= (width / 2) - (m_opts.width / 2);
+        auto x = m_opts.orig_x;
+        if (m_opts.align == alignment::RIGHT) {
+            x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
+        } else if (m_opts.align == alignment::CENTER) {
+            x -= (width / 2) - (m_opts.width / 2);
+        }
+        return x;
     }
-    return x;
-}
 
 /**
  * Calculate y position of tray window

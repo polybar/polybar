@@ -22,7 +22,8 @@ namespace tags {
     /**
      * Construct parser instance
      */
-    dispatch::dispatch(const logger &logger, action_context &action_ctxt) : m_log(logger), m_action_ctxt(action_ctxt) {}
+    dispatch::dispatch(const logger &logger, action_context &action_ctxt)
+            : m_log(logger), m_action_ctxt(action_ctxt) {}
 
     /**
      * Process input string
@@ -34,14 +35,14 @@ namespace tags {
         m_action_ctxt.reset();
         m_ctxt = make_unique<context>(bar);
 
-    while (p.has_next_element()) {
-      tags::element el;
-      try {
-        el = p.next_element();
-      } catch (const tags::error& e) {
-        m_log.err("Parser error (reason: %s)", e.what());
-        continue;
-      }
+        while (p.has_next_element()) {
+            tags::element el;
+            try {
+                el = p.next_element();
+            } catch (const tags::error &e) {
+                m_log.err("Parser error (reason: %s)", e.what());
+                continue;
+            }
 
       alignment old_alignment = m_ctxt->get_alignment();
       double old_x = old_alignment == alignment::NONE ? 0 : renderer.get_x(*m_ctxt);

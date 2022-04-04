@@ -28,7 +28,6 @@ namespace tags {
     static make_type make(action_context& action_ctxt);
 
       explicit dispatch(const logger &logger, action_context &action_ctxt);
-
       void parse(const bar_settings &bar, renderer_interface &, const string &&data);
 
    protected:

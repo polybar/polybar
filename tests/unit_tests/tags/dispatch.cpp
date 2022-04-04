@@ -67,29 +67,12 @@ class MockRenderer : public renderer_interface {
 public:
     MockRenderer(action_context &action_ctxt) : renderer_interface(action_ctxt) , fake(action_ctxt){};
 
-    MOCK_METHOD(void, render_offset,(const context &ctxt, const extent_val offset), (override)
-
-    );
-
-    MOCK_METHOD(void, render_text,(const context &ctxt, const string &&str), (override)
-
-    );
-
-    MOCK_METHOD(void, change_alignment,(const context &ctxt), (override)
-
-    );
-
-    MOCK_METHOD(double, get_x,(const context &ctxt),
-
-    (const, override));
-
-    MOCK_METHOD(double, get_alignment_start,(const alignment align),
-
-    (const, override));
-
-    MOCK_METHOD(void, apply_tray_position,(const polybar::tags::context &context), (override)
-
-    );
+    MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
+    MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
+    MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
+    MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
+    MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
+    MOCK_METHOD(void, apply_tray_position, (const polybar::tags::context &context), (override));
 
   void DelegateToFake() {
     ON_CALL(*this, render_offset).WillByDefault([this](const context& ctxt, const extent_val offset) {
@@ -126,9 +109,9 @@ static auto match_right_align = match_align(alignment::RIGHT);
 
 class DispatchTest : public ::testing::Test {
 protected:
-    unique_ptr <action_context> m_action_ctxt = make_unique<action_context>();
+    unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
 
-    unique_ptr <dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
+    unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
 
     ::testing::NiceMock<MockRenderer> r{*m_action_ctxt};
   void SetUp() override {

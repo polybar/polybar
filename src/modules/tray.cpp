@@ -6,15 +6,15 @@ POLYBAR_NS
 namespace modules {
   template class module<tray_module>;
 
-  tray_module::tray_module(const bar_settings& bar_settings, string name_)
-      : static_module<tray_module>(bar_settings, move(name_)) {
-    m_formatter->add(DEFAULT_FORMAT, TAG_TRAY, {TAG_TRAY});
-    m_sig.attach(this);
-  }
+    tray_module::tray_module(const bar_settings &bar_settings, string name_)
+            : static_module<tray_module>(bar_settings, move(name_)) {
+        m_formatter->add(DEFAULT_FORMAT, TAG_TRAY, {TAG_TRAY});
+        m_sig.attach(this);
+    }
 
-  string tray_module::get_format() const {
-    return DEFAULT_FORMAT;
-  }
+    string tray_module::get_format() const {
+        return DEFAULT_FORMAT;
+    }
 
     bool tray_module::build(builder *builder, const string &tag) const {
         if (tag == TAG_TRAY) {

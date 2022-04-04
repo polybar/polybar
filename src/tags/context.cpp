@@ -92,13 +92,13 @@ namespace tags {
     return m_fg;
   }
 
-  rgba context::get_ol() const {
-    return m_ol;
-  }
+    rgba context::get_ol() const {
+        return m_ol;
+    }
 
-  rgba context::get_ul() const {
-    return m_ul;
-  }
+    rgba context::get_ul() const {
+        return m_ul;
+    }
 
     int context::get_font() const {
         return m_font;
