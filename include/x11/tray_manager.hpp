@@ -136,7 +136,6 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   unsigned short int calculate_w() const;
   unsigned short int calculate_h() const;
 
-  int calculate_client_x(const xcb_window_t& win);
   int calculate_client_y();
 
   bool is_embedded(const xcb_window_t& win) const;

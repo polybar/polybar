@@ -136,7 +136,7 @@ void tray_manager::setup() {
   m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
 
   if (m_opts.background.alpha_i() != 255) {
-    m_log.trace("tray: enable transparency");
+    m_log.info("tray: enable transparency");
     m_opts.transparent = true;
   }
 
@@ -771,18 +771,6 @@ unsigned short int tray_manager::calculate_w() const {
  */
 unsigned short int tray_manager::calculate_h() const {
   return m_opts.win_size.h;
-}
-
-/**
- * Calculate x position of client window
- */
-int tray_manager::calculate_client_x(const xcb_window_t& win) {
-  for (unsigned int i = 0; i < m_clients.size(); i++) {
-    if (m_clients[i].match(win)) {
-      return m_opts.spacing + m_opts.client_size.w * i;
-    }
-  }
-  return m_opts.spacing;
 }
 
 /**
