@@ -116,7 +116,7 @@ namespace tags {
         return m_align;
     }
 
-    std::pair<alignment, int> context::get_relative_tray_position() {
+    std::pair<alignment, int> context::get_relative_tray_position() const {
         return m_relative_tray_position;
     }
 }  // namespace tags

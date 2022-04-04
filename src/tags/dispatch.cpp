@@ -114,7 +114,7 @@ namespace tags {
     for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
       m_action_ctxt.set_alignment_start(a, renderer.get_alignment_start(a));
     }
-        renderer.apply_tray_position(m_ctxt);
+    renderer.apply_tray_position(*m_ctxt);
 
     auto num_unclosed = m_action_ctxt.num_unclosed();
 

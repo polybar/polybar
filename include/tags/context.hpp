@@ -44,7 +44,7 @@ namespace tags {
     bool has_underline() const;
     alignment get_alignment() const;
 
-    std::pair<alignment, int> get_relative_tray_position();
+    std::pair<alignment, int> get_relative_tray_position() const;
 
    protected:
     /**

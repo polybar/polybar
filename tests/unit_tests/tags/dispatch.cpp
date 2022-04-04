@@ -87,7 +87,7 @@ public:
 
     (const, override));
 
-    MOCK_METHOD(void, apply_tray_position,(unique_ptr <polybar::tags::context> &context), (override)
+    MOCK_METHOD(void, apply_tray_position,(const polybar::tags::context &context), (override)
 
     );
 
