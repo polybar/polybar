@@ -570,8 +570,7 @@ void tray_manager::create_bg() {
  * Set window WM hints
  */
 void tray_manager::set_wm_hints() {
-  // TODO use same visual as bar/tray window
-  const xcb_visualid_t visual{m_connection.screen()->root_visual};
+  const xcb_visualid_t visual{m_bar_opts.x_data.visual->visual_id};
   const uint32_t orientation{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
 
   m_log.trace("bar: Set window WM_NAME / WM_CLASS");
