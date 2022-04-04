@@ -27,8 +27,8 @@ namespace tags {
     using make_type = unique_ptr<dispatch>;
     static make_type make(action_context& action_ctxt);
 
-      explicit dispatch(const logger &logger, action_context &action_ctxt);
-      void parse(const bar_settings &bar, renderer_interface &, const string &&data);
+    explicit dispatch(const logger& logger, action_context& action_ctxt);
+    void parse(const bar_settings& bar, renderer_interface&, const string&& data);
 
    protected:
     void handle_text(renderer_interface& renderer, string&& data);

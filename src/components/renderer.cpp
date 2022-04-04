@@ -811,12 +811,12 @@ bool renderer::on(const signals::ui::request_snapshot& evt) {
   return true;
 }
 
-void renderer::apply_tray_position(const polybar::tags::context &context) {
-    if (context.get_relative_tray_position() != std::pair<alignment, int>()) {
-        int absolute_x = static_cast<int>(block_x(context.get_relative_tray_position().first) +
-                                          context.get_relative_tray_position().second);
-        m_sig.emit(signals::ui_tray::tray_pos_change{absolute_x});
-    }
+void renderer::apply_tray_position(const polybar::tags::context& context) {
+  if (context.get_relative_tray_position() != std::pair<alignment, int>()) {
+    int absolute_x = static_cast<int>(
+        block_x(context.get_relative_tray_position().first) + context.get_relative_tray_position().second);
+    m_sig.emit(signals::ui_tray::tray_pos_change{absolute_x});
+  }
 }
 
 POLYBAR_NS_END

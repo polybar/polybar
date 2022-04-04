@@ -92,33 +92,33 @@ namespace tags {
     return m_fg;
   }
 
-    rgba context::get_ol() const {
-        return m_ol;
-    }
+  rgba context::get_ol() const {
+    return m_ol;
+  }
 
-    rgba context::get_ul() const {
-        return m_ul;
-    }
+  rgba context::get_ul() const {
+    return m_ul;
+  }
 
-    int context::get_font() const {
-        return m_font;
-    }
+  int context::get_font() const {
+    return m_font;
+  }
 
-    bool context::has_overline() const {
-        return m_attr_overline;
-    }
+  bool context::has_overline() const {
+    return m_attr_overline;
+  }
 
-    bool context::has_underline() const {
-        return m_attr_underline;
-    }
+  bool context::has_underline() const {
+    return m_attr_underline;
+  }
 
-    alignment context::get_alignment() const {
-        return m_align;
-    }
+  alignment context::get_alignment() const {
+    return m_align;
+  }
 
-    std::pair<alignment, int> context::get_relative_tray_position() const {
-        return m_relative_tray_position;
-    }
+  std::pair<alignment, int> context::get_relative_tray_position() const {
+    return m_relative_tray_position;
+  }
 }  // namespace tags
 
 POLYBAR_NS_END

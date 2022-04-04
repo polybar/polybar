@@ -33,7 +33,7 @@ class renderer_interface {
    */
   virtual double get_alignment_start(const alignment align) const = 0;
 
-  virtual void apply_tray_position(const polybar::tags::context &context) = 0;
+  virtual void apply_tray_position(const polybar::tags::context& context) = 0;
 
  protected:
   /**

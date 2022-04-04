@@ -110,9 +110,9 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   int calculate_x(unsigned width) const;
   int calculate_y(bool abspos = true) const;
 
-    unsigned short int calculate_w() const;
+  unsigned short int calculate_w() const;
 
-    unsigned short int calculate_h() const;
+  unsigned short int calculate_h() const;
 
   int calculate_client_x(const xcb_window_t& win);
   int calculate_client_y();

@@ -800,14 +800,14 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  * Calculate x position of tray window
  */
 int tray_manager::calculate_x(unsigned int width) const {
-        auto x = m_opts.orig_x;
-        if (m_opts.align == alignment::RIGHT) {
-            x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
-        } else if (m_opts.align == alignment::CENTER) {
-            x -= (width / 2) - (m_opts.width / 2);
-        }
-        return x;
-    }
+  auto x = m_opts.orig_x;
+  if (m_opts.align == alignment::RIGHT) {
+    x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
+  } else if (m_opts.align == alignment::CENTER) {
+    x -= (width / 2) - (m_opts.width / 2);
+  }
+  return x;
+}
 
 /**
  * Calculate y position of tray window
@@ -1167,10 +1167,10 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-    m_opts.orig_x = m_bar_opts.inner_area(true).x + evt.cast();
-    reconfigure_window();
+  m_opts.orig_x = m_bar_opts.inner_area(true).x + evt.cast();
+  reconfigure_window();
 
-    return true;
+  return true;
 }
 
 POLYBAR_NS_END
