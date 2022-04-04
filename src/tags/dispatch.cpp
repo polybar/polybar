@@ -2,38 +2,37 @@
 
 #include <algorithm>
 
+#include "components/renderer.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "settings.hpp"
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
-#include "components/renderer.hpp"
 
 POLYBAR_NS
 
 namespace tags {
-  /**
-   * Create instance
-   */
-  dispatch::make_type dispatch::make(action_context& action_ctxt) {
-    return std::make_unique<dispatch>(logger::make(), action_ctxt, signal_emitter::make());
-  }
+    /**
+     * Create instance
+     */
+    dispatch::make_type dispatch::make(action_context &action_ctxt) {
+        return std::make_unique<dispatch>(logger::make(), action_ctxt);
+    }
 
-  /**
-   * Construct parser instance
-   */
-  dispatch::dispatch(const logger& logger, action_context& action_ctxt, signal_emitter& signal_emitter)
-      : m_log(logger), m_action_ctxt(action_ctxt), m_sig(signal_emitter) {}
+    /**
+     * Construct parser instance
+     */
+    dispatch::dispatch(const logger &logger, action_context &action_ctxt) : m_log(logger), m_action_ctxt(action_ctxt) {}
 
-  /**
-   * Process input string
-   */
-  void dispatch::parse(const bar_settings& bar, renderer_interface& renderer, const string&& data) {
-    tags::parser p;
-    p.set(std::move(data));
+    /**
+     * Process input string
+     */
+    void dispatch::parse(const bar_settings &bar, renderer_interface &renderer, const string &&data) {
+        tags::parser p;
+        p.set(std::move(data));
 
-    m_action_ctxt.reset();
-    m_ctxt = make_unique<context>(bar);
+        m_action_ctxt.reset();
+        m_ctxt = make_unique<context>(bar);
 
     while (p.has_next_element()) {
       tags::element el;
@@ -115,9 +114,7 @@ namespace tags {
     for (auto a : {alignment::LEFT, alignment::CENTER, alignment::RIGHT}) {
       m_action_ctxt.set_alignment_start(a, renderer.get_alignment_start(a));
     }
-    if (m_ctxt->m_relative_tray_position != std::pair<alignment, int>()) {
-        renderer.apply_tray_position(m_ctxt->m_relative_tray_position);
-    }
+        renderer.apply_tray_position(m_ctxt);
 
     auto num_unclosed = m_action_ctxt.num_unclosed();
 

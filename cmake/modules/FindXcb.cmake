@@ -15,27 +15,27 @@
 
 # This script only supports the following components of XCB
 set(XCB_known_components
-  XCB
-  RANDR
-  COMPOSITE
-  XKB
-  XRM
-  CURSOR)
+        XCB
+        RANDR
+        COMPOSITE
+        XKB
+        XRM
+        CURSOR)
 
 # Deducing header from the name of the component
-foreach(_comp ${XCB_known_components})
+foreach (_comp ${XCB_known_components})
   string(TOLOWER "${_comp}" _lc_comp)
   set(XCB_${_comp}_pkg_config "xcb-${_lc_comp}")
   set(XCB_${_comp}_header "xcb/${_lc_comp}.h")
-endforeach()
+endforeach ()
 # Exception cases
 set(XCB_XRM_header "xcb/xcb_xrm.h")
 set(XCB_CURSOR_header "xcb/xcb_cursor.h")
 
-foreach(_comp ${Xcb_FIND_COMPONENTS})
+foreach (_comp ${Xcb_FIND_COMPONENTS})
   if (NOT ${_comp} IN_LIST XCB_known_components)
     message(FATAL_ERROR "Unknow component \"${_comp}\" of XCB")
-  endif()
+  endif ()
 
   # Forward the different find options set for FindXcb to the individual
   # components. This is required because find_package_handle_standard_args in
@@ -51,9 +51,9 @@ foreach(_comp ${Xcb_FIND_COMPONENTS})
   set(FPHSA_NAME_MISMATCHED TRUE)
   find_package_impl(${XCB_${_comp}_pkg_config} "Xcb_${_comp}" "${XCB_${_comp}_header}")
 
-  if(Xcb_${_comp}_FOUND AND NOT TARGET Xcb::${_comp})
+  if (Xcb_${_comp}_FOUND AND NOT TARGET Xcb::${_comp})
     create_imported_target("Xcb::${_comp}" "${Xcb_${_comp}_INCLUDE_DIRS}" "${Xcb_${_comp}_LIBRARIES}")
-  elseif(NOT Xcb_${_comp}_FOUND AND Xcb_FIND_REQUIRED)
+  elseif (NOT Xcb_${_comp}_FOUND AND Xcb_FIND_REQUIRED)
     message(FATAL_ERROR "Xcb: Required component \"${_comp}\" was not found")
-  endif()
-endforeach()
+  endif ()
+endforeach ()

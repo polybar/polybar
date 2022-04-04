@@ -8,6 +8,6 @@
 
 find_package_impl("libuv" "LibUV" "uv.h")
 
-if(LibUV_FOUND AND NOT TARGET LibUV::LibUV)
+if (LibUV_FOUND AND NOT TARGET LibUV::LibUV)
   create_imported_target("LibUV::LibUV" "${LibUV_INCLUDE_DIR}" "${LibUV_LIBRARY}")
-endif()
+endif ()

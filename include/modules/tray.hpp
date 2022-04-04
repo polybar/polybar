@@ -14,6 +14,7 @@ namespace modules {
 
     bool build(builder* builder, const string& tag) const;
     void update() {}
+    void teardown();
 
     bool on(const signals::ui_tray::tray_width_change& evt) override;
 

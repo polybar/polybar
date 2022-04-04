@@ -16,19 +16,24 @@ namespace modules {
     return DEFAULT_FORMAT;
   }
 
-  bool tray_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_TRAY) {
-      builder->control(tags::controltag::t);
-      builder->offset(m_width);
-      return true;
+    bool tray_module::build(builder *builder, const string &tag) const {
+        if (tag == TAG_TRAY) {
+            builder->control(tags::controltag::t);
+            builder->offset(m_width);
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
-  bool tray_module::on(const signals::ui_tray::tray_width_change& evt) {
-    m_width = evt.cast();
-    broadcast();
-    return true;
-  }
+
+    bool tray_module::on(const signals::ui_tray::tray_width_change &evt) {
+        m_width = evt.cast();
+        broadcast();
+        return true;
+    }
+
+    void tray_module::teardown() {
+        m_sig.detach(this);
+    }
 
 }  // namespace modules
 POLYBAR_NS_END

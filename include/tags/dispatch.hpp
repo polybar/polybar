@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "components/bar.hpp"
 #include "components/renderer_interface.hpp"
+#include "components/types.hpp"
 #include "errors.hpp"
 
 POLYBAR_NS
@@ -26,8 +27,9 @@ namespace tags {
     using make_type = unique_ptr<dispatch>;
     static make_type make(action_context& action_ctxt);
 
-    explicit dispatch(const logger& logger, action_context& action_ctxt, signal_emitter& signal_emitter);
-    void parse(const bar_settings& bar, renderer_interface&, const string&& data);
+      explicit dispatch(const logger &logger, action_context &action_ctxt);
+
+      void parse(const bar_settings &bar, renderer_interface &, const string &&data);
 
    protected:
     void handle_text(renderer_interface& renderer, string&& data);
@@ -41,7 +43,6 @@ namespace tags {
 
     unique_ptr<context> m_ctxt;
     action_context& m_action_ctxt;
-    signal_emitter& m_sig;
   };
 } // namespace tags
 

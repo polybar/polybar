@@ -8,15 +8,16 @@
 
 # -- Path setup --------------------------------------------------------------
 
+import datetime
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-from pathlib import Path
-import datetime
-import sphinx
 import packaging.version
+import sphinx
+from pathlib import Path
+
 
 def get_version(root_path):
   """
@@ -48,7 +49,7 @@ if on_rtd:
   version = os.environ.get('READTHEDOCS_VERSION', None)
 else:
   # The short X.Y version
-  version = '@APP_VERSION@'
+  version = '3.5.7-242-g081645f3'
 
 # The full version, including alpha/beta/rc tags
 release = version
@@ -60,7 +61,7 @@ if on_rtd:
 else:
   # In all other builds conf.py is configured with cmake and put into the
   # build folder.
-  doc_path = '@doc_path@'
+  doc_path = '/home/raffael/Documents/Schule/21-22/ANDERE_PROJEKTE/polybar/doc'
 
 # The version from the version.txt file. Since we are not always first
 # configured by cmake, we don't necessarily have access to the current version

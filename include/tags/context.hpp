@@ -44,7 +44,7 @@ namespace tags {
     bool has_underline() const;
     alignment get_alignment() const;
 
-    std::pair<alignment, int> m_relative_tray_position;
+    std::pair<alignment, int> get_relative_tray_position();
 
    protected:
     /**
@@ -80,8 +80,10 @@ namespace tags {
      */
     alignment m_align{alignment::NONE};
 
-   private:
-    const bar_settings& m_settings;
+    std::pair<alignment, int> m_relative_tray_position{alignment::NONE, 0};
+
+  private:
+      const bar_settings &m_settings;
   };
 } // namespace tags
 
