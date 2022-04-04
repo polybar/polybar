@@ -23,6 +23,9 @@ class tray_client : public non_copyable_mixin {
   unsigned int height() const;
   void clear_window() const;
 
+  void update_client_attributes() const;
+  void reparent() const;
+
   bool match(const xcb_window_t& win) const;
   bool mapped() const;
   void mapped(bool state);
@@ -34,9 +37,13 @@ class tray_client : public non_copyable_mixin {
   bool is_xembed_supported() const;
   const xembed::info& get_xembed() const;
 
+  void notify_xembed() const;
+
+  void add_to_save_set() const;
+
   void ensure_state() const;
   void reconfigure(int x, int y) const;
-  void configure_notify(int x, int y) const;
+  void configure_notify() const;
 
  protected:
   const logger& m_log;

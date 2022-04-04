@@ -714,36 +714,15 @@ void tray_manager::process_docking_request(xcb_window_t win) {
           client.get_xembed().get_flags(), client.get_xembed().is_mapped() ? "true" : "false");
     }
 
-    const uint32_t mask = XCB_CW_EVENT_MASK;
-    const uint32_t value = XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+    client.update_client_attributes();
 
-    m_log.trace("tray: Update client window");
-    m_connection.change_window_attributes_checked(client.client(), mask, &value);
+    client.reparent();
 
-    m_log.trace("tray: Configure client size");
-    client.reconfigure(0, 0);
+    client.add_to_save_set();
 
-    // TODO put this into tray_client class
-    m_log.trace("tray: Reparent client");
-    m_connection.reparent_window_checked(
-        client.client(), client.embedder(), calculate_client_x(client.client()), calculate_client_y());
+    client.notify_xembed();
 
-    m_log.trace("tray: Add client window to the save set");
-    // TODO move this into tray_client
-    m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client.client());
-
-    if (client.is_xembed_supported()) {
-      m_log.trace("tray: Send embbeded notification to client");
-      // TODO move this into tray_client
-      xembed::notify_embedded(m_connection, client.client(), client.embedder(), client.get_xembed().get_version());
-    }
-
-    if (!client.is_xembed_supported() || client.get_xembed().is_mapped()) {
-      m_log.trace("tray: Map client");
-      // TODO move this into tray_client
-      m_connection.map_window_checked(client.client());
-      m_connection.map_window_checked(client.embedder());
-    }
+    client.ensure_state();
 
     m_clients.emplace_back(std::move(client));
   } catch (const std::exception& err) {
@@ -918,7 +897,7 @@ void tray_manager::handle(const evt::configure_request& evt) {
   if (m_activated && is_embedded(evt->window)) {
     try {
       m_log.trace("tray: Client configure request %s", m_connection.id(evt->window));
-      find_client(evt->window)->configure_notify(calculate_client_x(evt->window), calculate_client_y());
+      find_client(evt->window)->configure_notify();
     } catch (const xpp::x::error::window& err) {
       m_log.err("Failed to reconfigure tray client, removing... (%s)", err.what());
       remove_client(evt->window);
@@ -933,7 +912,7 @@ void tray_manager::handle(const evt::resize_request& evt) {
   if (m_activated && is_embedded(evt->window)) {
     try {
       m_log.trace("tray: Received resize_request for client %s", m_connection.id(evt->window));
-      find_client(evt->window)->configure_notify(calculate_client_x(evt->window), calculate_client_y());
+      find_client(evt->window)->configure_notify();
     } catch (const xpp::x::error::window& err) {
       m_log.err("Failed to reconfigure tray client, removing... (%s)", err.what());
       remove_client(evt->window);
