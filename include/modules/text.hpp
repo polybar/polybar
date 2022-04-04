@@ -12,9 +12,17 @@ namespace modules {
     void update() {}
     string get_format() const;
     string get_output();
+    bool build(builder* builder, const string& tag) const;
 
     static constexpr auto TYPE = "custom/text";
+
+   private:
+    static constexpr const char* TAG_LABEL{"<label>"};
+
+    label_t m_label;
+
+    string m_format{DEFAULT_FORMAT};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

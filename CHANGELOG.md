@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Breaking
-- `custom/script` now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+- `custom/script`: now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+
+### Deprecated
+- `custom/text`: The `content` setting and all its properties are deprecated in favor of `format` with the same functionality. ([`#2676`](https://github.com/polybar/polybar/pull/2676))
 
 ### Added
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
+- `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not defined ([`#1331`](https://github.com/polybar/polybar/issues/1331), [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
 
 ## [3.6.2] - 2022-04-03
 ### Fixed
