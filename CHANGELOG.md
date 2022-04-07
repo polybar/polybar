@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - `custom/script`: Output clearing when `exec-if` fails ([`#2674`](https://github.com/polybar/polybar/issues/2674))
+- `internal/battery`: `poll-interval` not working ([`#2649`](https://github.com/polybar/polybar/issues/2649), [`#2677`](https://github.com/polybar/polybar/pull/2677))
 
 ## [3.6.2] - 2022-04-03
 ### Fixed
