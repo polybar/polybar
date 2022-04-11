@@ -72,7 +72,7 @@ class renderer : public renderer_interface,
   void fill_overline(rgba color, double x, double w);
   void fill_underline(rgba color, double x, double w);
   void fill_borders();
-  void draw_offset(rgba color, double x, double w);
+  void draw_offset(const tags::context& ctxt, rgba color, double x, double w);
 
   double block_x(alignment a) const;
   double block_y(alignment a) const;

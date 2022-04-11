@@ -728,8 +728,12 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   }
 }
 
-void renderer::draw_offset(rgba color, double x, double w) {
-  if (w > 0 && color != m_bar.background) {
+void renderer::draw_offset(const tags::context& ctxt, rgba color, double x, double w) {
+  if (w <= 0) {
+    return;
+  }
+
+  if (color != m_bar.background) {
     m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
     m_context->save();
     *m_context << m_comp_bg;
@@ -739,6 +743,14 @@ void renderer::draw_offset(rgba color, double x, double w) {
     m_context->fill();
     m_context->restore();
   }
+
+  if (ctxt.has_underline()) {
+    fill_underline(ctxt.get_ul(), x, w);
+  }
+
+  if (ctxt.has_overline()) {
+    fill_overline(ctxt.get_ol(), x, w);
+  }
 }
 
 void renderer::render_offset(const tags::context& ctxt, const extent_val offset) {
@@ -746,7 +758,7 @@ void renderer::render_offset(const tags::context& ctxt, const extent_val offset)
 
   int offset_width = units_utils::extent_to_pixel(offset, m_bar.dpi_x);
   rgba bg = ctxt.get_bg();
-  draw_offset(bg, m_blocks[m_align].x, offset_width);
+  draw_offset(ctxt, bg, m_blocks[m_align].x, offset_width);
   increase_x(offset_width);
 }
 
