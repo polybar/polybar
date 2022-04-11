@@ -118,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `polybar-msg`:
   - For module actions, you can now also specify the module name, action name, and optional data as separate arguments. ([`#2539`](https://github.com/polybar/polybar/pull/2539))
   - Added man page: `man 1 polybar-msg` ([`#2539`](https://github.com/polybar/polybar/pull/2539))
+- Added experimental support for positioning the tray like a module
 
 ### Changed
 - Polybar now also reads `config.ini` when searching for config files. ([`#2323`](https://github.com/polybar/polybar/issues/2323), [`#2324`](https://github.com/polybar/polybar/pull/2324))
