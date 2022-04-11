@@ -904,7 +904,7 @@ void bar::start() {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(static_cast<const bar_settings&>(m_opts));
+  m_tray->setup();
 
   broadcast_visibility();
 }
