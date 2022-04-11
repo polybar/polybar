@@ -54,6 +54,10 @@ class FakeRenderer : public renderer_interface {
     return 0;
   };
 
+  void apply_tray_position(const polybar::tags::context& context) override {
+    return;
+  };
+
  private:
   map<alignment, int> block_x = {
       {alignment::LEFT, 0},
@@ -86,6 +90,10 @@ class MockRenderer : public renderer_interface {
 
     ON_CALL(*this, get_alignment_start).WillByDefault([this](const alignment a) {
       return fake.get_alignment_start(a);
+    });
+
+    ON_CALL(*this, apply_tray_position).WillByDefault([this](const context& context) {
+      return fake.apply_tray_position(context);
     });
   }
 
