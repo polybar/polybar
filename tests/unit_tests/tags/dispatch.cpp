@@ -4,11 +4,10 @@
 #include "components/logger.hpp"
 #include "events/signal_emitter.hpp"
 #include "gmock/gmock.h"
-#include "tags/context.hpp"
+
 using namespace polybar;
 using namespace std;
 using namespace tags;
-using namespace signals;
 
 using ::testing::_;
 using ::testing::AllOf;
@@ -64,15 +63,15 @@ class FakeRenderer : public renderer_interface {
 };
 
 class MockRenderer : public renderer_interface {
-public:
-    MockRenderer(action_context &action_ctxt) : renderer_interface(action_ctxt) , fake(action_ctxt){};
+ public:
+  MockRenderer(action_context& action_ctxt) : renderer_interface(action_ctxt), fake(action_ctxt){};
 
-    MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
-    MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
-    MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
-    MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
-    MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
-    MOCK_METHOD(void, apply_tray_position, (const polybar::tags::context &context), (override));
+  MOCK_METHOD(void, render_offset, (const context& ctxt, const extent_val offset), (override));
+  MOCK_METHOD(void, render_text, (const context& ctxt, const string&& str), (override));
+  MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
+  MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
+  MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
+  MOCK_METHOD(void, apply_tray_position, (const polybar::tags::context& context), (override));
 
   void DelegateToFake() {
     ON_CALL(*this, render_offset).WillByDefault([this](const context& ctxt, const extent_val offset) {

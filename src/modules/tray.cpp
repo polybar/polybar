@@ -19,7 +19,8 @@ namespace modules {
   bool tray_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_TRAY) {
       builder->control(tags::controltag::t);
-      builder->offset(m_width);
+      extent_val offset_extent = {extent_type::PIXEL, static_cast<float>(m_width)};
+      builder->offset(offset_extent);
       return true;
     }
     return false;
