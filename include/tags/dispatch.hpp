@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/bar.hpp"
 #include "components/renderer_interface.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
@@ -35,7 +34,7 @@ namespace tags {
     void handle_action(renderer_interface& renderer, mousebtn btn, bool closing, const string&& cmd);
     void handle_offset(renderer_interface& renderer, extent_val offset);
     void handle_alignment(renderer_interface& renderer, alignment a);
-    void handle_control(controltag ctrl, renderer_interface& renderer);
+    void handle_control(renderer_interface& renderer, controltag ctrl);
 
    private:
     const logger& m_log;

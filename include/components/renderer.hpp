@@ -67,7 +67,7 @@ class renderer : public renderer_interface,
 
   double get_alignment_start(const alignment align) const override;
 
-  void apply_tray_position(const polybar::tags::context& context) override;
+  void apply_tray_position(const tags::context& context) override;
 
  protected:
   void fill_background();

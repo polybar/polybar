@@ -811,7 +811,7 @@ bool renderer::on(const signals::ui::request_snapshot& evt) {
   return true;
 }
 
-void renderer::apply_tray_position(const polybar::tags::context& context) {
+void renderer::apply_tray_position(const tags::context& context) {
   if (context.get_relative_tray_position() != std::pair<alignment, int>()) {
     int absolute_x = static_cast<int>(
         block_x(context.get_relative_tray_position().first) + context.get_relative_tray_position().second);
