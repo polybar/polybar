@@ -18,7 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
-- `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not defined ([`#1331`](https://github.com/polybar/polybar/issues/1331), [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
+- `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not
+  defined ([`#1331`](https://github.com/polybar/polybar/issues/1331)
+  , [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
+- Added experimental support for positioning the tray like a module
 
 ## [3.6.2] - 2022-04-03
 ### Fixed
@@ -118,7 +121,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `polybar-msg`:
   - For module actions, you can now also specify the module name, action name, and optional data as separate arguments. ([`#2539`](https://github.com/polybar/polybar/pull/2539))
   - Added man page: `man 1 polybar-msg` ([`#2539`](https://github.com/polybar/polybar/pull/2539))
-- Added experimental support for positioning the tray like a module
 
 ### Changed
 - Polybar now also reads `config.ini` when searching for config files. ([`#2323`](https://github.com/polybar/polybar/issues/2323), [`#2324`](https://github.com/polybar/polybar/pull/2324))

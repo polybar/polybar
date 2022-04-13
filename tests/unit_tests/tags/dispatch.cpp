@@ -54,9 +54,7 @@ class FakeRenderer : public renderer_interface {
     return 0;
   };
 
-  void apply_tray_position(const polybar::tags::context& context) override {
-    return;
-  };
+  void apply_tray_position(const tags::context&) override{};
 
  private:
   map<alignment, int> block_x = {
@@ -115,12 +113,12 @@ static auto match_center_align = match_align(alignment::CENTER);
 static auto match_right_align = match_align(alignment::RIGHT);
 
 class DispatchTest : public ::testing::Test {
-protected:
-    unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
+ protected:
+  unique_ptr<action_context> m_action_ctxt = make_unique<action_context>();
 
-    unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
+  unique_ptr<dispatch> m_dispatch = make_unique<dispatch>(logger(loglevel::NONE), *m_action_ctxt);
 
-    ::testing::NiceMock<MockRenderer> r{*m_action_ctxt};
+  ::testing::NiceMock<MockRenderer> r{*m_action_ctxt};
   void SetUp() override {
     r.DelegateToFake();
   }
