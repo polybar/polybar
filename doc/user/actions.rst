@@ -406,20 +406,22 @@ Below you can see an example of a menu module:
   [module/apps]
   type = custom/menu
 
+  label-open = Apps
+
   menu-0-0 = Browsers
   menu-0-0-exec = menu-open-1
   menu-0-1 = Multimedia
   menu-0-1-exec = menu-open-2
 
   menu-1-0 = Firefox
-  menu-1-0-exec = firefox &
+  menu-1-0-exec = firefox
   menu-1-1 = Chromium
-  menu-1-1-exec = chromium &
+  menu-1-1-exec = chromium
 
   menu-2-0 = Gimp
-  menu-2-0-exec = gimp &
+  menu-2-0-exec = gimp
   menu-2-1 = Scrot
-  menu-2-1-exec = scrot &
+  menu-2-1-exec = scrot
 
 This module uses two actions: ``menu-open-1`` and ``menu-open-2``.
 These are actions with data, the data specifies which level of the menu should
@@ -437,17 +439,19 @@ likely not use ``apps``, but the name of your module.
   [module/apps]
   type = custom/menu
 
+  label-open = Apps
+
   menu-0-0 = Browsers
   menu-0-0-exec = #apps.open.1
   menu-0-1 = Multimedia
   menu-0-1-exec = #apps.open.2
 
   menu-1-0 = Firefox
-  menu-1-0-exec = firefox &
+  menu-1-0-exec = firefox
   menu-1-1 = Chromium
-  menu-1-1-exec = chromium &
+  menu-1-1-exec = chromium
 
   menu-2-0 = Gimp
-  menu-2-0-exec = gimp &
+  menu-2-0-exec = gimp
   menu-2-1 = Scrot
-  menu-2-1-exec = scrot &
+  menu-2-1-exec = scrot
