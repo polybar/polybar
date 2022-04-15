@@ -2,6 +2,7 @@
 
 #include "common/test.hpp"
 #include "components/logger.hpp"
+#include "events/signal_emitter.hpp"
 #include "gmock/gmock.h"
 
 using namespace polybar;
@@ -53,6 +54,8 @@ class FakeRenderer : public renderer_interface {
     return 0;
   };
 
+  void apply_tray_position(const tags::context&) override{};
+
  private:
   map<alignment, int> block_x = {
       {alignment::LEFT, 0},
@@ -70,6 +73,7 @@ class MockRenderer : public renderer_interface {
   MOCK_METHOD(void, change_alignment, (const context& ctxt), (override));
   MOCK_METHOD(double, get_x, (const context& ctxt), (const, override));
   MOCK_METHOD(double, get_alignment_start, (const alignment align), (const, override));
+  MOCK_METHOD(void, apply_tray_position, (const polybar::tags::context& context), (override));
 
   void DelegateToFake() {
     ON_CALL(*this, render_offset).WillByDefault([this](const context& ctxt, const extent_val offset) {
@@ -84,6 +88,10 @@ class MockRenderer : public renderer_interface {
 
     ON_CALL(*this, get_alignment_start).WillByDefault([this](const alignment a) {
       return fake.get_alignment_start(a);
+    });
+
+    ON_CALL(*this, apply_tray_position).WillByDefault([this](const context& context) {
+      return fake.apply_tray_position(context);
     });
   }
 

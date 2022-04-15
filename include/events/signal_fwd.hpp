@@ -36,6 +36,8 @@ namespace signals {
   } // namespace ui
   namespace ui_tray {
     struct mapped_clients;
+    struct tray_width_change;
+    struct tray_pos_change;
   }
 } // namespace signals
 

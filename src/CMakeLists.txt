@@ -101,6 +101,8 @@ set(POLY_SOURCES
   ${src_dir}/modules/xbacklight.cpp
   ${src_dir}/modules/xwindow.cpp
   ${src_dir}/modules/xworkspaces.cpp
+  ${src_dir}/modules/tray.cpp
+
 
   ${src_dir}/tags/action_context.cpp
   ${src_dir}/tags/context.cpp

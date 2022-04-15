@@ -48,13 +48,14 @@ POLYBAR_NS
 /**
  * Create instance
  */
-tray_manager::make_type tray_manager::make() {
+tray_manager::make_type tray_manager::make(const bar_settings& settings) {
   return std::make_unique<tray_manager>(
-      connection::make(), signal_emitter::make(), logger::make(), background_manager::make());
+      connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), settings);
 }
 
-tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back) {
+tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
+    const bar_settings& settings)
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back), m_bar_opts(settings) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -66,7 +67,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup(const bar_settings& bar_opts) {
+void tray_manager::setup() {
   const config& conf = config::make();
   auto bs = conf.section();
   string position;
@@ -83,6 +84,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.align = alignment::RIGHT;
   } else if (position == "center") {
     m_opts.align = alignment::CENTER;
+  } else if (position == "adaptive") {
+    m_opts.adaptive = true;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   } else {
@@ -90,9 +93,9 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   m_opts.detached = conf.get(bs, "tray-detached", false);
-  m_opts.height = bar_opts.size.h;
-  m_opts.height -= bar_opts.borders.at(edge::BOTTOM).size;
-  m_opts.height -= bar_opts.borders.at(edge::TOP).size;
+  m_opts.height = m_bar_opts.size.h;
+  m_opts.height -= m_bar_opts.borders.at(edge::BOTTOM).size;
+  m_opts.height -= m_bar_opts.borders.at(edge::TOP).size;
   m_opts.height_fill = m_opts.height;
 
   if (m_opts.height % 2 != 0) {
@@ -105,16 +108,16 @@ void tray_manager::setup(const bar_settings& bar_opts) {
     m_opts.height = maxsize;
   }
 
-  m_opts.width_max = bar_opts.size.w;
+  m_opts.width_max = m_bar_opts.size.w;
   m_opts.width = m_opts.height;
-  m_opts.orig_y = bar_opts.pos.y + bar_opts.borders.at(edge::TOP).size;
+  m_opts.orig_y = m_bar_opts.pos.y + m_bar_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
   auto scale = conf.get(bs, "tray-scale", 1.0);
   m_opts.width *= scale;
   m_opts.height_fill *= scale;
 
-  auto inner_area = bar_opts.inner_area(true);
+  auto inner_area = m_bar_opts.inner_area(true);
 
   switch (m_opts.align) {
     case alignment::NONE:
@@ -135,8 +138,8 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   }
 
   // Set user-defined foreground and background colors.
-  m_opts.background = conf.get(bs, "tray-background", bar_opts.background);
-  m_opts.foreground = conf.get(bs, "tray-foreground", bar_opts.foreground);
+  m_opts.background = conf.get(bs, "tray-background", m_bar_opts.background);
+  m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
 
   if (m_opts.background.alpha_i() != 255) {
     m_log.trace("tray: enable transparency");
@@ -154,21 +157,21 @@ void tray_manager::setup(const bar_settings& bar_opts) {
   int max_y;
 
   if (m_opts.detached) {
-    max_x = bar_opts.monitor->w;
-    max_y = bar_opts.monitor->h;
+    max_x = m_bar_opts.monitor->w;
+    max_y = m_bar_opts.monitor->h;
   } else {
     max_x = inner_area.width;
     max_y = inner_area.height;
   }
 
-  m_opts.orig_x += units_utils::percentage_with_offset_to_pixel(offset_x, max_x, bar_opts.dpi_x);
-  m_opts.orig_y += units_utils::percentage_with_offset_to_pixel(offset_y, max_y, bar_opts.dpi_y);
+  m_opts.orig_x += units_utils::percentage_with_offset_to_pixel(offset_x, max_x, m_bar_opts.dpi_x);
+  m_opts.orig_y += units_utils::percentage_with_offset_to_pixel(offset_y, max_y, m_bar_opts.dpi_y);
   ;
-  m_opts.rel_x = m_opts.orig_x - bar_opts.pos.x;
-  m_opts.rel_y = m_opts.orig_y - bar_opts.pos.y;
+  m_opts.rel_x = m_opts.orig_x - m_bar_opts.pos.x;
+  m_opts.rel_y = m_opts.orig_y - m_bar_opts.pos.y;
 
   // Put the tray next to the bar in the window stack
-  m_opts.sibling = bar_opts.window;
+  m_opts.sibling = m_bar_opts.window;
 
   // Activate the tray manager
   query_atom();
@@ -379,6 +382,8 @@ void tray_manager::reconfigure_clients() {
       remove_client(client, false);
     }
   }
+
+  m_sig.emit(signals::ui_tray::tray_width_change{calculate_w()});
 }
 
 /**
@@ -794,8 +799,8 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int tray_manager::calculate_x(unsigned int width, bool abspos) const {
-  auto x = abspos ? m_opts.orig_x : m_opts.rel_x;
+int tray_manager::calculate_x(unsigned int width) const {
+  auto x = m_opts.orig_x;
   if (m_opts.align == alignment::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
   } else if (m_opts.align == alignment::CENTER) {
@@ -1013,14 +1018,14 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
     return;
-  } 
-  
+  }
+
   // React an wallpaper change, if bar has transparency
   if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
     redraw_window(true);
     return;
-  } 
-  
+  }
+
   if (evt->atom != _XEMBED_INFO) {
     return;
   }
@@ -1159,6 +1164,13 @@ bool tray_manager::on(const signals::ui::update_background&) {
   redraw_window(true);
 
   return false;
+}
+
+bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
+  m_opts.orig_x = m_bar_opts.inner_area(true).x + evt.cast();
+  reconfigure_window();
+
+  return true;
 }
 
 POLYBAR_NS_END

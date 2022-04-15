@@ -49,7 +49,6 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
       logger::make(),
       loop,
       screen::make(),
-      tray_manager::make(),
       tags::dispatch::make(*action_ctxt),
       std::move(action_ctxt),
       only_initialize_values);
@@ -62,18 +61,19 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
  * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<tags::action_context>&& action_ctxt, bool only_initialize_values)
+    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
+    bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
     , m_log(logger)
     , m_loop(loop)
     , m_screen(forward<decltype(screen)>(screen))
-    , m_tray(forward<decltype(tray_manager)>(tray_manager))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))
     , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
   string bs{m_conf.section()};
+
+  m_tray = tray_manager::make(m_opts);
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
@@ -393,7 +393,7 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots && !m_tray->settings().adaptive) {
     auto trayalign = m_tray->settings().align;
     auto traywidth = m_tray->settings().configured_w;
     if (trayalign == alignment::LEFT) {
@@ -904,7 +904,7 @@ void bar::start() {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(static_cast<const bar_settings&>(m_opts));
+  m_tray->setup();
 
   broadcast_visibility();
 }

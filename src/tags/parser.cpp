@@ -370,6 +370,8 @@ namespace tags {
         }
 
         return controltag::R;
+      case 't':
+        return controltag::t;
       default:
         throw control_error(s);
     }
