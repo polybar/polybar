@@ -12,6 +12,7 @@
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "x11/extensions/fwd.hpp"
+#include "x11/tray_manager.hpp"
 #include "x11/types.hpp"
 
 POLYBAR_NS
@@ -46,10 +47,10 @@ class renderer : public renderer_interface,
                  public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot> {
  public:
   using make_type = unique_ptr<renderer>;
-  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt);
+  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt, tray_manager& tray);
 
   explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
-      background_manager& background_manager, tags::action_context& action_ctxt);
+      background_manager& background_manager, tags::action_context& action_ctxt, tray_manager& tray);
   ~renderer();
 
   xcb_window_t window() const;
@@ -132,6 +133,8 @@ class renderer : public renderer_interface,
 
   bool m_fixedcenter;
   string m_snapshot_dst;
+
+  tray_manager& m_tray;
 };
 
 POLYBAR_NS_END

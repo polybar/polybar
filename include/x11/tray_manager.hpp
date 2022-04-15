@@ -109,11 +109,11 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
   void reconfigure();
+  void reconfigure_bg();
 
  protected:
   void reconfigure_window();
   void reconfigure_clients();
-  void reconfigure_bg();
   void refresh_window();
   void redraw_window();
 

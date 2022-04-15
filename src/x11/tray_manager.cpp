@@ -377,6 +377,24 @@ void tray_manager::reconfigure_clients() {
  * Reconfigure root pixmap
  */
 void tray_manager::reconfigure_bg() {
+  m_connection.clear_area(false, m_tray, 0, 0, m_opts.win_size.w, m_opts.win_size.h);
+  for (const auto& client : m_clients) {
+    m_connection.clear_area_checked(false, client.embedder(), 0, 0, client.width(), client.height());
+    xcb_visibility_notify_event_t visibility_event;
+    visibility_event.response_type = XCB_VISIBILITY_NOTIFY;
+    visibility_event.window = client.client();
+    visibility_event.state = XCB_VISIBILITY_FULLY_OBSCURED;
+
+    m_connection.send_event(
+        true, client.client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&visibility_event));
+    m_connection.flush();
+    visibility_event.state = XCB_VISIBILITY_UNOBSCURED;
+    m_connection.send_event(
+        true, client.client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&visibility_event));
+    m_connection.flush();
+
+    client.clear_window();
+  }
   if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
     return;
   };
@@ -394,7 +412,6 @@ void tray_manager::reconfigure_bg() {
 
   m_context->clear();
   *m_context << CAIRO_OPERATOR_SOURCE << *m_surface;
-  cairo_set_source_surface(*m_context, *surface, 0, 0);
   m_context->paint();
   *m_context << CAIRO_OPERATOR_OVER << m_opts.background;
   m_context->paint();
@@ -479,6 +496,7 @@ void tray_manager::create_window() {
     << cw_visual(XCB_COPY_FROM_PARENT)
     << cw_params_colormap(XCB_COPY_FROM_PARENT)
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
+    << cw_params_back_pixmap(XCB_BACK_PIXMAP_PARENT_RELATIVE)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
     << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
         |XCB_EVENT_MASK_STRUCTURE_NOTIFY
@@ -486,10 +504,10 @@ void tray_manager::create_window() {
     << cw_parent(m_opts.bar_window);
   // clang-format on
 
-  if (!m_opts.transparent) {
-    win << cw_params_back_pixel(m_opts.background);
-    win << cw_params_border_pixel(m_opts.background);
-  }
+  // if (!m_opts.transparent) {
+  //   win << cw_params_back_pixel(m_opts.background);
+  //   win << cw_params_border_pixel(m_opts.background);
+  // }
 
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
@@ -560,7 +578,8 @@ void tray_manager::create_bg() {
   }
 
   try {
-    m_connection.change_window_attributes_checked(m_tray, XCB_CW_BACK_PIXMAP, &m_pixmap);
+    // TODO
+    // m_connection.change_window_attributes_checked(m_tray, XCB_CW_BACK_PIXMAP, &m_pixmap);
   } catch (const exception& err) {
     m_log.err("Failed to set tray window back pixmap (%s)", err.what());
   }
@@ -1085,6 +1104,7 @@ bool tray_manager::on(const signals::ui::dim_window& evt) {
   return false;
 }
 
+// TODO maybe remove signal
 bool tray_manager::on(const signals::ui::update_background&) {
   redraw_window();
 

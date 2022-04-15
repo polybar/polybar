@@ -878,7 +878,7 @@ void bar::handle(const evt::configure_notify&) {
 
 void bar::start() {
   m_log.trace("bar: Create renderer");
-  m_renderer = renderer::make(m_opts, *m_action_ctxt);
+  m_renderer = renderer::make(m_opts, *m_action_ctxt, *m_tray);
 
   m_opts.x_data.window = m_renderer->window();
   m_opts.x_data.visual = m_renderer->visual();
