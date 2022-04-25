@@ -415,19 +415,12 @@ void bar::parse(string&& data, bool force) {
 
   m_renderer->end();
 
-  const auto check_dblclicks = [&]() -> bool {
-    if (m_action_ctxt->has_double_click()) {
-      return true;
+  m_dblclicks.clear();
+  for (auto&& action : m_opts.actions) {
+    if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
+      m_dblclicks.insert(action.button);
     }
-
-    for (auto&& action : m_opts.actions) {
-      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
-        return true;
-      }
-    }
-    return false;
-  };
-  m_dblclicks = check_dblclicks();
+  }
 }
 
 /**
@@ -818,9 +811,12 @@ void bar::handle(const evt::button_press& evt) {
     }
   };
 
+  mousebtn double_btn = mousebtn_get_double(btn);
+  bool has_dblclick = m_dblclicks.count(double_btn) || m_action_ctxt->has_action(double_btn, pos) != tags::NO_ACTION;
+
   // If there are no double click handlers defined we can
   // just by-pass the click timer handling
-  if (!m_dblclicks) {
+  if (!has_dblclick) {
     trigger_click(btn, pos);
   } else if (btn == mousebtn::LEFT) {
     check_double(m_leftclick_timer, btn, pos);

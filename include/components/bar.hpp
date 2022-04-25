@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <set>
 
 #include "common.hpp"
 #include "components/eventloop.hpp"
@@ -104,7 +105,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_cursor{};
 
   string m_lastinput{};
-  bool m_dblclicks{false};
+  std::set<mousebtn> m_dblclicks;
 
   eventloop::TimerHandle& m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
   eventloop::TimerHandle& m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};
