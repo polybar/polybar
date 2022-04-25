@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
 - Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
 - Positioning in awesomeWM ([`#2651`](https://github.com/polybar/polybar/pull/2651))
-- `internal/xworkspaces`: The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
+- `internal/xworkspaces`:
+  - The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
+  - Updates of `_NET_DESKTOP_VIEWPORT` being ignored ([`#2693`](https://github.com/polybar/polybar/issues/2693), [`#2698`](https://github.com/polybar/polybar/pull/2698))
 - Mouseover error when only one cursor is defined ([`#2656`](https://github.com/polybar/polybar/pull/2656))
 - `custom/script`: Timing inconsistencies ([`#2650`](https://github.com/polybar/polybar/issues/2650), first described at [`#2630`](https://github.com/polybar/polybar/pull/2630))
 
