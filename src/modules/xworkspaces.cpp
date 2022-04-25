@@ -111,7 +111,8 @@ namespace modules {
     if (evt->atom == m_ewmh->_NET_CLIENT_LIST || evt->atom == m_ewmh->_NET_WM_DESKTOP) {
       rebuild_clientlist();
       rebuild_desktop_states();
-    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS) {
+    } else if (evt->atom == m_ewmh->_NET_DESKTOP_NAMES || evt->atom == m_ewmh->_NET_NUMBER_OF_DESKTOPS ||
+               evt->atom == m_ewmh->_NET_DESKTOP_VIEWPORT) {
       m_desktop_names = get_desktop_names();
       rebuild_desktops();
       rebuild_clientlist();
