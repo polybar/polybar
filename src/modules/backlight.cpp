@@ -33,7 +33,7 @@ namespace modules {
     // Get flag to check if we should add scroll handlers for changing value
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
-	m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
+    m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
