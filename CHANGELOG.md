@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
 - `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not defined ([`#1331`](https://github.com/polybar/polybar/issues/1331), [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
 - Added experimental support for positioning the tray like a module
+- `internal/backlight`: `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696))
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
