@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/battery`: `poll-interval` not working ([`#2649`](https://github.com/polybar/polybar/issues/2649), [`#2677`](https://github.com/polybar/polybar/pull/2677))
 - ipc: Polybar failing to open IPC channel after another user already ran polybar, if `XDG_RUNTIME_DIR` is not set ([`#2683`](https://github.com/polybar/polybar/issues/2683), [`#2684`](https://github.com/polybar/polybar/pull/2684))
 - No overlines/underlines being drawn when using offsets ([`#2685`](https://github.com/polybar/polybar/pull/2685))
+- Update struts (`_NET_WM_STRUT_PARTIAL`) when hiding the bar ([`#2702`](https://github.com/polybar/polybar/pull/2702))
 
 ## [3.6.2] - 2022-04-03
 ### Fixed

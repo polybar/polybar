@@ -440,10 +440,11 @@ void bar::hide() {
 
   try {
     m_log.info("Hiding bar window");
+    m_visible = false;
+    reconfigure_struts();
     m_sig.emit(visibility_change{false});
     m_connection.unmap_window_checked(m_opts.window);
     m_connection.flush();
-    m_visible = false;
   } catch (const exception& err) {
     m_log.err("Failed to unmap bar window (err=%s", err.what());
   }
@@ -556,42 +557,46 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
-  auto geom = m_connection.get_geometry(m_screen->root());
-  int h = m_opts.size.h + m_opts.offset.y;
+  window win{m_connection, m_opts.window};
+  if (m_visible) {
+    auto geom = m_connection.get_geometry(m_screen->root());
+    int h = m_opts.size.h + m_opts.offset.y;
 
-  // Apply user-defined margins
-  if (m_opts.bottom) {
-    h += m_opts.strut.top;
-  } else {
-    h += m_opts.strut.bottom;
-  }
-
-  h = std::max(h, 0);
-
-  int correction = 0;
-
-  // Only apply correction if any space is requested
-  if (h > 0) {
-    /*
-     * Strut coordinates have to be relative to root window and not any monitor.
-     * If any monitor is not aligned at the top or bottom
-     */
+    // Apply user-defined margins
     if (m_opts.bottom) {
-      /*
-       * For bottom-algined bars, the correction is the number of pixels between
-       * the root window's bottom edge and the monitor's bottom edge
-       */
-      correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+      h += m_opts.strut.top;
     } else {
-      // For top-aligned bars, we simply add the monitor's y-position
-      correction = m_opts.monitor->y;
+      h += m_opts.strut.bottom;
     }
 
-    correction = std::max(correction, 0);
-  }
+    h = std::max(h, 0);
 
-  window win{m_connection, m_opts.window};
-  win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
+    int correction = 0;
+
+    // Only apply correction if any space is requested
+    if (h > 0) {
+      /*
+       * Strut coordinates have to be relative to root window and not any monitor.
+       * If any monitor is not aligned at the top or bottom
+       */
+      if (m_opts.bottom) {
+        /*
+         * For bottom-algined bars, the correction is the number of pixels between
+         * the root window's bottom edge and the monitor's bottom edge
+         */
+        correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+      } else {
+        // For top-aligned bars, we simply add the monitor's y-position
+        correction = m_opts.monitor->y;
+      }
+
+      correction = std::max(correction, 0);
+    }
+    win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
+  } else {
+    // Set struts to 0 for invisible bars
+    win.reconfigure_struts(0, 0, 0, m_opts.bottom);
+  }
 }
 
 /**
@@ -634,6 +639,8 @@ void bar::broadcast_visibility() {
 }
 
 void bar::map_window() {
+  m_visible = true;
+
   /**
    * First reconfigures the window so that WMs that discard some information
    * when unmapping have the correct window properties (geometry etc).
@@ -648,8 +655,6 @@ void bar::map_window() {
    * mapping. Additionally updating the window position after mapping seems to fix that.
    */
   reconfigure_pos();
-
-  m_visible = true;
 }
 
 void bar::trigger_click(mousebtn btn, int pos) {
