@@ -30,12 +30,17 @@ namespace modules {
 
     static constexpr const char* EVENT_INC = "inc";
     static constexpr const char* EVENT_DEC = "dec";
+    static constexpr const char* EVENT_TOGGLE = "toggle";
 
    protected:
+    inline int get_step();
+
+    void action_toggle();
     void action_inc();
     void action_dec();
 
     void change_value(int value_mod);
+    void set_value(int new_value);
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
@@ -53,6 +58,10 @@ namespace modules {
 
     brightness_handle m_val;
     brightness_handle m_max;
+
+    atomic<bool> m_reverse_scroll{false};
+    atomic<bool> m_log_scroll{false};
+    atomic<bool> m_click_toggle{false};
 
     int m_percentage = 0;
   };

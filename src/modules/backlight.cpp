@@ -27,6 +27,7 @@ namespace modules {
       : inotify_module<backlight_module>(bar, move(name_)) {
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
+    m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
 
     auto card = m_conf.get(name(), "card");
 
@@ -34,6 +35,24 @@ namespace modules {
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
     m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
+
+
+    // Clicking allows toggling between MAX and MIN brightness. Enables us to have
+    // nice small steps while also being able to increase/decrease brighthess quickly.
+    m_click_toggle = m_conf.get(name(), "click-toggle", false);
+
+    // Added missing reverse-scroll
+    m_reverse_scroll = m_conf.get(name(), "reverse-scroll", false);
+
+    // Pseudo-logarithmic steps. Human perception of light recognises changes in
+    // lower intensity much more than in higher intensity. Meaning that going from
+    // 90% to 95% seems to be much smaller change than going from 1% to 6%...
+    // For now I chose to go the easy way and set step values as this:
+    //  <6%  = step 1%
+    //  <20% = step 3%
+    // >=21% = step <scroll-interval>% (defaults to 5)
+    m_log_scroll = m_conf.get(name(), "logarithmic-scroll", false);
+
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
@@ -94,10 +113,14 @@ namespace modules {
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
     string output{module::get_output()};
+    
+    m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
 
+    // reverse-scroll is handled in change_value() so I don't have to duplicate
+    // these lines.
     if (m_scroll) {
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->node(output);
@@ -121,21 +144,69 @@ namespace modules {
     return true;
   }
 
+  // Get inc/dec step so I don't have to repeat the same code or rewrite logic of
+  // the change_value(). 
+  inline int backlight_module::get_step()
+  {
+    int step = m_scroll_interval;
+
+    // No logarithmic-scroll = use scroll-interval as is
+    if( m_log_scroll == false ) return step;
+
+    if( m_percentage <= 5 ) {
+      step = 1;
+    } else if ( m_percentage <= 20 ) {
+      step = 3;
+    }
+
+    return step;
+  }
+
+  // Clicking on backlight results in setting to MIN when not MIN. If already MIN
+  // is set, set to MAX.
+  void backlight_module::action_toggle() {
+    if( m_click_toggle == false ) {
+      return;
+    }
+
+    set_value( (m_percentage > 1 ? 1 : m_max_brightness) );
+  }
+
   void backlight_module::action_inc() {
-    change_value(m_scroll_interval);
+    change_value(get_step());
   }
 
   void backlight_module::action_dec() {
-    change_value(-m_scroll_interval);
+    change_value(-get_step());
   }
 
+  // Relative change of current backlight percentage
   void backlight_module::change_value(int value_mod) {
-    m_log.info("%s: Changing value by %d%", name(), value_mod);
+    // Handle "reverse-scroll"
+    if( m_reverse_scroll ) {
+      value_mod *= -1;
+    }
 
+    int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
+    int value = math_util::percentage_to_value<int>(rounded, m_max_brightness);
+
+    // Don't disable backlight, just set the minimum. Maybe add some config to set
+    // boundaries or atleast (dis)allow value of 0?
+    if( value == 0 ) {
+      value = 1;
+    }
+
+    m_log.notice("%s: Backlight  [CURR=%d%%  STEP=%d  NEXT=%d%%=>%d",
+                name(),
+                m_percentage, value_mod, rounded, value);
+    set_value( value );
+  }
+
+  // Setting absolute value by writing in to brightness file
+  void backlight_module::set_value(int new_value) {
     try {
-      int rounded = math_util::cap<double>(m_percentage + value_mod, 0.0, 100.0) + 0.5;
-      int value = math_util::percentage_to_value<int>(rounded, m_max_brightness);
-      file_util::write_contents(m_path_backlight + "/brightness", to_string(value));
+      m_log.info("%s: Setting brighness value to %d",name(),new_value);
+      file_util::write_contents(m_path_backlight + "/brightness", to_string(new_value));
     } catch (const exception& err) {
       m_log.err(
           "%s: Unable to change backlight value. Your system may require additional "
@@ -143,6 +214,7 @@ namespace modules {
           name(), err.what());
     }
   }
+
 } // namespace modules
 
 POLYBAR_NS_END
