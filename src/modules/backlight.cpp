@@ -196,7 +196,7 @@ namespace modules {
       value = 1;
     }
 
-    m_log.notice("%s: Backlight  [CURR=%d%%  STEP=%d  NEXT=%d%%=>%d",
+    m_log.info("%s: Backlight  [CURR=%d%%  STEP=%d  NEXT=%d%%=>%d",
                 name(),
                 m_percentage, value_mod, rounded, value);
     set_value( value );
