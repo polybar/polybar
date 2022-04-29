@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added experimental support for positioning the tray like a module
 - `internal/backlight`: 
   - `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696), [`#2700`](https://github.com/polybar/polybar/pull/2700))
-  - Added `logarithmic-scroll`, `reverse-scroll` and `logarithmic-scroll` options [`#2703`](https://github.com/polybar/polybar/pull/2703))
+  - Added `logarithmic-scroll`, `reverse-scroll` and `click-toggle` options [`#2703`](https://github.com/polybar/polybar/pull/2703))
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
