@@ -36,7 +36,6 @@ namespace modules {
 
     m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
 
-
     // Clicking allows toggling between MAX and MIN brightness. Enables us to have
     // nice small steps while also being able to increase/decrease brighthess quickly.
     m_click_toggle = m_conf.get(name(), "click-toggle", false);
@@ -52,7 +51,6 @@ namespace modules {
     //  <20% = step 3%
     // >=21% = step <scroll-interval>% (defaults to 5)
     m_log_scroll = m_conf.get(name(), "logarithmic-scroll", false);
-
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
@@ -113,14 +111,14 @@ namespace modules {
     // the format prefix/suffix also gets wrapped
     // with the cmd handlers
     string output{module::get_output()};
-    
+
     m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
 
     // reverse-scroll is handled in change_value() so I don't have to duplicate
     // these lines.
     if (m_scroll) {
-        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
-        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
     m_builder->node(output);
@@ -145,17 +143,17 @@ namespace modules {
   }
 
   // Get inc/dec step so I don't have to repeat the same code or rewrite logic of
-  // the change_value(). 
-  inline int backlight_module::get_step()
-  {
+  // the change_value().
+  inline int backlight_module::get_step() {
     int step = m_scroll_interval;
 
     // No logarithmic-scroll = use scroll-interval as is
-    if( m_log_scroll == false ) return step;
+    if (m_log_scroll == false)
+      return step;
 
-    if( m_percentage <= 5 ) {
+    if (m_percentage <= 5) {
       step = 1;
-    } else if ( m_percentage <= 20 ) {
+    } else if (m_percentage <= 20) {
       step = 3;
     }
 
@@ -165,11 +163,11 @@ namespace modules {
   // Clicking on backlight results in setting to MIN when not MIN. If already MIN
   // is set, set to MAX.
   void backlight_module::action_toggle() {
-    if( m_click_toggle == false ) {
+    if (m_click_toggle == false) {
       return;
     }
 
-    set_value( (m_percentage > 1 ? 1 : m_max_brightness) );
+    set_value((m_percentage > 1 ? 1 : m_max_brightness));
   }
 
   void backlight_module::action_inc() {
@@ -183,7 +181,7 @@ namespace modules {
   // Relative change of current backlight percentage
   void backlight_module::change_value(int value_mod) {
     // Handle "reverse-scroll"
-    if( m_reverse_scroll ) {
+    if (m_reverse_scroll) {
       value_mod *= -1;
     }
 
@@ -192,20 +190,18 @@ namespace modules {
 
     // Don't disable backlight, just set the minimum. Maybe add some config to set
     // boundaries or atleast (dis)allow value of 0?
-    if( value == 0 ) {
+    if (value == 0) {
       value = 1;
     }
 
-    m_log.info("%s: Backlight  [CURR=%d%%  STEP=%d  NEXT=%d%%=>%d",
-                name(),
-                m_percentage, value_mod, rounded, value);
-    set_value( value );
+    m_log.info("%s: Backlight  [CURR=%d%%  STEP=%d  NEXT=%d%%=>%d", name(), m_percentage, value_mod, rounded, value);
+    set_value(value);
   }
 
   // Setting absolute value by writing in to brightness file
   void backlight_module::set_value(int new_value) {
     try {
-      m_log.info("%s: Setting brighness value to %d",name(),new_value);
+      m_log.info("%s: Setting brighness value to %d", name(), new_value);
       file_util::write_contents(m_path_backlight + "/brightness", to_string(new_value));
     } catch (const exception& err) {
       m_log.err(
