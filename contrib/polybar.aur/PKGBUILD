@@ -12,6 +12,7 @@ depends=("libuv" "cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm"
          "jsoncpp" "curl")
 optdepends=("i3-wm: i3 module support")
 makedepends=("cmake" "python" "pkg-config" "python-sphinx" "python-packaging" "i3-wm")
+backup=("etc/polybar/config.ini")
 conflicts=("polybar-git")
 source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
 sha256sums=('73becc942e7d2418bc72bd194f2037a2a86792219fd561b663a8509fd5f547a0')

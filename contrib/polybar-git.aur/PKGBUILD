@@ -14,6 +14,7 @@ depends=("libuv" "cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm"
 optdepends=("i3-wm: i3 module support")
 makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx"
              "python-packaging" "i3-wm")
+backup=("etc/polybar/config.ini")
 provides=("polybar")
 conflicts=("polybar")
 source=("${_pkgname}::git+${url}.git")
