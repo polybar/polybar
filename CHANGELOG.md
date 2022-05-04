@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [3.6.3] - 2022-05-04
 ### Fixed
 - `custom/script`: Output clearing when `exec-if` fails ([`#2674`](https://github.com/polybar/polybar/issues/2674))
 - `internal/battery`: `poll-interval` not working ([`#2649`](https://github.com/polybar/polybar/issues/2649), [`#2677`](https://github.com/polybar/polybar/pull/2677))
@@ -16,15 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No overlines/underlines being drawn when using offsets ([`#2685`](https://github.com/polybar/polybar/pull/2685))
 - Update struts (`_NET_WM_STRUT_PARTIAL`) when hiding the bar ([`#2702`](https://github.com/polybar/polybar/pull/2702))
 - `internal/pulseaudio`: Hanging during startup ([`#2707`](https://github.com/polybar/polybar/issues/2707), [`#2709`](https://github.com/polybar/polybar/pull/2709))
+- `internal/xworkspaces`: Updates of `_NET_DESKTOP_VIEWPORT` being ignored ([`#2693`](https://github.com/polybar/polybar/issues/2693), [`#2698`](https://github.com/polybar/polybar/pull/2698))
 
 ## [3.6.2] - 2022-04-03
 ### Fixed
 - `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
 - Negative struts (`margin-bottom`, `margin-top`) being ignored ([`#2642`](https://github.com/polybar/polybar/issues/2642), [`#2644`](https://github.com/polybar/polybar/pull/2644))
 - Positioning in awesomeWM ([`#2651`](https://github.com/polybar/polybar/pull/2651))
-- `internal/xworkspaces`:
-  - The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
-  - Updates of `_NET_DESKTOP_VIEWPORT` being ignored ([`#2693`](https://github.com/polybar/polybar/issues/2693), [`#2698`](https://github.com/polybar/polybar/pull/2698))
+- `internal/xworkspaces`: The module sometimes crashed polybar when windows were closed. ([`#2655`](https://github.com/polybar/polybar/pull/2655))
 - Mouseover error when only one cursor is defined ([`#2656`](https://github.com/polybar/polybar/pull/2656))
 - `custom/script`: Timing inconsistencies ([`#2650`](https://github.com/polybar/polybar/issues/2650), first described at [`#2630`](https://github.com/polybar/polybar/pull/2630))
 
@@ -181,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.2...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.6.3...HEAD
+[3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
 [3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2
 [3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
 [3.6.0]: https://github.com/polybar/polybar/releases/tag/3.6.0
