@@ -1,6 +1,6 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 pkgname=polybar
-pkgver=3.6.2
+pkgver=3.6.3
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 # aarch64 is not officially supported by polybar, it is only listed here for convenience
@@ -15,7 +15,7 @@ makedepends=("cmake" "python" "pkg-config" "python-sphinx" "python-packaging" "i
 backup=("etc/polybar/config.ini")
 conflicts=("polybar-git")
 source=(${url}/releases/download/${pkgver}/${pkgname}-${pkgver}.tar.gz)
-sha256sums=('73becc942e7d2418bc72bd194f2037a2a86792219fd561b663a8509fd5f547a0')
+sha256sums=('f25758573567208fc7b6f4d4115a6117a87389cbcc094cf605d079775be95fa5')
 _dir="${pkgname}-${pkgver}"
 
 prepare() {
