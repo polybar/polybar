@@ -24,6 +24,8 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
 
   pa_context_set_state_callback(m_context, context_state_callback, this);
 
+  m_state_callback_signal = false;
+
   if (pa_context_connect(m_context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) < 0) {
     pa_context_disconnect(m_context);
     pa_context_unref(m_context);
@@ -42,7 +44,17 @@ pulseaudio::pulseaudio(const logger& logger, string&& sink_name, bool max_volume
 
   m_log.trace("pulseaudio: started mainloop");
 
-  pa_threaded_mainloop_wait(m_mainloop);
+  /*
+   * Only wait for signal from the context state callback, if it has not
+   * already signalled the mainloop since pa_context_connect was called,
+   * otherwise, we would wait forever.
+   *
+   * The while loop ensures spurious wakeups are handled.
+   */
+  while (!m_state_callback_signal) {
+    pa_threaded_mainloop_wait(m_mainloop);
+  }
+
   if (pa_context_get_state(m_context) != PA_CONTEXT_READY) {
     pa_threaded_mainloop_unlock(m_mainloop);
     pa_threaded_mainloop_stop(m_mainloop);
@@ -310,6 +322,7 @@ void pulseaudio::context_state_callback(pa_context* context, void* userdata) {
     case PA_CONTEXT_READY:
     case PA_CONTEXT_TERMINATED:
     case PA_CONTEXT_FAILED:
+      This->m_state_callback_signal = true;
       pa_threaded_mainloop_signal(This->m_mainloop, 0);
       break;
 
