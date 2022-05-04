@@ -32,81 +32,104 @@ namespace modules {
     m_lastpoll = chrono::steady_clock::now();
 
     auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
-    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
 
+    string battery = m_conf.get(name(), "battery", ""s);
+    if (battery.empty()) {
+      string path_battery_base = string_util::replace(PATH_BATTERY, "%battery%", "");
+      for (const auto& dir : file_util::list_files(path_battery_base)) {
+          if (file_util::contents(path_battery_base + dir + "/type").compare(0, 7, "Battery") != 0) {
+            continue;
+          }
+          battery = dir;
+          m_log.info("%s: No battery specified but found \"%s\"", name(), battery);
+          break;
+      }
+    }
+    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", battery) + "/";
+    // This still works even if `battery` is empty
+    m_present = file_util::contents(path_battery + "present").compare(0, 1, "1") == 0;
+    
     // Make state reader
-    if (file_util::exists((m_fstate = path_battery + "status"))) {
-      m_state_reader =
-          make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
-    } else if (file_util::exists((m_fstate = path_adapter + "online"))) {
-      m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
-    } else {
-      throw module_error("No suitable way to get current charge state");
-    }
-
-    // Make capacity reader
-    if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
-      throw module_error("No suitable way to get current capacity value");
-    } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
-      throw module_error("No suitable way to get max capacity value");
-    }
-
-    m_capacity_reader = make_unique<capacity_reader>([=] {
-      auto cap_now = std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10);
-      auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
-      return math_util::percentage(cap_now, 0UL, cap_max);
-    });
-
-    // Make rate reader
-    if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
-      throw module_error("No suitable way to get current voltage value");
-    } else if ((m_frate = file_util::pick({path_battery + "current_now", path_battery + "power_now"})).empty()) {
-      throw module_error("No suitable way to get current charge rate value");
-    }
-
-    m_rate_reader = make_unique<rate_reader>([this] {
-      unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
-      unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
-      unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
-      unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
-      unsigned long cap{read(*m_state_reader) ? max - now : now};
-
-      if (rate && volt && cap) {
-        auto remaining = (cap / volt);
-        auto current_rate = (rate / volt);
-
-        if (remaining && current_rate) {
-          return 3600UL * remaining / current_rate;
-        }
-      }
-
-      return 0UL;
-    });
-
-    // Make consumption reader
-    m_consumption_reader = make_unique<consumption_reader>([this] {
-      float consumption;
-
-      // if the rate we found was the current, calculate power (P = I*V)
-      if (string_util::contains(m_frate, "current_now")) {
-        unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
-        unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
-
-        consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+    if (m_present) {
+      if (file_util::exists((m_fstate = path_battery + "status"))) {
+        m_state_reader =
+            make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 8, "Charging") == 0; });
+      } else if (file_util::exists((m_fstate = path_adapter + "online"))) {
+        m_state_reader = make_unique<state_reader>([=] { return file_util::contents(m_fstate).compare(0, 1, "1") == 0; });
       } else {
-        // if it was power, just use as is
-        unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
-
-        consumption = power / 1e6;
+        throw module_error("No suitable way to get current charge state");
       }
 
-      // convert to string with 2 decimmal places
-      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
-      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
-      rtn.resize(written);
+      // Make capacity reader
+      if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
+        throw module_error("No suitable way to get current capacity value");
+      } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
+        throw module_error("No suitable way to get max capacity value");
+      }
 
-      return rtn;
-    });
+      m_capacity_reader = make_unique<capacity_reader>([=] {
+        auto cap_now = std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10);
+        auto cap_max = std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10);
+        return math_util::percentage(cap_now, 0UL, cap_max);
+      });
+
+      // Make rate reader
+      if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
+        throw module_error("No suitable way to get current voltage value");
+      } else if ((m_frate = file_util::pick({path_battery + "current_now", path_battery + "power_now"})).empty()) {
+        throw module_error("No suitable way to get current charge rate value");
+      }
+
+      m_rate_reader = make_unique<rate_reader>([this] {
+        unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+        unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
+        unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
+        unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
+        unsigned long cap{read(*m_state_reader) ? max - now : now};
+
+        if (rate && volt && cap) {
+          auto remaining = (cap / volt);
+          auto current_rate = (rate / volt);
+
+          if (remaining && current_rate) {
+            return 3600UL * remaining / current_rate;
+          }
+        }
+
+        return 0UL;
+      });
+
+      // Make consumption reader
+      m_consumption_reader = make_unique<consumption_reader>([this] {
+        float consumption;
+
+        // if the rate we found was the current, calculate power (P = I*V)
+        if (string_util::contains(m_frate, "current_now")) {
+          unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+          unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
+
+          consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+        } else {
+          // if it was power, just use as is
+          unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+
+          consumption = power / 1e6;
+        }
+
+        // convert to string with 2 decimmal places
+        string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
+        auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
+        rtn.resize(written);
+
+        return rtn;
+      });
+    } else {
+      m_state_reader = make_unique<state_reader>([] { return false; });
+      m_capacity_reader = make_unique<capacity_reader>([=] { return 0; });
+      m_rate_reader = make_unique<rate_reader>([] { return 0; });
+      m_consumption_reader = make_unique<consumption_reader>([] { return ""s; });
+      m_log.warn("%s: Battery not present", name());
+    }
 
     // Load state and capacity level
     m_state = current_state();
@@ -119,6 +142,7 @@ namespace modules {
         {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_DISCHARGING, TAG_LABEL_DISCHARGING});
     m_formatter->add_optional(FORMAT_LOW, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_ANIMATION_LOW, TAG_LABEL_LOW});
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
+    m_formatter->add(FORMAT_ABSENT, TAG_LABEL_ABSENT, {TAG_LABEL_ABSENT});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
       m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
@@ -147,7 +171,9 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
       m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
     }
-
+    if (m_formatter->has(TAG_LABEL_ABSENT, FORMAT_ABSENT)) {
+      m_label_absent = load_optional_label(m_conf, name(), TAG_LABEL_ABSENT, "No battery");
+    }
     // Create inotify watches
     watch(m_fcapnow, IN_ACCESS);
     watch(m_fstate, IN_ACCESS);
@@ -168,10 +194,14 @@ namespace modules {
    * charging animation when the module is started
    */
   void battery_module::start() {
-    this->inotify_module::start();
-    // We only start animation thread if there is at least one animation.
-    if (m_animation_charging || m_animation_discharging || m_animation_low) {
-      m_subthread = thread(&battery_module::subthread, this);
+    if (m_present) {
+      this->inotify_module::start();
+      // We only start animation thread if there is at least one animation.
+      if (m_animation_charging || m_animation_discharging || m_animation_low) {
+        m_subthread = thread(&battery_module::subthread, this);
+      }
+    } else {
+      this->module::start();
     }
   }
 
@@ -256,6 +286,9 @@ namespace modules {
    * Get the output format based on state
    */
   string battery_module::get_format() const {
+    if (!m_present) {
+      return FORMAT_ABSENT;
+    }
     switch (m_state) {
       case battery_module::state::FULL:
         return FORMAT_FULL;
@@ -293,6 +326,8 @@ namespace modules {
       builder->node(m_label_low);
     } else if (tag == TAG_LABEL_FULL) {
       builder->node(m_label_full);
+    } else if (tag == TAG_LABEL_ABSENT) {
+      builder->node(m_label_absent);
     } else {
       return false;
     }
@@ -304,6 +339,9 @@ namespace modules {
    * Get the current battery state
    */
   battery_module::state battery_module::current_state() {
+    if (!m_present) {
+      return battery_module::state::NONE;
+    }
     auto charge = read(*m_capacity_reader);
     if (charge >= m_fullat) {
       return battery_module::state::FULL;

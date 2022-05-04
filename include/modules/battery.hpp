@@ -70,6 +70,7 @@ namespace modules {
     static constexpr const char* FORMAT_DISCHARGING{"format-discharging"};
     static constexpr const char* FORMAT_FULL{"format-full"};
     static constexpr const char* FORMAT_LOW{"format-low"};
+    static constexpr const char* FORMAT_ABSENT{"format-absent"};
 
     static constexpr const char* TAG_ANIMATION_CHARGING{"<animation-charging>"};
     static constexpr const char* TAG_ANIMATION_DISCHARGING{"<animation-discharging>"};
@@ -80,6 +81,7 @@ namespace modules {
     static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
     static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
     static constexpr const char* TAG_LABEL_LOW{"<label-low>"};
+    static constexpr const char* TAG_LABEL_ABSENT{"<label-absent>"};
 
     static const size_t SKIP_N_UNCHANGED{3_z};
 
@@ -92,6 +94,7 @@ namespace modules {
     label_t m_label_discharging;
     label_t m_label_full;
     label_t m_label_low;
+    label_t m_label_absent;
     animation_t m_animation_charging;
     animation_t m_animation_discharging;
     animation_t m_animation_low;
@@ -104,6 +107,7 @@ namespace modules {
     string m_frate;
     string m_fvoltage;
 
+    bool m_present{false};
     state m_state{state::DISCHARGING};
     int m_percentage{0};
 
