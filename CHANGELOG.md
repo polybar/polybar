@@ -28,6 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
 
+## [3.6.3] - 2022-05-04
+### Fixed
+- `custom/script`: Output clearing when `exec-if` fails ([`#2674`](https://github.com/polybar/polybar/issues/2674))
+- `internal/battery`: `poll-interval` not working ([`#2649`](https://github.com/polybar/polybar/issues/2649), [`#2677`](https://github.com/polybar/polybar/pull/2677))
+- ipc: Polybar failing to open IPC channel after another user already ran polybar, if `XDG_RUNTIME_DIR` is not set ([`#2683`](https://github.com/polybar/polybar/issues/2683), [`#2684`](https://github.com/polybar/polybar/pull/2684))
+- No overlines/underlines being drawn when using offsets ([`#2685`](https://github.com/polybar/polybar/pull/2685))
+- Update struts (`_NET_WM_STRUT_PARTIAL`) when hiding the bar ([`#2702`](https://github.com/polybar/polybar/pull/2702))
+- `internal/pulseaudio`: Hanging during startup ([`#2707`](https://github.com/polybar/polybar/issues/2707), [`#2709`](https://github.com/polybar/polybar/pull/2709))
+- `internal/xworkspaces`: Updates of `_NET_DESKTOP_VIEWPORT` being ignored ([`#2693`](https://github.com/polybar/polybar/issues/2693), [`#2698`](https://github.com/polybar/polybar/pull/2698))
+
 ## [3.6.2] - 2022-04-03
 ### Fixed
 - `format-offset` being ignored ([`#2643`](https://github.com/polybar/polybar/pull/2643))
@@ -191,7 +201,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.2...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.6.3...HEAD
+[3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
 [3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2
 [3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
 [3.6.0]: https://github.com/polybar/polybar/releases/tag/3.6.0

@@ -1,6 +1,7 @@
 #include "ipc/util.hpp"
 
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "errors.hpp"
 #include "utils/env.hpp"
@@ -12,8 +13,14 @@ POLYBAR_NS
 namespace ipc {
 
   static constexpr auto SUFFIX = ".sock";
+  static constexpr auto XDG_RUNTIME_DIR = "XDG_RUNTIME_DIR";
 
   string get_runtime_path() {
+    if (env_util::has(XDG_RUNTIME_DIR)) {
+      return env_util::get("XDG_RUNTIME_DIR") + "/polybar";
+    } else {
+      return "/tmp/polybar-" + to_string(getuid());
+    }
     return env_util::get("XDG_RUNTIME_DIR", "/tmp") + "/polybar";
   }
 
@@ -59,6 +66,6 @@ namespace ipc {
       return -1;
     }
   }
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

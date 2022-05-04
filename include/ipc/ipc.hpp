@@ -1,7 +1,5 @@
 #pragma once
 
-#include <uv.h>
-
 #include <set>
 
 #include "common.hpp"
@@ -94,6 +92,6 @@ namespace ipc {
     void receive_data(string buf);
     void receive_eof();
   };
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

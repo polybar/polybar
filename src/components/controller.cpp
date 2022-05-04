@@ -1,7 +1,5 @@
 #include "components/controller.hpp"
 
-#include <uv.h>
-
 #include <csignal>
 #include <utility>
 

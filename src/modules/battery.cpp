@@ -199,7 +199,7 @@ namespace modules {
       if (chrono::duration_cast<decltype(m_interval)>(now - m_lastpoll) > m_interval) {
         m_lastpoll = now;
         m_log.info("%s: Polling values (inotify fallback)", name());
-        read(*m_capacity_reader);
+        on_event(nullptr);
       }
     }
 
