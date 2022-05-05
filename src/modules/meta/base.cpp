@@ -86,7 +86,7 @@ namespace modules {
   // }}}
   // module_formatter {{{
 
-  void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
+  void module_formatter::add_value(string&& name, string&& value, std::set<string>&& tags) {
     const auto formatdef = [&](const string& param, const auto& fallback) {
       return m_conf.get("settings", "format-" + param, fallback);
     };
@@ -104,7 +104,7 @@ namespace modules {
     format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
     format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
     format->font = m_conf.get(m_modname, name + "-font", formatdef("font", format->font));
-    format->tags.swap(tags);
+    format->tags = move(tags);
 
     try {
       format->prefix = load_label(m_conf, m_modname, name + "-prefix");
@@ -118,37 +118,18 @@ namespace modules {
       // suffix not defined
     }
 
-    vector<string> tag_collection;
-    tag_collection.reserve(format->tags.size() + whitelist.size());
-    tag_collection.insert(tag_collection.end(), format->tags.begin(), format->tags.end());
-    tag_collection.insert(tag_collection.end(), whitelist.begin(), whitelist.end());
-
-    size_t start, end;
-    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
-      if (start > 0) {
-        value.erase(0, start);
-        end -= start;
-        start = 0;
-      }
-      string tag{value.substr(start, end + 1)};
-      if (find(tag_collection.begin(), tag_collection.end(), tag) == tag_collection.end()) {
-        throw undefined_format_tag(tag + " is not a valid format tag for \"" + name + "\"");
-      }
-      value.erase(0, tag.size());
-    }
-
     m_formats.insert(make_pair(move(name), move(format)));
   }
 
-  void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
+  void module_formatter::add(string name, string fallback, std::set<string>&& tags) {
     string value = m_conf.get(m_modname, name, move(fallback));
-    add_value(move(name), move(value), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
+    add_value(move(name), move(value), forward<std::set<string>>(tags));
   }
 
-  void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
+  void module_formatter::add_optional(string name, std::set<string>&& tags) {
     if (m_conf.has(m_modname, name)) {
       string value = m_conf.get(m_modname, name);
-      add_value(move(name), move(value), move(tags), move(whitelist));
+      add_value(move(name), move(value), move(tags));
     }
   }
 

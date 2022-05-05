@@ -63,7 +63,7 @@ namespace modules {
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
 
     // Add formats and create components
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR, TAG_LABEL_MODE});
 
     if (m_formatter->has(TAG_LABEL_MONITOR)) {
       m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_MONITOR_LABEL);

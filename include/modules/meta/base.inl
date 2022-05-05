@@ -251,8 +251,27 @@ namespace modules {
       }
 
       string tag = value.substr(start, end - start + 1);
-      bool tag_built = CONST_MOD(Impl).build(&tag_builder, tag);
-      string tag_content = tag_builder.flush();
+      bool tag_built{false};
+      string tag_content;
+      if (format->tags.find(tag) != format->tags.end()) {
+        tag_built = CONST_MOD(Impl).build(&tag_builder, tag);
+        tag_content = tag_builder.flush();
+        cursor = end + 1;
+      } else {
+        tag_built = false;
+        /*
+         * Append remaining non-tag content between invalid tag and next tag,
+         * since some whitespace would get cut off by `ltrim` during the next iteration
+         */
+        size_t next = value.find('<', end + 1);
+        if (next != string::npos) {
+          non_tag += value.substr(start, next - start);
+          cursor = next;
+        } else {
+          non_tag += tag;
+          cursor = end + 1;
+        }
+      }
 
       /*
        * Remove exactly one space between two tags if the second tag was not built.
@@ -274,8 +293,6 @@ namespace modules {
         m_builder->node(tag_content);
         has_tags = true;
       }
-
-      cursor = end + 1;
     }
 
     if (cursor < value.size()) {

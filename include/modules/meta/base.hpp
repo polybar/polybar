@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <map>
 #include <mutex>
+#include <set>
 
 #include "common.hpp"
 #include "components/types.hpp"
@@ -58,7 +59,7 @@ namespace modules {
 
   struct module_format {
     string value{};
-    vector<string> tags{};
+    std::set<string> tags{};
     label_t prefix{};
     label_t suffix{};
     rgba fg{};
@@ -83,15 +84,15 @@ namespace modules {
    public:
     explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
-    void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
-    void add_optional(string name, vector<string>&& tags, vector<string>&& whitelist = {});
+    void add(string name, string fallback, std::set<string>&& tags);
+    void add_optional(string name, std::set<string>&& tags);
     bool has(const string& tag, const string& format_name);
     bool has(const string& tag);
     bool has_format(const string& format_name);
     shared_ptr<module_format> get(const string& format_name);
 
    protected:
-    void add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist);
+    void add_value(string&& name, string&& value, std::set<string>&& tags);
 
     const config& m_conf;
     string m_modname;
