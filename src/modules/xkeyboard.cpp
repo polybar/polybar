@@ -112,6 +112,9 @@ namespace modules {
     if (m_layout) {
       m_layout->reset_tokens();
       m_layout->replace_token("%name%", m_keyboard->group_name(m_keyboard->current()));
+      auto short_group_name = m_keyboard->group_name(m_keyboard->current());
+      std::transform(short_group_name.begin(), short_group_name.end(), short_group_name.begin(), ::tolower);
+      m_layout->replace_token("%shortname%", short_group_name.substr(0, 2));
       m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
 
       auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
