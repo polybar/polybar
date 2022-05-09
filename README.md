@@ -41,6 +41,7 @@ for their desktop environment, without the need of having a black belt in shell 
   * [Sponsors](#sponsors)
   * [Backers](#backers)
 * [License](#license)
+* [Signatures](#signatures)
 
 ## Introduction
 
@@ -236,3 +237,9 @@ Polybar accepts donations through [open collective](https://opencollective.com/p
 ## License
 
 Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/polybar/polybar/blob/master/LICENSE).
+
+## Signatures
+
+Release archives and tags are signed by a maintainer using GPG. Currently
+everything is signed by [Patrick Ziegler](https://www.patrickziegler.ch/gpg)
+with fingerprint `1D5791352D51A228D4DDDBA4521E5E03AEBCA1A7`
