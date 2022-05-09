@@ -217,8 +217,8 @@ After-Release Checklist
   release automatically creates a release archive, uploads it to the release,
   and adds a 'Download' section to the release body.
   If this fails for some reason, it should be triggered manually.
-* Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
-  ``polybar-git`` packages (push after the release archive is uploaded).
+* Create a PR that updates the AUR ``PKGBUILD`` file for the ``polybar-git``
+  package (push after the release archive is uploaded).
 * Close the `GitHub Milestone <https://github.com/polybar/polybar/milestones>`_
   for the new release and move open issues (if any) to a later release.
 * Activate the version on `Read the Docs

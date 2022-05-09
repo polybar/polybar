@@ -98,10 +98,12 @@ repository for stable users, you need to enable [backports](https://wiki.debian.
 If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install polybar
 using `sudo apt install polybar`.
 
-If you are using **Arch Linux**, you can install the package from `community` repo
-[polybar](https://archlinux.org/packages/community/x86_64/polybar/) to get the latest
-version, or from AUR [polybar-git](https://aur.archlinux.org/packages/polybar-git/) for
-the most up-to-date (unstable) changes.
+If you are using **Arch Linux**, you can install
+[polybar](https://archlinux.org/packages/community/x86_64/polybar/) to get the
+latest stable release using `sudo pacman -S polybar`. The latest unstable
+changes are also available in the
+[`polybar-git`](https://aur.archlinux.org/packages/polybar-git) package in the
+AUR.
 
 If you are using **Manjaro**, you can install [polybar](https://software.manjaro.org/package/polybar) to get the latest stable release using `sudo pacman -S polybar`.
 
