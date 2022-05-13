@@ -1047,7 +1047,8 @@ void tray_manager::handle(const evt::property_notify& evt) {
   }
 
   // React an wallpaper change, if bar has transparency
-  if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
+  if (m_opts.transparent &&
+      (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
     redraw_window(true);
     return;
   }

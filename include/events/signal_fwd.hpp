@@ -39,7 +39,7 @@ namespace signals {
     struct tray_width_change;
     struct tray_pos_change;
     struct tray_hide;
-  }
+  } // namespace ui_tray
 } // namespace signals
 
 POLYBAR_NS_END
