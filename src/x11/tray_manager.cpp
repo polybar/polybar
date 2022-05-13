@@ -75,17 +75,23 @@ void tray_manager::setup(string tray_module_name) {
   try {
     position = conf.get(bs, "tray-position");
   } catch (const key_error& err) {
-    return m_log.info("Disabling tray manager (reason: missing `tray-position`)");
   }
 
-  if (position == "left") {
+  if (!position.empty() && !tray_module_name.empty()) {
+    m_log.warn("Tray position is manually defined(`tray-position`) and also set by tray module");
+  }
+  if (position.empty() && tray_module_name.empty()) {
+    return m_log.info("Disabling tray manager (reason: tray module not defined)");
+  }
+
+  if (!tray_module_name.empty()) {
+    m_opts.adaptive = true;
+  } else if (position == "left") {
     m_opts.align = alignment::LEFT;
   } else if (position == "right") {
     m_opts.align = alignment::RIGHT;
   } else if (position == "center") {
     m_opts.align = alignment::CENTER;
-  } else if (position == "adaptive") {
-    m_opts.adaptive = true;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   } else {
