@@ -226,6 +226,11 @@ class config {
     } catch (const key_error& err) {
       return get<T>(section, newkey, fallback);
     }
+    catch (const std::exception& err) {
+      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)",
+                section, old, section, newkey, err.what());
+      return get<T>(section, newkey, fallback);
+    }
   }
 
   /**

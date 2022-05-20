@@ -131,12 +131,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
-  try {
-    m_opts.override_redirect = m_conf.get<bool>(bs, "dock");
-    m_conf.warn_deprecated(bs, "dock", "override-redirect");
-  } catch (const key_error& err) {
-    m_opts.override_redirect = m_conf.get(bs, "override-redirect", m_opts.override_redirect);
-  }
+  m_opts.override_redirect = m_conf.deprecated(bs, "dock", "override-redirect", m_opts.override_redirect);
 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
