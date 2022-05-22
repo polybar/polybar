@@ -1167,7 +1167,9 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-  m_opts.orig_x = m_bar_opts.inner_area(true).x + evt.cast();
+  m_opts.orig_x =
+      m_bar_opts.inner_area(true).x + std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - calculate_w())));
+
   reconfigure_window();
 
   return true;
