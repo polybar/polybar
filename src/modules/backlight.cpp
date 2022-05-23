@@ -27,9 +27,29 @@ namespace modules {
       : inotify_module<backlight_module>(bar, move(name_)) {
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
+    string card;
+    try {
+      card = m_conf.get(name(), "card");
+    } catch (const key_error& err) {
+      if (card.empty()) {
+        vector<string> backlight_card_names = file_util::list_files(string_util::replace(PATH_BACKLIGHT, "%card%", ""));
+        backlight_card_names.erase(std::remove_if(backlight_card_names.begin(), backlight_card_names.end(),
+                                       [&](const string& card) -> bool {
+                                         auto dir = string_util::replace(PATH_BACKLIGHT, "%card%", card);
+                                         return !(file_util::is_file(dir + "/actual_brightness") &&
+                                                  file_util::is_file(dir + "/brightness") &&
+                                                  file_util::is_file(dir + "/max_brightness"));
+                                       }),
+            backlight_card_names.end());
 
-    auto card = m_conf.get(name(), "card");
-
+        if (backlight_card_names.empty()) {
+          throw module_error("no viable default backlight found");
+        } else if (backlight_card_names.size() > 1) {
+          m_log.notice("backlight: multiple backlights found: first one will be used");
+        }
+        card = backlight_card_names.at(0);
+      }
+    }
     // Get flag to check if we should add scroll handlers for changing value
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
 
