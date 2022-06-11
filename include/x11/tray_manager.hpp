@@ -80,7 +80,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   const tray_settings settings() const;
 
-  void setup();
+  void setup(string tray_module_name);
   void activate();
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);

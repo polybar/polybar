@@ -877,7 +877,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-void bar::start() {
+void bar::start(string tray_module_name) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();
@@ -905,7 +905,7 @@ void bar::start() {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup();
+  m_tray->setup(tray_module_name);
 
   broadcast_visibility();
 }

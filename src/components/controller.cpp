@@ -267,7 +267,7 @@ void controller::read_events(bool confwatch) {
     }
 
     if (!m_writeback) {
-      m_bar->start();
+      m_bar->start(m_tray_module_name);
     }
 
     /*
@@ -592,6 +592,10 @@ size_t controller::setup_modules(alignment align) {
 
     try {
       auto type = m_conf.get("module/" + module_name, "type");
+
+      if (type == tray_module::TYPE) {
+        m_tray_module_name = module_name;
+      }
 
       if (type == ipc_module::TYPE && !m_has_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");

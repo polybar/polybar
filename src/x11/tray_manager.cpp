@@ -67,7 +67,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup() {
+void tray_manager::setup(string tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
   string position;
