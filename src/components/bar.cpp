@@ -393,13 +393,14 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots && !m_tray->settings().adaptive) {
-    auto trayalign = m_tray->settings().align;
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots &&
+      m_tray->settings().tray_position != tray_postition::MODULE) {
+    auto tray_pos = m_tray->settings().tray_position;
     auto traywidth = m_tray->settings().configured_w;
-    if (trayalign == alignment::LEFT) {
+    if (tray_pos == tray_postition::LEFT) {
       rect.x += traywidth;
       rect.width -= traywidth;
-    } else if (trayalign == alignment::RIGHT) {
+    } else if (tray_pos == tray_postition::RIGHT) {
       rect.width -= traywidth;
     }
   }
@@ -877,7 +878,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-void bar::start(string tray_module_name) {
+void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();

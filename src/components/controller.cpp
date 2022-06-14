@@ -594,6 +594,9 @@ size_t controller::setup_modules(alignment align) {
       auto type = m_conf.get("module/" + module_name, "type");
 
       if (type == tray_module::TYPE) {
+        if (!m_tray_module_name.empty()) {
+          throw module_error("Multiple trays defined. Using tray `" + m_tray_module_name + "`");
+        }
         m_tray_module_name = module_name;
       }
 
