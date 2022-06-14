@@ -70,17 +70,13 @@ tray_manager::~tray_manager() {
 void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-  string position = "none";
+  string position = conf.get(bs, "tray-position", string("none"));
 
-  try {
-    position = conf.get(bs, "tray-position");
-  } catch (const key_error& err) {
-  }
-
-  if (!position.empty() && !tray_module_name.empty()) {
+  if (!position.empty() && position != "none" && !tray_module_name.empty()) {
     m_log.warn(
-        "Tray position is manually defined(`tray-position`) and also set by tray module. `tray-position` will be "
-        "ignored");
+        "The tray position is manually defined (`tray-position`) and also set by the tray module (%s). `tray-position` "
+        "will be ignored",
+        tray_module_name);
   }
 
   if (!tray_module_name.empty()) {
