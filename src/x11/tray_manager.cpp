@@ -70,7 +70,7 @@ tray_manager::~tray_manager() {
 void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-  string position = conf.get(bs, "tray-position", string("none"));
+  string position = conf.get(bs, "tray-position", "none"s);
 
   if (!position.empty() && position != "none" && !tray_module_name.empty()) {
     m_log.warn(
