@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/fs`: Use `/` as a fallback if no mountpoints are
   specified ([`#2572`](https://github.com/polybar/polybar/issues/2572)
   , [`#2705`](https://github.com/polybar/polybar/pull/2705))
-- `internal/backlight`: Detect backlight if none specified ([`#2728`](https://github.com/polybar/polybar/issues/2728))
+- `internal/backlight`: Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572)
+  , [`#2728`](https://github.com/polybar/polybar/pull/2728))
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
 

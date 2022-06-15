@@ -42,7 +42,6 @@ namespace modules {
     static constexpr auto TAG_BAR = "<bar>";
     static constexpr auto TAG_RAMP = "<ramp>";
 
-
     ramp_t m_ramp;
     label_t m_label;
     progressbar_t m_progressbar;

@@ -27,7 +27,7 @@ namespace modules {
       : inotify_module<backlight_module>(bar, move(name_)) {
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
-    string card = m_conf.get(name(), "card");
+    auto card = m_conf.get(name(), "card", ""s);
     if (card.empty()) {
       vector<string> backlight_card_names = file_util::list_files(string_util::replace(PATH_BACKLIGHT, "%card%", ""));
       backlight_card_names.erase(std::remove_if(backlight_card_names.begin(), backlight_card_names.end(),
@@ -45,6 +45,8 @@ namespace modules {
       card = backlight_card_names.at(0);
       if (backlight_card_names.size() > 1) {
         m_log.warn("%s: multiple backlights found, using %s", name(), card);
+      } else {
+        m_log.info("%s: no backlight specified, using `%s`", name(), card);
       }
     }
     // Get flag to check if we should add scroll handlers for changing value
