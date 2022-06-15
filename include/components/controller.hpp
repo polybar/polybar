@@ -100,6 +100,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   eventloop::loop& m_loop;
   unique_ptr<bar> m_bar;
   bool m_has_ipc;
+  string m_tray_module_name;
 
   /**
    * @brief Async handle to notify the eventloop

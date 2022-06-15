@@ -67,25 +67,26 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup() {
+void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-  string position;
+  string position = conf.get(bs, "tray-position", "none"s);
 
-  try {
-    position = conf.get(bs, "tray-position");
-  } catch (const key_error& err) {
-    return m_log.info("Disabling tray manager (reason: missing `tray-position`)");
+  if (!position.empty() && position != "none" && !tray_module_name.empty()) {
+    m_log.warn(
+        "The tray position is manually defined (`tray-position`) and also set by the tray module (%s). `tray-position` "
+        "will be ignored",
+        tray_module_name);
   }
 
-  if (position == "left") {
-    m_opts.align = alignment::LEFT;
+  if (!tray_module_name.empty()) {
+    m_opts.tray_position = tray_postition::MODULE;
+  } else if (position == "left") {
+    m_opts.tray_position = tray_postition::LEFT;
   } else if (position == "right") {
-    m_opts.align = alignment::RIGHT;
+    m_opts.tray_position = tray_postition::RIGHT;
   } else if (position == "center") {
-    m_opts.align = alignment::CENTER;
-  } else if (position == "adaptive") {
-    m_opts.adaptive = true;
+    m_opts.tray_position = tray_postition::CENTER;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   } else {
@@ -119,17 +120,19 @@ void tray_manager::setup() {
 
   auto inner_area = m_bar_opts.inner_area(true);
 
-  switch (m_opts.align) {
-    case alignment::NONE:
+  switch (m_opts.tray_position) {
+    case tray_postition::NONE:
       break;
-    case alignment::LEFT:
+    case tray_postition::LEFT:
       m_opts.orig_x = inner_area.x;
       break;
-    case alignment::CENTER:
+    case tray_postition::CENTER:
       m_opts.orig_x = inner_area.x + inner_area.width / 2 - m_opts.width / 2;
       break;
-    case alignment::RIGHT:
+    case tray_postition::RIGHT:
       m_opts.orig_x = inner_area.x + inner_area.width;
+      break;
+    case tray_postition::MODULE:
       break;
   }
 
@@ -801,9 +804,9 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  */
 int tray_manager::calculate_x(unsigned int width) const {
   auto x = m_opts.orig_x;
-  if (m_opts.align == alignment::RIGHT) {
+  if (m_opts.tray_position == tray_postition::RIGHT) {
     x -= ((m_opts.width + m_opts.spacing) * m_clients.size() + m_opts.spacing);
-  } else if (m_opts.align == alignment::CENTER) {
+  } else if (m_opts.tray_position == tray_postition::CENTER) {
     x -= (width / 2) - (m_opts.width / 2);
   }
   return x;

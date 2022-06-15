@@ -43,7 +43,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
 
   const bar_settings& settings() const;
 
-  void start();
+  void start(const string& tray_module_name);
 
   void parse(string&& data, bool force = false);
 

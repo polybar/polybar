@@ -39,8 +39,10 @@ class connection;
 class background_manager;
 class bg_slice;
 
+enum class tray_postition { NONE = 0, LEFT, CENTER, RIGHT, MODULE };
+
 struct tray_settings {
-  alignment align{alignment::NONE};
+  tray_postition tray_position{tray_postition::NONE};
   bool running{false};
   int rel_x{0};
   int rel_y{0};
@@ -61,7 +63,6 @@ struct tray_settings {
   rgba foreground{};
   bool transparent{false};
   bool detached{false};
-  bool adaptive{false};
 };
 
 class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
@@ -80,7 +81,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   const tray_settings settings() const;
 
-  void setup();
+  void setup(const string& tray_module_name);
   void activate();
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
