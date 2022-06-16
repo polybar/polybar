@@ -828,6 +828,9 @@ void renderer::apply_tray_position(const tags::context& context) {
     int absolute_x = static_cast<int>(
         block_x(context.get_relative_tray_position().first) + context.get_relative_tray_position().second);
     m_sig.emit(signals::ui_tray::tray_pos_change{absolute_x});
+    m_sig.emit(signals::ui_tray::tray_visibility{true});
+  } else {
+    m_sig.emit(signals::ui_tray::tray_visibility{false});
   }
 }
 

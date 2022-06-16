@@ -914,6 +914,29 @@ unsigned int tray_manager::mapped_clients() const {
   return mapped_clients;
 }
 
+bool tray_manager::change_visibility(bool visible) {
+  unsigned int clients{mapped_clients()};
+
+  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
+      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
+
+  m_hidden = !visible;
+
+  if (!m_activated) {
+    return false;
+  } else if (!m_hidden && !m_mapped && clients) {
+    m_connection.map_window(m_tray);
+  } else if ((!clients || m_hidden) && m_mapped) {
+    m_connection.unmap_window(m_tray);
+  } else if (m_mapped && !m_hidden && clients) {
+    redraw_window();
+  }
+
+  m_connection.flush();
+
+  return true;
+}
+
 /**
  * Event callback : XCB_EXPOSE
  */
@@ -1024,7 +1047,8 @@ void tray_manager::handle(const evt::property_notify& evt) {
   }
 
   // React an wallpaper change, if bar has transparency
-  if (m_opts.transparent && (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
+  if (m_opts.transparent &&
+      (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
     redraw_window(true);
     return;
   }
@@ -1132,27 +1156,7 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
  * toggle the tray window whenever the visibility of the bar window changes.
  */
 bool tray_manager::on(const signals::ui::visibility_change& evt) {
-  bool visible{evt.cast()};
-  unsigned int clients{mapped_clients()};
-
-  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
-      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
-
-  m_hidden = !visible;
-
-  if (!m_activated) {
-    return false;
-  } else if (!m_hidden && !m_mapped && clients) {
-    m_connection.map_window(m_tray);
-  } else if ((!clients || m_hidden) && m_mapped) {
-    m_connection.unmap_window(m_tray);
-  } else if (m_mapped && !m_hidden && clients) {
-    redraw_window();
-  }
-
-  m_connection.flush();
-
-  return true;
+  return change_visibility(evt.cast());
 }
 
 bool tray_manager::on(const signals::ui::dim_window& evt) {
@@ -1176,6 +1180,10 @@ bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
   reconfigure_window();
 
   return true;
+}
+
+bool tray_manager::on(const signals::ui_tray::tray_visibility& evt) {
+  return change_visibility(evt.cast());
 }
 
 POLYBAR_NS_END
