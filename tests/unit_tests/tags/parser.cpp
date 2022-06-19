@@ -157,6 +157,12 @@ TEST_F(TagParserTest, text) {
   p.expect_done();
 }
 
+TEST_F(TagParserTest, comment) {
+  p.setup_parser_test("%%{B-}");
+  p.expect_text("%{B-}");
+  p.expect_done();
+}
+
 // Single Tag {{{
 
 // Parse Single Color {{{
