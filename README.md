@@ -116,14 +116,11 @@ If you are using **Slackware**, polybar is available from the [SlackBuilds](http
 
 If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
-If you are using **openSUSE Tumbleweed**, polybar is available from the
+If you are using **openSUSE Leap** or **openSUSE Tumbleweed**, polybar is available from the
 [official
-repositories](https://build.opensuse.org/package/show/openSUSE%3AFactory/polybar)
+repositories](https://build.opensuse.org/package/show/X11:Utilities/polybar)
 and can be installed via `zypper install polybar`.
-
-If you are using **openSUSE Leap**, polybar is available from
-[OBS](https://build.opensuse.org/package/show/X11:Utilities/polybar/).
-The package is available for openSUSE Leap 15.1 and above.
+The package is available for openSUSE Leap 15.3 and above.
 
 If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x11/polybar/) can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
 
