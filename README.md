@@ -120,7 +120,6 @@ If you are using **openSUSE Leap** or **openSUSE Tumbleweed**, polybar is availa
 [official
 repositories](https://build.opensuse.org/package/show/X11:Utilities/polybar)
 and can be installed via `zypper install polybar`.
-
 The package is available for openSUSE Leap 15.3 and above.
 
 If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x11/polybar/) can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
