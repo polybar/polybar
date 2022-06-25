@@ -65,7 +65,11 @@ namespace tags {
 
     try {
       while ((c = next())) {
-        // TODO here we could think about how to escape an action tag
+        if (c == '%' && has_next() && peek() == '%') {
+          push_char(c);
+          text_parsed = true;
+          consume('%');
+        } else
         if (c == '%' && has_next() && peek() == '{') {
           /*
            * If we have already parsed text, encountering a tag opening means
