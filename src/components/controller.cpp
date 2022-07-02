@@ -258,6 +258,18 @@ void controller::read_events(bool confwatch) {
             m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
             fs_event_handle.close();
           });
+
+      // also watch the include-files for changes
+      file_list includes = m_conf.get_included_files();
+      for (auto& module_path : includes) {
+        auto& fs_event_handle_include = m_loop.handle<FSEventHandle>();
+        fs_event_handle_include.start(
+            module_path, 0, [this](const auto& e) { confwatch_handler(e.path); },
+            [this, &fs_event_handle_include](const auto& e) {
+              m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
+              fs_event_handle_include.close();
+            });
+      }
     }
 
     if (!m_snapshot_dst.empty()) {

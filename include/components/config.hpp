@@ -247,6 +247,10 @@ class config {
     }
   }
 
+  file_list get_included_files() const {
+    return m_included;
+  }
+
  protected:
   void copy_inherited();
 
