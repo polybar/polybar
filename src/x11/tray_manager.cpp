@@ -1183,7 +1183,7 @@ bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_visibility& evt) {
-  if (evt.cast() == m_hidden) {
+  if (evt.cast() == m_hidden && m_opts.tray_position == tray_postition::MODULE) {
     return change_visibility(evt.cast());
   } else {
     return true;
