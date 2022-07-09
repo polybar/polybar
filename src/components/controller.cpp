@@ -195,14 +195,14 @@ void controller::signal_handler(int signum) {
   stop(signum == SIGUSR1);
 }
 
-void controller::create_config_watcher(const char* filename) {
+void controller::create_config_watcher(const string& filename) {
   auto& fs_event_handler = m_loop.handle<FSEventHandle>();
-    fs_event_handler.start(
-        filename, 0, [this](const auto& e) { confwatch_handler(e.path); },
-        [this, &fs_event_handler](const auto& e) {
-          m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
-          fs_event_handler.close();
-        });
+  fs_event_handler.start(
+      filename, 0, [this](const auto& e) { confwatch_handler(e.path); },
+      [this, &fs_event_handler](const auto& e) {
+        m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
+        fs_event_handler.close();
+      });
 }
 
 void controller::confwatch_handler(const char* filename) {
@@ -261,10 +261,10 @@ void controller::read_events(bool confwatch) {
     }
 
     if (confwatch) {
-      create_config_watcher(m_conf.filepath().c_str());
+      create_config_watcher(m_conf.filepath());
       // also watch the include-files for changes
       for (auto& module_path : m_conf.get_included_files()) {
-        create_config_watcher(module_path.c_str());
+        create_config_watcher(module_path);
       }
     }
 

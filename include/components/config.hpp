@@ -44,6 +44,8 @@ class config {
 
   void set_included(file_list included);
 
+  file_list get_included_files() const;
+
   void warn_deprecated(const string& section, const string& key, string replacement) const;
 
   /**
@@ -225,10 +227,9 @@ class config {
       return value;
     } catch (const key_error& err) {
       return get<T>(section, newkey, fallback);
-    }
-    catch (const std::exception& err) {
-      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)",
-                section, old, section, newkey, err.what());
+    } catch (const std::exception& err) {
+      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section, old, section, newkey,
+          err.what());
       return get<T>(section, newkey, fallback);
     }
   }
@@ -245,10 +246,6 @@ class config {
     } catch (const key_error& err) {
       return get_list<T>(section, newkey, fallback);
     }
-  }
-
-  file_list get_included_files() const {
-    return m_included;
   }
 
  protected:
