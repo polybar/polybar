@@ -28,7 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
-- Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
+- config:
+  - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
+  - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))
 
 ## [3.6.3] - 2022-05-04
 ### Fixed
