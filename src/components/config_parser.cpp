@@ -10,10 +10,10 @@
 
 POLYBAR_NS
 
-config_parser::config_parser(const logger& logger, string&& file, string&& bar)
-    : m_log(logger), m_config(file_util::expand(file)), m_barname(move(bar)) {}
+config_parser::config_parser(const logger& logger, string&& file)
+    : m_log(logger), m_config(file_util::expand(file)) {}
 
-config::make_type config_parser::parse() {
+config::make_type config_parser::parse(string barname) {
   m_log.notice("Parsing config file: %s", m_config);
 
   parse_file(m_config, {});
@@ -21,21 +21,21 @@ config::make_type config_parser::parse() {
   sectionmap_t sections = create_sectionmap();
 
   vector<string> bars = get_bars(sections);
-  if (m_barname.empty()) {
+  if (barname.empty()) {
     if (bars.size() == 1) {
-      m_barname = bars[0];
+      barname = bars[0];
     } else if (bars.empty()) {
       throw application_error("The config file contains no bar.");
     } else {
       throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " +
                               string_util::join(bars, ", "));
     }
-  } else if (sections.find("bar/" + m_barname) == sections.end()) {
+  } else if (sections.find("bar/" + barname) == sections.end()) {
     if (bars.empty()) {
-      throw application_error("Undefined bar: " + m_barname + ". The config file contains no bar.");
+      throw application_error("Undefined bar: " + barname + ". The config file contains no bar.");
     } else {
       throw application_error(
-          "Undefined bar: " + m_barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
+          "Undefined bar: " + barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
     }
   }
 
@@ -45,7 +45,7 @@ config::make_type config_parser::parse() {
    * second element onwards for the included list
    */
   file_list included(m_files.begin() + 1, m_files.end());
-  config::make_type result = config::make(m_config, m_barname);
+  config::make_type result = config::make(m_config, barname);
 
   // Cast to non-const to set sections, included and xrm
   config& m_conf = const_cast<config&>(result);

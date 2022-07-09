@@ -13,8 +13,8 @@ class TestableConfigParser : public config_parser {
   using config_parser::config_parser;
 
  public:
-  TestableConfigParser(const logger& logger, string&& file, string&& bar)
-      : config_parser(logger, move(file), move(bar)) {
+  TestableConfigParser(const logger& logger, string&& file)
+      : config_parser(logger, move(file)) {
     m_files.push_back("test_config");
   }
 
@@ -43,7 +43,7 @@ class TestableConfigParser : public config_parser {
 class ConfigParser : public ::testing::Test {
  protected:
   const logger l = logger(loglevel::NONE);
-  unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(l, "/dev/zero", "TEST");
+  unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(l, "/dev/zero");
 };
 
 // ParseLineTest {{{

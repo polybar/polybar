@@ -90,12 +90,12 @@ struct line_t {
 
 class config_parser {
  public:
-  config_parser(const logger& logger, string&& file, string&& bar);
+  config_parser(const logger& logger, string&& file);
   /**
    * This prevents passing a temporary logger to the constructor because that would be UB, as the temporary would be
    * destroyed once the constructor returns.
    */
-  config_parser(logger&& logger, string&& file, string&& bar) = delete;
+  config_parser(logger&& logger, string&& file) = delete;
 
   /**
    * @brief Performs the parsing of the main config file m_file
@@ -105,7 +105,7 @@ class config_parser {
    * @throws syntax_error If there was any kind of syntax error
    * @throws parser_error If aynthing else went wrong
    */
-  config::make_type parse();
+  config::make_type parse(string barname);
 
  protected:
   /**
@@ -230,11 +230,6 @@ class config_parser {
    * @brief Absolute path to the main config file
    */
   string m_config;
-
-  /**
-   * Is used to resolve ${root...} references
-   */
-  string m_barname;
 
   /**
    * @brief List of all the lines in the config (with included files)
