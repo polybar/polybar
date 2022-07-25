@@ -114,9 +114,16 @@ as follows:
 * A draft PR is opened for the release branch. This PR MUST NOT be merged in
   GitHub's interface, it is only here for review, merging happens at the
   commandline.
-* A `draft release`_ is created in GitHub's release publishing tools
-* After approval, the GitHub release publishing tool is used to publish the
-  release and tag the tip of the release branch (the release commit).
+* After approval, a signed git tag is created locally at the tip of the release
+  branch and pushed:
+
+.. code-block:: shell
+
+  git tag -s X.Y.Z <release-branch>
+  git push --tags
+
+* A `draft release`_ targetting the new tag is created in GitHub's release
+  publishing tools and published.
 * After the tag is created, the release branch is manually merged into
   ``master``.
   Here it is vitally important that the history of the release branch does not
@@ -193,8 +200,8 @@ Draft Release
 
 On `GitHub <https://github.com/polybar/polybar/releases/new>`_ a new release
 should be drafted.
-The release targets the tip of the release branch (the release commit), the
-name of the release and the tag is simply the release number.
+The release targets the git tag that was just pushed, the name of the release
+and the tag is simply the release number.
 
 The content of the release message should contain the changelog copied from
 ``CHANGELOG.md`` under the heading ``## Changelog``.
@@ -205,6 +212,7 @@ The generated list of PRs can be removed.
 After-Release Checklist
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+* Verify the release archive (see `Verify Release`_)
 * Make sure all the new functionality is documented on the wiki
 * Mark deprecated features appropriately (see `Deprecations`_)
 * Remove all unreleased notes from the wiki (not for patch releases)
@@ -212,19 +220,32 @@ After-Release Checklist
   <https://github.com/polybar/polybar/issues/1971>`_. Mention any dependency
   changes and any changes to the build workflow. Also mention any new files are
   created by the installation.
-* Confirm that the release archive was added to the release.
-  We have a GitHub action workflow called 'Release Workflow' that on every
-  release automatically creates a release archive, uploads it to the release,
-  and adds a 'Download' section to the release body.
-  If this fails for some reason, it should be triggered manually.
-* Create a PR that updates the AUR ``PKGBUILD`` files for the ``polybar`` and
-  ``polybar-git`` packages (push after the release archive is uploaded).
+* Create a PR that updates the AUR ``PKGBUILD`` file for the ``polybar-git``
+  package (push after the release archive is uploaded).
 * Close the `GitHub Milestone <https://github.com/polybar/polybar/milestones>`_
   for the new release and move open issues (if any) to a later release.
 * Activate the version on `Read the Docs
   <https://readthedocs.org/projects/polybar/versions/>`_ and deactivate all
   previous versions for the same minor release (e.g. for 3.5.4, deactivate all
   other 3.5.X versions).
+
+Verify Release
+~~~~~~~~~~~~~~
+
+Confirm that the release archive was added to the release.
+We have a GitHub action workflow called 'Release Workflow' that on every
+release automatically creates a release archive, uploads it to the release,
+and adds a 'Download' section to the release body.
+If this fails for some reason, it should be triggered manually.
+
+Afterwards, download the archive, verify its hash, and sign it:
+
+.. code-block:: shell
+
+  gpg --armor --detach-sign polybar-X.Y.Z.tar.gz
+
+Finally, upload the generated ``polybar-X.Y.Z.tar.gz.asc`` to the GitHub
+release.
 
 Deprecations
 ~~~~~~~~~~~~

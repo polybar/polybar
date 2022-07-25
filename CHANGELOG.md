@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 - `custom/script`: now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
 
+### Build
+- Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770))
+
 ### Deprecated
 - `custom/text`: The `content` setting and all its properties are deprecated in favor of `format` with the same functionality. ([`#2676`](https://github.com/polybar/polybar/pull/2676))
 
@@ -20,6 +23,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
 - `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not defined ([`#1331`](https://github.com/polybar/polybar/issues/1331), [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
 - Added experimental support for positioning the tray like a module
+- `internal/backlight`: `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696), [`#2700`](https://github.com/polybar/polybar/pull/2700))
+
+### Changed
+- `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
+- `internal/backlight`: Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
+
+### Fixed
+- Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
+- config:
+  - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
+  - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))
+
+## [3.6.3] - 2022-05-04
+### Fixed
+- `custom/script`: Output clearing when `exec-if` fails ([`#2674`](https://github.com/polybar/polybar/issues/2674))
+- `internal/battery`: `poll-interval` not working ([`#2649`](https://github.com/polybar/polybar/issues/2649), [`#2677`](https://github.com/polybar/polybar/pull/2677))
+- ipc: Polybar failing to open IPC channel after another user already ran polybar, if `XDG_RUNTIME_DIR` is not set ([`#2683`](https://github.com/polybar/polybar/issues/2683), [`#2684`](https://github.com/polybar/polybar/pull/2684))
+- No overlines/underlines being drawn when using offsets ([`#2685`](https://github.com/polybar/polybar/pull/2685))
+- Update struts (`_NET_WM_STRUT_PARTIAL`) when hiding the bar ([`#2702`](https://github.com/polybar/polybar/pull/2702))
+- `internal/pulseaudio`: Hanging during startup ([`#2707`](https://github.com/polybar/polybar/issues/2707), [`#2709`](https://github.com/polybar/polybar/pull/2709))
+- `internal/xworkspaces`: Updates of `_NET_DESKTOP_VIEWPORT` being ignored ([`#2693`](https://github.com/polybar/polybar/issues/2693), [`#2698`](https://github.com/polybar/polybar/pull/2698))
 
 ## [3.6.2] - 2022-04-03
 ### Fixed
@@ -184,7 +208,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.2...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.6.3...HEAD
+[3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
 [3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2
 [3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
 [3.6.0]: https://github.com/polybar/polybar/releases/tag/3.6.0

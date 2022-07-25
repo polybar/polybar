@@ -57,14 +57,16 @@ window window::reconfigure_pos(short int x, short int y) {
 window window::reconfigure_struts(uint32_t w, uint32_t strut, uint32_t x, bool bottom) {
   std::array<uint32_t, 12> values{};
 
+  uint32_t end_x = std::max<int>(0, x + w - 1);
+
   if (bottom) {
     values[to_integral(strut::BOTTOM)] = strut;
     values[to_integral(strut::BOTTOM_START_X)] = x;
-    values[to_integral(strut::BOTTOM_END_X)] = x + w - 1;
+    values[to_integral(strut::BOTTOM_END_X)] = end_x;
   } else {
     values[to_integral(strut::TOP)] = strut;
     values[to_integral(strut::TOP_START_X)] = x;
-    values[to_integral(strut::TOP_END_X)] = x + w - 1;
+    values[to_integral(strut::TOP_END_X)] = end_x;
   }
 
   connection().change_property_checked(

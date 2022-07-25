@@ -1,7 +1,7 @@
 # Maintainer: Patrick Ziegler <p.ziegler96@gmail.com>
 _pkgname=polybar
 pkgname="${_pkgname}-git"
-pkgver=3.6.2
+pkgver=3.6.3
 pkgrel=1
 pkgdesc="A fast and easy-to-use status bar"
 # aarch64 is not officially supported by polybar, it is only listed here for convenience
@@ -14,6 +14,7 @@ depends=("libuv" "cairo" "xcb-util-image" "xcb-util-wm" "xcb-util-xrm"
 optdepends=("i3-wm: i3 module support")
 makedepends=("cmake" "git" "python" "pkg-config" "python-sphinx"
              "python-packaging" "i3-wm")
+backup=("etc/polybar/config.ini")
 provides=("polybar")
 conflicts=("polybar")
 source=("${_pkgname}::git+${url}.git")

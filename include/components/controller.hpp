@@ -55,6 +55,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void signal_handler(int signum);
 
   void conn_cb();
+  void create_config_watcher(const string& fname);
   void confwatch_handler(const char* fname);
   void notifier_handler();
   void screenshot_handler();
@@ -100,6 +101,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   eventloop::loop& m_loop;
   unique_ptr<bar> m_bar;
   bool m_has_ipc;
+  string m_tray_module_name;
 
   /**
    * @brief Async handle to notify the eventloop

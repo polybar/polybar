@@ -67,25 +67,26 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup() {
+void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-  string position;
+  string position = conf.get(bs, "tray-position", "none"s);
 
-  try {
-    position = conf.get(bs, "tray-position");
-  } catch (const key_error& err) {
-    return m_log.info("Disabling tray manager (reason: missing `tray-position`)");
+  if (!position.empty() && position != "none" && !tray_module_name.empty()) {
+    m_log.warn(
+        "The tray position is manually defined (`tray-position`) and also set by the tray module (%s). `tray-position` "
+        "will be ignored",
+        tray_module_name);
   }
 
-  if (position == "left") {
-    m_opts.align = alignment::LEFT;
+  if (!tray_module_name.empty()) {
+    m_opts.tray_position = tray_postition::MODULE;
+  } else if (position == "left") {
+    m_opts.tray_position = tray_postition::LEFT;
   } else if (position == "right") {
-    m_opts.align = alignment::RIGHT;
+    m_opts.tray_position = tray_postition::RIGHT;
   } else if (position == "center") {
-    m_opts.align = alignment::CENTER;
-  } else if (position == "adaptive") {
-    m_opts.adaptive = true;
+    m_opts.tray_position = tray_postition::CENTER;
   } else if (position != "none") {
     return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
   } else {
@@ -114,12 +115,12 @@ void tray_manager::setup() {
   m_opts.win_size.h *= scale;
 
   m_opts.pos.x = inner_area.x + [&]() -> int {
-    switch (m_opts.align) {
-      case alignment::LEFT:
+    switch (m_opts.tray_position) {
+      case tray_postition::LEFT:
         return 0;
-      case alignment::CENTER:
+      case tray_postition::CENTER:
         return inner_area.width / 2 - m_opts.client_size.w / 2;
-      case alignment::RIGHT:
+      case tray_postition::RIGHT:
         return inner_area.width;
       default:
         return 0;
@@ -755,9 +756,9 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  */
 int tray_manager::calculate_x(unsigned int width) const {
   auto x = m_opts.pos.x;
-  if (m_opts.align == alignment::RIGHT) {
+  if (m_opts.tray_position == tray_postition::RIGHT) {
     x -= ((m_opts.client_size.w + m_opts.spacing) * m_clients.size() + m_opts.spacing);
-  } else if (m_opts.align == alignment::CENTER) {
+  } else if (m_opts.tray_position == tray_postition::CENTER) {
     x -= (width / 2) - (m_opts.client_size.w / 2);
   }
   return x;
@@ -847,6 +848,29 @@ int tray_manager::mapped_clients() const {
 
 bool tray_manager::has_mapped_clients() const {
   return std::find_if(m_clients.begin(), m_clients.end(), [](const auto& c) { return c.mapped(); }) != m_clients.end();
+}
+
+bool tray_manager::change_visibility(bool visible) {
+  bool has_clients = has_mapped_clients();
+
+  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
+      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
+
+  m_hidden = !visible;
+
+  if (!m_activated) {
+    return false;
+  } else if (!m_hidden && !m_mapped && has_clients) {
+    m_connection.map_window(m_tray);
+  } else if ((!has_clients || m_hidden) && m_mapped) {
+    m_connection.unmap_window(m_tray);
+  } else if (m_mapped && !m_hidden && has_clients) {
+    redraw_window();
+  }
+
+  m_connection.flush();
+
+  return true;
 }
 
 /**
@@ -1073,27 +1097,7 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
  * toggle the tray window whenever the visibility of the bar window changes.
  */
 bool tray_manager::on(const signals::ui::visibility_change& evt) {
-  bool visible{evt.cast()};
-  bool has_clients = has_mapped_clients();
-
-  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
-      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
-
-  m_hidden = !visible;
-
-  if (!m_activated) {
-    return false;
-  } else if (!m_hidden && !m_mapped && has_clients) {
-    m_connection.map_window(m_tray);
-  } else if ((!has_clients || m_hidden) && m_mapped) {
-    m_connection.unmap_window(m_tray);
-  } else if (m_mapped && !m_hidden && has_clients) {
-    redraw_window();
-  }
-
-  m_connection.flush();
-
-  return true;
+  return change_visibility(evt.cast());
 }
 
 bool tray_manager::on(const signals::ui::dim_window& evt) {
@@ -1112,10 +1116,20 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-  m_opts.pos.x = m_bar_opts.inner_area(true).x + evt.cast();
+  m_opts.pos.x =
+      m_bar_opts.inner_area(false).x + std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - calculate_w())));
+
   reconfigure_window();
 
   return true;
+}
+
+bool tray_manager::on(const signals::ui_tray::tray_visibility& evt) {
+  if (evt.cast() == m_hidden && m_opts.tray_position == tray_postition::MODULE) {
+    return change_visibility(evt.cast());
+  } else {
+    return true;
+  }
 }
 
 POLYBAR_NS_END

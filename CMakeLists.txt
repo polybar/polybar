@@ -63,7 +63,7 @@ endif()
 
 if(BUILD_CONFIG)
   install(FILES ${CMAKE_SOURCE_DIR}/doc/config.ini
-    DESTINATION /etc/${PROJECT_NAME}
+    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/${PROJECT_NAME}
     COMPONENT config)
 endif()
 

@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="doc/_static/banner.png" alt="Polybar">
+  <img src="doc/_static/banner.png#gh-light-mode-only" alt="Polybar">
+  <img src="doc/_static/banner-dark-mode.png#gh-dark-mode-only" alt="Polybar">
 </p>
 
 <p align="center">
@@ -40,6 +41,7 @@ for their desktop environment, without the need of having a black belt in shell 
   * [Sponsors](#sponsors)
   * [Backers](#backers)
 * [License](#license)
+* [Signatures](#signatures)
 
 ## Introduction
 
@@ -92,15 +94,17 @@ list of available polybar packages.
 If you are using **Debian** (bullseye/11/stable) or later, you can install [polybar](https://tracker.debian.org/pkg/polybar)
 using `sudo apt install polybar`. Newer releases of polybar are sometimes provided in the [backports](https://wiki.debian.org/Backports)
 repository for stable users, you need to enable [backports](https://wiki.debian.org/Backports) and then install using
-`sudo apt -t buster-backports install polybar`.
+`sudo apt -t bullseye-backports install polybar`.
 
 If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install polybar
 using `sudo apt install polybar`.
 
-If you are using **Arch Linux**, you can install the AUR package
-[polybar](https://aur.archlinux.org/packages/polybar/) to get the latest
-version, or [polybar-git](https://aur.archlinux.org/packages/polybar-git/) for
-the most up-to-date (unstable) changes.
+If you are using **Arch Linux**, you can install
+[polybar](https://archlinux.org/packages/community/x86_64/polybar/) to get the
+latest stable release using `sudo pacman -S polybar`. The latest unstable
+changes are also available in the
+[`polybar-git`](https://aur.archlinux.org/packages/polybar-git) package in the
+AUR.
 
 If you are using **Manjaro**, you can install [polybar](https://software.manjaro.org/package/polybar) to get the latest stable release using `sudo pacman -S polybar`.
 
@@ -112,14 +116,11 @@ If you are using **Slackware**, polybar is available from the [SlackBuilds](http
 
 If you are using **Source Mage GNU/Linux**, polybar spell is available in test grimoire and can be installed via `cast polybar`.
 
-If you are using **openSUSE Tumbleweed**, polybar is available from the
+If you are using **openSUSE Leap** or **openSUSE Tumbleweed**, polybar is available from the
 [official
-repositories](https://build.opensuse.org/package/show/openSUSE%3AFactory/polybar)
+repositories](https://build.opensuse.org/package/show/X11:Utilities/polybar)
 and can be installed via `zypper install polybar`.
-
-If you are using **openSUSE Leap**, polybar is available from
-[OBS](https://build.opensuse.org/package/show/X11:Utilities/polybar/).
-The package is available for openSUSE Leap 15.1 and above.
+The package is available for openSUSE Leap 15.3 and above.
 
 If you are using **FreeBSD**, [polybar](https://svnweb.freebsd.org/ports/head/x11/polybar/) can be installed using `pkg install polybar`. Make sure you are using the `latest` package branch.
 
@@ -233,3 +234,9 @@ Polybar accepts donations through [open collective](https://opencollective.com/p
 ## License
 
 Polybar is licensed under the MIT license. [See LICENSE for more information](https://github.com/polybar/polybar/blob/master/LICENSE).
+
+## Signatures
+
+Release archives and tags are signed by a maintainer using GPG. Currently
+everything is signed by [Patrick Ziegler](https://www.patrickziegler.ch/gpg)
+with fingerprint `1D5791352D51A228D4DDDBA4521E5E03AEBCA1A7`

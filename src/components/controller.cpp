@@ -197,6 +197,16 @@ void controller::signal_handler(int signum) {
   stop(signum == SIGUSR1);
 }
 
+void controller::create_config_watcher(const string& filename) {
+  auto& fs_event_handler = m_loop.handle<FSEventHandle>();
+  fs_event_handler.start(
+      filename, 0, [this](const auto& e) { confwatch_handler(e.path); },
+      [this, &fs_event_handler](const auto& e) {
+        m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
+        fs_event_handler.close();
+      });
+}
+
 void controller::confwatch_handler(const char* filename) {
   m_log.notice("Watched config file changed %s", filename);
   stop(true);
@@ -239,7 +249,7 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   if (!m_writeback) {
-    m_bar->start();
+    m_bar->start(m_tray_module_name);
   }
 
   auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
@@ -256,13 +266,11 @@ void controller::read_events(bool confwatch) {
   }
 
   if (confwatch) {
-    auto& fs_event_handle = m_loop.handle<FSEventHandle>();
-    fs_event_handle.start(
-        m_conf.filepath(), 0, [this](const auto& e) { confwatch_handler(e.path); },
-        [this, &fs_event_handle](const auto& e) {
-          m_log.err("libuv error while watching config file for changes: %s", uv_strerror(e.status));
-          fs_event_handle.close();
-        });
+    create_config_watcher(m_conf.filepath());
+    // also watch the include-files for changes
+    for (auto& module_path : m_conf.get_included_files()) {
+      create_config_watcher(module_path);
+    }
   }
 
   if (!m_snapshot_dst.empty()) {
@@ -594,6 +602,13 @@ size_t controller::setup_modules(alignment align) {
 
     try {
       auto type = m_conf.get("module/" + module_name, "type");
+
+      if (type == tray_module::TYPE) {
+        if (!m_tray_module_name.empty()) {
+          throw module_error("Multiple trays defined. Using tray `" + m_tray_module_name + "`");
+        }
+        m_tray_module_name = module_name;
+      }
 
       if (type == ipc_module::TYPE && !m_has_ipc) {
         throw application_error("Inter-process messaging needs to be enabled");

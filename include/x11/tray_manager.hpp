@@ -39,8 +39,10 @@ class connection;
 class background_manager;
 class bg_slice;
 
+enum class tray_postition { NONE = 0, LEFT, CENTER, RIGHT, MODULE };
+
 struct tray_settings {
-  alignment align{alignment::NONE};
+  tray_postition tray_position{tray_postition::NONE};
   bool running{false};
 
   /**
@@ -83,16 +85,16 @@ struct tray_settings {
   rgba foreground{};
   bool transparent{false};
   bool detached{false};
-  bool adaptive{false};
 
   xcb_window_t bar_window;
 };
 
-class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
-                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
-                     public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
-                         signals::ui::update_background, signals::ui_tray::tray_pos_change> {
+class tray_manager
+    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
+          evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
+          evt::map_notify, evt::unmap_notify>,
+      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
+          signals::ui::update_background, signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make(const bar_settings& bar_opts);
@@ -104,7 +106,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   const tray_settings settings() const;
 
-  void setup();
+  void setup(const string& tray_module_name);
   void activate();
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
@@ -144,6 +146,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void remove_client(xcb_window_t win, bool reconfigure = true);
   int mapped_clients() const;
   bool has_mapped_clients() const;
+  bool change_visibility(bool visible);
 
   void handle(const evt::expose& evt) override;
   void handle(const evt::visibility_notify& evt) override;
@@ -161,6 +164,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   bool on(const signals::ui::dim_window& evt) override;
   bool on(const signals::ui::update_background& evt) override;
   bool on(const signals::ui_tray::tray_pos_change& evt) override;
+  bool on(const signals::ui_tray::tray_visibility& evt) override;
 
  private:
   connection& m_connection;

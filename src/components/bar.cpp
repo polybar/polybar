@@ -131,12 +131,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
-  try {
-    m_opts.override_redirect = m_conf.get<bool>(bs, "dock");
-    m_conf.warn_deprecated(bs, "dock", "override-redirect");
-  } catch (const key_error& err) {
-    m_opts.override_redirect = m_conf.get(bs, "override-redirect", m_opts.override_redirect);
-  }
+  m_opts.override_redirect = m_conf.deprecated(bs, "dock", "override-redirect", m_opts.override_redirect);
 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
@@ -393,13 +388,14 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 && !m_tray->settings().adaptive) {
-    auto trayalign = m_tray->settings().align;
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 &&
+      m_tray->settings().tray_position != tray_postition::MODULE) {
+    auto tray_pos = m_tray->settings().tray_position;
     auto traywidth = m_tray->settings().win_size.w;
-    if (trayalign == alignment::LEFT) {
+    if (tray_pos == tray_postition::LEFT) {
       rect.x += traywidth;
       rect.width -= traywidth;
-    } else if (trayalign == alignment::RIGHT) {
+    } else if (tray_pos == tray_postition::RIGHT) {
       rect.width -= traywidth;
     }
   }
@@ -415,19 +411,12 @@ void bar::parse(string&& data, bool force) {
 
   m_renderer->end();
 
-  const auto check_dblclicks = [&]() -> bool {
-    if (m_action_ctxt->has_double_click()) {
-      return true;
+  m_dblclicks.clear();
+  for (auto&& action : m_opts.actions) {
+    if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
+      m_dblclicks.insert(action.button);
     }
-
-    for (auto&& action : m_opts.actions) {
-      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
-        return true;
-      }
-    }
-    return false;
-  };
-  m_dblclicks = check_dblclicks();
+  }
 }
 
 /**
@@ -440,10 +429,11 @@ void bar::hide() {
 
   try {
     m_log.info("Hiding bar window");
+    m_visible = false;
+    reconfigure_struts();
     m_sig.emit(visibility_change{false});
     m_connection.unmap_window_checked(m_opts.x_data.window);
     m_connection.flush();
-    m_visible = false;
   } catch (const exception& err) {
     m_log.err("Failed to unmap bar window (err=%s", err.what());
   }
@@ -556,42 +546,46 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
-  auto geom = m_connection.get_geometry(m_connection.root());
-  int h = m_opts.size.h + m_opts.offset.y;
+  window win{m_connection, m_opts.x_data.window};
+  if (m_visible) {
+    auto geom = m_connection.get_geometry(m_connection.root());
+    int h = m_opts.size.h + m_opts.offset.y;
 
-  // Apply user-defined margins
-  if (m_opts.bottom) {
-    h += m_opts.strut.top;
-  } else {
-    h += m_opts.strut.bottom;
-  }
-
-  h = std::max(h, 0);
-
-  int correction = 0;
-
-  // Only apply correction if any space is requested
-  if (h > 0) {
-    /*
-     * Strut coordinates have to be relative to root window and not any monitor.
-     * If any monitor is not aligned at the top or bottom
-     */
+    // Apply user-defined margins
     if (m_opts.bottom) {
-      /*
-       * For bottom-algined bars, the correction is the number of pixels between
-       * the root window's bottom edge and the monitor's bottom edge
-       */
-      correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+      h += m_opts.strut.top;
     } else {
-      // For top-aligned bars, we simply add the monitor's y-position
-      correction = m_opts.monitor->y;
+      h += m_opts.strut.bottom;
     }
 
-    correction = std::max(correction, 0);
-  }
+    h = std::max(h, 0);
 
-  window win{m_connection, m_opts.x_data.window};
-  win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
+    int correction = 0;
+
+    // Only apply correction if any space is requested
+    if (h > 0) {
+      /*
+       * Strut coordinates have to be relative to root window and not any monitor.
+       * If any monitor is not aligned at the top or bottom
+       */
+      if (m_opts.bottom) {
+        /*
+         * For bottom-algined bars, the correction is the number of pixels between
+         * the root window's bottom edge and the monitor's bottom edge
+         */
+        correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+      } else {
+        // For top-aligned bars, we simply add the monitor's y-position
+        correction = m_opts.monitor->y;
+      }
+
+      correction = std::max(correction, 0);
+    }
+    win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
+  } else {
+    // Set struts to 0 for invisible bars
+    win.reconfigure_struts(0, 0, 0, m_opts.bottom);
+  }
 }
 
 /**
@@ -634,6 +628,8 @@ void bar::broadcast_visibility() {
 }
 
 void bar::map_window() {
+  m_visible = true;
+
   /**
    * First reconfigures the window so that WMs that discard some information
    * when unmapping have the correct window properties (geometry etc).
@@ -648,8 +644,6 @@ void bar::map_window() {
    * mapping. Additionally updating the window position after mapping seems to fix that.
    */
   reconfigure_pos();
-
-  m_visible = true;
 }
 
 void bar::trigger_click(mousebtn btn, int pos) {
@@ -818,9 +812,12 @@ void bar::handle(const evt::button_press& evt) {
     }
   };
 
+  mousebtn double_btn = mousebtn_get_double(btn);
+  bool has_dblclick = m_dblclicks.count(double_btn) || m_action_ctxt->has_action(double_btn, pos) != tags::NO_ACTION;
+
   // If there are no double click handlers defined we can
   // just by-pass the click timer handling
-  if (!m_dblclicks) {
+  if (!has_dblclick) {
     trigger_click(btn, pos);
   } else if (btn == mousebtn::LEFT) {
     check_double(m_leftclick_timer, btn, pos);
@@ -876,7 +873,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-void bar::start() {
+void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt, *m_tray);
 
@@ -907,7 +904,7 @@ void bar::start() {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup();
+  m_tray->setup(tray_module_name);
 
   broadcast_visibility();
 }
