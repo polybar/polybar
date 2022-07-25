@@ -388,6 +388,8 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
+  // TODO don't shrink the rect but somehow tell renderer to only use part of the rectangle for rendering bar content
+  // (but render background everyhwere)
   if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 &&
       m_tray->settings().tray_position != tray_postition::MODULE) {
     auto tray_pos = m_tray->settings().tray_position;

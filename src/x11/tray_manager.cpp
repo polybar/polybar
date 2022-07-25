@@ -15,7 +15,6 @@
 #include "utils/memory.hpp"
 #include "utils/process.hpp"
 #include "utils/units.hpp"
-#include "x11/background_manager.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 #include "x11/window.hpp"
@@ -49,13 +48,12 @@ POLYBAR_NS
  * Create instance
  */
 tray_manager::make_type tray_manager::make(const bar_settings& bar_opts) {
-  return std::make_unique<tray_manager>(
-      connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), bar_opts);
+  return std::make_unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make(), bar_opts);
 }
 
-tray_manager::tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
-    const bar_settings& bar_opts)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_background_manager(back), m_bar_opts(bar_opts) {
+tray_manager::tray_manager(
+    connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts)
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_bar_opts(bar_opts) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -136,11 +134,6 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.background = conf.get(bs, "tray-background", m_bar_opts.background);
   m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
 
-  if (m_opts.background.alpha_i() != 255) {
-    m_log.info("tray: enable transparency");
-    m_opts.transparent = true;
-  }
-
   // Add user-defined padding
   m_opts.spacing += conf.get<unsigned int>(bs, "tray-padding", 0);
 
@@ -195,7 +188,6 @@ void tray_manager::activate() {
 
   try {
     create_window();
-    create_bg();
     set_wm_hints();
     set_tray_colors();
   } catch (const exception& err) {
@@ -250,19 +242,6 @@ void tray_manager::deactivate(bool clear_selection) {
     m_log.trace("tray: Destroy window");
     m_connection.destroy_window(m_tray);
     m_tray = 0;
-  }
-
-  m_context.reset();
-  m_surface.reset();
-
-  if (m_pixmap) {
-    m_connection.free_pixmap(m_pixmap);
-    m_pixmap = 0;
-  }
-
-  if (m_gc) {
-    m_connection.free_gc(m_gc);
-    m_gc = 0;
   }
 
   m_opts.win_size.w = 0;
@@ -331,11 +310,6 @@ void tray_manager::reconfigure_window() {
   auto width = calculate_w();
   m_opts.win_size.w = width;
 
-  if (m_opts.transparent) {
-    xcb_rectangle_t rect{0, 0, calculate_w(), calculate_h()};
-    m_bg_slice = m_background_manager.observe(rect, m_tray);
-  }
-
   if (width > 0) {
     auto x = calculate_x(width);
     m_log.trace("tray: New window values, width=%d, x=%d", width, x);
@@ -396,26 +370,6 @@ void tray_manager::reconfigure_bg() {
 
     client.clear_window();
   }
-  if (!m_opts.transparent || m_clients.empty() || !m_mapped) {
-    return;
-  };
-
-  m_log.trace("tray: Reconfigure bg");
-
-  if (!m_context) {
-    return m_log.err("tray: no context for drawing the background");
-  }
-
-  cairo::xcb_surface* surface = m_bg_slice->get_surface();
-  if (!surface) {
-    return m_log.err("tray: no root surface");
-  }
-
-  m_context->clear();
-  *m_context << CAIRO_OPERATOR_SOURCE << *m_surface;
-  m_context->paint();
-  *m_context << CAIRO_OPERATOR_OVER << m_opts.background;
-  m_context->paint();
 }
 
 /**
@@ -432,15 +386,6 @@ void tray_manager::refresh_window() {
 
   auto width = calculate_w();
   auto height = calculate_h();
-
-  if (m_opts.transparent && !m_context) {
-    xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height)};
-    m_connection.poly_fill_rectangle(m_pixmap, m_gc, 1, &rect);
-  }
-
-  if (m_surface) {
-    m_surface->flush();
-  }
 
   m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
@@ -505,85 +450,11 @@ void tray_manager::create_window() {
     << cw_parent(m_opts.bar_window);
   // clang-format on
 
-  // if (!m_opts.transparent) {
-  //   win << cw_params_back_pixel(m_opts.background);
-  //   win << cw_params_border_pixel(m_opts.background);
-  // }
-
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
 
-  // activate the background manager if we have transparency
-  if (m_opts.transparent) {
-    xcb_rectangle_t rect{0, 0, calculate_w(), calculate_h()};
-    m_bg_slice = m_background_manager.observe(rect, m_tray);
-  }
-
   const unsigned int shadow{0};
   m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
-}
-
-/**
- * Create tray window background components
- */
-void tray_manager::create_bg() {
-  if (!m_opts.transparent) {
-    return;
-  }
-  if (m_pixmap && m_gc && m_surface && m_context) {
-    return;
-  }
-
-  auto w = m_opts.width_max;
-  auto h = calculate_h();
-
-  if (!m_pixmap) {
-    try {
-      /*
-       * Use depths of bar window.
-       */
-      m_pixmap = m_connection.generate_id();
-      m_connection.create_pixmap_checked(m_bar_opts.x_data.depth, m_pixmap, m_tray, w, h);
-    } catch (const exception& err) {
-      return m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
-    }
-  }
-
-  if (!m_gc) {
-    try {
-      xcb_params_gc_t params{};
-      uint32_t mask = 0;
-      std::array<uint32_t, 32> values{};
-      XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
-      connection::pack_values(mask, &params, values);
-      m_gc = m_connection.generate_id();
-      m_connection.create_gc_checked(m_gc, m_pixmap, mask, values.data());
-    } catch (const exception& err) {
-      return m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
-    }
-  }
-
-  if (!m_surface) {
-    xcb_visualtype_t* visual = m_connection.visual_type_for_id(m_connection.screen()->root_visual);
-    if (!visual) {
-      return m_log.err("Failed to get root visual for tray background");
-    }
-    m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, w, h);
-  }
-
-  if (!m_context) {
-    m_context = make_unique<cairo::context>(*m_surface, m_log);
-    m_context->clear();
-    *m_context << CAIRO_OPERATOR_SOURCE << m_opts.background;
-    m_context->paint();
-  }
-
-  try {
-    // TODO
-    // m_connection.change_window_attributes_checked(m_tray, XCB_CW_BACK_PIXMAP, &m_pixmap);
-  } catch (const exception& err) {
-    m_log.err("Failed to set tray window back pixmap (%s)", err.what());
-  }
 }
 
 /**
@@ -979,13 +850,6 @@ void tray_manager::handle(const evt::selection_clear& evt) {
  */
 void tray_manager::handle(const evt::property_notify& evt) {
   if (!m_activated) {
-    return;
-  }
-
-  // React an wallpaper change, if bar has transparency
-  if (m_opts.transparent &&
-      (evt->atom == _XROOTPMAP_ID || evt->atom == _XSETROOT_ID || evt->atom == ESETROOT_PMAP_ID)) {
-    redraw_window();
     return;
   }
 

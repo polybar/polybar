@@ -36,7 +36,6 @@ using std::atomic;
 
 // fwd declarations
 class connection;
-class background_manager;
 class bg_slice;
 
 enum class tray_postition { NONE = 0, LEFT, CENTER, RIGHT, MODULE };
@@ -83,7 +82,6 @@ struct tray_settings {
   unsigned int spacing{0U};
   rgba background{};
   rgba foreground{};
-  bool transparent{false};
   bool detached{false};
 
   xcb_window_t bar_window;
@@ -99,8 +97,7 @@ class tray_manager
   using make_type = unique_ptr<tray_manager>;
   static make_type make(const bar_settings& bar_opts);
 
-  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, background_manager& back,
-      const bar_settings& bar_opts);
+  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts);
 
   ~tray_manager();
 
@@ -121,7 +118,6 @@ class tray_manager
 
   void query_atom();
   void create_window();
-  void create_bg();
   void set_wm_hints();
   void set_tray_colors();
 
@@ -170,17 +166,10 @@ class tray_manager
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  background_manager& m_background_manager;
-  std::shared_ptr<bg_slice> m_bg_slice;
   vector<tray_client> m_clients;
 
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
-
-  xcb_gcontext_t m_gc{0};
-  xcb_pixmap_t m_pixmap{0};
-  unique_ptr<cairo::surface> m_surface;
-  unique_ptr<cairo::context> m_context;
 
   xcb_atom_t m_atom{0};
   xcb_window_t m_tray{0};

@@ -34,8 +34,8 @@ tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray,
     << cw_parent(tray)
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
     // TODO add proper pixmap
-    // << cw_params_back_pixmap(XCB_PIXMAP_NONE)
-    << cw_params_back_pixel(0x00ff00)
+    << cw_params_back_pixmap(XCB_PIXMAP_NONE)
+    // << cw_params_back_pixel(0x00ff00)
     // The X server requires the border pixel to be defined if the depth doesn't match the parent window
     << cw_params_border_pixel(conn.screen()->black_pixel)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
