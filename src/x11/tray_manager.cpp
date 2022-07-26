@@ -96,15 +96,14 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.win_size.h = inner_area.height;
 
   m_opts.detached = conf.get(bs, "tray-detached", false);
-  unsigned int client_height = inner_area.height;
+  unsigned client_height = inner_area.height;
 
-  auto maxsize = conf.get<unsigned int>(bs, "tray-maxsize", 16);
+  auto maxsize = conf.get<unsigned>(bs, "tray-maxsize", 16);
   if (client_height > maxsize) {
     m_opts.spacing += (client_height - maxsize) / 2;
     client_height = maxsize;
   }
 
-  m_opts.width_max = m_bar_opts.size.w;
   m_opts.client_size = {client_height, client_height};
 
   // Apply user-defined scaling
@@ -112,7 +111,7 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.client_size.w *= scale;
   m_opts.win_size.h *= scale;
 
-  m_opts.pos.x = inner_area.x + [&]() -> int {
+  m_opts.pos.x = [&]() -> int {
     switch (m_opts.tray_position) {
       case tray_postition::LEFT:
         return 0;
@@ -124,7 +123,7 @@ void tray_manager::setup(const string& tray_module_name) {
         return 0;
     }
   }();
-  m_opts.pos.y = inner_area.y;
+  m_opts.pos.y = 0;
 
   if (conf.has(bs, "tray-transparent")) {
     m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
@@ -135,7 +134,7 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
 
   // Add user-defined padding
-  m_opts.spacing += conf.get<unsigned int>(bs, "tray-padding", 0);
+  m_opts.spacing += conf.get<unsigned>(bs, "tray-padding", 0);
 
   // Add user-defiend offset
   auto offset_x = conf.get(bs, "tray-offset-x", percentage_with_offset{});
@@ -154,9 +153,6 @@ void tray_manager::setup(const string& tray_module_name) {
 
   m_opts.offset.x = units_utils::percentage_with_offset_to_pixel(offset_x, max_x, m_bar_opts.dpi_x);
   m_opts.offset.y = units_utils::percentage_with_offset_to_pixel(offset_y, max_y, m_bar_opts.dpi_y);
-
-  m_opts.pos.x += m_opts.offset.x;
-  m_opts.pos.y += m_opts.offset.y;
 
   m_opts.bar_window = m_bar_opts.x_data.window;
 
@@ -353,23 +349,6 @@ void tray_manager::reconfigure_clients() {
  */
 void tray_manager::reconfigure_bg() {
   m_connection.clear_area(false, m_tray, 0, 0, m_opts.win_size.w, m_opts.win_size.h);
-  for (const auto& client : m_clients) {
-    m_connection.clear_area_checked(false, client.embedder(), 0, 0, client.width(), client.height());
-    xcb_visibility_notify_event_t visibility_event;
-    visibility_event.response_type = XCB_VISIBILITY_NOTIFY;
-    visibility_event.window = client.client();
-    visibility_event.state = XCB_VISIBILITY_FULLY_OBSCURED;
-
-    m_connection.send_event(
-        true, client.client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&visibility_event));
-    m_connection.flush();
-    visibility_event.state = XCB_VISIBILITY_UNOBSCURED;
-    m_connection.send_event(
-        true, client.client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&visibility_event));
-    m_connection.flush();
-
-    client.clear_window();
-  }
 }
 
 /**
@@ -453,7 +432,7 @@ void tray_manager::create_window() {
   m_tray = win << cw_flush(true);
   m_log.info("Tray window: %s", m_connection.id(m_tray));
 
-  const unsigned int shadow{0};
+  const unsigned shadow{0};
   m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
 }
 
@@ -576,8 +555,8 @@ void tray_manager::notify_clients_delayed() {
 void tray_manager::track_selection_owner(xcb_window_t owner) {
   if (owner != XCB_NONE) {
     m_log.trace("tray: Listen for events on the new selection window");
-    const unsigned int mask{XCB_CW_EVENT_MASK};
-    const unsigned int values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    const unsigned mask{XCB_CW_EVENT_MASK};
+    const unsigned values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
     m_connection.change_window_attributes(owner, mask, values);
   }
 }
@@ -625,8 +604,8 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int tray_manager::calculate_x(unsigned int width) const {
-  auto x = m_opts.pos.x;
+int tray_manager::calculate_x(unsigned width) const {
+  auto x = m_bar_opts.inner_area(false).x + m_opts.pos.x + m_opts.offset.x;
   if (m_opts.tray_position == tray_postition::RIGHT) {
     x -= ((m_opts.client_size.w + m_opts.spacing) * m_clients.size() + m_opts.spacing);
   } else if (m_opts.tray_position == tray_postition::CENTER) {
@@ -635,19 +614,13 @@ int tray_manager::calculate_x(unsigned int width) const {
   return x;
 }
 
-/**
- * Calculate y position of tray window
- */
 int tray_manager::calculate_y() const {
-  return m_opts.pos.y;
+  return m_bar_opts.inner_area(false).y + m_opts.pos.y + m_opts.offset.y;
 }
 
-/**
- * Calculate width of tray window
- */
-unsigned short int tray_manager::calculate_w() const {
-  unsigned int width = m_opts.spacing;
-  unsigned int count{0};
+unsigned tray_manager::calculate_w() const {
+  unsigned width = m_opts.spacing;
+  unsigned count{0};
   for (auto& client : m_clients) {
     if (client.mapped()) {
       count++;
@@ -660,7 +633,7 @@ unsigned short int tray_manager::calculate_w() const {
 /**
  * Calculate height of tray window
  */
-unsigned short int tray_manager::calculate_h() const {
+unsigned tray_manager::calculate_h() const {
   return m_opts.win_size.h;
 }
 
@@ -980,8 +953,7 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-  m_opts.pos.x =
-      m_bar_opts.inner_area(false).x + std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - calculate_w())));
+  m_opts.pos.x = std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - calculate_w())));
 
   reconfigure_window();
 

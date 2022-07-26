@@ -9,6 +9,15 @@
 
 POLYBAR_NS
 
+/*
+ * TODO proper background of wrapper window
+ *
+ * Do first possible:
+ *
+ * 1. Use PARENT_RELATIVE if tray window depths, etc. matches the bar window
+ * 2. Use pseudo-transparency when activated (make sure the depths match)
+ * 3. Use background color
+ */
 tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s)
     : m_log(log), m_connection(conn), m_client(win), m_size(s) {
   auto geom = conn.get_geometry(win);

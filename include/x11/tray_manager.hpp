@@ -47,13 +47,15 @@ struct tray_settings {
   /**
    * Tray window position.
    *
-   * Relative to the bar window
-   * TODO make relative to inner area
+   * Relative to the inner area of the bar
+   *
+   * Specifies the top-left corner for left-aligned trays and tray modules.
+   * For center-aligned, it's the top-center point and for right aligned, it's the top-right point.
    */
   position pos{0, 0};
 
   /**
-   * Tray offset in pixels.
+   * Tray offset in pixels applied to pos.
    */
   position offset{0, 0};
 
@@ -72,14 +74,10 @@ struct tray_settings {
    */
   int num_mapped_clients{0};
 
-  // This is the width of the bar window
-  // TODO directly read from bar_settings
-  unsigned int width_max{0U};
-
   /**
    * Number of pixels added between tray icons
    */
-  unsigned int spacing{0U};
+  unsigned spacing{0U};
   rgba background{};
   rgba foreground{};
   bool detached{false};
@@ -128,11 +126,18 @@ class tray_manager
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
 
+  /**
+   * Final x-position of the tray window relative to the very top-left bar window.
+   */
   int calculate_x(unsigned width) const;
+
+  /**
+   * Final y-position of the tray window relative to the very top-left bar window.
+   */
   int calculate_y() const;
 
-  unsigned short int calculate_w() const;
-  unsigned short int calculate_h() const;
+  unsigned calculate_w() const;
+  unsigned calculate_h() const;
 
   int calculate_client_y();
 
