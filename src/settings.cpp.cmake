@@ -19,6 +19,7 @@ const char* const PATH_CPU_INFO{"@SETTING_PATH_CPU_INFO@"};
 const char* const PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
 const char* const PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
 const char* const PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
+const char* const PATH_THERMAL_ZONE_WILDCARD{"@SETTING_PATH_THERMAL_ZONE_WILDCARD@"};
 const char* const WIRELESS_LIB{"@WIRELESS_LIB@"};
 
 bool version_details(const std::vector<std::string>& args) {
