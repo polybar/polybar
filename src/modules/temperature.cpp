@@ -53,20 +53,24 @@ namespace modules {
   bool temperature_module::update() {
     m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
     int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
+    int temp_k = m_temp + 273;
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
+    strung temp_k_string = to_string(temp_k);
 
     // Add units if `units = true` in config
     if(m_units) {
       temp_c_string += "°C";
       temp_f_string += "°F";
+      temp_k_string += "K";
     }
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
+      laber->replace_token("%temperature-k%", temp_k_string);
 
       // DEPRECATED: Will be removed in later release
       label->replace_token("%temperature%", temp_c_string);
