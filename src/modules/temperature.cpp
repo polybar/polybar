@@ -57,7 +57,7 @@ namespace modules {
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
-    strung temp_k_string = to_string(temp_k);
+    string temp_k_string = to_string(temp_k);
 
     // Add units if `units = true` in config
     if(m_units) {
@@ -70,7 +70,7 @@ namespace modules {
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
-      laber->replace_token("%temperature-k%", temp_k_string);
+      label->replace_token("%temperature-k%", temp_k_string);
 
       // DEPRECATED: Will be removed in later release
       label->replace_token("%temperature%", temp_c_string);
