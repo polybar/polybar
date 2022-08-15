@@ -51,9 +51,10 @@ namespace modules {
   }
 
   bool temperature_module::update() {
-    m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
-    int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
-    int temp_k = m_temp + 273;
+    int temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10);
+    int m_temp = temp / 1000 + 0.5;
+    int temp_f = (temp * 1.8) / 1000 + 32.5;
+    int temp_k = (temp + 273150) / 1000 + 0.5;
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
