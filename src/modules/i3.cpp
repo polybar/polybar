@@ -32,6 +32,7 @@ namespace modules {
     m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
     m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
+    m_pinned_output = m_conf.get(name(), "output", m_bar.monitor->name);
     m_show_urgent = m_conf.get(name(), "show-urgent", m_show_urgent);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
@@ -137,7 +138,7 @@ namespace modules {
       vector<shared_ptr<i3_util::workspace_t>> workspaces;
 
       if (m_pinworkspaces) {
-        workspaces = i3_util::workspaces(ipc, m_bar.monitor->name, m_show_urgent);
+        workspaces = i3_util::workspaces(ipc, m_pinned_output, m_show_urgent);
       } else {
         workspaces = i3_util::workspaces(ipc);
       }
