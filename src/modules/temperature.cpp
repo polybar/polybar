@@ -52,9 +52,9 @@ namespace modules {
 
   bool temperature_module::update() {
     float temp = float(std::strtol(file_util::contents(m_path).c_str(), nullptr, 10)) / 1000.0;
-    m_temp     = std::round( temp );
-    int temp_f = std::round( (temp * 1.8) + 32.0 );
-    int temp_k = std::round( temp + 273.15 );
+    m_temp     = std::lround( temp );
+    int temp_f = std::lround( (temp * 1.8) + 32.0 );
+    int temp_k = std::lround( temp + 273.15 );
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
