@@ -16,11 +16,32 @@ namespace modules {
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
+    m_zone_type = m_conf.get(name(), "zone-type", ""s);
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempbase = m_conf.get(name(), "base-temperature", 0);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     set_interval(1s);
     m_units = m_conf.get(name(), "units", m_units);
+
+    if (!m_zone_type.empty()) {
+      bool zone_found = false;
+      vector<string> zone_paths = file_util::glob(PATH_THERMAL_ZONE_WILDCARD);
+      vector<string> available_zones;
+      for (auto &z: zone_paths) {
+        string zone_file = z + "/type";
+        string z_zone_type = string_util::strip_trailing_newline(file_util::contents(zone_file));
+        available_zones.push_back(z_zone_type);
+        if (z_zone_type == m_zone_type) {
+          m_path = z + "/temp";
+          zone_found = true;
+          break;
+        }
+      }
+
+      if (!zone_found) {
+        throw module_error("zone-type '" + m_zone_type +  "' was not found, available zone types: " + string_util::join(available_zones, ", "));
+      }
+    }
 
     if (m_path.empty()) {
       m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
