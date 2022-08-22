@@ -96,6 +96,7 @@ namespace modules {
     bool m_show_urgent{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
+    string m_pin_output;
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
