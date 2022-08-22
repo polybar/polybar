@@ -1,19 +1,27 @@
 #include "modules/tray.hpp"
 
 #include "modules/meta/base.inl"
+#include "x11/background_manager.hpp"
 
 POLYBAR_NS
 namespace modules {
   template class module<tray_module>;
 
   tray_module::tray_module(const bar_settings& bar_settings, string name_)
-      : static_module<tray_module>(bar_settings, move(name_)) {
+      : static_module<tray_module>(bar_settings, move(name_))
+      , m_tray(connection::make(), signal_emitter::make(), logger::make(), background_manager::make(), bar_settings) {
     m_formatter->add(DEFAULT_FORMAT, TAG_TRAY, {TAG_TRAY});
     m_sig.attach(this);
   }
 
   string tray_module::get_format() const {
     return DEFAULT_FORMAT;
+  }
+
+  void tray_module::start() {
+    // TODO do this AFTER the bar window is created
+    m_tray.setup(name_raw());
+    this->static_module<tray_module>::start();
   }
 
   bool tray_module::build(builder* builder, const string& tag) const {
@@ -36,5 +44,5 @@ namespace modules {
     m_sig.detach(this);
   }
 
-}  // namespace modules
+} // namespace modules
 POLYBAR_NS_END

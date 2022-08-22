@@ -176,6 +176,8 @@ void tray_manager::setup(const string& tray_module_name) {
   // Put the tray next to the bar in the window stack
   m_opts.sibling = m_bar_opts.window;
 
+  assert(m_bar_opts.window != XCB_NONE);
+
   // Activate the tray manager
   query_atom();
   activate();
@@ -915,6 +917,10 @@ unsigned int tray_manager::mapped_clients() const {
 }
 
 bool tray_manager::change_visibility(bool visible) {
+  if (!m_activated) {
+    return false;
+  }
+
   unsigned int clients{mapped_clients()};
 
   m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
@@ -922,9 +928,7 @@ bool tray_manager::change_visibility(bool visible) {
 
   m_hidden = !visible;
 
-  if (!m_activated) {
-    return false;
-  } else if (!m_hidden && !m_mapped && clients) {
+  if (!m_hidden && !m_mapped && clients) {
     m_connection.map_window(m_tray);
   } else if ((!clients || m_hidden) && m_mapped) {
     m_connection.unmap_window(m_tray);
@@ -941,7 +945,11 @@ bool tray_manager::change_visibility(bool visible) {
  * Event callback : XCB_EXPOSE
  */
 void tray_manager::handle(const evt::expose& evt) {
-  if (m_activated && !m_clients.empty() && evt->count == 0) {
+  if (!m_activated || evt->count != 0) {
+    return;
+  }
+
+  if (!m_clients.empty()) {
     redraw_window();
   }
 }

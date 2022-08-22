@@ -73,7 +73,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
   string bs{m_conf.section()};
 
-  m_tray = tray_manager::make(m_opts);
+  // m_tray = tray_manager::make(m_opts);
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
@@ -837,9 +837,7 @@ void bar::handle(const evt::button_press& evt) {
  */
 void bar::handle(const evt::expose& evt) {
   if (evt->window == m_opts.window && evt->count == 0) {
-    if (m_tray->settings().running) {
-      broadcast_visibility();
-    }
+    broadcast_visibility();
 
     m_log.trace("bar: Received expose event");
     m_renderer->flush();
@@ -901,7 +899,7 @@ void bar::start(const string& tray_module_name) {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(tray_module_name);
+  // m_tray->setup(tray_module_name);
 
   broadcast_visibility();
 }

@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "components/bar.hpp"
+#include "x11/tray_manager.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
@@ -11,6 +12,8 @@ namespace modules {
    public:
     explicit tray_module(const bar_settings& bar_settings, string name_);
     string get_format() const;
+
+    void start() override;
 
     bool build(builder* builder, const string& tag) const;
     void update() {}
@@ -22,6 +25,8 @@ namespace modules {
 
    private:
     static constexpr const char* TAG_TRAY{"<tray>"};
+
+    tray_manager m_tray;
 
     int m_width{0};
   };
