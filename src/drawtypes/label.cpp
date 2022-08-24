@@ -88,8 +88,9 @@ namespace drawtypes {
         } else if (tok.min != 0_z && repl.length() < tok.min) {
           if (tok.rpadding) {
             repl.append(tok.min - repl.length(), ' ');
+          } else {
+            repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
           }
-          repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
         }
 
         /*
