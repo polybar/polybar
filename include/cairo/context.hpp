@@ -196,6 +196,12 @@ namespace cairo {
           cairo_text_extents_t extents;
           f->textwidth(subset, &extents);
 
+          /*
+           * Make sure we don't advance partial pixels, this can cause problems
+           * later when cairo renders background colors over half-pixels.
+           */
+          extents.x_advance = std::ceil(extents.x_advance);
+
           // Draw the background
           if (t.bg_rect.h != 0.0) {
             save();
