@@ -16,6 +16,7 @@ namespace drawtypes {
     size_t max{0_z};
     string suffix{""s};
     bool zpad{false};
+    bool rpadding{false};
   };
 
   class label : public non_copyable_mixin {
