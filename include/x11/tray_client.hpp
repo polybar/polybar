@@ -30,6 +30,8 @@ class tray_client : public non_copyable_mixin {
   bool mapped() const;
   void mapped(bool state);
 
+  void hidden(bool state);
+
   xcb_window_t embedder() const;
   xcb_window_t client() const;
 
@@ -84,6 +86,8 @@ class tray_client : public non_copyable_mixin {
 
   // TODO
   bool m_mapped{false};
+
+  bool m_hidden{false};
 
   size m_size;
 };

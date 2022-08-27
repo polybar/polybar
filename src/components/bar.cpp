@@ -388,8 +388,8 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  // TODO don't shrink the rect but somehow tell renderer to only use part of the rectangle for rendering bar content
-  // (but render background everyhwere)
+  // TODO use legacy tray implementation
+#if 0
   if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 &&
       m_tray->settings().tray_position != tray_postition::MODULE) {
     auto tray_pos = m_tray->settings().tray_position;
@@ -401,6 +401,7 @@ void bar::parse(string&& data, bool force) {
       rect.width -= traywidth;
     }
   }
+#endif
 
   m_log.info("Redrawing bar window");
   m_renderer->begin(rect);
@@ -877,7 +878,7 @@ void bar::handle(const evt::configure_notify&) {
 
 void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
-  m_renderer = renderer::make(m_opts, *m_action_ctxt, *m_tray);
+  m_renderer = renderer::make(m_opts, *m_action_ctxt);
 
   m_opts.x_data.window = m_renderer->window();
   m_opts.x_data.visual = m_renderer->visual();

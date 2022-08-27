@@ -23,9 +23,6 @@
 #define SYSTEM_TRAY_BEGIN_MESSAGE 1
 #define SYSTEM_TRAY_CANCEL_MESSAGE 2
 
-#define TRAY_WM_NAME "Polybar tray window"
-#define TRAY_WM_CLASS "tray\0Polybar"
-
 #define TRAY_PLACEHOLDER "<placeholder-systray>"
 
 POLYBAR_NS
@@ -38,29 +35,19 @@ using std::atomic;
 class connection;
 class bg_slice;
 
-enum class tray_postition { NONE = 0, LEFT, CENTER, RIGHT, MODULE };
-
+// TODO move mutable options into tray_manager class
 struct tray_settings {
-  tray_postition tray_position{tray_postition::NONE};
   bool running{false};
 
   /**
-   * Tray window position.
-   *
-   * Relative to the inner area of the bar
-   *
-   * Specifies the top-left corner for left-aligned trays and tray modules.
-   * For center-aligned, it's the top-center point and for right aligned, it's the top-right point.
+   * Specifies the top-left corner of the tray area relative to inner area of the bar.
    */
   position pos{0, 0};
 
   /**
-   * Tray offset in pixels applied to pos.
-   */
-  position offset{0, 0};
-
-  /**
    * Current dimensions of the tray window.
+   *
+   * TODO setting almost never used -> refactor
    */
   size win_size{0, 0};
 
@@ -80,17 +67,21 @@ struct tray_settings {
   unsigned spacing{0U};
   rgba background{};
   rgba foreground{};
-  bool detached{false};
 
-  xcb_window_t bar_window;
+  /**
+   * Window ID of tray selection owner.
+   *
+   * Matches the bar window
+   */
+  xcb_window_t selection_owner{XCB_NONE};
 };
 
 class tray_manager
     : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
           evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
           evt::map_notify, evt::unmap_notify>,
-      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::dim_window,
-          signals::ui::update_background, signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
+      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::update_background,
+          signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make(const bar_settings& bar_opts);
@@ -99,6 +90,7 @@ class tray_manager
 
   ~tray_manager();
 
+  // TODO only expose necessary information (e.g. running)
   const tray_settings settings() const;
 
   void setup(const string& tray_module_name);
@@ -106,7 +98,6 @@ class tray_manager
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
   void reconfigure();
-  void reconfigure_bg();
 
  protected:
   void reconfigure_window();
@@ -115,8 +106,6 @@ class tray_manager
   void redraw_window();
 
   void query_atom();
-  void create_window();
-  void set_wm_hints();
   void set_tray_colors();
 
   void acquire_selection();
@@ -129,7 +118,7 @@ class tray_manager
   /**
    * Final x-position of the tray window relative to the very top-left bar window.
    */
-  int calculate_x(unsigned width) const;
+  int calculate_x() const;
 
   /**
    * Final y-position of the tray window relative to the very top-left bar window.
@@ -162,7 +151,6 @@ class tray_manager
   void handle(const evt::unmap_notify& evt) override;
 
   bool on(const signals::ui::visibility_change& evt) override;
-  bool on(const signals::ui::dim_window& evt) override;
   bool on(const signals::ui::update_background& evt) override;
   bool on(const signals::ui_tray::tray_pos_change& evt) override;
   bool on(const signals::ui_tray::tray_visibility& evt) override;
@@ -177,7 +165,6 @@ class tray_manager
   const bar_settings& m_bar_opts;
 
   xcb_atom_t m_atom{0};
-  xcb_window_t m_tray{0};
   xcb_window_t m_othermanager{0};
 
   atomic<bool> m_activated{false};
@@ -187,6 +174,7 @@ class tray_manager
 
   thread m_delaythread;
 
+  // TODO try to remove mutex
   mutable mutex m_mtx{};
 
   bool m_firstactivation{true};

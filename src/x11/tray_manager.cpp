@@ -68,26 +68,9 @@ tray_manager::~tray_manager() {
 void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-  string position = conf.get(bs, "tray-position", "none"s);
 
-  if (!position.empty() && position != "none" && !tray_module_name.empty()) {
-    m_log.warn(
-        "The tray position is manually defined (`tray-position`) and also set by the tray module (%s). `tray-position` "
-        "will be ignored",
-        tray_module_name);
-  }
-
-  if (!tray_module_name.empty()) {
-    m_opts.tray_position = tray_postition::MODULE;
-  } else if (position == "left") {
-    m_opts.tray_position = tray_postition::LEFT;
-  } else if (position == "right") {
-    m_opts.tray_position = tray_postition::RIGHT;
-  } else if (position == "center") {
-    m_opts.tray_position = tray_postition::CENTER;
-  } else if (position != "none") {
-    return m_log.err("Disabling tray manager (reason: Invalid position \"" + position + "\")");
-  } else {
+  // TODO remove check once part of tray module
+  if (tray_module_name.empty()) {
     return;
   }
 
@@ -95,7 +78,6 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.win_size.w = 0;
   m_opts.win_size.h = inner_area.height;
 
-  m_opts.detached = conf.get(bs, "tray-detached", false);
   unsigned client_height = inner_area.height;
 
   auto maxsize = conf.get<unsigned>(bs, "tray-maxsize", 16);
@@ -111,50 +93,15 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.client_size.w *= scale;
   m_opts.win_size.h *= scale;
 
-  m_opts.pos.x = [&]() -> int {
-    switch (m_opts.tray_position) {
-      case tray_postition::LEFT:
-        return 0;
-      case tray_postition::CENTER:
-        return inner_area.width / 2 - m_opts.client_size.w / 2;
-      case tray_postition::RIGHT:
-        return inner_area.width;
-      default:
-        return 0;
-    }
-  }();
-  m_opts.pos.y = 0;
-
-  if (conf.has(bs, "tray-transparent")) {
-    m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
-  }
-
   // Set user-defined foreground and background colors.
+  // TODO maybe remove
   m_opts.background = conf.get(bs, "tray-background", m_bar_opts.background);
   m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
 
   // Add user-defined padding
   m_opts.spacing += conf.get<unsigned>(bs, "tray-padding", 0);
 
-  // Add user-defiend offset
-  auto offset_x = conf.get(bs, "tray-offset-x", percentage_with_offset{});
-  auto offset_y = conf.get(bs, "tray-offset-y", percentage_with_offset{});
-
-  int max_x;
-  int max_y;
-
-  if (m_opts.detached) {
-    max_x = m_bar_opts.monitor->w;
-    max_y = m_bar_opts.monitor->h;
-  } else {
-    max_x = inner_area.width;
-    max_y = inner_area.height;
-  }
-
-  m_opts.offset.x = units_utils::percentage_with_offset_to_pixel(offset_x, max_x, m_bar_opts.dpi_x);
-  m_opts.offset.y = units_utils::percentage_with_offset_to_pixel(offset_y, max_y, m_bar_opts.dpi_y);
-
-  m_opts.bar_window = m_bar_opts.x_data.window;
+  m_opts.selection_owner = m_bar_opts.x_data.window;
 
   // Activate the tray manager
   query_atom();
@@ -183,8 +130,6 @@ void tray_manager::activate() {
   m_sig.attach(this);
 
   try {
-    create_window();
-    set_wm_hints();
     set_tray_colors();
   } catch (const exception& err) {
     m_log.err(err.what());
@@ -234,16 +179,9 @@ void tray_manager::deactivate(bool clear_selection) {
   m_log.trace("tray: Unembed clients");
   m_clients.clear();
 
-  if (m_tray) {
-    m_log.trace("tray: Destroy window");
-    m_connection.destroy_window(m_tray);
-    m_tray = 0;
-  }
-
   m_opts.win_size.w = 0;
   m_opts.num_mapped_clients = 0;
   m_acquired_selection = false;
-  m_mapped = false;
 
   m_connection.flush();
 
@@ -254,7 +192,7 @@ void tray_manager::deactivate(bool clear_selection) {
  * Reconfigure tray
  */
 void tray_manager::reconfigure() {
-  if (!m_tray) {
+  if (!m_opts.selection_owner) {
     return;
   } else if (m_mtx.try_lock()) {
     std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
@@ -268,11 +206,6 @@ void tray_manager::reconfigure() {
       reconfigure_window();
     } catch (const exception& err) {
       m_log.err("Failed to reconfigure tray window (%s)", err.what());
-    }
-    try {
-      reconfigure_bg();
-    } catch (const exception& err) {
-      m_log.err("Failed to reconfigure tray background (%s)", err.what());
     }
 
     m_opts.num_mapped_clients = mapped_clients();
@@ -288,37 +221,15 @@ void tray_manager::reconfigure() {
  * Reconfigure container window
  */
 void tray_manager::reconfigure_window() {
-  m_log.trace("tray: Reconfigure window (mapped=%i, clients=%i)", static_cast<bool>(m_mapped), m_clients.size());
+  m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i, mapped_clients=%i)", static_cast<bool>(m_hidden),
+      m_clients.size(), mapped_clients());
 
-  if (!m_tray) {
+  if (!m_opts.selection_owner) {
     return;
-  }
-
-  bool has_clients = has_mapped_clients();
-  if (!has_clients && m_mapped) {
-    m_log.trace("tray: Reconfigure window / unmap");
-    m_connection.unmap_window_checked(m_tray);
-  } else if (has_clients && !m_mapped && !m_hidden) {
-    m_log.trace("tray: Reconfigure window / map");
-    m_connection.map_window_checked(m_tray);
   }
 
   auto width = calculate_w();
   m_opts.win_size.w = width;
-
-  if (width > 0) {
-    auto x = calculate_x(width);
-    m_log.trace("tray: New window values, width=%d, x=%d", width, x);
-
-    uint32_t mask = 0;
-    std::array<uint32_t, 32> values{};
-    xcb_params_configure_window_t params{};
-
-    XCB_AUX_ADD_PARAM(&mask, &params, width, width);
-    XCB_AUX_ADD_PARAM(&mask, &params, x, x);
-    connection::pack_values(mask, &params, values);
-    m_connection.configure_window_checked(m_tray, mask, values.data());
-  }
 }
 
 /**
@@ -327,7 +238,7 @@ void tray_manager::reconfigure_window() {
 void tray_manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
 
-  int x = m_opts.spacing;
+  int x = calculate_x() + m_opts.spacing;
 
   for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
     try {
@@ -345,28 +256,16 @@ void tray_manager::reconfigure_clients() {
 }
 
 /**
- * Reconfigure root pixmap
- */
-void tray_manager::reconfigure_bg() {
-  m_connection.clear_area(false, m_tray, 0, 0, m_opts.win_size.w, m_opts.win_size.h);
-}
-
-/**
  * Refresh the bar window by clearing it along with each client window
  */
 void tray_manager::refresh_window() {
-  if (!m_activated || !m_mapped || !m_mtx.try_lock()) {
+  if (!m_activated || m_hidden || !m_mtx.try_lock()) {
     return;
   }
 
   std::lock_guard<mutex> lock(m_mtx, std::adopt_lock);
 
   m_log.trace("tray: Refreshing window");
-
-  auto width = calculate_w();
-  auto height = calculate_h();
-
-  m_connection.clear_area(0, m_tray, 0, 0, width, height);
 
   for (auto& client : m_clients) {
     try {
@@ -380,20 +279,14 @@ void tray_manager::refresh_window() {
   }
 
   m_connection.flush();
-
-  if (has_mapped_clients()) {
-    m_opts.win_size.w = width;
-  } else {
-    m_opts.win_size.w = 0;
-  }
+  m_opts.win_size.w = calculate_w();
 }
 
 /**
  * Redraw window
  */
 void tray_manager::redraw_window() {
-  m_log.info("Redraw tray container (id=%s)", m_connection.id(m_tray));
-  reconfigure_bg();
+  m_log.info("Redraw tray container");
   refresh_window();
 }
 
@@ -405,66 +298,6 @@ void tray_manager::query_atom() {
   string name{"_NET_SYSTEM_TRAY_S" + to_string(m_connection.default_screen())};
   auto reply = m_connection.intern_atom(false, name.length(), name.c_str());
   m_atom = reply.atom();
-}
-
-/**
- * Create tray window
- */
-void tray_manager::create_window() {
-  m_log.trace("tray: Create tray window");
-
-  // clang-format off
-  auto win = winspec(m_connection)
-    << cw_size(calculate_w(), calculate_h())
-    << cw_pos(calculate_x(calculate_w()), calculate_y())
-    << cw_depth(XCB_COPY_FROM_PARENT)
-    << cw_visual(XCB_COPY_FROM_PARENT)
-    << cw_params_colormap(XCB_COPY_FROM_PARENT)
-    << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
-    << cw_params_back_pixmap(XCB_BACK_PIXMAP_PARENT_RELATIVE)
-    << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
-    << cw_params_event_mask(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
-        |XCB_EVENT_MASK_STRUCTURE_NOTIFY
-        |XCB_EVENT_MASK_EXPOSURE)
-    << cw_parent(m_opts.bar_window);
-  // clang-format on
-
-  m_tray = win << cw_flush(true);
-  m_log.info("Tray window: %s", m_connection.id(m_tray));
-
-  const unsigned shadow{0};
-  m_connection.change_property(XCB_PROP_MODE_REPLACE, m_tray, _COMPTON_SHADOW, XCB_ATOM_CARDINAL, 32, 1, &shadow);
-}
-
-/**
- * Set window WM hints
- */
-void tray_manager::set_wm_hints() {
-  const xcb_visualid_t visual{m_bar_opts.x_data.visual->visual_id};
-  const uint32_t orientation{_NET_SYSTEM_TRAY_ORIENTATION_HORZ};
-
-  m_log.trace("bar: Set window WM_NAME / WM_CLASS");
-  icccm_util::set_wm_name(m_connection, m_tray, TRAY_WM_NAME, 19_z, TRAY_WM_CLASS, 12_z);
-
-  m_log.trace("tray: Set window WM_PROTOCOLS");
-  icccm_util::set_wm_protocols(m_connection, m_tray, {WM_DELETE_WINDOW, WM_TAKE_FOCUS});
-
-  m_log.trace("tray: Set window _NET_WM_WINDOW_TYPE");
-  ewmh_util::set_wm_window_type(m_tray, {_NET_WM_WINDOW_TYPE_DOCK, _NET_WM_WINDOW_TYPE_NORMAL});
-
-  m_log.trace("tray: Set window _NET_WM_STATE");
-  ewmh_util::set_wm_state(m_tray, {_NET_WM_STATE_SKIP_TASKBAR});
-
-  m_log.trace("tray: Set window _NET_WM_PID");
-  ewmh_util::set_wm_pid(m_tray);
-
-  m_log.trace("tray: Set window _NET_SYSTEM_TRAY_VISUAL");
-  xcb_change_property(
-      m_connection, XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_VISUAL, XCB_ATOM_VISUALID, 32, 1, &visual);
-
-  m_log.trace("tray: Set window _NET_SYSTEM_TRAY_ORIENTATION");
-  xcb_change_property(m_connection, XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_ORIENTATION,
-      _NET_SYSTEM_TRAY_ORIENTATION, 32, 1, &orientation);
 }
 
 /**
@@ -489,7 +322,7 @@ void tray_manager::set_tray_colors() {
   };
 
   m_connection.change_property(
-      XCB_PROP_MODE_REPLACE, m_tray, _NET_SYSTEM_TRAY_COLORS, XCB_ATOM_CARDINAL, 32, 12, colors);
+      XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_COLORS, XCB_ATOM_CARDINAL, 32, 12, colors);
 }
 
 /**
@@ -505,16 +338,16 @@ void tray_manager::acquire_selection() {
     return;
   }
 
-  if (owner == m_tray) {
+  if (owner == m_opts.selection_owner) {
     m_log.trace("tray: Already managing the systray selection");
     m_acquired_selection = true;
   } else if ((m_othermanager = owner) != XCB_NONE) {
     m_log.warn("Systray selection already managed (window=%s)", m_connection.id(owner));
     track_selection_owner(m_othermanager);
   } else {
-    m_log.trace("tray: Change selection owner to %s", m_connection.id(m_tray));
-    m_connection.set_selection_owner_checked(m_tray, m_atom, XCB_CURRENT_TIME);
-    if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_tray) {
+    m_log.trace("tray: Change selection owner to %s", m_connection.id(m_opts.selection_owner));
+    m_connection.set_selection_owner_checked(m_opts.selection_owner, m_atom, XCB_CURRENT_TIME);
+    if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_opts.selection_owner) {
       throw application_error("Failed to get control of the systray selection");
     }
     m_acquired_selection = true;
@@ -530,7 +363,7 @@ void tray_manager::notify_clients() {
     auto message = m_connection.make_client_message(MANAGER, m_connection.root());
     message.data.data32[0] = XCB_CURRENT_TIME;
     message.data.data32[1] = m_atom;
-    message.data.data32[2] = m_tray;
+    message.data.data32[2] = m_opts.selection_owner;
     m_connection.send_client_message(message, m_connection.root());
   }
 }
@@ -568,7 +401,7 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   try {
-    tray_client client(m_log, m_connection, m_tray, win, m_opts.client_size);
+    tray_client client(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size);
 
     try {
       client.query_xembed();
@@ -604,18 +437,12 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int tray_manager::calculate_x(unsigned width) const {
-  auto x = m_bar_opts.inner_area(false).x + m_opts.pos.x + m_opts.offset.x;
-  if (m_opts.tray_position == tray_postition::RIGHT) {
-    x -= ((m_opts.client_size.w + m_opts.spacing) * m_clients.size() + m_opts.spacing);
-  } else if (m_opts.tray_position == tray_postition::CENTER) {
-    x -= (width / 2) - (m_opts.client_size.w / 2);
-  }
-  return x;
+int tray_manager::calculate_x() const {
+  return m_bar_opts.inner_area(false).x + m_opts.pos.x;
 }
 
 int tray_manager::calculate_y() const {
-  return m_bar_opts.inner_area(false).y + m_opts.pos.y + m_opts.offset.y;
+  return m_bar_opts.inner_area(false).y + m_opts.pos.y;
 }
 
 unsigned tray_manager::calculate_w() const {
@@ -695,20 +522,21 @@ bool tray_manager::has_mapped_clients() const {
 }
 
 bool tray_manager::change_visibility(bool visible) {
-  bool has_clients = has_mapped_clients();
+  if (!m_activated || m_hidden == !visible) {
+    return false;
+  }
 
-  m_log.trace("tray: visibility_change (state=%i, activated=%i, mapped=%i, hidden=%i)", visible,
-      static_cast<bool>(m_activated), static_cast<bool>(m_mapped), static_cast<bool>(m_hidden));
+  m_log.trace("tray: visibility_change (state=%i, activated=%i, hidden=%i)", visible, static_cast<bool>(m_activated),
+      static_cast<bool>(m_hidden));
 
   m_hidden = !visible;
 
-  if (!m_activated) {
-    return false;
-  } else if (!m_hidden && !m_mapped && has_clients) {
-    m_connection.map_window(m_tray);
-  } else if ((!has_clients || m_hidden) && m_mapped) {
-    m_connection.unmap_window(m_tray);
-  } else if (m_mapped && !m_hidden && has_clients) {
+  for (auto& client : m_clients) {
+    client.hidden(m_hidden);
+    client.ensure_state();
+  }
+
+  if (!m_hidden) {
     redraw_window();
   }
 
@@ -742,9 +570,9 @@ void tray_manager::handle(const evt::visibility_notify& evt) {
 void tray_manager::handle(const evt::client_message& evt) {
   if (!m_activated) {
     return;
-  } else if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_tray) {
+  } else if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW &&
+             evt->window == m_opts.selection_owner) {
     m_log.notice("Received WM_DELETE");
-    m_tray = 0;
     deactivate();
   } else if (evt->type == _NET_SYSTEM_TRAY_OPCODE && evt->format == 32) {
     m_log.trace("tray: Received client_message");
@@ -802,7 +630,7 @@ void tray_manager::handle(const evt::selection_clear& evt) {
     return;
   } else if (evt->selection != m_atom) {
     return;
-  } else if (evt->owner != m_tray) {
+  } else if (evt->owner != m_opts.selection_owner) {
     return;
   }
 
@@ -882,9 +710,7 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
  * Event callback : XCB_DESTROY_NOTIFY
  */
 void tray_manager::handle(const evt::destroy_notify& evt) {
-  if (m_activated && evt->window == m_tray) {
-    deactivate();
-  } else if (!m_activated && evt->window == m_othermanager) {
+  if (!m_activated && evt->window == m_othermanager) {
     m_log.info("Systray selection unmanaged... re-activating");
     activate();
   } else if (m_activated && is_embedded(evt->window)) {
@@ -898,7 +724,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
  * Event callback : XCB_MAP_NOTIFY
  */
 void tray_manager::handle(const evt::map_notify& evt) {
-  if (m_activated && evt->window == m_tray) {
+  if (m_activated && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     m_mapped = true;
@@ -917,7 +743,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void tray_manager::handle(const evt::unmap_notify& evt) {
-  if (m_activated && evt->window == m_tray) {
+  if (m_activated && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Update container mapped flag");
     m_mapped = false;
@@ -937,14 +763,6 @@ bool tray_manager::on(const signals::ui::visibility_change& evt) {
   return change_visibility(evt.cast());
 }
 
-bool tray_manager::on(const signals::ui::dim_window& evt) {
-  if (m_activated) {
-    ewmh_util::set_wm_window_opacity(m_tray, evt.cast() * 0xFFFFFFFF);
-  }
-  // let the event bubble
-  return false;
-}
-
 // TODO maybe remove signal
 bool tray_manager::on(const signals::ui::update_background&) {
   redraw_window();
@@ -961,11 +779,7 @@ bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_visibility& evt) {
-  if (evt.cast() == m_hidden && m_opts.tray_position == tray_postition::MODULE) {
-    return change_visibility(evt.cast());
-  } else {
-    return true;
-  }
+  return change_visibility(evt.cast());
 }
 
 POLYBAR_NS_END

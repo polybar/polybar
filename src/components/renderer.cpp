@@ -21,7 +21,7 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt, tray_manager& tray) {
+renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
   // clang-format off
   return std::make_unique<renderer>(
       connection::make(),
@@ -30,8 +30,7 @@ renderer::make_type renderer::make(const bar_settings& bar, tags::action_context
       logger::make(),
       forward<decltype(bar)>(bar),
       background_manager::make(),
-      action_ctxt,
-      tray);
+      action_ctxt);
   // clang-format on
 }
 
@@ -39,15 +38,14 @@ renderer::make_type renderer::make(const bar_settings& bar, tags::action_context
  * Construct renderer instance
  */
 renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
-    const bar_settings& bar, background_manager& background, tags::action_context& action_ctxt, tray_manager& tray)
+    const bar_settings& bar, background_manager& background, tags::action_context& action_ctxt)
     : renderer_interface(action_ctxt)
     , m_connection(conn)
     , m_sig(sig)
     , m_conf(conf)
     , m_log(logger)
     , m_bar(forward<const bar_settings&>(bar))
-    , m_rect(m_bar.inner_area())
-    , m_tray(tray) {
+    , m_rect(m_bar.inner_area()) {
   m_sig.attach(this);
 
   m_log.trace("renderer: Get TrueColor visual");
@@ -378,7 +376,6 @@ void renderer::flush() {
   m_connection.clear_area(0, m_window, 0, 0, m_bar.size.w, m_bar.size.h);
   // m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();
-  m_tray.reconfigure_bg();
 
   if (!m_snapshot_dst.empty()) {
     try {

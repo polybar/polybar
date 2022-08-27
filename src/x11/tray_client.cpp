@@ -136,7 +136,17 @@ bool tray_client::mapped() const {
  * Set client window mapped state
  */
 void tray_client::mapped(bool state) {
+  m_log.trace("tray(%s): set mapped: %i", m_connection.id(client()), state);
   m_mapped = state;
+}
+
+/**
+ * Sets the client window's visibility.
+ *
+ * Use this to trigger a mapping/unmapping
+ */
+void tray_client::hidden(bool state) {
+  m_hidden = state;
 }
 
 xcb_window_t tray_client::embedder() const {
@@ -181,11 +191,18 @@ void tray_client::ensure_state() const {
     should_be_mapped = m_xembed.is_mapped();
   }
 
-  if (!mapped() && should_be_mapped) {
+  if (m_hidden) {
+    should_be_mapped = false;
+  }
+
+  m_log.trace(
+      "tray(%s): ensure_state (mapped=%i, should_be_mapped=%i)", m_connection.id(client()), mapped(), should_be_mapped);
+
+  if (should_be_mapped) {
     m_log.trace("tray(%s): Map client", m_connection.id(client()));
     m_connection.map_window_checked(embedder());
     m_connection.map_window_checked(client());
-  } else if (mapped() && !should_be_mapped) {
+  } else {
     m_log.trace("tray(%s): Unmap client", m_connection.id(client()));
     m_connection.unmap_window_checked(client());
     m_connection.unmap_window_checked(embedder());
