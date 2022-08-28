@@ -716,15 +716,6 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
   }
 }
 
-/**
- * Signal handler connected to the bar window's visibility change signal.
- * This is used as a fallback in case the window restacking fails. It will
- * toggle the tray window whenever the visibility of the bar window changes.
- */
-bool tray_manager::on(const signals::ui::visibility_change& evt) {
-  return change_visibility(evt.cast());
-}
-
 // TODO maybe remove signal
 bool tray_manager::on(const signals::ui::update_background&) {
   redraw_window();

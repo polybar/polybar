@@ -60,7 +60,7 @@ class tray_manager
     : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
           evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
           evt::map_notify, evt::unmap_notify>,
-      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::visibility_change, signals::ui::update_background,
+      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
           signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
   using make_type = unique_ptr<tray_manager>;
@@ -126,7 +126,6 @@ class tray_manager
   void handle(const evt::map_notify& evt) override;
   void handle(const evt::unmap_notify& evt) override;
 
-  bool on(const signals::ui::visibility_change& evt) override;
   bool on(const signals::ui::update_background& evt) override;
   bool on(const signals::ui_tray::tray_pos_change& evt) override;
   bool on(const signals::ui_tray::tray_visibility& evt) override;
