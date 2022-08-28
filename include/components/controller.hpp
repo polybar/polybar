@@ -62,6 +62,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
 
  protected:
   void trigger_notification();
+  void start_modules();
   void read_events(bool confwatch);
   void process_inputdata(string&& cmd);
   bool process_update(bool force);

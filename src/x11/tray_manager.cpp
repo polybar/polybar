@@ -65,14 +65,12 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
+/**
+ * TODO load settings from module section
+ */
 void tray_manager::setup(const string& tray_module_name) {
   const config& conf = config::make();
   auto bs = conf.section();
-
-  // TODO remove check once part of tray module
-  if (tray_module_name.empty()) {
-    return;
-  }
 
   auto inner_area = m_bar_opts.inner_area();
   unsigned client_height = inner_area.height;
@@ -98,6 +96,11 @@ void tray_manager::setup(const string& tray_module_name) {
   m_opts.spacing += conf.get<unsigned>(bs, "tray-padding", 0);
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
+
+  if (m_bar_opts.x_data.window == XCB_NONE) {
+    m_log.err("tray: No bar window found, disabling tray");
+    return;
+  }
 
   // Activate the tray manager
   query_atom();

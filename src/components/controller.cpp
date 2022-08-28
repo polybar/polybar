@@ -100,27 +100,6 @@ bool controller::run(bool writeback, string snapshot_dst, bool confwatch) {
 
   m_sig.attach(this);
 
-  size_t started_modules{0};
-  for (const auto& module : m_modules) {
-    auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
-
-    if (evt_handler != nullptr) {
-      evt_handler->connect(m_connection);
-    }
-
-    try {
-      m_log.info("Starting %s", module->name());
-      module->start();
-      started_modules++;
-    } catch (const application_error& err) {
-      m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
-    }
-  }
-
-  if (!started_modules) {
-    throw application_error("No modules started");
-  }
-
   m_connection.flush();
 
   read_events(confwatch);
@@ -242,6 +221,29 @@ void controller::screenshot_handler() {
   trigger_update(true);
 }
 
+void controller::start_modules() {
+  size_t started_modules{0};
+  for (const auto& module : m_modules) {
+    auto evt_handler = dynamic_cast<event_handler_interface*>(&*module);
+
+    if (evt_handler != nullptr) {
+      evt_handler->connect(m_connection);
+    }
+
+    try {
+      m_log.info("Starting %s", module->name());
+      module->start();
+      started_modules++;
+    } catch (const application_error& err) {
+      m_log.err("Failed to start '%s' (reason: %s)", module->name(), err.what());
+    }
+  }
+
+  if (!started_modules) {
+    throw application_error("No modules started");
+  }
+}
+
 /**
  * Read events from configured file descriptors
  */
@@ -251,6 +253,8 @@ void controller::read_events(bool confwatch) {
   if (!m_writeback) {
     m_bar->start(m_tray_module_name);
   }
+
+  start_modules();
 
   auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
   poll_handle.start(
