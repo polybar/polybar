@@ -26,15 +26,17 @@ namespace modules {
   bool tray_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_TRAY) {
       builder->control(tags::controltag::t);
-      extent_val offset_extent = {extent_type::PIXEL, static_cast<float>(m_width)};
+      extent_val offset_extent = {extent_type::PIXEL, static_cast<float>(m_tray.get_width())};
       builder->offset(offset_extent);
       return true;
     }
     return false;
   }
 
+  /**
+   * Replace signal with callback passed to tray.
+   */
   bool tray_module::on(const signals::ui_tray::tray_width_change& evt) {
-    m_width = evt.cast();
     broadcast();
     return true;
   }

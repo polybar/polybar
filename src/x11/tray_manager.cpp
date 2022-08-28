@@ -111,6 +111,10 @@ bool tray_manager::running() const {
   return m_activated;
 }
 
+int tray_manager::get_width() const {
+  return m_tray_width;
+}
+
 /**
  * Activate systray management
  */
@@ -212,7 +216,14 @@ void tray_manager::reconfigure() {
  */
 void tray_manager::reconfigure_window() {
   m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i)", static_cast<bool>(m_hidden), m_clients.size());
-  m_tray_width = calculate_w();
+  update_width(calculate_w());
+}
+
+void tray_manager::update_width(unsigned new_width) {
+  if (m_tray_width != new_width) {
+    m_tray_width = new_width;
+    m_sig.emit(signals::ui_tray::tray_width_change{});
+  }
 }
 
 /**
@@ -235,8 +246,6 @@ void tray_manager::reconfigure_clients() {
       remove_client(*it, false);
     }
   }
-
-  m_sig.emit(signals::ui_tray::tray_width_change{m_tray_width});
 }
 
 /**
@@ -691,7 +700,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     redraw_window();
-  } else if (is_embedded(evt->window)) {
+  } else if (is_embedded(evt->window)) { // TODO FIXME evt->window points to the wrapper window
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
     auto client = find_client(evt->window);
@@ -707,7 +716,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void tray_manager::handle(const evt::unmap_notify& evt) {
-  if (m_activated && is_embedded(evt->window)) {
+  if (m_activated && is_embedded(evt->window)) { // TODO FIXME evt->window points to the wrapper window
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Set client unmapped");
     auto client = find_client(evt->window);

@@ -101,7 +101,7 @@ namespace signals {
   } // namespace ui
 
   namespace ui_tray {
-    struct tray_width_change : public detail::value_signal<tray_width_change, unsigned int> {
+    struct tray_width_change : public detail::base_signal<tray_width_change> {
       using base_type::base_type;
     };
     struct tray_pos_change : public detail::value_signal<tray_pos_change, int> {

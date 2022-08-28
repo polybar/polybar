@@ -56,12 +56,11 @@ struct tray_settings {
   xcb_window_t selection_owner{XCB_NONE};
 };
 
-class tray_manager
-    : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message, evt::configure_request,
-          evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
-          evt::map_notify, evt::unmap_notify>,
-      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
-          signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
+class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
+                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
+                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
+                     public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
+                         signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
   using make_type = unique_ptr<tray_manager>;
   static make_type make(const bar_settings& bar_opts);
@@ -71,10 +70,10 @@ class tray_manager
   ~tray_manager();
 
   bool running() const;
+  int get_width() const;
 
   void setup(const string& tray_module_name);
   void activate();
-  void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);
   void reconfigure();
 
@@ -107,6 +106,8 @@ class tray_manager
   unsigned calculate_w() const;
 
   int calculate_client_y();
+
+  void update_width(unsigned new_width);
 
   bool is_embedded(const xcb_window_t& win) const;
   tray_client* find_client(const xcb_window_t& win);

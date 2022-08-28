@@ -27,8 +27,6 @@ namespace modules {
     static constexpr const char* TAG_TRAY{"<tray>"};
 
     tray_manager m_tray;
-
-    int m_width{0};
   };
 } // namespace modules
 POLYBAR_NS_END

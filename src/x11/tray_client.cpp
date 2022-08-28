@@ -195,8 +195,8 @@ void tray_client::ensure_state() const {
     should_be_mapped = false;
   }
 
-  m_log.trace(
-      "tray(%s): ensure_state (mapped=%i, should_be_mapped=%i)", m_connection.id(client()), mapped(), should_be_mapped);
+  m_log.trace("tray(%s): ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", m_connection.id(client()), m_hidden,
+      mapped(), should_be_mapped);
 
   if (should_be_mapped) {
     m_log.trace("tray(%s): Map client", m_connection.id(client()));
