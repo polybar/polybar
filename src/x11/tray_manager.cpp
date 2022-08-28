@@ -75,9 +75,6 @@ void tray_manager::setup(const string& tray_module_name) {
   }
 
   auto inner_area = m_bar_opts.inner_area();
-  m_opts.win_size.w = 0;
-  m_opts.win_size.h = inner_area.height;
-
   unsigned client_height = inner_area.height;
 
   auto maxsize = conf.get<unsigned>(bs, "tray-maxsize", 16);
@@ -86,12 +83,11 @@ void tray_manager::setup(const string& tray_module_name) {
     client_height = maxsize;
   }
 
-  m_opts.client_size = {client_height, client_height};
-
   // Apply user-defined scaling
   auto scale = conf.get(bs, "tray-scale", 1.0);
-  m_opts.client_size.w *= scale;
-  m_opts.win_size.h *= scale;
+  client_height *= scale;
+
+  m_opts.client_size = {client_height, client_height};
 
   // Set user-defined foreground and background colors.
   // TODO maybe remove
@@ -108,11 +104,8 @@ void tray_manager::setup(const string& tray_module_name) {
   activate();
 }
 
-/**
- * Get the settings container
- */
-const tray_settings tray_manager::settings() const {
-  return m_opts;
+bool tray_manager::running() const {
+  return m_activated;
 }
 
 /**
@@ -125,7 +118,6 @@ void tray_manager::activate() {
 
   m_log.info("Activating tray manager");
   m_activated = true;
-  m_opts.running = true;
 
   m_sig.attach(this);
 
@@ -167,7 +159,6 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_log.info("Deactivating tray manager");
   m_activated = false;
-  m_opts.running = false;
 
   m_sig.detach(this);
 
@@ -179,8 +170,6 @@ void tray_manager::deactivate(bool clear_selection) {
   m_log.trace("tray: Unembed clients");
   m_clients.clear();
 
-  m_opts.win_size.w = 0;
-  m_opts.num_mapped_clients = 0;
   m_acquired_selection = false;
 
   m_connection.flush();
@@ -198,19 +187,17 @@ void tray_manager::reconfigure() {
     std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
 
     try {
-      reconfigure_clients();
-    } catch (const exception& err) {
-      m_log.err("Failed to reconfigure tray clients (%s)", err.what());
-    }
-    try {
       reconfigure_window();
     } catch (const exception& err) {
       m_log.err("Failed to reconfigure tray window (%s)", err.what());
     }
 
-    m_opts.num_mapped_clients = mapped_clients();
+    try {
+      reconfigure_clients();
+    } catch (const exception& err) {
+      m_log.err("Failed to reconfigure tray clients (%s)", err.what());
+    }
     guard.unlock();
-    refresh_window();
     m_connection.flush();
   }
 
@@ -221,15 +208,8 @@ void tray_manager::reconfigure() {
  * Reconfigure container window
  */
 void tray_manager::reconfigure_window() {
-  m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i, mapped_clients=%i)", static_cast<bool>(m_hidden),
-      m_clients.size(), mapped_clients());
-
-  if (!m_opts.selection_owner) {
-    return;
-  }
-
-  auto width = calculate_w();
-  m_opts.win_size.w = width;
+  m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i)", static_cast<bool>(m_hidden), m_clients.size());
+  m_tray_width = calculate_w();
 }
 
 /**
@@ -248,11 +228,12 @@ void tray_manager::reconfigure_clients() {
       x += m_opts.client_size.w + m_opts.spacing;
     } catch (const xpp::x::error::window& err) {
       // TODO print error
+      m_log.err("Failed to reconfigure client (%s), removing ... (%s)", m_connection.id(it->client()), err.what());
       remove_client(*it, false);
     }
   }
 
-  m_sig.emit(signals::ui_tray::tray_width_change{calculate_w()});
+  m_sig.emit(signals::ui_tray::tray_width_change{m_tray_width});
 }
 
 /**
@@ -279,7 +260,6 @@ void tray_manager::refresh_window() {
   }
 
   m_connection.flush();
-  m_opts.win_size.w = calculate_w();
 }
 
 /**
@@ -438,11 +418,11 @@ void tray_manager::process_docking_request(xcb_window_t win) {
  * Calculate x position of tray window
  */
 int tray_manager::calculate_x() const {
-  return m_bar_opts.inner_area(false).x + m_opts.pos.x;
+  return m_bar_opts.inner_area(false).x + m_pos.x;
 }
 
 int tray_manager::calculate_y() const {
-  return m_bar_opts.inner_area(false).y + m_opts.pos.y;
+  return m_bar_opts.inner_area(false).y + m_pos.y;
 }
 
 unsigned tray_manager::calculate_w() const {
@@ -458,17 +438,10 @@ unsigned tray_manager::calculate_w() const {
 }
 
 /**
- * Calculate height of tray window
- */
-unsigned tray_manager::calculate_h() const {
-  return m_opts.win_size.h;
-}
-
-/**
  * Calculate y position of client window
  */
 int tray_manager::calculate_client_y() {
-  return (m_opts.win_size.h - m_opts.client_size.h) / 2;
+  return (m_bar_opts.inner_area(true).height - m_opts.client_size.h) / 2;
 }
 
 /**
@@ -508,17 +481,6 @@ void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
   if (reconfigure) {
     tray_manager::reconfigure();
   }
-}
-
-/**
- * Get number of mapped clients
- */
-int tray_manager::mapped_clients() const {
-  return std::count_if(m_clients.begin(), m_clients.end(), [](const auto& c) { return c.mapped(); });
-}
-
-bool tray_manager::has_mapped_clients() const {
-  return std::find_if(m_clients.begin(), m_clients.end(), [](const auto& c) { return c.mapped(); }) != m_clients.end();
 }
 
 bool tray_manager::change_visibility(bool visible) {
@@ -727,13 +689,14 @@ void tray_manager::handle(const evt::map_notify& evt) {
   if (m_activated && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
-    m_mapped = true;
     redraw_window();
   } else if (is_embedded(evt->window)) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
-    find_client(evt->window)->mapped(true);
-    if (mapped_clients() > m_opts.num_mapped_clients) {
+    auto client = find_client(evt->window);
+
+    if (!client->mapped()) {
+      client->mapped(true);
       reconfigure();
     }
   }
@@ -743,14 +706,15 @@ void tray_manager::handle(const evt::map_notify& evt) {
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void tray_manager::handle(const evt::unmap_notify& evt) {
-  if (m_activated && evt->window == m_opts.selection_owner) {
-    m_log.trace("tray: Received unmap_notify");
-    m_log.trace("tray: Update container mapped flag");
-    m_mapped = false;
-  } else if (m_activated && is_embedded(evt->window)) {
+  if (m_activated && is_embedded(evt->window)) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Set client unmapped");
-    find_client(evt->window)->mapped(false);
+    auto client = find_client(evt->window);
+
+    if (client->mapped()) {
+      client->mapped(false);
+      reconfigure();
+    }
   }
 }
 
@@ -771,9 +735,12 @@ bool tray_manager::on(const signals::ui::update_background&) {
 }
 
 bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
-  m_opts.pos.x = std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - calculate_w())));
+  int new_x = std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - m_tray_width)));
 
-  reconfigure_window();
+  if (new_x != m_pos.x) {
+    m_pos.x = new_x;
+    reconfigure();
+  }
 
   return true;
 }

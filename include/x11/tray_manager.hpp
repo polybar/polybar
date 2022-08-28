@@ -35,31 +35,11 @@ using std::atomic;
 class connection;
 class bg_slice;
 
-// TODO move mutable options into tray_manager class
 struct tray_settings {
-  bool running{false};
-
-  /**
-   * Specifies the top-left corner of the tray area relative to inner area of the bar.
-   */
-  position pos{0, 0};
-
-  /**
-   * Current dimensions of the tray window.
-   *
-   * TODO setting almost never used -> refactor
-   */
-  size win_size{0, 0};
-
   /**
    * Dimensions for client windows.
    */
   size client_size{0, 0};
-
-  /**
-   * Number of clients currently mapped.
-   */
-  int num_mapped_clients{0};
 
   /**
    * Number of pixels added between tray icons
@@ -90,8 +70,7 @@ class tray_manager
 
   ~tray_manager();
 
-  // TODO only expose necessary information (e.g. running)
-  const tray_settings settings() const;
+  bool running() const;
 
   void setup(const string& tray_module_name);
   void activate();
@@ -126,7 +105,6 @@ class tray_manager
   int calculate_y() const;
 
   unsigned calculate_w() const;
-  unsigned calculate_h() const;
 
   int calculate_client_y();
 
@@ -134,8 +112,6 @@ class tray_manager
   tray_client* find_client(const xcb_window_t& win);
   void remove_client(const tray_client& client, bool reconfigure = true);
   void remove_client(xcb_window_t win, bool reconfigure = true);
-  int mapped_clients() const;
-  bool has_mapped_clients() const;
   bool change_visibility(bool visible);
 
   void handle(const evt::expose& evt) override;
@@ -164,11 +140,30 @@ class tray_manager
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
 
-  xcb_atom_t m_atom{0};
-  xcb_window_t m_othermanager{0};
+  /**
+   * Systray selection atom _NET_SYSTEM_TRAY_Sn
+   */
+  xcb_atom_t m_atom{XCB_NONE};
 
+  /**
+   * Owner of systray selection (if we don't own it)
+   */
+  xcb_window_t m_othermanager{XCB_NONE};
+
+  /**
+   * Specifies the top-left corner of the tray area relative to inner area of the bar.
+   */
+  position m_pos{0, 0};
+
+  /**
+   * Current width of the tray.
+   */
+  unsigned m_tray_width{0};
+
+  /**
+   * Whether the tray is running
+   */
   atomic<bool> m_activated{false};
-  atomic<bool> m_mapped{false};
   atomic<bool> m_hidden{false};
   atomic<bool> m_acquired_selection{false};
 
