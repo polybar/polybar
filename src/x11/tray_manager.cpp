@@ -174,6 +174,7 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_connection.flush();
 
+  // TODO update through module
   m_sig.emit(signals::eventqueue::notify_forcechange{});
 }
 
@@ -183,24 +184,23 @@ void tray_manager::deactivate(bool clear_selection) {
 void tray_manager::reconfigure() {
   if (!m_opts.selection_owner) {
     return;
-  } else if (m_mtx.try_lock()) {
-    std::unique_lock<mutex> guard(m_mtx, std::adopt_lock);
-
-    try {
-      reconfigure_window();
-    } catch (const exception& err) {
-      m_log.err("Failed to reconfigure tray window (%s)", err.what());
-    }
-
-    try {
-      reconfigure_clients();
-    } catch (const exception& err) {
-      m_log.err("Failed to reconfigure tray clients (%s)", err.what());
-    }
-    guard.unlock();
-    m_connection.flush();
   }
 
+  try {
+    reconfigure_window();
+  } catch (const exception& err) {
+    m_log.err("Failed to reconfigure tray window (%s)", err.what());
+  }
+
+  try {
+    reconfigure_clients();
+  } catch (const exception& err) {
+    m_log.err("Failed to reconfigure tray clients (%s)", err.what());
+  }
+
+  m_connection.flush();
+
+  // TODO update through module
   m_sig.emit(signals::eventqueue::notify_forcechange{});
 }
 
@@ -240,13 +240,11 @@ void tray_manager::reconfigure_clients() {
  * Refresh the bar window by clearing it along with each client window
  */
 void tray_manager::refresh_window() {
-  if (!m_activated || m_hidden || !m_mtx.try_lock()) {
+  if (!m_activated || m_hidden) {
     return;
   }
 
-  std::lock_guard<mutex> lock(m_mtx, std::adopt_lock);
-
-  m_log.trace("tray: Refreshing window");
+  m_log.trace("tray: Refreshing clients");
 
   for (auto& client : m_clients) {
     try {

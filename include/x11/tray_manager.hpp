@@ -157,6 +157,8 @@ class tray_manager
 
   /**
    * Current width of the tray.
+   *
+   * Caches the value calculated from all mapped tray clients.
    */
   unsigned m_tray_width{0};
 
@@ -168,9 +170,6 @@ class tray_manager
   atomic<bool> m_acquired_selection{false};
 
   thread m_delaythread;
-
-  // TODO try to remove mutex
-  mutable mutex m_mtx{};
 
   bool m_firstactivation{true};
 };
