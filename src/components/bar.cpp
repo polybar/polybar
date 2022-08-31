@@ -652,7 +652,6 @@ void bar::handle(const evt::leave_notify&) {
  * Event handler for XCB_MOTION_NOTIFY events
  *
  * Used to change the cursor depending on the module
- * and to trigger hover actions
  */
 void bar::handle(const evt::motion_notify& evt) {
   if (!m_mutex.try_lock()) {
@@ -662,25 +661,9 @@ void bar::handle(const evt::motion_notify& evt) {
   std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
 
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
-  m_motion_pos = evt->event_x;
 
-  tags::action_t m_hover_act_idx = m_action_ctxt->has_action(mousebtn::HOVER, m_motion_pos);
-  string m_hover_act = "";
-  if (m_hover_act_idx != tags::NO_ACTION) {
-    m_hover_act = m_action_ctxt->get_action(m_hover_act_idx);
-    m_log.trace("bar: Detected hover action %s", m_hover_act);
-  }
-  if (m_hover_act != m_last_hover_act) {
-    m_log.trace("bar: Switched hover action from '%s' to '%s'", m_last_hover_act, m_hover_act);
-    if(m_last_hover_act != "") {
-      m_sig.emit(button_press{m_last_hover_act});
-    }
-    if(m_hover_act != "") {
-      m_sig.emit(button_press{m_hover_act});
-    }
-    m_last_hover_act = m_hover_act;
-  }
 #if WITH_XCURSOR
+  m_motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
@@ -867,8 +850,12 @@ bool bar::on(const signals::eventqueue::start&) {
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();
 
-  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || true) { // TODO: remove this atrocity
+  // Subscribe to window enter and leave events
+  // if we should dim the window
+  if (m_opts.dimvalue != 1.0) {
+    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
+  }
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
