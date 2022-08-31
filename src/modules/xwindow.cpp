@@ -1,10 +1,9 @@
 #include "modules/xwindow.hpp"
+
 #include "drawtypes/label.hpp"
-#include "utils/factory.hpp"
+#include "modules/meta/base.inl"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -64,9 +63,7 @@ namespace modules {
   xwindow_module::xwindow_module(const bar_settings& bar, string name_)
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
     // Initialize ewmh atoms
-    if ((ewmh_util::initialize()) == nullptr) {
-      throw module_error("Failed to initialize ewmh atoms");
-    }
+    ewmh_util::initialize();
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
     if (!ewmh_util::supports(_NET_ACTIVE_WINDOW)) {
@@ -105,10 +102,6 @@ namespace modules {
    * Update the currently active window and query its title
    */
   void xwindow_module::update(bool force) {
-    std::lock(m_buildlock, m_updatelock);
-    std::lock_guard<std::mutex> guard_a(m_buildlock, std::adopt_lock);
-    std::lock_guard<std::mutex> guard_b(m_updatelock, std::adopt_lock);
-
     xcb_window_t win;
 
     if (force) {
@@ -138,6 +131,6 @@ namespace modules {
     }
     return false;
   }
-}
+} // namespace modules
 
 POLYBAR_NS_END

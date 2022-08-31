@@ -49,19 +49,32 @@ endforeach()
 # Dummy target that depends on all documentation targets
 add_custom_target(doc ALL DEPENDS ${doc_targets})
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
+if (BUILD_DOC_HTML)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc
   PATTERN ".buildinfo" EXCLUDE)
+endif()
 
 install(FILES ${CMAKE_SOURCE_DIR}/CHANGELOG.md
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT doc)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/config.ini
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples
+  COMPONENT doc)
+
+if (BUILD_DOC_MAN)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.1
   DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
   COMPONENT doc)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.5
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar-msg.1
+  DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+  COMPONENT doc)
+
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/polybar.5
   DESTINATION ${CMAKE_INSTALL_MANDIR}/man5
   COMPONENT doc)
+endif()
+

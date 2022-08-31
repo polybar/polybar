@@ -5,7 +5,6 @@
 #include "components/config.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
-#include "components/taskqueue.hpp"
 #include "components/types.hpp"
 #include "drawtypes/label.hpp"
 #include "events/signal.hpp"
@@ -13,9 +12,9 @@
 #include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
 #include "utils/color.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
+#include "utils/units.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/ewmh.hpp"
@@ -34,25 +33,25 @@
 POLYBAR_NS
 
 using namespace signals::ui;
+using namespace eventloop;
 
 /**
  * Create instance
  */
-bar::make_type bar::make(bool only_initialize_values) {
+bar::make_type bar::make(loop& loop, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
-  return factory_util::unique<bar>(
-        connection::make(),
-        signal_emitter::make(),
-        config::make(),
-        logger::make(),
-        screen::make(),
-        tray_manager::make(),
-        tags::dispatch::make(*action_ctxt),
-        std::move(action_ctxt),
-        taskqueue::make(),
-        only_initialize_values);
+  return std::make_unique<bar>(
+      connection::make(),
+      signal_emitter::make(),
+      config::make(),
+      logger::make(),
+      loop,
+      screen::make(),
+      tags::dispatch::make(*action_ctxt),
+      std::move(action_ctxt),
+      only_initialize_values);
   // clang-format on
 }
 
@@ -61,19 +60,20 @@ bar::make_type bar::make(bool only_initialize_values) {
  *
  * TODO: Break out all tray handling
  */
-bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger,
-    unique_ptr<screen>&& screen, unique_ptr<tray_manager>&& tray_manager, unique_ptr<tags::dispatch>&& dispatch,
-    unique_ptr<tags::action_context>&& action_ctxt, unique_ptr<taskqueue>&& taskqueue, bool only_initialize_values)
+bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
+    unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
+    bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
     , m_conf(config)
     , m_log(logger)
+    , m_loop(loop)
     , m_screen(forward<decltype(screen)>(screen))
-    , m_tray(forward<decltype(tray_manager)>(tray_manager))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))
-    , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt))
-    , m_taskqueue(forward<decltype(taskqueue)>(taskqueue)) {
+    , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
   string bs{m_conf.section()};
+
+  m_tray = tray_manager::make(m_opts);
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
@@ -131,26 +131,30 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
-  try {
-    m_opts.override_redirect = m_conf.get<bool>(bs, "dock");
-    m_conf.warn_deprecated(bs, "dock", "override-redirect");
-  } catch (const key_error& err) {
-    m_opts.override_redirect = m_conf.get(bs, "override-redirect", m_opts.override_redirect);
-  }
+  m_opts.override_redirect = m_conf.deprecated(bs, "dock", "override-redirect", m_opts.override_redirect);
 
   m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
 
-  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
-  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
 #if WITH_XCURSOR
+  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
   if (!m_opts.cursor_click.empty() && !cursor_util::valid(m_opts.cursor_click)) {
     m_log.warn("Ignoring unsupported cursor-click option '%s'", m_opts.cursor_click);
     m_opts.cursor_click.clear();
   }
+
+  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
   if (!m_opts.cursor_scroll.empty() && !cursor_util::valid(m_opts.cursor_scroll)) {
     m_log.warn("Ignoring unsupported cursor-scroll option '%s'", m_opts.cursor_scroll);
     m_opts.cursor_scroll.clear();
+  }
+#else
+  if (m_conf.has(bs, "cursor-click")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-click option");
+  }
+
+  if (m_conf.has(bs, "cursor-scroll")) {
+    m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-scroll option");
   }
 #endif
 
@@ -158,8 +162,40 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
+  // Configure DPI
+  {
+    double dpi_x = 96, dpi_y = 96;
+    if (m_conf.has(m_conf.section(), "dpi")) {
+      dpi_x = dpi_y = m_conf.get<double>("dpi");
+    } else {
+      if (m_conf.has(m_conf.section(), "dpi-x")) {
+        dpi_x = m_conf.get<double>("dpi-x");
+      }
+      if (m_conf.has(m_conf.section(), "dpi-y")) {
+        dpi_y = m_conf.get<double>("dpi-y");
+      }
+    }
+
+    // dpi to be computed
+    if (dpi_x <= 0 || dpi_y <= 0) {
+      auto screen = m_connection.screen();
+      if (dpi_x <= 0) {
+        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
+      }
+      if (dpi_y <= 0) {
+        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
+      }
+    }
+
+    m_opts.dpi_x = dpi_x;
+    m_opts.dpi_y = dpi_y;
+
+    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
+  }
+
   // Load configuration values
-  m_opts.origin = m_conf.get(bs, "bottom", false) ? edge::BOTTOM : edge::TOP;
+
+  m_opts.bottom = m_conf.get(bs, "bottom", m_opts.bottom);
   m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
   m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
   m_opts.locale = m_conf.get(bs, "locale", ""s);
@@ -172,21 +208,25 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
   m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
 
-  auto padding = m_conf.get<unsigned int>(bs, "padding", 0U);
+  auto padding = m_conf.get(bs, "padding", ZERO_SPACE);
   m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
   m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
 
-  auto margin = m_conf.get<unsigned int>(bs, "module-margin", 0U);
+  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACE);
   m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
   m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
+
+  m_opts.double_click_interval = m_conf.get(bs, "double-click-interval", m_opts.double_click_interval);
 
   if (only_initialize_values) {
     return;
   }
 
   // Load values used to adjust the struts atom
-  m_opts.strut.top = m_conf.get("global/wm", "margin-top", 0);
-  m_opts.strut.bottom = m_conf.get("global/wm", "margin-bottom", 0);
+  auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
+  auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
+  m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
@@ -239,44 +279,51 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load over-/underline
   auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = m_conf.get(bs, "line-size", 0);
+  auto line_size = m_conf.get(bs, "line-size", ZERO_PX_EXTENT);
 
-  m_opts.overline.size = m_conf.get(bs, "overline-size", line_size);
+  auto overline_size = m_conf.get(bs, "overline-size", line_size);
+  auto underline_size = m_conf.get(bs, "underline-size", line_size);
+
+  m_opts.overline.size = units_utils::extent_to_pixel_nonnegative(overline_size, m_opts.dpi_y);
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
-  m_opts.underline.size = m_conf.get(bs, "underline-size", line_size);
+  m_opts.underline.size = units_utils::extent_to_pixel_nonnegative(underline_size, m_opts.dpi_y);
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
   auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", ""s);
+  auto border_size = m_conf.get(bs, "border-size", percentage_with_offset{});
   auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
   auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
   auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
   auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
-  m_opts.borders[edge::TOP].size = geom_format_to_pixels(border_top, m_opts.monitor->h);
+  m_opts.borders[edge::TOP].size =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::TOP].color = parse_or_throw_color("border-top-color", border_color);
   m_opts.borders.emplace(edge::BOTTOM, border_settings{});
-  m_opts.borders[edge::BOTTOM].size = geom_format_to_pixels(border_bottom, m_opts.monitor->h);
+  m_opts.borders[edge::BOTTOM].size =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_bottom, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.borders[edge::BOTTOM].color = parse_or_throw_color("border-bottom-color", border_color);
   m_opts.borders.emplace(edge::LEFT, border_settings{});
-  m_opts.borders[edge::LEFT].size = geom_format_to_pixels(border_left, m_opts.monitor->w);
+  m_opts.borders[edge::LEFT].size =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_left, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::LEFT].color = parse_or_throw_color("border-left-color", border_color);
   m_opts.borders.emplace(edge::RIGHT, border_settings{});
-  m_opts.borders[edge::RIGHT].size = geom_format_to_pixels(border_right, m_opts.monitor->w);
+  m_opts.borders[edge::RIGHT].size =
+      units_utils::percentage_with_offset_to_pixel_nonnegative(border_right, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
-  auto w = m_conf.get(m_conf.section(), "width", "100%"s);
-  auto h = m_conf.get(m_conf.section(), "height", "24"s);
-  auto offsetx = m_conf.get(m_conf.section(), "offset-x", ""s);
-  auto offsety = m_conf.get(m_conf.section(), "offset-y", ""s);
+  auto w = m_conf.get(m_conf.section(), "width", percentage_with_offset{100.});
+  auto h = m_conf.get(m_conf.section(), "height", percentage_with_offset{0., {extent_type::PIXEL, 24}});
+  auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
+  auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
 
-  m_opts.size.w = geom_format_to_pixels(w, m_opts.monitor->w);
-  m_opts.size.h = geom_format_to_pixels(h, m_opts.monitor->h);
-  m_opts.offset.x = geom_format_to_pixels(offsetx, m_opts.monitor->w);
-  m_opts.offset.y = geom_format_to_pixels(offsety, m_opts.monitor->h);
+  m_opts.size.w = units_utils::percentage_with_offset_to_pixel_nonnegative(w, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.size.h = units_utils::percentage_with_offset_to_pixel_nonnegative(h, m_opts.monitor->h, m_opts.dpi_y);
+  m_opts.offset.x = units_utils::percentage_with_offset_to_pixel(offsetx, m_opts.monitor->w, m_opts.dpi_x);
+  m_opts.offset.y = units_utils::percentage_with_offset_to_pixel(offsety, m_opts.monitor->h, m_opts.dpi_y);
 
   // Apply offsets
   m_opts.pos.x = m_opts.offset.x + m_opts.monitor->x;
@@ -284,7 +331,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.size.h += m_opts.borders[edge::TOP].size;
   m_opts.size.h += m_opts.borders[edge::BOTTOM].size;
 
-  if (m_opts.origin == edge::BOTTOM) {
+  if (m_opts.bottom) {
     m_opts.pos.y = m_opts.monitor->y + m_opts.monitor->h - m_opts.size.h - m_opts.offset.y;
   }
 
@@ -309,7 +356,6 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
  * Cleanup signal handlers and destroy the bar window
  */
 bar::~bar() {
-  std::lock_guard<std::mutex> guard(m_mutex);
   m_connection.detach_sink(this, SINK_PRIORITY_BAR);
   m_sig.detach(this);
 }
@@ -317,23 +363,17 @@ bar::~bar() {
 /**
  * Get the bar settings container
  */
-const bar_settings bar::settings() const {
+const bar_settings& bar::settings() const {
   return m_opts;
 }
 
 /**
  * Parse input string and redraw the bar window
  *
- * \param data Input string
- * \param force Unless true, do not parse unchanged data
+ * @param data Input string
+ * @param force Unless true, do not parse unchanged data
  */
 void bar::parse(string&& data, bool force) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   bool unchanged = data == m_lastinput;
 
   m_lastinput = data;
@@ -342,21 +382,20 @@ void bar::parse(string&& data, bool force) {
     m_log.trace("bar: Force update");
   } else if (!m_visible) {
     return m_log.trace("bar: Ignoring update (invisible)");
-  } else if (m_opts.shaded) {
-    return m_log.trace("bar: Ignoring update (shaded)");
   } else if (unchanged) {
     return m_log.trace("bar: Ignoring update (unchanged)");
   }
 
   auto rect = m_opts.inner_area();
 
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
-    auto trayalign = m_tray->settings().align;
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots &&
+      m_tray->settings().tray_position != tray_postition::MODULE) {
+    auto tray_pos = m_tray->settings().tray_position;
     auto traywidth = m_tray->settings().configured_w;
-    if (trayalign == alignment::LEFT) {
+    if (tray_pos == tray_postition::LEFT) {
       rect.x += traywidth;
       rect.width -= traywidth;
-    } else if (trayalign == alignment::RIGHT) {
+    } else if (tray_pos == tray_postition::RIGHT) {
       rect.width -= traywidth;
     }
   }
@@ -372,19 +411,12 @@ void bar::parse(string&& data, bool force) {
 
   m_renderer->end();
 
-  const auto check_dblclicks = [&]() -> bool {
-    if (m_action_ctxt->has_double_click()) {
-      return true;
+  m_dblclicks.clear();
+  for (auto&& action : m_opts.actions) {
+    if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
+      m_dblclicks.insert(action.button);
     }
-
-    for (auto&& action : m_opts.actions) {
-      if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
-        return true;
-      }
-    }
-    return false;
-  };
-  m_dblclicks = check_dblclicks();
+  }
 }
 
 /**
@@ -397,10 +429,11 @@ void bar::hide() {
 
   try {
     m_log.info("Hiding bar window");
+    m_visible = false;
+    reconfigure_struts();
     m_sig.emit(visibility_change{false});
     m_connection.unmap_window_checked(m_opts.window);
     m_connection.flush();
-    m_visible = false;
   } catch (const exception& err) {
     m_log.err("Failed to unmap bar window (err=%s", err.what());
   }
@@ -418,14 +451,8 @@ void bar::show() {
   try {
     m_log.info("Showing bar window");
     m_sig.emit(visibility_change{true});
-    /**
-     * First reconfigures the window so that WMs that discard some information
-     * when unmapping have the correct window properties (geometry etc).
-     */
-    reconfigue_window();
-    m_connection.map_window_checked(m_opts.window);
+    map_window();
     m_connection.flush();
-    m_visible = true;
     parse(string{m_lastinput}, true);
   } catch (const exception& err) {
     m_log.err("Failed to map bar window (err=%s", err.what());
@@ -491,7 +518,7 @@ void bar::restack_window() {
   }
 }
 
-void bar::reconfigue_window() {
+void bar::reconfigure_window() {
   m_log.trace("bar: Reconfigure window");
   restack_window();
   reconfigure_geom();
@@ -519,24 +546,46 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
-  auto geom = m_connection.get_geometry(m_screen->root());
-  auto w = m_opts.size.w + m_opts.offset.x;
-  auto h = m_opts.size.h + m_opts.offset.y;
-
-  if (m_opts.origin == edge::BOTTOM) {
-    h += m_opts.strut.top;
-  } else {
-    h += m_opts.strut.bottom;
-  }
-
-  if (m_opts.origin == edge::BOTTOM && m_opts.monitor->y + m_opts.monitor->h < geom->height) {
-    h += geom->height - (m_opts.monitor->y + m_opts.monitor->h);
-  } else if (m_opts.origin != edge::BOTTOM) {
-    h += m_opts.monitor->y;
-  }
-
   window win{m_connection, m_opts.window};
-  win.reconfigure_struts(w, h, m_opts.pos.x, m_opts.origin == edge::BOTTOM);
+  if (m_visible) {
+    auto geom = m_connection.get_geometry(m_screen->root());
+    int h = m_opts.size.h + m_opts.offset.y;
+
+    // Apply user-defined margins
+    if (m_opts.bottom) {
+      h += m_opts.strut.top;
+    } else {
+      h += m_opts.strut.bottom;
+    }
+
+    h = std::max(h, 0);
+
+    int correction = 0;
+
+    // Only apply correction if any space is requested
+    if (h > 0) {
+      /*
+       * Strut coordinates have to be relative to root window and not any monitor.
+       * If any monitor is not aligned at the top or bottom
+       */
+      if (m_opts.bottom) {
+        /*
+         * For bottom-algined bars, the correction is the number of pixels between
+         * the root window's bottom edge and the monitor's bottom edge
+         */
+        correction = geom->height - (m_opts.monitor->y + m_opts.monitor->h);
+      } else {
+        // For top-aligned bars, we simply add the monitor's y-position
+        correction = m_opts.monitor->y;
+      }
+
+      correction = std::max(correction, 0);
+    }
+    win.reconfigure_struts(m_opts.size.w, h + correction, m_opts.pos.x, m_opts.bottom);
+  } else {
+    // Set struts to 0 for invisible bars
+    win.reconfigure_struts(0, 0, 0, m_opts.bottom);
+  }
 }
 
 /**
@@ -559,6 +608,8 @@ void bar::reconfigure_wm_hints() {
 
   m_log.trace("bar: Set window _NET_WM_PID");
   ewmh_util::set_wm_pid(win);
+
+  icccm_util::set_wm_size_hints(m_connection, win, m_opts.pos.x, m_opts.pos.y, m_opts.size.w, m_opts.size.h);
 }
 
 /**
@@ -574,6 +625,44 @@ void bar::broadcast_visibility() {
   } else {
     m_sig.emit(visibility_change{true});
   }
+}
+
+void bar::map_window() {
+  m_visible = true;
+
+  /**
+   * First reconfigures the window so that WMs that discard some information
+   * when unmapping have the correct window properties (geometry etc).
+   */
+  reconfigure_window();
+
+  m_log.trace("bar: Map window");
+  m_connection.map_window_checked(m_opts.window);
+
+  /*
+   * Required by AwesomeWM. AwesomeWM does not seem to respect polybar's position if WM_NORMAL_HINTS are set before
+   * mapping. Additionally updating the window position after mapping seems to fix that.
+   */
+  reconfigure_pos();
+}
+
+void bar::trigger_click(mousebtn btn, int pos) {
+  tags::action_t action = m_action_ctxt->has_action(btn, pos);
+
+  if (action != tags::NO_ACTION) {
+    m_log.trace("Found matching input area");
+    m_sig.emit(button_press{m_action_ctxt->get_action(action)});
+    return;
+  }
+
+  for (auto&& action : m_opts.actions) {
+    if (action.button == btn && !action.command.empty()) {
+      m_log.trace("Found matching fallback handler");
+      m_sig.emit(button_press{string{action.command}});
+      return;
+    }
+  }
+  m_log.info("No matching input area found (btn=%i)", static_cast<int>(btn));
 }
 
 /**
@@ -602,21 +691,13 @@ void bar::handle(const evt::destroy_notify& evt) {
  * _NET_WM_WINDOW_OPACITY atom value
  */
 void bar::handle(const evt::enter_notify&) {
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::unshade_window{}); });
-    return;
-  }
-#endif
-#endif
   if (m_opts.dimmed) {
-    m_taskqueue->defer_unique("window-dim", 25ms, [&](size_t) {
+    m_dim_timer.start(25, 0, [this]() {
       m_opts.dimmed = false;
       m_sig.emit(dim_window{1.0});
     });
-  } else if (m_taskqueue->exist("window-dim")) {
-    m_taskqueue->purge("window-dim");
+  } else if (m_dim_timer.is_active()) {
+    m_dim_timer.stop();
   }
 }
 
@@ -628,19 +709,14 @@ void bar::handle(const evt::enter_notify&) {
  * and to trigger hover actions
  */
 void bar::handle(const evt::leave_notify&) {
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_opts.origin == edge::TOP) {
-    m_taskqueue->defer_unique("window-hover", 25ms, [&](size_t) { m_sig.emit(signals::ui::shade_window{}); });
-    return;
-  }
-#endif
-#endif
-  if (!m_opts.dimmed) {
-    m_taskqueue->defer_unique("window-dim", 3s, [&](size_t) {
-      m_opts.dimmed = true;
-      m_sig.emit(dim_window{double(m_opts.dimvalue)});
-    });
+  // Only trigger dimming, if the dim-value is not fully opaque.
+  if (m_opts.dimvalue < 1.0) {
+    if (!m_opts.dimmed) {
+      m_dim_timer.start(3000, 0, [this]() {
+        m_opts.dimmed = true;
+        m_sig.emit(dim_window{double(m_opts.dimvalue)});
+      });
+    }
   }
   if(m_last_hover_act != "") {
     m_sig.emit(button_press{m_last_hover_act});
@@ -654,22 +730,16 @@ void bar::handle(const evt::leave_notify&) {
  * Used to change the cursor depending on the module
  */
 void bar::handle(const evt::motion_notify& evt) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
 #if WITH_XCURSOR
-  m_motion_pos = evt->event_x;
+  int motion_pos = evt->event_x;
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
   const auto has_action = [&](const vector<mousebtn>& buttons) -> bool {
     for (auto btn : buttons) {
-      if (m_action_ctxt->has_action(btn, m_motion_pos) != tags::NO_ACTION) {
+      if (m_action_ctxt->has_action(btn, motion_pos) != tags::NO_ACTION) {
         return true;
       }
     }
@@ -677,21 +747,14 @@ void bar::handle(const evt::motion_notify& evt) {
     return false;
   };
 
-  if (has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT, mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE,
-          mousebtn::DOUBLE_RIGHT})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
-      m_opts.cursor = m_opts.cursor_click;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
-
+  if (!m_opts.cursor_click.empty() && has_action({mousebtn::LEFT, mousebtn::MIDDLE, mousebtn::RIGHT,
+                                          mousebtn::DOUBLE_LEFT, mousebtn::DOUBLE_MIDDLE, mousebtn::DOUBLE_RIGHT})) {
+    change_cursor(m_opts.cursor_click);
     return;
   }
 
-  if (has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+  if (!m_opts.cursor_scroll.empty() && has_action({mousebtn::SCROLL_DOWN, mousebtn::SCROLL_UP})) {
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
 
@@ -699,10 +762,7 @@ void bar::handle(const evt::motion_notify& evt) {
     if (!m_opts.cursor_click.empty() &&
         !(action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN ||
             action.button == mousebtn::NONE)) {
-      if (!string_util::compare(m_opts.cursor, m_opts.cursor_click)) {
-        m_opts.cursor = m_opts.cursor_click;
-        m_sig.emit(cursor_change{string{m_opts.cursor}});
-      }
+      change_cursor(m_opts.cursor_click);
       return true;
     } else if (!m_opts.cursor_scroll.empty() &&
                (action.button == mousebtn::SCROLL_UP || action.button == mousebtn::SCROLL_DOWN)) {
@@ -716,23 +776,20 @@ void bar::handle(const evt::motion_notify& evt) {
   for (auto&& action : m_opts.actions) {
     if (!action.command.empty()) {
       m_log.trace("Found matching fallback handler");
-      if (find_click_area(action))
+      if (find_click_area(action)) {
         return;
+      }
     }
   }
+
   if (found_scroll) {
-    if (!string_util::compare(m_opts.cursor, m_opts.cursor_scroll)) {
-      m_opts.cursor = m_opts.cursor_scroll;
-      m_sig.emit(cursor_change{string{m_opts.cursor}});
-    }
+    change_cursor(m_opts.cursor_scroll);
     return;
   }
-  if (!string_util::compare(m_opts.cursor, "default")) {
-    m_log.trace("No matching cursor area found");
-    m_opts.cursor = "default";
-    m_sig.emit(cursor_change{string{m_opts.cursor}});
-    return;
-  }
+
+  m_log.trace("No matching cursor area found");
+  change_cursor("default");
+  return;
 #endif
 }
 
@@ -742,63 +799,40 @@ void bar::handle(const evt::motion_notify& evt) {
  * Used to map mouse clicks to bar actions
  */
 void bar::handle(const evt::button_press& evt) {
-  if (!m_mutex.try_lock()) {
-    return;
-  }
-
-  std::lock_guard<std::mutex> guard(m_mutex, std::adopt_lock);
-
-  if (m_buttonpress.deny(evt->time)) {
-    return m_log.trace_x("bar: Ignoring button press (throttled)...");
-  }
-
   m_log.trace("bar: Received button press: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
 
-  m_buttonpress_btn = static_cast<mousebtn>(evt->detail);
-  m_buttonpress_pos = evt->event_x;
+  mousebtn btn = static_cast<mousebtn>(evt->detail);
+  int pos = evt->event_x;
 
-  const auto deferred_fn = [&](size_t) {
-    tags::action_t action = m_action_ctxt->has_action(m_buttonpress_btn, m_buttonpress_pos);
-
-    if (action != tags::NO_ACTION) {
-      m_log.trace("Found matching input area");
-      m_sig.emit(button_press{m_action_ctxt->get_action(action)});
-      return;
-    }
-
-    for (auto&& action : m_opts.actions) {
-      if (action.button == m_buttonpress_btn && !action.command.empty()) {
-        m_log.trace("Found matching fallback handler");
-        m_sig.emit(button_press{string{action.command}});
-        return;
-      }
-    }
-    m_log.info("No matching input area found (btn=%i)", static_cast<int>(m_buttonpress_btn));
-  };
-
-  const auto check_double = [&](string&& id, mousebtn&& btn) {
-    if (!m_taskqueue->exist(id)) {
-      m_doubleclick.event = evt->time;
-      m_taskqueue->defer(id, taskqueue::deferred::duration{m_doubleclick.offset}, deferred_fn);
-    } else if (m_doubleclick.deny(evt->time)) {
-      m_doubleclick.event = 0;
-      m_buttonpress_btn = btn;
-      m_taskqueue->defer_unique(id, 0ms, deferred_fn);
+  /*
+   * For possible double-clicks we need to delay the triggering of the click by
+   * the configured interval and if in that time another click arrives, we
+   * need to trigger a double click.
+   */
+  const auto check_double = [this](TimerHandle& handle, mousebtn btn, int pos) {
+    if (!handle.is_active()) {
+      handle.start(m_opts.double_click_interval, 0, [=]() { trigger_click(btn, pos); });
+    } else {
+      handle.stop();
+      trigger_click(mousebtn_get_double(btn), pos);
     }
   };
+
+  mousebtn double_btn = mousebtn_get_double(btn);
+  bool has_dblclick = m_dblclicks.count(double_btn) || m_action_ctxt->has_action(double_btn, pos) != tags::NO_ACTION;
 
   // If there are no double click handlers defined we can
   // just by-pass the click timer handling
-  if (!m_dblclicks) {
-    deferred_fn(0);
-  } else if (evt->detail == static_cast<int>(mousebtn::LEFT)) {
-    check_double("buttonpress-left", mousebtn::DOUBLE_LEFT);
-  } else if (evt->detail == static_cast<int>(mousebtn::MIDDLE)) {
-    check_double("buttonpress-middle", mousebtn::DOUBLE_MIDDLE);
-  } else if (evt->detail == static_cast<int>(mousebtn::RIGHT)) {
-    check_double("buttonpress-right", mousebtn::DOUBLE_RIGHT);
+  if (!has_dblclick) {
+    trigger_click(btn, pos);
+  } else if (btn == mousebtn::LEFT) {
+    check_double(m_leftclick_timer, btn, pos);
+  } else if (btn == mousebtn::MIDDLE) {
+    check_double(m_middleclick_timer, btn, pos);
+  } else if (btn == mousebtn::RIGHT) {
+    check_double(m_rightclick_timer, btn, pos);
   } else {
-    deferred_fn(0);
+    trigger_click(btn, pos);
   }
 }
 
@@ -845,7 +879,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-bool bar::on(const signals::eventqueue::start&) {
+void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
   m_opts.window = m_renderer->window();
@@ -861,135 +895,21 @@ bool bar::on(const signals::eventqueue::start&) {
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
-  reconfigue_window();
 
-  m_log.trace("bar: Map window");
-  m_connection.map_window_checked(m_opts.window);
+  map_window();
 
   // With the mapping, the absolute position of our window may have changed (due to re-parenting for example).
   // Notify all components that depend on the absolute bar position (such as the background manager).
   m_sig.emit(signals::ui::update_geometry{});
 
-  // Reconfigure window position after mapping (required by Openbox)
-  reconfigure_pos();
-
   m_log.trace("bar: Draw empty bar");
   m_renderer->begin(m_opts.inner_area());
   m_renderer->end();
 
-  m_sig.emit(signals::ui::ready{});
-
-  // TODO: tray manager could run this internally on ready event
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(static_cast<const bar_settings&>(m_opts));
+  m_tray->setup(tray_module_name);
 
   broadcast_visibility();
-
-  return true;
-}
-
-bool bar::on(const signals::ui::unshade_window&) {
-  m_opts.shaded = false;
-  m_opts.shade_size.w = m_opts.size.w;
-  m_opts.shade_size.h = m_opts.size.h;
-  m_opts.shade_pos.x = m_opts.pos.x;
-  m_opts.shade_pos.y = m_opts.pos.y;
-
-  double distance{static_cast<double>(m_opts.shade_size.h - m_connection.get_geometry(m_opts.window)->height)};
-  double steptime{25.0 / 2.0};
-  m_anim_step = distance / steptime / 2.0;
-
-  m_taskqueue->defer_unique(
-      "window-shade", 25ms,
-      [&](size_t remaining) {
-        if (!m_opts.shaded) {
-          m_sig.emit(signals::ui::tick{});
-        }
-        if (!remaining) {
-          m_renderer->flush();
-        }
-        if (m_opts.dimmed) {
-          m_opts.dimmed = false;
-          m_sig.emit(dim_window{1.0});
-        }
-      },
-      taskqueue::deferred::duration{25ms}, 10U);
-
-  return true;
-}
-
-bool bar::on(const signals::ui::shade_window&) {
-  taskqueue::deferred::duration offset{2000ms};
-
-  if (!m_opts.shaded && m_opts.shade_size.h != m_opts.size.h) {
-    offset = taskqueue::deferred::duration{25ms};
-  }
-
-  m_opts.shaded = true;
-  m_opts.shade_size.h = 5;
-  m_opts.shade_size.w = m_opts.size.w;
-  m_opts.shade_pos.x = m_opts.pos.x;
-  m_opts.shade_pos.y = m_opts.pos.y;
-
-  if (m_opts.origin == edge::BOTTOM) {
-    m_opts.shade_pos.y = m_opts.pos.y + m_opts.size.h - m_opts.shade_size.h;
-  }
-
-  double distance{static_cast<double>(m_connection.get_geometry(m_opts.window)->height - m_opts.shade_size.h)};
-  double steptime{25.0 / 2.0};
-  m_anim_step = distance / steptime / 2.0;
-
-  m_taskqueue->defer_unique(
-      "window-shade", 25ms,
-      [&](size_t remaining) {
-        if (m_opts.shaded) {
-          m_sig.emit(signals::ui::tick{});
-        }
-        if (!remaining) {
-          m_renderer->flush();
-        }
-        if (!m_opts.dimmed) {
-          m_opts.dimmed = true;
-          m_sig.emit(dim_window{double{m_opts.dimvalue}});
-        }
-      },
-      move(offset), 10U);
-
-  return true;
-}
-
-bool bar::on(const signals::ui::tick&) {
-  auto geom = m_connection.get_geometry(m_opts.window);
-  if (geom->y == m_opts.shade_pos.y && geom->height == m_opts.shade_size.h) {
-    return false;
-  }
-
-  unsigned int mask{0};
-  unsigned int values[7]{0};
-  xcb_params_configure_window_t params{};
-
-  if (m_opts.shade_size.h > geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height + m_anim_step));
-    params.height = std::max(1U, std::min(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
-  } else if (m_opts.shade_size.h < geom->height) {
-    XCB_AUX_ADD_PARAM(&mask, &params, height, static_cast<unsigned int>(geom->height - m_anim_step));
-    params.height = std::max(1U, std::max(params.height, static_cast<unsigned int>(m_opts.shade_size.h)));
-  }
-
-  if (m_opts.shade_pos.y > geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y + m_anim_step));
-    params.y = std::min(params.y, static_cast<int>(m_opts.shade_pos.y));
-  } else if (m_opts.shade_pos.y < geom->y) {
-    XCB_AUX_ADD_PARAM(&mask, &params, y, static_cast<int>(geom->y - m_anim_step));
-    params.y = std::max(params.y, static_cast<int>(m_opts.shade_pos.y));
-  }
-
-  connection::pack_values(mask, &params, values);
-
-  m_connection.configure_window(m_opts.window, mask, values);
-  m_connection.flush();
-
-  return false;
 }
 
 bool bar::on(const signals::ui::dim_window& sig) {
@@ -999,12 +919,17 @@ bool bar::on(const signals::ui::dim_window& sig) {
 }
 
 #if WITH_XCURSOR
-bool bar::on(const signals::ui::cursor_change& sig) {
-  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, sig.cast())) {
-    m_log.warn("Failed to create cursor context");
+void bar::change_cursor(const string& name) {
+  // This is already the same cursor, no need to update
+  if (m_cursor == name) {
+    return;
+  }
+  m_cursor = name;
+
+  if (!cursor_util::set_cursor(m_connection, m_connection.screen(), m_opts.window, name)) {
+    m_log.warn("Failed to create cursor context for cursor name '%s'", name);
   }
   m_connection.flush();
-  return false;
 }
 #endif
 

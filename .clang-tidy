@@ -32,8 +32,6 @@ Checks: '
 CheckOptions:
   - key:             modernize-loop-convert.NamingStyle
     value:           lower_case
-  - key:             readability-identifier-naming.GlobalConstantPrefix
-    value:           'g_'
   - key:             readability-identifier-naming.ClassCase
     value:           lower_case
   - key:             readability-identifier-naming.ClassConstantCase

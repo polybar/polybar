@@ -1,11 +1,11 @@
 #pragma once
 
 #include "common.hpp"
-#include "utils/factory.hpp"
+#include "utils/mixins.hpp"
 
 POLYBAR_NS
 
-class http_downloader {
+class http_downloader : public non_copyable_mixin, public non_movable_mixin {
  public:
   http_downloader(int connection_timeout = 5);
   ~http_downloader();
@@ -19,12 +19,5 @@ class http_downloader {
  private:
   void* m_curl;
 };
-
-namespace http_util {
-  template <typename... Args>
-  decltype(auto) make_downloader(Args&&... args) {
-    return factory_util::unique<http_downloader>(forward<Args>(args)...);
-  }
-}  // namespace http_util
 
 POLYBAR_NS_END

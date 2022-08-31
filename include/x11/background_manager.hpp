@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
-#include "events/types.hpp"
 #include "x11/extensions/fwd.hpp"
 #include "x11/types.hpp"
 
@@ -58,7 +57,7 @@ class bg_slice {
 };
 
 /**
- * \brief Class to keep track of the desktop background used to support pseudo-transparency
+ * @brief Class to keep track of the desktop background used to support pseudo-transparency
  *
  * For pseudo-transparency that bar needs access to the desktop background.
  * We only need to store the slice of the background image which is covered by the bar window,
@@ -90,8 +89,8 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
    * caches the background. If you don't need the background anymore, destroy the shared_ptr to free up
    * resources.
    *
-   * \param rect Slice of the background to observe (coordinates relative to window).
-   * \param window Coordinates are interpreted relative to this window
+   * @param rect Slice of the background to observe (coordinates relative to window).
+   * @param window Coordinates are interpreted relative to this window
    */
   std::shared_ptr<bg_slice> observe(xcb_rectangle_t rect, xcb_window_t window);
 

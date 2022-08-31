@@ -70,6 +70,10 @@ namespace tags {
     }
   }
 
+  void context::store_tray_position(int x_pos) {
+    m_relative_tray_position = std::make_pair(get_alignment(), x_pos);
+  }
+
   void context::apply_reset() {
     m_bg = m_settings.background;
     m_fg = m_settings.foreground;
@@ -110,6 +114,10 @@ namespace tags {
 
   alignment context::get_alignment() const {
     return m_align;
+  }
+
+  std::pair<alignment, int> context::get_relative_tray_position() const {
+    return m_relative_tray_position;
   }
 }  // namespace tags
 

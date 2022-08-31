@@ -16,7 +16,7 @@ namespace modules {
    */
   systray_module::systray_module(const bar_settings& bar, string name_)
       : static_module<systray_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action(EVENT_TOGGLE, &systray_module::action_toggle);
+    m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_TOGGLE, {TAG_LABEL_TOGGLE, TAG_TRAY_CLIENTS});
@@ -45,7 +45,7 @@ namespace modules {
     if (tag == TAG_LABEL_TOGGLE) {
       builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
     } else if (tag == TAG_TRAY_CLIENTS && !m_hidden) {
-      builder->append(TRAY_PLACEHOLDER);
+      builder->node(TRAY_PLACEHOLDER);
     } else {
       return false;
     }
@@ -59,7 +59,7 @@ namespace modules {
     m_hidden = !m_hidden;
     broadcast();
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
 #endif

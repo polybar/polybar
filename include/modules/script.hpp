@@ -1,5 +1,6 @@
 #pragma once
 
+#include "adapters/script_runner.hpp"
 #include "modules/meta/base.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
@@ -10,42 +11,43 @@ namespace modules {
   class script_module : public module<script_module> {
    public:
     explicit script_module(const bar_settings&, string);
-    ~script_module() {}
 
     void start() override;
     void stop() override;
 
     string get_output();
+    string get_format() const;
+
     bool build(builder* builder, const string& tag) const;
 
     static constexpr auto TYPE = "custom/script";
 
    protected:
-    chrono::duration<double> process(const mutex_wrapper<function<chrono::duration<double>()>>& handler) const;
     bool check_condition();
 
    private:
-    static constexpr const char* TAG_LABEL{"<label>"};
+    void handle_runner_update(const script_runner::data&);
 
-    mutex_wrapper<function<chrono::duration<double>()>> m_handler;
+    static constexpr auto TAG_LABEL = "<label>";
+    static constexpr auto TAG_LABEL_FAIL = "<label-fail>";
+    static constexpr auto FORMAT_FAIL = "format-fail";
 
-    unique_ptr<command<output_policy::REDIRECTED>> m_command;
+    const bool m_tail;
+    const script_runner::interval m_interval_success{0};
+    const script_runner::interval m_interval_fail{0};
+    const script_runner::interval m_interval_if{0};
 
-    bool m_tail;
+    script_runner m_runner;
 
-    string m_exec;
-    string m_exec_if;
-
-    chrono::duration<double> m_interval{0};
     map<mousebtn, string> m_actions;
 
     label_t m_label;
-    string m_output;
-    string m_prev;
-    int m_counter{0};
+    label_t m_label_fail;
 
-    bool m_stopping{false};
+    int m_exit_status{0};
+    script_runner::data m_data;
+    std::mutex m_data_mutex;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

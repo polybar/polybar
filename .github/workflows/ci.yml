@@ -33,8 +33,24 @@ jobs:
     env:
       COLOR: "ON"
     steps:
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-composite0-dev \
+            libxcb-ewmh-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-randr0-dev \
+            libxcb-util0-dev \
+            libxcb1-dev \
+            libcairo2-dev \
+            python3-xcbgen \
+            libuv1-dev \
+            xcb-proto
       - uses: actions/checkout@v2
         with:
+          submodules: true
           ref: ${{ github.event.inputs.ref }}
       - name: Build polybar-msg
         run: |
@@ -79,6 +95,7 @@ jobs:
             libxcb1-dev \
             libcairo2-dev \
             python3-xcbgen \
+            libuv1-dev \
             xcb-proto
 
           if [ "$POLYBAR_BUILD_TYPE" != "minimal" ]; then
@@ -94,6 +111,10 @@ jobs:
               libnl-genl-3-dev \
               libmpdclient-dev
           fi
+
+          if [ "$POLYBAR_BUILD_TYPE" = "tests" ]; then
+            sudo apt-get install -y lcov
+          fi
       - uses: actions/checkout@v2
         with:
           submodules: true
@@ -106,13 +127,28 @@ jobs:
         run: |
           cd $BUILD_DIR
           make
+      - name: Collect initial coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        run: |
+          lcov --capture --initial --no-external --directory . -o cov_base.info
       - name: Tests
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
           cd $BUILD_DIR
           make check
-          cd $POLYBAR_DIR
-          bash <(curl -s https://codecov.io/bash) -F unittests -a "-ap" -Z
+      - name: Collect coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        run: |
+          lcov --capture --no-external --directory . -o cov_tests.info
+          lcov --add-tracefile cov_base.info --add-tracefile cov_tests.info -o cov_total.info
+          lcov --remove cov_total.info ${PWD}'/build/*' ${PWD}'/tests/*' ${PWD}'/lib/*' -o cov.info
+      - name: Upload Coverage
+        if: ${{ matrix.polybar_build_type == 'tests' }}
+        uses: codecov/codecov-action@v2
+        with:
+          flags: unittests
+          files: ./cov.info
+          fail_ci_if_error: true
       - name: Upload Logs
         if: failure()
         uses: actions/upload-artifact@v2

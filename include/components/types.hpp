@@ -46,6 +46,24 @@ enum class mousebtn {
   BTN_COUNT,
 };
 
+static inline mousebtn mousebtn_get_double(mousebtn btn) {
+  switch (btn) {
+    case mousebtn::LEFT:
+      return mousebtn::DOUBLE_LEFT;
+    case mousebtn::MIDDLE:
+      return mousebtn::DOUBLE_MIDDLE;
+    case mousebtn::RIGHT:
+      return mousebtn::DOUBLE_RIGHT;
+    default:
+      return mousebtn::NONE;
+  }
+}
+
+/**
+ * Order of values for _NET_WM_STRUT_PARTIAL
+ *
+ * https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html#idm45381391268672
+ */
 enum class strut {
   LEFT = 0,
   RIGHT,
@@ -71,16 +89,52 @@ struct size {
   unsigned int h{1U};
 };
 
-struct side_values {
-  unsigned int left{0U};
-  unsigned int right{0U};
+enum class spacing_type { SPACE, POINT, PIXEL };
+
+enum class extent_type { POINT, PIXEL };
+
+struct spacing_val {
+  spacing_type type{spacing_type::SPACE};
+  /**
+   * Numerical spacing value. Is truncated to an integer for pixels and spaces.
+   * Must be non-negative.
+   */
+  float value{0};
+
+  /**
+   * Any non-positive number is interpreted as no spacing.
+   */
+  operator bool() const {
+    return value > 0;
+  }
 };
 
-struct edge_values {
-  unsigned int left{0U};
-  unsigned int right{0U};
-  unsigned int top{0U};
-  unsigned int bottom{0U};
+static constexpr spacing_val ZERO_SPACE = {spacing_type::SPACE, 0};
+
+/*
+ * Defines the signed length of something as either a number of pixels or points.
+ *
+ * Used for widths, heights, and offsets
+ */
+struct extent_val {
+  extent_type type{extent_type::PIXEL};
+  float value{0};
+
+  operator bool() const {
+    return value != 0;
+  }
+};
+
+static constexpr extent_val ZERO_PX_EXTENT = {extent_type::PIXEL, 0};
+
+struct side_values {
+  spacing_val left{ZERO_SPACE};
+  spacing_val right{ZERO_SPACE};
+};
+
+struct percentage_with_offset {
+  double percentage{0};
+  extent_val offset{ZERO_PX_EXTENT};
 };
 
 struct radius {
@@ -117,16 +171,22 @@ struct bar_settings {
   monitor_t monitor{};
   bool monitor_strict{false};
   bool monitor_exact{true};
-  edge origin{edge::TOP};
+  bool bottom{false};
   struct size size {
     1U, 1U
   };
+
+  double dpi_x{0.};
+  double dpi_y{0.};
+
   position pos{0, 0};
   position offset{0, 0};
-  side_values padding{0U, 0U};
-  side_values margin{0U, 0U};
-  side_values module_margin{0U, 0U};
-  edge_values strut{0U, 0U, 0U, 0U};
+  side_values padding{ZERO_SPACE, ZERO_SPACE};
+  side_values module_margin{ZERO_SPACE, ZERO_SPACE};
+  struct {
+    int top;
+    int bottom;
+  } strut{0, 0};
 
   rgba background{0xFF000000};
   rgba foreground{0xFFFFFFFF};
@@ -138,7 +198,10 @@ struct bar_settings {
   std::unordered_map<edge, border_settings, enum_hash> borders{};
 
   struct radius radius {};
-  int spacing{0};
+  /**
+   * TODO deprecated
+   */
+  spacing_val spacing{ZERO_SPACE};
   label_t separator{};
 
   string wmname{};
@@ -146,20 +209,22 @@ struct bar_settings {
 
   bool override_redirect{false};
 
-  string cursor{};
+  int double_click_interval{400};
+
+  /**
+   * Name of cursor to use for clickable areas
+   */
   string cursor_click{};
+
+  /**
+   * Name of cursor to use for scrollable areas
+   */
   string cursor_scroll{};
 
   vector<action> actions{};
 
   bool dimmed{false};
   double dimvalue{1.0};
-
-  bool shaded{false};
-  struct size shade_size {
-    1U, 1U
-  };
-  position shade_pos{1U, 1U};
 
   const xcb_rectangle_t inner_area(bool abspos = false) const {
     xcb_rectangle_t rect = this->outer_area(abspos);
@@ -208,11 +273,6 @@ struct event_timer {
   bool deny(xcb_timestamp_t time) {
     return !allow(time);
   };
-};
-
-enum class output_policy {
-  REDIRECTED,
-  IGNORED,
 };
 
 POLYBAR_NS_END

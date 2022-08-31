@@ -13,18 +13,18 @@ namespace tags {
   enum class attr_activation { NONE, ON, OFF, TOGGLE };
 
   enum class syntaxtag {
-    A,  // mouse action
-    B,  // background color
-    F,  // foreground color
-    T,  // font index
-    O,  // pixel offset
-    R,  // flip colors
-    o,  // overline color
-    u,  // underline color
-    P,  // Polybar control tag
-    l,  // Left alignment
-    r,  // Right alignment
-    c,  // Center alignment
+    A, // mouse action
+    B, // background color
+    F, // foreground color
+    T, // font index
+    O, // pixel offset
+    R, // flip colors
+    o, // overline color
+    u, // underline color
+    P, // Polybar control tag
+    l, // Left alignment
+    r, // Right alignment
+    c, // Center alignment
   };
 
   /**
@@ -35,7 +35,8 @@ namespace tags {
    */
   enum class controltag {
     NONE = 0,
-    R,  // Reset all open tags (B, F, T, o, u). Used at module edges
+    R, // Reset all open tags (B, F, T, o, u). Used at module edges
+    t  // special tag for trays
   };
 
   enum class color_type { RESET = 0, COLOR };
@@ -89,7 +90,7 @@ namespace tags {
       /**
        * For for 'O' tags
        */
-      int offset;
+      extent_val offset;
       /**
        * For for 'P' tags
        */
@@ -113,6 +114,6 @@ namespace tags {
 
   using format_string = vector<element>;
 
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

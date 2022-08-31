@@ -30,6 +30,7 @@ namespace modules {
     ramp_t m_ramp;
 
     string m_path;
+    string m_zone_type;
     int m_zone = 0;
     // Base temperature used for where to start the ramp
     int m_tempbase = 0;

@@ -1,15 +1,16 @@
+#include "modules/fs.hpp"
+
 #include <sys/statvfs.h>
+
 #include <fstream>
+#include <utility>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "modules/fs.hpp"
-#include "utils/factory.hpp"
+#include "modules/meta/base.inl"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
-
-#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -26,7 +27,11 @@ namespace modules {
    * setting up required components
    */
   fs_module::fs_module(const bar_settings& bar, string name_) : timer_module<fs_module>(bar, move(name_)) {
-    m_mountpoints = m_conf.get_list(name(), "mount");
+    m_mountpoints = m_conf.get_list(name(), "mount", {});
+    if (m_mountpoints.empty()) {
+      m_log.info("%s: No mountpoints specified, using fallback \"/\"", name());
+      m_mountpoints.emplace_back("/");
+    }
     m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
     m_perc_used_warn = m_conf.get(name(), "warn-percentage", 90);
     m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
@@ -85,7 +90,8 @@ namespace modules {
 
     // Get data for defined mountpoints
     for (auto&& mountpoint : m_mountpoints) {
-      auto details = std::find_if(mountinfo.begin(), mountinfo.end(), [&](const vector<string>& m) { return m.size() > 4 && m[MOUNTINFO_DIR] == mountpoint; });
+      auto details = std::find_if(mountinfo.begin(), mountinfo.end(),
+          [&](const vector<string>& m) { return m.size() > 4 && m[MOUNTINFO_DIR] == mountpoint; });
 
       m_mounts.emplace_back(std::make_unique<fs_mount>(mountpoint, details != mountinfo.end()));
       struct statvfs buffer {};
@@ -136,10 +142,16 @@ namespace modules {
     string output;
 
     for (m_index = 0_z; m_index < m_mounts.size(); ++m_index) {
-      if (!output.empty()) {
-        m_builder->space(m_spacing);
+      string mount_output = timer_module::get_output();
+      /*
+       * Add spacing before the mountpoint, but only if the mountpoint contents
+       * are not empty and there is already other content in the module.
+       */
+      if (!output.empty() && !mount_output.empty()) {
+        m_builder->spacing(m_spacing);
+        output += m_builder->flush();
       }
-      output += timer_module::get_output();
+      output += mount_output;
     }
 
     return output;
@@ -173,10 +185,8 @@ namespace modules {
       label->replace_token("%percentage_used%", to_string(mount->percentage_used));
       label->replace_token(
           "%total%", string_util::filesize(mount->bytes_total, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      label->replace_token(
-          "%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
-      label->replace_token(
-          "%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token("%free%", string_util::filesize(mount->bytes_avail, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
+      label->replace_token("%used%", string_util::filesize(mount->bytes_used, m_fixed ? 2 : 0, m_fixed, m_bar.locale));
     };
 
     if (tag == TAG_BAR_FREE) {
@@ -201,6 +211,6 @@ namespace modules {
 
     return true;
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

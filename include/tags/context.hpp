@@ -33,6 +33,7 @@ namespace tags {
     void apply_alignment(alignment align);
     void apply_attr(attr_activation act, attribute attr);
     void apply_reset();
+    void store_tray_position(int x_pos);
 
     rgba get_bg() const;
     rgba get_fg() const;
@@ -43,43 +44,47 @@ namespace tags {
     bool has_underline() const;
     alignment get_alignment() const;
 
+    std::pair<alignment, int> get_relative_tray_position() const;
+
    protected:
     /**
      * Background color
      */
-    rgba m_bg;
+    rgba m_bg{};
     /**
      * Foreground color
      */
-    rgba m_fg;
+    rgba m_fg{};
     /**
      * Overline color
      */
-    rgba m_ol;
+    rgba m_ol{};
     /**
      * Underline color
      */
-    rgba m_ul;
+    rgba m_ul{};
     /**
      * Font index (1-based)
      */
-    int m_font;
+    int m_font{0};
     /**
      * Is overline enabled?
      */
-    bool m_attr_overline;
+    bool m_attr_overline{false};
     /**
      * Is underline enabled?
      */
-    bool m_attr_underline;
+    bool m_attr_underline{false};
     /**
      * Alignment block
      */
-    alignment m_align;
+    alignment m_align{alignment::NONE};
 
-   private:
-    const bar_settings& m_settings;
+    std::pair<alignment, int> m_relative_tray_position{alignment::NONE, 0};
+
+  private:
+      const bar_settings &m_settings;
   };
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

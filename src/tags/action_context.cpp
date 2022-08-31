@@ -37,10 +37,31 @@ namespace tags {
   }
 
   void action_context::set_end(action_t id, double x) {
-    m_action_blocks[id].end_x = x;
+    /*
+     * Only ever increase the end position.
+     * A larger end position may have been set before.
+     */
+    m_action_blocks[id].end_x = std::max(m_action_blocks[id].end_x, x);
   }
 
-  void action_context::set_alignmnent_start(const alignment a, const double x) {
+  void action_context::compensate_for_negative_move(alignment a, double old_x, double new_x) {
+    assert(new_x < old_x);
+    for (auto& block : m_action_blocks) {
+      if (block.is_open && block.align == a) {
+        // Move back the start position if a smaller position is observed
+        if (block.start_x > new_x) {
+          block.start_x = new_x;
+        }
+
+        // Move forward the end position if a larger position is observed
+        if (old_x > block.end_x) {
+          block.end_x = old_x;
+        }
+      }
+    }
+  }
+
+  void action_context::set_alignment_start(const alignment a, const double x) {
     m_align_start[a] = x;
   }
 
@@ -104,6 +125,6 @@ namespace tags {
   const std::vector<action_block>& action_context::get_blocks() const {
     return m_action_blocks;
   }
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END

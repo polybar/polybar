@@ -41,7 +41,6 @@ extern const char* const APP_VERSION;
 #cmakedefine DEBUG_LOGGER_VERBOSE
 #cmakedefine DEBUG_HINTS
 #cmakedefine DEBUG_WHITESPACE
-#cmakedefine DEBUG_SHADED
 #cmakedefine DEBUG_FONTCONFIG
 #endif
 
@@ -67,6 +66,7 @@ extern const char* const PATH_CPU_INFO;
 extern const char* const PATH_MEMORY_INFO;
 extern const char* const PATH_MESSAGING_FIFO;
 extern const char* const PATH_TEMPERATURE_INFO;
+extern const char* const PATH_THERMAL_ZONE_WILDCARD;
 extern const char* const WIRELESS_LIB;
 
 bool version_details(const std::vector<std::string>& args);

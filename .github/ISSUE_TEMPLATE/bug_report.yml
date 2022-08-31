@@ -1,0 +1,112 @@
+name: 🐞 Bug Report
+description: Create a report for something that misbehaves
+title: "[Bug]: "
+labels: ["bug", "needs confirmation"]
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please carefully go through this checklist and check each option.
+      options:
+        - label: I have read the appropriate section in the [contributing guidelines](https://github.com/polybar/polybar/blob/master/CONTRIBUTING.md)
+          required: true
+        - label: I believe this issue is a problem with polybar itself and not a misconfiguration on my part
+          required: true
+        - label: I have searched for other open and closed [issues](https://github.com/polybar/polybar/issues?q=is%3Aissue) that may have already reported this problem
+          required: true
+        - label: I have checked the [known issues](https://github.com/polybar/polybar/wiki/Known-Issues) page for this problem.
+          required: true
+        - label: I have followed the [debugging guide](https://github.com/polybar/polybar/wiki/Debugging-your-Config) to narrow down the problem to a minimal config.
+          required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Any steps to take and commands to run to reproduce this issue.
+      placeholder: |
+        1. `polybar -c ... bar`
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Minimal config
+      description: A minimal but **complete** config with which the problem occurs.
+      render: dosini
+      placeholder: |
+        [bar/example]
+        ...
+
+        [module/...]
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Polybar log
+      description: Post everything polybar prints to the terminal when you run it and the issue occurs. If possible, run polybar with a higher log level (e.g. `trace` or `info`).
+      render: text
+      placeholder: |
+        notice: Parsing config file: ...
+        ...
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happens
+    validations:
+      required: true
+  - type: input
+    id: wm
+    attributes:
+      label: Window Manager and Version
+      placeholder: ex. i3-gaps 4.19.1
+    validations:
+      required: true
+  - type: input
+    id: distro
+    attributes:
+      label: Linux Distribution
+      placeholder: ex. Ubuntu 21.04
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Polybar version
+      description: Output of `polybar -vvv`
+      render: text
+      placeholder: |
+        polybar 3.5.7
+
+        Features: +alsa +curl +i3 +mpd +network(libnl) +pulseaudio +xkeyboard
+
+        X extensions: +randr (+monitors) +composite +xkb +xrm +xcursor
+
+        Build type: Release
+        Compiler: /usr/bin/c++
+        Compiler flags: -D_FORTIFY_SOURCE=2 -march=x86-64 -mtune=generic -O2 -pipe -fno-plt -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wsuggest-override
+        Linker flags: -Wall -Wextra -Wpedantic -Wsuggest-override  -Wall -Wextra -Wpedantic -Wsuggest-override
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context / Screenshots
+      description: If applicable, add screenshots and additional context to explain your problem
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! :heart:

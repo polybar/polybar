@@ -258,6 +258,23 @@ custom/menu
            The data has the form ``N-M`` and the action will execute the command
            in ``menu-N-M-exec``.
 
+
+.. _actions-ipc:
+
+custom/ipc
+^^^^^^^^^^
+
+.. versionadded:: 3.6.0
+
+:``send``: *(Has Data)* Replace the contents of the module with the data passed in this action.
+:``hook``: *(Has Data)* Trigger the given hook.
+
+           The data is the 0-based index of the hook to trigger.
+:``next``: Switches to the next hook and wrap around when the last hook was displayed.
+:``prev``: Switches to the previous hook and wrap around when the first hook was displayed.
+:``reset``: Reset the module to its startup state: either empty or according to the ``initial`` setting.
+
+
 Deprecated Action Names
 -----------------------
 
@@ -389,20 +406,22 @@ Below you can see an example of a menu module:
   [module/apps]
   type = custom/menu
 
+  label-open = Apps
+
   menu-0-0 = Browsers
   menu-0-0-exec = menu-open-1
   menu-0-1 = Multimedia
   menu-0-1-exec = menu-open-2
 
   menu-1-0 = Firefox
-  menu-1-0-exec = firefox &
+  menu-1-0-exec = firefox
   menu-1-1 = Chromium
-  menu-1-1-exec = chromium &
+  menu-1-1-exec = chromium
 
   menu-2-0 = Gimp
-  menu-2-0-exec = gimp &
+  menu-2-0-exec = gimp
   menu-2-1 = Scrot
-  menu-2-1-exec = scrot &
+  menu-2-1-exec = scrot
 
 This module uses two actions: ``menu-open-1`` and ``menu-open-2``.
 These are actions with data, the data specifies which level of the menu should
@@ -420,17 +439,19 @@ likely not use ``apps``, but the name of your module.
   [module/apps]
   type = custom/menu
 
+  label-open = Apps
+
   menu-0-0 = Browsers
   menu-0-0-exec = #apps.open.1
   menu-0-1 = Multimedia
   menu-0-1-exec = #apps.open.2
 
   menu-1-0 = Firefox
-  menu-1-0-exec = firefox &
+  menu-1-0-exec = firefox
   menu-1-1 = Chromium
-  menu-1-1-exec = chromium &
+  menu-1-1-exec = chromium
 
   menu-2-0 = Gimp
-  menu-2-0-exec = gimp &
+  menu-2-0-exec = gimp
   menu-2-1 = Scrot
-  menu-2-1-exec = scrot &
+  menu-2-1-exec = scrot

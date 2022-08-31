@@ -28,8 +28,18 @@ using std::map;
 
 struct alignment_block {
   cairo_pattern_t* pattern;
+  /**
+   * The x-position where the next thing will be rendered.
+   */
   double x;
   double y;
+  /**
+   * The total width of this block.
+   *
+   * This is always >= x, but may be larger because a negative offset may
+   * decrease x, but the width doesn't change.
+   */
+  double width;
 };
 
 class renderer : public renderer_interface,
@@ -48,7 +58,7 @@ class renderer : public renderer_interface,
   void end();
   void flush();
 
-  void render_offset(const tags::context& ctxt, int pixels) override;
+  void render_offset(const tags::context& ctxt, const extent_val offset) override;
   void render_text(const tags::context& ctxt, const string&&) override;
 
   void change_alignment(const tags::context& ctxt) override;
@@ -57,16 +67,21 @@ class renderer : public renderer_interface,
 
   double get_alignment_start(const alignment align) const override;
 
+  void apply_tray_position(const tags::context& context) override;
+
  protected:
   void fill_background();
   void fill_overline(rgba color, double x, double w);
   void fill_underline(rgba color, double x, double w);
   void fill_borders();
+  void draw_offset(const tags::context& ctxt, rgba color, double x, double w);
 
   double block_x(alignment a) const;
   double block_y(alignment a) const;
   double block_w(alignment a) const;
   double block_h(alignment a) const;
+
+  void increase_x(double dx);
 
   void flush(alignment a);
   void highlight_clickable_areas();

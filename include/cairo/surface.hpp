@@ -12,7 +12,7 @@ POLYBAR_NS
 
 namespace cairo {
   /**
-   * \brief Base surface
+   * @brief Base surface
    */
   class surface {
    public:
@@ -57,7 +57,7 @@ namespace cairo {
   };
 
   /**
-   * \brief Surface for xcb
+   * @brief Surface for xcb
    */
   class xcb_surface : public surface {
    public:

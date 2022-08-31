@@ -26,7 +26,9 @@ def get_version(root_path):
   with open(path, "r") as f:
     for line in f.readlines():
       if not line.startswith("#"):
-        return packaging.version.parse(line)
+        # NB: we can't parse it yet since sphinx could import
+        # pkg_resources later on and it could patch packaging.version
+        return line
 
   raise RuntimeError("No version found in {}".format(path))
 
@@ -111,19 +113,20 @@ smartquotes = False
 
 # -- Options for HTML output -------------------------------------------------
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+#
+html_theme_options = {}
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 if on_rtd or os.environ.get('USE_RTD_THEME', '0') == '1':
   html_theme = 'sphinx_rtd_theme'
+  html_theme_options['collapse_navigation'] = False
 else:
   html_theme = 'alabaster'
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -182,6 +185,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('man/polybar.1', 'polybar', 'A fast and easy-to-use tool status bar', [], 1),
+    ('man/polybar-msg.1', 'polybar-msg', 'Send IPC messages to polybar', [], 1),
     ('man/polybar.5', 'polybar', 'configuration file for polybar(1)', [], 5)
 ]
 
@@ -244,8 +248,9 @@ if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5
     """
     def run(self) -> List[Node]:
       directive_version = packaging.version.parse(self.arguments[0])
+      parsed_version_txt = packaging.version.parse(version_txt)
 
-      if directive_version > version_txt:
+      if directive_version > parsed_version_txt:
         self.arguments[0] += " (unreleased)"
 
       return super().run()

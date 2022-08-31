@@ -5,6 +5,7 @@
 #include "cairo/types.hpp"
 #include "cairo/utils.hpp"
 #include "common.hpp"
+#include "components/logger.hpp"
 #include "errors.hpp"
 #include "settings.hpp"
 #include "utils/math.hpp"
@@ -15,12 +16,12 @@ POLYBAR_NS
 
 namespace cairo {
   /**
-   * \brief Global pointer to the Freetype library handler
+   * @brief Global pointer to the Freetype library handler
    */
   static FT_Library g_ftlib;
 
   /**
-   * \brief Abstract font face
+   * @brief Abstract font face
    */
   class font {
    public:
@@ -51,11 +52,12 @@ namespace cairo {
   };
 
   /**
-   * \brief Font based on fontconfig/freetype
+   * @brief Font based on fontconfig/freetype
    */
   class font_fc : public font {
    public:
-    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset, double dpi_x, double dpi_y) : font(cairo, offset), m_pattern(pattern) {
+    explicit font_fc(cairo_t* cairo, FcPattern* pattern, double offset, double dpi_x, double dpi_y)
+        : font(cairo, offset), m_pattern(pattern) {
       cairo_matrix_t fm;
       cairo_matrix_t ctm;
       cairo_matrix_init_scale(&fm, size(dpi_x), size(dpi_y));
@@ -139,8 +141,8 @@ namespace cairo {
       property(FC_PIXEL_SIZE, &fc_pixelsize);
 
       // Fall back to a default value if the size is 0
-      double pixelsize = fc_pixelsize == 0? 10 : fc_pixelsize;
-      double size = fc_size == 0? 10 : fc_size;
+      double pixelsize = fc_pixelsize == 0 ? 10 : fc_pixelsize;
+      double size = fc_size == 0 ? 10 : fc_size;
 
       // Font size in pixels if we use the pixelsize property
       int px_pixelsize = pixelsize + 0.5;
@@ -155,7 +157,7 @@ namespace cairo {
       int px_size = size / 72.0 * dpi + 0.5;
 
       if (fc_size == 0 && fc_pixelsize == 0) {
-        return scalable? px_size : px_pixelsize;
+        return scalable ? px_size : px_pixelsize;
       }
 
       if (scalable) {
@@ -165,8 +167,7 @@ namespace cairo {
          */
         if (fc_size != 0) {
           return px_size;
-        }
-        else {
+        } else {
           return px_pixelsize;
         }
       } else {
@@ -176,8 +177,7 @@ namespace cairo {
          */
         if (fc_pixelsize != 0) {
           return px_pixelsize;
-        }
-        else {
+        } else {
           return px_size;
         }
       }
@@ -307,14 +307,14 @@ namespace cairo {
       throw application_error("Could not load FreeType");
     }
 
-    static auto fc_cleanup = scope_util::make_exit_handler([] {
+    static scope_util::on_exit fc_cleanup([] {
       FT_Done_FreeType(g_ftlib);
       FcFini();
     });
 
     auto pattern = FcNameParse((FcChar8*)fontname.c_str());
 
-    if(!pattern) {
+    if (!pattern) {
       logger::make().err("Could not parse font \"%s\"", fontname);
       throw application_error("Could not parse font \"" + fontname + "\"");
     }
@@ -336,6 +336,6 @@ namespace cairo {
 
     return make_shared<font_fc>(cairo, match, offset, dpi_x, dpi_y);
   }
-}
+} // namespace cairo
 
 POLYBAR_NS_END

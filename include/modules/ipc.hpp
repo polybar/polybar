@@ -12,7 +12,7 @@ namespace modules {
    * shell script and the resulting output will be used
    * as the module content.
    */
-  class ipc_module : public static_module<ipc_module> {
+  class ipc_module : public module<ipc_module> {
    public:
     /**
      * Hook structure that will be fired
@@ -27,19 +27,41 @@ namespace modules {
     explicit ipc_module(const bar_settings&, string);
 
     void start() override;
-    void update() {}
+    void update();
     string get_output();
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 
     static constexpr auto TYPE = "custom/ipc";
 
+    static constexpr auto EVENT_SEND = "send";
+    static constexpr auto EVENT_HOOK = "hook";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+    static constexpr auto EVENT_RESET = "reset";
+
+   protected:
+    void action_send(const string& data);
+    void action_hook(const string& data);
+    void action_next();
+    void action_prev();
+    void action_reset();
+
+    void hook_offset(int offset);
+
+    bool has_initial() const;
+    bool has_hook() const;
+
+    void set_hook(int h);
+
    private:
     static constexpr const char* TAG_OUTPUT{"<output>"};
     vector<unique_ptr<hook>> m_hooks;
     map<mousebtn, string> m_actions;
     string m_output;
-    size_t m_initial;
+    int m_initial{-1};
+    int m_current_hook{-1};
+    void exec_hook();
   };
 }  // namespace modules
 

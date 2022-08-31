@@ -18,6 +18,7 @@
 #endif
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
+#include "modules/tray.hpp"
 #include "modules/xbacklight.hpp"
 #include "modules/xwindow.hpp"
 #include "modules/xworkspaces.hpp"
@@ -95,6 +96,8 @@ namespace {
       return new xwindow_module(bar, move(module_name));
     } else if (name == xworkspaces_module::TYPE) {
       return new xworkspaces_module(bar, move(module_name));
+    } else if (name == tray_module::TYPE) {
+      return new tray_module(bar, move(module_name));
     } else if (name == text_module::TYPE) {
       return new text_module(bar, move(module_name));
     } else if (name == script_module::TYPE) {

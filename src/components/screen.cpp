@@ -1,10 +1,11 @@
-#include <csignal>
+#include "components/screen.hpp"
+
 #include <algorithm>
+#include <csignal>
 #include <thread>
 
 #include "components/config.hpp"
 #include "components/logger.hpp"
-#include "components/screen.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -22,7 +23,7 @@ using namespace signals::eventqueue;
  * Create instance
  */
 screen::make_type screen::make() {
-  return factory_util::unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config::make());
+  return std::make_unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config::make());
 }
 
 /**
@@ -89,7 +90,7 @@ screen::~screen() {
 /**
  * Handle XCB_RANDR_SCREEN_CHANGE_NOTIFY events
  *
- * If any of the monitors have changed we raise USR1 to trigger a reload
+ * If any of the monitors have changed we trigger a reload
  */
 void screen::handle(const evt::randr_screen_change_notify& evt) {
   if (m_sigraised || evt->request_window != m_proxy) {
@@ -121,22 +122,20 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
 bool screen::have_monitors_changed() const {
   auto monitors = randr_util::get_monitors(m_connection, m_root, true, false);
 
-  if(monitors.size() != m_monitors.size()) {
+  if (monitors.size() != m_monitors.size()) {
     return true;
   }
 
   for (auto m : m_monitors) {
-    auto it = std::find_if(monitors.begin(), monitors.end(),
-        [m] (auto& monitor) -> bool {
-        return m->equals(*monitor);
-        });
+    auto it =
+        std::find_if(monitors.begin(), monitors.end(), [m](auto& monitor) -> bool { return m->equals(*monitor); });
 
     /*
      * Every monitor in the stored list should also exist in the newly fetched
      * list. If this holds then the two lists are equivalent since they have
      * the same size
      */
-    if(it == monitors.end()) {
+    if (it == monitors.end()) {
       return true;
     }
   }

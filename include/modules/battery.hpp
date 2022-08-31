@@ -51,7 +51,7 @@ namespace modules {
     void start() override;
     void teardown();
     void idle();
-    bool on_event(inotify_event* event);
+    bool on_event(const inotify_event& event);
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
@@ -112,9 +112,9 @@ namespace modules {
     string m_timeformat;
     size_t m_unchanged{SKIP_N_UNCHANGED};
     chrono::duration<double> m_interval{};
-    chrono::system_clock::time_point m_lastpoll;
+    chrono::steady_clock::time_point m_lastpoll;
     thread m_subthread;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

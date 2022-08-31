@@ -1,5 +1,6 @@
 #include "modules/text.hpp"
 
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -8,15 +9,28 @@ namespace modules {
   template class module<text_module>;
 
   text_module::text_module(const bar_settings& bar, string name_) : static_module<text_module>(bar, move(name_)) {
-    m_formatter->add("content", "", {});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
+    m_formatter->add_optional("content", {});
 
-    if (m_formatter->get("content")->value.empty()) {
-      throw module_error(name() + ".content is empty or undefined");
+    if (m_formatter->has_format("content")) {
+      m_conf.warn_deprecated(name(), "content", "format");
+
+      if (m_formatter->get("content")->value.empty()) {
+        throw module_error(name() + ".content is empty or undefined");
+      }
+
+      m_format = "content";
+    } else {
+      m_format = DEFAULT_FORMAT;
+
+      if (m_formatter->has(TAG_LABEL, DEFAULT_FORMAT)) {
+        m_label = load_label(m_conf, name(), TAG_LABEL);
+      }
     }
   }
 
   string text_module::get_format() const {
-    return "content";
+    return m_format;
   }
 
   string text_module::get_output() {
@@ -47,10 +61,21 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_DOWN, scroll_down);
     }
 
-    m_builder->append(output);
+    m_builder->node(output);
 
     return m_builder->flush();
   }
-}  // namespace modules
+
+  bool text_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_LABEL) {
+      builder->node(m_label);
+    } else {
+      return false;
+    }
+
+    return true;
+  }
+
+} // namespace modules
 
 POLYBAR_NS_END

@@ -3,7 +3,6 @@
 #include <poll.h>
 
 #include "common.hpp"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -34,15 +33,15 @@ namespace socket_util {
    * Creates a wrapper for a unix socket connection
    *
    * Example usage:
-   * \code cpp
+   * @code cpp
    *   auto conn = socket_util::make_unix_connection("/tmp/socket");
    *   conn->send(...);
    *   conn->receive(...);
-   * \endcode
+   * @endcode
    */
   inline unique_ptr<unix_connection> make_unix_connection(string&& path) {
-    return factory_util::unique<unix_connection>(forward<string>(path));
+    return std::make_unique<unix_connection>(forward<string>(path));
   }
-}
+}  // namespace socket_util
 
 POLYBAR_NS_END

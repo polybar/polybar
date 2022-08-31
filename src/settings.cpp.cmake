@@ -19,6 +19,7 @@ const char* const PATH_CPU_INFO{"@SETTING_PATH_CPU_INFO@"};
 const char* const PATH_MEMORY_INFO{"@SETTING_PATH_MEMORY_INFO@"};
 const char* const PATH_MESSAGING_FIFO{"@SETTING_PATH_MESSAGING_FIFO@"};
 const char* const PATH_TEMPERATURE_INFO{"@SETTING_PATH_TEMPERATURE_INFO@"};
+const char* const PATH_THERMAL_ZONE_WILDCARD{"@SETTING_PATH_THERMAL_ZONE_WILDCARD@"};
 const char* const WIRELESS_LIB{"@WIRELESS_LIB@"};
 
 bool version_details(const std::vector<std::string>& args) {
@@ -53,8 +54,8 @@ void print_build_info(bool extended) {
     printf("\n");
     printf("Build type: @CMAKE_BUILD_TYPE@\n");
     printf("Compiler: @CMAKE_CXX_COMPILER@\n");
-    printf("Compiler flags: @CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}\n");
-    printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@ ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}\n");
+    printf("Compiler flags: @CMAKE_CXX_FLAGS@ ${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} @cxx_flags_str@\n");
+    printf("Linker flags: @CMAKE_EXE_LINKER_FLAGS@ ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} @cxx_linker_flags_str@\n");
   }
 }
 // clang-format on

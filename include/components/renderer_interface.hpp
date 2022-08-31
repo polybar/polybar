@@ -10,7 +10,7 @@ class renderer_interface {
  public:
   renderer_interface(const tags::action_context& action_ctxt) : m_action_ctxt(action_ctxt){};
 
-  virtual void render_offset(const tags::context& ctxt, int pixels) = 0;
+  virtual void render_offset(const tags::context& ctxt, const extent_val offset) = 0;
   virtual void render_text(const tags::context& ctxt, const string&& str) = 0;
   virtual void change_alignment(const tags::context& ctxt) = 0;
 
@@ -32,6 +32,8 @@ class renderer_interface {
    * when new things are rendered.
    */
   virtual double get_alignment_start(const alignment align) const = 0;
+
+  virtual void apply_tray_position(const tags::context& context) = 0;
 
  protected:
   /**

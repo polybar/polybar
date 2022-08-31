@@ -85,7 +85,7 @@ namespace socket_util {
   }
 
   /**
-   * \see receive
+   * @see receive
    */
   string unix_connection::receive(const ssize_t receive_bytes, int flags) {
     ssize_t bytes{0};

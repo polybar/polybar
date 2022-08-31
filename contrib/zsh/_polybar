@@ -29,6 +29,22 @@ _polybar() {
     '::bar name:_polybar_list_names'
 }
 
+(( $+functions[_polybar_default_file] )) || _polybar_default_file() {
+  local suffix=/polybar/config.ini
+
+  local home_path=${XDG_CONFIG_HOME:-$HOME/.config}${suffix}
+  local etc_xdg_path=${XDG_CONFIG_DIRS:-/etc/xdg}${suffix}
+  local etc_path=/etc${suffix}
+
+  if [ -r "$home_path" ]; then
+    echo "$home_path"
+  elif [ -r "$etc_xdg_path" ]; then
+    echo "$etc_xdg_path"
+  elif [ -r "$etc_path" ]; then
+    echo "$etc_path"
+  fi
+}
+
 (( $+functions[_polybar_list_names] )) || _polybar_list_names() {
   local conf
   if (( $+opt_args[-c] )); then
@@ -36,9 +52,9 @@ _polybar() {
   elif (( $+opt_args[--config] )); then
     conf=${(e)opt_args[--config]}
   else
-    conf=${XDG_CONFIG_HOME:-$HOME/.config}/polybar/config
+    conf=$(_polybar_default_file)
   fi
-  local names; names=(${(f)"$(sed -nr 's|\[bar/([^\]+)\]$|\1|p' ${conf} 2>/dev/null)"})
+  local names; names=(${(f)"$(sed -nE 's|[[:space:]]*\[bar/([^\]+)\][[:space:]]*$|\1|p' ${conf} 2>/dev/null)"})
   _describe -t names 'configuration name' names
 }
 

@@ -25,13 +25,34 @@ namespace modules {
 
   backlight_module::backlight_module(const bar_settings& bar, string name_)
       : inotify_module<backlight_module>(bar, move(name_)) {
-    m_router->register_action(EVENT_DEC, &backlight_module::action_dec);
-    m_router->register_action(EVENT_INC, &backlight_module::action_inc);
+    m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
+    m_router->register_action(EVENT_INC, [this]() { action_inc(); });
+    auto card = m_conf.get(name(), "card", ""s);
+    if (card.empty()) {
+      vector<string> backlight_card_names = file_util::list_files(string_util::replace(PATH_BACKLIGHT, "%card%", ""));
+      backlight_card_names.erase(std::remove_if(backlight_card_names.begin(), backlight_card_names.end(),
+                                     [&](const string& card) -> bool {
+                                       auto dir = string_util::replace(PATH_BACKLIGHT, "%card%", card);
+                                       return !(file_util::is_file(dir + "/actual_brightness") &&
+                                                file_util::is_file(dir + "/brightness") &&
+                                                file_util::is_file(dir + "/max_brightness"));
+                                     }),
+          backlight_card_names.end());
 
-    auto card = m_conf.get(name(), "card");
-
+      if (backlight_card_names.empty()) {
+        throw module_error("no viable default backlight found");
+      }
+      card = backlight_card_names.at(0);
+      if (backlight_card_names.size() > 1) {
+        m_log.warn("%s: multiple backlights found, using %s", name(), card);
+      } else {
+        m_log.info("%s: no backlight specified, using `%s`", name(), card);
+      }
+    }
     // Get flag to check if we should add scroll handlers for changing value
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+
+    m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
@@ -71,9 +92,9 @@ namespace modules {
     sleep(75ms);
   }
 
-  bool backlight_module::on_event(inotify_event* event) {
-    if (event != nullptr) {
-      m_log.trace("%s: %s", name(), event->filename);
+  bool backlight_module::on_event(const inotify_event& event) {
+    if (event.is_valid) {
+      m_log.trace("%s: %s", name(), event.filename);
     }
 
     m_max_brightness = m_max.read();
@@ -98,7 +119,7 @@ namespace modules {
       m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
     }
 
-    m_builder->append(std::move(output));
+    m_builder->node(output);
 
     m_builder->action_close();
     m_builder->action_close();
@@ -120,11 +141,11 @@ namespace modules {
   }
 
   void backlight_module::action_inc() {
-    change_value(5);
+    change_value(m_scroll_interval);
   }
 
   void backlight_module::action_dec() {
-    change_value(-5);
+    change_value(-m_scroll_interval);
   }
 
   void backlight_module::change_value(int value_mod) {
@@ -141,6 +162,6 @@ namespace modules {
           name(), err.what());
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

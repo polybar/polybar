@@ -78,7 +78,7 @@ namespace process_util {
    *
    * Use this if you want to run a command and just forget about it.
    *
-   * \returns The PID of the child process
+   * @returns The PID of the child process
    */
   void fork_detached(std::function<void()> const& lambda) {
     pid_t pid = fork();
@@ -124,9 +124,14 @@ namespace process_util {
   /**
    * Execute command using shell
    */
-  void exec_sh(const char* cmd) {
+  void exec_sh(const char* cmd, const vector<pair<string, string>>& env) {
     if (cmd != nullptr) {
       static const string shell{env_util::get("POLYBAR_SHELL", "/bin/sh")};
+
+      for (const auto& kv_pair : env) {
+        setenv(kv_pair.first.data(), kv_pair.second.data(), 1);
+      }
+
       execlp(shell.c_str(), shell.c_str(), "-c", cmd, nullptr);
       throw system_error("execlp() failed");
     }
@@ -161,7 +166,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * \see wait_for_completion
+   * @see wait_for_completion
    */
   pid_t wait_for_completion_nohang(pid_t process_id, int* status) {
     return wait_for_completion(process_id, status, WNOHANG);
@@ -170,7 +175,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * \see wait_for_completion
+   * @see wait_for_completion
    */
   pid_t wait_for_completion_nohang(int* status) {
     return wait_for_completion_nohang(-1, status);
@@ -179,7 +184,7 @@ namespace process_util {
   /**
    * Non-blocking wait
    *
-   * \see wait_for_completion
+   * @see wait_for_completion
    */
   pid_t wait_for_completion_nohang() {
     int status = 0;
@@ -189,7 +194,7 @@ namespace process_util {
   /**
    * Non-blocking wait call which returns pid of any child process
    *
-   * \see wait_for_completion
+   * @see wait_for_completion
    */
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;

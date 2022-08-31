@@ -16,11 +16,32 @@ namespace modules {
   temperature_module::temperature_module(const bar_settings& bar, string name_)
       : timer_module<temperature_module>(bar, move(name_)) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
+    m_zone_type = m_conf.get(name(), "zone-type", ""s);
     m_path = m_conf.get(name(), "hwmon-path", ""s);
     m_tempbase = m_conf.get(name(), "base-temperature", 0);
     m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
     set_interval(1s);
     m_units = m_conf.get(name(), "units", m_units);
+
+    if (!m_zone_type.empty()) {
+      bool zone_found = false;
+      vector<string> zone_paths = file_util::glob(PATH_THERMAL_ZONE_WILDCARD);
+      vector<string> available_zones;
+      for (auto &z: zone_paths) {
+        string zone_file = z + "/type";
+        string z_zone_type = string_util::strip_trailing_newline(file_util::contents(zone_file));
+        available_zones.push_back(z_zone_type);
+        if (z_zone_type == m_zone_type) {
+          m_path = z + "/temp";
+          zone_found = true;
+          break;
+        }
+      }
+
+      if (!zone_found) {
+        throw module_error("zone-type '" + m_zone_type +  "' was not found, available zone types: " + string_util::join(available_zones, ", "));
+      }
+    }
 
     if (m_path.empty()) {
       m_path = string_util::replace(PATH_TEMPERATURE_INFO, "%zone%", to_string(m_zone));
@@ -51,22 +72,27 @@ namespace modules {
   }
 
   bool temperature_module::update() {
-    m_temp = std::strtol(file_util::contents(m_path).c_str(), nullptr, 10) / 1000.0f + 0.5f;
-    int temp_f = floor(((1.8 * m_temp) + 32) + 0.5);
+    float temp = float(std::strtol(file_util::contents(m_path).c_str(), nullptr, 10)) / 1000.0;
+    m_temp     = std::lround( temp );
+    int temp_f = std::lround( (temp * 1.8) + 32.0 );
+    int temp_k = std::lround( temp + 273.15 );
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
+    string temp_k_string = to_string(temp_k);
 
     // Add units if `units = true` in config
     if(m_units) {
       temp_c_string += "°C";
       temp_f_string += "°F";
+      temp_k_string += "K";
     }
 
     const auto replace_tokens = [&](label_t& label) {
       label->reset_tokens();
       label->replace_token("%temperature-f%", temp_f_string);
       label->replace_token("%temperature-c%", temp_c_string);
+      label->replace_token("%temperature-k%", temp_k_string);
 
       // DEPRECATED: Will be removed in later release
       label->replace_token("%temperature%", temp_c_string);

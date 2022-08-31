@@ -13,7 +13,7 @@ POLYBAR_NS
 namespace chrono = std::chrono;
 
 namespace drawtypes {
-  class animation : public non_copyable_mixin<animation> {
+  class animation : public non_copyable_mixin {
    public:
     explicit animation(unsigned int framerate_ms) : m_framerate_ms(framerate_ms) {}
     explicit animation(vector<label_t>&& frames, int framerate_ms)

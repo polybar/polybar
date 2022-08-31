@@ -6,11 +6,12 @@
 #include <csignal>
 #include <cstdlib>
 #include <utility>
-#include <utils/string.hpp>
 
 #include "errors.hpp"
+#include "utils/file.hpp"
 #include "utils/io.hpp"
 #include "utils/process.hpp"
+#include "utils/string.hpp"
 
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
@@ -24,9 +25,7 @@ POLYBAR_NS
 command<output_policy::IGNORED>::command(const logger& logger, string cmd) : m_log(logger), m_cmd(move(cmd)) {}
 
 command<output_policy::IGNORED>::~command() {
-  if (is_running()) {
-    terminate();
-  }
+  terminate();
 }
 
 /**
@@ -60,7 +59,7 @@ bool command<output_policy::IGNORED>::is_running() {
 }
 
 /**
- * Wait for the child processs to finish
+ * Wait for the child process to finish
  */
 int command<output_policy::IGNORED>::wait() {
   do {
@@ -128,7 +127,7 @@ command<output_policy::REDIRECTED>::~command() {
 /**
  * Execute the command
  */
-int command<output_policy::REDIRECTED>::exec(bool wait_for_completion) {
+int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const vector<pair<string, string>>& env) {
   if ((m_forkpid = fork()) == -1) {
     throw system_error("Failed to fork process");
   }
@@ -159,7 +158,7 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion) {
     }
 
     setpgid(m_forkpid, 0);
-    process_util::exec_sh(m_cmd.c_str());
+    process_util::exec_sh(m_cmd.c_str(), env);
   } else {
     // Close file descriptors that won't be used by the parent
     if ((m_stdin[PIPE_READ] = close(m_stdin[PIPE_READ])) == -1) {
@@ -182,27 +181,24 @@ int command<output_policy::REDIRECTED>::exec(bool wait_for_completion) {
 /**
  * Tail command output
  *
- * \note: This is a blocking call and will not
+ * @note: This is a blocking call and will not
  * end until the stream is closed
  */
-void command<output_policy::REDIRECTED>::tail(callback<string> cb) {
-  io_util::tail(m_stdout[PIPE_READ], cb);
-}
-
-/**
- * Write line to command input channel
- */
-int command<output_policy::REDIRECTED>::writeline(string data) {
-  std::lock_guard<std::mutex> lck(m_pipelock);
-  return static_cast<int>(io_util::writeline(m_stdin[PIPE_WRITE], data));
+void command<output_policy::REDIRECTED>::tail(std::function<void(string)> cb) {
+  io_util::tail(get_stdout(PIPE_READ), cb);
 }
 
 /**
  * Read a line from the commands output stream
  */
 string command<output_policy::REDIRECTED>::readline() {
-  std::lock_guard<std::mutex> lck(m_pipelock);
-  return io_util::readline(m_stdout[PIPE_READ]);
+  if (!m_stdout_reader) {
+    m_stdout_reader = make_unique<fd_stream<std::istream>>(get_stdout(PIPE_READ), false);
+  }
+
+  string s;
+  std::getline(*m_stdout_reader, s);
+  return s;
 }
 
 /**

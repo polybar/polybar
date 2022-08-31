@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -26,7 +27,7 @@ namespace modules {
    private:
     static constexpr auto TAG_LABEL = "<label>";
 
-    // \deprecated: Use <label>
+    // @deprecated: Use <label>
     static constexpr auto TAG_DATE = "<date>";
 
     label_t m_label;
@@ -44,6 +45,6 @@ namespace modules {
 
     std::atomic<bool> m_toggled{false};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

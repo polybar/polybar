@@ -3,7 +3,6 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 
@@ -25,7 +24,7 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
       : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
-    m_router->register_action(EVENT_SWITCH, &xkeyboard_module::action_switch);
+    m_router->register_action(EVENT_SWITCH, [this]() { action_switch(); });
 
     // Setup extension
     // clang-format off
@@ -45,15 +44,7 @@ namespace modules {
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
 
     // load layout icons
-    m_layout_icons = factory_util::shared<iconset>();
-    m_layout_icons->add(DEFAULT_LAYOUT_ICON, load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
-
-    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
-      auto vec = string_util::tokenize(it, ';');
-      if (vec.size() == 2) {
-        m_layout_icons->add(vec[0], factory_util::shared<label>(vec[1]));
-      }
-    }
+    parse_icons();
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
@@ -77,24 +68,24 @@ namespace modules {
       }
 
       // load indicator icons
-      m_indicator_icons_off = factory_util::shared<iconset>();
-      m_indicator_icons_on = factory_util::shared<iconset>();
+      m_indicator_icons_off = std::make_shared<iconset>();
+      m_indicator_icons_on = std::make_shared<iconset>();
 
       auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
       if (icon_pair.size() == 2) {
-        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[0]));
-        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(icon_pair[1]));
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[0]));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[1]));
       } else {
-        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
-        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, factory_util::shared<label>(""s));
+        m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(""s));
+        m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(""s));
       }
 
       for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
         auto icon_triple = string_util::tokenize(it, ';');
         if (icon_triple.size() == 3) {
           auto const indicator_str = string_util::lower(icon_triple[0]);
-          m_indicator_icons_off->add(indicator_str, factory_util::shared<label>(icon_triple[1]));
-          m_indicator_icons_on->add(indicator_str, factory_util::shared<label>(icon_triple[2]));
+          m_indicator_icons_off->add(indicator_str, std::make_shared<label>(icon_triple[1]));
+          m_indicator_icons_on->add(indicator_str, std::make_shared<label>(icon_triple[2]));
         }
       }
 
@@ -124,7 +115,9 @@ namespace modules {
       m_layout->replace_token("%variant%", m_keyboard->variant_name(m_keyboard->current()));
 
       auto const current_layout = m_keyboard->layout_name(m_keyboard->current());
-      auto icon = m_layout_icons->get(current_layout, DEFAULT_LAYOUT_ICON);
+      auto const current_variant = m_keyboard->variant_name(m_keyboard->current());
+
+      auto icon = m_layout_icons->get(current_layout, current_variant);
 
       m_layout->replace_token("%icon%", icon->get());
       m_layout->replace_token("%layout%", current_layout);
@@ -174,10 +167,10 @@ namespace modules {
 
     if (m_keyboard && m_keyboard->size() > 1) {
       m_builder->action(mousebtn::LEFT, *this, EVENT_SWITCH, "");
-      m_builder->append(output);
+      m_builder->node(output);
       m_builder->action_close();
     } else {
-      m_builder->append(output);
+      m_builder->node(output);
     }
 
     return m_builder->flush();
@@ -194,7 +187,7 @@ namespace modules {
       for (auto&& indicator : m_indicators) {
         if (*indicator.second) {
           if (n++) {
-            builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+            builder->spacing(m_formatter->get(DEFAULT_FORMAT)->spacing);
           }
           builder->node(indicator.second);
         }
@@ -232,7 +225,7 @@ namespace modules {
       auto layouts = xkb_util::get_layouts(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto indicators = xkb_util::get_indicators(m_connection, XCB_XKB_ID_USE_CORE_KBD);
       auto current_group = xkb_util::get_current_group(m_connection, XCB_XKB_ID_USE_CORE_KBD);
-      m_keyboard = factory_util::unique<keyboard>(move(layouts), move(indicators), current_group);
+      m_keyboard = std::make_unique<keyboard>(move(layouts), move(indicators), current_group);
       return true;
     } catch (const exception& err) {
       throw module_error("Failed to query keyboard, err: " + string{err.what()});
@@ -282,6 +275,50 @@ namespace modules {
       update();
     }
   }
-}  // namespace modules
+
+  void xkeyboard_module::parse_icons() {
+    m_layout_icons = make_shared<layouticonset>(load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
+
+    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+      auto vec = string_util::tokenize(it, ';');
+
+      size_t size = vec.size();
+      if (size != 2 && size != 3) {
+        m_log.warn("%s: Malformed layout-icon '%s'", name(), it);
+        continue;
+      }
+
+      const string& layout = vec[0];
+
+      if (layout.empty()) {
+        m_log.warn("%s: layout-icon '%s' is invalid: there must always be a layout defined", name(), it);
+        continue;
+      }
+
+      const string& variant = size == 2 ? layouticonset::VARIANT_ANY : vec[1];
+      const string& icon = vec.back();
+
+      if (layout == layouticonset::VARIANT_ANY && variant == layouticonset::VARIANT_ANY) {
+        m_log.warn("%s: Using '%s' for layout-icon means declaring a default icon, use 'layout-icon-default' instead",
+            name(), it);
+        continue;
+      }
+
+      define_layout_icon(it, layout, variant, std::make_shared<label>(icon));
+    }
+  }
+
+  void xkeyboard_module::define_layout_icon(
+      const string& entry, const string& layout, const string& variant, label_t&& icon) {
+    if (m_layout_icons->contains(layout, variant)) {
+      m_log.warn(
+          "%s: An equivalent matching is already defined for '%s;%s' => ignoring '%s'", name(), layout, variant, entry);
+    } else if (!m_layout_icons->add(layout, variant, std::forward<label_t>(icon))) {
+      m_log.err(
+          "%s: '%s' cannot be added to internal structure. This case should never happen and must be reported as a bug",
+          name(), entry);
+    }
+  }
+} // namespace modules
 
 POLYBAR_NS_END

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <map>
@@ -10,13 +11,13 @@
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
-#include "utils/functional.hpp"
 #include "utils/inotify.hpp"
 #include "utils/string.hpp"
 POLYBAR_NS
 
 namespace chrono = std::chrono;
 using namespace std::chrono_literals;
+using std::atomic;
 using std::map;
 
 #define DEFAULT_FORMAT "format"
@@ -35,14 +36,13 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
   class iconset;
   using iconset_t = shared_ptr<iconset>;
-}  // namespace drawtypes
+} // namespace drawtypes
 
 class builder;
 class config;
 class logger;
 class signal_emitter;
 
-template <typename Impl>
 class action_router;
 // }}}
 
@@ -67,10 +67,10 @@ namespace modules {
     rgba ol{};
     size_t ulsize{0};
     size_t olsize{0};
-    size_t spacing{0};
-    size_t padding{0};
-    size_t margin{0};
-    int offset{0};
+    spacing_val spacing{ZERO_SPACE};
+    spacing_val padding{ZERO_SPACE};
+    spacing_val margin{ZERO_SPACE};
+    extent_val offset{ZERO_PX_EXTENT};
     int font{0};
 
     string decorate(builder* builder, string output);
@@ -125,11 +125,12 @@ namespace modules {
      * Any implementation is free to ignore the data, if the action does not
      * require additional data.
      *
-     * \returns true if the action is supported and false otherwise
+     * @returns true if the action is supported and false otherwise
      */
     virtual bool input(const string& action, const string& data) = 0;
 
     virtual void start() = 0;
+    virtual void join() = 0;
     virtual void stop() = 0;
     virtual void halt(string error_message) = 0;
     virtual string contents() = 0;
@@ -141,7 +142,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings bar, string name);
+    module(const bar_settings& bar, string name);
     ~module() noexcept;
 
     static constexpr auto EVENT_MODULE_TOGGLE = "module_toggle";
@@ -156,6 +157,8 @@ namespace modules {
 
     bool visible() const override;
 
+    void start() override;
+    void join() final override;
     void stop() override;
     void halt(string error_message) override;
     void teardown();
@@ -169,6 +172,19 @@ namespace modules {
     void sleep(chrono::duration<double> duration);
     template <class Clock, class Duration>
     void sleep_until(chrono::time_point<Clock, Duration> point);
+
+    /**
+     * Wakes up the module.
+     *
+     * It should be possible to interrupt any blocking operation inside a
+     * module using this function.
+     *
+     * In addition, after a wake up whatever was woken up should immediately
+     * check whether the module is still running.
+     *
+     * Modules that don't follow this, could stall the operation of whatever
+     * code called this function.
+     */
     void wakeup();
     string get_format() const;
     string get_output();
@@ -181,11 +197,11 @@ namespace modules {
 
    protected:
     signal_emitter& m_sig;
-    const bar_settings m_bar;
+    const bar_settings& m_bar;
     const logger& m_log;
     const config& m_conf;
 
-    unique_ptr<action_router<Impl>> m_router;
+    unique_ptr<action_router> m_router;
 
     mutex m_buildlock;
     mutex m_updatelock;
@@ -202,13 +218,13 @@ namespace modules {
     bool m_handle_events{true};
 
    private:
-    atomic<bool> m_enabled{true};
+    atomic<bool> m_enabled{false};
     atomic<bool> m_visible{true};
     atomic<bool> m_changed{true};
     string m_cache;
   };
 
   // }}}
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

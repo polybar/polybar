@@ -11,6 +11,7 @@ namespace modules {
     using module<Impl>::module;
 
     void start() override {
+      this->module<Impl>::start();
       this->m_mainthread = thread(&event_module::runner, this);
     }
 

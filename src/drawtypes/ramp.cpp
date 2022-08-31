@@ -1,4 +1,5 @@
 #include "drawtypes/ramp.hpp"
+
 #include "utils/factory.hpp"
 #include "utils/math.hpp"
 
@@ -7,6 +8,12 @@ POLYBAR_NS
 namespace drawtypes {
   void ramp::add(label_t&& icon) {
     m_icons.emplace_back(forward<decltype(icon)>(icon));
+  }
+
+  void ramp::add(label_t&& icon, unsigned weight) {
+    while (weight--) {
+      m_icons.emplace_back(icon);
+    }
   }
 
   label_t ramp::get(size_t index) {
@@ -59,13 +66,18 @@ namespace drawtypes {
     }
 
     for (size_t i = 0; i < icons.size(); i++) {
-      auto icon = load_optional_label(conf, section, name + "-" + to_string(i), icons[i]);
+      auto ramp_name = name + "-" + to_string(i);
+      auto icon = load_optional_label(conf, section, ramp_name, icons[i]);
       icon->copy_undefined(ramp_defaults);
-      vec.emplace_back(move(icon));
+
+      auto weight = conf.get(section, ramp_name + "-weight", 1U);
+      while (weight--) {
+        vec.emplace_back(icon);
+      }
     }
 
-    return factory_util::shared<drawtypes::ramp>(move(vec));
+    return std::make_shared<drawtypes::ramp>(move(vec));
   }
-}
+}  // namespace drawtypes
 
 POLYBAR_NS_END

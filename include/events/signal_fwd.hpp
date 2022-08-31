@@ -15,35 +15,31 @@ namespace signals {
   }
 
   namespace eventqueue {
-    struct start;
-    struct exit_terminate;
     struct exit_reload;
     struct notify_change;
     struct notify_forcechange;
     struct check_state;
-  }  // namespace eventqueue
+  } // namespace eventqueue
   namespace ipc {
     struct command;
     struct hook;
     struct action;
-  }  // namespace ipc
+  } // namespace ipc
   namespace ui {
-    struct ready;
     struct changed;
-    struct tick;
     struct button_press;
-    struct cursor_change;
     struct visibility_change;
     struct dim_window;
-    struct shade_window;
-    struct unshade_window;
     struct request_snapshot;
     struct update_background;
     struct update_geometry;
-  }  // namespace ui
+  } // namespace ui
   namespace ui_tray {
     struct mapped_clients;
-  }
-}  // namespace signals
+    struct tray_width_change;
+    struct tray_pos_change;
+    struct tray_visibility;
+  } // namespace ui_tray
+} // namespace signals
 
 POLYBAR_NS_END

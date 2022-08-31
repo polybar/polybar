@@ -5,7 +5,6 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -41,9 +40,9 @@ namespace modules {
   template class module<bspwm_module>;
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &bspwm_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &bspwm_module::action_next);
-    m_router->register_action(EVENT_PREV, &bspwm_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     auto socket_path = bspwm_util::get_socket_path();
 
@@ -132,14 +131,19 @@ namespace modules {
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
 
-    m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
+    m_icons = std::make_shared<iconset>();
+    m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
 
+    int i = 0;
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+        m_icons->add(vec[0], std::make_shared<label>(vec[1]));
+      } else {
+        m_log.err("%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
       }
+
+      i++;
     }
   }
 
@@ -234,7 +238,7 @@ namespace modules {
       unsigned int workspace_mask{0U};
 
       if (tag[0] == 'm' || tag[0] == 'M') {
-        m_monitors.emplace_back(factory_util::unique<bspwm_monitor>());
+        m_monitors.emplace_back(std::make_unique<bspwm_monitor>());
         m_monitors.back()->name = value;
 
         if (m_monitorlabel) {
@@ -388,7 +392,7 @@ namespace modules {
     string output;
     for (m_index = 0U; m_index < m_monitors.size(); m_index++) {
       if (m_index > 0) {
-        m_builder->space(m_formatter->get(DEFAULT_FORMAT)->spacing);
+        m_builder->spacing(m_formatter->get(DEFAULT_FORMAT)->spacing);
       }
       output += this->event_module::get_output();
     }

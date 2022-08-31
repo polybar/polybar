@@ -1,9 +1,10 @@
-#include "adapters/net.hpp"
-
 #include <linux/nl80211.h>
 #include <netlink/genl/ctrl.h>
 #include <netlink/genl/genl.h>
 
+#include <algorithm>
+
+#include "adapters/net.hpp"
 #include "utils/file.hpp"
 
 POLYBAR_NS
@@ -166,8 +167,8 @@ namespace net {
     m_essid.clear();
 
     if (bss[NL80211_BSS_INFORMATION_ELEMENTS] != nullptr) {
-      // Information Element ID from ieee80211.h
-      #define WLAN_EID_SSID 0
+// Information Element ID from ieee80211.h
+#define WLAN_EID_SSID 0
 
       auto ies = static_cast<char*>(nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]));
       auto ies_len = nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]);
@@ -226,6 +227,6 @@ namespace net {
       m_signalstrength.max = hardware_max - hardware_min;
     }
   }
-}  // namespace net
+} // namespace net
 
 POLYBAR_NS_END

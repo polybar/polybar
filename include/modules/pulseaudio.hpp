@@ -53,6 +53,7 @@ namespace modules {
     atomic<bool> m_muted{false};
     atomic<int> m_volume{0};
     atomic<double> m_decibels{0};
+    atomic<bool> m_reverse_scroll{false};
   };
 }  // namespace modules
 

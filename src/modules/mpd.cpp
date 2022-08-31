@@ -6,7 +6,6 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 
 POLYBAR_NS
 
@@ -14,16 +13,16 @@ namespace modules {
   template class module<mpd_module>;
 
   mpd_module::mpd_module(const bar_settings& bar, string name_) : event_module<mpd_module>(bar, move(name_)) {
-    m_router->register_action(EVENT_PLAY, &mpd_module::action_play);
-    m_router->register_action(EVENT_PAUSE, &mpd_module::action_pause);
-    m_router->register_action(EVENT_STOP, &mpd_module::action_stop);
-    m_router->register_action(EVENT_PREV, &mpd_module::action_prev);
-    m_router->register_action(EVENT_NEXT, &mpd_module::action_next);
-    m_router->register_action(EVENT_REPEAT, &mpd_module::action_repeat);
-    m_router->register_action(EVENT_SINGLE, &mpd_module::action_single);
-    m_router->register_action(EVENT_RANDOM, &mpd_module::action_random);
-    m_router->register_action(EVENT_CONSUME, &mpd_module::action_consume);
-    m_router->register_action_with_data(EVENT_SEEK, &mpd_module::action_seek);
+    m_router->register_action(EVENT_PLAY, [this]() { action_play(); });
+    m_router->register_action(EVENT_PAUSE, [this]() { action_pause(); });
+    m_router->register_action(EVENT_STOP, [this]() { action_stop(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_REPEAT, [this]() { action_repeat(); });
+    m_router->register_action(EVENT_SINGLE, [this]() { action_single(); });
+    m_router->register_action(EVENT_RANDOM, [this]() { action_random(); });
+    m_router->register_action(EVENT_CONSUME, [this]() { action_consume(); });
+    m_router->register_action_with_data(EVENT_SEEK, [this](const std::string& data) { action_seek(data); });
 
     m_host = m_conf.get(name(), "host", m_host);
     m_port = m_conf.get(name(), "port", m_port);
@@ -67,7 +66,7 @@ namespace modules {
 
     m_formatter->add(FORMAT_OFFLINE, "", {TAG_LABEL_OFFLINE});
 
-    m_icons = factory_util::shared<iconset>();
+    m_icons = std::make_shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
       m_icons->add("play", load_label(m_conf, name(), TAG_ICON_PLAY));
@@ -130,10 +129,10 @@ namespace modules {
 
     // }}}
 
-    m_lastsync = chrono::system_clock::now();
+    m_lastsync = chrono::steady_clock::now();
 
     try {
-      m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+      m_mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       m_mpd->connect();
       m_status = m_mpd->get_status();
     } catch (const mpd_exception& err) {
@@ -170,7 +169,7 @@ namespace modules {
 
     try {
       if (!m_mpd) {
-        m_mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass);
+        m_mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass);
       }
       if (!connected()) {
         m_mpd->connect();
@@ -205,7 +204,7 @@ namespace modules {
     }
 
     if ((m_label_time || m_bar_progress) && m_status->match_state(mpdstate::PLAYING)) {
-      auto now = chrono::system_clock::now();
+      auto now = chrono::steady_clock::now();
       auto diff = now - m_lastsync;
 
       if (chrono::duration_cast<chrono::milliseconds>(diff).count() > m_synctime * 1000) {
@@ -367,9 +366,9 @@ namespace modules {
  * We have to create a separate mpd instance because actions run in the
  * controller thread and the `m_mpd` pointer is used in the module thread.
  */
-#define MPD_CONNECT()                                                            \
-  auto mpd = factory_util::unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
-  mpd->connect();                                                                \
+#define MPD_CONNECT()                                                        \
+  auto mpd = std::make_unique<mpdconnection>(m_log, m_host, m_port, m_pass); \
+  mpd->connect();                                                            \
   auto status = mpd->get_status()
 
   void mpd_module::action_play() {

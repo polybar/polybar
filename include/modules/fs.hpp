@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-
 #include "components/config.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "settings.hpp"
@@ -68,12 +66,12 @@ namespace modules {
     vector<fs_mount_t> m_mounts;
     bool m_fixed{false};
     bool m_remove_unmounted{false};
-    int m_spacing{2};
+    spacing_val m_spacing{spacing_type::SPACE, 2U};
     int m_perc_used_warn{90};
 
     // used while formatting output
     size_t m_index{0_z};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -10,7 +10,11 @@ POLYBAR_NS
 
 namespace actions_util {
   string get_action_string(const modules::module_interface& module, string action, string data) {
-    string str = "#" + module.name_raw() + "." + action;
+    return get_action_string(module.name_raw(), action, data);
+  }
+
+  string get_action_string(const string& module_name, string action, string data) {
+    string str = "#" + module_name + "." + action;
     if (!data.empty()) {
       str += "." + data;
     }

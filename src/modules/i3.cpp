@@ -5,7 +5,6 @@
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
-#include "utils/factory.hpp"
 #include "utils/file.hpp"
 
 POLYBAR_NS
@@ -14,9 +13,9 @@ namespace modules {
   template class module<i3_module>;
 
   i3_module::i3_module(const bar_settings& bar, string name_) : event_module<i3_module>(bar, move(name_)) {
-    m_router->register_action_with_data(EVENT_FOCUS, &i3_module::action_focus);
-    m_router->register_action(EVENT_NEXT, &i3_module::action_next);
-    m_router->register_action(EVENT_PREV, &i3_module::action_prev);
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     auto socket_path = i3ipc::get_socketpath();
 
@@ -24,7 +23,7 @@ namespace modules {
       throw module_error("Could not find socket: " + (socket_path.empty() ? "<empty>" : socket_path));
     }
 
-    m_ipc = factory_util::unique<i3ipc::connection>();
+    m_ipc = std::make_unique<i3ipc::connection>();
 
     // Load configuration values
     m_click = m_conf.get(name(), "enable-click", m_click);
@@ -59,14 +58,19 @@ namespace modules {
 
     m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
 
-    m_icons = factory_util::shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, factory_util::shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
+    m_icons = std::make_shared<iconset>();
+    m_icons->add(DEFAULT_WS_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
 
+    int i = 0;
     for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
-        m_icons->add(vec[0], factory_util::shared<label>(vec[1]));
+        m_icons->add(vec[0], std::make_shared<label>(vec[1]));
+      } else {
+        m_log.err("%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
       }
+
+      i++;
     }
 
     try {
@@ -173,7 +177,7 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(std::make_unique<workspace>(ws->name, ws_state, move(label)));
       }
 
       return true;

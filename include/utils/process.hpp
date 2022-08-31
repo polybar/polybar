@@ -16,7 +16,7 @@ namespace process_util {
   void fork_detached(std::function<void()> const& lambda);
 
   void exec(char* cmd, char** args);
-  void exec_sh(const char* cmd);
+  void exec_sh(const char* cmd, const vector<pair<string, string>>& env = {});
 
   int wait(pid_t pid);
 

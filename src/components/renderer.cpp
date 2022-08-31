@@ -7,8 +7,8 @@
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
-#include "utils/factory.hpp"
 #include "utils/math.hpp"
+#include "utils/units.hpp"
 #include "x11/atoms.hpp"
 #include "x11/background_manager.hpp"
 #include "x11/connection.hpp"
@@ -23,7 +23,7 @@ static constexpr double BLOCK_GAP{20.0};
  */
 renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
   // clang-format off
-  return factory_util::unique<renderer>(
+  return std::make_unique<renderer>(
       connection::make(),
       signal_emitter::make(),
       config::make(),
@@ -110,9 +110,9 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Allocate alignment blocks");
   {
-    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0});
-    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0});
+    m_blocks.emplace(alignment::LEFT, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::CENTER, alignment_block{nullptr, 0.0, 0.0, 0.});
+    m_blocks.emplace(alignment::RIGHT, alignment_block{nullptr, 0.0, 0.0, 0.});
   }
 
   m_log.trace("renderer: Allocate cairo components");
@@ -123,31 +123,6 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Load fonts");
   {
-    double dpi_x = 96, dpi_y = 96;
-    if (m_conf.has(m_conf.section(), "dpi")) {
-      dpi_x = dpi_y = m_conf.get<double>("dpi");
-    } else {
-      if (m_conf.has(m_conf.section(), "dpi-x")) {
-        dpi_x = m_conf.get<double>("dpi-x");
-      }
-      if (m_conf.has(m_conf.section(), "dpi-y")) {
-        dpi_y = m_conf.get<double>("dpi-y");
-      }
-    }
-
-    // dpi to be comptued
-    if (dpi_x <= 0 || dpi_y <= 0) {
-      auto screen = m_connection.screen();
-      if (dpi_x <= 0) {
-        dpi_x = screen->width_in_pixels * 25.4 / screen->width_in_millimeters;
-      }
-      if (dpi_y <= 0) {
-        dpi_y = screen->height_in_pixels * 25.4 / screen->height_in_millimeters;
-      }
-    }
-
-    m_log.info("Configured DPI = %gx%g", dpi_x, dpi_y);
-
     auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
@@ -162,7 +137,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
         offset = std::strtol(pattern.substr(pos + 1).c_str(), nullptr, 10);
         pattern.erase(pos);
       }
-      auto font = cairo::make_font(*m_context, string{pattern}, offset, dpi_x, dpi_y);
+      auto font = cairo::make_font(*m_context, string{pattern}, offset, m_bar.dpi_x, m_bar.dpi_y);
       m_log.notice("Loaded font \"%s\" (name=%s, offset=%i, file=%s)", pattern, font->name(), offset, font->file());
       *m_context << move(font);
     }
@@ -288,7 +263,7 @@ void renderer::end() {
   // the bar will be filled by the wallpaper creating illusion of transparency.
   if (m_pseudo_transparency) {
     cairo_pattern_t* barcontents{};
-    m_context->pop(&barcontents);  // corresponding push is in renderer::begin
+    m_context->pop(&barcontents); // corresponding push is in renderer::begin
 
     auto root_bg = m_background->get_surface();
     if (root_bg != nullptr) {
@@ -382,25 +357,6 @@ void renderer::flush() {
 
   highlight_clickable_areas();
 
-#if 0
-#ifdef DEBUG_SHADED
-  if (m_bar.shaded && m_bar.origin == edge::TOP) {
-    m_log.trace_x(
-        "renderer: copy pixmap (shaded=1, geom=%dx%d+%d+%d)", m_rect.width, m_rect.height, m_rect.x, m_rect.y);
-    auto geom = m_connection.get_geometry(m_window);
-    auto x1 = 0;
-    auto y1 = m_rect.height - m_bar.shade_size.h - m_rect.y - geom->height;
-    auto x2 = m_rect.x;
-    auto y2 = m_rect.y;
-    auto w = m_rect.width;
-    auto h = m_rect.height - m_bar.shade_size.h + geom->height;
-    m_connection.copy_area(m_pixmap, m_window, m_gcontext, x1, y1, x2, y2, w, h);
-    m_connection.flush();
-    return;
-  }
-#endif
-#endif
-
   m_surface->flush();
   m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();
@@ -408,7 +364,7 @@ void renderer::flush() {
   if (!m_snapshot_dst.empty()) {
     try {
       m_surface->write_png(m_snapshot_dst);
-      m_log.info("Successfully wrote %s", m_snapshot_dst);
+      m_log.notice("Successfully wrote %s", m_snapshot_dst);
     } catch (const exception& err) {
       m_log.err("Failed to write snapshot (err: %s)", err.what());
     }
@@ -511,7 +467,7 @@ double renderer::block_y(alignment) const {
  * Get block width for given alignment
  */
 double renderer::block_w(alignment a) const {
-  return m_blocks.at(a).x;
+  return m_blocks.at(a).width;
 }
 
 /**
@@ -519,6 +475,14 @@ double renderer::block_w(alignment a) const {
  */
 double renderer::block_h(alignment) const {
   return m_rect.height;
+}
+
+void renderer::increase_x(double dx) {
+  m_blocks[m_align].x += dx;
+  /*
+   * The width only increases when x becomes larger than the old width.
+   */
+  m_blocks[m_align].width = std::max(m_blocks[m_align].width, m_blocks[m_align].x);
 }
 
 /**
@@ -709,17 +673,24 @@ void renderer::fill_borders() {
  * Draw text contents
  */
 void renderer::render_text(const tags::context& ctxt, const string&& contents) {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   m_log.trace_x("renderer: text(%s)", contents.c_str());
 
   cairo::abspos origin{};
   origin.x = m_rect.x + m_blocks[m_align].x;
   origin.y = m_rect.y + m_rect.height / 2.0;
 
+  double x_old = m_blocks[m_align].x;
+  /*
+   * This variable is increased by the text renderer
+   */
+  double x_new = x_old;
+
   cairo::textblock block{};
   block.align = m_align;
   block.contents = contents;
   block.font = ctxt.get_font();
-  block.x_advance = &m_blocks[m_align].x;
+  block.x_advance = &x_new;
   block.y_advance = &m_blocks[m_align].y;
   block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
 
@@ -744,7 +715,9 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   *m_context << block;
   m_context->restore();
 
-  double dx = m_rect.x + m_blocks[m_align].x - origin.x;
+  double dx = x_new - x_old;
+  increase_x(dx);
+
   if (dx > 0.0) {
     if (ctxt.has_underline()) {
       fill_underline(ctxt.get_ul(), origin.x, dx);
@@ -756,13 +729,44 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
   }
 }
 
-void renderer::render_offset(const tags::context&, int pixels) {
-  m_log.trace_x("renderer: offset_pixel(%f)", pixels);
-  m_blocks[m_align].x += pixels;
+void renderer::draw_offset(const tags::context& ctxt, rgba color, double x, double w) {
+  if (w <= 0) {
+    return;
+  }
+
+  if (color != m_bar.background) {
+    m_log.trace_x("renderer: offset(x=%f, w=%f)", x, w);
+    m_context->save();
+    *m_context << m_comp_bg;
+    *m_context << color;
+    *m_context << cairo::rect{
+        m_rect.x + x, static_cast<double>(m_rect.y), w, static_cast<double>(m_rect.y + m_rect.height)};
+    m_context->fill();
+    m_context->restore();
+  }
+
+  if (ctxt.has_underline()) {
+    fill_underline(ctxt.get_ul(), x, w);
+  }
+
+  if (ctxt.has_overline()) {
+    fill_overline(ctxt.get_ol(), x, w);
+  }
+}
+
+void renderer::render_offset(const tags::context& ctxt, const extent_val offset) {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
+  m_log.trace_x("renderer: offset_pixel(%f)", offset);
+
+  int offset_width = units_utils::extent_to_pixel(offset, m_bar.dpi_x);
+  rgba bg = ctxt.get_bg();
+  draw_offset(ctxt, bg, m_blocks[m_align].x, offset_width);
+  increase_x(offset_width);
 }
 
 void renderer::change_alignment(const tags::context& ctxt) {
   auto align = ctxt.get_alignment();
+  assert(align != alignment::NONE);
   if (align != m_align) {
     m_log.trace_x("renderer: change_alignment(%i)", static_cast<int>(align));
 
@@ -774,6 +778,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
     m_align = align;
     m_blocks[m_align].x = 0.0;
     m_blocks[m_align].y = 0.0;
+    m_blocks[m_align].width = 0.;
     m_context->push();
     m_log.trace_x("renderer: push(%i)", static_cast<int>(m_align));
 
@@ -782,6 +787,7 @@ void renderer::change_alignment(const tags::context& ctxt) {
 }
 
 double renderer::get_x(const tags::context& ctxt) const {
+  assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   return m_blocks.at(ctxt.get_alignment()).x;
 }
 
@@ -815,6 +821,17 @@ void renderer::highlight_clickable_areas() {
 bool renderer::on(const signals::ui::request_snapshot& evt) {
   m_snapshot_dst = evt.cast();
   return true;
+}
+
+void renderer::apply_tray_position(const tags::context& context) {
+  if (context.get_relative_tray_position() != std::pair<alignment, int>()) {
+    int absolute_x = static_cast<int>(
+        block_x(context.get_relative_tray_position().first) + context.get_relative_tray_position().second);
+    m_sig.emit(signals::ui_tray::tray_pos_change{absolute_x});
+    m_sig.emit(signals::ui_tray::tray_visibility{true});
+  } else {
+    m_sig.emit(signals::ui_tray::tray_visibility{false});
+  }
 }
 
 POLYBAR_NS_END

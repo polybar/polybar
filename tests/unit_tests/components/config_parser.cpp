@@ -13,6 +13,12 @@ class TestableConfigParser : public config_parser {
   using config_parser::config_parser;
 
  public:
+  TestableConfigParser(const logger& logger, string&& file)
+      : config_parser(logger, move(file)) {
+    m_files.push_back("test_config");
+  }
+
+ public:
   using config_parser::get_line_type;
 
  public:
@@ -37,7 +43,7 @@ class TestableConfigParser : public config_parser {
 class ConfigParser : public ::testing::Test {
  protected:
   const logger l = logger(loglevel::NONE);
-  unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(l, "/dev/zero", "TEST");
+  unique_ptr<TestableConfigParser> parser = make_unique<TestableConfigParser>(l, "/dev/zero");
 };
 
 // ParseLineTest {{{
@@ -78,7 +84,10 @@ vector<pair<pair<string, string>, string>> parse_line_key_list = {
 INSTANTIATE_TEST_SUITE_P(Inst, ParseLineInValidTest, ::testing::ValuesIn(parse_line_invalid_list));
 
 TEST_P(ParseLineInValidTest, correctness) {
-  line_t line = parser->parse_line(GetParam());
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+  parser->parse_line(line, GetParam());
 
   EXPECT_FALSE(line.useful);
 }
@@ -86,7 +95,10 @@ TEST_P(ParseLineInValidTest, correctness) {
 INSTANTIATE_TEST_SUITE_P(Inst, ParseLineHeaderTest, ::testing::ValuesIn(parse_line_header_list));
 
 TEST_P(ParseLineHeaderTest, correctness) {
-  line_t line = parser->parse_line(GetParam().second);
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+  parser->parse_line(line, GetParam().second);
 
   EXPECT_TRUE(line.useful);
 
@@ -97,7 +109,10 @@ TEST_P(ParseLineHeaderTest, correctness) {
 INSTANTIATE_TEST_SUITE_P(Inst, ParseLineKeyTest, ::testing::ValuesIn(parse_line_key_list));
 
 TEST_P(ParseLineKeyTest, correctness) {
-  line_t line = parser->parse_line(GetParam().second);
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+  parser->parse_line(line, GetParam().second);
 
   EXPECT_TRUE(line.useful);
 
@@ -107,8 +122,12 @@ TEST_P(ParseLineKeyTest, correctness) {
 }
 
 TEST_F(ParseLineInValidTest, throwsSyntaxError) {
-  EXPECT_THROW(parser->parse_line("unknown"), syntax_error);
-  EXPECT_THROW(parser->parse_line("\ufeff"), syntax_error);
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+
+  EXPECT_THROW(parser->parse_line(line, "unknown"), syntax_error);
+  EXPECT_THROW(parser->parse_line(line, "\ufeff"), syntax_error);
 }
 // }}}
 
@@ -192,16 +211,23 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseKeyTest, ::testing::ValuesIn(parse_key_list)
  * Parameterized test for parse_key with valid line
  */
 TEST_P(ParseKeyTest, correctness) {
-  EXPECT_EQ(GetParam().first, parser->parse_key(GetParam().second));
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+  EXPECT_EQ(GetParam().first, parser->parse_key(line, GetParam().second));
 }
 
 /**
  * Tests if exception is thrown for invalid key line
  */
 TEST_F(ParseKeyTest, throwsSyntaxError) {
-  EXPECT_THROW(parser->parse_key("= empty name"), syntax_error);
-  EXPECT_THROW(parser->parse_key("forbidden char = value"), syntax_error);
-  EXPECT_THROW(parser->parse_key("forbidden\tchar = value"), syntax_error);
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+
+  EXPECT_THROW(parser->parse_key(line, "= empty name"), syntax_error);
+  EXPECT_THROW(parser->parse_key(line, "forbidden char = value"), syntax_error);
+  EXPECT_THROW(parser->parse_key(line, "forbidden\tchar = value"), syntax_error);
 }
 // }}}
 
@@ -227,22 +253,29 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseHeaderTest, ::testing::ValuesIn(parse_header
  * Parameterized test for parse_header with valid line
  */
 TEST_P(ParseHeaderTest, correctness) {
-  EXPECT_EQ(GetParam().first, parser->parse_header(GetParam().second));
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+  EXPECT_EQ(GetParam().first, parser->parse_header(line, GetParam().second));
 }
 
 /**
  * Tests if exception is thrown for invalid header line
  */
 TEST_F(ParseHeaderTest, throwsSyntaxError) {
-  EXPECT_THROW(parser->parse_header("[]"), syntax_error);
-  EXPECT_THROW(parser->parse_header("[no_end"), syntax_error);
-  EXPECT_THROW(parser->parse_header("[forbidden char]"), syntax_error);
-  EXPECT_THROW(parser->parse_header("[forbidden\tchar]"), syntax_error);
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
+
+  EXPECT_THROW(parser->parse_header(line, "[]"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[no_end"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[forbidden char]"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[forbidden\tchar]"), syntax_error);
 
   // Reserved names
-  EXPECT_THROW(parser->parse_header("[self]"), syntax_error);
-  EXPECT_THROW(parser->parse_header("[BAR]"), syntax_error);
-  EXPECT_THROW(parser->parse_header("[root]"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[self]"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[BAR]"), syntax_error);
+  EXPECT_THROW(parser->parse_header(line, "[root]"), syntax_error);
 }
 // }}}
 
@@ -271,8 +304,11 @@ INSTANTIATE_TEST_SUITE_P(Inst, ParseEscapedValueTest, ::testing::ValuesIn(parse_
  * Parameterized test for parse_escaped_value with valid line
  */
 TEST_P(ParseEscapedValueTest, correctness) {
+  line_t line;
+  line.file_index = 0;
+  line.line_no = 0;
   string value = GetParam().second;
-  value = parser->parse_escaped_value(move(value), "key");
+  value = parser->parse_escaped_value(line, move(value), "key");
   EXPECT_EQ(GetParam().first, value);
 }
 // }}}
