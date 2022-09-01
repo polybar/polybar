@@ -29,6 +29,7 @@ namespace modules {
     void start() override;
     void update();
     string get_output();
+    string get_format() const;
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 

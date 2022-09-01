@@ -59,8 +59,14 @@ namespace modules {
     for (auto& hook : m_hooks) {
       hook->command = pid_token(hook->command);
     }
-
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
+
+
+    for(size_t i=0; i < m_hooks.size(); i++){
+        string format_i= "format-" + to_string(i) ;
+        format_i= "format-" + to_string(i) ;
+        m_formatter->add(format_i, TAG_OUTPUT, {TAG_OUTPUT});
+    }
   }
 
   /**
@@ -103,6 +109,15 @@ namespace modules {
     return m_builder->flush();
   }
 
+  string ipc_module::get_format() const {
+      if( m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()){
+        return "format-" + to_string(m_current_hook);
+      }
+      else{
+        throw module_error("Initial hook out of bounds: '" + to_string(m_initial + 1) +
+                           "'. Defined hooks go from 1 to " + to_string(m_hooks.size()) + ")");
+      }
+  }
   /**
    * Output content retrieved from hook commands
    */
