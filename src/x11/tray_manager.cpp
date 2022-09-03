@@ -65,35 +65,28 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-/**
- * TODO load settings from module section
- */
-void tray_manager::setup(const string& tray_module_name) {
-  const config& conf = config::make();
-  auto bs = conf.section();
+void tray_manager::setup(const config& conf, const string& section_name) {
+  unsigned client_height = m_bar_opts.inner_area().height;
 
-  auto inner_area = m_bar_opts.inner_area();
-  unsigned client_height = inner_area.height;
+  // Add user-defined padding
+  m_opts.spacing = conf.get<unsigned>(section_name, "tray-padding", 0);
 
-  auto maxsize = conf.get<unsigned>(bs, "tray-maxsize", 16);
+  auto maxsize = conf.get<unsigned>(section_name, "tray-maxsize", 16);
   if (client_height > maxsize) {
     m_opts.spacing += (client_height - maxsize) / 2;
     client_height = maxsize;
   }
 
   // Apply user-defined scaling
-  auto scale = conf.get(bs, "tray-scale", 1.0);
+  auto scale = conf.get(section_name, "tray-scale", 1.0);
   client_height *= scale;
 
   m_opts.client_size = {client_height, client_height};
 
   // Set user-defined foreground and background colors.
   // TODO maybe remove
-  m_opts.background = conf.get(bs, "tray-background", m_bar_opts.background);
-  m_opts.foreground = conf.get(bs, "tray-foreground", m_bar_opts.foreground);
-
-  // Add user-defined padding
-  m_opts.spacing += conf.get<unsigned>(bs, "tray-padding", 0);
+  m_opts.background = conf.get(section_name, "tray-background", m_bar_opts.background);
+  m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
 

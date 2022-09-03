@@ -72,7 +72,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   bool running() const;
   int get_width() const;
 
-  void setup(const string& tray_module_name);
+  void setup(const config& conf, const string& module_section_name);
   void activate();
   void deactivate(bool clear_selection = true);
   void reconfigure();

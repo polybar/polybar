@@ -19,7 +19,7 @@ namespace modules {
   }
 
   void tray_module::start() {
-    m_tray.setup(name_raw());
+    m_tray.setup(m_conf, name());
     this->static_module<tray_module>::start();
   }
 
@@ -34,9 +34,9 @@ namespace modules {
   }
 
   /**
-   * Replace signal with callback passed to tray.
+   * TODO Replace signal with callback passed to tray.
    */
-  bool tray_module::on(const signals::ui_tray::tray_width_change& evt) {
+  bool tray_module::on(const signals::ui_tray::tray_width_change&) {
     broadcast();
     return true;
   }
