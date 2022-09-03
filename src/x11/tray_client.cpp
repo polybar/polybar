@@ -68,9 +68,14 @@ tray_client::~tray_client() {
   }
 }
 
-tray_client::tray_client(tray_client&& c) : m_log(c.m_log), m_connection(c.m_connection), m_size(c.m_size) {
+tray_client::tray_client(tray_client&& c) : m_log(c.m_log), m_connection(c.m_connection) {
   std::swap(m_wrapper, c.m_wrapper);
   std::swap(m_client, c.m_client);
+  std::swap(m_xembed_supported, c.m_xembed_supported);
+  std::swap(m_xembed, c.m_xembed);
+  std::swap(m_mapped, c.m_mapped);
+  std::swap(m_hidden, c.m_hidden);
+  std::swap(m_size, c.m_size);
 }
 
 tray_client& tray_client::operator=(tray_client&& c) {
@@ -78,6 +83,10 @@ tray_client& tray_client::operator=(tray_client&& c) {
   m_connection = c.m_connection;
   std::swap(m_wrapper, c.m_wrapper);
   std::swap(m_client, c.m_client);
+  std::swap(m_xembed_supported, c.m_xembed_supported);
+  std::swap(m_xembed, c.m_xembed);
+  std::swap(m_mapped, c.m_mapped);
+  std::swap(m_hidden, c.m_hidden);
   std::swap(m_size, c.m_size);
   return *this;
 }
@@ -196,7 +205,7 @@ void tray_client::ensure_state() const {
   }
 
   m_log.trace("tray(%s): ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", m_connection.id(client()), m_hidden,
-      mapped(), should_be_mapped);
+      m_mapped, should_be_mapped);
 
   if (should_be_mapped) {
     m_log.trace("tray(%s): Map client", m_connection.id(client()));

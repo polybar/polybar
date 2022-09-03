@@ -449,23 +449,26 @@ int tray_manager::calculate_client_y() {
 }
 
 /**
- * Check if the given window is embedded
+ * Check if the given window is embedded.
+ *
+ * The given window ID can be the ID of the wrapper or the embedded window
  */
-bool tray_manager::is_embedded(const xcb_window_t& win) const {
-  return m_clients.end() !=
-         std::find_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client.match(win); });
+bool tray_manager::is_embedded(const xcb_window_t& win) {
+  return find_client(win) != nullptr;
 }
 
 /**
- * Find tray client by window
+ * Find tray client object from the wrapper or embedded window
  */
 tray_client* tray_manager::find_client(const xcb_window_t& win) {
-  for (auto& client : m_clients) {
-    if (client.match(win)) {
-      return &client;
-    }
+  auto client = std::find_if(m_clients.begin(), m_clients.end(),
+      [win](const auto& client) { return client.match(win) || client.embedder() == win; });
+
+  if (client == m_clients.end()) {
+    return nullptr;
+  } else {
+    return &(*client);
   }
-  return nullptr;
 }
 
 /**
@@ -667,7 +670,7 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
   }
 
   if (evt->parent != client->embedder()) {
-    m_log.trace("tray: Received reparent_notify for client, remove...");
+    m_log.info("tray: Received reparent_notify for client, remove...");
     remove_client(*client);
   }
 }
@@ -680,7 +683,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
     m_log.info("Systray selection unmanaged... re-activating");
     activate();
   } else if (m_activated && is_embedded(evt->window)) {
-    m_log.trace("tray: Received destroy_notify for client, remove...");
+    m_log.info("tray: Received destroy_notify for client, remove...");
     remove_client(evt->window);
     redraw_window();
   }
@@ -694,7 +697,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     redraw_window();
-  } else if (is_embedded(evt->window)) { // TODO FIXME evt->window points to the wrapper window
+  } else if (is_embedded(evt->window)) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Set client mapped");
     auto client = find_client(evt->window);
@@ -710,7 +713,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void tray_manager::handle(const evt::unmap_notify& evt) {
-  if (m_activated && is_embedded(evt->window)) { // TODO FIXME evt->window points to the wrapper window
+  if (m_activated && is_embedded(evt->window)) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Set client unmapped");
     auto client = find_client(evt->window);

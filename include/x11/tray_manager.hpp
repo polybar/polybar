@@ -64,7 +64,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
                          signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
-  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts, on_update on_update);
+  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts,
+      on_update on_update);
 
   ~tray_manager();
 
@@ -108,7 +109,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   void update_width();
 
-  bool is_embedded(const xcb_window_t& win) const;
+  bool is_embedded(const xcb_window_t& win);
   tray_client* find_client(const xcb_window_t& win);
   void remove_client(const tray_client& client, bool reconfigure = true);
   void remove_client(xcb_window_t win, bool reconfigure = true);
