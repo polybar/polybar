@@ -25,6 +25,16 @@
  * Tray implementation according to the System Tray Protocol.
  *
  * Ref: https://specifications.freedesktop.org/systemtray-spec/systemtray-spec-latest.html
+ *
+ * This class manages embedded tray icons by placing them on the bar in the correct position; the position itself is
+ * requested by the renderer.
+ *
+ * The tray manager needs to trigger bar updates only when the size of the entire tray changes (e.g. when tray icons are
+ * added/removed). EVerything else can be handled without an update.
+ *
+ * TODO
+ *  * Better handling of state:
+ *    * Differentiate between, inactive, active, and waiting for selection
  */
 
 // ====================================================================================================
@@ -44,16 +54,9 @@
 
 POLYBAR_NS
 
-/**
- * Create instance
- */
-tray_manager::make_type tray_manager::make(const bar_settings& bar_opts) {
-  return std::make_unique<tray_manager>(connection::make(), signal_emitter::make(), logger::make(), bar_opts);
-}
-
 tray_manager::tray_manager(
-    connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_bar_opts(bar_opts) {
+    connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts, on_update on_update)
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_bar_opts(bar_opts), m_on_update(on_update) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
@@ -174,8 +177,7 @@ void tray_manager::deactivate(bool clear_selection) {
 
   m_connection.flush();
 
-  // TODO update through module
-  m_sig.emit(signals::eventqueue::notify_forcechange{});
+  reconfigure_window();
 }
 
 /**
@@ -186,11 +188,7 @@ void tray_manager::reconfigure() {
     return;
   }
 
-  try {
-    reconfigure_window();
-  } catch (const exception& err) {
-    m_log.err("Failed to reconfigure tray window (%s)", err.what());
-  }
+  reconfigure_window();
 
   try {
     reconfigure_clients();
@@ -199,23 +197,26 @@ void tray_manager::reconfigure() {
   }
 
   m_connection.flush();
-
-  // TODO update through module
-  m_sig.emit(signals::eventqueue::notify_forcechange{});
 }
 
 /**
  * Reconfigure container window
+ *
+ * TODO should we call update_width directly?
  */
 void tray_manager::reconfigure_window() {
   m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i)", static_cast<bool>(m_hidden), m_clients.size());
-  update_width(calculate_w());
+  update_width();
 }
 
-void tray_manager::update_width(unsigned new_width) {
+/**
+ * TODO make sure this is always called when m_clients changes
+ */
+void tray_manager::update_width() {
+  unsigned new_width = calculate_w();
   if (m_tray_width != new_width) {
     m_tray_width = new_width;
-    m_sig.emit(signals::ui_tray::tray_width_change{});
+    m_on_update();
   }
 }
 

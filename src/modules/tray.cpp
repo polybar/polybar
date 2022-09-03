@@ -9,9 +9,8 @@ namespace modules {
 
   tray_module::tray_module(const bar_settings& bar_settings, string name_)
       : static_module<tray_module>(bar_settings, move(name_))
-      , m_tray(connection::make(), signal_emitter::make(), m_log, bar_settings) {
+      , m_tray(connection::make(), signal_emitter::make(), m_log, bar_settings, [&] { this->broadcast(); }) {
     m_formatter->add(DEFAULT_FORMAT, TAG_TRAY, {TAG_TRAY});
-    m_sig.attach(this);
   }
 
   string tray_module::get_format() const {
@@ -31,18 +30,6 @@ namespace modules {
       return true;
     }
     return false;
-  }
-
-  /**
-   * TODO Replace signal with callback passed to tray.
-   */
-  bool tray_module::on(const signals::ui_tray::tray_width_change&) {
-    broadcast();
-    return true;
-  }
-
-  void tray_module::teardown() {
-    m_sig.detach(this);
   }
 
 } // namespace modules

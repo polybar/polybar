@@ -7,8 +7,7 @@
 
 POLYBAR_NS
 namespace modules {
-  class tray_module : public static_module<tray_module>,
-                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui_tray::tray_width_change> {
+  class tray_module : public static_module<tray_module> {
    public:
     explicit tray_module(const bar_settings& bar_settings, string name_);
     string get_format() const;
@@ -17,9 +16,6 @@ namespace modules {
 
     bool build(builder* builder, const string& tag) const;
     void update() {}
-    void teardown();
-
-    bool on(const signals::ui_tray::tray_width_change& evt) override;
 
     static constexpr auto TYPE = "internal/tray";
 

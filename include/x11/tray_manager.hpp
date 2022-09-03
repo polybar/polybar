@@ -56,16 +56,15 @@ struct tray_settings {
   xcb_window_t selection_owner{XCB_NONE};
 };
 
+using on_update = std::function<void(void)>;
+
 class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
                          evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
                          evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
                          signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
-  using make_type = unique_ptr<tray_manager>;
-  static make_type make(const bar_settings& bar_opts);
-
-  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts);
+  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts, on_update on_update);
 
   ~tray_manager();
 
@@ -107,7 +106,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   int calculate_client_y();
 
-  void update_width(unsigned new_width);
+  void update_width();
 
   bool is_embedded(const xcb_window_t& win) const;
   tray_client* find_client(const xcb_window_t& win);
@@ -139,6 +138,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
+
+  const on_update m_on_update;
 
   /**
    * Systray selection atom _NET_SYSTEM_TRAY_Sn

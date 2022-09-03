@@ -35,7 +35,6 @@ namespace signals {
     struct update_geometry;
   } // namespace ui
   namespace ui_tray {
-    struct tray_width_change;
     struct tray_pos_change;
     struct tray_visibility;
   } // namespace ui_tray
