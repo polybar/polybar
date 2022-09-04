@@ -876,7 +876,7 @@ void bar::handle(const evt::configure_notify&) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-void bar::start(const string& tray_module_name) {
+void bar::start(const string&) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
 
