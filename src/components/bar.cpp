@@ -866,7 +866,10 @@ void bar::handle(const evt::property_notify& evt) {
   }
 }
 
-void bar::handle(const evt::configure_notify&) {
+void bar::handle(const evt::configure_notify& evt) {
+  if (evt->window != m_opts.window) {
+    return;
+  }
   // The absolute position of the window in the root may be different after configuration is done
   // (for example, because the parent is not positioned at 0/0 in the root window).
   // Notify components that the geometry may have changed (used by the background manager for example).

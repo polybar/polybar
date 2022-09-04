@@ -34,7 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
-- renderer: Small gaps when rendering emojis ([`#2785`](https://github.com/polybar/polybar/issues/2785), [`#2802`](https://github.com/polybar/polybar/pull/2802))
+- renderer:
+  - Small gaps when rendering emojis ([`#2785`](https://github.com/polybar/polybar/issues/2785), [`#2802`](https://github.com/polybar/polybar/pull/2802))
+  - Crash when using pseudo-transparency with certain wallpapers ([`#2798`](https://github.com/polybar/polybar/issues/2798), [`#2813`](https://github.com/polybar/polybar/pull/2813))
 - config:
   - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
   - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))

@@ -405,7 +405,7 @@ void tray_manager::reconfigure_bg(bool realloc) {
 
   cairo::surface* surface = m_bg_slice->get_surface();
   if (!surface) {
-    return m_log.err("tray: no root surface");
+    return;
   }
 
   m_context->clear();
