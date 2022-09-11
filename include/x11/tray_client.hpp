@@ -6,6 +6,12 @@
 #include "utils/concurrency.hpp"
 #include "x11/xembed.hpp"
 
+/*
+ * Manages the lifecycle of a tray client according to the XEMBED protocol
+ *
+ * Ref: https://specifications.freedesktop.org/xembed-spec/xembed-spec-latest.html
+ */
+
 POLYBAR_NS
 
 // fwd declarations

@@ -69,13 +69,17 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   ~tray_manager();
 
-  bool running() const;
   int get_width() const;
 
   void setup(const config& conf, const string& module_section_name);
   void activate();
-  void deactivate(bool clear_selection = true);
+  void wait_for_selection(xcb_window_t other);
+  void deactivate();
   void reconfigure();
+
+  bool is_active() const;
+  bool is_inactive() const;
+  bool is_waiting() const;
 
  protected:
   void reconfigure_window();
@@ -86,7 +90,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   void query_atom();
   void set_tray_colors();
 
-  void acquire_selection();
+  bool acquire_selection(xcb_window_t& other_owner);
   void notify_clients();
   void notify_clients_delayed();
 
@@ -142,6 +146,27 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   const on_update m_on_update;
 
+  enum class state {
+    /**
+     * The tray manager is completely deactivated and doesn't own any resources.
+     */
+    INACTIVE = 0,
+    /**
+     * There is currently another application owning the systray selection and the tray manager waits until the
+     * selection becomes available again.
+     *
+     * The signal receiver is detached in m_othermanager is set
+     */
+    WAITING,
+    /**
+     * The tray manager owns the systray selection.
+     *
+     * The signal receiver is attached
+     */
+    ACTIVE,
+  };
+  atomic<state> m_state{state::INACTIVE};
+
   /**
    * Systray selection atom _NET_SYSTEM_TRAY_Sn
    */
@@ -165,11 +190,9 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   unsigned m_tray_width{0};
 
   /**
-   * Whether the tray is running
+   * Whether the tray is visible
    */
-  atomic<bool> m_activated{false};
   atomic<bool> m_hidden{false};
-  atomic<bool> m_acquired_selection{false};
 
   thread m_delaythread;
 

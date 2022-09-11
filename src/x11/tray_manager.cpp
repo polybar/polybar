@@ -31,10 +31,6 @@
  *
  * The tray manager needs to trigger bar updates only when the size of the entire tray changes (e.g. when tray icons are
  * added/removed). EVerything else can be handled without an update.
- *
- * TODO
- *  * Better handling of state:
- *    * Differentiate between, inactive, active, and waiting for selection
  */
 
 // ====================================================================================================
@@ -103,44 +99,55 @@ void tray_manager::setup(const config& conf, const string& section_name) {
   activate();
 }
 
-bool tray_manager::running() const {
-  return m_activated;
-}
-
 int tray_manager::get_width() const {
   return m_tray_width;
+}
+
+bool tray_manager::is_active() const {
+  return m_state == state::ACTIVE;
+}
+
+bool tray_manager::is_inactive() const {
+  return m_state == state::INACTIVE;
+}
+
+bool tray_manager::is_waiting() const {
+  return m_state == state::WAITING;
 }
 
 /**
  * Activate systray management
  */
 void tray_manager::activate() {
-  if (m_activated) {
+  if (is_active()) {
     return;
   }
 
   m_log.info("Activating tray manager");
-  m_activated = true;
-
-  m_sig.attach(this);
 
   try {
     set_tray_colors();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Cannot activate tray manager... failed to setup window");
-    m_activated = false;
-    return;
-  }
-
-  // Attempt to get control of the systray selection then
-  // notify clients waiting for a manager.
-  acquire_selection();
-
-  if (!m_acquired_selection) {
     deactivate();
     return;
   }
+
+  xcb_window_t other_owner = XCB_NONE;
+
+  // Attempt to get control of the systray selection
+  if (!acquire_selection(other_owner)) {
+    // Transition to WAITING state
+    wait_for_selection(other_owner);
+    return;
+  }
+
+  m_sig.attach(this);
+
+  m_othermanager = XCB_NONE;
+
+  m_state = state::ACTIVE;
 
   // Send delayed notification
   if (!m_firstactivation) {
@@ -153,19 +160,46 @@ void tray_manager::activate() {
 }
 
 /**
+ * Transitions tray manager to WAITING state
+ *
+ * @param other window id for current selection owner
+ */
+void tray_manager::wait_for_selection(xcb_window_t other) {
+  if (is_waiting() || other == XCB_NONE) {
+    return;
+  }
+
+  m_log.info("tray: Waiting for systray selection (current owner: %s)", m_connection.id(other));
+
+  m_sig.detach(this);
+
+  m_othermanager = other;
+  track_selection_owner(other);
+
+  m_log.trace("tray: Unembed clients");
+  m_clients.clear();
+
+  m_connection.flush();
+
+  m_state = state::WAITING;
+
+  reconfigure_window();
+}
+
+/**
  * Deactivate systray management
  */
-void tray_manager::deactivate(bool clear_selection) {
-  if (!m_activated) {
+void tray_manager::deactivate() {
+  if (is_inactive()) {
     return;
   }
 
   m_log.info("Deactivating tray manager");
-  m_activated = false;
 
   m_sig.detach(this);
 
-  if (!m_connection.connection_has_error() && clear_selection && m_acquired_selection) {
+  // Unset selection owner if we currently own the atom
+  if (!m_connection.connection_has_error() && is_active()) {
     m_log.trace("tray: Unset selection owner");
     m_connection.set_selection_owner(XCB_NONE, m_atom, XCB_CURRENT_TIME);
   }
@@ -173,9 +207,11 @@ void tray_manager::deactivate(bool clear_selection) {
   m_log.trace("tray: Unembed clients");
   m_clients.clear();
 
-  m_acquired_selection = false;
-
   m_connection.flush();
+
+  m_othermanager = XCB_NONE;
+
+  m_state = state::INACTIVE;
 
   reconfigure_window();
 }
@@ -246,7 +282,7 @@ void tray_manager::reconfigure_clients() {
  * Refresh the bar window by clearing it along with each client window
  */
 void tray_manager::refresh_window() {
-  if (!m_activated || m_hidden) {
+  if (!is_active() || m_hidden) {
     return;
   }
 
@@ -311,30 +347,28 @@ void tray_manager::set_tray_colors() {
 
 /**
  * Acquire the systray selection
+ *
+ * @param other_owner is set to the current owner if the function fails
+ * @returns Whether we acquired the selection
  */
-void tray_manager::acquire_selection() {
-  m_othermanager = XCB_NONE;
-  xcb_window_t owner;
-
-  try {
-    owner = m_connection.get_selection_owner(m_atom).owner<xcb_window_t>();
-  } catch (const exception& err) {
-    return;
-  }
+bool tray_manager::acquire_selection(xcb_window_t& other_owner) {
+  other_owner = XCB_NONE;
+  xcb_window_t owner = m_connection.get_selection_owner(m_atom).owner();
 
   if (owner == m_opts.selection_owner) {
     m_log.trace("tray: Already managing the systray selection");
-    m_acquired_selection = true;
-  } else if ((m_othermanager = owner) != XCB_NONE) {
-    m_log.warn("Systray selection already managed (window=%s)", m_connection.id(owner));
-    track_selection_owner(m_othermanager);
-  } else {
+    return true;
+  } else if (owner == XCB_NONE) {
     m_log.trace("tray: Change selection owner to %s", m_connection.id(m_opts.selection_owner));
     m_connection.set_selection_owner_checked(m_opts.selection_owner, m_atom, XCB_CURRENT_TIME);
     if (m_connection.get_selection_owner_unchecked(m_atom)->owner != m_opts.selection_owner) {
       throw application_error("Failed to get control of the systray selection");
     }
-    m_acquired_selection = true;
+    return true;
+  } else {
+    other_owner = owner;
+    m_log.warn("Systray selection already managed (window=%s)", m_connection.id(owner));
+    return false;
   }
 }
 
@@ -342,7 +376,7 @@ void tray_manager::acquire_selection() {
  * Notify pending clients about the new systray MANAGER
  */
 void tray_manager::notify_clients() {
-  if (m_activated) {
+  if (is_active()) {
     m_log.info("Notifying pending tray clients");
     auto message = m_connection.make_client_message(MANAGER, m_connection.root());
     message.data.data32[0] = XCB_CURRENT_TIME;
@@ -491,11 +525,11 @@ void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
 }
 
 bool tray_manager::change_visibility(bool visible) {
-  if (!m_activated || m_hidden == !visible) {
+  if (!is_active() || m_hidden == !visible) {
     return false;
   }
 
-  m_log.trace("tray: visibility_change (state=%i, activated=%i, hidden=%i)", visible, static_cast<bool>(m_activated),
+  m_log.trace("tray: visibility_change (state=%i, activated=%i, hidden=%i)", visible, static_cast<bool>(is_active()),
       static_cast<bool>(m_hidden));
 
   m_hidden = !visible;
@@ -518,7 +552,7 @@ bool tray_manager::change_visibility(bool visible) {
  * Event callback : XCB_EXPOSE
  */
 void tray_manager::handle(const evt::expose& evt) {
-  if (m_activated && !m_clients.empty() && evt->count == 0) {
+  if (is_active() && !m_clients.empty() && evt->count == 0) {
     redraw_window();
   }
 }
@@ -527,7 +561,7 @@ void tray_manager::handle(const evt::expose& evt) {
  * Event callback : XCB_VISIBILITY_NOTIFY
  */
 void tray_manager::handle(const evt::visibility_notify& evt) {
-  if (m_activated && !m_clients.empty()) {
+  if (is_active() && !m_clients.empty()) {
     m_log.trace("tray: Received visibility_notify for %s", m_connection.id(evt->window));
     reconfigure_window();
   }
@@ -537,21 +571,24 @@ void tray_manager::handle(const evt::visibility_notify& evt) {
  * Event callback : XCB_CLIENT_MESSAGE
  */
 void tray_manager::handle(const evt::client_message& evt) {
-  if (!m_activated) {
+  if (!is_active()) {
     return;
-  } else if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW &&
-             evt->window == m_opts.selection_owner) {
+  }
+
+  // Our selection owner window was deleted
+  if (evt->type == WM_PROTOCOLS && evt->data.data32[0] == WM_DELETE_WINDOW && evt->window == m_opts.selection_owner) {
     m_log.notice("Received WM_DELETE");
     deactivate();
   } else if (evt->type == _NET_SYSTEM_TRAY_OPCODE && evt->format == 32) {
     m_log.trace("tray: Received client_message");
 
+    // Docking request
     if (SYSTEM_TRAY_REQUEST_DOCK == evt->data.data32[1]) {
       xcb_window_t win = evt->data.data32[2];
-      if (!is_embedded(win)) {
-        process_docking_request(win);
-      } else {
+      if (is_embedded(win)) {
         m_log.warn("Tray client %s already embedded, ignoring request...", m_connection.id(win));
+      } else {
+        process_docking_request(win);
       }
     }
   }
@@ -565,7 +602,7 @@ void tray_manager::handle(const evt::client_message& evt) {
  * so we return an answer that'll put him in place.
  */
 void tray_manager::handle(const evt::configure_request& evt) {
-  if (m_activated && is_embedded(evt->window)) {
+  if (is_active() && is_embedded(evt->window)) {
     try {
       m_log.trace("tray: Client configure request %s", m_connection.id(evt->window));
       find_client(evt->window)->configure_notify();
@@ -580,7 +617,7 @@ void tray_manager::handle(const evt::configure_request& evt) {
  * @see tray_manager::handle(const evt::configure_request&);
  */
 void tray_manager::handle(const evt::resize_request& evt) {
-  if (m_activated && is_embedded(evt->window)) {
+  if (is_active() && is_embedded(evt->window)) {
     try {
       m_log.trace("tray: Received resize_request for client %s", m_connection.id(evt->window));
       find_client(evt->window)->configure_notify();
@@ -595,7 +632,7 @@ void tray_manager::handle(const evt::resize_request& evt) {
  * Event callback : XCB_SELECTION_CLEAR
  */
 void tray_manager::handle(const evt::selection_clear& evt) {
-  if (!m_activated) {
+  if (is_inactive()) {
     return;
   } else if (evt->selection != m_atom) {
     return;
@@ -603,23 +640,15 @@ void tray_manager::handle(const evt::selection_clear& evt) {
     return;
   }
 
-  try {
-    m_log.warn("Lost systray selection, deactivating...");
-    m_othermanager = m_connection.get_selection_owner(m_atom).owner<xcb_window_t>();
-    track_selection_owner(m_othermanager);
-  } catch (const exception& err) {
-    m_log.err("Failed to get systray selection owner");
-    m_othermanager = XCB_NONE;
-  }
-
-  deactivate(false);
+  m_log.warn("Lost systray selection, deactivating...");
+  wait_for_selection(m_connection.get_selection_owner(m_atom).owner());
 }
 
 /**
  * Event callback : XCB_PROPERTY_NOTIFY
  */
 void tray_manager::handle(const evt::property_notify& evt) {
-  if (!m_activated) {
+  if (!is_active()) {
     return;
   }
 
@@ -659,7 +688,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
  * Event callback : XCB_REPARENT_NOTIFY
  */
 void tray_manager::handle(const evt::reparent_notify& evt) {
-  if (!m_activated) {
+  if (!is_active()) {
     return;
   }
 
@@ -669,6 +698,7 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
     return;
   }
 
+  // Tray client was reparented to another window
   if (evt->parent != client->embedder()) {
     m_log.info("tray: Received reparent_notify for client, remove...");
     remove_client(*client);
@@ -679,10 +709,10 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
  * Event callback : XCB_DESTROY_NOTIFY
  */
 void tray_manager::handle(const evt::destroy_notify& evt) {
-  if (!m_activated && evt->window == m_othermanager) {
+  if (is_waiting() && evt->window == m_othermanager) {
     m_log.info("Systray selection unmanaged... re-activating");
     activate();
-  } else if (m_activated && is_embedded(evt->window)) {
+  } else if (is_active() && is_embedded(evt->window)) {
     m_log.info("tray: Received destroy_notify for client, remove...");
     remove_client(evt->window);
     redraw_window();
@@ -693,7 +723,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
  * Event callback : XCB_MAP_NOTIFY
  */
 void tray_manager::handle(const evt::map_notify& evt) {
-  if (m_activated && evt->window == m_opts.selection_owner) {
+  if (is_active() && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received map_notify");
     m_log.trace("tray: Update container mapped flag");
     redraw_window();
@@ -713,7 +743,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
  * Event callback : XCB_UNMAP_NOTIFY
  */
 void tray_manager::handle(const evt::unmap_notify& evt) {
-  if (m_activated && is_embedded(evt->window)) {
+  if (is_active() && is_embedded(evt->window)) {
     m_log.trace("tray: Received unmap_notify");
     m_log.trace("tray: Set client unmapped");
     auto client = find_client(evt->window);
