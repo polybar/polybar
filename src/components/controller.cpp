@@ -171,7 +171,7 @@ void controller::conn_cb() {
   }
 
   shared_ptr<xcb_generic_event_t> evt{};
-  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+  while ((evt = m_connection.poll_for_event()) != nullptr) {
     try {
       m_connection.dispatch_event(evt);
     } catch (xpp::connection_error& err) {
@@ -247,13 +247,24 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
-    poll_handle.start(
+    auto& x_poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
+    x_poll_handle.start(
         UV_READABLE, [this](const auto&) { conn_cb(); },
         [this](const auto& e) {
           m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
           stop(false);
         });
+
+    auto& x_prepare_handle = m_loop.handle<PrepareHandle>();
+    x_prepare_handle.start([this]() {
+      /*
+       * We have to also handle events in the prepare handle (which runs right
+       * before polling for IO) to process any already queued X events which
+       * wouldn't trigger the uv_poll handle.
+       */
+      conn_cb();
+      m_connection.flush();
+    });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
       auto& signal_handle = m_loop.handle<SignalHandle>();
