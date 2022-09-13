@@ -38,6 +38,9 @@ namespace eventloop {
       case UV_NAMED_PIPE:
         static_cast<PipeHandle*>(handle->data)->close();
         break;
+      case UV_PREPARE:
+        static_cast<PrepareHandle*>(handle->data)->close();
+        break;
       default:
         assert(false);
     }
@@ -157,6 +160,17 @@ namespace eventloop {
   }
   // }}}
 
+  // PrepareHandle {{{
+  void PrepareHandle::init() {
+    UV(uv_prepare_init, loop(), get());
+  }
+
+  void PrepareHandle::start(cb user_cb) {
+    this->callback = user_cb;
+    UV(uv_prepare_start, get(), void_event_cb<&PrepareHandle::callback>);
+  }
+  // }}}
+
   // eventloop {{{
   static void close_walk_cb(uv_handle_t* handle, void*) {
     if (!uv_is_closing(handle)) {
@@ -201,11 +215,15 @@ namespace eventloop {
     uv_stop(m_loop.get());
   }
 
+  uint64_t loop::now() const {
+    return uv_now(m_loop.get());
+  }
+
   uv_loop_t* loop::get() const {
     return m_loop.get();
   }
   // }}}
 
-}  // namespace eventloop
+} // namespace eventloop
 
 POLYBAR_NS_END
