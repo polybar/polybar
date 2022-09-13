@@ -390,12 +390,27 @@ namespace eventloop {
     cb_connect connect_callback;
   };
 
+  class PrepareHandle : public Handle<PrepareHandle, uv_prepare_t> {
+   public:
+    using Handle::Handle;
+    using cb = cb_void;
+
+    void init();
+    void start(cb user_cb);
+
+   private:
+    static void connect_cb(uv_connect_t* req, int status);
+
+    cb callback;
+  };
+
   class loop : public non_copyable_mixin, public non_movable_mixin {
    public:
     loop();
     ~loop();
     void run();
     void stop();
+    uint64_t now() const;
 
     template <typename H, typename... Args>
     H& handle(Args... args) {
@@ -404,13 +419,12 @@ namespace eventloop {
       return ptr->leak(std::move(ptr));
     }
 
-   protected:
     uv_loop_t* get() const;
 
    private:
     std::unique_ptr<uv_loop_t> m_loop{nullptr};
   };
 
-}  // namespace eventloop
+} // namespace eventloop
 
 POLYBAR_NS_END
