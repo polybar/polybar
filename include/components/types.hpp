@@ -85,8 +85,8 @@ struct position {
 };
 
 struct size {
-  unsigned int w{1U};
-  unsigned int h{1U};
+  unsigned w{1U};
+  unsigned h{1U};
 };
 
 enum class spacing_type { SPACE, POINT, PIXEL };

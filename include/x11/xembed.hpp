@@ -42,6 +42,8 @@ namespace xembed {
 
     bool is_mapped() const;
 
+    string to_string() const;
+
    protected:
     uint32_t version;
     uint32_t flags;

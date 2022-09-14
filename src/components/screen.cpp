@@ -66,6 +66,7 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
   m_connection.flush();
 
   // Wait until the proxy window has been mapped
+  // TODO replace wait with a `handle` method
   using evt = xcb_map_notify_event_t;
   m_connection.wait_for_response<evt, XCB_MAP_NOTIFY>([&](const evt* evt) -> bool { return evt->window == m_proxy; });
 

@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "errors.hpp"
+#include "utils/string.hpp"
 #include "x11/atoms.hpp"
 #include "x11/ewmh.hpp"
 
@@ -25,6 +26,11 @@ namespace xembed {
 
   bool info::is_mapped() const {
     return (flags & XEMBED_MAPPED) == XEMBED_MAPPED;
+  }
+
+  string info::to_string() const {
+    return sstream() << "xembed(version=0x" << std::hex << get_version() << ", flags=0x" << get_flags()
+                     << ", XEMBED_MAPPED=" << std::dec << is_mapped() << ")";
   }
 
   /**

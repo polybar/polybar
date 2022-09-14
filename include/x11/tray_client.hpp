@@ -25,6 +25,8 @@ class tray_client : public non_copyable_mixin {
   tray_client(tray_client&&);
   tray_client& operator=(tray_client&&);
 
+  string name() const;
+
   unsigned int width() const;
   unsigned int height() const;
   void clear_window() const;
@@ -57,6 +59,11 @@ class tray_client : public non_copyable_mixin {
   const logger& m_log;
 
   connection& m_connection;
+
+  /**
+   * Name of the client window for debugging.
+   */
+  string m_name{};
 
   /**
    * Embedder window.

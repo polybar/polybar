@@ -5,6 +5,7 @@
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/winspec.hpp"
 
 POLYBAR_NS
@@ -19,14 +20,14 @@ POLYBAR_NS
  * 3. Use background color
  */
 tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s)
-    : m_log(log), m_connection(conn), m_client(win), m_size(s) {
+    : m_log(log), m_connection(conn), m_name(ewmh_util::get_wm_name(win)), m_client(win), m_size(s) {
   auto geom = conn.get_geometry(win);
   auto attrs = conn.get_window_attributes(win);
   int client_depth = geom->depth;
   auto client_visual = attrs->visual;
   auto client_colormap = attrs->colormap;
 
-  m_log.trace("tray(%s): depth: %u, width: %u, height: %u", conn.id(win), client_depth, geom->width, geom->height);
+  m_log.trace("%s: depth: %u, width: %u, height: %u", name(), client_depth, geom->width, geom->height);
 
   /*
    * Create embedder window for tray icon
@@ -69,6 +70,7 @@ tray_client::~tray_client() {
 }
 
 tray_client::tray_client(tray_client&& c) : m_log(c.m_log), m_connection(c.m_connection) {
+  std::swap(m_name, c.m_name);
   std::swap(m_wrapper, c.m_wrapper);
   std::swap(m_client, c.m_client);
   std::swap(m_xembed_supported, c.m_xembed_supported);
@@ -81,6 +83,7 @@ tray_client::tray_client(tray_client&& c) : m_log(c.m_log), m_connection(c.m_con
 tray_client& tray_client::operator=(tray_client&& c) {
   m_log = c.m_log;
   m_connection = c.m_connection;
+  std::swap(m_name, c.m_name);
   std::swap(m_wrapper, c.m_wrapper);
   std::swap(m_client, c.m_client);
   std::swap(m_xembed_supported, c.m_xembed_supported);
@@ -89,6 +92,10 @@ tray_client& tray_client::operator=(tray_client&& c) {
   std::swap(m_hidden, c.m_hidden);
   std::swap(m_size, c.m_size);
   return *this;
+}
+
+string tray_client::name() const {
+  return "tray_client(" + m_connection.id(m_client) + ", " + m_name + ")";
 }
 
 unsigned int tray_client::width() const {
@@ -118,12 +125,12 @@ void tray_client::update_client_attributes() const {
 
   connection::pack_values(configure_mask, &configure_params, configure_values);
 
-  m_log.trace("tray(%s): Update client window", m_connection.id(client()));
+  m_log.trace("%s: Update client window", name());
   m_connection.change_window_attributes_checked(client(), configure_mask, configure_values.data());
 }
 
 void tray_client::reparent() const {
-  m_log.trace("tray(%s): Reparent client", m_connection.id(client()));
+  m_log.trace("%s: Reparent client", name());
   m_connection.reparent_window_checked(client(), embedder(), 0, 0);
 }
 
@@ -145,8 +152,10 @@ bool tray_client::mapped() const {
  * Set client window mapped state
  */
 void tray_client::mapped(bool state) {
-  m_log.trace("tray(%s): set mapped: %i", m_connection.id(client()), state);
-  m_mapped = state;
+  if (m_mapped != state) {
+    m_log.trace("%s: set mapped: %i", name(), state);
+    m_mapped = state;
+  }
 }
 
 /**
@@ -168,6 +177,12 @@ xcb_window_t tray_client::client() const {
 
 void tray_client::query_xembed() {
   m_xembed_supported = xembed::query(m_connection, m_client, m_xembed);
+
+  if (is_xembed_supported()) {
+    m_log.trace("%s: %s", name(), get_xembed().to_string());
+  } else {
+    m_log.trace("%s: no xembed");
+  }
 }
 
 bool tray_client::is_xembed_supported() const {
@@ -180,13 +195,13 @@ const xembed::info& tray_client::get_xembed() const {
 
 void tray_client::notify_xembed() const {
   if (is_xembed_supported()) {
-    m_log.trace("tray(%s): Send embbeded notification to client", m_connection.id(client()));
+    m_log.trace("%s: Send embbeded notification to client", name());
     xembed::notify_embedded(m_connection, client(), embedder(), m_xembed.get_version());
   }
 }
 
 void tray_client::add_to_save_set() const {
-  m_log.trace("tray(%s): Add client window to the save set", m_connection.id(client()));
+  m_log.trace("%s: Add client window to the save set", name());
   m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client());
 }
 
@@ -204,15 +219,17 @@ void tray_client::ensure_state() const {
     should_be_mapped = false;
   }
 
-  m_log.trace("tray(%s): ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", m_connection.id(client()), m_hidden,
-      m_mapped, should_be_mapped);
+  // TODO can we stop here if should_be_mapped == m_mapped?
+
+  m_log.trace(
+      "%s: ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", name(), m_hidden, m_mapped, should_be_mapped);
 
   if (should_be_mapped) {
-    m_log.trace("tray(%s): Map client", m_connection.id(client()));
+    m_log.trace("%s: Map client", name());
     m_connection.map_window_checked(embedder());
     m_connection.map_window_checked(client());
   } else {
-    m_log.trace("tray(%s): Unmap client", m_connection.id(client()));
+    m_log.trace("%s: Unmap client", name());
     m_connection.unmap_window_checked(client());
     m_connection.unmap_window_checked(embedder());
   }
@@ -222,7 +239,7 @@ void tray_client::ensure_state() const {
  * Configure window size
  */
 void tray_client::reconfigure(int x, int y) const {
-  m_log.trace("tray(%s): moving to (%d, %d)", m_connection.id(client()), x, y);
+  m_log.trace("%s: moving to (%d, %d)", name(), x, y);
 
   uint32_t configure_mask = 0;
   std::array<uint32_t, 32> configure_values{};

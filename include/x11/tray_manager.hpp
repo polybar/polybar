@@ -192,7 +192,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   /**
    * Whether the tray is visible
    */
-  atomic<bool> m_hidden{false};
+  bool m_hidden{false};
 
   thread m_delaythread;
 
