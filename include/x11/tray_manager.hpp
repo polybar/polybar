@@ -58,9 +58,9 @@ struct tray_settings {
 
 using on_update = std::function<void(void)>;
 
-class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify, evt::client_message,
-                         evt::configure_request, evt::resize_request, evt::selection_clear, evt::property_notify,
-                         evt::reparent_notify, evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
+class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, evt::configure_request,
+                         evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify,
+                         evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
                      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
                          signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
@@ -80,6 +80,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
   bool is_active() const;
   bool is_inactive() const;
   bool is_waiting() const;
+
+  bool is_visible() const;
 
  protected:
   void reconfigure_window();
@@ -115,12 +117,11 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::visibility_notify
 
   bool is_embedded(const xcb_window_t& win);
   tray_client* find_client(const xcb_window_t& win);
-  void remove_client(const tray_client& client, bool reconfigure = true);
-  void remove_client(xcb_window_t win, bool reconfigure = true);
+  void remove_client(const tray_client& client);
+  void remove_client(xcb_window_t win);
   bool change_visibility(bool visible);
 
   void handle(const evt::expose& evt) override;
-  void handle(const evt::visibility_notify& evt) override;
   void handle(const evt::client_message& evt) override;
   void handle(const evt::configure_request& evt) override;
   void handle(const evt::resize_request& evt) override;

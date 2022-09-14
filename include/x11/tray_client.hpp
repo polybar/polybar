@@ -40,6 +40,8 @@ class tray_client : public non_copyable_mixin {
 
   void hidden(bool state);
 
+  bool should_be_mapped() const;
+
   xcb_window_t embedder() const;
   xcb_window_t client() const;
 
@@ -97,9 +99,14 @@ class tray_client : public non_copyable_mixin {
    */
   xembed::info m_xembed;
 
-  // TODO
+  /**
+   * Whether the wrapper window is currently mapped.
+   */
   bool m_mapped{false};
 
+  /**
+   * Whether the
+   */
   bool m_hidden{false};
 
   size m_size;

@@ -115,6 +115,10 @@ bool tray_manager::is_waiting() const {
   return m_state == state::WAITING;
 }
 
+bool tray_manager::is_visible() const {
+  return is_active() && !m_hidden;
+}
+
 /**
  * Activate systray management
  */
@@ -268,13 +272,13 @@ void tray_manager::reconfigure_clients() {
   for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
     try {
       it->ensure_state();
+      // TODO skip if the client isn't mapped
       it->reconfigure(x, calculate_client_y());
 
       x += m_opts.client_size.w + m_opts.spacing;
     } catch (const xpp::x::error::window& err) {
-      // TODO print error
       m_log.err("Failed to reconfigure %s, removing ... (%s)", it->name(), err.what());
-      remove_client(*it, false);
+      remove_client(*it);
     }
   }
 }
@@ -283,8 +287,7 @@ void tray_manager::reconfigure_clients() {
  * Refresh the bar window by clearing it along with each client window
  */
 void tray_manager::refresh_window() {
-  // TODO create method that checks is_active and !m_hidden
-  if (!is_active() || m_hidden) {
+  if (!is_visible()) {
     return;
   }
 
@@ -502,19 +505,19 @@ tray_client* tray_manager::find_client(const xcb_window_t& win) {
 /**
  * Remove tray client
  */
-void tray_manager::remove_client(const tray_client& client, bool reconfigure) {
-  remove_client(client.client(), reconfigure);
+void tray_manager::remove_client(const tray_client& client) {
+  remove_client(client.client());
 }
 
 /**
  * Remove tray client by window
  */
-void tray_manager::remove_client(xcb_window_t win, bool reconfigure) {
+void tray_manager::remove_client(xcb_window_t win) {
+  auto old_size = m_clients.size();
   m_clients.erase(
       std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client.match(win); }));
 
-  // TODO remove param. Reconfigure if clients were deleted
-  if (reconfigure) {
+  if (old_size != m_clients.size()) {
     tray_manager::reconfigure();
   }
 }
@@ -548,17 +551,6 @@ bool tray_manager::change_visibility(bool visible) {
 void tray_manager::handle(const evt::expose& evt) {
   if (is_active() && !m_clients.empty() && evt->count == 0) {
     redraw_window();
-  }
-}
-
-/**
- * Event callback : XCB_VISIBILITY_NOTIFY
- */
-void tray_manager::handle(const evt::visibility_notify& evt) {
-  // TODO for which windows is this important?
-  if (is_active() && !m_clients.empty()) {
-    m_log.trace("tray: Received visibility_notify for %s", m_connection.id(evt->window));
-    reconfigure_window();
   }
 }
 
@@ -669,14 +661,11 @@ void tray_manager::handle(const evt::property_notify& evt) {
     client->query_xembed();
   } catch (const xpp::x::error::window& err) {
     m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", client->name(), err.what());
-    remove_client(*client, true);
+    remove_client(*client);
     return;
   }
 
-  // TODO only reconfigure if should_be_mapped changed
-  if (client->get_xembed().is_mapped()) {
-    reconfigure();
-  }
+  client->ensure_state();
 }
 
 /**
@@ -723,6 +712,12 @@ void tray_manager::handle(const evt::map_notify& evt) {
     redraw_window();
   } else if (is_embedded(evt->window)) {
     auto client = find_client(evt->window);
+
+    // If we received a notification on the wrapped window, we don't want to do anything.
+    if (client->embedder() != evt->window) {
+      return;
+    }
+
     m_log.trace("%s: Received map_notify", client->name());
 
     if (!client->mapped()) {
@@ -738,6 +733,12 @@ void tray_manager::handle(const evt::map_notify& evt) {
 void tray_manager::handle(const evt::unmap_notify& evt) {
   if (is_active() && is_embedded(evt->window)) {
     auto client = find_client(evt->window);
+
+    // If we received a notification on the wrapped window, we don't want to do anything.
+    if (client->embedder() != evt->window) {
+      return;
+    }
+
     m_log.trace("%s: Received unmap_notify", client->name());
 
     if (client->mapped()) {

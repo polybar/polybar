@@ -167,6 +167,21 @@ void tray_client::hidden(bool state) {
   m_hidden = state;
 }
 
+/**
+ * Whether the current state indicates the client should be mapped.
+ */
+bool tray_client::should_be_mapped() const {
+  if (m_hidden) {
+    return false;
+  }
+
+  if (is_xembed_supported()) {
+    return m_xembed.is_mapped();
+  }
+
+  return true;
+}
+
 xcb_window_t tray_client::embedder() const {
   return m_wrapper;
 }
@@ -209,22 +224,15 @@ void tray_client::add_to_save_set() const {
  * Make sure that the window mapping state is correct
  */
 void tray_client::ensure_state() const {
-  bool should_be_mapped = true;
+  bool new_state = should_be_mapped();
 
-  if (is_xembed_supported()) {
-    should_be_mapped = m_xembed.is_mapped();
+  if (new_state == m_mapped) {
+    return;
   }
 
-  if (m_hidden) {
-    should_be_mapped = false;
-  }
+  m_log.trace("%s: ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", name(), m_hidden, m_mapped, new_state);
 
-  // TODO can we stop here if should_be_mapped == m_mapped?
-
-  m_log.trace(
-      "%s: ensure_state (hidden=%i, mapped=%i, should_be_mapped=%i)", name(), m_hidden, m_mapped, should_be_mapped);
-
-  if (should_be_mapped) {
+  if (new_state) {
     m_log.trace("%s: Map client", name());
     m_connection.map_window_checked(embedder());
     m_connection.map_window_checked(client());
