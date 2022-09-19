@@ -42,6 +42,7 @@ namespace modules {
    * Get the title by returning the first non-empty value of:
    *  _NET_WM_NAME
    *  _NET_WM_VISIBLE_NAME
+   *  WM_NAME
    */
   string active_window::title() const {
     string title;
@@ -87,9 +88,7 @@ namespace modules {
       update(true);
     } else if (evt->atom == _NET_CURRENT_DESKTOP) {
       update(true);
-    } else if (evt->atom == _NET_WM_VISIBLE_NAME) {
-      update();
-    } else if (evt->atom == _NET_WM_NAME) {
+    } else if (evt->atom == _NET_WM_NAME || evt->atom == _NET_WM_VISIBLE_NAME || evt->atom == WM_NAME) {
       update();
     } else {
       return;
