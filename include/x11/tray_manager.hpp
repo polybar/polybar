@@ -91,6 +91,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
 
   void query_atom();
   void set_tray_colors();
+  void set_tray_orientation();
 
   bool acquire_selection(xcb_window_t& other_owner);
   void notify_clients();

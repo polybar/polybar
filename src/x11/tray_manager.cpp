@@ -131,6 +131,7 @@ void tray_manager::activate() {
 
   try {
     set_tray_colors();
+    set_tray_orientation();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Cannot activate tray manager... failed to setup window");
@@ -348,6 +349,16 @@ void tray_manager::set_tray_colors() {
 
   m_connection.change_property(
       XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_COLORS, XCB_ATOM_CARDINAL, 32, 12, colors);
+}
+
+/**
+ * Set the _NET_SYSTEM_TRAY_ORIENTATION atom
+ */
+void tray_manager::set_tray_orientation() {
+  const uint32_t orientation = _NET_SYSTEM_TRAY_ORIENTATION_HORZ;
+  m_log.trace("tray: Set _NET_SYSTEM_TRAY_ORIENTATION to 0x%x", orientation);
+  m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_ORIENTATION,
+      XCB_ATOM_CARDINAL, 32, 1, &orientation);
 }
 
 /**

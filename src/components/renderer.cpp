@@ -57,7 +57,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
     throw application_error("Could not find a 24 or 32-bit TrueColor visual");
   }
 
-  m_log.info("renderer: Using %d-bit TrueColor visual", m_depth);
+  m_log.info("renderer: Using %d-bit TrueColor visual: 0x%x", m_depth, m_visual->visual_id);
 
   m_log.trace("renderer: Allocate colormap");
   m_colormap = m_connection.generate_id();
