@@ -662,7 +662,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
     return;
   }
 
-  m_log.trace("%s: _XEMBED_INFO: %s", client->name());
+  m_log.trace("%s: _XEMBED_INFO", client->name());
 
   if (evt->state == XCB_PROPERTY_NEW_VALUE) {
     m_log.trace("tray: _XEMBED_INFO value has changed");

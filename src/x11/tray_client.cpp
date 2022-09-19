@@ -210,7 +210,7 @@ const xembed::info& tray_client::get_xembed() const {
 
 void tray_client::notify_xembed() const {
   if (is_xembed_supported()) {
-    m_log.trace("%s: Send embbeded notification to client", name());
+    m_log.trace("%s: Send embedded notification to client", name());
     xembed::notify_embedded(m_connection, client(), embedder(), m_xembed.get_version());
   }
 }
