@@ -120,6 +120,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
   tray_client* find_client(const xcb_window_t& win);
   void remove_client(const tray_client& client);
   void remove_client(xcb_window_t win);
+  void clean_clients();
   bool change_visibility(bool visible);
 
   void handle(const evt::expose& evt) override;
@@ -141,7 +142,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  vector<tray_client> m_clients;
+  vector<unique_ptr<tray_client>> m_clients;
 
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;

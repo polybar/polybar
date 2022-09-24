@@ -69,31 +69,6 @@ tray_client::~tray_client() {
   }
 }
 
-tray_client::tray_client(tray_client&& c) : m_log(c.m_log), m_connection(c.m_connection) {
-  std::swap(m_name, c.m_name);
-  std::swap(m_wrapper, c.m_wrapper);
-  std::swap(m_client, c.m_client);
-  std::swap(m_xembed_supported, c.m_xembed_supported);
-  std::swap(m_xembed, c.m_xembed);
-  std::swap(m_mapped, c.m_mapped);
-  std::swap(m_hidden, c.m_hidden);
-  std::swap(m_size, c.m_size);
-}
-
-tray_client& tray_client::operator=(tray_client&& c) {
-  m_log = c.m_log;
-  m_connection = c.m_connection;
-  std::swap(m_name, c.m_name);
-  std::swap(m_wrapper, c.m_wrapper);
-  std::swap(m_client, c.m_client);
-  std::swap(m_xembed_supported, c.m_xembed_supported);
-  std::swap(m_xembed, c.m_xembed);
-  std::swap(m_mapped, c.m_mapped);
-  std::swap(m_hidden, c.m_hidden);
-  std::swap(m_size, c.m_size);
-  return *this;
-}
-
 string tray_client::name() const {
   return "tray_client(" + m_connection.id(m_client) + ", " + m_name + ")";
 }

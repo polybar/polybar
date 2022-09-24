@@ -17,13 +17,10 @@ POLYBAR_NS
 // fwd declarations
 class connection;
 
-class tray_client : public non_copyable_mixin {
+class tray_client : public non_copyable_mixin, public non_movable_mixin {
  public:
   explicit tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s);
   ~tray_client();
-
-  tray_client(tray_client&&);
-  tray_client& operator=(tray_client&&);
 
   string name() const;
 

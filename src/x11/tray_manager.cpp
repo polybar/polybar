@@ -270,17 +270,26 @@ void tray_manager::reconfigure_clients() {
 
   int x = calculate_x() + m_opts.spacing;
 
-  for (auto it = m_clients.rbegin(); it != m_clients.rend(); it++) {
+  bool has_error = false;
+
+  for (auto& client : m_clients) {
     try {
-      it->ensure_state();
-      // TODO skip if the client isn't mapped
-      it->reconfigure(x, calculate_client_y());
+      client->ensure_state();
+
+      if (client->mapped()) {
+        client->reconfigure(x, calculate_client_y());
+      }
 
       x += m_opts.client_size.w + m_opts.spacing;
     } catch (const xpp::x::error::window& err) {
-      m_log.err("Failed to reconfigure %s, removing ... (%s)", it->name(), err.what());
-      remove_client(*it);
+      m_log.err("Failed to reconfigure %s, removing ... (%s)", client->name(), err.what());
+      client.reset();
+      has_error = true;
     }
+  }
+
+  if (has_error) {
+    clean_clients();
   }
 }
 
@@ -296,11 +305,11 @@ void tray_manager::refresh_window() {
 
   for (auto& client : m_clients) {
     try {
-      if (client.mapped()) {
-        client.clear_window();
+      if (client->mapped()) {
+        client->clear_window();
       }
     } catch (const std::exception& e) {
-      m_log.err("tray: Failed to clear %s (%s)", client.name(), e.what());
+      m_log.err("tray: Failed to clear %s (%s)", client->name(), e.what());
     }
   }
 
@@ -434,24 +443,24 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("tray: Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   try {
-    tray_client client(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size);
+    auto client = make_unique<tray_client>(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size);
 
     try {
-      client.query_xembed();
+      client->query_xembed();
     } catch (const xpp::x::error::window& err) {
-      m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", client.name(), err.what());
+      m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", client->name(), err.what());
       return;
     }
 
-    client.update_client_attributes();
+    client->update_client_attributes();
 
-    client.reparent();
+    client->reparent();
 
-    client.add_to_save_set();
+    client->add_to_save_set();
 
-    client.notify_xembed();
+    client->notify_xembed();
 
-    client.ensure_state();
+    client->ensure_state();
 
     m_clients.emplace_back(std::move(client));
   } catch (const std::exception& err) {
@@ -475,7 +484,7 @@ unsigned tray_manager::calculate_w() const {
   unsigned width = m_opts.spacing;
   unsigned count{0};
   for (auto& client : m_clients) {
-    if (client.mapped()) {
+    if (client->mapped()) {
       count++;
       width += m_opts.spacing + m_opts.client_size.w;
     }
@@ -504,12 +513,12 @@ bool tray_manager::is_embedded(const xcb_window_t& win) {
  */
 tray_client* tray_manager::find_client(const xcb_window_t& win) {
   auto client = std::find_if(m_clients.begin(), m_clients.end(),
-      [win](const auto& client) { return client.match(win) || client.embedder() == win; });
+      [win](const auto& client) { return client->match(win) || client->embedder() == win; });
 
   if (client == m_clients.end()) {
     return nullptr;
   } else {
-    return &(*client);
+    return client->get();
   }
 }
 
@@ -526,11 +535,23 @@ void tray_manager::remove_client(const tray_client& client) {
 void tray_manager::remove_client(xcb_window_t win) {
   auto old_size = m_clients.size();
   m_clients.erase(
-      std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client.match(win); }));
+      std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client->match(win); }));
 
   if (old_size != m_clients.size()) {
     tray_manager::reconfigure();
   }
+}
+
+/**
+ * Remove all null pointers from client list.
+ *
+ * Removing clients is often done in two steps:
+ * 1. When removing a client during iteration, the unique_ptr is reset.
+ * 2. Afterwards all null pointers are removed from the list.
+ */
+void tray_manager::clean_clients() {
+  m_clients.erase(
+      std::remove_if(m_clients.begin(), m_clients.end(), [](const auto& client) { return client.get() == nullptr; }));
 }
 
 bool tray_manager::change_visibility(bool visible) {
@@ -543,8 +564,8 @@ bool tray_manager::change_visibility(bool visible) {
   m_hidden = !visible;
 
   for (auto& client : m_clients) {
-    client.hidden(m_hidden);
-    client.ensure_state();
+    client->hidden(m_hidden);
+    client->ensure_state();
   }
 
   if (!m_hidden) {

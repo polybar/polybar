@@ -840,6 +840,7 @@ void bar::handle(const evt::button_press& evt) {
  */
 void bar::handle(const evt::expose& evt) {
   if (evt->window == m_opts.x_data.window && evt->count == 0) {
+    // TODO
     // if (m_tray->running()) {
     //   broadcast_visibility();
     // }
