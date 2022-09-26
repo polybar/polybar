@@ -82,6 +82,7 @@ unsigned int tray_client::height() const {
 }
 
 void tray_client::clear_window() const {
+  m_connection.clear_area_checked(1, embedder(), 0, 0, width(), height());
   m_connection.clear_area_checked(1, client(), 0, 0, width(), height());
 }
 

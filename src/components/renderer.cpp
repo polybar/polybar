@@ -374,6 +374,7 @@ void renderer::flush() {
 
   m_surface->flush();
   m_connection.clear_area(0, m_window, 0, 0, m_bar.size.w, m_bar.size.h);
+  // TODO
   // m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();
 
