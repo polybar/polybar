@@ -17,13 +17,23 @@ add_custom_target(uninstall
 # folders where the clang tools should operate
 set(CLANG_SEARCH_PATHS ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests)
 
-# Target: codeformat (clang-format) {{{
+# Runs clang-format on all source files
+add_custom_target(
+  clangformat
+  COMMAND ${PROJECT_SOURCE_DIR}/common/file-runner.py
+  --dirs ${CLANG_SEARCH_PATHS}
+  -- clang-format -style=file -i --verbose
+  )
 
-add_custom_target(codeformat)
-add_custom_command(TARGET codeformat
-  COMMAND ${PROJECT_SOURCE_DIR}/common/clang-format.sh ${CLANG_SEARCH_PATHS})
+# Dry-runs clang-format on all source files
+# Useful for CI since it will exit with an error code
+add_custom_target(
+  clangformat-dryrun
+  COMMAND ${PROJECT_SOURCE_DIR}/common/file-runner.py
+  --dirs ${CLANG_SEARCH_PATHS}
+  -- clang-format -style=file --dry-run -Werror --verbose
+  )
 
-# }}}
 # Target: codecheck (clang-tidy) {{{
 
 add_custom_target(codecheck)
