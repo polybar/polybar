@@ -2,8 +2,11 @@
 
 #include <xcb/xcb.h>
 
+#include "cairo/context.hpp"
+#include "cairo/surface.hpp"
 #include "common.hpp"
 #include "utils/concurrency.hpp"
+#include "x11/background_manager.hpp"
 #include "x11/xembed.hpp"
 
 /*
@@ -19,7 +22,8 @@ class connection;
 
 class tray_client : public non_copyable_mixin, public non_movable_mixin {
  public:
-  explicit tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s);
+  explicit tray_client(
+      const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background);
   ~tray_client();
 
   string name() const;
@@ -51,8 +55,13 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
   void add_to_save_set() const;
 
   void ensure_state() const;
-  void reconfigure(int x, int y) const;
+  void set_position(int x, int y);
   void configure_notify() const;
+
+  void update_bg() const;
+
+ protected:
+  void observe_background();
 
  protected:
   const logger& m_log;
@@ -107,6 +116,13 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
   bool m_hidden{false};
 
   size m_size;
+  position m_pos{0, 0};
+
+  rgba m_desired_background;
+  background_manager& m_background_manager;
+  shared_ptr<bg_slice> m_bg_slice;
+  unique_ptr<cairo::context> m_context;
+  unique_ptr<cairo::xcb_surface> m_surface;
 };
 
 POLYBAR_NS_END

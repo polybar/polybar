@@ -82,6 +82,10 @@ enum class strut {
 struct position {
   int x{0};
   int y{0};
+
+  bool operator==(const position& other) {
+    return this->x == other.x && this->y == other.y;
+  }
 };
 
 struct size {

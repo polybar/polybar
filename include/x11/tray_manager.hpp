@@ -86,8 +86,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
  protected:
   void reconfigure_window();
   void reconfigure_clients();
-  void refresh_window();
-  void redraw_window();
+  void redraw_clients();
 
   void query_atom();
   void set_tray_colors();

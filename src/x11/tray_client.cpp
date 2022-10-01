@@ -19,8 +19,15 @@ POLYBAR_NS
  * 2. Use pseudo-transparency when activated (make sure the depths match)
  * 3. Use background color
  */
-tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray, xcb_window_t win, size s)
-    : m_log(log), m_connection(conn), m_name(ewmh_util::get_wm_name(win)), m_client(win), m_size(s) {
+tray_client::tray_client(
+    const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background)
+    : m_log(log)
+    , m_connection(conn)
+    , m_name(ewmh_util::get_wm_name(win))
+    , m_client(win)
+    , m_size(s)
+    , m_desired_background(desired_background)
+    , m_background_manager(background_manager::make()) {
   auto geom = conn.get_geometry(win);
   auto attrs = conn.get_window_attributes(win);
   int client_depth = geom->depth;
@@ -37,16 +44,13 @@ tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray,
    */
   // clang-format off
   m_wrapper = winspec(conn)
-    << cw_size(s.h, s.w)
+    << cw_size(s.w, s.h)
     << cw_pos(0, 0)
     << cw_depth(client_depth)
     << cw_visual(client_visual)
-    << cw_parent(tray)
+    << cw_parent(parent)
     << cw_class(XCB_WINDOW_CLASS_INPUT_OUTPUT)
-    // TODO add proper pixmap
-    << cw_params_back_pixmap(XCB_PIXMAP_NONE)
-    // << cw_params_back_pixel(0x00ff00)
-    // The X server requires the border pixel to be defined if the depth doesn't match the parent window
+    // The X server requires the border pixel to be defined if the depth doesn't match the parent (bar) window
     << cw_params_border_pixel(conn.screen()->black_pixel)
     << cw_params_backing_store(XCB_BACKING_STORE_WHEN_MAPPED)
     << cw_params_save_under(true)
@@ -57,6 +61,50 @@ tray_client::tray_client(const logger& log, connection& conn, xcb_window_t tray,
     << cw_params_colormap(client_colormap)
     << cw_flush(true);
   // clang-format on
+
+  // TODO destroy in destructor
+  xcb_pixmap_t pixmap = m_connection.generate_id();
+
+  try {
+    m_connection.create_pixmap_checked(client_depth, pixmap, m_wrapper, s.w, s.h);
+  } catch (const std::exception& err) {
+    // TODO in case of error, fall back to desired_background
+    m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
+    throw;
+  }
+
+  try {
+    m_connection.change_window_attributes_checked(m_wrapper, XCB_CW_BACK_PIXMAP, &pixmap);
+  } catch (const std::exception& err) {
+    // TODO in case of error, fall back to desired_background
+    m_log.err("Failed to set tray window back pixmap (%s)", err.what());
+    throw;
+  }
+
+  // TODO destroy in destructor
+  xcb_gcontext_t gc = m_connection.generate_id();
+  try {
+    xcb_params_gc_t params{};
+    uint32_t mask = 0;
+    XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
+    std::array<uint32_t, 32> values;
+    connection::pack_values(mask, &params, values);
+    m_connection.create_gc_checked(gc, pixmap, mask, values.data());
+  } catch (const std::exception& err) {
+    m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
+    throw;
+  }
+
+  xcb_visualtype_t* visual = m_connection.visual_type_for_id(client_visual);
+  if (!visual) {
+    // TODO in case of error, fall back to desired_background
+    throw std::runtime_error("Failed to get root visual for tray background");
+  }
+
+  m_surface = make_unique<cairo::xcb_surface>(m_connection, pixmap, visual, s.w, s.h);
+  m_context = make_unique<cairo::context>(*m_surface, m_log);
+
+  observe_background();
 }
 
 tray_client::~tray_client() {
@@ -93,11 +141,6 @@ void tray_client::update_client_attributes() const {
 
   XCB_AUX_ADD_PARAM(
       &configure_mask, &configure_params, event_mask, XCB_EVENT_MASK_PROPERTY_CHANGE | XCB_EVENT_MASK_STRUCTURE_NOTIFY);
-
-  // TODO
-  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, back_pixel, 0xff0000ff);
-  // TODO
-  XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, back_pixmap, XCB_PIXMAP_NONE);
 
   connection::pack_values(configure_mask, &configure_params, configure_values);
 
@@ -220,13 +263,21 @@ void tray_client::ensure_state() const {
 }
 
 /**
- * Configure window size
+ * Configure window position
  */
-void tray_client::reconfigure(int x, int y) const {
+void tray_client::set_position(int x, int y) {
   m_log.trace("%s: moving to (%d, %d)", name(), x, y);
 
+  position new_pos{x, y};
+
+  if (new_pos == m_pos) {
+    return;
+  }
+
+  m_pos = new_pos;
+
   uint32_t configure_mask = 0;
-  std::array<uint32_t, 32> configure_values{};
+  array<uint32_t, 32> configure_values{};
   xcb_params_configure_window_t configure_params{};
 
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, width, m_size.w);
@@ -243,6 +294,9 @@ void tray_client::reconfigure(int x, int y) const {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, 0);
   connection::pack_values(configure_mask, &configure_params, configure_values);
   m_connection.configure_window_checked(client(), configure_mask, configure_values.data());
+
+  // The position has changed, we need a new background slice.
+  observe_background();
 }
 
 /**
@@ -263,6 +317,32 @@ void tray_client::configure_notify() const {
 
   unsigned int mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
   m_connection.send_event_checked(false, client(), mask, reinterpret_cast<const char*>(&notify));
+}
+
+/**
+ * Redraw background using the observed background slice.
+ */
+void tray_client::update_bg() const {
+  m_log.trace("%s: Update background", name());
+
+  // Composite background slice with background color.
+  m_context->clear();
+  *m_context << CAIRO_OPERATOR_SOURCE << *m_bg_slice->get_surface();
+  m_context->paint();
+  *m_context << CAIRO_OPERATOR_OVER << m_desired_background;
+  m_context->paint();
+
+  m_surface->flush();
+
+  clear_window();
+  m_connection.flush();
+}
+
+void tray_client::observe_background() {
+  xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(m_size.w), static_cast<uint16_t>(m_size.h)};
+  m_bg_slice = m_background_manager.observe(rect, m_wrapper);
+
+  update_bg();
 }
 
 POLYBAR_NS_END

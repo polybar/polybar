@@ -132,7 +132,7 @@ void tray_manager::activate() {
   try {
     set_tray_colors();
     set_tray_orientation();
-    set_tray_visual();
+    // set_tray_visual();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Cannot activate tray manager... failed to setup window");
@@ -278,7 +278,7 @@ void tray_manager::reconfigure_clients() {
       client->ensure_state();
 
       if (client->mapped()) {
-        client->reconfigure(x, calculate_client_y());
+        client->set_position(x, calculate_client_y());
       }
 
       x += m_opts.client_size.w + m_opts.spacing;
@@ -295,9 +295,9 @@ void tray_manager::reconfigure_clients() {
 }
 
 /**
- * Refresh the bar window by clearing it along with each client window
+ * Redraw client windows.
  */
-void tray_manager::refresh_window() {
+void tray_manager::redraw_clients() {
   if (!is_visible()) {
     return;
   }
@@ -307,7 +307,7 @@ void tray_manager::refresh_window() {
   for (auto& client : m_clients) {
     try {
       if (client->mapped()) {
-        client->clear_window();
+        client->update_bg();
       }
     } catch (const std::exception& e) {
       m_log.err("tray: Failed to clear %s (%s)", client->name(), e.what());
@@ -315,15 +315,6 @@ void tray_manager::refresh_window() {
   }
 
   m_connection.flush();
-}
-
-/**
- * Redraw window
- *
- * TODO better name
- */
-void tray_manager::redraw_window() {
-  refresh_window();
 }
 
 /**
@@ -371,6 +362,7 @@ void tray_manager::set_tray_orientation() {
       XCB_ATOM_CARDINAL, 32, 1, &orientation);
 }
 
+// TODO remove
 void tray_manager::set_tray_visual() {
   // TODO use bar visual
   const uint32_t visualid = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 32)->visual_id;
@@ -452,7 +444,8 @@ void tray_manager::process_docking_request(xcb_window_t win) {
   m_log.info("tray: Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   try {
-    auto client = make_unique<tray_client>(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size);
+    auto client = make_unique<tray_client>(
+        m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_bar_opts.background.value());
 
     try {
       client->query_xembed();
@@ -578,7 +571,7 @@ bool tray_manager::change_visibility(bool visible) {
   }
 
   if (!m_hidden) {
-    redraw_window();
+    redraw_clients();
   }
 
   m_connection.flush();
@@ -591,7 +584,7 @@ bool tray_manager::change_visibility(bool visible) {
  */
 void tray_manager::handle(const evt::expose& evt) {
   if (is_active() && !m_clients.empty() && evt->count == 0) {
-    redraw_window();
+    redraw_clients();
   }
 }
 
@@ -740,7 +733,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
   } else if (is_active() && is_embedded(evt->window)) {
     m_log.info("tray: Received destroy_notify for client, remove...");
     remove_client(evt->window);
-    redraw_window();
+    redraw_clients();
   }
 }
 
@@ -750,7 +743,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
 void tray_manager::handle(const evt::map_notify& evt) {
   if (is_active() && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received map_notify for selection owner");
-    redraw_window();
+    redraw_clients();
   } else if (is_embedded(evt->window)) {
     auto client = find_client(evt->window);
 
@@ -789,9 +782,8 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
   }
 }
 
-// TODO maybe remove signal
 bool tray_manager::on(const signals::ui::update_background&) {
-  redraw_window();
+  redraw_clients();
 
   return false;
 }
