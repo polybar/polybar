@@ -13,6 +13,16 @@ namespace icccm_util {
     return "";
   }
 
+  pair<string, string> get_wm_class(xcb_connection_t* c, xcb_window_t w) {
+    pair<string, string> result{"", ""};
+    xcb_icccm_get_wm_class_reply_t reply{};
+    if (xcb_icccm_get_wm_class_reply(c, xcb_icccm_get_wm_class(c, w), &reply, nullptr)) {
+      result = {string(reply.instance_name), string(reply.class_name)};
+      xcb_icccm_get_wm_class_reply_wipe(&reply);
+    }
+    return result;
+  }
+
   string get_reply_string(xcb_icccm_get_text_property_reply_t* reply) {
     string str;
     if (reply) {

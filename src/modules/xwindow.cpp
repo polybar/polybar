@@ -58,6 +58,14 @@ namespace modules {
     }
   }
 
+  string active_window::instance_name() const {
+    return icccm_util::get_wm_class(m_connection, m_window).first;
+  }
+
+  string active_window::class_name() const {
+    return icccm_util::get_wm_class(m_connection, m_window).second;
+  }
+
   /**
    * Construct module
    */
@@ -85,10 +93,13 @@ namespace modules {
    */
   void xwindow_module::handle(const evt::property_notify& evt) {
     if (evt->atom == _NET_ACTIVE_WINDOW) {
-      update(true);
+      reset_active_window();
+      update();
     } else if (evt->atom == _NET_CURRENT_DESKTOP) {
-      update(true);
-    } else if (evt->atom == _NET_WM_NAME || evt->atom == _NET_WM_VISIBLE_NAME || evt->atom == WM_NAME) {
+      reset_active_window();
+      update();
+    } else if (evt->atom == _NET_WM_NAME || evt->atom == _NET_WM_VISIBLE_NAME || evt->atom == WM_NAME ||
+               evt->atom == WM_CLASS) {
       update();
     } else {
       return;
@@ -97,24 +108,27 @@ namespace modules {
     broadcast();
   }
 
+  void xwindow_module::reset_active_window() {
+    m_active.reset();
+  }
+
   /**
    * Update the currently active window and query its title
    */
-  void xwindow_module::update(bool force) {
-    xcb_window_t win;
-
-    if (force) {
-      m_active.reset();
-    }
-
-    if (!m_active && (win = ewmh_util::get_active_window()) != XCB_NONE) {
-      m_active = make_unique<active_window>(m_connection, win);
+  void xwindow_module::update() {
+    if (!m_active) {
+      xcb_window_t win = ewmh_util::get_active_window();
+      if (win != XCB_NONE) {
+        m_active = make_unique<active_window>(m_connection, win);
+      }
     }
 
     if (m_active) {
       m_label = m_statelabels.at(state::ACTIVE)->clone();
       m_label->reset_tokens();
       m_label->replace_token("%title%", m_active->title());
+      m_label->replace_token("%instance%", m_active->instance_name());
+      m_label->replace_token("%class%", m_active->class_name());
     } else {
       m_label = m_statelabels.at(state::EMPTY)->clone();
     }
