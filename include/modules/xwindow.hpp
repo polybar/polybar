@@ -11,13 +11,15 @@ POLYBAR_NS
 class connection;
 
 namespace modules {
-  class active_window {
+  class active_window : public non_copyable_mixin, public non_movable_mixin {
    public:
     explicit active_window(xcb_connection_t* conn, xcb_window_t win);
     ~active_window();
 
-    bool match(const xcb_window_t win) const;
+    bool match(xcb_window_t win) const;
     string title() const;
+    string instance_name() const;
+    string class_name() const;
 
    private:
     xcb_connection_t* m_connection{nullptr};
@@ -33,13 +35,15 @@ namespace modules {
     enum class state { NONE, ACTIVE, EMPTY };
     explicit xwindow_module(const bar_settings&, string);
 
-    void update(bool force = false);
+    void update();
     bool build(builder* builder, const string& tag) const;
 
     static constexpr auto TYPE = "internal/xwindow";
 
    protected:
     void handle(const evt::property_notify& evt) override;
+
+    void reset_active_window();
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
@@ -49,6 +53,6 @@ namespace modules {
     map<state, label_t> m_statelabels;
     label_t m_label;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

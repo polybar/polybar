@@ -40,9 +40,10 @@ xcb_atom_t _COMPTON_SHADOW;
 xcb_atom_t _NET_WM_WINDOW_OPACITY;
 xcb_atom_t WM_HINTS;
 xcb_atom_t WM_NAME;
+xcb_atom_t WM_CLASS;
 
 // clang-format off
-std::array<cached_atom, 37> ATOMS = {{
+std::array<cached_atom, 38> ATOMS = {{
   {"_NET_SUPPORTED", _NET_SUPPORTED},
   {"_NET_CURRENT_DESKTOP", _NET_CURRENT_DESKTOP},
   {"_NET_ACTIVE_WINDOW", _NET_ACTIVE_WINDOW},
@@ -80,5 +81,6 @@ std::array<cached_atom, 37> ATOMS = {{
   {"_NET_WM_WINDOW_OPACITY", _NET_WM_WINDOW_OPACITY},
   {"WM_HINTS", WM_HINTS},
   {"WM_NAME", WM_NAME},
+  {"WM_CLASS", WM_CLASS},
 }};
 // clang-format on

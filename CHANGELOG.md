@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added experimental support for positioning the tray like a module
 - `internal/backlight`: `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696), [`#2700`](https://github.com/polybar/polybar/pull/2700))
 - `internal/temperature`: Added `zone-type` setting ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2752`](https://github.com/polybar/polybar/pull/2752)) by [@xphoniex](https://github.com/xphoniex)
+- `internal/xwindow`: `%class%` and `%instance%` tokens, which show the contents of the `WM_CLASS` property of the active window ([`#2830`](https://github.com/polybar/polybar/pull/2830))
 
 ### Changed
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
