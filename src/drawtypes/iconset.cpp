@@ -12,6 +12,15 @@ namespace drawtypes {
   }
 
   label_t iconset::get(const string& id, const string& fallback_id, bool fuzzy_match) {
+    fuzzy_match = true; 
+
+    for(auto const& icon : m_icons){
+      std::cout << icon.first << " ";
+    }
+
+    std::cout << std::endl << id << std::endl;
+    //std::cout << "HI: " << fallback_id << std::endl;
+
     // Try to match exactly first
     auto icon = m_icons.find(id);
     if (icon != m_icons.end()) {
@@ -20,9 +29,11 @@ namespace drawtypes {
 
     // If fuzzy matching is turned on, try that first before returning the fallback.
     if (fuzzy_match) {
+      // works by finding the *longest* matching icon to the given workspace id
+      int max_size = -1;
       for (auto const& icon : m_icons) {
         if (id.find(icon.first) != std::string::npos) {
-          return icon.second;
+          max_size = std::max(max_size, (int)icon.first.length());
         }
       }
     }

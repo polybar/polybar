@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <algorithm>
 
 #include "common.hpp"
 #include "drawtypes/label.hpp"
