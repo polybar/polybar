@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
 - `internal/backlight`: Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
 - Providing a negative min-width to a token adds right-padding ([`#2789`](https://github.com/polybar/polybar/issues/2789), [`#2801`](https://github.com/polybar/polybar/pull/2801)) by [@VanillaViking](https://github.com/VanillaViking).
+- Changed fuzzy match option to find longest match instead of the first match ([`#2831`](https://github.com/polybar/polybar/pull/2831), [`#2829`](https://github.com/polybar/polybar/issues/2829)) by [@Ron0Studios](https://github.com/ron0studios/).
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
