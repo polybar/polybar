@@ -13,7 +13,6 @@ namespace drawtypes {
   }
 
   label_t iconset::get(const string& id, const string& fallback_id, bool fuzzy_match) {
-
     // Try to match exactly first
     auto icon = m_icons.find(id);
     if (icon != m_icons.end()) {
