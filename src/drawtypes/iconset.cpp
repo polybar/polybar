@@ -1,4 +1,5 @@
 #include "drawtypes/iconset.hpp"
+#include <algorithm>
 
 POLYBAR_NS
 
@@ -12,14 +13,6 @@ namespace drawtypes {
   }
 
   label_t iconset::get(const string& id, const string& fallback_id, bool fuzzy_match) {
-    fuzzy_match = true; 
-
-    for(auto const& icon : m_icons){
-      std::cout << icon.first << " ";
-    }
-
-    std::cout << std::endl << id << std::endl;
-    //std::cout << "HI: " << fallback_id << std::endl;
 
     // Try to match exactly first
     auto icon = m_icons.find(id);
@@ -31,11 +24,19 @@ namespace drawtypes {
     if (fuzzy_match) {
       // works by finding the *longest* matching icon to the given workspace id
       int max_size = -1;
+      label_t max_label = NULL;
+
       for (auto const& icon : m_icons) {
         if (id.find(icon.first) != std::string::npos) {
-          max_size = std::max(max_size, (int)icon.first.length());
+
+          if((int)icon.first.length() > max_size) {
+            max_size = icon.first.length();
+            max_label = icon.second;
+          }
         }
       }
+
+      if(max_size != -1) return max_label;
     }
 
     return m_icons.find(fallback_id)->second;
