@@ -35,7 +35,7 @@ namespace drawtypes {
         }
       }
 
-      if (max_size != -1) {
+      if (max_label) {
         return max_label;
       }
     }
