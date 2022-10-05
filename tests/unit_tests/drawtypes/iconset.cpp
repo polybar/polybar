@@ -17,7 +17,6 @@ TEST(IconSet, fuzzyMatchExactMatchFirst) {
   EXPECT_EQ("10", ret->get());
 }
 
-
 TEST(IconSet, fuzzyMatchLargestSubstring) {
   iconset_t icons = make_shared<iconset>();
 
@@ -28,8 +27,6 @@ TEST(IconSet, fuzzyMatchLargestSubstring) {
 
   EXPECT_EQ("10", ret->get());
 }
-
-
 
 TEST(IconSet, fuzzyMatchFallback) {
   iconset_t icons = make_shared<iconset>();
@@ -42,4 +39,3 @@ TEST(IconSet, fuzzyMatchFallback) {
 
   EXPECT_EQ("fallback_label", ret->get());
 }
-

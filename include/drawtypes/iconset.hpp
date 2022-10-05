@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <algorithm>
 
 #include "common.hpp"
 #include "drawtypes/label.hpp"
@@ -22,6 +21,6 @@ namespace drawtypes {
   };
 
   using iconset_t = shared_ptr<iconset>;
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

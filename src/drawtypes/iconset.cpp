@@ -1,4 +1,5 @@
 #include "drawtypes/iconset.hpp"
+
 #include <algorithm>
 
 POLYBAR_NS
@@ -22,20 +23,21 @@ namespace drawtypes {
     // If fuzzy matching is turned on, try that first before returning the fallback.
     if (fuzzy_match) {
       // works by finding the *longest* matching icon to the given workspace id
-      int max_size = -1;
-      label_t max_label = NULL;
+      size_t max_size = -1;
+      label_t max_label;
 
       for (auto const& icon : m_icons) {
         if (id.find(icon.first) != std::string::npos) {
-
-          if((int)icon.first.length() > max_size) {
+          if (icon.first.length() > max_size || !max_label) {
             max_size = icon.first.length();
             max_label = icon.second;
           }
         }
       }
 
-      if(max_size != -1) return max_label;
+      if (max_size != -1) {
+        return max_label;
+      }
     }
 
     return m_icons.find(fallback_id)->second;
@@ -44,6 +46,6 @@ namespace drawtypes {
   iconset::operator bool() {
     return !m_icons.empty();
   }
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END
