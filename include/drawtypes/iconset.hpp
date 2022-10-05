@@ -21,6 +21,6 @@ namespace drawtypes {
   };
 
   using iconset_t = shared_ptr<iconset>;
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END
