@@ -123,14 +123,16 @@ namespace modules {
       }
     }
 
-    if (m_active) {
-      m_label = m_statelabels.at(state::ACTIVE)->clone();
-      m_label->reset_tokens();
-      m_label->replace_token("%title%", m_active->title());
-      m_label->replace_token("%instance%", m_active->instance_name());
-      m_label->replace_token("%class%", m_active->class_name());
-    } else {
-      m_label = m_statelabels.at(state::EMPTY)->clone();
+    if (!m_statelabels.empty()) {
+      if (m_active) {
+        m_label = m_statelabels.at(state::ACTIVE)->clone();
+        m_label->reset_tokens();
+        m_label->replace_token("%title%", m_active->title());
+        m_label->replace_token("%instance%", m_active->instance_name());
+        m_label->replace_token("%class%", m_active->class_name());
+      } else {
+        m_label = m_statelabels.at(state::EMPTY)->clone();
+      }
     }
   }
 
