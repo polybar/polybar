@@ -116,6 +116,7 @@ namespace modules {
         return DEFAULT_FORMAT;
       }
     }
+    return DEFAULT_FORMAT;
   }
   /**
    * Output content retrieved from hook commands
