@@ -61,11 +61,9 @@ namespace modules {
     }
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
 
-
-    for(size_t i=0; i < m_hooks.size(); i++){
-        string format_i= "format-" + to_string(i) ;
-        format_i= "format-" + to_string(i) ;
-        m_formatter->add(format_i, TAG_OUTPUT, {TAG_OUTPUT});
+    for (size_t i = 0; i < m_hooks.size(); i++) {
+      string format_i = "format-" + to_string(i);
+      m_formatter->add_optional(format_i, {TAG_OUTPUT});
     }
   }
 
@@ -110,13 +108,14 @@ namespace modules {
   }
 
   string ipc_module::get_format() const {
-      if( m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()){
-        return "format-" + to_string(m_current_hook);
+    if (m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()) {
+      string format_i = "format-" + to_string(m_current_hook);
+      if (m_conf.has(m_name, format_i)) {
+        return format_i;
+      } else {
+        return DEFAULT_FORMAT;
       }
-      else{
-        throw module_error("Initial hook out of bounds: '" + to_string(m_initial + 1) +
-                           "'. Defined hooks go from 1 to " + to_string(m_hooks.size()) + ")");
-      }
+    }
   }
   /**
    * Output content retrieved from hook commands
@@ -165,7 +164,8 @@ namespace modules {
       }
     } catch (const std::invalid_argument& err) {
       m_log.err(
-          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to %zu.",
+          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to "
+          "%zu.",
           name(), data, m_hooks.size() - 1);
     }
   }
