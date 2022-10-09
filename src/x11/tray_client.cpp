@@ -130,7 +130,8 @@ unsigned int tray_client::height() const {
 }
 
 void tray_client::clear_window() const {
-  m_connection.clear_area_checked(1, embedder(), 0, 0, width(), height());
+  // Do not produce Expose events for the embedder because that triggers an infinite loop.
+  m_connection.clear_area_checked(0, embedder(), 0, 0, width(), height());
   m_connection.clear_area_checked(1, client(), 0, 0, width(), height());
 }
 
@@ -340,7 +341,7 @@ void tray_client::update_bg() const {
 
 void tray_client::observe_background() {
   xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(m_size.w), static_cast<uint16_t>(m_size.h)};
-  m_bg_slice = m_background_manager.observe(rect, m_wrapper);
+  m_bg_slice = m_background_manager.observe(rect, embedder());
 
   update_bg();
 }
