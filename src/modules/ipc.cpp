@@ -110,7 +110,7 @@ namespace modules {
   string ipc_module::get_format() const {
     if (m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()) {
       string format_i = "format-" + to_string(m_current_hook);
-      if (m_conf.has(m_name, format_i)) {
+      if (m_formatter->has_format(format_i)) {
         return format_i;
       } else {
         return DEFAULT_FORMAT;
