@@ -69,7 +69,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
 
   ~tray_manager();
 
-  int get_width() const;
+  unsigned get_width() const;
 
   void setup(const config& conf, const string& module_section_name);
   void activate();

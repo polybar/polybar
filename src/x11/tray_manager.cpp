@@ -77,6 +77,7 @@ void tray_manager::setup(const config& conf, const string& section_name) {
   }
 
   // Apply user-defined scaling
+  // TODO maybe remove
   auto scale = conf.get(section_name, "tray-scale", 1.0);
   client_height *= scale;
 
@@ -84,6 +85,7 @@ void tray_manager::setup(const config& conf, const string& section_name) {
 
   // Set user-defined foreground and background colors.
   // TODO maybe remove
+  // TODO only run background manager, etc. when the background has transparency.
   m_opts.background = conf.get(section_name, "tray-background", m_bar_opts.background);
   m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
 
@@ -99,7 +101,7 @@ void tray_manager::setup(const config& conf, const string& section_name) {
   activate();
 }
 
-int tray_manager::get_width() const {
+unsigned tray_manager::get_width() const {
   return m_tray_width;
 }
 
@@ -331,7 +333,7 @@ void tray_manager::query_atom() {
  * Set color atom used by clients when determing icon theme
  */
 void tray_manager::set_tray_colors() {
-  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to %x", m_opts.foreground);
+  m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to 0x%08x", m_opts.foreground);
 
   auto r = m_opts.foreground.red_i();
   auto g = m_opts.foreground.green_i();
@@ -460,9 +462,9 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 
     client->add_to_save_set();
 
-    client->notify_xembed();
-
     client->ensure_state();
+
+    client->notify_xembed();
 
     m_clients.emplace_back(std::move(client));
   } catch (const std::exception& err) {

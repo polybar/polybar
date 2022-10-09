@@ -130,6 +130,10 @@ unsigned int tray_client::height() const {
 }
 
 void tray_client::clear_window() const {
+  if (!mapped()) {
+    return;
+  }
+
   // Do not produce Expose events for the embedder because that triggers an infinite loop.
   m_connection.clear_area_checked(0, embedder(), 0, 0, width(), height());
   m_connection.clear_area_checked(1, client(), 0, 0, width(), height());
@@ -327,6 +331,7 @@ void tray_client::update_bg() const {
   m_log.trace("%s: Update background", name());
 
   // Composite background slice with background color.
+  // TODO this doesn't have to be done if the background color is not transparent.
   m_context->clear();
   *m_context << CAIRO_OPERATOR_SOURCE << *m_bg_slice->get_surface();
   m_context->paint();
