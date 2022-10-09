@@ -59,8 +59,12 @@ namespace modules {
     for (auto& hook : m_hooks) {
       hook->command = pid_token(hook->command);
     }
-
     m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
+
+    for (size_t i = 0; i < m_hooks.size(); i++) {
+      string format_i = "format-" + to_string(i);
+      m_formatter->add_optional(format_i, {TAG_OUTPUT});
+    }
   }
 
   /**
@@ -103,6 +107,17 @@ namespace modules {
     return m_builder->flush();
   }
 
+  string ipc_module::get_format() const {
+    if (m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()) {
+      string format_i = "format-" + to_string(m_current_hook);
+      if (m_formatter->has_format(format_i)) {
+        return format_i;
+      } else {
+        return DEFAULT_FORMAT;
+      }
+    }
+    return DEFAULT_FORMAT;
+  }
   /**
    * Output content retrieved from hook commands
    */
@@ -150,7 +165,8 @@ namespace modules {
       }
     } catch (const std::invalid_argument& err) {
       m_log.err(
-          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to %zu.",
+          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to "
+          "%zu.",
           name(), data, m_hooks.size() - 1);
     }
   }
