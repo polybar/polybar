@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -59,11 +60,20 @@ namespace modules {
     for (auto& hook : m_hooks) {
       hook->command = pid_token(hook->command);
     }
-    m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     for (size_t i = 0; i < m_hooks.size(); i++) {
       string format_i = "format-" + to_string(i);
-      m_formatter->add_optional(format_i, {TAG_OUTPUT});
+      m_formatter->add_optional(format_i, {TAG_LABEL});
+    }
+
+    if (m_formatter->has(TAG_LABEL)) {
+      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
+    }
+
+    m_formatter->add_optional(FORMAT_FAIL, {TAG_LABEL_FAIL});
+    if (m_formatter->has(TAG_LABEL_FAIL)) {
+      m_label_fail = load_optional_label(m_conf, name(), TAG_LABEL_FAIL, "%output%");
     }
   }
 
@@ -122,12 +132,13 @@ namespace modules {
    * Output content retrieved from hook commands
    */
   bool ipc_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_OUTPUT) {
-      builder->node(m_output);
+    if (tag == TAG_LABEL) {
+      builder->node(m_label);
       return true;
-    } else {
-      return false;
+    } else if (tag == TAG_LABEL_FAIL) {
+      builder->node(m_label_fail);
     }
+    return false;
   }
 
   /**
@@ -184,7 +195,12 @@ namespace modules {
       set_hook(m_initial);
     } else {
       m_current_hook = -1;
+
       m_output.clear();
+      if (m_label) {
+        m_label->reset_tokens();
+      }
+
       broadcast();
     }
   }
@@ -236,6 +252,11 @@ namespace modules {
     } catch (const exception& err) {
       m_log.err("%s: Failed to execute hook command (err: %s)", name(), err.what());
       m_output.clear();
+    }
+
+    if (m_label) {
+      m_label->reset_tokens();
+      m_label->replace_token("%output%", m_output);
     }
 
     broadcast();
