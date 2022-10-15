@@ -37,9 +37,8 @@ namespace eventloop {
       get()->data = this;
     }
 
-    shared_ptr<Self> leak(std::shared_ptr<Self> h) {
+    void leak(std::shared_ptr<Self> h) {
       lifetime_extender = std::move(h);
-      return lifetime_extender;
     }
 
     void unleak() {
@@ -159,53 +158,25 @@ namespace eventloop {
    public:
     using cb_write = cb_void;
 
-    WriteRequest(cb_write user_cb, cb_error err_cb) : write_callback(user_cb), write_err_cb(err_cb) {
-      get()->data = this;
-    };
+    WriteRequest(cb_write&& user_cb, cb_error&& err_cb);
 
-    static WriteRequest& create(cb_write user_cb, cb_error err_cb) {
-      auto r = std::make_unique<WriteRequest>(user_cb, err_cb);
-      return r->leak(std::move(r));
-    };
+    static WriteRequest& create(cb_write&& user_cb, cb_error&& err_cb);
 
-    uv_write_t* get() {
-      return &req;
-    }
+    uv_write_t* get();
 
     /**
      * Trigger the write callback.
      *
      * After that, this object is destroyed.
      */
-    void trigger(int status) {
-      if (status < 0) {
-        if (write_err_cb) {
-          write_err_cb(ErrorEvent{status});
-        }
-      } else {
-        if (write_callback) {
-          write_callback();
-        }
-      }
-
-      unleak();
-    }
+    void trigger(int status);
 
    protected:
-    WriteRequest& leak(std::unique_ptr<WriteRequest> h) {
-      lifetime_extender = std::move(h);
-      return *lifetime_extender;
-    }
+    WriteRequest& leak(std::unique_ptr<WriteRequest> h);
 
-    void unleak() {
-      reset_callbacks();
-      lifetime_extender.reset();
-    }
+    void unleak();
 
-    void reset_callbacks() {
-      write_callback = nullptr;
-      write_err_cb = nullptr;
-    }
+    void reset_callbacks();
 
    private:
     uv_write_t req{};
@@ -231,12 +202,10 @@ namespace eventloop {
     using cb = cb_event<SignalEvent>;
 
     void init();
-    void start(int signum, cb user_cb);
+    void start(int signum, cb&& user_cb);
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     cb callback;
@@ -252,14 +221,11 @@ namespace eventloop {
     using cb = cb_event<PollEvent>;
 
     void init(int fd);
-    void start(int events, cb user_cb, cb_error err_cb);
+    void start(int events, cb&& user_cb, cb_error&& err_cb);
     static void poll_callback(uv_poll_t*, int status, int events);
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-      err_cb = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     cb callback;
@@ -277,14 +243,11 @@ namespace eventloop {
     using cb = cb_event<FSEvent>;
 
     void init();
-    void start(const string& path, int flags, cb user_cb, cb_error err_cb);
+    void start(const string& path, int flags, cb&& user_cb, cb_error&& err_cb);
     static void fs_event_callback(uv_fs_event_t*, const char* path, int events, int status);
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-      err_cb = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     cb callback;
@@ -297,13 +260,11 @@ namespace eventloop {
     using cb = cb_void;
 
     void init();
-    void start(uint64_t timeout, uint64_t repeat, cb user_cb);
+    void start(uint64_t timeout, uint64_t repeat, cb&& user_cb);
     void stop();
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     cb callback;
@@ -314,13 +275,11 @@ namespace eventloop {
     using Handle::Handle;
     using cb = cb_void;
 
-    void init(cb user_cb);
+    void init(cb&& user_cb);
     void send();
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     cb callback;
@@ -360,11 +319,11 @@ namespace eventloop {
       UV(uv_accept, this->template get<uv_stream_t>(), client.template get<uv_stream_t>());
     }
 
-    void read_start(cb_read fun, cb_void eof_cb, cb_error err_cb) {
-      this->read_callback = fun;
-      this->read_eof_cb = eof_cb;
-      this->read_err_cb = err_cb;
-      UV(uv_read_start, this->template get<uv_stream_t>(), &this->alloc_callback, read_cb);
+    void read_start(cb_read &&fun, cb_void&& eof_cb, cb_error&& err_cb) {
+      this->read_callback = std::move(fun);
+      this->read_eof_cb = std::move(eof_cb);
+      this->read_err_cb = std::move(err_cb);
+      UV(uv_read_start, this->template get<uv_stream_t>(), &this->alloc_callback, &read_cb);
     };
 
     static void read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
@@ -384,8 +343,8 @@ namespace eventloop {
       }
     };
 
-    void write(const vector<uint8_t>& data, WriteRequest::cb_write user_cb = {}, cb_error err_cb = {}) {
-      WriteRequest& req = WriteRequest::create(user_cb, err_cb);
+    void write(const vector<uint8_t>& data, WriteRequest::cb_write&& user_cb = {}, cb_error&& err_cb = {}) {
+      WriteRequest& req = WriteRequest::create(std::move(user_cb), std::move(err_cb));
 
       uv_buf_t buf{(char*)data.data(), data.size()};
 
@@ -436,14 +395,10 @@ namespace eventloop {
 
     void bind(const string& path);
 
-    void connect(const string& name, cb_connect user_cb, cb_error err_cb);
+    void connect(const string& name, cb_connect&& user_cb, cb_error&& err_cb);
 
    protected:
-    void reset_callbacks() override {
-      StreamHandle::reset_callbacks();
-      connect_callback = nullptr;
-      connect_err_cb = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     static void connect_cb(uv_connect_t* req, int status);
@@ -458,12 +413,10 @@ namespace eventloop {
     using cb = cb_void;
 
     void init();
-    void start(cb user_cb);
+    void start(cb&& user_cb);
 
    protected:
-    void reset_callbacks() override {
-      callback = nullptr;
-    }
+    void reset_callbacks() override;
 
    private:
     static void connect_cb(uv_connect_t* req, int status);
@@ -488,10 +441,11 @@ namespace eventloop {
     uint64_t now() const;
 
     template <typename H, typename... Args>
-    shared_ptr<H> handle(Args... args) {
+    shared_ptr<H> handle(Args&&... args) {
       auto ptr = make_shared<H>(get());
       ptr->init(std::forward<Args>(args)...);
-      return ptr->leak(std::move(ptr));
+      ptr->leak(ptr);
+      return ptr;
     }
 
     uv_loop_t* get() const;

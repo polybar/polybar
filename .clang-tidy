@@ -16,6 +16,7 @@ Checks: '
         -modernize-raw-string-literal,
         -modernize-use-bool-literals,
         -modernize-use-trailing-return-type,
+        -readability-identifier-length,
         -readability-implicit-bool-cast,
         -readability-else-after-return,
         -readability-named-parameter,
@@ -26,7 +27,8 @@ Checks: '
         -cppcoreguidelines-pro-type-reinterpret-cast,
         -cppcoreguidelines-pro-type-union-access,
         -cppcoreguidelines-pro-type-cstyle-cast,
-        -cppcoreguidelines-pro-bounds-constant-array-index
+        -cppcoreguidelines-pro-bounds-constant-array-index,
+        -cppcoreguidelines-owning-memory,
         '
 
 CheckOptions:
