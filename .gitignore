@@ -8,4 +8,7 @@
 .tags
 *.user
 
+# clangd
+/.cache
+
 polybar-*.tar
