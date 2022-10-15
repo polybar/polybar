@@ -426,7 +426,7 @@ namespace eventloop {
 
   using signal_handle_t = shared_ptr<SignalHandle>;
   using poll_handle_t = shared_ptr<PollHandle>;
-  using fs_event_handle = shared_ptr<FSEventHandle>;
+  using fs_event_handle_t = shared_ptr<FSEventHandle>;
   using timer_handle_t = shared_ptr<TimerHandle>;
   using async_handle_t = shared_ptr<AsyncHandle>;
   using pipe_handle_t = shared_ptr<PipeHandle>;
