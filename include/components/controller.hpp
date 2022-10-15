@@ -109,7 +109,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
    * E.g. click actions.
    */
-  eventloop::AsyncHandle& m_notifier{m_loop.handle<eventloop::AsyncHandle>([this]() { notifier_handler(); })};
+  eventloop::async_handle_t m_notifier{m_loop.handle<eventloop::AsyncHandle>([this]() { notifier_handler(); })};
 
   /**
    * Notification data for the controller.

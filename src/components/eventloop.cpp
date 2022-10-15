@@ -85,8 +85,8 @@ namespace eventloop {
   }
 
   void FSEventHandle::start(const string& path, int flags, cb user_cb, cb_error err_cb) {
-    this->callback = user_cb;
-    this->err_cb = err_cb;
+    this->callback = std::move(user_cb);
+    this->err_cb = std::move(err_cb);
     UV(uv_fs_event_start, get(), fs_event_callback, path.c_str(), flags);
   }
 
