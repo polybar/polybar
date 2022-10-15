@@ -154,7 +154,7 @@ void controller::trigger_update(bool force) {
 }
 
 void controller::trigger_notification() {
-  m_notifier.send();
+  m_notifier->send();
 }
 
 void controller::stop(bool reload) {
@@ -196,12 +196,12 @@ void controller::signal_handler(int signum) {
 }
 
 void controller::create_config_watcher(const string& filename) {
-  auto& fs_event_handler = m_loop.handle<FSEventHandle>();
-  fs_event_handler.start(
+  auto fs_event_handle = m_loop.handle<FSEventHandle>();
+  fs_event_handle->start(
       filename, 0, [this](const auto& e) { confwatch_handler(e.path); },
-      [this, &fs_event_handler](const auto& e) {
+      [this, &handle = *fs_event_handle](const auto& e) {
         m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
-        fs_event_handler.close();
+        handle.close();
       });
 }
 
@@ -247,16 +247,16 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    auto& x_poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
-    x_poll_handle.start(
+    auto x_poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
+    x_poll_handle->start(
         UV_READABLE, [this](const auto&) { conn_cb(); },
         [this](const auto& e) {
           m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
           stop(false);
         });
 
-    auto& x_prepare_handle = m_loop.handle<PrepareHandle>();
-    x_prepare_handle.start([this]() {
+    auto x_prepare_handle = m_loop.handle<PrepareHandle>();
+    x_prepare_handle->start([this]() {
       /*
        * We have to also handle events in the prepare handle (which runs right
        * before polling for IO) to process any already queued X events which
@@ -267,8 +267,8 @@ void controller::read_events(bool confwatch) {
     });
 
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      auto& signal_handle = m_loop.handle<SignalHandle>();
-      signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
+      auto signal_handle = m_loop.handle<SignalHandle>();
+      signal_handle->start(s, [this](const auto& e) { signal_handler(e.signum); });
     }
 
     if (confwatch) {
@@ -281,8 +281,8 @@ void controller::read_events(bool confwatch) {
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      auto& timer_handle = m_loop.handle<TimerHandle>();
-      timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
+      auto timer_handle = m_loop.handle<TimerHandle>();
+      timer_handle->start(3000, 0, [this]() { screenshot_handler(); });
     }
 
     if (!m_writeback) {

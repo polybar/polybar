@@ -24,7 +24,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 set(POLYBAR_FLAGS "" CACHE STRING "C++ compiler flags used for compiling polybar")
 
-list(APPEND cxx_base -Wall -Wextra -Wpedantic)
+list(APPEND cxx_base -Wall -Wextra -Wpedantic -Wdeprecated-copy-dtor)
 list(APPEND cxx_debug -DDEBUG -g2)
 list(APPEND cxx_minsizerel "")
 list(APPEND cxx_sanitize -O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls)

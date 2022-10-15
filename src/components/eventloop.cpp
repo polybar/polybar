@@ -1,6 +1,7 @@
 #include "components/eventloop.hpp"
 
 #include <cassert>
+#include <utility>
 
 #include "errors.hpp"
 
@@ -46,14 +47,63 @@ namespace eventloop {
     }
   }
 
+  // WriteRequest {{{
+  WriteRequest::WriteRequest(cb_write&& user_cb, cb_error&& err_cb)
+      : write_callback(std::move(user_cb)), write_err_cb(std::move(err_cb)) {
+    get()->data = this;
+  }
+
+  WriteRequest& WriteRequest::create(cb_write&& user_cb, cb_error&& err_cb) {
+    auto r = std::make_unique<WriteRequest>(std::move(user_cb), std::move(err_cb));
+    return r->leak(std::move(r));
+  }
+
+  uv_write_t* WriteRequest::get() {
+    return &req;
+  }
+
+  void WriteRequest::trigger(int status) {
+    if (status < 0) {
+      if (write_err_cb) {
+        write_err_cb(ErrorEvent{status});
+      }
+    } else {
+      if (write_callback) {
+        write_callback();
+      }
+    }
+
+    unleak();
+  }
+
+  WriteRequest& WriteRequest::leak(std::unique_ptr<WriteRequest> h) {
+    lifetime_extender = std::move(h);
+    return *lifetime_extender;
+  }
+
+  void WriteRequest::unleak() {
+    reset_callbacks();
+    lifetime_extender.reset();
+  }
+
+  void WriteRequest::reset_callbacks() {
+    write_callback = nullptr;
+    write_err_cb = nullptr;
+  }
+  // }}}
+
   // SignalHandle {{{
   void SignalHandle::init() {
     UV(uv_signal_init, loop(), get());
   }
 
-  void SignalHandle::start(int signum, cb user_cb) {
-    this->callback = user_cb;
+  void SignalHandle::start(int signum, cb&& user_cb) {
+    this->callback = std::move(user_cb);
     UV(uv_signal_start, get(), event_cb<SignalEvent, &SignalHandle::callback>, signum);
+  }
+
+  void SignalHandle::reset_callbacks() {
+    callback = nullptr;
   }
   // }}}
 
@@ -62,9 +112,9 @@ namespace eventloop {
     UV(uv_poll_init, loop(), get(), fd);
   }
 
-  void PollHandle::start(int events, cb user_cb, cb_error err_cb) {
-    this->callback = user_cb;
-    this->err_cb = err_cb;
+  void PollHandle::start(int events, cb&& user_cb, cb_error&& err_cb) {
+    this->callback = std::move(user_cb);
+    this->err_cb = std::move(err_cb);
     UV(uv_poll_start, get(), events, &poll_callback);
   }
 
@@ -77,6 +127,11 @@ namespace eventloop {
 
     self.callback(PollEvent{(uv_poll_event)events});
   }
+
+  void PollHandle::reset_callbacks() {
+    callback = nullptr;
+    err_cb = nullptr;
+  }
   // }}}
 
   // FSEventHandle {{{
@@ -84,9 +139,9 @@ namespace eventloop {
     UV(uv_fs_event_init, loop(), get());
   }
 
-  void FSEventHandle::start(const string& path, int flags, cb user_cb, cb_error err_cb) {
-    this->callback = user_cb;
-    this->err_cb = err_cb;
+  void FSEventHandle::start(const string& path, int flags, cb&& user_cb, cb_error&& err_cb) {
+    this->callback = std::move(user_cb);
+    this->err_cb = std::move(err_cb);
     UV(uv_fs_event_start, get(), fs_event_callback, path.c_str(), flags);
   }
 
@@ -100,6 +155,10 @@ namespace eventloop {
     self.callback(FSEvent{path, (uv_fs_event)events});
   }
 
+  void FSEventHandle::reset_callbacks() {
+    callback = nullptr;
+    err_cb = nullptr;
+  }
   // }}}
 
   // PipeHandle {{{
@@ -115,9 +174,9 @@ namespace eventloop {
     UV(uv_pipe_bind, get(), path.c_str());
   }
 
-  void PipeHandle::connect(const string& name, cb_connect user_cb, cb_error err_cb) {
-    this->connect_callback = user_cb;
-    this->connect_err_cb = err_cb;
+  void PipeHandle::connect(const string& name, cb_connect&& user_cb, cb_error&& err_cb) {
+    this->connect_callback = std::move(user_cb);
+    this->connect_err_cb = std::move(err_cb);
     uv_pipe_connect(new uv_connect_t(), get(), name.c_str(), connect_cb);
   }
 
@@ -132,6 +191,12 @@ namespace eventloop {
 
     delete req;
   }
+
+  void PipeHandle::reset_callbacks() {
+    StreamHandle::reset_callbacks();
+    connect_callback = nullptr;
+    connect_err_cb = nullptr;
+  }
   // }}}
 
   // TimerHandle {{{
@@ -139,24 +204,32 @@ namespace eventloop {
     UV(uv_timer_init, loop(), get());
   }
 
-  void TimerHandle::start(uint64_t timeout, uint64_t repeat, cb user_cb) {
-    this->callback = user_cb;
+  void TimerHandle::start(uint64_t timeout, uint64_t repeat, cb&& user_cb) {
+    this->callback = std::move(user_cb);
     UV(uv_timer_start, get(), void_event_cb<&TimerHandle::callback>, timeout, repeat);
   }
 
   void TimerHandle::stop() {
     UV(uv_timer_stop, get());
   }
+
+  void TimerHandle::reset_callbacks() {
+    callback = nullptr;
+  }
   // }}}
 
   // AsyncHandle {{{
-  void AsyncHandle::init(cb user_cb) {
-    this->callback = user_cb;
+  void AsyncHandle::init(cb&& user_cb) {
+    this->callback = std::move(user_cb);
     UV(uv_async_init, loop(), get(), void_event_cb<&AsyncHandle::callback>);
   }
 
   void AsyncHandle::send() {
     UV(uv_async_send, get());
+  }
+
+  void AsyncHandle::reset_callbacks() {
+    callback = nullptr;
   }
   // }}}
 
@@ -165,9 +238,13 @@ namespace eventloop {
     UV(uv_prepare_init, loop(), get());
   }
 
-  void PrepareHandle::start(cb user_cb) {
-    this->callback = user_cb;
+  void PrepareHandle::start(cb&& user_cb) {
+    this->callback = std::move(user_cb);
     UV(uv_prepare_start, get(), void_event_cb<&PrepareHandle::callback>);
+  }
+
+  void PrepareHandle::reset_callbacks() {
+    callback = nullptr;
   }
   // }}}
 
@@ -227,3 +304,4 @@ namespace eventloop {
 } // namespace eventloop
 
 POLYBAR_NS_END
+

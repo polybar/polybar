@@ -107,10 +107,10 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_lastinput{};
   std::set<mousebtn> m_dblclicks;
 
-  eventloop::TimerHandle& m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
-  eventloop::TimerHandle& m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};
-  eventloop::TimerHandle& m_rightclick_timer{m_loop.handle<eventloop::TimerHandle>()};
-  eventloop::TimerHandle& m_dim_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::timer_handle_t m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::timer_handle_t m_middleclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::timer_handle_t m_rightclick_timer{m_loop.handle<eventloop::TimerHandle>()};
+  eventloop::timer_handle_t m_dim_timer{m_loop.handle<eventloop::TimerHandle>()};
 
   bool m_visible{true};
 };

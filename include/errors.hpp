@@ -8,14 +8,13 @@
 
 POLYBAR_NS
 
-using std::strerror;
 using std::exception;
 using std::runtime_error;
+using std::strerror;
 
 class application_error : public runtime_error {
  public:
   explicit application_error(const string& message, int code = 0) : runtime_error(message), code(code) {}
-  virtual ~application_error() {}
   int code{0};
 };
 
@@ -24,7 +23,6 @@ class system_error : public application_error {
   explicit system_error() : application_error(strerror(errno), errno) {}
   explicit system_error(const string& message)
       : application_error(message + " (reason: " + strerror(errno) + ")", errno) {}
-  virtual ~system_error() {}
 };
 
 #define DEFINE_CHILD_ERROR(error, parent) \
