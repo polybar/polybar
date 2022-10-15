@@ -24,6 +24,21 @@ inotify_watch::~inotify_watch() {
   }
 }
 
+inotify_watch::inotify_watch(inotify_watch&& other) noexcept {
+  std::swap(m_path, other.m_path);
+  std::swap(m_wd, other.m_wd);
+  std::swap(m_fd, other.m_fd);
+  std::swap(m_mask, other.m_mask);
+}
+
+inotify_watch& inotify_watch::operator=(inotify_watch&& other) noexcept {
+  std::swap(m_path, other.m_path);
+  std::swap(m_wd, other.m_wd);
+  std::swap(m_fd, other.m_fd);
+  std::swap(m_mask, other.m_mask);
+  return *this;
+}
+
 /**
  * Attach inotify watch
  */
@@ -101,7 +116,7 @@ inotify_event inotify_watch::get_event() const {
 /**
  * Get watch file path
  */
-const string inotify_watch::path() const {
+string inotify_watch::path() const {
   return m_path;
 }
 
