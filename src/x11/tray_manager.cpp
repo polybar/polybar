@@ -156,13 +156,14 @@ void tray_manager::activate() {
 
   m_state = state::ACTIVE;
 
+  notify_clients();
   // Send delayed notification
   // TODO try to remove this?
-  if (!m_firstactivation) {
-    notify_clients();
-  } else {
-    notify_clients_delayed();
-  }
+  // if (!m_firstactivation) {
+  //   notify_clients();
+  // } else {
+  //   notify_clients_delayed();
+  // }
 
   m_firstactivation = false;
 }

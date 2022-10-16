@@ -2,6 +2,7 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xcb_icccm.h>
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
@@ -136,6 +137,19 @@ void tray_client::clear_window() const {
 
   // Do not produce Expose events for the embedder because that triggers an infinite loop.
   m_connection.clear_area_checked(0, embedder(), 0, 0, width(), height());
+
+  auto send_visibility = [&](uint8_t state) {
+    xcb_visibility_notify_event_t evt{};
+    evt.response_type = XCB_VISIBILITY_NOTIFY;
+    evt.window = client();
+    evt.state = state;
+
+    m_connection.send_event_checked(true, client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&evt));
+  };
+
+  send_visibility(XCB_VISIBILITY_FULLY_OBSCURED);
+  send_visibility(XCB_VISIBILITY_UNOBSCURED);
+
   m_connection.clear_area_checked(1, client(), 0, 0, width(), height());
 }
 
@@ -299,6 +313,11 @@ void tray_client::set_position(int x, int y) {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, 0);
   connection::pack_values(configure_mask, &configure_params, configure_values);
   m_connection.configure_window_checked(client(), configure_mask, configure_values.data());
+
+  // TODO
+  xcb_size_hints_t size_hints{};
+  xcb_icccm_size_hints_set_size(&size_hints, false, m_size.w, m_size.h);
+  xcb_icccm_set_wm_size_hints(m_connection, client(), XCB_ATOM_WM_NORMAL_HINTS, &size_hints);
 
   // The position has changed, we need a new background slice.
   observe_background();
