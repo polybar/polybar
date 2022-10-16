@@ -57,12 +57,12 @@ namespace ipc {
 
     m_log.info("Opening ipc socket at '%s'", sock_path);
     m_log.notice("Listening for IPC messages (PID: %d)", getpid());
-    socket.bind(sock_path);
-    socket.listen(
+    socket->bind(sock_path);
+    socket->listen(
         4, [this]() { on_connection(); },
         [this](const auto& e) {
           m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(e.status));
-          socket.close();
+          socket->close();
         });
   }
 
@@ -124,7 +124,7 @@ namespace ipc {
           } else {
             response = encode(TYPE_ERR, "Unrecognized IPC message type " + to_string(type));
           }
-          c.client_pipe.write(
+          c.client_pipe->write(
               response, [this, &c]() { remove_client(c); },
               [this, &c](const auto& e) {
                 m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
@@ -133,16 +133,16 @@ namespace ipc {
         });
 
     auto& c = *connection;
-    socket.accept(c.client_pipe);
+    socket->accept(*c.client_pipe);
 
-    c.client_pipe.read_start(
+    c.client_pipe->read_start(
         [this, &c](const auto& e) {
           try {
             c.dec.on_read((const uint8_t*)e.data, e.len);
           } catch (const decoder::error& e) {
             m_log.err("ipc: Failed to decode IPC message (reason: %s)", e.what());
 
-            c.client_pipe.write(
+            c.client_pipe->write(
                 encode(TYPE_ERR, "Invalid binary message format: "s + e.what()), [this, &c]() { remove_client(c); },
                 [this, &c](const auto& e) {
                   m_log.err("ipc: libuv error while writing to IPC socket: %s", uv_strerror(e.status));
@@ -171,7 +171,7 @@ namespace ipc {
       }) {}
 
   ipc::connection::~connection() {
-    client_pipe.close();
+    client_pipe->close();
   }
 
   ipc::fifo::fifo(loop& loop, ipc& ipc, const string& path) : pipe_handle(loop.handle<PipeHandle>()) {
@@ -180,8 +180,8 @@ namespace ipc {
       throw system_error("Failed to open pipe '" + path + "'");
     }
 
-    pipe_handle.open(fd);
-    pipe_handle.read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
+    pipe_handle->open(fd);
+    pipe_handle->read_start([&ipc](const auto& e) mutable { ipc.receive_data(string(e.data, e.len)); },
         [&ipc]() { ipc.receive_eof(); },
         [&ipc](const auto& e) mutable {
           ipc.m_log.err("libuv error while listening to IPC channel: %s", uv_strerror(e.status));
@@ -190,7 +190,7 @@ namespace ipc {
   }
 
   ipc::fifo::~fifo() {
-    pipe_handle.close();
+    pipe_handle->close();
   }
 
   /**
@@ -215,6 +215,6 @@ namespace ipc {
     trigger_legacy_ipc(string_util::trim(std::move(m_pipe_buffer), '\n'));
     m_pipe_buffer.clear();
   }
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

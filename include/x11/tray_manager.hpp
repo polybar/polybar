@@ -23,8 +23,6 @@
 #define SYSTEM_TRAY_BEGIN_MESSAGE 1
 #define SYSTEM_TRAY_CANCEL_MESSAGE 2
 
-#define TRAY_PLACEHOLDER "<placeholder-systray>"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;

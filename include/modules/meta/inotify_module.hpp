@@ -55,7 +55,6 @@ namespace modules {
           watches.back().attach(w.second);
         }
       } catch (const system_error& e) {
-        watches.clear();
         this->m_log.err("%s: Error while creating inotify watch (what: %s)", this->name(), e.what());
         CAST_MOD(Impl)->sleep(0.1s);
         return;
@@ -67,11 +66,6 @@ namespace modules {
 
           if (w.poll(1000 / watches.size())) {
             auto event = w.get_event();
-
-            for (auto&& w : watches) {
-              w.remove(true);
-            }
-
             if (CAST_MOD(Impl)->on_event(event)) {
               CAST_MOD(Impl)->broadcast();
             }
@@ -79,8 +73,9 @@ namespace modules {
             return;
           }
 
-          if (!this->running())
+          if (!this->running()) {
             break;
+          }
         }
         CAST_MOD(Impl)->idle();
       }

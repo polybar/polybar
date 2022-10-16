@@ -55,7 +55,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   void signal_handler(int signum);
 
   void conn_cb();
-  void create_config_watcher(const string& fname);
+  void create_config_watcher(const string& filename);
   void confwatch_handler(const char* fname);
   void notifier_handler();
   void screenshot_handler();
@@ -110,7 +110,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
    * This handle is used to notify the eventloop of changes which are not otherwise covered by other handles.
    * E.g. click actions.
    */
-  eventloop::AsyncHandle& m_notifier{m_loop.handle<eventloop::AsyncHandle>([this]() { notifier_handler(); })};
+  eventloop::async_handle_t m_notifier{m_loop.handle<eventloop::AsyncHandle>([this]() { notifier_handler(); })};
 
   /**
    * Notification data for the controller.

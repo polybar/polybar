@@ -43,8 +43,6 @@ namespace detail {
       m_root_window = screen_of_display(s)->root;
     }
 
-    virtual ~connection_base() {}
-
     void operator()(const shared_ptr<xcb_generic_error_t>& error) const override {
       check<xpp::x::extension, Extensions...>(error);
     }

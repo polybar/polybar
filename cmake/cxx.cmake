@@ -24,11 +24,11 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 set(POLYBAR_FLAGS "" CACHE STRING "C++ compiler flags used for compiling polybar")
 
-list(APPEND cxx_base -Wall -Wextra -Wpedantic)
-list(APPEND cxx_debug -DDEBUG -g2)
+list(APPEND cxx_base -Wall -Wextra -Wpedantic -Wdeprecated-copy-dtor)
+list(APPEND cxx_debug -DDEBUG -g2 -Og)
 list(APPEND cxx_minsizerel "")
-list(APPEND cxx_sanitize -O0 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls)
-list(APPEND cxx_coverage --coverage)
+list(APPEND cxx_sanitize ${cxx_debug} -O0 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls)
+list(APPEND cxx_coverage ${cxx_debug} --coverage)
 
 list(APPEND cxx_linker_base "")
 list(APPEND cxx_linker_minsizerel "")
@@ -79,8 +79,6 @@ elseif(CXXLIB_GCC)
   list(APPEND cxx_linker_base -lstdc++)
 endif()
 
-# Custom build type 'Coverage', inherits the debug flags
-list(APPEND cxx_coverage ${cxx_debug} ${cxx_coverage})
 SET(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_COVERAGE}")
 SET(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${CMAKE_EXE_LINKER_FLAGS_COVERAGE}")
 SET(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} ${CMAKE_SHARED_LINKER_FLAGS_COVERAGE}")

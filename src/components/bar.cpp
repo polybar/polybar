@@ -695,12 +695,12 @@ void bar::handle(const evt::destroy_notify& evt) {
  */
 void bar::handle(const evt::enter_notify&) {
   if (m_opts.dimmed) {
-    m_dim_timer.start(25, 0, [this]() {
+    m_dim_timer->start(25, 0, [this]() {
       m_opts.dimmed = false;
       m_sig.emit(dim_window{1.0});
     });
-  } else if (m_dim_timer.is_active()) {
-    m_dim_timer.stop();
+  } else if (m_dim_timer->is_active()) {
+    m_dim_timer->stop();
   }
 }
 
@@ -714,7 +714,7 @@ void bar::handle(const evt::leave_notify&) {
   // Only trigger dimming, if the dim-value is not fully opaque.
   if (m_opts.dimvalue < 1.0) {
     if (!m_opts.dimmed) {
-      m_dim_timer.start(3000, 0, [this]() {
+      m_dim_timer->start(3000, 0, [this]() {
         m_opts.dimmed = true;
         m_sig.emit(dim_window{double(m_opts.dimvalue)});
       });
@@ -823,11 +823,11 @@ void bar::handle(const evt::button_press& evt) {
   if (!has_dblclick) {
     trigger_click(btn, pos);
   } else if (btn == mousebtn::LEFT) {
-    check_double(m_leftclick_timer, btn, pos);
+    check_double(*m_leftclick_timer, btn, pos);
   } else if (btn == mousebtn::MIDDLE) {
-    check_double(m_middleclick_timer, btn, pos);
+    check_double(*m_middleclick_timer, btn, pos);
   } else if (btn == mousebtn::RIGHT) {
-    check_double(m_rightclick_timer, btn, pos);
+    check_double(*m_rightclick_timer, btn, pos);
   } else {
     trigger_click(btn, pos);
   }

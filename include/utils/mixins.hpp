@@ -13,8 +13,8 @@ class non_copyable_mixin {
   non_copyable_mixin& operator=(const non_copyable_mixin&) = delete;
 
  protected:
-  non_copyable_mixin() {}
-  ~non_copyable_mixin() {}
+  non_copyable_mixin() = default;
+  ~non_copyable_mixin() = default;
 };
 
 /**
@@ -26,8 +26,8 @@ class non_movable_mixin {
   non_movable_mixin& operator=(non_movable_mixin&&) = delete;
 
  protected:
-  non_movable_mixin() {}
-  ~non_movable_mixin() {}
+  non_movable_mixin() = default;
+  ~non_movable_mixin() = default;
 };
 
 POLYBAR_NS_END

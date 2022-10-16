@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/text`: The `content` setting and all its properties are deprecated in favor of `format` with the same functionality. ([`#2676`](https://github.com/polybar/polybar/pull/2676))
 
 ### Added
+-  Added support for format-i for each hook-i defined in ipc module ([`#2775`](https://github.com/polybar/polybar/issues/2775),  [`#2810`](https://github.com/polybar/polybar/pull/2810))  by [@madhavpcm](https://github.com/madhavpcm).
 - `internal/temperature`: `%temperature-k%` token displays the temperature in kelvin ([`#2774`](https://github.com/polybar/polybar/discussions/2774), [`#2784`](https://github.com/polybar/polybar/pull/2784))
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
@@ -30,8 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
-- `internal/backlight`: Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
+- `internal/backlight`:
+  - Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
+  - `use-actual-brightness` defaults to `true` for `amdgpu` backlights ([`#2835`](https://github.com/polybar/polybar/issues/2835), [`2839`](https://github.com/polybar/polybar/pull/2839))
 - Providing a negative min-width to a token adds right-padding ([`#2789`](https://github.com/polybar/polybar/issues/2789), [`#2801`](https://github.com/polybar/polybar/pull/2801)) by [@VanillaViking](https://github.com/VanillaViking).
+- Changed fuzzy match option on i3 and bspwm modules to find longest match instead of the first match ([`#2831`](https://github.com/polybar/polybar/pull/2831), [`#2829`](https://github.com/polybar/polybar/issues/2829)) by [@Ron0Studios](https://github.com/ron0studios/).
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))

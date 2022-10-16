@@ -29,6 +29,7 @@ namespace modules {
     void start() override;
     void update();
     string get_output();
+    string get_format() const;
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 
@@ -63,6 +64,6 @@ namespace modules {
     int m_current_hook{-1};
     void exec_hook();
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END
