@@ -54,9 +54,6 @@ namespace modules {
       map_entry<alsa_module>(),
       map_entry<pulseaudio_module>(),
       map_entry<network_module>(),
-#if DEBUG
-      map_entry<systray_module>(),
-#endif
       map_entry<temperature_module>(),
       map_entry<xbacklight_module>(),
       map_entry<xkeyboard_module>(),

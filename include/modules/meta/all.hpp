@@ -16,9 +16,6 @@
 #include "modules/menu.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/script.hpp"
-#if DEBUG
-#include "modules/systray.hpp"
-#endif
 #include "modules/temperature.hpp"
 #include "modules/text.hpp"
 #include "modules/tray.hpp"
