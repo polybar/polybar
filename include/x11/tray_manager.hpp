@@ -26,8 +26,6 @@
 #define TRAY_WM_NAME "Polybar tray window"
 #define TRAY_WM_CLASS "tray\0Polybar"
 
-#define TRAY_PLACEHOLDER "<placeholder-systray>"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;
