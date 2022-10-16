@@ -94,6 +94,7 @@ set(POLY_SOURCES
   ${src_dir}/modules/memory.cpp
   ${src_dir}/modules/menu.cpp
   ${src_dir}/modules/meta/base.cpp
+  ${src_dir}/modules/meta/factory.cpp
   ${src_dir}/modules/script.cpp
   ${src_dir}/modules/systray.cpp
   ${src_dir}/modules/temperature.cpp

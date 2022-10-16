@@ -11,6 +11,7 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/all.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
@@ -25,6 +26,7 @@
 POLYBAR_NS
 
 using namespace eventloop;
+using namespace modules;
 
 /**
  * Build controller instance
@@ -624,9 +626,7 @@ size_t controller::setup_modules(alignment align) {
       }
 
       m_log.notice("Loading module '%s' of type '%s'", module_name, type);
-      auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
-      module_t module = shared_ptr<modules::module_interface>(ptr);
-      ptr = nullptr;
+      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log);
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
