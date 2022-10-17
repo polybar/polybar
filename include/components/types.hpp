@@ -183,6 +183,7 @@ struct bar_settings {
   position offset{0, 0};
   side_values padding{ZERO_SPACE, ZERO_SPACE};
   side_values module_margin{ZERO_SPACE, ZERO_SPACE};
+  bool struts{true};
   struct {
     int top;
     int bottom;
