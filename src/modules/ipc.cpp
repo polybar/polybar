@@ -61,29 +61,10 @@ namespace modules {
       hook->command = pid_token(hook->command);
     }
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
-    m_formatter->add_optional("output", {});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_OUTPUT});
 
-    if (m_formatter->has_format("output")) {
-      m_conf.warn_deprecated(name(), "output", "format");
+    m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
 
-      if (m_formatter->get("output")->value.empty()) {
-        throw module_error(name() + ".output is empty or undefined");
-      }
-
-      m_format = "output";
-    } else {
-      m_format = DEFAULT_FORMAT;
-
-      if (m_formatter->has(TAG_LABEL)) {
-        m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
-      }
-
-      m_formatter->add_optional(FORMAT_FAIL, {TAG_LABEL_FAIL});
-      if (m_formatter->has(TAG_LABEL_FAIL)) {
-        m_label_fail = load_optional_label(m_conf, name(), TAG_LABEL_FAIL, "%output%");
-      }
-    }
     for (size_t i = 0; i < m_hooks.size(); i++) {
       string format_i = "format-" + to_string(i);
       m_formatter->add_optional(format_i, {TAG_LABEL});
@@ -136,29 +117,21 @@ namespace modules {
       if (m_formatter->has_format(format_i)) {
         return format_i;
       } else {
-        return m_format;
+        return DEFAULT_FORMAT;
       }
     }
-    return m_format;
+    return DEFAULT_FORMAT;
   }
   /**
    * Output content retrieved from hook commands
    */
   bool ipc_module::build(builder* builder, const string& tag) const {
-    if (m_label) {
-      if (tag == TAG_LABEL) {
-        builder->node(m_label);
-        return true;
-      } else if (tag == TAG_LABEL_FAIL) {
-        builder->node(m_label_fail);
-      }
-    } else {
-      if (tag == "<output>") {
-        builder->node(m_output);
-        return true;
-      } else {
-        return false;
-      }
+    if (tag == TAG_LABEL) {
+      builder->node(m_label);
+      return true;
+    } else if (tag == TAG_OUTPUT) {
+      builder->node(m_output);
+      return true;
     }
     return false;
   }
@@ -183,7 +156,7 @@ namespace modules {
 
   void ipc_module::action_send(const string& data) {
     m_output = data;
-    broadcast();
+    update_output();
   }
 
   void ipc_module::action_hook(const string& data) {
@@ -217,15 +190,9 @@ namespace modules {
       set_hook(m_initial);
     } else {
       m_current_hook = -1;
-
       m_output.clear();
 
-      if (m_label) {
-        m_label->reset_tokens();
-        m_label->replace_token("%output%", m_output);
-      }
-
-      broadcast();
+      update_output();
     }
   }
 
