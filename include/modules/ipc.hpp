@@ -54,8 +54,9 @@ namespace modules {
     bool has_hook() const;
 
     void set_hook(int h);
-
+    void update_output() ;
    private:
+    static constexpr auto OUTPUT = "<output>";
     static constexpr auto TAG_LABEL = "<label>";
     static constexpr auto TAG_LABEL_FAIL = "<label-fail>";
     static constexpr auto FORMAT_FAIL = "format-fail";
@@ -66,6 +67,8 @@ namespace modules {
     vector<unique_ptr<hook>> m_hooks;
     map<mousebtn, string> m_actions;
     string m_output;
+    string m_format;
+
     int m_initial{-1};
     int m_current_hook{-1};
     void exec_hook();
