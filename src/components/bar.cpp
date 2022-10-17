@@ -218,6 +218,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.double_click_interval = m_conf.get(bs, "double-click-interval", m_opts.double_click_interval);
 
+  m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
+
   if (only_initialize_values) {
     return;
   }
@@ -546,6 +548,16 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
+  if (!m_opts.struts) {
+    if (m_conf.has("global/wm", "margin-bottom")) {
+      m_log.warn("Struts are disabled, ignoring margin-bottom");
+    }
+    if (m_conf.has("global/wm", "margin-top")) {
+      m_log.warn("Struts are disabled, ignoring margin-top");
+    }
+    return;
+  }
+
   window win{m_connection, m_opts.window};
   if (m_visible) {
     auto geom = m_connection.get_geometry(m_screen->root());
