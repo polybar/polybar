@@ -225,6 +225,15 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   }
 
   // Load values used to adjust the struts atom
+
+  if (!m_opts.struts) {
+    if (m_conf.has("global/wm", "margin-bottom")) {
+      m_log.warn("Struts are disabled, ignoring margin-bottom");
+    }
+    if (m_conf.has("global/wm", "margin-top")) {
+      m_log.warn("Struts are disabled, ignoring margin-top");
+    }
+  }
   auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
   auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
   m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
@@ -549,12 +558,6 @@ void bar::reconfigure_pos() {
  */
 void bar::reconfigure_struts() {
   if (!m_opts.struts) {
-    if (m_conf.has("global/wm", "margin-bottom")) {
-      m_log.warn("Struts are disabled, ignoring margin-bottom");
-    }
-    if (m_conf.has("global/wm", "margin-top")) {
-      m_log.warn("Struts are disabled, ignoring margin-top");
-    }
     return;
   }
 
