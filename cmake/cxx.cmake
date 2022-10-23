@@ -15,12 +15,11 @@ endif()
 option(CXXLIB_CLANG "Link against libc++" OFF)
 option(CXXLIB_GCC "Link against stdlibc++" OFF)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-
 
 set(POLYBAR_FLAGS "" CACHE STRING "C++ compiler flags used for compiling polybar")
 

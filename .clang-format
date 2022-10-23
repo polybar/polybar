@@ -1,6 +1,6 @@
 ---
 Language: Cpp
-Standard: Cpp11
+Standard: c++17
 BasedOnStyle: Google
 ColumnLimit: 120
 NamespaceIndentation: All
