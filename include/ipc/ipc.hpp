@@ -42,7 +42,7 @@ namespace ipc {
     const logger& m_log;
     eventloop::loop& m_loop;
 
-    eventloop::pipe_handle_t socket;
+    eventloop::pipe_handle_t m_socket;
 
     class connection : public non_copyable_mixin, public non_movable_mixin {
      public:
@@ -89,7 +89,7 @@ namespace ipc {
      * Buffer for the currently received IPC message over the named pipe
      */
     string m_pipe_buffer{};
-    void receive_data(string buf);
+    void receive_data(const string& buf);
     void receive_eof();
   };
 } // namespace ipc
