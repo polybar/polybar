@@ -22,19 +22,15 @@ namespace modules {
 
     // If it is a regex try matching with all interfaces provided by the system
     // The first matched interface is chosen
-    bool found = false;
     for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
       const std::string ifname{i->ifa_name};
       // If found set m_interface as the current
       if (std::regex_match(ifname, interface_regex)) {
-        found = true;
         m_interface = ifname;
         break;
       }
     }
-    if (!found) {
-      // If no match set m_interface as empty
-    }
+
 
     if (m_interface.empty()) {
       std::string type = m_conf.get(name(), "interface-type");
