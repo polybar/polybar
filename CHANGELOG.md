@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/text`: The `content` setting and all its properties are deprecated in favor of `format` with the same functionality. ([`#2676`](https://github.com/polybar/polybar/pull/2676))
 
 ### Added
-- Added support for regex in Network::interface types ([`#2551`](https://github.com/polybar/polybar/issues/2551), [`#2852](https://github.com/polybar/polybar/pull/2852)) by [@madhavpcm](https://github.com/madhavpcm).
+- Added support for regex in Network::interface types ([`#2551`](https://github.com/polybar/polybar/issues/2551), [`#2853](https://github.com/polybar/polybar/pull/2853)) by [@madhavpcm](https://github.com/madhavpcm).
 -  Added support for TAG_LABEL (`<label>`) in ipc module  ([`#2841`](https://github.com/polybar/polybar/pull/2841))  by [@madhavpcm](https://github.com/madhavpcm).
 -  Added support for format-i for each hook-i defined in ipc module ([`#2775`](https://github.com/polybar/polybar/issues/2775),  [`#2810`](https://github.com/polybar/polybar/pull/2810))  by [@madhavpcm](https://github.com/madhavpcm).
 - `internal/temperature`: `%temperature-k%` token displays the temperature in kelvin ([`#2774`](https://github.com/polybar/polybar/discussions/2774), [`#2784`](https://github.com/polybar/polybar/pull/2784))
