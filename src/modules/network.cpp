@@ -15,22 +15,12 @@ namespace modules {
     // Load configuration values
     // m_interface could be a regex as well
     m_interface = m_conf.get(name(), "interface", m_interface);
-    std::regex interface_regex(m_interface);
+    string regexpr = m_interface;
 
-    struct ifaddrs* ifaddrs;
-    getifaddrs(&ifaddrs);
+    m_interface = net::find_interface_regex(m_interface);
 
-    // If it is a regex try matching with all interfaces provided by the system
-    // The first matched interface is chosen
-    for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
-      const std::string ifname{i->ifa_name};
-      // If found set m_interface as the current
-      if (std::regex_match(ifname, interface_regex)) {
-        m_interface = ifname;
-        break;
-      }
-    }
-
+    if (!m_interface.empty())
+      m_log.notice("%s: Matched regex %s with interface %s", name(), regexpr, m_interface);
 
     if (m_interface.empty()) {
       std::string type = m_conf.get(name(), "interface-type");
