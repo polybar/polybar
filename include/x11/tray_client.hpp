@@ -20,11 +20,13 @@ POLYBAR_NS
 // fwd declarations
 class connection;
 
-class tray_client : public non_copyable_mixin, public non_movable_mixin {
+namespace tray {
+
+class client : public non_copyable_mixin, public non_movable_mixin {
  public:
-  explicit tray_client(
+  explicit client(
       const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background);
-  ~tray_client();
+  ~client();
 
   string name() const;
 
@@ -44,7 +46,7 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
   bool should_be_mapped() const;
 
   xcb_window_t embedder() const;
-  xcb_window_t client() const;
+  xcb_window_t client_window() const;
 
   void query_xembed();
   bool is_xembed_supported() const;
@@ -63,7 +65,6 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
  protected:
   void observe_background();
 
- protected:
   const logger& m_log;
 
   connection& m_connection;
@@ -103,7 +104,7 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
    *
    * Only valid if m_xembed_supported == true
    */
-  xembed::info m_xembed;
+  xembed::info m_xembed{};
 
   /**
    * Whether the wrapper window is currently mapped.
@@ -124,5 +125,7 @@ class tray_client : public non_copyable_mixin, public non_movable_mixin {
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
 };
+
+} // namespace tray
 
 POLYBAR_NS_END

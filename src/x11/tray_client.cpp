@@ -11,6 +11,8 @@
 
 POLYBAR_NS
 
+namespace tray {
+
 /*
  * TODO proper background of wrapper window
  *
@@ -20,7 +22,7 @@ POLYBAR_NS
  * 2. Use pseudo-transparency when activated (make sure the depths match)
  * 3. Use background color
  */
-tray_client::tray_client(
+client::client(
     const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background)
     : m_log(log)
     , m_connection(conn)
@@ -88,7 +90,7 @@ tray_client::tray_client(
     xcb_params_gc_t params{};
     uint32_t mask = 0;
     XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
-    std::array<uint32_t, 32> values;
+    std::array<uint32_t, 32> values{};
     connection::pack_values(mask, &params, values);
     m_connection.create_gc_checked(gc, pixmap, mask, values.data());
   } catch (const std::exception& err) {
@@ -108,7 +110,7 @@ tray_client::tray_client(
   observe_background();
 }
 
-tray_client::~tray_client() {
+client::~client() {
   if (m_client != XCB_NONE) {
     xembed::unembed(m_connection, m_client, m_connection.root());
   }
@@ -118,19 +120,19 @@ tray_client::~tray_client() {
   }
 }
 
-string tray_client::name() const {
-  return "tray_client(" + m_connection.id(m_client) + ", " + m_name + ")";
+string client::name() const {
+  return "client(" + m_connection.id(m_client) + ", " + m_name + ")";
 }
 
-unsigned int tray_client::width() const {
+unsigned int client::width() const {
   return m_size.w;
 }
 
-unsigned int tray_client::height() const {
+unsigned int client::height() const {
   return m_size.h;
 }
 
-void tray_client::clear_window() const {
+void client::clear_window() const {
   if (!mapped()) {
     return;
   }
@@ -141,19 +143,20 @@ void tray_client::clear_window() const {
   auto send_visibility = [&](uint8_t state) {
     xcb_visibility_notify_event_t evt{};
     evt.response_type = XCB_VISIBILITY_NOTIFY;
-    evt.window = client();
+    evt.window = client_window();
     evt.state = state;
 
-    m_connection.send_event_checked(true, client(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&evt));
+    m_connection.send_event_checked(
+        true, client_window(), XCB_EVENT_MASK_NO_EVENT, reinterpret_cast<const char*>(&evt));
   };
 
   send_visibility(XCB_VISIBILITY_FULLY_OBSCURED);
   send_visibility(XCB_VISIBILITY_UNOBSCURED);
 
-  m_connection.clear_area_checked(1, client(), 0, 0, width(), height());
+  m_connection.clear_area_checked(1, client_window(), 0, 0, width(), height());
 }
 
-void tray_client::update_client_attributes() const {
+void client::update_client_attributes() const {
   uint32_t configure_mask = 0;
   std::array<uint32_t, 32> configure_values{};
   xcb_params_cw_t configure_params{};
@@ -164,32 +167,32 @@ void tray_client::update_client_attributes() const {
   connection::pack_values(configure_mask, &configure_params, configure_values);
 
   m_log.trace("%s: Update client window", name());
-  m_connection.change_window_attributes_checked(client(), configure_mask, configure_values.data());
+  m_connection.change_window_attributes_checked(client_window(), configure_mask, configure_values.data());
 }
 
-void tray_client::reparent() const {
+void client::reparent() const {
   m_log.trace("%s: Reparent client", name());
-  m_connection.reparent_window_checked(client(), embedder(), 0, 0);
+  m_connection.reparent_window_checked(client_window(), embedder(), 0, 0);
 }
 
 /**
  * Is this the client for the given client window
  */
-bool tray_client::match(const xcb_window_t& win) const {
+bool client::match(const xcb_window_t& win) const {
   return win == m_client;
 }
 
 /**
  * Get client window mapped state
  */
-bool tray_client::mapped() const {
+bool client::mapped() const {
   return m_mapped;
 }
 
 /**
  * Set client window mapped state
  */
-void tray_client::mapped(bool state) {
+void client::mapped(bool state) {
   if (m_mapped != state) {
     m_log.trace("%s: set mapped: %i", name(), state);
     m_mapped = state;
@@ -201,14 +204,14 @@ void tray_client::mapped(bool state) {
  *
  * Use this to trigger a mapping/unmapping
  */
-void tray_client::hidden(bool state) {
+void client::hidden(bool state) {
   m_hidden = state;
 }
 
 /**
  * Whether the current state indicates the client should be mapped.
  */
-bool tray_client::should_be_mapped() const {
+bool client::should_be_mapped() const {
   if (m_hidden) {
     return false;
   }
@@ -220,15 +223,15 @@ bool tray_client::should_be_mapped() const {
   return true;
 }
 
-xcb_window_t tray_client::embedder() const {
+xcb_window_t client::embedder() const {
   return m_wrapper;
 }
 
-xcb_window_t tray_client::client() const {
+xcb_window_t client::client_window() const {
   return m_client;
 }
 
-void tray_client::query_xembed() {
+void client::query_xembed() {
   m_xembed_supported = xembed::query(m_connection, m_client, m_xembed);
 
   if (is_xembed_supported()) {
@@ -238,30 +241,30 @@ void tray_client::query_xembed() {
   }
 }
 
-bool tray_client::is_xembed_supported() const {
+bool client::is_xembed_supported() const {
   return m_xembed_supported;
 }
 
-const xembed::info& tray_client::get_xembed() const {
+const xembed::info& client::get_xembed() const {
   return m_xembed;
 }
 
-void tray_client::notify_xembed() const {
+void client::notify_xembed() const {
   if (is_xembed_supported()) {
     m_log.trace("%s: Send embedded notification to client", name());
-    xembed::notify_embedded(m_connection, client(), embedder(), m_xembed.get_version());
+    xembed::notify_embedded(m_connection, client_window(), embedder(), m_xembed.get_version());
   }
 }
 
-void tray_client::add_to_save_set() const {
+void client::add_to_save_set() const {
   m_log.trace("%s: Add client window to the save set", name());
-  m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client());
+  m_connection.change_save_set_checked(XCB_SET_MODE_INSERT, client_window());
 }
 
 /**
  * Make sure that the window mapping state is correct
  */
-void tray_client::ensure_state() const {
+void client::ensure_state() const {
   bool new_state = should_be_mapped();
 
   if (new_state == m_mapped) {
@@ -273,10 +276,10 @@ void tray_client::ensure_state() const {
   if (new_state) {
     m_log.trace("%s: Map client", name());
     m_connection.map_window_checked(embedder());
-    m_connection.map_window_checked(client());
+    m_connection.map_window_checked(client_window());
   } else {
     m_log.trace("%s: Unmap client", name());
-    m_connection.unmap_window_checked(client());
+    m_connection.unmap_window_checked(client_window());
     m_connection.unmap_window_checked(embedder());
   }
 }
@@ -284,7 +287,7 @@ void tray_client::ensure_state() const {
 /**
  * Configure window position
  */
-void tray_client::set_position(int x, int y) {
+void client::set_position(int x, int y) {
   m_log.trace("%s: moving to (%d, %d)", name(), x, y);
 
   position new_pos{x, y};
@@ -312,12 +315,12 @@ void tray_client::set_position(int x, int y) {
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, x, 0);
   XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, y, 0);
   connection::pack_values(configure_mask, &configure_params, configure_values);
-  m_connection.configure_window_checked(client(), configure_mask, configure_values.data());
+  m_connection.configure_window_checked(client_window(), configure_mask, configure_values.data());
 
   // TODO
   xcb_size_hints_t size_hints{};
   xcb_icccm_size_hints_set_size(&size_hints, false, m_size.w, m_size.h);
-  xcb_icccm_set_wm_size_hints(m_connection, client(), XCB_ATOM_WM_NORMAL_HINTS, &size_hints);
+  xcb_icccm_set_wm_size_hints(m_connection, client_window(), XCB_ATOM_WM_NORMAL_HINTS, &size_hints);
 
   // The position has changed, we need a new background slice.
   observe_background();
@@ -326,11 +329,11 @@ void tray_client::set_position(int x, int y) {
 /**
  * Respond to client resize/move requests
  */
-void tray_client::configure_notify() const {
+void client::configure_notify() const {
   xcb_configure_notify_event_t notify;
   notify.response_type = XCB_CONFIGURE_NOTIFY;
-  notify.event = client();
-  notify.window = client();
+  notify.event = client_window();
+  notify.window = client_window();
   notify.override_redirect = false;
   notify.above_sibling = 0;
   notify.x = 0;
@@ -340,13 +343,13 @@ void tray_client::configure_notify() const {
   notify.border_width = 0;
 
   unsigned int mask{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-  m_connection.send_event_checked(false, client(), mask, reinterpret_cast<const char*>(&notify));
+  m_connection.send_event_checked(false, client_window(), mask, reinterpret_cast<const char*>(&notify));
 }
 
 /**
  * Redraw background using the observed background slice.
  */
-void tray_client::update_bg() const {
+void client::update_bg() const {
   m_log.trace("%s: Update background", name());
 
   // Composite background slice with background color.
@@ -363,11 +366,13 @@ void tray_client::update_bg() const {
   m_connection.flush();
 }
 
-void tray_client::observe_background() {
+void client::observe_background() {
   xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(m_size.w), static_cast<uint16_t>(m_size.h)};
   m_bg_slice = m_background_manager.observe(rect, embedder());
 
   update_bg();
 }
+
+} // namespace tray
 
 POLYBAR_NS_END

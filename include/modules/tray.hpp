@@ -7,22 +7,22 @@
 
 POLYBAR_NS
 namespace modules {
-  class tray_module : public static_module<tray_module> {
-   public:
-    explicit tray_module(const bar_settings& bar_settings, string name_);
-    string get_format() const;
+class tray_module : public static_module<tray_module> {
+ public:
+  explicit tray_module(const bar_settings& bar_settings, string name_);
+  string get_format() const;
 
-    void start() override;
+  void start() override;
 
-    bool build(builder* builder, const string& tag) const;
-    void update() {}
+  bool build(builder* builder, const string& tag) const;
+  void update() {}
 
-    static constexpr auto TYPE = "internal/tray";
+  static constexpr auto TYPE = "internal/tray";
 
-   private:
-    static constexpr const char* TAG_TRAY{"<tray>"};
+ private:
+  static constexpr const char* TAG_TRAY{"<tray>"};
 
-    tray_manager m_tray;
-  };
+  tray::manager m_tray;
+};
 } // namespace modules
 POLYBAR_NS_END

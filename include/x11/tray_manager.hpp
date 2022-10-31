@@ -25,13 +25,15 @@
 
 POLYBAR_NS
 
-namespace chrono = std::chrono;
-using namespace std::chrono_literals;
-using std::atomic;
-
 // fwd declarations
 class connection;
 class bg_slice;
+
+namespace tray {
+
+namespace chrono = std::chrono;
+using namespace std::chrono_literals;
+using std::atomic;
 
 struct tray_settings {
   /**
@@ -56,16 +58,16 @@ struct tray_settings {
 
 using on_update = std::function<void(void)>;
 
-class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, evt::configure_request,
-                         evt::resize_request, evt::selection_clear, evt::property_notify, evt::reparent_notify,
-                         evt::destroy_notify, evt::map_notify, evt::unmap_notify>,
-                     public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
-                         signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
+class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::configure_request, evt::resize_request,
+                    evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
+                    evt::map_notify, evt::unmap_notify>,
+                public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
+                    signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
  public:
-  explicit tray_manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts,
+  explicit manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts,
       on_update on_update);
 
-  ~tray_manager();
+  ~manager() override;
 
   unsigned get_width() const;
 
@@ -115,8 +117,8 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
   void update_width();
 
   bool is_embedded(const xcb_window_t& win);
-  tray_client* find_client(const xcb_window_t& win);
-  void remove_client(const tray_client& client);
+  client* find_client(const xcb_window_t& win);
+  void remove_client(const client& client);
   void remove_client(xcb_window_t win);
   void clean_clients();
   bool change_visibility(bool visible);
@@ -140,7 +142,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  vector<unique_ptr<tray_client>> m_clients;
+  vector<unique_ptr<client>> m_clients;
 
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
@@ -199,5 +201,7 @@ class tray_manager : public xpp::event::sink<evt::expose, evt::client_message, e
 
   bool m_firstactivation{true};
 };
+
+} // namespace tray
 
 POLYBAR_NS_END

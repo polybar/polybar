@@ -33,31 +33,31 @@ static constexpr uint32_t XEMBED_MAX_VERSION = 0;
  */
 namespace xembed {
 
-  class info {
-   public:
-    void set(uint32_t* data);
+class info {
+ public:
+  void set(const uint32_t* data);
 
-    uint32_t get_version() const;
-    uint32_t get_flags() const;
+  uint32_t get_version() const;
+  uint32_t get_flags() const;
 
-    bool is_mapped() const;
+  bool is_mapped() const;
 
-    string to_string() const;
+  string to_string() const;
 
-   protected:
-    uint32_t version;
-    uint32_t flags;
-  };
+ protected:
+  uint32_t version;
+  uint32_t flags;
+};
 
-  bool query(connection& conn, xcb_window_t win, info& data);
-  void send_message(connection& conn, xcb_window_t target, uint32_t message, uint32_t d1, uint32_t d2, uint32_t d3);
-  void send_focus_event(connection& conn, xcb_window_t target);
-  void notify_embedded(connection& conn, xcb_window_t win, xcb_window_t embedder, uint32_t version);
-  void notify_activated(connection& conn, xcb_window_t win);
-  void notify_deactivated(connection& conn, xcb_window_t win);
-  void notify_focused(connection& conn, xcb_window_t win, uint32_t focus_type);
-  void notify_unfocused(connection& conn, xcb_window_t win);
-  void unembed(connection& conn, xcb_window_t win, xcb_window_t root);
+bool query(connection& conn, xcb_window_t win, info& data);
+void send_message(connection& conn, xcb_window_t target, uint32_t message, uint32_t d1, uint32_t d2, uint32_t d3);
+void send_focus_event(connection& conn, xcb_window_t target);
+void notify_embedded(connection& conn, xcb_window_t win, xcb_window_t embedder, uint32_t version);
+void notify_activated(connection& conn, xcb_window_t win);
+void notify_deactivated(connection& conn, xcb_window_t win);
+void notify_focused(connection& conn, xcb_window_t win, uint32_t focus_type);
+void notify_unfocused(connection& conn, xcb_window_t win);
+void unembed(connection& conn, xcb_window_t win, xcb_window_t root);
 } // namespace xembed
 
 POLYBAR_NS_END

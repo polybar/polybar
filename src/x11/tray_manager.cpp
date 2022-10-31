@@ -3,6 +3,7 @@
 #include <xcb/xcb_image.h>
 
 #include <thread>
+#include <utility>
 
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
@@ -50,13 +51,15 @@
 
 POLYBAR_NS
 
-tray_manager::tray_manager(
+namespace tray {
+
+manager::manager(
     connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts, on_update on_update)
-    : m_connection(conn), m_sig(emitter), m_log(logger), m_bar_opts(bar_opts), m_on_update(on_update) {
+    : m_connection(conn), m_sig(emitter), m_log(logger), m_bar_opts(bar_opts), m_on_update(std::move(on_update)) {
   m_connection.attach_sink(this, SINK_PRIORITY_TRAY);
 }
 
-tray_manager::~tray_manager() {
+manager::~manager() {
   if (m_delaythread.joinable()) {
     m_delaythread.join();
   }
@@ -64,7 +67,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup(const config& conf, const string& section_name) {
+void manager::setup(const config& conf, const string& section_name) {
   unsigned client_height = m_bar_opts.inner_area().height;
 
   // Add user-defined padding
@@ -101,30 +104,30 @@ void tray_manager::setup(const config& conf, const string& section_name) {
   activate();
 }
 
-unsigned tray_manager::get_width() const {
+unsigned manager::get_width() const {
   return m_tray_width;
 }
 
-bool tray_manager::is_active() const {
+bool manager::is_active() const {
   return m_state == state::ACTIVE;
 }
 
-bool tray_manager::is_inactive() const {
+bool manager::is_inactive() const {
   return m_state == state::INACTIVE;
 }
 
-bool tray_manager::is_waiting() const {
+bool manager::is_waiting() const {
   return m_state == state::WAITING;
 }
 
-bool tray_manager::is_visible() const {
+bool manager::is_visible() const {
   return is_active() && !m_hidden;
 }
 
 /**
  * Activate systray management
  */
-void tray_manager::activate() {
+void manager::activate() {
   if (is_active()) {
     return;
   }
@@ -173,7 +176,7 @@ void tray_manager::activate() {
  *
  * @param other window id for current selection owner
  */
-void tray_manager::wait_for_selection(xcb_window_t other) {
+void manager::wait_for_selection(xcb_window_t other) {
   if (is_waiting() || other == XCB_NONE) {
     return;
   }
@@ -198,7 +201,7 @@ void tray_manager::wait_for_selection(xcb_window_t other) {
 /**
  * Deactivate systray management
  */
-void tray_manager::deactivate() {
+void manager::deactivate() {
   if (is_inactive()) {
     return;
   }
@@ -228,7 +231,7 @@ void tray_manager::deactivate() {
 /**
  * Reconfigure tray
  */
-void tray_manager::reconfigure() {
+void manager::reconfigure() {
   if (!m_opts.selection_owner) {
     return;
   }
@@ -249,7 +252,7 @@ void tray_manager::reconfigure() {
  *
  * TODO should we call update_width directly?
  */
-void tray_manager::reconfigure_window() {
+void manager::reconfigure_window() {
   m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i)", m_hidden, m_clients.size());
   update_width();
 }
@@ -257,7 +260,7 @@ void tray_manager::reconfigure_window() {
 /**
  * TODO make sure this is always called when m_clients changes
  */
-void tray_manager::update_width() {
+void manager::update_width() {
   unsigned new_width = calculate_w();
   if (m_tray_width != new_width) {
     m_tray_width = new_width;
@@ -269,7 +272,7 @@ void tray_manager::update_width() {
 /**
  * Reconfigure clients
  */
-void tray_manager::reconfigure_clients() {
+void manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
 
   int x = calculate_x() + m_opts.spacing;
@@ -300,7 +303,7 @@ void tray_manager::reconfigure_clients() {
 /**
  * Redraw client windows.
  */
-void tray_manager::redraw_clients() {
+void manager::redraw_clients() {
   if (!is_visible()) {
     return;
   }
@@ -323,7 +326,7 @@ void tray_manager::redraw_clients() {
 /**
  * Find the systray selection atom
  */
-void tray_manager::query_atom() {
+void manager::query_atom() {
   m_log.trace("tray: Find systray selection atom for the default screen");
   string name{"_NET_SYSTEM_TRAY_S" + to_string(m_connection.default_screen())};
   auto reply = m_connection.intern_atom(false, name.length(), name.c_str());
@@ -333,7 +336,7 @@ void tray_manager::query_atom() {
 /**
  * Set color atom used by clients when determing icon theme
  */
-void tray_manager::set_tray_colors() {
+void manager::set_tray_colors() {
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to 0x%08x", m_opts.foreground);
 
   auto r = m_opts.foreground.red_i();
@@ -344,21 +347,21 @@ void tray_manager::set_tray_colors() {
   const uint16_t g16 = (g << 8) | g;
   const uint16_t b16 = (b << 8) | b;
 
-  const uint32_t colors[12] = {
+  const array<uint32_t, 12> colors = {
       r16, g16, b16, // normal
       r16, g16, b16, // error
       r16, g16, b16, // warning
       r16, g16, b16, // success
   };
 
-  m_connection.change_property(
-      XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_COLORS, XCB_ATOM_CARDINAL, 32, 12, colors);
+  m_connection.change_property(XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_COLORS,
+      XCB_ATOM_CARDINAL, 32, colors.size(), colors.data());
 }
 
 /**
  * Set the _NET_SYSTEM_TRAY_ORIENTATION atom
  */
-void tray_manager::set_tray_orientation() {
+void manager::set_tray_orientation() {
   const uint32_t orientation = _NET_SYSTEM_TRAY_ORIENTATION_HORZ;
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_ORIENTATION to 0x%x", orientation);
   m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_ORIENTATION,
@@ -366,7 +369,7 @@ void tray_manager::set_tray_orientation() {
 }
 
 // TODO remove
-void tray_manager::set_tray_visual() {
+void manager::set_tray_visual() {
   // TODO use bar visual
   const uint32_t visualid = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 32)->visual_id;
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_VISUAL to 0x%x", visualid);
@@ -380,7 +383,7 @@ void tray_manager::set_tray_visual() {
  * @param other_owner is set to the current owner if the function fails
  * @returns Whether we acquired the selection
  */
-bool tray_manager::acquire_selection(xcb_window_t& other_owner) {
+bool manager::acquire_selection(xcb_window_t& other_owner) {
   other_owner = XCB_NONE;
   xcb_window_t owner = m_connection.get_selection_owner(m_atom).owner();
 
@@ -404,7 +407,7 @@ bool tray_manager::acquire_selection(xcb_window_t& other_owner) {
 /**
  * Notify pending clients about the new systray MANAGER
  */
-void tray_manager::notify_clients() {
+void manager::notify_clients() {
   if (is_active()) {
     m_log.info("tray: Notifying pending tray clients");
     auto message = m_connection.make_client_message(MANAGER, m_connection.root());
@@ -418,7 +421,7 @@ void tray_manager::notify_clients() {
 /**
  * Send delayed notification to pending clients
  */
-void tray_manager::notify_clients_delayed() {
+void manager::notify_clients_delayed() {
   if (m_delaythread.joinable()) {
     m_delaythread.join();
   }
@@ -432,42 +435,42 @@ void tray_manager::notify_clients_delayed() {
  * Track changes to the given selection owner
  * If it gets destroyed or goes away we can reactivate the tray_manager
  */
-void tray_manager::track_selection_owner(xcb_window_t owner) {
+void manager::track_selection_owner(xcb_window_t owner) {
   if (owner != XCB_NONE) {
-    const unsigned mask{XCB_CW_EVENT_MASK};
-    const unsigned values[]{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
-    m_connection.change_window_attributes(owner, mask, values);
+    const uint32_t mask{XCB_CW_EVENT_MASK};
+    const uint32_t value{XCB_EVENT_MASK_STRUCTURE_NOTIFY};
+    m_connection.change_window_attributes(owner, mask, &value);
   }
 }
 
 /**
  * Process client docking request
  */
-void tray_manager::process_docking_request(xcb_window_t win) {
+void manager::process_docking_request(xcb_window_t win) {
   m_log.info("tray: Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   try {
-    auto client = make_unique<tray_client>(
+    auto cl = make_unique<client>(
         m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_bar_opts.background.value());
 
     try {
-      client->query_xembed();
+      cl->query_xembed();
     } catch (const xpp::x::error::window& err) {
-      m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", client->name(), err.what());
+      m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", cl->name(), err.what());
       return;
     }
 
-    client->update_client_attributes();
+    cl->update_client_attributes();
 
-    client->reparent();
+    cl->reparent();
 
-    client->add_to_save_set();
+    cl->add_to_save_set();
 
-    client->ensure_state();
+    cl->ensure_state();
 
-    client->notify_xembed();
+    cl->notify_xembed();
 
-    m_clients.emplace_back(std::move(client));
+    m_clients.emplace_back(std::move(cl));
   } catch (const std::exception& err) {
     m_log.err("tray: Failed to setup tray client removing... (%s)", err.what());
     return;
@@ -477,18 +480,18 @@ void tray_manager::process_docking_request(xcb_window_t win) {
 /**
  * Calculate x position of tray window
  */
-int tray_manager::calculate_x() const {
+int manager::calculate_x() const {
   return m_bar_opts.inner_area(false).x + m_pos.x;
 }
 
-int tray_manager::calculate_y() const {
+int manager::calculate_y() const {
   return m_bar_opts.inner_area(false).y + m_pos.y;
 }
 
-unsigned tray_manager::calculate_w() const {
+unsigned manager::calculate_w() const {
   unsigned width = m_opts.spacing;
   unsigned count{0};
-  for (auto& client : m_clients) {
+  for (const auto& client : m_clients) {
     if (client->mapped()) {
       count++;
       width += m_opts.spacing + m_opts.client_size.w;
@@ -500,7 +503,7 @@ unsigned tray_manager::calculate_w() const {
 /**
  * Calculate y position of client window
  */
-int tray_manager::calculate_client_y() {
+int manager::calculate_client_y() {
   return (m_bar_opts.inner_area(true).height - m_opts.client_size.h) / 2;
 }
 
@@ -509,14 +512,14 @@ int tray_manager::calculate_client_y() {
  *
  * The given window ID can be the ID of the wrapper or the embedded window
  */
-bool tray_manager::is_embedded(const xcb_window_t& win) {
+bool manager::is_embedded(const xcb_window_t& win) {
   return find_client(win) != nullptr;
 }
 
 /**
  * Find tray client object from the wrapper or embedded window
  */
-tray_client* tray_manager::find_client(const xcb_window_t& win) {
+client* manager::find_client(const xcb_window_t& win) {
   auto client = std::find_if(m_clients.begin(), m_clients.end(),
       [win](const auto& client) { return client->match(win) || client->embedder() == win; });
 
@@ -530,20 +533,20 @@ tray_client* tray_manager::find_client(const xcb_window_t& win) {
 /**
  * Remove tray client
  */
-void tray_manager::remove_client(const tray_client& client) {
-  remove_client(client.client());
+void manager::remove_client(const client& c) {
+  remove_client(c.client_window());
 }
 
 /**
  * Remove tray client by window
  */
-void tray_manager::remove_client(xcb_window_t win) {
+void manager::remove_client(xcb_window_t win) {
   auto old_size = m_clients.size();
   m_clients.erase(
       std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client->match(win); }));
 
   if (old_size != m_clients.size()) {
-    tray_manager::reconfigure();
+    manager::reconfigure();
   }
 }
 
@@ -554,12 +557,12 @@ void tray_manager::remove_client(xcb_window_t win) {
  * 1. When removing a client during iteration, the unique_ptr is reset.
  * 2. Afterwards all null pointers are removed from the list.
  */
-void tray_manager::clean_clients() {
+void manager::clean_clients() {
   m_clients.erase(
       std::remove_if(m_clients.begin(), m_clients.end(), [](const auto& client) { return client.get() == nullptr; }));
 }
 
-bool tray_manager::change_visibility(bool visible) {
+bool manager::change_visibility(bool visible) {
   if (!is_active() || m_hidden == !visible) {
     return false;
   }
@@ -585,7 +588,7 @@ bool tray_manager::change_visibility(bool visible) {
 /**
  * Event callback : XCB_EXPOSE
  */
-void tray_manager::handle(const evt::expose& evt) {
+void manager::handle(const evt::expose& evt) {
   if (is_active() && !m_clients.empty() && evt->count == 0) {
     redraw_clients();
   }
@@ -594,7 +597,7 @@ void tray_manager::handle(const evt::expose& evt) {
 /**
  * Event callback : XCB_CLIENT_MESSAGE
  */
-void tray_manager::handle(const evt::client_message& evt) {
+void manager::handle(const evt::client_message& evt) {
   if (!is_active()) {
     return;
   }
@@ -625,7 +628,7 @@ void tray_manager::handle(const evt::client_message& evt) {
  * wants to reconfigure its window. This is of course nothing we appreciate
  * so we return an answer that'll put him in place.
  */
-void tray_manager::handle(const evt::configure_request& evt) {
+void manager::handle(const evt::configure_request& evt) {
   if (is_active() && is_embedded(evt->window)) {
     auto client = find_client(evt->window);
     try {
@@ -639,9 +642,9 @@ void tray_manager::handle(const evt::configure_request& evt) {
 }
 
 /**
- * @see tray_manager::handle(const evt::configure_request&);
+ * @see manager::handle(const evt::configure_request&);
  */
-void tray_manager::handle(const evt::resize_request& evt) {
+void manager::handle(const evt::resize_request& evt) {
   if (is_active() && is_embedded(evt->window)) {
     auto client = find_client(evt->window);
     try {
@@ -657,7 +660,7 @@ void tray_manager::handle(const evt::resize_request& evt) {
 /**
  * Event callback : XCB_SELECTION_CLEAR
  */
-void tray_manager::handle(const evt::selection_clear& evt) {
+void manager::handle(const evt::selection_clear& evt) {
   if (is_inactive()) {
     return;
   } else if (evt->selection != m_atom) {
@@ -673,7 +676,7 @@ void tray_manager::handle(const evt::selection_clear& evt) {
 /**
  * Event callback : XCB_PROPERTY_NOTIFY
  */
-void tray_manager::handle(const evt::property_notify& evt) {
+void manager::handle(const evt::property_notify& evt) {
   if (!is_active()) {
     return;
   }
@@ -708,7 +711,7 @@ void tray_manager::handle(const evt::property_notify& evt) {
 /**
  * Event callback : XCB_REPARENT_NOTIFY
  */
-void tray_manager::handle(const evt::reparent_notify& evt) {
+void manager::handle(const evt::reparent_notify& evt) {
   if (!is_active()) {
     return;
   }
@@ -729,7 +732,7 @@ void tray_manager::handle(const evt::reparent_notify& evt) {
 /**
  * Event callback : XCB_DESTROY_NOTIFY
  */
-void tray_manager::handle(const evt::destroy_notify& evt) {
+void manager::handle(const evt::destroy_notify& evt) {
   if (is_waiting() && evt->window == m_othermanager) {
     m_log.info("Systray selection unmanaged... re-activating");
     activate();
@@ -743,7 +746,7 @@ void tray_manager::handle(const evt::destroy_notify& evt) {
 /**
  * Event callback : XCB_MAP_NOTIFY
  */
-void tray_manager::handle(const evt::map_notify& evt) {
+void manager::handle(const evt::map_notify& evt) {
   if (is_active() && evt->window == m_opts.selection_owner) {
     m_log.trace("tray: Received map_notify for selection owner");
     redraw_clients();
@@ -767,7 +770,7 @@ void tray_manager::handle(const evt::map_notify& evt) {
 /**
  * Event callback : XCB_UNMAP_NOTIFY
  */
-void tray_manager::handle(const evt::unmap_notify& evt) {
+void manager::handle(const evt::unmap_notify& evt) {
   if (is_active() && is_embedded(evt->window)) {
     auto client = find_client(evt->window);
 
@@ -785,13 +788,13 @@ void tray_manager::handle(const evt::unmap_notify& evt) {
   }
 }
 
-bool tray_manager::on(const signals::ui::update_background&) {
+bool manager::on(const signals::ui::update_background&) {
   redraw_clients();
 
   return false;
 }
 
-bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
+bool manager::on(const signals::ui_tray::tray_pos_change& evt) {
   int new_x = std::max(0, std::min(evt.cast(), (int)(m_bar_opts.size.w - m_tray_width)));
 
   if (new_x != m_pos.x) {
@@ -802,8 +805,10 @@ bool tray_manager::on(const signals::ui_tray::tray_pos_change& evt) {
   return true;
 }
 
-bool tray_manager::on(const signals::ui_tray::tray_visibility& evt) {
+bool manager::on(const signals::ui_tray::tray_visibility& evt) {
   return change_visibility(evt.cast());
 }
+
+} // namespace tray
 
 POLYBAR_NS_END
