@@ -40,7 +40,7 @@ namespace ipc {
    * Construct ipc handler
    */
   ipc::ipc(signal_emitter& emitter, const logger& logger, loop& loop)
-      : m_sig(emitter), m_log(logger), m_loop(loop), socket(loop.handle<PipeHandle>()) {
+      : m_sig(emitter), m_log(logger), m_loop(loop), m_socket(loop.handle<PipeHandle>()) {
     m_pipe_path = string_util::replace(PATH_MESSAGING_FIFO, "%pid%", to_string(getpid()));
 
     if (file_util::exists(m_pipe_path) && unlink(m_pipe_path.c_str()) == -1) {
@@ -57,12 +57,12 @@ namespace ipc {
 
     m_log.info("Opening ipc socket at '%s'", sock_path);
     m_log.notice("Listening for IPC messages (PID: %d)", getpid());
-    socket->bind(sock_path);
-    socket->listen(
+    m_socket->bind(sock_path);
+    m_socket->listen(
         4, [this]() { on_connection(); },
         [this](const auto& e) {
           m_log.err("libuv error while listening to IPC socket: %s", uv_strerror(e.status));
-          socket->close();
+          m_socket->close();
         });
   }
 
@@ -133,12 +133,12 @@ namespace ipc {
         });
 
     auto& c = *connection;
-    socket->accept(*c.client_pipe);
+    m_socket->accept(*c.client_pipe);
 
     c.client_pipe->read_start(
         [this, &c](const auto& e) {
           try {
-            c.dec.on_read((const uint8_t*)e.data, e.len);
+            c.dec.on_read(reinterpret_cast<const uint8_t*>(e.data), e.len);
           } catch (const decoder::error& e) {
             m_log.err("ipc: Failed to decode IPC message (reason: %s)", e.what());
 
@@ -175,7 +175,7 @@ namespace ipc {
   }
 
   ipc::fifo::fifo(loop& loop, ipc& ipc, const string& path) : pipe_handle(loop.handle<PipeHandle>()) {
-    int fd;
+    int fd{};
     if ((fd = open(path.c_str(), O_RDONLY | O_NONBLOCK)) == -1) {
       throw system_error("Failed to open pipe '" + path + "'");
     }
@@ -196,7 +196,7 @@ namespace ipc {
   /**
    * Receive parts of an IPC message
    */
-  void ipc::receive_data(string buf) {
+  void ipc::receive_data(const string& buf) {
     m_pipe_buffer += buf;
 
     m_log.warn("Using the named pipe at '%s' for ipc is deprecated, always use 'polybar-msg'", m_pipe_path);
