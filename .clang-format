@@ -3,7 +3,7 @@ Language: Cpp
 Standard: Cpp11
 BasedOnStyle: Google
 ColumnLimit: 120
-NamespaceIndentation: All
+NamespaceIndentation: Inner
 AlignAfterOpenBracket: DontAlign
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
