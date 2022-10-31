@@ -20,7 +20,7 @@
 #include "x11/ewmh.hpp"
 #include "x11/extensions/all.hpp"
 #include "x11/icccm.hpp"
-#include "x11/tray_manager.hpp"
+#include "x11/legacy_tray_manager.hpp"
 
 #if WITH_XCURSOR
 #include "x11/cursor.hpp"
@@ -57,8 +57,6 @@ bar::make_type bar::make(loop& loop, bool only_initialize_values) {
 
 /**
  * Construct bar instance
- *
- * TODO: Break out all tray handling
  */
 bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
     unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
@@ -73,7 +71,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
   string bs{m_conf.section()};
 
-  // m_tray = tray_manager::make(m_opts);
+  m_tray = legacy_tray::tray_manager::make(m_opts);
 
   // Get available RandR outputs
   auto monitor_name = m_conf.get(bs, "monitor", ""s);
@@ -388,20 +386,16 @@ void bar::parse(string&& data, bool force) {
 
   auto rect = m_opts.inner_area();
 
-  // TODO use legacy tray implementation
-#if 0
-  if (m_tray && !m_tray->settings().detached && m_tray->settings().num_mapped_clients > 0 &&
-      m_tray->settings().tray_position != tray_postition::MODULE) {
+  if (m_tray && !m_tray->settings().detached && m_tray->settings().configured_slots) {
     auto tray_pos = m_tray->settings().tray_position;
-    auto traywidth = m_tray->settings().win_size.w;
-    if (tray_pos == tray_postition::LEFT) {
+    auto traywidth = m_tray->settings().configured_w;
+    if (tray_pos == legacy_tray::tray_postition::LEFT) {
       rect.x += traywidth;
       rect.width -= traywidth;
-    } else if (tray_pos == tray_postition::RIGHT) {
+    } else if (tray_pos == legacy_tray::tray_postition::RIGHT) {
       rect.width -= traywidth;
     }
   }
-#endif
 
   m_log.info("Redrawing bar window");
   m_renderer->begin(rect);
@@ -840,10 +834,9 @@ void bar::handle(const evt::button_press& evt) {
  */
 void bar::handle(const evt::expose& evt) {
   if (evt->window == m_opts.x_data.window && evt->count == 0) {
-    // TODO
-    // if (m_tray->running()) {
-    //   broadcast_visibility();
-    // }
+    if (m_tray && m_tray->settings().running) {
+      broadcast_visibility();
+    }
 
     m_log.trace("bar: Received expose event");
     m_renderer->flush();
@@ -880,7 +873,7 @@ void bar::handle(const evt::configure_notify& evt) {
   m_sig.emit(signals::ui::update_geometry{});
 }
 
-void bar::start(const string&) {
+void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
   m_renderer = renderer::make(m_opts, *m_action_ctxt);
 
@@ -911,7 +904,12 @@ void bar::start(const string&) {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  // m_tray->setup(tray_module_name);
+  m_tray->setup(tray_module_name);
+
+  if (m_tray->settings().tray_position == legacy_tray::tray_postition::MODULE ||
+      m_tray->settings().tray_position == legacy_tray::tray_postition::NONE) {
+    m_tray.reset();
+  }
 
   broadcast_visibility();
 }
