@@ -17,9 +17,6 @@ namespace modules {
     ~active_window();
 
     bool match(xcb_window_t win) const;
-    string title() const;
-    string instance_name() const;
-    string class_name() const;
 
    private:
     xcb_connection_t* m_connection{nullptr};
@@ -32,7 +29,11 @@ namespace modules {
    */
   class xwindow_module : public static_module<xwindow_module>, public event_handler<evt::property_notify> {
    public:
-    enum class state { NONE, ACTIVE, EMPTY };
+    static constexpr auto EVENT_FOCUS = "focus";
+    static constexpr auto EVENT_NEXT = "next";
+    static constexpr auto EVENT_PREV = "prev";
+
+    enum class state { NONE, DEFAULT, ACTIVE, EMPTY };
     explicit xwindow_module(const bar_settings&, string);
 
     void update();
@@ -45,13 +46,23 @@ namespace modules {
 
     void reset_active_window();
 
+    string title(xcb_window_t win) const;
+    string instance_name(xcb_window_t win) const;
+    string class_name(xcb_window_t win) const;
+
+    void action_focus(const string& data);
+    void action_next();
+    void action_prev();
+
    private:
     static constexpr const char* TAG_LABEL{"<label>"};
 
     connection& m_connection;
     unique_ptr<active_window> m_active;
     map<state, label_t> m_statelabels;
-    label_t m_label;
+    vector<xcb_window_t> m_windows;
+    size_t m_active_index;
+    vector<label_t> m_labels;
   };
 } // namespace modules
 

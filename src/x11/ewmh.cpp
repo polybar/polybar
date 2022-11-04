@@ -126,6 +126,14 @@ namespace ewmh_util {
     return win;
   }
 
+  void focus_window(xcb_window_t window) {
+    auto& conn = initialize();
+    xcb_ewmh_request_change_active_window(conn, 0, window, XCB_EWMH_CLIENT_SOURCE_TYPE_OTHER, XCB_CURRENT_TIME,
+        XCB_NONE // Alternatively we could pass get_active_window(0)
+    );
+    xcb_flush(conn->connection);
+  }
+
   void change_current_desktop(unsigned int desktop) {
     auto& conn = initialize();
     xcb_ewmh_request_change_current_desktop(conn, 0, desktop, XCB_CURRENT_TIME);

@@ -1,5 +1,7 @@
 #include "modules/xwindow.hpp"
 
+#include <iostream>
+
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 #include "x11/atoms.hpp"
@@ -44,26 +46,50 @@ namespace modules {
    *  _NET_WM_VISIBLE_NAME
    *  WM_NAME
    */
-  string active_window::title() const {
+  string xwindow_module::title(xcb_window_t win) const {
     string title;
-
-    if (!(title = ewmh_util::get_wm_name(m_window)).empty()) {
+    if (!(title = ewmh_util::get_wm_name(win)).empty()) {
       return title;
-    } else if (!(title = ewmh_util::get_visible_name(m_window)).empty()) {
+    } else if (!(title = ewmh_util::get_visible_name(win)).empty()) {
       return title;
-    } else if (!(title = icccm_util::get_wm_name(m_connection, m_window)).empty()) {
+    } else if (!(title = icccm_util::get_wm_name(m_connection, win)).empty()) {
       return title;
     } else {
       return "";
     }
   }
 
-  string active_window::instance_name() const {
-    return icccm_util::get_wm_class(m_connection, m_window).first;
+  string xwindow_module::instance_name(xcb_window_t win) const {
+    return icccm_util::get_wm_class(m_connection, win).first;
   }
 
-  string active_window::class_name() const {
-    return icccm_util::get_wm_class(m_connection, m_window).second;
+  string xwindow_module::class_name(xcb_window_t win) const {
+    return icccm_util::get_wm_class(m_connection, win).second;
+  }
+
+  void xwindow_module::action_focus(const string& data) {
+    // This really shouldn't happen, but the bar might unload after user clicks
+    if (m_windows.empty())
+      return;
+    const auto index = std::strtoul(data.c_str(), nullptr, 10) % m_windows.size();
+    ewmh_util::focus_window(m_windows[index]);
+    m_active_index = index;
+  }
+
+  void xwindow_module::action_next() {
+    if (m_windows.empty())
+      return;
+    const auto next_index = (m_active_index + 1) % m_windows.size();
+    ewmh_util::focus_window(m_windows[next_index]);
+    m_active_index = next_index;
+  }
+
+  void xwindow_module::action_prev() {
+    if (m_windows.empty())
+      return;
+    const auto prev_index = (m_active_index + m_windows.size() - 1) % m_windows.size();
+    ewmh_util::focus_window(m_windows[prev_index]);
+    m_active_index = prev_index;
   }
 
   /**
@@ -73,6 +99,9 @@ namespace modules {
       : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
     // Initialize ewmh atoms
     ewmh_util::initialize();
+    m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
+    m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
+    m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     // Check if the WM supports _NET_ACTIVE_WINDOW
     if (!ewmh_util::supports(_NET_ACTIVE_WINDOW)) {
@@ -83,7 +112,8 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label", "%title%"));
+      m_statelabels.emplace(state::DEFAULT, load_optional_label(m_conf, name(), "label", "%title%"));
+      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label-active", "%title%"));
       m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", ""));
     }
   }
@@ -124,14 +154,31 @@ namespace modules {
     }
 
     if (!m_statelabels.empty()) {
+      m_labels.clear();
       if (m_active) {
-        m_label = m_statelabels.at(state::ACTIVE)->clone();
-        m_label->reset_tokens();
-        m_label->replace_token("%title%", m_active->title());
-        m_label->replace_token("%instance%", m_active->instance_name());
-        m_label->replace_token("%class%", m_active->class_name());
+        m_windows.clear();
+        const auto current_desktop = ewmh_util::get_current_desktop();
+        const auto clients = ewmh_util::get_client_list();
+        for (size_t i = 0; i < clients.size(); ++i) {
+          auto&& client = clients[i];
+          const auto desktop = ewmh_util::get_desktop_from_window(client);
+          if (desktop != current_desktop)
+            continue;
+          m_windows.push_back(client);
+          if (m_active && m_active->match(client)) {
+            m_active_index = i;
+            m_labels.push_back(m_statelabels.at(state::ACTIVE)->clone());
+          } else {
+            m_labels.push_back(m_statelabels.at(state::DEFAULT)->clone());
+          }
+          auto label = m_labels.back();
+          label->reset_tokens();
+          label->replace_token("%title%", title(client));
+          label->replace_token("%instance%", instance_name(client));
+          label->replace_token("%class%", class_name(client));
+        }
       } else {
-        m_label = m_statelabels.at(state::EMPTY)->clone();
+        m_labels.push_back(m_statelabels.at(state::EMPTY)->clone());
       }
     }
   }
@@ -140,8 +187,14 @@ namespace modules {
    * Output content as defined in the config
    */
   bool xwindow_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_LABEL && m_label) {
-      builder->node(m_label);
+    if (tag == TAG_LABEL) {
+      for (size_t i = 0; i < m_labels.size(); ++i) {
+        auto& label = m_labels[i];
+        // builder->node(label);
+        builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(i), label);
+        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_NEXT, "");
+        builder->action(mousebtn::SCROLL_UP, *this, EVENT_PREV, "");
+      }
       return true;
     }
     return false;

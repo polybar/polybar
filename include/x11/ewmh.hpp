@@ -38,6 +38,7 @@ namespace ewmh_util {
   unsigned int get_number_of_desktops(int screen = 0);
   xcb_window_t get_active_window(int screen = 0);
 
+  void focus_window(xcb_window_t window);
   void change_current_desktop(unsigned int desktop);
   unsigned int get_desktop_from_window(xcb_window_t window);
 
