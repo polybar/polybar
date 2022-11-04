@@ -199,10 +199,11 @@ namespace modules {
         builder->action(mousebtn::SCROLL_DOWN, *this, down, "");
         builder->action(mousebtn::SCROLL_UP, *this, up, "");
       }
-      for (size_t i = 0; i < m_labels.size(); ++i) {
-        auto& label = m_labels[i];
+      // Labels are inserted in reverse order so that they appear in the normal order on the bar
+      for (size_t i = m_labels.size(); i > 0; --i) {
+        auto& label = m_labels[i - 1];
         if (m_click) {
-          builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(i), label);
+          builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(i - 1), label);
         } else {
           builder->node(label);
         }
