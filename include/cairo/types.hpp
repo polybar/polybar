@@ -72,6 +72,6 @@ namespace cairo {
     double* x_advance;
     double* y_advance;
   };
-} // namespace cairo
+}  // namespace cairo
 
 POLYBAR_NS_END

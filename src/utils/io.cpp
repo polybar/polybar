@@ -34,6 +34,6 @@ namespace io_util {
   bool poll_read(int fd, int timeout_ms) {
     return poll(fd, POLLIN, timeout_ms);
   }
-} // namespace io_util
+}  // namespace io_util
 
 POLYBAR_NS_END

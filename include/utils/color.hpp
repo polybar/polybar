@@ -63,6 +63,6 @@ class rgba {
 
 namespace color_util {
   string simplify_hex(string hex);
-} // namespace color_util
+}  // namespace color_util
 
 POLYBAR_NS_END

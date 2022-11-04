@@ -112,12 +112,15 @@ namespace randr_util {
     if (check_monitor_support()) {
 #if WITH_XRANDR_MONITORS
       /* Use C, because XPP does not provide access to output info from monitors. */
-      xcb_generic_error_t* err;
-      auto rrmonitors = xcb_randr_get_monitors_reply(conn, xcb_randr_get_monitors(conn, root, true), &err);
+      xcb_generic_error_t *err;
+      auto rrmonitors =
+        xcb_randr_get_monitors_reply(
+          conn, xcb_randr_get_monitors(conn, root, true), &err);
       if (err != NULL) {
         free(err);
       } else {
-        for (auto iter = xcb_randr_get_monitors_monitors_iterator(rrmonitors); iter.rem;
+        for (auto iter = xcb_randr_get_monitors_monitors_iterator(rrmonitors);
+             iter.rem;
              xcb_randr_monitor_info_next(&iter)) {
           auto mon = iter.data;
           auto name = conn.get_atom_name(mon->name).name();
@@ -126,8 +129,7 @@ namespace randr_util {
           int randr_output_len = xcb_randr_monitor_info_outputs_length(mon);
           auto randr_outputs = xcb_randr_monitor_info_outputs(mon);
           auto output = (randr_output_len >= 1) ? randr_outputs[0] : XCB_NONE;
-          monitors.emplace_back(
-              make_monitor(output, move(name), mon->width, mon->height, mon->x, mon->y, mon->primary));
+          monitors.emplace_back(make_monitor(output, move(name), mon->width, mon->height, mon->x, mon->y, mon->primary));
           found = true;
         }
         free(rrmonitors);
@@ -158,10 +160,8 @@ namespace randr_util {
 
           auto crtc = conn.get_crtc_info(info->crtc);
           auto primary = (primary_name == name);
-          if (!std::any_of(
-                  monitors.begin(), monitors.end(), [name](const auto& monitor) { return monitor->name == name; })) {
-            monitors.emplace_back(
-                make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
+          if (!std::any_of(monitors.begin(), monitors.end(), [name](const auto &monitor) { return monitor->name == name; })) {
+            monitors.emplace_back(make_monitor(output, move(name), crtc->width, crtc->height, crtc->x, crtc->y, primary));
           }
         } catch (const exception&) {
           // silently ignore output
@@ -269,6 +269,6 @@ namespace randr_util {
       dst.val = static_cast<double>(value);
     }
   }
-} // namespace randr_util
+}  // namespace randr_util
 
 POLYBAR_NS_END

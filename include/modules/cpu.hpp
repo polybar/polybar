@@ -54,6 +54,6 @@ namespace modules {
     float m_total = 0;
     vector<float> m_load;
   };
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

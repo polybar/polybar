@@ -89,6 +89,6 @@ namespace modules {
     m_toggled = !m_toggled;
     wakeup();
   }
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

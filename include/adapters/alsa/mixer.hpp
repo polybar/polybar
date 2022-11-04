@@ -45,6 +45,6 @@ namespace alsa {
     string m_name;
     string s_name;
   };
-} // namespace alsa
+}
 
 POLYBAR_NS_END

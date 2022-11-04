@@ -1,6 +1,6 @@
-#include "cairo/utils.hpp"
-
 #include <map>
+
+#include "cairo/utils.hpp"
 
 POLYBAR_NS
 
@@ -170,7 +170,7 @@ namespace cairo {
         return 0;
       }
     }
-  } // namespace utils
-} // namespace cairo
+  }
+}
 
 POLYBAR_NS_END

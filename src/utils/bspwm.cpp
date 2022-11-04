@@ -1,8 +1,7 @@
-#include "utils/bspwm.hpp"
-
 #include <sys/un.h>
 
 #include "errors.hpp"
+#include "utils/bspwm.hpp"
 #include "utils/env.hpp"
 #include "x11/connection.hpp"
 
@@ -147,6 +146,6 @@ namespace bspwm_util {
     }
     return conn;
   }
-} // namespace bspwm_util
+}
 
 POLYBAR_NS_END

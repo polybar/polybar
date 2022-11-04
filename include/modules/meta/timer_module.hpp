@@ -73,6 +73,6 @@ namespace modules {
    protected:
     interval_t m_interval{1.0};
   };
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

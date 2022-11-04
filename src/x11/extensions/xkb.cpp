@@ -200,6 +200,6 @@ namespace xkb_util {
     }
     return move(name);
   }
-} // namespace xkb_util
+}  // namespace xkb_util
 
 POLYBAR_NS_END

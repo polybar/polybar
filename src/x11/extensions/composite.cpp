@@ -1,5 +1,4 @@
 #include "x11/extensions/composite.hpp"
-
 #include "errors.hpp"
 #include "x11/connection.hpp"
 
@@ -16,6 +15,6 @@ namespace composite_util {
       throw application_error("Missing X extension: Composite");
     }
   }
-} // namespace composite_util
+}
 
 POLYBAR_NS_END

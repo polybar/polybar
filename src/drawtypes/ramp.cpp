@@ -78,6 +78,6 @@ namespace drawtypes {
 
     return std::make_shared<drawtypes::ramp>(move(vec));
   }
-} // namespace drawtypes
+}  // namespace drawtypes
 
 POLYBAR_NS_END

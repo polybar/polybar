@@ -14,6 +14,6 @@ namespace concurrency_util {
     }
     return ids[id];
   }
-} // namespace concurrency_util
+}  // namespace concurrency_util
 
 POLYBAR_NS_END

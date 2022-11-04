@@ -18,6 +18,6 @@ namespace time_util {
     auto finish = clock_t::now();
     return chrono::duration_cast<Duration>(finish - start).count();
   }
-} // namespace time_util
+}
 
 POLYBAR_NS_END

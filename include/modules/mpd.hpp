@@ -114,6 +114,6 @@ namespace modules {
     rgba m_toggle_on_color;
     rgba m_toggle_off_color;
   };
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

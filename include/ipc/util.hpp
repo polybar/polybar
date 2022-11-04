@@ -11,6 +11,6 @@ namespace ipc {
   string get_socket_path(int pid);
   string get_glob_socket_path();
   int get_pid_from_socket(const string& path);
-} // namespace ipc
+}  // namespace ipc
 
 POLYBAR_NS_END

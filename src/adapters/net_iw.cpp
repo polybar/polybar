@@ -1,4 +1,5 @@
 #include "adapters/net.hpp"
+
 #include "utils/file.hpp"
 
 POLYBAR_NS
@@ -131,6 +132,6 @@ namespace net {
   }
 
   // }}}
-} // namespace net
+}  // namespace net
 
 POLYBAR_NS_END

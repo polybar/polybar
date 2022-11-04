@@ -29,5 +29,5 @@ namespace ipc {
     return encode<string>(type, payload);
   }
 
-} // namespace ipc
+}  // namespace ipc
 POLYBAR_NS_END

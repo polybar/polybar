@@ -304,3 +304,4 @@ namespace eventloop {
 } // namespace eventloop
 
 POLYBAR_NS_END
+

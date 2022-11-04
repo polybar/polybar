@@ -18,4 +18,4 @@ namespace xpp {
     class extension;
   }
 #endif
-} // namespace xpp
+}

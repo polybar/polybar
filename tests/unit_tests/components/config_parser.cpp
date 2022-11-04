@@ -13,7 +13,8 @@ class TestableConfigParser : public config_parser {
   using config_parser::config_parser;
 
  public:
-  TestableConfigParser(const logger& logger, string&& file) : config_parser(logger, move(file)) {
+  TestableConfigParser(const logger& logger, string&& file)
+      : config_parser(logger, move(file)) {
     m_files.push_back("test_config");
   }
 

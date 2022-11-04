@@ -1,11 +1,9 @@
-#include "utils/i3.hpp"
-
 #include <xcb/xcb.h>
-
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
 #include "settings.hpp"
+#include "utils/i3.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/connection.hpp"
@@ -80,6 +78,6 @@ namespace i3_util {
     }
     return false;
   }
-} // namespace i3_util
+}
 
 POLYBAR_NS_END

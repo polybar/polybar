@@ -23,7 +23,7 @@ namespace xpp {
     template <class Event, class... Events>
     class sink;
   }
-} // namespace xpp
+}
 
 POLYBAR_NS
 
@@ -79,6 +79,6 @@ namespace evt {
   using selection_clear = xpp::x::event::selection_clear<connection&>;
   using selection_notify = xpp::x::event::selection_notify<connection&>;
   using selection_request = xpp::x::event::selection_request<connection&>;
-} // namespace evt
+}
 
 POLYBAR_NS_END

@@ -34,7 +34,7 @@ namespace {
     }
     return (base & mask) == mask;
   }
-} // namespace
+}  // namespace
 
 namespace modules {
   template class module<bspwm_module>;
@@ -140,8 +140,7 @@ namespace modules {
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       } else {
-        m_log.err(
-            "%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2 ? "too many" : "too few");
+        m_log.err("%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
       }
 
       i++;
@@ -505,6 +504,6 @@ namespace modules {
     ipc->send(payload->data, payload->len, 0);
     ipc->disconnect();
   }
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

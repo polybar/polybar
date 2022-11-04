@@ -82,8 +82,8 @@ namespace tags {
 
     std::pair<alignment, int> m_relative_tray_position{alignment::NONE, 0};
 
-   private:
-    const bar_settings& m_settings;
+  private:
+      const bar_settings &m_settings;
   };
 } // namespace tags
 

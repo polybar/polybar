@@ -25,6 +25,6 @@ namespace modules {
     }
     return false;
   }
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

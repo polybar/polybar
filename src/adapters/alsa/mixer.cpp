@@ -1,8 +1,7 @@
-#include "adapters/alsa/mixer.hpp"
-
 #include <cmath>
 
 #include "adapters/alsa/generic.hpp"
+#include "adapters/alsa/mixer.hpp"
 #include "utils/math.hpp"
 
 #define MAX_LINEAR_DB_SCALE 24
@@ -134,7 +133,7 @@ namespace alsa {
     }
 
     if (vol_max - vol_min <= MAX_LINEAR_DB_SCALE * 100) {
-      return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
+       return math_util::percentage(vol_total / chan_n, vol_min, vol_max);
     }
 
     normalized = pow(10, (vol_total / chan_n - vol_max) / 6000.0);
@@ -228,6 +227,6 @@ namespace alsa {
     }
     return !state;
   }
-} // namespace alsa
+}
 
 POLYBAR_NS_END

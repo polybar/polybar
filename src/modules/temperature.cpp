@@ -1,12 +1,12 @@
 #include "modules/temperature.hpp"
 
-#include <cmath>
-
 #include "drawtypes/label.hpp"
 #include "drawtypes/ramp.hpp"
-#include "modules/meta/base.inl"
 #include "utils/file.hpp"
 #include "utils/math.hpp"
+#include <cmath>
+
+#include "modules/meta/base.inl"
 
 POLYBAR_NS
 
@@ -27,7 +27,7 @@ namespace modules {
       bool zone_found = false;
       vector<string> zone_paths = file_util::glob(PATH_THERMAL_ZONE_WILDCARD);
       vector<string> available_zones;
-      for (auto& z : zone_paths) {
+      for (auto &z: zone_paths) {
         string zone_file = z + "/type";
         string z_zone_type = string_util::strip_trailing_newline(file_util::contents(zone_file));
         available_zones.push_back(z_zone_type);
@@ -39,8 +39,7 @@ namespace modules {
       }
 
       if (!zone_found) {
-        throw module_error("zone-type '" + m_zone_type +
-                           "' was not found, available zone types: " + string_util::join(available_zones, ", "));
+        throw module_error("zone-type '" + m_zone_type +  "' was not found, available zone types: " + string_util::join(available_zones, ", "));
       }
     }
 
@@ -66,7 +65,7 @@ namespace modules {
     }
 
     // Deprecation warning for the %temperature% token
-    if ((m_label[temp_state::NORMAL] && m_label[temp_state::NORMAL]->has_token("%temperature%")) ||
+    if((m_label[temp_state::NORMAL] && m_label[temp_state::NORMAL]->has_token("%temperature%")) ||
         ((m_label[temp_state::WARN] && m_label[temp_state::WARN]->has_token("%temperature%")))) {
       m_log.warn("%s: The token `%%temperature%%` is deprecated, use `%%temperature-c%%` instead.", name());
     }
@@ -74,16 +73,16 @@ namespace modules {
 
   bool temperature_module::update() {
     float temp = float(std::strtol(file_util::contents(m_path).c_str(), nullptr, 10)) / 1000.0;
-    m_temp = std::lround(temp);
-    int temp_f = std::lround((temp * 1.8) + 32.0);
-    int temp_k = std::lround(temp + 273.15);
+    m_temp     = std::lround( temp );
+    int temp_f = std::lround( (temp * 1.8) + 32.0 );
+    int temp_k = std::lround( temp + 273.15 );
 
     string temp_c_string = to_string(m_temp);
     string temp_f_string = to_string(temp_f);
     string temp_k_string = to_string(temp_k);
 
     // Add units if `units = true` in config
-    if (m_units) {
+    if(m_units) {
       temp_c_string += "°C";
       temp_f_string += "°F";
       temp_k_string += "K";
@@ -129,6 +128,6 @@ namespace modules {
     }
     return true;
   }
-} // namespace modules
+}
 
 POLYBAR_NS_END

@@ -154,6 +154,6 @@ namespace tags {
     size_t buf_pos;
   };
 
-} // namespace tags
+}  // namespace tags
 
 POLYBAR_NS_END

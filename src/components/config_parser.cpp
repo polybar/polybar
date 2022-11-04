@@ -10,7 +10,8 @@
 
 POLYBAR_NS
 
-config_parser::config_parser(const logger& logger, string&& file) : m_log(logger), m_config(file_util::expand(file)) {}
+config_parser::config_parser(const logger& logger, string&& file)
+    : m_log(logger), m_config(file_util::expand(file)) {}
 
 config::make_type config_parser::parse(string barname) {
   m_log.notice("Parsing config file: %s", m_config);

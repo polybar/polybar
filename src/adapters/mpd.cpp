@@ -1,10 +1,9 @@
-#include "adapters/mpd.hpp"
-
 #include <cassert>
 #include <csignal>
 #include <thread>
 #include <utility>
 
+#include "adapters/mpd.hpp"
 #include "components/logger.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
@@ -38,18 +37,20 @@ namespace mpd {
     switch (mpd_connection_get_error(conn)) {
       case MPD_ERROR_SUCCESS:
         return;
-      case MPD_ERROR_SERVER: {
-        err_msg = mpd_connection_get_error_message(conn);
-        enum mpd_server_error server_err = mpd_connection_get_server_error(conn);
-        mpd_connection_clear_error(conn);
-        throw server_error(err_msg, server_err);
-      }
-      default: {
-        err_msg = mpd_connection_get_error_message(conn);
-        enum mpd_error err = mpd_connection_get_error(conn);
-        mpd_connection_clear_error(conn);
-        throw client_error(err_msg, err);
-      }
+      case MPD_ERROR_SERVER:
+        {
+          err_msg = mpd_connection_get_error_message(conn);
+          enum mpd_server_error server_err = mpd_connection_get_server_error(conn);
+          mpd_connection_clear_error(conn);
+          throw server_error(err_msg, server_err);
+        }
+      default:
+        {
+          err_msg = mpd_connection_get_error_message(conn);
+          enum mpd_error err = mpd_connection_get_error(conn);
+          mpd_connection_clear_error(conn);
+          throw client_error(err_msg, err);
+        }
     }
   }
 
@@ -69,7 +70,7 @@ namespace mpd {
     void mpd_song_deleter::operator()(mpd_song* song) {
       mpd_song_free(song);
     }
-  } // namespace details
+  }
 
   // }}}
   // class: mpdsong {{{
@@ -88,7 +89,7 @@ namespace mpd {
     assert(m_song);
     auto tag = mpd_song_get_tag(m_song.get(), MPD_TAG_ALBUM_ARTIST, 0);
     return string{tag != nullptr ? tag : ""};
-  }
+}
 
   string mpdsong::get_album() {
     assert(m_song);
@@ -485,7 +486,7 @@ namespace mpd {
   }
 
   // }}}
-} // namespace mpd
+}
 
 #undef TRACE_BOOL
 

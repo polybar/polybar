@@ -20,7 +20,7 @@ struct position;
 namespace evt {
   using randr_notify = xpp::randr::event::notify<connection&>;
   using randr_screen_change_notify = xpp::randr::event::screen_change_notify<connection&>;
-} // namespace evt
+}  // namespace evt
 
 struct backlight_values {
   unsigned int atom{0};
@@ -63,6 +63,6 @@ namespace randr_util {
 
   void get_backlight_range(connection& conn, const monitor_t& mon, backlight_values& dst);
   void get_backlight_value(connection& conn, const monitor_t& mon, backlight_values& dst);
-} // namespace randr_util
+}  // namespace randr_util
 
 POLYBAR_NS_END

@@ -71,6 +71,6 @@ namespace cairo {
       cairo_xcb_surface_set_drawable(m_s, d, w, h);
     }
   };
-} // namespace cairo
+}
 
 POLYBAR_NS_END

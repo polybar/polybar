@@ -100,6 +100,6 @@ namespace math_util {
   inline int ceil(double value, int step = 1) {
     return static_cast<int>((value * 10 + step * 10 - 1) / (step * 10)) * step;
   }
-} // namespace math_util
+}  // namespace math_util
 
 POLYBAR_NS_END

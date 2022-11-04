@@ -9,7 +9,7 @@ POLYBAR_NS
 namespace alsa {
   class mixer;
   class control;
-} // namespace alsa
+}  // namespace alsa
 
 namespace modules {
   enum class mixer { NONE = 0, MASTER, SPEAKER, HEADPHONE };
@@ -71,6 +71,6 @@ namespace modules {
     atomic<bool> m_headphones{false};
     atomic<int> m_volume{0};
   };
-} // namespace modules
+}  // namespace modules
 
 POLYBAR_NS_END

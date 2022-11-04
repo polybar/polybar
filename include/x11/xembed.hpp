@@ -34,17 +34,17 @@ POLYBAR_NS
 namespace xembed {
 
   class info {
-   public:
-    void set(uint32_t* data);
+    public:
+      void set(uint32_t* data);
 
-    uint32_t get_version() const;
-    uint32_t get_flags() const;
+      uint32_t get_version() const;
+      uint32_t get_flags() const;
 
-    bool is_mapped() const;
+      bool is_mapped() const;
 
-   protected:
-    uint32_t version;
-    uint32_t flags;
+    protected:
+      uint32_t version;
+      uint32_t flags;
   };
 
   bool query(connection& conn, xcb_window_t win, info& data);
@@ -56,6 +56,6 @@ namespace xembed {
   void notify_focused(connection& conn, xcb_window_t win, long focus_type);
   void notify_unfocused(connection& conn, xcb_window_t win);
   void unembed(connection& conn, xcb_window_t win, xcb_window_t root);
-} // namespace xembed
+}  // namespace xembed
 
 POLYBAR_NS_END
