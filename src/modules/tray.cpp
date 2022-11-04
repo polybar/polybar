@@ -36,5 +36,5 @@ namespace modules {
     m_sig.detach(this);
   }
 
-}  // namespace modules
+} // namespace modules
 POLYBAR_NS_END

@@ -47,7 +47,7 @@ namespace modules {
 
     int m_signal{0};
     int m_quality{0};
-    int m_counter{-1};  // -1 to ignore the first run
+    int m_counter{-1}; // -1 to ignore the first run
 
     string m_interface;
     int m_ping_nth_update{0};
@@ -56,6 +56,6 @@ namespace modules {
     bool m_unknown_up{false};
     string m_udspeed_unit{"B/s"};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

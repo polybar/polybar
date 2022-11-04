@@ -2,12 +2,12 @@
 
 #include <algorithm>
 
+#include "components/logger.hpp"
 #include "components/renderer.hpp"
 #include "events/signal.hpp"
 #include "settings.hpp"
 #include "tags/parser.hpp"
 #include "utils/color.hpp"
-#include "components/logger.hpp"
 
 POLYBAR_NS
 

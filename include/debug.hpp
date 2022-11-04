@@ -46,6 +46,6 @@ namespace debug_util {
   void memory_usage(const T& object) noexcept {
     printf("memory usage: %lub\n", sizeof(object));
   }
-}
+} // namespace debug_util
 
 POLYBAR_NS_END

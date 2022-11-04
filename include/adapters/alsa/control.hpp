@@ -36,6 +36,6 @@ namespace alsa {
     snd_hctl_t* m_hctl{nullptr};
     snd_hctl_elem_t* m_elem{nullptr};
   };
-}
+} // namespace alsa
 
 POLYBAR_NS_END

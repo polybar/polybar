@@ -67,7 +67,8 @@ namespace modules {
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));
       } else {
-        m_log.err("%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2? "too many" : "too few");
+        m_log.err(
+            "%s: Ignoring ws-icon-%d because it has %s semicolons", name(), i, vec.size() > 2 ? "too many" : "too few");
       }
 
       i++;
@@ -271,6 +272,6 @@ namespace modules {
   string i3_module::make_workspace_command(const string& workspace) {
     return "workspace \"" + workspace + "\"";
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

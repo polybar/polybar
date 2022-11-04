@@ -69,6 +69,6 @@ namespace modules {
     iconset_t m_indicator_icons_on;
     iconset_t m_indicator_icons_off;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

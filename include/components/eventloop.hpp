@@ -319,7 +319,7 @@ namespace eventloop {
       UV(uv_accept, this->template get<uv_stream_t>(), client.template get<uv_stream_t>());
     }
 
-    void read_start(cb_read &&fun, cb_void&& eof_cb, cb_error&& err_cb) {
+    void read_start(cb_read&& fun, cb_void&& eof_cb, cb_error&& err_cb) {
       this->read_callback = std::move(fun);
       this->read_eof_cb = std::move(eof_cb);
       this->read_err_cb = std::move(err_cb);

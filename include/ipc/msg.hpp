@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common.hpp"
-
 #include <array>
+
+#include "common.hpp"
 
 POLYBAR_NS
 
@@ -80,6 +80,6 @@ namespace ipc {
       ACTION = 2,
     };
   }
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

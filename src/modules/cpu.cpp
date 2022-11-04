@@ -178,6 +178,6 @@ namespace modules {
 
     return math_util::cap<float>(percentage, 0, 100);
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

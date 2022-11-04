@@ -40,6 +40,6 @@ namespace modules {
     // Whether or not to show units with the %temperature-X% tokens
     bool m_units{true};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

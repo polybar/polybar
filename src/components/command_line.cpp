@@ -198,6 +198,6 @@ namespace command_line {
       throw argument_error("Unrecognized option " + input);
     }
   }
-}  // namespace command_line
+} // namespace command_line
 
 POLYBAR_NS_END

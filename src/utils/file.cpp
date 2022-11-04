@@ -56,7 +56,7 @@ file_descriptor::operator bool() {
   return static_cast<const file_descriptor&>(*this);
 }
 file_descriptor::operator bool() const {
-  errno = 0;  // reset since fcntl only changes it on error
+  errno = 0; // reset since fcntl only changes it on error
   if ((fcntl(m_fd, F_GETFD) == -1) || errno == EBADF) {
     errno = EBADF;
     return false;
@@ -362,6 +362,6 @@ namespace file_util {
 
     return string{};
   }
-}  // namespace file_util
+} // namespace file_util
 
 POLYBAR_NS_END

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cairo/cairo-ft.h>
+
 #include <list>
 
 #include "common.hpp"
@@ -64,7 +65,7 @@ namespace cairo {
      * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
      */
     size_t ucs4_to_utf8(char* utf8, unsigned int ucs);
-  }
-}
+  } // namespace utils
+} // namespace cairo
 
 POLYBAR_NS_END

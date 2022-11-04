@@ -54,6 +54,6 @@ namespace actions_util {
 
     return std::tuple<string, string, string>{module_name, action, data};
   }
-}  // namespace actions_util
+} // namespace actions_util
 
 POLYBAR_NS_END

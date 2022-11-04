@@ -98,6 +98,6 @@ namespace file_util {
   decltype(auto) make_file_descriptor(Args&&... args) {
     return std::make_unique<file_descriptor>(forward<Args>(args)...);
   }
-}  // namespace file_util
+} // namespace file_util
 
 POLYBAR_NS_END

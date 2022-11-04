@@ -40,6 +40,6 @@ namespace drawtypes {
   using progressbar_t = shared_ptr<progressbar>;
 
   progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name);
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

@@ -28,6 +28,6 @@ namespace drawtypes {
   };
 
   using layouticonset_t = shared_ptr<layouticonset>;
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

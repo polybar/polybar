@@ -16,6 +16,6 @@ namespace env_util {
     const char* value{std::getenv(var.c_str())};
     return value != nullptr ? value : move(fallback);
   }
-}  // namespace env_util
+} // namespace env_util
 
 POLYBAR_NS_END

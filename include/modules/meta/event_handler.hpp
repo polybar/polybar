@@ -28,6 +28,6 @@ namespace modules {
       conn.detach_sink(this, SINK_PRIORITY_MODULE);
     }
   };
-}
+} // namespace modules
 
 POLYBAR_NS_END

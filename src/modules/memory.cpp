@@ -1,3 +1,5 @@
+#include "modules/memory.hpp"
+
 #include <fstream>
 #include <iomanip>
 #include <istream>
@@ -5,10 +7,8 @@
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
 #include "drawtypes/ramp.hpp"
-#include "modules/memory.hpp"
-#include "utils/math.hpp"
-
 #include "modules/meta/base.inl"
+#include "utils/math.hpp"
 
 POLYBAR_NS
 
@@ -19,10 +19,12 @@ namespace modules {
     set_interval(1s);
     m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
-                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
-    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
-                                                 TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL,
+        {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE, TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE,
+            TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
+    m_formatter->add_optional(
+        FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE, TAG_BAR_SWAP_USED,
+                         TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_LABEL)) {
       m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
@@ -36,10 +38,10 @@ namespace modules {
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
     }
-    if(m_formatter->has(TAG_RAMP_USED)) {
+    if (m_formatter->has(TAG_RAMP_USED)) {
       m_ramp_memused = load_ramp(m_conf, name(), TAG_RAMP_USED);
     }
-    if(m_formatter->has(TAG_RAMP_FREE)) {
+    if (m_formatter->has(TAG_RAMP_FREE)) {
       m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
     if (m_formatter->has(TAG_BAR_SWAP_USED)) {
@@ -48,10 +50,10 @@ namespace modules {
     if (m_formatter->has(TAG_BAR_SWAP_FREE)) {
       m_bar_swapfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_FREE);
     }
-    if(m_formatter->has(TAG_RAMP_SWAP_USED)) {
+    if (m_formatter->has(TAG_RAMP_SWAP_USED)) {
       m_ramp_swapused = load_ramp(m_conf, name(), TAG_RAMP_SWAP_USED);
     }
-    if(m_formatter->has(TAG_RAMP_SWAP_FREE)) {
+    if (m_formatter->has(TAG_RAMP_SWAP_FREE)) {
       m_ramp_swapfree = load_ramp(m_conf, name(), TAG_RAMP_SWAP_FREE);
     }
   }
@@ -71,7 +73,8 @@ namespace modules {
         size_t sep_off = line.find(':');
         size_t value_off = line.find_first_of("123456789", sep_off);
 
-        if (sep_off == std::string::npos || value_off == std::string::npos) continue;
+        if (sep_off == std::string::npos || value_off == std::string::npos)
+          continue;
 
         std::string id = line.substr(0, sep_off);
         unsigned long long int value = std::strtoull(&line[value_off], nullptr, 10);
@@ -83,7 +86,8 @@ namespace modules {
       kb_swap_free = parsed["SwapFree"];
 
       // newer kernels (3.4+) have an accurate available memory field,
-      // see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
+      // see
+      // https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=34e431b0ae398fc54ea69ff85ec700722c9da773
       // for details
       if (parsed.count("MemAvailable")) {
         kb_avail = parsed["MemAvailable"];
@@ -124,7 +128,8 @@ namespace modules {
       label->replace_token("%total%", string_util::filesize_gib_mib(kb_total, 0, 2, m_bar.locale));
       label->replace_token("%swap_total%", string_util::filesize_gib_mib(kb_swap_total, 0, 2, m_bar.locale));
       label->replace_token("%swap_free%", string_util::filesize_gib_mib(kb_swap_free, 0, 2, m_bar.locale));
-      label->replace_token("%swap_used%", string_util::filesize_gib_mib(kb_swap_total - kb_swap_free, 0, 2, m_bar.locale));
+      label->replace_token(
+          "%swap_used%", string_util::filesize_gib_mib(kb_swap_total - kb_swap_free, 0, 2, m_bar.locale));
     };
 
     if (m_label) {
@@ -139,7 +144,7 @@ namespace modules {
   }
 
   string memory_module::get_format() const {
-    if (m_perc_memused>= m_perc_memused_warn && m_formatter->has_format(FORMAT_WARN)) {
+    if (m_perc_memused >= m_perc_memused_warn && m_formatter->has_format(FORMAT_WARN)) {
       return FORMAT_WARN;
     } else {
       return DEFAULT_FORMAT;
@@ -172,6 +177,6 @@ namespace modules {
     }
     return true;
   }
-}
+} // namespace modules
 
 POLYBAR_NS_END

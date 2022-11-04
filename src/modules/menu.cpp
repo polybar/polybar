@@ -151,6 +151,6 @@ namespace modules {
       broadcast();
     }
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

@@ -215,6 +215,6 @@ namespace ipc {
     trigger_legacy_ipc(string_util::trim(std::move(m_pipe_buffer), '\n'));
     m_pipe_buffer.clear();
   }
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

@@ -58,6 +58,6 @@ namespace drawtypes {
 
     return std::make_shared<animation>(move(vec), framerate);
   }
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

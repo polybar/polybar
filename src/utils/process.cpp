@@ -199,6 +199,6 @@ namespace process_util {
   bool notify_childprocess() {
     return wait_for_completion_nohang() > 0;
   }
-}  // namespace process_util
+} // namespace process_util
 
 POLYBAR_NS_END

@@ -1,3 +1,5 @@
+#include "utils/socket.hpp"
+
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -6,7 +8,6 @@
 #include "errors.hpp"
 #include "utils/file.hpp"
 #include "utils/mixins.hpp"
-#include "utils/socket.hpp"
 
 POLYBAR_NS
 
@@ -115,6 +116,6 @@ namespace socket_util {
 
     return fds[0].revents & events;
   }
-}
+} // namespace socket_util
 
 POLYBAR_NS_END

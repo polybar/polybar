@@ -59,6 +59,6 @@ namespace modules {
     bool m_scroll{true};
     int m_percentage{0};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

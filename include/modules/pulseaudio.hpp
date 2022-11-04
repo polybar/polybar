@@ -55,6 +55,6 @@ namespace modules {
     atomic<double> m_decibels{0};
     atomic<bool> m_reverse_scroll{false};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

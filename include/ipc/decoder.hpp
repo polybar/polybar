@@ -56,6 +56,6 @@ namespace ipc {
     const logger& m_log;
   };
 
-}  // namespace ipc
+} // namespace ipc
 
 POLYBAR_NS_END

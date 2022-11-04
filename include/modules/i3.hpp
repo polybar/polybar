@@ -99,6 +99,6 @@ namespace modules {
 
     unique_ptr<i3_util::connection_t> m_ipc;
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

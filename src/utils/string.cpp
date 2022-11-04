@@ -339,6 +339,6 @@ namespace string_util {
   hash_type hash(const string& src) {
     return std::hash<string>()(src);
   }
-}  // namespace string_util
+} // namespace string_util
 
 POLYBAR_NS_END

@@ -75,7 +75,7 @@ namespace modules {
 
           if (!this->running()) {
             break;
-}
+          }
         }
         CAST_MOD(Impl)->idle();
       }

@@ -2,6 +2,7 @@
 
 #include <mpd/client.h>
 #include <stdlib.h>
+
 #include <chrono>
 #include <csignal>
 
@@ -48,7 +49,7 @@ namespace mpd {
     struct mpd_song_deleter {
       void operator()(mpd_song* song);
     };
-  }
+  } // namespace details
 
   using mpd_connection_t = unique_ptr<mpd_connection, details::mpd_connection_deleter>;
   using mpd_status_t = unique_ptr<mpd_status, details::mpd_status_deleter>;
@@ -177,6 +178,6 @@ namespace mpd {
   };
 
   // }}}
-}
+} // namespace mpd
 
 POLYBAR_NS_END

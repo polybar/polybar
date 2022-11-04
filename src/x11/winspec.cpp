@@ -1,5 +1,6 @@
-#include "x11/connection.hpp"
 #include "x11/winspec.hpp"
+
+#include "x11/connection.hpp"
 
 POLYBAR_NS
 

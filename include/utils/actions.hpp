@@ -4,7 +4,7 @@
 
 namespace modules {
   struct module_interface;
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS
 
@@ -27,6 +27,6 @@ namespace actions_util {
    * @throws runtime_error If the action string is malformed
    */
   action parse_action_string(string action);
-}  // namespace actions_util
+} // namespace actions_util
 
 POLYBAR_NS_END

@@ -25,5 +25,5 @@ namespace modules {
 
     int m_width{0};
   };
-}  // namespace modules
+} // namespace modules
 POLYBAR_NS_END

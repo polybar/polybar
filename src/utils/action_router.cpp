@@ -2,8 +2,8 @@
 
 POLYBAR_NS
 
-action_router::entry::entry(callback func) : without(func), with_data(false){}
-action_router::entry::entry(callback_data func) : with(func), with_data(true){}
+action_router::entry::entry(callback func) : without(func), with_data(false) {}
+action_router::entry::entry(callback_data func) : with(func), with_data(true) {}
 action_router::entry::~entry() {
   if (with_data) {
     with.~function();

@@ -54,7 +54,8 @@ namespace modules {
     bool has_hook() const;
 
     void set_hook(int h);
-    void update_output() ;
+    void update_output();
+
    private:
     static constexpr auto TAG_OUTPUT = "<output>";
     static constexpr auto TAG_LABEL = "<label>";
@@ -69,6 +70,6 @@ namespace modules {
     int m_current_hook{-1};
     void exec_hook();
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

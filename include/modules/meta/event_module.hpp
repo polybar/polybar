@@ -41,6 +41,6 @@ namespace modules {
       }
     }
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

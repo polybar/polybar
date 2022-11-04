@@ -7,6 +7,7 @@
 #endif
 
 #include <xcb/composite.h>
+
 #include <xpp/proto/composite.hpp>
 
 #include "common.hpp"

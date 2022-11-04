@@ -447,6 +447,6 @@ namespace modules {
   }
 
 #undef MPD_CONNECT
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

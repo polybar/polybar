@@ -14,7 +14,7 @@ namespace modules {
       OCCUPIED,
       FOCUSED,
       URGENT,
-      DIMMED,  // used when the monitor is out of focus
+      DIMMED, // used when the monitor is out of focus
     };
 
     enum class mode {
@@ -98,6 +98,6 @@ namespace modules {
     // used while formatting output
     size_t m_index{0U};
   };
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

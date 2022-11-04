@@ -131,5 +131,5 @@ namespace ipc {
 
     return num_read;
   }
-}  // namespace ipc
+} // namespace ipc
 POLYBAR_NS_END

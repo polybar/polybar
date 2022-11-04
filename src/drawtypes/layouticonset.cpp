@@ -94,6 +94,6 @@ namespace drawtypes {
     }
     return false;
   }
-}  // namespace drawtypes
+} // namespace drawtypes
 
 POLYBAR_NS_END

@@ -42,6 +42,6 @@ namespace socket_util {
   inline unique_ptr<unix_connection> make_unix_connection(string&& path) {
     return std::make_unique<unix_connection>(forward<string>(path));
   }
-}  // namespace socket_util
+} // namespace socket_util
 
 POLYBAR_NS_END

@@ -186,6 +186,6 @@ namespace net {
 
   using wireless_t = unique_ptr<wireless_network>;
   using wired_t = unique_ptr<wired_network>;
-}  // namespace net
+} // namespace net
 
 POLYBAR_NS_END
