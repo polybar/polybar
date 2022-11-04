@@ -63,6 +63,9 @@ namespace modules {
     vector<xcb_window_t> m_windows;
     size_t m_active_index;
     vector<label_t> m_labels;
+    bool m_click{false};
+    bool m_scroll{false};
+    bool m_revscroll{false};
   };
 } // namespace modules
 

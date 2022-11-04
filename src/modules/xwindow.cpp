@@ -108,11 +108,16 @@ namespace modules {
       throw module_error("The WM does not list _NET_ACTIVE_WINDOW as a supported hint");
     }
 
+    // Load config values
+    m_click = m_conf.get(name(), "enable-click", m_click);
+    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_statelabels.emplace(state::DEFAULT, load_optional_label(m_conf, name(), "label", "%title%"));
+      m_statelabels.emplace(state::DEFAULT, load_optional_label(m_conf, name(), "label", ""));
       m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label-active", "%title%"));
       m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", ""));
     }
@@ -188,12 +193,19 @@ namespace modules {
    */
   bool xwindow_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL) {
+      if (m_scroll) {
+        const auto down = m_revscroll ? EVENT_PREV : EVENT_NEXT;
+        const auto up = m_revscroll ? EVENT_NEXT : EVENT_PREV;
+        builder->action(mousebtn::SCROLL_DOWN, *this, down, "");
+        builder->action(mousebtn::SCROLL_UP, *this, up, "");
+      }
       for (size_t i = 0; i < m_labels.size(); ++i) {
         auto& label = m_labels[i];
-        // builder->node(label);
-        builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(i), label);
-        builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_NEXT, "");
-        builder->action(mousebtn::SCROLL_UP, *this, EVENT_PREV, "");
+        if (m_click) {
+          builder->action(mousebtn::LEFT, *this, EVENT_FOCUS, to_string(i), label);
+        } else {
+          builder->node(label);
+        }
       }
       return true;
     }
