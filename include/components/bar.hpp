@@ -104,6 +104,12 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
    */
   string m_cursor{};
 
+  /**
+   * Action string of last hover action
+   */
+  string m_last_start_hover_action{};
+  string m_last_end_hover_action{};
+
   string m_lastinput{};
   std::set<mousebtn> m_dblclicks;
 
