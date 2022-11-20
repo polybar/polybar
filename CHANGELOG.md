@@ -10,15 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Breaking
-- `custom/script`: now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+- `custom/script`:
+  - now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+  - If the `exec` command produced no output and exited with a non-zero exit code the module is no longer completely empty, but just has an empty `%output%` token. If you relied on this behavior to hide the module under certain circumstances, make sure the script exits with an exit code of zero. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
 
 ### Build
 - Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770))
+- Bump C++ version to C++17 ([`#2847`](https://github.com/polybar/polybar/pull/2847))
 
 ### Deprecated
 - `custom/text`: The `content` setting and all its properties are deprecated in favor of `format` with the same functionality. ([`#2676`](https://github.com/polybar/polybar/pull/2676))
 
 ### Added
+-  Added support for TAG_LABEL (`<label>`) in ipc module  ([`#2841`](https://github.com/polybar/polybar/pull/2841))  by [@madhavpcm](https://github.com/madhavpcm).
+-  Added support for format-i for each hook-i defined in ipc module ([`#2775`](https://github.com/polybar/polybar/issues/2775),  [`#2810`](https://github.com/polybar/polybar/pull/2810))  by [@madhavpcm](https://github.com/madhavpcm).
 - `internal/temperature`: `%temperature-k%` token displays the temperature in kelvin ([`#2774`](https://github.com/polybar/polybar/discussions/2774), [`#2784`](https://github.com/polybar/polybar/pull/2784))
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
@@ -26,18 +31,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added experimental support for positioning the tray like a module
 - `internal/backlight`: `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696), [`#2700`](https://github.com/polybar/polybar/pull/2700))
 - `internal/temperature`: Added `zone-type` setting ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2752`](https://github.com/polybar/polybar/pull/2752)) by [@xphoniex](https://github.com/xphoniex)
+- `internal/xwindow`: `%class%` and `%instance%` tokens, which show the contents of the `WM_CLASS` property of the active window ([`#2830`](https://github.com/polybar/polybar/pull/2830))
+- Added `enable-struts` option in bar section to enable/disable struts ([`#2769`](https://github.com/polybar/polybar/issues/2769), [`#2844`](https://github.com/polybar/polybar/pull/2844)) by [@VanillaViking](https://github.com/VanillaViking).
 
 ### Changed
+- `custom/script`: No longer produces a completely empty module if the `exec` command failed. It only produces an empty module if the script had a zero exit code. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
-- `internal/backlight`: Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
+- `internal/backlight`:
+  - Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
+  - `use-actual-brightness` defaults to `true` for `amdgpu` backlights ([`#2835`](https://github.com/polybar/polybar/issues/2835), [`2839`](https://github.com/polybar/polybar/pull/2839))
 - Providing a negative min-width to a token adds right-padding ([`#2789`](https://github.com/polybar/polybar/issues/2789), [`#2801`](https://github.com/polybar/polybar/pull/2801)) by [@VanillaViking](https://github.com/VanillaViking).
+- Changed fuzzy match option on i3 and bspwm modules to find longest match instead of the first match ([`#2831`](https://github.com/polybar/polybar/pull/2831), [`#2829`](https://github.com/polybar/polybar/issues/2829)) by [@Ron0Studios](https://github.com/ron0studios/).
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
-- renderer: Small gaps when rendering emojis ([`#2785`](https://github.com/polybar/polybar/issues/2785), [`#2802`](https://github.com/polybar/polybar/pull/2802))
+- renderer:
+  - Small gaps when rendering emojis ([`#2785`](https://github.com/polybar/polybar/issues/2785), [`#2802`](https://github.com/polybar/polybar/pull/2802))
+  - Crash when using pseudo-transparency with certain wallpapers ([`#2798`](https://github.com/polybar/polybar/issues/2798), [`#2813`](https://github.com/polybar/polybar/pull/2813))
 - config:
   - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
   - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))
+- `internal/xwindow`: module does not crash when a tag is not provided in format ([`#2826`](https://github.com/polybar/polybar/issues/2826), [`#2833`](https://github.com/polybar/polybar/pull/2833)) by [@VanillaViking](https://github.com/VanillaViking)
 
 ## [3.6.3] - 2022-05-04
 ### Fixed

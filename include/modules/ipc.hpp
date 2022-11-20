@@ -29,6 +29,7 @@ namespace modules {
     void start() override;
     void update();
     string get_output();
+    string get_format() const;
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 
@@ -53,12 +54,17 @@ namespace modules {
     bool has_hook() const;
 
     void set_hook(int h);
-
+    void update_output() ;
    private:
-    static constexpr const char* TAG_OUTPUT{"<output>"};
+    static constexpr auto TAG_OUTPUT = "<output>";
+    static constexpr auto TAG_LABEL = "<label>";
+
+    label_t m_label;
+
     vector<unique_ptr<hook>> m_hooks;
     map<mousebtn, string> m_actions;
     string m_output;
+
     int m_initial{-1};
     int m_current_hook{-1};
     void exec_hook();

@@ -11,11 +11,11 @@ namespace ipc {
     size_t total_size = HEADER_SIZE + payload.size();
     std::vector<uint8_t> data(total_size);
 
-    auto* header = reinterpret_cast<ipc::header*>(data.data());
-    std::copy(ipc::MAGIC.begin(), ipc::MAGIC.end(), header->s.magic);
-    header->s.version = ipc::VERSION;
-    header->s.size = payload.size();
-    header->s.type = type;
+    auto* msg_header = reinterpret_cast<header*>(data.data());
+    std::copy(MAGIC.begin(), MAGIC.end(), msg_header->s.magic);
+    msg_header->s.version = VERSION;
+    msg_header->s.size = payload.size();
+    msg_header->s.type = type;
 
     std::copy(payload.begin(), payload.end(), data.begin() + HEADER_SIZE);
     return data;

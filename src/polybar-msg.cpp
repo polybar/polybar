@@ -260,13 +260,13 @@ int run(int argc, char** argv) {
     /*
      * Index to decoder is captured because reference can be invalidated due to the vector being modified.
      */
-    int idx = decoders.size() - 1;
+    auto idx = decoders.size() - 1;
 
-    auto& conn = loop.handle<PipeHandle>();
-    conn.connect(
+    auto conn = loop.handle<PipeHandle>();
+    conn->connect(
         channel,
-        [&conn, &decoders, pid, type, payload, channel, idx]() {
-          on_connection(conn, decoders[idx], pid, type, payload);
+        [&handle = *conn, &decoders, pid, type, payload, channel, idx]() {
+          on_connection(handle, decoders[idx], pid, type, payload);
         },
         [&](const auto& e) {
           fprintf(stderr, "%s: Failed to connect to '%s' (err: '%s')\n", exec, channel.c_str(), uv_strerror(e.status));

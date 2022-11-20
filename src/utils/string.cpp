@@ -128,7 +128,7 @@ namespace string_util {
    * Trims all characters that match pred from the left
    */
   string ltrim(string value, function<bool(char)> pred) {
-    value.erase(value.begin(), find_if(value.begin(), value.end(), not1(pred)));
+    value.erase(value.begin(), find_if(value.begin(), value.end(), std::not_fn(pred)));
     return value;
   }
 
@@ -136,7 +136,7 @@ namespace string_util {
    * Trims all characters that match pred from the right
    */
   string rtrim(string value, function<bool(char)> pred) {
-    value.erase(find_if(value.rbegin(), value.rend(), not1(pred)).base(), value.end());
+    value.erase(find_if(value.rbegin(), value.rend(), std::not_fn(pred)).base(), value.end());
     return value;
   }
 

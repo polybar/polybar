@@ -1,3 +1,4 @@
+#pragma once
 #include <cassert>
 
 #include "components/builder.hpp"

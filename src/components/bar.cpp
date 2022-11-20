@@ -218,11 +218,22 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.double_click_interval = m_conf.get(bs, "double-click-interval", m_opts.double_click_interval);
 
+  m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
+
   if (only_initialize_values) {
     return;
   }
 
   // Load values used to adjust the struts atom
+
+  if (!m_opts.struts) {
+    if (m_conf.has("global/wm", "margin-bottom")) {
+      m_log.warn("Struts are disabled, ignoring margin-bottom");
+    }
+    if (m_conf.has("global/wm", "margin-top")) {
+      m_log.warn("Struts are disabled, ignoring margin-top");
+    }
+  }
   auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
   auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
   m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
@@ -546,6 +557,10 @@ void bar::reconfigure_pos() {
  * Reconfigure window strut values
  */
 void bar::reconfigure_struts() {
+  if (!m_opts.struts) {
+    return;
+  }
+
   window win{m_connection, m_opts.window};
   if (m_visible) {
     auto geom = m_connection.get_geometry(m_screen->root());
@@ -692,12 +707,12 @@ void bar::handle(const evt::destroy_notify& evt) {
  */
 void bar::handle(const evt::enter_notify&) {
   if (m_opts.dimmed) {
-    m_dim_timer.start(25, 0, [this]() {
+    m_dim_timer->start(25, 0, [this]() {
       m_opts.dimmed = false;
       m_sig.emit(dim_window{1.0});
     });
-  } else if (m_dim_timer.is_active()) {
-    m_dim_timer.stop();
+  } else if (m_dim_timer->is_active()) {
+    m_dim_timer->stop();
   }
 }
 
@@ -712,7 +727,7 @@ void bar::handle(const evt::leave_notify&) {
   // Only trigger dimming, if the dim-value is not fully opaque.
   if (m_opts.dimvalue < 1.0) {
     if (!m_opts.dimmed) {
-      m_dim_timer.start(3000, 0, [this]() {
+      m_dim_timer->start(3000, 0, [this]() {
         m_opts.dimmed = true;
         m_sig.emit(dim_window{double(m_opts.dimvalue)});
       });
@@ -844,11 +859,11 @@ void bar::handle(const evt::button_press& evt) {
   if (!has_dblclick) {
     trigger_click(btn, pos);
   } else if (btn == mousebtn::LEFT) {
-    check_double(m_leftclick_timer, btn, pos);
+    check_double(*m_leftclick_timer, btn, pos);
   } else if (btn == mousebtn::MIDDLE) {
-    check_double(m_middleclick_timer, btn, pos);
+    check_double(*m_middleclick_timer, btn, pos);
   } else if (btn == mousebtn::RIGHT) {
-    check_double(m_rightclick_timer, btn, pos);
+    check_double(*m_rightclick_timer, btn, pos);
   } else {
     trigger_click(btn, pos);
   }
@@ -890,7 +905,10 @@ void bar::handle(const evt::property_notify& evt) {
   }
 }
 
-void bar::handle(const evt::configure_notify&) {
+void bar::handle(const evt::configure_notify& evt) {
+  if (evt->window != m_opts.window) {
+    return;
+  }
   // The absolute position of the window in the root may be different after configuration is done
   // (for example, because the parent is not positioned at 0/0 in the root window).
   // Notify components that the geometry may have changed (used by the background manager for example).

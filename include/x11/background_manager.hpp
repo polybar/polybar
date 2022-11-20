@@ -16,7 +16,7 @@ class logger;
 namespace cairo {
   class surface;
   class xcb_surface;
-}  // namespace cairo
+} // namespace cairo
 
 class bg_slice {
  public:
@@ -25,32 +25,35 @@ class bg_slice {
   bg_slice(const bg_slice&) = delete;
   bg_slice& operator=(const bg_slice&) = delete;
 
-  /**
-   * Get the current desktop background at the location of this slice.
-   * The returned pointer is only valid as long as the slice itself is alive.
-   *
-   * This function is fast, since the current desktop background is cached.
-   */
-  cairo::surface* get_surface() const {
-    return m_surface.get();
-  }
+  cairo::surface* get_surface() const;
+
+  void clear();
+  void copy(xcb_pixmap_t root_pixmap, int depth, xcb_rectangle_t geom, xcb_visualtype_t* visual);
 
  private:
-  bg_slice(connection& conn, const logger& log, xcb_rectangle_t rect, xcb_window_t window, xcb_visualtype_t* visual);
+  bg_slice(connection& conn, const logger& log, xcb_rectangle_t rect, xcb_window_t window);
 
-  // standard components
   connection& m_connection;
+  const logger& m_log;
 
-  // area covered by this slice
+  /**
+   * Area covered by this slice
+   *
+   * Area is relative to given window
+   */
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
   xcb_window_t m_window;
 
-  // cache for the root window background at this slice's position
+  /**
+   * Cache for the root window background at this slice's position
+   */
   xcb_pixmap_t m_pixmap{XCB_NONE};
   unique_ptr<cairo::xcb_surface> m_surface;
   xcb_gcontext_t m_gcontext{XCB_NONE};
+  int m_depth{0};
 
-  void allocate_resources(const logger& log, xcb_visualtype_t* visual);
+  void ensure_resources(int depth, xcb_visualtype_t* visual);
+  void allocate_resources(xcb_visualtype_t* visual);
   void free_resources();
 
   friend class background_manager;
@@ -101,23 +104,52 @@ class background_manager : public signal_receiver<SIGN_PRIORITY_SCREEN, signals:
   void activate();
   void deactivate();
 
+  void attach();
+  void detach();
+  /**
+   * True if we are currently attached as a listener for desktop background changes
+   */
+  bool m_attached{false};
+
   // references to standard components
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
 
-  // list of slices that need to be filled with the desktop background
+  /**
+   * List of slices that need to be filled with the desktop background
+   */
   std::vector<std::weak_ptr<bg_slice>> m_slices;
-
-  // required values for fetching the root window's background
-  xcb_visualtype_t* m_visual{nullptr};
-
-  // true if we are currently attached as a listener for desktop background changes
-  bool m_attached{false};
 
   void allocate_resources();
   void free_resources();
-  void fetch_root_pixmap();
+  void on_background_change();
+
+  void update_slice(bg_slice& slice);
+
+  bool has_pixmap() const;
+  void ensure_pixmap();
+  void load_pixmap();
+  void clear_pixmap();
+
+  /**
+   * The loaded root pixmap
+   */
+  xcb_pixmap_t m_pixmap{XCB_NONE};
+  int m_pixmap_depth{0};
+  xcb_rectangle_t m_pixmap_geom{0, 0, 0, 0};
+
+  /**
+   * Tracks whether we were able to load a pixmap.
+   */
+  bool m_pixmap_load_failed{false};
+
+  /**
+   * Visual matching the root pixmap's depth.
+   *
+   * Only valid if m_pixmap is set
+   */
+  xcb_visualtype_t* m_visual{nullptr};
 };
 
 POLYBAR_NS_END

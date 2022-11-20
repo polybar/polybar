@@ -93,7 +93,7 @@ namespace modules {
 
     m_exit_status = data.exit_status;
 
-    if (data.output.empty()) {
+    if (data.output.empty() && m_exit_status == 0) {
       return "";
     }
 

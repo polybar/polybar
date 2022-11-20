@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
 POLYBAR_NS
@@ -60,7 +61,14 @@ namespace modules {
       hook->command = pid_token(hook->command);
     }
 
-    m_formatter->add(DEFAULT_FORMAT, TAG_OUTPUT, {TAG_OUTPUT});
+    m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_OUTPUT});
+
+    m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
+
+    for (size_t i = 0; i < m_hooks.size(); i++) {
+      string format_i = "format-" + to_string(i);
+      m_formatter->add_optional(format_i, {TAG_LABEL});
+    }
   }
 
   /**
@@ -103,16 +111,29 @@ namespace modules {
     return m_builder->flush();
   }
 
+  string ipc_module::get_format() const {
+    if (m_current_hook != -1 && (size_t)m_current_hook < m_hooks.size()) {
+      string format_i = "format-" + to_string(m_current_hook);
+      if (m_formatter->has_format(format_i)) {
+        return format_i;
+      } else {
+        return DEFAULT_FORMAT;
+      }
+    }
+    return DEFAULT_FORMAT;
+  }
   /**
    * Output content retrieved from hook commands
    */
   bool ipc_module::build(builder* builder, const string& tag) const {
-    if (tag == TAG_OUTPUT) {
+    if (tag == TAG_LABEL) {
+      builder->node(m_label);
+      return true;
+    } else if (tag == TAG_OUTPUT) {
       builder->node(m_output);
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**
@@ -135,7 +156,7 @@ namespace modules {
 
   void ipc_module::action_send(const string& data) {
     m_output = data;
-    broadcast();
+    update_output();
   }
 
   void ipc_module::action_hook(const string& data) {
@@ -150,7 +171,8 @@ namespace modules {
       }
     } catch (const std::invalid_argument& err) {
       m_log.err(
-          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to %zu.",
+          "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to "
+          "%zu.",
           name(), data, m_hooks.size() - 1);
     }
   }
@@ -169,7 +191,8 @@ namespace modules {
     } else {
       m_current_hook = -1;
       m_output.clear();
-      broadcast();
+
+      update_output();
     }
   }
 
@@ -222,6 +245,14 @@ namespace modules {
       m_output.clear();
     }
 
+    update_output();
+  }
+
+  void ipc_module::update_output() {
+    if (m_label) {
+      m_label->reset_tokens();
+      m_label->replace_token("%output%", m_output);
+    }
     broadcast();
   }
 } // namespace modules

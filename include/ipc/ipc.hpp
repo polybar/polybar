@@ -42,14 +42,14 @@ namespace ipc {
     const logger& m_log;
     eventloop::loop& m_loop;
 
-    eventloop::PipeHandle& socket;
+    eventloop::pipe_handle_t m_socket;
 
     class connection : public non_copyable_mixin, public non_movable_mixin {
      public:
       using cb = std::function<void(connection&, uint8_t, type_t, const std::vector<uint8_t>&)>;
       connection(eventloop::loop& loop, cb msg_callback);
       ~connection();
-      eventloop::PipeHandle& client_pipe;
+      eventloop::pipe_handle_t client_pipe;
       decoder dec;
     };
 
@@ -79,7 +79,7 @@ namespace ipc {
     struct fifo {
       fifo(eventloop::loop& loop, ipc& ipc, const string& path);
       ~fifo();
-      eventloop::PipeHandle& pipe_handle;
+      eventloop::pipe_handle_t pipe_handle;
     };
 
     unique_ptr<fifo> ipc_pipe;
@@ -89,7 +89,7 @@ namespace ipc {
      * Buffer for the currently received IPC message over the named pipe
      */
     string m_pipe_buffer{};
-    void receive_data(string buf);
+    void receive_data(const string& buf);
     void receive_eof();
   };
 } // namespace ipc

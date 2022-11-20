@@ -11,6 +11,7 @@
 #include "components/types.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
+#include "modules/meta/all.hpp"
 #include "modules/meta/base.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/factory.hpp"
@@ -25,6 +26,7 @@
 POLYBAR_NS
 
 using namespace eventloop;
+using namespace modules;
 
 /**
  * Build controller instance
@@ -154,7 +156,7 @@ void controller::trigger_update(bool force) {
 }
 
 void controller::trigger_notification() {
-  m_notifier.send();
+  m_notifier->send();
 }
 
 void controller::stop(bool reload) {
@@ -171,7 +173,7 @@ void controller::conn_cb() {
   }
 
   shared_ptr<xcb_generic_event_t> evt{};
-  while ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(m_connection), free)) != nullptr) {
+  while ((evt = m_connection.poll_for_event()) != nullptr) {
     try {
       m_connection.dispatch_event(evt);
     } catch (xpp::connection_error& err) {
@@ -196,12 +198,12 @@ void controller::signal_handler(int signum) {
 }
 
 void controller::create_config_watcher(const string& filename) {
-  auto& fs_event_handler = m_loop.handle<FSEventHandle>();
-  fs_event_handler.start(
+  auto fs_event_handle = m_loop.handle<FSEventHandle>();
+  fs_event_handle->start(
       filename, 0, [this](const auto& e) { confwatch_handler(e.path); },
-      [this, &fs_event_handler](const auto& e) {
+      [this, &handle = *fs_event_handle](const auto& e) {
         m_log.err("libuv error while watching included file for changes: %s", uv_strerror(e.status));
-        fs_event_handler.close();
+        handle.close();
       });
 }
 
@@ -247,17 +249,28 @@ void controller::read_events(bool confwatch) {
   m_log.info("Entering event loop (thread-id=%lu)", this_thread::get_id());
 
   try {
-    auto& poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
-    poll_handle.start(
+    auto x_poll_handle = m_loop.handle<PollHandle>(m_connection.get_file_descriptor());
+    x_poll_handle->start(
         UV_READABLE, [this](const auto&) { conn_cb(); },
         [this](const auto& e) {
           m_log.err("libuv error while polling X connection: "s + uv_strerror(e.status));
           stop(false);
         });
 
+    auto x_prepare_handle = m_loop.handle<PrepareHandle>();
+    x_prepare_handle->start([this]() {
+      /*
+       * We have to also handle events in the prepare handle (which runs right
+       * before polling for IO) to process any already queued X events which
+       * wouldn't trigger the uv_poll handle.
+       */
+      conn_cb();
+      m_connection.flush();
+    });
+
     for (auto s : {SIGINT, SIGQUIT, SIGTERM, SIGUSR1, SIGALRM}) {
-      auto& signal_handle = m_loop.handle<SignalHandle>();
-      signal_handle.start(s, [this](const auto& e) { signal_handler(e.signum); });
+      auto signal_handle = m_loop.handle<SignalHandle>();
+      signal_handle->start(s, [this](const auto& e) { signal_handler(e.signum); });
     }
 
     if (confwatch) {
@@ -270,8 +283,8 @@ void controller::read_events(bool confwatch) {
 
     if (!m_snapshot_dst.empty()) {
       // Trigger a single screenshot after 3 seconds
-      auto& timer_handle = m_loop.handle<TimerHandle>();
-      timer_handle.start(3000, 0, [this]() { screenshot_handler(); });
+      auto timer_handle = m_loop.handle<TimerHandle>();
+      timer_handle->start(3000, 0, [this]() { screenshot_handler(); });
     }
 
     if (!m_writeback) {
@@ -613,9 +626,7 @@ size_t controller::setup_modules(alignment align) {
       }
 
       m_log.notice("Loading module '%s' of type '%s'", module_name, type);
-      auto ptr = make_module(move(type), m_bar->settings(), module_name, m_log);
-      module_t module = shared_ptr<modules::module_interface>(ptr);
-      ptr = nullptr;
+      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log);
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);
