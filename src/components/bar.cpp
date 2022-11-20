@@ -721,6 +721,7 @@ void bar::handle(const evt::enter_notify&) {
  *
  * Used to dim the window by setting the
  * _NET_WM_WINDOW_OPACITY atom value
+ * and to trigger hover actions
  */
 void bar::handle(const evt::leave_notify&) {
   // Only trigger dimming, if the dim-value is not fully opaque.
@@ -732,6 +733,10 @@ void bar::handle(const evt::leave_notify&) {
       });
     }
   }
+  if(m_last_hover_act != "") {
+    m_sig.emit(button_press{m_last_hover_act});
+    m_last_hover_act = "";
+  }
 }
 
 /**
@@ -741,8 +746,27 @@ void bar::handle(const evt::leave_notify&) {
  */
 void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
-#if WITH_XCURSOR
+
   int motion_pos = evt->event_x;
+
+  tags::action_t m_hover_act_idx = m_action_ctxt->has_action(mousebtn::HOVER, motion_pos);
+  string m_hover_act = "";
+  if (m_hover_act_idx != tags::NO_ACTION) {
+    m_hover_act = m_action_ctxt->get_action(m_hover_act_idx);
+    m_log.trace("bar: Detected hover action %s", m_hover_act);
+  }
+  if (m_hover_act != m_last_hover_act) {
+    m_log.trace("bar: Switched hover action from '%s' to '%s'", m_last_hover_act, m_hover_act);
+    if(m_last_hover_act != "") {
+      m_sig.emit(button_press{m_last_hover_act});
+    }
+    if(m_hover_act != "") {
+      m_sig.emit(button_press{m_hover_act});
+    }
+    m_last_hover_act = m_hover_act;
+  }
+
+#if WITH_XCURSOR
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
@@ -898,10 +922,10 @@ void bar::start(const string& tray_module_name) {
 
   // Subscribe to window enter and leave events
   // if we should dim the window
-  if (m_opts.dimvalue != 1.0) {
+  if (m_opts.dimvalue != 1.0 || true) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || true) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);

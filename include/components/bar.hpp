@@ -105,6 +105,8 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
   string m_cursor{};
 
   string m_lastinput{};
+  string m_last_hover_act{};
+
   std::set<mousebtn> m_dblclicks;
 
   eventloop::timer_handle_t m_leftclick_timer{m_loop.handle<eventloop::TimerHandle>()};
