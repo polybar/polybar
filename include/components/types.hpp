@@ -42,6 +42,7 @@ enum class mousebtn {
   DOUBLE_LEFT,
   DOUBLE_MIDDLE,
   DOUBLE_RIGHT,
+  HOVER,
   // Terminator value, do not use
   BTN_COUNT,
 };
