@@ -225,6 +225,8 @@ vector<single_action> parse_single_action_list = {
     {"%{A6:cmd:}", mousebtn::DOUBLE_LEFT, "cmd"},
     {"%{A7:cmd:}", mousebtn::DOUBLE_MIDDLE, "cmd"},
     {"%{A8:cmd:}", mousebtn::DOUBLE_RIGHT, "cmd"},
+    {"%{A9:cmd:}", mousebtn::HOVER_START, "cmd"},
+    {"%{A10:cmd:}", mousebtn::HOVER_END, "cmd"},
     {"%{A}", mousebtn::NONE, ""},
     {"%{A1}", mousebtn::LEFT, ""},
     {"%{A2}", mousebtn::MIDDLE, ""},
@@ -234,6 +236,8 @@ vector<single_action> parse_single_action_list = {
     {"%{A6}", mousebtn::DOUBLE_LEFT, ""},
     {"%{A7}", mousebtn::DOUBLE_MIDDLE, ""},
     {"%{A8}", mousebtn::DOUBLE_RIGHT, ""},
+    {"%{A9}", mousebtn::HOVER_START, ""},
+    {"%{A10}", mousebtn::HOVER_END, ""},
     {"%{A1:a\\:b:}", mousebtn::LEFT, "a:b"},
     {"%{A1:\\:\\:\\::}", mousebtn::LEFT, ":::"},
     {"%{A1:#apps.open.0:}", mousebtn::LEFT, "#apps.open.0"},
@@ -444,7 +448,7 @@ vector<exception_test> parse_error_test = {
     {"%{O0ptx}", exc::OFFSET},
     {"%{O0a}", exc::OFFSET},
     {"%{A2:cmd:cmd:}", exc::TAG_END},
-    {"%{A9}", exc::BTN},
+    {"%{A11}", exc::BTN},
     {"%{rQ}", exc::TAG_END},
 };
 
