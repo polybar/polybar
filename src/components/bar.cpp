@@ -753,7 +753,7 @@ void bar::handle(const evt::motion_notify& evt) {
       return m_action_ctxt->get_action(action);
     }
 
-    return "";
+    return ""s;
   };
 
   string hover_start_action = get_hover_str(mousebtn::HOVER_START);
