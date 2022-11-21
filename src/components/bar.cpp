@@ -735,7 +735,7 @@ void bar::handle(const evt::leave_notify&) {
     }
   }
 
-  if (!m_last_end_hover_action.empty()) {
+  if (!m_last_end_hover_action.empty() && !m_opts.disable_hover_checking) {
     m_sig.emit(button_press{m_last_end_hover_action});
   }
 
@@ -754,6 +754,10 @@ void bar::handle(const evt::motion_notify& evt) {
   int motion_pos = evt->event_x;
 
   const auto get_hover_str = [&](const mousebtn& button) -> string {
+    if (m_opts.disable_hover_checking) {
+      return ""s;
+    }
+
     tags::action_t action = m_action_ctxt->has_action(button, motion_pos);
     if (action != tags::NO_ACTION) {
       m_log.trace("Found matching input area");
