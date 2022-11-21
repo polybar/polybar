@@ -25,6 +25,19 @@ namespace modules {
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
+    if(!bar.disable_hover_checking) {
+      m_actions[mousebtn::HOVER_START] = m_conf.get(name(), "hover-start", ""s);
+      m_actions[mousebtn::HOVER_END] = m_conf.get(name(), "hover-end", ""s);
+    } else {
+      if(m_conf.has(name(), "hover-start")) {
+        m_log.warn("Hover checking is disabled, ignoring hover-start");
+      }
+      if(m_conf.has(name(), "hover-end")) {
+        m_log.warn("Hover checking is disabled, ignoring hover-end");
+      }
+    }
+    
+
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     if (m_formatter->has(TAG_LABEL)) {
