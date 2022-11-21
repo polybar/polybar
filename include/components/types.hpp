@@ -39,11 +39,11 @@ enum class mousebtn {
   RIGHT,
   SCROLL_UP,
   SCROLL_DOWN,
-  HOVER_START,
-  HOVER_END,
   DOUBLE_LEFT,
   DOUBLE_MIDDLE,
   DOUBLE_RIGHT,
+  HOVER_START,
+  HOVER_END,
   // Terminator value, do not use
   BTN_COUNT,
 };
