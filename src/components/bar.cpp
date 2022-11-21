@@ -426,7 +426,8 @@ void bar::parse(string&& data, bool force) {
 
   m_dblclicks.clear();
   for (auto&& action : m_opts.actions) {
-    if (action.button == mousebtn::DOUBLE_LEFT || action.button == mousebtn::DOUBLE_MIDDLE || action.button == mousebtn::DOUBLE_RIGHT) {
+    if (action.button == mousebtn::DOUBLE_LEFT || action.button == mousebtn::DOUBLE_MIDDLE ||
+        action.button == mousebtn::DOUBLE_RIGHT) {
       m_dblclicks.insert(action.button);
     }
   }
