@@ -402,20 +402,18 @@ namespace tags {
    * May return mousebtn::NONE if no button was given.
    */
   mousebtn parser::parse_action_btn() {
-    if (has_next()) {
-      if (isdigit(peek())) {
-        char c = next();
-        int num = c - '0';
-
-        if (num < static_cast<int>(mousebtn::NONE) || num >= static_cast<int>(mousebtn::BTN_COUNT)) {
-          throw btn_error(string{c});
-        }
-
-        return static_cast<mousebtn>(num);
-      }
+    int num = 0;
+    while (has_next() && isdigit(peek())) {
+      char c = next();
+      int digit = c - '0';
+      num = num * 10 + digit;
     }
 
-    return mousebtn::NONE;
+    if (num < static_cast<int>(mousebtn::NONE) || num >= static_cast<int>(mousebtn::BTN_COUNT)) {
+      throw btn_error(std::to_string(num));
+    }
+
+    return static_cast<mousebtn>(num);
   }
 
   /**
