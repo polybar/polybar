@@ -735,7 +735,7 @@ void bar::handle(const evt::leave_notify&) {
     }
   }
 
-  if(!m_last_end_hover_action.empty()) {
+  if (!m_last_end_hover_action.empty()) {
     m_sig.emit(button_press{m_last_end_hover_action});
   }
 
@@ -753,9 +753,9 @@ void bar::handle(const evt::motion_notify& evt) {
 
   int motion_pos = evt->event_x;
 
-  const auto get_hover_str = [&](const mousebtn &button) -> string {
+  const auto get_hover_str = [&](const mousebtn& button) -> string {
     tags::action_t action = m_action_ctxt->has_action(button, motion_pos);
-    if(action != tags::NO_ACTION) {
+    if (action != tags::NO_ACTION) {
       m_log.trace("Found matching input area");
       return m_action_ctxt->get_action(action);
     }
@@ -766,13 +766,13 @@ void bar::handle(const evt::motion_notify& evt) {
   string hover_start_action = get_hover_str(mousebtn::HOVER_START);
   string hover_end_action = get_hover_str(mousebtn::HOVER_END);
 
-  if(hover_start_action != m_last_start_hover_action || hover_end_action != m_last_end_hover_action) {
+  if (hover_start_action != m_last_start_hover_action || hover_end_action != m_last_end_hover_action) {
     m_log.trace("bar: Hover changed");
-    if(!hover_start_action.empty()) {
+    if (!hover_start_action.empty()) {
       m_sig.emit(button_press{hover_start_action});
     }
 
-    if(!m_last_end_hover_action.empty()) {
+    if (!m_last_end_hover_action.empty()) {
       m_sig.emit(button_press{m_last_end_hover_action});
     }
 
@@ -939,7 +939,7 @@ void bar::start(const string& tray_module_name) {
   if (m_opts.dimvalue != 1.0 || !m_opts.disable_hover_checking) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if(!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || !m_opts.disable_hover_checking) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || !m_opts.disable_hover_checking) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
