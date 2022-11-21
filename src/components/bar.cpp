@@ -220,6 +220,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
 
+  m_opts.disable_hover_checking = m_conf.get(bs, "disable-hover-checking", m_opts.disable_hover_checking);
+
   if (only_initialize_values) {
     return;
   }
@@ -930,7 +932,9 @@ void bar::start(const string& tray_module_name) {
   if (m_opts.dimvalue != 1.0) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
+  if(!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || !m_opts.disable_hover_checking) {
+    m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
+  }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
 
   m_log.info("Bar window: %s", m_connection.id(m_opts.window));
