@@ -734,6 +734,13 @@ void bar::handle(const evt::leave_notify&) {
       });
     }
   }
+
+  if(!m_last_end_hover_action.empty()) {
+    m_sig.emit(button_press{m_last_end_hover_action});
+  }
+
+  m_last_end_hover_action = ""s;
+  m_last_start_hover_action = ""s;
 }
 
 /**
@@ -929,7 +936,7 @@ void bar::start(const string& tray_module_name) {
 
   // Subscribe to window enter and leave events
   // if we should dim the window
-  if (m_opts.dimvalue != 1.0) {
+  if (m_opts.dimvalue != 1.0 || !m_opts.disable_hover_checking) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
   if(!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || !m_opts.disable_hover_checking) {
