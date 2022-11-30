@@ -98,7 +98,8 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
     return;
   }
 
-  auto screen = m_connection.screen(true);
+  m_connection.reset_screen();
+  auto screen = m_connection.screen();
   auto changed = false;
 
   // We need to reload if the screen size changed as well

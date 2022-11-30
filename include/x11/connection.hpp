@@ -108,7 +108,8 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
 
   static void pack_values(uint32_t mask, const void* src, std::array<uint32_t, 32>& dest);
 
-  xcb_screen_t* screen(bool realloc = false);
+  void reset_screen();
+  xcb_screen_t* screen();
 
   string id(xcb_window_t w) const;
 

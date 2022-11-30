@@ -79,13 +79,15 @@ string connection::id(xcb_window_t w) const {
   return sstream() << "0x" << std::hex << std::setw(7) << std::setfill('0') << w;
 }
 
+void connection::reset_screen() {
+  m_screen = nullptr;
+}
+
 /**
  * Get pointer to the default xcb screen
- *
- * TODO remove realloc param. Create explicit realloc function
  */
-xcb_screen_t* connection::screen(bool realloc) {
-  if (m_screen == nullptr || realloc) {
+xcb_screen_t* connection::screen() {
+  if (m_screen == nullptr) {
     m_screen = screen_of_display(default_screen());
   }
   return m_screen;
