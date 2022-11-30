@@ -16,80 +16,80 @@
 POLYBAR_NS
 
 namespace detail {
-  template <typename Connection, typename... Extensions>
-  class interfaces : public xpp::x::extension::interface<interfaces<Connection, Extensions...>, Connection>,
-                     public Extensions::template interface<interfaces<Connection, Extensions...>, Connection>... {
-   public:
-    const Connection& connection() const {
-      return static_cast<const Connection&>(*this);
-    }
-  };
+template <typename Connection, typename... Extensions>
+class interfaces : public xpp::x::extension::interface<interfaces<Connection, Extensions...>, Connection>,
+                   public Extensions::template interface<interfaces<Connection, Extensions...>, Connection>... {
+ public:
+  const Connection& connection() const {
+    return static_cast<const Connection&>(*this);
+  }
+};
 
-  template <typename Derived, typename... Extensions>
-  class connection_base : public xpp::core,
-                          public xpp::generic::error_dispatcher,
-                          public detail::interfaces<connection_base<Derived, Extensions...>, Extensions...>,
-                          private xpp::x::extension,
-                          private xpp::x::extension::error_dispatcher,
-                          private Extensions...,
-                          private Extensions::error_dispatcher... {
-   public:
-    explicit connection_base(xcb_connection_t* c, int s)
-        : xpp::core(c)
-        , interfaces<connection_base<Derived, Extensions...>, Extensions...>(*this)
-        , Extensions(m_c.get())...
-        , Extensions::error_dispatcher(static_cast<Extensions&>(*this).get())... {
-      core::m_screen = s;
-      m_root_window = screen_of_display(s)->root;
-    }
+template <typename Derived, typename... Extensions>
+class connection_base : public xpp::core,
+                        public xpp::generic::error_dispatcher,
+                        public detail::interfaces<connection_base<Derived, Extensions...>, Extensions...>,
+                        private xpp::x::extension,
+                        private xpp::x::extension::error_dispatcher,
+                        private Extensions...,
+                        private Extensions::error_dispatcher... {
+ public:
+  explicit connection_base(xcb_connection_t* c, int s)
+      : xpp::core(c)
+      , interfaces<connection_base<Derived, Extensions...>, Extensions...>(*this)
+      , Extensions(m_c.get())...
+      , Extensions::error_dispatcher(static_cast<Extensions&>(*this).get())... {
+    core::m_screen = s;
+    m_root_window = screen_of_display(s)->root;
+  }
 
-    void operator()(const shared_ptr<xcb_generic_error_t>& error) const override {
+  void operator()(const shared_ptr<xcb_generic_error_t>& error) const override {
+    check<xpp::x::extension, Extensions...>(error);
+  }
+
+  template <typename Extension>
+  const Extension& extension() const {
+    return static_cast<const Extension&>(*this);
+  }
+
+  xcb_window_t root() const {
+    return m_root_window;
+  }
+
+  shared_ptr<xcb_generic_event_t> wait_for_event() const override {
+    try {
+      return core::wait_for_event();
+    } catch (const shared_ptr<xcb_generic_error_t>& error) {
       check<xpp::x::extension, Extensions...>(error);
     }
+    throw; // re-throw exception
+  }
 
-    template <typename Extension>
-    const Extension& extension() const {
-      return static_cast<const Extension&>(*this);
+  shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const override {
+    try {
+      return core::wait_for_special_event(se);
+    } catch (const shared_ptr<xcb_generic_error_t>& error) {
+      check<xpp::x::extension, Extensions...>(error);
     }
+    throw; // re-throw exception
+  }
 
-    xcb_window_t root() const {
-      return m_root_window;
-    }
+ private:
+  xcb_window_t m_root_window;
 
-    shared_ptr<xcb_generic_event_t> wait_for_event() const override {
-      try {
-        return core::wait_for_event();
-      } catch (const shared_ptr<xcb_generic_error_t>& error) {
-        check<xpp::x::extension, Extensions...>(error);
-      }
-      throw; // re-throw exception
-    }
+  template <typename Extension, typename Next, typename... Rest>
+  void check(const shared_ptr<xcb_generic_error_t>& error) const {
+    check<Extension>(error);
+    check<Next, Rest...>(error);
+  }
 
-    shared_ptr<xcb_generic_event_t> wait_for_special_event(xcb_special_event_t* se) const override {
-      try {
-        return core::wait_for_special_event(se);
-      } catch (const shared_ptr<xcb_generic_error_t>& error) {
-        check<xpp::x::extension, Extensions...>(error);
-      }
-      throw; // re-throw exception
-    }
-
-   private:
-    xcb_window_t m_root_window;
-
-    template <typename Extension, typename Next, typename... Rest>
-    void check(const shared_ptr<xcb_generic_error_t>& error) const {
-      check<Extension>(error);
-      check<Next, Rest...>(error);
-    }
-
-    template <typename Extension>
-    void check(const shared_ptr<xcb_generic_error_t>& error) const {
-      using error_dispatcher = typename Extension::error_dispatcher;
-      auto& dispatcher = static_cast<const error_dispatcher&>(*this);
-      dispatcher(error);
-    }
-  };
+  template <typename Extension>
+  void check(const shared_ptr<xcb_generic_error_t>& error) const {
+    using error_dispatcher = typename Extension::error_dispatcher;
+    auto& dispatcher = static_cast<const error_dispatcher&>(*this);
+    dispatcher(error);
+  }
+};
 } // namespace detail
 
 class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIST> {
@@ -128,27 +128,6 @@ class connection : public detail::connection_base<connection&, XPP_EXTENSION_LIS
   static string error_str(int error_code);
 
   void dispatch_event(const shared_ptr<xcb_generic_event_t>& evt) const;
-
-  template <typename Event, unsigned int ResponseType>
-  void wait_for_response(function<bool(const Event*)> check_event) {
-    int fd = get_file_descriptor();
-    shared_ptr<xcb_generic_event_t> evt{};
-    while (!connection_has_error()) {
-      fd_set fds;
-      FD_ZERO(&fds);
-      FD_SET(fd, &fds);
-
-      if (!select(fd + 1, &fds, nullptr, nullptr, nullptr)) {
-        continue;
-      } else if ((evt = shared_ptr<xcb_generic_event_t>(xcb_poll_for_event(*this), free)) == nullptr) {
-        continue;
-      } else if (evt->response_type != ResponseType) {
-        continue;
-      } else if (check_event(reinterpret_cast<const Event*>(&*evt))) {
-        break;
-      }
-    }
-  }
 
   template <typename Sink>
   void attach_sink(Sink&& sink, registry::priority prio = 0) {
