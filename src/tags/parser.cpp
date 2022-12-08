@@ -403,11 +403,16 @@ namespace tags {
    */
   mousebtn parser::parse_action_btn() {
     int num = 0;
+    string s;
     while (has_next() && isdigit(peek())) {
-      char c = next();
-      int digit = c - '0';
-      num = num * 10 + digit;
+      s += next();
     }
+
+    if(s.empty()) {
+      return mousebtn::NONE;
+    }
+    
+    num = std::stoi(s, nullptr, 10);
 
     if (num < static_cast<int>(mousebtn::NONE) || num >= static_cast<int>(mousebtn::BTN_COUNT)) {
       throw btn_error(std::to_string(num));
