@@ -773,12 +773,12 @@ void bar::handle(const evt::motion_notify& evt) {
 
   if (hover_start_action != m_last_start_hover_action || hover_end_action != m_last_end_hover_action) {
     m_log.trace("bar: Hover changed");
-    if (!hover_start_action.empty()) {
-      m_sig.emit(button_press{hover_start_action});
-    }
-
     if (!m_last_end_hover_action.empty()) {
       m_sig.emit(button_press{m_last_end_hover_action});
+    }
+
+    if (!hover_start_action.empty()) {
+      m_sig.emit(button_press{hover_start_action});
     }
 
     m_last_start_hover_action = hover_start_action;
