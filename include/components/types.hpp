@@ -226,7 +226,7 @@ struct bar_settings {
 
   vector<action> actions{};
 
-  bool disable_hover_checking{false};
+  bool enable_hover_checking{false};
 
   bool dimmed{false};
   double dimvalue{1.0};

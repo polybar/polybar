@@ -25,7 +25,7 @@ namespace modules {
     m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
     m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
 
-    if (!bar.disable_hover_checking) {
+    if (bar.enable_hover_checking) {
       m_actions[mousebtn::HOVER_START] = m_conf.get(name(), "hover-start", ""s);
       m_actions[mousebtn::HOVER_END] = m_conf.get(name(), "hover-end", ""s);
     } else {

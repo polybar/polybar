@@ -220,7 +220,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
 
-  m_opts.disable_hover_checking = m_conf.get(bs, "disable-hover-checking", m_opts.disable_hover_checking);
+  m_opts.enable_hover_checking = m_conf.get(bs, "enable-hover-checking", m_opts.enable_hover_checking);
 
   if (only_initialize_values) {
     return;
@@ -736,7 +736,7 @@ void bar::handle(const evt::leave_notify&) {
     }
   }
 
-  if (!m_last_end_hover_action.empty() && !m_opts.disable_hover_checking) {
+  if (!m_last_end_hover_action.empty() && m_opts.enable_hover_checking) {
     m_sig.emit(button_press{m_last_end_hover_action});
   }
 
@@ -755,7 +755,7 @@ void bar::handle(const evt::motion_notify& evt) {
   int motion_pos = evt->event_x;
 
   const auto get_hover_str = [&](const mousebtn& button) -> string {
-    if (m_opts.disable_hover_checking) {
+    if (!m_opts.enable_hover_checking) {
       return ""s;
     }
 
@@ -941,10 +941,10 @@ void bar::start(const string& tray_module_name) {
 
   // Subscribe to window enter and leave events
   // if we should dim the window
-  if (m_opts.dimvalue != 1.0 || !m_opts.disable_hover_checking) {
+  if (m_opts.dimvalue != 1.0 || m_opts.enable_hover_checking) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || !m_opts.disable_hover_checking) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || m_opts.enable_hover_checking) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
