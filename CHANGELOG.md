@@ -35,7 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `enable-struts` option in bar section to enable/disable struts ([`#2769`](https://github.com/polybar/polybar/issues/2769), [`#2844`](https://github.com/polybar/polybar/pull/2844)) by [@VanillaViking](https://github.com/VanillaViking).
 
 ### Changed
-- `custom/script`: No longer produces a completely empty module if the `exec` command failed. It only produces an empty module if the script had a zero exit code. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
+- `custom/script`:
+  - No longer produces a completely empty module if the `exec` command failed. It only produces an empty module if the script had a zero exit code. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
+  - Bumped the script polling interval (not related to the `interval` setting) to decrease wakeups. Polybar may take slightly longer to shut down. [`#2879`](https://github.com/polybar/polybar/pull/2879)
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
 - `internal/backlight`:
   - Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
