@@ -355,9 +355,14 @@ void client::update_bg() const {
   // Composite background slice with background color.
   // TODO this doesn't have to be done if the background color is not transparent.
   m_context->clear();
-  *m_context << CAIRO_OPERATOR_SOURCE << *m_bg_slice->get_surface();
-  m_context->paint();
-  *m_context << CAIRO_OPERATOR_OVER << m_desired_background;
+
+  auto root_bg = m_bg_slice->get_surface();
+  if (root_bg != nullptr) {
+    *m_context << CAIRO_OPERATOR_SOURCE << *root_bg;
+    m_context->paint();
+    *m_context << CAIRO_OPERATOR_OVER;
+  }
+  *m_context << m_desired_background;
   m_context->paint();
 
   m_surface->flush();
