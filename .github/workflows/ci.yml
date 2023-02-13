@@ -14,7 +14,7 @@ jobs:
     env:
       COLOR: "ON"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.ref }}
       - name: Install Dependencies
@@ -48,7 +48,7 @@ jobs:
             python3-xcbgen \
             libuv1-dev \
             xcb-proto
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
           ref: ${{ github.event.inputs.ref }}
@@ -115,7 +115,7 @@ jobs:
           if [ "$POLYBAR_BUILD_TYPE" = "tests" ]; then
             sudo apt-get install -y lcov
           fi
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
           ref: ${{ github.event.inputs.ref }}
@@ -125,7 +125,7 @@ jobs:
         run: ./common/ci/configure.sh
       - name: Build
         run: |
-          cd $BUILD_DIR
+          cd "$BUILD_DIR"
           make
       - name: Collect initial coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
@@ -134,17 +134,17 @@ jobs:
       - name: Tests
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
-          cd $BUILD_DIR
+          cd "$BUILD_DIR"
           make check
       - name: Collect coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
         run: |
           lcov --capture --no-external --directory . -o cov_tests.info
           lcov --add-tracefile cov_base.info --add-tracefile cov_tests.info -o cov_total.info
-          lcov --remove cov_total.info ${PWD}'/build/*' ${PWD}'/tests/*' ${PWD}'/lib/*' -o cov.info
+          lcov --remove cov_total.info "${PWD}/build/*" "${PWD}/tests/*" "${PWD}/lib/*" -o cov.info
       - name: Upload Coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           flags: unittests
           files: ./cov.info

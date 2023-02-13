@@ -1,5 +1,7 @@
 #include "x11/xresources.hpp"
 
+#include "common.hpp"
+
 POLYBAR_NS
 
 template <>
