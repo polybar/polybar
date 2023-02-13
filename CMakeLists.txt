@@ -22,6 +22,14 @@ else()
   set(APP_VERSION "${version_txt}")
 endif()
 
+# Set the default installation prefix to /usr
+# Otherwise the default value is /usr/local which causes the default config
+# file to be installed to /usr/local/etc, with /usr, cmake has special handling
+# for this.
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Project-default installation prefix" FORCE)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake
   ${PROJECT_SOURCE_DIR}/cmake/common
@@ -60,10 +68,9 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-
 if(BUILD_CONFIG)
   install(FILES ${CMAKE_SOURCE_DIR}/doc/config.ini
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/${PROJECT_NAME}
+    DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/${PROJECT_NAME}
     COMPONENT config)
 endif()
 
