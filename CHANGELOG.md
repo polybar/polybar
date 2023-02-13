@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - If the `exec` command produced no output and exited with a non-zero exit code the module is no longer completely empty, but just has an empty `%output%` token. If you relied on this behavior to hide the module under certain circumstances, make sure the script exits with an exit code of zero. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
 
 ### Build
-- Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770))
+- Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770), [`#2917`](https://github.com/polybar/polybar/pull/2917))
+- Change default `CMAKE_INSTALL_PREFIX` to `/usr`. Installations with default flags will now go into `/usr` instead of `/usr/local` ([`#2917`](https://github.com/polybar/polybar/pull/2917))
 - Bump C++ version to C++17 ([`#2847`](https://github.com/polybar/polybar/pull/2847))
 
 ### Deprecated
