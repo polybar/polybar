@@ -42,6 +42,8 @@ enum class mousebtn {
   DOUBLE_LEFT,
   DOUBLE_MIDDLE,
   DOUBLE_RIGHT,
+  HOVER_START,
+  HOVER_END,
   // Terminator value, do not use
   BTN_COUNT,
 };
@@ -223,6 +225,8 @@ struct bar_settings {
   string cursor_scroll{};
 
   vector<action> actions{};
+
+  bool enable_hover_actions{false};
 
   bool dimmed{false};
   double dimvalue{1.0};

@@ -220,6 +220,8 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
 
+  m_opts.enable_hover_actions = m_conf.get(bs, "enable-hover", m_opts.enable_hover_actions);
+
   if (only_initialize_values) {
     return;
   }
@@ -424,7 +426,8 @@ void bar::parse(string&& data, bool force) {
 
   m_dblclicks.clear();
   for (auto&& action : m_opts.actions) {
-    if (static_cast<int>(action.button) >= static_cast<int>(mousebtn::DOUBLE_LEFT)) {
+    if (action.button == mousebtn::DOUBLE_LEFT || action.button == mousebtn::DOUBLE_MIDDLE ||
+        action.button == mousebtn::DOUBLE_RIGHT) {
       m_dblclicks.insert(action.button);
     }
   }
@@ -732,17 +735,57 @@ void bar::handle(const evt::leave_notify&) {
       });
     }
   }
+
+  if (!m_last_end_hover_action.empty() && m_opts.enable_hover_actions) {
+    m_sig.emit(button_press{m_last_end_hover_action});
+  }
+
+  m_last_end_hover_action = ""s;
+  m_last_start_hover_action = ""s;
 }
 
 /**
  * Event handler for XCB_MOTION_NOTIFY events
  *
- * Used to change the cursor depending on the module
+ * Used to change the cursor depending on the module and handle hover actions
  */
 void bar::handle(const evt::motion_notify& evt) {
   m_log.trace("bar: Detected motion: %i at pos(%i, %i)", evt->detail, evt->event_x, evt->event_y);
-#if WITH_XCURSOR
+
   int motion_pos = evt->event_x;
+
+  const auto get_hover_str = [&](const mousebtn& button) -> string {
+    if (!m_opts.enable_hover_actions) {
+      return ""s;
+    }
+
+    tags::action_t action = m_action_ctxt->has_action(button, motion_pos);
+    if (action != tags::NO_ACTION) {
+      m_log.trace("Found matching input area");
+      return m_action_ctxt->get_action(action);
+    }
+
+    return ""s;
+  };
+
+  string hover_start_action = get_hover_str(mousebtn::HOVER_START);
+  string hover_end_action = get_hover_str(mousebtn::HOVER_END);
+
+  if (hover_start_action != m_last_start_hover_action || hover_end_action != m_last_end_hover_action) {
+    m_log.trace("bar: Hover changed");
+    if (!m_last_end_hover_action.empty()) {
+      m_sig.emit(button_press{m_last_end_hover_action});
+    }
+
+    if (!hover_start_action.empty()) {
+      m_sig.emit(button_press{hover_start_action});
+    }
+
+    m_last_start_hover_action = hover_start_action;
+    m_last_end_hover_action = hover_end_action;
+  }
+
+#if WITH_XCURSOR
   // scroll cursor is less important than click cursor, so we shouldn't return until we are sure there is no click
   // action
   bool found_scroll = false;
@@ -898,10 +941,10 @@ void bar::start(const string& tray_module_name) {
 
   // Subscribe to window enter and leave events
   // if we should dim the window
-  if (m_opts.dimvalue != 1.0) {
+  if (m_opts.dimvalue != 1.0 || m_opts.enable_hover_actions) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_LEAVE_WINDOW);
   }
-  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty()) {
+  if (!m_opts.cursor_click.empty() || !m_opts.cursor_scroll.empty() || m_opts.enable_hover_actions) {
     m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_POINTER_MOTION);
   }
   m_connection.ensure_event_mask(m_opts.window, XCB_EVENT_MASK_STRUCTURE_NOTIFY);
