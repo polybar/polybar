@@ -40,12 +40,16 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_group_by_monitor = m_conf.get(name(), "group-by-monitor", m_group_by_monitor);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
 
     if (m_formatter->has(TAG_LABEL_MONITOR)) {
       m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_LABEL_MONITOR);
+      if (m_monitorlabel && !m_group_by_monitor) {
+        throw module_error("Cannot use label-monitor when not grouping by monitor");
+      }
     }
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
@@ -188,7 +192,9 @@ namespace modules {
     /*
      * Stores the _NET_DESKTOP_VIEWPORT hint
      *
-     * For WMs that don't support that hint, we store an empty vector
+     * For WMs that don't support that hint, or if the user explicitly
+     * disables support via the configuration file, we store an empty
+     * vector.
      *
      * The vector will be padded/reduced to _NET_NUMBER_OF_DESKTOPS.
      * All desktops which aren't explicitly assigned a postion will be
@@ -197,7 +203,7 @@ namespace modules {
      * We use this to map workspaces to viewports, desktop i is at position
      * ws_positions[i].
      */
-    vector<position> ws_positions = ewmh_util::get_desktop_viewports();
+    vector<position> ws_positions = m_group_by_monitor ? ewmh_util::get_desktop_viewports() : vector<position>();
 
     auto num_desktops = m_desktop_names.size();
 

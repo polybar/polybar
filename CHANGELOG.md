@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wm-restack`:
   - `bottom`: lowers polybar to the bottom of the window stack (same as the previous behavior of `generic`) ([`#2961`](https://github.com/polybar/polybar/pull/2961))
   - `ewmh`: Tries to use the `_NET_SUPPORTING_WM_CHECK` hint to position the bar ([`#2961`](https://github.com/polybar/polybar/pull/2961))
+- `internal/xworkspaces`: `group-by-monitor` setting to decide whether `_NET_DESKTOP_VIEWPORT` should be used to group workspaces by monitor; ([`#2603`](https://github.com/polybar/polybar/issues/2603), [`#2926`](https://github.com/polybar/polybar/pull/2926)) by [@slotThe](https://github.com/slotThe/).
 
 ### Changed
 - `custom/script`:

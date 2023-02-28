@@ -105,6 +105,7 @@ namespace modules {
     bool m_click{true};
     bool m_scroll{true};
     bool m_revscroll{false};
+    bool m_group_by_monitor{true};
     size_t m_index{0};
   };
 } // namespace modules
