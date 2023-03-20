@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 #include <utility>
+#include <regex>
 
 POLYBAR_NS
 
@@ -181,6 +182,11 @@ namespace string_util {
       return "";
     }
     return rtrim(ltrim(forward<string>(value), needle), needle);
+  }
+
+  bool match(const string& value, const string& regex) {
+    const std::regex r{regex};
+    return std::regex_match(value, r);
   }
 
   /**

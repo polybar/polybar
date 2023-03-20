@@ -64,6 +64,8 @@ namespace string_util {
   string rtrim(string&& value, const char& needle = ' ');
   string trim(string&& value, const char& needle = ' ');
 
+  bool match(const string& value, const string& regex);
+
   size_t char_len(const string& value);
   string utf8_truncate(string&& value, size_t len);
 

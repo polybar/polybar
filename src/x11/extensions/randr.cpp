@@ -22,7 +22,7 @@ bool randr_output::match(const string& o, bool exact) const {
   if (exact) {
     return name == o;
   } else {
-    return string_util::replace(name, "-", "") == string_util::replace(o, "-", "");
+    return string_util::match(name, o);
   }
 }
 
