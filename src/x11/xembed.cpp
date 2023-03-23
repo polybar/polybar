@@ -119,7 +119,6 @@ void unembed(connection& conn, xcb_window_t win, xcb_window_t root) {
     conn.reparent_window_checked(win, root, 0, 0);
   } catch (const xpp::x::error::window& err) {
     // invalid window
-    // TODO
     logger::make().err("tray: Failed to unembed window '%s' (%s)", ewmh_util::get_wm_name(win), conn.id(win));
   }
 }

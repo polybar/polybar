@@ -109,12 +109,16 @@ class renderer : public renderer_interface,
   xcb_colormap_t m_colormap{XCB_NONE};
   xcb_visualtype_t* m_visual;
   xcb_gcontext_t m_gcontext;
+
+  /**
+   * Background pixmap for the bar window
+   *
+   * All bar contents are rendered onto this.
+   */
   xcb_pixmap_t m_pixmap;
 
   xcb_rectangle_t m_rect{0, 0, 0U, 0U};
   reserve_area m_cleararea{};
-
-  // bool m_autosize{false};
 
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
