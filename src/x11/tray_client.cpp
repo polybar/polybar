@@ -3,6 +3,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_icccm.h>
+#include "xpp/pixmap.hpp"
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
@@ -65,35 +66,34 @@ client::client(
     << cw_flush(true);
   // clang-format on
 
-  // TODO destroy in destructor
-  xcb_pixmap_t pixmap = m_connection.generate_id();
-
   try {
-    m_connection.create_pixmap_checked(client_depth, pixmap, m_wrapper, s.w, s.h);
+    m_pixmap = m_connection.generate_id();
+    m_connection.create_pixmap_checked(client_depth, m_pixmap, m_wrapper, s.w, s.h);
   } catch (const std::exception& err) {
+    m_pixmap = XCB_NONE;
     // TODO in case of error, fall back to desired_background
     m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
     throw;
   }
 
   try {
-    m_connection.change_window_attributes_checked(m_wrapper, XCB_CW_BACK_PIXMAP, &pixmap);
+    m_connection.change_window_attributes_checked(m_wrapper, XCB_CW_BACK_PIXMAP, &m_pixmap);
   } catch (const std::exception& err) {
     // TODO in case of error, fall back to desired_background
     m_log.err("Failed to set tray window back pixmap (%s)", err.what());
     throw;
   }
 
-  // TODO destroy in destructor
-  xcb_gcontext_t gc = m_connection.generate_id();
   try {
+    m_gc = m_connection.generate_id();
     xcb_params_gc_t params{};
     uint32_t mask = 0;
     XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
     std::array<uint32_t, 32> values{};
     connection::pack_values(mask, &params, values);
-    m_connection.create_gc_checked(gc, pixmap, mask, values.data());
+    m_connection.create_gc_checked(m_gc, m_pixmap, mask, values.data());
   } catch (const std::exception& err) {
+    m_gc = XCB_NONE;
     m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
     throw;
   }
@@ -104,7 +104,7 @@ client::client(
     throw std::runtime_error("Failed to get root visual for tray background");
   }
 
-  m_surface = make_unique<cairo::xcb_surface>(m_connection, pixmap, visual, s.w, s.h);
+  m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, s.w, s.h);
   m_context = make_unique<cairo::context>(*m_surface, m_log);
 
   observe_background();
@@ -117,6 +117,14 @@ client::~client() {
 
   if (m_wrapper != XCB_NONE) {
     m_connection.destroy_window(m_wrapper);
+  }
+
+  if (m_gc != XCB_NONE) {
+    m_connection.free_gc(m_gc);
+  }
+
+  if (m_pixmap != XCB_NONE) {
+    m_connection.free_pixmap(m_pixmap);
   }
 }
 
@@ -317,7 +325,6 @@ void client::set_position(int x, int y) {
   connection::pack_values(configure_mask, &configure_params, configure_values);
   m_connection.configure_window_checked(client_window(), configure_mask, configure_values.data());
 
-  // TODO
   xcb_size_hints_t size_hints{};
   xcb_icccm_size_hints_set_size(&size_hints, false, m_size.w, m_size.h);
   xcb_icccm_set_wm_size_hints(m_connection, client_window(), XCB_ATOM_WM_NORMAL_HINTS, &size_hints);
