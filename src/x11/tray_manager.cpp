@@ -27,27 +27,12 @@
  *
  * Ref: https://specifications.freedesktop.org/systemtray-spec/systemtray-spec-latest.html
  *
- * This class manages embedded tray icons by placing them on the bar in the correct position; the position itself is
+ * This class manages embedded tray icons by placing them on the bar in the correct positions; the start position is
  * requested by the renderer.
  *
  * The tray manager needs to trigger bar updates only when the size of the entire tray changes (e.g. when tray icons are
- * added/removed). EVerything else can be handled without an update.
+ * added/removed). Everything else can be handled without an update.
  */
-
-// ====================================================================================================
-//
-// TODO: 32-bit visual
-//
-// _NET_SYSTEM_TRAY_VISUAL visual_id VISUALID/32
-//
-// The property should be set by the tray manager to indicate the preferred visual for icon windows.
-//
-// To avoid ambiguity about the colormap to use this visual must either be the default visual for
-// the screen or it must be a TrueColor visual. If this property is set to a visual with an alpha
-// channel, the tray manager must use the Composite extension to composite the icon against the
-// background using PictOpOver.
-//
-// ====================================================================================================
 
 POLYBAR_NS
 

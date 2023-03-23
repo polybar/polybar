@@ -3,19 +3,28 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_icccm.h>
-#include "xpp/pixmap.hpp"
 
 #include "utils/memory.hpp"
 #include "x11/connection.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/winspec.hpp"
+#include "xpp/pixmap.hpp"
 
 POLYBAR_NS
 
 namespace tray {
 
 /*
- * TODO proper background of wrapper window
+ * The client window is embedded into a wrapper window with identical, size, depth, and visual.
+ * This wrapper window is used to paint the background of the icon (also dealing with transparent backgrounds through
+ * pseudo-transparency).
+ *
+ * True transprency is currently not supported here because it cannot be achieved with external compositors (those only
+ * seem to work for top-level windows) and has to be implemented by hand.
+ *
+ * TODO proper background of wrapper window:
+ *
+ * (TODO: Check if this is still necessary, the current approach seems to work)
  *
  * Do first possible:
  *
@@ -342,11 +351,13 @@ void client::update_bg() const {
   m_log.trace("%s: Update background", name());
 
   // Composite background slice with background color.
-  // TODO this doesn't have to be done if the background color is not transparent.
+
   m_context->clear();
 
   auto root_bg = m_bg_slice->get_surface();
   if (root_bg != nullptr) {
+    // TODO the compositing doesn't have to be done if the background color is not transparent.
+    // In that case, the bg slice can be completely skipped, we shouldn't event observe the background
     *m_context << CAIRO_OPERATOR_SOURCE << *root_bg;
     m_context->paint();
     *m_context << CAIRO_OPERATOR_OVER;

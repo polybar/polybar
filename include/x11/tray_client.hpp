@@ -107,6 +107,11 @@ class client : public non_copyable_mixin, public non_movable_mixin {
   xembed::info m_xembed{};
 
   /**
+   * Background pixmap of wrapper window
+   */
+  xcb_pixmap_t m_pixmap{XCB_NONE};
+
+  /**
    * Whether the wrapper window is currently mapped.
    */
   bool m_mapped{false};
@@ -124,8 +129,6 @@ class client : public non_copyable_mixin, public non_movable_mixin {
   shared_ptr<bg_slice> m_bg_slice;
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
-
-  xcb_pixmap_t m_pixmap{XCB_NONE};
 };
 
 } // namespace tray
