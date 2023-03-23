@@ -84,20 +84,6 @@ client::client(
     throw;
   }
 
-  try {
-    m_gc = m_connection.generate_id();
-    xcb_params_gc_t params{};
-    uint32_t mask = 0;
-    XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 1);
-    std::array<uint32_t, 32> values{};
-    connection::pack_values(mask, &params, values);
-    m_connection.create_gc_checked(m_gc, m_pixmap, mask, values.data());
-  } catch (const std::exception& err) {
-    m_gc = XCB_NONE;
-    m_log.err("Failed to create gcontext for tray background (err: %s)", err.what());
-    throw;
-  }
-
   xcb_visualtype_t* visual = m_connection.visual_type_for_id(client_visual);
   if (!visual) {
     // TODO in case of error, fall back to desired_background
@@ -117,10 +103,6 @@ client::~client() {
 
   if (m_wrapper != XCB_NONE) {
     m_connection.destroy_window(m_wrapper);
-  }
-
-  if (m_gc != XCB_NONE) {
-    m_connection.free_gc(m_gc);
   }
 
   if (m_pixmap != XCB_NONE) {

@@ -124,7 +124,6 @@ class client : public non_copyable_mixin, public non_movable_mixin {
   shared_ptr<bg_slice> m_bg_slice;
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
-  xcb_gcontext_t m_gc{XCB_NONE};
 
   xcb_pixmap_t m_pixmap{XCB_NONE};
 };
