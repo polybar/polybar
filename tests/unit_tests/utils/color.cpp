@@ -89,14 +89,14 @@ TEST(Rgba, hasColor) {
 }
 
 TEST(Rgba, isTransparent) {
-  rgba v(0x1243);
+  rgba v{"#123456"};
   EXPECT_FALSE(v.is_transparent());
 
-  v = rgba(0xff1243);
+  v = rgba{"#ff123456"};
 
   EXPECT_FALSE(v.is_transparent());
 
-  v = rgba(0xfe1243);
+  v = rgba{"#fe123456"};
 
   EXPECT_TRUE(v.is_transparent());
 }
