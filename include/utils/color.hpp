@@ -37,6 +37,7 @@ class rgba {
   uint8_t blue_i() const;
 
   bool has_color() const;
+  bool is_transparent() const;
   rgba apply_alpha_to(rgba other) const;
   rgba try_apply_alpha_to(rgba other) const;
 

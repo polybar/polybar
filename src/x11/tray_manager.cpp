@@ -122,6 +122,7 @@ void manager::activate() {
   try {
     set_tray_colors();
     set_tray_orientation();
+    // TODO
     // set_tray_visual();
   } catch (const exception& err) {
     m_log.err(err.what());
@@ -353,7 +354,7 @@ void manager::set_tray_orientation() {
       XCB_ATOM_CARDINAL, 32, 1, &orientation);
 }
 
-// TODO remove
+// TODO remove, we should probably not set a visual at all (or only a 24-bit one)
 void manager::set_tray_visual() {
   // TODO use bar visual
   const uint32_t visualid = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 32)->visual_id;
@@ -436,7 +437,7 @@ void manager::process_docking_request(xcb_window_t win) {
 
   try {
     auto cl = make_unique<client>(
-        m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_bar_opts.background.value());
+        m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_opts.background);
 
     try {
       cl->query_xembed();

@@ -154,6 +154,10 @@ bool rgba::has_color() const {
   return m_type != type::NONE;
 }
 
+bool rgba::is_transparent() const {
+  return alpha_i() != 0xFF;
+}
+
 /**
  * Applies the alpha channel of this color to the given color.
  */

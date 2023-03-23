@@ -25,7 +25,7 @@ namespace tray {
 class client : public non_copyable_mixin, public non_movable_mixin {
  public:
   explicit client(
-      const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background);
+      const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, rgba desired_background);
   ~client();
 
   string name() const;
@@ -124,9 +124,10 @@ class client : public non_copyable_mixin, public non_movable_mixin {
   size m_size;
   position m_pos{0, 0};
 
-  rgba m_desired_background;
+  const rgba m_desired_background;
+  const bool m_transparent{m_desired_background.is_transparent()};
   background_manager& m_background_manager;
-  shared_ptr<bg_slice> m_bg_slice;
+  shared_ptr<bg_slice> m_bg_slice{nullptr};
   unique_ptr<cairo::context> m_context;
   unique_ptr<cairo::xcb_surface> m_surface;
 };

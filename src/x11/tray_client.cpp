@@ -33,7 +33,7 @@ namespace tray {
  * 3. Use background color
  */
 client::client(
-    const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, uint32_t desired_background)
+    const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, rgba desired_background)
     : m_log(log)
     , m_connection(conn)
     , m_name(ewmh_util::get_wm_name(win))
@@ -350,17 +350,16 @@ void client::configure_notify() const {
 void client::update_bg() const {
   m_log.trace("%s: Update background", name());
 
-  // Composite background slice with background color.
-
   m_context->clear();
 
-  auto root_bg = m_bg_slice->get_surface();
-  if (root_bg != nullptr) {
-    // TODO the compositing doesn't have to be done if the background color is not transparent.
-    // In that case, the bg slice can be completely skipped, we shouldn't event observe the background
-    *m_context << CAIRO_OPERATOR_SOURCE << *root_bg;
-    m_context->paint();
-    *m_context << CAIRO_OPERATOR_OVER;
+  // Composite background slice with background color.
+  if (m_bg_slice) {
+    auto root_bg = m_bg_slice->get_surface();
+    if (root_bg != nullptr) {
+      *m_context << CAIRO_OPERATOR_SOURCE << *root_bg;
+      m_context->paint();
+      *m_context << CAIRO_OPERATOR_OVER;
+    }
   }
   *m_context << m_desired_background;
   m_context->paint();
@@ -372,6 +371,11 @@ void client::update_bg() const {
 }
 
 void client::observe_background() {
+  // Opaque backgrounds don't require pseudo-transparency
+  if (!m_transparent) {
+    return;
+  }
+
   xcb_rectangle_t rect{0, 0, static_cast<uint16_t>(m_size.w), static_cast<uint16_t>(m_size.h)};
   m_bg_slice = m_background_manager.observe(rect, embedder());
 
