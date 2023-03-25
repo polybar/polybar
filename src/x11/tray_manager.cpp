@@ -65,15 +65,12 @@ void manager::setup(const config& conf, const string& section_name) {
   }
 
   // Apply user-defined scaling
-  // TODO maybe remove
   auto scale = conf.get(section_name, "tray-scale", 1.0);
   client_height *= scale;
 
   m_opts.client_size = {client_height, client_height};
 
   // Set user-defined foreground and background colors.
-  // TODO maybe remove
-  // TODO only run background manager, etc. when the background has transparency.
   m_opts.background = conf.get(section_name, "tray-background", m_bar_opts.background);
   m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
 
