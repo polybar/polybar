@@ -95,7 +95,6 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
 
   bool acquire_selection(xcb_window_t& other_owner);
   void notify_clients();
-  void notify_clients_delayed();
 
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
@@ -196,10 +195,6 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
    * Whether the tray is visible
    */
   bool m_hidden{false};
-
-  thread m_delaythread;
-
-  bool m_firstactivation{true};
 };
 
 } // namespace tray

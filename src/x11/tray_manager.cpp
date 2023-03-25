@@ -45,9 +45,6 @@ manager::manager(
 }
 
 manager::~manager() {
-  if (m_delaythread.joinable()) {
-    m_delaythread.join();
-  }
   m_connection.detach_sink(this, SINK_PRIORITY_TRAY);
   deactivate();
 }
@@ -141,15 +138,6 @@ void manager::activate() {
   m_state = state::ACTIVE;
 
   notify_clients();
-  // Send delayed notification
-  // TODO try to remove this?
-  // if (!m_firstactivation) {
-  //   notify_clients();
-  // } else {
-  //   notify_clients_delayed();
-  // }
-
-  m_firstactivation = false;
 }
 
 /**
@@ -388,19 +376,6 @@ void manager::notify_clients() {
     message.data.data32[2] = m_opts.selection_owner;
     m_connection.send_client_message(message, m_connection.root());
   }
-}
-
-/**
- * Send delayed notification to pending clients
- */
-void manager::notify_clients_delayed() {
-  if (m_delaythread.joinable()) {
-    m_delaythread.join();
-  }
-  m_delaythread = thread([this]() {
-    this_thread::sleep_for(1s);
-    notify_clients();
-  });
 }
 
 /**
