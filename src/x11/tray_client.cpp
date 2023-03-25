@@ -80,7 +80,6 @@ client::client(
     m_connection.create_pixmap_checked(client_depth, m_pixmap, m_wrapper, s.w, s.h);
   } catch (const std::exception& err) {
     m_pixmap = XCB_NONE;
-    // TODO in case of error, fall back to desired_background
     m_log.err("Failed to create pixmap for tray background (err: %s)", err.what());
     throw;
   }
@@ -88,14 +87,12 @@ client::client(
   try {
     m_connection.change_window_attributes_checked(m_wrapper, XCB_CW_BACK_PIXMAP, &m_pixmap);
   } catch (const std::exception& err) {
-    // TODO in case of error, fall back to desired_background
     m_log.err("Failed to set tray window back pixmap (%s)", err.what());
     throw;
   }
 
   xcb_visualtype_t* visual = m_connection.visual_type_for_id(client_visual);
   if (!visual) {
-    // TODO in case of error, fall back to desired_background
     throw std::runtime_error("Failed to get root visual for tray background");
   }
 
