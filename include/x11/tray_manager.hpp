@@ -84,7 +84,7 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
   bool is_visible() const;
 
  protected:
-  void reconfigure_window();
+  void recalculate_width();
   void reconfigure_clients();
   void redraw_clients();
 
@@ -104,16 +104,9 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
    */
   int calculate_x() const;
 
-  /**
-   * Final y-position of the tray window relative to the very top-left bar window.
-   */
-  int calculate_y() const;
-
   unsigned calculate_w() const;
 
   int calculate_client_y();
-
-  void update_width();
 
   bool is_embedded(const xcb_window_t& win);
   client* find_client(const xcb_window_t& win);

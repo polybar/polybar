@@ -164,7 +164,7 @@ void manager::wait_for_selection(xcb_window_t other) {
 
   m_state = state::WAITING;
 
-  reconfigure_window();
+  recalculate_width();
 }
 
 /**
@@ -194,7 +194,7 @@ void manager::deactivate() {
 
   m_state = state::INACTIVE;
 
-  reconfigure_window();
+  recalculate_width();
 }
 
 /**
@@ -204,8 +204,6 @@ void manager::reconfigure() {
   if (!m_opts.selection_owner) {
     return;
   }
-
-  reconfigure_window();
 
   try {
     reconfigure_clients();
@@ -217,19 +215,12 @@ void manager::reconfigure() {
 }
 
 /**
- * Reconfigure container window
+ * Calculates the total width of the tray and potentially runs the update hook.
  *
- * TODO should we call update_width directly?
+ * Should be called whenever the number of mapped clients changes
  */
-void manager::reconfigure_window() {
+void manager::recalculate_width() {
   m_log.trace("tray: Reconfigure window (hidden=%i, clients=%i)", m_hidden, m_clients.size());
-  update_width();
-}
-
-/**
- * TODO make sure this is always called when m_clients changes
- */
-void manager::update_width() {
   unsigned new_width = calculate_w();
   if (m_tray_width != new_width) {
     m_tray_width = new_width;
@@ -239,7 +230,7 @@ void manager::update_width() {
 }
 
 /**
- * Reconfigure clients
+ * Reconfigure client positions and mapped state
  */
 void manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
@@ -267,6 +258,9 @@ void manager::reconfigure_clients() {
   if (has_error) {
     clean_clients();
   }
+
+  // Some clients may have been (un)mapped or even removed
+  recalculate_width();
 }
 
 /**
@@ -397,8 +391,8 @@ void manager::process_docking_request(xcb_window_t win) {
   m_log.info("tray: Processing docking request from '%s' (%s)", ewmh_util::get_wm_name(win), m_connection.id(win));
 
   try {
-    auto cl = make_unique<client>(
-        m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_opts.background);
+    auto cl =
+        make_unique<client>(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_opts.background);
 
     try {
       cl->query_xembed();
@@ -425,17 +419,15 @@ void manager::process_docking_request(xcb_window_t win) {
   }
 }
 
-/**
- * Calculate x position of tray window
- */
 int manager::calculate_x() const {
   return m_bar_opts.inner_area(false).x + m_pos.x;
 }
 
-int manager::calculate_y() const {
-  return m_bar_opts.inner_area(false).y + m_pos.y;
-}
-
+/**
+ * Calculates the entire width taken up by the tray area in pixels
+ *
+ * This many pixels need to be reserved on the bar in order to draw the tray.
+ */
 unsigned manager::calculate_w() const {
   unsigned width = m_opts.spacing;
   unsigned count{0};
@@ -494,7 +486,7 @@ void manager::remove_client(xcb_window_t win) {
       std::remove_if(m_clients.begin(), m_clients.end(), [win](const auto& client) { return client->match(win); }));
 
   if (old_size != m_clients.size()) {
-    manager::reconfigure();
+    reconfigure();
   }
 }
 
