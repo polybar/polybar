@@ -444,7 +444,7 @@ unsigned manager::calculate_w() const {
  * Calculate y position of client window
  */
 int manager::calculate_client_y() {
-  return (m_bar_opts.inner_area(true).height - m_opts.client_size.h) / 2;
+  return (m_bar_opts.outer_area(true).height - m_opts.client_size.h) / 2;
 }
 
 /**
