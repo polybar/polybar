@@ -21,16 +21,6 @@ namespace tray {
  *
  * True transprency is currently not supported here because it cannot be achieved with external compositors (those only
  * seem to work for top-level windows) and has to be implemented by hand.
- *
- * TODO proper background of wrapper window:
- *
- * (TODO: Check if this is still necessary, the current approach seems to work)
- *
- * Do first possible:
- *
- * 1. Use PARENT_RELATIVE if tray window depths, etc. matches the bar window
- * 2. Use pseudo-transparency when activated (make sure the depths match)
- * 3. Use background color
  */
 client::client(
     const logger& log, connection& conn, xcb_window_t parent, xcb_window_t win, size s, rgba desired_background)

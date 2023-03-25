@@ -119,8 +119,6 @@ void manager::activate() {
   try {
     set_tray_colors();
     set_tray_orientation();
-    // TODO
-    // set_tray_visual();
   } catch (const exception& err) {
     m_log.err(err.what());
     m_log.err("Cannot activate tray manager... failed to setup window");
@@ -349,15 +347,6 @@ void manager::set_tray_orientation() {
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_ORIENTATION to 0x%x", orientation);
   m_connection.change_property_checked(XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_ORIENTATION,
       XCB_ATOM_CARDINAL, 32, 1, &orientation);
-}
-
-// TODO remove, we should probably not set a visual at all (or only a 24-bit one)
-void manager::set_tray_visual() {
-  // TODO use bar visual
-  const uint32_t visualid = m_connection.visual_type(XCB_VISUAL_CLASS_TRUE_COLOR, 32)->visual_id;
-  m_log.trace("tray: Set _NET_SYSTEM_TRAY_VISUAL to 0x%x", visualid);
-  m_connection.change_property_checked(
-      XCB_PROP_MODE_REPLACE, m_opts.selection_owner, _NET_SYSTEM_TRAY_VISUAL, XCB_ATOM_VISUALID, 32, 1, &visualid);
 }
 
 /**
