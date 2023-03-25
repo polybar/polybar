@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Breaking
-- `custom/script`: now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+- `custom/script`:
+  - now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+  - If the `exec` command produced no output and exited with a non-zero exit code the module is no longer completely empty, but just has an empty `%output%` token. If you relied on this behavior to hide the module under certain circumstances, make sure the script exits with an exit code of zero. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
 
 ### Build
-- Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770))
+- Respect `CMAKE_INSTALL_PREFIX` when installing default config ([`#2770`](https://github.com/polybar/polybar/pull/2770), [`#2917`](https://github.com/polybar/polybar/pull/2917))
+- Change default `CMAKE_INSTALL_PREFIX` to `/usr`. Installations with default flags will now go into `/usr` instead of `/usr/local` ([`#2917`](https://github.com/polybar/polybar/pull/2917))
 - Bump C++ version to C++17 ([`#2847`](https://github.com/polybar/polybar/pull/2847))
 
 ### Deprecated
@@ -33,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `enable-struts` option in bar section to enable/disable struts ([`#2769`](https://github.com/polybar/polybar/issues/2769), [`#2844`](https://github.com/polybar/polybar/pull/2844)) by [@VanillaViking](https://github.com/VanillaViking).
 
 ### Changed
+- `custom/script`:
+  - No longer produces a completely empty module if the `exec` command failed. It only produces an empty module if the script had a zero exit code. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
+  - Bumped the script polling interval (not related to the `interval` setting) to decrease wakeups. Polybar may take slightly longer to shut down. [`#2879`](https://github.com/polybar/polybar/pull/2879)
 - `internal/fs`: Use `/` as a fallback if no mountpoints are specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2705`](https://github.com/polybar/polybar/pull/2705))
 - `internal/backlight`:
   - Detect backlight if none specified ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2728`](https://github.com/polybar/polybar/pull/2728))
@@ -49,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
   - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))
 - `internal/xwindow`: module does not crash when a tag is not provided in format ([`#2826`](https://github.com/polybar/polybar/issues/2826), [`#2833`](https://github.com/polybar/polybar/pull/2833)) by [@VanillaViking](https://github.com/VanillaViking)
+- `internal/i3`: module errors when i3 has negative gaps ([`#2888`](https://github.com/polybar/polybar/issues/2888), [`#2889`](https://github.com/polybar/polybar/pull/2889))
 
 ## [3.6.3] - 2022-05-04
 ### Fixed

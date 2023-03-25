@@ -109,7 +109,7 @@ script_runner::interval script_runner::run() {
      * For non-tailed scripts, we only use the first line. However, to ensure interruptability when the module shuts
      * down, we still need to continue polling.
      */
-    if (io_util::poll_read(fd, 25) && !got_output) {
+    if (io_util::poll_read(fd, 250) && !got_output) {
       changed = set_output(cmd.readline());
       got_output = true;
     }
@@ -155,7 +155,7 @@ script_runner::interval script_runner::run_tail() {
   assert(fd != -1);
 
   while (!m_stopping && cmd.is_running() && !io_util::poll(fd, POLLHUP, 0)) {
-    if (io_util::poll_read(fd, 25)) {
+    if (io_util::poll_read(fd, 250)) {
       auto changed = set_output(cmd.readline());
 
       if (changed) {

@@ -31,9 +31,11 @@ jobs:
             RELEASE_TAG=${GITHUB_REF#refs/tags/}
           fi
           echo "Publishing Version $RELEASE_TAG"
-          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
-          echo "POLYBAR_DIR=polybar-$RELEASE_TAG" >> "$GITHUB_ENV"
-          echo "POLYBAR_ARCHIVE=polybar-$RELEASE_TAG.tar.gz" >> "$GITHUB_ENV"
+          {
+            echo "RELEASE_TAG=$RELEASE_TAG"
+            echo "POLYBAR_DIR=polybar-$RELEASE_TAG"
+            echo "POLYBAR_ARCHIVE=polybar-$RELEASE_TAG.tar.gz"
+          } >> "$GITHUB_ENV"
 
       # Checks out the target tag
       - uses: actions/checkout@v2
