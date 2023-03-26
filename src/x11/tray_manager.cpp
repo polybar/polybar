@@ -61,10 +61,6 @@ void manager::setup(const config& conf, const string& section_name) {
     client_height = maxsize;
   }
 
-  // Apply user-defined scaling
-  auto scale = conf.get(section_name, "tray-scale", 1.0);
-  client_height *= scale;
-
   m_opts.client_size = {client_height, client_height};
 
   // Set user-defined foreground and background colors.
