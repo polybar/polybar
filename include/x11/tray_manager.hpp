@@ -12,6 +12,7 @@
 #include "events/signal_fwd.hpp"
 #include "events/signal_receiver.hpp"
 #include "utils/concurrency.hpp"
+#include "utils/mixins.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
 #include "x11/tray_client.hpp"
@@ -45,7 +46,19 @@ struct tray_settings {
    * Number of pixels added between tray icons
    */
   unsigned spacing{0U};
+
+  /**
+   * Background color used in the client wrapper window
+   *
+   * If transparent, pseudo-transparency is used for the icon.
+   */
   rgba background{};
+
+  /**
+   * Used for `_NET_SYSTEM_TRAY_COLORS` atom
+   *
+   * Is only a hint to the tray applications.
+   */
   rgba foreground{};
 
   /**
@@ -62,7 +75,9 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
                     evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
                     evt::map_notify, evt::unmap_notify>,
                 public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
-                    signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility> {
+                    signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility>,
+                non_copyable_mixin,
+                non_movable_mixin {
  public:
   explicit manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts,
       on_update on_update);
