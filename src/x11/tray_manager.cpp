@@ -50,15 +50,17 @@ manager::~manager() {
 }
 
 void manager::setup(const config& conf, const string& section_name) {
-  unsigned client_height = m_bar_opts.inner_area().height;
+  unsigned bar_height = m_bar_opts.inner_area().height;
 
   // Add user-defined padding
   m_opts.spacing = conf.get<unsigned>(section_name, "tray-padding", 0);
 
-  auto maxsize = conf.get<unsigned>(section_name, "tray-maxsize", 16);
-  if (client_height > maxsize) {
-    m_opts.spacing += (client_height - maxsize) / 2;
-    client_height = maxsize;
+  auto size = conf.get(section_name, "tray-size", percentage_with_offset{66., ZERO_PX_EXTENT});
+  unsigned client_height = std::min(
+      bar_height, units_utils::percentage_with_offset_to_pixel_nonnegative(size, bar_height, m_bar_opts.dpi_y));
+
+  if (client_height == 0) {
+    m_log.warn("tray: tray-size has an effective value of 0px, you will not see any tray icons");
   }
 
   m_opts.client_size = {client_height, client_height};
@@ -293,7 +295,7 @@ void manager::query_atom() {
 }
 
 /**
- * Set color atom used by clients when determing icon theme
+ * Set _NET_SYSTEM_TRAY_COLORS atom used by clients when determing icon theme
  */
 void manager::set_tray_colors() {
   m_log.trace("tray: Set _NET_SYSTEM_TRAY_COLORS to 0x%08x", m_opts.foreground);
