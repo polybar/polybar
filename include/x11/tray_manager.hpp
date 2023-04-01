@@ -122,7 +122,6 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
   int calculate_x() const;
 
   unsigned calculate_w() const;
-  unsigned calculate_w(unsigned count) const;
 
   int calculate_client_y();
 
