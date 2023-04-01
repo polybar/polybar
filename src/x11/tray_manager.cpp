@@ -233,19 +233,20 @@ void manager::recalculate_width() {
 void manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
 
-  int x = calculate_x() + m_opts.spacing;
+  int base_x = calculate_x();
 
   bool has_error = false;
+
+  unsigned count = 0;
 
   for (auto& client : m_clients) {
     try {
       client->ensure_state();
 
       if (client->mapped()) {
-        client->set_position(x, calculate_client_y());
+        client->set_position(base_x + calculate_w(count), calculate_client_y());
+        count++;
       }
-
-      x += m_opts.client_size.w + m_opts.spacing;
     } catch (const xpp::x::error::window& err) {
       m_log.err("Failed to reconfigure %s, removing ... (%s)", client->name(), err.what());
       client.reset();
@@ -417,6 +418,9 @@ void manager::process_docking_request(xcb_window_t win) {
   }
 }
 
+/**
+ * Final x-position of the tray window relative to the very top-left bar window.
+ */
 int manager::calculate_x() const {
   return m_bar_opts.inner_area(false).x + m_pos.x;
 }
@@ -427,15 +431,21 @@ int manager::calculate_x() const {
  * This many pixels need to be reserved on the bar in order to draw the tray.
  */
 unsigned manager::calculate_w() const {
-  unsigned width = m_opts.spacing;
-  unsigned count{0};
-  for (const auto& client : m_clients) {
-    if (client->mapped()) {
-      count++;
-      width += m_opts.spacing + m_opts.client_size.w;
-    }
+  unsigned count =
+      std::count_if(m_clients.begin(), m_clients.end(), [](const auto& client) { return client->mapped(); });
+
+  return calculate_w(count);
+}
+
+/**
+ * Calculates the width taken up by count tray icons in pixels
+ */
+unsigned manager::calculate_w(unsigned count) const {
+  if (count) {
+    return m_opts.spacing + count * (m_opts.spacing + m_opts.client_size.w);
+  } else {
+    return 0;
   }
-  return count ? width : 0;
 }
 
 /**

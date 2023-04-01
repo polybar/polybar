@@ -48,6 +48,11 @@ struct tray_settings {
   unsigned spacing{0U};
 
   /**
+   * Number of pixels added before and after each tray icon
+   */
+  unsigned padding{0U};
+
+  /**
    * Background color used in the client wrapper window
    *
    * If transparent, pseudo-transparency is used for the icon.
@@ -114,12 +119,10 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
   void track_selection_owner(xcb_window_t owner);
   void process_docking_request(xcb_window_t win);
 
-  /**
-   * Final x-position of the tray window relative to the very top-left bar window.
-   */
   int calculate_x() const;
 
   unsigned calculate_w() const;
+  unsigned calculate_w(unsigned count) const;
 
   int calculate_client_y();
 
