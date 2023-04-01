@@ -17,6 +17,12 @@ Welcome to the official polybar documentation.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Modules:
+
+   user/modules/tray
+
+.. toctree::
+   :maxdepth: 1
    :caption: Manual Pages:
 
    man/polybar.1

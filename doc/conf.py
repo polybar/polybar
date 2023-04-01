@@ -13,6 +13,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import sys
 from pathlib import Path
 import datetime
 import sphinx
@@ -109,6 +110,8 @@ pygments_style = None
 highlight_language = 'none'
 
 smartquotes = False
+
+primary_domain = 'polybar'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -240,6 +243,9 @@ if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5
     app.add_directive('deprecated', VersionDirective)
     app.add_directive('versionadded', VersionDirective)
     app.add_directive('versionchanged', VersionDirective)
+    sys.path.insert(0, os.path.abspath(doc_path))
+    from configdomain import myDomain
+    app.add_domain(myDomain)
 
   class VersionDirective(VersionChange):
     """
