@@ -52,8 +52,13 @@ manager::~manager() {
 void manager::setup(const config& conf, const string& section_name) {
   unsigned bar_height = m_bar_opts.inner_area().height;
 
-  // Add user-defined padding
-  m_opts.spacing = conf.get<unsigned>(section_name, "tray-padding", 0);
+  // Spacing between icons
+  auto spacing = conf.get(section_name, "tray-spacing", ZERO_PX_EXTENT);
+  m_opts.spacing = units_utils::extent_to_pixel_nonnegative(spacing, m_bar_opts.dpi_x);
+
+  // Padding before and after each icon
+  auto padding = conf.get(section_name, "tray-padding", ZERO_PX_EXTENT);
+  m_opts.padding = units_utils::extent_to_pixel_nonnegative(padding, m_bar_opts.dpi_x);
 
   auto size = conf.get(section_name, "tray-size", percentage_with_offset{66., ZERO_PX_EXTENT});
   unsigned client_height = std::min(
@@ -70,6 +75,8 @@ void manager::setup(const config& conf, const string& section_name) {
   m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
+
+  m_log.info("tray: spacing=%upx padding=%upx size=%upx", m_opts.spacing, m_opts.padding, client_height);
 
   if (m_bar_opts.x_data.window == XCB_NONE) {
     m_log.err("tray: No bar window found, disabling tray");
@@ -233,7 +240,11 @@ void manager::recalculate_width() {
 void manager::reconfigure_clients() {
   m_log.trace("tray: Reconfigure clients");
 
+  // X-position of the start of the tray area
   int base_x = calculate_x();
+
+  // X-position of the end of the previous tray icon (including padding)
+  unsigned x = 0;
 
   bool has_error = false;
 
@@ -244,7 +255,11 @@ void manager::reconfigure_clients() {
       client->ensure_state();
 
       if (client->mapped()) {
-        client->set_position(base_x + calculate_w(count), calculate_client_y());
+        // Calculate start of tray icon
+        unsigned client_x = x + (count > 0 ? m_opts.spacing : 0) + m_opts.padding;
+        client->set_position(base_x + client_x, calculate_client_y());
+        // Add size and padding to get the end position of the icon
+        x = client_x + m_opts.client_size.w + m_opts.padding;
         count++;
       }
     } catch (const xpp::x::error::window& err) {
@@ -260,6 +275,8 @@ void manager::reconfigure_clients() {
 
   // Some clients may have been (un)mapped or even removed
   recalculate_width();
+  // The final x position should match the width of the entire tray
+  assert(x == m_tray_width);
 }
 
 /**
@@ -434,15 +451,8 @@ unsigned manager::calculate_w() const {
   unsigned count =
       std::count_if(m_clients.begin(), m_clients.end(), [](const auto& client) { return client->mapped(); });
 
-  return calculate_w(count);
-}
-
-/**
- * Calculates the width taken up by count tray icons in pixels
- */
-unsigned manager::calculate_w(unsigned count) const {
-  if (count) {
-    return m_opts.spacing + count * (m_opts.spacing + m_opts.client_size.w);
+  if (count > 0) {
+    return (count - 1) * m_opts.spacing + count * (2 * m_opts.padding + m_opts.client_size.w);
   } else {
     return 0;
   }
