@@ -238,6 +238,19 @@ epub_exclude_files = ['search.html']
 # The 'versionadded' and 'versionchanged' directives are overridden.
 suppress_warnings = ['app.add_directive']
 
+
+def setup(app):
+    sys.path.insert(0, os.path.abspath(doc_path))
+    from configdomain import myDomain
+    app.add_domain(myDomain)
+
+    try:
+        inject_version_directives(app)
+    except NameError:
+        # Function was not defined because sphinx version was too low
+        pass
+
+
 # It is not exactly clear in which version the VersionChange class was
 # introduced, but we know it is available in at least 1.8.5.
 # This feature is mainly needed for the online docs on readthedocs for the docs
@@ -250,13 +263,10 @@ if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5
     from docutils.nodes import Node
     from sphinx.domains.changeset import VersionChange
 
-    def setup(app):
+    def inject_version_directives(app):
         app.add_directive('deprecated', VersionDirective)
         app.add_directive('versionadded', VersionDirective)
         app.add_directive('versionchanged', VersionDirective)
-        sys.path.insert(0, os.path.abspath(doc_path))
-        from configdomain import myDomain
-        app.add_domain(myDomain)
 
     class VersionDirective(VersionChange):
         """
