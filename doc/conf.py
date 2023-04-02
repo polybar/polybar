@@ -13,11 +13,13 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
 from pathlib import Path
 import datetime
 import sphinx
 import packaging.version
+
+from sphinx.util.docfields import Field
+from sphinx.locale import _
 
 
 def get_version(root_path):
@@ -112,8 +114,6 @@ pygments_style = None
 highlight_language = 'none'
 
 smartquotes = False
-
-primary_domain = 'polybar'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -240,9 +240,34 @@ suppress_warnings = ['app.add_directive']
 
 
 def setup(app):
-    sys.path.insert(0, os.path.abspath(doc_path))
-    from configdomain import myDomain
-    app.add_domain(myDomain)
+    app.add_object_type(
+        'poly-setting',
+        'poly-setting',
+        objname='configuration value',
+        indextemplate='pair: %s; configuration value',
+        doc_field_types=[
+            Field('type',
+                  label=_("Type"),
+                  names=['type'],
+                  has_arg=False,
+                  ),
+            Field('tags',
+                  label=_("Available Tags"),
+                  names=['tags'],
+                  has_arg=False,
+                  ),
+            Field('tokens',
+                  label=_("Supported Tokens"),
+                  names=['tokens'],
+                  has_arg=False,
+                  ),
+            Field('default',
+                  label=_("Default Value"),
+                  names=['default'],
+                  has_arg=False,
+                  ),
+        ]
+    )
 
     try:
         inject_version_directives(app)

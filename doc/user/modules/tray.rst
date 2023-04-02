@@ -33,7 +33,7 @@ Formats
 
 The module only has a single format:
 
-.. setting:: format
+.. poly-setting:: format
 
   :type: |type-format|
   :tags: ``<tray>``: Shows tray icons
@@ -42,21 +42,21 @@ The module only has a single format:
 Settings
 --------
 
-.. setting:: tray-spacing
+.. poly-setting:: tray-spacing
 
   Space added between tray icons
 
   :type: |type-extent|, non-negative
   :default: ``0px``
 
-.. setting:: tray-padding
+.. poly-setting:: tray-padding
 
   Space added before and after each tray icon
 
   :type: |type-extent|, non-negative
   :default: ``0px``
 
-.. setting:: tray-size
+.. poly-setting:: tray-size
 
   Size of individual tray icons
 
@@ -65,7 +65,7 @@ Settings
   :type: |type-pwo|, non-negative
   :default: 66%
 
-.. setting:: tray-background
+.. poly-setting:: tray-background
 
   Background color of tray icons
 
@@ -76,7 +76,7 @@ Settings
   :type: |type-color|
   :default: ``${root.background}``
 
-.. setting:: tray-foreground
+.. poly-setting:: tray-foreground
 
   Tray icon color hint
 
