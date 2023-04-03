@@ -216,8 +216,7 @@ After-Release Checklist
 * Make sure all the new functionality is documented on the wiki
 * Mark deprecated features appropriately (see `Deprecations`_)
 * Remove all unreleased notes from the wiki (not for patch releases)
-* Inform packagers of new release in `#1971
-  <https://github.com/polybar/polybar/issues/1971>`_. Mention any dependency
+* Inform packagers of new release in :issue:`1971`. Mention any dependency
   changes and any changes to the build workflow. Also mention any new files are
   created by the installation.
 * Create a PR that updates the AUR ``PKGBUILD`` file for the ``polybar-git``
