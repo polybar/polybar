@@ -251,6 +251,15 @@ suppress_warnings = ['app.add_directive']
 
 
 def setup(app):
+
+    # Adds a new directive for document a polybar config setting
+    # Inside goes the description of the option as well as custom roles to
+    # document the type, default value, etc:
+    # .. poly-setting:: NAME
+    #
+    #   Description
+    #   :type: ...
+    #   :default: ...
     app.add_object_type(
         'poly-setting',
         'poly-setting',
