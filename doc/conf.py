@@ -133,9 +133,8 @@ extlinks_detect_hardcoded_links = True
 #
 html_theme_options = {}
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
+# Use the RTD theme on RTD, otherwise use the default alabaster because it is
+# smaller
 if on_rtd or os.environ.get('USE_RTD_THEME', '0') == '1':
     html_theme = 'sphinx_rtd_theme'
     html_theme_options['collapse_navigation'] = False
@@ -148,6 +147,12 @@ else:
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [doc_path + '/_static']
+
+html_context = {
+    # Whether to show the warning about the latest docs containing unreleased
+    # features
+    'show_latest_warning': version == 'latest'
+}
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
