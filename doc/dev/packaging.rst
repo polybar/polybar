@@ -78,9 +78,8 @@ Instead of ``sudo make install``, you will most likely want to use
 Finishing Up
 ------------
 
-Finally, subscribe to our `GitHub thread for package maintainers
-<https://github.com/polybar/polybar/issues/1971>`_ to get notified about new
-releases and changes to how polybar is built.
+Finally, subscribe to our :issue:`GitHub thread for package maintainers <1971>`
+to get notified about new releases and changes to how polybar is built.
 If you want to, you can also open a PR to add your package to the `Getting
 Started <https://github.com/polybar/polybar#getting-started>`_ section of our
 README.
