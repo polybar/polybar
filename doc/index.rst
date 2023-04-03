@@ -15,6 +15,7 @@ Welcome to the official polybar documentation.
    user/actions
    user/ipc
    user/modules/index
+   user/default-config
 
 .. toctree::
    :maxdepth: 1
