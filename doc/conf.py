@@ -138,6 +138,7 @@ if on_rtd or os.environ.get('USE_RTD_THEME', '0') == '1':
     html_theme_options['collapse_navigation'] = False
 else:
     html_theme = 'alabaster'
+    html_theme_options['description'] = version
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
