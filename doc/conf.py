@@ -136,6 +136,7 @@ html_theme_options = {}
 if on_rtd or os.environ.get('USE_RTD_THEME', '0') == '1':
     html_theme = 'sphinx_rtd_theme'
     html_theme_options['collapse_navigation'] = False
+    html_theme_options['style_external_links'] = True
 else:
     html_theme = 'alabaster'
     html_theme_options['description'] = version
