@@ -16,6 +16,7 @@ Welcome to the official polybar documentation.
    user/ipc
    user/modules/index
    user/default-config
+   migration/index
 
 .. toctree::
    :maxdepth: 1
