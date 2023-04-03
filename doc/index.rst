@@ -14,12 +14,7 @@ Welcome to the official polybar documentation.
 
    user/actions
    user/ipc
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Modules:
-
-   user/modules/tray
+   user/modules/index
 
 .. toctree::
    :maxdepth: 1
