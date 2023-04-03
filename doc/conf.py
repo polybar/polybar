@@ -82,6 +82,7 @@ version_txt = get_version(Path(doc_path).absolute().parent)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.extlinks",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -114,6 +115,11 @@ pygments_style = None
 highlight_language = 'none'
 
 smartquotes = False
+
+extlinks = {
+    "issue": ("https://github.com/polybar/polybar/issues/%s", "#%s"),
+    "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #%s"),
+}
 
 
 # -- Options for HTML output -------------------------------------------------
