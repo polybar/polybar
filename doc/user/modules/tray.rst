@@ -2,6 +2,7 @@
 
 Tray Module
 ===========
+.. poly-setting:: type = internal/tray
 
 .. versionadded:: 3.7.0
 
@@ -25,8 +26,6 @@ positioning them correctly.
 
 For transparent background colors, the tray will use pseudo-transparency, true
 transparency is not possible for the tray icons.
-
-TODO mention the ``type`` setting somewhere
 
 Formats
 -------
@@ -60,9 +59,7 @@ Settings
 
   Size of individual tray icons
 
-  Relative to bar height
-
-  :type: |type-pwo|, non-negative
+  :type: |type-pwo|, relative to bar height, non-negative
   :default: 66%
 
 .. poly-setting:: tray-background
@@ -71,17 +68,18 @@ Settings
 
   .. note::
     This only affects the color of the individual icons and not the space in
-    between, changing this setting will likely not look good.
+    between, changing this setting to anything else than the bar background
+    will likely not look good.
 
   :type: |type-color|
   :default: ``${root.background}``
 
 .. poly-setting:: tray-foreground
 
-  Tray icon color hint
+  Tray icon color
 
-  This serves as a hint to the tray icon application what color to use for the
-  icon.
+  This serves as a hint to the tray icon application for which color to use for
+  the icon.
 
   This is not guaranteed to have any effect (likely only in GTK3) because it
   targets a non-standard part of the `system tray protocol <systray-spec_>`_ by
