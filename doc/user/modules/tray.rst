@@ -100,6 +100,11 @@ Example
   format-margin = 8px
   tray-spacing = 8px
 
+Migrating From Legacy Tray Implementation
+-----------------------------------------
+
+.. include:: /migration/3.7/tray.rst
+
 References
 ----------
 
