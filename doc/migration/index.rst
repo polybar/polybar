@@ -12,6 +12,11 @@ the migration guides for all versions in between.
 For migration guides before version 3.7, please look at our `release blog posts
 <https://polybar.github.io/blog/>`_.
 
+When upgrading make sure to run polybar from the terminal and look for errors,
+warnings, and deprecation messages.
+This can save you a lot of issues in the future when deprecated settings and
+features are removed.
+
 .. toctree::
    :maxdepth: 1
    :caption: Guides
