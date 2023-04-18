@@ -69,7 +69,8 @@ Settings
   .. note::
     This only affects the color of the individual icons and not the space in
     between, changing this setting to anything else than the bar background
-    will likely not look good.
+    will likely not look good unless the background color is also changed for
+    the rest of the tray module (e.g. with ``format-background``).
 
   :type: |type-color|
   :default: ``${root.background}``

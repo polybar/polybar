@@ -118,8 +118,8 @@ smartquotes = False
 
 # Quickly link to issues or PRs using :issue:`...` or :pull:`...`
 extlinks = {
-    "issue": ("https://github.com/polybar/polybar/issues/%s", "#%s"),
-    "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #%s"),
+    "issue": ("https://github.com/polybar/polybar/issues/%s", "#"),
+    "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #"),
 }
 
 extlinks_detect_hardcoded_links = True
