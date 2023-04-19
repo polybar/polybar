@@ -237,6 +237,19 @@ namespace cairo {
         char unicode[6]{'\0'};
         utils::ucs4_to_utf8(unicode, chars.begin()->codepoint);
         m_log.warn("Dropping unmatched character %s (U+%04x) in '%s'", unicode, chars.begin()->codepoint, t.contents);
+
+        // Draw red rectangle for dropped characters
+        save();
+        cairo_set_operator(m_c, CAIRO_OPERATOR_SOURCE);
+        cairo_set_source_rgb(m_c, 1, 0, 0);
+        cairo_rectangle(m_c, *t.x_advance, *t.y_advance, 10, 20);
+        *t.x_advance += 10;
+        cairo_fill(m_c);
+        cairo_move_to(m_c, *t.x_advance, 0.0);
+        restore();
+        position(&x, nullptr);
+
+
         utf8.erase(chars.begin()->offset, chars.begin()->length);
         for (auto&& c : chars) {
           c.offset -= chars.begin()->length;
