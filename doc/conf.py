@@ -36,6 +36,9 @@ def get_version(root_path):
 
     raise RuntimeError("No version found in {}".format(path))
 
+
+sphinx_version = packaging.version.parse(sphinx.__version__)
+
 # -- Project information -----------------------------------------------------
 
 
@@ -117,10 +120,18 @@ highlight_language = 'none'
 smartquotes = False
 
 # Quickly link to issues or PRs using :issue:`...` or :pull:`...`
-extlinks = {
-    "issue": ("https://github.com/polybar/polybar/issues/%s", "#"),
-    "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #"),
-}
+if sphinx_version >= packaging.version.parse("4.0.0"):
+    extlinks = {
+        "issue": ("https://github.com/polybar/polybar/issues/%s", "#%s"),
+        "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #%s"),
+    }
+else:
+    # Versions before 4.0 (e.g. on readthedocs) do not support %s in the
+    # caption and simply append the value
+    extlinks = {
+        "issue": ("https://github.com/polybar/polybar/issues/%s", "#"),
+        "pull": ("https://github.com/polybar/polybar/pull/%s", "PR #"),
+    }
 
 extlinks_detect_hardcoded_links = True
 
@@ -302,7 +313,7 @@ def setup(app):
 # built from master, documentation built for proper releases should not even
 # mention unreleased changes. Because of that it's not that important that this
 # is added to local builds.
-if packaging.version.parse(sphinx.__version__) >= packaging.version.parse("1.8.5"):
+if sphinx_version >= packaging.version.parse("1.8.5"):
 
     from typing import List
     from docutils.nodes import Node
