@@ -48,11 +48,11 @@ controller::controller(
     , m_loop(loop)
     , m_bar(bar::make(m_loop))
     , m_has_ipc(has_ipc) {
-  m_conf.ignore_key("settings", "throttle-input-for");
-  m_conf.ignore_key("settings", "throttle-output");
-  m_conf.ignore_key("settings", "throttle-output-for");
-  m_conf.ignore_key("settings", "eventqueue-swallow");
-  m_conf.ignore_key("settings", "eventqueue-swallow-time");
+  m_conf.warn_deprecated("settings", "throttle-input-for");
+  m_conf.warn_deprecated("settings", "throttle-output");
+  m_conf.warn_deprecated("settings", "throttle-output-for");
+  m_conf.warn_deprecated("settings", "eventqueue-swallow");
+  m_conf.warn_deprecated("settings", "eventqueue-swallow-time");
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};

@@ -63,24 +63,20 @@ file_list config::get_included_files() const {
   return m_included;
 }
 
-void config::ignore_key(const string& section, const string& key) const {
-  if (has(section, key)) {
-    m_log.warn(
-        "The config parameter '%s.%s' is deprecated, it will be removed in the future. Please remove it from your "
-        "config",
-        section, key);
-  }
-}
-
 /**
  * Print a deprecation warning if the given parameter is set
  */
 void config::warn_deprecated(const string& section, const string& key, string replacement) const {
-  try {
-    auto value = get<string>(section, key);
-    m_log.warn(
-        "The config parameter `%s.%s` is deprecated, use `%s.%s` instead.", section, key, section, move(replacement));
-  } catch (const key_error& err) {
+  if (has(section, key)) {
+    if (replacement.empty()) {
+      m_log.warn(
+          "The config parameter '%s.%s' is deprecated, it will be removed in the future. Please remove it from your "
+          "config",
+          section, key);
+    } else {
+      m_log.warn(
+          "The config parameter `%s.%s` is deprecated, use `%s.%s` instead.", section, key, section, move(replacement));
+    }
   }
 }
 

@@ -46,7 +46,7 @@ class config {
 
   file_list get_included_files() const;
 
-  void warn_deprecated(const string& section, const string& key, string replacement) const;
+  void warn_deprecated(const string& section, const string& key, string replacement=string()) const;
 
   /**
    * Returns true if a given parameter exists
@@ -211,8 +211,6 @@ class config {
 
     return default_value;
   }
-
-  void ignore_key(const string& section, const string& key) const;
 
   /**
    * Attempt to load value using the deprecated key name. If successful show a
