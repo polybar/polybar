@@ -234,20 +234,6 @@ class config {
     }
   }
 
-  /**
-   * @see deprecated<T>
-   */
-  template <typename T = string>
-  T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {
-    try {
-      vector<T> value{get_list<T>(section, old)};
-      warn_deprecated(section, old, newkey);
-      return value;
-    } catch (const key_error& err) {
-      return get_list<T>(section, newkey, fallback);
-    }
-  }
-
  protected:
   void copy_inherited();
 
