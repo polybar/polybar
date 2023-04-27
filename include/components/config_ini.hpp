@@ -69,7 +69,7 @@ class config_ini {
     if (it->second.find(key) == it->second.end()) {
       throw key_error("Missing parameter \"" + section + "." + key + "\"");
     }
-    return convert<T>(dereference(section, key, it->second.at(key)));
+    return config_utils::convert<T>(dereference(section, key, it->second.at(key)));
   }
 
   /**
@@ -80,7 +80,7 @@ class config_ini {
   T get(const string& section, const string& key, const T& default_value) const {
     try {
       string string_value{get<string>(section, key)};
-      return convert<T>(dereference(move(section), move(key), move(string_value)));
+      return config_utils::convert<T>(dereference(move(section), move(key), move(string_value)));
     } catch (const key_error& err) {
       return default_value;
     } catch (const std::exception& err) {
@@ -135,9 +135,9 @@ class config_ini {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
 
         if (!string_value.empty()) {
-          results.emplace_back(convert<T>(dereference(section, key, move(string_value))));
+          results.emplace_back( config_utils::convert<T>(dereference(section, key, move(string_value))));
         } else {
-          results.emplace_back(convert<T>(move(string_value)));
+          results.emplace_back( config_utils::convert<T>(move(string_value)));
         }
       } catch (const key_error& err) {
         break;
@@ -164,9 +164,9 @@ class config_ini {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
 
         if (!string_value.empty()) {
-          results.emplace_back(convert<T>(dereference(section, key, move(string_value))));
+          results.emplace_back( config_utils::convert<T>(dereference(section, key, move(string_value))));
         } else {
-          results.emplace_back(convert<T>(move(string_value)));
+          results.emplace_back( config_utils::convert<T>(move(string_value)));
         }
       } catch (const key_error& err) {
         break;
@@ -206,9 +206,6 @@ class config_ini {
 
  protected:
   void copy_inherited();
-
-  template <typename T>
-  T convert(string&& value) const;
 
   /**
    * Dereference value reference

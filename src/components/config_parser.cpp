@@ -6,7 +6,7 @@
 #include <fstream>
 
 #include "components/config_ini.hpp"
-// #include "components/config_lua.hpp"
+#include "components/config_lua.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -17,49 +17,49 @@ config_parser::config_parser(const logger& logger, string&& file)
 
 config config_parser::parse(string barname) {
   m_log.notice("Parsing config file: %s", m_config_file);
-  config config(m_log, m_config_file, barname);
+  config config(m_log, m_config_file);
 
-  // if (is_lua_file()) {
-  //   config_lua conf_lua(m_log, move(m_config_file), move(barname));
-  //   return config::from_lua(move(conf_lua));
-  // } else {
-  parse_file(m_config_file, {});
+  if (is_lua_file()) {
+    shared_ptr<config_lua> conf_lua = config.make_lua(barname);
+    return config;
+  } else {
+    parse_file(m_config_file, {});
 
-  sectionmap_t sections = create_sectionmap();
+    sectionmap_t sections = create_sectionmap();
 
-  vector<string> bars = get_bars(sections);
-  if (barname.empty()) {
-    if (bars.size() == 1) {
-      barname = bars[0];
-    } else if (bars.empty()) {
-      throw application_error("The config file contains no bar.");
-    } else {
-      throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " +
-                              string_util::join(bars, ", "));
+    vector<string> bars = get_bars(sections);
+    if (barname.empty()) {
+      if (bars.size() == 1) {
+        barname = bars[0];
+      } else if (bars.empty()) {
+        throw application_error("The config file contains no bar.");
+      } else {
+        throw application_error("The config file contains multiple bars, but no bar name was given. Available bars: " +
+                                string_util::join(bars, ", "));
+      }
+    } else if (sections.find("bar/" + barname) == sections.end()) {
+      if (bars.empty()) {
+        throw application_error("Undefined bar: " + barname + ". The config file contains no bar.");
+      } else {
+        throw application_error(
+            "Undefined bar: " + barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
+      }
     }
-  } else if (sections.find("bar/" + barname) == sections.end()) {
-    if (bars.empty()) {
-      throw application_error("Undefined bar: " + barname + ". The config file contains no bar.");
-    } else {
-      throw application_error(
-          "Undefined bar: " + barname + ". Available bars: " + string_util::join(get_bars(sections), ", "));
+
+    /*
+    * The first element in the files vector is always the main config file and
+    * because it has unique filenames, we can use all the elements from the
+    * second element onwards for the included list
+    */
+    file_list included(m_files.begin() + 1, m_files.end());
+    shared_ptr<config_ini> conf_ini = config.make_ini(barname);
+
+    conf_ini->set_sections(move(sections));
+    conf_ini->set_included(move(included));
+    if (use_xrm) {
+      conf_ini->use_xrm();
     }
   }
-
-  /*
-  * The first element in the files vector is always the main config file and
-  * because it has unique filenames, we can use all the elements from the
-  * second element onwards for the included list
-  */
-  file_list included(m_files.begin() + 1, m_files.end());
-  shared_ptr<config_ini> conf_ini = config.make_ini();
-
-  conf_ini->set_sections(move(sections));
-  conf_ini->set_included(move(included));
-  if (use_xrm) {
-    conf_ini->use_xrm();
-  }
-
   return config;
 }
 
@@ -317,7 +317,7 @@ bool config_parser::is_valid_name(const string& name) {
 }
 
 bool config_parser::is_lua_file() const {
-  return m_config_file.substr(m_config_file.size() - 4 - 1) == ".lua";
+  return m_config_file.substr(m_config_file.size() - 4) == ".lua";
 }
 
 string config_parser::parse_escaped_value(const line_t& line, string&& value, const string& key) {

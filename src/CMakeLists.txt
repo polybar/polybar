@@ -60,7 +60,9 @@ set(POLY_SOURCES
   ${src_dir}/components/bar.cpp
   ${src_dir}/components/builder.cpp
   ${src_dir}/components/command_line.cpp
+  ${src_dir}/components/config_base.cpp
   ${src_dir}/components/config_ini.cpp
+  ${src_dir}/components/config_lua.cpp
   ${src_dir}/components/config_parser.cpp
   ${src_dir}/components/controller.cpp
   ${src_dir}/components/logger.cpp
@@ -161,6 +163,7 @@ target_link_libraries(poly PUBLIC
   Cairo::CairoFC
   xpp
   LibUV::LibUV
+  sol2
   )
 
 if (TARGET i3ipc++)

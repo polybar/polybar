@@ -1,17 +1,5 @@
 #include "components/config_ini.hpp"
 
-#include <climits>
-#include <cmath>
-#include <fstream>
-
-#include "cairo/utils.hpp"
-#include "components/types.hpp"
-#include "utils/color.hpp"
-#include "utils/env.hpp"
-#include "utils/factory.hpp"
-#include "utils/string.hpp"
-#include "utils/units.hpp"
-
 POLYBAR_NS
 
 namespace chrono = std::chrono;
@@ -76,7 +64,7 @@ void config_ini::warn_deprecated(const string& section, const string& key, strin
 /**
  * Returns true if a given parameter exists
  */
-bool config::has(const string& section, const string& key) const {
+bool config_ini::has(const string& section, const string& key) const {
   auto it = m_sections.find(section);
   return it != m_sections.end() && it->second.find(key) != it->second.end();
 }
@@ -84,7 +72,7 @@ bool config::has(const string& section, const string& key) const {
 /**
  * Set parameter value
  */
-void config::set(const string& section, const string& key, string&& value) {
+void config_ini::set(const string& section, const string& key, string&& value) {
   auto it = m_sections.find(section);
   if (it == m_sections.end()) {
     valuemap_t values;
@@ -163,7 +151,7 @@ void config_ini::copy_inherited() {
 /**
  * Dereference value reference
  */
-string config::dereference(const string& section, const string& key, const string& var) const {
+string config_ini::dereference(const string& section, const string& key, const string& var) const {
   if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
     return var;
   }
@@ -193,7 +181,7 @@ string config::dereference(const string& section, const string& key, const strin
  *  ${section.key}
  *  ${section.key:fallback}
  */
-string config::dereference_local(string section, const string& key, const string& current_section) const {
+string config_ini::dereference_local(string section, const string& key, const string& current_section) const {
   if (section == "BAR") {
     m_log.warn("${BAR.key} is deprecated. Use ${root.key} instead");
   }
@@ -222,7 +210,7 @@ string config::dereference_local(string section, const string& key, const string
  *  ${env:key}
  *  ${env:key:fallback value}
  */
-string config::dereference_env(string var) const {
+string config_ini::dereference_env(string var) const {
   size_t pos;
   string env_default;
   /*
@@ -254,7 +242,7 @@ string config::dereference_env(string var) const {
  *  ${xrdb:key}
  *  ${xrdb:key:fallback value}
  */
-string config::dereference_xrdb(string var) const {
+string config_ini::dereference_xrdb(string var) const {
   size_t pos;
 #if not WITH_XRM
   m_log.warn("No built-in support to dereference ${xrdb:%s} references (requires `xcb-util-xrm`)", var);
@@ -294,7 +282,7 @@ string config::dereference_xrdb(string var) const {
  *  ${file:/absolute/file/path}
  *  ${file:/absolute/file/path:fallback value}
  */
-string config::dereference_file(string var) const {
+string config_ini::dereference_file(string var) const {
   size_t pos;
   string fallback;
   bool has_fallback = false;
@@ -314,153 +302,6 @@ string config::dereference_file(string var) const {
   } else {
     throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");
   }
-}
-
-
-template <>
-string config_ini::convert(string&& value) const {
-  return forward<string>(value);
-}
-
-template <>
-const char* config_ini::convert(string&& value) const {
-  return value.c_str();
-}
-
-template <>
-char config_ini::convert(string&& value) const {
-  return value.c_str()[0];
-}
-
-template <>
-int config_ini::convert(string&& value) const {
-  return std::strtol(value.c_str(), nullptr, 10);
-}
-
-template <>
-short config_ini::convert(string&& value) const {
-  return static_cast<short>(std::strtol(value.c_str(), nullptr, 10));
-}
-
-template <>
-bool config_ini::convert(string&& value) const {
-  string lower{string_util::lower(forward<string>(value))};
-
-  return (lower == "true" || lower == "yes" || lower == "on" || lower == "1");
-}
-
-template <>
-float config_ini::convert(string&& value) const {
-  return std::strtof(value.c_str(), nullptr);
-}
-
-template <>
-double config_ini::convert(string&& value) const {
-  return std::strtod(value.c_str(), nullptr);
-}
-
-template <>
-long config_ini::convert(string&& value) const {
-  return std::strtol(value.c_str(), nullptr, 10);
-}
-
-template <>
-long long config_ini::convert(string&& value) const {
-  return std::strtoll(value.c_str(), nullptr, 10);
-}
-
-template <>
-unsigned char config_ini::convert(string&& value) const {
-  return std::strtoul(value.c_str(), nullptr, 10);
-}
-
-template <>
-unsigned short config_ini::convert(string&& value) const {
-  return std::strtoul(value.c_str(), nullptr, 10);
-}
-
-template <>
-unsigned int config_ini::convert(string&& value) const {
-  return std::strtoul(value.c_str(), nullptr, 10);
-}
-
-template <>
-unsigned long config_ini::convert(string&& value) const {
-  unsigned long v{std::strtoul(value.c_str(), nullptr, 10)};
-  return v < ULONG_MAX ? v : 0UL;
-}
-
-template <>
-unsigned long long config_ini::convert(string&& value) const {
-  unsigned long long v{std::strtoull(value.c_str(), nullptr, 10)};
-  return v < ULLONG_MAX ? v : 0ULL;
-}
-
-template <>
-spacing_val config_ini::convert(string&& value) const {
-  return units_utils::parse_spacing(value);
-}
-
-template <>
-extent_val config_ini::convert(std::string&& value) const {
-  return units_utils::parse_extent(value);
-}
-
-/**
- * Allows a new format for pixel sizes (like width in the bar section)
- *
- * The new format is X%:Z, where X is in [0, 100], and Z is any real value
- * describing a pixel offset. The actual value is calculated by X% * max + Z
- */
-template <>
-percentage_with_offset config_ini::convert(string&& value) const {
-  size_t i = value.find(':');
-
-  if (i == std::string::npos) {
-    if (value.find('%') != std::string::npos) {
-      return {std::stod(value), {}};
-    } else {
-      return {0., convert<extent_val>(move(value))};
-    }
-  } else {
-    std::string percentage = value.substr(0, i - 1);
-    return {std::stod(percentage), convert<extent_val>(value.substr(i + 1))};
-  }
-}
-
-template <>
-chrono::seconds config_ini::convert(string&& value) const {
-  return chrono::seconds{convert<chrono::seconds::rep>(forward<string>(value))};
-}
-
-template <>
-chrono::milliseconds config_ini::convert(string&& value) const {
-  return chrono::milliseconds{convert<chrono::milliseconds::rep>(forward<string>(value))};
-}
-
-template <>
-chrono::duration<double> config_ini::convert(string&& value) const {
-  return chrono::duration<double>{convert<double>(forward<string>(value))};
-}
-
-template <>
-rgba config_ini::convert(string&& value) const {
-  if (value.empty()) {
-    return rgba{};
-  }
-
-  rgba ret{value};
-
-  if (!ret.has_color()) {
-    throw value_error("\"" + value + "\" is an invalid color value.");
-  }
-
-  return ret;
-}
-
-template <>
-cairo_operator_t config_ini::convert(string&& value) const {
-  return cairo::utils::str2operator(forward<string>(value), CAIRO_OPERATOR_OVER);
 }
 
 POLYBAR_NS_END
