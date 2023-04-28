@@ -918,7 +918,7 @@ void bar::start(const string& tray_module_name) {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(tray_module_name);
+  m_tray->setup(m_conf, tray_module_name);
 
   if (m_tray->settings().tray_position == legacy_tray::tray_postition::MODULE ||
       m_tray->settings().tray_position == legacy_tray::tray_postition::NONE) {
