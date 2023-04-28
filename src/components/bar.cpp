@@ -38,14 +38,14 @@ using namespace eventloop;
 /**
  * Create instance
  */
-bar::make_type bar::make(loop& loop, bool only_initialize_values) {
+bar::make_type bar::make(loop& loop, const config& config, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
   return std::make_unique<bar>(
       connection::make(),
       signal_emitter::make(),
-      config::make(),
+      config,
       logger::make(),
       loop,
       screen::make(),

@@ -37,7 +37,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
             public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
-  static make_type make(eventloop::loop&, bool only_initialize_values = false);
+  static make_type make(eventloop::loop&, const config&, bool only_initialize_values = false);
 
   explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop::loop&, unique_ptr<screen>&&,
       unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&, bool only_initialize_values);

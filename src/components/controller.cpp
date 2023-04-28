@@ -46,7 +46,7 @@ controller::controller(
     , m_log(logger)
     , m_conf(config)
     , m_loop(loop)
-    , m_bar(bar::make(m_loop))
+    , m_bar(bar::make(m_loop, config))
     , m_has_ipc(has_ipc) {
   m_conf.warn_deprecated("settings", "throttle-input-for");
   m_conf.warn_deprecated("settings", "throttle-output");
