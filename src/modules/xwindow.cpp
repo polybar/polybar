@@ -69,8 +69,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xwindow_module::xwindow_module(const bar_settings& bar, string name_)
-      : static_module<xwindow_module>(bar, move(name_)), m_connection(connection::make()) {
+  xwindow_module::xwindow_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xwindow_module>(bar, move(name_), config), m_connection(connection::make()) {
     // Initialize ewmh atoms
     ewmh_util::initialize();
 

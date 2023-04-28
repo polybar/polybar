@@ -39,7 +39,8 @@ namespace {
 namespace modules {
   template class module<bspwm_module>;
 
-  bspwm_module::bspwm_module(const bar_settings& bar, string name_) : event_module<bspwm_module>(bar, move(name_)) {
+  bspwm_module::bspwm_module(const bar_settings& bar, string name_, const config& config)
+      : event_module<bspwm_module>(bar, move(name_), config) {
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });

@@ -2,7 +2,6 @@
 #include <cassert>
 
 #include "components/builder.hpp"
-#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
@@ -16,11 +15,11 @@ namespace modules {
   // module<Impl> public {{{
 
   template <typename Impl>
-  module<Impl>::module(const bar_settings& bar, string name)
+  module<Impl>::module(const bar_settings& bar, string name, const config& conf)
       : m_sig(signal_emitter::make())
       , m_bar(bar)
       , m_log(logger::make())
-      , m_conf(config::make())
+      , m_conf(conf)
       , m_router(make_unique<action_router>())
       , m_name("module/" + name)
       , m_name_raw(name)

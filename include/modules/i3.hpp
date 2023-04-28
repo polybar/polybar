@@ -44,7 +44,7 @@ namespace modules {
     };
 
    public:
-    explicit i3_module(const bar_settings&, string);
+    explicit i3_module(const bar_settings&, string, const config&);
 
     void stop() override;
     bool has_event();

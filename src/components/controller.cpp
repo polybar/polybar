@@ -630,7 +630,7 @@ size_t controller::setup_modules(alignment align) {
       }
 
       m_log.notice("Loading module '%s' of type '%s'", module_name, type);
-      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log);
+      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log, m_conf);
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);

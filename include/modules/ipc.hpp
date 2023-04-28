@@ -24,7 +24,7 @@ namespace modules {
     };
 
    public:
-    explicit ipc_module(const bar_settings&, string);
+    explicit ipc_module(const bar_settings&, string, const config&);
 
     void start() override;
     void update();

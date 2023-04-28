@@ -27,8 +27,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_)
-      : static_module<xworkspaces_module>(bar, move(name_))
+  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xworkspaces_module>(bar, move(name_), config)
       , m_connection(connection::make())
       , m_ewmh(ewmh_util::initialize()) {
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });

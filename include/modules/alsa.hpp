@@ -20,7 +20,7 @@ namespace modules {
 
   class alsa_module : public event_module<alsa_module> {
    public:
-    explicit alsa_module(const bar_settings&, string);
+    explicit alsa_module(const bar_settings&, string, const config&);
 
     void teardown();
     bool has_event();

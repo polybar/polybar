@@ -39,7 +39,7 @@ namespace modules {
     };
 
    public:
-    explicit bspwm_module(const bar_settings&, string);
+    explicit bspwm_module(const bar_settings&, string, const config&);
 
     void stop() override;
     bool has_event();

@@ -22,8 +22,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_)
-      : static_module<xkeyboard_module>(bar, move(name_)), m_connection(connection::make()) {
+  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xkeyboard_module>(bar, move(name_), config), m_connection(connection::make()) {
     m_router->register_action(EVENT_SWITCH, [this]() { action_switch(); });
 
     // Setup extension

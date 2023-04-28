@@ -35,7 +35,7 @@ namespace modules {
    */
   class fs_module : public timer_module<fs_module> {
    public:
-    explicit fs_module(const bar_settings&, string);
+    explicit fs_module(const bar_settings&, string, const config&);
 
     bool update();
     string get_format() const;

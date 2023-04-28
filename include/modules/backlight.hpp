@@ -20,7 +20,7 @@ namespace modules {
     string get_output();
 
    public:
-    explicit backlight_module(const bar_settings&, string);
+    explicit backlight_module(const bar_settings&, string, const config&);
 
     void idle();
     bool on_event(const inotify_event& event);
