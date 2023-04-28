@@ -31,9 +31,9 @@ using namespace modules;
 /**
  * Build controller instance
  */
-controller::make_type controller::make(bool has_ipc, loop& loop) {
+controller::make_type controller::make(bool has_ipc, loop& loop, const config& config) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
+      connection::make(), signal_emitter::make(), logger::make(), config, has_ipc, loop);
 }
 
 /**

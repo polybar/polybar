@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    auto ctrl = controller::make((bool)ipc, loop);
+    auto ctrl = controller::make((bool)ipc, loop, conf);
 
     if (!ctrl->run(cli->has("stdout"), cli->get("png"), cli->has("reload"))) {
       reload = true;
