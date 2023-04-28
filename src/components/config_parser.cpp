@@ -11,12 +11,12 @@
 POLYBAR_NS
 
 config_parser::config_parser(const logger& logger, string&& file)
-    : m_log(logger), m_config(file_util::expand(file)) {}
+    : m_log(logger), m_config_file(file_util::expand(file)) {}
 
-config::make_type config_parser::parse(string barname) {
-  m_log.notice("Parsing config file: %s", m_config);
+config config_parser::parse(string barname) {
+  m_log.notice("Parsing config file: %s", m_config_file);
 
-  parse_file(m_config, {});
+  parse_file(m_config_file, {});
 
   sectionmap_t sections = create_sectionmap();
 
@@ -45,18 +45,15 @@ config::make_type config_parser::parse(string barname) {
    * second element onwards for the included list
    */
   file_list included(m_files.begin() + 1, m_files.end());
-  config::make_type result = config::make(m_config, barname);
+  config conf(m_log, move(m_config_file), move(barname));
 
-  // Cast to non-const to set sections, included and xrm
-  config& m_conf = const_cast<config&>(result);
-
-  m_conf.set_sections(move(sections));
-  m_conf.set_included(move(included));
+  conf.set_sections(move(sections));
+  conf.set_included(move(included));
   if (use_xrm) {
-    m_conf.use_xrm();
+    conf.use_xrm();
   }
 
-  return result;
+  return conf;
 }
 
 sectionmap_t config_parser::create_sectionmap() {

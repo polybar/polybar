@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     }
 
     config_parser parser{logger, move(confpath)};
-    config::make_type conf = parser.parse(move(barname));
+    config conf = parser.parse(move(barname));
 
     //==================================================
     // Dump requested data

@@ -24,10 +24,7 @@ using file_list = vector<string>;
 
 class config {
  public:
-  using make_type = const config&;
-  static make_type make(string path = "", string bar = "");
-
-  explicit config(const logger& logger, string&& path = "", string&& bar = "")
+  explicit config(const logger& logger, string&& path, string&& bar)
       : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
   const string& filepath() const;

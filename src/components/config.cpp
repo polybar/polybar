@@ -17,13 +17,6 @@ POLYBAR_NS
 namespace chrono = std::chrono;
 
 /**
- * Create instance
- */
-config::make_type config::make(string path, string bar) {
-  return *factory_util::singleton<std::remove_reference_t<config::make_type>>(logger::make(), move(path), move(bar));
-}
-
-/**
  * Get path of loaded file
  */
 const string& config::filepath() const {
