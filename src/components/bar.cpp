@@ -48,7 +48,7 @@ bar::make_type bar::make(loop& loop, const config& config, bool only_initialize_
       config,
       logger::make(),
       loop,
-      screen::make(),
+      screen::make(config),
       tags::dispatch::make(*action_ctxt),
       std::move(action_ctxt),
       only_initialize_values);
