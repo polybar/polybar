@@ -889,7 +889,7 @@ void bar::handle(const evt::configure_notify& evt) {
 
 void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
-  m_renderer = renderer::make(m_opts, *m_action_ctxt);
+  m_renderer = renderer::make(m_opts, *m_action_ctxt, m_conf);
 
   m_opts.x_data.window = m_renderer->window();
   m_opts.x_data.visual = m_renderer->visual();
