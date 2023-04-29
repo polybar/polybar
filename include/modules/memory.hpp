@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "settings.hpp"
 
@@ -16,7 +17,7 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/memory";
+    static constexpr auto TYPE = MEMORY_TYPE;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

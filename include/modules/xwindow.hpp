@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/meta/event_handler.hpp"
+#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
@@ -38,7 +39,7 @@ namespace modules {
     void update();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/xwindow";
+    static constexpr auto TYPE = XWINDOW_TYPE;
 
    protected:
     void handle(const evt::property_notify& evt) override;

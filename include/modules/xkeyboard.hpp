@@ -5,6 +5,7 @@
 #include "components/types.hpp"
 #include "drawtypes/layouticonset.hpp"
 #include "modules/meta/event_handler.hpp"
+#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
 #include "x11/extensions/xkb.hpp"
 #include "x11/window.hpp"
@@ -27,7 +28,7 @@ namespace modules {
     void update();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/xkeyboard";
+    static constexpr auto TYPE = XKEYBOARD_TYPE;
 
     static constexpr const char* EVENT_SWITCH = "switch";
 

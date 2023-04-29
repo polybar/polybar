@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "settings.hpp"
 
@@ -26,7 +27,7 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/cpu";
+    static constexpr auto TYPE = CPU_TYPE;
 
    protected:
     bool read_values();

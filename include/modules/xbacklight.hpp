@@ -2,6 +2,7 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_handler.hpp"
+#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
 #include "settings.hpp"
 #include "x11/extensions/randr.hpp"
@@ -30,7 +31,7 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/xbacklight";
+    static constexpr auto TYPE = XBACKLIGHT_TYPE;
 
     static constexpr const char* EVENT_INC = "inc";
     static constexpr const char* EVENT_DEC = "dec";

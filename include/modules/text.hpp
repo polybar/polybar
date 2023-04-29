@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
@@ -14,7 +15,7 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "custom/text";
+    static constexpr auto TYPE = TEXT_TYPE;
 
    private:
     static constexpr const char* TAG_LABEL{"<label>"};

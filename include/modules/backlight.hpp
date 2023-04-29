@@ -2,6 +2,7 @@
 
 #include "components/config.hpp"
 #include "modules/meta/inotify_module.hpp"
+#include "modules/meta/names.hpp"
 #include "settings.hpp"
 
 POLYBAR_NS
@@ -26,7 +27,7 @@ namespace modules {
     bool on_event(const inotify_event& event);
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/backlight";
+    static constexpr auto TYPE = BACKLIGHT_TYPE;
 
     static constexpr const char* EVENT_INC = "inc";
     static constexpr const char* EVENT_DEC = "dec";

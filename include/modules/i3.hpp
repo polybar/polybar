@@ -4,6 +4,7 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_module.hpp"
+#include "modules/meta/names.hpp"
 #include "utils/i3.hpp"
 #include "utils/io.hpp"
 
@@ -51,7 +52,7 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/i3";
+    static constexpr auto TYPE = I3_TYPE;
 
     static constexpr auto EVENT_FOCUS = "focus";
     static constexpr auto EVENT_NEXT = "next";

@@ -43,4 +43,3 @@
 #if ENABLE_XKEYBOARD
 #include "modules/xkeyboard.hpp"
 #endif
-#include "modules/unsupported.hpp"

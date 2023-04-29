@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
 
 POLYBAR_NS
@@ -22,7 +23,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     void update() {}
 
-    static constexpr auto TYPE = "custom/menu";
+    static constexpr auto TYPE = MENU_TYPE;
 
     static constexpr auto EVENT_OPEN = "open";
     static constexpr auto EVENT_CLOSE = "close";

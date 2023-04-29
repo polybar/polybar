@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
 
 POLYBAR_NS
@@ -12,7 +13,7 @@ namespace modules {
     bool update();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/counter";
+    static constexpr auto TYPE = COUNTER_TYPE;
 
    private:
     static constexpr auto TAG_COUNTER = "<counter>";
