@@ -459,10 +459,10 @@ unsigned manager::calculate_w() const {
 }
 
 /**
- * Calculate y position of client window
+ * Calculate y position of client window to vertically center it in the inner area of the bar.
  */
 int manager::calculate_client_y() {
-  return (m_bar_opts.outer_area(true).height - m_opts.client_size.h) / 2;
+  return m_bar_opts.inner_area(false).y + (m_bar_opts.inner_area(false).height - m_opts.client_size.h) / 2;
 }
 
 /**
