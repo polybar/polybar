@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "cairo/context.hpp"
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "events/signal.hpp"
 #include "events/signal_emitter.hpp"
 #include "events/signal_receiver.hpp"
@@ -21,7 +21,7 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt, const config& conf) {
+renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt, const config_ini& conf) {
   // clang-format off
   return std::make_unique<renderer>(
       connection::make(),
@@ -37,7 +37,7 @@ renderer::make_type renderer::make(const bar_settings& bar, tags::action_context
 /**
  * Construct renderer instance
  */
-renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, const logger& logger,
+renderer::renderer(connection& conn, signal_emitter& sig, const config_ini& conf, const logger& logger,
     const bar_settings& bar, background_manager& background, tags::action_context& action_ctxt)
     : renderer_interface(action_ctxt)
     , m_connection(conn)

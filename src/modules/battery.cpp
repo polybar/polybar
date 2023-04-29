@@ -23,8 +23,8 @@ namespace modules {
   /**
    * Bootstrap module by setting up required components
    */
-  battery_module::battery_module(const bar_settings& bar, string name_, const config& config)
-      : inotify_module<battery_module>(bar, move(name_), config) {
+  battery_module::battery_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : inotify_module<battery_module>(bar, move(name_), config_ini) {
     // Load configuration values
     m_fullat = std::min(m_conf.get(name(), "full-at", m_fullat), 100);
     m_lowat = std::max(m_conf.get(name(), "low-at", m_lowat), 0);

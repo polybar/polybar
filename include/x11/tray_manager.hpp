@@ -91,7 +91,7 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
 
   unsigned get_width() const;
 
-  void setup(const config& conf, const string& module_section_name);
+  void setup(const config_ini& conf, const string& module_section_name);
   void activate();
   void wait_for_selection(xcb_window_t other);
   void deactivate();

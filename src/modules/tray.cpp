@@ -7,8 +7,8 @@ POLYBAR_NS
 namespace modules {
   template class module<tray_module>;
 
-  tray_module::tray_module(const bar_settings& bar_settings, string name_, const config& config)
-      : static_module<tray_module>(bar_settings, move(name_), config)
+  tray_module::tray_module(const bar_settings& bar_settings, string name_, const config_ini& config_ini)
+      : static_module<tray_module>(bar_settings, move(name_), config_ini)
       , m_tray(connection::make(), signal_emitter::make(), m_log, bar_settings, [&] { this->broadcast(); }) {
     m_formatter->add(DEFAULT_FORMAT, TAG_TRAY, {TAG_TRAY});
   }

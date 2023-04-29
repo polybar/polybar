@@ -51,7 +51,7 @@ namespace drawtypes {
    * Create a ramp by loading values
    * from the configuration
    */
-  ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
+  ramp_t load_ramp(const config_ini& conf, const string& section, string name, bool required) {
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     auto ramp_defaults = load_optional_label(conf, section, name);

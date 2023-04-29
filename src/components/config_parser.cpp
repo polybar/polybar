@@ -13,7 +13,7 @@ POLYBAR_NS
 config_parser::config_parser(const logger& logger, string&& file)
     : m_log(logger), m_config_file(file_util::expand(file)) {}
 
-config config_parser::parse(string barname) {
+config_ini config_parser::parse(string barname) {
   m_log.notice("Parsing config file: %s", m_config_file);
 
   parse_file(m_config_file, {});
@@ -45,7 +45,7 @@ config config_parser::parse(string barname) {
    * second element onwards for the included list
    */
   file_list included(m_files.begin() + 1, m_files.end());
-  config conf(m_log, move(m_config_file), move(barname));
+  config_ini conf(m_log, move(m_config_file), move(barname));
 
   conf.set_sections(move(sections));
   conf.set_included(move(included));
@@ -98,8 +98,8 @@ sectionmap_t config_parser::create_sectionmap() {
 vector<string> config_parser::get_bars(const sectionmap_t& sections) const {
   vector<string> bars;
   for (const auto& it : sections) {
-    if (it.first.find(config::BAR_PREFIX) == 0) {
-      bars.push_back(it.first.substr(strlen(config::BAR_PREFIX)));
+    if (it.first.find(config_ini::BAR_PREFIX) == 0) {
+      bars.push_back(it.first.substr(strlen(config_ini::BAR_PREFIX)));
     }
   }
   return bars;

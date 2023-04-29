@@ -1,7 +1,7 @@
 #pragma once
 
 #include "adapters/net.hpp"
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "modules/meta/types.hpp"
 
@@ -12,7 +12,7 @@ namespace modules {
 
   class network_module : public timer_module<network_module> {
    public:
-    explicit network_module(const bar_settings&, string, const config&);
+    explicit network_module(const bar_settings&, string, const config_ini&);
 
     void teardown();
     bool update();

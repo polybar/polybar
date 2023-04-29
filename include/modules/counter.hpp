@@ -8,7 +8,7 @@ POLYBAR_NS
 namespace modules {
   class counter_module : public timer_module<counter_module> {
    public:
-    explicit counter_module(const bar_settings&, string, const config&);
+    explicit counter_module(const bar_settings&, string, const config_ini&);
 
     bool update();
     bool build(builder* builder, const string& tag) const;

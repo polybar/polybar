@@ -22,9 +22,9 @@ using valuemap_t = std::unordered_map<string, string>;
 using sectionmap_t = std::map<string, valuemap_t>;
 using file_list = vector<string>;
 
-class config {
+class config_ini {
  public:
-  explicit config(const logger& logger, string&& path, string&& bar)
+  explicit config_ini(const logger& logger, string&& path, string&& bar)
       : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
   const string& filepath() const;

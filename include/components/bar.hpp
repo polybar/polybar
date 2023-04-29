@@ -18,7 +18,7 @@
 POLYBAR_NS
 
 // fwd {{{
-class config;
+class config_ini;
 class connection;
 class logger;
 class renderer;
@@ -37,9 +37,9 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
             public signal_receiver<SIGN_PRIORITY_BAR, signals::ui::dim_window> {
  public:
   using make_type = unique_ptr<bar>;
-  static make_type make(eventloop::loop&, const config&, bool only_initialize_values = false);
+  static make_type make(eventloop::loop&, const config_ini&, bool only_initialize_values = false);
 
-  explicit bar(connection&, signal_emitter&, const config&, const logger&, eventloop::loop&, unique_ptr<screen>&&,
+  explicit bar(connection&, signal_emitter&, const config_ini&, const logger&, eventloop::loop&, unique_ptr<screen>&&,
       unique_ptr<tags::dispatch>&&, unique_ptr<tags::action_context>&&, bool only_initialize_values);
   ~bar();
 
@@ -90,7 +90,7 @@ class bar : public xpp::event::sink<evt::button_press, evt::expose, evt::propert
  private:
   connection& m_connection;
   signal_emitter& m_sig;
-  const config& m_conf;
+  const config_ini& m_conf;
   const logger& m_log;
   eventloop::loop& m_loop;
   unique_ptr<screen> m_screen;

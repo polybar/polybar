@@ -7,8 +7,8 @@ POLYBAR_NS
 namespace modules {
   template class module<counter_module>;
 
-  counter_module::counter_module(const bar_settings& bar, string name_, const config& config)
-      : timer_module<counter_module>(bar, move(name_), config) {
+  counter_module::counter_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : timer_module<counter_module>(bar, move(name_), config_ini) {
     set_interval(1s);
     m_formatter->add(DEFAULT_FORMAT, TAG_COUNTER, {TAG_COUNTER});
   }

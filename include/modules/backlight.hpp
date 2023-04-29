@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "modules/meta/inotify_module.hpp"
 #include "modules/meta/types.hpp"
 #include "settings.hpp"
@@ -21,7 +21,7 @@ namespace modules {
     string get_output();
 
    public:
-    explicit backlight_module(const bar_settings&, string, const config&);
+    explicit backlight_module(const bar_settings&, string, const config_ini&);
 
     void idle();
     bool on_event(const inotify_event& event);

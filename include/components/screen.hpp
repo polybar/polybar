@@ -11,7 +11,7 @@
 POLYBAR_NS
 
 // fwd
-class config;
+class config_ini;
 class logger;
 class connection;
 class signal_emitter;
@@ -19,9 +19,9 @@ class signal_emitter;
 class screen : public xpp::event::sink<evt::map_notify, evt::randr_screen_change_notify> {
  public:
   using make_type = unique_ptr<screen>;
-  static make_type make(const config&);
+  static make_type make(const config_ini&);
 
-  explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf);
+  explicit screen(connection& conn, signal_emitter& emitter, const logger& logger, const config_ini& conf);
   ~screen();
 
  protected:
@@ -32,7 +32,7 @@ class screen : public xpp::event::sink<evt::map_notify, evt::randr_screen_change
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  const config& m_conf;
+  const config_ini& m_conf;
 
   xcb_window_t m_root;
   xcb_window_t m_proxy{XCB_NONE};

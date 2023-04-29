@@ -3,7 +3,7 @@
 #include <set>
 
 #include "common.hpp"
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
 
@@ -105,7 +105,7 @@ class config_parser {
    * @throws syntax_error If there was any kind of syntax error
    * @throws parser_error If aynthing else went wrong
    */
-  config parse(string barname);
+  config_ini parse(string barname);
 
  protected:
   /**

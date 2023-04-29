@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
@@ -27,7 +27,7 @@ namespace drawtypes {
 
   using ramp_t = shared_ptr<ramp>;
 
-  ramp_t load_ramp(const config& conf, const string& section, string name, bool required = true);
+  ramp_t load_ramp(const config_ini& conf, const string& section, string name, bool required = true);
 }  // namespace drawtypes
 
 POLYBAR_NS_END

@@ -35,7 +35,7 @@ namespace drawtypes {
    * Create an animation by loading values
    * from the configuration
    */
-  animation_t load_animation(const config& conf, const string& section, string name, bool required) {
+  animation_t load_animation(const config_ini& conf, const string& section, string name, bool required) {
     vector<label_t> vec;
     vector<string> frames;
 

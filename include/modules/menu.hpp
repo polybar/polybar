@@ -18,7 +18,7 @@ namespace modules {
     };
 
    public:
-    explicit menu_module(const bar_settings&, string, const config&);
+    explicit menu_module(const bar_settings&, string, const config_ini&);
 
     bool build(builder* builder, const string& tag) const;
     void update() {}

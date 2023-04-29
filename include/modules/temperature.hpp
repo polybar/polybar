@@ -13,7 +13,7 @@ namespace modules {
 
   class temperature_module : public timer_module<temperature_module> {
    public:
-    explicit temperature_module(const bar_settings&, string, const config&);
+    explicit temperature_module(const bar_settings&, string, const config_ini&);
 
     bool update();
     string get_format() const;

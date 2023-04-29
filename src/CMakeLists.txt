@@ -60,7 +60,7 @@ set(POLY_SOURCES
   ${src_dir}/components/bar.cpp
   ${src_dir}/components/builder.cpp
   ${src_dir}/components/command_line.cpp
-  ${src_dir}/components/config.cpp
+  ${src_dir}/components/config_ini.cpp
   ${src_dir}/components/config_parser.cpp
   ${src_dir}/components/controller.cpp
   ${src_dir}/components/logger.cpp

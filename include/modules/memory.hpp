@@ -11,7 +11,7 @@ namespace modules {
   enum class memory_state { NORMAL = 0, WARN };
   class memory_module : public timer_module<memory_module> {
    public:
-    explicit memory_module(const bar_settings&, string, const config&);
+    explicit memory_module(const bar_settings&, string, const config_ini&);
 
     bool update();
     string get_format() const;

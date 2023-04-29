@@ -27,15 +27,15 @@ namespace modules {
   /**
    * Construct module
    */
-  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_, const config& config)
-      : static_module<xworkspaces_module>(bar, move(name_), config)
+  xworkspaces_module::xworkspaces_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : static_module<xworkspaces_module>(bar, move(name_), config_ini)
       , m_connection(connection::make())
       , m_ewmh(ewmh_util::initialize()) {
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
-    // Load config values
+    // Load config_ini values
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
@@ -355,7 +355,7 @@ namespace modules {
   }
 
   /**
-   * Output content as defined in the config
+   * Output content as defined in the config_ini
    */
   bool xworkspaces_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL_MONITOR) {

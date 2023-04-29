@@ -2,7 +2,7 @@
 
 #include <i3ipc++/ipc.hpp>
 
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "modules/meta/event_module.hpp"
 #include "modules/meta/types.hpp"
 #include "utils/i3.hpp"
@@ -45,7 +45,7 @@ namespace modules {
     };
 
    public:
-    explicit i3_module(const bar_settings&, string, const config&);
+    explicit i3_module(const bar_settings&, string, const config_ini&);
 
     void stop() override;
     bool has_event();

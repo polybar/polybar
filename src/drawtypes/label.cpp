@@ -172,7 +172,7 @@ namespace drawtypes {
   /**
    * Create a label by loading values from the configuration
    */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
+  label_t load_label(const config_ini& conf, const string& section, string name, bool required, string def) {
     vector<token> tokens;
     size_t start, end, pos;
 
@@ -315,7 +315,7 @@ namespace drawtypes {
   /**
    * Create a label by loading optional values from the configuration
    */
-  label_t load_optional_label(const config& conf, string section, string name, string def) {
+  label_t load_optional_label(const config_ini& conf, string section, string name, string def) {
     return load_label(conf, section, move(name), false, move(def));
   }
 

@@ -12,8 +12,8 @@ POLYBAR_NS
 namespace modules {
   template class module<mpd_module>;
 
-  mpd_module::mpd_module(const bar_settings& bar, string name_, const config& config)
-      : event_module<mpd_module>(bar, move(name_), config) {
+  mpd_module::mpd_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : event_module<mpd_module>(bar, move(name_), config_ini) {
     m_router->register_action(EVENT_PLAY, [this]() { action_play(); });
     m_router->register_action(EVENT_PAUSE, [this]() { action_pause(); });
     m_router->register_action(EVENT_STOP, [this]() { action_stop(); });

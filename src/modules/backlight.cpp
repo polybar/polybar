@@ -23,8 +23,8 @@ namespace modules {
     return std::strtof(file_util::contents(m_path).c_str(), nullptr);
   }
 
-  backlight_module::backlight_module(const bar_settings& bar, string name_, const config& config)
-      : inotify_module<backlight_module>(bar, move(name_), config) {
+  backlight_module::backlight_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : inotify_module<backlight_module>(bar, move(name_), config_ini) {
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
     auto card = m_conf.get(name(), "card", ""s);

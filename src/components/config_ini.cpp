@@ -1,4 +1,4 @@
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 
 #include <climits>
 #include <cmath>
@@ -19,18 +19,18 @@ namespace chrono = std::chrono;
 /**
  * Get path of loaded file
  */
-const string& config::filepath() const {
+const string& config_ini::filepath() const {
   return m_file;
 }
 
 /**
  * Get the section name of the bar in use
  */
-string config::section() const {
+string config_ini::section() const {
   return BAR_PREFIX + m_barname;
 }
 
-void config::use_xrm() {
+void config_ini::use_xrm() {
 #if WITH_XRM
   /*
    * Initialize the xresource manager if there are any xrdb refs
@@ -43,23 +43,23 @@ void config::use_xrm() {
 #endif
 }
 
-void config::set_sections(sectionmap_t sections) {
+void config_ini::set_sections(sectionmap_t sections) {
   m_sections = move(sections);
   copy_inherited();
 }
 
-void config::set_included(file_list included) {
+void config_ini::set_included(file_list included) {
   m_included = move(included);
 }
 
-file_list config::get_included_files() const {
+file_list config_ini::get_included_files() const {
   return m_included;
 }
 
 /**
  * Print a deprecation warning if the given parameter is set
  */
-void config::warn_deprecated(const string& section, const string& key, string replacement) const {
+void config_ini::warn_deprecated(const string& section, const string& key, string replacement) const {
   if (has(section, key)) {
     if (replacement.empty()) {
       m_log.warn(
@@ -108,7 +108,7 @@ void config::set(const string& section, const string& key, string&& value) {
  *   [sub/section]
  *   inherit = section1 section2
  */
-void config::copy_inherited() {
+void config_ini::copy_inherited() {
   for (auto&& section : m_sections) {
     std::vector<string> inherit_sections;
 
@@ -318,91 +318,91 @@ string config::dereference_file(string var) const {
 
 
 template <>
-string config::convert(string&& value) const {
+string config_ini::convert(string&& value) const {
   return forward<string>(value);
 }
 
 template <>
-const char* config::convert(string&& value) const {
+const char* config_ini::convert(string&& value) const {
   return value.c_str();
 }
 
 template <>
-char config::convert(string&& value) const {
+char config_ini::convert(string&& value) const {
   return value.c_str()[0];
 }
 
 template <>
-int config::convert(string&& value) const {
+int config_ini::convert(string&& value) const {
   return std::strtol(value.c_str(), nullptr, 10);
 }
 
 template <>
-short config::convert(string&& value) const {
+short config_ini::convert(string&& value) const {
   return static_cast<short>(std::strtol(value.c_str(), nullptr, 10));
 }
 
 template <>
-bool config::convert(string&& value) const {
+bool config_ini::convert(string&& value) const {
   string lower{string_util::lower(forward<string>(value))};
 
   return (lower == "true" || lower == "yes" || lower == "on" || lower == "1");
 }
 
 template <>
-float config::convert(string&& value) const {
+float config_ini::convert(string&& value) const {
   return std::strtof(value.c_str(), nullptr);
 }
 
 template <>
-double config::convert(string&& value) const {
+double config_ini::convert(string&& value) const {
   return std::strtod(value.c_str(), nullptr);
 }
 
 template <>
-long config::convert(string&& value) const {
+long config_ini::convert(string&& value) const {
   return std::strtol(value.c_str(), nullptr, 10);
 }
 
 template <>
-long long config::convert(string&& value) const {
+long long config_ini::convert(string&& value) const {
   return std::strtoll(value.c_str(), nullptr, 10);
 }
 
 template <>
-unsigned char config::convert(string&& value) const {
+unsigned char config_ini::convert(string&& value) const {
   return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
-unsigned short config::convert(string&& value) const {
+unsigned short config_ini::convert(string&& value) const {
   return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
-unsigned int config::convert(string&& value) const {
+unsigned int config_ini::convert(string&& value) const {
   return std::strtoul(value.c_str(), nullptr, 10);
 }
 
 template <>
-unsigned long config::convert(string&& value) const {
+unsigned long config_ini::convert(string&& value) const {
   unsigned long v{std::strtoul(value.c_str(), nullptr, 10)};
   return v < ULONG_MAX ? v : 0UL;
 }
 
 template <>
-unsigned long long config::convert(string&& value) const {
+unsigned long long config_ini::convert(string&& value) const {
   unsigned long long v{std::strtoull(value.c_str(), nullptr, 10)};
   return v < ULLONG_MAX ? v : 0ULL;
 }
 
 template <>
-spacing_val config::convert(string&& value) const {
+spacing_val config_ini::convert(string&& value) const {
   return units_utils::parse_spacing(value);
 }
 
 template <>
-extent_val config::convert(std::string&& value) const {
+extent_val config_ini::convert(std::string&& value) const {
   return units_utils::parse_extent(value);
 }
 
@@ -413,7 +413,7 @@ extent_val config::convert(std::string&& value) const {
  * describing a pixel offset. The actual value is calculated by X% * max + Z
  */
 template <>
-percentage_with_offset config::convert(string&& value) const {
+percentage_with_offset config_ini::convert(string&& value) const {
   size_t i = value.find(':');
 
   if (i == std::string::npos) {
@@ -429,22 +429,22 @@ percentage_with_offset config::convert(string&& value) const {
 }
 
 template <>
-chrono::seconds config::convert(string&& value) const {
+chrono::seconds config_ini::convert(string&& value) const {
   return chrono::seconds{convert<chrono::seconds::rep>(forward<string>(value))};
 }
 
 template <>
-chrono::milliseconds config::convert(string&& value) const {
+chrono::milliseconds config_ini::convert(string&& value) const {
   return chrono::milliseconds{convert<chrono::milliseconds::rep>(forward<string>(value))};
 }
 
 template <>
-chrono::duration<double> config::convert(string&& value) const {
+chrono::duration<double> config_ini::convert(string&& value) const {
   return chrono::duration<double>{convert<double>(forward<string>(value))};
 }
 
 template <>
-rgba config::convert(string&& value) const {
+rgba config_ini::convert(string&& value) const {
   if (value.empty()) {
     return rgba{};
   }
@@ -459,7 +459,7 @@ rgba config::convert(string&& value) const {
 }
 
 template <>
-cairo_operator_t config::convert(string&& value) const {
+cairo_operator_t config_ini::convert(string&& value) const {
   return cairo::utils::str2operator(forward<string>(value), CAIRO_OPERATOR_OVER);
 }
 

@@ -14,7 +14,7 @@ POLYBAR_NS
 namespace modules {
   template class module<i3_module>;
 
-  i3_module::i3_module(const bar_settings& bar, string name_, const config& conf)
+  i3_module::i3_module(const bar_settings& bar, string name_, const config_ini& conf)
       : event_module<i3_module>(bar, move(name_), conf) {
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });

@@ -286,7 +286,7 @@ namespace file_util {
   }
 
   /*
-   * Search for polybar config and returns the path if found
+   * Search for polybar config_ini and returns the path if found
    */
   string get_config_path() {
     const static string suffix = "/polybar/config";

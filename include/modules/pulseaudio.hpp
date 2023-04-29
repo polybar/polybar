@@ -14,7 +14,7 @@ namespace modules {
 
   class pulseaudio_module : public event_module<pulseaudio_module> {
    public:
-    explicit pulseaudio_module(const bar_settings&, string, const config&);
+    explicit pulseaudio_module(const bar_settings&, string, const config_ini&);
 
     void teardown();
     bool has_event();

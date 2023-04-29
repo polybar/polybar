@@ -9,7 +9,7 @@ namespace modules {
   /**
    * Function pointer for creating a module.
    */
-  using factory_fun = module_t (*)(const bar_settings&, string&&, const config&);
+  using factory_fun = module_t (*)(const bar_settings&, string&&, const config_ini&);
   using factory_map = map<string, factory_fun>;
 
   /**
@@ -19,8 +19,8 @@ namespace modules {
    */
   template <typename M>
   static constexpr factory_fun get_factory() {
-    return [](const bar_settings& bar, string&& module_name, const config& config) -> module_t {
-      return make_shared<M>(bar, move(module_name), config);
+    return [](const bar_settings& bar, string&& module_name, const config_ini& config_ini) -> module_t {
+      return make_shared<M>(bar, move(module_name), config_ini);
     };
   }
 
@@ -104,7 +104,7 @@ namespace modules {
       map_entry<ipc_module>(),
   };
 
-  module_t make_module(string&& type, const bar_settings& bar, string module_name, const logger& log, const config& config) {
+  module_t make_module(string&& type, const bar_settings& bar, string module_name, const logger& log, const config_ini& config_ini) {
     string actual_type = type;
 
     if (type == "internal/volume") {
@@ -114,7 +114,7 @@ namespace modules {
 
     auto it = factories.find(actual_type);
     if (it != factories.end()) {
-      return it->second(bar, std::move(module_name), config);
+      return it->second(bar, std::move(module_name), config_ini);
     } else {
       throw application_error("Unknown module: " + type);
     }

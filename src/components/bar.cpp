@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "components/config.hpp"
+#include "components/config_ini.hpp"
 #include "components/renderer.hpp"
 #include "components/screen.hpp"
 #include "components/types.hpp"
@@ -39,17 +39,17 @@ using namespace eventloop;
 /**
  * Create instance
  */
-bar::make_type bar::make(loop& loop, const config& config, bool only_initialize_values) {
+bar::make_type bar::make(loop& loop, const config_ini& config_ini, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
   return std::make_unique<bar>(
       connection::make(),
       signal_emitter::make(),
-      config,
+      config_ini,
       logger::make(),
       loop,
-      screen::make(config),
+      screen::make(config_ini),
       tags::dispatch::make(*action_ctxt),
       std::move(action_ctxt),
       only_initialize_values);
@@ -59,12 +59,12 @@ bar::make_type bar::make(loop& loop, const config& config, bool only_initialize_
 /**
  * Construct bar instance
  */
-bar::bar(connection& conn, signal_emitter& emitter, const config& config, const logger& logger, loop& loop,
+bar::bar(connection& conn, signal_emitter& emitter, const config_ini& config_ini, const logger& logger, loop& loop,
     unique_ptr<screen>&& screen, unique_ptr<tags::dispatch>&& dispatch, unique_ptr<tags::action_context>&& action_ctxt,
     bool only_initialize_values)
     : m_connection(conn)
     , m_sig(emitter)
-    , m_conf(config)
+    , m_conf(config_ini)
     , m_log(logger)
     , m_loop(loop)
     , m_screen(forward<decltype(screen)>(screen))

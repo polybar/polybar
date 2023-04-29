@@ -14,7 +14,7 @@ using namespace mpd;
 namespace modules {
   class mpd_module : public event_module<mpd_module> {
    public:
-    explicit mpd_module(const bar_settings&, string, const config&);
+    explicit mpd_module(const bar_settings&, string, const config_ini&);
 
     void teardown();
     inline bool connected() const;

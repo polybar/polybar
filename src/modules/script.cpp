@@ -6,8 +6,8 @@
 POLYBAR_NS
 
 namespace modules {
-  script_module::script_module(const bar_settings& bar, string name_, const config& config)
-      : module<script_module>(bar, move(name_), config)
+  script_module::script_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : module<script_module>(bar, move(name_), config_ini)
       , m_tail(m_conf.get(name(), "tail", false))
       , m_interval_success(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
       , m_interval_fail(m_conf.get<script_runner::interval>(name(), "interval-fail", m_interval_success))

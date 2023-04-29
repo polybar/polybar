@@ -23,11 +23,11 @@ namespace modules {
   template class module<fs_module>;
 
   /**
-   * Bootstrap the module by reading config values and
+   * Bootstrap the module by reading config_ini values and
    * setting up required components
    */
-  fs_module::fs_module(const bar_settings& bar, string name_, const config& config)
-      : timer_module<fs_module>(bar, move(name_), config) {
+  fs_module::fs_module(const bar_settings& bar, string name_, const config_ini& config_ini)
+      : timer_module<fs_module>(bar, move(name_), config_ini) {
     m_mountpoints = m_conf.get_list(name(), "mount", {});
     if (m_mountpoints.empty()) {
       m_log.info("%s: No mountpoints specified, using fallback \"/\"", name());
