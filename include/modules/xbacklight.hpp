@@ -24,7 +24,7 @@ namespace modules {
    */
   class xbacklight_module : public static_module<xbacklight_module>, public event_handler<evt::randr_notify> {
    public:
-    explicit xbacklight_module(const bar_settings& bar, string name_, const config& config);
+    explicit xbacklight_module(const bar_settings& bar, string name_, const config&);
 
     void update();
     string get_output();
