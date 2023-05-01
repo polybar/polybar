@@ -143,7 +143,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings& bar, string name, const config& conf);
+    module(const bar_settings& bar, string name, const config&);
     ~module() noexcept;
 
     static constexpr auto EVENT_MODULE_TOGGLE = "module_toggle";
