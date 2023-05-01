@@ -21,7 +21,7 @@ namespace modules {
       : public static_module<xkeyboard_module>,
         public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify> {
    public:
-    explicit xkeyboard_module(const bar_settings& bar, string name_, const config& config);
+    explicit xkeyboard_module(const bar_settings& bar, string name_, const config&);
 
     string get_output();
     void update();
