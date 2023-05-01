@@ -8,7 +8,8 @@ POLYBAR_NS
 namespace modules {
   template class module<date_module>;
 
-  date_module::date_module(const bar_settings& bar, string name_) : timer_module<date_module>(bar, move(name_)) {
+  date_module::date_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<date_module>(bar, move(name_), config) {
     if (!m_bar.locale.empty()) {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }

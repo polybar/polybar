@@ -13,8 +13,8 @@ POLYBAR_NS
 namespace modules {
   template class module<temperature_module>;
 
-  temperature_module::temperature_module(const bar_settings& bar, string name_)
-      : timer_module<temperature_module>(bar, move(name_)) {
+  temperature_module::temperature_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<temperature_module>(bar, move(name_), config) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
     m_zone_type = m_conf.get(name(), "zone-type", ""s);
     m_path = m_conf.get(name(), "hwmon-path", ""s);

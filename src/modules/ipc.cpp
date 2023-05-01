@@ -14,7 +14,8 @@ namespace modules {
    * Load user-defined ipc hooks and
    * create formatting tags
    */
-  ipc_module::ipc_module(const bar_settings& bar, string name_) : module<ipc_module>(bar, move(name_)) {
+  ipc_module::ipc_module(const bar_settings& bar, string name_, const config& config)
+      : module<ipc_module>(bar, move(name_), config) {
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });

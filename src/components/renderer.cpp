@@ -21,12 +21,12 @@ static constexpr double BLOCK_GAP{20.0};
 /**
  * Create instance
  */
-renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt) {
+renderer::make_type renderer::make(const bar_settings& bar, tags::action_context& action_ctxt, const config& conf) {
   // clang-format off
   return std::make_unique<renderer>(
       connection::make(),
       signal_emitter::make(),
-      config::make(),
+      conf,
       logger::make(),
       forward<decltype(bar)>(bar),
       background_manager::make(),

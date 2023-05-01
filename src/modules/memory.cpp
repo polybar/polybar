@@ -15,7 +15,8 @@ POLYBAR_NS
 namespace modules {
   template class module<memory_module>;
 
-  memory_module::memory_module(const bar_settings& bar, string name_) : timer_module<memory_module>(bar, move(name_)) {
+  memory_module::memory_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<memory_module>(bar, move(name_), config) {
     set_interval(1s);
     m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
 

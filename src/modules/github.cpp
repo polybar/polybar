@@ -14,7 +14,8 @@ namespace modules {
   /**
    * Construct module
    */
-  github_module::github_module(const bar_settings& bar, string name_) : timer_module<github_module>(bar, move(name_)) {
+  github_module::github_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<github_module>(bar, move(name_), config) {
     m_accesstoken = m_conf.get(name(), "token");
     m_user = m_conf.get(name(), "user", ""s);
     m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);

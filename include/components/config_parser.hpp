@@ -105,7 +105,7 @@ class config_parser {
    * @throws syntax_error If there was any kind of syntax error
    * @throws parser_error If aynthing else went wrong
    */
-  config::make_type parse(string barname);
+  config parse(string barname);
 
  protected:
   /**
@@ -229,7 +229,7 @@ class config_parser {
   /**
    * @brief Absolute path to the main config file
    */
-  string m_config;
+  string m_config_file;
 
   /**
    * @brief List of all the lines in the config (with included files)

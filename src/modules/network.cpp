@@ -10,8 +10,8 @@ POLYBAR_NS
 namespace modules {
   template class module<network_module>;
 
-  network_module::network_module(const bar_settings& bar, string name_)
-      : timer_module<network_module>(bar, move(name_)) {
+  network_module::network_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<network_module>(bar, move(name_), config) {
     // Load configuration values
     m_interface = m_conf.get(name(), "interface", m_interface);
 

@@ -9,6 +9,7 @@
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
 #include "common.hpp"
+#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal_fwd.hpp"
@@ -134,7 +135,7 @@ class tray_manager
 
   const tray_settings settings() const;
 
-  void setup(const string& tray_module_name);
+  void setup(const config&, const string& tray_module_name);
   void activate();
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);

@@ -11,7 +11,7 @@ namespace modules {
 #define DEFINE_UNSUPPORTED_MODULE(MODULE_NAME, MODULE_TYPE)                             \
   class MODULE_NAME : public module_interface {                                         \
    public:                                                                              \
-    MODULE_NAME(const bar_settings, string) {                                           \
+    MODULE_NAME(const bar_settings, string, const config&) {                            \
       throw application_error("No built-in support for '" + string{MODULE_TYPE} + "'"); \
     }                                                                                   \
     static constexpr auto TYPE = MODULE_TYPE;                                           \

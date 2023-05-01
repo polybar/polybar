@@ -14,7 +14,8 @@ POLYBAR_NS
 namespace modules {
   template class module<cpu_module>;
 
-  cpu_module::cpu_module(const bar_settings& bar, string name_) : timer_module<cpu_module>(bar, move(name_)) {
+  cpu_module::cpu_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<cpu_module>(bar, move(name_), config) {
     set_interval(1s);
     m_totalwarn = m_conf.get(name(), "warn-percentage", m_totalwarn);
     m_ramp_padding = m_conf.get(name(), "ramp-coreload-spacing", m_ramp_padding);

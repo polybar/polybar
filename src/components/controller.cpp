@@ -31,9 +31,9 @@ using namespace modules;
 /**
  * Build controller instance
  */
-controller::make_type controller::make(bool has_ipc, loop& loop) {
+controller::make_type controller::make(bool has_ipc, loop& loop, const config& config) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config::make(), has_ipc, loop);
+      connection::make(), signal_emitter::make(), logger::make(), config, has_ipc, loop);
 }
 
 /**
@@ -46,13 +46,13 @@ controller::controller(
     , m_log(logger)
     , m_conf(config)
     , m_loop(loop)
-    , m_bar(bar::make(m_loop))
+    , m_bar(bar::make(m_loop, config))
     , m_has_ipc(has_ipc) {
-  m_conf.ignore_key("settings", "throttle-input-for");
-  m_conf.ignore_key("settings", "throttle-output");
-  m_conf.ignore_key("settings", "throttle-output-for");
-  m_conf.ignore_key("settings", "eventqueue-swallow");
-  m_conf.ignore_key("settings", "eventqueue-swallow-time");
+  m_conf.warn_deprecated("settings", "throttle-input-for");
+  m_conf.warn_deprecated("settings", "throttle-output");
+  m_conf.warn_deprecated("settings", "throttle-output-for");
+  m_conf.warn_deprecated("settings", "eventqueue-swallow");
+  m_conf.warn_deprecated("settings", "eventqueue-swallow-time");
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
@@ -630,7 +630,7 @@ size_t controller::setup_modules(alignment align) {
       }
 
       m_log.notice("Loading module '%s' of type '%s'", module_name, type);
-      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log);
+      module_t module = modules::make_module(move(type), m_bar->settings(), module_name, m_log, m_conf);
 
       m_modules.push_back(module);
       m_blocks[align].push_back(module);

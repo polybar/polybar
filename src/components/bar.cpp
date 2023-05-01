@@ -38,17 +38,17 @@ using namespace eventloop;
 /**
  * Create instance
  */
-bar::make_type bar::make(loop& loop, bool only_initialize_values) {
+bar::make_type bar::make(loop& loop, const config& config, bool only_initialize_values) {
   auto action_ctxt = make_unique<tags::action_context>();
 
   // clang-format off
   return std::make_unique<bar>(
       connection::make(),
       signal_emitter::make(),
-      config::make(),
+      config,
       logger::make(),
       loop,
-      screen::make(),
+      screen::make(config),
       tags::dispatch::make(*action_ctxt),
       std::move(action_ctxt),
       only_initialize_values);
@@ -889,7 +889,7 @@ void bar::handle(const evt::configure_notify& evt) {
 
 void bar::start(const string& tray_module_name) {
   m_log.trace("bar: Create renderer");
-  m_renderer = renderer::make(m_opts, *m_action_ctxt);
+  m_renderer = renderer::make(m_opts, *m_action_ctxt, m_conf);
 
   m_opts.x_data.window = m_renderer->window();
   m_opts.x_data.visual = m_renderer->visual();
@@ -918,7 +918,7 @@ void bar::start(const string& tray_module_name) {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(tray_module_name);
+  m_tray->setup(m_conf, tray_module_name);
 
   if (m_tray->settings().tray_position == legacy_tray::tray_postition::MODULE ||
       m_tray->settings().tray_position == legacy_tray::tray_postition::NONE) {

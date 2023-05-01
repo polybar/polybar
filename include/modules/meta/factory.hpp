@@ -17,8 +17,9 @@ namespace modules {
    * @param bar An instance of the @ref bar_settings
    * @param module_name The user-specified module name
    * @param log A @ref logger instance
+   * @param config A @ref config instance
    */
-  module_t make_module(string&& type, const bar_settings& bar, string module_name, const logger& log);
+  module_t make_module(string&& type, const bar_settings& bar, string module_name, const logger& log, const config& config);
 } // namespace modules
 
 POLYBAR_NS_END

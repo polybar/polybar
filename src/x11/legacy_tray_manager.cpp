@@ -8,7 +8,6 @@
 
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
-#include "components/config.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "utils/color.hpp"
@@ -55,8 +54,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup(const string& tray_module_name) {
-  const config& conf = config::make();
+void tray_manager::setup(const config& conf, const string& tray_module_name) {
   auto bs = conf.section();
   string position = conf.get(bs, "tray-position", "none"s);
 

@@ -8,7 +8,8 @@ POLYBAR_NS
 namespace modules {
   template class module<text_module>;
 
-  text_module::text_module(const bar_settings& bar, string name_) : static_module<text_module>(bar, move(name_)) {
+  text_module::text_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<text_module>(bar, move(name_), config) {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     m_formatter->add_optional("content", {});
 

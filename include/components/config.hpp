@@ -24,10 +24,7 @@ using file_list = vector<string>;
 
 class config {
  public:
-  using make_type = const config&;
-  static make_type make(string path = "", string bar = "");
-
-  explicit config(const logger& logger, string&& path = "", string&& bar = "")
+  explicit config(const logger& logger, string&& path, string&& bar)
       : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
   const string& filepath() const;
@@ -46,7 +43,7 @@ class config {
 
   file_list get_included_files() const;
 
-  void warn_deprecated(const string& section, const string& key, string replacement) const;
+  void warn_deprecated(const string& section, const string& key, string replacement = "") const;
 
   /**
    * Returns true if a given parameter exists
@@ -212,8 +209,6 @@ class config {
     return default_value;
   }
 
-  void ignore_key(const string& section, const string& key) const;
-
   /**
    * Attempt to load value using the deprecated key name. If successful show a
    * warning message. If it fails load the value using the new key and given
@@ -231,20 +226,6 @@ class config {
       m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section, old, section, newkey,
           err.what());
       return get<T>(section, newkey, fallback);
-    }
-  }
-
-  /**
-   * @see deprecated<T>
-   */
-  template <typename T = string>
-  T deprecated_list(const string& section, const string& old, const string& newkey, const vector<T>& fallback) const {
-    try {
-      vector<T> value{get_list<T>(section, old)};
-      warn_deprecated(section, old, newkey);
-      return value;
-    } catch (const key_error& err) {
-      return get_list<T>(section, newkey, fallback);
     }
   }
 
