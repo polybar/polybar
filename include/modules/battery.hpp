@@ -47,7 +47,7 @@ namespace modules {
     using consumption_reader = mutex_wrapper<value_reader<string /* watts */>>;
 
    public:
-    explicit battery_module(const bar_settings&, string, const config_ini&);
+    explicit battery_module(const bar_settings&, string, const config&);
 
     void start() override;
     void teardown();

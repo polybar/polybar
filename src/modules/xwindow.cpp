@@ -69,8 +69,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xwindow_module::xwindow_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : static_module<xwindow_module>(bar, move(name_), config_ini), m_connection(connection::make()) {
+  xwindow_module::xwindow_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xwindow_module>(bar, move(name_), config), m_connection(connection::make()) {
     // Initialize ewmh atoms
     ewmh_util::initialize();
 
@@ -137,7 +137,7 @@ namespace modules {
   }
 
   /**
-   * Output content as defined in the config_ini
+   * Output content as defined in the config
    */
   bool xwindow_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_LABEL && m_label) {

@@ -4,7 +4,7 @@
 
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "events/signal.hpp"
 #include "utils/factory.hpp"

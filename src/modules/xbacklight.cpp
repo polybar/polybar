@@ -16,8 +16,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xbacklight_module::xbacklight_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : static_module<xbacklight_module>(bar, move(name_), config_ini), m_connection(connection::make()) {
+  xbacklight_module::xbacklight_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xbacklight_module>(bar, move(name_), config), m_connection(connection::make()) {
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
 
@@ -132,7 +132,7 @@ namespace modules {
   }
 
   /**
-   * Output content as defined in the config_ini
+   * Output content as defined in the config
    */
   bool xbacklight_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR) {

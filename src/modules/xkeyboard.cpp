@@ -22,8 +22,8 @@ namespace modules {
   /**
    * Construct module
    */
-  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : static_module<xkeyboard_module>(bar, move(name_), config_ini), m_connection(connection::make()) {
+  xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<xkeyboard_module>(bar, move(name_), config), m_connection(connection::make()) {
     m_router->register_action(EVENT_SWITCH, [this]() { action_switch(); });
 
     // Setup extension
@@ -40,7 +40,7 @@ namespace modules {
     // Create keyboard object
     query_keyboard();
 
-    // Load config_ini values
+    // Load config values
     m_blacklist = m_conf.get_list(name(), "blacklist", {});
 
     // load layout icons

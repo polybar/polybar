@@ -21,7 +21,7 @@ using std::queue;
 
 enum class alignment;
 class bar;
-class config_ini;
+class config;
 class connection;
 class inotify_watch;
 class logger;
@@ -39,9 +39,9 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
                        signals::ipc::hook, signals::ui::button_press, signals::ui::update_background> {
  public:
   using make_type = unique_ptr<controller>;
-  static make_type make(bool has_ipc, eventloop::loop&, const config_ini&);
+  static make_type make(bool has_ipc, eventloop::loop&, const config&);
 
-  explicit controller(connection&, signal_emitter&, const logger&, const config_ini&, bool has_ipc, eventloop::loop&);
+  explicit controller(connection&, signal_emitter&, const logger&, const config&, bool has_ipc, eventloop::loop&);
   ~controller();
 
   bool run(bool writeback, string snapshot_dst, bool confwatch);
@@ -98,7 +98,7 @@ class controller : public signal_receiver<SIGN_PRIORITY_CONTROLLER, signals::eve
   connection& m_connection;
   signal_emitter& m_sig;
   const logger& m_log;
-  const config_ini& m_conf;
+  const config& m_conf;
   eventloop::loop& m_loop;
   unique_ptr<bar> m_bar;
   bool m_has_ipc;

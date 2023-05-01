@@ -4,7 +4,7 @@
 #include <csignal>
 #include <thread>
 
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal.hpp"
@@ -22,14 +22,14 @@ using namespace signals::eventqueue;
 /**
  * Create instance
  */
-screen::make_type screen::make(const config_ini& config_ini) {
-  return std::make_unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config_ini);
+screen::make_type screen::make(const config& config) {
+  return std::make_unique<screen>(connection::make(), signal_emitter::make(), logger::make(), config);
 }
 
 /**
  * Construct screen instance
  */
-screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, const config_ini& conf)
+screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, const config& conf)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)

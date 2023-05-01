@@ -15,7 +15,7 @@ namespace modules {
    */
   class github_module : public timer_module<github_module> {
    public:
-    explicit github_module(const bar_settings&, string, const config_ini&);
+    explicit github_module(const bar_settings&, string, const config&);
 
     bool update();
     bool build(builder* builder, const string& tag) const;

@@ -8,7 +8,7 @@
 #include <mutex>
 
 #include "common.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/concurrency.hpp"
@@ -40,7 +40,7 @@ namespace drawtypes {
 } // namespace drawtypes
 
 class builder;
-class config_ini;
+class config;
 class logger;
 class signal_emitter;
 
@@ -82,7 +82,7 @@ namespace modules {
 
   class module_formatter {
    public:
-    explicit module_formatter(const config_ini& conf, string modname) : m_conf(conf), m_modname(modname) {}
+    explicit module_formatter(const config& conf, string modname) : m_conf(conf), m_modname(modname) {}
 
     void add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist = {});
     void add_optional(string name, vector<string>&& tags, vector<string>&& whitelist = {});
@@ -94,7 +94,7 @@ namespace modules {
    protected:
     void add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist);
 
-    const config_ini& m_conf;
+    const config& m_conf;
     string m_modname;
     map<string, shared_ptr<module_format>> m_formats;
   };
@@ -143,7 +143,7 @@ namespace modules {
   template <class Impl>
   class module : public module_interface {
    public:
-    module(const bar_settings& bar, string name, const config_ini&);
+    module(const bar_settings& bar, string name, const config&);
     ~module() noexcept;
 
     static constexpr auto EVENT_MODULE_TOGGLE = "module_toggle";
@@ -200,7 +200,7 @@ namespace modules {
     signal_emitter& m_sig;
     const bar_settings& m_bar;
     const logger& m_log;
-    const config_ini& m_conf;
+    const config& m_conf;
 
     unique_ptr<action_router> m_router;
 

@@ -21,7 +21,7 @@ namespace modules {
 
   class cpu_module : public timer_module<cpu_module> {
    public:
-    explicit cpu_module(const bar_settings&, string, const config_ini&);
+    explicit cpu_module(const bar_settings&, string, const config&);
 
     bool update();
     string get_format() const;

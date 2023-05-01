@@ -5,6 +5,8 @@
 #include <cstring>
 #include <fstream>
 
+#include "components/config_ini.hpp"
+// #include "components/config_lua.hpp"
 #include "utils/file.hpp"
 #include "utils/string.hpp"
 
@@ -13,9 +15,14 @@ POLYBAR_NS
 config_parser::config_parser(const logger& logger, string&& file)
     : m_log(logger), m_config_file(file_util::expand(file)) {}
 
-config_ini config_parser::parse(string barname) {
+config config_parser::parse(string barname) {
   m_log.notice("Parsing config file: %s", m_config_file);
+  config config(m_log, m_config_file, barname);
 
+  // if (is_lua_file()) {
+  //   config_lua conf_lua(m_log, move(m_config_file), move(barname));
+  //   return config::from_lua(move(conf_lua));
+  // } else {
   parse_file(m_config_file, {});
 
   sectionmap_t sections = create_sectionmap();
@@ -40,20 +47,20 @@ config_ini config_parser::parse(string barname) {
   }
 
   /*
-   * The first element in the files vector is always the main config file and
-   * because it has unique filenames, we can use all the elements from the
-   * second element onwards for the included list
-   */
+  * The first element in the files vector is always the main config file and
+  * because it has unique filenames, we can use all the elements from the
+  * second element onwards for the included list
+  */
   file_list included(m_files.begin() + 1, m_files.end());
-  config_ini conf(m_log, move(m_config_file), move(barname));
+  shared_ptr<config_ini> conf_ini = config.make_ini();
 
-  conf.set_sections(move(sections));
-  conf.set_included(move(included));
+  conf_ini->set_sections(move(sections));
+  conf_ini->set_included(move(included));
   if (use_xrm) {
-    conf.use_xrm();
+    conf_ini->use_xrm();
   }
 
-  return conf;
+  return config;
 }
 
 sectionmap_t config_parser::create_sectionmap() {
@@ -307,6 +314,10 @@ bool config_parser::is_valid_name(const string& name) {
   }
 
   return true;
+}
+
+bool config_parser::is_lua_file() const {
+  return m_config_file.substr(m_config_file.size() - 4 - 1) == ".lua";
 }
 
 string config_parser::parse_escaped_value(const line_t& line, string&& value, const string& key) {

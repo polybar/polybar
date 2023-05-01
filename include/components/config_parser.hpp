@@ -3,7 +3,7 @@
 #include <set>
 
 #include "common.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
 
@@ -105,7 +105,7 @@ class config_parser {
    * @throws syntax_error If there was any kind of syntax error
    * @throws parser_error If aynthing else went wrong
    */
-  config_ini parse(string barname);
+  config parse(string barname);
 
  protected:
   /**
@@ -214,6 +214,8 @@ class config_parser {
    *        in config_parser::m_forbidden_chars
    */
   bool is_valid_name(const string& name);
+
+  bool is_lua_file() const;
 
   vector<string> get_bars(const sectionmap_t& sections) const;
 

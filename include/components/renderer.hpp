@@ -18,7 +18,7 @@ POLYBAR_NS
 
 // fwd {{{
 class connection;
-class config_ini;
+class config;
 class logger;
 class background_manager;
 class bg_slice;
@@ -46,9 +46,9 @@ class renderer : public renderer_interface,
                  public signal_receiver<SIGN_PRIORITY_RENDERER, signals::ui::request_snapshot> {
  public:
   using make_type = unique_ptr<renderer>;
-  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt, const config_ini&);
+  static make_type make(const bar_settings& bar, tags::action_context& action_ctxt, const config&);
 
-  explicit renderer(connection& conn, signal_emitter& sig, const config_ini&, const logger& logger, const bar_settings& bar,
+  explicit renderer(connection& conn, signal_emitter& sig, const config&, const logger& logger, const bar_settings& bar,
       background_manager& background_manager, tags::action_context& action_ctxt);
   ~renderer();
 
@@ -99,7 +99,7 @@ class renderer : public renderer_interface,
  private:
   connection& m_connection;
   signal_emitter& m_sig;
-  const config_ini& m_conf;
+  const config& m_conf;
   const logger& m_log;
   const bar_settings& m_bar;
   std::shared_ptr<bg_slice> m_background;

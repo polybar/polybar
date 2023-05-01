@@ -13,8 +13,8 @@ POLYBAR_NS
 namespace modules {
   template class module<temperature_module>;
 
-  temperature_module::temperature_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : timer_module<temperature_module>(bar, move(name_), config_ini) {
+  temperature_module::temperature_module(const bar_settings& bar, string name_, const config& config)
+      : timer_module<temperature_module>(bar, move(name_), config) {
     m_zone = m_conf.get(name(), "thermal-zone", 0);
     m_zone_type = m_conf.get(name(), "zone-type", ""s);
     m_path = m_conf.get(name(), "hwmon-path", ""s);
@@ -81,7 +81,7 @@ namespace modules {
     string temp_f_string = to_string(temp_f);
     string temp_k_string = to_string(temp_k);
 
-    // Add units if `units = true` in config_ini
+    // Add units if `units = true` in config
     if(m_units) {
       temp_c_string += "°C";
       temp_f_string += "°F";

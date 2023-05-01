@@ -11,7 +11,7 @@ POLYBAR_NS
 namespace modules {
   class script_module : public module<script_module> {
    public:
-    explicit script_module(const bar_settings&, string, const config_ini&);
+    explicit script_module(const bar_settings&, string, const config&);
 
     void start() override;
     void stop() override;

@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 #include "components/builder.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/types.hpp"
 #include "utils/mixins.hpp"
 
@@ -39,7 +39,7 @@ namespace drawtypes {
 
   using progressbar_t = shared_ptr<progressbar>;
 
-  progressbar_t load_progressbar(const bar_settings& bar, const config_ini& conf, const string& section, string name);
+  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name);
 }  // namespace drawtypes
 
 POLYBAR_NS_END

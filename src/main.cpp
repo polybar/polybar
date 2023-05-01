@@ -1,6 +1,6 @@
 #include "components/bar.hpp"
 #include "components/command_line.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/config_parser.hpp"
 #include "components/controller.hpp"
 #include "ipc/ipc.hpp"
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     }
 
     config_parser parser{logger, move(confpath)};
-    config_ini conf = parser.parse(move(barname));
+    config conf = parser.parse(move(barname));
 
     //==================================================
     // Dump requested data

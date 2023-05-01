@@ -13,7 +13,7 @@ POLYBAR_NS
 namespace modules {
   class date_module : public timer_module<date_module> {
    public:
-    explicit date_module(const bar_settings&, string, const config_ini&);
+    explicit date_module(const bar_settings&, string, const config&);
 
     bool update();
     bool build(builder* builder, const string& tag) const;

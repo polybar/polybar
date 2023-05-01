@@ -54,7 +54,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup(const config_ini& conf, const string& tray_module_name) {
+void tray_manager::setup(const config& conf, const string& tray_module_name) {
   auto bs = conf.section();
   string position = conf.get(bs, "tray-position", "none"s);
 

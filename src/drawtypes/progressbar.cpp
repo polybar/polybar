@@ -82,7 +82,7 @@ namespace drawtypes {
    * Create a progressbar by loading values
    * from the configuration
    */
-  progressbar_t load_progressbar(const bar_settings& bar, const config_ini& conf, const string& section, string name) {
+  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name) {
     // Remove the start and end tag from the name in case a format tag is passed
     name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 

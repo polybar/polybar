@@ -11,8 +11,8 @@ POLYBAR_NS
 namespace modules {
   template class module<menu_module>;
 
-  menu_module::menu_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : static_module<menu_module>(bar, move(name_), config_ini) {
+  menu_module::menu_module(const bar_settings& bar, string name_, const config& config)
+      : static_module<menu_module>(bar, move(name_), config) {
     m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
 
     m_router->register_action_with_data(EVENT_OPEN, [this](const std::string& data) { action_open(data); });

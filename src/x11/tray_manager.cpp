@@ -7,7 +7,7 @@
 
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "errors.hpp"
 #include "events/signal.hpp"
 #include "utils/color.hpp"
@@ -49,7 +49,7 @@ manager::~manager() {
   deactivate();
 }
 
-void manager::setup(const config_ini& conf, const string& section_name) {
+void manager::setup(const config& conf, const string& section_name) {
   unsigned bar_height = m_bar_opts.inner_area().height;
 
   // Spacing between icons

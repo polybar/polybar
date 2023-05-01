@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include "common.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "drawtypes/label.hpp"
 #include "utils/mixins.hpp"
 
@@ -41,7 +41,7 @@ namespace drawtypes {
   using animation_t = shared_ptr<animation>;
 
   animation_t load_animation(
-      const config_ini& conf, const string& section, string name = "animation", bool required = true);
+      const config& conf, const string& section, string name = "animation", bool required = true);
 }  // namespace drawtypes
 
 POLYBAR_NS_END

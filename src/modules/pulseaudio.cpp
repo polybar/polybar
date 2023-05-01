@@ -13,8 +13,8 @@ POLYBAR_NS
 namespace modules {
   template class module<pulseaudio_module>;
 
-  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_, const config_ini& config_ini)
-      : event_module<pulseaudio_module>(bar, move(name_), config_ini) {
+  pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_, const config& config)
+      : event_module<pulseaudio_module>(bar, move(name_), config) {
     if (m_handle_events) {
       m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
       m_router->register_action(EVENT_INC, [this]() { action_inc(); });

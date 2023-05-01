@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "modules/meta/types.hpp"
@@ -25,7 +25,7 @@ namespace modules {
    */
   class xbacklight_module : public static_module<xbacklight_module>, public event_handler<evt::randr_notify> {
    public:
-    explicit xbacklight_module(const bar_settings& bar, string name_, const config_ini&);
+    explicit xbacklight_module(const bar_settings& bar, string name_, const config&);
 
     void update();
     string get_output();

@@ -10,7 +10,7 @@ POLYBAR_NS
 namespace modules {
 class tray_module : public static_module<tray_module> {
  public:
-  explicit tray_module(const bar_settings& bar_settings, string name_, const config_ini&);
+  explicit tray_module(const bar_settings& bar_settings, string name_, const config&);
   string get_format() const;
 
   void start() override;

@@ -45,7 +45,7 @@ namespace modules {
    */
   class xworkspaces_module : public static_module<xworkspaces_module>, public event_handler<evt::property_notify> {
    public:
-    explicit xworkspaces_module(const bar_settings& bar, string name_, const config_ini&);
+    explicit xworkspaces_module(const bar_settings& bar, string name_, const config&);
 
     void update();
     string get_output();

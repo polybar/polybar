@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "common.hpp"
+#include "components/config_base.hpp"
 #include "components/logger.hpp"
 #include "errors.hpp"
 #include "settings.hpp"
@@ -15,17 +16,10 @@
 
 POLYBAR_NS
 
-DEFINE_ERROR(value_error);
-DEFINE_ERROR(key_error);
-
-using valuemap_t = std::unordered_map<string, string>;
-using sectionmap_t = std::map<string, valuemap_t>;
-using file_list = vector<string>;
-
 class config_ini {
  public:
-  explicit config_ini(const logger& logger, string&& path, string&& bar)
-      : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
+  explicit config_ini(const logger& logger, const string& path, const string& bar)
+      : m_log(logger), m_file(path), m_barname(bar){};
 
   const string& filepath() const;
   string section() const;

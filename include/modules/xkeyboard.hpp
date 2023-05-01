@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/types.hpp"
 #include "drawtypes/layouticonset.hpp"
 #include "modules/meta/event_handler.hpp"
@@ -22,7 +22,7 @@ namespace modules {
       : public static_module<xkeyboard_module>,
         public event_handler<evt::xkb_new_keyboard_notify, evt::xkb_state_notify, evt::xkb_indicator_state_notify> {
    public:
-    explicit xkeyboard_module(const bar_settings& bar, string name_, const config_ini&);
+    explicit xkeyboard_module(const bar_settings& bar, string name_, const config&);
 
     string get_output();
     void update();

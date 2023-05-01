@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "modules/meta/timer_module.hpp"
 #include "modules/meta/types.hpp"
 #include "settings.hpp"
@@ -36,7 +36,7 @@ namespace modules {
    */
   class fs_module : public timer_module<fs_module> {
    public:
-    explicit fs_module(const bar_settings&, string, const config_ini&);
+    explicit fs_module(const bar_settings&, string, const config&);
 
     bool update();
     string get_format() const;

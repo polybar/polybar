@@ -6,7 +6,7 @@
 
 #include "components/bar.hpp"
 #include "components/builder.hpp"
-#include "components/config_ini.hpp"
+#include "components/config.hpp"
 #include "components/eventloop.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
@@ -32,22 +32,22 @@ using namespace modules;
 /**
  * Build controller instance
  */
-controller::make_type controller::make(bool has_ipc, loop& loop, const config_ini& config_ini) {
+controller::make_type controller::make(bool has_ipc, loop& loop, const config& config) {
   return std::make_unique<controller>(
-      connection::make(), signal_emitter::make(), logger::make(), config_ini, has_ipc, loop);
+      connection::make(), signal_emitter::make(), logger::make(), config, has_ipc, loop);
 }
 
 /**
  * Construct controller
  */
 controller::controller(
-    connection& conn, signal_emitter& emitter, const logger& logger, const config_ini& config_ini, bool has_ipc, loop& loop)
+    connection& conn, signal_emitter& emitter, const logger& logger, const config& config, bool has_ipc, loop& loop)
     : m_connection(conn)
     , m_sig(emitter)
     , m_log(logger)
-    , m_conf(config_ini)
+    , m_conf(config)
     , m_loop(loop)
-    , m_bar(bar::make(m_loop, config_ini))
+    , m_bar(bar::make(m_loop, config))
     , m_has_ipc(has_ipc) {
   m_conf.warn_deprecated("settings", "throttle-input-for");
   m_conf.warn_deprecated("settings", "throttle-output");
@@ -188,7 +188,7 @@ void controller::create_config_watcher(const string& filename) {
 }
 
 void controller::confwatch_handler(const char* filename) {
-  m_log.notice("Watched config_ini file changed %s", filename);
+  m_log.notice("Watched config file changed %s", filename);
   stop(true);
 }
 
