@@ -43,7 +43,7 @@ class config {
 
   file_list get_included_files() const;
 
-  void warn_deprecated(const string& section, const string& key, string replacement=string()) const;
+  void warn_deprecated(const string& section, const string& key, string replacement = "") const;
 
   /**
    * Returns true if a given parameter exists
