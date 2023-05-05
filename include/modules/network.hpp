@@ -2,8 +2,8 @@
 
 #include "adapters/net.hpp"
 #include "components/config.hpp"
-#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "modules/meta/types.hpp"
 
 POLYBAR_NS
 

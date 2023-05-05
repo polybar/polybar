@@ -5,8 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
-#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "modules/meta/types.hpp"
 
 POLYBAR_NS
 

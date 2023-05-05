@@ -1,7 +1,7 @@
 #pragma once
 
-#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "utils/command.hpp"
 
 POLYBAR_NS

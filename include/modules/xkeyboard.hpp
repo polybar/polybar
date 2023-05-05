@@ -5,8 +5,8 @@
 #include "components/types.hpp"
 #include "drawtypes/layouticonset.hpp"
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "x11/extensions/xkb.hpp"
 #include "x11/window.hpp"
 

@@ -2,7 +2,7 @@
 
 #include "components/config.hpp"
 #include "modules/meta/inotify_module.hpp"
-#include "modules/meta/names.hpp"
+#include "modules/meta/types.hpp"
 #include "settings.hpp"
 
 POLYBAR_NS

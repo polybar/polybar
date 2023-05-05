@@ -2,8 +2,8 @@
 
 #include "common.hpp"
 #include "components/bar.hpp"
-#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "x11/tray_manager.hpp"
 
 POLYBAR_NS

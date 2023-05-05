@@ -1,8 +1,8 @@
 #pragma once
 
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "x11/ewmh.hpp"
 
 POLYBAR_NS

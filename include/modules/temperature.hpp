@@ -2,8 +2,8 @@
 
 #include <istream>
 
-#include "modules/meta/names.hpp"
 #include "modules/meta/timer_module.hpp"
+#include "modules/meta/types.hpp"
 #include "settings.hpp"
 
 POLYBAR_NS

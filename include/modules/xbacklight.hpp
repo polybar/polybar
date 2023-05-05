@@ -2,8 +2,8 @@
 
 #include "components/config.hpp"
 #include "modules/meta/event_handler.hpp"
-#include "modules/meta/names.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "settings.hpp"
 #include "x11/extensions/randr.hpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/meta/event_module.hpp"
-#include "modules/meta/names.hpp"
+#include "modules/meta/types.hpp"
 #include "utils/bspwm.hpp"
 
 POLYBAR_NS
