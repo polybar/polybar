@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "components/bar.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "x11/tray_manager.hpp"
 
 POLYBAR_NS
@@ -17,7 +18,7 @@ class tray_module : public static_module<tray_module> {
   bool build(builder* builder, const string& tag) const;
   void update() {}
 
-  static constexpr auto TYPE = "internal/tray";
+  static constexpr auto TYPE = TRAY_TYPE;
 
  private:
   static constexpr const char* TAG_TRAY{"<tray>"};

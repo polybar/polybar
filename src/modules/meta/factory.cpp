@@ -36,6 +36,16 @@ namespace modules {
     return std::make_pair(std::string(M::TYPE), get_factory<M>());
   }
 
+  template<const char* module_type>
+  static factory_map::value_type map_entry_unsupported() {
+    return {
+      module_type, 
+      [](const bar_settings&, string&&, const config&) -> module_t {
+        throw application_error("No built-in support for '" + string(module_type) + "'");
+      }
+    };
+  }
+
   /**
    * Factory function for each module type.
    */
@@ -46,17 +56,45 @@ namespace modules {
       map_entry<bspwm_module>(),
       map_entry<cpu_module>(),
       map_entry<date_module>(),
+#if ENABLE_CURL
       map_entry<github_module>(),
+#else
+      map_entry_unsupported<GITHUB_TYPE>(),
+#endif
       map_entry<fs_module>(),
       map_entry<memory_module>(),
+#if ENABLE_I3
       map_entry<i3_module>(),
+#else
+      map_entry_unsupported<I3_TYPE>(),
+#endif
+#if ENABLE_MPD
       map_entry<mpd_module>(),
+#else
+      map_entry_unsupported<MPD_TYPE>(),
+#endif
+#if ENABLE_ALSA
       map_entry<alsa_module>(),
+#else
+      map_entry_unsupported<ALSA_TYPE>(),
+#endif
+#if ENABLE_PULSEAUDIO
       map_entry<pulseaudio_module>(),
+#else
+      map_entry_unsupported<PULSEAUDIO_TYPE>(),
+#endif
+#if ENABLE_NETWORK
       map_entry<network_module>(),
+#else
+      map_entry_unsupported<NETWORK_TYPE>(),
+#endif
       map_entry<temperature_module>(),
       map_entry<xbacklight_module>(),
+#if ENABLE_XKEYBOARD
       map_entry<xkeyboard_module>(),
+#else
+      map_entry_unsupported<XKEYBOARD_TYPE>(),
+#endif
       map_entry<xwindow_module>(),
       map_entry<xworkspaces_module>(),
       map_entry<tray_module>(),
@@ -70,8 +108,8 @@ namespace modules {
     string actual_type = type;
 
     if (type == "internal/volume") {
-      log.warn("internal/volume is deprecated, use %s instead", string(alsa_module::TYPE));
-      actual_type = alsa_module::TYPE;
+      log.warn("internal/volume is deprecated, use %s instead", ALSA_TYPE);
+      actual_type = ALSA_TYPE;
     }
 
     auto it = factories.find(actual_type);

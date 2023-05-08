@@ -2,6 +2,7 @@
 
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "x11/ewmh.hpp"
 
 POLYBAR_NS
@@ -50,7 +51,7 @@ namespace modules {
     string get_output();
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/xworkspaces";
+    static constexpr auto TYPE = XWORKSPACES_TYPE;
 
     static constexpr auto EVENT_FOCUS = "focus";
     static constexpr auto EVENT_NEXT = "next";

@@ -1,6 +1,7 @@
 #include "components/controller.hpp"
 
 #include <csignal>
+#include <cassert>
 #include <utility>
 
 #include "components/bar.hpp"

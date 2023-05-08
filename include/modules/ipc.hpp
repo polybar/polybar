@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/meta/static_module.hpp"
+#include "modules/meta/types.hpp"
 #include "utils/command.hpp"
 
 POLYBAR_NS
@@ -33,7 +34,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     void on_message(const string& message);
 
-    static constexpr auto TYPE = "custom/ipc";
+    static constexpr auto TYPE = IPC_TYPE;
 
     static constexpr auto EVENT_SEND = "send";
     static constexpr auto EVENT_HOOK = "hook";

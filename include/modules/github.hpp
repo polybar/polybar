@@ -3,6 +3,7 @@
 #include <atomic>
 
 #include "modules/meta/timer_module.hpp"
+#include "modules/meta/types.hpp"
 #include "settings.hpp"
 #include "utils/http.hpp"
 
@@ -20,7 +21,7 @@ namespace modules {
     bool build(builder* builder, const string& tag) const;
     string get_format() const;
 
-    static constexpr auto TYPE = "internal/github";
+    static constexpr auto TYPE = GITHUB_TYPE;
 
    private:
     void update_label(int);

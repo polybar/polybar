@@ -2,6 +2,7 @@
 
 #include "adapters/script_runner.hpp"
 #include "modules/meta/base.hpp"
+#include "modules/meta/types.hpp"
 #include "utils/command.hpp"
 #include "utils/io.hpp"
 
@@ -20,7 +21,7 @@ namespace modules {
 
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "custom/script";
+    static constexpr auto TYPE = SCRIPT_TYPE;
 
    protected:
     bool check_condition();

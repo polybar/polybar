@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "modules/meta/inotify_module.hpp"
+#include "modules/meta/types.hpp"
 
 POLYBAR_NS
 
@@ -55,7 +56,7 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/battery";
+    static constexpr auto TYPE = BATTERY_TYPE;
 
    protected:
     state current_state();

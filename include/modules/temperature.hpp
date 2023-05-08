@@ -3,6 +3,7 @@
 #include <istream>
 
 #include "modules/meta/timer_module.hpp"
+#include "modules/meta/types.hpp"
 #include "settings.hpp"
 
 POLYBAR_NS
@@ -18,7 +19,7 @@ namespace modules {
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
 
-    static constexpr auto TYPE = "internal/temperature";
+    static constexpr auto TYPE = TEMPERATURE_TYPE;
 
    private:
     static constexpr auto TAG_LABEL = "<label>";
