@@ -220,10 +220,6 @@ class font_fc : public font {
         m_scaled, x, y, utf8.c_str(), utf8.size(), &glyphs, &nglyphs, &clusters, &nclusters, &cf);
 
     if (status != CAIRO_STATUS_SUCCESS) {
-      logger::make().notice("ERROR %d", status);
-      for (char& c : utf8) {
-        logger::make().notice("0x%02x", c);
-      }
       throw application_error(sstream() << "cairo_scaled_font_text_to_glyphs() " << cairo_status_to_string(status));
     }
 
