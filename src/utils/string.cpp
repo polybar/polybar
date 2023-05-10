@@ -1,6 +1,7 @@
 #include "utils/string.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -273,9 +274,7 @@ static pair<int, uint32_t> utf8_get_len(uint8_t leading) {
  * @brief Create a list of UCS-4 codepoint from a utf-8 encoded string
  */
 bool utf8_to_ucs4(const char* src, unicode_charlist& result_list) {
-  if (!src) {
-    return false;
-  }
+  assert(src);
   const auto* begin = reinterpret_cast<const uint8_t*>(src);
   const auto* first = begin;
   while (*first) {
