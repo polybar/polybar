@@ -165,7 +165,7 @@ namespace cairo {
 
       string utf8 = string(t.contents);
       string_util::unicode_charlist chars;
-      string_util::utf8_to_ucs4((const unsigned char*)utf8.c_str(), chars);
+      string_util::utf8_to_ucs4(utf8.c_str(), chars);
 
       while (!chars.empty()) {
         auto remaining = chars.size();

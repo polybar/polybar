@@ -8,6 +8,32 @@
 POLYBAR_NS
 
 namespace string_util {
+
+/**
+ * Prefixes for the leading byte in a UTF8 codepoint
+ */
+static constexpr uint8_t UTF8_LEADING1_PREFIX = 0b00000000;
+static constexpr uint8_t UTF8_LEADING2_PREFIX = 0b11000000;
+static constexpr uint8_t UTF8_LEADING3_PREFIX = 0b11100000;
+static constexpr uint8_t UTF8_LEADING4_PREFIX = 0b11110000;
+
+/**
+ * Masks to extract the prefix from the leading byte in a UTF8 codepoint
+ */
+static constexpr uint8_t UTF8_LEADING1_MASK = 0b10000000;
+static constexpr uint8_t UTF8_LEADING2_MASK = 0b11100000;
+static constexpr uint8_t UTF8_LEADING3_MASK = 0b11110000;
+static constexpr uint8_t UTF8_LEADING4_MASK = 0b11111000;
+
+/**
+ * Prefix for UTF8 continuation bytes
+ */
+static constexpr uint8_t UTF8_CONTINUATION_PREFIX = 0b10000000;
+/**
+ * Mask to extract the UTF8 continuation byte prefix
+ */
+static constexpr uint8_t UTF8_CONTINUATION_MASK = 0b11000000;
+
 /**
  * Check if haystack contains needle
  */
@@ -225,41 +251,58 @@ string utf8_truncate(string&& value, size_t len) {
 }
 
 /**
+ * Given a leading byte of a UTF8 codepoint calculates the number of bytes taken up by the codepoint.
+ *
+ * @returns {len, result} The codepoint is len bytes and result contains the codepoint bits held in the leading byte.
+ */
+static pair<int, uint32_t> utf8_get_len(uint8_t leading) {
+  if ((leading & UTF8_LEADING1_MASK) == UTF8_LEADING1_PREFIX) {
+    return {1, leading & ~UTF8_LEADING1_MASK};
+  } else if ((leading & UTF8_LEADING2_MASK) == UTF8_LEADING2_PREFIX) {
+    return {2, leading & ~UTF8_LEADING2_MASK};
+  } else if ((leading & UTF8_LEADING3_MASK) == UTF8_LEADING3_PREFIX) {
+    return {3, leading & ~UTF8_LEADING3_MASK};
+  } else if ((leading & UTF8_LEADING4_MASK) == UTF8_LEADING4_PREFIX) {
+    return {4, leading & ~UTF8_LEADING4_MASK};
+  } else {
+    return {-1, 0};
+  }
+}
+
+/**
  * @brief Create a UCS-4 codepoint from a utf-8 encoded string
  */
-bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list) {
+bool utf8_to_ucs4(const char* src, unicode_charlist& result_list) {
   if (!src) {
     return false;
   }
-  const unsigned char* first = src;
+  const auto* begin = reinterpret_cast<const uint8_t*>(src);
+  const auto* first = begin;
   while (*first) {
-    int len = 0;
-    unsigned long result = 0;
-    if ((*first >> 7) == 0) {
-      len = 1;
-      result = *first;
-    } else if ((*first >> 5) == 6) {
-      len = 2;
-      result = *first & 31;
-    } else if ((*first >> 4) == 14) {
-      len = 3;
-      result = *first & 15;
-    } else if ((*first >> 3) == 30) {
-      len = 4;
-      result = *first & 7;
-    } else {
+    // Number of bytes taken up by this codepoint and the bits contained in the leading byte.
+    auto [len, result] = utf8_get_len(*first);
+
+    // Invalid lengths
+    if (len <= 0 || len > 4) {
       return false;
     }
-    const unsigned char* next;
-    for (next = first + 1; *next && ((*next >> 6) == 2) && (next - first < len); next++) {
+
+    const uint8_t* next = first + 1;
+    for (; ((*next & UTF8_CONTINUATION_MASK) == UTF8_CONTINUATION_PREFIX) && (next - first < len); next++) {
       result = result << 6;
-      result |= *next & 63;
+      result |= *next & ~UTF8_CONTINUATION_MASK;
     }
+
     unicode_character uc_char;
     uc_char.codepoint = result;
-    uc_char.offset = first - src;
+    uc_char.offset = first - begin;
     uc_char.length = next - first;
     result_list.push_back(uc_char);
+
+    if (uc_char.length != len) {
+      return false;
+    }
+
     first = next;
   }
   return true;
@@ -268,7 +311,7 @@ bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list) {
 /**
  * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
  */
-size_t ucs4_to_utf8(char* utf8, unsigned int ucs) {
+size_t ucs4_to_utf8(char* utf8, uint32_t ucs) {
   if (ucs <= 0x7f) {
     *utf8 = ucs;
     return 1;
