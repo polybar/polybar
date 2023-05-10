@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <deque>
+#include <iomanip>
 #include <iterator>
 
 #include "cairo/font.hpp"
@@ -168,8 +169,14 @@ namespace cairo {
       bool success = string_util::utf8_to_ucs4(utf8, chars);
 
       if (!success) {
-        m_log.warn("Dropping invalid UTF8 text '%s'", utf8);
-        return *this;
+        sstream hex;
+        hex << std::hex << std::setw(2) << std::setfill('0');
+
+        for(const char& c: utf8) {
+          hex << (static_cast<int>(c) & 0xff) << " ";
+        }
+
+        m_log.warn("Dropping invalid parts of UTF8 text '%s' %s", utf8, hex.to_string());
       }
 
       while (!chars.empty()) {
@@ -239,9 +246,9 @@ namespace cairo {
           continue;
         }
 
-        char unicode[6]{'\0'};
+        std::array<char, 5> unicode{};
         string_util::ucs4_to_utf8(unicode, chars.begin()->codepoint);
-        m_log.warn("Dropping unmatched character %s (U+%04x) in '%s'", unicode, chars.begin()->codepoint, t.contents);
+        m_log.warn("Dropping unmatched character '%s' (U+%04x) in '%s'", unicode.data(), chars.begin()->codepoint, t.contents);
         utf8.erase(chars.begin()->offset, chars.begin()->length);
         for (auto&& c : chars) {
           c.offset -= chars.begin()->length;

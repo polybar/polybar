@@ -92,7 +92,7 @@ string utf8_truncate(string&& value, size_t len);
 /**
  * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
  */
-size_t ucs4_to_utf8(char* utf8, unsigned int ucs);
+size_t ucs4_to_utf8(std::array<char, 5>& utf8, unsigned int ucs);
 
 string join(const vector<string>& strs, const string& delim);
 vector<string> split(const string& s, char delim);
