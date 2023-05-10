@@ -188,7 +188,7 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
   string_util::unicode_charlist result_list{};
   string str = GetParam();
 
-  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
+  bool success = string_util::utf8_to_ucs4(str, result_list);
   ASSERT_TRUE(success);
 
   ASSERT_EQ(str.size(), result_list.size());
@@ -229,7 +229,7 @@ TEST_P(Utf8ToUCS4SingleTest, correctness) {
   string_util::unicode_charlist result_list{};
   const auto [str, codepoint] = GetParam();
 
-  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
+  bool success = string_util::utf8_to_ucs4(str, result_list);
   ASSERT_TRUE(success);
 
   ASSERT_EQ(1, result_list.size());
@@ -251,7 +251,7 @@ const vector<string> utf8_to_ucs4_invalid_list = {
     "\xe0",         // 3 byte code point with only leading byte
     "\xf0",         // 4 byte code point with only leading byte
     "\xf0\x80\x80", // 4 byte code point with only 3 bytes
-    "\xe0\x70\x80", // 3 byte code point, 2nd byte has no continuation prefix
+    "\xe0\xf0\x80", // 3 byte code point, 2nd byte has no continuation prefix
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4InvalidTest, testing::ValuesIn(utf8_to_ucs4_invalid_list));
@@ -262,7 +262,7 @@ INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4InvalidTest, testing::ValuesIn(utf8_to_
 TEST_P(Utf8ToUCS4InvalidTest, correctness) {
   string_util::unicode_charlist result_list{};
   const auto str = GetParam();
-  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
+  bool success = string_util::utf8_to_ucs4(str, result_list);
   EXPECT_FALSE(success);
   EXPECT_EQ(0, result_list.size());
 }

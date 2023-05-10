@@ -280,10 +280,10 @@ static pair<int, uint32_t> utf8_get_len(uint8_t leading) {
  *
  * @return Whether the string is completely valid utf8
  */
-bool utf8_to_ucs4(const char* src, unicode_charlist& result_list) {
-  assert(src);
+bool utf8_to_ucs4(const string& src, unicode_charlist& result_list) {
+  result_list.reserve(src.size());
   bool has_errors = false;
-  const auto* begin = reinterpret_cast<const uint8_t*>(src);
+  const auto* begin = reinterpret_cast<const uint8_t*>(src.c_str());
 
   const auto* current = begin;
   while (*current) {

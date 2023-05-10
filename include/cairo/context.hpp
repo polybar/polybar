@@ -165,7 +165,7 @@ namespace cairo {
 
       string utf8 = t.contents;
       string_util::unicode_charlist chars;
-      bool success = string_util::utf8_to_ucs4(utf8.c_str(), chars);
+      bool success = string_util::utf8_to_ucs4(utf8, chars);
 
       if (!success) {
         m_log.warn("Dropping invalid UTF8 text '%s'", utf8);

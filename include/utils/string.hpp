@@ -87,7 +87,7 @@ string utf8_truncate(string&& value, size_t len);
 /**
  * @brief Create a UCS-4 codepoint from a utf-8 encoded string
  */
-[[nodiscard]] bool utf8_to_ucs4(const char* src, unicode_charlist& result_list);
+[[nodiscard]] bool utf8_to_ucs4(const string& src, unicode_charlist& result_list);
 
 /**
  * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
