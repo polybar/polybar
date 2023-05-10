@@ -1,6 +1,5 @@
 #pragma once
 
-#include <list>
 #include <sstream>
 
 #include "common.hpp"
@@ -56,7 +55,7 @@ struct unicode_character {
    */
   int length{0};
 };
-using unicode_charlist = std::list<unicode_character>;
+using unicode_charlist = std::vector<unicode_character>;
 
 bool contains(const string& haystack, const string& needle);
 bool contains_ignore_case(const string& haystack, const string& needle);

@@ -193,8 +193,8 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
 
   ASSERT_EQ(str.size(), result_list.size());
 
-  int i = 0;
-  for (const auto& unicode_char : result_list) {
+  for (size_t i = 0; i < str.size(); i++) {
+    const auto& unicode_char = result_list[i];
     auto c = str[i];
 
     // Matches the single byte character
@@ -203,8 +203,6 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
     EXPECT_EQ(i, unicode_char.offset);
     // Only takes a single byte
     EXPECT_EQ(1, unicode_char.length);
-
-    i++;
   }
 }
 
@@ -266,5 +264,6 @@ TEST_P(Utf8ToUCS4InvalidTest, correctness) {
   const auto str = GetParam();
   bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
   EXPECT_FALSE(success);
+  EXPECT_EQ(0, result_list.size());
 }
 // }}}
