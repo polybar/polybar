@@ -272,39 +272,54 @@ static pair<int, uint32_t> utf8_get_len(uint8_t leading) {
 
 /**
  * @brief Create a list of UCS-4 codepoint from a utf-8 encoded string
+ *
+ * If invalid utf8 characters are encountered they are skipped until the next valid codepoint and the function will
+ * eventually return false.
+ *
+ * The result_list is always populated with all valid utf8 codepoints.
+ *
+ * @return Whether the string is completely valid utf8
  */
 bool utf8_to_ucs4(const char* src, unicode_charlist& result_list) {
   assert(src);
+  bool has_errors = false;
   const auto* begin = reinterpret_cast<const uint8_t*>(src);
-  const auto* first = begin;
-  while (*first) {
-    // Number of bytes taken up by this codepoint and the bits contained in the leading byte.
-    auto [len, result] = utf8_get_len(*first);
 
-    // Invalid lengths
+  const auto* current = begin;
+  while (*current) {
+    // Number of bytes taken up by this codepoint and the bits contained in the leading byte.
+    auto [len, result] = utf8_get_len(*current);
+    auto offset = current - begin;
+
+    /*
+     * Invalid lengths, this byte is not a valid leading byte.
+     * Skip it.
+     */
     if (len <= 0 || len > 4) {
-      return false;
+      has_errors = true;
+      current++;
+      continue;
     }
 
-    const uint8_t* next = first + 1;
-    for (; ((*next & UTF8_CONTINUATION_MASK) == UTF8_CONTINUATION_PREFIX) && (next - first < len); next++) {
+    const uint8_t* next = current + 1;
+    for (; ((*next & UTF8_CONTINUATION_MASK) == UTF8_CONTINUATION_PREFIX) && (next - current < len); next++) {
       result = result << 6;
       result |= *next & ~UTF8_CONTINUATION_MASK;
     }
 
-    unicode_character uc_char;
-    uc_char.codepoint = result;
-    uc_char.offset = first - begin;
-    uc_char.length = next - first;
-    result_list.push_back(uc_char);
+    auto actual_len = next - current;
+    current = next;
 
-    if (uc_char.length != len) {
-      return false;
+    if (actual_len != len) {
+      has_errors = true;
+      continue;
     }
 
-    first = next;
+    result_list.push_back(unicode_character{result, static_cast<int>(offset), static_cast<int>(actual_len)});
+    current = next;
   }
-  return true;
+
+  return !has_errors;
 }
 
 /**
