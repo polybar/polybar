@@ -225,7 +225,7 @@ const vector<single_test_t> utf8_to_ucs4_single_list = {
 INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4SingleTest, testing::ValuesIn(utf8_to_ucs4_single_list));
 
 /**
- * Test that the conversion to ucs4 works correctly with pure ASCII strings.
+ * Test that the conversion to ucs4 works correctly with a single UTF8 character
  */
 TEST_P(Utf8ToUCS4SingleTest, correctness) {
   string_util::unicode_charlist result_list{};
@@ -243,5 +243,28 @@ TEST_P(Utf8ToUCS4SingleTest, correctness) {
   EXPECT_EQ(str.size(), unicode_char.length);
   // Must match expected codepoint
   EXPECT_EQ(codepoint, unicode_char.codepoint);
+}
+
+class Utf8ToUCS4InvalidTest : public testing::TestWithParam<string> {};
+
+const vector<string> utf8_to_ucs4_invalid_list = {
+    "\x80",         // continuation byte without leading byte
+    "\xa0",         // 2 byte code point with only leading byte
+    "\xe0",         // 3 byte code point with only leading byte
+    "\xf0",         // 4 byte code point with only leading byte
+    "\xf0\x80\x80", // 4 byte code point with only 3 bytes
+    "\xe0\x70\x80", // 3 byte code point, 2nd byte has no continuation prefix
+};
+
+INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4InvalidTest, testing::ValuesIn(utf8_to_ucs4_invalid_list));
+
+/**
+ * Tests that the conversion correctly returns false for invalid strings.
+ */
+TEST_P(Utf8ToUCS4InvalidTest, correctness) {
+  string_util::unicode_charlist result_list{};
+  const auto str = GetParam();
+  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
+  EXPECT_FALSE(success);
 }
 // }}}
