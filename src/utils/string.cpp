@@ -215,10 +215,8 @@ string trim(string&& value, const char& needle) {
 size_t char_len(const string& value) {
   // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
   // simply count the number of bytes not of this form.
-  //
-  // 0xc0 = 11000000
-  // 0x80 = 10000000
-  return std::count_if(value.begin(), value.end(), [](char c) { return (c & 0xc0) != 0x80; });
+  return std::count_if(
+      value.begin(), value.end(), [](char c) { return (c & UTF8_CONTINUATION_MASK) != UTF8_CONTINUATION_PREFIX; });
 }
 
 /**
@@ -235,16 +233,13 @@ string utf8_truncate(string&& value, size_t len) {
   // utf-8 bytes of the form 10xxxxxx are continuation bytes, so we
   // simply jump forward to bytes not of that form and truncate starting
   // at that byte if we've counted too many codepoints
-  //
-  // 0xc0 = 11000000
-  // 0x80 = 10000000
   auto it = value.begin();
   auto end = value.end();
   for (size_t i = 0; i < len; ++i) {
     if (it == end)
       break;
     ++it;
-    it = std::find_if(it, end, [](char c) { return (c & 0xc0) != 0x80; });
+    it = std::find_if(it, end, [](char c) { return (c & UTF8_CONTINUATION_MASK) != UTF8_CONTINUATION_PREFIX; });
   }
   value.erase(it, end);
 
@@ -325,40 +320,25 @@ bool utf8_to_ucs4(const string& src, unicode_charlist& result_list) {
 /**
  * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
  */
-size_t ucs4_to_utf8(char* utf8, uint32_t ucs) {
+size_t ucs4_to_utf8(std::array<char, 5>& utf8, uint32_t ucs) {
   if (ucs <= 0x7f) {
-    *utf8 = ucs;
+    utf8[0] = ucs;
     return 1;
   } else if (ucs <= 0x07ff) {
-    *(utf8++) = ((ucs >> 6) & 0xff) | 0xc0;
-    *utf8 = (ucs & 0x3f) | 0x80;
+    utf8[0] = ((ucs >> 6) & ~UTF8_LEADING2_MASK) | UTF8_LEADING2_PREFIX;
+    utf8[1] = (ucs & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
     return 2;
   } else if (ucs <= 0xffff) {
-    *(utf8++) = ((ucs >> 12) & 0x0f) | 0xe0;
-    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
-    *utf8 = (ucs & 0x3f) | 0x80;
+    utf8[0] = ((ucs >> 12) & ~UTF8_LEADING3_MASK) | UTF8_LEADING3_PREFIX;
+    utf8[1] = ((ucs >> 6) & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
+    utf8[2] = (ucs & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
     return 3;
-  } else if (ucs <= 0x1fffff) {
-    *(utf8++) = ((ucs >> 18) & 0x07) | 0xf0;
-    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
-    *utf8 = (ucs & 0x3f) | 0x80;
+  } else if (ucs <= 0x10ffff) {
+    utf8[0] = ((ucs >> 18) & ~UTF8_LEADING4_MASK) | UTF8_LEADING4_PREFIX;
+    utf8[1] = ((ucs >> 12) & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
+    utf8[2] = ((ucs >> 6) & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
+    utf8[3] = (ucs & ~UTF8_CONTINUATION_MASK) | UTF8_CONTINUATION_PREFIX;
     return 4;
-  } else if (ucs <= 0x03ffffff) {
-    *(utf8++) = ((ucs >> 24) & 0x03) | 0xf8;
-    *(utf8++) = ((ucs >> 18) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
-    *utf8 = (ucs & 0x3f) | 0x80;
-    return 5;
-  } else if (ucs <= 0x7fffffff) {
-    *(utf8++) = ((ucs >> 30) & 0x01) | 0xfc;
-    *(utf8++) = ((ucs >> 24) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 18) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
-    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
-    *utf8 = (ucs & 0x3f) | 0x80;
-    return 6;
   } else {
     return 0;
   }
