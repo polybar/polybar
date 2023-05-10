@@ -225,6 +225,89 @@ string utf8_truncate(string&& value, size_t len) {
 }
 
 /**
+ * @brief Create a UCS-4 codepoint from a utf-8 encoded string
+ */
+bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list) {
+  if (!src) {
+    return false;
+  }
+  const unsigned char* first = src;
+  while (*first) {
+    int len = 0;
+    unsigned long result = 0;
+    if ((*first >> 7) == 0) {
+      len = 1;
+      result = *first;
+    } else if ((*first >> 5) == 6) {
+      len = 2;
+      result = *first & 31;
+    } else if ((*first >> 4) == 14) {
+      len = 3;
+      result = *first & 15;
+    } else if ((*first >> 3) == 30) {
+      len = 4;
+      result = *first & 7;
+    } else {
+      return false;
+    }
+    const unsigned char* next;
+    for (next = first + 1; *next && ((*next >> 6) == 2) && (next - first < len); next++) {
+      result = result << 6;
+      result |= *next & 63;
+    }
+    unicode_character uc_char;
+    uc_char.codepoint = result;
+    uc_char.offset = first - src;
+    uc_char.length = next - first;
+    result_list.push_back(uc_char);
+    first = next;
+  }
+  return true;
+}
+
+/**
+ * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
+ */
+size_t ucs4_to_utf8(char* utf8, unsigned int ucs) {
+  if (ucs <= 0x7f) {
+    *utf8 = ucs;
+    return 1;
+  } else if (ucs <= 0x07ff) {
+    *(utf8++) = ((ucs >> 6) & 0xff) | 0xc0;
+    *utf8 = (ucs & 0x3f) | 0x80;
+    return 2;
+  } else if (ucs <= 0xffff) {
+    *(utf8++) = ((ucs >> 12) & 0x0f) | 0xe0;
+    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
+    *utf8 = (ucs & 0x3f) | 0x80;
+    return 3;
+  } else if (ucs <= 0x1fffff) {
+    *(utf8++) = ((ucs >> 18) & 0x07) | 0xf0;
+    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
+    *utf8 = (ucs & 0x3f) | 0x80;
+    return 4;
+  } else if (ucs <= 0x03ffffff) {
+    *(utf8++) = ((ucs >> 24) & 0x03) | 0xf8;
+    *(utf8++) = ((ucs >> 18) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
+    *utf8 = (ucs & 0x3f) | 0x80;
+    return 5;
+  } else if (ucs <= 0x7fffffff) {
+    *(utf8++) = ((ucs >> 30) & 0x01) | 0xfc;
+    *(utf8++) = ((ucs >> 24) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 18) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 12) & 0x3f) | 0x80;
+    *(utf8++) = ((ucs >> 6) & 0x3f) | 0x80;
+    *utf8 = (ucs & 0x3f) | 0x80;
+    return 6;
+  } else {
+    return 0;
+  }
+}
+
+/**
  * Join all strings in vector into a single string separated by delim
  */
 string join(const vector<string>& strs, const string& delim) {

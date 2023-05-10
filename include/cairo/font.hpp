@@ -39,8 +39,8 @@ class font {
     cairo_set_font_face(m_cairo, cairo_font_face_reference(m_font_face));
   }
 
-  virtual size_t match(utils::unicode_character& character) = 0;
-  virtual size_t match(utils::unicode_charlist& charlist) = 0;
+  virtual size_t match(string_util::unicode_character& character) = 0;
+  virtual size_t match(string_util::unicode_charlist& charlist) = 0;
   virtual size_t render(const string& text, double x = 0.0, double y = 0.0) = 0;
   virtual void textwidth(const string& text, cairo_text_extents_t* extents) = 0;
 
@@ -187,13 +187,13 @@ class font_fc : public font {
     cairo_set_scaled_font(m_cairo, m_scaled);
   }
 
-  size_t match(utils::unicode_character& character) override {
+  size_t match(string_util::unicode_character& character) override {
     auto lock = make_unique<utils::ft_face_lock>(m_scaled);
     auto face = static_cast<FT_Face>(*lock);
     return FT_Get_Char_Index(face, character.codepoint) ? 1 : 0;
   }
 
-  size_t match(utils::unicode_charlist& charlist) override {
+  size_t match(string_util::unicode_charlist& charlist) override {
     auto lock = make_unique<utils::ft_face_lock>(m_scaled);
     auto face = static_cast<FT_Face>(*lock);
     size_t available_chars = 0;

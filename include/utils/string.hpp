@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <sstream>
 
 #include "common.hpp"
@@ -8,8 +9,6 @@ POLYBAR_NS
 
 class sstream {
  public:
-  sstream() : m_stream() {}
-
   template <typename T>
   sstream& operator<<(const T& object) {
     m_stream << object;
@@ -25,7 +24,7 @@ class sstream {
     return m_stream.str();
   }
 
-  const string to_string() const {
+   string to_string() const {
     return m_stream.str();
   }
 
@@ -38,6 +37,26 @@ namespace string_util {
  * Hash type
  */
 using hash_type = unsigned long;
+
+/**
+ * @brief Unicode character containing converted codepoint
+ * and details on where its position in the source string
+ */
+struct unicode_character {
+  /**
+   * The numerical codepoint. Between U+0000 and U+10FFFF
+   */
+  unsigned long codepoint{0};
+  /**
+   * Byte offset of this character in the original string
+   */
+  int offset{0};
+  /**
+   * Number of bytes used by this character in the original string
+   */
+  int length{0};
+};
+using unicode_charlist = std::list<unicode_character>;
 
 bool contains(const string& haystack, const string& needle);
 bool contains_ignore_case(const string& haystack, const string& needle);
@@ -66,6 +85,15 @@ string trim(string&& value, const char& needle = ' ');
 
 size_t char_len(const string& value);
 string utf8_truncate(string&& value, size_t len);
+/**
+ * @brief Create a UCS-4 codepoint from a utf-8 encoded string
+ */
+bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list);
+
+/**
+ * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
+ */
+size_t ucs4_to_utf8(char* utf8, unsigned int ucs);
 
 string join(const vector<string>& strs, const string& delim);
 vector<string> split(const string& s, char delim);
