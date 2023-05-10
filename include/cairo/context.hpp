@@ -164,8 +164,8 @@ namespace cairo {
       }
 
       string utf8 = string(t.contents);
-      utils::unicode_charlist chars;
-      utils::utf8_to_ucs4((const unsigned char*)utf8.c_str(), chars);
+      string_util::unicode_charlist chars;
+      string_util::utf8_to_ucs4((const unsigned char*)utf8.c_str(), chars);
 
       while (!chars.empty()) {
         auto remaining = chars.size();
@@ -235,7 +235,7 @@ namespace cairo {
         }
 
         char unicode[6]{'\0'};
-        utils::ucs4_to_utf8(unicode, chars.begin()->codepoint);
+        string_util::ucs4_to_utf8(unicode, chars.begin()->codepoint);
         m_log.warn("Dropping unmatched character %s (U+%04x) in '%s'", unicode, chars.begin()->codepoint, t.contents);
         utf8.erase(chars.begin()->offset, chars.begin()->length);
         for (auto&& c : chars) {
