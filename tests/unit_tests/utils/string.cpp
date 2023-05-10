@@ -188,8 +188,8 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
   string_util::unicode_charlist result_list{};
   string str = GetParam();
 
-  bool success = string_util::utf8_to_ucs4(str, result_list);
-  ASSERT_TRUE(success);
+  bool valid = string_util::utf8_to_ucs4(str, result_list);
+  ASSERT_TRUE(valid);
 
   ASSERT_EQ(str.size(), result_list.size());
 
@@ -206,18 +206,20 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
   }
 }
 
+// String containing a single codepoint and the expected numerical codepoint
 using single_test_t = std::pair<string, uint32_t>;
 class Utf8ToUCS4SingleTest : public testing::TestWithParam<single_test_t> {};
 
 const vector<single_test_t> utf8_to_ucs4_single_list = {
-    {" ", 0x20}, {"\u007f", 0x7f}, // End of 1 byte range
-    {"\u0080", 0x80},              // Start of 2 byte range
-    {"\u07ff", 0x7ff},             // End of 2 byte range
-    {"\u0800", 0x800},             // Start of 3 byte range
-    {"\uffff", 0xffff},            // End of 3 byte range
-    {"\U00010000", 0x10000},       // Start of 4 byte range
-    {"\U0010ffff", 0x10ffff},      // End of 4 byte range
-    {"\U0001f600", 0x1f600},       // Grinning face emoji
+    {" ", 0x20},              // Single ASCII character
+    {"\u007f", 0x7f},         // End of 1 byte range
+    {"\u0080", 0x80},         // Start of 2 byte range
+    {"\u07ff", 0x7ff},        // End of 2 byte range
+    {"\u0800", 0x800},        // Start of 3 byte range
+    {"\uffff", 0xffff},       // End of 3 byte range
+    {"\U00010000", 0x10000},  // Start of 4 byte range
+    {"\U0010ffff", 0x10ffff}, // End of 4 byte range
+    {"\U0001f600", 0x1f600},  // Grinning face emoji
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4SingleTest, testing::ValuesIn(utf8_to_ucs4_single_list));
@@ -229,8 +231,8 @@ TEST_P(Utf8ToUCS4SingleTest, correctness) {
   string_util::unicode_charlist result_list{};
   const auto [str, codepoint] = GetParam();
 
-  bool success = string_util::utf8_to_ucs4(str, result_list);
-  ASSERT_TRUE(success);
+  bool valid = string_util::utf8_to_ucs4(str, result_list);
+  ASSERT_TRUE(valid);
 
   ASSERT_EQ(1, result_list.size());
 
@@ -262,8 +264,8 @@ INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4InvalidTest, testing::ValuesIn(utf8_to_
 TEST_P(Utf8ToUCS4InvalidTest, correctness) {
   string_util::unicode_charlist result_list{};
   const auto str = GetParam();
-  bool success = string_util::utf8_to_ucs4(str, result_list);
-  EXPECT_FALSE(success);
+  bool valid = string_util::utf8_to_ucs4(str, result_list);
+  EXPECT_FALSE(valid);
   EXPECT_EQ(0, result_list.size());
 }
 
@@ -273,8 +275,8 @@ TEST_P(Utf8ToUCS4InvalidTest, correctness) {
 TEST(String, utf8ToUCS4Partial) {
   string_util::unicode_charlist result_list{};
   string str = "\xe0\x70\x80"; // a valid ascii character between two invalid characters
-  bool success = string_util::utf8_to_ucs4(str, result_list);
-  EXPECT_FALSE(success);
+  bool valid = string_util::utf8_to_ucs4(str, result_list);
+  EXPECT_FALSE(valid);
   EXPECT_EQ(1, result_list.size());
 
   EXPECT_EQ(0x70, result_list[0].codepoint);

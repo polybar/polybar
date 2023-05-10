@@ -166,9 +166,10 @@ namespace cairo {
 
       string utf8 = t.contents;
       string_util::unicode_charlist chars;
-      bool success = string_util::utf8_to_ucs4(utf8, chars);
+      bool valid = string_util::utf8_to_ucs4(utf8, chars);
 
-      if (!success) {
+      // The conversion already removed any invalid chunks. We should probably log a warning though.
+      if (!valid) {
         sstream hex;
         hex << std::hex << std::setw(2) << std::setfill('0');
 
