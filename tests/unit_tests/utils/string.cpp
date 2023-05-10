@@ -188,7 +188,7 @@ TEST_P(Utf8ToUCS4AsciiTest, correctness) {
   string_util::unicode_charlist result_list{};
   string str = GetParam();
 
-  bool success = string_util::utf8_to_ucs4((const unsigned char*)str.c_str(), result_list);
+  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
   ASSERT_TRUE(success);
 
   ASSERT_EQ(str.size(), result_list.size());
@@ -231,7 +231,7 @@ TEST_P(Utf8ToUCS4SingleTest, correctness) {
   string_util::unicode_charlist result_list{};
   const auto [str, codepoint] = GetParam();
 
-  bool success = string_util::utf8_to_ucs4((const unsigned char*)str.c_str(), result_list);
+  bool success = string_util::utf8_to_ucs4(str.c_str(), result_list);
   ASSERT_TRUE(success);
 
   ASSERT_EQ(1, result_list.size());

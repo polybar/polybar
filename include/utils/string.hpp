@@ -46,7 +46,7 @@ struct unicode_character {
   /**
    * The numerical codepoint. Between U+0000 and U+10FFFF
    */
-  unsigned long codepoint{0};
+  uint32_t codepoint{0};
   /**
    * Byte offset of this character in the original string
    */
@@ -88,7 +88,7 @@ string utf8_truncate(string&& value, size_t len);
 /**
  * @brief Create a UCS-4 codepoint from a utf-8 encoded string
  */
-bool utf8_to_ucs4(const unsigned char* src, unicode_charlist& result_list);
+bool utf8_to_ucs4(const char* src, unicode_charlist& result_list);
 
 /**
  * @brief Convert a UCS-4 codepoint to a utf-8 encoded string
