@@ -266,4 +266,19 @@ TEST_P(Utf8ToUCS4InvalidTest, correctness) {
   EXPECT_FALSE(success);
   EXPECT_EQ(0, result_list.size());
 }
+
+/**
+ * Tests that the conversion works with partially valid strings and that invalid parts are dropped.
+ */
+TEST(String, utf8ToUCS4Partial) {
+  string_util::unicode_charlist result_list{};
+  string str = "\xe0\x70\x80"; // a valid ascii character between two invalid characters
+  bool success = string_util::utf8_to_ucs4(str, result_list);
+  EXPECT_FALSE(success);
+  EXPECT_EQ(1, result_list.size());
+
+  EXPECT_EQ(0x70, result_list[0].codepoint);
+  EXPECT_EQ(1, result_list[0].offset);
+  EXPECT_EQ(1, result_list[0].length);
+}
 // }}}
