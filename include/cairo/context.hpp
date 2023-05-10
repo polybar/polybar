@@ -163,9 +163,14 @@ namespace cairo {
         std::iter_swap(fns.begin(), fns.begin() + t.font - 1);
       }
 
-      string utf8 = string(t.contents);
+      string utf8 = t.contents;
       string_util::unicode_charlist chars;
-      string_util::utf8_to_ucs4(utf8.c_str(), chars);
+      bool success = string_util::utf8_to_ucs4(utf8.c_str(), chars);
+
+      if (!success) {
+        m_log.warn("Dropping invalid UTF8 text '%s'", utf8);
+        return *this;
+      }
 
       while (!chars.empty()) {
         auto remaining = chars.size();
