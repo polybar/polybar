@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - renderer:
   - Small gaps when rendering emojis ([`#2785`](https://github.com/polybar/polybar/issues/2785), [`#2802`](https://github.com/polybar/polybar/pull/2802))
   - Crash when using pseudo-transparency with certain wallpapers ([`#2798`](https://github.com/polybar/polybar/issues/2798), [`#2813`](https://github.com/polybar/polybar/pull/2813))
+  - Correctly apply padding colors on both sides ([`#2814`](https://github.com/polybar/polybar/issues/2814))
 - config:
   - Error reporting for deprecated config values ([`#2724`](https://github.com/polybar/polybar/issues/2724))
   - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))

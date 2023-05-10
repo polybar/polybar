@@ -15,24 +15,29 @@ namespace modules {
       builder->flush();
       return "";
     }
+
+    auto apply_colors = [this](polybar::builder* builder){
+      if (bg.has_color()) {
+        builder->background(bg);
+      }
+      if (fg.has_color()) {
+        builder->foreground(fg);
+      }
+      if (ul.has_color()) {
+        builder->underline(ul);
+      }
+      if (ol.has_color()) {
+        builder->overline(ol);
+      }
+    };
+
     if (offset) {
       builder->offset(offset);
     }
     if (margin) {
       builder->spacing(margin);
     }
-    if (bg.has_color()) {
-      builder->background(bg);
-    }
-    if (fg.has_color()) {
-      builder->foreground(fg);
-    }
-    if (ul.has_color()) {
-      builder->underline(ul);
-    }
-    if (ol.has_color()) {
-      builder->overline(ol);
-    }
+    apply_colors(builder);
     if (font > 0) {
       builder->font(font);
     }
@@ -41,22 +46,11 @@ namespace modules {
     }
 
     builder->node(prefix);
-
-    if (bg.has_color()) {
-      builder->background(bg);
-    }
-    if (fg.has_color()) {
-      builder->foreground(fg);
-    }
-    if (ul.has_color()) {
-      builder->underline(ul);
-    }
-    if (ol.has_color()) {
-      builder->overline(ol);
-    }
+    apply_colors(builder);
 
     builder->node(output);
     builder->node(suffix);
+    apply_colors(builder);
 
     if (padding) {
       builder->spacing(padding);
