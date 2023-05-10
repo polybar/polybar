@@ -173,3 +173,75 @@ TEST(String, filesize) {
   EXPECT_EQ("3 GB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024));
   EXPECT_EQ("3 TB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024));
 }
+
+// utf8_to_ucs4 {{{
+class Utf8ToUCS4AsciiTest : public testing::TestWithParam<string> {};
+
+const vector<string> utf8_to_ucs4_ascii_list = {"", "Hello World", "\n", "\0", "\u007f"};
+
+INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4AsciiTest, testing::ValuesIn(utf8_to_ucs4_ascii_list));
+
+/**
+ * Test that the conversion to ucs4 works correctly with pure ASCII strings.
+ */
+TEST_P(Utf8ToUCS4AsciiTest, correctness) {
+  string_util::unicode_charlist result_list{};
+  string str = GetParam();
+
+  bool success = string_util::utf8_to_ucs4((const unsigned char*)str.c_str(), result_list);
+  ASSERT_TRUE(success);
+
+  ASSERT_EQ(str.size(), result_list.size());
+
+  int i = 0;
+  for (const auto& unicode_char : result_list) {
+    auto c = str[i];
+
+    // Matches the single byte character
+    EXPECT_EQ(c, unicode_char.codepoint);
+    // Is at the same offset as in the original string
+    EXPECT_EQ(i, unicode_char.offset);
+    // Only takes a single byte
+    EXPECT_EQ(1, unicode_char.length);
+
+    i++;
+  }
+}
+
+using single_test_t = std::pair<string, uint32_t>;
+class Utf8ToUCS4SingleTest : public testing::TestWithParam<single_test_t> {};
+
+const vector<single_test_t> utf8_to_ucs4_single_list = {
+    {" ", 0x20}, {"\u007f", 0x7f}, // End of 1 byte range
+    {"\u0080", 0x80},              // Start of 2 byte range
+    {"\u07ff", 0x7ff},             // End of 2 byte range
+    {"\u0800", 0x800},             // Start of 3 byte range
+    {"\uffff", 0xffff},            // End of 3 byte range
+    {"\U00010000", 0x10000},       // Start of 4 byte range
+    {"\U0010ffff", 0x10ffff},      // End of 4 byte range
+    {"\U0001f600", 0x1f600},       // Grinning face emoji
+};
+
+INSTANTIATE_TEST_SUITE_P(Inst, Utf8ToUCS4SingleTest, testing::ValuesIn(utf8_to_ucs4_single_list));
+
+/**
+ * Test that the conversion to ucs4 works correctly with pure ASCII strings.
+ */
+TEST_P(Utf8ToUCS4SingleTest, correctness) {
+  string_util::unicode_charlist result_list{};
+  const auto [str, codepoint] = GetParam();
+
+  bool success = string_util::utf8_to_ucs4((const unsigned char*)str.c_str(), result_list);
+  ASSERT_TRUE(success);
+
+  ASSERT_EQ(1, result_list.size());
+
+  auto unicode_char = result_list.front();
+
+  EXPECT_EQ(0, unicode_char.offset);
+  // Must encompass entire string
+  EXPECT_EQ(str.size(), unicode_char.length);
+  // Must match expected codepoint
+  EXPECT_EQ(codepoint, unicode_char.codepoint);
+}
+// }}}
