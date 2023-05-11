@@ -40,6 +40,7 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
@@ -426,7 +427,13 @@ namespace modules {
 
     int offset = next ? 1 : -1;
 
-    int new_index = (current_index + offset + indices.size()) % indices.size();
+    int new_index = current_index + offset;
+    if (!m_wrap && (new_index < 0 || new_index >= indices.size())) {
+      m_log.trace("%s: Refusing to wrap desktop", name());
+      return;
+    }
+
+    new_index = (new_index + indices.size()) % indices.size();
     focus_desktop(indices.at(new_index));
   }
 
