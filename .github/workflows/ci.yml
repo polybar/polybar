@@ -10,7 +10,7 @@ on:
 
 jobs:
   docs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COLOR: "ON"
     steps:
@@ -29,7 +29,7 @@ jobs:
           make doc
 
   ipc:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COLOR: "ON"
     steps:
@@ -60,7 +60,7 @@ jobs:
           make polybar-msg
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         cxx: [g++, clang++]
