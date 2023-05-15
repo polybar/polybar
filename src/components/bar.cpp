@@ -11,6 +11,7 @@
 #include "events/signal_emitter.hpp"
 #include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
+#include "utils/restack.hpp"
 #include "utils/color.hpp"
 #include "utils/math.hpp"
 #include "utils/string.hpp"
@@ -497,9 +498,7 @@ void bar::restack_window() {
     try {
       auto children = m_connection.query_tree(m_connection.root()).children();
       if (children.begin() != children.end() && *children.begin() != m_opts.x_data.window) {
-        const unsigned int value_mask = XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE;
-        const unsigned int value_list[2]{*children.begin(), XCB_STACK_MODE_BELOW};
-        m_connection.configure_window_checked(m_opts.x_data.window, value_mask, value_list);
+        restack_util::restack_relative(m_connection, m_opts.x_data.window, *children.begin(), XCB_STACK_MODE_BELOW);
       }
       restacked = true;
     } catch (const exception& err) {
