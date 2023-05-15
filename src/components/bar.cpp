@@ -11,9 +11,9 @@
 #include "events/signal_emitter.hpp"
 #include "tags/dispatch.hpp"
 #include "utils/bspwm.hpp"
-#include "utils/restack.hpp"
 #include "utils/color.hpp"
 #include "utils/math.hpp"
+#include "utils/restack.hpp"
 #include "utils/string.hpp"
 #include "utils/units.hpp"
 #include "x11/atoms.hpp"
@@ -492,23 +492,20 @@ void bar::restack_window() {
     return;
   }
 
-  auto restacked = false;
+  xcb_window_t restack_sibling = XCB_NONE;
+  xcb_stack_mode_t stack_mode = XCB_STACK_MODE_ABOVE;
 
   if (wm_restack == "generic") {
-    try {
-      auto children = m_connection.query_tree(m_connection.root()).children();
-      if (children.begin() != children.end() && *children.begin() != m_opts.x_data.window) {
-        restack_util::restack_relative(m_connection, m_opts.x_data.window, *children.begin(), XCB_STACK_MODE_BELOW);
-      }
-      restacked = true;
-    } catch (const exception& err) {
-      m_log.err("Failed to restack bar window (err=%s)", err.what());
+    auto children = m_connection.query_tree(m_connection.root()).children();
+    if (children.begin() != children.end() && *children.begin() != m_opts.x_data.window) {
+      restack_sibling = *children.begin();
+      stack_mode = XCB_STACK_MODE_BELOW;
     }
   } else if (wm_restack == "bspwm") {
-    restacked = bspwm_util::restack_to_root(m_connection, m_opts.monitor, m_opts.x_data.window);
+    restack_sibling = bspwm_util::get_restack_sibling(m_connection, m_opts.monitor);
 #if ENABLE_I3
   } else if (wm_restack == "i3" && m_opts.override_redirect) {
-    restacked = i3_util::restack_to_root(m_connection, m_opts.x_data.window);
+    restack_sibling = i3_util::get_restack_sibling(m_connection);
   } else if (wm_restack == "i3" && !m_opts.override_redirect) {
     m_log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
     wm_restack.clear();
@@ -518,8 +515,13 @@ void bar::restack_window() {
     wm_restack.clear();
   }
 
-  if (restacked) {
-    m_log.info("Successfully restacked bar window");
+  if (restack_sibling != XCB_NONE) {
+    try {
+      restack_util::restack_relative(m_connection, m_opts.x_data.window, restack_sibling, stack_mode);
+      m_log.info("Successfully restacked bar window");
+    } catch (const exception& err) {
+      m_log.err("Failed to restack bar window (err=%s)", err.what());
+    }
   } else if (!wm_restack.empty()) {
     m_log.err("Failed to restack bar window");
   }
