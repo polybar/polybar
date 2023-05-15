@@ -38,7 +38,13 @@ vector<xcb_window_t> root_windows(connection& conn) {
 /**
  * Returns window against which to restack.
  */
-xcb_window_t get_restack_sibling(connection& conn, const monitor_t& mon) {
+restack_util::params get_restack_params(connection& conn, const monitor_t& mon, xcb_window_t bar_window) {
+  auto ewmh_params = restack_util::get_ewmh_params(conn);
+
+  if (restack_util::are_siblings(conn, bar_window, ewmh_params.first)) {
+    return ewmh_params;
+  }
+
   for (auto&& root : root_windows(conn)) {
     auto geom = conn.get_geometry(root);
 
@@ -49,10 +55,10 @@ xcb_window_t get_restack_sibling(connection& conn, const monitor_t& mon) {
       continue;
     }
 
-    return root;
+    return {root, XCB_STACK_MODE_ABOVE};
   }
 
-  return XCB_NONE;
+  return restack_util::NONE_PARAMS;
 }
 
 /**

@@ -497,20 +497,19 @@ void bar::restack_window() {
 
   xcb_window_t bar_window = m_opts.x_data.window;
 
-  xcb_window_t restack_sibling = XCB_NONE;
-  xcb_stack_mode_t stack_mode = XCB_STACK_MODE_ABOVE;
+  restack_util::params restack_params;
 
   if (wm_restack == "generic") {
-    std::tie(restack_sibling, stack_mode) = restack_util::get_generic_params(m_connection, bar_window);
+    restack_params = restack_util::get_generic_params(m_connection, bar_window);
   } else if (wm_restack == "ewmh") {
-    std::tie(restack_sibling, stack_mode) = restack_util::get_ewmh_params(m_connection);
+    restack_params = restack_util::get_ewmh_params(m_connection);
   } else if (wm_restack == "bottom") {
-    std::tie(restack_sibling, stack_mode) = restack_util::get_bottom_params(m_connection, bar_window);
+    restack_params = restack_util::get_bottom_params(m_connection, bar_window);
   } else if (wm_restack == "bspwm") {
-    restack_sibling = bspwm_util::get_restack_sibling(m_connection, m_opts.monitor);
+    restack_params = bspwm_util::get_restack_params(m_connection, m_opts.monitor, bar_window);
 #if ENABLE_I3
   } else if (wm_restack == "i3" && m_opts.override_redirect) {
-    restack_sibling = i3_util::get_restack_sibling(m_connection);
+    restack_params = i3_util::get_restack_params(m_connection);
   } else if (wm_restack == "i3" && !m_opts.override_redirect) {
     m_log.warn("Ignoring restack of i3 window (not needed when `override-redirect = false`)");
     wm_restack.clear();
@@ -519,6 +518,8 @@ void bar::restack_window() {
     m_log.warn("Ignoring unsupported wm-restack option '%s'", wm_restack);
     wm_restack.clear();
   }
+
+  auto [restack_sibling, stack_mode] = restack_params;
 
   if (restack_sibling != XCB_NONE) {
     try {

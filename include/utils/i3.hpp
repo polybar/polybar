@@ -3,6 +3,7 @@
 #include <i3ipc++/ipc.hpp>
 
 #include "common.hpp"
+#include "utils/restack.hpp"
 #include "x11/extensions/randr.hpp"
 
 POLYBAR_NS
@@ -19,7 +20,7 @@ namespace i3_util {
   shared_ptr<workspace_t> focused_workspace(const connection_t&);
 
   vector<xcb_window_t> root_windows(connection& conn, const string& output_name = "");
-  xcb_window_t get_restack_sibling(connection& conn);
+  restack_util::params get_restack_params(connection& conn);
 }
 
 namespace {
