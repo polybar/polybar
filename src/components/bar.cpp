@@ -501,7 +501,9 @@ void bar::restack_window() {
   xcb_stack_mode_t stack_mode = XCB_STACK_MODE_ABOVE;
 
   if (wm_restack == "generic") {
-    std::tie(restack_sibling, stack_mode) = restack_util::get_bottom_params(m_connection, bar_window);
+    std::tie(restack_sibling, stack_mode) = restack_util::get_generic_params(m_connection, bar_window);
+  } else if (wm_restack == "ewmh") {
+    std::tie(restack_sibling, stack_mode) = restack_util::get_ewmh_params(m_connection);
   } else if (wm_restack == "bottom") {
     std::tie(restack_sibling, stack_mode) = restack_util::get_bottom_params(m_connection, bar_window);
   } else if (wm_restack == "bspwm") {
@@ -520,6 +522,8 @@ void bar::restack_window() {
 
   if (restack_sibling != XCB_NONE) {
     try {
+      m_log.info("bar: Restacking bar window relative to %s with stacking mode %s", m_connection.id(restack_sibling),
+          restack_util::stack_mode_to_string(stack_mode));
       restack_util::restack_relative(m_connection, bar_window, restack_sibling, stack_mode);
       m_log.info("Successfully restacked bar window");
     } catch (const exception& err) {

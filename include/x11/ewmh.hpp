@@ -53,6 +53,9 @@ namespace ewmh_util {
   void set_wm_window_opacity(xcb_window_t win, unsigned long int values);
 
   vector<xcb_window_t> get_client_list(int screen = 0);
+
+  xcb_window_t get_supporting_wm_check(xcb_window_t win);
+  xcb_window_t get_ewmh_meta_window(xcb_window_t root);
 } // namespace ewmh_util
 
 POLYBAR_NS_END
