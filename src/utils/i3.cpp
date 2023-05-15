@@ -66,10 +66,7 @@ namespace i3_util {
   }
 
   /**
-   * Restack given window relative to the i3 root window
-   * defined for the given monitor
-   *
-   * Fixes the issue with always-on-top window's
+   * Returns window against which to restack.
    */
   xcb_window_t get_restack_sibling(connection& conn) {
     return root_window(conn);

@@ -36,10 +36,7 @@ vector<xcb_window_t> root_windows(connection& conn) {
 }
 
 /**
- * Restack given window relative to the bspwm root window
- * for the given monitor.
- *
- * Fixes the issue with always-on-top window's
+ * Returns window against which to restack.
  */
 xcb_window_t get_restack_sibling(connection& conn, const monitor_t& mon) {
   for (auto&& root : root_windows(conn)) {
