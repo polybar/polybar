@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/temperature`: Added `zone-type` setting ([`#2572`](https://github.com/polybar/polybar/issues/2572), [`#2752`](https://github.com/polybar/polybar/pull/2752)) by [@xphoniex](https://github.com/xphoniex)
 - `internal/xwindow`: `%class%` and `%instance%` tokens, which show the contents of the `WM_CLASS` property of the active window ([`#2830`](https://github.com/polybar/polybar/pull/2830))
 - Added `enable-struts` option in bar section to enable/disable struts ([`#2769`](https://github.com/polybar/polybar/issues/2769), [`#2844`](https://github.com/polybar/polybar/pull/2844)) by [@VanillaViking](https://github.com/VanillaViking).
+- `wm-restack`:
+  - `bottom`: lowers polybar to the bottom of the window stack (same as the previous behavior of `generic`) ([`#2961`](https://github.com/polybar/polybar/pull/2961))
+  - `ewmh`: Tries to use the `_NET_SUPPORTING_WM_CHECK` hint to position the bar ([`#2961`](https://github.com/polybar/polybar/pull/2961))
 
 ### Changed
 - `custom/script`:
@@ -45,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `use-actual-brightness` defaults to `true` for `amdgpu` backlights ([`#2835`](https://github.com/polybar/polybar/issues/2835), [`2839`](https://github.com/polybar/polybar/pull/2839))
 - Providing a negative min-width to a token adds right-padding ([`#2789`](https://github.com/polybar/polybar/issues/2789), [`#2801`](https://github.com/polybar/polybar/pull/2801)) by [@VanillaViking](https://github.com/VanillaViking).
 - Changed fuzzy match option on i3 and bspwm modules to find longest match instead of the first match ([`#2831`](https://github.com/polybar/polybar/pull/2831), [`#2829`](https://github.com/polybar/polybar/issues/2829)) by [@Ron0Studios](https://github.com/ron0studios/).
+- `wm-restack`
+  - `generic`: Is now a best effort combination of other restacking strategies. First tries `ewmh` and then the `bottom` strategy ([`#2961`](https://github.com/polybar/polybar/pull/2961))
+  - `bspwm`: First tries the `ewmh` strategy before falling back to its old behavior ([`#2961`](https://github.com/polybar/polybar/pull/2961))
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
@@ -57,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Also monitor include-files for changes when --reload is set ([`#675`](https://github.com/polybar/polybar/issues/675), [`#2759`](https://github.com/polybar/polybar/pull/2759))
 - `internal/xwindow`: module does not crash when a tag is not provided in format ([`#2826`](https://github.com/polybar/polybar/issues/2826), [`#2833`](https://github.com/polybar/polybar/pull/2833)) by [@VanillaViking](https://github.com/VanillaViking)
 - `internal/i3`: module errors when i3 has negative gaps ([`#2888`](https://github.com/polybar/polybar/issues/2888), [`#2889`](https://github.com/polybar/polybar/pull/2889))
+- `wm-restack = bspwm`: bar may become unclickable if there are overlapping monitors ([`#2873`](https://github.com/polybar/polybar/issues/2873), [`#2961`](https://github.com/polybar/polybar/pull/2961))
 
 ## [3.6.3] - 2022-05-04
 ### Fixed
