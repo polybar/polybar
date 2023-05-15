@@ -25,7 +25,7 @@ namespace bspwm_util {
   };
 
   vector<xcb_window_t> root_windows(connection& conn);
-  bool restack_to_root(connection& conn, const monitor_t& mon, const xcb_window_t win);
+  xcb_window_t get_restack_sibling(connection& conn, const monitor_t& mon);
 
   string get_socket_path();
 
