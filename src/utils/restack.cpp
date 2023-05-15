@@ -4,8 +4,6 @@ POLYBAR_NS
 
 namespace restack_util {
 
-static constexpr params NONE_PARAMS = {XCB_NONE, XCB_STACK_MODE_ABOVE};
-
 /**
  * Restacks the given window relative to a given sibling with some stack order (above, below)
  *

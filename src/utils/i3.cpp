@@ -68,8 +68,8 @@ namespace i3_util {
   /**
    * Returns window against which to restack.
    */
-  xcb_window_t get_restack_sibling(connection& conn) {
-    return root_window(conn);
+  restack_util::params get_restack_params(connection& conn) {
+    return {root_window(conn), XCB_STACK_MODE_ABOVE};
   }
 } // namespace i3_util
 

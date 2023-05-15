@@ -5,6 +5,7 @@
 
 #include "common.hpp"
 #include "settings.hpp"
+#include "utils/restack.hpp"
 #include "utils/socket.hpp"
 #include "utils/string.hpp"
 #include "x11/extensions/randr.hpp"
@@ -25,7 +26,7 @@ namespace bspwm_util {
   };
 
   vector<xcb_window_t> root_windows(connection& conn);
-  xcb_window_t get_restack_sibling(connection& conn, const monitor_t& mon);
+  restack_util::params get_restack_params(connection& conn, const monitor_t& mon, xcb_window_t bar_window);
 
   string get_socket_path();
 
