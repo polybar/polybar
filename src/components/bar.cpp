@@ -480,8 +480,11 @@ void bar::toggle() {
 }
 
 /**
- * Move the bar window above defined sibling
- * in the X window stack
+ * Move the bar window above/below defined sibling in the X window stack.
+ *
+ * How the sibling is determined depends on the wm-restack setting.
+ *
+ * This is meant to resolve polybar appearing above other windows (especially in fullscreen).
  */
 void bar::restack_window() {
   string wm_restack;
@@ -492,15 +495,15 @@ void bar::restack_window() {
     return;
   }
 
+  xcb_window_t bar_window = m_opts.x_data.window;
+
   xcb_window_t restack_sibling = XCB_NONE;
   xcb_stack_mode_t stack_mode = XCB_STACK_MODE_ABOVE;
 
   if (wm_restack == "generic") {
-    auto children = m_connection.query_tree(m_connection.root()).children();
-    if (children.begin() != children.end() && *children.begin() != m_opts.x_data.window) {
-      restack_sibling = *children.begin();
-      stack_mode = XCB_STACK_MODE_BELOW;
-    }
+    std::tie(restack_sibling, stack_mode) = restack_util::get_bottom_params(m_connection, bar_window);
+  } else if (wm_restack == "bottom") {
+    std::tie(restack_sibling, stack_mode) = restack_util::get_bottom_params(m_connection, bar_window);
   } else if (wm_restack == "bspwm") {
     restack_sibling = bspwm_util::get_restack_sibling(m_connection, m_opts.monitor);
 #if ENABLE_I3
@@ -517,13 +520,13 @@ void bar::restack_window() {
 
   if (restack_sibling != XCB_NONE) {
     try {
-      restack_util::restack_relative(m_connection, m_opts.x_data.window, restack_sibling, stack_mode);
+      restack_util::restack_relative(m_connection, bar_window, restack_sibling, stack_mode);
       m_log.info("Successfully restacked bar window");
     } catch (const exception& err) {
       m_log.err("Failed to restack bar window (err=%s)", err.what());
     }
   } else if (!wm_restack.empty()) {
-    m_log.err("Failed to restack bar window");
+    m_log.err("Failed to restack bar window: No suitable sibling window for restacking was found");
   }
 }
 
