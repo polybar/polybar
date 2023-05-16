@@ -91,7 +91,7 @@ void config::copy_inherited() {
       string key_name = param.first;
       if (key_name == "inherit") {
         auto inherit = param.second;
-        inherit = dereference<string>(section.first, key_name, inherit, inherit);
+        inherit = dereference(section.first, key_name, inherit);
 
         std::vector<string> sections = string_util::split(std::move(inherit), ' ');
 
@@ -105,7 +105,7 @@ void config::copy_inherited() {
             section.first, key_name);
 
         auto inherit = param.second;
-        inherit = dereference<string>(section.first, key_name, inherit, inherit);
+        inherit = dereference(section.first, key_name, inherit);
         if (inherit.empty() || m_sections.find(inherit) == m_sections.end()) {
           throw value_error(
               "Invalid section \"" + inherit + "\" defined for \"" + section.first + "." + key_name + "\"");

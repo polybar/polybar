@@ -91,7 +91,7 @@ class config {
     if (it->second.find(key) == it->second.end()) {
       throw key_error("Missing parameter \"" + section + "." + key + "\"");
     }
-    return dereference<T>(section, key, it->second.at(key), convert<T>(string{it->second.at(key)}));
+    return convert<T>(dereference(section, key, it->second.at(key)));
   }
 
   /**
@@ -102,8 +102,7 @@ class config {
   T get(const string& section, const string& key, const T& default_value) const {
     try {
       string string_value{get<string>(section, key)};
-      T result{convert<T>(string{string_value})};
-      return dereference<T>(move(section), move(key), move(string_value), move(result));
+      return convert<T>(dereference(move(section), move(key), move(string_value)));
     } catch (const key_error& err) {
       return default_value;
     } catch (const std::exception& err) {
@@ -156,12 +155,11 @@ class config {
     while (true) {
       try {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
-        T value{convert<T>(string{string_value})};
 
         if (!string_value.empty()) {
-          results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
+          results.emplace_back(convert<T>(dereference(section, key, move(string_value))));
         } else {
-          results.emplace_back(move(value));
+          results.emplace_back(convert<T>(move(string_value)));
         }
       } catch (const key_error& err) {
         break;
@@ -186,12 +184,11 @@ class config {
     while (true) {
       try {
         string string_value{get<string>(section, key + "-" + to_string(results.size()))};
-        T value{convert<T>(string{string_value})};
 
         if (!string_value.empty()) {
-          results.emplace_back(dereference<T>(section, key, move(string_value), move(value)));
+          results.emplace_back(convert<T>(dereference(section, key, move(string_value))));
         } else {
-          results.emplace_back(move(value));
+          results.emplace_back(convert<T>(move(string_value)));
         }
       } catch (const key_error& err) {
         break;
@@ -238,23 +235,22 @@ class config {
   /**
    * Dereference value reference
    */
-  template <typename T>
-  T dereference(const string& section, const string& key, const string& var, const T& fallback) const {
+  string dereference(const string& section, const string& key, const string& var) const {
     if (var.substr(0, 2) != "${" || var.substr(var.length() - 1) != "}") {
-      return fallback;
+      return var;
     }
 
     auto path = var.substr(2, var.length() - 3);
     size_t pos;
 
     if (path.compare(0, 4, "env:") == 0) {
-      return dereference_env<T>(path.substr(4));
+      return dereference_env(path.substr(4));
     } else if (path.compare(0, 5, "xrdb:") == 0) {
-      return dereference_xrdb<T>(path.substr(5));
+      return dereference_xrdb(path.substr(5));
     } else if (path.compare(0, 5, "file:") == 0) {
-      return dereference_file<T>(path.substr(5));
+      return dereference_file(path.substr(5));
     } else if ((pos = path.find(".")) != string::npos) {
-      return dereference_local<T>(path.substr(0, pos), path.substr(pos + 1), section);
+      return dereference_local(path.substr(0, pos), path.substr(pos + 1), section);
     } else {
       throw value_error("Invalid reference defined at \"" + section + "." + key + "\"");
     }
@@ -269,8 +265,7 @@ class config {
    *  ${section.key}
    *  ${section.key:fallback}
    */
-  template <typename T>
-  T dereference_local(string section, const string& key, const string& current_section) const {
+  string dereference_local(string section, const string& key, const string& current_section) const {
     if (section == "BAR") {
       m_log.warn("${BAR.key} is deprecated. Use ${root.key} instead");
     }
@@ -281,15 +276,14 @@ class config {
 
     try {
       string string_value{get<string>(section, key)};
-      T result{convert<T>(string{string_value})};
-      return dereference<T>(string(section), move(key), move(string_value), move(result));
+      return dereference(string(section), move(key), move(string_value));
     } catch (const key_error& err) {
       size_t pos;
       if ((pos = key.find(':')) != string::npos) {
         string fallback = key.substr(pos + 1);
         m_log.info("The reference ${%s.%s} does not exist, using defined fallback value \"%s\"", section,
             key.substr(0, pos), fallback);
-        return convert<T>(move(fallback));
+        return fallback;
       }
       throw value_error("The reference ${" + section + "." + key + "} does not exist (no fallback set)");
     }
@@ -300,8 +294,7 @@ class config {
    *  ${env:key}
    *  ${env:key:fallback value}
    */
-  template <typename T>
-  T dereference_env(string var) const {
+  string dereference_env(string var) const {
     size_t pos;
     string env_default;
     /*
@@ -319,10 +312,10 @@ class config {
     if (env_util::has(var)) {
       string env_value{env_util::get(var)};
       m_log.info("Environment var reference ${%s} found (value=%s)", var, env_value);
-      return convert<T>(move(env_value));
+      return env_value;
     } else if (has_default) {
       m_log.info("Environment var ${%s} is undefined, using defined fallback value \"%s\"", var, env_default);
-      return convert<T>(move(env_default));
+      return env_default;
     } else {
       throw value_error(sstream() << "Environment var ${" << var << "} does not exist (no fallback set)");
     }
@@ -333,15 +326,14 @@ class config {
    *  ${xrdb:key}
    *  ${xrdb:key:fallback value}
    */
-  template <typename T>
-  T dereference_xrdb(string var) const {
+  string dereference_xrdb(string var) const {
     size_t pos;
 #if not WITH_XRM
     m_log.warn("No built-in support to dereference ${xrdb:%s} references (requires `xcb-util-xrm`)", var);
     if ((pos = var.find(':')) != string::npos) {
-      return convert<T>(var.substr(pos + 1));
+      return var.substr(pos + 1);
     }
-    return convert<T>("");
+    return "";
 #else
     if (!m_xrm) {
       throw application_error("xrm is not initialized");
@@ -358,11 +350,11 @@ class config {
     try {
       auto value = m_xrm->require<string>(var.c_str());
       m_log.info("Found matching X resource \"%s\" (value=%s)", var, value);
-      return convert<T>(move(value));
+      return value;
     } catch (const xresource_error& err) {
       if (has_fallback) {
         m_log.info("%s, using defined fallback value \"%s\"", err.what(), fallback);
-        return convert<T>(move(fallback));
+        return fallback;
       }
       throw value_error(sstream() << err.what() << " (no fallback set)");
     }
@@ -374,8 +366,7 @@ class config {
    *  ${file:/absolute/file/path}
    *  ${file:/absolute/file/path:fallback value}
    */
-  template <typename T>
-  T dereference_file(string var) const {
+  string dereference_file(string var) const {
     size_t pos;
     string fallback;
     bool has_fallback = false;
@@ -388,10 +379,10 @@ class config {
 
     if (file_util::exists(var)) {
       m_log.info("File reference \"%s\" found", var);
-      return convert<T>(string_util::trim(file_util::contents(var), '\n'));
+      return string_util::trim(file_util::contents(var), '\n');
     } else if (has_fallback) {
       m_log.info("File reference \"%s\" not found, using defined fallback value \"%s\"", var, fallback);
-      return convert<T>(move(fallback));
+      return fallback;
     } else {
       throw value_error(sstream() << "The file \"" << var << "\" does not exist (no fallback set)");
     }
