@@ -48,28 +48,12 @@ class config {
   /**
    * Returns true if a given parameter exists
    */
-  bool has(const string& section, const string& key) const {
-    auto it = m_sections.find(section);
-    return it != m_sections.end() && it->second.find(key) != it->second.end();
-  }
+  bool has(const string& section, const string& key) const;
 
   /**
    * Set parameter value
    */
-  void set(const string& section, const string& key, string&& value) {
-    auto it = m_sections.find(section);
-    if (it == m_sections.end()) {
-      valuemap_t values;
-      values[key] = value;
-      m_sections[section] = move(values);
-    }
-    auto it2 = it->second.find(key);
-    if ((it2 = it->second.find(key)) == it->second.end()) {
-      it2 = it->second.emplace_hint(it2, key, value);
-    } else {
-      it2->second = value;
-    }
-  }
+  void set(const string& section, const string& key, string&& value);
 
   /**
    * Get parameter for the current bar by name
