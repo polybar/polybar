@@ -4,6 +4,15 @@
 
 using namespace polybar;
 
+TEST(String, starts_with) {
+  EXPECT_TRUE(string_util::starts_with("foo", "foo"));
+  EXPECT_FALSE(string_util::starts_with("foo", "bar"));
+  EXPECT_FALSE(string_util::starts_with("foo", "Foo"));
+  EXPECT_TRUE(string_util::starts_with("foobar", "foo"));
+  EXPECT_TRUE(string_util::starts_with("foobar", ""));
+  EXPECT_FALSE(string_util::starts_with("", "Foo"));
+}
+
 TEST(String, ends_with) {
   EXPECT_TRUE(string_util::ends_with("foo", "foo"));
   EXPECT_TRUE(string_util::ends_with("foobar", "bar"));

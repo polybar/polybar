@@ -59,6 +59,7 @@ using unicode_charlist = std::vector<unicode_character>;
 
 bool contains(const string& haystack, const string& needle);
 bool contains_ignore_case(const string& haystack, const string& needle);
+bool starts_with(const string& haystack, const string& prefix);
 bool ends_with(const string& haystack, const string& suffix);
 string upper(const string& s);
 string lower(const string& s);
