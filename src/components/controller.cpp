@@ -608,7 +608,7 @@ size_t controller::setup_modules(alignment align) {
 
   string configured_modules;
   if (!key.empty()) {
-    configured_modules = m_conf.get(m_conf.section(), key, ""s);
+    configured_modules = m_conf.bar_get(key, ""s);
   }
 
   for (auto& module_name : string_util::split(configured_modules, ' ')) {

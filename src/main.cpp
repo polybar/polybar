@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      printf("%s\n", conf.get(conf.section(), cli->get("dump")).c_str());
+      printf("%s\n", conf.bar_get(cli->get("dump")).c_str());
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     //==================================================
     unique_ptr<ipc::ipc> ipc{};
 
-    if (conf.get(conf.section(), "enable-ipc", false)) {
+    if (conf.bar_get("enable-ipc", false)) {
       try {
         ipc = ipc::ipc::make(loop);
       } catch (const std::exception& e) {

@@ -170,155 +170,18 @@ namespace drawtypes {
   }
 
   /**
-   * Create a label by loading values from the configuration
-   */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
-    vector<token> tokens;
-    size_t start, end, pos;
-
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
-    string text;
-
-    struct side_values padding {
-    }, margin{};
-
-    if (required) {
-      text = conf.get(section, name);
-    } else {
-      text = conf.get(section, name, def);
-    }
-
-    const auto get_left_right = [&](string&& key) {
-      const auto parse_or_throw = [&](const string& key, spacing_val default_value) {
-        try {
-          return conf.get(section, key, default_value);
-        } catch (const std::exception& err) {
-          throw application_error(
-              sstream() << "Failed to set " << section << "." << key << " (reason: " << err.what() << ")");
-        }
-      };
-
-      auto value = parse_or_throw(key, ZERO_SPACE);
-      auto left = parse_or_throw(key + "-left", value);
-      auto right = parse_or_throw(key + "-right", value);
-      return side_values{left, right};
-    };
-
-    padding = get_left_right(name + "-padding");
-    margin = get_left_right(name + "-margin");
-
-    string line{text};
-
-    while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
-      auto token_str = line.substr(start, end - start + 1);
-
-      // ignore false positives
-      //   lemonbar tags %{...}
-      //   trailing percentage signs %token%%
-      if (token_str.find_first_of("abcdefghijklmnopqrstuvwxyz") != 1) {
-        line.erase(0, end);
-        continue;
-      }
-
-      line.erase(start, end - start + 1);
-      tokens.emplace_back(token{token_str, 0_z, 0_z});
-      auto& token = tokens.back();
-
-      // find min delimiter
-      if ((pos = token_str.find(':')) == string::npos) {
-        continue;
-      }
-
-      // strip min/max specifiers from the label string token
-      token.token = token_str.substr(0, pos) + '%';
-      text = string_util::replace(text, token_str, token.token);
-
-      try {
-        if (token_str[pos + 1] == '-') {
-          token.rpadding = true;
-          pos++;
-        }
-        token.min = std::stoul(&token_str[pos + 1], nullptr, 10);
-        // When the number starts with 0 the string is 0-padded
-        token.zpad = token_str[pos + 1] == '0';
-      } catch (const std::invalid_argument& err) {
-        continue;
-      }
-
-      // find max delimiter
-      if ((pos = token_str.find(':', pos + 1)) == string::npos) {
-        continue;
-      }
-
-      try {
-        token.max = std::stoul(&token_str[pos + 1], nullptr, 10);
-      } catch (const std::invalid_argument& err) {
-        continue;
-      }
-
-      // ignore max lengths less than min
-      if (token.max < token.min) {
-        token.max = 0_z;
-      }
-
-      // find suffix delimiter
-      if ((pos = token_str.find(':', pos + 1)) != string::npos) {
-        token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
-      }
-    }
-    size_t minlen = conf.get(section, name + "-minlen", 0_z);
-    string alignment_conf_value = conf.get(section, name + "-alignment", "left"s);
-    alignment label_alignment;
-    if (alignment_conf_value == "right") {
-      label_alignment = alignment::RIGHT;
-    } else if (alignment_conf_value == "left") {
-      label_alignment = alignment::LEFT;
-    } else if (alignment_conf_value == "center") {
-      label_alignment = alignment::CENTER;
-    } else {
-      throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
-                                        << alignment_conf_value << ", expecting one of: right, left, center.");
-    }
-
-    size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
-    if (maxlen > 0 && maxlen < minlen) {
-      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
-                                        << " which is smaller than minlen " << minlen);
-    }
-    bool ellipsis = conf.get(section, name + "-ellipsis", true);
-
-    // clang-format off
-    if (ellipsis && maxlen > 0 && maxlen < 3) {
-      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
-                                        << ", which is smaller than length of ellipsis (3)");
-    }
-    // clang-format on
-
-    // clang-format off
-    return std::make_shared<label>(text,
-        conf.get(section, name + "-foreground", rgba{}),
-        conf.get(section, name + "-background", rgba{}),
-        conf.get(section, name + "-underline", rgba{}),
-        conf.get(section, name + "-overline", rgba{}),
-        conf.get(section, name + "-font", 0),
-        padding,
-        margin,
-        minlen,
-        maxlen,
-        label_alignment,
-        ellipsis,
-        move(tokens));
-    // clang-format on
-  }
-
-  /**
    * Create a label by loading optional values from the configuration
    */
   label_t load_optional_label(const config& conf, string section, string name, string def) {
     return load_label(conf, section, move(name), false, move(def));
   }
 
+  /**
+   * Create a separator from the configuration
+   */
+  label_t load_separator(const config& conf, string name) {
+    return load_label<BarTrait>(conf, "", move(name), false);
+  }
 } // namespace drawtypes
 
 POLYBAR_NS_END

@@ -28,7 +28,7 @@ class config {
       : m_log(logger), m_file(move(path)), m_barname(move(bar)){};
 
   const string& filepath() const;
-  string section() const;
+  const string& bar_name() const;
 
   static constexpr const char* BAR_PREFIX = "bar/";
 
@@ -43,6 +43,64 @@ class config {
 
   file_list get_included_files() const;
 
+  /**
+   * Returns true if a given parameter exists in the bar config
+   */
+  bool bar_has(const string& key) const {
+    auto it = m_sections.find(section());
+    return it != m_sections.end() && it->second.find(key) != it->second.end();
+  }
+
+  /**
+   * Get bar parameter for the current bar by name
+   */
+  template <typename T = string>
+  T bar_get(const string& key) const {
+    return get<T>(section(), key);
+  }
+
+  /**
+   * Get bar value of a variable by parameter name
+   * with a default value in case the parameter isn't defined
+   */
+  template <typename T = string>
+  T bar_get(const string& key, const T& default_value) const {
+    return get<T>(section(), key, default_value);
+  }
+
+  /**
+   * Attempt to load value using the deprecated key name. If successful show a
+   * warning message. If it fails load the value using the new key and given
+   * fallback value
+   */
+  template <typename T = string>
+  T bar_deprecated(const string& old, const string& newkey, const T& fallback) const {
+    try {
+      T value{get<T>(section(), old)};
+      warn_deprecated(section(), old, newkey);
+      return value;
+    } catch (const key_error& err) {
+      return get<T>(section(), newkey, fallback);
+    } catch (const std::exception& err) {
+      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section(), old, section(), newkey,
+          err.what());
+      return get<T>(section(), newkey, fallback);
+    }
+  }
+  template <typename T = string>
+  vector<T> bar_get_list(const string& key) const {
+    return get_list<T>(section(), key);
+  }
+
+  /**
+   * Get list of values by section and parameter name
+   * with a default list in case the list isn't defined
+   */
+  template <typename T = string>
+  vector<T> bar_get_list(const string& key, const vector<T>& default_value) const {
+    return get_list<T>(section(), key, default_value);
+  }
+
   void warn_deprecated(const string& section, const string& key, string replacement = "") const;
 
   /**
@@ -54,14 +112,6 @@ class config {
    * Set parameter value
    */
   void set(const string& section, const string& key, string&& value);
-
-  /**
-   * Get parameter for the current bar by name
-   */
-  template <typename T = string>
-  T get(const string& key) const {
-    return get<T>(section(), key);
-  }
 
   /**
    * Get value of a variable by section and parameter name
@@ -119,14 +169,6 @@ class config {
     }
 
     return list;
-  }
-
-  /**
-   * Get list of values for the current bar by name
-   */
-  template <typename T = string>
-  vector<T> get_list(const string& key) const {
-    return get_list<T>(section(), key);
   }
 
   /**
@@ -190,26 +232,6 @@ class config {
     return default_value;
   }
 
-  /**
-   * Attempt to load value using the deprecated key name. If successful show a
-   * warning message. If it fails load the value using the new key and given
-   * fallback value
-   */
-  template <typename T = string>
-  T deprecated(const string& section, const string& old, const string& newkey, const T& fallback) const {
-    try {
-      T value{get<T>(section, old)};
-      warn_deprecated(section, old, newkey);
-      return value;
-    } catch (const key_error& err) {
-      return get<T>(section, newkey, fallback);
-    } catch (const std::exception& err) {
-      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section, old, section, newkey,
-          err.what());
-      return get<T>(section, newkey, fallback);
-    }
-  }
-
  protected:
   void copy_inherited();
 
@@ -252,6 +274,9 @@ class config {
    *  ${file:/absolute/file/path:fallback value}
    */
   string dereference_file(string var) const;
+
+ public:
+  string section() const;
 
  private:
   const logger& m_log;

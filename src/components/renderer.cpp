@@ -123,7 +123,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Load fonts");
   {
-    auto fonts = m_conf.get_list<string>(m_conf.section(), "font", {});
+    auto fonts = m_conf.bar_get_list<string>("font", {});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
       fonts.emplace_back("fixed");
@@ -155,7 +155,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
   m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
 
-  m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
+  m_fixedcenter = m_conf.bar_get("fixed-center", true);
 }
 
 /**

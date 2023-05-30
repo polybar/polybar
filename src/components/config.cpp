@@ -26,6 +26,13 @@ const string& config::filepath() const {
 /**
  * Get the section name of the bar in use
  */
+const string& config::bar_name() const {
+  return m_barname;
+}
+
+/**
+ * Get the section name of the bar in use
+ */
 string config::section() const {
   return BAR_PREFIX + m_barname;
 }

@@ -3,16 +3,16 @@
 
 #include "common/test.hpp"
 
+#include <optional>
+
 using namespace polybar;
 using namespace std;
 
 
-/**
- * \brief Fixture class
- */
-class Config : public ::testing::Test {
+class Config {
  public:
-  Config(): ::testing::Test() {
+  Config(std::string name) {
+    m_conf = make_unique<config>(l, "/dev/zero", move(name));
     m_conf->set_sections({
       {
         "settings", {
@@ -25,10 +25,6 @@ class Config : public ::testing::Test {
           {"width", "100%"},
           {"height", "18"},
           {"fixed-center", "false"},
-          {"env-VAR1", "VALUE1"},
-          {"env-VAR2", "VALUE2"},
-          {"env-VAR3", "VALUE3"},
-          {"env2-VAR1", "VALUE1"},
           {"list1-0", "VALUE0"},
           {"list1-1", "VALUE1"},
           {"list2-0", "VALUE0"},
@@ -49,58 +45,85 @@ class Config : public ::testing::Test {
         "modules/unittest_name", {
           {"type", "internal/unittest"}
         }
+      },
+      {
+        "modules/my_script", {
+          {"type", "internal/script"},
+          {"env-VAR1", "VALUE1"},
+          {"env-VAR2", "VALUE2"},
+          {"env-VAR3", "VALUE3"},
+          {"env2-VAR1", "VALUE1"}
+        }
       }
     });
   }
- protected:
+
   const logger l = logger(loglevel::NONE);
-  unique_ptr<config> m_conf = make_unique<config>(l, "/dev/zero", "ut_bar");
+  unique_ptr<config> m_conf;
 };
 
-class HasTest : public Config, public ::testing::WithParamInterface<pair<pair<string, string>, bool>> {};
 
-vector<pair<pair<string, string>, bool>> has_test_input = {
+
+/**
+ * \brief Fixture class
+ */
+class ConfigTest : public Config, public ::testing::Test {
+ public:
+  ConfigTest(std::string name): Config(name), ::testing::Test() {}
+};
+
+class HasTest : public ConfigTest, public ::testing::WithParamInterface<pair<pair<optional<string>, string>, bool>> {
+ public:
+  HasTest(): ConfigTest("ut_bar"){}
+};
+
+vector<pair<pair<optional<string>, string>, bool>> has_test_input = {
+  {{nullopt, "modules-left"}, true},
   {{"settings", "compositing-border"}, true},
-  {{"bar/ut_bar", "modules-left"}, true},
   {{"modules/unittest_name", "type"}, true},
   {{"settingS", "compositing-border"}, false},
-  {{"bar/UT_bar", "modules-left"}, false},
   {{"modules/unittest_name", "TYPE"}, false}
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, HasTest, ::testing::ValuesIn(has_test_input));
 
 TEST_P(HasTest, correctness) {
-  EXPECT_EQ(m_conf->has(GetParam().first.first, GetParam().first.second), GetParam().second);
+  if (GetParam().first.first) {
+    EXPECT_EQ(m_conf->has(GetParam().first.first.value(), GetParam().first.second), GetParam().second);
+  } else {
+    EXPECT_EQ(m_conf->bar_has(GetParam().first.second), GetParam().second);
+  }
 }
 
-class Get : public Config, public ::testing::WithParamInterface<pair<string, string>> {};
+class BarGet : public ConfigTest, public ::testing::WithParamInterface<pair<string, string>> {
+ public:
+  BarGet(): ConfigTest("ut_bar"){}
+};
 
-vector<pair<string, string>> get_input = {
+vector<pair<string, string>> bar_get_input = {
   {"modules-left", "unittest_name"},
   {"width", "100%"},
   {"height", "18"},
   {"fixed-center", "false"}
 };
 
-INSTANTIATE_TEST_SUITE_P(Inst, Get, ::testing::ValuesIn(get_input));
+INSTANTIATE_TEST_SUITE_P(Inst, BarGet, ::testing::ValuesIn(bar_get_input));
 
-TEST_P(Get, found) {
-  EXPECT_EQ(m_conf->get(GetParam().first), GetParam().second);
+TEST_P(BarGet, found) {
+  EXPECT_EQ(m_conf->bar_get(GetParam().first), GetParam().second);
 }
 
-TEST_P(Get, missing) {
-  EXPECT_THROW(m_conf->get(GetParam().first + "___"), key_error);
+TEST_P(BarGet, missing) {
+  EXPECT_THROW(m_conf->bar_get(GetParam().first + "___"), key_error);
 }
 
-class GetWithSection : public Config, public ::testing::WithParamInterface<pair<pair<string, string>, string>> {};
+class GetWithSection : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, string>> {
+ public:
+  GetWithSection(): ConfigTest("ut_bar"){}
+};
 
 vector<pair<pair<string, string>, string>> get_with_section_input = {
   {{"settings", "compositing-border"}, "5"},
-  {{"bar/ut_bar", "modules-left"}, "unittest_name"},
-  {{"bar/ut_bar", "width"}, "100%"},
-  {{"bar/ut_bar", "height"}, "18"},
-  {{"bar/ut_bar", "fixed-center"}, "false"},
   {{"modules/unittest_name", "type"}, "internal/unittest"},
 };
 
@@ -130,11 +153,14 @@ TEST_P(GetWithSection, missingKeyWithDefaultValue) {
   EXPECT_EQ(m_conf->get(GetParam().first.first, GetParam().first.second + "___", string("default_value")), "default_value");
 }
 
-class GetWithPrefix : public Config, public ::testing::WithParamInterface<pair<pair<string, string>, vector<pair<string, string>>>> {};
+class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, vector<pair<string, string>>>> {
+ public:
+  GetWithPrefix(): ConfigTest("ut_bar"){}
+};
 
 vector<pair<pair<string, string>, vector<pair<string, string>>>> get_with_prefix_input = {
-  {{"bar/ut_bar", "env-"}, {{"VAR1", "VALUE1"}, {"VAR2", "VALUE2"}, {"VAR3", "VALUE3"}}},
-  {{"bar/ut_bar", "env2-"}, {{"VAR1", "VALUE1"}}}
+  {{"modules/my_script", "env-"}, {{"VAR1", "VALUE1"}, {"VAR2", "VALUE2"}, {"VAR3", "VALUE3"}}},
+  {{"modules/my_script", "env2-"}, {{"VAR1", "VALUE1"}}}
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, GetWithPrefix, ::testing::ValuesIn(get_with_prefix_input));
@@ -155,7 +181,10 @@ TEST_P(GetWithPrefix, missingKey) {
   EXPECT_TRUE(m_conf->get_with_prefix(GetParam().first.first, string("EE") + GetParam().first.second).empty());
 }
 
-class GetList : public Config, public ::testing::WithParamInterface<pair<string, vector<string>>> {};
+class GetList : public ConfigTest, public ::testing::WithParamInterface<pair<string, vector<string>>> {
+ public:
+  GetList(): ConfigTest("ut_bar"){}
+};
 
 vector<pair<string, vector<string>>> get_list_input = {
   {"list1", {"VALUE0", "VALUE1"}},
@@ -165,27 +194,23 @@ vector<pair<string, vector<string>>> get_list_input = {
 INSTANTIATE_TEST_SUITE_P(Inst, GetList, ::testing::ValuesIn(get_list_input));
 
 TEST_P(GetList, found) {
-  EXPECT_EQ(m_conf->get_list(GetParam().first), GetParam().second);
+  EXPECT_EQ(m_conf->bar_get_list(GetParam().first), GetParam().second);
 }
 
 TEST_P(GetList, foundWithSection) {
-  EXPECT_EQ(m_conf->get_list("bar/ut_bar", GetParam().first), GetParam().second);
+  EXPECT_EQ(m_conf->bar_get_list(GetParam().first), GetParam().second);
 }
 
 TEST_P(GetList, missingSection) {
   EXPECT_THROW(m_conf->get_list("unknown", GetParam().first), key_error);
 }
 
-TEST_P(GetList, missingKey) {
-  EXPECT_THROW(m_conf->get_list(GetParam().first + "___"), key_error);
-}
-
 TEST_P(GetList, missingKeyWithSection) {
-  EXPECT_THROW(m_conf->get_list("bar/ut_bar", GetParam().first + "___"), key_error);
+  EXPECT_THROW(m_conf->bar_get_list(GetParam().first + "___"), key_error);
 }
 
 TEST_P(GetList, foundWithSectionAndDefault) {
-  EXPECT_EQ(m_conf->get_list<string>("bar/ut_bar", GetParam().first, {"def1", "def2"}), GetParam().second);
+  EXPECT_EQ(m_conf->bar_get_list<string>(GetParam().first, {"def1", "def2"}), GetParam().second);
 }
 
 TEST_P(GetList, missingSectionWithDefault) {
@@ -195,79 +220,86 @@ TEST_P(GetList, missingSectionWithDefault) {
 
 TEST_P(GetList, missingKeyWithSectionAndDefault) {
   vector<string> def{"def1", "def2"};
-  EXPECT_EQ(m_conf->get_list<string>("bar/ut_bar", GetParam().first + "___", def), def);
+  EXPECT_EQ(m_conf->bar_get_list<string>(GetParam().first + "___", def), def);
 }
 
-TEST_F(Config, deprecated) {
+TEST_F(BarGet, deprecated) {
   string def{"default_value"};
-  EXPECT_EQ(m_conf->deprecated("bar/ut_bar", "width", "unused", def), "100%");
-  EXPECT_EQ(m_conf->deprecated("bar/ut_bar", "unknown", "width", def), "100%");
-  EXPECT_EQ(m_conf->deprecated("unknown", "width", "unused", def), def);
-  EXPECT_EQ(m_conf->deprecated("bar/ut_bar", "unknown", "unknown2", def), def);
+  EXPECT_EQ(m_conf->bar_deprecated("width", "unused", def), "100%");
+  EXPECT_EQ(m_conf->bar_deprecated("unknown", "width", def), "100%");
+  EXPECT_EQ(m_conf->bar_deprecated("unknown", "unknown2", def), def);
 }
 
-TEST_F(Config, typed) {
-  EXPECT_EQ(m_conf->get<string>("bar/ut_bar", "height"), string{"18"});
-  EXPECT_EQ(m_conf->get<char>("bar/ut_bar", "height"), '1');
-  EXPECT_EQ(m_conf->get<int>("bar/ut_bar", "height"), 18);
-  EXPECT_EQ(m_conf->get<short>("bar/ut_bar", "height"), (short)18);
-  EXPECT_EQ(m_conf->get<long>("bar/ut_bar", "height"), 18L);
-  EXPECT_EQ(m_conf->get<long long>("bar/ut_bar", "height"), 18LL);
-  EXPECT_EQ(m_conf->get<unsigned char>("bar/ut_bar", "height"), (unsigned char)18);
-  EXPECT_EQ(m_conf->get<unsigned short>("bar/ut_bar", "height"), (unsigned short)18);
-  EXPECT_EQ(m_conf->get<unsigned int>("bar/ut_bar", "height"), (unsigned int)18);
-  EXPECT_EQ(m_conf->get<unsigned long>("bar/ut_bar", "height"), (unsigned long)18);
-  EXPECT_EQ(m_conf->get<unsigned long long>("bar/ut_bar", "height"), (unsigned long long)18);
-  EXPECT_EQ(m_conf->get<unsigned short>("bar/ut_bar", "height"), (unsigned short)18);
-  EXPECT_EQ(m_conf->get<unsigned short>("bar/ut_bar", "height"), (unsigned short)18);
+TEST_F(BarGet, typed) {
+  EXPECT_EQ(m_conf->bar_get<string>("height"), string{"18"});
+  EXPECT_EQ(m_conf->bar_get<char>("height"), '1');
+  EXPECT_EQ(m_conf->bar_get<int>("height"), 18);
+  EXPECT_EQ(m_conf->bar_get<short>("height"), (short)18);
+  EXPECT_EQ(m_conf->bar_get<long>("height"), 18L);
+  EXPECT_EQ(m_conf->bar_get<long long>("height"), 18LL);
+  EXPECT_EQ(m_conf->bar_get<unsigned char>("height"), (unsigned char)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned short>("height"), (unsigned short)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned int>("height"), (unsigned int)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned long>("height"), (unsigned long)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned long long>("height"), (unsigned long long)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned short>("height"), (unsigned short)18);
+  EXPECT_EQ(m_conf->bar_get<unsigned short>("height"), (unsigned short)18);
 
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool1"), true);
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool2"), true);
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool3"), true);
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool4"), true);
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool5"), true);
-  EXPECT_EQ(m_conf->get<bool>("bar/ut_bar", "bool6"), false);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool1"), true);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool2"), true);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool3"), true);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool4"), true);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool5"), true);
+  EXPECT_EQ(m_conf->bar_get<bool>("bool6"), false);
 
   EXPECT_FLOAT_EQ(1.234567891f, 1.23456788);
-  EXPECT_FLOAT_EQ(m_conf->get<float>("bar/ut_bar", "float"), 1.23456788);
-  EXPECT_DOUBLE_EQ(m_conf->get<double>("bar/ut_bar", "float"), 1.234567891);
+  EXPECT_FLOAT_EQ(m_conf->bar_get<float>("float"), 1.23456788);
+  EXPECT_DOUBLE_EQ(m_conf->bar_get<double>("float"), 1.234567891);
 
-  spacing_val sp_val{m_conf->get<spacing_val>("bar/ut_bar", "spacing")};
+  spacing_val sp_val{m_conf->bar_get<spacing_val>("spacing")};
   EXPECT_EQ(sp_val.type, spacing_type::PIXEL);
   EXPECT_EQ(sp_val.value, 100);
 
-  extent_val ex_val{m_conf->get<extent_val>("bar/ut_bar", "spacing")};
+  extent_val ex_val{m_conf->bar_get<extent_val>("spacing")};
   EXPECT_EQ(ex_val.type, extent_type::PIXEL);
   EXPECT_EQ(ex_val.value, 100);
 
-  percentage_with_offset p1{m_conf->get<percentage_with_offset>("bar/ut_bar", "width")};
+  percentage_with_offset p1{m_conf->bar_get<percentage_with_offset>("width")};
   EXPECT_DOUBLE_EQ(p1.percentage, 100.);
   EXPECT_EQ(p1.offset.type, extent_type::PIXEL);
   EXPECT_FLOAT_EQ(p1.offset.value, 0.f);
 
-  percentage_with_offset p2{m_conf->get<percentage_with_offset>("bar/ut_bar", "height")};
+  percentage_with_offset p2{m_conf->bar_get<percentage_with_offset>("height")};
   EXPECT_DOUBLE_EQ(p2.percentage, 0.);
   EXPECT_EQ(p2.offset.type, extent_type::PIXEL);
   EXPECT_FLOAT_EQ(p2.offset.value, 18.f);
 
-  percentage_with_offset p3{m_conf->get<percentage_with_offset>("bar/ut_bar", "percent")};
+  percentage_with_offset p3{m_conf->bar_get<percentage_with_offset>("percent")};
   EXPECT_DOUBLE_EQ(p3.percentage, 36.5);
   EXPECT_EQ(p3.offset.type, extent_type::POINT);
   EXPECT_FLOAT_EQ(p3.offset.value, 42.7f);
 
-  EXPECT_EQ(m_conf->get<chrono::seconds>("bar/ut_bar", "height"), chrono::seconds{18});
-  EXPECT_EQ(m_conf->get<chrono::milliseconds>("bar/ut_bar", "height"), chrono::milliseconds{18});
-  EXPECT_EQ(m_conf->get<chrono::duration<double>>("bar/ut_bar", "float"), chrono::duration<double>{1.234567891});
+  EXPECT_EQ(m_conf->bar_get<chrono::seconds>("height"), chrono::seconds{18});
+  EXPECT_EQ(m_conf->bar_get<chrono::milliseconds>("height"), chrono::milliseconds{18});
+  EXPECT_EQ(m_conf->bar_get<chrono::duration<double>>("float"), chrono::duration<double>{1.234567891});
  
-  EXPECT_EQ(m_conf->get<rgba>("bar/ut_bar", "color"), rgba{"#abc"});
+  EXPECT_EQ(m_conf->bar_get<rgba>("color"), rgba{"#abc"});
 
-  EXPECT_EQ(m_conf->get<cairo_operator_t>("bar/ut_bar", "operator"), cairo_operator_t{CAIRO_OPERATOR_OVER});
+  EXPECT_EQ(m_conf->bar_get<cairo_operator_t>("operator"), cairo_operator_t{CAIRO_OPERATOR_OVER});
 
-  // Cannot test get<const char *> because address sanitizer throws stack-use-after-return 
+  // Cannot test bar_get<const char *> because address sanitizer throws stack-use-after-return 
   // for any access to height_chr
-  // const char *height_chr = m_conf->get<const char *>("bar/ut_bar", "height");
+  // const char *height_chr = m_conf->bar_get<const char *>("height");
   // EXPECT_EQ(strlen(height_chr), 2);
   // EXPECT_EQ(strncmp(height_chr, "18", 2), 0);
+}
 
+TEST(BadConfig, MissingBarName) {
+  Config c("Ut_Bar");
+  EXPECT_FALSE(c.m_conf->bar_has("modules-left"));
+  EXPECT_THROW(c.m_conf->bar_get("foreground"), key_error);
+  EXPECT_THROW(c.m_conf->bar_get_list("list"), key_error);
+  string def{"default_value"};
+  EXPECT_EQ(c.m_conf->bar_deprecated("width", "unused", def), def);
 }
 
