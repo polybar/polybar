@@ -423,6 +423,7 @@ void manager::process_docking_request(xcb_window_t win) {
 
     cl->add_to_save_set();
 
+    cl->hidden(m_hidden);
     cl->ensure_state();
 
     cl->notify_xembed();
