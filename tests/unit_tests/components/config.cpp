@@ -79,9 +79,8 @@ class HasTest : public ConfigTest, public ::testing::WithParamInterface<pair<pai
 
 vector<pair<pair<optional<string>, string>, bool>> has_test_input = {
   {{nullopt, "modules-left"}, true},
-  {{"settings", "compositing-border"}, true},
   {{"modules/unittest_name", "type"}, true},
-  {{"settingS", "compositing-border"}, false},
+  {{"modules/UnitTestName", "type"}, false},
   {{"modules/unittest_name", "TYPE"}, false}
 };
 
@@ -109,48 +108,26 @@ vector<pair<string, string>> bar_get_input = {
 
 INSTANTIATE_TEST_SUITE_P(Inst, BarGet, ::testing::ValuesIn(bar_get_input));
 
-TEST_P(BarGet, found) {
+TEST_P(BarGet, correctness) {
   EXPECT_EQ(m_conf->bar_get(GetParam().first), GetParam().second);
-}
-
-TEST_P(BarGet, missing) {
   EXPECT_THROW(m_conf->bar_get(GetParam().first + "___"), key_error);
 }
 
-class GetWithSection : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, string>> {
- public:
-  GetWithSection(): ConfigTest("ut_bar"){}
-};
-
-vector<pair<pair<string, string>, string>> get_with_section_input = {
-  {{"settings", "compositing-border"}, "5"},
-  {{"modules/unittest_name", "type"}, "internal/unittest"},
-};
-
-INSTANTIATE_TEST_SUITE_P(Inst, GetWithSection, ::testing::ValuesIn(get_with_section_input));
-
-TEST_P(GetWithSection, found) {
-  EXPECT_EQ(m_conf->get(GetParam().first.first, GetParam().first.second), GetParam().second);
+TEST(SettingsGet, correctness) {
+  Config c("ut_bar");
+  string def{"default_value"};
+  EXPECT_EQ(c.m_conf->setting_get("compositing-border", def), "5");
+  EXPECT_EQ(c.m_conf->setting_get("compositing-border___", def), def);
 }
 
-TEST_P(GetWithSection, missingSection) {
-  EXPECT_THROW(m_conf->get(GetParam().first.first + "___", GetParam().first.second), key_error);
-}
-
-TEST_P(GetWithSection, missingKey) {
-  EXPECT_THROW(m_conf->get(GetParam().first.first, GetParam().first.second + "___"), key_error);
-}
-
-TEST_P(GetWithSection, foundWithDefaultValue) {
-  EXPECT_EQ(m_conf->get(GetParam().first.first, GetParam().first.second, string("default_value")), GetParam().second);
-}
-
-TEST_P(GetWithSection, missingSectionWithDefaultValue) {
-  EXPECT_EQ(m_conf->get(GetParam().first.first + "___", GetParam().first.second, string("default_value")), "default_value");
-}
-
-TEST_P(GetWithSection, missingKeyWithDefaultValue) {
-  EXPECT_EQ(m_conf->get(GetParam().first.first, GetParam().first.second + "___", string("default_value")), "default_value");
+TEST(ModuleGet, correctness) {
+  Config c("ut_bar");
+  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type"), "internal/unittest");
+  EXPECT_THROW(c.m_conf->get("modules/unittest_name___", "type"), key_error);
+  EXPECT_THROW(c.m_conf->get("modules/unittest_name", "type___"), key_error);
+  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type", string("default_value")), "internal/unittest");
+  EXPECT_EQ(c.m_conf->get("modules/unittest_name___", "type", string("default_value")), "default_value");
+  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type___", string("default_value")), "default_value");
 }
 
 class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, vector<pair<string, string>>>> {

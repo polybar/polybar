@@ -80,6 +80,10 @@ void config::warn_deprecated(const string& section, const string& key, string re
   }
 }
 
+void config::setting_warn_deprecated(const string& key, string replacement) const {
+  return warn_deprecated("settings", key, replacement);
+}
+
 /**
  * Returns true if a given parameter exists
  */

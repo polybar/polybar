@@ -101,6 +101,16 @@ class config {
     return get_list<T>(section(), key, default_value);
   }
 
+  /**
+   * Get setting with a default value in case the parameter isn't defined
+   */
+  template <typename T = string>
+  T setting_get(const string& key, const T& default_value) const {
+    return get<T>("settings", key, default_value);
+  }
+
+  void setting_warn_deprecated(const string& key, string replacement = "") const;
+
   void warn_deprecated(const string& section, const string& key, string replacement = "") const;
 
   /**

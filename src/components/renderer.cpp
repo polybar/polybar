@@ -143,17 +143,17 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
     }
   }
 
-  m_pseudo_transparency = m_conf.get<bool>("settings", "pseudo-transparency", m_pseudo_transparency);
+  m_pseudo_transparency = m_conf.setting_get<bool>("pseudo-transparency", m_pseudo_transparency);
   if (m_pseudo_transparency) {
     m_log.trace("Activate root background manager");
     m_background = background.observe(m_bar.outer_area(false), m_window);
   }
 
-  m_comp_bg = m_conf.get<cairo_operator_t>("settings", "compositing-background", m_comp_bg);
-  m_comp_fg = m_conf.get<cairo_operator_t>("settings", "compositing-foreground", m_comp_fg);
-  m_comp_ol = m_conf.get<cairo_operator_t>("settings", "compositing-overline", m_comp_ol);
-  m_comp_ul = m_conf.get<cairo_operator_t>("settings", "compositing-underline", m_comp_ul);
-  m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
+  m_comp_bg = m_conf.setting_get<cairo_operator_t>("compositing-background", m_comp_bg);
+  m_comp_fg = m_conf.setting_get<cairo_operator_t>("compositing-foreground", m_comp_fg);
+  m_comp_ol = m_conf.setting_get<cairo_operator_t>("compositing-overline", m_comp_ol);
+  m_comp_ul = m_conf.setting_get<cairo_operator_t>("compositing-underline", m_comp_ul);
+  m_comp_border = m_conf.setting_get<cairo_operator_t>("compositing-border", m_comp_border);
 
   m_fixedcenter = m_conf.bar_get("fixed-center", true);
 }
