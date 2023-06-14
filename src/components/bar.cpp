@@ -165,13 +165,13 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   {
     double dpi_x = 96, dpi_y = 96;
     if (m_conf.bar_has("dpi")) {
-      dpi_x = dpi_y = m_conf.bar_get<double>("dpi");
+      dpi_x = dpi_y = m_conf["bars"][m_conf.bar_name()]["dpi"].as<double>();
     } else {
       if (m_conf.bar_has("dpi-x")) {
-        dpi_x = m_conf.bar_get<double>("dpi-x");
+        dpi_x = m_conf["bars"][m_conf.bar_name()]["dpi-x"].as<double>();
       }
       if (m_conf.bar_has("dpi-y")) {
-        dpi_y = m_conf.bar_get<double>("dpi-y");
+        dpi_y = m_conf["bars"][m_conf.bar_name()]["dpi-y"].as<double>();
       }
     }
 
@@ -199,7 +199,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.separator = drawtypes::load_separator(m_conf, "separator");
   m_opts.locale = m_conf["bars"][m_conf.bar_name()]["locale"].as(""s);
 
-  auto radius = m_conf.bar_get<double>("radius", 0.0);
+  auto radius = m_conf["bars"][m_conf.bar_name()]["radius"].as<double>(0.0);
   auto top = m_conf["bars"][m_conf.bar_name()]["radius-top"].as(radius);
   m_opts.radius.top_left = m_conf["bars"][m_conf.bar_name()]["radius-top-left"].as(top);
   m_opts.radius.top_right = m_conf["bars"][m_conf.bar_name()]["radius-top-right"].as(top);
@@ -257,7 +257,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   const auto parse_or_throw_color = [&](string key, rgba def) -> rgba {
     try {
-      rgba color = m_conf.bar_get(key, def);
+      rgba color = m_conf["bars"][m_conf.bar_name()][key].as(def);
 
       /*
        * These are the base colors of the bar and cannot be alpha only
@@ -490,7 +490,7 @@ void bar::restack_window() {
   string wm_restack;
 
   try {
-    wm_restack = m_conf.bar_get("wm-restack");
+    wm_restack = m_conf["bars"][m_conf.bar_name()]["wm-restack"].as<string>();
   } catch (const key_error& err) {
     return;
   }
