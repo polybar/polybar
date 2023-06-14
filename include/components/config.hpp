@@ -288,6 +288,84 @@ class config {
  public:
   string section() const;
 
+
+  class value {
+   public:
+    enum class access_type {
+      MAP,
+      LIST
+    };
+
+    struct access_key {
+      access_type access;
+      unsigned int list_key;
+      string map_key;
+      access_key(const string& key): access(access_type::MAP), list_key(0), map_key(key) {}
+      access_key(unsigned int key): access(access_type::LIST), list_key(key) {}
+    };
+
+    value(const config& conf, const std::string& key):m_conf(conf), m_keys({key}) {} 
+
+    value operator[](const string &key) const {
+      return value(*this, key);
+    }
+
+    value operator[](unsigned int key) const {
+      return value(*this, key);
+    }
+
+    template <typename T>
+    T as() const {
+      // TODO check m_keys length >= 2
+      access_key first = m_keys[0];
+      if (first.access != access_type::MAP) {
+          // TODO: error
+      }
+      if (first.map_key == "bars") {
+          // TODO: need to check the type and the size of m_keys[1..  ]
+        // TODO: assert m_keys[1].map_key == bar_name()
+        return m_conf.bar_get<T>(m_keys[2].map_key);
+      } else if (first.map_key == "settings") {
+        return m_conf.setting_get<T>(m_keys[1].map_key);
+      } else {}
+      return T();
+    }
+
+    template <typename T>
+    T as(const T& default_value) const {
+      // TODO check m_keys length >= 2
+      access_key first = m_keys[0];
+      if (first.access != access_type::MAP) {
+          // TODO: error
+      }
+      if (first.map_key == "bars") {
+          // TODO: need to check the type and the size of m_keys[1..  ]
+        // TODO: assert m_keys[1].map_key == bar_name()
+        return m_conf.bar_get<T>(m_keys[2].map_key, default_value);
+      } else if (first.map_key == "settings") {
+        return m_conf.setting_get<T>(m_keys[1].map_key, default_value);
+      } else {}
+      return T();
+    }
+
+  private:
+    const config &m_conf;
+    vector<access_key> m_keys;
+
+    value(const value& parent, const std::string& key):m_conf(parent.m_conf), m_keys(parent.m_keys) {
+      m_keys.push_back(access_key(key));
+    } 
+    value(const value& parent, unsigned int key):m_conf(parent.m_conf), m_keys(parent.m_keys) {
+      m_keys.push_back(access_key(key));
+    } 
+
+  };
+  value operator[](const string &key) const {
+    value root(*this, key);
+    return root;
+  }
+
+
  private:
   const logger& m_log;
   string m_file;

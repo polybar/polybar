@@ -326,7 +326,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load geometry values
   auto w = m_conf.bar_get("width", percentage_with_offset{100.});
-  auto h = m_conf.bar_get("height", percentage_with_offset{0., {extent_type::PIXEL, 24}});
+  auto h = m_conf["bars"][m_conf.bar_name()]["height"].as(percentage_with_offset{0., {extent_type::PIXEL, 24}});
   auto offsetx = m_conf.bar_get("offset-x", percentage_with_offset{});
   auto offsety = m_conf.bar_get("offset-y", percentage_with_offset{});
 
