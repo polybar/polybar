@@ -155,7 +155,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
   m_comp_ul = m_conf.setting_get<cairo_operator_t>("compositing-underline", m_comp_ul);
   m_comp_border = m_conf.setting_get<cairo_operator_t>("compositing-border", m_comp_border);
 
-  m_fixedcenter = m_conf.bar_get("fixed-center", true);
+  m_fixedcenter = m_conf["bars"][m_conf.bar_name()]["fixed-center"].as(true);
 }
 
 /**
