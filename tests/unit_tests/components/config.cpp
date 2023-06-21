@@ -280,3 +280,21 @@ TEST(BadConfig, MissingBarName) {
   EXPECT_EQ(c.m_conf->bar_deprecated("width", "unused", def), def);
 }
 
+TEST_F(BarGet, OperatorAccess) {
+  // Ok cases
+  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["width"].as<string>(), "100%");
+  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["height"].as<int>(), 18);
+  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["fixed-center"].as<bool>(), false);
+
+  // Bad Access cases
+  EXPECT_THROW((*m_conf)["barS"][m_conf->bar_name()]["width"].as<string>(), key_error);
+  EXPECT_THROW((*m_conf)["bars"]["unknown_bar"]["width"].as<string>(), key_error);
+  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["wiDth"].as<string>(), key_error);
+
+
+  // TODO: add tests with wrong numbers of [] or wrong types (integers)
+  // TODO: add tests for as() with default value
+  // TODO: add tests for as_list() if accessors are not reworked maybe with also adding a size() method 
+  // EXPECT_FALSE(m_conf["bars"]["modules-left"].as_list());
+
+}
