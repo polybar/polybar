@@ -296,6 +296,10 @@ class config {
       LIST
     };
 
+    static constexpr const char* BARS_ENTRY = "bars";
+    static constexpr const char* SETTINGS_ENTRY = "settings";
+    static constexpr const char* MODULES_ENTRY = "modules";
+
     struct access_key {
       access_type access;
       unsigned int list_key;
@@ -321,14 +325,24 @@ class config {
       if (first.access != access_type::MAP) {
           // TODO: error
       }
-      if (first.map_key == "bars") {
+      if (first.map_key == BARS_ENTRY) {
+        if (m_keys[1].access != access_type::MAP) {
+          throw runtime_error("looking for bars as a list is not implemented yet");
+        }
+        if (m_keys[1].map_key != m_conf.bar_name()) {
+          throw key_error("bar '" + m_keys[1].map_key + "' is not the current bar");
+        }
           // TODO: need to check the type and the size of m_keys[1..  ]
         // TODO: assert m_keys[1].map_key == bar_name()
         return m_conf.bar_get<T>(m_keys[2].map_key);
-      } else if (first.map_key == "settings") {
-        return m_conf.setting_get<T>(m_keys[1].map_key);
-      } else {}
-      return T();
+      } else if (first.map_key == SETTINGS_ENTRY) {
+        // return m_conf.setting_get<T>(m_keys[1].map_key);
+        throw key_error("'settings' can only be accessed with a default value for now");
+      } else if (first.map_key == MODULES_ENTRY) {
+        throw runtime_error("not implemented");
+        return T();
+      }
+      throw key_error("first key must be one of 'bars', 'settings' or 'modules', got '" + first.map_key + "'");
     }
 
     template <typename T>
@@ -338,14 +352,76 @@ class config {
       if (first.access != access_type::MAP) {
           // TODO: error
       }
-      if (first.map_key == "bars") {
+      if (first.map_key == BARS_ENTRY) {
+        if (m_keys[1].access != access_type::MAP) {
+          throw runtime_error("looking for bars as a list is not implemented yet");
+        }
+        if (m_keys[1].map_key != m_conf.bar_name()) {
+          throw key_error("bar '" + m_keys[1].map_key + "' is not the current bar");
+        }
           // TODO: need to check the type and the size of m_keys[1..  ]
         // TODO: assert m_keys[1].map_key == bar_name()
         return m_conf.bar_get<T>(m_keys[2].map_key, default_value);
-      } else if (first.map_key == "settings") {
+      } else if (first.map_key == SETTINGS_ENTRY) {
         return m_conf.setting_get<T>(m_keys[1].map_key, default_value);
-      } else {}
-      return T();
+      } else if (first.map_key == MODULES_ENTRY) {
+        throw runtime_error("not implemented");
+        return T();
+      }
+      throw key_error("first key must be one of 'bars', 'settings' or 'modules', got '" + first.map_key + "'");
+    }
+
+    template <typename T>
+    vector<T> as_list() const {
+      // TODO check m_keys length >= 2
+      access_key first = m_keys[0];
+      if (first.access != access_type::MAP) {
+          // TODO: error
+      }
+      if (first.map_key == BARS_ENTRY) {
+        if (m_keys[1].access != access_type::MAP) {
+          throw runtime_error("looking for bars as a list is not implemented yet");
+        }
+        if (m_keys[1].map_key != m_conf.bar_name()) {
+          throw key_error("bar '" + m_keys[1].map_key + "' is not the current bar");
+        }
+          // TODO: need to check the type and the size of m_keys[1..  ]
+        // TODO: assert m_keys[1].map_key == bar_name()
+        return m_conf.bar_get_list<T>(m_keys[2].map_key);
+      } else if (first.map_key == SETTINGS_ENTRY) {
+        throw value_error("Not a list");
+      } else if (first.map_key == MODULES_ENTRY) {
+        throw runtime_error("not implemented");
+        return vector<T>();
+      }
+      throw key_error("first key must be one of 'bars', 'settings' or 'modules', got '" + first.map_key + "'");
+    }
+
+    template <typename T>
+    T as_list(const vector<T>& default_value) const {
+      // TODO check m_keys length >= 2
+      access_key first = m_keys[0];
+      if (first.access != access_type::MAP) {
+          // TODO: error
+      }
+      if (first.map_key == BARS_ENTRY) {
+        if (m_keys[1].access != access_type::MAP) {
+          throw runtime_error("looking for bars as a list is not implemented yet");
+        }
+        if (m_keys[1].map_key != m_conf.bar_name()) {
+          throw key_error("bar '" + m_keys[1].map_key + "' is not the current bar");
+        }
+          // TODO: need to check the type and the size of m_keys[1..  ]
+        // TODO: assert m_keys[1].map_key == bar_name()
+        return m_conf.bar_get<T>(m_keys[2].map_key, default_value);
+      } else if (first.map_key == SETTINGS_ENTRY) {
+        m_log.err("settings parameters are never lists");
+        return default_value;
+      } else if (first.map_key == MODULES_ENTRY) {
+        throw runtime_error("not implemented");
+        return default_value;
+      }
+      throw key_error("first key must be one of 'bars', 'settings' or 'modules', got '" + first.map_key + "'");
     }
 
   private:
@@ -364,7 +440,6 @@ class config {
     value root(*this, key);
     return root;
   }
-
 
  private:
   const logger& m_log;
