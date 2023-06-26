@@ -135,6 +135,7 @@ class renderer : public renderer_interface,
   alignment m_align;
 
   bool m_fixedcenter;
+  bool m_fixedright;
   string m_snapshot_dst;
 };
 
