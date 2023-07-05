@@ -364,16 +364,11 @@ TEST(ConfigLabel, LoadLabel) {
     {
       "modules/my-text-label",
       {
-        // {"type", "custom/text"},
-        // {"content", "Some random content"},
-        // {"format", "<label>"},
-        // {"label", "Some random label"},
-        // {"label-background", "#f00"},
-        // {"label-foreground", "#00f"},
-        // {"label-padding", "4"}
         {"label-mounted", "%{F#0a81f5}Home%{F-}: %percentage_used%%"},
         {"label-mounted-foreground", "#000000ff"},
         {"label-mounted-background", "#00ff0000"},
+        {"label-mounted-padding", "12pt"},
+        {"label-mounted-margin", "42px"},
         {"label-unmounted", "%mountpoint% not mounted"},
         {"label-unmounted-foreground", "${colors.foreground-alt}"},
 
@@ -413,9 +408,30 @@ TEST(ConfigLabel, LoadLabel) {
         {"label-NAME-ellipsis", "false"},
       }
     }
+  });
   label_t mounted = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-mounted");
   EXPECT_EQ(mounted->m_foreground, rgba{"#000000ff"});
   EXPECT_EQ(mounted->m_background, rgba{"#00ff0000"});
+  EXPECT_EQ(mounted->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(mounted->m_padding.left.value, 12);
+  EXPECT_EQ(mounted->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(mounted->m_padding.right.value, 12);
+  EXPECT_EQ(mounted->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(mounted->m_margin.left.value, 42);
+  EXPECT_EQ(mounted->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(mounted->m_margin.right.value, 42);
+
+  label_t mounted_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"], "label-mounted");
+  EXPECT_EQ(mounted_value->m_foreground, rgba{"#000000ff"});
+  EXPECT_EQ(mounted_value->m_background, rgba{"#00ff0000"});
+  EXPECT_EQ(mounted_value->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(mounted_value->m_padding.left.value, 12);
+  EXPECT_EQ(mounted_value->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(mounted_value->m_padding.right.value, 12);
+  EXPECT_EQ(mounted_value->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(mounted_value->m_margin.left.value, 42);
+  EXPECT_EQ(mounted_value->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(mounted_value->m_margin.right.value, 42);
 
   label_t name = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-NAME");
   EXPECT_EQ(name->m_foreground, rgba{"#00aa0000"});
@@ -426,9 +442,23 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(name->m_padding.left.value, 12);
   EXPECT_EQ(name->m_padding.right.type, spacing_type::PIXEL);
   EXPECT_EQ(name->m_padding.right.value, 12);
-
   EXPECT_EQ(name->m_margin.left.type, spacing_type::PIXEL);
   EXPECT_EQ(name->m_margin.left.value, 42);
   EXPECT_EQ(name->m_margin.right.type, spacing_type::POINT);
   EXPECT_EQ(name->m_margin.right.value, 42);
+
+
+  label_t name_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"], "label-NAME");
+  EXPECT_EQ(name_value->m_foreground, rgba{"#00aa0000"});
+  EXPECT_EQ(name_value->m_background, rgba{"#0000bb00"});
+  EXPECT_EQ(name_value->m_overline, rgba{"#000000cc"});
+  EXPECT_EQ(name_value->m_underline, rgba{"#ffaabbcc"});
+  EXPECT_EQ(name_value->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(name_value->m_padding.left.value, 12);
+  EXPECT_EQ(name_value->m_padding.right.type, spacing_type::PIXEL);
+  EXPECT_EQ(name_value->m_padding.right.value, 12);
+  EXPECT_EQ(name_value->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(name_value->m_margin.left.value, 42);
+  EXPECT_EQ(name_value->m_margin.right.type, spacing_type::POINT);
+  EXPECT_EQ(name_value->m_margin.right.value, 42);
 }
