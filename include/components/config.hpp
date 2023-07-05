@@ -325,7 +325,6 @@ class config {
       if (first.map_key == BARS_ENTRY) {
         return m_conf.bar_get<T>(build_key(2));
       } else if (first.map_key == SETTINGS_ENTRY) {
-        // return m_conf.setting_get<T>(m_keys[1].map_key);
         throw key_error("'settings' can only be accessed with a default value for now");
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2));
@@ -356,7 +355,6 @@ class config {
       check_path();
       access_key first = m_keys[0];
       if (first.map_key == BARS_ENTRY) {
-          // TODO: need to check the type and the size of m_keys[1..  ]
         return m_conf.bar_get_list<T>(m_keys[2].map_key);
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw value_error("settings parameters are never lists");
@@ -373,10 +371,8 @@ class config {
       check_path();
       access_key first = m_keys[0];
       if (first.map_key == BARS_ENTRY) {
-          // TODO: need to check the type and the size of m_keys[1..  ]
         return m_conf.bar_get_list<T>(m_keys[2].map_key, default_value);
       } else if (first.map_key == SETTINGS_ENTRY) {
-        m_log.err("settings parameters are never lists");
         return default_value;
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get_list<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2), default_value);
@@ -411,9 +407,6 @@ class config {
         if (m_keys[1].map_key != m_conf.bar_name()) {
           throw key_error(sstream() << "bar '" << m_keys[1].map_key << "' is not the current bar");
         }
-        // if (m_keys.size() < 3) {
-        //   throw key_error("there must be a key access after the bar name");
-        // }
         section = m_conf.section();
         key = build_key(2);
       } else if (first.map_key == MODULES_ENTRY) {
