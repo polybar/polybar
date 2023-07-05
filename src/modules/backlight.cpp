@@ -74,7 +74,7 @@ namespace modules {
 
     m_use_actual_brightness = module_config["use-actual-brightness"].as<bool>(m_use_actual_brightness);
 
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", m_use_actual_brightness? 0s : 5s);
+    m_interval = module_config["poll-interval"].as<decltype(m_interval)>(m_use_actual_brightness ? 0s : 5s);
     m_lastpoll = chrono::steady_clock::now();
 
     std::string brightness_type = (m_use_actual_brightness ? "actual_brightness" : "brightness");

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <unordered_map>
 #include <cctype>
 #include <optional>
+#include <unordered_map>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -46,7 +46,8 @@ class config {
   void set_included(file_list included);
 
   file_list get_included_files() const;
- private:
+
+ protected:
   /**
    * Returns true if a given parameter exists in the bar config
    */
@@ -86,8 +87,8 @@ class config {
     } catch (const key_error& err) {
       return get<T>(section(), newkey, fallback);
     } catch (const std::exception& err) {
-      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section(), old, section(), newkey,
-          err.what());
+      m_log.err("Invalid value for \"%s.%s\", using fallback key \"%s.%s\" (reason: %s)", section(), old, section(),
+          newkey, err.what());
       return get<T>(section(), newkey, fallback);
     }
   }
@@ -292,13 +293,9 @@ class config {
  public:
   string section() const;
 
-
   class value {
    public:
-    enum class access_type {
-      MAP,
-      LIST
-    };
+    enum class access_type { MAP, LIST };
 
     static constexpr const char* BARS_ENTRY = "bars";
     static constexpr const char* BARS_KEY = "bar";
@@ -311,13 +308,13 @@ class config {
       access_type access;
       unsigned int list_key;
       string map_key;
-      access_key(const string& key): access(access_type::MAP), list_key(0), map_key(key) {}
-      access_key(unsigned int key): access(access_type::LIST), list_key(key) {}
+      access_key(const string& key) : access(access_type::MAP), list_key(0), map_key(key) {}
+      access_key(unsigned int key) : access(access_type::LIST), list_key(key) {}
     };
 
-    value(const config& conf, const std::string& key):m_conf(conf), m_keys({key}) {} 
+    value(const config& conf, const std::string& key) : m_conf(conf), m_keys({key}) {}
 
-    value operator[](const string &key) const {
+    value operator[](const string& key) const {
       return value(*this, key);
     }
 
@@ -331,10 +328,13 @@ class config {
 
       access_key first = m_keys[0];
       if (first.access != access_type::MAP) {
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '"
+                                  << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key
+                                  << "'");
       }
       if (m_keys.size() > 1 && m_keys[1].access != access_type::MAP) {
-        throw runtime_error(sstream() << "listing '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "' is not a valid access");
+        throw runtime_error(sstream() << "listing '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '"
+                                      << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "' is not a valid access");
       }
       if (first.map_key == BARS_ENTRY) {
         if (m_keys.size() == 1) {
@@ -356,7 +356,9 @@ class config {
         key = (*this)[name].build_key(1);
       } else {
         // any access other than 'bars', 'settings' and 'modules' is an error
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '"
+                                  << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key
+                                  << "'");
       }
 
       auto it = m_conf.m_sections.find(section);
@@ -364,13 +366,11 @@ class config {
         throw key_error("Missing section \"" + section + "\"");
       }
 
-      auto has_key = [&key](const auto& kv) { 
-        return kv.first == key 
-          || (string_util::starts_with(kv.first, key + "-")
-              && kv.first.size() > key.size() + 1
-              && std::isdigit(kv.first[key.size() + 1]));
+      auto has_key = [&key](const auto& kv) {
+        return kv.first == key || (string_util::starts_with(kv.first, key + "-") && kv.first.size() > key.size() + 1 &&
+                                      std::isdigit(kv.first[key.size() + 1]));
       };
-      const auto &section_entry = m_conf.m_sections.at(section);
+      const auto& section_entry = m_conf.m_sections.at(section);
       return std::find_if(section_entry.begin(), section_entry.end(), has_key) != section_entry.end();
     }
 
@@ -466,16 +466,17 @@ class config {
       throw runtime_error("This statement should never be reached");
     }
 
-    void warn_deprecated(const string& key, std::optional<value> replacement=std::nullopt) const {
+    void warn_deprecated(const string& key, std::optional<value> replacement = std::nullopt) const {
       if (this->has(key)) {
         if (replacement.has_value()) {
-          m_conf.m_log.warn(
-              "The config parameter `%s-%s` is deprecated, use `%s` instead.", (string)*this, key, (string)replacement.value());
+          m_conf.m_log.warn("The config parameter `%s-%s` is deprecated, use `%s` instead.", (string) * this, key,
+              (string)replacement.value());
         } else {
           m_conf.m_log.warn(
-              "The config parameter '%s-%s' is deprecated, it will be removed in the future. Please remove it from your "
+              "The config parameter '%s-%s' is deprecated, it will be removed in the future. Please remove it from "
+              "your "
               "config",
-              (string)*this, key);
+              (string) * this, key);
         }
       }
     }
@@ -489,24 +490,24 @@ class config {
       } catch (const key_error& err) {
         return new_entry.as<T>(fallback);
       } catch (const std::exception& err) {
-        m_conf.m_log.err("Invalid value for \"%s\", using fallback key \"%s\" (reason: %s)", (string)*this, (string)new_entry,
-            err.what());
+        m_conf.m_log.err("Invalid value for \"%s\", using fallback key \"%s\" (reason: %s)", (string) * this,
+            (string)new_entry, err.what());
         return new_entry.as<T>(fallback);
       }
     }
-      
+
     operator string() const {
-       return build_key(0);
+      return build_key(0);
     }
 
-  private:
-    const config &m_conf;
+   private:
+    const config& m_conf;
     vector<access_key> m_keys;
 
-    value(const value& parent, const std::string& key):m_conf(parent.m_conf), m_keys(parent.m_keys) {
+    value(const value& parent, const std::string& key) : m_conf(parent.m_conf), m_keys(parent.m_keys) {
       m_keys.push_back(access_key(key));
-    } 
-    value(const value& parent, unsigned int key):m_conf(parent.m_conf), m_keys(parent.m_keys) {
+    }
+    value(const value& parent, unsigned int key) : m_conf(parent.m_conf), m_keys(parent.m_keys) {
       m_keys.push_back(access_key(key));
     }
 
@@ -518,10 +519,11 @@ class config {
       }
       access_key first = m_keys[0];
       if (first.access != access_type::MAP) {
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '"
+                                  << MODULES_ENTRY << "', got '" << first.list_key << "'");
       }
       if (first.map_key == BARS_ENTRY) {
-        // bars access, we ensure that 
+        // bars access, we ensure that
         //   - the second key is a string and equals to the bar_name
         //   - there is at least a third key to select a entry in the bar config
         if (m_keys[1].access != access_type::MAP) {
@@ -537,20 +539,22 @@ class config {
         // modules access, we ensure that the second key is a string
         if (m_keys[1].access != access_type::MAP) {
           throw runtime_error(sstream() << "listing '" << MODULES_ENTRY << "' is not implemented yet");
-        }        
+        }
       } else if (first.map_key == SETTINGS_ENTRY) {
         // settings access, we ensure that the second key is a string
         if (m_keys[1].access != access_type::MAP) {
           throw runtime_error(sstream() << "listing '" << SETTINGS_ENTRY << "' is not implemented yet");
-        }        
+        }
       } else if (first.map_key == GLOBAL_WM_ENTRY) {
         // settings access, we ensure that the second key is a string
         if (m_keys[1].access != access_type::MAP) {
           throw runtime_error(sstream() << "listing '" << GLOBAL_WM_ENTRY << "' is not implemented yet");
-        }        
+        }
       } else {
         // any access other than 'bars', 'settings' and 'modules' is an error
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY<< "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '"
+                                  << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key
+                                  << "'");
       }
     }
 
@@ -568,9 +572,8 @@ class config {
       }
       return ss;
     }
-
   };
-  value operator[](const string &key) const {
+  value operator[](const string& key) const {
     value root(*this, key);
     return root;
   }
