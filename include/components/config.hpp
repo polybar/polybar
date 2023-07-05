@@ -452,6 +452,9 @@ class config {
       }
       return index;
     }
+    operator string() const {
+       return build_key(0);
+    }
 
   private:
     const config &m_conf;
