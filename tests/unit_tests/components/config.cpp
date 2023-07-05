@@ -2,6 +2,8 @@
 #include "cairo/utils.hpp"
 
 #include "common/test.hpp"
+#include "components/types.hpp"
+#include "drawtypes/label.hpp"
 
 #include <optional>
 
@@ -11,65 +13,69 @@ using namespace std;
 
 class Config {
  public:
-  Config(std::string name) {
+  Config(std::string name, sectionmap_t sections={}) {
     m_conf = make_unique<config>(l, "/dev/zero", move(name));
-    m_conf->set_sections({
-      {
-        "settings", {
-          {"compositing-border", "5"}
+    if (!sections.empty()) {
+      m_conf->set_sections(sections);
+    } else {
+      m_conf->set_sections({
+        {
+          "settings", {
+            {"compositing-border", "5"}
+          }
+        },
+        {
+          "bar/ut_bar", {
+            {"modules-left", "unittest_name"},
+            {"width", "100%"},
+            {"height", "18"},
+            {"fixed-center", "false"},
+            {"list1-0", "VALUE0"},
+            {"list1-1", "VALUE1"},
+            {"list2-0", "VALUE0"},
+            {"list3", "VALUE3"},
+            {"list3-0-width", "100%"},
+            {"list3-0-height", "18"},
+            {"list3-0-fixed-center", "false"},
+            {"list3-0-list-0-width", "100%"},
+            {"list3-0-list-0-height", "18"},
+            {"list3-0-list-0-fixed-center", "false"},
+            {"list3-0-list-1-width", "30%"},
+            {"list3-0-list-1-height", "8"},
+            {"list3-0-list-1-fixed-center", "true"},
+            {"bool1", "true"},
+            {"bool2", "yes"},
+            {"bool3", "on"},
+            {"bool4", "1"},
+            {"bool5", "tRuE"},
+            {"bool6", "unhandled value means false"},
+            {"float", "1.234567891"},
+            {"spacing", "100px"},
+            {"percent", "36.5%:42.7pt"},
+            {"color", "#abc"},
+            {"operator", "over"}
+          }
+        },
+        {
+          "modules/unittest_name", {
+            {"type", "internal/unittest"},
+            {"list-0", "12"},
+            {"list-1", "13"},
+            {"list-2", "14"},
+            {"list-3", "15"}
+          }
+        },
+        {
+          "modules/my_script", {
+            {"type", "internal/script"},
+            {"env-VAR1", "VALUE1"},
+            {"env-VAR2", "VALUE2"},
+            {"env-VAR3", "VALUE3"},
+            {"env2-VAR1", "VALUE1"}
+          }
         }
-      },
-      {
-        "bar/ut_bar", {
-          {"modules-left", "unittest_name"},
-          {"width", "100%"},
-          {"height", "18"},
-          {"fixed-center", "false"},
-          {"list1-0", "VALUE0"},
-          {"list1-1", "VALUE1"},
-          {"list2-0", "VALUE0"},
-          {"list3", "VALUE3"},
-          {"list3-0-width", "100%"},
-          {"list3-0-height", "18"},
-          {"list3-0-fixed-center", "false"},
-          {"list3-0-list-0-width", "100%"},
-          {"list3-0-list-0-height", "18"},
-          {"list3-0-list-0-fixed-center", "false"},
-          {"list3-0-list-1-width", "30%"},
-          {"list3-0-list-1-height", "8"},
-          {"list3-0-list-1-fixed-center", "true"},
-          {"bool1", "true"},
-          {"bool2", "yes"},
-          {"bool3", "on"},
-          {"bool4", "1"},
-          {"bool5", "tRuE"},
-          {"bool6", "unhandled value means false"},
-          {"float", "1.234567891"},
-          {"spacing", "100px"},
-          {"percent", "36.5%:42.7pt"},
-          {"color", "#abc"},
-          {"operator", "over"}
-        }
-      },
-      {
-        "modules/unittest_name", {
-          {"type", "internal/unittest"},
-          {"list-0", "12"},
-          {"list-1", "13"},
-          {"list-2", "14"},
-          {"list-3", "15"}
-        }
-      },
-      {
-        "modules/my_script", {
-          {"type", "internal/script"},
-          {"env-VAR1", "VALUE1"},
-          {"env-VAR2", "VALUE2"},
-          {"env-VAR3", "VALUE3"},
-          {"env2-VAR1", "VALUE1"}
-        }
-      }
-    });
+      });
+    }
   }
 
   const logger l = logger(loglevel::NONE);
@@ -351,4 +357,78 @@ TEST_F(BarGet, OperatorAccess) {
   // TODO: add tests for as_list() if accessors are not reworked maybe with also adding a size() method 
   // EXPECT_FALSE(m_conf["bars"]["modules-left"].as_list());
 
+}
+
+TEST(ConfigLabel, LoadLabel) {
+  Config c("Ut_Bar", {
+    {
+      "modules/my-text-label",
+      {
+        // {"type", "custom/text"},
+        // {"content", "Some random content"},
+        // {"format", "<label>"},
+        // {"label", "Some random label"},
+        // {"label-background", "#f00"},
+        // {"label-foreground", "#00f"},
+        // {"label-padding", "4"}
+        {"label-mounted", "%{F#0a81f5}Home%{F-}: %percentage_used%%"},
+        {"label-mounted-foreground", "#000000ff"},
+        {"label-mounted-background", "#00ff0000"},
+        {"label-unmounted", "%mountpoint% not mounted"},
+        {"label-unmounted-foreground", "${colors.foreground-alt}"},
+
+        {"label-NAME", "foobar"},
+        {"label-NAME-foreground", "#00aa0000"},
+        {"label-NAME-background", "#0000bb00"},
+        {"label-NAME-overline", "#000000cc"},
+        {"label-NAME-underline", "#ffaabbcc"},
+        {"label-NAME-font", "4"},
+
+        // Add N spaces, points, pixels before and after the label
+        // Spacing added this way is not affected by the label colors
+        // Default: 0
+        {"label-NAME-padding-left", "12pt"},
+        {"label-NAME-padding-right", "12px"},
+
+        // Add N spaces, points, pixels before and after the label text
+        // Spacing added this way is affected by the label colors
+        // Default: 0
+        {"label-NAME-margin-left", "42px"},
+        {"label-NAME-margin-right", "42pt"},
+
+        // Truncate text if it exceeds given limit. 
+        // Default: 0
+        {"label-NAME-maxlen", "30"},
+
+        // Pad with spaces if the text doesn't have at least minlen characters
+        // Default: 0
+        {"label-NAME-minlen", "10"},
+        // Alignment when the text is shorter than minlen
+        // Possible Values: left, center, right
+        // Default: left
+        {"label-NAME-alignment", "center"},
+
+        // Optionally append ... to the truncated string.
+        // Default: true
+        {"label-NAME-ellipsis", "false"},
+      }
+    }
+  label_t mounted = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-mounted");
+  EXPECT_EQ(mounted->m_foreground, rgba{"#000000ff"});
+  EXPECT_EQ(mounted->m_background, rgba{"#00ff0000"});
+
+  label_t name = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-NAME");
+  EXPECT_EQ(name->m_foreground, rgba{"#00aa0000"});
+  EXPECT_EQ(name->m_background, rgba{"#0000bb00"});
+  EXPECT_EQ(name->m_overline, rgba{"#000000cc"});
+  EXPECT_EQ(name->m_underline, rgba{"#ffaabbcc"});
+  EXPECT_EQ(name->m_padding.left.type, spacing_type::POINT);
+  EXPECT_EQ(name->m_padding.left.value, 12);
+  EXPECT_EQ(name->m_padding.right.type, spacing_type::PIXEL);
+  EXPECT_EQ(name->m_padding.right.value, 12);
+
+  EXPECT_EQ(name->m_margin.left.type, spacing_type::PIXEL);
+  EXPECT_EQ(name->m_margin.left.value, 42);
+  EXPECT_EQ(name->m_margin.right.type, spacing_type::POINT);
+  EXPECT_EQ(name->m_margin.right.value, 42);
 }
