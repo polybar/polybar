@@ -332,6 +332,7 @@ class config {
       }
       // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
       // by check_path() that throws
+      throw runtime_error("This statement should never be reached");
     }
 
     template <typename T>
@@ -347,6 +348,7 @@ class config {
       }
       // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
       // by check_path() that throws
+      throw runtime_error("This statement should never be reached");
     }
 
     template <typename T>
@@ -359,11 +361,11 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw value_error("settings parameters are never lists");
       } else if (first.map_key == MODULES_ENTRY) {
-        throw runtime_error("not implemented");
-        return vector<T>();
+        return m_conf.get_list<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2));
       }
       // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
       // by check_path() that throws
+      throw runtime_error("This statement should never be reached");
     }
 
     template <typename T>
@@ -377,11 +379,13 @@ class config {
         m_log.err("settings parameters are never lists");
         return default_value;
       } else if (first.map_key == MODULES_ENTRY) {
+        return m_conf.get_list<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2), default_value);
         throw runtime_error("not implemented");
         return default_value;
       }
       // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
       // by check_path() that throws
+      throw runtime_error("This statement should never be reached");
     }
 
     size_t size() const {
