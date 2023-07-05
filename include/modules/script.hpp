@@ -29,8 +29,14 @@ namespace modules {
    private:
     void handle_runner_update(const script_runner::data&);
 
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_LABEL_FAIL = "<label-fail>";
+#define DEF_LABEL "label"
+#define DEF_LABEL_FAIL "label-fail"
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto NAME_LABEL_FAIL = DEF_LABEL_FAIL;
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+    static constexpr auto TAG_LABEL_FAIL = "<" DEF_LABEL_FAIL ">";
+#undef DEF_LABEL
+#undef DEF_LABEL_FAIL
     static constexpr auto FORMAT_FAIL = "format-fail";
 
     const bool m_tail;

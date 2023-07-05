@@ -28,12 +28,31 @@ namespace modules {
     static constexpr auto FORMAT_CONNECTED = "format-connected";
     static constexpr auto FORMAT_PACKETLOSS = "format-packetloss";
     static constexpr auto FORMAT_DISCONNECTED = "format-disconnected";
-    static constexpr auto TAG_RAMP_SIGNAL = "<ramp-signal>";
-    static constexpr auto TAG_RAMP_QUALITY = "<ramp-quality>";
-    static constexpr auto TAG_LABEL_CONNECTED = "<label-connected>";
-    static constexpr auto TAG_LABEL_DISCONNECTED = "<label-disconnected>";
-    static constexpr auto TAG_LABEL_PACKETLOSS = "<label-packetloss>";
-    static constexpr auto TAG_ANIMATION_PACKETLOSS = "<animation-packetloss>";
+#define DEF_RAMP_SIGNAL "<ramp-signal"
+#define DEF_RAMP_QUALITY "<ramp-quality"
+#define DEF_LABEL_CONNECTED "<label-connected"
+#define DEF_LABEL_DISCONNECTED "<label-disconnected"
+#define DEF_LABEL_PACKETLOSS "<label-packetloss"
+#define DEF_ANIMATION_PACKETLOSS "<animation-packetloss"
+    static constexpr auto NAME_RAMP_SIGNAL = DEF_RAMP_SIGNAL;
+    static constexpr auto NAME_RAMP_QUALITY = DEF_RAMP_QUALITY;
+    static constexpr auto NAME_LABEL_CONNECTED = DEF_LABEL_CONNECTED;
+    static constexpr auto NAME_LABEL_DISCONNECTED = DEF_LABEL_DISCONNECTED;
+    static constexpr auto NAME_LABEL_PACKETLOSS = DEF_LABEL_PACKETLOSS;
+    static constexpr auto NAME_ANIMATION_PACKETLOSS = DEF_ANIMATION_PACKETLOSS;
+
+    static constexpr auto TAG_RAMP_SIGNAL = "<" DEF_RAMP_SIGNAL ">";
+    static constexpr auto TAG_RAMP_QUALITY = "<" DEF_RAMP_QUALITY ">";
+    static constexpr auto TAG_LABEL_CONNECTED = "<" DEF_LABEL_CONNECTED ">";
+    static constexpr auto TAG_LABEL_DISCONNECTED = "<" DEF_LABEL_DISCONNECTED ">";
+    static constexpr auto TAG_LABEL_PACKETLOSS = "<" DEF_LABEL_PACKETLOSS ">";
+    static constexpr auto TAG_ANIMATION_PACKETLOSS = "<" DEF_ANIMATION_PACKETLOSS ">";
+#undef DEF_RAMP_SIGNAL
+#undef DEF_RAMP_QUALITY
+#undef DEF_LABEL_CONNECTED
+#undef DEF_LABEL_DISCONNECTED
+#undef DEF_LABEL_PACKETLOSS
+#undef DEF_ANIMATION_PACKETLOSS
 
     net::wired_t m_wired;
     net::wireless_t m_wireless;

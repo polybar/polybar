@@ -31,13 +31,13 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "Notifications: %notifications%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "Notifications: %notifications%");
     }
 
     m_formatter->add(FORMAT_OFFLINE, TAG_LABEL_OFFLINE, {TAG_LABEL_OFFLINE});
 
     if (m_formatter->has(TAG_LABEL_OFFLINE)) {
-      m_label_offline = load_optional_label(m_conf, name(), TAG_LABEL_OFFLINE, "Offline");
+      m_label_offline = load_optional_label(module_config[NAME_LABEL_OFFLINE], "Offline");
     }
 
     update_label(0);

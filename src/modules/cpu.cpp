@@ -30,19 +30,19 @@ namespace modules {
     read_values();
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage%%");
+      m_labelwarn = load_optional_label(module_config[NAME_LABEL_WARN], "%percentage%%");
     }
     if (m_formatter->has(TAG_BAR_LOAD)) {
-      m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
+      m_barload = load_progressbar(m_bar, module_config[NAME_BAR_LOAD]);
     }
     if (m_formatter->has(TAG_RAMP_LOAD)) {
-      m_rampload = load_ramp(m_conf, name(), TAG_RAMP_LOAD);
+      m_rampload = load_ramp(module_config[NAME_RAMP_LOAD]);
     }
     if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE)) {
-      m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
+      m_rampload_core = load_ramp(module_config[NAME_RAMP_LOAD_PER_CORE]);
     }
   }
 

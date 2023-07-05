@@ -51,11 +51,29 @@ namespace modules {
     static constexpr auto FORMAT_VOLUME = "format-volume";
     static constexpr auto FORMAT_MUTED = "format-muted";
 
-    static constexpr auto TAG_RAMP_VOLUME = "<ramp-volume>";
-    static constexpr auto TAG_RAMP_HEADPHONES = "<ramp-headphones>";
-    static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
-    static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
-    static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
+#define DEF_RAMP_VOLUME "ramp-volume"
+#define DEF_RAMP_HEADPHONES "ramp-headphones"
+#define DEF_BAR_VOLUME "bar-volume"
+#define DEF_LABEL_VOLUME "label-volume"
+#define DEF_LABEL_MUTED "label-muted"
+
+    static constexpr auto NAME_RAMP_VOLUME = DEF_RAMP_VOLUME;
+    static constexpr auto NAME_RAMP_HEADPHONES = DEF_RAMP_HEADPHONES;
+    static constexpr auto NAME_BAR_VOLUME = DEF_BAR_VOLUME;
+    static constexpr auto NAME_LABEL_VOLUME = DEF_LABEL_VOLUME;
+    static constexpr auto NAME_LABEL_MUTED = DEF_LABEL_MUTED;
+
+    static constexpr auto TAG_RAMP_VOLUME = "<" DEF_RAMP_VOLUME ">";
+    static constexpr auto TAG_RAMP_HEADPHONES = "<" DEF_RAMP_HEADPHONES ">";
+    static constexpr auto TAG_BAR_VOLUME = "<" DEF_BAR_VOLUME ">";
+    static constexpr auto TAG_LABEL_VOLUME = "<" DEF_LABEL_VOLUME ">";
+    static constexpr auto TAG_LABEL_MUTED = "<" DEF_LABEL_MUTED ">";
+
+#undef DEF_RAMP_VOLUME
+#undef DEF_RAMP_HEADPHONES
+#undef DEF_BAR_VOLUME
+#undef DEF_LABEL_VOLUME
+#undef DEF_LABEL_MUTED
 
     progressbar_t m_bar_volume;
     ramp_t m_ramp_volume;

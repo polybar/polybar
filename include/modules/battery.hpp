@@ -72,15 +72,45 @@ namespace modules {
     static constexpr const char* FORMAT_FULL{"format-full"};
     static constexpr const char* FORMAT_LOW{"format-low"};
 
-    static constexpr const char* TAG_ANIMATION_CHARGING{"<animation-charging>"};
-    static constexpr const char* TAG_ANIMATION_DISCHARGING{"<animation-discharging>"};
-    static constexpr const char* TAG_ANIMATION_LOW{"<animation-low>"};
-    static constexpr const char* TAG_BAR_CAPACITY{"<bar-capacity>"};
-    static constexpr const char* TAG_RAMP_CAPACITY{"<ramp-capacity>"};
-    static constexpr const char* TAG_LABEL_CHARGING{"<label-charging>"};
-    static constexpr const char* TAG_LABEL_DISCHARGING{"<label-discharging>"};
-    static constexpr const char* TAG_LABEL_FULL{"<label-full>"};
-    static constexpr const char* TAG_LABEL_LOW{"<label-low>"};
+#define DEF_ANIMATION_CHARGING "animation-charging"
+#define DEF_ANIMATION_DISCHARGING "animation-discharging"
+#define DEF_ANIMATION_LOW "animation-low"
+#define DEF_BAR_CAPACITY "bar-capacity"
+#define DEF_RAMP_CAPACITY "ramp-capacity"
+#define DEF_LABEL_CHARGING "label-charging"
+#define DEF_LABEL_DISCHARGING "label-discharging"
+#define DEF_LABEL_FULL "label-full"
+#define DEF_LABEL_LOW "label-low"
+
+    static constexpr const char* NAME_ANIMATION_CHARGING{DEF_ANIMATION_CHARGING};
+    static constexpr const char* NAME_ANIMATION_DISCHARGING{DEF_ANIMATION_DISCHARGING};
+    static constexpr const char* NAME_ANIMATION_LOW{DEF_ANIMATION_LOW};
+    static constexpr const char* NAME_BAR_CAPACITY{DEF_BAR_CAPACITY};
+    static constexpr const char* NAME_RAMP_CAPACITY{DEF_RAMP_CAPACITY};
+    static constexpr const char* NAME_LABEL_CHARGING{DEF_LABEL_CHARGING};
+    static constexpr const char* NAME_LABEL_DISCHARGING{DEF_LABEL_DISCHARGING};
+    static constexpr const char* NAME_LABEL_FULL{DEF_LABEL_FULL};
+    static constexpr const char* NAME_LABEL_LOW{DEF_LABEL_LOW};
+
+    static constexpr const char* TAG_ANIMATION_CHARGING{"<" DEF_ANIMATION_CHARGING ">"};
+    static constexpr const char* TAG_ANIMATION_DISCHARGING{"<" DEF_ANIMATION_DISCHARGING ">"};
+    static constexpr const char* TAG_ANIMATION_LOW{"<" DEF_ANIMATION_LOW ">"};
+    static constexpr const char* TAG_BAR_CAPACITY{"<" DEF_BAR_CAPACITY ">"};
+    static constexpr const char* TAG_RAMP_CAPACITY{"<" DEF_RAMP_CAPACITY ">"};
+    static constexpr const char* TAG_LABEL_CHARGING{"<" DEF_LABEL_CHARGING ">"};
+    static constexpr const char* TAG_LABEL_DISCHARGING{"<" DEF_LABEL_DISCHARGING ">"};
+    static constexpr const char* TAG_LABEL_FULL{"<" DEF_LABEL_FULL ">"};
+    static constexpr const char* TAG_LABEL_LOW{"<" DEF_LABEL_LOW ">"};
+
+#undef DEF_ANIMATION_CHARGING
+#undef DEF_ANIMATION_DISCHARGING
+#undef DEF_ANIMATION_LOW
+#undef DEF_BAR_CAPACITY
+#undef DEF_RAMP_CAPACITY
+#undef DEF_LABEL_CHARGING
+#undef DEF_LABEL_DISCHARGING
+#undef DEF_LABEL_FULL
+#undef DEF_LABEL_LOW
 
     static const size_t SKIP_N_UNCHANGED{3_z};
 

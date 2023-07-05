@@ -30,12 +30,12 @@ namespace modules {
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "%output%");
     }
 
     m_formatter->add_optional(FORMAT_FAIL, {TAG_LABEL_FAIL});
     if (m_formatter->has(TAG_LABEL_FAIL)) {
-      m_label_fail = load_optional_label(m_conf, name(), TAG_LABEL_FAIL, "%output%");
+      m_label_fail = load_optional_label(module_config[NAME_LABEL_FAIL], "%output%");
     }
   }
 

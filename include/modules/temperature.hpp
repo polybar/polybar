@@ -22,9 +22,18 @@ namespace modules {
     static constexpr auto TYPE = TEMPERATURE_TYPE;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
-    static constexpr auto TAG_RAMP = "<ramp>";
+#define DEF_LABEL "label"
+#define DEF_LABEL_WARN "label-warn"
+#define DEF_RAMP "ramp"
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto NAME_LABEL_WARN = DEF_LABEL_WARN;
+    static constexpr auto NAME_RAMP = DEF_RAMP;
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+    static constexpr auto TAG_LABEL_WARN = "<" DEF_LABEL_WARN ">";
+    static constexpr auto TAG_RAMP = "<" DEF_RAMP ">";
+#undef DEF_LABEL
+#undef DEF_LABEL_WARN
+#undef DEF_RAMP
     static constexpr auto FORMAT_WARN = "format-warn";
 
     map<temp_state, label_t> m_label;

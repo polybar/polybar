@@ -34,11 +34,30 @@ namespace modules {
     float get_load(size_t core) const;
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
-    static constexpr auto TAG_BAR_LOAD = "<bar-load>";
-    static constexpr auto TAG_RAMP_LOAD = "<ramp-load>";
-    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<ramp-coreload>";
+#define DEF_LABEL "label"
+#define DEF_LABEL_WARN "label-warn"
+#define DEF_BAR_LOAD "bar-load"
+#define DEF_RAMP_LOAD "ramp-load"
+#define DEF_RAMP_LOAD_PER_CORE "ramp-coreload"
+
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto NAME_LABEL_WARN = DEF_LABEL_WARN;
+    static constexpr auto NAME_BAR_LOAD = DEF_BAR_LOAD;
+    static constexpr auto NAME_RAMP_LOAD = DEF_RAMP_LOAD;
+    static constexpr auto NAME_RAMP_LOAD_PER_CORE = DEF_RAMP_LOAD_PER_CORE;
+
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+    static constexpr auto TAG_LABEL_WARN = "<" DEF_LABEL_WARN ">";
+    static constexpr auto TAG_BAR_LOAD = "<" DEF_BAR_LOAD ">";
+    static constexpr auto TAG_RAMP_LOAD = "<" DEF_RAMP_LOAD ">";
+    static constexpr auto TAG_RAMP_LOAD_PER_CORE = "<" DEF_RAMP_LOAD_PER_CORE ">";
+
+#undef DEF_LABEL 
+#undef DEF_LABEL_WARN
+#undef DEF_BAR_LOAD
+#undef DEF_RAMP_LOAD
+#undef DEF_RAMP_LOAD_PER_CORE
+
     static constexpr auto FORMAT_WARN = "format-warn";
 
     label_t m_label;

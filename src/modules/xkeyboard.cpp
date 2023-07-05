@@ -52,7 +52,7 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
 
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
-      m_layout = load_optional_label(m_conf, name(), TAG_LABEL_LAYOUT, "%layout%");
+      m_layout = load_optional_label(module_config[NAME_LABEL_LAYOUT], "%layout%");
     }
 
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
@@ -66,7 +66,7 @@ namespace modules {
       } else {
         // if 'label-indicator-on' is not explicitly specified, use 'label-indicator'
         // as to not break existing user configs
-        m_indicator_state_on = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
+        m_indicator_state_on = load_optional_label(module_config[NAME_LABEL_INDICATOR], "%name%"s);
       }
 
       // load indicator icons

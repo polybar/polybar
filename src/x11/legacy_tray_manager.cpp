@@ -54,7 +54,7 @@ tray_manager::~tray_manager() {
   deactivate();
 }
 
-void tray_manager::setup(const config& conf, const string& tray_module_name) {
+void tray_manager::setup(const config::value& conf, const string& tray_module_name) {
   for (const auto& deprecated : {"tray-position", "tray-detached", "tray-maxsize", "tray-scale", "tray-background",
            "tray-foreground", "tray-padding", "tray-offset-x", "tray-offset-y"}) {
     if (conf.bar_has(deprecated)) {
@@ -63,7 +63,7 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
     }
   }
 
-  string position = conf.bar_get("tray-position", "none"s);
+  string position = conf["tray-position"].as("none"s);
 
   if (!position.empty() && position != "none" && !tray_module_name.empty()) {
     m_log.err(
@@ -87,7 +87,7 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
     return;
   }
 
-  m_opts.detached = conf.bar_get("tray-detached", false);
+  m_opts.detached = conf["tray-detached"].as(false);
   m_opts.height = m_bar_opts.size.h;
   m_opts.height -= m_bar_opts.borders.at(edge::BOTTOM).size;
   m_opts.height -= m_bar_opts.borders.at(edge::TOP).size;
@@ -97,7 +97,7 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
     m_opts.height--;
   }
 
-  auto maxsize = conf.bar_get<unsigned int>("tray-maxsize", 16);
+  auto maxsize = conf["tray-maxsize"].as<unsigned int>(16);
   if (m_opts.height > maxsize) {
     m_opts.spacing += (m_opts.height - maxsize) / 2;
     m_opts.height = maxsize;
@@ -108,7 +108,7 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
   m_opts.orig_y = m_bar_opts.pos.y + m_bar_opts.borders.at(edge::TOP).size;
 
   // Apply user-defined scaling
-  auto scale = conf.bar_get("tray-scale", 1.0);
+  auto scale = conf["tray-scale"].as(1.0);
   m_opts.width *= scale;
   m_opts.height_fill *= scale;
 
@@ -130,13 +130,13 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
       break;
   }
 
-  if (conf.bar_has("tray-transparent")) {
+  if (conf.has("tray-transparent")) {
     m_log.warn("tray-transparent is deprecated, the tray always uses pseudo-transparency. Please remove it.");
   }
 
   // Set user-defined foreground and background colors.
-  m_opts.background = conf.bar_get("tray-background", m_bar_opts.background);
-  m_opts.foreground = conf.bar_get("tray-foreground", m_bar_opts.foreground);
+  m_opts.background = conf["tray-background"].as(m_bar_opts.background);
+  m_opts.foreground = conf["tray-foreground"].as(m_bar_opts.foreground);
 
   if (m_opts.background.alpha_i() != 255) {
     m_log.trace("tray: enable transparency");
@@ -144,11 +144,11 @@ void tray_manager::setup(const config& conf, const string& tray_module_name) {
   }
 
   // Add user-defined padding
-  m_opts.spacing += conf.bar_get<unsigned int>("tray-padding", 0);
+  m_opts.spacing += conf["tray-padding"].as<unsigned int>(0);
 
   // Add user-defiend offset
-  auto offset_x = conf.bar_get("tray-offset-x", percentage_with_offset{});
-  auto offset_y = conf.bar_get("tray-offset-y", percentage_with_offset{});
+  auto offset_x = conf["tray-offset-x"].as(percentage_with_offset{});
+  auto offset_y = conf["tray-offset-y"].as(percentage_with_offset{});
 
   int max_x;
   int max_y;

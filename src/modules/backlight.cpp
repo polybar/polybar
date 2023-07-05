@@ -60,13 +60,13 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "%percentage%%");
     }
     if (m_formatter->has(TAG_BAR)) {
-      m_progressbar = load_progressbar(m_bar, m_conf, name(), TAG_BAR);
+      m_progressbar = load_progressbar(m_bar, module_config[NAME_BAR]);
     }
     if (m_formatter->has(TAG_RAMP)) {
-      m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+      m_ramp = load_ramp(module_config[NAME_RAMP]);
     }
 
     // Build path to the sysfs folder the current/maximum brightness values are located

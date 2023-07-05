@@ -81,17 +81,17 @@ namespace modules {
     m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
-      m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
+      m_bar_volume = load_progressbar(m_bar, module_config[NAME_BAR_VOLUME]);
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
-      m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
+      m_label_volume = load_optional_label(module_config[NAME_LABEL_VOLUME], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
-      m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%%");
+      m_label_muted = load_optional_label(module_config[NAME_LABEL_MUTED], "%percentage%%");
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
-      m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
-      m_ramp_headphones = load_ramp(m_conf, name(), TAG_RAMP_HEADPHONES, false);
+      m_ramp_volume = load_ramp(module_config[NAME_RAMP_VOLUME]);
+      m_ramp_headphones = load_ramp(module_config[NAME_RAMP_HEADPHONES], false);
     }
   }
 

@@ -47,22 +47,22 @@ namespace modules {
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
-      m_labelmounted = load_optional_label(fs_module_config[LABEL_MOUNTED], "%mountpoint% %percentage_free%%");
+      m_labelmounted = load_optional_label(fs_module_config[NAME_LABEL_MOUNTED], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(fs_module_config[LABEL_WARN], "%mountpoint% %percentage_free%%");
+      m_labelwarn = load_optional_label(fs_module_config[NAME_LABEL_WARN], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
-      m_labelunmounted = load_optional_label(fs_module_config[LABEL_UNMOUNTED], "%mountpoint% is not mounted");
+      m_labelunmounted = load_optional_label(fs_module_config[NAME_LABEL_UNMOUNTED], "%mountpoint% is not mounted");
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
-      m_barfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
+      m_barfree = load_progressbar(m_bar, fs_module_config[NAME_BAR_FREE]);
     }
     if (m_formatter->has(TAG_BAR_USED)) {
-      m_barused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
+      m_barused = load_progressbar(m_bar, fs_module_config[NAME_BAR_USED]);
     }
     if (m_formatter->has(TAG_RAMP_CAPACITY)) {
-      m_rampcapacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+      m_rampcapacity = load_ramp(fs_module_config[NAME_RAMP_CAPACITY]);
     }
 
     // Warn about "unreachable" format tag

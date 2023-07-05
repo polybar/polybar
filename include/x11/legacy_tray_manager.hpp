@@ -135,7 +135,7 @@ class tray_manager
 
   const tray_settings settings() const;
 
-  void setup(const config&, const string& tray_module_name);
+  void setup(const config::value&, const string& tray_module_name);
   void activate();
   void activate_delayed(chrono::duration<double, std::milli> delay = 1s);
   void deactivate(bool clear_selection = true);

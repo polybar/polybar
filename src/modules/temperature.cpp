@@ -57,13 +57,13 @@ namespace modules {
     m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_RAMP});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label[temp_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%temperature-c%");
+      m_label[temp_state::NORMAL] = load_optional_label(module_config[NAME_LABEL], "%temperature-c%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_label[temp_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%temperature-c%");
+      m_label[temp_state::WARN] = load_optional_label(module_config[NAME_LABEL_WARN], "%temperature-c%");
     }
     if (m_formatter->has(TAG_RAMP)) {
-      m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+      m_ramp = load_ramp(module_config[NAME_RAMP]);
     }
 
     // Deprecation warning for the %temperature% token

@@ -51,38 +51,71 @@ namespace modules {
     void action_seek(const string& data);
 
    private:
+#define DEF_BAR_PROGRESS "bar-progress"
+#define DEF_LABEL_SONG "label-song"
+#define DEF_LABEL_TIME "label-time"
+#define DEF_ICON_RANDOM "icon-random"
+#define DEF_ICON_REPEAT "icon-repeat"
+#define DEF_ICON_SINGLE "icon-single"
+#define DEF_ICON_CONSUME "icon-consume"
+#define DEF_ICON_PREV "icon-prev"
+#define DEF_ICON_STOP "icon-stop"
+#define DEF_ICON_PLAY "icon-play"
+#define DEF_ICON_PAUSE "icon-pause"
+#define DEF_ICON_NEXT "icon-next"
+#define DEF_ICON_SEEKB "icon-seekb"
+#define DEF_ICON_SEEKF "icon-seekf"
+#define DEF_LABEL_OFFLINE "label-offline"
+#define DEF_ICON_REPEAT_ONE "icon-repeatone"
+
     static constexpr const char* FORMAT_ONLINE{"format-online"};
     static constexpr const char* FORMAT_PLAYING{"format-playing"};
     static constexpr const char* FORMAT_PAUSED{"format-paused"};
     static constexpr const char* FORMAT_STOPPED{"format-stopped"};
-    static constexpr const char* TAG_BAR_PROGRESS{"<bar-progress>"};
+    static constexpr const char* NAME_BAR_PROGRESS{DEF_BAR_PROGRESS};
+    static constexpr const char* TAG_BAR_PROGRESS{"<" DEF_BAR_PROGRESS ">"};
     static constexpr const char* TAG_TOGGLE{"<toggle>"};
     static constexpr const char* TAG_TOGGLE_STOP{"<toggle-stop>"};
-    static constexpr const char* TAG_LABEL_SONG{"<label-song>"};
-    static constexpr const char* TAG_LABEL_TIME{"<label-time>"};
-    static constexpr const char* TAG_ICON_RANDOM{"<icon-random>"};
-    static constexpr const char* TAG_ICON_REPEAT{"<icon-repeat>"};
+    static constexpr const char* NAME_LABEL_SONG{DEF_LABEL_SONG};
+    static constexpr const char* TAG_LABEL_SONG{"<" DEF_LABEL_SONG ">"};
+    static constexpr const char* NAME_LABEL_TIME{DEF_LABEL_TIME};
+    static constexpr const char* TAG_LABEL_TIME{"<" DEF_LABEL_TIME ">"};
+    static constexpr const char* NAME_ICON_RANDOM{DEF_ICON_RANDOM};
+    static constexpr const char* TAG_ICON_RANDOM{"<" DEF_ICON_RANDOM ">"};
+    static constexpr const char* NAME_ICON_REPEAT{DEF_ICON_REPEAT};
+    static constexpr const char* TAG_ICON_REPEAT{"<" DEF_ICON_REPEAT ">"};
     /*
      * Deprecated
      */
-    static constexpr const char* TAG_ICON_REPEAT_ONE{"<icon-repeatone>"};
+    static constexpr const char* NAME_ICON_REPEAT_ONE{DEF_ICON_REPEAT_ONE};
+    static constexpr const char* TAG_ICON_REPEAT_ONE{"<" DEF_ICON_REPEAT_ONE ">"};
     /*
      * Replaces icon-repeatone
      *
      * repeatone is misleading, since it doesn't actually affect the repeating behaviour
      */
-    static constexpr const char* TAG_ICON_SINGLE{"<icon-single>"};
-    static constexpr const char* TAG_ICON_CONSUME{"<icon-consume>"};
-    static constexpr const char* TAG_ICON_PREV{"<icon-prev>"};
-    static constexpr const char* TAG_ICON_STOP{"<icon-stop>"};
-    static constexpr const char* TAG_ICON_PLAY{"<icon-play>"};
-    static constexpr const char* TAG_ICON_PAUSE{"<icon-pause>"};
-    static constexpr const char* TAG_ICON_NEXT{"<icon-next>"};
-    static constexpr const char* TAG_ICON_SEEKB{"<icon-seekb>"};
-    static constexpr const char* TAG_ICON_SEEKF{"<icon-seekf>"};
+    static constexpr const char* NAME_ICON_SINGLE{DEF_ICON_SINGLE};
+    static constexpr const char* TAG_ICON_SINGLE{"<" DEF_ICON_SINGLE ">"};
+    static constexpr const char* NAME_ICON_CONSUME{DEF_ICON_CONSUME};
+    static constexpr const char* TAG_ICON_CONSUME{"<" DEF_ICON_CONSUME ">"};
+    static constexpr const char* NAME_ICON_PREV{DEF_ICON_PREV};
+    static constexpr const char* TAG_ICON_PREV{"<" DEF_ICON_PREV ">"};
+    static constexpr const char* NAME_ICON_STOP{DEF_ICON_STOP};
+    static constexpr const char* TAG_ICON_STOP{"<" DEF_ICON_STOP ">"};
+    static constexpr const char* NAME_ICON_PLAY{DEF_ICON_PLAY};
+    static constexpr const char* TAG_ICON_PLAY{"<" DEF_ICON_PLAY ">"};
+    static constexpr const char* NAME_ICON_PAUSE{DEF_ICON_PAUSE};
+    static constexpr const char* TAG_ICON_PAUSE{"<" DEF_ICON_PAUSE ">"};
+    static constexpr const char* NAME_ICON_NEXT{DEF_ICON_NEXT};
+    static constexpr const char* TAG_ICON_NEXT{"<" DEF_ICON_NEXT ">"};
+    static constexpr const char* NAME_ICON_SEEKB{DEF_ICON_SEEKB};
+    static constexpr const char* TAG_ICON_SEEKB{"<" DEF_ICON_SEEKB ">"};
+    static constexpr const char* NAME_ICON_SEEKF{DEF_ICON_SEEKF};
+    static constexpr const char* TAG_ICON_SEEKF{"<" DEF_ICON_SEEKF ">"};
 
     static constexpr const char* FORMAT_OFFLINE{"format-offline"};
-    static constexpr const char* TAG_LABEL_OFFLINE{"<label-offline>"};
+    static constexpr const char* NAME_LABEL_OFFLINE{DEF_LABEL_OFFLINE};
+    static constexpr const char* TAG_LABEL_OFFLINE{"<" DEF_LABEL_OFFLINE ">"};
 
     unique_ptr<mpdconnection> m_mpd;
 

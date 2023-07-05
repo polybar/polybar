@@ -51,9 +51,19 @@ namespace modules {
     void change_value(int value_mod);
 
    private:
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_BAR = "<bar>";
-    static constexpr auto TAG_RAMP = "<ramp>";
+#define DEF_LABEL "label"
+#define DEF_BAR "bar"
+#define DEF_RAMP "ramp" 
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto NAME_BAR = DEF_BAR;
+    static constexpr auto NAME_RAMP = DEF_RAMP;
+
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+    static constexpr auto TAG_BAR = "<" DEF_BAR ">";
+    static constexpr auto TAG_RAMP = "<" DEF_RAMP ">";
+#undef DEF_LABEL
+#undef DEF_BAR
+#undef DEF_RAMP
 
     ramp_t m_ramp;
     label_t m_label;

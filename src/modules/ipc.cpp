@@ -66,7 +66,7 @@ namespace modules {
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_OUTPUT});
 
-    m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%output%");
+    m_label = load_optional_label(module_config[NAME_LABEL], "%output%");
 
     for (size_t i = 0; i < m_hooks.size(); i++) {
       string format_i = "format-" + to_string(i);

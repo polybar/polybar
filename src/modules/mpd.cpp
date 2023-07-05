@@ -72,50 +72,50 @@ namespace modules {
     m_icons = std::make_shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("play", load_label(module_config[TAG_ICON_PLAY]));
+      m_icons->add("play", load_label(module_config[NAME_ICON_PLAY]));
     }
     if (m_formatter->has(TAG_ICON_PAUSE) || m_formatter->has(TAG_TOGGLE)) {
-      m_icons->add("pause", load_label(module_config[TAG_ICON_PAUSE]));
+      m_icons->add("pause", load_label(module_config[NAME_ICON_PAUSE]));
     }
     if (m_formatter->has(TAG_ICON_STOP) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("stop", load_label(module_config[TAG_ICON_STOP]));
+      m_icons->add("stop", load_label(module_config[NAME_ICON_STOP]));
     }
     if (m_formatter->has(TAG_ICON_PREV)) {
-      m_icons->add("prev", load_label(module_config[TAG_ICON_PREV]));
+      m_icons->add("prev", load_label(module_config[NAME_ICON_PREV]));
     }
     if (m_formatter->has(TAG_ICON_NEXT)) {
-      m_icons->add("next", load_label(module_config[TAG_ICON_NEXT]));
+      m_icons->add("next", load_label(module_config[NAME_ICON_NEXT]));
     }
     if (m_formatter->has(TAG_ICON_SEEKB)) {
-      m_icons->add("seekb", load_label(module_config[TAG_ICON_SEEKB]));
+      m_icons->add("seekb", load_label(module_config[NAME_ICON_SEEKB]));
     }
     if (m_formatter->has(TAG_ICON_SEEKF)) {
-      m_icons->add("seekf", load_label(module_config[TAG_ICON_SEEKF]));
+      m_icons->add("seekf", load_label(module_config[NAME_ICON_SEEKF]));
     }
     if (m_formatter->has(TAG_ICON_RANDOM)) {
-      m_icons->add("random", load_label(module_config[TAG_ICON_RANDOM]));
+      m_icons->add("random", load_label(module_config[NAME_ICON_RANDOM]));
     }
     if (m_formatter->has(TAG_ICON_REPEAT)) {
-      m_icons->add("repeat", load_label(module_config[TAG_ICON_REPEAT]));
+      m_icons->add("repeat", load_label(module_config[NAME_ICON_REPEAT]));
     }
 
     if (m_formatter->has(TAG_ICON_SINGLE)) {
-      m_icons->add("single", load_label(module_config[TAG_ICON_SINGLE]));
+      m_icons->add("single", load_label(module_config[NAME_ICON_SINGLE]));
     } else if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
       m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
 
-      m_icons->add("single", load_label(module_config[TAG_ICON_REPEAT_ONE]));
+      m_icons->add("single", load_label(module_config[NAME_ICON_REPEAT_ONE]));
     }
 
     if (m_formatter->has(TAG_ICON_CONSUME)) {
-      m_icons->add("consume", load_label(module_config[TAG_ICON_CONSUME]));
+      m_icons->add("consume", load_label(module_config[NAME_ICON_CONSUME]));
     }
 
     if (m_formatter->has(TAG_LABEL_SONG)) {
-      m_label_song = load_optional_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
+      m_label_song = load_optional_label(module_config[NAME_LABEL_SONG], "%artist% - %title%");
     }
     if (m_formatter->has(TAG_LABEL_TIME)) {
-      m_label_time = load_optional_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
+      m_label_time = load_optional_label(module_config[NAME_LABEL_TIME], "%elapsed% / %total%");
     }
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
         m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_SINGLE) ||
@@ -124,10 +124,10 @@ namespace modules {
       m_toggle_off_color = module_config["toggle-off-foreground"].as<rgba>(rgba{});
     }
     if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE)) {
-      m_label_offline = load_label(module_config[TAG_LABEL_OFFLINE]);
+      m_label_offline = load_label(module_config[NAME_LABEL_OFFLINE]);
     }
     if (m_formatter->has(TAG_BAR_PROGRESS)) {
-      m_bar_progress = load_progressbar(m_bar, m_conf, name(), TAG_BAR_PROGRESS);
+      m_bar_progress = load_progressbar(m_bar, module_config[NAME_BAR_PROGRESS]);
     }
 
     // }}}

@@ -102,7 +102,7 @@ namespace modules {
         consumption = power / 1e6;
       }
 
-      // convert to string with 2 decimmal places
+      // convert to string with 2 decimal places
       string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
       auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
       rtn.resize(written);
@@ -123,31 +123,31 @@ namespace modules {
     m_formatter->add(FORMAT_FULL, TAG_LABEL_FULL, {TAG_BAR_CAPACITY, TAG_RAMP_CAPACITY, TAG_LABEL_FULL});
 
     if (m_formatter->has(TAG_ANIMATION_CHARGING, FORMAT_CHARGING)) {
-      m_animation_charging = load_animation(m_conf, name(), TAG_ANIMATION_CHARGING);
+      m_animation_charging = load_animation(module_config[NAME_ANIMATION_CHARGING]);
     }
     if (m_formatter->has(TAG_ANIMATION_DISCHARGING, FORMAT_DISCHARGING)) {
-      m_animation_discharging = load_animation(m_conf, name(), TAG_ANIMATION_DISCHARGING);
+      m_animation_discharging = load_animation(module_config[NAME_ANIMATION_DISCHARGING]);
     }
     if (m_formatter->has(TAG_ANIMATION_LOW, FORMAT_LOW)) {
-      m_animation_low = load_animation(m_conf, name(), TAG_ANIMATION_LOW);
+      m_animation_low = load_animation(module_config[NAME_ANIMATION_LOW]);
     }
     if (m_formatter->has(TAG_BAR_CAPACITY)) {
-      m_bar_capacity = load_progressbar(m_bar, m_conf, name(), TAG_BAR_CAPACITY);
+      m_bar_capacity = load_progressbar(m_bar, module_config[NAME_BAR_CAPACITY]);
     }
     if (m_formatter->has(TAG_RAMP_CAPACITY)) {
-      m_ramp_capacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+      m_ramp_capacity = load_ramp(module_config[NAME_RAMP_CAPACITY]);
     }
     if (m_formatter->has(TAG_LABEL_CHARGING, FORMAT_CHARGING)) {
-      m_label_charging = load_optional_label(m_conf, name(), TAG_LABEL_CHARGING, "%percentage%%");
+      m_label_charging = load_optional_label(module_config[NAME_LABEL_CHARGING], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_DISCHARGING, FORMAT_DISCHARGING)) {
-      m_label_discharging = load_optional_label(m_conf, name(), TAG_LABEL_DISCHARGING, "%percentage%%");
+      m_label_discharging = load_optional_label(module_config[NAME_LABEL_DISCHARGING], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_LOW, FORMAT_LOW)) {
-      m_label_low = load_optional_label(m_conf, name(), TAG_LABEL_LOW, "%percentage%%");
+      m_label_low = load_optional_label(module_config[NAME_LABEL_LOW], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_FULL, FORMAT_FULL)) {
-      m_label_full = load_optional_label(m_conf, name(), TAG_LABEL_FULL, "%percentage%%");
+      m_label_full = load_optional_label(module_config[NAME_LABEL_FULL], "%percentage%%");
     }
 
     // Create inotify watches
