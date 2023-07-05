@@ -28,15 +28,15 @@ namespace modules {
    */
   fs_module::fs_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<fs_module>(bar, move(name_), config) {
-    m_mountpoints = m_conf.get_list(name(), "mount", {});
+    m_mountpoints = m_conf["modules"][name_raw()]["mount"].as_list<string>({});
     if (m_mountpoints.empty()) {
       m_log.info("%s: No mountpoints specified, using fallback \"/\"", name());
       m_mountpoints.emplace_back("/");
     }
-    m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
-    m_perc_used_warn = m_conf.get(name(), "warn-percentage", 90);
-    m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
-    m_spacing = m_conf.get(name(), "spacing", m_spacing);
+    m_remove_unmounted = m_conf["modules"][name_raw()]["remove-unmounted"].as<bool>(m_remove_unmounted);
+    m_perc_used_warn = m_conf["modules"][name_raw()]["warn-percentage"].as<int>(90);
+    m_fixed = m_conf["modules"][name_raw()]["fixed-values"].as<bool>(m_fixed);
+    m_spacing = m_conf["modules"][name_raw()]["spacing"].as<spacing_val>(m_spacing);
     set_interval(30s);
 
     // Add formats and elements
@@ -46,13 +46,13 @@ namespace modules {
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
-      m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
+      m_labelmounted = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%mountpoint% %percentage_free%%");
+      m_labelwarn = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_WARN, "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
-      m_labelunmounted = load_optional_label(m_conf, name(), TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
+      m_labelunmounted = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_barfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
