@@ -250,12 +250,12 @@ namespace drawtypes {
     // clang-format on
   }
 
-  label_t load_optional_label(const config::value& conf, string name, string def = ""s);
+  label_t load_optional_label(const config::value& conf, string def = ""s);
 
   /**
    * Create a label by loading values from the configuration value
    */
-  label_t load_label(const config::value& conf, string name, bool required = true, string def = ""s);
+  label_t load_label(const config::value& conf, bool required = true, string def = ""s);
 } // namespace drawtypes
 
 POLYBAR_NS_END

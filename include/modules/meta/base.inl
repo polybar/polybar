@@ -24,7 +24,7 @@ namespace modules {
       , m_name("module/" + name)
       , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
-      , m_formatter(make_unique<module_formatter>(m_conf, m_name))
+      , m_formatter(make_unique<module_formatter>(m_conf, name))
       , m_handle_events(m_conf.get(m_name, "handle-events", true))
       , m_visible(!m_conf.get(m_name, "hidden", false)) {
     m_router->register_action(EVENT_MODULE_TOGGLE, [this]() { action_module_toggle(); });

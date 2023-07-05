@@ -87,32 +87,29 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](const string& param, const auto& fallback) {
-      return m_conf.setting_get("format-" + param, fallback);
-    };
-
     auto format = make_unique<module_format>();
     format->value = move(value);
-    format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
-    format->bg = m_conf.get(m_modname, name + "-background", formatdef("background", format->bg));
-    format->ul = m_conf.get(m_modname, name + "-underline", formatdef("underline", format->ul));
-    format->ol = m_conf.get(m_modname, name + "-overline", formatdef("overline", format->ol));
-    format->ulsize = m_conf.get(m_modname, name + "-underline-size", formatdef("underline-size", format->ulsize));
-    format->olsize = m_conf.get(m_modname, name + "-overline-size", formatdef("overline-size", format->olsize));
-    format->spacing = m_conf.get(m_modname, name + "-spacing", formatdef("spacing", format->spacing));
-    format->padding = m_conf.get(m_modname, name + "-padding", formatdef("padding", format->padding));
-    format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
-    format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
-    format->font = m_conf.get(m_modname, name + "-font", formatdef("font", format->font));
+    // format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
+    format->fg = m_conf["modules"][m_modname][name]["foreground"].as<rgba>(m_conf["settings"]["format"]["foreground"].as<rgba>(format->fg));
+    format->bg = m_conf["modules"][m_modname][name]["background"].as<rgba>(m_conf["settings"]["format"]["background"].as<rgba>(format->bg));
+    format->ul = m_conf["modules"][m_modname][name]["underline"].as<rgba>(m_conf["settings"]["format"]["underline"].as<rgba>(format->ul));
+    format->ol = m_conf["modules"][m_modname][name]["overline"].as<rgba>(m_conf["settings"]["format"]["overline"].as<rgba>(format->ol));
+    format->ulsize = m_conf["modules"][m_modname][name]["underline-size"].as<size_t>(m_conf["settings"]["format"]["underline-size"].as<size_t>(format->ulsize));
+    format->olsize = m_conf["modules"][m_modname][name]["overline-size"].as<size_t>(m_conf["settings"]["format"]["overline-size"].as<size_t>(format->olsize));
+    format->spacing = m_conf["modules"][m_modname][name]["spacing"].as<spacing_val>(m_conf["settings"]["format"]["spacing"].as<spacing_val>(format->spacing));
+    format->padding = m_conf["modules"][m_modname][name]["padding"].as<spacing_val>(m_conf["settings"]["format"]["padding"].as<spacing_val>(format->padding));
+    format->margin = m_conf["modules"][m_modname][name]["margin"].as<spacing_val>(m_conf["settings"]["format"]["margin"].as<spacing_val>(format->margin));
+    format->offset = m_conf["modules"][m_modname][name]["offset"].as<extent_val>(m_conf["settings"]["format"]["offset"].as<extent_val>(format->offset));
+    format->font = m_conf["modules"][m_modname][name]["font"].as<int>(m_conf["settings"]["format"]["font"].as<int>(format->font));
 
     try {
-      format->prefix = load_label(m_conf, m_modname, name + "-prefix");
+      format->prefix = load_label(m_conf["modules"][m_modname][name]["prefix"]);
     } catch (const key_error& err) {
       // prefix not defined
     }
 
     try {
-      format->suffix = load_label(m_conf, m_modname, name + "-suffix");
+      format->suffix = load_label(m_conf["modules"][m_modname][name]["suffix"]);
     } catch (const key_error& err) {
       // suffix not defined
     }
@@ -140,14 +137,16 @@ namespace modules {
   }
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    string value = m_conf.get(m_modname, name, move(fallback));
+    string value = m_conf["modules"][m_modname][name].as<string>(move(fallback));
     add_value(move(name), move(value), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
   }
 
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
-    if (m_conf.has(m_modname, name)) {
-      string value = m_conf.get(m_modname, name);
+    try {
+      string value = m_conf["modules"][m_modname][name].as<string>();
       add_value(move(name), move(value), move(tags), move(whitelist));
+    } catch (const key_error&){
+      // Optional format is not defined, nothing to do
     }
   }
 

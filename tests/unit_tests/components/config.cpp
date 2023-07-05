@@ -421,7 +421,7 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(mounted->m_margin.left.type, spacing_type::PIXEL);
   EXPECT_EQ(mounted->m_margin.right.value, 42);
 
-  label_t mounted_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"], "label-mounted");
+  label_t mounted_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"]["label-mounted"]);
   EXPECT_EQ(mounted_value->m_foreground, rgba{"#000000ff"});
   EXPECT_EQ(mounted_value->m_background, rgba{"#00ff0000"});
   EXPECT_EQ(mounted_value->m_padding.left.type, spacing_type::POINT);
@@ -447,8 +447,7 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(name->m_margin.right.type, spacing_type::POINT);
   EXPECT_EQ(name->m_margin.right.value, 42);
 
-
-  label_t name_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"], "label-NAME");
+  label_t name_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"]["label-NAME"]);
   EXPECT_EQ(name_value->m_foreground, rgba{"#00aa0000"});
   EXPECT_EQ(name_value->m_background, rgba{"#0000bb00"});
   EXPECT_EQ(name_value->m_overline, rgba{"#000000cc"});

@@ -170,22 +170,18 @@ namespace drawtypes {
   }
 
 
-  label_t load_label(const config::value& conf, string name, bool required, string def) {
+  label_t load_label(const config::value& conf, bool required, string def) {
     vector<token> tokens;
     size_t start, end, pos;
 
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-    config::value named_conf = conf[name];
-
     string text;
 
-    struct side_values padding {
-    }, margin{};
+    struct side_values padding {}, margin{};
 
     if (required) {
-      text = named_conf.as<string>();
+      text = conf.as<string>();
     } else {
-      text = named_conf.as<string>(def);
+      text = conf.as<string>(def);
     }
 
     const auto get_left_right = [&](const config::value& glr_conf) {
@@ -204,8 +200,8 @@ namespace drawtypes {
       return side_values{left, right};
     };
 
-    padding = get_left_right(named_conf["padding"]);
-    margin = get_left_right(named_conf["margin"]);
+    padding = get_left_right(conf["padding"]);
+    margin = get_left_right(conf["margin"]);
 
     string line{text};
 
@@ -266,8 +262,8 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
-    size_t minlen = named_conf["minlen"].as<size_t>(0_z);
-    string alignment_conf_value = named_conf["alignment"].as<string>("left"s);
+    size_t minlen = conf["minlen"].as<size_t>(0_z);
+    string alignment_conf_value = conf["alignment"].as<string>("left"s);
     alignment label_alignment;
     if (alignment_conf_value == "right") {
       label_alignment = alignment::RIGHT;
@@ -280,12 +276,12 @@ namespace drawtypes {
                                         << alignment_conf_value << ", expecting one of: right, left, center.");
     }
 
-    size_t maxlen = named_conf["maxlen"].as<size_t>(0_z);
+    size_t maxlen = conf["maxlen"].as<size_t>(0_z);
     if (maxlen > 0 && maxlen < minlen) {
       throw application_error(sstream() << "Label " << (string)conf << " has maxlen " << maxlen
                                         << " which is smaller than minlen " << minlen);
     }
-    bool ellipsis = named_conf["ellipsis"].as<bool>(true);
+    bool ellipsis = conf["ellipsis"].as<bool>(true);
 
     // clang-format off
     if (ellipsis && maxlen > 0 && maxlen < 3) {
@@ -296,11 +292,11 @@ namespace drawtypes {
 
     // clang-format off
     return std::make_shared<label>(text,
-        named_conf["foreground"].as<rgba>(rgba{}),
-        named_conf["background"].as<rgba>(rgba{}),
-        named_conf["underline"].as<rgba>(rgba{}),
-        named_conf["overline"].as<rgba>(rgba{}),
-        named_conf["font"].as<int>(0),
+        conf["foreground"].as<rgba>(rgba{}),
+        conf["background"].as<rgba>(rgba{}),
+        conf["underline"].as<rgba>(rgba{}),
+        conf["overline"].as<rgba>(rgba{}),
+        conf["font"].as<int>(0),
         padding,
         margin,
         minlen,
@@ -325,8 +321,8 @@ namespace drawtypes {
     return load_label<BarTrait>(conf, "", move(name), false);
   }
 
-  label_t load_optional_label(const config::value& conf, string name, string def) {
-    return load_label(conf, name, false, move(def));
+  label_t load_optional_label(const config::value& conf, string def) {
+    return load_label(conf, false, move(def));
   }
 
 } // namespace drawtypes
