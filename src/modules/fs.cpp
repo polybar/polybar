@@ -46,13 +46,13 @@ namespace modules {
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
-      m_labelmounted = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
+      m_labelmounted = load_optional_label(m_conf["modules"][name_raw()][LABEL_MOUNTED], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_WARN, "%mountpoint% %percentage_free%%");
+      m_labelwarn = load_optional_label(m_conf["modules"][name_raw()][LABEL_WARN], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
-      m_labelunmounted = load_optional_label(m_conf["modules"][name_raw()], TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
+      m_labelunmounted = load_optional_label(m_conf["modules"][name_raw()][LABEL_UNMOUNTED], "%mountpoint% is not mounted");
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
       m_barfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
