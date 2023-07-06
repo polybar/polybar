@@ -104,7 +104,6 @@ namespace modules {
     format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
     format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
     format->font = m_conf.get(m_modname, name + "-font", formatdef("font", format->font));
-    format->tags.swap(tags);
 
     try {
       format->prefix = load_label(m_conf, m_modname, name + "-prefix");
@@ -119,8 +118,8 @@ namespace modules {
     }
 
     vector<string> tag_collection;
-    tag_collection.reserve(format->tags.size() + whitelist.size());
-    tag_collection.insert(tag_collection.end(), format->tags.begin(), format->tags.end());
+    tag_collection.reserve(tags.size() + whitelist.size());
+    tag_collection.insert(tag_collection.end(), tags.begin(), tags.end());
     tag_collection.insert(tag_collection.end(), whitelist.begin(), whitelist.end());
 
     size_t start, end;
