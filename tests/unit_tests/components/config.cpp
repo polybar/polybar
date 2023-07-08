@@ -301,56 +301,59 @@ TEST(BadConfig, MissingBarName) {
 }
 
 TEST_F(BarGet, OperatorAccess) {
+  config::value bar_accessor = (*m_conf)[config::value::BARS_ENTRY][m_conf->bar_name()];
+  config::value settings_accessor = (*m_conf)[config::value::SETTINGS_ENTRY];
+  config::value modules_accessor = (*m_conf)[config::value::MODULES_ENTRY];
   // Ok cases
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["width"].as<string>(), "100%");
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["height"].as<int>(), 18);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["fixed-center"].as<bool>(), false);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"].as<string>(), "VALUE3");
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["width"].as<string>(), "100%");
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["height"].as<int>(), 18);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["fixed-center"].as<bool>(), false);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][0]["width"].as<string>(), "100%");
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][0]["height"].as<int>(), 18);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][0]["fixed-center"].as<bool>(), false);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][1]["width"].as<string>(), "30%");
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][1]["height"].as<int>(), 8);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"][1]["fixed-center"].as<bool>(), true);
-  EXPECT_EQ((*m_conf)["settings"]["compositing-border"].as<int>(8), 5);
-  EXPECT_EQ((*m_conf)["modules"]["unittest_name"]["type"].as<string>(), "internal/unittest");
-  EXPECT_EQ((*m_conf)["modules"]["my_script"]["type"].as<string>(), "internal/script");
-  EXPECT_EQ((*m_conf)["modules"]["my_script"]["env-VAR1"].as<string>(), "VALUE1");
-  EXPECT_EQ((*m_conf)["modules"]["my_script"]["env"]["VAR1"].as<string>(), "VALUE1");
+  EXPECT_EQ(bar_accessor["width"].as<string>(), "100%");
+  EXPECT_EQ(bar_accessor["height"].as<int>(), 18);
+  EXPECT_EQ(bar_accessor["fixed-center"].as<bool>(), false);
+  EXPECT_EQ(bar_accessor["list3"].as<string>(), "VALUE3");
+  EXPECT_EQ(bar_accessor["list3"][0]["width"].as<string>(), "100%");
+  EXPECT_EQ(bar_accessor["list3"][0]["height"].as<int>(), 18);
+  EXPECT_EQ(bar_accessor["list3"][0]["fixed-center"].as<bool>(), false);
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][0]["width"].as<string>(), "100%");
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][0]["height"].as<int>(), 18);
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][0]["fixed-center"].as<bool>(), false);
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][1]["width"].as<string>(), "30%");
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][1]["height"].as<int>(), 8);
+  EXPECT_EQ(bar_accessor["list3"][0]["list"][1]["fixed-center"].as<bool>(), true);
+  EXPECT_EQ(settings_accessor["compositing-border"].as<int>(8), 5);
+  EXPECT_EQ(modules_accessor["unittest_name"]["type"].as<string>(), "internal/unittest");
+  EXPECT_EQ(modules_accessor["my_script"]["type"].as<string>(), "internal/script");
+  EXPECT_EQ(modules_accessor["my_script"]["env-VAR1"].as<string>(), "VALUE1");
+  EXPECT_EQ(modules_accessor["my_script"]["env"]["VAR1"].as<string>(), "VALUE1");
 
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list1"].size(), 2);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list2"].size(), 1);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"].size(), 1);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["list"].size(), 2);
-  EXPECT_EQ((*m_conf)["bars"][m_conf->bar_name()]["width"].size(), 0);
-  EXPECT_EQ((*m_conf)["settings"]["compositing-border"].size(), 0);
-  EXPECT_EQ((*m_conf)["modules"]["my_script"].size(), 0);
-  EXPECT_EQ((*m_conf)["modules"]["my_script"]["type"].size(), 0);
-  EXPECT_EQ((*m_conf)["modules"]["unittest_name"]["list"].size(), 4);
+  EXPECT_EQ(bar_accessor["list1"].size(), 2);
+  EXPECT_EQ(bar_accessor["list2"].size(), 1);
+  EXPECT_EQ(bar_accessor["list3"].size(), 1);
+  EXPECT_EQ(bar_accessor["list3"][0]["list"].size(), 2);
+  EXPECT_EQ(bar_accessor["width"].size(), 0);
+  EXPECT_EQ(settings_accessor["compositing-border"].size(), 0);
+  EXPECT_EQ(modules_accessor["my_script"].size(), 0);
+  EXPECT_EQ(modules_accessor["my_script"]["type"].size(), 0);
+  EXPECT_EQ(modules_accessor["unittest_name"]["list"].size(), 4);
 
   // Bad Access cases
   EXPECT_THROW((*m_conf)["barS"][m_conf->bar_name()]["width"].as<string>(), key_error);
   EXPECT_THROW((*m_conf)["bars"]["unknown_bar"]["width"].as<string>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["wiDth"].as<string>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list4"][0]["width"].as<string>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list4"][0]["height"].as<int>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list4"][0]["fixed-center"].as<bool>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][1]["width"].as<string>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][1]["height"].as<int>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][1]["fixed-center"].as<bool>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["__width"].as<string>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["__height"].as<int>(), key_error);
-  EXPECT_THROW((*m_conf)["bars"][m_conf->bar_name()]["list3"][0]["__fixed-center"].as<bool>(), key_error);
-  EXPECT_THROW((*m_conf)["settings"]["missing_key"].as<int>(), key_error);
-  EXPECT_THROW((*m_conf)["settings"][0].as<int>(8), runtime_error);
+  EXPECT_THROW(bar_accessor["wiDth"].as<string>(), key_error);
+  EXPECT_THROW(bar_accessor["list4"][0]["width"].as<string>(), key_error);
+  EXPECT_THROW(bar_accessor["list4"][0]["height"].as<int>(), key_error);
+  EXPECT_THROW(bar_accessor["list4"][0]["fixed-center"].as<bool>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][1]["width"].as<string>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][1]["height"].as<int>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][1]["fixed-center"].as<bool>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][0]["__width"].as<string>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][0]["__height"].as<int>(), key_error);
+  EXPECT_THROW(bar_accessor["list3"][0]["__fixed-center"].as<bool>(), key_error);
+  EXPECT_THROW(settings_accessor["missing_key"].as<int>(), key_error);
+  EXPECT_THROW(settings_accessor[0].as<int>(8), runtime_error);
 
   EXPECT_THROW((*m_conf)["bars"].size(), key_error);
   EXPECT_THROW((*m_conf)["bars"]["unknown_bar"].size(), key_error);
-  EXPECT_THROW((*m_conf)["settings"].size(), key_error);
-  EXPECT_THROW((*m_conf)["modules"].size(), key_error);
+  EXPECT_THROW(settings_accessor.size(), key_error);
+  EXPECT_THROW(modules_accessor.size(), key_error);
 
   // TODO: add tests with wrong numbers of [] or wrong types (integers)
   // TODO: add tests for as() with default value
@@ -421,7 +424,7 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(mounted->m_margin.left.type, spacing_type::PIXEL);
   EXPECT_EQ(mounted->m_margin.right.value, 42);
 
-  label_t mounted_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"]["label-mounted"]);
+  label_t mounted_value = drawtypes::load_label((*c.m_conf)[config::value::MODULES_ENTRY]["my-text-label"]["label-mounted"]);
   EXPECT_EQ(mounted_value->m_foreground, rgba{"#000000ff"});
   EXPECT_EQ(mounted_value->m_background, rgba{"#00ff0000"});
   EXPECT_EQ(mounted_value->m_padding.left.type, spacing_type::POINT);
@@ -447,7 +450,7 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(name->m_margin.right.type, spacing_type::POINT);
   EXPECT_EQ(name->m_margin.right.value, 42);
 
-  label_t name_value = drawtypes::load_label((*c.m_conf)["modules"]["my-text-label"]["label-NAME"]);
+  label_t name_value = drawtypes::load_label((*c.m_conf)[config::value::MODULES_ENTRY]["my-text-label"]["label-NAME"]);
   EXPECT_EQ(name_value->m_foreground, rgba{"#00aa0000"});
   EXPECT_EQ(name_value->m_background, rgba{"#0000bb00"});
   EXPECT_EQ(name_value->m_overline, rgba{"#000000cc"});
