@@ -471,7 +471,7 @@ class config {
     void check_path() const {
       // for now, we need at least two keys to access config
       if (m_keys.size() < 2) {
-        // XXX: this if might be removed when more access types will be allowed
+        // XXX: this might be removed when more access types will be allowed
         throw key_error("there must be at least two keys to access the config");
       }
       access_key first = m_keys[0];
