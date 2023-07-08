@@ -299,6 +299,7 @@ class config {
     static constexpr const char* BARS_ENTRY = "bars";
     static constexpr const char* SETTINGS_ENTRY = "settings";
     static constexpr const char* MODULES_ENTRY = "modules";
+    static constexpr const char* MODULES_KEY = "module";
 
     struct access_key {
       access_type access;
@@ -327,9 +328,9 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw key_error("'settings' can only be accessed with a default value for now");
       } else if (first.map_key == MODULES_ENTRY) {
-        return m_conf.get<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2));
+        return m_conf.get<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2));
       }
-      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
+      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
       // by check_path() that throws
       throw runtime_error("This statement should never be reached");
     }
@@ -343,9 +344,9 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         return m_conf.setting_get<T>(m_keys[1].map_key, default_value);
       } else if (first.map_key == MODULES_ENTRY) {
-        return m_conf.get<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2), default_value);
+        return m_conf.get<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2), default_value);
       }
-      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
+      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
       // by check_path() that throws
       throw runtime_error("This statement should never be reached");
     }
@@ -359,9 +360,9 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw value_error("settings parameters are never lists");
       } else if (first.map_key == MODULES_ENTRY) {
-        return m_conf.get_list<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2));
+        return m_conf.get_list<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2));
       }
-      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
+      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
       // by check_path() that throws
       throw runtime_error("This statement should never be reached");
     }
@@ -375,11 +376,11 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         return default_value;
       } else if (first.map_key == MODULES_ENTRY) {
-        return m_conf.get_list<T>(sstream() << MODULES_ENTRY << "/" << m_keys[1].map_key, build_key(2), default_value);
+        return m_conf.get_list<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2), default_value);
         throw runtime_error("not implemented");
         return default_value;
       }
-      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_entry is handled
+      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
       // by check_path() that throws
       throw runtime_error("This statement should never be reached");
     }
@@ -414,7 +415,7 @@ class config {
         if (m_keys[1].access != access_type::MAP) {
           throw runtime_error(sstream() << "listing '" << MODULES_ENTRY << "' is not implemented yet");
         }
-        section = sstream() << MODULES_ENTRY << '/' << m_keys[1].map_key;
+        section = sstream() << MODULES_KEY << '/' << m_keys[1].map_key;
         key = build_key(2);
       } else if (first.map_key == SETTINGS_ENTRY) {
         // settings access, we ensure that the second key is a string
