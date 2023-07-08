@@ -57,7 +57,7 @@ class Config {
           }
         },
         {
-          "modules/unittest_name", {
+          "module/unittest_name", {
             {"type", "internal/unittest"},
             {"list-0", "12"},
             {"list-1", "13"},
@@ -66,7 +66,7 @@ class Config {
           }
         },
         {
-          "modules/my_script", {
+          "module/my_script", {
             {"type", "internal/script"},
             {"env-VAR1", "VALUE1"},
             {"env-VAR2", "VALUE2"},
@@ -99,9 +99,9 @@ class HasTest : public ConfigTest, public ::testing::WithParamInterface<pair<pai
 
 vector<pair<pair<optional<string>, string>, bool>> has_test_input = {
   {{nullopt, "modules-left"}, true},
-  {{"modules/unittest_name", "type"}, true},
-  {{"modules/UnitTestName", "type"}, false},
-  {{"modules/unittest_name", "TYPE"}, false}
+  {{"module/unittest_name", "type"}, true},
+  {{"module/UnitTestName", "type"}, false},
+  {{"module/unittest_name", "TYPE"}, false}
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, HasTest, ::testing::ValuesIn(has_test_input));
@@ -142,12 +142,12 @@ TEST(SettingsGet, correctness) {
 
 TEST(ModuleGet, correctness) {
   Config c("ut_bar");
-  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type"), "internal/unittest");
-  EXPECT_THROW(c.m_conf->get("modules/unittest_name___", "type"), key_error);
-  EXPECT_THROW(c.m_conf->get("modules/unittest_name", "type___"), key_error);
-  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type", string("default_value")), "internal/unittest");
-  EXPECT_EQ(c.m_conf->get("modules/unittest_name___", "type", string("default_value")), "default_value");
-  EXPECT_EQ(c.m_conf->get("modules/unittest_name", "type___", string("default_value")), "default_value");
+  EXPECT_EQ(c.m_conf->get("module/unittest_name", "type"), "internal/unittest");
+  EXPECT_THROW(c.m_conf->get("module/unittest_name___", "type"), key_error);
+  EXPECT_THROW(c.m_conf->get("module/unittest_name", "type___"), key_error);
+  EXPECT_EQ(c.m_conf->get("module/unittest_name", "type", string("default_value")), "internal/unittest");
+  EXPECT_EQ(c.m_conf->get("module/unittest_name___", "type", string("default_value")), "default_value");
+  EXPECT_EQ(c.m_conf->get("module/unittest_name", "type___", string("default_value")), "default_value");
 }
 
 class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, vector<pair<string, string>>>> {
@@ -156,8 +156,8 @@ class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pa
 };
 
 vector<pair<pair<string, string>, vector<pair<string, string>>>> get_with_prefix_input = {
-  {{"modules/my_script", "env-"}, {{"VAR1", "VALUE1"}, {"VAR2", "VALUE2"}, {"VAR3", "VALUE3"}}},
-  {{"modules/my_script", "env2-"}, {{"VAR1", "VALUE1"}}}
+  {{"module/my_script", "env-"}, {{"VAR1", "VALUE1"}, {"VAR2", "VALUE2"}, {"VAR3", "VALUE3"}}},
+  {{"module/my_script", "env2-"}, {{"VAR1", "VALUE1"}}}
 };
 
 INSTANTIATE_TEST_SUITE_P(Inst, GetWithPrefix, ::testing::ValuesIn(get_with_prefix_input));
@@ -362,7 +362,7 @@ TEST_F(BarGet, OperatorAccess) {
 TEST(ConfigLabel, LoadLabel) {
   Config c("Ut_Bar", {
     {
-      "modules/my-text-label",
+      "module/my-text-label",
       {
         {"label-mounted", "%{F#0a81f5}Home%{F-}: %percentage_used%%"},
         {"label-mounted-foreground", "#000000ff"},
@@ -409,7 +409,7 @@ TEST(ConfigLabel, LoadLabel) {
       }
     }
   });
-  label_t mounted = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-mounted");
+  label_t mounted = drawtypes::load_label(*c.m_conf, "module/my-text-label", "label-mounted");
   EXPECT_EQ(mounted->m_foreground, rgba{"#000000ff"});
   EXPECT_EQ(mounted->m_background, rgba{"#00ff0000"});
   EXPECT_EQ(mounted->m_padding.left.type, spacing_type::POINT);
@@ -433,7 +433,7 @@ TEST(ConfigLabel, LoadLabel) {
   EXPECT_EQ(mounted_value->m_margin.left.type, spacing_type::PIXEL);
   EXPECT_EQ(mounted_value->m_margin.right.value, 42);
 
-  label_t name = drawtypes::load_label(*c.m_conf, "modules/my-text-label", "label-NAME");
+  label_t name = drawtypes::load_label(*c.m_conf, "module/my-text-label", "label-NAME");
   EXPECT_EQ(name->m_foreground, rgba{"#00aa0000"});
   EXPECT_EQ(name->m_background, rgba{"#0000bb00"});
   EXPECT_EQ(name->m_overline, rgba{"#000000cc"});
