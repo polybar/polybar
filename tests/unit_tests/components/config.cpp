@@ -355,6 +355,14 @@ TEST_F(BarGet, OperatorAccess) {
   EXPECT_THROW(settings_accessor.size(), key_error);
   EXPECT_THROW(modules_accessor.size(), key_error);
 
+  // Has
+  EXPECT_TRUE(bar_accessor.has("list1"));
+  EXPECT_TRUE(settings_accessor.has("compositing-border"));
+  EXPECT_TRUE(modules_accessor.has("my_script"));
+  EXPECT_FALSE(bar_accessor.has("list8"));
+  EXPECT_FALSE(settings_accessor.has("Compositing-border"));
+  EXPECT_FALSE(modules_accessor.has("My_script"));
+
   // TODO: add tests with wrong numbers of [] or wrong types (integers)
   // TODO: add tests for as() with default value
   // TODO: add tests for as_list() if accessors are not reworked maybe with also adding a size() method 
