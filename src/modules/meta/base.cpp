@@ -142,11 +142,9 @@ namespace modules {
   }
 
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
-    try {
+    if (m_conf[config::value::MODULES_ENTRY][m_modname].has(name)) {
       string value = m_conf[config::value::MODULES_ENTRY][m_modname][name].as<string>();
       add_value(move(name), move(value), move(tags), move(whitelist));
-    } catch (const key_error&){
-      // Optional format is not defined, nothing to do
     }
   }
 
