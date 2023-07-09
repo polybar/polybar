@@ -301,7 +301,8 @@ TEST(BadConfig, MissingBarName) {
 }
 
 TEST_F(BarGet, OperatorAccess) {
-  config::value bar_accessor = (*m_conf)[config::value::BARS_ENTRY][m_conf->bar_name()];
+  config::value bars_accessor = (*m_conf)[config::value::BARS_ENTRY];
+  config::value bar_accessor = bars_accessor[m_conf->bar_name()];
   config::value settings_accessor = (*m_conf)[config::value::SETTINGS_ENTRY];
   config::value modules_accessor = (*m_conf)[config::value::MODULES_ENTRY];
   // Ok cases
@@ -355,13 +356,21 @@ TEST_F(BarGet, OperatorAccess) {
   EXPECT_THROW(settings_accessor.size(), key_error);
   EXPECT_THROW(modules_accessor.size(), key_error);
 
-  // Has
-  EXPECT_TRUE(bar_accessor.has("list1"));
+  // Has - First level
+  EXPECT_TRUE(bars_accessor.has(m_conf->bar_name()));
+  EXPECT_FALSE(bars_accessor.has("another_bar"));
   EXPECT_TRUE(settings_accessor.has("compositing-border"));
-  EXPECT_TRUE(modules_accessor.has("my_script"));
-  EXPECT_FALSE(bar_accessor.has("list8"));
   EXPECT_FALSE(settings_accessor.has("Compositing-border"));
+  EXPECT_TRUE(modules_accessor.has("my_script"));
   EXPECT_FALSE(modules_accessor.has("My_script"));
+
+  // Has - Subkeys
+  EXPECT_TRUE(bar_accessor.has("width"));
+  EXPECT_TRUE(modules_accessor["my_script"].has("type"));
+  EXPECT_FALSE(bar_accessor.has("list8"));
+
+  // Has - list
+  EXPECT_TRUE(bar_accessor.has("list1"));
 
   // TODO: add tests with wrong numbers of [] or wrong types (integers)
   // TODO: add tests for as() with default value
