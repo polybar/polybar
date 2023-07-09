@@ -297,6 +297,7 @@ class config {
     };
 
     static constexpr const char* BARS_ENTRY = "bars";
+    static constexpr const char* BARS_KEY = "bar";
     static constexpr const char* SETTINGS_ENTRY = "settings";
     static constexpr const char* MODULES_ENTRY = "modules";
     static constexpr const char* MODULES_KEY = "module";
@@ -320,18 +321,44 @@ class config {
     }
 
     bool has(const string& name) const {
-      check_path();
+      string section;
+      string key;
+
       access_key first = m_keys[0];
-      if (first.map_key == BARS_ENTRY) {
-        return m_conf.bar_has(build_key(2));
-      } else if (first.map_key == SETTINGS_ENTRY) {
-        throw key_error("'settings' can only be accessed with a default value for now");
-      } else if (first.map_key == MODULES_ENTRY) {
-        return m_conf.has(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2));
+      if (first.access != access_type::MAP) {
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key << "'");
       }
-      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
-      // by check_path() that throws
-      throw runtime_error("This statement should never be reached");
+      if (m_keys.size() > 1 && m_keys[1].access != access_type::MAP) {
+        throw runtime_error(sstream() << "listing '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "' is not a valid access");
+      }
+      if (first.map_key == BARS_ENTRY) {
+        if (m_keys.size() == 1) {
+          return m_conf.m_sections.find(sstream() << BARS_KEY << '/' << name) != m_conf.m_sections.end();
+        }
+        section = sstream() << BARS_KEY << '/' << m_keys[1].map_key;
+        key = (*this)[name].build_key(2);
+      } else if (first.map_key == MODULES_ENTRY) {
+        if (m_keys.size() == 1) {
+          return m_conf.m_sections.find(sstream() << MODULES_KEY << '/' << name) != m_conf.m_sections.end();
+        }
+        section = sstream() << MODULES_KEY << '/' << m_keys[1].map_key;
+        key = (*this)[name].build_key(2);
+      } else if (first.map_key == SETTINGS_ENTRY) {
+        section = SETTINGS_ENTRY;
+        key = (*this)[name].build_key(1);
+      } else {
+        // any access other than 'bars', 'settings' and 'modules' is an error
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
+      }
+
+      auto it = m_conf.m_sections.find(section);
+      if (it == m_conf.m_sections.end()) {
+        throw key_error("Missing section \"" + section + "\"");
+      }
+
+      auto has_key = [&key](const auto& kv) { return kv.first == key || string_util::starts_with(kv.first, key + "-"); };
+      const auto &section_entry = m_conf.m_sections.at(section);
+      return std::find_if(section_entry.begin(), section_entry.end(), has_key) != section_entry.end();
     }
 
     template <typename T>
