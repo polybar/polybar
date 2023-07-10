@@ -25,9 +25,11 @@ namespace modules {
 
   backlight_module::backlight_module(const bar_settings& bar, string name_, const config& config)
       : inotify_module<backlight_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
     m_router->register_action(EVENT_INC, [this]() { action_inc(); });
-    auto card = m_conf.get(name(), "card", ""s);
+    auto card = module_config["card"].as<string>(""s);
     if (card.empty()) {
       vector<string> backlight_card_names = file_util::list_files(string_util::replace(PATH_BACKLIGHT, "%card%", ""));
       backlight_card_names.erase(std::remove_if(backlight_card_names.begin(), backlight_card_names.end(),
@@ -50,9 +52,9 @@ namespace modules {
       }
     }
     // Get flag to check if we should add scroll handlers for changing value
-    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
+    m_scroll = module_config["enable-scroll"].as<bool>(m_scroll);
 
-    m_scroll_interval = m_conf.get(name(), "scroll-interval", m_scroll_interval);
+    m_scroll_interval = module_config["scroll-interval"].as<int>(m_scroll_interval);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR, TAG_RAMP});
@@ -70,7 +72,7 @@ namespace modules {
     // Build path to the sysfs folder the current/maximum brightness values are located
     m_path_backlight = string_util::replace(PATH_BACKLIGHT, "%card%", card);
 
-    m_use_actual_brightness = m_conf.get(name(), "use-actual-brightness", m_use_actual_brightness);
+    m_use_actual_brightness = module_config["use-actual-brightness"].as<bool>(m_use_actual_brightness);
 
     m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", m_use_actual_brightness? 0s : 5s);
     m_lastpoll = chrono::steady_clock::now();

@@ -8,22 +8,24 @@ POLYBAR_NS
 namespace modules {
   script_module::script_module(const bar_settings& bar, string name_, const config& config)
       : module<script_module>(bar, move(name_), config)
-      , m_tail(m_conf.get(name(), "tail", false))
-      , m_interval_success(m_conf.get<script_runner::interval>(name(), "interval", m_tail ? 0s : 5s))
-      , m_interval_fail(m_conf.get<script_runner::interval>(name(), "interval-fail", m_interval_success))
-      , m_interval_if(m_conf.get<script_runner::interval>(name(), "interval-if", m_interval_success))
-      , m_runner([this](const auto& data) { handle_runner_update(data); }, m_conf.get(name(), "exec", ""s),
-            m_conf.get(name(), "exec-if", ""s), m_tail, m_interval_success, m_interval_fail,
+      , m_tail(m_conf[config::value::MODULES_ENTRY][name_raw()]["tail"].as<bool>(false))
+      , m_interval_success(m_conf[config::value::MODULES_ENTRY][name_raw()]["interval"].as<script_runner::interval>(m_tail ? 0s : 5s))
+      , m_interval_fail(m_conf[config::value::MODULES_ENTRY][name_raw()]["interval-fail"].as<script_runner::interval>(m_interval_success))
+      , m_interval_if(m_conf[config::value::MODULES_ENTRY][name_raw()]["interval-if"].as<script_runner::interval>(m_interval_success))
+      , m_runner([this](const auto& data) { handle_runner_update(data); }, m_conf[config::value::MODULES_ENTRY][name_raw()]["exec"].as<string>(""s),
+            m_conf[config::value::MODULES_ENTRY][name_raw()]["exec-if"].as<string>(""s), m_tail, m_interval_success, m_interval_fail,
             m_conf.get_with_prefix(name(), "env-")) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     // Load configured click handlers
-    m_actions[mousebtn::LEFT] = m_conf.get(name(), "click-left", ""s);
-    m_actions[mousebtn::MIDDLE] = m_conf.get(name(), "click-middle", ""s);
-    m_actions[mousebtn::RIGHT] = m_conf.get(name(), "click-right", ""s);
-    m_actions[mousebtn::DOUBLE_LEFT] = m_conf.get(name(), "double-click-left", ""s);
-    m_actions[mousebtn::DOUBLE_MIDDLE] = m_conf.get(name(), "double-click-middle", ""s);
-    m_actions[mousebtn::DOUBLE_RIGHT] = m_conf.get(name(), "double-click-right", ""s);
-    m_actions[mousebtn::SCROLL_UP] = m_conf.get(name(), "scroll-up", ""s);
-    m_actions[mousebtn::SCROLL_DOWN] = m_conf.get(name(), "scroll-down", ""s);
+    m_actions[mousebtn::LEFT] = module_config["click-left"].as<string>(""s);
+    m_actions[mousebtn::MIDDLE] = module_config["click-middle"].as<string>(""s);
+    m_actions[mousebtn::RIGHT] = module_config["click-right"].as<string>(""s);
+    m_actions[mousebtn::DOUBLE_LEFT] = module_config["double-click-left"].as<string>(""s);
+    m_actions[mousebtn::DOUBLE_MIDDLE] = module_config["double-click-middle"].as<string>(""s);
+    m_actions[mousebtn::DOUBLE_RIGHT] = module_config["double-click-right"].as<string>(""s);
+    m_actions[mousebtn::SCROLL_UP] = module_config["scroll-up"].as<string>(""s);
+    m_actions[mousebtn::SCROLL_DOWN] = module_config["scroll-down"].as<string>(""s);
 
     // Setup formatting
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
@@ -79,7 +81,7 @@ namespace modules {
    * Generate module output
    */
   string script_module::get_format() const {
-    if (m_exit_status != 0 && m_conf.has(name(), FORMAT_FAIL)) {
+    if (m_exit_status != 0 && m_conf[config::value::MODULES_ENTRY][name_raw()].has(FORMAT_FAIL)) {
       return FORMAT_FAIL;
     }
     return DEFAULT_FORMAT;

@@ -371,6 +371,7 @@ TEST_F(BarGet, OperatorAccess) {
 
   // Has - list
   EXPECT_TRUE(bar_accessor.has("list1"));
+  EXPECT_FALSE(settings_accessor.has("compositing"));
 
   // TODO: add tests with wrong numbers of [] or wrong types (integers)
   // TODO: add tests for as() with default value

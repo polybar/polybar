@@ -12,11 +12,13 @@ namespace modules {
 
   network_module::network_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<network_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+    
     // Load configuration values
-    m_interface = m_conf.get(name(), "interface", m_interface);
+    m_interface = module_config["interface"].as<string>(m_interface);
 
     if (m_interface.empty()) {
-      std::string type = m_conf.get(name(), "interface-type");
+      std::string type = module_config["interface-type"].as<string>();
       if (type == "wired") {
         m_interface = net::find_wired_interface();
         if (!m_interface.empty()) {
@@ -52,12 +54,12 @@ namespace modules {
       m_interface = canonical.first;
     }
 
-    m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
-    m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
-    m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
+    m_ping_nth_update = module_config["ping-interval"].as<int>(m_ping_nth_update);
+    m_udspeed_minwidth = module_config["udspeed-minwidth"].as<int>(m_udspeed_minwidth);
+    m_accumulate = module_config["accumulate-stats"].as<bool>(m_accumulate);
     set_interval(1s);
-    m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
-    m_udspeed_unit = m_conf.get<string>(name(), "speed-unit", m_udspeed_unit);
+    m_unknown_up = module_config["unknown-as-up"].as<bool>(false);
+    m_udspeed_unit = module_config["speed-unit"].as<string>(m_udspeed_unit);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
 

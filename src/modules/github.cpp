@@ -16,15 +16,17 @@ namespace modules {
    */
   github_module::github_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<github_module>(bar, move(name_), config) {
-    m_accesstoken = m_conf.get(name(), "token");
-    m_user = m_conf.get(name(), "user", ""s);
-    m_api_url = m_conf.get(name(), "api-url", "https://api.github.com/"s);
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
+    m_accesstoken = module_config["token"].as<string>();
+    m_user = module_config["user"].as<string>(""s);
+    m_api_url = module_config["api-url"].as<string>("https://api.github.com/"s);
     if (m_api_url.back() != '/') {
       m_api_url += '/';
     }
 
     set_interval(60s);
-    m_empty_notifications = m_conf.get(name(), "empty-notifications", m_empty_notifications);
+    m_empty_notifications = module_config["empty-notifications"].as<bool>(m_empty_notifications);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 

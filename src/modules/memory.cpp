@@ -18,7 +18,7 @@ namespace modules {
   memory_module::memory_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<memory_module>(bar, move(name_), config) {
     set_interval(1s);
-    m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
+    m_perc_memused_warn = m_conf[config::value::MODULES_ENTRY][name_raw()]["warn-percentage"].as<int>(90);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});

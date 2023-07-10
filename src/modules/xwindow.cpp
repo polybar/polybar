@@ -83,8 +83,8 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf, name(), "label", "%title%"));
-      m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf, name(), "label-empty", ""));
+      m_statelabels.emplace(state::ACTIVE, load_optional_label(m_conf[config::value::MODULES_ENTRY][name_raw()]["label"], "%title%"));
+      m_statelabels.emplace(state::EMPTY, load_optional_label(m_conf[config::value::MODULES_ENTRY][name_raw()]["label-empty"], ""));
     }
   }
 

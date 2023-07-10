@@ -31,22 +31,24 @@ namespace modules {
       : static_module<xworkspaces_module>(bar, move(name_), config)
       , m_connection(connection::make())
       , m_ewmh(ewmh_util::initialize()) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
 
     // Load config values
-    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
-    m_click = m_conf.get(name(), "enable-click", m_click);
-    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
-    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
-    m_group_by_monitor = m_conf.get(name(), "group-by-monitor", m_group_by_monitor);
+    m_pinworkspaces = module_config["pin-workspaces"].as<bool>(m_pinworkspaces);
+    m_click = module_config["enable-click"].as<bool>(m_click);
+    m_scroll = module_config["enable-scroll"].as<bool>(m_scroll);
+    m_revscroll = module_config["reverse-scroll"].as<bool>(m_revscroll);
+    m_group_by_monitor = module_config["group-by-monitor"].as<bool>(m_group_by_monitor);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
 
     if (m_formatter->has(TAG_LABEL_MONITOR)) {
-      m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_LABEL_MONITOR);
+      m_monitorlabel = load_optional_label(module_config["label-monitor"], DEFAULT_LABEL_MONITOR);
       if (m_monitorlabel && !m_group_by_monitor) {
         throw module_error("Cannot use label-monitor when not grouping by monitor");
       }
@@ -55,21 +57,21 @@ namespace modules {
     if (m_formatter->has(TAG_LABEL_STATE)) {
       // clang-format off
       m_labels.insert(make_pair(
-          desktop_state::ACTIVE, load_optional_label(m_conf, name(), "label-active", DEFAULT_LABEL_STATE)));
+          desktop_state::ACTIVE, load_optional_label(module_config["label-active"], DEFAULT_LABEL_STATE)));
       m_labels.insert(make_pair(
-          desktop_state::OCCUPIED, load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL_STATE)));
+          desktop_state::OCCUPIED, load_optional_label(module_config["label-occupied"], DEFAULT_LABEL_STATE)));
       m_labels.insert(make_pair(
-          desktop_state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL_STATE)));
+          desktop_state::URGENT, load_optional_label(module_config["label-urgent"], DEFAULT_LABEL_STATE)));
       m_labels.insert(make_pair(
-          desktop_state::EMPTY, load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL_STATE)));
+          desktop_state::EMPTY, load_optional_label(module_config["label-empty"], DEFAULT_LABEL_STATE)));
       // clang-format on
     }
 
     m_icons = std::make_shared<iconset>();
-    m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
+    m_icons->add(DEFAULT_ICON, std::make_shared<label>(module_config[DEFAULT_ICON].as<string>(""s)));
 
     int i = 0;
-    for (const auto& workspace : m_conf.get_list<string>(name(), "icon", {})) {
+    for (const auto& workspace : module_config["icon"].as_list<string>({})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));

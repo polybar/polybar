@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <cctype>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -356,7 +357,12 @@ class config {
         throw key_error("Missing section \"" + section + "\"");
       }
 
-      auto has_key = [&key](const auto& kv) { return kv.first == key || string_util::starts_with(kv.first, key + "-"); };
+      auto has_key = [&key](const auto& kv) { 
+        return kv.first == key 
+          || (string_util::starts_with(kv.first, key + "-")
+              && kv.first.size() > key.size() + 1
+              && std::isdigit(kv.first[key.size() + 1]));
+      };
       const auto &section_entry = m_conf.m_sections.at(section);
       return std::find_if(section_entry.begin(), section_entry.end(), has_key) != section_entry.end();
     }
@@ -451,6 +457,7 @@ class config {
           throw key_error(sstream() << "bar '" << m_keys[1].map_key << "' is not the current bar");
         }
         section = m_conf.section();
+        // FIXME Test that m_keys.size is at least 3
         key = build_key(2);
       } else if (first.map_key == MODULES_ENTRY) {
         // modules access, we ensure that the second key is a string
@@ -458,6 +465,7 @@ class config {
           throw runtime_error(sstream() << "listing '" << MODULES_ENTRY << "' is not implemented yet");
         }
         section = sstream() << MODULES_KEY << '/' << m_keys[1].map_key;
+        // FIXME Test that m_keys.size is at least 3
         key = build_key(2);
       } else if (first.map_key == SETTINGS_ENTRY) {
         // settings access, we ensure that the second key is a string

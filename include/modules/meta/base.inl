@@ -25,8 +25,8 @@ namespace modules {
       , m_name_raw(name)
       , m_builder(make_unique<builder>(bar))
       , m_formatter(make_unique<module_formatter>(m_conf, name))
-      , m_handle_events(m_conf.get(m_name, "handle-events", true))
-      , m_visible(!m_conf.get(m_name, "hidden", false)) {
+      , m_handle_events(m_conf[config::value::MODULES_ENTRY][name]["handle-events"].as<bool>(true))
+      , m_visible(!m_conf[config::value::MODULES_ENTRY][name]["hidden"].as<bool>(false)) {
     m_router->register_action(EVENT_MODULE_TOGGLE, [this]() { action_module_toggle(); });
     m_router->register_action(EVENT_MODULE_SHOW, [this]() { action_module_show(); });
     m_router->register_action(EVENT_MODULE_HIDE, [this]() { action_module_hide(); });

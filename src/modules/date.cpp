@@ -10,16 +10,18 @@ namespace modules {
 
   date_module::date_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<date_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     if (!m_bar.locale.empty()) {
       datetime_stream.imbue(std::locale(m_bar.locale.c_str()));
     }
 
     m_router->register_action(EVENT_TOGGLE, [this]() { action_toggle(); });
 
-    m_dateformat = m_conf.get(name(), "date", ""s);
-    m_dateformat_alt = m_conf.get(name(), "date-alt", ""s);
-    m_timeformat = m_conf.get(name(), "time", ""s);
-    m_timeformat_alt = m_conf.get(name(), "time-alt", ""s);
+    m_dateformat = module_config["date"].as<string>(""s);
+    m_dateformat_alt = module_config["date-alt"].as<string>(""s);
+    m_timeformat = module_config["time"].as<string>(""s);
+    m_timeformat_alt = module_config["time-alt"].as<string>(""s);
 
     if (m_dateformat.empty() && m_timeformat.empty()) {
       throw module_error("No date or time format specified");
@@ -37,7 +39,7 @@ namespace modules {
     }
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), "label", "%date%");
+      m_label = load_optional_label(module_config["label"], "%date%");
     }
   }
 

@@ -123,7 +123,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
 
   m_log.trace("renderer: Load fonts");
   {
-    auto fonts = m_conf.bar_get_list<string>("font", {});
+    auto fonts = m_conf[config::value::BARS_ENTRY][m_conf.bar_name()]["font"].as_list<string>({});
     if (fonts.empty()) {
       m_log.warn("No fonts specified, using fallback font \"fixed\"");
       fonts.emplace_back("fixed");
@@ -143,19 +143,19 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
     }
   }
 
-  m_pseudo_transparency = m_conf.setting_get<bool>("pseudo-transparency", m_pseudo_transparency);
+  m_pseudo_transparency = m_conf[config::value::SETTINGS_ENTRY]["pseudo-transparency"].as<bool>(m_pseudo_transparency);
   if (m_pseudo_transparency) {
     m_log.trace("Activate root background manager");
     m_background = background.observe(m_bar.outer_area(false), m_window);
   }
 
-  m_comp_bg = m_conf.setting_get<cairo_operator_t>("compositing-background", m_comp_bg);
-  m_comp_fg = m_conf.setting_get<cairo_operator_t>("compositing-foreground", m_comp_fg);
-  m_comp_ol = m_conf.setting_get<cairo_operator_t>("compositing-overline", m_comp_ol);
-  m_comp_ul = m_conf.setting_get<cairo_operator_t>("compositing-underline", m_comp_ul);
-  m_comp_border = m_conf.setting_get<cairo_operator_t>("compositing-border", m_comp_border);
+  m_comp_bg = m_conf[config::value::SETTINGS_ENTRY]["compositing-background"].as<cairo_operator_t>(m_comp_bg);
+  m_comp_fg = m_conf[config::value::SETTINGS_ENTRY]["compositing-foreground"].as<cairo_operator_t>(m_comp_fg);
+  m_comp_ol = m_conf[config::value::SETTINGS_ENTRY]["compositing-overline"].as<cairo_operator_t>(m_comp_ol);
+  m_comp_ul = m_conf[config::value::SETTINGS_ENTRY]["compositing-underline"].as<cairo_operator_t>(m_comp_ul);
+  m_comp_border = m_conf[config::value::SETTINGS_ENTRY]["compositing-border"].as<cairo_operator_t>(m_comp_border);
 
-  m_fixedcenter = m_conf["bars"][m_conf.bar_name()]["fixed-center"].as(true);
+  m_fixedcenter = m_conf[config::value::BARS_ENTRY][m_conf.bar_name()]["fixed-center"].as(true);
 }
 
 /**

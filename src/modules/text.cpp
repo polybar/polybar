@@ -25,7 +25,7 @@ namespace modules {
       m_format = DEFAULT_FORMAT;
 
       if (m_formatter->has(TAG_LABEL, DEFAULT_FORMAT)) {
-        m_label = load_label(m_conf, name(), TAG_LABEL);
+        m_label = load_label(m_conf[config::value::MODULES_ENTRY][name_raw()][TAG_LABEL]);
       }
     }
   }
@@ -35,16 +35,18 @@ namespace modules {
   }
 
   string text_module::get_output() {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     // Get the module output early so that
     // the format prefix/suffix also gets wrapper
     // with the cmd handlers
     string output{module::get_output()};
 
-    auto click_left = m_conf.get(name(), "click-left", ""s);
-    auto click_middle = m_conf.get(name(), "click-middle", ""s);
-    auto click_right = m_conf.get(name(), "click-right", ""s);
-    auto scroll_up = m_conf.get(name(), "scroll-up", ""s);
-    auto scroll_down = m_conf.get(name(), "scroll-down", ""s);
+    auto click_left = module_config["click-left"].as<string>(""s);
+    auto click_middle = module_config["click-middle"].as<string>(""s);
+    auto click_right = module_config["click-right"].as<string>(""s);
+    auto scroll_up = module_config["scroll-up"].as<string>(""s);
+    auto scroll_down = module_config["scroll-down"].as<string>(""s);
 
     if (!click_left.empty()) {
       m_builder->action(mousebtn::LEFT, click_left);

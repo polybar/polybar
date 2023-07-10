@@ -16,6 +16,8 @@ namespace modules {
    */
   ipc_module::ipc_module(const bar_settings& bar, string name_, const config& config)
       : module<ipc_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action_with_data(EVENT_SEND, [this](const std::string& data) { action_send(data); });
     m_router->register_action_with_data(EVENT_HOOK, [this](const std::string& data) { action_hook(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
@@ -24,14 +26,14 @@ namespace modules {
 
     size_t index = 0;
 
-    for (auto&& command : m_conf.get_list<string>(name(), "hook", {})) {
+    for (auto&& command : module_config["hook"].as_list<string>({})) {
       m_hooks.emplace_back(std::make_unique<hook>(hook{name() + to_string(++index), command}));
     }
 
     m_log.info("%s: Loaded %d hooks", name(), m_hooks.size());
 
     // Negative initial values should always be -1
-    m_initial = std::max(-1, m_conf.get(name(), "initial", 0) - 1);
+    m_initial = std::max(-1, module_config["initial"].as<int>(0) - 1);
     if (has_initial()) {
       if ((size_t)m_initial >= m_hooks.size()) {
         throw module_error("Initial hook out of bounds: '" + to_string(m_initial + 1) +
@@ -43,14 +45,14 @@ namespace modules {
     }
 
     // clang-format off
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, m_conf.get(name(), "click-left", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::MIDDLE, m_conf.get(name(), "click-middle", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::RIGHT, m_conf.get(name(), "click-right", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::SCROLL_UP, m_conf.get(name(), "scroll-up", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::SCROLL_DOWN, m_conf.get(name(), "scroll-down", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_LEFT, m_conf.get(name(), "double-click-left", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_MIDDLE, m_conf.get(name(), "double-click-middle", ""s)));
-    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_RIGHT, m_conf.get(name(), "double-click-right", ""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::LEFT, module_config["click-left"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::MIDDLE, module_config["click-middle"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::RIGHT, module_config["click-right"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::SCROLL_UP, module_config["scroll-up"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::SCROLL_DOWN, module_config["scroll-down"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_LEFT, module_config["double-click-left"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_MIDDLE, module_config["double-click-middle"].as<string>(""s)));
+    m_actions.emplace(make_pair<mousebtn, string>(mousebtn::DOUBLE_RIGHT, module_config["double-click-right"].as<string>(""s)));
     // clang-format on
 
     const auto pid_token = [](const string& s) { return string_util::replace_all(s, "%pid%", to_string(getpid())); };

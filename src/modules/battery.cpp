@@ -25,14 +25,16 @@ namespace modules {
    */
   battery_module::battery_module(const bar_settings& bar, string name_, const config& config)
       : inotify_module<battery_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     // Load configuration values
-    m_fullat = std::min(m_conf.get(name(), "full-at", m_fullat), 100);
-    m_lowat = std::max(m_conf.get(name(), "low-at", m_lowat), 0);
-    m_interval = m_conf.get<decltype(m_interval)>(name(), "poll-interval", 5s);
+    m_fullat = std::min(module_config["full-at"].as<int>(m_fullat), 100);
+    m_lowat = std::max(module_config["low-at"].as<int>(m_lowat), 0);
+    m_interval = module_config["poll-interval"].as<decltype(m_interval)>(5s);
     m_lastpoll = chrono::steady_clock::now();
 
-    auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", m_conf.get(name(), "adapter", "ADP1"s)) + "/";
-    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", m_conf.get(name(), "battery", "BAT0"s)) + "/";
+    auto path_adapter = string_util::replace(PATH_ADAPTER, "%adapter%", module_config["adapter"].as<string>("ADP1"s)) + "/";
+    auto path_battery = string_util::replace(PATH_BATTERY, "%battery%", module_config["battery"].as<string>("BAT0"s)) + "/";
 
     // Make state reader
     if (file_util::exists((m_fstate = path_battery + "status"))) {
@@ -159,7 +161,7 @@ namespace modules {
       if (!m_bar.locale.empty()) {
         setlocale(LC_TIME, m_bar.locale.c_str());
       }
-      m_timeformat = m_conf.get(name(), "time-format", "%H:%M:%S"s);
+      m_timeformat = module_config["time-format"].as<string>("%H:%M:%S"s);
     }
   }
 
