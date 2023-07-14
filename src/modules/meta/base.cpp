@@ -88,19 +88,20 @@ namespace modules {
 
   void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
     config::value module_config = m_conf[config::value::MODULES_ENTRY][m_modname][name];
+    config::value settings_config = m_conf[config::value::SETTINGS_ENTRY]["format"];
     auto format = make_unique<module_format>();
     format->value = move(value);
-    format->fg = module_config["foreground"].as<rgba>(m_conf["settings"]["format"]["foreground"].as<rgba>(format->fg));
-    format->bg = module_config["background"].as<rgba>(m_conf["settings"]["format"]["background"].as<rgba>(format->bg));
-    format->ul = module_config["underline"].as<rgba>(m_conf["settings"]["format"]["underline"].as<rgba>(format->ul));
-    format->ol = module_config["overline"].as<rgba>(m_conf["settings"]["format"]["overline"].as<rgba>(format->ol));
-    format->ulsize = module_config["underline-size"].as<size_t>(m_conf["settings"]["format"]["underline-size"].as<size_t>(format->ulsize));
-    format->olsize = module_config["overline-size"].as<size_t>(m_conf["settings"]["format"]["overline-size"].as<size_t>(format->olsize));
-    format->spacing = module_config["spacing"].as<spacing_val>(m_conf["settings"]["format"]["spacing"].as<spacing_val>(format->spacing));
-    format->padding = module_config["padding"].as<spacing_val>(m_conf["settings"]["format"]["padding"].as<spacing_val>(format->padding));
-    format->margin = module_config["margin"].as<spacing_val>(m_conf["settings"]["format"]["margin"].as<spacing_val>(format->margin));
-    format->offset = module_config["offset"].as<extent_val>(m_conf["settings"]["format"]["offset"].as<extent_val>(format->offset));
-    format->font = module_config["font"].as<int>(m_conf["settings"]["format"]["font"].as<int>(format->font));
+    format->fg = module_config["foreground"].as<rgba>(settings_config["foreground"].as<rgba>(format->fg));
+    format->bg = module_config["background"].as<rgba>(settings_config["background"].as<rgba>(format->bg));
+    format->ul = module_config["underline"].as<rgba>(settings_config["underline"].as<rgba>(format->ul));
+    format->ol = module_config["overline"].as<rgba>(settings_config["overline"].as<rgba>(format->ol));
+    format->ulsize = module_config["underline-size"].as<size_t>(settings_config["underline-size"].as<size_t>(format->ulsize));
+    format->olsize = module_config["overline-size"].as<size_t>(settings_config["overline-size"].as<size_t>(format->olsize));
+    format->spacing = module_config["spacing"].as<spacing_val>(settings_config["spacing"].as<spacing_val>(format->spacing));
+    format->padding = module_config["padding"].as<spacing_val>(settings_config["padding"].as<spacing_val>(format->padding));
+    format->margin = module_config["margin"].as<spacing_val>(settings_config["margin"].as<spacing_val>(format->margin));
+    format->offset = module_config["offset"].as<extent_val>(settings_config["offset"].as<extent_val>(format->offset));
+    format->font = module_config["font"].as<int>(settings_config["font"].as<int>(format->font));
 
     try {
       format->prefix = load_label(module_config["prefix"]);
