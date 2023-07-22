@@ -13,7 +13,14 @@ namespace modules {
   network_module::network_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<network_module>(bar, move(name_), config) {
     // Load configuration values
+    // m_interface could be a regex as well
     m_interface = m_conf.get(name(), "interface", m_interface);
+    string regexpr = m_interface;
+
+    m_interface = net::find_interface_regex(m_interface);
+
+    if (!m_interface.empty())
+      m_log.notice("%s: Matched regex %s with interface %s", name(), regexpr, m_interface);
 
     if (m_interface.empty()) {
       std::string type = m_conf.get(name(), "interface-type");
@@ -41,7 +48,7 @@ namespace modules {
     }
 
     if (!net::is_interface_valid(m_interface)) {
-      throw module_error("Invalid network interface \"" + m_interface + "\"");
+      throw module_error("Invalid network interface or no interface matched using \"" + m_interface + "\" regex");
     }
 
     auto canonical = net::get_canonical_interface(m_interface);
@@ -228,6 +235,6 @@ namespace modules {
 
     m_log.trace("%s: Reached end of network subthread", name());
   }
-}  // namespace modules
+} // namespace modules
 
 POLYBAR_NS_END

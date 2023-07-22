@@ -122,6 +122,36 @@ namespace net {
     return "";
   }
 
+  std::string find_interface_regex(const string& regexpr) {
+    struct ifaddrs* ifaddrs;
+
+    if (regexpr.empty())
+      return "";
+
+    std::regex interface_regex(regexpr);
+    getifaddrs(&ifaddrs);
+
+    struct ifaddrs* candidate_if = nullptr;
+
+    for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
+      const std::string ifname{i->ifa_name};
+      if (std::regex_match(ifname, interface_regex)) {
+        if (candidate_if == nullptr) {
+          candidate_if = i;
+        } else if (((candidate_if->ifa_flags & IFF_RUNNING) == 0) && ((i->ifa_flags & IFF_RUNNING) > 0)) {
+          candidate_if = i;
+        }
+      }
+    }
+    if (candidate_if) {
+      const std::string name{candidate_if->ifa_name};
+      freeifaddrs(ifaddrs);
+      return name;
+    }
+    freeifaddrs(ifaddrs);
+    return "";
+  }
+
   std::string find_wireless_interface() {
     return find_interface(NetType::WIRELESS);
   }

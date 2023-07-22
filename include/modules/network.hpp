@@ -1,5 +1,8 @@
 #pragma once
 
+#include <regex>
+#include <net/if.h>
+
 #include "adapters/net.hpp"
 #include "components/config.hpp"
 #include "modules/meta/timer_module.hpp"

@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <regex>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -42,6 +43,7 @@ namespace net {
   bool is_wireless_interface(const string& ifname);
   std::string find_wireless_interface();
   std::string find_wired_interface();
+  std::string find_interface_regex( const string& regexpr);
 
   // types {{{
 
