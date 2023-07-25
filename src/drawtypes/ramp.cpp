@@ -78,6 +78,36 @@ namespace drawtypes {
 
     return std::make_shared<drawtypes::ramp>(move(vec));
   }
+
+  /**
+   * Create a ramp by loading values
+   * from the configuration
+   */
+  ramp_t load_ramp(const config::value& conf, bool required) {
+
+    auto ramp_defaults = load_optional_label(conf);
+
+    vector<label_t> vec;
+    vector<string> icons;
+
+    if (required) {
+      icons = conf.as_list<string>();
+    } else {
+      icons = conf.as_list<string>({});
+    }
+
+    for (size_t i = 0; i < icons.size(); i++) {
+      auto icon = load_optional_label(conf[i], icons[i]);
+      icon->copy_undefined(ramp_defaults);
+
+      auto weight = conf[i]["weight"].as<unsigned int>(1U);
+      while (weight--) {
+        vec.emplace_back(icon);
+      }
+    }
+
+    return std::make_shared<drawtypes::ramp>(move(vec));
+  }
 }  // namespace drawtypes
 
 POLYBAR_NS_END
