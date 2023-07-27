@@ -35,29 +35,6 @@ namespace drawtypes {
    * Create an animation by loading values
    * from the configuration
    */
-  animation_t load_animation(const config& conf, const string& section, string name, bool required) {
-    vector<label_t> vec;
-    vector<string> frames;
-
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
-    auto anim_defaults = load_optional_label(conf, section, name);
-
-    if (required) {
-      frames = conf.get_list(section, name);
-    } else {
-      frames = conf.get_list(section, name, {});
-    }
-
-    for (size_t i = 0; i < frames.size(); i++) {
-      vec.emplace_back(forward<label_t>(load_optional_label(conf, section, name + "-" + to_string(i), frames[i])));
-      vec.back()->copy_undefined(anim_defaults);
-    }
-
-    auto framerate = conf.get(section, name + "-framerate", 1000);
-
-    return std::make_shared<animation>(move(vec), framerate);
-  }
   animation_t load_animation(const config::value& conf, bool required) {
     vector<label_t> vec;
     vector<string> frames;
