@@ -300,6 +300,7 @@ class config {
     static constexpr const char* BARS_ENTRY = "bars";
     static constexpr const char* BARS_KEY = "bar";
     static constexpr const char* SETTINGS_ENTRY = "settings";
+    static constexpr const char* GLOBAL_WM_ENTRY = "global/wm";
     static constexpr const char* MODULES_ENTRY = "modules";
     static constexpr const char* MODULES_KEY = "module";
 
@@ -327,10 +328,10 @@ class config {
 
       access_key first = m_keys[0];
       if (first.access != access_type::MAP) {
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.list_key << "'");
       }
       if (m_keys.size() > 1 && m_keys[1].access != access_type::MAP) {
-        throw runtime_error(sstream() << "listing '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "' is not a valid access");
+        throw runtime_error(sstream() << "listing '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "' is not a valid access");
       }
       if (first.map_key == BARS_ENTRY) {
         if (m_keys.size() == 1) {
@@ -347,9 +348,12 @@ class config {
       } else if (first.map_key == SETTINGS_ENTRY) {
         section = SETTINGS_ENTRY;
         key = (*this)[name].build_key(1);
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        section = GLOBAL_WM_ENTRY;
+        key = (*this)[name].build_key(1);
       } else {
         // any access other than 'bars', 'settings' and 'modules' is an error
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
       }
 
       auto it = m_conf.m_sections.find(section);
@@ -375,6 +379,8 @@ class config {
         return m_conf.bar_get<T>(build_key(2));
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw key_error("'settings' can only be accessed with a default value for now");
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        throw key_error("'global/wm' can only be accessed with a default value for now");
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2));
       }
@@ -391,6 +397,8 @@ class config {
         return m_conf.bar_get<T>(build_key(2), default_value);
       } else if (first.map_key == SETTINGS_ENTRY) {
         return m_conf.setting_get<T>(m_keys[1].map_key, default_value);
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        return m_conf.get<T>(GLOBAL_WM_ENTRY, m_keys[1].map_key, default_value);
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2), default_value);
       }
@@ -407,6 +415,8 @@ class config {
         return m_conf.bar_get_list<T>(m_keys[2].map_key);
       } else if (first.map_key == SETTINGS_ENTRY) {
         throw value_error("settings parameters are never lists");
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        throw value_error("global/wm parameters are never lists");
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get_list<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2));
       }
@@ -423,6 +433,8 @@ class config {
         return m_conf.bar_get_list<T>(m_keys[2].map_key, default_value);
       } else if (first.map_key == SETTINGS_ENTRY) {
         return default_value;
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        throw value_error("global/wm parameters are never lists");
       } else if (first.map_key == MODULES_ENTRY) {
         return m_conf.get_list<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2), default_value);
         throw runtime_error("not implemented");
@@ -481,9 +493,14 @@ class config {
         if (m_keys[1].access != access_type::MAP) {
           throw runtime_error(sstream() << "listing '" << SETTINGS_ENTRY << "' is not implemented yet");
         }        
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        // settings access, we ensure that the second key is a string
+        if (m_keys[1].access != access_type::MAP) {
+          throw runtime_error(sstream() << "listing '" << GLOBAL_WM_ENTRY << "' is not implemented yet");
+        }        
       } else {
         // any access other than 'bars', 'settings' and 'modules' is an error
-        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
+        throw key_error(sstream() << "first key must be one of '" << BARS_ENTRY << "', '" << SETTINGS_ENTRY << "', '" << GLOBAL_WM_ENTRY<< "' or '" << MODULES_ENTRY << "', got '" << first.map_key << "'");
       }
     }
 
