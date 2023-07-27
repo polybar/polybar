@@ -51,38 +51,6 @@ namespace drawtypes {
    * Create a ramp by loading values
    * from the configuration
    */
-  ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
-    auto ramp_defaults = load_optional_label(conf, section, name);
-
-    vector<label_t> vec;
-    vector<string> icons;
-
-    if (required) {
-      icons = conf.get_list<string>(section, name);
-    } else {
-      icons = conf.get_list<string>(section, name, {});
-    }
-
-    for (size_t i = 0; i < icons.size(); i++) {
-      auto ramp_name = name + "-" + to_string(i);
-      auto icon = load_optional_label(conf, section, ramp_name, icons[i]);
-      icon->copy_undefined(ramp_defaults);
-
-      auto weight = conf.get(section, ramp_name + "-weight", 1U);
-      while (weight--) {
-        vec.emplace_back(icon);
-      }
-    }
-
-    return std::make_shared<drawtypes::ramp>(move(vec));
-  }
-
-  /**
-   * Create a ramp by loading values
-   * from the configuration
-   */
   ramp_t load_ramp(const config::value& conf, bool required) {
 
     auto ramp_defaults = load_optional_label(conf);
