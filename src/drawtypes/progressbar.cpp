@@ -82,56 +82,6 @@ namespace drawtypes {
    * Create a progressbar by loading values
    * from the configuration
    */
-  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name) {
-    // Remove the start and end tag from the name in case a format tag is passed
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
-    string format = "%fill%%indicator%%empty%";
-    unsigned int width;
-
-    if ((format = conf.get(section, name + "-format", format)).empty()) {
-      throw application_error("Invalid format defined at [" + section + "." + name + "]");
-    }
-    if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
-      throw application_error("Invalid width defined at [" + section + "." + name + "]");
-    }
-
-    auto pbar = std::make_shared<progressbar>(bar, width, format);
-    pbar->set_gradient(conf.get(section, name + "-gradient", true));
-    pbar->set_colors(conf.get_list(section, name + "-foreground", vector<rgba>{}));
-
-    label_t icon_empty;
-    label_t icon_fill;
-    label_t icon_indicator;
-
-    if (format.find("%empty%") != string::npos) {
-      icon_empty = load_label(conf, section, name + "-empty");
-    }
-    if (format.find("%fill%") != string::npos) {
-      icon_fill = load_label(conf, section, name + "-fill");
-    }
-    if (format.find("%indicator%") != string::npos) {
-      icon_indicator = load_label(conf, section, name + "-indicator");
-    }
-
-    // If a foreground/background color is defined for the indicator
-    // but not for the empty icon we use the bar's default colors to
-    // avoid color bleed
-    if (icon_empty && icon_indicator) {
-      if (icon_indicator->m_background.has_color() && !icon_empty->m_background.has_color()) {
-        icon_empty->m_background = bar.background;
-      }
-      if (icon_indicator->m_foreground.has_color() && !icon_empty->m_foreground.has_color()) {
-        icon_empty->m_foreground = bar.foreground;
-      }
-    }
-
-    pbar->set_empty(move(icon_empty));
-    pbar->set_fill(move(icon_fill));
-    pbar->set_indicator(move(icon_indicator));
-
-    return pbar;
-  }
   progressbar_t load_progressbar(const bar_settings& bar, const config::value& conf) {
     // Remove the start and end tag from the name in case a format tag is passed
     // name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');

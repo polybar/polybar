@@ -39,7 +39,6 @@ namespace drawtypes {
 
   using progressbar_t = shared_ptr<progressbar>;
 
-  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name);
   progressbar_t load_progressbar(const bar_settings& bar, const config::value& conf);
 }  // namespace drawtypes
 
