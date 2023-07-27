@@ -42,6 +42,7 @@ namespace drawtypes {
 
   animation_t load_animation(
       const config& conf, const string& section, string name = "animation", bool required = true);
+  animation_t load_animation(const config::value& conf, bool required = true);
 }  // namespace drawtypes
 
 POLYBAR_NS_END

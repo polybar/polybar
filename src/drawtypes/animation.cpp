@@ -58,6 +58,27 @@ namespace drawtypes {
 
     return std::make_shared<animation>(move(vec), framerate);
   }
+  animation_t load_animation(const config::value& conf, bool required) {
+    vector<label_t> vec;
+    vector<string> frames;
+
+    auto anim_defaults = load_optional_label(conf);
+
+    if (required) {
+      frames = conf.as_list<string>();
+    } else {
+      frames = conf.as_list<string>({});
+    }
+
+    for (size_t i = 0; i < frames.size(); i++) {
+      vec.emplace_back(forward<label_t>(load_optional_label(conf[i], frames[i])));
+      vec.back()->copy_undefined(anim_defaults);
+    }
+
+    auto framerate = conf["framerate"].as<unsigned int>(1000);
+
+    return std::make_shared<animation>(move(vec), framerate);
+  }
 }  // namespace drawtypes
 
 POLYBAR_NS_END
