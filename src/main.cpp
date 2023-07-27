@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     // Dump requested data
     //==================================================
     if (cli->has("dump")) {
-      printf("%s\n", conf.bar_get(cli->get("dump")).c_str());
+      printf("%s\n", conf[config::value::BARS_ENTRY][conf.bar_name()]["dump"].as<string>().c_str());
       return EXIT_SUCCESS;
     }
     if (cli->has("print-wmname")) {
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     //==================================================
     unique_ptr<ipc::ipc> ipc{};
 
-    if (conf.bar_get("enable-ipc", false)) {
+    if (conf[config::value::BARS_ENTRY][conf.bar_name()]["enable-ipc"].as(false)) {
       try {
         ipc = ipc::ipc::make(loop);
       } catch (const std::exception& e) {
