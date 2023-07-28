@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <cctype>
+#include <map>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -13,6 +14,8 @@
 #if WITH_XRM
 #include "x11/xresources.hpp"
 #endif
+
+using std::map;
 
 POLYBAR_NS
 
@@ -163,23 +166,23 @@ class config {
    *    get_with_prefix(section, "env-") will return [{"FOO", "bar"}]
    */
   template <typename T = string>
-  vector<pair<string, T>> get_with_prefix(const string& section, const string& key_prefix) const {
+  map<string, string> get_with_prefix(const string& section, const string& key_prefix) const {
     auto it = m_sections.find(section);
     if (it == m_sections.end()) {
       throw key_error("Missing section \"" + section + "\"");
     }
 
-    vector<pair<string, T>> list;
+    map<string, string> result;
     for (const auto& kv_pair : it->second) {
       const auto& key = kv_pair.first;
 
       if (key.substr(0, key_prefix.size()) == key_prefix) {
         const T& val = get<T>(section, key);
-        list.emplace_back(key.substr(key_prefix.size()), val);
+        result.emplace(key.substr(key_prefix.size()), val);
       }
     }
 
-    return list;
+    return result;
   }
 
   /**

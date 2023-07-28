@@ -1,8 +1,11 @@
 #pragma once
 
 #include <sys/types.h>
+#include <map>
 
 #include "common.hpp"
+
+using std::map;
 
 POLYBAR_NS
 
@@ -16,7 +19,7 @@ namespace process_util {
   void fork_detached(std::function<void()> const& lambda);
 
   void exec(char* cmd, char** args);
-  void exec_sh(const char* cmd, const vector<pair<string, string>>& env = {});
+  void exec_sh(const char* cmd, const map<string, string>& env = {});
 
   int wait(pid_t pid);
 
