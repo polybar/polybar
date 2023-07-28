@@ -102,7 +102,7 @@ namespace modules {
     if (m_formatter->has(TAG_ICON_SINGLE)) {
       m_icons->add("single", load_label(module_config[NAME_ICON_SINGLE]));
     } else if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
-      m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
+      module_config.warn_deprecated("icon-repeatone", module_config["icon-single"]);
 
       m_icons->add("single", load_label(module_config[NAME_ICON_REPEAT_ONE]));
     }

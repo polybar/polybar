@@ -46,7 +46,7 @@ namespace modules {
     m_strip_wsnumbers = module_config["strip-wsnumbers"].as<bool>(m_strip_wsnumbers);
     m_fuzzy_match = module_config["fuzzy-match"].as<bool>(m_fuzzy_match);
 
-    m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
+    module_config.warn_deprecated("wsname-maxlen", module_config["%name:min:max%"]);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE});

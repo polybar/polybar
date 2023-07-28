@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <cctype>
+#include <optional>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -45,7 +46,7 @@ class config {
   void set_included(file_list included);
 
   file_list get_included_files() const;
-
+ private:
   /**
    * Returns true if a given parameter exists in the bar config
    */
@@ -465,6 +466,35 @@ class config {
       throw runtime_error("This statement should never be reached");
     }
 
+    void warn_deprecated(const string& key, std::optional<value> replacement=std::nullopt) const {
+      if (this->has(key)) {
+        if (replacement.has_value()) {
+          m_conf.m_log.warn(
+              "The config parameter `%s-%s` is deprecated, use `%s` instead.", (string)*this, key, (string)replacement.value());
+        } else {
+          m_conf.m_log.warn(
+              "The config parameter '%s-%s' is deprecated, it will be removed in the future. Please remove it from your "
+              "config",
+              (string)*this, key);
+        }
+      }
+    }
+
+    template <typename T>
+    T deprecated(const value& new_entry, const T& fallback) const {
+      try {
+        T value{as<T>()};
+        warn_deprecated(new_entry);
+        return value;
+      } catch (const key_error& err) {
+        return new_entry.as<T>(fallback);
+      } catch (const std::exception& err) {
+        m_conf.m_log.err("Invalid value for \"%s\", using fallback key \"%s\" (reason: %s)", (string)*this, (string)new_entry,
+            err.what());
+        return new_entry.as<T>(fallback);
+      }
+    }
+      
     operator string() const {
        return build_key(0);
     }

@@ -132,7 +132,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
-  m_opts.override_redirect = m_conf.bar_deprecated("dock", "override-redirect", m_opts.override_redirect);
+  m_opts.override_redirect = bar_config["dock"].deprecated(bar_config["override-redirect"], m_opts.override_redirect);
 
   m_opts.dimvalue = bar_config["dim-value"].as(1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
@@ -304,10 +304,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load border settings
   auto border_color = bar_config["border-color"].as(rgba{0x00000000});
   auto border_size = bar_config["border-size"].as(percentage_with_offset{});
-  auto border_top = m_conf.bar_deprecated("border-top", "border-top-size", border_size);
-  auto border_bottom = m_conf.bar_deprecated("border-bottom", "border-bottom-size", border_size);
-  auto border_left = m_conf.bar_deprecated("border-left", "border-left-size", border_size);
-  auto border_right = m_conf.bar_deprecated("border-right", "border-right-size", border_size);
+  auto border_top = bar_config["border-top"].deprecated(bar_config["border-top-size"], border_size);
+  auto border_bottom = bar_config["border-bottom"].deprecated(bar_config["border-bottom-size"], border_size);
+  auto border_left = bar_config["border-left"].deprecated(bar_config["border-left-size"], border_size);
+  auto border_right = bar_config["border-right"].deprecated(bar_config["border-right-size"], border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
   m_opts.borders[edge::TOP].size =

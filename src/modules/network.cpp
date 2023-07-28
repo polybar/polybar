@@ -61,7 +61,7 @@ namespace modules {
     m_unknown_up = module_config["unknown-as-up"].as<bool>(false);
     m_udspeed_unit = module_config["speed-unit"].as<string>(m_udspeed_unit);
 
-    m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
+    module_config.warn_deprecated("udspeed-minwidth", module_config["%downspeed:min:max% and %upspeed:min:max%"]);
 
     // Add formats
     m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});

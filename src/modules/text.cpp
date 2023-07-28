@@ -10,11 +10,12 @@ namespace modules {
 
   text_module::text_module(const bar_settings& bar, string name_, const config& config)
       : static_module<text_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     m_formatter->add_optional("content", {});
 
     if (m_formatter->has_format("content")) {
-      m_conf.warn_deprecated(name(), "content", "format");
+      module_config.warn_deprecated("content", module_config["format"]);
 
       if (m_formatter->get("content")->value.empty()) {
         throw module_error(name() + ".content is empty or undefined");
@@ -25,7 +26,7 @@ namespace modules {
       m_format = DEFAULT_FORMAT;
 
       if (m_formatter->has(TAG_LABEL, DEFAULT_FORMAT)) {
-        m_label = load_label(m_conf[config::value::MODULES_ENTRY][name_raw()][TAG_LABEL]);
+        m_label = load_label(module_config[TAG_LABEL]);
       }
     }
   }

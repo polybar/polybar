@@ -74,12 +74,12 @@ namespace modules {
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
       // XXX: Warn about deprecated parameters
-      m_conf.warn_deprecated(name(), "label-dimmed-active", "label-dimmed-focused");
+      module_config.warn_deprecated("label-dimmed-active", module_config["label-dimmed-focused"]);
 
       // clang-format off
       try {
         m_statelabels.emplace(make_mask(state::FOCUSED), load_label(module_config["label-active"], DEFAULT_LABEL));
-        m_conf.warn_deprecated(name(), "label-active", "label-focused and label-dimmed-focused");
+        module_config.warn_deprecated("label-active", module_config["label-focused and label-dimmed-focused"]);
       } catch (const key_error& err) {
         m_statelabels.emplace(make_mask(state::FOCUSED), load_optional_label(module_config["label-focused"], DEFAULT_LABEL));
       }
