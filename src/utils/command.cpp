@@ -127,7 +127,7 @@ command<output_policy::REDIRECTED>::~command() {
 /**
  * Execute the command
  */
-int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const map<string, string>& env) {
+int command<output_policy::REDIRECTED>::exec(bool wait_for_completion, const unordered_map<string, string>& env) {
   if ((m_forkpid = fork()) == -1) {
     throw system_error("Failed to fork process");
   }

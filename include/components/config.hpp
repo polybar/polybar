@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 #include <cctype>
-#include <map>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -166,13 +165,13 @@ class config {
    *    get_with_prefix(section, "env-") will return [{"FOO", "bar"}]
    */
   template <typename T = string>
-  map<string, string> get_with_prefix(const string& section, const string& key_prefix) const {
+  std::unordered_map<string, string> get_with_prefix(const string& section, const string& key_prefix) const {
     auto it = m_sections.find(section);
     if (it == m_sections.end()) {
       throw key_error("Missing section \"" + section + "\"");
     }
 
-    map<string, string> result;
+    std::unordered_map<string, string> result;
     for (const auto& kv_pair : it->second) {
       const auto& key = kv_pair.first;
 
@@ -449,7 +448,7 @@ class config {
     }
 
     template <typename T>
-    map<string, T> as_kv() const {
+    std::unordered_map<string, T> as_kv() const {
       check_path();
       access_key first = m_keys[0];
       if (first.map_key == BARS_ENTRY) {

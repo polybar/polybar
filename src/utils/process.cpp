@@ -124,7 +124,7 @@ namespace process_util {
   /**
    * Execute command using shell
    */
-  void exec_sh(const char* cmd, const map<string, string>& env) {
+  void exec_sh(const char* cmd, const unordered_map<string, string>& env) {
     if (cmd != nullptr) {
       static const string shell{env_util::get("POLYBAR_SHELL", "/bin/sh")};
 

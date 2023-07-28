@@ -12,7 +12,7 @@
 POLYBAR_NS
 
 script_runner::script_runner(on_update on_update, const string& exec, const string& exec_if, bool tail,
-    interval interval_success, interval interval_fail, const map<string, string>& env)
+    interval interval_success, interval interval_fail, const unordered_map<string, string>& env)
     : m_log(logger::make())
     , m_on_update(on_update)
     , m_exec(exec)
