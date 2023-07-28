@@ -448,6 +448,24 @@ class config {
       throw runtime_error("This statement should never be reached");
     }
 
+    template <typename T>
+    map<string, T> as_kv() const {
+      check_path();
+      access_key first = m_keys[0];
+      if (first.map_key == BARS_ENTRY) {
+        throw value_error("bars parameters are never accessed as map");
+      } else if (first.map_key == SETTINGS_ENTRY) {
+        throw value_error("settings parameters are never accessed as map");
+      } else if (first.map_key == GLOBAL_WM_ENTRY) {
+        throw value_error("global/wm parameters are never accessed as map");
+      } else if (first.map_key == MODULES_ENTRY) {
+        return m_conf.get_with_prefix<T>(sstream() << MODULES_KEY << "/" << m_keys[1].map_key, build_key(2) + "-");
+      }
+      // The case where the first key is neither BARS_ENTRY, SETTINGS_ENTRY or MODULES_ENTRY is handled
+      // by check_path() that throws
+      throw runtime_error("This statement should never be reached");
+    }
+
     operator string() const {
        return build_key(0);
     }

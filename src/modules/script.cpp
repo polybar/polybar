@@ -14,7 +14,7 @@ namespace modules {
       , m_interval_if(m_conf[config::value::MODULES_ENTRY][name_raw()]["interval-if"].as<script_runner::interval>(m_interval_success))
       , m_runner([this](const auto& data) { handle_runner_update(data); }, m_conf[config::value::MODULES_ENTRY][name_raw()]["exec"].as<string>(""s),
             m_conf[config::value::MODULES_ENTRY][name_raw()]["exec-if"].as<string>(""s), m_tail, m_interval_success, m_interval_fail,
-            m_conf.get_with_prefix(name(), "env-")) {
+            m_conf[config::value::MODULES_ENTRY][name_raw()]["env"].as_kv<string>()) {
     config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
 
     // Load configured click handlers
