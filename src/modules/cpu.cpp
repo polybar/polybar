@@ -2,8 +2,9 @@
 
 #include <fstream>
 #include <istream>
-#if __FreeBSD__
+#ifdef __FreeBSD__
   #include <sys/types.h>
+  #include <sys/resource.h>
   #include <sys/sysctl.h>
 #endif
 
@@ -133,7 +134,7 @@ namespace modules {
     m_cputimes.clear();
 
     try {
-#if __FreeBSD__
+#ifdef __FreeBSD__
       // Get number of CPUs
       // ToDo: No need to do this on every invocation.
       int ncpu = -1;
@@ -154,9 +155,8 @@ namespace modules {
       //  - interrupt
       //  - idle
       //
-      static constexpr std::size_t cpu_states_num = 5;
-      long cpu_stat[cpu_states_num];
-      sz = sizeof(*cpu_stat) * cpu_states_num;
+      long cpu_stat[CPUSTATES];
+      sz = sizeof(cpu_stat);
       if (sysctlbyname("kern.cp_time", cpu_stat, &sz, nullptr, 0) != 0) {
         m_log.err("Failed to query sysctl 'kern.cp_time' (errno: %s)", strerror(errno));
         return false;
@@ -166,11 +166,11 @@ namespace modules {
       static std::size_t field_offset = sizeof(*cpu_stat) + ncpu;
       for (std::size_t i = 0; i < ncpu; i++) {
         m_cputimes.emplace_back(new cpu_time);
-        m_cputimes.back()->user = cpu_stat[0];
-        m_cputimes.back()->nice = cpu_stat[1];
-        m_cputimes.back()->system = cpu_stat[2];
-        m_cputimes.back()->steal = cpu_stat[3];   // Note: This is technically the reported "interrupt" time
-        m_cputimes.back()->idle = cpu_stat[4];
+        m_cputimes.back()->user = cpu_stat[CP_USER];
+        m_cputimes.back()->nice = cpu_stat[CP_NICE];
+        m_cputimes.back()->system = cpu_stat[CP_SYS];
+        m_cputimes.back()->steal = cpu_stat[CP_INTR];   // Note: This is technically the reported "interrupt" time
+        m_cputimes.back()->idle = cpu_stat[CP_IDLE];
         m_cputimes.back()->total = m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system +
                                    m_cputimes.back()->idle + m_cputimes.back()->steal;
       }
