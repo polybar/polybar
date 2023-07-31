@@ -105,6 +105,7 @@ namespace modules {
     bool m_click{true};
     bool m_scroll{true};
     bool m_revscroll{false};
+    bool m_wraparound{true};
     size_t m_index{0};
   };
 } // namespace modules

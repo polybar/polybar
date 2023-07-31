@@ -40,6 +40,7 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_wraparound = m_conf.get(name(), "enable-wraparound", m_wraparound);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
@@ -426,8 +427,13 @@ namespace modules {
 
     int offset = next ? 1 : -1;
 
-    int new_index = (current_index + offset + indices.size()) % indices.size();
-    focus_desktop(indices.at(new_index));
+    int new_index = current_index + offset;
+
+    if (m_wraparound) {
+      focus_desktop(indices.at((new_index + indices.size()) % indices.size()));
+    } else if (new_index >= 0 && new_index < indices.size()) {
+      focus_desktop(indices.at(new_index));
+    }
   }
 
   void xworkspaces_module::focus_desktop(unsigned new_desktop) {
