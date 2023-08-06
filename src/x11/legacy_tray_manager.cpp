@@ -56,6 +56,14 @@ tray_manager::~tray_manager() {
 
 void tray_manager::setup(const config& conf, const string& tray_module_name) {
   auto bs = conf.section();
+
+  for (const auto& deprecated : {"tray-position", "tray-detached", "tray-maxsize", "tray-scale", "tray-background",
+           "tray-foreground", "tray-padding", "tray-offset-x", "tray-offset-y"}) {
+    if (conf.has(bs, deprecated)) {
+      m_log.warn("tray: %s.%s is deprecated, use the dedicated tray module to display the system tray", bs, deprecated);
+    }
+  }
+
   string position = conf.get(bs, "tray-position", "none"s);
 
   if (!position.empty() && position != "none" && !tray_module_name.empty()) {
