@@ -15,6 +15,7 @@ Welcome to the official polybar documentation.
    user/actions
    user/ipc
    user/modules/index
+   user/fonts/index
    user/default-config
    migration/index
 
