@@ -17,6 +17,6 @@ sphinx:
   configuration: doc/conf.py
   fail_on_warning: true
 
-# If using Sphinx, optionally build your docs in additional formats such as PDF
-# formats:
-#    - pdf
+python:
+  install:
+    - requirements: doc/requirements.txt
