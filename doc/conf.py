@@ -88,6 +88,11 @@ extensions = [
     "sphinx.ext.extlinks",
 ]
 
+# The search extension works only on readthedocs
+# See https://readthedocs-sphinx-search.readthedocs.io
+if on_rtd:
+    extensions.append("sphinx_search.extension")
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [doc_path + '/_templates']
 
