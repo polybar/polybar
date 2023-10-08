@@ -169,42 +169,9 @@ namespace drawtypes {
     }
   }
 
-
-  label_t load_label(const config::value& conf, bool required, string def) {
-    vector<token> tokens;
+  void extract_tokens(string &text, vector<token>& tokens) {
     size_t start, end, pos;
-
-    string text;
-
-    struct side_values padding {}, margin{};
-
-    if (required) {
-      text = conf.as<string>();
-    } else {
-      text = conf.as<string>(def);
-    }
-
-    const auto get_left_right = [&](const config::value& glr_conf) {
-      const auto parse_or_throw = [&](const config::value& conf_to_parse, spacing_val default_value) {
-        try {
-          return conf_to_parse.as<spacing_val>(default_value);
-        } catch (const std::exception& err) {
-          throw application_error(
-              sstream() << "Failed to get " << (string)conf << " (reason: " << err.what() << ")");
-        }
-      };
-
-      auto value = parse_or_throw(glr_conf, ZERO_SPACE);
-      auto left = parse_or_throw(glr_conf["left"], value);
-      auto right = parse_or_throw(glr_conf["right"], value);
-      return side_values{left, right};
-    };
-
-    padding = get_left_right(conf["padding"]);
-    margin = get_left_right(conf["margin"]);
-
     string line{text};
-
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
       auto token_str = line.substr(start, end - start + 1);
 
@@ -262,6 +229,42 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
+  }
+
+  label_t load_label(const config::value& conf, bool required, string def) {
+    vector<token> tokens;
+
+    string text;
+
+    struct side_values padding {}, margin{};
+
+    if (required) {
+      text = conf.as<string>();
+    } else {
+      text = conf.as<string>(def);
+    }
+
+    const auto get_left_right = [&](const config::value& glr_conf) {
+      const auto parse_or_throw = [&](const config::value& conf_to_parse, spacing_val default_value) {
+        try {
+          return conf_to_parse.as<spacing_val>(default_value);
+        } catch (const std::exception& err) {
+          throw application_error(
+              sstream() << "Failed to get " << (string)conf << " (reason: " << err.what() << ")");
+        }
+      };
+
+      auto value = parse_or_throw(glr_conf, ZERO_SPACE);
+      auto left = parse_or_throw(glr_conf["left"], value);
+      auto right = parse_or_throw(glr_conf["right"], value);
+      return side_values{left, right};
+    };
+
+    padding = get_left_right(conf["padding"]);
+    margin = get_left_right(conf["margin"]);
+
+    extract_tokens(text, tokens);
+
     size_t minlen = conf["minlen"].as<size_t>(0_z);
     string alignment_conf_value = conf["alignment"].as<string>("left"s);
     alignment label_alignment;
@@ -308,17 +311,10 @@ namespace drawtypes {
   }
 
   /**
-   * Create a label by loading optional values from the configuration
-   */
-  label_t load_optional_label(const config& conf, string section, string name, string def) {
-    return load_label(conf, section, move(name), false, move(def));
-  }
-
-  /**
    * Create a separator from the configuration
    */
-  label_t load_separator(const config& conf, string name) {
-    return load_label<BarTrait>(conf, "", move(name), false);
+  label_t load_separator(const config::value& conf) {
+    return load_label(conf, false);
   }
 
   label_t load_optional_label(const config::value& conf, string def) {
