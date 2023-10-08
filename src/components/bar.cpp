@@ -506,7 +506,7 @@ void bar::restack_window() {
   } else if (wm_restack == "bottom") {
     restack_params = restack_util::get_bottom_params(m_connection, bar_window);
   } else if (wm_restack == "bspwm") {
-    restack_params = bspwm_util::get_restack_params(m_connection, m_opts.monitor, bar_window);
+    restack_params = bspwm_util::get_restack_params(m_connection);
 #if ENABLE_I3
   } else if (wm_restack == "i3" && m_opts.override_redirect) {
     restack_params = i3_util::get_restack_params(m_connection);
