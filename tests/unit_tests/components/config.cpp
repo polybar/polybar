@@ -150,12 +150,12 @@ TEST(ModuleGet, correctness) {
   EXPECT_EQ(c.m_conf->get("module/unittest_name", "type___", string("default_value")), "default_value");
 }
 
-class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, vector<pair<string, string>>>> {
+class GetWithPrefix : public ConfigTest, public ::testing::WithParamInterface<pair<pair<string, string>, map<string, string>>> {
  public:
   GetWithPrefix(): ConfigTest("ut_bar"){}
 };
 
-vector<pair<pair<string, string>, vector<pair<string, string>>>> get_with_prefix_input = {
+vector<pair<pair<string, string>, map<string, string>>> get_with_prefix_input = {
   {{"module/my_script", "env-"}, {{"VAR1", "VALUE1"}, {"VAR2", "VALUE2"}, {"VAR3", "VALUE3"}}},
   {{"module/my_script", "env2-"}, {{"VAR1", "VALUE1"}}}
 };
@@ -163,7 +163,7 @@ vector<pair<pair<string, string>, vector<pair<string, string>>>> get_with_prefix
 INSTANTIATE_TEST_SUITE_P(Inst, GetWithPrefix, ::testing::ValuesIn(get_with_prefix_input));
 
 TEST_P(GetWithPrefix, found) {
-  vector<pair<string, string>> res = m_conf->get_with_prefix(GetParam().first.first, GetParam().first.second);
+  map<string, string> res = m_conf->get_with_prefix(GetParam().first.first, GetParam().first.second);
   for (const auto& p:GetParam().second) {
     EXPECT_NE(std::find(res.begin(), res.end(), p), res.end());
 
