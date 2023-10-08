@@ -1,64 +1,41 @@
 #include "utils/bspwm.hpp"
 
 #include <sys/un.h>
+#include <xcb/xcb.h>
 
 #include "errors.hpp"
 #include "utils/env.hpp"
+#include "utils/string.hpp"
 #include "x11/connection.hpp"
-#include "x11/ewmh.hpp"
+#include "x11/icccm.hpp"
 
 POLYBAR_NS
 
 namespace bspwm_util {
 /**
- * Get all bspwm root windows
+ * Returns window against which to restack.
+ *
+ * Bspwm creates one root window per monitor with a `WM_CLASS` value of `root\0Bspwm` and the window taking up the
+ * entire monitor.
+ * For overlapping monitors, stacking polybar above the root window for its monitor, but below the root window for an
+ * overlapping monitor, may cause the upper root window to obstruct polybar, at least in terms of receiving mouse
+ * clicks. Because of that, we simply restack polybar above the topmost root window.
  */
-vector<xcb_window_t> root_windows(connection& conn) {
-  vector<xcb_window_t> roots;
+restack_util::params get_restack_params(connection& conn) {
   auto children = conn.query_tree(conn.root()).children();
 
-  for (auto it = children.begin(); it != children.end(); it++) {
-    xcb_icccm_get_wm_class_reply_t reply{};
-    reply.class_name = reply.instance_name = nullptr;
+  xcb_window_t top_root = XCB_NONE;
 
-    if (xcb_icccm_get_wm_class_reply(conn, xcb_icccm_get_wm_class(conn, *it), &reply, nullptr)) {
-      if (string_util::compare("Bspwm", reply.class_name) && string_util::compare("root", reply.instance_name)) {
-        roots.emplace_back(*it);
-      }
-    }
+  // Iteration happens from bottom to top
+  for (xcb_window_t wid : children) {
+    auto [instance_name, class_name] = icccm_util::get_wm_class(conn, wid);
 
-    if (reply.class_name != nullptr || reply.instance_name != nullptr) {
-      xcb_icccm_get_wm_class_reply_wipe(&reply);
+    if (string_util::compare("root", instance_name) && string_util::compare("Bspwm", class_name)) {
+      top_root = wid;
     }
   }
 
-  return roots;
-}
-
-/**
- * Returns window against which to restack.
- */
-restack_util::params get_restack_params(connection& conn, const monitor_t& mon, xcb_window_t bar_window) {
-  auto ewmh_params = restack_util::get_ewmh_params(conn);
-
-  if (restack_util::are_siblings(conn, bar_window, ewmh_params.first)) {
-    return ewmh_params;
-  }
-
-  for (auto&& root : root_windows(conn)) {
-    auto geom = conn.get_geometry(root);
-
-    if (mon->x != geom->x || mon->y != geom->y) {
-      continue;
-    }
-    if (mon->w != geom->width || mon->h != geom->height) {
-      continue;
-    }
-
-    return {root, XCB_STACK_MODE_ABOVE};
-  }
-
-  return restack_util::NONE_PARAMS;
+  return {top_root, XCB_STACK_MODE_ABOVE};
 }
 
 /**

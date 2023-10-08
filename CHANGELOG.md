@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed fuzzy match option on i3 and bspwm modules to find longest match instead of the first match ([`#2831`](https://github.com/polybar/polybar/pull/2831), [`#2829`](https://github.com/polybar/polybar/issues/2829)) by [@Ron0Studios](https://github.com/ron0studios/).
 - `wm-restack`
   - `generic`: Is now a best effort combination of other restacking strategies. First tries `ewmh` and then the `bottom` strategy ([`#2961`](https://github.com/polybar/polybar/pull/2961))
-  - `bspwm`: First tries the `ewmh` strategy before falling back to its old behavior ([`#2961`](https://github.com/polybar/polybar/pull/2961))
+  - `bspwm`: Will restack above the topmost bspwm root window instead of the root window associated with the monitor polybar is on ([`#3019`](https://github.com/polybar/polybar/pull/3019))
 
 ### Fixed
 - Waiting for double click interval on modules that don't have a double click action ([`#2663`](https://github.com/polybar/polybar/issues/2663), [`#2695`](https://github.com/polybar/polybar/pull/2695))
