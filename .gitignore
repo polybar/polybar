@@ -13,3 +13,5 @@
 
 polybar-*.tar
 *.cache
+
+.venv
