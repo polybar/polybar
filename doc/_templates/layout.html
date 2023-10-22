@@ -1,0 +1,26 @@
+{% extends "!layout.html" -%}
+{# Refer to https://github.com/readthedocs/sphinx_rtd_theme/blob/master/sphinx_rtd_theme/layout.html #}
+
+{%- block document %}
+{#
+  Adds a warning message on the 'latest' version.
+  The warning is only added on readthedocs, if the version is 'latest'.
+  For the 'dev' folder, no warning is shown since the 'latest' version is
+  usually the most up-to-date.
+#}
+{% if READTHEDOCS and polybar_is_latest and not pagename.startswith('dev/') %}
+<div class="admonition important">
+  <p class="admonition-title">Development Version</p>
+  <p>
+  This is the <code class="docutils literal notranslate"><span class="pre">latest</span></code>
+  (unstable) version of this documentation, which may document features
+  not available in or compatible with released stable versions of polybar.
+  </p>
+  <p>
+  See the <a href="https://polybar.readthedocs.io/{{ pagename }}.html">stable version</a> of this documentation page instead.
+  </p>
+</div>
+{% endif %}
+
+{{ super() }}
+{%- endblock %}

@@ -149,6 +149,10 @@ extlinks_detect_hardcoded_links = True
 #
 html_theme_options = {}
 
+html_context = {
+        'polybar_is_latest': version == 'latest',
+}
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
