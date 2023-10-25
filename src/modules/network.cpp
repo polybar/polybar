@@ -57,6 +57,7 @@ namespace modules {
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
     set_interval(1s);
     m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
+    m_metric_units = m_conf.get<bool>(name(), "metric-units", m_metric_units);
     m_udspeed_unit = m_conf.get<string>(name(), "speed-unit", m_udspeed_unit);
 
     m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
@@ -146,9 +147,9 @@ namespace modules {
       m_counter = 0;
     }
 
-    auto upspeed = network->upspeed(m_udspeed_minwidth, m_udspeed_unit);
-    auto downspeed = network->downspeed(m_udspeed_minwidth, m_udspeed_unit);
-    auto netspeed = network->netspeed(m_udspeed_minwidth, m_udspeed_unit);
+    auto upspeed = network->upspeed(m_udspeed_minwidth, m_udspeed_unit, m_metric_units);
+    auto downspeed = network->downspeed(m_udspeed_minwidth, m_udspeed_unit, m_metric_units);
+    auto netspeed = network->netspeed(m_udspeed_minwidth, m_udspeed_unit, m_metric_units);
 
     // Update label contents
     const auto replace_tokens = [&](label_t& label) {

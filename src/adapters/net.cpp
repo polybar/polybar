@@ -262,26 +262,26 @@ namespace net {
   /**
    * Get download speed rate
    */
-  string network::downspeed(int minwidth, const string& unit) const {
+  string network::downspeed(int minwidth, const string& unit, bool metric_units) const {
     float bytes_diff = m_status.current.received - m_status.previous.received;
-    return format_speedrate(bytes_diff, minwidth, unit);
+    return format_speedrate(bytes_diff, minwidth, unit, metric_units);
   }
 
   /**
    * Get upload speed rate
    */
-  string network::upspeed(int minwidth, const string& unit) const {
+  string network::upspeed(int minwidth, const string& unit, bool metric_units) const {
     float bytes_diff = m_status.current.transmitted - m_status.previous.transmitted;
-    return format_speedrate(bytes_diff, minwidth, unit);
+    return format_speedrate(bytes_diff, minwidth, unit, metric_units);
   }
 
   /**
    * Get total net speed rate
    */
-  string network::netspeed(int minwidth, const string& unit) const {
+  string network::netspeed(int minwidth, const string& unit, bool metric_units) const {
     float bytes_diff = m_status.current.received - m_status.previous.received + m_status.current.transmitted -
                        m_status.previous.transmitted;
-    return format_speedrate(bytes_diff, minwidth, unit);
+    return format_speedrate(bytes_diff, minwidth, unit, metric_units);
   }
 
   /**
@@ -341,7 +341,7 @@ namespace net {
   /**
    * Format up- and download speed
    */
-  string network::format_speedrate(float bytes_diff, int minwidth, const string& unit) const {
+  string network::format_speedrate(float bytes_diff, int minwidth, const string& unit, bool metric_units) const {
     // Get time difference in seconds as a float
     const std::chrono::duration<float> duration = m_status.current.time - m_status.previous.time;
     float time_diff = duration.count();
@@ -350,8 +350,9 @@ namespace net {
     vector<pair<string, int>> units{make_pair("G", 2), make_pair("M", 1)};
     string suffix{"K"};
     int precision = 0;
+    int kilo = metric_units ? 1000 : 1024;
 
-    while ((speedrate /= 1000) > 999) {
+    while ((speedrate /= kilo) > kilo - 1) {
       suffix = units.back().first;
       precision = units.back().second;
       units.pop_back();
