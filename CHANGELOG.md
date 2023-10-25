@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wm-restack`:
   - `bottom`: lowers polybar to the bottom of the window stack (same as the previous behavior of `generic`) ([`#2961`](https://github.com/polybar/polybar/pull/2961))
   - `ewmh`: Tries to use the `_NET_SUPPORTING_WM_CHECK` hint to position the bar ([`#2961`](https://github.com/polybar/polybar/pull/2961))
+- `internal/xworkspaces`: `enable-wraparound` option ([`#2925`](https://github.com/polybar/polybar/discussions/2925), [`#2999`](https://github.com/polybar/polybar/pull/2999)) by [@hus3h](https://github.com/hus3h)
 
 ### Changed
 - `custom/script`:
