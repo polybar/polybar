@@ -40,6 +40,7 @@ namespace modules {
     m_click = m_conf.get(name(), "enable-click", m_click);
     m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
     m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
+    m_nwin_threshold = m_conf.get(name(), "window-number-threshold", m_nwin_threshold);
 
     // Add formats and elements
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE, TAG_LABEL_MONITOR});
@@ -280,6 +281,8 @@ namespace modules {
    */
   void xworkspaces_module::rebuild_desktop_states() {
     std::set<unsigned int> occupied_desks;
+    string nwin;
+
     for (auto&& c : m_clients) {
       occupied_desks.insert(c.second);
     }
@@ -296,11 +299,13 @@ namespace modules {
           d->state = desktop_state::EMPTY;
         }
 
+        nwin = (m_windows[d->index] > m_nwin_threshold) ? to_string(m_windows[d->index]) : "";
+
         d->label = m_labels.at(d->state)->clone();
         d->label->reset_tokens();
         d->label->replace_token("%index%", to_string(d->index + 1));
         d->label->replace_token("%name%", m_desktop_names[d->index]);
-        d->label->replace_token("%nwin%", to_string(m_windows[d->index]));
+        d->label->replace_token("%nwin%", nwin);
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
       }
     }
