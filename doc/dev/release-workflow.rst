@@ -113,12 +113,12 @@ as follows:
 * A `Release PR`_ is created for the release. This PR MUST NOT be merged in
   GitHub's interface, it is only here for review, merging happens at the
   commandline.
-* After approval, a signed git tag is created locally at the tip of the release
-  branch and pushed:
+* After approval, a signed git tag without message is created locally at the
+  tip of the release branch and pushed:
 
 .. code-block:: shell
 
-  git tag -s X.Y.Z <release-branch>
+  git tag -m "" -s X.Y.Z <release-branch>
   git push --tags
 
 * A `draft release`_ targetting the new tag is created in GitHub's release

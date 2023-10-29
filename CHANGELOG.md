@@ -9,9 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [3.7.0] - 2023-11-05
 ### Breaking
 - `custom/script`:
-  - now doesn't hide failing script if it's output is not changing ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar behaviour can be imitated with `format-fail`, if necessary.
+  - No longer hides the module if the `exec` command failed and did not change the output from the previous run ([`#2636`](https://github.com/polybar/polybar/issues/2636)). Somewhat similar original behaviour can be imitated with `format-fail`, if necessary.
   - If the `exec` command produced no output and exited with a non-zero exit code the module is no longer completely empty, but just has an empty `%output%` token. If you relied on this behavior to hide the module under certain circumstances, make sure the script exits with an exit code of zero. ([`#2857`](https://github.com/polybar/polybar/discussions/2857), [`#2861`](https://github.com/polybar/polybar/pull/2861))
 
 ### Build
@@ -25,12 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tray-position`, `tray-detached`, `tray-maxsize`, `tray-scale`, `tray-transparent`, `tray-background`, `tray-foreground`, `tray-padding`, `tray-offset-x`, `tray-offset-y`
 
 ### Added
-- A tray module with type `internal/tray` for positioning the tray like a module
-- Added support for TAG_LABEL (`<label>`) in ipc module ([`#2841`](https://github.com/polybar/polybar/pull/2841)) by [@madhavpcm](https://github.com/madhavpcm).
-- Added support for format-i for each hook-i defined in ipc module ([`#2775`](https://github.com/polybar/polybar/issues/2775), [`#2810`](https://github.com/polybar/polybar/pull/2810)) by [@madhavpcm](https://github.com/madhavpcm).
-- `internal/temperature`: `%temperature-k%` token displays the temperature in kelvin ([`#2774`](https://github.com/polybar/polybar/discussions/2774), [`#2784`](https://github.com/polybar/polybar/pull/2784))
+- A tray module with type `internal/tray` for positioning the tray like a module ([`#2689`](https://github.com/polybar/polybar/issues/2689))
+- `internal/temperature`: `%temperature-k%` token displays the temperature in degrees Kelvin ([`#2774`](https://github.com/polybar/polybar/discussions/2774), [`#2784`](https://github.com/polybar/polybar/pull/2784))
 - `internal/pulseaudio`: `reverse-scroll` option ([`#2664`](https://github.com/polybar/polybar/pull/2664))
 - `custom/script`: Repeat interval for script failure (`interval-fail`) and `exec-if` (`interval-if`) ([`#943`](https://github.com/polybar/polybar/issues/943), [`#2606`](https://github.com/polybar/polybar/issues/2606), [`#2630`](https://github.com/polybar/polybar/pull/2630))
+- `custom/ipc`:
+  - Added support for `<label>` in `format` ([`#2841`](https://github.com/polybar/polybar/pull/2841)) by [@madhavpcm](https://github.com/madhavpcm).
+  - Added support for `format-i` for each defined `hook-i` ([`#2775`](https://github.com/polybar/polybar/issues/2775), [`#2810`](https://github.com/polybar/polybar/pull/2810)) by [@madhavpcm](https://github.com/madhavpcm).
 - `custom/text`: Loads the `format` setting, which supports the `<label>` tag, if the deprecated `content` is not defined ([`#1331`](https://github.com/polybar/polybar/issues/1331), [`#2673`](https://github.com/polybar/polybar/pull/2673), [`#2676`](https://github.com/polybar/polybar/pull/2676))
 - `internal/backlight`:
   - `scroll-interval` option ([`#2696`](https://github.com/polybar/polybar/issues/2696), [`#2700`](https://github.com/polybar/polybar/pull/2700))
@@ -244,7 +247,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.6.3...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.7.0...HEAD
+[3.7.0]: https://github.com/polybar/polybar/releases/tag/3.7.0
 [3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
 [3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2
 [3.6.1]: https://github.com/polybar/polybar/releases/tag/3.6.1
