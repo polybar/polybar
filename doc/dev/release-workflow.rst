@@ -90,8 +90,8 @@ branch and cherry-picks the bugfix commits.
 
   Alternatively, the contributor can also ``git rebase --onto`` to base the
   branch off the previous release tag. However, in most cases it makes sense for
-  a maintainer to create the release branch since they will also need to add a
-  `Release Commit`_ to it.
+  a maintainer to create the release branch since they will also need to create
+  a `Release PR`_ for it.
 
 Once the release branch is created and contains the right commits, the
 maintainer should follow `Publishing a new Release`_ to finish this patch
@@ -110,8 +110,7 @@ Publishing a new Release
 The process for publishing a release is the same for all release types. It goes
 as follows:
 
-* A `Release commit`_ is added to the tip of the release branch.
-* A draft PR is opened for the release branch. This PR MUST NOT be merged in
+* A `Release PR`_ is created for the release. This PR MUST NOT be merged in
   GitHub's interface, it is only here for review, merging happens at the
   commandline.
 * After approval, a signed git tag is created locally at the tip of the release
@@ -143,16 +142,23 @@ as follows:
 Here ``<release-branch>`` is either a ``release/X.Y.0`` branch or a
 ``hotfix/X.Y.Z`` branch.
 
-Release Commit
-~~~~~~~~~~~~~~
+Release PR
+~~~~~~~~~~
 
-When merging, a release commit must be at the tip of the release branch.
+The final state of the release branch is prepared as a draft PR on
+GitHub.
+That PR is not merged from the GitHub interface though.
 
-The release commit needs to update the version number in:
+The release PR must do the following things:
 
-* ``version.txt``
+* Write any missing migration guides for:
 
-The release commit must also finalize the `Changelog`_ for this release.
+  * Deprecated or removed options
+  * New features that it might be worth migrating to
+* Have a release commit at its tip with the message ``Version X.Y.Z`` and the following changes
+
+  * Finalizes the `Changelog`_ for this release
+  * Updates the version number in ``version.txt``
 
 Changelog
 ~~~~~~~~~
@@ -209,6 +215,13 @@ In addition using GitHub's "Auto-generate release notes" feature, the list of
 new contributors should be generated and put at the end of the release notes.
 The generated list of PRs can be removed.
 
+For minor and major releases, add a link to the migration guide directly under
+the ``## Changelog`` header:
+
+.. code-block:: markdown
+
+  **[Migration Guide](https://polybar.readthedocs.io/en/stable/migration/X.Y/index.html)**
+
 At the bottom, check the two boxes "Set as the latest release" and "Create a
 discussion for this release" (select the category "Announcements").
 
@@ -216,9 +229,11 @@ After-Release Checklist
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 * Verify the release archive (see `Verify Release`_)
-* Make sure all the new functionality is documented on the wiki
-* Mark deprecated features appropriately (see `Deprecations`_)
-* Remove all unreleased notes from the wiki (not for patch releases)
+* Update the Wiki
+
+  * Make sure all the new functionality is documented
+  * Mark deprecated features appropriately (see `Deprecations`_)
+  * Remove all "unreleased" notes (not for patch releases)
 * Inform packagers of new release in :issue:`1971`. Mention any dependency
   changes and any changes to the build workflow. Also mention any new files are
   created by the installation.
