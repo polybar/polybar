@@ -93,7 +93,7 @@ jobs:
             const fname = '${{ env.POLYBAR_ARCHIVE }}'
             const url = '${{ steps.upload_archive.outputs.browser_download_url }}'
             const hash = '${{ env.SHA256SUM }}'
-            let body = "## Download:\n\n"
+            let body = "## Download\n\n"
             body += `[${fname}](${url}) (**sha256**: \`${hash}\`)\n\n`
             body += process.env.RELEASE_BODY;
 
