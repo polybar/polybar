@@ -209,6 +209,9 @@ In addition using GitHub's "Auto-generate release notes" feature, the list of
 new contributors should be generated and put at the end of the release notes.
 The generated list of PRs can be removed.
 
+At the bottom, check the two boxes "Set as the latest release" and "Create a
+discussion for this release" (select the category "Announcements").
+
 After-Release Checklist
 ~~~~~~~~~~~~~~~~~~~~~~~
 
