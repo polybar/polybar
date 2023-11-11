@@ -103,6 +103,8 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
 
   bool is_visible() const;
 
+  bool change_visibility(bool visible);
+
  protected:
   void recalculate_width();
   void reconfigure_clients();
@@ -130,7 +132,6 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
   void remove_client(const client& client);
   void remove_client(xcb_window_t win);
   void clean_clients();
-  bool change_visibility(bool visible);
 
   void handle(const evt::expose& evt) override;
   void handle(const evt::client_message& evt) override;
