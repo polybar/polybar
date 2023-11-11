@@ -36,7 +36,6 @@ namespace signals {
   } // namespace ui
   namespace ui_tray {
     struct tray_pos_change;
-    struct tray_visibility;
   } // namespace ui_tray
 } // namespace signals
 

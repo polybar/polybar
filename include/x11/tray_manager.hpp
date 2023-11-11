@@ -76,13 +76,13 @@ struct tray_settings {
 
 using on_update = std::function<void(void)>;
 
-class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::configure_request, evt::resize_request,
-                    evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify,
-                    evt::map_notify, evt::unmap_notify>,
-                public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background,
-                    signals::ui_tray::tray_pos_change, signals::ui_tray::tray_visibility>,
-                non_copyable_mixin,
-                non_movable_mixin {
+class manager
+    : public xpp::event::sink<evt::expose, evt::client_message, evt::configure_request, evt::resize_request,
+          evt::selection_clear, evt::property_notify, evt::reparent_notify, evt::destroy_notify, evt::map_notify,
+          evt::unmap_notify>,
+      public signal_receiver<SIGN_PRIORITY_TRAY, signals::ui::update_background, signals::ui_tray::tray_pos_change>,
+      non_copyable_mixin,
+      non_movable_mixin {
  public:
   explicit manager(connection& conn, signal_emitter& emitter, const logger& logger, const bar_settings& bar_opts,
       on_update on_update);
@@ -146,7 +146,6 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
 
   bool on(const signals::ui::update_background& evt) override;
   bool on(const signals::ui_tray::tray_pos_change& evt) override;
-  bool on(const signals::ui_tray::tray_visibility& evt) override;
 
  private:
   connection& m_connection;
