@@ -189,7 +189,7 @@ namespace modules {
     string get_format() const;
     string get_output();
 
-    void set_visible(bool value);
+    virtual void set_visible(bool value);
 
     void action_module_toggle();
     void action_module_show();

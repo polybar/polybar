@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- `internal/tray`: The module must use the `<tray>` tag (this is the default) ([`#3037`](https://github.com/polybar/polybar/pull/3037))
+
+## Fixed
+- `internal/tray`: Fixed `module-margin` and `separator` being applied to completely empty tray module ([`#3036`](https://github.com/polybar/polybar/issues/3036), [`#3037`](https://github.com/polybar/polybar/pull/3037))
 
 ## [3.7.0] - 2023-11-05
 ### Breaking

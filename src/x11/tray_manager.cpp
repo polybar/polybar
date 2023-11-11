@@ -522,7 +522,7 @@ void manager::clean_clients() {
 }
 
 bool manager::change_visibility(bool visible) {
-  if (!is_active() || m_hidden == !visible) {
+  if (m_hidden == !visible) {
     return false;
   }
 
