@@ -1,9 +1,11 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "settings.hpp"
