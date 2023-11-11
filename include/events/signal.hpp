@@ -104,9 +104,6 @@ namespace signals {
     struct tray_pos_change : public detail::value_signal<tray_pos_change, int> {
       using base_type::base_type;
     };
-    struct tray_visibility : public detail::value_signal<tray_visibility, bool> {
-      using base_type::base_type;
-    };
   } // namespace ui_tray
 } // namespace signals
 

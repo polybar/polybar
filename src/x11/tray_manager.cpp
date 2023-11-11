@@ -764,10 +764,6 @@ bool manager::on(const signals::ui_tray::tray_pos_change& evt) {
   return true;
 }
 
-bool manager::on(const signals::ui_tray::tray_visibility& evt) {
-  return change_visibility(evt.cast());
-}
-
 } // namespace tray
 
 POLYBAR_NS_END
