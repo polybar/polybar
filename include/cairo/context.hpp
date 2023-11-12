@@ -3,6 +3,7 @@
 #include <cairo/cairo-xcb.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <deque>
 #include <iomanip>
