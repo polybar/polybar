@@ -92,7 +92,7 @@ namespace modules {
     };
 
     auto format = make_unique<module_format>();
-    format->value = move(value);
+    format->value = std::move(value);
     format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
     format->bg = m_conf.get(m_modname, name + "-background", formatdef("background", format->bg));
     format->ul = m_conf.get(m_modname, name + "-underline", formatdef("underline", format->ul));
@@ -122,18 +122,14 @@ namespace modules {
     tag_collection.insert(tag_collection.end(), tags.begin(), tags.end());
     tag_collection.insert(tag_collection.end(), whitelist.begin(), whitelist.end());
 
-    size_t start, end;
-    while ((start = value.find('<')) != string::npos && (end = value.find('>', start)) != string::npos) {
-      if (start > 0) {
-        value.erase(0, start);
-        end -= start;
-        start = 0;
-      }
-      string tag{value.substr(start, end + 1)};
+    size_t start = 0;
+    size_t end = 0;
+    while ((start = format->value.find('<', start)) != string::npos && (end = format->value.find('>', start)) != string::npos) {
+      string tag{format->value.substr(start, end - start + 1)};
       if (find(tag_collection.begin(), tag_collection.end(), tag) == tag_collection.end()) {
         throw undefined_format_tag(tag + " is not a valid format tag for \"" + name + "\"");
       }
-      value.erase(0, tag.size());
+      start = end + 1;
     }
 
     m_formats.insert(make_pair(move(name), move(format)));
