@@ -100,7 +100,7 @@ If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install pol
 using `sudo apt install polybar`.
 
 If you are using **Arch Linux**, you can install
-[polybar](https://archlinux.org/packages/community/x86_64/polybar/) to get the
+[polybar](https://archlinux.org/packages/extra/x86_64/polybar/) to get the
 latest stable release using `sudo pacman -S polybar`. The latest unstable
 changes are also available in the
 [`polybar-git`](https://aur.archlinux.org/packages/polybar-git) package in the
