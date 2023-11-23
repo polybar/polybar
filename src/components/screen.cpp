@@ -38,7 +38,7 @@ screen::screen(connection& conn, signal_emitter& emitter, const logger& logger, 
     , m_monitors(randr_util::get_monitors(m_connection, true, false))
     , m_size({conn.screen()->width_in_pixels, conn.screen()->height_in_pixels}) {
   // Check if the reloading has been disabled by the user
-  if (!m_conf.get("settings", "screenchange-reload", false)) {
+  if (!m_conf[config::value::SETTINGS_ENTRY]["screenchange-reload"].as<bool>(false)) {
     return;
   }
 

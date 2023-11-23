@@ -70,15 +70,17 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
     , m_screen(forward<decltype(screen)>(screen))
     , m_dispatch(forward<decltype(dispatch)>(dispatch))
     , m_action_ctxt(forward<decltype(action_ctxt)>(action_ctxt)) {
+  config::value bar_config = m_conf[config::value::BARS_ENTRY][m_conf.bar_name()];
+
   string bs{m_conf.section()};
 
   m_tray = legacy_tray::tray_manager::make(m_opts);
 
   // Get available RandR outputs
-  auto monitor_name = m_conf.get(bs, "monitor", ""s);
-  auto monitor_name_fallback = m_conf.get(bs, "monitor-fallback", ""s);
-  m_opts.monitor_strict = m_conf.get(bs, "monitor-strict", m_opts.monitor_strict);
-  m_opts.monitor_exact = m_conf.get(bs, "monitor-exact", m_opts.monitor_exact);
+  auto monitor_name = bar_config["monitor"].as(""s);
+  auto monitor_name_fallback = bar_config["monitor-fallback"].as(""s);
+  m_opts.monitor_strict = bar_config["monitor-strict"].as(m_opts.monitor_strict);
+  m_opts.monitor_exact = bar_config["monitor-exact"].as(m_opts.monitor_exact);
   auto monitors = randr_util::get_monitors(m_connection, m_opts.monitor_strict, false);
 
   if (monitors.empty()) {
@@ -130,48 +132,48 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_log.info("Loaded monitor %s (%ix%i+%i+%i)", m_opts.monitor->name, m_opts.monitor->w, m_opts.monitor->h,
       m_opts.monitor->x, m_opts.monitor->y);
 
-  m_opts.override_redirect = m_conf.deprecated(bs, "dock", "override-redirect", m_opts.override_redirect);
+  m_opts.override_redirect = bar_config["dock"].deprecated(bar_config["override-redirect"], m_opts.override_redirect);
 
-  m_opts.dimvalue = m_conf.get(bs, "dim-value", 1.0);
+  m_opts.dimvalue = bar_config["dim-value"].as(1.0);
   m_opts.dimvalue = math_util::cap(m_opts.dimvalue, 0.0, 1.0);
 
 #if WITH_XCURSOR
-  m_opts.cursor_click = m_conf.get(bs, "cursor-click", ""s);
+  m_opts.cursor_click = bar_config["cursor-click"].as(""s);
   if (!m_opts.cursor_click.empty() && !cursor_util::valid(m_opts.cursor_click)) {
     m_log.warn("Ignoring unsupported cursor-click option '%s'", m_opts.cursor_click);
     m_opts.cursor_click.clear();
   }
 
-  m_opts.cursor_scroll = m_conf.get(bs, "cursor-scroll", ""s);
+  m_opts.cursor_scroll = bar_config["cursor-scroll"].as(""s);
   if (!m_opts.cursor_scroll.empty() && !cursor_util::valid(m_opts.cursor_scroll)) {
     m_log.warn("Ignoring unsupported cursor-scroll option '%s'", m_opts.cursor_scroll);
     m_opts.cursor_scroll.clear();
   }
 #else
-  if (m_conf.has(bs, "cursor-click")) {
+  if (m_conf[config::value::BARS_ENTRY][m_conf.bar_name()].has("cursor-click")) {
     m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-click option");
   }
 
-  if (m_conf.has(bs, "cursor-scroll")) {
+  if (m_conf[config::value::BARS_ENTRY][m_conf.bar_name()].has("cursor-scroll")) {
     m_log.warn("Polybar was not compiled with xcursor support, ignoring cursor-scroll option");
   }
 #endif
 
   // Build WM_NAME
-  m_opts.wmname = m_conf.get(bs, "wm-name", "polybar-" + bs.substr(4) + "_" + m_opts.monitor->name);
+  m_opts.wmname = bar_config["wm-name"].as("polybar-" + m_conf.bar_name() + "_" + m_opts.monitor->name);
   m_opts.wmname = string_util::replace(m_opts.wmname, " ", "-");
 
   // Configure DPI
   {
     double dpi_x = 96, dpi_y = 96;
-    if (m_conf.has(m_conf.section(), "dpi")) {
-      dpi_x = dpi_y = m_conf.get<double>("dpi");
+    if (m_conf[config::value::BARS_ENTRY][m_conf.bar_name()].has("dpi")) {
+      dpi_x = dpi_y = bar_config["dpi"].as<double>();
     } else {
-      if (m_conf.has(m_conf.section(), "dpi-x")) {
-        dpi_x = m_conf.get<double>("dpi-x");
+      if (m_conf[config::value::BARS_ENTRY][m_conf.bar_name()].has("dpi-x")) {
+        dpi_x = bar_config["dpi-x"].as<double>();
       }
-      if (m_conf.has(m_conf.section(), "dpi-y")) {
-        dpi_y = m_conf.get<double>("dpi-y");
+      if (m_conf[config::value::BARS_ENTRY][m_conf.bar_name()].has("dpi-y")) {
+        dpi_y = bar_config["dpi-y"].as<double>();
       }
     }
 
@@ -194,30 +196,30 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   // Load configuration values
 
-  m_opts.bottom = m_conf.get(bs, "bottom", m_opts.bottom);
-  m_opts.spacing = m_conf.get(bs, "spacing", m_opts.spacing);
-  m_opts.separator = drawtypes::load_optional_label(m_conf, bs, "separator", "");
-  m_opts.locale = m_conf.get(bs, "locale", ""s);
+  m_opts.bottom = bar_config["bottom"].as(m_opts.bottom);
+  m_opts.spacing = bar_config["spacing"].as(m_opts.spacing);
+  m_opts.separator = drawtypes::load_separator(bar_config["separator"]);
+  m_opts.locale = bar_config["locale"].as(""s);
 
-  auto radius = m_conf.get<double>(bs, "radius", 0.0);
-  auto top = m_conf.get(bs, "radius-top", radius);
-  m_opts.radius.top_left = m_conf.get(bs, "radius-top-left", top);
-  m_opts.radius.top_right = m_conf.get(bs, "radius-top-right", top);
-  auto bottom = m_conf.get(bs, "radius-bottom", radius);
-  m_opts.radius.bottom_left = m_conf.get(bs, "radius-bottom-left", bottom);
-  m_opts.radius.bottom_right = m_conf.get(bs, "radius-bottom-right", bottom);
+  auto radius = bar_config["radius"].as<double>(0.0);
+  auto top = bar_config["radius-top"].as(radius);
+  m_opts.radius.top_left = bar_config["radius-top-left"].as(top);
+  m_opts.radius.top_right = bar_config["radius-top-right"].as(top);
+  auto bottom = bar_config["radius-bottom"].as(radius);
+  m_opts.radius.bottom_left = bar_config["radius-bottom-left"].as(bottom);
+  m_opts.radius.bottom_right = bar_config["radius-bottom-right"].as(bottom);
 
-  auto padding = m_conf.get(bs, "padding", ZERO_SPACE);
-  m_opts.padding.left = m_conf.get(bs, "padding-left", padding);
-  m_opts.padding.right = m_conf.get(bs, "padding-right", padding);
+  auto padding = bar_config["padding"].as(ZERO_SPACE);
+  m_opts.padding.left = bar_config["padding-left"].as(padding);
+  m_opts.padding.right = bar_config["padding-right"].as(padding);
 
-  auto margin = m_conf.get(bs, "module-margin", ZERO_SPACE);
-  m_opts.module_margin.left = m_conf.get(bs, "module-margin-left", margin);
-  m_opts.module_margin.right = m_conf.get(bs, "module-margin-right", margin);
+  auto margin = bar_config["module-margin"].as(ZERO_SPACE);
+  m_opts.module_margin.left = bar_config["module-margin-left"].as(margin);
+  m_opts.module_margin.right = bar_config["module-margin-right"].as(margin);
 
-  m_opts.double_click_interval = m_conf.get(bs, "double-click-interval", m_opts.double_click_interval);
+  m_opts.double_click_interval = bar_config["double-click-interval"].as(m_opts.double_click_interval);
 
-  m_opts.struts = m_conf.get(bs, "enable-struts", m_opts.struts);
+  m_opts.struts = bar_config["enable-struts"].as(m_opts.struts);
 
   if (only_initialize_values) {
     return;
@@ -226,28 +228,28 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   // Load values used to adjust the struts atom
 
   if (!m_opts.struts) {
-    if (m_conf.has("global/wm", "margin-bottom")) {
+    if (m_conf[config::value::GLOBAL_WM_ENTRY].has("margin-bottom")) {
       m_log.warn("Struts are disabled, ignoring margin-bottom");
     }
-    if (m_conf.has("global/wm", "margin-top")) {
+    if (m_conf[config::value::GLOBAL_WM_ENTRY].has("margin-top")) {
       m_log.warn("Struts are disabled, ignoring margin-top");
     }
   }
-  auto margin_top = m_conf.get("global/wm", "margin-top", percentage_with_offset{});
-  auto margin_bottom = m_conf.get("global/wm", "margin-bottom", percentage_with_offset{});
+  auto margin_top = m_conf[config::value::GLOBAL_WM_ENTRY]["margin-top"].as(percentage_with_offset{});
+  auto margin_bottom = m_conf[config::value::GLOBAL_WM_ENTRY]["margin-bottom"].as(percentage_with_offset{});
   m_opts.strut.top = units_utils::percentage_with_offset_to_pixel(margin_top, m_opts.monitor->h, m_opts.dpi_y);
   m_opts.strut.bottom = units_utils::percentage_with_offset_to_pixel(margin_bottom, m_opts.monitor->h, m_opts.dpi_y);
 
   // Load commands used for fallback click handlers
   vector<action> actions;
-  actions.emplace_back(action{mousebtn::LEFT, m_conf.get(bs, "click-left", ""s)});
-  actions.emplace_back(action{mousebtn::MIDDLE, m_conf.get(bs, "click-middle", ""s)});
-  actions.emplace_back(action{mousebtn::RIGHT, m_conf.get(bs, "click-right", ""s)});
-  actions.emplace_back(action{mousebtn::SCROLL_UP, m_conf.get(bs, "scroll-up", ""s)});
-  actions.emplace_back(action{mousebtn::SCROLL_DOWN, m_conf.get(bs, "scroll-down", ""s)});
-  actions.emplace_back(action{mousebtn::DOUBLE_LEFT, m_conf.get(bs, "double-click-left", ""s)});
-  actions.emplace_back(action{mousebtn::DOUBLE_MIDDLE, m_conf.get(bs, "double-click-middle", ""s)});
-  actions.emplace_back(action{mousebtn::DOUBLE_RIGHT, m_conf.get(bs, "double-click-right", ""s)});
+  actions.emplace_back(action{mousebtn::LEFT, bar_config["click-left"].as(""s)});
+  actions.emplace_back(action{mousebtn::MIDDLE, bar_config["click-middle"].as(""s)});
+  actions.emplace_back(action{mousebtn::RIGHT, bar_config["click-right"].as(""s)});
+  actions.emplace_back(action{mousebtn::SCROLL_UP, bar_config["scroll-up"].as(""s)});
+  actions.emplace_back(action{mousebtn::SCROLL_DOWN, bar_config["scroll-down"].as(""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_LEFT, bar_config["double-click-left"].as(""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_MIDDLE, bar_config["double-click-middle"].as(""s)});
+  actions.emplace_back(action{mousebtn::DOUBLE_RIGHT, bar_config["double-click-right"].as(""s)});
 
   for (auto&& act : actions) {
     if (!act.command.empty()) {
@@ -257,7 +259,7 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
 
   const auto parse_or_throw_color = [&](string key, rgba def) -> rgba {
     try {
-      rgba color = m_conf.get(bs, key, def);
+      rgba color = bar_config[key].as(def);
 
       /*
        * These are the base colors of the bar and cannot be alpha only
@@ -270,14 +272,14 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   };
 
   // Load background
-  for (auto&& step : m_conf.get_list<rgba>(bs, "background", {})) {
+  for (auto&& step : bar_config["background"].as_list<rgba>({})) {
     m_opts.background_steps.emplace_back(step);
   }
 
   if (!m_opts.background_steps.empty()) {
     m_opts.background = m_opts.background_steps[0];
 
-    if (m_conf.has(bs, "background")) {
+    if (bar_config.has("background")) {
       m_log.warn("Ignoring `%s.background` (overridden by gradient background)", bs);
     }
   } else {
@@ -288,11 +290,11 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.foreground = parse_or_throw_color("foreground", m_opts.foreground);
 
   // Load over-/underline
-  auto line_color = m_conf.get(bs, "line-color", rgba{0xFFFF0000});
-  auto line_size = m_conf.get(bs, "line-size", ZERO_PX_EXTENT);
+  auto line_color = bar_config["line-color"].as(rgba{0xFFFF0000});
+  auto line_size = bar_config["line-size"].as(ZERO_PX_EXTENT);
 
-  auto overline_size = m_conf.get(bs, "overline-size", line_size);
-  auto underline_size = m_conf.get(bs, "underline-size", line_size);
+  auto overline_size = bar_config["overline-size"].as(line_size);
+  auto underline_size = bar_config["underline-size"].as(line_size);
 
   m_opts.overline.size = units_utils::extent_to_pixel_nonnegative(overline_size, m_opts.dpi_y);
   m_opts.overline.color = parse_or_throw_color("overline-color", line_color);
@@ -300,12 +302,12 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.underline.color = parse_or_throw_color("underline-color", line_color);
 
   // Load border settings
-  auto border_color = m_conf.get(bs, "border-color", rgba{0x00000000});
-  auto border_size = m_conf.get(bs, "border-size", percentage_with_offset{});
-  auto border_top = m_conf.deprecated(bs, "border-top", "border-top-size", border_size);
-  auto border_bottom = m_conf.deprecated(bs, "border-bottom", "border-bottom-size", border_size);
-  auto border_left = m_conf.deprecated(bs, "border-left", "border-left-size", border_size);
-  auto border_right = m_conf.deprecated(bs, "border-right", "border-right-size", border_size);
+  auto border_color = bar_config["border-color"].as(rgba{0x00000000});
+  auto border_size = bar_config["border-size"].as(percentage_with_offset{});
+  auto border_top = bar_config["border-top"].deprecated(bar_config["border-top-size"], border_size);
+  auto border_bottom = bar_config["border-bottom"].deprecated(bar_config["border-bottom-size"], border_size);
+  auto border_left = bar_config["border-left"].deprecated(bar_config["border-left-size"], border_size);
+  auto border_right = bar_config["border-right"].deprecated(bar_config["border-right-size"], border_size);
 
   m_opts.borders.emplace(edge::TOP, border_settings{});
   m_opts.borders[edge::TOP].size =
@@ -325,10 +327,10 @@ bar::bar(connection& conn, signal_emitter& emitter, const config& config, const 
   m_opts.borders[edge::RIGHT].color = parse_or_throw_color("border-right-color", border_color);
 
   // Load geometry values
-  auto w = m_conf.get(m_conf.section(), "width", percentage_with_offset{100.});
-  auto h = m_conf.get(m_conf.section(), "height", percentage_with_offset{0., {extent_type::PIXEL, 24}});
-  auto offsetx = m_conf.get(m_conf.section(), "offset-x", percentage_with_offset{});
-  auto offsety = m_conf.get(m_conf.section(), "offset-y", percentage_with_offset{});
+  auto w = bar_config["width"].as(percentage_with_offset{100.});
+  auto h = bar_config["height"].as(percentage_with_offset{0., {extent_type::PIXEL, 24}});
+  auto offsetx = bar_config["offset-x"].as(percentage_with_offset{});
+  auto offsety = bar_config["offset-y"].as(percentage_with_offset{});
 
   m_opts.size.w = units_utils::percentage_with_offset_to_pixel_nonnegative(w, m_opts.monitor->w, m_opts.dpi_x);
   m_opts.size.h = units_utils::percentage_with_offset_to_pixel_nonnegative(h, m_opts.monitor->h, m_opts.dpi_y);
@@ -490,7 +492,7 @@ void bar::restack_window() {
   string wm_restack;
 
   try {
-    wm_restack = m_conf.get(m_conf.section(), "wm-restack");
+    wm_restack = m_conf[config::value::BARS_ENTRY][m_conf.bar_name()]["wm-restack"].as<string>();
   } catch (const key_error& err) {
     return;
   }
@@ -927,7 +929,7 @@ void bar::start(const string& tray_module_name) {
   m_renderer->end();
 
   m_log.trace("bar: Setup tray manager");
-  m_tray->setup(m_conf, tray_module_name);
+  m_tray->setup(m_conf[config::value::BARS_ENTRY][m_conf.bar_name()], tray_module_name);
 
   if (m_tray->settings().tray_position == legacy_tray::tray_postition::MODULE ||
       m_tray->settings().tray_position == legacy_tray::tray_postition::NONE) {

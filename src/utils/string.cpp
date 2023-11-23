@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <utility>
+#include <cstring>
 
 POLYBAR_NS
 
@@ -40,6 +41,22 @@ static constexpr uint8_t UTF8_CONTINUATION_MASK = 0b11000000;
  */
 bool contains(const string& haystack, const string& needle) {
   return haystack.find(needle) != string::npos;
+}
+
+static bool starts_with(const string& haystack, size_t prefix_len, const char* prefix) {
+  if (haystack.length() < prefix_len) {
+    return false;
+  }
+
+  return haystack.compare(0, prefix_len, prefix) == 0;
+}
+
+bool starts_with(const string& haystack, const string& prefix) {
+  return starts_with(haystack, prefix.length(), prefix.c_str());
+}
+
+bool starts_with(const string& haystack, const char* prefix) {
+  return starts_with(haystack, strlen(prefix), prefix);
 }
 
 bool ends_with(const string& haystack, const string& suffix) {

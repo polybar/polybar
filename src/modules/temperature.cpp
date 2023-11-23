@@ -15,13 +15,15 @@ namespace modules {
 
   temperature_module::temperature_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<temperature_module>(bar, move(name_), config) {
-    m_zone = m_conf.get(name(), "thermal-zone", 0);
-    m_zone_type = m_conf.get(name(), "zone-type", ""s);
-    m_path = m_conf.get(name(), "hwmon-path", ""s);
-    m_tempbase = m_conf.get(name(), "base-temperature", 0);
-    m_tempwarn = m_conf.get(name(), "warn-temperature", 80);
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
+    m_zone = module_config["thermal-zone"].as<int>(0);
+    m_zone_type = module_config["zone-type"].as<string>(""s);
+    m_path = module_config["hwmon-path"].as<string>(""s);
+    m_tempbase = module_config["base-temperature"].as<int>(0);
+    m_tempwarn = module_config["warn-temperature"].as<int>(80);
     set_interval(1s);
-    m_units = m_conf.get(name(), "units", m_units);
+    m_units = module_config["units"].as<bool>(m_units);
 
     if (!m_zone_type.empty()) {
       bool zone_found = false;
@@ -55,13 +57,13 @@ namespace modules {
     m_formatter->add(FORMAT_WARN, TAG_LABEL_WARN, {TAG_LABEL_WARN, TAG_RAMP});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label[temp_state::NORMAL] = load_optional_label(m_conf, name(), TAG_LABEL, "%temperature-c%");
+      m_label[temp_state::NORMAL] = load_optional_label(module_config[NAME_LABEL], "%temperature-c%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_label[temp_state::WARN] = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%temperature-c%");
+      m_label[temp_state::WARN] = load_optional_label(module_config[NAME_LABEL_WARN], "%temperature-c%");
     }
     if (m_formatter->has(TAG_RAMP)) {
-      m_ramp = load_ramp(m_conf, name(), TAG_RAMP);
+      m_ramp = load_ramp(module_config[NAME_RAMP]);
     }
 
     // Deprecation warning for the %temperature% token

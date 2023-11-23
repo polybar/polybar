@@ -14,6 +14,8 @@ namespace modules {
 
   mpd_module::mpd_module(const bar_settings& bar, string name_, const config& config)
       : event_module<mpd_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action(EVENT_PLAY, [this]() { action_play(); });
     m_router->register_action(EVENT_PAUSE, [this]() { action_pause(); });
     m_router->register_action(EVENT_STOP, [this]() { action_stop(); });
@@ -25,13 +27,13 @@ namespace modules {
     m_router->register_action(EVENT_CONSUME, [this]() { action_consume(); });
     m_router->register_action_with_data(EVENT_SEEK, [this](const std::string& data) { action_seek(data); });
 
-    m_host = m_conf.get(name(), "host", m_host);
-    m_port = m_conf.get(name(), "port", m_port);
-    m_pass = m_conf.get(name(), "password", m_pass);
-    m_synctime = m_conf.get(name(), "interval", m_synctime);
+    m_host = module_config["host"].as<string>(m_host);
+    m_port = module_config["port"].as<unsigned int>(m_port);
+    m_pass = module_config["password"].as<string>(m_pass);
+    m_synctime = module_config["interval"].as<float>(m_synctime);
 
     // Add formats and elements {{{
-    auto format_online = m_conf.get<string>(name(), FORMAT_ONLINE, TAG_LABEL_SONG);
+    auto format_online = module_config[FORMAT_ONLINE].as<string>(TAG_LABEL_SONG);
     for (auto&& format : {FORMAT_PLAYING, FORMAT_PAUSED, FORMAT_STOPPED}) {
       m_formatter->add(format, format_online,
           {TAG_BAR_PROGRESS, TAG_TOGGLE, TAG_TOGGLE_STOP, TAG_LABEL_SONG, TAG_LABEL_TIME, TAG_ICON_RANDOM,
@@ -40,26 +42,26 @@ namespace modules {
 
       auto mod_format = m_formatter->get(format);
 
-      mod_format->fg = m_conf.get(name(), FORMAT_ONLINE + "-foreground"s, mod_format->fg);
-      mod_format->bg = m_conf.get(name(), FORMAT_ONLINE + "-background"s, mod_format->bg);
-      mod_format->ul = m_conf.get(name(), FORMAT_ONLINE + "-underline"s, mod_format->ul);
-      mod_format->ol = m_conf.get(name(), FORMAT_ONLINE + "-overline"s, mod_format->ol);
-      mod_format->ulsize = m_conf.get(name(), FORMAT_ONLINE + "-underline-size"s, mod_format->ulsize);
-      mod_format->olsize = m_conf.get(name(), FORMAT_ONLINE + "-overline-size"s, mod_format->olsize);
-      mod_format->spacing = m_conf.get(name(), FORMAT_ONLINE + "-spacing"s, mod_format->spacing);
-      mod_format->padding = m_conf.get(name(), FORMAT_ONLINE + "-padding"s, mod_format->padding);
-      mod_format->margin = m_conf.get(name(), FORMAT_ONLINE + "-margin"s, mod_format->margin);
-      mod_format->offset = m_conf.get(name(), FORMAT_ONLINE + "-offset"s, mod_format->offset);
-      mod_format->font = m_conf.get(name(), FORMAT_ONLINE + "-font"s, mod_format->font);
+      mod_format->fg = module_config[FORMAT_ONLINE]["foreground"s].as<rgba>(mod_format->fg);
+      mod_format->bg = module_config[FORMAT_ONLINE]["background"s].as<rgba>(mod_format->bg);
+      mod_format->ul = module_config[FORMAT_ONLINE]["underline"s].as<rgba>(mod_format->ul);
+      mod_format->ol = module_config[FORMAT_ONLINE]["overline"s].as<rgba>(mod_format->ol);
+      mod_format->ulsize = module_config[FORMAT_ONLINE]["underline-size"s].as<size_t>(mod_format->ulsize);
+      mod_format->olsize = module_config[FORMAT_ONLINE]["overline-size"s].as<size_t>(mod_format->olsize);
+      mod_format->spacing = module_config[FORMAT_ONLINE]["spacing"s].as<spacing_val>(mod_format->spacing);
+      mod_format->padding = module_config[FORMAT_ONLINE]["padding"s].as<spacing_val>(mod_format->padding);
+      mod_format->margin = module_config[FORMAT_ONLINE]["margin"s].as<spacing_val>(mod_format->margin);
+      mod_format->offset = module_config[FORMAT_ONLINE]["offset"s].as<extent_val>(mod_format->offset);
+      mod_format->font = module_config[FORMAT_ONLINE]["font"s].as<int>(mod_format->font);
 
       try {
-        mod_format->prefix = load_label(m_conf, name(), FORMAT_ONLINE + "-prefix"s);
+        mod_format->prefix = load_label(module_config[FORMAT_ONLINE]["prefix"s]);
       } catch (const key_error& err) {
         // format-online-prefix not defined
       }
 
       try {
-        mod_format->suffix = load_label(m_conf, name(), FORMAT_ONLINE + "-suffix"s);
+        mod_format->suffix = load_label(module_config[FORMAT_ONLINE]["suffix"s]);
       } catch (const key_error& err) {
         // format-online-suffix not defined
       }
@@ -70,62 +72,62 @@ namespace modules {
     m_icons = std::make_shared<iconset>();
 
     if (m_formatter->has(TAG_ICON_PLAY) || m_formatter->has(TAG_TOGGLE) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("play", load_label(m_conf, name(), TAG_ICON_PLAY));
+      m_icons->add("play", load_label(module_config[NAME_ICON_PLAY]));
     }
     if (m_formatter->has(TAG_ICON_PAUSE) || m_formatter->has(TAG_TOGGLE)) {
-      m_icons->add("pause", load_label(m_conf, name(), TAG_ICON_PAUSE));
+      m_icons->add("pause", load_label(module_config[NAME_ICON_PAUSE]));
     }
     if (m_formatter->has(TAG_ICON_STOP) || m_formatter->has(TAG_TOGGLE_STOP)) {
-      m_icons->add("stop", load_label(m_conf, name(), TAG_ICON_STOP));
+      m_icons->add("stop", load_label(module_config[NAME_ICON_STOP]));
     }
     if (m_formatter->has(TAG_ICON_PREV)) {
-      m_icons->add("prev", load_label(m_conf, name(), TAG_ICON_PREV));
+      m_icons->add("prev", load_label(module_config[NAME_ICON_PREV]));
     }
     if (m_formatter->has(TAG_ICON_NEXT)) {
-      m_icons->add("next", load_label(m_conf, name(), TAG_ICON_NEXT));
+      m_icons->add("next", load_label(module_config[NAME_ICON_NEXT]));
     }
     if (m_formatter->has(TAG_ICON_SEEKB)) {
-      m_icons->add("seekb", load_label(m_conf, name(), TAG_ICON_SEEKB));
+      m_icons->add("seekb", load_label(module_config[NAME_ICON_SEEKB]));
     }
     if (m_formatter->has(TAG_ICON_SEEKF)) {
-      m_icons->add("seekf", load_label(m_conf, name(), TAG_ICON_SEEKF));
+      m_icons->add("seekf", load_label(module_config[NAME_ICON_SEEKF]));
     }
     if (m_formatter->has(TAG_ICON_RANDOM)) {
-      m_icons->add("random", load_label(m_conf, name(), TAG_ICON_RANDOM));
+      m_icons->add("random", load_label(module_config[NAME_ICON_RANDOM]));
     }
     if (m_formatter->has(TAG_ICON_REPEAT)) {
-      m_icons->add("repeat", load_label(m_conf, name(), TAG_ICON_REPEAT));
+      m_icons->add("repeat", load_label(module_config[NAME_ICON_REPEAT]));
     }
 
     if (m_formatter->has(TAG_ICON_SINGLE)) {
-      m_icons->add("single", load_label(m_conf, name(), TAG_ICON_SINGLE));
+      m_icons->add("single", load_label(module_config[NAME_ICON_SINGLE]));
     } else if (m_formatter->has(TAG_ICON_REPEAT_ONE)) {
-      m_conf.warn_deprecated(name(), "icon-repeatone", "icon-single");
+      module_config.warn_deprecated("icon-repeatone", module_config["icon-single"]);
 
-      m_icons->add("single", load_label(m_conf, name(), TAG_ICON_REPEAT_ONE));
+      m_icons->add("single", load_label(module_config[NAME_ICON_REPEAT_ONE]));
     }
 
     if (m_formatter->has(TAG_ICON_CONSUME)) {
-      m_icons->add("consume", load_label(m_conf, name(), TAG_ICON_CONSUME));
+      m_icons->add("consume", load_label(module_config[NAME_ICON_CONSUME]));
     }
 
     if (m_formatter->has(TAG_LABEL_SONG)) {
-      m_label_song = load_optional_label(m_conf, name(), TAG_LABEL_SONG, "%artist% - %title%");
+      m_label_song = load_optional_label(module_config[NAME_LABEL_SONG], "%artist% - %title%");
     }
     if (m_formatter->has(TAG_LABEL_TIME)) {
-      m_label_time = load_optional_label(m_conf, name(), TAG_LABEL_TIME, "%elapsed% / %total%");
+      m_label_time = load_optional_label(module_config[NAME_LABEL_TIME], "%elapsed% / %total%");
     }
     if (m_formatter->has(TAG_ICON_RANDOM) || m_formatter->has(TAG_ICON_REPEAT) ||
         m_formatter->has(TAG_ICON_REPEAT_ONE) || m_formatter->has(TAG_ICON_SINGLE) ||
         m_formatter->has(TAG_ICON_CONSUME)) {
-      m_toggle_on_color = m_conf.get(name(), "toggle-on-foreground", rgba{});
-      m_toggle_off_color = m_conf.get(name(), "toggle-off-foreground", rgba{});
+      m_toggle_on_color = module_config["toggle-on-foreground"].as<rgba>(rgba{});
+      m_toggle_off_color = module_config["toggle-off-foreground"].as<rgba>(rgba{});
     }
     if (m_formatter->has(TAG_LABEL_OFFLINE, FORMAT_OFFLINE)) {
-      m_label_offline = load_label(m_conf, name(), TAG_LABEL_OFFLINE);
+      m_label_offline = load_label(module_config[NAME_LABEL_OFFLINE]);
     }
     if (m_formatter->has(TAG_BAR_PROGRESS)) {
-      m_bar_progress = load_progressbar(m_bar, m_conf, name(), TAG_BAR_PROGRESS);
+      m_bar_progress = load_progressbar(m_bar, module_config[NAME_BAR_PROGRESS]);
     }
 
     // }}}

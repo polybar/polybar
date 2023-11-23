@@ -16,6 +16,8 @@ namespace modules {
 
   i3_module::i3_module(const bar_settings& bar, string name_, const config& conf)
       : event_module<i3_module>(bar, move(name_), conf) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
@@ -34,43 +36,43 @@ namespace modules {
     m_ipc = std::make_unique<i3ipc::connection>();
 
     // Load configuration values
-    m_click = m_conf.get(name(), "enable-click", m_click);
-    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
-    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
-    m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
-    m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
-    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
-    m_show_urgent = m_conf.get(name(), "show-urgent", m_show_urgent);
-    m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
-    m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_click = module_config["enable-click"].as<bool>(m_click);
+    m_scroll = module_config["enable-scroll"].as<bool>(m_scroll);
+    m_revscroll = module_config["reverse-scroll"].as<bool>(m_revscroll);
+    m_wrap = module_config["wrapping-scroll"].as<bool>(m_wrap);
+    m_indexsort = module_config["index-sort"].as<bool>(m_indexsort);
+    m_pinworkspaces = module_config["pin-workspaces"].as<bool>(m_pinworkspaces);
+    m_show_urgent = module_config["show-urgent"].as<bool>(m_show_urgent);
+    m_strip_wsnumbers = module_config["strip-wsnumbers"].as<bool>(m_strip_wsnumbers);
+    m_fuzzy_match = module_config["fuzzy-match"].as<bool>(m_fuzzy_match);
 
-    m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
+    module_config.warn_deprecated("wsname-maxlen", module_config["%name:min:max%"]);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, DEFAULT_TAGS, {TAG_LABEL_STATE, TAG_LABEL_MODE});
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
       m_statelabels.insert(
-          make_pair(state::FOCUSED, load_optional_label(m_conf, name(), "label-focused", DEFAULT_WS_LABEL)));
+          make_pair(state::FOCUSED, load_optional_label(module_config["label-focused"], DEFAULT_WS_LABEL)));
       m_statelabels.insert(
-          make_pair(state::UNFOCUSED, load_optional_label(m_conf, name(), "label-unfocused", DEFAULT_WS_LABEL)));
+          make_pair(state::UNFOCUSED, load_optional_label(module_config["label-unfocused"], DEFAULT_WS_LABEL)));
       m_statelabels.insert(
-          make_pair(state::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
+          make_pair(state::VISIBLE, load_optional_label(module_config["label-visible"], DEFAULT_WS_LABEL)));
       m_statelabels.insert(
-          make_pair(state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+          make_pair(state::URGENT, load_optional_label(module_config["label-urgent"], DEFAULT_WS_LABEL)));
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
-      m_modelabel = load_optional_label(m_conf, name(), "label-mode", "%mode%");
+      m_modelabel = load_optional_label(module_config["label-mode"], "%mode%");
     }
 
-    m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+    m_labelseparator = load_optional_label(module_config["label-separator"], "");
 
     m_icons = std::make_shared<iconset>();
-    m_icons->add(DEFAULT_WS_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_WS_ICON, ""s)));
+    m_icons->add(DEFAULT_WS_ICON, std::make_shared<label>(module_config[DEFAULT_WS_ICON].as<string>(""s)));
 
     int i = 0;
-    for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
+    for (const auto& workspace : module_config["ws-icon"].as_list<string>({})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));

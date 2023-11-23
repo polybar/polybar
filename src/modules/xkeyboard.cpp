@@ -24,6 +24,8 @@ namespace modules {
    */
   xkeyboard_module::xkeyboard_module(const bar_settings& bar, string name_, const config& config)
       : static_module<xkeyboard_module>(bar, move(name_), config), m_connection(connection::make()) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action(EVENT_SWITCH, [this]() { action_switch(); });
 
     // Setup extension
@@ -41,7 +43,7 @@ namespace modules {
     query_keyboard();
 
     // Load config values
-    m_blacklist = m_conf.get_list(name(), "blacklist", {});
+    m_blacklist = module_config["blacklist"].as_list<string>({});
 
     // load layout icons
     parse_icons();
@@ -50,28 +52,28 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, FORMAT_DEFAULT, {TAG_LABEL_LAYOUT, TAG_LABEL_INDICATOR});
 
     if (m_formatter->has(TAG_LABEL_LAYOUT)) {
-      m_layout = load_optional_label(m_conf, name(), TAG_LABEL_LAYOUT, "%layout%");
+      m_layout = load_optional_label(module_config[NAME_LABEL_LAYOUT], "%layout%");
     }
 
     if (m_formatter->has(TAG_LABEL_INDICATOR)) {
-      m_conf.warn_deprecated(name(), "label-indicator", "label-indicator-on");
+      module_config.warn_deprecated("label-indicator", module_config["label-indicator-on"]);
       // load an empty label if 'label-indicator-off' is not explicitly specified so
       // no existing user configs are broken (who expect nothing to be shown when indicator is off)
-      m_indicator_state_off = load_optional_label(m_conf, name(), "label-indicator-off"s, ""s);
+      m_indicator_state_off = load_optional_label(module_config["label-indicator-off"s], ""s);
 
-      if (m_conf.has(name(), "label-indicator-on"s)) {
-        m_indicator_state_on = load_optional_label(m_conf, name(), "label-indicator-on"s, "%name%"s);
+      if (m_conf[config::value::MODULES_ENTRY][name_raw()].has("label-indicator-on"s)) {
+        m_indicator_state_on = load_optional_label(module_config["label-indicator-on"s], "%name%"s);
       } else {
         // if 'label-indicator-on' is not explicitly specified, use 'label-indicator'
         // as to not break existing user configs
-        m_indicator_state_on = load_optional_label(m_conf, name(), TAG_LABEL_INDICATOR, "%name%"s);
+        m_indicator_state_on = load_optional_label(module_config[NAME_LABEL_INDICATOR], "%name%"s);
       }
 
       // load indicator icons
       m_indicator_icons_off = std::make_shared<iconset>();
       m_indicator_icons_on = std::make_shared<iconset>();
 
-      auto icon_pair = string_util::tokenize(m_conf.get(name(), DEFAULT_INDICATOR_ICON, ""s), ';');
+      auto icon_pair = string_util::tokenize(module_config[DEFAULT_INDICATOR_ICON].as<string>(""s), ';');
       if (icon_pair.size() == 2) {
         m_indicator_icons_off->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[0]));
         m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(icon_pair[1]));
@@ -80,7 +82,7 @@ namespace modules {
         m_indicator_icons_on->add(DEFAULT_INDICATOR_ICON, std::make_shared<label>(""s));
       }
 
-      for (const auto& it : m_conf.get_list<string>(name(), "indicator-icon", {})) {
+      for (const auto& it : module_config["indicator-icon"].as_list<string>({})) {
         auto icon_triple = string_util::tokenize(it, ';');
         if (icon_triple.size() == 3) {
           auto const indicator_str = string_util::lower(icon_triple[0]);
@@ -95,11 +97,11 @@ namespace modules {
         const auto indicator_key_on = "label-indicator-on-"s + key_name;
         const auto indicator_key_off = "label-indicator-off-"s + key_name;
 
-        if (m_conf.has(name(), indicator_key_on)) {
-          m_indicator_on_labels.emplace(it, load_label(m_conf, name(), indicator_key_on));
+        if (m_conf[config::value::MODULES_ENTRY][name_raw()].has(indicator_key_on)) {
+          m_indicator_on_labels.emplace(it, load_label(module_config[indicator_key_on]));
         }
-        if (m_conf.has(name(), indicator_key_off)) {
-          m_indicator_off_labels.emplace(it, load_label(m_conf, name(), indicator_key_off));
+        if (m_conf[config::value::MODULES_ENTRY][name_raw()].has(indicator_key_off)) {
+          m_indicator_off_labels.emplace(it, load_label(module_config[indicator_key_off]));
         }
       }
     }
@@ -277,9 +279,9 @@ namespace modules {
   }
 
   void xkeyboard_module::parse_icons() {
-    m_layout_icons = make_shared<layouticonset>(load_optional_label(m_conf, name(), DEFAULT_LAYOUT_ICON, ""s));
+    m_layout_icons = make_shared<layouticonset>(load_optional_label(m_conf[config::value::MODULES_ENTRY][name_raw()][DEFAULT_LAYOUT_ICON], ""s));
 
-    for (const auto& it : m_conf.get_list<string>(name(), "layout-icon", {})) {
+    for (const auto& it : m_conf[config::value::MODULES_ENTRY][name_raw()]["layout-icon"].as_list<string>({})) {
       auto vec = string_util::tokenize(it, ';');
 
       size_t size = vec.size();

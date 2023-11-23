@@ -41,6 +41,8 @@ namespace modules {
 
   bspwm_module::bspwm_module(const bar_settings& bar, string name_, const config& config)
       : event_module<bspwm_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     m_router->register_action_with_data(EVENT_FOCUS, [this](const std::string& data) { action_focus(data); });
     m_router->register_action(EVENT_NEXT, [this]() { action_next(); });
     m_router->register_action(EVENT_PREV, [this]() { action_prev(); });
@@ -55,41 +57,41 @@ namespace modules {
     m_subscriber = bspwm_util::make_subscriber();
 
     // Load configuration values
-    m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
-    m_click = m_conf.get(name(), "enable-click", m_click);
-    m_scroll = m_conf.get(name(), "enable-scroll", m_scroll);
-    m_occscroll = m_conf.get(name(), "occupied-scroll", m_occscroll);
-    m_revscroll = m_conf.get(name(), "reverse-scroll", m_revscroll);
-    m_inlinemode = m_conf.get(name(), "inline-mode", m_inlinemode);
-    m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_pinworkspaces = module_config["pin-workspaces"].as<bool>(m_pinworkspaces);
+    m_click = module_config["enable-click"].as<bool>(m_click);
+    m_scroll = module_config["enable-scroll"].as<bool>(m_scroll);
+    m_occscroll = module_config["occupied-scroll"].as<bool>(m_occscroll);
+    m_revscroll = module_config["reverse-scroll"].as<bool>(m_revscroll);
+    m_inlinemode = module_config["inline-mode"].as<bool>(m_inlinemode);
+    m_fuzzy_match = module_config["fuzzy-match"].as<bool>(m_fuzzy_match);
 
     // Add formats and create components
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL_STATE, {TAG_LABEL_STATE}, {TAG_LABEL_MONITOR, TAG_LABEL_MODE});
 
     if (m_formatter->has(TAG_LABEL_MONITOR)) {
-      m_monitorlabel = load_optional_label(m_conf, name(), "label-monitor", DEFAULT_MONITOR_LABEL);
+      m_monitorlabel = load_optional_label(module_config["label-monitor"], DEFAULT_MONITOR_LABEL);
     }
 
     if (m_formatter->has(TAG_LABEL_STATE)) {
       // XXX: Warn about deprecated parameters
-      m_conf.warn_deprecated(name(), "label-dimmed-active", "label-dimmed-focused");
+      module_config.warn_deprecated("label-dimmed-active", module_config["label-dimmed-focused"]);
 
       // clang-format off
       try {
-        m_statelabels.emplace(make_mask(state::FOCUSED), load_label(m_conf, name(), "label-active", DEFAULT_LABEL));
-        m_conf.warn_deprecated(name(), "label-active", "label-focused and label-dimmed-focused");
+        m_statelabels.emplace(make_mask(state::FOCUSED), load_label(module_config["label-active"], DEFAULT_LABEL));
+        module_config.warn_deprecated("label-active", module_config["label-focused and label-dimmed-focused"]);
       } catch (const key_error& err) {
-        m_statelabels.emplace(make_mask(state::FOCUSED), load_optional_label(m_conf, name(), "label-focused", DEFAULT_LABEL));
+        m_statelabels.emplace(make_mask(state::FOCUSED), load_optional_label(module_config["label-focused"], DEFAULT_LABEL));
       }
 
       m_statelabels.emplace(make_mask(state::OCCUPIED),
-          load_optional_label(m_conf, name(), "label-occupied", DEFAULT_LABEL));
+          load_optional_label(module_config["label-occupied"], DEFAULT_LABEL));
       m_statelabels.emplace(make_mask(state::URGENT),
-          load_optional_label(m_conf, name(), "label-urgent", DEFAULT_LABEL));
+          load_optional_label(module_config["label-urgent"], DEFAULT_LABEL));
       m_statelabels.emplace(make_mask(state::EMPTY),
-          load_optional_label(m_conf, name(), "label-empty", DEFAULT_LABEL));
+          load_optional_label(module_config["label-empty"], DEFAULT_LABEL));
       m_statelabels.emplace(make_mask(state::DIMMED),
-          load_optional_label(m_conf, name(), "label-dimmed"));
+          load_optional_label(module_config["label-dimmed"]));
 
       vector<pair<state, string>> focused_overrides{
         {state::OCCUPIED, "label-focused-occupied"},
@@ -99,7 +101,7 @@ namespace modules {
       for (auto&& os : focused_overrides) {
         unsigned int mask{make_mask(state::FOCUSED, os.first)};
         try {
-          m_statelabels.emplace(mask, load_label(m_conf, name(), os.second));
+          m_statelabels.emplace(mask, load_label(module_config[os.second]));
         } catch (const key_error& err) {
           m_statelabels.emplace(mask, m_statelabels.at(make_mask(state::FOCUSED))->clone());
         }
@@ -113,30 +115,30 @@ namespace modules {
 
       for (auto&& os : dimmed_overrides) {
         m_statelabels.emplace(make_mask(state::DIMMED, os.first),
-            load_optional_label(m_conf, name(), os.second, m_statelabels.at(make_mask(os.first))->get()));
+            load_optional_label(module_config[os.second], m_statelabels.at(make_mask(os.first))->get()));
       }
       // clang-format on
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
-      m_modelabels.emplace(mode::LAYOUT_MONOCLE, load_optional_label(m_conf, name(), "label-monocle"));
-      m_modelabels.emplace(mode::LAYOUT_TILED, load_optional_label(m_conf, name(), "label-tiled"));
-      m_modelabels.emplace(mode::STATE_FULLSCREEN, load_optional_label(m_conf, name(), "label-fullscreen"));
-      m_modelabels.emplace(mode::STATE_FLOATING, load_optional_label(m_conf, name(), "label-floating"));
-      m_modelabels.emplace(mode::STATE_PSEUDOTILED, load_optional_label(m_conf, name(), "label-pseudotiled"));
-      m_modelabels.emplace(mode::NODE_LOCKED, load_optional_label(m_conf, name(), "label-locked"));
-      m_modelabels.emplace(mode::NODE_STICKY, load_optional_label(m_conf, name(), "label-sticky"));
-      m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(m_conf, name(), "label-private"));
-      m_modelabels.emplace(mode::NODE_MARKED, load_optional_label(m_conf, name(), "label-marked"));
+      m_modelabels.emplace(mode::LAYOUT_MONOCLE, load_optional_label(module_config["label-monocle"]));
+      m_modelabels.emplace(mode::LAYOUT_TILED, load_optional_label(module_config["label-tiled"]));
+      m_modelabels.emplace(mode::STATE_FULLSCREEN, load_optional_label(module_config["label-fullscreen"]));
+      m_modelabels.emplace(mode::STATE_FLOATING, load_optional_label(module_config["label-floating"]));
+      m_modelabels.emplace(mode::STATE_PSEUDOTILED, load_optional_label(module_config["label-pseudotiled"]));
+      m_modelabels.emplace(mode::NODE_LOCKED, load_optional_label(module_config["label-locked"]));
+      m_modelabels.emplace(mode::NODE_STICKY, load_optional_label(module_config["label-sticky"]));
+      m_modelabels.emplace(mode::NODE_PRIVATE, load_optional_label(module_config["label-private"]));
+      m_modelabels.emplace(mode::NODE_MARKED, load_optional_label(module_config["label-marked"]));
     }
 
-    m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+    m_labelseparator = load_optional_label(module_config["label-separator"], "");
 
     m_icons = std::make_shared<iconset>();
-    m_icons->add(DEFAULT_ICON, std::make_shared<label>(m_conf.get(name(), DEFAULT_ICON, ""s)));
+    m_icons->add(DEFAULT_ICON, std::make_shared<label>(module_config[DEFAULT_ICON].as<string>(""s)));
 
     int i = 0;
-    for (const auto& workspace : m_conf.get_list<string>(name(), "ws-icon", {})) {
+    for (const auto& workspace : module_config["ws-icon"].as_list<string>({})) {
       auto vec = string_util::tokenize(workspace, ';');
       if (vec.size() == 2) {
         m_icons->add(vec[0], std::make_shared<label>(vec[1]));

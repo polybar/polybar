@@ -13,7 +13,9 @@ namespace modules {
 
   menu_module::menu_module(const bar_settings& bar, string name_, const config& config)
       : static_module<menu_module>(bar, move(name_), config) {
-    m_expand_right = m_conf.get(name(), "expand-right", m_expand_right);
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
+    m_expand_right = module_config["expand-right"].as<bool>(m_expand_right);
 
     m_router->register_action_with_data(EVENT_OPEN, [this](const std::string& data) { action_open(data); });
     m_router->register_action(EVENT_CLOSE, [this]() { action_close(); });
@@ -31,11 +33,11 @@ namespace modules {
     m_formatter->add(DEFAULT_FORMAT, default_format, {TAG_LABEL_TOGGLE, TAG_MENU});
 
     if (m_formatter->has(TAG_LABEL_TOGGLE)) {
-      m_labelopen = load_label(m_conf, name(), "label-open");
-      m_labelclose = load_optional_label(m_conf, name(), "label-close", "x");
+      m_labelopen = load_label(module_config["label-open"]);
+      m_labelclose = load_optional_label(module_config["label-close"], "x");
     }
 
-    m_labelseparator = load_optional_label(m_conf, name(), "label-separator", "");
+    m_labelseparator = load_optional_label(module_config["label-separator"], "");
 
     if (!m_formatter->has(TAG_MENU)) {
       return;
@@ -44,7 +46,7 @@ namespace modules {
     while (true) {
       string level_param{"menu-" + to_string(m_levels.size())};
 
-      if (m_conf.get(name(), level_param + "-0", ""s).empty()) {
+      if (m_conf[config::value::MODULES_ENTRY][name_raw()][level_param]["0"].as<string>(""s).empty()) {
         break;
       }
 
@@ -54,14 +56,14 @@ namespace modules {
       while (true) {
         string item_param{level_param + "-" + to_string(m_levels.back()->items.size())};
 
-        if (m_conf.get(name(), item_param, ""s).empty()) {
+        if (m_conf[config::value::MODULES_ENTRY][name_raw()][item_param].as<string>(""s).empty()) {
           break;
         }
 
         m_log.trace("%s: Creating menu level item %i", name(), m_levels.back()->items.size());
         auto item = std::make_unique<menu_tree_item>();
-        item->label = load_label(m_conf, name(), item_param);
-        item->exec = m_conf.get(name(), item_param + "-exec", actions_util::get_action_string(*this, EVENT_CLOSE, ""));
+        item->label = load_label(module_config[item_param]);
+        item->exec = m_conf[config::value::MODULES_ENTRY][name_raw()][item_param + "-exec"].as<string>(actions_util::get_action_string(*this, EVENT_CLOSE, ""));
         m_levels.back()->items.emplace_back(move(item));
       }
     }

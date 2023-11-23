@@ -87,32 +87,30 @@ namespace modules {
   // module_formatter {{{
 
   void module_formatter::add_value(string&& name, string&& value, vector<string>&& tags, vector<string>&& whitelist) {
-    const auto formatdef = [&](const string& param, const auto& fallback) {
-      return m_conf.get("settings", "format-" + param, fallback);
-    };
-
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][m_modname][name];
+    config::value settings_config = m_conf[config::value::SETTINGS_ENTRY]["format"];
     auto format = make_unique<module_format>();
     format->value = move(value);
-    format->fg = m_conf.get(m_modname, name + "-foreground", formatdef("foreground", format->fg));
-    format->bg = m_conf.get(m_modname, name + "-background", formatdef("background", format->bg));
-    format->ul = m_conf.get(m_modname, name + "-underline", formatdef("underline", format->ul));
-    format->ol = m_conf.get(m_modname, name + "-overline", formatdef("overline", format->ol));
-    format->ulsize = m_conf.get(m_modname, name + "-underline-size", formatdef("underline-size", format->ulsize));
-    format->olsize = m_conf.get(m_modname, name + "-overline-size", formatdef("overline-size", format->olsize));
-    format->spacing = m_conf.get(m_modname, name + "-spacing", formatdef("spacing", format->spacing));
-    format->padding = m_conf.get(m_modname, name + "-padding", formatdef("padding", format->padding));
-    format->margin = m_conf.get(m_modname, name + "-margin", formatdef("margin", format->margin));
-    format->offset = m_conf.get(m_modname, name + "-offset", formatdef("offset", format->offset));
-    format->font = m_conf.get(m_modname, name + "-font", formatdef("font", format->font));
+    format->fg = module_config["foreground"].as<rgba>(settings_config["foreground"].as<rgba>(format->fg));
+    format->bg = module_config["background"].as<rgba>(settings_config["background"].as<rgba>(format->bg));
+    format->ul = module_config["underline"].as<rgba>(settings_config["underline"].as<rgba>(format->ul));
+    format->ol = module_config["overline"].as<rgba>(settings_config["overline"].as<rgba>(format->ol));
+    format->ulsize = module_config["underline-size"].as<size_t>(settings_config["underline-size"].as<size_t>(format->ulsize));
+    format->olsize = module_config["overline-size"].as<size_t>(settings_config["overline-size"].as<size_t>(format->olsize));
+    format->spacing = module_config["spacing"].as<spacing_val>(settings_config["spacing"].as<spacing_val>(format->spacing));
+    format->padding = module_config["padding"].as<spacing_val>(settings_config["padding"].as<spacing_val>(format->padding));
+    format->margin = module_config["margin"].as<spacing_val>(settings_config["margin"].as<spacing_val>(format->margin));
+    format->offset = module_config["offset"].as<extent_val>(settings_config["offset"].as<extent_val>(format->offset));
+    format->font = module_config["font"].as<int>(settings_config["font"].as<int>(format->font));
 
     try {
-      format->prefix = load_label(m_conf, m_modname, name + "-prefix");
+      format->prefix = load_label(module_config["prefix"]);
     } catch (const key_error& err) {
       // prefix not defined
     }
 
     try {
-      format->suffix = load_label(m_conf, m_modname, name + "-suffix");
+      format->suffix = load_label(module_config["suffix"]);
     } catch (const key_error& err) {
       // suffix not defined
     }
@@ -140,13 +138,13 @@ namespace modules {
   }
 
   void module_formatter::add(string name, string fallback, vector<string>&& tags, vector<string>&& whitelist) {
-    string value = m_conf.get(m_modname, name, move(fallback));
+    string value = m_conf[config::value::MODULES_ENTRY][m_modname][name].as<string>(move(fallback));
     add_value(move(name), move(value), forward<vector<string>>(tags), forward<vector<string>>(whitelist));
   }
 
   void module_formatter::add_optional(string name, vector<string>&& tags, vector<string>&& whitelist) {
-    if (m_conf.has(m_modname, name)) {
-      string value = m_conf.get(m_modname, name);
+    if (m_conf[config::value::MODULES_ENTRY][m_modname].has(name)) {
+      string value = m_conf[config::value::MODULES_ENTRY][m_modname][name].as<string>();
       add_value(move(name), move(value), move(tags), move(whitelist));
     }
   }

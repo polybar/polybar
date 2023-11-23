@@ -7,6 +7,7 @@
 #include "cairo/context.hpp"
 #include "cairo/surface.hpp"
 #include "common.hpp"
+#include "components/config.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "events/signal_fwd.hpp"
@@ -91,7 +92,7 @@ class manager : public xpp::event::sink<evt::expose, evt::client_message, evt::c
 
   unsigned get_width() const;
 
-  void setup(const config& conf, const string& module_section_name);
+  void setup(const config::value& conf);
   void activate();
   void wait_for_selection(xcb_window_t other);
   void deactivate();

@@ -80,8 +80,14 @@ namespace drawtypes {
     const vector<token> m_tokens{};
   };
 
-  label_t load_label(const config& conf, const string& section, string name, bool required = true, string def = ""s);
-  label_t load_optional_label(const config& conf, string section, string name, string def = ""s);
+  /**
+   * Create a label by loading values from the configuration
+   */
+  label_t load_label(const config::value& conf, bool required = true, string def = ""s);
+
+  label_t load_optional_label(const config::value& conf, string def = ""s);
+  label_t load_separator(const config::value& conf);
+
 } // namespace drawtypes
 
 POLYBAR_NS_END

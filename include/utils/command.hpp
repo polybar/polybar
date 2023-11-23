@@ -1,10 +1,14 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "common.hpp"
 #include "components/logger.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"
 #include "utils/file.hpp"
+
+using std::unordered_map;
 
 POLYBAR_NS
 
@@ -82,7 +86,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 
   command& operator=(const command&) = delete;
 
-  int exec(bool wait_for_completion = true, const vector<pair<string, string>>& env = {});
+  int exec(bool wait_for_completion = true, const unordered_map<string, string>& env = {});
   using command<output_policy::IGNORED>::terminate;
   using command<output_policy::IGNORED>::is_running;
   using command<output_policy::IGNORED>::wait;

@@ -27,8 +27,18 @@ namespace modules {
     void update_label(int);
     int get_number_of_notification();
     string request();
-    static constexpr auto TAG_LABEL = "<label>";
-    static constexpr auto TAG_LABEL_OFFLINE = "<label-offline>";
+
+#define DEF_LABEL "label"
+#define DEF_LABEL_OFFLINE "label-offline"
+
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto NAME_LABEL_OFFLINE = DEF_LABEL_OFFLINE;
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+    static constexpr auto TAG_LABEL_OFFLINE = "<" DEF_LABEL_OFFLINE ">";
+
+#undef DEF_LABEL
+#undef DEF_LABEL_OFFLINE
+
     static constexpr auto FORMAT_OFFLINE = "format-offline";
 
     label_t m_label{};

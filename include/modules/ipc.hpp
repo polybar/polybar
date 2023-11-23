@@ -58,7 +58,10 @@ namespace modules {
     void update_output() ;
    private:
     static constexpr auto TAG_OUTPUT = "<output>";
-    static constexpr auto TAG_LABEL = "<label>";
+#define DEF_LABEL "label"
+    static constexpr auto NAME_LABEL = DEF_LABEL;
+    static constexpr auto TAG_LABEL = "<" DEF_LABEL ">";
+#undef DEF_LABEL
 
     label_t m_label;
 

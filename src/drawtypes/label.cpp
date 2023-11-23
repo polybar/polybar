@@ -169,47 +169,9 @@ namespace drawtypes {
     }
   }
 
-  /**
-   * Create a label by loading values from the configuration
-   */
-  label_t load_label(const config& conf, const string& section, string name, bool required, string def) {
-    vector<token> tokens;
+  void extract_tokens(string &text, vector<token>& tokens) {
     size_t start, end, pos;
-
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
-
-    string text;
-
-    struct side_values padding {
-    }, margin{};
-
-    if (required) {
-      text = conf.get(section, name);
-    } else {
-      text = conf.get(section, name, def);
-    }
-
-    const auto get_left_right = [&](string&& key) {
-      const auto parse_or_throw = [&](const string& key, spacing_val default_value) {
-        try {
-          return conf.get(section, key, default_value);
-        } catch (const std::exception& err) {
-          throw application_error(
-              sstream() << "Failed to set " << section << "." << key << " (reason: " << err.what() << ")");
-        }
-      };
-
-      auto value = parse_or_throw(key, ZERO_SPACE);
-      auto left = parse_or_throw(key + "-left", value);
-      auto right = parse_or_throw(key + "-right", value);
-      return side_values{left, right};
-    };
-
-    padding = get_left_right(name + "-padding");
-    margin = get_left_right(name + "-margin");
-
     string line{text};
-
     while ((start = line.find('%')) != string::npos && (end = line.find('%', start + 1)) != string::npos) {
       auto token_str = line.substr(start, end - start + 1);
 
@@ -267,8 +229,44 @@ namespace drawtypes {
         token.suffix = token_str.substr(pos + 1, token_str.size() - pos - 2);
       }
     }
-    size_t minlen = conf.get(section, name + "-minlen", 0_z);
-    string alignment_conf_value = conf.get(section, name + "-alignment", "left"s);
+  }
+
+  label_t load_label(const config::value& conf, bool required, string def) {
+    vector<token> tokens;
+
+    string text;
+
+    struct side_values padding {}, margin{};
+
+    if (required) {
+      text = conf.as<string>();
+    } else {
+      text = conf.as<string>(def);
+    }
+
+    const auto get_left_right = [&](const config::value& glr_conf) {
+      const auto parse_or_throw = [&](const config::value& conf_to_parse, spacing_val default_value) {
+        try {
+          return conf_to_parse.as<spacing_val>(default_value);
+        } catch (const std::exception& err) {
+          throw application_error(
+              sstream() << "Failed to get " << (string)conf << " (reason: " << err.what() << ")");
+        }
+      };
+
+      auto value = parse_or_throw(glr_conf, ZERO_SPACE);
+      auto left = parse_or_throw(glr_conf["left"], value);
+      auto right = parse_or_throw(glr_conf["right"], value);
+      return side_values{left, right};
+    };
+
+    padding = get_left_right(conf["padding"]);
+    margin = get_left_right(conf["margin"]);
+
+    extract_tokens(text, tokens);
+
+    size_t minlen = conf["minlen"].as<size_t>(0_z);
+    string alignment_conf_value = conf["alignment"].as<string>("left"s);
     alignment label_alignment;
     if (alignment_conf_value == "right") {
       label_alignment = alignment::RIGHT;
@@ -277,31 +275,31 @@ namespace drawtypes {
     } else if (alignment_conf_value == "center") {
       label_alignment = alignment::CENTER;
     } else {
-      throw application_error(sstream() << "Label " << section << "." << name << " has invalid alignment "
+      throw application_error(sstream() << "Label " << (string)conf << " has invalid alignment "
                                         << alignment_conf_value << ", expecting one of: right, left, center.");
     }
 
-    size_t maxlen = conf.get(section, name + "-maxlen", 0_z);
+    size_t maxlen = conf["maxlen"].as<size_t>(0_z);
     if (maxlen > 0 && maxlen < minlen) {
-      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+      throw application_error(sstream() << "Label " << (string)conf << " has maxlen " << maxlen
                                         << " which is smaller than minlen " << minlen);
     }
-    bool ellipsis = conf.get(section, name + "-ellipsis", true);
+    bool ellipsis = conf["ellipsis"].as<bool>(true);
 
     // clang-format off
     if (ellipsis && maxlen > 0 && maxlen < 3) {
-      throw application_error(sstream() << "Label " << section << "." << name << " has maxlen " << maxlen
+      throw application_error(sstream() << "Label " << (string)conf << " has maxlen " << maxlen
                                         << ", which is smaller than length of ellipsis (3)");
     }
     // clang-format on
 
     // clang-format off
     return std::make_shared<label>(text,
-        conf.get(section, name + "-foreground", rgba{}),
-        conf.get(section, name + "-background", rgba{}),
-        conf.get(section, name + "-underline", rgba{}),
-        conf.get(section, name + "-overline", rgba{}),
-        conf.get(section, name + "-font", 0),
+        conf["foreground"].as<rgba>(rgba{}),
+        conf["background"].as<rgba>(rgba{}),
+        conf["underline"].as<rgba>(rgba{}),
+        conf["overline"].as<rgba>(rgba{}),
+        conf["font"].as<int>(0),
         padding,
         margin,
         minlen,
@@ -313,10 +311,14 @@ namespace drawtypes {
   }
 
   /**
-   * Create a label by loading optional values from the configuration
+   * Create a separator from the configuration
    */
-  label_t load_optional_label(const config& conf, string section, string name, string def) {
-    return load_label(conf, section, move(name), false, move(def));
+  label_t load_separator(const config::value& conf) {
+    return load_label(conf, false);
+  }
+
+  label_t load_optional_label(const config::value& conf, string def) {
+    return load_label(conf, false, move(def));
   }
 
 } // namespace drawtypes

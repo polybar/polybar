@@ -49,11 +49,11 @@ controller::controller(
     , m_loop(loop)
     , m_bar(bar::make(m_loop, config))
     , m_has_ipc(has_ipc) {
-  m_conf.warn_deprecated("settings", "throttle-input-for");
-  m_conf.warn_deprecated("settings", "throttle-output");
-  m_conf.warn_deprecated("settings", "throttle-output-for");
-  m_conf.warn_deprecated("settings", "eventqueue-swallow");
-  m_conf.warn_deprecated("settings", "eventqueue-swallow-time");
+  m_conf[config::value::SETTINGS_ENTRY].warn_deprecated("throttle-input-for");
+  m_conf[config::value::SETTINGS_ENTRY].warn_deprecated("throttle-output");
+  m_conf[config::value::SETTINGS_ENTRY].warn_deprecated("throttle-output-for");
+  m_conf[config::value::SETTINGS_ENTRY].warn_deprecated("eventqueue-swallow");
+  m_conf[config::value::SETTINGS_ENTRY].warn_deprecated("eventqueue-swallow-time");
 
   m_log.trace("controller: Setup user-defined modules");
   size_t created_modules{0};
@@ -608,7 +608,7 @@ size_t controller::setup_modules(alignment align) {
 
   string configured_modules;
   if (!key.empty()) {
-    configured_modules = m_conf.get(m_conf.section(), key, ""s);
+    configured_modules = m_conf[config::value::BARS_ENTRY][m_conf.bar_name()][key].as(""s);
   }
 
   for (auto& module_name : string_util::split(configured_modules, ' ')) {
@@ -617,7 +617,7 @@ size_t controller::setup_modules(alignment align) {
     }
 
     try {
-      auto type = m_conf.get("module/" + module_name, "type");
+      auto type = m_conf[config::value::MODULES_ENTRY][module_name]["type"].as<string>();
 
       if (type == tray_module::TYPE) {
         if (!m_tray_module_name.empty()) {

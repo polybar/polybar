@@ -10,11 +10,12 @@ namespace modules {
 
   text_module::text_module(const bar_settings& bar, string name_, const config& config)
       : static_module<text_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL});
     m_formatter->add_optional("content", {});
 
     if (m_formatter->has_format("content")) {
-      m_conf.warn_deprecated(name(), "content", "format");
+      module_config.warn_deprecated("content", module_config["format"]);
 
       if (m_formatter->get("content")->value.empty()) {
         throw module_error(name() + ".content is empty or undefined");
@@ -25,7 +26,7 @@ namespace modules {
       m_format = DEFAULT_FORMAT;
 
       if (m_formatter->has(TAG_LABEL, DEFAULT_FORMAT)) {
-        m_label = load_label(m_conf, name(), TAG_LABEL);
+        m_label = load_label(module_config[TAG_LABEL]);
       }
     }
   }
@@ -35,16 +36,18 @@ namespace modules {
   }
 
   string text_module::get_output() {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     // Get the module output early so that
     // the format prefix/suffix also gets wrapper
     // with the cmd handlers
     string output{module::get_output()};
 
-    auto click_left = m_conf.get(name(), "click-left", ""s);
-    auto click_middle = m_conf.get(name(), "click-middle", ""s);
-    auto click_right = m_conf.get(name(), "click-right", ""s);
-    auto scroll_up = m_conf.get(name(), "scroll-up", ""s);
-    auto scroll_down = m_conf.get(name(), "scroll-down", ""s);
+    auto click_left = module_config["click-left"].as<string>(""s);
+    auto click_middle = module_config["click-middle"].as<string>(""s);
+    auto click_right = module_config["click-right"].as<string>(""s);
+    auto scroll_up = module_config["scroll-up"].as<string>(""s);
+    auto scroll_down = module_config["scroll-down"].as<string>(""s);
 
     if (!click_left.empty()) {
       m_builder->action(mousebtn::LEFT, click_left);

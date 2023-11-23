@@ -51,26 +51,24 @@ namespace drawtypes {
    * Create a ramp by loading values
    * from the configuration
    */
-  ramp_t load_ramp(const config& conf, const string& section, string name, bool required) {
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
+  ramp_t load_ramp(const config::value& conf, bool required) {
 
-    auto ramp_defaults = load_optional_label(conf, section, name);
+    auto ramp_defaults = load_optional_label(conf);
 
     vector<label_t> vec;
     vector<string> icons;
 
     if (required) {
-      icons = conf.get_list<string>(section, name);
+      icons = conf.as_list<string>();
     } else {
-      icons = conf.get_list<string>(section, name, {});
+      icons = conf.as_list<string>({});
     }
 
     for (size_t i = 0; i < icons.size(); i++) {
-      auto ramp_name = name + "-" + to_string(i);
-      auto icon = load_optional_label(conf, section, ramp_name, icons[i]);
+      auto icon = load_optional_label(conf[i], icons[i]);
       icon->copy_undefined(ramp_defaults);
 
-      auto weight = conf.get(section, ramp_name + "-weight", 1U);
+      auto weight = conf[i]["weight"].as<unsigned int>(1U);
       while (weight--) {
         vec.emplace_back(icon);
       }

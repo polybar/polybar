@@ -24,7 +24,7 @@ namespace modules {
      * Will throw an exception if a non-positive (<= 0) number is given.
      */
     void set_interval(interval_t def) {
-      m_interval = this->m_conf.template get<decltype(m_interval)>(this->name(), "interval", def);
+      m_interval = this->m_conf[config::value::MODULES_ENTRY][this->name_raw()]["interval"].template as<decltype(m_interval)>(def);
 
       if (m_interval <= 0s) {
         throw module_error(

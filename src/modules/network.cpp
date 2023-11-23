@@ -12,11 +12,13 @@ namespace modules {
 
   network_module::network_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<network_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+    
     // Load configuration values
-    m_interface = m_conf.get(name(), "interface", m_interface);
+    m_interface = module_config["interface"].as<string>(m_interface);
 
     if (m_interface.empty()) {
-      std::string type = m_conf.get(name(), "interface-type");
+      std::string type = module_config["interface-type"].as<string>();
       if (type == "wired") {
         m_interface = net::find_wired_interface();
         if (!m_interface.empty()) {
@@ -52,14 +54,14 @@ namespace modules {
       m_interface = canonical.first;
     }
 
-    m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
-    m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
-    m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
+    m_ping_nth_update = module_config["ping-interval"].as<int>(m_ping_nth_update);
+    m_udspeed_minwidth = module_config["udspeed-minwidth"].as<int>(m_udspeed_minwidth);
+    m_accumulate = module_config["accumulate-stats"].as<bool>(m_accumulate);
     set_interval(1s);
-    m_unknown_up = m_conf.get<bool>(name(), "unknown-as-up", false);
-    m_udspeed_unit = m_conf.get<string>(name(), "speed-unit", m_udspeed_unit);
+    m_unknown_up = module_config["unknown-as-up"].as<bool>(false);
+    m_udspeed_unit = module_config["speed-unit"].as<string>(m_udspeed_unit);
 
-    m_conf.warn_deprecated(name(), "udspeed-minwidth", "%downspeed:min:max% and %upspeed:min:max%");
+    module_config.warn_deprecated("udspeed-minwidth", module_config["%downspeed:min:max% and %upspeed:min:max%"]);
 
     // Add formats
     m_formatter->add(FORMAT_CONNECTED, TAG_LABEL_CONNECTED, {TAG_RAMP_SIGNAL, TAG_RAMP_QUALITY, TAG_LABEL_CONNECTED});
@@ -67,19 +69,19 @@ namespace modules {
 
     // Create elements for format-connected
     if (m_formatter->has(TAG_RAMP_SIGNAL, FORMAT_CONNECTED)) {
-      m_ramp_signal = load_ramp(m_conf, name(), TAG_RAMP_SIGNAL);
+      m_ramp_signal = load_ramp(module_config[NAME_RAMP_SIGNAL]);
     }
     if (m_formatter->has(TAG_RAMP_QUALITY, FORMAT_CONNECTED)) {
-      m_ramp_quality = load_ramp(m_conf, name(), TAG_RAMP_QUALITY);
+      m_ramp_quality = load_ramp(module_config[NAME_RAMP_QUALITY]);
     }
     if (m_formatter->has(TAG_LABEL_CONNECTED, FORMAT_CONNECTED)) {
       m_label[connection_state::CONNECTED] =
-          load_optional_label(m_conf, name(), TAG_LABEL_CONNECTED, "%ifname% %local_ip%");
+          load_optional_label(module_config[NAME_LABEL_CONNECTED], "%ifname% %local_ip%");
     }
 
     // Create elements for format-disconnected
     if (m_formatter->has(TAG_LABEL_DISCONNECTED, FORMAT_DISCONNECTED)) {
-      m_label[connection_state::DISCONNECTED] = load_optional_label(m_conf, name(), TAG_LABEL_DISCONNECTED, "");
+      m_label[connection_state::DISCONNECTED] = load_optional_label(module_config[NAME_LABEL_DISCONNECTED], "");
       m_label[connection_state::DISCONNECTED]->reset_tokens();
       m_label[connection_state::DISCONNECTED]->replace_token("%ifname%", m_interface);
     }
@@ -90,10 +92,10 @@ namespace modules {
           {TAG_ANIMATION_PACKETLOSS, TAG_LABEL_PACKETLOSS, TAG_LABEL_CONNECTED});
 
       if (m_formatter->has(TAG_LABEL_PACKETLOSS, FORMAT_PACKETLOSS)) {
-        m_label[connection_state::PACKETLOSS] = load_optional_label(m_conf, name(), TAG_LABEL_PACKETLOSS, "");
+        m_label[connection_state::PACKETLOSS] = load_optional_label(module_config[NAME_LABEL_PACKETLOSS], "");
       }
       if (m_formatter->has(TAG_ANIMATION_PACKETLOSS, FORMAT_PACKETLOSS)) {
-        m_animation_packetloss = load_animation(m_conf, name(), TAG_ANIMATION_PACKETLOSS);
+        m_animation_packetloss = load_animation(module_config[NAME_ANIMATION_PACKETLOSS]);
       }
     }
 

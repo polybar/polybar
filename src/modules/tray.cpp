@@ -18,7 +18,7 @@ namespace modules {
   }
 
   void tray_module::start() {
-    m_tray.setup(m_conf, name());
+    m_tray.setup(m_conf[config::value::MODULES_ENTRY][name_raw()]);
     this->static_module<tray_module>::start();
   }
 

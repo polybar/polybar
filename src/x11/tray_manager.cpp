@@ -49,18 +49,18 @@ manager::~manager() {
   deactivate();
 }
 
-void manager::setup(const config& conf, const string& section_name) {
+void manager::setup(const config::value& conf) {
   unsigned bar_height = m_bar_opts.inner_area().height;
 
   // Spacing between icons
-  auto spacing = conf.get(section_name, "tray-spacing", ZERO_PX_EXTENT);
+  auto spacing = conf["tray-spacing"].as(ZERO_PX_EXTENT);
   m_opts.spacing = units_utils::extent_to_pixel_nonnegative(spacing, m_bar_opts.dpi_x);
 
   // Padding before and after each icon
-  auto padding = conf.get(section_name, "tray-padding", ZERO_PX_EXTENT);
+  auto padding = conf["tray-padding"].as(ZERO_PX_EXTENT);
   m_opts.padding = units_utils::extent_to_pixel_nonnegative(padding, m_bar_opts.dpi_x);
 
-  auto size = conf.get(section_name, "tray-size", percentage_with_offset{66., ZERO_PX_EXTENT});
+  auto size = conf["tray-size"].as(percentage_with_offset{66., ZERO_PX_EXTENT});
   unsigned client_height = std::min(
       bar_height, units_utils::percentage_with_offset_to_pixel_nonnegative(size, bar_height, m_bar_opts.dpi_y));
 
@@ -71,8 +71,8 @@ void manager::setup(const config& conf, const string& section_name) {
   m_opts.client_size = {client_height, client_height};
 
   // Set user-defined foreground and background colors.
-  m_opts.background = conf.get(section_name, "tray-background", m_bar_opts.background);
-  m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
+  m_opts.background = conf["tray-background"].as(m_bar_opts.background);
+  m_opts.foreground = conf["tray-foreground"].as(m_bar_opts.foreground);
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
 

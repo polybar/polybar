@@ -16,9 +16,11 @@ namespace modules {
 
   cpu_module::cpu_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<cpu_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     set_interval(1s);
-    m_totalwarn = m_conf.get(name(), "warn-percentage", m_totalwarn);
-    m_ramp_padding = m_conf.get(name(), "ramp-coreload-spacing", m_ramp_padding);
+    m_totalwarn = module_config["warn-percentage"].as<float>(m_totalwarn);
+    m_ramp_padding = module_config["ramp-coreload-spacing"].as<spacing_val>(m_ramp_padding);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
     m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_LOAD, TAG_RAMP_LOAD, TAG_RAMP_LOAD_PER_CORE});
@@ -28,19 +30,19 @@ namespace modules {
     read_values();
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage%%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage%%");
+      m_labelwarn = load_optional_label(module_config[NAME_LABEL_WARN], "%percentage%%");
     }
     if (m_formatter->has(TAG_BAR_LOAD)) {
-      m_barload = load_progressbar(m_bar, m_conf, name(), TAG_BAR_LOAD);
+      m_barload = load_progressbar(m_bar, module_config[NAME_BAR_LOAD]);
     }
     if (m_formatter->has(TAG_RAMP_LOAD)) {
-      m_rampload = load_ramp(m_conf, name(), TAG_RAMP_LOAD);
+      m_rampload = load_ramp(module_config[NAME_RAMP_LOAD]);
     }
     if (m_formatter->has(TAG_RAMP_LOAD_PER_CORE)) {
-      m_rampload_core = load_ramp(m_conf, name(), TAG_RAMP_LOAD_PER_CORE);
+      m_rampload_core = load_ramp(module_config[NAME_RAMP_LOAD_PER_CORE]);
     }
   }
 

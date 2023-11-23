@@ -2,10 +2,13 @@
 
 #include <atomic>
 #include <chrono>
+#include <unordered_map>
 #include <mutex>
 
 #include "common.hpp"
 #include "components/logger.hpp"
+
+using std::unordered_map;
 
 POLYBAR_NS
 
@@ -22,7 +25,7 @@ class script_runner {
   using interval = std::chrono::duration<double>;
 
   script_runner(on_update on_update, const string& exec, const string& exec_if, bool tail, interval interval_success,
-      interval interval_fail, const vector<pair<string, string>>& env);
+      interval interval_fail, const unordered_map<string, string>& env);
 
   bool check_condition() const;
   interval process();
@@ -50,7 +53,7 @@ class script_runner {
   const bool m_tail;
   const interval m_interval_success;
   const interval m_interval_fail;
-  const vector<pair<string, string>> m_env;
+  const unordered_map<string, string> m_env;
 
   data m_data;
   std::atomic_bool m_stopping{false};

@@ -15,6 +15,7 @@ namespace modules {
 
   pulseaudio_module::pulseaudio_module(const bar_settings& bar, string name_, const config& config)
       : event_module<pulseaudio_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
     if (m_handle_events) {
       m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
       m_router->register_action(EVENT_INC, [this]() { action_inc(); });
@@ -22,11 +23,11 @@ namespace modules {
     }
 
     // Load configuration values
-    m_interval = m_conf.get(name(), "interval", m_interval);
+    m_interval = module_config["interval"].as<int>(m_interval);
 
-    auto sink_name = m_conf.get(name(), "sink", ""s);
-    bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
-    m_reverse_scroll = m_conf.get(name(), "reverse-scroll", false);
+    auto sink_name = module_config["sink"].as<string>(""s);
+    bool m_max_volume = module_config["use-ui-max"].as<bool>(true);
+    m_reverse_scroll = module_config["reverse-scroll"].as<bool>(false);
 
     try {
       m_pulseaudio = std::make_unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
@@ -39,16 +40,16 @@ namespace modules {
     m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
-      m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
+      m_bar_volume = load_progressbar(m_bar, module_config[NAME_BAR_VOLUME]);
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
-      m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
+      m_label_volume = load_optional_label(module_config[NAME_LABEL_VOLUME], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
-      m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%%");
+      m_label_muted = load_optional_label(module_config[NAME_LABEL_MUTED], "%percentage%%");
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
-      m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
+      m_ramp_volume = load_ramp(module_config[NAME_RAMP_VOLUME]);
     }
   }
 
@@ -114,8 +115,8 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      auto click_middle = m_conf.get(name(), "click-middle", ""s);
-      auto click_right = m_conf.get(name(), "click-right", ""s);
+      auto click_middle = m_conf[config::value::MODULES_ENTRY][name_raw()]["click-middle"].as<string>(""s);
+      auto click_right = m_conf[config::value::MODULES_ENTRY][name_raw()]["click-right"].as<string>(""s);
 
       if (!click_middle.empty()) {
         m_builder->action(mousebtn::MIDDLE, click_middle);

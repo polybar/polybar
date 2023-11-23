@@ -82,36 +82,38 @@ namespace drawtypes {
    * Create a progressbar by loading values
    * from the configuration
    */
-  progressbar_t load_progressbar(const bar_settings& bar, const config& conf, const string& section, string name) {
+  progressbar_t load_progressbar(const bar_settings& bar, const config::value& conf) {
     // Remove the start and end tag from the name in case a format tag is passed
-    name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
+    // name = string_util::ltrim(string_util::rtrim(move(name), '>'), '<');
 
     string format = "%fill%%indicator%%empty%";
     unsigned int width;
 
-    if ((format = conf.get(section, name + "-format", format)).empty()) {
-      throw application_error("Invalid format defined at [" + section + "." + name + "]");
+    format = conf["format"].as<string>(format);
+    if (format.empty()) {
+      throw application_error("Invalid format defined at " + (string)conf);
     }
-    if ((width = conf.get<decltype(width)>(section, name + "-width")) < 1) {
-      throw application_error("Invalid width defined at [" + section + "." + name + "]");
+    width = conf["width"].as<unsigned int>();
+    if (width == 0) {
+      throw application_error("Invalid width defined at " + (string)conf);
     }
 
     auto pbar = std::make_shared<progressbar>(bar, width, format);
-    pbar->set_gradient(conf.get(section, name + "-gradient", true));
-    pbar->set_colors(conf.get_list(section, name + "-foreground", vector<rgba>{}));
+    pbar->set_gradient(conf["gradient"].as<bool>(true));
+    pbar->set_colors(conf["foreground"].as_list<rgba>({}));
 
     label_t icon_empty;
     label_t icon_fill;
     label_t icon_indicator;
 
     if (format.find("%empty%") != string::npos) {
-      icon_empty = load_label(conf, section, name + "-empty");
+      icon_empty = load_label(conf["empty"]);
     }
     if (format.find("%fill%") != string::npos) {
-      icon_fill = load_label(conf, section, name + "-fill");
+      icon_fill = load_label(conf["fill"]);
     }
     if (format.find("%indicator%") != string::npos) {
-      icon_indicator = load_label(conf, section, name + "-indicator");
+      icon_indicator = load_label(conf["indicator"]);
     }
 
     // If a foreground/background color is defined for the indicator

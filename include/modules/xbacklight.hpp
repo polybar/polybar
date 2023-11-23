@@ -45,9 +45,18 @@ namespace modules {
     void change_value(int value_mod);
 
    private:
-    static constexpr const char* TAG_LABEL{"<label>"};
-    static constexpr const char* TAG_BAR{"<bar>"};
-    static constexpr const char* TAG_RAMP{"<ramp>"};
+#define DEF_LABEL "label"
+#define DEF_BAR "bar"
+#define DEF_RAMP "ramp"
+    static constexpr const char* NAME_LABEL{DEF_LABEL};
+    static constexpr const char* NAME_BAR{DEF_BAR};
+    static constexpr const char* NAME_RAMP{DEF_RAMP};
+    static constexpr const char* TAG_LABEL{"<" DEF_LABEL ">"};
+    static constexpr const char* TAG_BAR{"<" DEF_BAR ">"};
+    static constexpr const char* TAG_RAMP{"<" DEF_RAMP ">"};
+#undef DEF_LABEL
+#undef DEF_BAR
+#undef DEF_RAMP
 
     connection& m_connection;
     monitor_t m_output;

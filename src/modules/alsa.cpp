@@ -19,6 +19,8 @@ namespace modules {
 
   alsa_module::alsa_module(const bar_settings& bar, string name_, const config& config)
       : event_module<alsa_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+
     if (m_handle_events) {
       m_router->register_action(EVENT_DEC, [this]() { action_dec(); });
       m_router->register_action(EVENT_INC, [this]() { action_inc(); });
@@ -26,22 +28,22 @@ namespace modules {
     }
 
     // Load configuration values
-    m_mapped = m_conf.get(name(), "mapped", m_mapped);
-    m_interval = m_conf.get(name(), "interval", m_interval);
+    m_mapped = module_config["mapped"].as<bool>(m_mapped);
+    m_interval = module_config["interval"].as<int>(m_interval);
 
-    auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
-    auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
-    auto headphone_mixer_name = m_conf.get(name(), "headphone-mixer", ""s);
+    auto master_mixer_name = module_config["master-mixer"].as<string>("Master"s);
+    auto speaker_mixer_name = module_config["speaker-mixer"].as<string>(""s);
+    auto headphone_mixer_name = module_config["headphone-mixer"].as<string>(""s);
 
     // m_soundcard_name: Master Soundcard Name
     // s_soundcard_name: Speaker Soundcard Name
     // h_soundcard_name: Headphone Soundcard Name
-    auto m_soundcard_name = m_conf.get(name(), "master-soundcard", "default"s);
-    auto s_soundcard_name = m_conf.get(name(), "speaker-soundcard", "default"s);
-    auto h_soundcard_name = m_conf.get(name(), "headphone-soundcard", "default"s);
+    auto m_soundcard_name = module_config["master-soundcard"].as<string>("default"s);
+    auto s_soundcard_name = module_config["speaker-soundcard"].as<string>("default"s);
+    auto h_soundcard_name = module_config["headphone-soundcard"].as<string>("default"s);
 
     if (!headphone_mixer_name.empty()) {
-      m_headphoneid = m_conf.get<decltype(m_headphoneid)>(name(), "headphone-id");
+      m_headphoneid = module_config["headphone-id"].as<decltype(m_headphoneid)>();
     }
 
     if (string_util::compare(speaker_mixer_name, "master")) {
@@ -79,17 +81,17 @@ namespace modules {
     m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
-      m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
+      m_bar_volume = load_progressbar(m_bar, module_config[NAME_BAR_VOLUME]);
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
-      m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
+      m_label_volume = load_optional_label(module_config[NAME_LABEL_VOLUME], "%percentage%%");
     }
     if (m_formatter->has(TAG_LABEL_MUTED, FORMAT_MUTED)) {
-      m_label_muted = load_optional_label(m_conf, name(), TAG_LABEL_MUTED, "%percentage%%");
+      m_label_muted = load_optional_label(module_config[NAME_LABEL_MUTED], "%percentage%%");
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
-      m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
-      m_ramp_headphones = load_ramp(m_conf, name(), TAG_RAMP_HEADPHONES, false);
+      m_ramp_volume = load_ramp(module_config[NAME_RAMP_VOLUME]);
+      m_ramp_headphones = load_ramp(module_config[NAME_RAMP_HEADPHONES], false);
     }
   }
 
@@ -197,8 +199,8 @@ namespace modules {
     string output{module::get_output()};
 
     if (m_handle_events) {
-      auto click_middle = m_conf.get(name(), "click-middle", ""s);
-      auto click_right = m_conf.get(name(), "click-right", ""s);
+      auto click_middle = m_conf[config::value::MODULES_ENTRY][name_raw()]["click-middle"].as<string>(""s);
+      auto click_right = m_conf[config::value::MODULES_ENTRY][name_raw()]["click-right"].as<string>(""s);
 
       if (!click_middle.empty()) {
         m_builder->action(mousebtn::MIDDLE, click_middle);

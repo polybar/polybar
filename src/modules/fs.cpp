@@ -28,15 +28,16 @@ namespace modules {
    */
   fs_module::fs_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<fs_module>(bar, move(name_), config) {
-    m_mountpoints = m_conf.get_list(name(), "mount", {});
+    config::value fs_module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
+    m_mountpoints = fs_module_config["mount"].as_list<string>({});
     if (m_mountpoints.empty()) {
       m_log.info("%s: No mountpoints specified, using fallback \"/\"", name());
       m_mountpoints.emplace_back("/");
     }
-    m_remove_unmounted = m_conf.get(name(), "remove-unmounted", m_remove_unmounted);
-    m_perc_used_warn = m_conf.get(name(), "warn-percentage", 90);
-    m_fixed = m_conf.get(name(), "fixed-values", m_fixed);
-    m_spacing = m_conf.get(name(), "spacing", m_spacing);
+    m_remove_unmounted = fs_module_config["remove-unmounted"].as<bool>(m_remove_unmounted);
+    m_perc_used_warn = fs_module_config["warn-percentage"].as<int>(90);
+    m_fixed = fs_module_config["fixed-values"].as<bool>(m_fixed);
+    m_spacing = fs_module_config["spacing"].as<spacing_val>(m_spacing);
     set_interval(30s);
 
     // Add formats and elements
@@ -46,22 +47,22 @@ namespace modules {
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
-      m_labelmounted = load_optional_label(m_conf, name(), TAG_LABEL_MOUNTED, "%mountpoint% %percentage_free%%");
+      m_labelmounted = load_optional_label(fs_module_config[NAME_LABEL_MOUNTED], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%mountpoint% %percentage_free%%");
+      m_labelwarn = load_optional_label(fs_module_config[NAME_LABEL_WARN], "%mountpoint% %percentage_free%%");
     }
     if (m_formatter->has(TAG_LABEL_UNMOUNTED)) {
-      m_labelunmounted = load_optional_label(m_conf, name(), TAG_LABEL_UNMOUNTED, "%mountpoint% is not mounted");
+      m_labelunmounted = load_optional_label(fs_module_config[NAME_LABEL_UNMOUNTED], "%mountpoint% is not mounted");
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
-      m_barfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
+      m_barfree = load_progressbar(m_bar, fs_module_config[NAME_BAR_FREE]);
     }
     if (m_formatter->has(TAG_BAR_USED)) {
-      m_barused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
+      m_barused = load_progressbar(m_bar, fs_module_config[NAME_BAR_USED]);
     }
     if (m_formatter->has(TAG_RAMP_CAPACITY)) {
-      m_rampcapacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+      m_rampcapacity = load_ramp(fs_module_config[NAME_RAMP_CAPACITY]);
     }
 
     // Warn about "unreachable" format tag

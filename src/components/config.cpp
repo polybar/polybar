@@ -26,6 +26,13 @@ const string& config::filepath() const {
 /**
  * Get the section name of the bar in use
  */
+const string& config::bar_name() const {
+  return m_barname;
+}
+
+/**
+ * Get the section name of the bar in use
+ */
 string config::section() const {
   return BAR_PREFIX + m_barname;
 }
@@ -71,6 +78,10 @@ void config::warn_deprecated(const string& section, const string& key, string re
           "The config parameter `%s.%s` is deprecated, use `%s.%s` instead.", section, key, section, move(replacement));
     }
   }
+}
+
+void config::setting_warn_deprecated(const string& key, string replacement) const {
+  return warn_deprecated("settings", key, replacement);
 }
 
 /**

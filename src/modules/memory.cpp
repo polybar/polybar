@@ -17,8 +17,9 @@ namespace modules {
 
   memory_module::memory_module(const bar_settings& bar, string name_, const config& config)
       : timer_module<memory_module>(bar, move(name_), config) {
+    config::value module_config = m_conf[config::value::MODULES_ENTRY][name_raw()];
     set_interval(1s);
-    m_perc_memused_warn = m_conf.get(name(), "warn-percentage", 90);
+    m_perc_memused_warn = module_config["warn-percentage"].as<int>(90);
 
     m_formatter->add(DEFAULT_FORMAT, TAG_LABEL, {TAG_LABEL, TAG_BAR_USED, TAG_BAR_FREE, TAG_RAMP_USED, TAG_RAMP_FREE,
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
@@ -26,34 +27,34 @@ namespace modules {
                                                  TAG_BAR_SWAP_USED, TAG_BAR_SWAP_FREE, TAG_RAMP_SWAP_USED, TAG_RAMP_SWAP_FREE});
 
     if (m_formatter->has(TAG_LABEL)) {
-      m_label = load_optional_label(m_conf, name(), TAG_LABEL, "%percentage_used%%");
+      m_label = load_optional_label(module_config[NAME_LABEL], "%percentage_used%%");
     }
     if (m_formatter->has(TAG_LABEL_WARN)) {
-      m_labelwarn = load_optional_label(m_conf, name(), TAG_LABEL_WARN, "%percentage_used%%");
+      m_labelwarn = load_optional_label(module_config[NAME_LABEL_WARN], "%percentage_used%%");
     }
     if (m_formatter->has(TAG_BAR_USED)) {
-      m_bar_memused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_USED);
+      m_bar_memused = load_progressbar(m_bar, module_config[NAME_BAR_USED]);
     }
     if (m_formatter->has(TAG_BAR_FREE)) {
-      m_bar_memfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_FREE);
+      m_bar_memfree = load_progressbar(m_bar, module_config[NAME_BAR_FREE]);
     }
     if(m_formatter->has(TAG_RAMP_USED)) {
-      m_ramp_memused = load_ramp(m_conf, name(), TAG_RAMP_USED);
+      m_ramp_memused = load_ramp(module_config[NAME_RAMP_USED]);
     }
     if(m_formatter->has(TAG_RAMP_FREE)) {
-      m_ramp_memfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
+      m_ramp_memfree = load_ramp(module_config[NAME_RAMP_FREE]);
     }
     if (m_formatter->has(TAG_BAR_SWAP_USED)) {
-      m_bar_swapused = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_USED);
+      m_bar_swapused = load_progressbar(m_bar, module_config[NAME_BAR_SWAP_USED]);
     }
     if (m_formatter->has(TAG_BAR_SWAP_FREE)) {
-      m_bar_swapfree = load_progressbar(m_bar, m_conf, name(), TAG_BAR_SWAP_FREE);
+      m_bar_swapfree = load_progressbar(m_bar, module_config[NAME_BAR_SWAP_FREE]);
     }
     if(m_formatter->has(TAG_RAMP_SWAP_USED)) {
-      m_ramp_swapused = load_ramp(m_conf, name(), TAG_RAMP_SWAP_USED);
+      m_ramp_swapused = load_ramp(module_config[NAME_RAMP_SWAP_USED]);
     }
     if(m_formatter->has(TAG_RAMP_SWAP_FREE)) {
-      m_ramp_swapfree = load_ramp(m_conf, name(), TAG_RAMP_SWAP_FREE);
+      m_ramp_swapfree = load_ramp(module_config[NAME_RAMP_SWAP_FREE]);
     }
   }
 

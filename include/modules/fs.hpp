@@ -49,12 +49,35 @@ namespace modules {
     static constexpr auto FORMAT_MOUNTED = "format-mounted";
     static constexpr auto FORMAT_WARN = "format-warn";
     static constexpr auto FORMAT_UNMOUNTED = "format-unmounted";
-    static constexpr auto TAG_LABEL_MOUNTED = "<label-mounted>";
-    static constexpr auto TAG_LABEL_UNMOUNTED = "<label-unmounted>";
-    static constexpr auto TAG_LABEL_WARN = "<label-warn>";
-    static constexpr auto TAG_BAR_USED = "<bar-used>";
-    static constexpr auto TAG_BAR_FREE = "<bar-free>";
-    static constexpr auto TAG_RAMP_CAPACITY = "<ramp-capacity>";
+
+#define DEF_LABEL_MOUNTED "label-mounted"
+#define DEF_LABEL_UNMOUNTED "label-unmounted"
+#define DEF_LABEL_WARN "label-warn"
+#define DEF_BAR_USED "bar-used"
+#define DEF_BAR_FREE "bar-free"
+#define DEF_RAMP_CAPACITY "ramp-capacity"
+
+    static constexpr auto NAME_LABEL_MOUNTED = DEF_LABEL_MOUNTED;
+    static constexpr auto NAME_LABEL_UNMOUNTED = DEF_LABEL_UNMOUNTED;
+    static constexpr auto NAME_LABEL_WARN = DEF_LABEL_WARN;
+    static constexpr auto NAME_BAR_USED = DEF_BAR_USED;
+    static constexpr auto NAME_BAR_FREE = DEF_BAR_FREE;
+    static constexpr auto NAME_RAMP_CAPACITY = DEF_RAMP_CAPACITY;
+
+    static constexpr auto TAG_LABEL_MOUNTED = "<" DEF_LABEL_MOUNTED ">";
+    static constexpr auto TAG_LABEL_UNMOUNTED = "<" DEF_LABEL_UNMOUNTED ">";
+    static constexpr auto TAG_LABEL_WARN = "<" DEF_LABEL_WARN ">";
+    static constexpr auto TAG_BAR_USED = "<" DEF_BAR_USED ">";
+    static constexpr auto TAG_BAR_FREE = "<" DEF_BAR_FREE ">";
+    static constexpr auto TAG_RAMP_CAPACITY = "<" DEF_RAMP_CAPACITY ">";
+
+#undef DEF_LABEL_MOUNTED
+#undef DEF_LABEL_UNMOUNTED
+#undef DEF_LABEL_WARN
+#undef DEF_BAR_USED
+#undef DEF_BAR_FREE
+#undef DEF_RAMP_CAPACITY
+
 
     label_t m_labelmounted;
     label_t m_labelunmounted;

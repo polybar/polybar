@@ -45,9 +45,16 @@ namespace modules {
     void define_layout_icon(const string& entry, const string& layout, const string& variant, label_t&& icon);
     void parse_icons();
 
-   private:
-    static constexpr const char* TAG_LABEL_LAYOUT{"<label-layout>"};
-    static constexpr const char* TAG_LABEL_INDICATOR{"<label-indicator>"};
+   private:   
+#define DEF_LABEL_LAYOUT "label-layout"
+#define DEF_LABEL_INDICATOR "label-indicator"
+    static constexpr const char* NAME_LABEL_LAYOUT{DEF_LABEL_LAYOUT};
+    static constexpr const char* NAME_LABEL_INDICATOR{DEF_LABEL_INDICATOR};
+    static constexpr const char* TAG_LABEL_LAYOUT{"<" DEF_LABEL_LAYOUT ">"};
+    static constexpr const char* TAG_LABEL_INDICATOR{"<" DEF_LABEL_INDICATOR ">"};
+#undef DEF_LABEL_LAYOUT
+#undef DEF_LABEL_INDICATOR
+
     static constexpr const char* FORMAT_DEFAULT{"<label-layout> <label-indicator>"};
     static constexpr const char* DEFAULT_LAYOUT_ICON{"layout-icon-default"};
     static constexpr const char* DEFAULT_INDICATOR_ICON{"indicator-icon-default"};
