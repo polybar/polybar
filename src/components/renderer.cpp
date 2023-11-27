@@ -839,13 +839,10 @@ bool renderer::on(const signals::ui::request_snapshot& evt) {
 }
 
 void renderer::apply_tray_position(const tags::context& context) {
-  if (context.get_relative_tray_position() != std::pair<alignment, int>()) {
-    int absolute_x = static_cast<int>(
-        block_x(context.get_relative_tray_position().first) + context.get_relative_tray_position().second);
+  auto [alignment, pos] = context.get_relative_tray_position();
+  if (alignment != alignment::NONE) {
+    int absolute_x = static_cast<int>(block_x(alignment) + pos);
     m_sig.emit(signals::ui_tray::tray_pos_change{absolute_x});
-    m_sig.emit(signals::ui_tray::tray_visibility{true});
-  } else {
-    m_sig.emit(signals::ui_tray::tray_visibility{false});
   }
 }
 

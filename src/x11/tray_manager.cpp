@@ -522,7 +522,7 @@ void manager::clean_clients() {
 }
 
 bool manager::change_visibility(bool visible) {
-  if (!is_active() || m_hidden == !visible) {
+  if (m_hidden == !visible) {
     return false;
   }
 
@@ -762,10 +762,6 @@ bool manager::on(const signals::ui_tray::tray_pos_change& evt) {
   }
 
   return true;
-}
-
-bool manager::on(const signals::ui_tray::tray_visibility& evt) {
-  return change_visibility(evt.cast());
 }
 
 } // namespace tray

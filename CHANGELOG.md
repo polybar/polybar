@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.1] - 2023-11-27
+### Build
+- Fixed missing header when using `libc++` in clang 15 and below
+
+### Changed
+- `internal/tray`: The module must use the `<tray>` tag (this is the default) ([`#3037`](https://github.com/polybar/polybar/pull/3037))
+
+## Fixed
+- Modules did not validate that all tags (e.g. `<label>`) used in a format were valid for that format ([`#3043`](https://github.com/polybar/polybar/issues/3043), [`#3045`](https://github.com/polybar/polybar/pull/3045))
+- `internal/tray`: Fixed `module-margin` and `separator` being applied to completely empty tray module ([`#3036`](https://github.com/polybar/polybar/issues/3036), [`#3037`](https://github.com/polybar/polybar/pull/3037))
+
 ## [3.7.0] - 2023-11-05
 ### Breaking
 - `custom/script`:
@@ -247,7 +258,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.7.0...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.7.1...HEAD
+[3.7.1]: https://github.com/polybar/polybar/releases/tag/3.7.1
 [3.7.0]: https://github.com/polybar/polybar/releases/tag/3.7.0
 [3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
 [3.6.2]: https://github.com/polybar/polybar/releases/tag/3.6.2

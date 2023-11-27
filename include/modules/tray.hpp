@@ -8,10 +8,20 @@
 
 POLYBAR_NS
 namespace modules {
+/**
+ * Wraps the tray_manager in a module.
+ *
+ * The module produces the `%{Pt}` formatting tag, which is used by the renderer
+ * to place the tray.
+ * The visibility of the tray icons is directly tied to the visibility of the
+ * module.
+ */
 class tray_module : public static_module<tray_module> {
  public:
   explicit tray_module(const bar_settings& bar_settings, string name_, const config&);
   string get_format() const;
+
+  void set_visible(bool value) override;
 
   void start() override;
 
