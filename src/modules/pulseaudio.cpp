@@ -23,6 +23,7 @@ namespace modules {
 
     // Load configuration values
     m_interval = m_conf.get(name(), "interval", m_interval);
+    m_unmute_on_scroll = m_conf.get(name(), "unmute-on-scroll", m_unmute_on_scroll);
 
     auto sink_name = m_conf.get(name(), "sink", ""s);
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
@@ -156,10 +157,16 @@ namespace modules {
   }
 
   void pulseaudio_module::action_inc() {
+    if (m_unmute_on_scroll) {
+      m_pulseaudio->set_mute(false);
+    }
     m_pulseaudio->inc_volume(m_interval);
   }
 
   void pulseaudio_module::action_dec() {
+    if (m_unmute_on_scroll) {
+      m_pulseaudio->set_mute(false);
+    }
     m_pulseaudio->inc_volume(-m_interval);
   }
 
