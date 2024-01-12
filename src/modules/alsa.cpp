@@ -28,6 +28,7 @@ namespace modules {
     // Load configuration values
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
     m_interval = m_conf.get(name(), "interval", m_interval);
+    m_unmute_on_scroll = m_conf.get(name(), "unmute-on-scroll", m_unmute_on_scroll);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
@@ -261,6 +262,9 @@ namespace modules {
     }
     const auto& mixers = get_mixers();
     for (auto&& mixer : mixers) {
+      if (m_unmute_on_scroll) {
+        mixer->set_mute(true);
+      }
       m_mapped ? mixer->set_normalized_volume(math_util::cap<float>(mixer->get_normalized_volume() + interval, 0, 100))
                : mixer->set_volume(math_util::cap<float>(mixer->get_volume() + interval, 0, 100));
     }
