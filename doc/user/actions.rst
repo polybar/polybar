@@ -153,6 +153,9 @@ internal/alsa
   ``interval`` is the config setting in the module. Volume changed like this
   will never go above 100%.
 
+  if ``unmute-on-scroll`` is turned on, the sound will also be unmuted when
+  this action is called.
+
 :``toggle``:
   Toggles between muted and unmuted.
 
@@ -164,6 +167,9 @@ internal/pulseaudio
   ``interval`` is the config setting in the module. Volume changed like this
   will never go above ~153% (if ``use-ui-max`` is set to ``true``) or 100% (if
   not).
+
+  if ``unmute-on-scroll`` is turned on, the sound will also be unmuted when
+  this action is called.
 
 :``toggle``:
   Toggles between muted and unmuted.
