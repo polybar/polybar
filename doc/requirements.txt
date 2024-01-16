@@ -4,4 +4,4 @@
 sphinx~=7.2.6
 sphinx-rtd-theme~=2.0.0rc2
 sphinx-notfound-page~=1.0.0
-readthedocs-sphinx-search~=0.3.1
+readthedocs-sphinx-search~=0.3.2
