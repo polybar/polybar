@@ -172,6 +172,8 @@ TEST(String, filesize) {
   EXPECT_EQ("3 MB", string_util::filesize(3 * 1024 * 1024));
   EXPECT_EQ("3 GB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024));
   EXPECT_EQ("3 TB", string_util::filesize((unsigned long long)3 * 1024 * 1024 * 1024 * 1024));
+  EXPECT_EQ("3 TB", string_util::filesize_specific((unsigned long long)3 * 1024 * 1024 * 1024 * 1024, 't'));
+  EXPECT_EQ("3 GB", string_util::filesize_specific((unsigned long long)3 * 1024 * 1024 * 1024, 'g'));
 }
 
 // utf8_to_ucs4 {{{
