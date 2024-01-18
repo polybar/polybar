@@ -67,7 +67,7 @@ namespace modules {
     brightness_handle m_val;
     brightness_handle m_max;
 
-    int m_percentage = 0;
+    int m_percentage = -1;
 
     chrono::duration<double> m_interval{};
     chrono::steady_clock::time_point m_lastpoll;
