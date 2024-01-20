@@ -67,6 +67,11 @@ namespace modules {
     brightness_handle m_val;
     brightness_handle m_max;
 
+    /**
+     * Initial value set to a negative number so that any value read from the backlight file triggers an update during
+     * the first read.
+     * Otherwise, tokens may not be replaced
+     */
     int m_percentage = -1;
 
     chrono::duration<double> m_interval{};
