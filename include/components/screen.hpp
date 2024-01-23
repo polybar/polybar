@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "common.hpp"
 #include "components/types.hpp"
 #include "events/signal_emitter.hpp"
@@ -49,7 +51,7 @@ class screen : public xpp::event::sink<evt::map_notify, evt::randr_screen_change
    */
   uint32_t m_root_mask{0};
 
-  bool have_monitors_changed() const;
+  std::pair<bool, int> have_monitors_changed() const;
 };
 
 POLYBAR_NS_END
