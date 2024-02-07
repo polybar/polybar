@@ -85,11 +85,11 @@ namespace drawtypes {
       if (token == tok.token) {
         if (tok.max != 0_z && string_util::char_len(repl) > tok.max) {
           repl = string_util::utf8_truncate(std::move(repl), tok.max) + tok.suffix;
-        } else if (tok.min != 0_z && repl.length() < tok.min) {
+        } else if (tok.min != 0_z && string_util::char_len(repl) < tok.min) {
           if (tok.rpadding) {
-            repl.append(tok.min - repl.length(), ' ');
+            repl.append(tok.min - string_util::char_len(repl), ' ');
           } else {
-            repl.insert(0_z, tok.min - repl.length(), tok.zpad ? '0' : ' ');
+            repl.insert(0_z, tok.min - string_util::char_len(repl), tok.zpad ? '0' : ' ');
           }
         }
 
