@@ -98,6 +98,7 @@ repository for stable users, you need to enable [backports](https://wiki.debian.
 
 If you are using **Ubuntu** 20.10 (Groovy Gorilla) or later, you can install polybar
 using `sudo apt install polybar`.
+Note that using apt does not produce the default config file at /etc. You may have to [compile it manually](https://github.com/polybar/polybar/wiki/Compiling) if you want this
 
 If you are using **Arch Linux**, you can install
 [polybar](https://archlinux.org/packages/extra/x86_64/polybar/) to get the
