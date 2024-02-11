@@ -86,14 +86,6 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
   {
     m_pixmap = m_connection.generate_id();
     m_connection.create_pixmap(m_depth, m_pixmap, m_window, m_bar.size.w, m_bar.size.h);
-
-    uint32_t configure_mask = 0;
-    std::array<uint32_t, 32> configure_values{};
-    xcb_params_cw_t configure_params{};
-
-    XCB_AUX_ADD_PARAM(&configure_mask, &configure_params, back_pixmap, m_pixmap);
-    connection::pack_values(configure_mask, &configure_params, configure_values);
-    m_connection.change_window_attributes_checked(m_window, configure_mask, configure_values.data());
   }
 
   m_log.trace("renderer: Allocate graphic contexts");
@@ -372,8 +364,8 @@ void renderer::flush() {
   highlight_clickable_areas();
 
   m_surface->flush();
-  // Clear entire window so that the new pixmap is shown
-  m_connection.clear_area(0, m_window, 0, 0, m_bar.size.w, m_bar.size.h);
+  // Copy pixmap onto the window
+  m_connection.copy_area(m_pixmap, m_window, m_gcontext, 0, 0, 0, 0, m_bar.size.w, m_bar.size.h);
   m_connection.flush();
 
   if (!m_snapshot_dst.empty()) {
