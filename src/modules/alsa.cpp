@@ -77,7 +77,7 @@ namespace modules {
 
     // Add formats and elements
     m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
-    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
+    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME, TAG_LABEL_VOLUME});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
       m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
