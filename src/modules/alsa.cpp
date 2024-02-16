@@ -29,6 +29,7 @@ namespace modules {
     m_mapped = m_conf.get(name(), "mapped", m_mapped);
     m_interval = m_conf.get(name(), "interval", m_interval);
     m_unmute_on_scroll = m_conf.get(name(), "unmute-on-scroll", m_unmute_on_scroll);
+    m_reverse_scroll = m_conf.get(name(), "reverse-scroll", false);
 
     auto master_mixer_name = m_conf.get(name(), "master-mixer", "Master"s);
     auto speaker_mixer_name = m_conf.get(name(), "speaker-mixer", ""s);
@@ -210,8 +211,13 @@ namespace modules {
       }
 
       m_builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "");
-      m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
-      m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+      if (!m_reverse_scroll) {
+        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_INC, "");
+        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_DEC, "");
+      } else {
+        m_builder->action(mousebtn::SCROLL_UP, *this, EVENT_DEC, "");
+        m_builder->action(mousebtn::SCROLL_DOWN, *this, EVENT_INC, "");
+      }
     }
 
     m_builder->node(output);
