@@ -220,13 +220,34 @@ void bg_slice::copy(xcb_pixmap_t root_pixmap, int depth, xcb_rectangle_t geom, x
   ensure_resources(depth, visual);
   assert(m_pixmap);
 
-  // fill the slice
+  auto pixmap_end_x = int16_t(geom.x + geom.width);
+  auto pixmap_end_y = int16_t(geom.y + geom.height);
+
   auto translated = m_connection.translate_coordinates(m_window, m_connection.screen()->root, m_rect.x, m_rect.y);
-  // Coordinates of the slice in the root pixmap
-  auto src_x = math_util::cap(translated->dst_x, geom.x, int16_t(geom.x + geom.width));
-  auto src_y = math_util::cap(translated->dst_y, geom.y, int16_t(geom.y + geom.height));
+
+  /*
+   * If the slice is not fully contained in the root pixmap, we will be missing at least some background pixels. For
+   * those areas, nothing is copied over and a simple black background is shown.
+   * This can happen when connecting new monitors without updating the root pixmap.
+   */
+  if (!(translated->dst_x >= geom.x && translated->dst_x + m_rect.width <= pixmap_end_x &&
+          translated->dst_y >= geom.y && translated->dst_y + m_rect.height <= pixmap_end_y)) {
+    m_log.err(
+        "background_manager: Root pixmap does not fully cover transparent areas. "
+        "Pseudo-transparency may not fully work and instead just show a black background. "
+        "Make sure you have a wallpaper set on all of your screens");
+  }
+
+  /*
+   * Coordinates of the slice in the root pixmap. The rectangle is capped so that it is contained in the root pixmap to
+   * avoid copying areas not covered by the pixmap.
+   */
+  auto src_x = math_util::cap(translated->dst_x, geom.x, pixmap_end_x);
+  auto src_y = math_util::cap(translated->dst_y, geom.y, pixmap_end_x);
   auto w = math_util::cap(m_rect.width, uint16_t(0), uint16_t(geom.width - (src_x - geom.x)));
   auto h = math_util::cap(m_rect.height, uint16_t(0), uint16_t(geom.height - (src_y - geom.y)));
+
+  // fill the slice
   m_log.trace(
       "background_manager: Copying from root pixmap (0x%x:%d) %dx%d+%d+%d", root_pixmap, depth, w, h, src_x, src_y);
   m_connection.copy_area_checked(root_pixmap, m_pixmap, m_gcontext, src_x, src_y, 0, 0, w, h);
@@ -257,12 +278,18 @@ void bg_slice::allocate_resources(xcb_visualtype_t* visual) {
   XCB_AUX_ADD_PARAM(&mask, &params, foreground, black_pixel);
   XCB_AUX_ADD_PARAM(&mask, &params, background, black_pixel);
   XCB_AUX_ADD_PARAM(&mask, &params, graphics_exposures, 0);
-  m_connection.pack_values(mask, &params, value_list);
+  connection::pack_values(mask, &params, value_list);
   m_gcontext = m_connection.generate_id();
   m_connection.create_gc(m_gcontext, m_pixmap, mask, value_list.data());
 
   m_log.trace("background_manager: Allocating cairo surface");
   m_surface = make_unique<cairo::xcb_surface>(m_connection, m_pixmap, visual, m_rect.width, m_rect.height);
+
+  /*
+   * Fill pixmap with black in case it is not fully filled by the root pixmap. Otherwise we may render uninitialized
+   * memory
+   */
+  m_connection.poly_fill_rectangle(m_pixmap, m_gcontext, 1, &m_rect);
 }
 
 void bg_slice::free_resources() {
