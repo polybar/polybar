@@ -40,6 +40,7 @@ CheckOptions:
   readability-identifier-naming.MemberCase: lower_case
   readability-identifier-naming.ProtectedMemberPrefix: 'm_'
   readability-identifier-naming.PrivateMemberPrefix: 'm_'
+  readability-simplify-boolean-expr.SimplifyDeMorgan: false
 
 HeaderFilterRegex: ''
 WarningsAsErrors: ''
