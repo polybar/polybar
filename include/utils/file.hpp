@@ -81,24 +81,24 @@ class fd_stream : public StreamType {
 };
 
 namespace file_util {
-  bool exists(const string& filename);
-  bool readable(const string& filename);
-  bool is_file(const string& filename);
-  bool is_dir(const string& filename);
-  string pick(const vector<string>& filenames);
-  string contents(const string& filename);
-  void write_contents(const string& filename, const string& contents);
-  bool is_fifo(const string& filename);
-  vector<string> glob(string pattern);
-  string expand(const string& path, const string& relative_to = {});
-  string get_config_path();
-  vector<string> list_files(const string& dirname);
-  string dirname(const string& path);
+bool exists(const string& filename);
+bool readable(const string& filename);
+bool is_file(const string& filename);
+bool is_dir(const string& filename);
+string pick(const vector<string>& filenames);
+string contents(const string& filename);
+void write_contents(const string& filename, const string& contents);
+bool is_fifo(const string& filename);
+vector<string> glob(string pattern);
+string expand(const string& path, const string& relative_to = {});
+string get_config_path();
+vector<string> list_files(const string& dirname);
+string dirname(const string& path);
 
-  template <typename... Args>
-  decltype(auto) make_file_descriptor(Args&&... args) {
-    return std::make_unique<file_descriptor>(forward<Args>(args)...);
-  }
-}  // namespace file_util
+template <typename... Args>
+decltype(auto) make_file_descriptor(Args&&... args) {
+  return std::make_unique<file_descriptor>(forward<Args>(args)...);
+}
+} // namespace file_util
 
 POLYBAR_NS_END
