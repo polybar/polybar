@@ -82,6 +82,7 @@ class fd_stream : public StreamType {
 
 namespace file_util {
   bool exists(const string& filename);
+  bool readable(const string& filename);
   bool is_file(const string& filename);
   bool is_dir(const string& filename);
   string pick(const vector<string>& filenames);

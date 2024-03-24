@@ -153,6 +153,22 @@ namespace file_util {
   }
 
   /**
+   * Checks if the given file is actually readable
+   *
+   * Doing an actual read is necessary to confirm that reading
+   * will actually succeed. For example, some battery firmware
+   * will return ENODATA when charge_now is read, as it is not
+   * implemented in the firmware, despite the file existing
+   * and having a+r permissions.
+   */
+  bool readable(const string& filename) {
+    char c;
+    std::ifstream in(filename, std::ifstream::in);
+    in.get(c);
+    return in.good();
+  }
+
+  /**
    * Checks if the given path exists and is a file
    */
   bool is_file(const string& filename) {
@@ -179,11 +195,11 @@ namespace file_util {
   }
 
   /**
-   * Picks the first existing file out of given entries
+   * Picks the first existing and readable file out of given entries
    */
   string pick(const vector<string>& filenames) {
     for (auto&& f : filenames) {
-      if (exists(f)) {
+      if (exists(f) && readable(f)) {
         return f;
       }
     }
