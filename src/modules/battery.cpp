@@ -65,7 +65,7 @@ namespace modules {
     }
 
     m_rate_reader = make_unique<rate_reader>([this] {
-      unsigned long rate{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+      unsigned long rate{static_cast<unsigned long>(std::abs(std::strtol(file_util::contents(m_frate).c_str(), nullptr, 10)))};
       unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
       unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
       unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
