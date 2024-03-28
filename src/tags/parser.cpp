@@ -2,6 +2,10 @@
 
 #include <cassert>
 #include <cctype>
+#include <exception>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 
 #include "utils/units.hpp"
 
@@ -9,208 +13,209 @@ POLYBAR_NS
 
 namespace tags {
 
-  bool parser::has_next_element() {
-    return buf_pos < buf.size() || has_next();
+bool parser::has_next_element() {
+  return buf_pos < buf.size() || has_next();
+}
+
+element parser::next_element() {
+  if (!has_next_element()) {
+    throw std::runtime_error("tag parser: No next element");
   }
 
-  element parser::next_element() {
-    if (!has_next_element()) {
-      throw std::runtime_error("tag parser: No next element");
-    }
-
-    if (buf_pos >= buf.size()) {
-      parse_step();
-    }
-
-    if (buf_pos >= buf.size()) {
-      throw std::runtime_error("tag parser: No next element. THIS IS A BUG. (Context: '" + input + "')");
-    }
-
-    element e = buf[buf_pos];
-    buf_pos++;
-
-    if (buf_pos == buf.size()) {
-      buf.clear();
-      buf_pos = 0;
-    }
-
-    return e;
+  if (buf_pos >= buf.size()) {
+    parse_step();
   }
 
-  format_string parser::parse() {
-    format_string parsed;
-
-    while (has_next_element()) {
-      parsed.push_back(next_element());
-    }
-
-    return parsed;
+  if (buf_pos >= buf.size()) {
+    throw std::runtime_error("tag parser: No next element. THIS IS A BUG. (Context: '" + input + "')");
   }
 
-  /**
-   * Performs a single parse step.
-   *
-   * This means it will parse text until the next tag is reached or it will
-   * parse an entire %{...} tag.
-   */
-  void parser::parse_step() {
-    char c;
+  element e = buf[buf_pos];
+  buf_pos++;
 
-    /*
-     * If we have already parsed text, we can stop if we reach a tag.
-     */
-    bool text_parsed = false;
-
-    size_t start_pos = pos;
-
-    try {
-      while ((c = next())) {
-        // TODO here we could think about how to escape an action tag
-        if (c == '%' && has_next() && peek() == '{') {
-          /*
-           * If we have already parsed text, encountering a tag opening means
-           * we can stop parsing now because we parsed at least one entire
-           * element (the text up to the beginning of the tag).
-           */
-          if (text_parsed) {
-            // Put back the '%'
-            revert();
-            break;
-          }
-
-          consume('{');
-          consume_space();
-          parse_tag();
-          break;
-        } else {
-          push_char(c);
-          text_parsed = true;
-        }
-      }
-    } catch (error& e) {
-      e.set_context(input.substr(start_pos, pos - start_pos));
-      throw;
-    }
-  }
-
-  void parser::set(const string&& input) {
-    this->input = std::move(input);
-    pos = 0;
+  if (buf_pos == buf.size()) {
     buf.clear();
     buf_pos = 0;
   }
 
-  bool parser::has_next() const {
-    return pos < input.size();
+  return e;
+}
+
+format_string parser::parse() {
+  format_string parsed;
+
+  while (has_next_element()) {
+    parsed.push_back(next_element());
   }
 
-  char parser::next() {
-    char c = peek();
-    pos++;
-    return c;
-  }
+  return parsed;
+}
 
-  char parser::peek() const {
-    if (!has_next()) {
-      return EOL;
-    }
+/**
+ * Performs a single parse step.
+ *
+ * This means it will parse text until the next tag is reached or it will
+ * parse an entire %{...} tag.
+ */
+void parser::parse_step() {
+  char c;
 
-    return input[pos];
-  }
-
-  /**
-   * Puts back a single character in the input string.
+  /*
+   * If we have already parsed text, we can stop if we reach a tag.
    */
-  void parser::revert() {
-    assert(pos > 0);
-    pos--;
-  }
+  bool text_parsed = false;
 
-  void parser::consume(char c) {
-    char n = next();
-    if (n != c) {
-      throw tags::token_error(n, c);
-    }
-  }
+  size_t start_pos = pos;
 
-  void parser::consume_space() {
-    while (peek() == ' ') {
-      next();
-    }
-  }
-
-  /**
-   * Parses an entire %{....} tag.
-   *
-   * '%' and '{' were already consumed and we are currently on the first character
-   * inside the tag.
-   * At the end of this method, we should be on the closing '}' character (not
-   * yet consumed).
-   */
-
-  void parser::parse_tag() {
-    if (!has_next()) {
-      throw token_error(EOL, "Formatting tag content");
-    }
-
-    while (has_next()) {
-      parse_single_tag_content();
-
-      int p = peek();
-
-      if (p != ' ' && p != '}') {
-        throw tag_end_error(p);
-      } else {
-        /**
-         * Consume whitespace between elements inside the tag
+  try {
+    while ((c = next())) {
+      // TODO here we could think about how to escape an action tag
+      if (c == '%' && has_next() && peek() == '{') {
+        /*
+         * If we have already parsed text, encountering a tag opening means
+         * we can stop parsing now because we parsed at least one entire
+         * element (the text up to the beginning of the tag).
          */
-        consume_space();
-
-        if (peek() == '}') {
-          consume('}');
+        if (text_parsed) {
+          // Put back the '%'
+          revert();
           break;
         }
+
+        consume('{');
+        consume_space();
+        parse_tag();
+        break;
+      } else {
+        push_char(c);
+        text_parsed = true;
+      }
+    }
+  } catch (error& e) {
+    e.set_context(input.substr(start_pos, pos - start_pos));
+    throw;
+  }
+}
+
+void parser::set(const string&& input) {
+  this->input = std::move(input);
+  pos = 0;
+  buf.clear();
+  buf_pos = 0;
+}
+
+bool parser::has_next() const {
+  return pos < input.size();
+}
+
+char parser::next() {
+  char c = peek();
+  pos++;
+  return c;
+}
+
+char parser::peek() const {
+  if (!has_next()) {
+    return EOL;
+  }
+
+  return input[pos];
+}
+
+/**
+ * Puts back a single character in the input string.
+ */
+void parser::revert() {
+  assert(pos > 0);
+  pos--;
+}
+
+void parser::consume(char c) {
+  char n = next();
+  if (n != c) {
+    throw tags::token_error(n, c);
+  }
+}
+
+void parser::consume_space() {
+  while (peek() == ' ') {
+    next();
+  }
+}
+
+/**
+ * Parses an entire %{....} tag.
+ *
+ * '%' and '{' were already consumed and we are currently on the first character
+ * inside the tag.
+ * At the end of this method, we should be on the closing '}' character (not
+ * yet consumed).
+ */
+
+void parser::parse_tag() {
+  if (!has_next()) {
+    throw token_error(EOL, "Formatting tag content");
+  }
+
+  while (has_next()) {
+    parse_single_tag_content();
+
+    int p = peek();
+
+    if (p != ' ' && p != '}') {
+      throw tag_end_error(p);
+    } else {
+      /**
+       * Consume whitespace between elements inside the tag
+       */
+      consume_space();
+
+      if (peek() == '}') {
+        consume('}');
+        break;
       }
     }
   }
+}
+
+/**
+ * Parses a single element inside a formatting tag.
+ *
+ * For example it would parse the foreground part of the following tag:
+ *
+ * %{F#ff0000 B#ff0000}
+ *   ^       ^
+ *   |       - Pointer at the end
+ *   |
+ *   - Pointer at the start
+ */
+void parser::parse_single_tag_content() {
+  char c = next();
 
   /**
-   * Parses a single element inside a formatting tag.
-   *
-   * For example it would parse the foreground part of the following tag:
-   *
-   * %{F#ff0000 B#ff0000}
-   *   ^       ^
-   *   |       - Pointer at the end
-   *   |
-   *   - Pointer at the start
+   * %{U...} is a special case because it produces over and underline tags.
    */
-  void parser::parse_single_tag_content() {
-    char c = next();
+  if (c == 'U') {
+    element e{};
+    e.is_tag = true;
+    e.tag_data.type = tag_type::FORMAT;
+    e.tag_data.subtype.format = syntaxtag::u;
+    e.tag_data.color = parse_color();
+    buf.emplace_back(e);
 
-    /**
-     * %{U...} is a special case because it produces over and underline tags.
-     */
-    if (c == 'U') {
-      element e{};
-      e.is_tag = true;
-      e.tag_data.type = tag_type::FORMAT;
-      e.tag_data.subtype.format = syntaxtag::u;
-      e.tag_data.color = parse_color();
-      buf.emplace_back(e);
+    e.tag_data.subtype.format = syntaxtag::o;
+    buf.emplace_back(e);
+    return;
+  }
 
-      e.tag_data.subtype.format = syntaxtag::o;
-      buf.emplace_back(e);
-      return;
-    }
+  tag_type type;
+  tag_subtype sub;
 
-    tag_type type;
-    tag_subtype sub;
-
-    switch (c) {
+  switch (c) {
       // clang-format off
       case 'B': sub.format = syntaxtag::B; break;
       case 'F': sub.format = syntaxtag::F; break;
+      case 'H': sub.format = syntaxtag::H; break;
       case 'u': sub.format = syntaxtag::u; break;
       case 'o': sub.format = syntaxtag::o; break;
       case 'T': sub.format = syntaxtag::T; break;
@@ -226,284 +231,348 @@ namespace tags {
       case '-': sub.activation = attr_activation::OFF; break;
       case '!': sub.activation = attr_activation::TOGGLE; break;
 
-        // clang-format on
+      // clang-format on
 
-      default:
-        throw unrecognized_tag(c);
-    }
-
-    switch (c) {
-      case 'B':
-      case 'F':
-      case 'u':
-      case 'o':
-      case 'T':
-      case 'R':
-      case 'O':
-      case 'P':
-      case 'A':
-      case 'l':
-      case 'c':
-      case 'r':
-        type = tag_type::FORMAT;
-        break;
-
-      case '+':
-      case '-':
-      case '!':
-        type = tag_type::ATTR;
-        break;
-
-      default:
-        throw unrecognized_tag(c);
-    }
-
-    tag tag_data{};
-    tag_data.type = type;
-    tag_data.subtype = sub;
-
-    element e{};
-    e.is_tag = true;
-
-    switch (c) {
-      case 'B':
-      case 'F':
-      case 'u':
-      case 'o':
-        tag_data.color = parse_color();
-        break;
-      case 'T':
-        tag_data.font = parse_fontindex();
-        break;
-      case 'O':
-        tag_data.offset = parse_offset();
-        break;
-      case 'P':
-        tag_data.ctrl = parse_control();
-        break;
-      case 'A':
-        std::tie(tag_data.action, e.data) = parse_action();
-        break;
-
-      case '+':
-      case '-':
-      case '!':
-        tag_data.attr = parse_attribute();
-        break;
-    }
-
-    e.tag_data = tag_data;
-    buf.emplace_back(e);
+    default:
+      throw unrecognized_tag(c);
   }
 
-  color_value parser::parse_color() {
-    string s = get_tag_value();
+  switch (c) {
+    case 'B':
+    case 'F':
+    case 'H':
+    case 'u':
+    case 'o':
+    case 'T':
+    case 'R':
+    case 'O':
+    case 'P':
+    case 'A':
+    case 'l':
+    case 'c':
+    case 'r':
+      type = tag_type::FORMAT;
+      break;
 
-    color_value ret;
+    case '+':
+    case '-':
+    case '!':
+      type = tag_type::ATTR;
+      break;
 
-    if (s.empty() || s == "-") {
-      ret.type = color_type::RESET;
-    } else {
-      rgba c{s};
+    default:
+      throw unrecognized_tag(c);
+  }
 
-      if (!c.has_color()) {
-        throw color_error(s);
-      }
+  tag tag_data{};
+  tag_data.type = type;
+  tag_data.subtype = sub;
 
-      ret.type = color_type::COLOR;
-      ret.val = c;
+  element e{};
+  e.is_tag = true;
+
+  switch (c) {
+    case 'B':
+    case 'F':
+    case 'u':
+    case 'o':
+      tag_data.color = parse_color();
+      break;
+    case 'T':
+      tag_data.font = parse_fontindex();
+      break;
+    case 'O':
+      tag_data.offset = parse_offset();
+      break;
+    case 'P':
+      tag_data.ctrl = parse_control();
+      break;
+    case 'A':
+      std::tie(tag_data.action, e.data) = parse_action();
+      break;
+    case 'H':
+      tag_data.highlight = parse_highlight();
+      break;
+
+    case '+':
+    case '-':
+    case '!':
+      tag_data.attr = parse_attribute();
+      break;
+  }
+
+  e.tag_data = tag_data;
+  buf.emplace_back(e);
+}
+
+color_value parser::parse_color() {
+  string s = get_tag_value();
+
+  color_value ret;
+
+  if (s.empty() || s == "-") {
+    ret.type = color_type::RESET;
+  } else {
+    rgba c{s};
+
+    if (!c.has_color()) {
+      throw color_error(s);
     }
 
+    ret.type = color_type::COLOR;
+    ret.val = c;
+  }
+
+  return ret;
+}
+
+color_value parser::parse_color(string s) {
+  color_value ret;
+
+  if (s.empty() || s == "-") {
+    ret.type = color_type::RESET;
+  } else {
+    rgba c{s};
+
+    if (!c.has_color()) {
+      throw color_error(s);
+    }
+
+    ret.type = color_type::COLOR;
+    ret.val = c;
+  }
+
+  return ret;
+}
+
+highlight_value parser::parse_highlight() {
+  string s = get_tag_value();
+
+  highlight_value ret;
+
+  if (s.empty()) {
+    ret.left_color.type = color_type::RESET;
+    ret.right_color.type = color_type::RESET;
+    ret.percentage = 100.0;
     return ret;
   }
 
-  int parser::parse_fontindex() {
-    string s = get_tag_value();
+  auto args = std::array<string, 4>();
 
-    if (s.empty() || s == "-") {
+  size_t last = 0;
+  size_t next = 0;
+  size_t i = 0;
+  while ((next = s.find(':', last)) != string::npos) {
+    try {
+      args[i++] = s.substr(last, next - last);
+    } catch (const exception& err) {
+      throw highlight_error(s, err.what());
+    }
+    last = next + 1;
+  }
+  if (i != 3) {
+    std::cout << i << '\n';
+    throw highlight_error(s);
+  }
+  args[i] = s.substr(last);
+
+  ret.left_color = parse_color(args[1]);
+  ret.right_color = parse_color(args[2]);
+  try {
+    ret.percentage = std::stod(args[3]);
+  } catch (const std::exception& err) {
+    throw highlight_error(s, err.what());
+  }
+  return ret;
+}
+
+int parser::parse_fontindex() {
+  string s = get_tag_value();
+
+  if (s.empty() || s == "-") {
+    return 0;
+  }
+
+  try {
+    size_t ptr;
+    int ret = std::stoi(s, &ptr, 10);
+
+    if (ret < 0) {
       return 0;
     }
 
-    try {
-      size_t ptr;
-      int ret = std::stoi(s, &ptr, 10);
+    if (ptr != s.size()) {
+      throw font_error(s, "Font index contains non-number characters");
+    }
 
-      if (ret < 0) {
-        return 0;
+    return ret;
+  } catch (const std::exception& err) {
+    throw font_error(s, err.what());
+  }
+}
+
+extent_val parser::parse_offset() {
+  string s = get_tag_value();
+
+  if (s.empty()) {
+    return ZERO_PX_EXTENT;
+  }
+
+  try {
+    return units_utils::parse_extent(string{s});
+  } catch (const std::exception& err) {
+    throw offset_error(s, err.what());
+  }
+}
+
+controltag parser::parse_control() {
+  string s = get_tag_value();
+
+  if (s.empty()) {
+    throw control_error(s, "Control tag is empty");
+  }
+
+  switch (s[0]) {
+    case 'R':
+      if (s.size() != 1) {
+        throw control_error(s, "Control tag R has extra data");
       }
 
-      if (ptr != s.size()) {
-        throw font_error(s, "Font index contains non-number characters");
-      }
+      return controltag::R;
+    case 't':
+      return controltag::t;
+    default:
+      throw control_error(s);
+  }
+}
 
-      return ret;
-    } catch (const std::exception& err) {
-      throw font_error(s, err.what());
-    }
+std::pair<action_value, string> parser::parse_action() {
+  mousebtn btn = parse_action_btn();
+
+  action_value ret;
+
+  string cmd;
+
+  if (has_next() && peek() == ':') {
+    ret.btn = btn == mousebtn::NONE ? mousebtn::LEFT : btn;
+    ret.closing = false;
+    cmd = parse_action_cmd();
+  } else {
+    ret.btn = btn;
+    ret.closing = true;
   }
 
-  extent_val parser::parse_offset() {
-    string s = get_tag_value();
+  return {ret, cmd};
+}
 
-    if (s.empty()) {
-      return ZERO_PX_EXTENT;
-    }
-
-    try {
-      return units_utils::parse_extent(string{s});
-    } catch (const std::exception& err) {
-      throw offset_error(s, err.what());
-    }
-  }
-
-  controltag parser::parse_control() {
-    string s = get_tag_value();
-
-    if (s.empty()) {
-      throw control_error(s, "Control tag is empty");
-    }
-
-    switch (s[0]) {
-      case 'R':
-        if (s.size() != 1) {
-          throw control_error(s, "Control tag R has extra data");
-        }
-
-        return controltag::R;
-      case 't':
-        return controltag::t;
-      default:
-        throw control_error(s);
-    }
-  }
-
-  std::pair<action_value, string> parser::parse_action() {
-    mousebtn btn = parse_action_btn();
-
-    action_value ret;
-
-    string cmd;
-
-    if (has_next() && peek() == ':') {
-      ret.btn = btn == mousebtn::NONE ? mousebtn::LEFT : btn;
-      ret.closing = false;
-      cmd = parse_action_cmd();
-    } else {
-      ret.btn = btn;
-      ret.closing = true;
-    }
-
-    return {ret, cmd};
-  }
-
-  /**
-   * Parses the button index after starting an action tag.
-   *
-   * May return mousebtn::NONE if no button was given.
-   */
-  mousebtn parser::parse_action_btn() {
-    if (has_next()) {
-      if (isdigit(peek())) {
-        char c = next();
-        int num = c - '0';
-
-        if (num < static_cast<int>(mousebtn::NONE) || num >= static_cast<int>(mousebtn::BTN_COUNT)) {
-          throw btn_error(string{c});
-        }
-
-        return static_cast<mousebtn>(num);
-      }
-    }
-
-    return mousebtn::NONE;
-  }
-
-  /**
-   * Starts at ':' and parses a complete action string.
-   *
-   * Returns the parsed action string with without escaping backslashes.
-   *
-   * Afterwards the parsers will be at the character immediately after the
-   * closing colon.
-   */
-  string parser::parse_action_cmd() {
-    consume(':');
-
-    string s;
-
-    char prev = EOL;
-
-    while (has_next()) {
+/**
+ * Parses the button index after starting an action tag.
+ *
+ * May return mousebtn::NONE if no button was given.
+ */
+mousebtn parser::parse_action_btn() {
+  if (has_next()) {
+    if (isdigit(peek())) {
       char c = next();
+      int num = c - '0';
 
-      if (c == ':') {
-        if (prev == '\\') {
-          s.pop_back();
-          s.push_back(c);
-        } else {
-          break;
-        }
-      } else {
-        s.push_back(c);
+      if (num < static_cast<int>(mousebtn::NONE) || num >= static_cast<int>(mousebtn::BTN_COUNT)) {
+        throw btn_error(string{c});
       }
 
-      prev = c;
-    }
-
-    return s;
-  }
-
-  attribute parser::parse_attribute() {
-    char c;
-    switch (c = next()) {
-      case 'u':
-        return attribute::UNDERLINE;
-      case 'o':
-        return attribute::OVERLINE;
-      default:
-        throw unrecognized_attr(c);
+      return static_cast<mousebtn>(num);
     }
   }
 
-  void parser::push_char(char c) {
-    if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
-      buf.back().data += c;
+  return mousebtn::NONE;
+}
+
+/**
+ * Starts at ':' and parses a complete action string.
+ *
+ * Returns the parsed action string with without escaping backslashes.
+ *
+ * Afterwards the parsers will be at the character immediately after the
+ * closing colon.
+ */
+string parser::parse_action_cmd() {
+  consume(':');
+
+  string s;
+
+  char prev = EOL;
+
+  while (has_next()) {
+    char c = next();
+
+    if (c == ':') {
+      if (prev == '\\') {
+        s.pop_back();
+        s.push_back(c);
+      } else {
+        break;
+      }
     } else {
-      buf.emplace_back(string{c});
+      s.push_back(c);
     }
+
+    prev = c;
   }
 
-  void parser::push_text(string&& text) {
-    if (text.empty()) {
-      return;
-    }
+  return s;
+}
 
-    if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
-      buf.back().data += text;
-    } else {
-      buf.emplace_back(std::move(text));
-    }
+attribute parser::parse_attribute() {
+  char c;
+  switch (c = next()) {
+    case 'u':
+      return attribute::UNDERLINE;
+    case 'o':
+      return attribute::OVERLINE;
+    default:
+      throw unrecognized_attr(c);
+  }
+}
+
+void parser::push_char(char c) {
+  if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
+    buf.back().data += c;
+  } else {
+    buf.emplace_back(string{c});
+  }
+}
+
+void parser::push_text(string&& text) {
+  if (text.empty()) {
+    return;
   }
 
-  /**
-   * Will read up until the end of the tag value.
-   *
-   * Afterwards the parser will be at the character directly after the tag
-   * value.
-   *
-   * This function just reads until it encounters a space or a closing curly
-   * bracket, so it is not useful for tag values that can contain these
-   * characters (e.g. action tags).
-   */
-  string parser::get_tag_value() {
-    string s;
-
-    while (has_next() && peek() != ' ' && peek() != '}') {
-      s.push_back(next());
-    }
-
-    return s;
+  if (!buf.empty() && buf_pos < buf.size() && !buf.back().is_tag) {
+    buf.back().data += text;
+  } else {
+    buf.emplace_back(std::move(text));
   }
+}
+
+/**
+ * Will read up until the end of the tag value.
+ *
+ * Afterwards the parser will be at the character directly after the tag
+ * value.
+ *
+ * This function just reads until it encounters a space or a closing curly
+ * bracket, so it is not useful for tag values that can contain these
+ * characters (e.g. action tags).
+ */
+string parser::get_tag_value() {
+  string s;
+
+  while (has_next() && peek() != ' ' && peek() != '}') {
+    s.push_back(next());
+  }
+
+  return s;
+}
 } // namespace tags
 
 POLYBAR_NS_END
