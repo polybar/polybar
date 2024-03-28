@@ -26,6 +26,7 @@ namespace tags {
 
     void apply_bg(color_value c);
     void apply_fg(color_value c);
+    void apply_hl(highlight_value h);
     void apply_ol(color_value c);
     void apply_ul(color_value c);
     void apply_font(int font);
@@ -37,6 +38,7 @@ namespace tags {
 
     rgba get_bg() const;
     rgba get_fg() const;
+    std::tuple<rgba, rgba, double> get_hl() const;
     rgba get_ol() const;
     rgba get_ul() const;
     int get_font() const;
@@ -55,6 +57,10 @@ namespace tags {
      * Foreground color
      */
     rgba m_fg{};
+    /**
+     * Highlight colors
+     */
+    std::tuple<rgba, rgba, double> m_hl{};
     /**
      * Overline color
      */
@@ -82,8 +88,8 @@ namespace tags {
 
     std::pair<alignment, int> m_relative_tray_position{alignment::NONE, 0};
 
-  private:
-      const bar_settings &m_settings;
+   private:
+    const bar_settings& m_settings;
   };
 } // namespace tags
 

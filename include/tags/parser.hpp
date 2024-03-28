@@ -41,6 +41,7 @@ namespace tags {
   }
 
   DEFINE_INVALID_ERROR(color_error, "color");
+  DEFINE_INVALID_ERROR(highlight_error, "highlight");
   DEFINE_INVALID_ERROR(font_error, "font index");
   DEFINE_INVALID_ERROR(control_error, "control tag");
   DEFINE_INVALID_ERROR(offset_error, "offset");
@@ -125,6 +126,8 @@ namespace tags {
     void parse_single_tag_content();
 
     color_value parse_color();
+    static color_value parse_color(string s);
+    highlight_value parse_highlight();
     int parse_fontindex();
     extent_val parse_offset();
     controltag parse_control();
@@ -154,6 +157,6 @@ namespace tags {
     size_t buf_pos;
   };
 
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END
