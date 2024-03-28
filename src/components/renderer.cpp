@@ -688,12 +688,9 @@ void renderer::fill_borders() {
  * Draw text contents
  */
 void renderer::render_text(const tags::context& ctxt, const string&& contents) {
+  // chom: do the thing
   assert(ctxt.get_alignment() != alignment::NONE && ctxt.get_alignment() == m_align);
   m_log.trace_x("renderer: text(%s)", contents.c_str());
-
-  cairo::abspos origin{};
-  origin.x = m_rect.x + m_blocks[m_align].x;
-  origin.y = m_rect.y + m_rect.height / 2.0;
 
   double x_old = m_blocks[m_align].x;
   /*
@@ -701,34 +698,101 @@ void renderer::render_text(const tags::context& ctxt, const string&& contents) {
    */
   double x_new = x_old;
 
-  cairo::textblock block{};
-  block.align = m_align;
-  block.contents = contents;
-  block.font = ctxt.get_font();
-  block.x_advance = &x_new;
-  block.y_advance = &m_blocks[m_align].y;
-  block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
-
+  auto hl = ctxt.get_hl();
   rgba bg = ctxt.get_bg();
+  auto op = m_comp_bg;
+  double percentage = std::get<2>(hl);
 
-  // Only draw text background if the color differs from
-  // the background color of the bar itself
-  // Note: this means that if the user explicitly set text
-  // background color equal to background-0 it will be ignored
-  if (bg != m_bar.background) {
-    block.bg = bg;
+  cairo::abspos origin{};
+  origin.x = m_rect.x + m_blocks[m_align].x;
+  origin.y = m_rect.y + m_rect.height / 2.0;
+
+  if (percentage != 100.0) {
+    auto* extents = new cairo_text_extents_t();
+    cairo_scaled_font_text_extents(cairo_get_scaled_font(*m_context), contents.c_str(), extents);
+    double width = extents->x_advance;
+    delete extents;
+    rgba left = std::get<0>(hl);
+    rgba right = std::get<1>(hl);
+
+    double x_left = x_old;
+
+    cairo::textblock block{};
+    block.bg = left;
+    block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
     block.bg_operator = m_comp_bg;
     block.bg_rect.x = m_rect.x;
     block.bg_rect.y = m_rect.y;
     block.bg_rect.h = m_rect.height;
-  }
 
-  m_context->save();
-  *m_context << origin;
-  *m_context << m_comp_fg;
-  *m_context << ctxt.get_fg();
-  *m_context << block;
-  m_context->restore();
+    block.align = m_align;
+    block.contents = contents.substr(0, size_t(double(contents.size()) * percentage));
+    block.font = ctxt.get_font();
+    block.x_advance = &x_left;
+    block.y_advance = &m_blocks[m_align].y;
+
+    m_context->save();
+    *m_context << origin;
+    *m_context << m_comp_fg;
+    *m_context << ctxt.get_fg();
+    *m_context << block;
+    m_context->restore();
+
+    origin.x = m_rect.x + m_blocks[m_align].x + x_left - x_old;
+    origin.y = m_rect.y + m_rect.height / 2.0;
+
+    x_new = x_left;
+
+    block.bg = right;
+    block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
+    block.bg_operator = m_comp_bg;
+    block.bg_rect.x = m_rect.x;
+    block.bg_rect.y = m_rect.y;
+    block.bg_rect.h = m_rect.height;
+
+    block.align = m_align;
+    block.contents = contents.substr(size_t(double(contents.size()) * percentage));
+    block.font = ctxt.get_font();
+    block.x_advance = &x_new;
+    block.y_advance = &m_blocks[m_align].y;
+
+    m_context->save();
+    *m_context << origin;
+    *m_context << m_comp_fg;
+    *m_context << ctxt.get_fg();
+    *m_context << block;
+    m_context->restore();
+
+    bg = rgba(0x00000000);
+    op = m_comp_hl;
+  } else {
+    cairo::textblock block{};
+    block.align = m_align;
+    block.contents = contents;
+    block.font = ctxt.get_font();
+    block.x_advance = &x_new;
+    block.y_advance = &m_blocks[m_align].y;
+    block.bg_rect = cairo::rect{0.0, 0.0, 0.0, 0.0};
+
+    // Only draw text background if the color differs from
+    // the background color of the bar itself
+    // Note: this means that if the user explicitly set text
+    // background color equal to background-0 it will be ignored
+    if (bg != m_bar.background) {
+      block.bg = bg;
+      block.bg_operator = op;
+      block.bg_rect.x = m_rect.x;
+      block.bg_rect.y = m_rect.y;
+      block.bg_rect.h = m_rect.height;
+    }
+
+    m_context->save();
+    *m_context << origin;
+    *m_context << m_comp_fg;
+    *m_context << ctxt.get_fg();
+    *m_context << block;
+    m_context->restore();
+  }
 
   double dx = x_new - x_old;
   increase_x(dx);
