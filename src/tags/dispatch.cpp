@@ -59,6 +59,9 @@ namespace tags {
               case tags::syntaxtag::F:
                 m_ctxt->apply_fg(el.tag_data.color);
                 break;
+              case tags::syntaxtag::H:
+                m_ctxt->apply_hl(el.tag_data.highlight);
+                break;
               case tags::syntaxtag::T:
                 m_ctxt->apply_font(el.tag_data.font);
                 break;
