@@ -92,6 +92,7 @@ class command<output_policy::REDIRECTED> : private command<output_policy::IGNORE
 
   void tail(std::function<void(string)> cb);
   string readline();
+  bool wait_for_data(int timeout_ms);
 
   int get_stdout(int c);
   int get_stdin(int c);

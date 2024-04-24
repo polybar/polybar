@@ -155,7 +155,7 @@ script_runner::interval script_runner::run_tail() {
   assert(fd != -1);
 
   while (!m_stopping && cmd.is_running() && !io_util::poll(fd, POLLHUP, 0)) {
-    if (io_util::poll_read(fd, 250)) {
+    if (cmd.wait_for_data(250)) {
       auto changed = set_output(cmd.readline());
 
       if (changed) {

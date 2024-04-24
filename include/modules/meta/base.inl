@@ -119,7 +119,7 @@ namespace modules {
 
   template <typename Impl>
   string module<Impl>::contents() {
-    if (m_changed) {
+    if (m_changed.exchange(false)) {
       m_log.info("%s: Rebuilding cache", name());
       m_cache = CAST_MOD(Impl)->get_output();
       // Make sure builder is really empty
@@ -129,7 +129,6 @@ namespace modules {
         m_builder->control(tags::controltag::R);
         m_cache += m_builder->flush();
       }
-      m_changed = false;
     }
     return m_cache;
   }
