@@ -78,6 +78,11 @@ namespace modules {
 #else
       map_entry_unsupported<ALSA_TYPE>(),
 #endif
+#if ENABLE_OSS
+      map_entry<oss_module>(),
+#else
+      map_entry_unsupported<OSS_TYPE>(),
+#endif
 #if ENABLE_PULSEAUDIO
       map_entry<pulseaudio_module>(),
 #else

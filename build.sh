@@ -25,6 +25,8 @@ usage() {
           Include support for internal/i3 (requires i3); disabled by default.
       ${COLORS[GREEN]}-a, --alsa${COLORS[OFF]}
           Include support for internal/alsa (requires alsalib); disabled by default.
+      ${COLORS[GREEN]}-o, --oss${COLORS[OFF]}
+          Include support for internal/oss; disabled by default.
       ${COLORS[GREEN]}-p, --pulseaudio${COLORS[OFF]}
           Include support for internal/pulseaudio (requires libpulse); disabled by default.
       ${COLORS[GREEN]}-n, --network${COLORS[OFF]}
@@ -89,6 +91,7 @@ set_build_opts() {
     [[ -z "$USE_GCC" ]] && USE_GCC="OFF"
     [[ -z "$ENABLE_I3" ]] && ENABLE_I3="OFF"
     [[ -z "$ENABLE_ALSA" ]] && ENABLE_ALSA="OFF"
+    [[ -z "$ENABLE_OSS" ]] && ENABLE_OSS="OFF"
     [[ -z "$ENABLE_PULSEAUDIO" ]] && ENABLE_PULSEAUDIO="OFF"
     [[ -z "$ENABLE_NETWORK" ]] && ENABLE_NETWORK="OFF"
     [[ -z "$ENABLE_MPD" ]] && ENABLE_MPD="OFF"
@@ -110,6 +113,11 @@ set_build_opts() {
   if [[ -z "$ENABLE_ALSA" ]]; then
     read -r -p "$(msg "Include support for \"internal/alsa\" (requires alsalib) --------- [y/N]: ")" -n 1 p && echo
     [[ "${p^^}" != "Y" ]] && ENABLE_ALSA="OFF" || ENABLE_ALSA="ON"
+  fi
+
+  if [[ -z "$ENABLE_OSS" ]]; then
+    read -r -p "$(msg "Include support for \"internal/oss\" ----------------------------- [y/N]: ")" -n 1 p && echo
+    [[ "${p^^}" != "Y" ]] && ENABLE_OSS="OFF" || ENABLE_OSS="ON"
   fi
 
   if [[ -z "$ENABLE_PULSEAUDIO" ]]; then
@@ -182,6 +190,7 @@ main() {
   cmake                                       \
     -DCMAKE_CXX_COMPILER="${CXX}"             \
     -DENABLE_ALSA:BOOL="${ENABLE_ALSA}"       \
+    -DENABLE_OSS:BOOL="${ENABLE_OSS}"         \
     -DENABLE_PULSEAUDIO:BOOL="${ENABLE_PULSEAUDIO}"\
     -DENABLE_I3:BOOL="${ENABLE_I3}"           \
     -DENABLE_MPD:BOOL="${ENABLE_MPD}"         \
@@ -212,6 +221,8 @@ while [[ "$1" == -* ]]; do
       ENABLE_I3=ON; shift ;;
     -a|--alsa)
       ENABLE_ALSA=ON; shift ;;
+    -o|--oss)
+      ENABLE_OSS=ON; shift ;;
     -p|--pulseaudio)
       ENABLE_PULSEAUDIO=ON; shift ;;
     -n|--network)
@@ -225,6 +236,7 @@ while [[ "$1" == -* ]]; do
     --all-features)
       ENABLE_I3=ON
       ENABLE_ALSA=ON
+      ENABLE_OSS=ON
       ENABLE_PULSEAUDIO=ON
       ENABLE_NETWORK=ON
       ENABLE_MPD=ON
