@@ -15,14 +15,16 @@ the Dropbox application).
 Polybar is only responsible for embedding the windows in the bar and
 positioning them correctly.
 
-.. note::
+.. attention::
 
    Only a single instance of this module can be active at the same time (across
-   all polybar instances).
+   all polybar instances in the same graphical session).
 
    The way the `system tray protocol <systray-spec_>`_ works, at most one tray
    can exist at any time.
    Polybar will produce a warning if additional tray instances are created.
+   This also applies when another tray application (e.g. ``stalonetray``) is
+   active.
 
 For transparent background colors, the tray will use pseudo-transparency, true
 transparency is not possible for the tray icons.
