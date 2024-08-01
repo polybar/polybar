@@ -144,11 +144,16 @@ jobs:
           lcov --remove cov_total.info "${PWD}/build/*" "${PWD}/tests/*" "${PWD}/lib/*" -o cov.info
       - name: Upload Coverage
         if: ${{ matrix.polybar_build_type == 'tests' }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: unittests
+          # We provide our own coverage files
+          disable_search: true
+          # Disable all plugins, we handle all preparations ourselves
+          plugins: noop
           files: ./cov.info
           fail_ci_if_error: true
+          verbose: true
       - name: Upload Logs
         if: failure()
         uses: actions/upload-artifact@v2
