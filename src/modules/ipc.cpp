@@ -79,6 +79,8 @@ namespace modules {
     this->module::start();
     m_mainthread = thread([&] {
       m_log.trace("%s: Thread id = %i", this->name(), concurrency_util::thread_id(this_thread::get_id()));
+      // Initial update to start with an empty output until the initial hook finishes
+      update_output();
       update();
       broadcast();
     });
