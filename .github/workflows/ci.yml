@@ -146,6 +146,7 @@ jobs:
         if: ${{ matrix.polybar_build_type == 'tests' }}
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
           # We provide our own coverage files
           disable_search: true
