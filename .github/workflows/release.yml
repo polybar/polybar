@@ -38,7 +38,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       # Checks out the target tag
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: ${{ env.RELEASE_TAG }}
           submodules: true
@@ -55,7 +55,7 @@ jobs:
 
       - name: Get Upload URL
         id: get_upload_url
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -83,7 +83,7 @@ jobs:
 
       # Adds a download section to the beginning of the release body
       - name: Update Release Body
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7
         env:
           # Existing release body, fetched in the get_upload_url step.
           RELEASE_BODY: ${{ env.RELEASE_BODY }}

@@ -14,7 +14,7 @@ jobs:
     env:
       COLOR: "ON"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref }}
       - name: Install Dependencies
@@ -48,7 +48,7 @@ jobs:
             python3-xcbgen \
             libuv1-dev \
             xcb-proto
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           ref: ${{ github.event.inputs.ref }}
@@ -115,7 +115,7 @@ jobs:
           if [ "$POLYBAR_BUILD_TYPE" = "tests" ]; then
             sudo apt-get install -y lcov
           fi
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           ref: ${{ github.event.inputs.ref }}
@@ -152,7 +152,7 @@ jobs:
           fail_ci_if_error: true
       - name: Upload Logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: cmake
           path: |
