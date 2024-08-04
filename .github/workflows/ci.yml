@@ -146,6 +146,7 @@ jobs:
         if: ${{ matrix.polybar_build_type == 'tests' }}
         uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
           files: ./cov.info
           fail_ci_if_error: true
