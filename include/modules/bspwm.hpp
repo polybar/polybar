@@ -37,6 +37,7 @@ namespace modules {
       label_t label;
       string name;
       bool focused{false};
+      size_t index{0};
     };
 
    public:
