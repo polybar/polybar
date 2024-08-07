@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <utility>
+#include <math.h>
 
 POLYBAR_NS
 
@@ -450,6 +451,33 @@ string filesize(unsigned long long bytes, size_t precision, bool fixed, const st
     value /= 1024.0;
   }
   return floating_point(value, precision, fixed, locale) + " " + suffix;
+}
+
+/**
+ * Create a filesize string with a specific target unit
+ */
+string filesize_specific(unsigned long long bytes, char target, size_t precision, bool fixed, const string& locale) {
+  double value = bytes;
+  switch(target) {
+    case 'k':
+      value /= 1024.0;
+      return floating_point(value, precision, fixed, locale) + " KB";
+      break;
+    case 'm':
+      value /= pow(1024.0, 2);
+      return floating_point(value, precision, fixed, locale) + " MB";
+      break;
+    case 'g':
+      value /= pow(1024.0, 3);
+      return floating_point(value, precision, fixed, locale) + " GB";
+      break;
+    case 't':
+      value /= pow(1024.0, 4);
+      return floating_point(value, precision, fixed, locale) + " TB";
+      break;
+    default:
+      return floating_point(value, precision, fixed, locale) + " B";
+  }
 }
 
 /**
