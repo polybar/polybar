@@ -202,6 +202,14 @@ string command<output_policy::REDIRECTED>::readline() {
 }
 
 /**
+ * Wait until there is data in the output stream or until timeout_ms milliseconds
+ */
+bool command<output_policy::REDIRECTED>::wait_for_data(int timeout_ms) {
+  return (m_stdout_reader && m_stdout_reader->rdbuf()->in_avail() > 0) ||
+          io_util::poll_read(get_stdout(PIPE_READ), timeout_ms);
+}
+
+/**
  * Get command output channel
  */
 int command<output_policy::REDIRECTED>::get_stdout(int c) {

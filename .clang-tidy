@@ -32,20 +32,16 @@ Checks: '
         '
 
 CheckOptions:
-  - key:             modernize-loop-convert.NamingStyle
-    value:           lower_case
-  - key:             readability-identifier-naming.ClassCase
-    value:           lower_case
-  - key:             readability-identifier-naming.ClassConstantCase
-    value:           UPPER_CASE
-  - key:             readability-identifier-naming.ClassMethodCase
-    value:           lower_case
-  - key:             readability-identifier-naming.MemberCase
-    value:           lower_case
-  - key:             readability-identifier-naming.ProtectedMemberPrefix
-    value:           'm_'
-  - key:             readability-identifier-naming.PrivateMemberPrefix
-    value:           'm_'
+  cppcoreguidelines-avoid-do-while.IgnoreMacros: true
+  modernize-loop-convert.NamingStyle: lower_case
+  readability-identifier-naming.ClassCase: lower_case
+  readability-identifier-naming.ClassConstantCase: UPPER_CASE
+  readability-identifier-naming.ClassMethodCase: lower_case
+  readability-identifier-naming.MemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberPrefix: 'm_'
+  readability-identifier-naming.PrivateMemberPrefix: 'm_'
+  readability-simplify-boolean-expr.SimplifyDeMorgan: false
+
 HeaderFilterRegex: ''
 WarningsAsErrors: ''
 AnalyzeTemporaryDtors: false

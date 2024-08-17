@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - An option `unmute-on-scroll` for `internal/pulseaudio` and `internal/alsa` to unmute audio when the user scrolls on the widget.
 
+## [3.7.2] - 2024-08-17
+### Fixed
+- `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)
+-  Token min-length calculations would behave differently when non-ASCII characters appear in the token ([`#3074`](https://github.com/polybar/polybar/issues/3074), [`#3087`](https://github.com/polybar/polybar/pull/3087)) by [@nklloyd](https://github.com/nklloyd)
+-  i3: Fix duplicated rendering for non-full-width bars ([`#3091`](https://github.com/polybar/polybar/pull/3091), [`#3060`](https://github.com/polybar/polybar/issues/3060))
+- `internal/backlight`: Module could display the literal `%percentage%` token if the backlight reports a value of 0 at startup ([`#3081`](https://github.com/polybar/polybar/pull/3081)) by [@unclechu](https://github.com/unclechu)
+- `internal/tray`: Fix crash during restarting, when tray icons were not removed proberly ([`#3111`](https://github.com/polybar/polybar/issues/3111), [`#3112`](https://github.com/polybar/polybar/pull/3112))
+- `custom/ipc`: Module would display the literal `%output%` token before the initial hook finished executing ([`#3131`](https://github.com/polybar/polybar/issues/3131), [`#3140`](https://github.com/polybar/polybar/pull/3140))
+- renderer: Pseudo-transparency rendering artifacts when wallpaper does not fill entire screen ([`#3096`](https://github.com/polybar/polybar/pull/3096), [`#3041`](https://github.com/polybar/polybar/issues/3041))
+
 ## [3.7.1] - 2023-11-27
 ### Build
 - Fixed missing header when using `libc++` in clang 15 and below
@@ -260,7 +270,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.7.1...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.7.2...HEAD
+[3.7.2]: https://github.com/polybar/polybar/releases/tag/3.7.2
 [3.7.1]: https://github.com/polybar/polybar/releases/tag/3.7.1
 [3.7.0]: https://github.com/polybar/polybar/releases/tag/3.7.0
 [3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
