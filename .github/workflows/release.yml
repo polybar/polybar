@@ -61,7 +61,7 @@ jobs:
           script: |
             const tag = '${{ env.RELEASE_TAG }}';
             console.log(`Getting Upload URL for '${tag}'`);
-            const release = await github.repos.getReleaseByTag({
+            const release = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag: tag
@@ -97,7 +97,7 @@ jobs:
             body += `[${fname}](${url}) (**sha256**: \`${hash}\`)\n\n`
             body += process.env.RELEASE_BODY;
 
-            const release = await github.repos.updateRelease({
+            const release = await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: '${{ env.RELEASE_ID}}',
