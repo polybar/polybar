@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [3.7.2] - 2024-08-17
 ### Fixed
 - `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)
 -  Token min-length calculations would behave differently when non-ASCII characters appear in the token ([`#3074`](https://github.com/polybar/polybar/issues/3074), [`#3087`](https://github.com/polybar/polybar/pull/3087)) by [@nklloyd](https://github.com/nklloyd)
@@ -266,7 +268,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.7.1...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.7.2...HEAD
+[3.7.2]: https://github.com/polybar/polybar/releases/tag/3.7.2
 [3.7.1]: https://github.com/polybar/polybar/releases/tag/3.7.1
 [3.7.0]: https://github.com/polybar/polybar/releases/tag/3.7.0
 [3.6.3]: https://github.com/polybar/polybar/releases/tag/3.6.3
